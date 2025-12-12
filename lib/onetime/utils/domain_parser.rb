@@ -100,6 +100,14 @@ module Onetime
         #   hostname_within_domain?('attacker-example.com', 'example.com')     # => false
         #   hostname_within_domain?('example.com.attacker.com', 'example.com') # => false
         #
+        # @security This method is designed for SSRF prevention in webhook validation.
+        #   When PublicSuffix cannot parse a domain (unknown TLDs like .local, .corp),
+        #   it falls back to a strict anchored regex that blocks all known attack vectors:
+        #   - Suffix attacks: "attacker-example.com" (no dot before target)
+        #   - Prefix attacks: "example.com.evil.com" (doesn't end with target)
+        #   - Empty subdomain: ".example.com" (regex requires ≥1 char before dot)
+        #   - Injection attacks: newlines, null bytes (blocked by \A \z anchors)
+        #
         def hostname_within_domain?(hostname, domain)
           host   = extract_hostname(hostname)
           target = extract_hostname(domain)
@@ -119,9 +127,11 @@ module Onetime
             # The host must end with the target (as a proper suffix with dot boundary)
             host == target || host.end_with?(".#{target}")
           rescue PublicSuffix::Error
-            # Fallback to strict anchored regex when PublicSuffix can't parse
-            # (e.g., unknown TLDs, private domains). Still secure: requires
-            # exact ".target" suffix with proper string boundaries (\A, \z).
+            # Fallback for unknown TLDs (.local, .corp, .internal) or malformed domains.
+            # Regex is secure: \A (true start) and \z (true end) prevent injection,
+            # .+ requires ≥1 char before dot, Regexp.escape prevents regex injection.
+            # Only theoretical gap: TLD boundaries (e.g., example.co.uk vs co.uk),
+            # but that requires attacker to control the TARGET, not the input.
             host.match?(/\A.+\.#{Regexp.escape(target)}\z/)
           end
         end
