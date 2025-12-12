@@ -9,6 +9,7 @@ require_relative '../operations/process_webhook_event'
 
 module Onetime
   module CLI
+    using Familia::Refinements::TimeLiterals
     # Replay stored webhook events with filtering
     #
     # Supports post-release debugging by replaying failed webhooks after
@@ -92,7 +93,7 @@ module Onetime
         end
 
         # Execute replay
-        execute_replay(events, skip_notifications: skip_notifications)
+        execute_replay(events, force: force, skip_notifications: skip_notifications)
       end
 
       private
@@ -121,8 +122,8 @@ module Onetime
           return [event]
         end
 
-        cutoff           = parse_since_option(since)
-        customer_pattern = resolve_customer_filter(customer)
+        cutoff             = parse_since_option(since)
+        stripe_customer_id = resolve_customer_filter(customer)
 
         events = []
 
@@ -136,7 +137,8 @@ module Onetime
           break if scanned > max_scan
 
           next unless matches_filters?(event, type: type, cutoff: cutoff,
-            customer_pattern: customer_pattern, status: status, force: force
+            stripe_customer_id: stripe_customer_id, original_customer_id: customer,
+            status: status, force: force
           )
 
           events << event
@@ -168,7 +170,7 @@ module Onetime
       end
 
       # Check if event matches all filters
-      def matches_filters?(event, type:, cutoff:, customer_pattern:, status:, force:)
+      def matches_filters?(event, type:, cutoff:, stripe_customer_id:, original_customer_id:, status:, force:)
         # Skip already successful unless forced
         return false if event.success? && !force
 
@@ -181,8 +183,12 @@ module Onetime
         # Time filter (based on first_seen_at)
         return false if cutoff && event.first_seen_at.to_i < cutoff.to_i
 
-        # Customer filter
-        return false if customer_pattern && !matches_customer?(event, customer_pattern)
+        # Customer filter (pass both Stripe ID and original input for metadata matching)
+        if stripe_customer_id || original_customer_id
+          return false unless matches_customer?(event, stripe_customer_id,
+            original_customer_id: original_customer_id
+          )
+        end
 
         true
       end
@@ -210,35 +216,49 @@ module Onetime
       end
 
       # Check if event relates to a specific customer
-      def matches_customer?(event, customer_id)
-        # Direct match on data_object_id
-        return true if event.data_object_id == customer_id
+      #
+      # @param event [Billing::StripeWebhookEvent] Event to check
+      # @param stripe_customer_id [String, nil] Resolved Stripe customer ID (cus_xxx)
+      # @param original_customer_id [String, nil] Original user input (could be extid/objid)
+      # @return [Boolean] True if event matches the customer
+      def matches_customer?(event, stripe_customer_id, original_customer_id: nil)
+        # Direct match on data_object_id (Stripe ID)
+        return true if stripe_customer_id && event.data_object_id == stripe_customer_id
 
         # Check payload for customer reference
         payload = event.deserialize_payload
         return false unless payload
 
         data_obj = payload.dig('data', 'object') || {}
-        data_obj['customer'] == customer_id ||
-          data_obj['id'] == customer_id ||
-          data_obj.dig('metadata', 'custid') == customer_id
+
+        # Check against Stripe customer ID
+        return true if stripe_customer_id && data_obj['customer'] == stripe_customer_id
+        return true if stripe_customer_id && data_obj['id'] == stripe_customer_id
+
+        # Check metadata against original customer input (which could be an extid/objid)
+        return true if original_customer_id && data_obj.dig('metadata', 'custid') == original_customer_id
+
+        false
       end
 
       # Parse time string to cutoff timestamp
       #
+      # Uses Familia::Refinements::TimeLiterals for parsing duration strings.
+      # Supports: 2h, 3d, 30m, 1w, etc. and ISO8601 timestamps.
+      #
       # @param since_str [String] Time string (2h, 3d, ISO8601)
       # @return [Integer] Unix timestamp cutoff
       def parse_since_option(since_str)
-        return (Time.now - 86_400).to_i if since_str.nil? # Default 24h
+        return (Time.now - 1.day).to_i if since_str.nil? # Default 24h
 
-        case since_str
-        when /^(\d+)h$/i
-          (Time.now - (::Regexp.last_match(1).to_i * 3600)).to_i
-        when /^(\d+)d$/i
-          (Time.now - (::Regexp.last_match(1).to_i * 86_400)).to_i
-        when /^(\d+)m$/i
-          (Time.now - (::Regexp.last_match(1).to_i * 60)).to_i
+        # Check if it looks like a duration string (e.g., "2h", "3d", "30m")
+        # vs an ISO8601 timestamp (contains dashes or colons)
+        if since_str.match?(/^\d+(\.\d+)?[a-zA-Z]+$/)
+          # Duration string - use TimeLiterals refinement
+          seconds = since_str.in_seconds
+          (Time.now - seconds).to_i
         else
+          # ISO8601 timestamp or other format
           Time.parse(since_str).to_i
         end
       end
@@ -277,7 +297,7 @@ module Onetime
       end
 
       # Execute replay for all events
-      def execute_replay(events, skip_notifications:)
+      def execute_replay(events, force:, skip_notifications:)
         puts ''
         puts "Replaying #{events.size} event(s)..."
         puts ''
@@ -285,7 +305,7 @@ module Onetime
         results = { success: 0, failed: 0, skipped: 0 }
 
         events.each do |event|
-          result           = replay_single_event(event, skip_notifications: skip_notifications)
+          result           = replay_single_event(event, force: force, skip_notifications: skip_notifications)
           results[result] += 1
         end
 
@@ -297,9 +317,16 @@ module Onetime
       # Replay a single event
       #
       # @param event [Billing::StripeWebhookEvent] Event to replay
+      # @param force [Boolean] Force replay even if already successful
       # @param skip_notifications [Boolean] Skip notification side effects
       # @return [Symbol] :success, :failed, or :skipped
-      def replay_single_event(event, skip_notifications:)
+      def replay_single_event(event, force:, skip_notifications:)
+        # Skip already successful events unless force is specified
+        if event.success? && !force
+          puts "  SKIP #{event.stripe_event_id} (already successful, use --force to replay)"
+          return :skipped
+        end
+
         # Reconstruct Stripe event
         stripe_event = event.stripe_event
         unless stripe_event

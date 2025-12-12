@@ -99,7 +99,8 @@ RSpec.describe Onetime::CLI::BillingWebhooksReplayCommand, type: :billing do
       result = command.send(:matches_filters?, event,
         type: 'customer.subscription.updated',
         cutoff: (Time.now - 3600).to_i,
-        customer_pattern: nil,
+        stripe_customer_id: nil,
+        original_customer_id: nil,
         status: 'failed',
         force: false
       )
@@ -110,7 +111,8 @@ RSpec.describe Onetime::CLI::BillingWebhooksReplayCommand, type: :billing do
       result = command.send(:matches_filters?, event,
         type: 'checkout.session.completed',
         cutoff: (Time.now - 3600).to_i,
-        customer_pattern: nil,
+        stripe_customer_id: nil,
+        original_customer_id: nil,
         status: 'failed',
         force: false
       )
@@ -121,7 +123,8 @@ RSpec.describe Onetime::CLI::BillingWebhooksReplayCommand, type: :billing do
       result = command.send(:matches_filters?, event,
         type: nil,
         cutoff: (Time.now - 3600).to_i,
-        customer_pattern: nil,
+        stripe_customer_id: nil,
+        original_customer_id: nil,
         status: 'pending',
         force: false
       )
@@ -134,7 +137,8 @@ RSpec.describe Onetime::CLI::BillingWebhooksReplayCommand, type: :billing do
       result = command.send(:matches_filters?, event,
         type: nil,
         cutoff: (Time.now - 3600).to_i, # 1 hour cutoff
-        customer_pattern: nil,
+        stripe_customer_id: nil,
+        original_customer_id: nil,
         status: 'failed',
         force: false
       )
@@ -147,7 +151,8 @@ RSpec.describe Onetime::CLI::BillingWebhooksReplayCommand, type: :billing do
       result = command.send(:matches_filters?, event,
         type: nil,
         cutoff: nil,
-        customer_pattern: nil,
+        stripe_customer_id: nil,
+        original_customer_id: nil,
         status: nil,
         force: false
       )
@@ -156,7 +161,8 @@ RSpec.describe Onetime::CLI::BillingWebhooksReplayCommand, type: :billing do
       result_with_force = command.send(:matches_filters?, event,
         type: nil,
         cutoff: nil,
-        customer_pattern: nil,
+        stripe_customer_id: nil,
+        original_customer_id: nil,
         status: nil,
         force: true
       )
@@ -179,7 +185,7 @@ RSpec.describe Onetime::CLI::BillingWebhooksReplayCommand, type: :billing do
       e
     end
 
-    it 'matches on data_object_id' do
+    it 'matches on data_object_id with stripe_customer_id' do
       result = command.send(:matches_customer?, event, 'cus_test123')
       expect(result).to be true
     end
@@ -190,14 +196,22 @@ RSpec.describe Onetime::CLI::BillingWebhooksReplayCommand, type: :billing do
       expect(result).to be true
     end
 
-    it 'matches on custid in metadata' do
+    it 'matches on custid in metadata using original_customer_id' do
       event.data_object_id = 'sub_xxx'
-      result = command.send(:matches_customer?, event, 'cust_ot_456')
+      # When user provides extid like 'cust_ot_456', it should match metadata
+      result = command.send(:matches_customer?, event, nil, original_customer_id: 'cust_ot_456')
       expect(result).to be true
     end
 
-    it 'returns false for non-matching customer' do
+    it 'does not match custid when only stripe_customer_id is provided' do
+      event.data_object_id = 'sub_xxx'
+      # When stripe_customer_id doesn't match any Stripe fields and no original_customer_id
       result = command.send(:matches_customer?, event, 'cus_other')
+      expect(result).to be false
+    end
+
+    it 'returns false for non-matching customer' do
+      result = command.send(:matches_customer?, event, 'cus_other', original_customer_id: 'wrong_id')
       expect(result).to be false
     end
   end
