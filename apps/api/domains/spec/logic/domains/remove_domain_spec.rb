@@ -6,13 +6,7 @@ require 'spec_helper'
 require_relative '../../../../../../apps/api/domains/application'
 
 RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
-  # Skip these tests - they require full integration environment
-  # Tests need proper Onetime boot sequence, Redis, and model initialization
-  # TODO: Set up integration test environment or convert to unit tests with better mocking
-
-  before(:all) do
-    skip 'Requires integration environment setup'
-  end
+  let(:session) { double('Session') }
 
   let(:customer) do
     double('Customer',
@@ -25,6 +19,14 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
     double('Organization',
       objid: 'org123',
       display_name: 'Test Org',
+    )
+  end
+
+  let(:strategy_result) do
+    double('StrategyResult',
+      session: session,
+      user: customer,
+      metadata: { organization: organization },
     )
   end
 
@@ -42,16 +44,19 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
   end
 
   let(:params) { { 'extid' => 'dom_abc123' } }
-  let(:logic) { described_class.new(customer, params) }
+  let(:logic) { described_class.new(strategy_result, params) }
 
   before do
     allow(logic).to receive(:organization).and_return(organization)
     allow(logic).to receive(:require_organization!)
     allow(Onetime::CustomDomain).to receive(:find_by_extid).and_return(custom_domain)
+    allow(Onetime::Jobs::Publisher).to receive(:enqueue_transient).and_return(true)
   end
 
   describe '#process' do
     before do
+      # Set instance variable since we're skipping raise_concerns which normally sets it
+      logic.instance_variable_set(:@custom_domain, custom_domain)
       allow(logic).to receive(:success_data).and_return({})
     end
 
