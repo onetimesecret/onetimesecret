@@ -22,8 +22,6 @@
 # @see https://github.com/macournoyer/thin/blob/v2.0.1/lib/thin/rackup/handler.rb
 #
 
-require 'rackup'
-
 module Onetime
   module CLI
     class ServerCommand < DelayBootCommand
@@ -46,6 +44,9 @@ module Onetime
 
       def call(config_file: nil, server: 'puma', port: 7143, environment: 'development',
                threads: '2:4', workers: 0, bind: '127.0.0.1', **)
+        # Lazy require - rackup is in development group, not available in production containers
+        require 'rackup'
+
         has_options = port != 7143 || threads != '2:4' || workers != 0 || bind != '127.0.0.1'
 
         if config_file && has_options
