@@ -111,7 +111,7 @@ module Onetime
         end
 
         # Increment a Redis counter
-        # @param key [String] Stats key (will be prefixed with 'stats:')
+        # @param key [String] Stats key without 'stats:' prefix (e.g., 'domains:verified_count')
         def increment_stat(key)
           Familia.dbclient.incr("stats:#{key}")
         rescue StandardError => ex
@@ -119,7 +119,7 @@ module Onetime
         end
 
         # Decrement a Redis counter
-        # @param key [String] Stats key (will be prefixed with 'stats:')
+        # @param key [String] Stats key without 'stats:' prefix (e.g., 'domains:total_count')
         def decrement_stat(key)
           Familia.dbclient.decr("stats:#{key}")
         rescue StandardError => ex
