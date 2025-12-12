@@ -184,7 +184,9 @@ if [ $# -eq 0 ]; then
   if [ "$SERVER_TYPE" = "puma" ]; then
     >&2 echo "Starting Puma server on port $PORT with $PUMA_WORKERS workers ($PUMA_MIN_THREADS-$PUMA_MAX_THREADS threads)"
     # Enable real-time logging for Ruby applications
-    RUBY_YJIT_ENABLE=1 RUBY_UNBUFFERED=1 exec stdbuf -oL -eL bundle exec puma -R config.ru -p $PORT -t $PUMA_MIN_THREADS:$PUMA_MAX_THREADS -w $PUMA_WORKERS
+    # Uses etc/puma.rb for fork safety hooks (SemanticLogger, RabbitMQ)
+    # Environment variables override config file settings where applicable
+    RUBY_YJIT_ENABLE=1 RUBY_UNBUFFERED=1 exec stdbuf -oL -eL bundle exec puma -C etc/puma.rb
   else
     >&2 echo "Starting Thin server on port $PORT"
     # Enable real-time logging for Ruby applications
