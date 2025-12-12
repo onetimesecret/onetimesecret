@@ -235,7 +235,14 @@ module Onetime
         validate_webhook_target!(uri)
 
         http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = (uri.scheme == 'https')
+
+        # Validate scheme and configure SSL
+        scheme = (uri.scheme || '').downcase
+        unless %w[http https].include?(scheme)
+          raise ArgumentError, "Unsupported webhook scheme: #{uri.scheme.inspect}"
+        end
+
+        http.use_ssl = (scheme == 'https')
 
         # Explicit TLS verification settings
         if http.use_ssl?

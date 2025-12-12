@@ -87,21 +87,23 @@ module Onetime
           start_time = Time.now
           queue_names = worker_classes.map(&:queue_name).join(',')
 
-          Thread.new do
+          t = Thread.new do
             loop do
-              sleep interval
-
               uptime_seconds = (Time.now - start_time).to_i
               uptime_str = format_uptime(uptime_seconds)
 
               Onetime.jobs_logger.info(
                 "[Worker] Heartbeat | uptime=#{uptime_str} | queues=#{queue_names}"
               )
+              sleep interval
             rescue StandardError => ex
               # Don't let heartbeat errors crash the thread
-              Onetime.jobs_logger.warn("[Worker] Heartbeat error: #{ex.message}")
+              Onetime.jobs_logger.warn("[Worker] Heartbeat error: #{ex.message}\n#{ex.backtrace&.join("\n")}")
+              sleep interval
             end
           end
+          t.abort_on_exception = false
+          t
         end
 
         # Format seconds into human-readable uptime string
@@ -144,8 +146,17 @@ module Onetime
           amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
 
           # Apply CLI log level override if provided
-          jobs_logger = Onetime.jobs_logger
-          jobs_logger.level = log_level.to_sym if log_level
+          if log_level
+            level_str = log_level.to_s.downcase
+            allowed_levels = %w[trace debug info warn error fatal]
+            if allowed_levels.include?(level_str)
+              Onetime.jobs_logger.level = level_str.to_sym
+            else
+              Onetime.jobs_logger.warn(
+                "Ignoring invalid log level: #{log_level.inspect}. Allowed: #{allowed_levels.join(', ')}"
+              )
+            end
+          end
 
           config = {
             amqp: amqp_url,
