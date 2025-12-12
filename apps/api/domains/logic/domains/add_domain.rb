@@ -75,7 +75,21 @@ module DomainsAPI::Logic
           # Continue processing despite error
         end
 
+        # Emit telemetry event for stats tracking
+        emit_domain_added_telemetry
+
         success_data
+      end
+
+      # Emit telemetry event for domain creation
+      def emit_domain_added_telemetry
+        Onetime::Jobs::Publisher.enqueue_transient('domain.added', {
+          domain: @display_domain,
+          organization_id: organization.objid,
+        })
+      rescue StandardError => ex
+        # Telemetry failures should never break the main flow
+        OT.ld "[AddDomain] Telemetry error: #{ex.message}"
       end
 
       def request_certificate

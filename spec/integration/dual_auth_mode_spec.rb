@@ -158,6 +158,10 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
         Onetime::Application::Registry.reset!
         Onetime::Boot::InitializerRegistry.reset!
 
+        # Force boot! to reload config even if OT.ready? is true
+        # This is defensive against test pollution from specs that mock OT.conf
+        Onetime.reset_ready!
+
         # Boot application (Redis mocking is handled globally by integration_spec_helper.rb)
         Onetime.boot! :test
 
@@ -209,6 +213,10 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
 
         # Reload auth config to pick up AUTHENTICATION_MODE env var
         Onetime.auth_config.reload!
+
+        # Force boot! to reload config even if OT.ready? is true
+        # This is defensive against test pollution from specs that mock OT.conf
+        Onetime.reset_ready!
 
         # Boot application
         Onetime.boot! :test
