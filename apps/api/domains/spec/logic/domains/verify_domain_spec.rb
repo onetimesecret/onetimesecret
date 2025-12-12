@@ -371,4 +371,84 @@ RSpec.describe DomainsAPI::Logic::Domains::VerifyDomain do
       logic.send(:raise_concerns)
     end
   end
+
+  describe 'telemetry events' do
+    let(:strategy) { instance_double(Onetime::DomainValidation::ApproximatedStrategy) }
+
+    before do
+      allow(custom_domain).to receive(:org_id).and_return('org123')
+      allow(logic).to receive(:display_domain).and_return('example.com')
+      logic.instance_variable_set(:@custom_domain, custom_domain)
+    end
+
+    context 'with successful validation' do
+      let(:validation_result) { { validated: true, message: 'TXT record validated' } }
+
+      before do
+        allow(strategy).to receive(:validate_ownership).and_return(validation_result)
+      end
+
+      it 'emits domain.verified telemetry event' do
+        expect(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+          .with('domain.verified', hash_including(domain: 'example.com'))
+
+        logic.send(:refresh_validation, strategy)
+      end
+
+      it 'includes organization_id in telemetry event' do
+        expect(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+          .with('domain.verified', hash_including(organization_id: 'org123'))
+
+        logic.send(:refresh_validation, strategy)
+      end
+
+      it 'does not include reason for successful validation' do
+        expect(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+          .with('domain.verified', hash_not_including(:reason))
+
+        logic.send(:refresh_validation, strategy)
+      end
+    end
+
+    context 'with failed validation' do
+      let(:validation_result) { { validated: false, message: 'TXT record not found' } }
+
+      before do
+        allow(strategy).to receive(:validate_ownership).and_return(validation_result)
+      end
+
+      it 'emits domain.verification_failed telemetry event' do
+        expect(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+          .with('domain.verification_failed', hash_including(domain: 'example.com'))
+
+        logic.send(:refresh_validation, strategy)
+      end
+
+      it 'includes reason in telemetry event' do
+        expect(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+          .with('domain.verification_failed', hash_including(reason: 'TXT record not found'))
+
+        logic.send(:refresh_validation, strategy)
+      end
+    end
+
+    context 'when telemetry fails' do
+      let(:validation_result) { { validated: true, message: 'TXT record validated' } }
+
+      before do
+        allow(strategy).to receive(:validate_ownership).and_return(validation_result)
+        allow(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+          .and_raise(StandardError, 'RabbitMQ down')
+      end
+
+      it 'does not fail the main validation flow' do
+        expect { logic.send(:refresh_validation, strategy) }.not_to raise_error
+      end
+
+      it 'still marks domain as verified' do
+        expect(custom_domain).to receive(:verified!).with(true)
+        logic.send(:refresh_validation, strategy)
+      end
+    end
+  end
 end

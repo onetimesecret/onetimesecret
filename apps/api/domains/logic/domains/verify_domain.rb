@@ -63,7 +63,7 @@ module DomainsAPI::Logic
         event_type = validated ? 'domain.verified' : 'domain.verification_failed'
         data = {
           domain: display_domain,
-          organization_id: custom_domain.organization&.identifier,
+          organization_id: custom_domain.org_id,
         }
         data[:reason] = message if message && !validated
 
