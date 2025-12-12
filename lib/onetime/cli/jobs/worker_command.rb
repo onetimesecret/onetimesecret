@@ -64,12 +64,61 @@ module Onetime
           Onetime.app_logger.info("Starting #{worker_classes.size} worker(s) with concurrency #{concurrency}")
           Onetime.app_logger.info("Workers: #{worker_classes.map(&:name).join(', ')}")
 
+          # Start heartbeat thread for liveness logging
+          start_heartbeat_thread(worker_classes)
+
           # Start the workers
           runner = Sneakers::Runner.new(worker_classes)
           runner.run
         end
 
         private
+
+        # Periodic heartbeat logging for observability
+        # Logs worker status every N minutes so operators can verify the process is alive
+        # even when no messages are being processed.
+        #
+        # @param worker_classes [Array<Class>] Worker classes being run
+        def start_heartbeat_thread(worker_classes)
+          interval = ENV.fetch('WORKER_HEARTBEAT_INTERVAL', 300).to_i # 5 minutes default
+          return if interval <= 0 # Disable with WORKER_HEARTBEAT_INTERVAL=0
+
+          start_time = Time.now
+          queue_names = worker_classes.map(&:queue_name).join(',')
+
+          Thread.new do
+            loop do
+              sleep interval
+
+              uptime_seconds = (Time.now - start_time).to_i
+              uptime_str = format_uptime(uptime_seconds)
+
+              Onetime.app_logger.info(
+                "[Worker] Heartbeat | uptime=#{uptime_str} | queues=#{queue_names}"
+              )
+            rescue StandardError => ex
+              # Don't let heartbeat errors crash the thread
+              Onetime.app_logger.warn("[Worker] Heartbeat error: #{ex.message}")
+            end
+          end
+        end
+
+        # Format seconds into human-readable uptime string
+        # @param seconds [Integer] Total seconds
+        # @return [String] Formatted string like "2h15m" or "3d4h"
+        def format_uptime(seconds)
+          days = seconds / 86_400
+          hours = (seconds % 86_400) / 3600
+          minutes = (seconds % 3600) / 60
+
+          if days > 0
+            "#{days}d#{hours}h"
+          elsif hours > 0
+            "#{hours}h#{minutes}m"
+          else
+            "#{minutes}m"
+          end
+        end
 
         def configure_kicks(concurrency:, daemonize:, environment:, log_level:)
           # Exchange Configuration
