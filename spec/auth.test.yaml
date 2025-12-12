@@ -7,15 +7,6 @@
 # Defaults to 'simple' unless AUTHENTICATION_MODE env var is set
 mode: <%= ENV.fetch('AUTHENTICATION_MODE', 'simple') %>
 
-# Shared session configuration (both modes)
-session:
-  secret: 'test-session-secret-do-not-use-in-production-minimum-64-characters-long'
-  expire_after: 86400 # 24 hours
-  key: 'onetime.session' # Unified cookie name
-  secure: false # Must be false for Rack::Test (uses HTTP, not HTTPS)
-  httponly: true
-  same_site: strict
-
 # Simple mode settings (Redis-only authentication)
 simple:
   password_hash_cost: 12

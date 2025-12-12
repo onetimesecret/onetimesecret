@@ -10,9 +10,12 @@ site:
   # Session configuration for tests
   # secure: false is required for Rack::Test which uses HTTP (not HTTPS)
   session:
-    secret: 'SuP0r_53cRU7_s3ss10n_0nly'
-    secure: false
-    same_site: lax
+    secret: 'test-session-secret-do-not-use-in-production-minimum-64-characters-long'
+    expire_after: 86400 # 24 hours
+    key: 'onetime.session' # Unified cookie name
+    secure: false # Must be false for Rack::Test (uses HTTP, not HTTPS)
+    httponly: true
+    same_site: strict
   interface:
     # Controls whether the web user interface is available. When disabled, the
     # homepage becomes a basic, readonly page with the logo and a brief
