@@ -13,7 +13,7 @@
 #   -c, --concurrency THREADS    Number of worker threads (default: 10)
 #   -d, --daemonize              Run as daemon
 #   -e, --environment ENV        Environment to run in (default: development)
-#   -l, --log-level LEVEL        Log level: trace, debug, info, warn, error (default: info)
+#   -l, --log-level LEVEL        Override Jobs logger level (uses logging.yaml by default)
 #
 
 require 'sneakers'
@@ -33,11 +33,11 @@ module Onetime
           desc: 'Run as daemon'
         option :environment, type: :string, default: 'development', aliases: ['e'],
           desc: 'Environment to run in'
-        option :log_level, type: :string, default: 'info', aliases: ['l'],
-          desc: 'Log level: trace, debug, info, warn, error'
+        option :log_level, type: :string, aliases: ['l'],
+          desc: 'Override Jobs logger level (trace/debug/info/warn/error)'
 
         def call(queues: nil, concurrency: 10, daemonize: false, environment: 'development',
-                 log_level: 'info', **)
+                 log_level: nil, **)
           # Skip RabbitMQ setup during boot - Sneakers creates its own connections.
           # This prevents ConnectionPool.after_fork from timing out when closing
           # inherited channels after Sneakers forks worker processes.
@@ -57,12 +57,12 @@ module Onetime
           worker_classes = determine_workers(queues)
 
           if worker_classes.empty?
-            Onetime.app_logger.error('No worker classes found')
+            Onetime.jobs_logger.error('No worker classes found')
             exit 1
           end
 
-          Onetime.app_logger.info("Starting #{worker_classes.size} worker(s) with concurrency #{concurrency}")
-          Onetime.app_logger.info("Workers: #{worker_classes.map(&:name).join(', ')}")
+          Onetime.jobs_logger.info("Starting #{worker_classes.size} worker(s) with concurrency #{concurrency}")
+          Onetime.jobs_logger.info("Workers: #{worker_classes.map(&:name).join(', ')}")
 
           # Start heartbeat thread for liveness logging
           start_heartbeat_thread(worker_classes)
@@ -93,12 +93,12 @@ module Onetime
               uptime_seconds = (Time.now - start_time).to_i
               uptime_str = format_uptime(uptime_seconds)
 
-              Onetime.app_logger.info(
+              Onetime.jobs_logger.info(
                 "[Worker] Heartbeat | uptime=#{uptime_str} | queues=#{queue_names}"
               )
             rescue StandardError => ex
               # Don't let heartbeat errors crash the thread
-              Onetime.app_logger.warn("[Worker] Heartbeat error: #{ex.message}")
+              Onetime.jobs_logger.warn("[Worker] Heartbeat error: #{ex.message}")
             end
           end
         end
@@ -142,6 +142,10 @@ module Onetime
           #
           amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
 
+          # Apply CLI log level override if provided
+          jobs_logger = Onetime.jobs_logger
+          jobs_logger.level = log_level.to_sym if log_level
+
           config = {
             amqp: amqp_url,
             exchange: '',
@@ -149,13 +153,14 @@ module Onetime
             threads: concurrency,
             workers: 1, # Number of worker processes (vs threads)
             daemonize: daemonize,
-            log: STDOUT,
             pid_path: ENV.fetch('SNEAKERS_PID_PATH', 'tmp/pids/sneakers.pid'),
             env: environment,
             durable: true,
             ack: true,
             heartbeat: 30,
             prefetch: concurrency,
+            # Use Bunny logger from centralized logging config (setup_rabbitmq.rb pattern)
+            logger: Onetime.bunny_logger,
           }
 
           # Override vhost only if explicitly set via env var.
@@ -176,9 +181,6 @@ module Onetime
           end
 
           Sneakers.configure(config)
-
-          # Set Kicks logger to match OT log level
-          Sneakers.logger.level = logger_level(log_level)
         end
 
         def determine_workers(queues_str)
@@ -207,21 +209,6 @@ module Onetime
           end
 
           worker_classes
-        end
-
-        def logger_level(level_str)
-          case level_str.to_s.downcase
-          when 'trace', 'debug'
-            Logger::DEBUG
-          when 'warn'
-            Logger::WARN
-          when 'error'
-            Logger::ERROR
-          when 'fatal'
-            Logger::FATAL
-          else
-            Logger::INFO # default for 'info' and unknown values
-          end
         end
       end
     end
