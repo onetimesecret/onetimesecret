@@ -99,6 +99,15 @@ module Onetime
 
       # Collect events matching all filters
       #
+      # Uses streaming approach: scan Redis keys, load and filter events
+      # incrementally, stop when limit reached.
+      #
+      # Note: Currently uses N+1 Redis calls (one per event). For large-scale
+      # replay, consider:
+      # 1. RabbitMQ-based replay (publish event IDs to worker queue)
+      # 2. Familia load_multi method for batch HGETALL
+      # 3. Redis pipeline with proper Horreum deserialization
+      #
       # @return [Array<Billing::StripeWebhookEvent>] Matching events
       def collect_replay_candidates(event_id:, type:, since:, customer:, status:, limit:, force:)
         # If specific event_id provided, just wrap in list
@@ -117,8 +126,15 @@ module Onetime
 
         events = []
 
-        # Scan and filter (same pattern as webhooks_command.rb)
+        # Scan and filter with early termination
+        # Over-fetch slightly to allow for filtering, but cap memory usage
+        max_scan = limit * 5
+        scanned = 0
+
         scan_webhook_events do |event|
+          scanned += 1
+          break if scanned > max_scan
+
           next unless matches_filters?(event, type: type, cutoff: cutoff,
                                        customer_pattern: customer_pattern, status: status, force: force)
           events << event
