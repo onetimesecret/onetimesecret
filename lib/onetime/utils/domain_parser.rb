@@ -119,9 +119,10 @@ module Onetime
             # The host must end with the target (as a proper suffix with dot boundary)
             host == target || host.end_with?(".#{target}")
           rescue PublicSuffix::Error
-            # Fail securely: if we can't properly validate domain boundaries,
-            # reject the match rather than falling back to weaker validation
-            false
+            # Fallback to strict anchored regex when PublicSuffix can't parse
+            # (e.g., unknown TLDs, private domains). Still secure: requires
+            # exact ".target" suffix with proper string boundaries (\A, \z).
+            host.match?(/\A.+\.#{Regexp.escape(target)}\z/)
           end
         end
 
