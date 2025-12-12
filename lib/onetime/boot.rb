@@ -9,6 +9,15 @@ module Onetime
     @conf  = nil
     @ready = nil
 
+    # Session configuration defaults
+    # Ensures middleware always has valid values even if site.session is not configured
+    SESSION_DEFAULTS = {
+      'expire_after' => 86_400,      # 24 hours
+      'key' => 'onetime.session',
+      'same_site' => 'strict',
+      'httponly' => true,
+    }.freeze
+
     attr_reader :conf, :instance
 
     # Boot reads and interprets the configuration and applies it to the
@@ -159,7 +168,29 @@ module Onetime
       @ready = nil
     end
 
+    # Session configuration accessor
+    # Moved from auth.yaml to site config as sessions are auth-mode agnostic
+    def session_config
+      defaults = SESSION_DEFAULTS.dup
+      session = conf&.dig('site', 'session') || {}
+
+      # Merge user config over defaults
+      result = defaults.merge(session)
+
+      # Fallback to site.secret if session secret is not set
+      result['secret'] ||= conf&.dig('site', 'secret')
+
+      # Apply SSL fallback if secure not explicitly set
+      result['secure'] = ssl_enabled? if result['secure'].nil?
+
+      result
+    end
+
     private
+
+    def ssl_enabled?
+      conf&.dig('site', 'ssl') || env == 'production'
+    end
 
     # Replaces the global configuration instance. This method is private to
     # prevent external modification of the shared configuration state

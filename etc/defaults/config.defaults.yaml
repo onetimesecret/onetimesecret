@@ -218,6 +218,22 @@ site:
   # docs.onetimesecret.com.
   support:
     host: <%= ENV['SUPPORT_HOST'] || nil %>
+  # Session configuration
+  # Controls browser cookie and server-side session behavior.
+  # Session handling is auth-mode agnostic (works with simple or full mode).
+  session:
+    # Session secret for HMAC signing. Falls back to site.secret if not set.
+    secret: <%= ENV['SESSION_SECRET'] %>
+    # Session lifetime in seconds (default: 24 hours)
+    expire_after: 86400
+    # Cookie name
+    key: 'onetime.session'
+    # Require HTTPS for cookies (recommended: true in production)
+    secure: <%= ENV['SSL'] == 'true' || false %>
+    # SameSite cookie attribute (strict|lax|none)
+    same_site: strict
+    # Prevent JavaScript access to cookies (always true in Rack)
+    httponly: true
 
 features:
   regions:

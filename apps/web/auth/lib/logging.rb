@@ -131,7 +131,8 @@ module Auth
       payload[:correlation_id] ||= 'none'
 
       if exception
-        logger.error("[#{event}]", exception, payload)
+        # SemanticLogger signature: error(message, payload, exception)
+        logger.error("[#{event}]", payload, exception)
       else
         logger.error("[#{event}]", payload)
       end
