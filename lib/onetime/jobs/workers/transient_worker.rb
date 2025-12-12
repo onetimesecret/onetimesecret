@@ -113,7 +113,7 @@ module Onetime
         # Increment a Redis counter
         # @param key [String] Stats key (will be prefixed with 'stats:')
         def increment_stat(key)
-          Familia.redis.incr("stats:#{key}")
+          Familia.dbclient.incr("stats:#{key}")
         rescue StandardError => ex
           log_error "Failed to increment stat #{key}", ex
         end
@@ -121,7 +121,7 @@ module Onetime
         # Decrement a Redis counter
         # @param key [String] Stats key (will be prefixed with 'stats:')
         def decrement_stat(key)
-          Familia.redis.decr("stats:#{key}")
+          Familia.dbclient.decr("stats:#{key}")
         rescue StandardError => ex
           log_error "Failed to decrement stat #{key}", ex
         end

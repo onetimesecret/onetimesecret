@@ -255,4 +255,37 @@ RSpec.describe DomainsAPI::Logic::Domains::AddDomain do
       expect(data[:details]).to have_key(:cluster)
     end
   end
+
+  describe 'telemetry events (domain.added)' do
+    let(:strategy) { instance_double(Onetime::DomainValidation::PassthroughStrategy) }
+    let(:result) { { status: 'external' } }
+
+    before do
+      allow(Onetime::DomainValidation::Strategy).to receive(:for_config)
+        .and_return(strategy)
+      allow(strategy).to receive(:request_certificate).and_return(result)
+      allow(logic).to receive(:success_data).and_return({})
+    end
+
+    it 'emits domain.added telemetry event after creating domain' do
+      expect(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+        .with('domain.added', hash_including(domain: 'example.com'))
+
+      logic.send(:process)
+    end
+
+    it 'includes organization_id in telemetry event' do
+      expect(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+        .with('domain.added', hash_including(organization_id: organization.objid))
+
+      logic.send(:process)
+    end
+
+    it 'does not fail if telemetry emission fails' do
+      allow(Onetime::Jobs::Publisher).to receive(:enqueue_transient)
+        .and_raise(StandardError, 'RabbitMQ down')
+
+      expect { logic.send(:process) }.not_to raise_error
+    end
+  end
 end

@@ -145,4 +145,110 @@ RSpec.describe Onetime::Jobs::Publisher do
       end
     end
   end
+
+  describe '.enqueue_transient' do
+    it 'responds to enqueue_transient class method' do
+      expect(described_class).to respond_to(:enqueue_transient)
+    end
+  end
+
+  describe '#enqueue_transient' do
+    subject(:publisher) { described_class.new }
+
+    it 'responds to enqueue_transient instance method' do
+      expect(publisher).to respond_to(:enqueue_transient)
+    end
+
+    context 'without RabbitMQ (jobs disabled)' do
+      before do
+        $rmq_channel_pool = nil
+      end
+
+      it 'returns false when jobs are disabled' do
+        result = publisher.enqueue_transient('domain.verified', { domain: 'example.com' })
+
+        expect(result).to be false
+      end
+
+      it 'does not raise errors when jobs are disabled' do
+        expect {
+          publisher.enqueue_transient('domain.verified', { domain: 'example.com' })
+        }.not_to raise_error
+      end
+    end
+
+    context 'with RabbitMQ' do
+      let(:mock_channel) { double('channel') }
+      let(:mock_exchange) { double('default_exchange') }
+      let(:mock_channel_pool) { double('channel_pool') }
+
+      before do
+        allow(mock_channel_pool).to receive(:with).and_yield(mock_channel)
+        allow(mock_channel).to receive(:default_exchange).and_return(mock_exchange)
+        allow(mock_exchange).to receive(:publish)
+        $rmq_channel_pool = mock_channel_pool
+      end
+
+      after do
+        $rmq_channel_pool = nil
+      end
+
+      it 'returns true when successfully published' do
+        result = publisher.enqueue_transient('domain.verified', { domain: 'example.com' })
+
+        expect(result).to be true
+      end
+
+      it 'publishes to system.transient queue' do
+        publisher.enqueue_transient('domain.verified', { domain: 'example.com' })
+
+        expect(mock_exchange).to have_received(:publish) do |_payload, options|
+          expect(options[:routing_key]).to eq('system.transient')
+        end
+      end
+
+      it 'publishes non-persistent messages' do
+        publisher.enqueue_transient('domain.verified', { domain: 'example.com' })
+
+        expect(mock_exchange).to have_received(:publish) do |_payload, options|
+          expect(options[:persistent]).to be false
+        end
+      end
+
+      it 'includes event_type in payload' do
+        publisher.enqueue_transient('domain.verified', { domain: 'example.com' })
+
+        expect(mock_exchange).to have_received(:publish) do |payload, _options|
+          data = JSON.parse(payload, symbolize_names: true)
+          expect(data[:event_type]).to eq('domain.verified')
+        end
+      end
+
+      it 'includes data in payload' do
+        publisher.enqueue_transient('domain.verified', { domain: 'example.com', org_id: 'abc123' })
+
+        expect(mock_exchange).to have_received(:publish) do |payload, _options|
+          data = JSON.parse(payload, symbolize_names: true)
+          expect(data[:data]).to eq({ domain: 'example.com', org_id: 'abc123' })
+        end
+      end
+
+      it 'includes timestamp in payload' do
+        publisher.enqueue_transient('domain.verified', {})
+
+        expect(mock_exchange).to have_received(:publish) do |payload, _options|
+          data = JSON.parse(payload, symbolize_names: true)
+          expect(data[:timestamp]).to match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
+        end
+      end
+
+      it 'swallows errors and returns false' do
+        allow(mock_exchange).to receive(:publish).and_raise(StandardError, 'Connection lost')
+
+        result = publisher.enqueue_transient('domain.verified', {})
+
+        expect(result).to be false
+      end
+    end
+  end
 end

@@ -34,6 +34,7 @@ module DomainsAPI::Logic
         OT.ld "[RemoveDomain] Processing #{@extid} (#{@custom_domain.display_domain})"
         @greenlighted   = true
         @display_domain = @custom_domain.display_domain
+        @org_id         = @custom_domain.org_id
 
         # Destroy method operates inside a multi block that deletes the domain
         # record, removes it from customer's domain list, and global list so
@@ -41,7 +42,21 @@ module DomainsAPI::Logic
         # vhost record.
         @custom_domain.destroy!(@cust)
 
+        # Emit telemetry event for stats tracking
+        emit_domain_removed_telemetry
+
         success_data
+      end
+
+      # Emit telemetry event for domain removal
+      def emit_domain_removed_telemetry
+        Onetime::Jobs::Publisher.enqueue_transient('domain.removed', {
+          domain: @display_domain,
+          organization_id: @org_id,
+        })
+      rescue StandardError => ex
+        # Telemetry failures should never break the main flow
+        OT.ld "[RemoveDomain] Telemetry error: #{ex.message}"
       end
 
       def delete_vhost
