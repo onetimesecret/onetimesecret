@@ -33,21 +33,20 @@ module Onetime
         #
         # @return [void]
         def disconnect
-          return unless defined?($rmq_conn) && $rmq_conn&.open?
-
-          Onetime.bunny_logger.info '[SetupRabbitMQ] Closing RabbitMQ connection before fork'
-
-          # Close connection while socket is still alive - clean shutdown
-          $rmq_conn.close
+          # Always clear globals first - stale connection objects from parent
+          # process are useless in forked children
+          conn = $rmq_conn
           $rmq_conn = nil
           $rmq_channel_pool = nil
 
+          return unless conn&.open?
+
+          Onetime.bunny_logger.info '[SetupRabbitMQ] Closing RabbitMQ connection before fork'
+          conn.close
           Onetime.bunny_logger.debug '[SetupRabbitMQ] RabbitMQ disconnected'
         rescue StandardError => ex
           # Log but don't raise - fork must proceed
           Onetime.bunny_logger.warn "[SetupRabbitMQ] Error during disconnect: #{ex.message}"
-          $rmq_conn = nil
-          $rmq_channel_pool = nil
         end
 
         # Reconnect RabbitMQ after Puma fork.

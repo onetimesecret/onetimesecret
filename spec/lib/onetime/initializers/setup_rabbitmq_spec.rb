@@ -54,10 +54,10 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
         described_class.disconnect
       end
 
-      it 'leaves globals unchanged' do
+      it 'clears global variables' do
         described_class.disconnect
-        expect($rmq_conn).to eq(@mock_conn)
-        expect($rmq_channel_pool).not_to be_nil
+        expect($rmq_conn).to be_nil
+        expect($rmq_channel_pool).to be_nil
       end
     end
 
