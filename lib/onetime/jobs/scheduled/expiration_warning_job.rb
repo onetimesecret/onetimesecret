@@ -20,10 +20,19 @@ module Onetime
       #       check_interval: '1h'   # How often to scan
       #       warning_hours: 24      # Warn N hours before expiry
       #       min_ttl_hours: 48      # Only warn for secrets with TTL > this
+      #       batch_size: 100        # Max warnings per run (rate limiting)
       #
       # Data structures (in Metadata):
       #   - expiration_timeline: Sorted set (score = expiration timestamp)
       #   - warnings_sent: Set for deduplication
+      #
+      # Rate Limiting:
+      #   The batch_size setting prevents queue overflow when many secrets expire
+      #   simultaneously. Remaining secrets are processed in subsequent runs.
+      #   This is an application-level rate limit; RabbitMQ queue-level limits
+      #   (x-max-length with x-overflow: reject-publish) require publisher confirms
+      #   to provide feedback, which adds complexity. The batch approach is simpler
+      #   and self-healing: capacity = batch_size × runs_per_day.
       #
       class ExpirationWarningJob < ScheduledJob
         # Send warning email 1 hour before secret expiration
@@ -31,6 +40,9 @@ module Onetime
 
         # Grace period for cleanup: remove timeline entries that expired over 1 hour ago
         CLEANUP_GRACE_PERIOD_SECONDS = 3600
+
+        # Default batch size if not configured
+        DEFAULT_BATCH_SIZE = 100
 
         class << self
           def schedule(scheduler)
@@ -56,11 +68,25 @@ module Onetime
             hours > 0 ? hours : 24
           end
 
+          def batch_size
+            size = OT.conf.dig('jobs', 'expiration_warnings', 'batch_size').to_i
+            size > 0 ? size : DEFAULT_BATCH_SIZE
+          end
+
           def process_expiring_secrets
             warning_window = warning_hours * 3600
-            expiring_ids = Onetime::Metadata.expiring_within(warning_window)
+            all_expiring_ids = Onetime::Metadata.expiring_within(warning_window)
+            total_found = all_expiring_ids.size
 
-            scheduler_logger.debug "[ExpirationWarningJob] Found #{expiring_ids.size} secrets expiring within #{warning_hours}h"
+            # Apply batch limit to prevent queue overflow
+            expiring_ids = all_expiring_ids.take(batch_size)
+
+            if total_found > batch_size
+              scheduler_logger.warn "[ExpirationWarningJob] Throttling: #{total_found} secrets expiring, " \
+                                    "processing #{batch_size} (remaining will be processed in next run)"
+            else
+              scheduler_logger.debug "[ExpirationWarningJob] Found #{total_found} secrets expiring within #{warning_hours}h"
+            end
 
             processed = 0
             skipped = 0

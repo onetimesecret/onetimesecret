@@ -488,6 +488,9 @@ jobs:
     # Only warn for secrets with TTL greater than this (hours)
     # Prevents spamming for short-lived secrets
     min_ttl_hours: <%= ENV['JOBS_EXPIRATION_MIN_TTL_HOURS']&.to_i || 48 %>
+    # Maximum warnings to process per job run (rate limiting)
+    # Prevents queue overflow; remaining secrets processed in next run
+    batch_size: <%= ENV['JOBS_EXPIRATION_BATCH_SIZE']&.to_i || 100 %>
 
 internationalization:
   enabled: <%= ENV['I18N_ENABLED'] == 'true' || false %>

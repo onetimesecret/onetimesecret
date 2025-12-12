@@ -389,4 +389,122 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
       expect(described_class.send(:warning_hours)).to eq(24)
     end
   end
+
+  describe 'batch_size configuration' do
+    it 'returns configured value' do
+      allow(OT).to receive(:conf).and_return({
+        'jobs' => {
+          'expiration_warnings' => {
+            'batch_size' => 200
+          }
+        }
+      })
+
+      expect(described_class.send(:batch_size)).to eq(200)
+    end
+
+    it 'defaults to DEFAULT_BATCH_SIZE when not configured' do
+      allow(OT).to receive(:conf).and_return({
+        'jobs' => {
+          'expiration_warnings' => {}
+        }
+      })
+
+      expect(described_class.send(:batch_size)).to eq(described_class::DEFAULT_BATCH_SIZE)
+    end
+
+    it 'defaults to DEFAULT_BATCH_SIZE when configured as 0' do
+      allow(OT).to receive(:conf).and_return({
+        'jobs' => {
+          'expiration_warnings' => {
+            'batch_size' => 0
+          }
+        }
+      })
+
+      expect(described_class.send(:batch_size)).to eq(described_class::DEFAULT_BATCH_SIZE)
+    end
+  end
+
+  describe 'batch limiting (rate limiting)' do
+    before do
+      allow(OT).to receive(:conf).and_return({
+        'jobs' => {
+          'expiration_warnings' => {
+            'enabled' => true,
+            'warning_hours' => 24,
+            'batch_size' => 2
+          }
+        }
+      })
+
+      allow(Onetime::Metadata).to receive(:warning_sent?).and_return(false)
+      allow(Onetime::Metadata).to receive(:mark_warning_sent)
+      allow(Onetime::Metadata).to receive(:cleanup_expired_from_timeline).and_return(0)
+      allow(Onetime::Jobs::Publisher).to receive(:schedule_email)
+    end
+
+    let(:metadata1) do
+      instance_double(
+        'Onetime::Metadata',
+        identifier: 'meta1',
+        exists?: true,
+        anonymous?: false,
+        load_owner: owner_with_email,
+        secret_shortid: 'key1',
+        secret_expiration: (Familia.now.to_i + 7200),
+        share_domain: nil
+      )
+    end
+
+    let(:metadata2) do
+      instance_double(
+        'Onetime::Metadata',
+        identifier: 'meta2',
+        exists?: true,
+        anonymous?: false,
+        load_owner: owner_with_email,
+        secret_shortid: 'key2',
+        secret_expiration: (Familia.now.to_i + 7200),
+        share_domain: nil
+      )
+    end
+
+    let(:metadata3) do
+      instance_double(
+        'Onetime::Metadata',
+        identifier: 'meta3',
+        exists?: true,
+        anonymous?: false,
+        load_owner: owner_with_email,
+        secret_shortid: 'key3',
+        secret_expiration: (Familia.now.to_i + 7200),
+        share_domain: nil
+      )
+    end
+
+    it 'limits processing to batch_size secrets' do
+      allow(Onetime::Metadata).to receive(:expiring_within).and_return(%w[meta1 meta2 meta3])
+      allow(Onetime::Metadata).to receive(:load).with('meta1').and_return(metadata1)
+      allow(Onetime::Metadata).to receive(:load).with('meta2').and_return(metadata2)
+      allow(Onetime::Metadata).to receive(:load).with('meta3').and_return(metadata3)
+
+      described_class.send(:process_expiring_secrets)
+
+      # Only first 2 (batch_size) should be processed
+      expect(Onetime::Jobs::Publisher).to have_received(:schedule_email).exactly(2).times
+      expect(Onetime::Metadata).to have_received(:mark_warning_sent).with('meta1')
+      expect(Onetime::Metadata).to have_received(:mark_warning_sent).with('meta2')
+      expect(Onetime::Metadata).not_to have_received(:mark_warning_sent).with('meta3')
+    end
+
+    it 'does not throttle when under batch_size' do
+      allow(Onetime::Metadata).to receive(:expiring_within).and_return(%w[meta1])
+      allow(Onetime::Metadata).to receive(:load).with('meta1').and_return(metadata1)
+
+      described_class.send(:process_expiring_secrets)
+
+      expect(Onetime::Jobs::Publisher).to have_received(:schedule_email).exactly(1).time
+    end
+  end
 end
