@@ -202,44 +202,36 @@ RSpec.describe Onetime::Jobs::Publisher do
       it 'publishes to system.transient queue' do
         publisher.enqueue_transient('domain.verified', { domain: 'example.com' })
 
-        expect(mock_exchange).to have_received(:publish) do |_payload, options|
-          expect(options[:routing_key]).to eq('system.transient')
-        end
+        expect(mock_exchange).to have_received(:publish)
+          .with(anything, hash_including(routing_key: 'system.transient'))
       end
 
       it 'publishes non-persistent messages' do
         publisher.enqueue_transient('domain.verified', { domain: 'example.com' })
 
-        expect(mock_exchange).to have_received(:publish) do |_payload, options|
-          expect(options[:persistent]).to be false
-        end
+        expect(mock_exchange).to have_received(:publish)
+          .with(anything, hash_including(persistent: false))
       end
 
       it 'includes event_type in payload' do
         publisher.enqueue_transient('domain.verified', { domain: 'example.com' })
 
-        expect(mock_exchange).to have_received(:publish) do |payload, _options|
-          data = JSON.parse(payload, symbolize_names: true)
-          expect(data[:event_type]).to eq('domain.verified')
-        end
+        expect(mock_exchange).to have_received(:publish)
+          .with(satisfy { |p| JSON.parse(p, symbolize_names: true)[:event_type] == 'domain.verified' }, anything)
       end
 
       it 'includes data in payload' do
         publisher.enqueue_transient('domain.verified', { domain: 'example.com', org_id: 'abc123' })
 
-        expect(mock_exchange).to have_received(:publish) do |payload, _options|
-          data = JSON.parse(payload, symbolize_names: true)
-          expect(data[:data]).to eq({ domain: 'example.com', org_id: 'abc123' })
-        end
+        expect(mock_exchange).to have_received(:publish)
+          .with(satisfy { |p| JSON.parse(p, symbolize_names: true)[:data] == { domain: 'example.com', org_id: 'abc123' } }, anything)
       end
 
       it 'includes timestamp in payload' do
         publisher.enqueue_transient('domain.verified', {})
 
-        expect(mock_exchange).to have_received(:publish) do |payload, _options|
-          data = JSON.parse(payload, symbolize_names: true)
-          expect(data[:timestamp]).to match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
-        end
+        expect(mock_exchange).to have_received(:publish)
+          .with(satisfy { |p| JSON.parse(p, symbolize_names: true)[:timestamp] =~ /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/ }, anything)
       end
 
       it 'swallows errors and returns false' do

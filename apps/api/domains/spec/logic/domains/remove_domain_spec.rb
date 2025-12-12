@@ -119,11 +119,10 @@ RSpec.describe DomainsAPI::Logic::Domains::RemoveDomain do
       expect { logic.send(:process) }.not_to raise_error
     end
 
-    it 'emits telemetry even if destroy fails' do
+    it 'does not emit telemetry if destroy fails' do
       allow(custom_domain).to receive(:destroy!).and_raise(StandardError, 'Destroy failed')
 
-      # Should still attempt telemetry before the error propagates
-      # Or handle gracefully - depends on implementation choice
+      expect(Onetime::Jobs::Publisher).not_to receive(:enqueue_transient)
       expect { logic.send(:process) }.to raise_error(StandardError)
     end
   end
