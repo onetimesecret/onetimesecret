@@ -353,3 +353,39 @@ Onetime::Utils::DomainParser.hostname_within_domain?('https://api.example.com/we
 ## Webhook URL security check - attacker URL fails
 Onetime::Utils::DomainParser.hostname_within_domain?('https://attacker-example.com/webhook', 'example.com')
 #=> false
+
+## =================================================================
+## Cache functionality (Concurrent::Map)
+## =================================================================
+
+## Cache has entries after earlier tests (proves caching is active)
+Onetime::Utils::DomainParser.cache_stats[:size] > 0
+#=> true
+
+## Cache returns correct max_size constant
+Onetime::Utils::DomainParser.cache_stats[:max_size]
+#=> 1000
+
+## Clear cache and verify it empties
+before_clear = Onetime::Utils::DomainParser.cache_stats[:size]
+Onetime::Utils::DomainParser.clear_cache
+after_clear = Onetime::Utils::DomainParser.cache_stats[:size]
+[before_clear > 0, after_clear]
+#=> [true, 0]
+
+## Cache populates after hostname_within_domain? call
+Onetime::Utils::DomainParser.clear_cache
+Onetime::Utils::DomainParser.hostname_within_domain?('sub.cached-test.com', 'cached-test.com')
+Onetime::Utils::DomainParser.cache_stats[:size] > 0
+#=> true
+
+## Repeated calls use cached results (size stays constant for same domains)
+Onetime::Utils::DomainParser.clear_cache
+# First call parses and caches
+result1 = Onetime::Utils::DomainParser.hostname_within_domain?('api.example.com', 'example.com')
+size_after_first = Onetime::Utils::DomainParser.cache_stats[:size]
+# Second call with same domains should hit cache (size unchanged)
+result2 = Onetime::Utils::DomainParser.hostname_within_domain?('api.example.com', 'example.com')
+size_after_second = Onetime::Utils::DomainParser.cache_stats[:size]
+[result1, result2, size_after_first == size_after_second]
+#=> [true, true, true]
