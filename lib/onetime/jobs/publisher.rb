@@ -150,15 +150,21 @@ module Onetime
 
       # Enqueue transient event (fire-and-forget telemetry)
       # No fallback - data loss is acceptable for telemetry
-      # @param event_type [String] Event type (e.g., 'domain.verified')
-      # @param data [Hash] Event payload
+      # @param event_type [String, Symbol] Event type (e.g., 'domain.verified')
+      # @param data [Hash] Event payload (coerced to empty hash if invalid)
       # @return [Boolean] true if published, false if jobs disabled or error
       def enqueue_transient(event_type, data = {})
         return false unless jobs_enabled?
 
+        # Defensive validation - catch obvious misuse
+        if event_type.to_s.strip.empty?
+          logger.debug 'Rejected transient event: empty event_type'
+          return false
+        end
+
         payload = {
-          event_type: event_type,
-          data: data,
+          event_type: event_type.to_s,
+          data: data.is_a?(Hash) ? data : {},
           timestamp: Time.now.utc.iso8601,
         }
 

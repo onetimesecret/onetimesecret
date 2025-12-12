@@ -177,6 +177,87 @@ RSpec.describe Onetime::Jobs::Publisher do
       end
     end
 
+    context 'input validation' do
+      before do
+        $rmq_channel_pool = nil
+      end
+
+      it 'returns false for nil event_type' do
+        result = publisher.enqueue_transient(nil, { domain: 'example.com' })
+
+        expect(result).to be false
+      end
+
+      it 'returns false for empty event_type' do
+        result = publisher.enqueue_transient('', { domain: 'example.com' })
+
+        expect(result).to be false
+      end
+
+      it 'returns false for whitespace-only event_type' do
+        result = publisher.enqueue_transient('   ', { domain: 'example.com' })
+
+        expect(result).to be false
+      end
+
+      it 'accepts symbol event_type and coerces to string' do
+        mock_channel = double('channel')
+        mock_exchange = double('default_exchange')
+        mock_channel_pool = double('channel_pool')
+
+        allow(mock_channel_pool).to receive(:with).and_yield(mock_channel)
+        allow(mock_channel).to receive(:default_exchange).and_return(mock_exchange)
+        allow(mock_exchange).to receive(:publish)
+        $rmq_channel_pool = mock_channel_pool
+
+        result = publisher.enqueue_transient(:domain_verified, { domain: 'example.com' })
+
+        expect(result).to be true
+        expect(mock_exchange).to have_received(:publish)
+          .with(satisfy { |p| JSON.parse(p, symbolize_names: true)[:event_type] == 'domain_verified' }, anything)
+
+        $rmq_channel_pool = nil
+      end
+
+      it 'coerces non-hash data to empty hash' do
+        mock_channel = double('channel')
+        mock_exchange = double('default_exchange')
+        mock_channel_pool = double('channel_pool')
+
+        allow(mock_channel_pool).to receive(:with).and_yield(mock_channel)
+        allow(mock_channel).to receive(:default_exchange).and_return(mock_exchange)
+        allow(mock_exchange).to receive(:publish)
+        $rmq_channel_pool = mock_channel_pool
+
+        result = publisher.enqueue_transient('domain.verified', 'not a hash')
+
+        expect(result).to be true
+        expect(mock_exchange).to have_received(:publish)
+          .with(satisfy { |p| JSON.parse(p, symbolize_names: true)[:data] == {} }, anything)
+
+        $rmq_channel_pool = nil
+      end
+
+      it 'coerces nil data to empty hash' do
+        mock_channel = double('channel')
+        mock_exchange = double('default_exchange')
+        mock_channel_pool = double('channel_pool')
+
+        allow(mock_channel_pool).to receive(:with).and_yield(mock_channel)
+        allow(mock_channel).to receive(:default_exchange).and_return(mock_exchange)
+        allow(mock_exchange).to receive(:publish)
+        $rmq_channel_pool = mock_channel_pool
+
+        result = publisher.enqueue_transient('domain.verified', nil)
+
+        expect(result).to be true
+        expect(mock_exchange).to have_received(:publish)
+          .with(satisfy { |p| JSON.parse(p, symbolize_names: true)[:data] == {} }, anything)
+
+        $rmq_channel_pool = nil
+      end
+    end
+
     context 'with RabbitMQ' do
       let(:mock_channel) { double('channel') }
       let(:mock_exchange) { double('default_exchange') }
