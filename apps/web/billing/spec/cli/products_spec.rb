@@ -9,7 +9,7 @@ require_relative '../../cli/products_create_command'
 require_relative '../../cli/products_show_command'
 require_relative '../../cli/products_update_command'
 
-RSpec.describe 'Billing Products CLI Commands', :billing_cli, :stripe_mock, :unit do
+RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
   let(:stripe_client) { Billing::StripeClient.new }
 
   describe Onetime::CLI::BillingProductsCommand do

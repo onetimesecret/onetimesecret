@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # Shared examples for testing Stripe error handling using real API calls with error tokens.
-# Uses stripe-mock server or real Stripe test API - no RSpec mocking.
+# Uses VCR to record/replay real Stripe test API calls - no RSpec mocking.
 
 RSpec.shared_examples 'handles Stripe card errors', :stripe do
   it 'raises CardError on declined card' do

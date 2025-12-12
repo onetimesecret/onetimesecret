@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 # Shared examples for testing idempotency in Stripe operations.
-# Uses real Stripe API calls - stripe-mock + VCR.
+# Uses VCR to record/replay real Stripe API calls.
 
 RSpec.shared_examples 'idempotent Stripe operation', :stripe do |resource_type, create_params|
   context 'when called multiple times with same parameters' do

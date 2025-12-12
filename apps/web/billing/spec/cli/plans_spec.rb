@@ -6,7 +6,7 @@ require_relative '../support/billing_spec_helper'
 require 'onetime/cli'
 require_relative '../../cli/plans_command'
 
-RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :stripe_mock, :unit do
+RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit do
   let(:stripe_client) { Billing::StripeClient.new }
 
   # Data class for mocking plans (immutable, Ruby 3.2+)

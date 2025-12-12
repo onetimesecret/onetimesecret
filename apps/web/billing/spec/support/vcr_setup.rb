@@ -71,10 +71,8 @@ VCR.configure do |config|
       !http_message.body.valid_encoding?
   end
 
-  # Allow connections to stripe-mock server AND real Stripe API
-  config.ignore_localhost = false
-  # Don't ignore localhost - we want to record stripe-mock requests too
-  # config.ignore_hosts 'localhost', '127.0.0.1'
+  # Allow connections to real Stripe API for VCR recording
+  config.ignore_localhost = true
 
   # Configure for different Stripe endpoints
   config.before_record do |interaction|
@@ -89,12 +87,10 @@ VCR.configure do |config|
 end
 
 # WebMock configuration
-# Allow Stripe API for VCR recording, stripe-mock for local testing
+# Allow Stripe API for VCR recording
 WebMock.disable_net_connect!(
   allow_localhost: true,
   allow: [
-    'localhost:12111',    # stripe-mock server
-    '127.0.0.1:12111',
     'api.stripe.com',     # Real Stripe API (for VCR recording)
     /\.stripe\.com\z/,    # All Stripe subdomains (anchored)
   ],

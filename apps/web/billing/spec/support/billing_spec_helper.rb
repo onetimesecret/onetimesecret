@@ -6,7 +6,8 @@
 # Minimal test helpers for billing specs.
 # Timecop time manipulation and retry delay tracking only.
 #
-# All Stripe mocking will be done via stripe-mock server + VCR.
+# Stripe API testing uses VCR to record/replay real API calls.
+# Record cassettes with: STRIPE_API_KEY=sk_test_xxx VCR_MODE=all bundle exec rspec
 
 # IMPORTANT: Set test environment BEFORE loading anything
 # These must be set before OT.boot! reads config files
@@ -17,8 +18,7 @@ require 'spec_helper'
 require 'openssl'
 require 'stripe'
 
-# Load Stripe testing infrastructure
-require_relative 'stripe_mock_server'
+# Load Stripe testing infrastructure (VCR for recording/replaying real API calls)
 require_relative 'vcr_setup'
 
 # Load BannedIP model needed by IPBan middleware
@@ -108,18 +108,6 @@ RSpec.configure do |config|
   # Symbol tag matching (for RSpec.describe 'Name', :integration do)
   config.include BillingSpecHelper, integration: true
   config.include BillingSpecHelper, billing_cli: true
-
-  # stripe-mock is NOT used for integration tests
-  # Integration tests use VCR to record/replay real Stripe API calls
-  # Only start stripe-mock for tests explicitly tagged with :stripe_mock
-  config.before(:each, :stripe_mock) do
-    StripeMockServer.start unless StripeMockServer.running?
-    StripeMockServer.configure_stripe_client!
-  end
-
-  config.after(:suite) do
-    StripeMockServer.stop if StripeMockServer.instance_variable_get(:@pid)
-  end
 
   # VCR: Automatically wrap tests tagged with :vcr in cassettes
   config.around(:each, :vcr) do |example|

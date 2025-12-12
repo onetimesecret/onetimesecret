@@ -5,7 +5,7 @@
 # Constants for Stripe integration tests.
 # Official test data from Stripe documentation.
 #
-# Actual Stripe objects will be created via stripe-mock server + VCR.
+# Actual Stripe objects will be created via VCR-recorded real Stripe API calls.
 
 module StripeTestData
   # Test card numbers from Stripe's testing documentation
