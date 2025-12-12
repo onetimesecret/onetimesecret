@@ -14,6 +14,7 @@ require_relative 'templates/password_request'
 require_relative 'templates/incoming_secret'
 require_relative 'templates/feedback_email'
 require_relative 'templates/secret_revealed'
+require_relative 'templates/expiration_warning'
 
 module Onetime
   module Mail
@@ -128,6 +129,8 @@ module Onetime
             Templates::FeedbackEmail
           when :secret_revealed
             Templates::SecretRevealed
+          when :expiration_warning
+            Templates::ExpirationWarning
           else
             raise ArgumentError, "Unknown template: #{name}"
           end

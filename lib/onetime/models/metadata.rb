@@ -37,6 +37,12 @@ module Onetime
     field :recipients
     field :memo  # Optional memo/subject for incoming secrets
 
+    # Class-level collections for expiration warning feature
+    # Sorted set: score = expiration timestamp, member = metadata identifier
+    class_sorted_set :expiration_timeline
+    # Set for tracking which secrets have already received warnings
+    class_set :warnings_sent
+
     def init
       self.state ||= 'new'
     end
@@ -116,6 +122,17 @@ module Onetime
       Onetime::Secret.load secret_identifier
     end
 
+    # Register this metadata for expiration notifications
+    # Called during secret creation to track secrets that should receive warnings
+    # @return [Boolean] true if registered, false if skipped
+    def register_for_expiration_notifications
+      return false unless secret_expiration
+      return false if secret_ttl.to_i < self.class.min_warning_ttl
+
+      self.class.expiration_timeline.add(identifier, secret_expiration.to_f)
+      true
+    end
+
     class << self
       def generate_id
         Familia.generate_id
@@ -175,7 +192,48 @@ module Onetime
         metadata.passphrase     = passphrase if passphrase
         metadata.save
 
+        # Register for expiration warnings if feature is enabled and TTL is long enough
+        metadata.register_for_expiration_notifications
+
         [metadata, secret]
+      end
+
+      # Minimum TTL (in seconds) for secrets to be eligible for expiration warnings
+      # Secrets with shorter TTL won't receive warnings to avoid spam
+      # @return [Integer] TTL in seconds
+      def min_warning_ttl
+        hours = OT.conf.dig('jobs', 'expiration_warnings', 'min_ttl_hours').to_i
+        hours = 48 if hours <= 0
+        hours * 3600
+      end
+
+      # Find metadata IDs for secrets expiring within the given time window
+      # @param seconds [Integer] Time window in seconds from now
+      # @return [Array<String>] Metadata identifiers
+      def expiring_within(seconds)
+        now = Familia.now.to_f
+        expiration_timeline.rangebyscore(now, now + seconds)
+      end
+
+      # Check if a warning has already been sent for this metadata
+      # @param metadata_id [String] Metadata identifier
+      # @return [Boolean]
+      def warning_sent?(metadata_id)
+        warnings_sent.member?(metadata_id)
+      end
+
+      # Mark that a warning has been sent for this metadata
+      # @param metadata_id [String] Metadata identifier
+      # @return [Boolean]
+      def mark_warning_sent(metadata_id)
+        warnings_sent.add(metadata_id)
+      end
+
+      # Remove expired entries from the timeline (self-cleaning)
+      # @param before_timestamp [Float] Remove entries with score before this timestamp
+      # @return [Integer] Number of entries removed
+      def cleanup_expired_from_timeline(before_timestamp)
+        expiration_timeline.remrangebyscore(0, before_timestamp)
       end
     end
   end
