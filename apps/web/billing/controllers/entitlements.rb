@@ -81,7 +81,7 @@ module Billing
       #
       # @return [Hash] Entitlement check result
       def check
-        org        = load_organization(req.params['extid'])
+        org         = load_organization(req.params['extid'])
         entitlement = req.params[:entitlement]
 
         if entitlement.to_s.empty?
@@ -169,7 +169,7 @@ module Billing
       # @param upgrade_plan [String] Suggested plan ID
       # @return [String] User-friendly upgrade message
       def build_upgrade_message(entitlement, upgrade_plan)
-        plan_name       = Billing::PlanHelpers.plan_name(upgrade_plan)
+        plan_name        = Billing::PlanHelpers.plan_name(upgrade_plan)
         entitlement_name = entitlement.to_s.tr('_', ' ')
 
         "This feature requires #{plan_name}. Upgrade your plan to access #{entitlement_name}."

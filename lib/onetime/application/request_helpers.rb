@@ -138,7 +138,7 @@ module Onetime
 
         # Update current request's memoized values
         @organization = org
-        @team = nil  # Clear stale team from previous organization
+        @team         = nil  # Clear stale team from previous organization
 
         true
       rescue StandardError => ex

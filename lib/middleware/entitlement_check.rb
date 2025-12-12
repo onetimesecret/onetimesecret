@@ -36,7 +36,7 @@ module Rack
 
     def initialize(app, entitlement:, logger: nil)
       @app           = app
-      @entitlement    = entitlement.to_s
+      @entitlement   = entitlement.to_s
       @custom_logger = logger
     end
 

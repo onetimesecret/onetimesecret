@@ -172,7 +172,7 @@ module Onetime
     # Moved from auth.yaml to site config as sessions are auth-mode agnostic
     def session_config
       defaults = SESSION_DEFAULTS.dup
-      session = conf&.dig('site', 'session') || {}
+      session  = conf&.dig('site', 'session') || {}
 
       # Merge user config over defaults
       result = defaults.merge(session)

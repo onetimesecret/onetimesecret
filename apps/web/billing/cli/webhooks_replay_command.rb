@@ -67,7 +67,7 @@ module Onetime
           customer: customer,
           status: status,
           limit: limit,
-          force: force
+          force: force,
         )
 
         if events.empty?
@@ -87,8 +87,8 @@ module Onetime
         return if dry_run
 
         # Confirm before execution
-        unless yes
-          return unless confirm_operation("Replay #{events.size} event(s)?")
+        if !yes && !confirm_operation("Replay #{events.size} event(s)?")
+          return
         end
 
         # Execute replay
@@ -121,7 +121,7 @@ module Onetime
           return [event]
         end
 
-        cutoff = parse_since_option(since)
+        cutoff           = parse_since_option(since)
         customer_pattern = resolve_customer_filter(customer)
 
         events = []
@@ -129,14 +129,16 @@ module Onetime
         # Scan and filter with early termination
         # Over-fetch slightly to allow for filtering, but cap memory usage
         max_scan = limit * 5
-        scanned = 0
+        scanned  = 0
 
         scan_webhook_events do |event|
           scanned += 1
           break if scanned > max_scan
 
           next unless matches_filters?(event, type: type, cutoff: cutoff,
-                                       customer_pattern: customer_pattern, status: status, force: force)
+            customer_pattern: customer_pattern, status: status, force: force
+          )
+
           events << event
           break if events.size >= limit
         end
@@ -149,7 +151,7 @@ module Onetime
       #
       # @yield [Billing::StripeWebhookEvent] Each event found
       def scan_webhook_events
-        cursor = '0'
+        cursor       = '0'
         prefix_match = format('%s:*:object', Billing::StripeWebhookEvent.prefix)
 
         loop do
@@ -157,7 +159,7 @@ module Onetime
 
           batch.each do |key|
             event_id = key.split(':')[-2]
-            event = Billing::StripeWebhookEvent.find_by_identifier(event_id)
+            event    = Billing::StripeWebhookEvent.find_by_identifier(event_id)
             yield event if event
           end
 
@@ -201,7 +203,7 @@ module Onetime
         # Try as extid if not found
         ot_customer ||= Onetime::Customer.find_by_extid(customer_input) if Onetime::Customer.respond_to?(:find_by_extid)
 
-        return nil unless ot_customer&.respond_to?(:stripe_customer_id)
+        return nil unless ot_customer.respond_to?(:stripe_customer_id)
         return nil if ot_customer.stripe_customer_id.to_s.empty?
 
         ot_customer.stripe_customer_id
@@ -262,7 +264,7 @@ module Onetime
             event.stripe_event_id,
             event.event_type.to_s[0...35],
             event.processing_status,
-            age
+            age,
           )
         end
 
@@ -283,7 +285,7 @@ module Onetime
         results = { success: 0, failed: 0, skipped: 0 }
 
         events.each do |event|
-          result = replay_single_event(event, skip_notifications: skip_notifications)
+          result           = replay_single_event(event, skip_notifications: skip_notifications)
           results[result] += 1
         end
 
@@ -295,9 +297,13 @@ module Onetime
       # Replay a single event
       #
       # @param event [Billing::StripeWebhookEvent] Event to replay
-      # @param skip_notifications [Boolean] Skip notification side effects
+      # @param skip_notifications [Boolean] Skip notification side effects (reserved for future use)
       # @return [Symbol] :success, :failed, or :skipped
-      def replay_single_event(event, skip_notifications:)
+      def replay_single_event(event, skip_notifications:) # rubocop:disable Lint/UnusedMethodArgument
+        # NOTE: skip_notifications is reserved for future use when handlers
+        # support notification suppression. Currently all handlers are idempotent
+        # and don't send notifications directly.
+
         # Reconstruct Stripe event
         stripe_event = event.stripe_event
         unless stripe_event

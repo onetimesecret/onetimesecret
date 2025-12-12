@@ -32,13 +32,13 @@ module Auth
       include ::Kernel
 
       def initialize(&connector)
-        @connector = connector
-        @connection = nil
-        @mutex = ::Mutex.new
+        @connector      = connector
+        @__connection__ = nil
+        @mutex          = ::Mutex.new
       end
 
-      def method_missing(method, *args, &block)
-        __connection__.__send__(method, *args, &block)
+      def method_missing(method, *, &)
+        __connection__.__send__(method, *, &)
       end
 
       def respond_to_missing?(method, include_private = false)
@@ -60,12 +60,12 @@ module Auth
       end
 
       # Type checking methods (BasicObject doesn't have these, but RSpec/Rodauth may need them)
-      def is_a?(klass)
+      def is_a?(klass) # rubocop:disable Naming/PredicatePrefix
         __connection__.is_a?(klass)
       end
 
       def kind_of?(klass)
-        __connection__.kind_of?(klass)
+        __connection__.is_a?(klass)
       end
 
       def instance_of?(klass)
@@ -78,14 +78,14 @@ module Auth
 
       def disconnect
         @mutex.synchronize do
-          @connection&.disconnect
-          @connection = nil
+          @__connection__&.disconnect
+          @__connection__ = nil
         end
       end
 
       # Allow checking if connection has been established (useful for tests)
       def __connected__?
-        @mutex.synchronize { !@connection.nil? }
+        @mutex.synchronize { !@__connection__.nil? }
       end
 
       # Force connection (useful for warmup)
@@ -98,7 +98,7 @@ module Auth
 
       def __connection__
         @mutex.synchronize do
-          @connection ||= @connector.call
+          @__connection__ ||= @connector.call
         end
       end
     end
