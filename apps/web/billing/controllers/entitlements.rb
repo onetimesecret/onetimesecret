@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require_relative '../config'
 
 module Billing
   module Controllers
@@ -134,7 +135,7 @@ module Billing
       # @return [Hash] Entitlement reference data
       def list
         data = {
-          entitlements: Billing::PlanHelpers::ENTITLEMENT_CATEGORIES,
+          entitlements: Billing::Config.entitlements_grouped_by_category,
           plans: build_plans_summary,
         }
 

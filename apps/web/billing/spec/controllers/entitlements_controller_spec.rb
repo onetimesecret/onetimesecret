@@ -113,7 +113,7 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
 
     it 'handles errors gracefully', :vcr do
       # Simulate error in entitlement definitions
-      allow(Billing::PlanHelpers).to receive(:ENTITLEMENT_CATEGORIES).and_raise(StandardError)
+      allow(Billing::Config).to receive(:entitlements_grouped_by_category).and_raise(StandardError)
 
       get '/billing/api/entitlements'
 

@@ -72,17 +72,17 @@ module Onetime
         parts << ''
 
         # Group by category
-        categories = entitlements.values.map { |cap| cap['category'] }.uniq.sort
+        categories = entitlements.values.map { |ent| ent['category'] }.uniq.sort
 
         categories.each do |category|
-          caps_in_category = entitlements.select { |_id, cap| cap['category'] == category }
-          next if caps_in_category.empty?
+          ents_in_category = entitlements.select { |_id, ent| ent['category'] == category }
+          next if ents_in_category.empty?
 
           parts << "### #{category.capitalize}"
           parts << ''
 
-          caps_in_category.each do |cap_id, cap_data|
-            parts << "- **`#{cap_id}`**: #{cap_data['description']}"
+          ents_in_category.each do |ent_id, ent_data|
+            parts << "- **`#{ent_id}`**: #{ent_data['description']}"
           end
 
           parts << ''
@@ -168,8 +168,8 @@ module Onetime
         # Entitlements
         if plan_data['entitlements']&.any?
           parts << '**Entitlements:**'
-          plan_data['entitlements'].each do |cap|
-            parts << "- `#{cap}`"
+          plan_data['entitlements'].each do |ent|
+            parts << "- `#{ent}`"
           end
           parts << ''
         end

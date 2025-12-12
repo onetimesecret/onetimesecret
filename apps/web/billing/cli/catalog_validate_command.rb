@@ -103,9 +103,9 @@ module Onetime
         plans = catalog['plans'] || {}
         plans.each do |plan_id, plan_data|
           plan_entitlements = plan_data['entitlements'] || []
-          plan_entitlements.each do |cap_id|
-            unless entitlements.key?(cap_id)
-              warnings << "Plan #{plan_id}: references unknown entitlement '#{cap_id}'"
+          plan_entitlements.each do |ent_id|
+            unless entitlements.key?(ent_id)
+              warnings << "Plan #{plan_id}: references unknown entitlement '#{ent_id}'"
             end
           end
         end
@@ -114,9 +114,9 @@ module Onetime
         legacy_plans = catalog['legacy_plans'] || {}
         legacy_plans.each do |plan_id, plan_data|
           plan_entitlements = plan_data['entitlements'] || []
-          plan_entitlements.each do |cap_id|
-            unless entitlements.key?(cap_id)
-              warnings << "Legacy plan #{plan_id}: references unknown entitlement '#{cap_id}'"
+          plan_entitlements.each do |ent_id|
+            unless entitlements.key?(ent_id)
+              warnings << "Legacy plan #{plan_id}: references unknown entitlement '#{ent_id}'"
             end
           end
         end

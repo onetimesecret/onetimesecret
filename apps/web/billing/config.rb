@@ -87,5 +87,27 @@ module Billing
         cap['category'] == category.to_s
       end
     end
+
+    # Get all entitlements grouped by category
+    #
+    # Returns entitlement IDs organized by their category.
+    # Used by the entitlements API endpoint for documentation.
+    #
+    # @return [Hash<String, Array<String>>] Category => entitlement IDs
+    #
+    # @example
+    #   Billing::Config.entitlements_grouped_by_category
+    #   # => {
+    #   #   "core" => ["create_secrets", "view_metadata"],
+    #   #   "collaboration" => ["manage_teams", "manage_members"],
+    #   #   ...
+    #   # }
+    def self.entitlements_grouped_by_category
+      load_entitlements.each_with_object({}) do |(id, definition), grouped|
+        category = definition['category'] || 'uncategorized'
+        grouped[category] ||= []
+        grouped[category] << id
+      end
+    end
   end
 end
