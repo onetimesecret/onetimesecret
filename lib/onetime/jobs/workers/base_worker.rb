@@ -60,10 +60,11 @@ module Onetime
 
           # Parse and validate message payload
           # @param msg [String] Raw message body
-          # @return [Hash] Parsed message data
+          # @return [Hash, nil] Parsed message data, or nil if invalid
           def parse_message(msg)
             data = JSON.parse(msg, symbolize_names: true)
-            validate_schema(data)
+            return nil unless validate_schema(data)
+
             data
           rescue JSON::ParserError => ex
             log_error "Invalid JSON: #{ex.message}"
@@ -72,13 +73,17 @@ module Onetime
           end
 
           # Validate message schema version
+          # @return [Boolean] true if valid, false if invalid (also calls reject!)
           def validate_schema(_data)
             version = @metadata&.headers&.[]('x-schema-version') || 1
 
             unless Onetime::Jobs::QueueConfig::Versions.const_defined?("V#{version}")
               log_error "Unknown schema version: #{version}"
               reject!
+              return false
             end
+
+            true
           end
 
           # @return [SemanticLogger::Logger] Logger for worker operations

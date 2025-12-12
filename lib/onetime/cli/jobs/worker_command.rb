@@ -13,11 +13,12 @@
 #   -c, --concurrency THREADS    Number of worker threads (default: 10)
 #   -d, --daemonize              Run as daemon
 #   -e, --environment ENV        Environment to run in (default: development)
-#   -l, --log-level LEVEL        Log level: trace, debug, info, warn, error (default: info)
+#   -l, --log-level LEVEL        Override Jobs logger level (uses logging.yaml by default)
 #
 
 require 'sneakers'
 require 'sneakers/runner'
+require_relative '../../jobs/queue_config'
 
 module Onetime
   module CLI
@@ -33,11 +34,11 @@ module Onetime
           desc: 'Run as daemon'
         option :environment, type: :string, default: 'development', aliases: ['e'],
           desc: 'Environment to run in'
-        option :log_level, type: :string, default: 'info', aliases: ['l'],
-          desc: 'Log level: trace, debug, info, warn, error'
+        option :log_level, type: :string, aliases: ['l'],
+          desc: 'Override Jobs logger level (trace/debug/info/warn/error)'
 
         def call(queues: nil, concurrency: 10, daemonize: false, environment: 'development',
-                 log_level: 'info', **)
+                 log_level: nil, **)
           # Skip RabbitMQ setup during boot - Sneakers creates its own connections.
           # This prevents ConnectionPool.after_fork from timing out when closing
           # inherited channels after Sneakers forks worker processes.
@@ -57,12 +58,15 @@ module Onetime
           worker_classes = determine_workers(queues)
 
           if worker_classes.empty?
-            Onetime.app_logger.error('No worker classes found')
+            Onetime.jobs_logger.error('No worker classes found')
             exit 1
           end
 
-          Onetime.app_logger.info("Starting #{worker_classes.size} worker(s) with concurrency #{concurrency}")
-          Onetime.app_logger.info("Workers: #{worker_classes.map(&:name).join(', ')}")
+          Onetime.jobs_logger.info("Starting #{worker_classes.size} worker(s) with concurrency #{concurrency}")
+          Onetime.jobs_logger.info("Workers: #{worker_classes.map(&:name).join(', ')}")
+
+          # Start heartbeat thread for liveness logging
+          start_heartbeat_thread(worker_classes)
 
           # Start the workers
           runner = Sneakers::Runner.new(worker_classes)
@@ -70,6 +74,54 @@ module Onetime
         end
 
         private
+
+        # Periodic heartbeat logging for observability
+        # Logs worker status every N minutes so operators can verify the process is alive
+        # even when no messages are being processed.
+        #
+        # @param worker_classes [Array<Class>] Worker classes being run
+        def start_heartbeat_thread(worker_classes)
+          interval = ENV.fetch('WORKER_HEARTBEAT_INTERVAL', 300).to_i # 5 minutes default
+          return if interval <= 0 # Disable with WORKER_HEARTBEAT_INTERVAL=0
+
+          start_time = Time.now
+          queue_names = worker_classes.map(&:queue_name).join(',')
+
+          t = Thread.new do
+            loop do
+              uptime_seconds = (Time.now - start_time).to_i
+              uptime_str = format_uptime(uptime_seconds)
+
+              Onetime.jobs_logger.info(
+                "[Worker] Heartbeat | uptime=#{uptime_str} | queues=#{queue_names}"
+              )
+              sleep interval
+            rescue StandardError => ex
+              # Don't let heartbeat errors crash the thread
+              Onetime.jobs_logger.warn("[Worker] Heartbeat error: #{ex.message}\n#{ex.backtrace&.join("\n")}")
+              sleep interval
+            end
+          end
+          t.abort_on_exception = false
+          t
+        end
+
+        # Format seconds into human-readable uptime string
+        # @param seconds [Integer] Total seconds
+        # @return [String] Formatted string like "2h15m" or "3d4h"
+        def format_uptime(seconds)
+          days = seconds / 86_400
+          hours = (seconds % 86_400) / 3600
+          minutes = (seconds % 3600) / 60
+
+          if days > 0
+            "#{days}d#{hours}h"
+          elsif hours > 0
+            "#{hours}h#{minutes}m"
+          else
+            "#{minutes}m"
+          end
+        end
 
         def configure_kicks(concurrency:, daemonize:, environment:, log_level:)
           # Exchange Configuration
@@ -91,30 +143,46 @@ module Onetime
           # 3. Update Publisher to use that exchange
           # 4. Update this config to match
           #
+          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+
+          # Apply CLI log level override if provided
+          if log_level
+            level_str = log_level.to_s.downcase
+            allowed_levels = %w[trace debug info warn error fatal]
+            if allowed_levels.include?(level_str)
+              Onetime.jobs_logger.level = level_str.to_sym
+            else
+              Onetime.jobs_logger.warn(
+                "Ignoring invalid log level: #{log_level.inspect}. Allowed: #{allowed_levels.join(', ')}"
+              )
+            end
+          end
+
           config = {
-            amqp: ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'),
+            amqp: amqp_url,
             exchange: '',
             exchange_type: :direct,
             threads: concurrency,
             workers: 1, # Number of worker processes (vs threads)
             daemonize: daemonize,
-            log: STDOUT,
             pid_path: ENV.fetch('SNEAKERS_PID_PATH', 'tmp/pids/sneakers.pid'),
             env: environment,
             durable: true,
             ack: true,
             heartbeat: 30,
             prefetch: concurrency,
+            # Use Bunny logger from centralized logging config (setup_rabbitmq.rb pattern)
+            logger: Onetime.bunny_logger,
           }
 
           # Override vhost only if explicitly set via env var.
           # Otherwise, let Bunny parse it from the AMQP URL.
           config[:vhost] = ENV['RABBITMQ_VHOST'] if ENV.key?('RABBITMQ_VHOST')
 
-          Sneakers.configure(config)
+          # TLS configuration for amqps:// connections (centralized in QueueConfig)
+          config.merge!(Onetime::Jobs::QueueConfig.tls_options(amqp_url))
 
-          # Set Kicks logger to match OT log level
-          Sneakers.logger.level = logger_level(log_level)
+          Sneakers.configure(config)
         end
 
         def determine_workers(queues_str)
@@ -143,21 +211,6 @@ module Onetime
           end
 
           worker_classes
-        end
-
-        def logger_level(level_str)
-          case level_str.to_s.downcase
-          when 'trace', 'debug'
-            Logger::DEBUG
-          when 'warn'
-            Logger::WARN
-          when 'error'
-            Logger::ERROR
-          when 'fatal'
-            Logger::FATAL
-          else
-            Logger::INFO # default for 'info' and unknown values
-          end
         end
       end
     end

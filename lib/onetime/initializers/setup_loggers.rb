@@ -9,8 +9,8 @@ module Onetime
   module Initializers
     # Configures SemanticLogger with strategic categories for debugging.
     #
-    # Categories: App, Auth, Billing, Boot, Bunny, Familia, HTTP, Otto,
-    # Rhales, Secret, Sequel, Session.
+    # Categories: App, Auth, Billing, Boot, Bunny, Familia, HTTP, Jobs,
+    # Otto, Rhales, Secret, Sequel, Session.
     #
     # Configuration loaded from etc/logging.yaml with environment variable
     # overrides. Logger instances are cached because SemanticLogger[]
@@ -36,6 +36,7 @@ module Onetime
         'Bunny' => 'DEBUG_BUNNY',
         'Familia' => 'DEBUG_FAMILIA',
         'HTTP' => 'DEBUG_HTTP',
+        'Jobs' => 'DEBUG_JOBS',
         'Otto' => 'DEBUG_OTTO',
         'Rhales' => 'DEBUG_RHALES',
         'Secret' => 'DEBUG_SECRET',

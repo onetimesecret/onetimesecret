@@ -76,6 +76,36 @@ module Onetime
       module Versions
         V1 = 1
       end
+
+      # TLS configuration for amqps:// connections
+      #
+      # Returns a hash of TLS options suitable for merging into Bunny or Sneakers config.
+      # Managed services (Northflank, CloudAMQP) provide valid certificates that work
+      # with system CA bundle - no custom certs needed.
+      #
+      # Environment variables:
+      # - RABBITMQ_VERIFY_PEER: 'true' (default) or 'false' for local dev
+      # - RABBITMQ_CA_CERTIFICATES: Optional path to custom CA cert file
+      #
+      # @param url [String, nil] RabbitMQ connection URL
+      # @return [Hash] TLS options hash (empty if URL is not amqps://)
+      #
+      # @example
+      #   config.merge!(QueueConfig.tls_options(amqp_url))
+      #
+      def self.tls_options(url)
+        return {} unless url.to_s.start_with?('amqps://')
+
+        options = {
+          tls: true,
+          verify_peer: ENV.fetch('RABBITMQ_VERIFY_PEER', 'true') == 'true',
+        }
+
+        ca_certs_path = ENV['RABBITMQ_CA_CERTIFICATES']
+        options[:tls_ca_certificates] = [ca_certs_path] if ca_certs_path
+
+        options
+      end
     end
   end
 end
