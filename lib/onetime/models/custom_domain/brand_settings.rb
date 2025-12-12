@@ -59,7 +59,7 @@ module Onetime
       # @param hash [Hash, nil] Input hash with string or symbol keys
       # @return [BrandSettings] New immutable instance
       def self.from_hash(hash)
-        hash ||= {}
+        hash     ||= {}
         normalized = hash.transform_keys(&:to_sym).slice(*members)
 
         # Coerce boolean fields from strings to actual booleans
@@ -80,7 +80,7 @@ module Onetime
       # @return [Boolean, nil] Coerced boolean or nil
       def self.coerce_boolean(value)
         return nil if value.nil?
-        return value if value == true || value == false
+        return value if [true, false].include?(value)
 
         value.to_s == 'true'
       end

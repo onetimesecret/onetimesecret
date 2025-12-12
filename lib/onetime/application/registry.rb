@@ -154,8 +154,8 @@ module Onetime
 
           # Log auth mode after scan but before loading
           auth_mode_msg = case Onetime.auth_config.mode
-            when 'simple' then 'Simple (Core handles /auth/*)'
-            when 'disabled' then 'Disabled (authentication off)'
+          when 'simple' then 'Simple (Core handles /auth/*)'
+          when 'disabled' then 'Disabled (authentication off)'
             else 'Full (Rodauth enabled)'
           end
 

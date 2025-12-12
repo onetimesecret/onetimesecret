@@ -159,7 +159,6 @@ module Onetime
             Logger::INFO # default for 'info' and unknown values
           end
         end
-
       end
     end
 

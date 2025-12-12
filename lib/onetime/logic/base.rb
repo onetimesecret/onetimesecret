@@ -122,14 +122,14 @@ module Onetime
       end
 
       # Session message helpers for user feedback
-      def set_info_message(_message)
-        # In test environment, sess might be a plain hash
-        warn "sess['info_message'] = message if sess.respond_to?(:[]=)"
+      def set_info_message(message)
+        warn "[set_info_message] REMOVED #{message} via:"
+        warn "[set_info_message] #{caller(1..3)}"
       end
 
-      def set_error_message(_message)
-        # In test environment, sess might be a plain hash
-        warn "sess['error_message'] = message if sess.respond_to?(:[]=)"
+      def set_error_message(message)
+        warn "[set_error_message] REMOVED #{message} via:"
+        warn "[set_error_message] #{caller(1..3)}"
       end
 
       # Requires the implementing class to have cust and session fields

@@ -104,7 +104,7 @@ module Billing
     #   # }
     def self.entitlements_grouped_by_category
       load_entitlements.each_with_object({}) do |(id, definition), grouped|
-        category = definition['category'] || 'uncategorized'
+        category            = definition['category'] || 'uncategorized'
         grouped[category] ||= []
         grouped[category] << id
       end
