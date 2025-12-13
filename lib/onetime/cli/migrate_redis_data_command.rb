@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require_relative '../redis_key_migrator'
+require_relative '../services/redis_key_migrator'
 
 module Onetime
   module CLI
@@ -115,7 +115,7 @@ module Onetime
             source_uri.db = plan[:from_db]
             target_uri.db = plan[:to_db]
 
-            migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
+            migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)
             commands = migrator.generate_cli_commands(plan[:pattern])
 
             puts "\nStrategy: #{commands[:strategy].to_s.upcase}"
@@ -197,7 +197,7 @@ module Onetime
               progress_interval: 50,
             }
 
-            migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri, migration_options)
+            migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri, migration_options)
 
             # Show CLI commands in verbose mode
             if verbose
