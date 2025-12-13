@@ -40,7 +40,8 @@ module DomainsAPI::Logic
       def raise_concerns
         raise_not_found 'Missing domain ID' if custom_domain_id.empty?
 
-        tmp_custom_domain = Onetime::CustomDomain.find_by_identifier custom_domain_id
+        # Use find_by_extid since URLs use external IDs (cd<id> format)
+        tmp_custom_domain = Onetime::CustomDomain.find_by_extid custom_domain_id
         raise_not_found 'Domain not found' unless tmp_custom_domain
         @custom_domain    = tmp_custom_domain # make it available after all concerns
 
