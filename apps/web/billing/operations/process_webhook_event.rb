@@ -43,6 +43,18 @@ module Billing
         when 'customer.subscription.deleted'
           handle_subscription_deleted(@event.data.object)
           true
+        when 'customer.subscription.paused'
+          handle_subscription_paused(@event.data.object)
+          true
+        when 'customer.subscription.resumed'
+          handle_subscription_resumed(@event.data.object)
+          true
+        when 'customer.subscription.trial_will_end'
+          handle_subscription_trial_will_end(@event.data.object)
+          true
+        when 'customer.updated'
+          handle_customer_updated(@event.data.object)
+          true
         when 'product.created', 'product.updated', 'price.created', 'price.updated', 'plan.created', 'plan.updated'
           handle_product_or_price_updated(@event.data.object)
           true
@@ -190,6 +202,138 @@ module Billing
         billing_logger.info 'Subscription deleted - organization marked as canceled', {
           orgid: org.objid,
           subscription_id: subscription.id,
+        }
+      end
+
+      # Handle customer.subscription.paused event
+      #
+      # Updates organization status when subscription is paused.
+      #
+      # @param subscription [Stripe::Subscription] Paused subscription
+      def handle_subscription_paused(subscription)
+        billing_logger.info 'Processing customer.subscription.paused', {
+          subscription_id: subscription.id,
+          replay: replay?,
+        }
+
+        org = find_organization_by_subscription(subscription.id)
+
+        unless org
+          billing_logger.warn 'Organization not found for subscription', {
+            subscription_id: subscription.id,
+          }
+          return
+        end
+
+        org.subscription_status = 'paused'
+        org.save
+
+        billing_logger.info 'Subscription paused', {
+          orgid: org.objid,
+          subscription_id: subscription.id,
+        }
+      end
+
+      # Handle customer.subscription.resumed event
+      #
+      # Updates organization status when subscription is resumed.
+      #
+      # @param subscription [Stripe::Subscription] Resumed subscription
+      def handle_subscription_resumed(subscription)
+        billing_logger.info 'Processing customer.subscription.resumed', {
+          subscription_id: subscription.id,
+          replay: replay?,
+        }
+
+        org = find_organization_by_subscription(subscription.id)
+
+        unless org
+          billing_logger.warn 'Organization not found for subscription', {
+            subscription_id: subscription.id,
+          }
+          return
+        end
+
+        org.update_from_stripe_subscription(subscription)
+
+        billing_logger.info 'Subscription resumed', {
+          orgid: org.objid,
+          subscription_id: subscription.id,
+          status: subscription.status,
+        }
+      end
+
+      # Handle customer.subscription.trial_will_end event
+      #
+      # Logs notification that trial is ending soon (3 days before trial end).
+      # Future: Send notification to customer about upcoming trial end.
+      #
+      # @param subscription [Stripe::Subscription] Subscription with ending trial
+      def handle_subscription_trial_will_end(subscription)
+        billing_logger.info 'Processing customer.subscription.trial_will_end', {
+          subscription_id: subscription.id,
+          trial_end: subscription.trial_end,
+          replay: replay?,
+        }
+
+        org = find_organization_by_subscription(subscription.id)
+
+        unless org
+          billing_logger.warn 'Organization not found for subscription', {
+            subscription_id: subscription.id,
+          }
+          return
+        end
+
+        billing_logger.info 'Trial ending soon', {
+          orgid: org.objid,
+          subscription_id: subscription.id,
+          trial_end: subscription.trial_end,
+        }
+
+        # Future: Send trial ending notification unless skip_notifications?
+        # send_trial_ending_notification(org) unless skip_notifications?
+      end
+
+      # Handle customer.updated event
+      #
+      # Syncs customer metadata changes from Stripe to local customer record.
+      #
+      # @param stripe_customer [Stripe::Customer] Updated Stripe customer
+      def handle_customer_updated(stripe_customer)
+        billing_logger.info 'Processing customer.updated', {
+          stripe_customer_id: stripe_customer.id,
+          replay: replay?,
+        }
+
+        # Find customer by Stripe customer ID stored in organization
+        org = Onetime::Organization.find_by_stripe_customer_id(stripe_customer.id)
+
+        unless org
+          billing_logger.debug 'Organization not found for Stripe customer', {
+            stripe_customer_id: stripe_customer.id,
+          }
+          return
+        end
+
+        # Update email if changed
+        if stripe_customer.email && org.owner
+          owner = org.owner
+          if owner.email != stripe_customer.email
+            billing_logger.info 'Customer email changed in Stripe', {
+              orgid: org.objid,
+              stripe_customer_id: stripe_customer.id,
+              old_email: owner.email,
+              new_email: stripe_customer.email,
+            }
+            # Note: We don't auto-update email as it may require verification
+            # Just log the discrepancy for now
+          end
+        end
+
+        billing_logger.info 'Customer update processed', {
+          orgid: org.objid,
+          stripe_customer_id: stripe_customer.id,
         }
       end
 
