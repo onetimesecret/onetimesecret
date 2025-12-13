@@ -157,14 +157,14 @@ module Onetime
 
         # Check env var first (process-level override)
         env_override = ENV[DOMAIN_CONTEXT_ENV_VAR]
-        return [env_override, :env_var] unless env_override&.empty?
+        return [env_override, :env_var] unless env_override.to_s.empty?
 
         # Check request header (per-request override)
         header_override = env[DOMAIN_CONTEXT_HEADER]
-        return [header_override, :header] unless header_override&.empty?
+        return [header_override, :header] unless header_override.to_s.empty?
 
         # Implicit override: browser navigated to non-canonical domain
-        return [detected_host, :detected_host] if detected_host != canonical_domain
+        return [detected_host, :detected_host] if detected_host && detected_host != canonical_domain
 
         [nil, nil]
       end
