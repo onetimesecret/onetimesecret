@@ -67,12 +67,12 @@ RSpec.describe Billing::Operations::ProcessWebhookEvent, :integration, :process_
 
       it 'accepts replay context flag' do
         operation = described_class.new(event: event, context: { replay: true })
-        expect(operation.call).to eq(true)
+        expect(operation.call).to eq(:success)
       end
 
       it 'accepts skip_notifications context flag' do
         operation = described_class.new(event: event, context: { skip_notifications: true })
-        expect(operation.call).to eq(true)
+        expect(operation.call).to eq(:success)
       end
 
       it 'accepts worker source context' do
@@ -80,7 +80,7 @@ RSpec.describe Billing::Operations::ProcessWebhookEvent, :integration, :process_
           event: event,
           context: { source: :async_worker, source_message_id: 'msg_123', received_at: Time.now },
         )
-        expect(operation.call).to eq(true)
+        expect(operation.call).to eq(:success)
       end
     end
   end

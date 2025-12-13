@@ -71,8 +71,8 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
         .and_raise(StandardError, 'Cache refresh failed')
     end
 
-    it 'returns true (does not re-raise cache errors)' do
-      expect(operation.call).to eq(true)
+    it 'returns :success (cache errors are non-fatal)' do
+      expect(operation.call).to eq(:success)
     end
 
     it 'does not propagate the error' do

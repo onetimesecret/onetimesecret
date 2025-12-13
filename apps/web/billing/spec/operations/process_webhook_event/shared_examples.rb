@@ -92,17 +92,17 @@ module ProcessWebhookEventHelpers
   end
 end
 
-# Shared example: event returns true (handled)
+# Shared example: event returns :success (handled)
 RSpec.shared_examples 'handles event successfully' do
-  it 'returns true indicating event was handled' do
-    expect(operation.call).to eq(true)
+  it 'returns :success indicating event was handled' do
+    expect(operation.call).to eq(:success)
   end
 end
 
-# Shared example: event returns false (unhandled)
+# Shared example: event returns :unhandled
 RSpec.shared_examples 'ignores unhandled event' do
-  it 'returns false for unhandled event type' do
-    expect(operation.call).to eq(false)
+  it 'returns :unhandled for unhandled event type' do
+    expect(operation.call).to eq(:unhandled)
   end
 
   it 'does not raise an error' do
@@ -112,8 +112,8 @@ end
 
 # Shared example: logs warning for missing organization
 RSpec.shared_examples 'logs warning for missing organization' do
-  it 'returns true but organization is not found' do
-    expect(operation.call).to eq(true)
+  it 'returns :not_found when organization is not found' do
+    expect(operation.call).to eq(:not_found)
   end
 end
 

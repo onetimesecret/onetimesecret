@@ -105,9 +105,9 @@ RSpec.describe 'ProcessWebhookEvent: customer.updated', :integration, :process_w
         .and_return(nil)
     end
 
-    it 'returns true (event was handled)' do
+    it 'returns :not_found (organization not found)' do
       # Unlike subscription events, customer.updated with unknown org is debug-logged, not warned
-      expect(operation.call).to eq(true)
+      expect(operation.call).to eq(:not_found)
     end
 
     it 'does not raise an error' do

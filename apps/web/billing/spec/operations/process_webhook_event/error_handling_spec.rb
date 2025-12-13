@@ -106,9 +106,9 @@ RSpec.describe 'ProcessWebhookEvent: error handling', :integration, :process_web
         .and_return(subscription)
     end
 
-    it 'returns true (event handled)' do
+    it 'returns :skipped (missing custid)' do
       # Missing custid is logged as warning but doesn't fail
-      expect(operation.call).to eq(true)
+      expect(operation.call).to eq(:skipped)
     end
 
     it 'does not raise an error' do
@@ -143,9 +143,9 @@ RSpec.describe 'ProcessWebhookEvent: error handling', :integration, :process_web
         .and_return(subscription)
     end
 
-    it 'returns true (event handled)' do
+    it 'returns :not_found (customer not found)' do
       # Missing customer is logged as error but doesn't fail webhook
-      expect(operation.call).to eq(true)
+      expect(operation.call).to eq(:not_found)
     end
 
     it 'does not raise an error' do
@@ -164,9 +164,9 @@ RSpec.describe 'ProcessWebhookEvent: error handling', :integration, :process_web
           .and_raise(StandardError.new('Cache refresh failed'))
       end
 
-      it 'returns true (event handled)' do
+      it 'returns :success (cache errors are non-fatal)' do
         # Plan cache refresh errors are logged but don't fail the webhook
-        expect(operation.call).to eq(true)
+        expect(operation.call).to eq(:success)
       end
 
       it 'does not propagate the error' do
@@ -180,8 +180,8 @@ RSpec.describe 'ProcessWebhookEvent: error handling', :integration, :process_web
           .and_raise(Stripe::APIError.new('Stripe unavailable'))
       end
 
-      it 'returns true (event handled)' do
-        expect(operation.call).to eq(true)
+      it 'returns :success (cache errors are non-fatal)' do
+        expect(operation.call).to eq(:success)
       end
 
       it 'does not propagate the Stripe error' do

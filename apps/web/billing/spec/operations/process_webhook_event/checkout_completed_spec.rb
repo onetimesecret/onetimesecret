@@ -82,7 +82,9 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
     end
     let(:event) { build_stripe_event(type: 'checkout.session.completed', data_object: payment_session) }
 
-    include_examples 'handles event successfully'
+    it 'returns :skipped for one-time payments' do
+      expect(operation.call).to eq(:skipped)
+    end
 
     it 'does not call Stripe API' do
       expect(Stripe::Subscription).not_to receive(:retrieve)
@@ -99,7 +101,9 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
       allow(Stripe::Subscription).to receive(:retrieve).and_return(subscription_no_custid)
     end
 
-    include_examples 'handles event successfully'
+    it 'returns :skipped when custid is missing' do
+      expect(operation.call).to eq(:skipped)
+    end
   end
 
   context 'with missing customer record' do
@@ -116,6 +120,8 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
       allow(Stripe::Subscription).to receive(:retrieve).and_return(subscription_missing_customer)
     end
 
-    include_examples 'handles event successfully'
+    it 'returns :not_found when customer does not exist' do
+      expect(operation.call).to eq(:not_found)
+    end
   end
 end
