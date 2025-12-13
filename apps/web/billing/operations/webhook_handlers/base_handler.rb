@@ -82,9 +82,9 @@ module Billing
         # @param event [Stripe::Event] The Stripe webhook event
         # @param context [Hash] Optional context (e.g., { replay: true })
         def initialize(event:, context: {})
-          @event = event
+          @event       = event
           @data_object = event.data.object
-          @context = context
+          @context     = context
         end
 
         # Execute the handler with logging and error handling
@@ -96,8 +96,8 @@ module Billing
           result = process
           log_complete(result)
           result
-        rescue StandardError => e
-          log_error(e)
+        rescue StandardError => ex
+          log_error(ex)
           raise
         end
 

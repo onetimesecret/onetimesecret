@@ -84,16 +84,16 @@ module Onetime
           interval = ENV.fetch('WORKER_HEARTBEAT_INTERVAL', 300).to_i # 5 minutes default
           return if interval <= 0 # Disable with WORKER_HEARTBEAT_INTERVAL=0
 
-          start_time = Time.now
+          start_time  = Time.now
           queue_names = worker_classes.map(&:queue_name).join(',')
 
-          t = Thread.new do
+          t                    = Thread.new do
             loop do
               uptime_seconds = (Time.now - start_time).to_i
-              uptime_str = format_uptime(uptime_seconds)
+              uptime_str     = format_uptime(uptime_seconds)
 
               Onetime.jobs_logger.info(
-                "[Worker] Heartbeat | uptime=#{uptime_str} | queues=#{queue_names}"
+                "[Worker] Heartbeat | uptime=#{uptime_str} | queues=#{queue_names}",
               )
               sleep interval
             rescue StandardError => ex
@@ -110,8 +110,8 @@ module Onetime
         # @param seconds [Integer] Total seconds
         # @return [String] Formatted string like "2h15m" or "3d4h"
         def format_uptime(seconds)
-          days = seconds / 86_400
-          hours = (seconds % 86_400) / 3600
+          days    = seconds / 86_400
+          hours   = (seconds % 86_400) / 3600
           minutes = (seconds % 3600) / 60
 
           if days > 0
@@ -147,13 +147,13 @@ module Onetime
 
           # Apply CLI log level override if provided
           if log_level
-            level_str = log_level.to_s.downcase
+            level_str      = log_level.to_s.downcase
             allowed_levels = %w[trace debug info warn error fatal]
             if allowed_levels.include?(level_str)
               Onetime.jobs_logger.level = level_str.to_sym
             else
               Onetime.jobs_logger.warn(
-                "Ignoring invalid log level: #{log_level.inspect}. Allowed: #{allowed_levels.join(', ')}"
+                "Ignoring invalid log level: #{log_level.inspect}. Allowed: #{allowed_levels.join(', ')}",
               )
             end
           end
