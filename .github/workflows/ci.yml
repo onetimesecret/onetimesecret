@@ -657,6 +657,7 @@ jobs:
           echo "tier4=$TIER4_COMPLETE" >> $GITHUB_OUTPUT
 
       - name: Check CI metrics
+        id: metrics
         uses: ./.github/actions/check-ci-metrics
         with:
           workflow-start-time: ${{ steps.timing.outputs.workflow_start }}
@@ -694,43 +695,81 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const status = '${{ steps.check-ci-metrics.outputs.status || 'unknown' }}';
-
-            // Build job results table
-            const jobs = [
-              { name: 'Detect Changes', result: '${{ needs.changes.result }}' },
-              { name: 'Ruby Lint', result: '${{ needs.ruby-lint.result }}' },
-              { name: 'TypeScript Lint', result: '${{ needs.typescript-lint.result }}' },
-              { name: 'Build Assets', result: '${{ needs.build-assets.result }}' },
-              { name: 'Ruby Unit', result: '${{ needs.ruby-unit.result }}' },
-              { name: 'TypeScript Unit', result: '${{ needs.typescript-unit.result }}' },
-              { name: 'Ruby Integration (Simple)', result: '${{ needs.ruby-integration-simple.result }}' },
-              { name: 'Ruby Integration (Full)', result: '${{ needs.ruby-integration-full.result }}' },
-              { name: 'Ruby Integration (Disabled)', result: '${{ needs.ruby-integration-disabled.result }}' },
-              { name: 'Container Validation', result: '${{ needs.check-oci-image.result }}' },
+            // Tier timing from check-ci-metrics action
+            const tiers = [
+              {
+                name: 'Tier 1',
+                jobs: 'Lint & Build',
+                seconds: '${{ steps.metrics.outputs.tier1-seconds }}',
+                target: 60,
+              },
+              {
+                name: 'Tier 2',
+                jobs: 'Unit Tests',
+                seconds: '${{ steps.metrics.outputs.tier2-seconds }}',
+                target: 120,
+              },
+              {
+                name: 'Tier 3',
+                jobs: 'Integration Tests',
+                seconds: '${{ steps.metrics.outputs.tier3-seconds }}',
+                target: 210,
+              },
+              {
+                name: 'Tier 4',
+                jobs: 'Container Validation',
+                seconds: '${{ steps.metrics.outputs.tier4-seconds }}',
+                target: 400,
+              },
             ];
 
-            const statusIcon = (result) => {
-              switch(result) {
-                case 'success': return '✅';
-                case 'failure': return '❌';
-                case 'skipped': return '⏭️';
-                case 'cancelled': return '🚫';
-                default: return '❓';
+            const formatDuration = (secs) => {
+              if (!secs || secs === 'N/A') return 'N/A';
+              const s = parseInt(secs, 10);
+              if (isNaN(s)) return 'N/A';
+              if (s >= 60) {
+                const m = Math.floor(s / 60);
+                const r = s % 60;
+                return `${m}m ${r}s`;
               }
+              return `${s}s`;
             };
 
-            const jobRows = jobs.map(j => `| ${j.name} | ${statusIcon(j.result)} ${j.result} |`).join('\n');
+            const statusIcon = (secs, target) => {
+              if (!secs || secs === 'N/A') return '❓';
+              const s = parseInt(secs, 10);
+              if (isNaN(s)) return '❓';
+              const warning = target + Math.floor(target * 0.2);
+              if (s <= target) return '✅';
+              if (s <= warning) return '⚠️';
+              return '❌';
+            };
 
+            const tierRows = tiers.map(t =>
+              `| ${t.name} | ${t.jobs} | ${formatDuration(t.seconds)} | <${t.target}s | ${statusIcon(t.seconds, t.target)} |`
+            ).join('\n');
+
+            const status = '${{ steps.metrics.outputs.status }}';
             const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
-            const comment = `## 📊 CI Metrics Summary
+            const comment = `## 📊 CI Performance Metrics
 
-            | Job | Status |
-            |-----|--------|
-            ${jobRows}
+            | Tier | Jobs | Actual | Target | Status |
+            |------|------|--------|--------|--------|
+            ${tierRows}
 
-            ---
+            <details>
+            <summary>Tier Details</summary>
+
+            - **Tier 1 - Lint & Build**: Ruby Lint, TypeScript Lint, Build Frontend Assets
+            - **Tier 2 - Unit Tests**: Ruby Unit Tests, TypeScript Unit Tests
+            - **Tier 3 - Integration Tests**: Ruby Integration (Simple, Full, Disabled modes)
+            - **Tier 4 - Container Validation**: Docker build and health check
+            - **Tier 5 - CI Metrics**: Performance validation and reporting
+
+            Times are cumulative from workflow start.
+            </details>
+
             🔗 [View full workflow run](${runUrl})
             `;
 
@@ -743,7 +782,7 @@ jobs:
 
             const botComment = comments.find(c =>
               c.user.type === 'Bot' &&
-              c.body.includes('📊 CI Metrics Summary')
+              c.body.includes('📊 CI Performance Metrics')
             );
 
             if (botComment) {
