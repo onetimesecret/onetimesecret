@@ -368,6 +368,7 @@ runs:
         **Tier 2 - Unit Tests**: Ruby Unit Tests, TypeScript Unit Tests
         **Tier 3 - Integration Tests**: Ruby Integration (Simple, Full, Disabled modes)
         **Tier 4 - Container Validation**: Docker build and health check
+        **Tier 5 - CI Metrics**: Performance validation and reporting
 
         Times are cumulative from workflow start.
 
