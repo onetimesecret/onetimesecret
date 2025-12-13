@@ -95,20 +95,13 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   const displayName = computed(() => state.brand?.description || state.displayDomain);
 
   /** Logo URL for custom domain, pre-computed by backend with correct extid */
-  const logoUri = computed(() => {
-    // Use domain_logo from backend (uses extid for public URLs)
-    // Falls back to generated path if not available
-    const domainLogo = WindowService.get('domain_logo');
-    if (domainLogo) {
-      return domainLogo;
-    }
-    // Fallback: generate from domainId (legacy behavior)
-    const template = '/imagine/:custom_domain_id/:image_type.:image_ext';
-    return template
-      .replace(':custom_domain_id', state.domainId)
-      .replace(':image_type', 'logo')
-      .replace(':image_ext', 'png');
-  });
+  const logoUri = computed(() =>
+    // Backend provides the correct logo URL using extid (external ID).
+    // Returns null if no logo is uploaded for this custom domain.
+    // Note: Client-side URL generation is not possible since we only have
+    // the internal domainId, not the public extid needed for the /imagine route.
+     WindowService.get('domain_logo')
+  );
 
   const cornerClass = computed(() => {
     switch (state.brand?.corner_style) {
