@@ -168,6 +168,13 @@ export interface OnetimeWindow {
   d9s_enabled: boolean;
   diagnostics: DiagnosticsConfig;
 
+  /** Development mode configuration */
+  development?: {
+    enabled: boolean;
+    /** When true, enables domain context override feature in Colonel */
+    domain_context_enabled: boolean;
+  };
+
   features: {
     markdown: boolean;
   };

@@ -31,9 +31,17 @@ module Onetime
       @domains_enabled         = nil
       @canonical_domain_parsed = nil
 
+      # Domain Context Override state (set at boot from config/env)
+      @domain_context_enabled  = nil
+      @domain_context_override = nil
+
       unless defined?(MAX_SUBDOMAIN_DEPTH)
         MAX_SUBDOMAIN_DEPTH = 10 # e.g., a.b.c.d.e.f.g.h.i.j.example.com
         MAX_TOTAL_LENGTH    = 253 # RFC 1034 section 3.1
+
+        # Domain Context Override constants
+        DOMAIN_CONTEXT_HEADER  = 'HTTP_O_DOMAIN_CONTEXT'.freeze
+        DOMAIN_CONTEXT_ENV_VAR = 'DOMAIN_CONTEXT'.freeze
       end
 
       # Initializes the DomainStrategy middleware instance.
@@ -94,7 +102,19 @@ module Onetime
         display_domain  = canonical_domain
         domain_strategy = :canonical
 
-        if domains_enabled?
+        # Check for domain context override first (development feature)
+        override_domain, override_source = detect_domain_override(env)
+
+        if override_domain
+          display_domain  = override_domain
+          domain_strategy = determine_override_strategy(override_domain)
+
+          http_logger.info '[DomainStrategy] override active', {
+            domain: override_domain,
+            source: override_source,
+            strategy: domain_strategy,
+          }
+        elsif domains_enabled?
           display_domain  = env[Rack::DetectHost.result_field_name]
           # OT.ld "[middleware] DomainStrategy: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
           domain_strategy = Chooserator.choose_strategy(display_domain, canonical_domain_parsed)
@@ -109,6 +129,44 @@ module Onetime
         }
 
         @app.call(env)
+      end
+
+      # Detects domain context override from environment or request header.
+      #
+      # Override priority (first match wins):
+      # 1. DOMAIN_CONTEXT env var (set at process startup)
+      # 2. O-Domain-Context request header (per-request override)
+      #
+      # @param env [Hash] The Rack environment hash
+      # @return [Array<String, Symbol>, Array<nil, nil>] [domain, source] or [nil, nil]
+      def detect_domain_override(env)
+        return [nil, nil] unless domain_context_enabled?
+
+        # Check env var first (process-level override)
+        env_override = ENV[DOMAIN_CONTEXT_ENV_VAR]
+        return [env_override, :env_var] if env_override && !env_override.empty?
+
+        # Check request header (per-request override)
+        header_override = env[DOMAIN_CONTEXT_HEADER]
+        return [header_override, :header] if header_override && !header_override.empty?
+
+        [nil, nil]
+      end
+
+      # Determines the strategy for an override domain.
+      #
+      # @param domain [String] The override domain
+      # @return [Symbol] :custom if domain exists, :custom_simulated if not
+      def determine_override_strategy(domain)
+        if Chooserator.known_custom_domain?(domain)
+          :custom
+        else
+          :custom_simulated
+        end
+      end
+
+      def domain_context_enabled?
+        self.class.domain_context_enabled
       end
 
       def canonical_domain
@@ -270,9 +328,11 @@ module Onetime
       # @note If dynamic reconfiguration is needed, consider using a thread-safe
       #   configuration store (e.g., monitor pattern) instead of class variables.
       module ClassMethods
-        attr_reader :canonical_domain, :domains_enabled, :canonical_domain_parsed
+        attr_reader :canonical_domain, :domains_enabled, :canonical_domain_parsed,
+                    :domain_context_enabled
 
         alias domains_enabled? domains_enabled
+        alias domain_context_enabled? domain_context_enabled
 
         # Sets class instance variables based on the site configuration.
         def initialize_from_config(domains_config)
@@ -285,9 +345,14 @@ module Onetime
           @domains_enabled  = domains_config.fetch('enabled', false)
           @canonical_domain = get_canonical_domain(domains_config)
 
+          # Load domain context override setting from development config
+          dev_config              = OT.conf&.dig('development') || {}
+          @domain_context_enabled = dev_config['domain_context_enabled'] == true
+
           Onetime.http_logger.debug 'DomainStrategy config loaded', {
             domains_enabled: domains_enabled,
             canonical_domain: canonical_domain,
+            domain_context_enabled: domain_context_enabled,
           }
 
           # We don't need to get into any domain parsing if domains are disabled
@@ -311,6 +376,7 @@ module Onetime
           @canonical_domain        = nil
           @domains_enabled         = nil
           @canonical_domain_parsed = nil
+          @domain_context_enabled  = nil
         end
       end
 

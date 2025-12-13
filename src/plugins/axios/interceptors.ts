@@ -31,6 +31,26 @@ const isValidShrimp = (shrimp: unknown): shrimp is string =>
   typeof shrimp === 'string' && shrimp.length > 0;
 
 /**
+ * Domain Context Override header name.
+ * Used for persona-based testing in development mode.
+ */
+const DOMAIN_CONTEXT_HEADER = 'O-Domain-Context';
+const DOMAIN_CONTEXT_STORAGE_KEY = 'domainContext';
+
+/**
+ * Gets the domain context override from sessionStorage.
+ * @returns The domain context value or null if not set
+ */
+const getDomainContext = (): string | null => {
+  try {
+    return sessionStorage.getItem(DOMAIN_CONTEXT_STORAGE_KEY);
+  } catch {
+    // sessionStorage may not be available (SSR, private browsing, etc.)
+    return null;
+  }
+};
+
+/**
  * Request interceptor that adds the CSRF token to outgoing requests
  * @param config - Axios request configuration
  * @returns Modified config with CSRF token in headers
@@ -49,6 +69,12 @@ export const requestInterceptor = (config: InternalAxiosRequestConfig) => {
   config.headers = config.headers || {};
   config.headers['X-CSRF-Token'] = csrfStore.shrimp;
   config.headers['Accept-Language'] = languageStore.getCurrentLocale;
+
+  // Add domain context override header if set (development feature)
+  const domainContext = getDomainContext();
+  if (domainContext) {
+    config.headers[DOMAIN_CONTEXT_HEADER] = domainContext;
+  }
 
   // For FormData uploads, delete Content-Type so Axios sets it with the boundary
   if (config.data instanceof FormData) {

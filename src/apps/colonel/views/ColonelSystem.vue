@@ -3,10 +3,11 @@
 <script setup lang="ts">
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import QueueStatus from '@/apps/colonel/components/QueueStatus.vue';
+  import DomainContextSwitcher from '@/apps/colonel/components/DomainContextSwitcher.vue';
   import { WindowService } from '@/services/window.service';
   import { computed } from 'vue';
 
-  const windowProps = WindowService.getMultiple(['authentication']);
+  const windowProps = WindowService.getMultiple(['authentication', 'development']);
 
   // System sections with conditional visibility
   const systemSections = computed(() => {
@@ -90,6 +91,11 @@
     <!-- Queue Status Section -->
     <div class="mt-6">
       <QueueStatus />
+    </div>
+
+    <!-- Domain Context Override (development only) -->
+    <div v-if="windowProps.development?.domain_context_enabled" class="mt-6">
+      <DomainContextSwitcher />
     </div>
   </div>
 </template>
