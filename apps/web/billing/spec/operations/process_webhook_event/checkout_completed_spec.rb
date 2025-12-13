@@ -1,0 +1,121 @@
+# apps/web/billing/spec/operations/process_webhook_event/checkout_completed_spec.rb
+#
+# frozen_string_literal: true
+
+# Tests for checkout.session.completed webhook event handling.
+#
+# Run: pnpm run test:rspec apps/web/billing/spec/operations/process_webhook_event/checkout_completed_spec.rb
+
+require_relative '../../support/billing_spec_helper'
+require_relative 'shared_examples'
+require_relative '../../../operations/process_webhook_event'
+
+RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, :process_webhook_event do
+  let(:test_email) { "checkout-#{SecureRandom.hex(4)}@example.com" }
+  let(:stripe_customer_id) { 'cus_checkout_123' }
+  let(:stripe_subscription_id) { 'sub_checkout_456' }
+
+  let(:created_customers) { [] }
+  let(:created_organizations) { [] }
+
+  let(:session) do
+    build_stripe_session(
+      id: 'cs_test_123',
+      customer: stripe_customer_id,
+      subscription: stripe_subscription_id,
+    )
+  end
+
+  let(:event) { build_stripe_event(type: 'checkout.session.completed', data_object: session) }
+  let(:operation) { Billing::Operations::ProcessWebhookEvent.new(event: event) }
+
+  after do
+    created_organizations.each(&:destroy!)
+    created_customers.each(&:destroy!)
+  end
+
+  context 'with valid subscription checkout' do
+    let!(:customer) { create_test_customer(custid: nil, email: test_email) }
+
+    # Build subscription with actual customer custid
+    let(:subscription) do
+      build_stripe_subscription(
+        id: stripe_subscription_id,
+        customer: stripe_customer_id,
+        status: 'active',
+        metadata: { 'custid' => customer.custid },
+      )
+    end
+
+    before do
+      allow(Stripe::Subscription).to receive(:retrieve)
+        .with(stripe_subscription_id)
+        .and_return(subscription)
+    end
+
+    include_examples 'handles event successfully'
+
+    it 'creates default organization for customer without one' do
+      expect { operation.call }.to change {
+        customer.organization_instances.to_a.length
+      }.from(0).to(1)
+    end
+
+    it 'updates organization with subscription details' do
+      operation.call
+      org = customer.organization_instances.to_a.first
+      expect(org.stripe_subscription_id).to eq(stripe_subscription_id)
+      expect(org.subscription_status).to eq('active')
+    end
+
+    it 'uses existing default organization if present' do
+      existing_org = create_test_organization(customer: customer, default: true)
+      expect { operation.call }.not_to(change { customer.organization_instances.to_a.length })
+      existing_org.refresh!
+      expect(existing_org.stripe_subscription_id).to eq(stripe_subscription_id)
+    end
+  end
+
+  context 'with one-time payment (no subscription)' do
+    let(:payment_session) do
+      build_stripe_session(id: 'cs_payment', customer: stripe_customer_id, subscription: nil, mode: 'payment')
+    end
+    let(:event) { build_stripe_event(type: 'checkout.session.completed', data_object: payment_session) }
+
+    include_examples 'handles event successfully'
+
+    it 'does not call Stripe API' do
+      expect(Stripe::Subscription).not_to receive(:retrieve)
+      operation.call
+    end
+  end
+
+  context 'with missing custid in metadata' do
+    let(:subscription_no_custid) do
+      build_stripe_subscription(id: stripe_subscription_id, customer: stripe_customer_id, status: 'active', metadata: {})
+    end
+
+    before do
+      allow(Stripe::Subscription).to receive(:retrieve).and_return(subscription_no_custid)
+    end
+
+    include_examples 'handles event successfully'
+  end
+
+  context 'with missing customer record' do
+    let(:subscription_missing_customer) do
+      build_stripe_subscription(
+        id: stripe_subscription_id,
+        customer: stripe_customer_id,
+        status: 'active',
+        metadata: { 'custid' => 'nonexistent_custid' },
+      )
+    end
+
+    before do
+      allow(Stripe::Subscription).to receive(:retrieve).and_return(subscription_missing_customer)
+    end
+
+    include_examples 'handles event successfully'
+  end
+end

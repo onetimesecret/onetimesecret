@@ -143,7 +143,7 @@ module Onetime
           # @return [String, nil] Plan ID or nil if not found
           def extract_plan_id_from_subscription(subscription)
             # Load Billing::Metadata for constants
-            require_relative '../../../../apps/web/billing/metadata'
+            require_relative '../../../../../apps/web/billing/metadata'
 
             # Try subscription-level metadata first
             if subscription.metadata && subscription.metadata[Billing::Metadata::FIELD_PLAN_ID]
