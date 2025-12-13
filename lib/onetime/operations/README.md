@@ -60,8 +60,33 @@ result = SomeOperation.call(param: value)
 - `Auth::Operations::SyncSession` - Syncs Rodauth session with application session
 - `Billing::Operations::ProcessWebhookEvent` - Routes Stripe webhook events to handlers
 
+## Comparison with Other Patterns
+
+| Aspect | Logic | Operations | Services |
+|--------|-------|-----------|----------|
+| Context | HTTP-bound (session, params) | Context-free | Context-free |
+| Interface | `process`, `success_data` | Single `#call` | Multiple methods |
+| State | Request-scoped | Stateless | Stateful |
+| Lifecycle | Request-response | One-shot | Multi-phase |
+| Primary use | API endpoints | Event handlers | CLI, admin tools |
+| Results | JSON-ready data | Return symbols | Statistics, reports |
+
+### Operations vs Logic
+
+**Operations** are context-independent:
+- Don't know about HTTP, sessions, or authentication
+- Take simple constructor arguments (often with keyword args)
+- Return simple result symbols (`:success`, `:skipped`, `:error`)
+- Reusable from any context (controllers, CLI, background jobs)
+
+**Logic** classes are HTTP request-bound:
+- Receive authentication context and HTTP params
+- Return data structures for JSON API responses
+- Have form error handling for validation
+
 ## See Also
 
+- `lib/onetime/logic/` - For HTTP request processing base classes
 - `lib/onetime/services/` - For multi-phase administrative tools
 - `apps/web/auth/operations/` - Auth-specific operations
 - `apps/web/billing/operations/` - Billing-specific operations

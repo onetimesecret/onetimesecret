@@ -86,17 +86,34 @@ end
 - `Onetime::Services::ChangeEmail` - Changes customer email with validation and audit trail
 - `Onetime::Services::RedisKeyMigrator` - Migrates Redis keys between databases with statistics
 
-## Comparison with Operations
+## Comparison with Other Patterns
 
-| Aspect | Operations | Services |
-|--------|-----------|----------|
-| Interface | Single `#call` | Multiple methods |
-| State | Stateless | Stateful |
-| Lifecycle | One-shot | Multi-phase |
-| Primary use | Event handlers, workers | CLI, admin tools |
-| Results | Return value | Statistics, reports |
+| Aspect | Logic | Operations | Services |
+|--------|-------|-----------|----------|
+| Context | HTTP-bound (session, params) | Context-free | Context-free |
+| Interface | `process`, `success_data` | Single `#call` | Multiple methods |
+| State | Request-scoped | Stateless | Stateful |
+| Lifecycle | Request-response | One-shot | Multi-phase |
+| Primary use | API endpoints | Event handlers | CLI, admin tools |
+| Results | JSON-ready data | Return symbols | Statistics, reports |
+
+### Logic vs Services
+
+**Logic** classes are tightly coupled to the HTTP request lifecycle:
+- Receive authentication context (`strategy_result`) and HTTP params
+- Return data structures suitable for JSON API responses
+- Have form error handling for validation feedback
+- Located in `apps/api/*/logic/`
+
+**Services** are context-independent:
+- Don't know about HTTP, sessions, or authentication
+- Take simple constructor arguments
+- Support preview/dry-run workflows
+- Generate reports and audit trails
+- Located in `lib/onetime/services/`
 
 ## See Also
 
+- `lib/onetime/logic/` - For HTTP request processing base classes
 - `lib/onetime/operations/` - For single-purpose command pattern actions
 - `lib/onetime/cli/` - CLI commands that use these services
