@@ -5,6 +5,8 @@
 require 'stripe'
 require_relative 'base_worker'
 require_relative '../queue_config'
+require_relative '../../../../apps/web/billing/operations/process_webhook_event'
+require_relative '../../../../apps/web/billing/models/stripe_webhook_event'
 
 #
 # Processes Stripe webhook events from the billing.event.process queue.
@@ -130,9 +132,6 @@ module Onetime
         # @param event [Stripe::Event] The Stripe event
         # @param data [Hash] Original message data (for context)
         def process_event(event, data)
-          # Load the ProcessWebhookEvent operation
-          require_billing_operation
-
           operation = Billing::Operations::ProcessWebhookEvent.new(
             event: event,
             context: {
@@ -144,17 +143,11 @@ module Onetime
           operation.call
         end
 
-        # Require the billing operation (lazy load to avoid circular deps)
-        def require_billing_operation
-          require_relative '../../../../apps/web/billing/operations/process_webhook_event'
-        end
-
         # Mark the Stripe webhook event as successfully processed
         # @param event_id [String] Stripe event ID
         def mark_event_success(event_id)
           return unless event_id
 
-          require_billing_models
           event_record = Billing::StripeWebhookEvent.find_by_identifier(event_id)
           event_record&.mark_success!
         rescue StandardError => ex
@@ -168,7 +161,6 @@ module Onetime
         def mark_event_failed(event_id, error)
           return unless event_id
 
-          require_billing_models
           event_record = Billing::StripeWebhookEvent.find_by_identifier(event_id)
           event_record&.mark_failed!(error)
         rescue StandardError => ex
@@ -176,10 +168,6 @@ module Onetime
           log_error "Failed to mark event as failed: #{ex.message}"
         end
 
-        # Require billing models (lazy load)
-        def require_billing_models
-          require_relative '../../../../apps/web/billing/models/stripe_webhook_event'
-        end
       end
     end
   end

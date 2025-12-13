@@ -117,22 +117,6 @@ RSpec.describe Onetime::Jobs::Workers::BillingWorker do
     }.to_json
   end
 
-  # Define a mock operation class that we can control
-  let(:mock_operation_class) do
-    Class.new do
-      attr_reader :event, :context
-
-      def initialize(event:, context:)
-        @event = event
-        @context = context
-      end
-
-      def call
-        true
-      end
-    end
-  end
-
   let(:operation_instance) { instance_double('ProcessWebhookEventDouble') }
 
   before do
@@ -145,15 +129,8 @@ RSpec.describe Onetime::Jobs::Workers::BillingWorker do
     # Mock sleep to speed up retry tests
     allow(worker).to receive(:sleep)
 
-    # Define the Billing::Operations module and class before tests run
-    # This must happen BEFORE mocking require_billing_operation
-    stub_const('Billing::Operations::ProcessWebhookEvent', mock_operation_class)
-
-    # Mock the require to avoid loading the actual billing app
-    # (the stub_const above already defines the constant we need)
-    allow(worker).to receive(:require_billing_operation)
-
-    # Now mock the class to return our controlled instance
+    # Mock the operation class to return our controlled instance
+    # (actual class is loaded at file level, we just mock its behavior)
     allow(Billing::Operations::ProcessWebhookEvent).to receive(:new).and_return(operation_instance)
     allow(operation_instance).to receive(:call).and_return(true)
   end

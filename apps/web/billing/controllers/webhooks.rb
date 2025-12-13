@@ -119,7 +119,15 @@ module Billing
           json_success('Event queued')
         rescue StandardError => ex
           # Enqueue failed (RabbitMQ unavailable) - return 500 so Stripe retries
-          event_record.mark_failed!(ex)
+          begin
+            event_record.mark_failed!(ex)
+          rescue StandardError => marking_error
+            billing_logger.error 'Failed to mark event as failed', {
+              original_error: ex.message,
+              marking_error: marking_error.message,
+              event_id: event.id,
+            }
+          end
 
           billing_logger.error 'Failed to enqueue webhook event', {
             event_type: event.type,
