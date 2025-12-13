@@ -35,8 +35,8 @@ module Onetime
         def disconnect
           # Always clear globals first - stale connection objects from parent
           # process are useless in forked children
-          conn = $rmq_conn
-          $rmq_conn = nil
+          conn              = $rmq_conn
+          $rmq_conn         = nil
           $rmq_channel_pool = nil
 
           return unless conn&.open?

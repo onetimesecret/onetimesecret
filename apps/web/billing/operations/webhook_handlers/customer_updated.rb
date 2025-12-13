@@ -55,7 +55,7 @@ module Billing
             old_email: owner.email,
             new_email: stripe_customer.email,
           }
-          # Note: We don't auto-update email as it may require verification
+          # NOTE: We don't auto-update email as it may require verification
         end
       end
     end

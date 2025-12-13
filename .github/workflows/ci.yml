@@ -549,6 +549,10 @@ jobs:
       - check-oci-image
     # always() ensures this runs even if some jobs failed/skipped
     if: always()
+    # Permissions for posting PR comments
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout code
@@ -653,6 +657,7 @@ jobs:
           echo "tier4=$TIER4_COMPLETE" >> $GITHUB_OUTPUT
 
       - name: Check CI metrics
+        id: metrics
         uses: ./.github/actions/check-ci-metrics
         with:
           workflow-start-time: ${{ steps.timing.outputs.workflow_start }}
@@ -682,3 +687,116 @@ jobs:
           echo "| Ruby Integration (Full) | ${{ needs.ruby-integration-full.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Disabled) | ${{ needs.ruby-integration-disabled.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Container Validation | ${{ needs.check-oci-image.result }} |" >> $GITHUB_STEP_SUMMARY
+
+      # Post CI metrics summary as PR comment (PRs only)
+      - name: Post metrics to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Tier timing from check-ci-metrics action
+            const tiers = [
+              {
+                name: 'Tier 1',
+                jobs: 'Lint & Build',
+                seconds: '${{ steps.metrics.outputs.tier1-seconds }}',
+                target: 60,
+              },
+              {
+                name: 'Tier 2',
+                jobs: 'Unit Tests',
+                seconds: '${{ steps.metrics.outputs.tier2-seconds }}',
+                target: 120,
+              },
+              {
+                name: 'Tier 3',
+                jobs: 'Integration Tests',
+                seconds: '${{ steps.metrics.outputs.tier3-seconds }}',
+                target: 210,
+              },
+              {
+                name: 'Tier 4',
+                jobs: 'Container Validation',
+                seconds: '${{ steps.metrics.outputs.tier4-seconds }}',
+                target: 400,
+              },
+            ];
+
+            const formatDuration = (secs) => {
+              if (!secs || secs === 'N/A') return 'N/A';
+              const s = parseInt(secs, 10);
+              if (isNaN(s)) return 'N/A';
+              if (s >= 60) {
+                const m = Math.floor(s / 60);
+                const r = s % 60;
+                return `${m}m ${r}s`;
+              }
+              return `${s}s`;
+            };
+
+            const statusIcon = (secs, target) => {
+              if (!secs || secs === 'N/A') return '❓';
+              const s = parseInt(secs, 10);
+              if (isNaN(s)) return '❓';
+              const warning = target + Math.floor(target * 0.2);
+              if (s <= target) return '✅';
+              if (s <= warning) return '⚠️';
+              return '❌';
+            };
+
+            const tierRows = tiers.map(t =>
+              `| ${t.name} | ${t.jobs} | ${formatDuration(t.seconds)} | <${t.target}s | ${statusIcon(t.seconds, t.target)} |`
+            ).join('\n');
+
+            const status = '${{ steps.metrics.outputs.status }}';
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const comment = `## 📊 CI Performance Metrics
+
+            | Tier | Jobs | Actual | Target | Status |
+            |------|------|--------|--------|--------|
+            ${tierRows}
+
+            <details>
+            <summary>Tier Details</summary>
+
+            - **Tier 1 - Lint & Build**: Ruby Lint, TypeScript Lint, Build Frontend Assets
+            - **Tier 2 - Unit Tests**: Ruby Unit Tests, TypeScript Unit Tests
+            - **Tier 3 - Integration Tests**: Ruby Integration (Simple, Full, Disabled modes)
+            - **Tier 4 - Container Validation**: Docker build and health check
+            - **Tier 5 - CI Metrics**: Performance validation and reporting
+
+            Times are cumulative from workflow start.
+            </details>
+
+            🔗 [View full workflow run](${runUrl})
+            `;
+
+            // Find existing bot comment with this header
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' &&
+              c.body.includes('📊 CI Performance Metrics')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment,
+              });
+            }

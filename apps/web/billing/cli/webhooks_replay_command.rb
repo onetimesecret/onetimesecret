@@ -184,10 +184,10 @@ module Onetime
         return false if cutoff && event.first_seen_at.to_i < cutoff.to_i
 
         # Customer filter (pass both Stripe ID and original input for metadata matching)
-        if stripe_customer_id || original_customer_id
-          return false unless matches_customer?(event, stripe_customer_id,
-            original_customer_id: original_customer_id
-          )
+        if (stripe_customer_id || original_customer_id) && !matches_customer?(event, stripe_customer_id,
+          original_customer_id: original_customer_id
+        )
+          return false
         end
 
         true
@@ -342,7 +342,7 @@ module Onetime
           context = { replay: true, skip_notifications: skip_notifications }
           Billing::Operations::ProcessWebhookEvent.new(
             event: stripe_event,
-            context: context
+            context: context,
           ).call
 
           event.mark_success!

@@ -52,7 +52,7 @@ module Onetime
       # @param data [Hash] Parsed notification data
       # @param context [Hash] Optional context (e.g., { source_message_id: 'abc' })
       def initialize(data:, context: {})
-        @data = data
+        @data    = data
         @context = context
         @results = {}
       end
@@ -79,8 +79,8 @@ module Onetime
       # @return [Array<String>] List of valid channel names
       def resolve_channels
         requested = Array(@data[:channels]).map(&:to_s)
-        valid = requested & SUPPORTED_CHANNELS
-        invalid = requested - valid
+        valid     = requested & SUPPORTED_CHANNELS
+        invalid   = requested - valid
 
         if invalid.any?
           logger.warn 'Unsupported channels requested and ignored', unsupported: invalid
@@ -117,7 +117,7 @@ module Onetime
       # @return [Symbol] :success or :skipped
       def deliver_via_bell
         addressee = @data[:addressee] || {}
-        custid = addressee[:custid]
+        custid    = addressee[:custid]
 
         unless custid
           logger.debug 'No custid for bell notification, skipping'
@@ -125,7 +125,7 @@ module Onetime
         end
 
         notification = build_bell_notification
-        key = "notifications:#{custid}"
+        key          = "notifications:#{custid}"
 
         # Use MULTI/EXEC for atomic Redis operations
         Familia.dbclient.multi do |multi|
@@ -155,7 +155,7 @@ module Onetime
       # @return [Symbol] :success or :skipped
       def deliver_via_email
         addressee = @data[:addressee] || {}
-        email = addressee[:email]
+        email     = addressee[:email]
 
         unless email
           logger.debug 'No email address for email notification, skipping'
@@ -166,7 +166,7 @@ module Onetime
 
         Onetime::Jobs::Publisher.new.publish(
           'email.message.send',
-          email_payload
+          email_payload,
         )
 
         logger.debug 'Email notification queued', email: email, template: @data[:template]
@@ -181,7 +181,7 @@ module Onetime
           template: @data[:template],
           data: (@data[:data] || {}).merge(
             locale: @data[:locale] || 'en',
-            to: email
+            to: email,
           ),
         }
       end
@@ -189,7 +189,7 @@ module Onetime
       # Make HTTP POST callback to user's webhook URL
       # @return [Symbol] :success or :skipped
       def deliver_via_webhook
-        addressee = @data[:addressee] || {}
+        addressee   = @data[:addressee] || {}
         webhook_url = addressee[:webhook_url]
 
         unless webhook_url
@@ -197,7 +197,7 @@ module Onetime
           return :skipped
         end
 
-        payload = build_webhook_payload
+        payload  = build_webhook_payload
         response = send_webhook_request(webhook_url, payload)
 
         unless response.is_a?(Net::HTTPSuccess)
@@ -246,17 +246,17 @@ module Onetime
 
         # Explicit TLS verification settings
         if http.use_ssl?
-          http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+          http.verify_mode     = OpenSSL::SSL::VERIFY_PEER
           http.verify_hostname = true
         end
 
         http.open_timeout = WEBHOOK_OPEN_TIMEOUT
         http.read_timeout = WEBHOOK_READ_TIMEOUT
 
-        request = Net::HTTP::Post.new(uri.request_uri)
+        request                 = Net::HTTP::Post.new(uri.request_uri)
         request['Content-Type'] = 'application/json'
-        request['User-Agent'] = Onetime::VERSION.user_agent
-        request.body = payload.to_json
+        request['User-Agent']   = Onetime::VERSION.user_agent
+        request.body            = payload.to_json
 
         http.request(request)
       end
@@ -275,8 +275,8 @@ module Onetime
             raise ArgumentError, "Webhook URL resolves to restricted address: #{addr_info.ip_address}"
           end
         end
-      rescue SocketError => e
-        raise ArgumentError, "Cannot resolve webhook hostname: #{e.message}"
+      rescue SocketError => ex
+        raise ArgumentError, "Cannot resolve webhook hostname: #{ex.message}"
       end
 
       # @return [SemanticLogger::Logger] Logger instance

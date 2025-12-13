@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../../support/test_helpers'
-require_relative '../../../lib/onetime/redis_key_migrator'
+require_relative '../../../lib/onetime/services/redis_key_migrator'
 
 OT.boot! :test, true
 
@@ -61,7 +61,7 @@ end
 source_uri = test_uri(@test_db_source)
 target_uri = test_uri(@test_db_target)
 
-migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
+migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)
 strategy = migrator.send(:determine_migration_strategy)
 strategy
 #=> :copy
@@ -70,7 +70,7 @@ strategy
 source_uri = "redis://#{@redis_host}:#{@redis_port}/#{@test_db_source}"
 target_uri = "redis://otherhost:#{@redis_port}/#{@test_db_target}"
 
-migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
+migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)
 strategy = migrator.send(:determine_migration_strategy)
 strategy
 #=> :dump_restore
@@ -80,7 +80,7 @@ setup_test_data
 
 source_uri = test_uri(@test_db_source)
 target_uri = test_uri(@test_db_target)
-migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
+migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)
 
 discovered_keys = migrator.send(:discover_keys, 'customer:*')
 discovered_keys.sort
@@ -91,7 +91,7 @@ setup_test_data
 
 source_uri = test_uri(@test_db_source)
 target_uri = test_uri(@test_db_target)
-migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
+migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)
 
 discovered_keys = migrator.send(:discover_keys, 'nonexistent:*')
 discovered_keys
@@ -100,7 +100,7 @@ discovered_keys
 ## Test migration statistics initialization
 source_uri = test_uri(@test_db_source)
 target_uri = test_uri(@test_db_target)
-migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
+migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)
 
 stats = migrator.statistics
 [stats[:total_keys], stats[:migrated_keys], stats[:failed_keys]]
@@ -109,7 +109,7 @@ stats = migrator.statistics
 ## Test CLI command generation for same instance
 source_uri = test_uri(@test_db_source)
 target_uri = test_uri(@test_db_target)
-migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
+migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)
 
 commands = migrator.generate_cli_commands('customer:*')
 [commands[:strategy], commands.keys.sort]
@@ -118,7 +118,7 @@ commands = migrator.generate_cli_commands('customer:*')
 ## Test CLI command generation for cross-server
 source_uri = "redis://#{@redis_host}:#{@redis_port}/#{@test_db_source}"
 target_uri = "redis://otherhost:#{@redis_port}/#{@test_db_target}"
-migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
+migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)
 
 commands = migrator.generate_cli_commands('customer:*')
 commands[:strategy]
@@ -126,7 +126,7 @@ commands[:strategy]
 
 ## Test error handling for nil source URI
 begin
-  migrator = Onetime::RedisKeyMigrator.new(nil, test_uri(@test_db_target))
+  migrator = Onetime::Services::RedisKeyMigrator.new(nil, test_uri(@test_db_target))
   migrator.migrate_keys('test:*')
   false
 rescue ArgumentError => e
@@ -137,7 +137,7 @@ end
 ## Test error handling for identical source and target
 begin
   same_uri = test_uri(@test_db_source)
-  migrator = Onetime::RedisKeyMigrator.new(same_uri, same_uri)
+  migrator = Onetime::Services::RedisKeyMigrator.new(same_uri, same_uri)
   migrator.migrate_keys('test:*')
   false
 rescue ArgumentError => e
@@ -150,7 +150,7 @@ cleanup_test_data
 
 source_uri = test_uri(@test_db_source)
 target_uri = test_uri(@test_db_target)
-migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
+migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)
 
 stats = migrator.migrate_keys('nonexistent:*')
 [stats[:total_keys], stats[:migrated_keys], stats[:failed_keys]]
@@ -171,7 +171,7 @@ target_client.disconnect!
 
 source_uri = test_uri(@test_db_source)
 target_uri = test_uri(@test_db_target)
-migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
+migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)
 
 stats = migrator.migrate_keys('customer:*')
 
@@ -191,7 +191,7 @@ target_client.disconnect!
 
 ## Test database number extraction
 source_uri = test_uri(@test_db_source)
-migrator = Onetime::RedisKeyMigrator.new(source_uri, test_uri(@test_db_target))
+migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, test_uri(@test_db_target))
 
 # Pass the parsed URI, not the string
 extracted_db = migrator.send(:extract_db_number, migrator.source_uri)

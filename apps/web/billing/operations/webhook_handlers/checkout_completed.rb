@@ -13,6 +13,17 @@ module Billing
       # Skips one-time payments (sessions without subscriptions).
       #
       class CheckoutCompleted < BaseHandler
+        # UUID format: 8-4-4-4-12 hex chars (e.g., 019b1598-b0ec-760a-85ae-a1391283a1dc)
+        UUID_PATTERN = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
+
+        # External ID format: prefix + UUID (e.g., ur019b1598-b0ec-760a-85ae-a1391283a1dc)
+        EXTID_PATTERN = /\A[a-z]{2}[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
+
+        # Basic email format (legacy custid format, pre-v0.22)
+        EMAIL_PATTERN = /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/
+
+        private_constant :UUID_PATTERN, :EXTID_PATTERN, :EMAIL_PATTERN
+
         def self.handles?(event_type)
           event_type == 'checkout.session.completed'
         end
@@ -33,7 +44,7 @@ module Billing
 
           # Expand subscription to get full details
           subscription = Stripe::Subscription.retrieve(session.subscription)
-          metadata = subscription.metadata
+          metadata     = subscription.metadata
 
           custid = metadata['custid']
           unless custid
@@ -69,15 +80,6 @@ module Billing
 
         private
 
-        # UUID format: 8-4-4-4-12 hex chars (e.g., 019b1598-b0ec-760a-85ae-a1391283a1dc)
-        UUID_PATTERN = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
-
-        # External ID format: prefix + UUID (e.g., ur019b1598-b0ec-760a-85ae-a1391283a1dc)
-        EXTID_PATTERN = /\A[a-z]{2}[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
-
-        # Basic email format (legacy custid format, pre-v0.22)
-        EMAIL_PATTERN = /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/
-
         def valid_identifier?(value)
           return false unless value.is_a?(String) && value.length <= 255
 
@@ -94,10 +96,10 @@ module Billing
 
         def find_or_create_organization(customer)
           orgs = customer.organization_instances.to_a
-          org = orgs.find { |o| o.is_default }
+          org  = orgs.find { |o| o.is_default }
 
           unless org
-            org = Onetime::Organization.create!(
+            org            = Onetime::Organization.create!(
               "#{customer.email}'s Workspace",
               customer,
               customer.email,

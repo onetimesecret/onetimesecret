@@ -1,4 +1,4 @@
-# lib/onetime/redis_key_migrator.rb
+# lib/onetime/services/redis_key_migrator.rb
 #
 # frozen_string_literal: true
 
@@ -7,7 +7,8 @@ require 'uri'
 require 'logger'
 
 module Onetime
-  # Redis Key Migration Utility
+  module Services
+    # Redis Key Migration Utility
   #
   # This class provides functionality to migrate Redis keys between databases or instances
   # while preserving source data for rollback scenarios. It supports three migration strategies
@@ -750,5 +751,6 @@ module Onetime
       # Fall back to individual key migration for failed batch
       handle_batch_error(batch, ex, source_client, target_client, &)
     end
+  end
   end
 end
