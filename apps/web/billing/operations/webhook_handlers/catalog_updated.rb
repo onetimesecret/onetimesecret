@@ -35,10 +35,10 @@ module Billing
           Billing::Plan.refresh_from_stripe
           billing_logger.info 'Plan cache refreshed successfully'
           :success
-        rescue StandardError => e
+        rescue StandardError => ex
           billing_logger.error 'Failed to refresh plan cache', {
-            error: e.message,
-            backtrace: e.backtrace&.first(5),
+            error: ex.message,
+            backtrace: ex.backtrace&.first(5),
           }
           # Don't fail webhook for cache refresh failure
           :success

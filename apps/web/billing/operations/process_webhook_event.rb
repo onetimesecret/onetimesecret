@@ -46,8 +46,8 @@ module Billing
       # Get registered handler classes
       #
       # @return [Array<Class>] Handler classes that respond to .handles?
-      def self.handler_registry
-        @handler_registry
+      class << self
+        attr_reader :handler_registry
       end
 
       # Reset handler registry (useful for testing)
@@ -58,7 +58,7 @@ module Billing
       # @param event [Stripe::Event] The Stripe webhook event to process
       # @param context [Hash] Optional context (e.g., { replay: true, skip_notifications: true })
       def initialize(event:, context: {})
-        @event = event
+        @event   = event
         @context = context
       end
 

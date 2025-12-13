@@ -74,9 +74,9 @@ module Onetime
           end
 
           def process_expiring_secrets
-            warning_window = warning_hours * 3600
+            warning_window   = warning_hours * 3600
             all_expiring_ids = Onetime::Metadata.expiring_within(warning_window)
-            total_found = all_expiring_ids.size
+            total_found      = all_expiring_ids.size
 
             # Apply batch limit to prevent queue overflow
             expiring_ids = all_expiring_ids.take(batch_size)
@@ -89,7 +89,7 @@ module Onetime
             end
 
             processed = 0
-            skipped = 0
+            skipped   = 0
 
             expiring_ids.each do |metadata_id|
               # Skip if warning already sent
@@ -131,7 +131,7 @@ module Onetime
             # Calculate delay: send warning before actual expiration
             # (or immediately if less than the buffer time remains)
             seconds_until_expiry = metadata.secret_expiration.to_i - Familia.now.to_i
-            delay = [seconds_until_expiry - WARNING_BUFFER_SECONDS, 0].max
+            delay                = [seconds_until_expiry - WARNING_BUFFER_SECONDS, 0].max
 
             Onetime::Jobs::Publisher.schedule_email(
               :expiration_warning,
