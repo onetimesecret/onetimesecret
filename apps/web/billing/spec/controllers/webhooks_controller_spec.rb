@@ -137,6 +137,47 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
         expect(last_response.body).to include('already queued')
       end
 
+      it 'stops retries after max retries reached', :vcr do
+        event_id = "evt_max_retries_#{SecureRandom.hex(8)}"
+        payload = {
+          id: event_id,
+          object: 'event',
+          created: Time.now.to_i,
+          type: 'customer.subscription.updated',
+          data: { object: { id: 'sub_test' } },
+        }.to_json
+
+        signature = generate_stripe_signature(
+          payload: payload,
+          secret: webhook_secret,
+        )
+
+        # First request creates the event record
+        post '/billing/webhook', payload, {
+          'CONTENT_TYPE' => 'application/json',
+          'HTTP_STRIPE_SIGNATURE' => signature,
+        }
+        expect(last_response.status).to eq(200)
+
+        # Simulate max retries reached by updating the record directly
+        event_record = Billing::StripeWebhookEvent.find_by_identifier(event_id)
+        event_record.retry_count = '3'
+        event_record.processing_status = 'failed'
+        event_record.error_message = 'Test error after max retries'
+        event_record.save
+
+        # Next request should return 200 but indicate max retries reached
+        post '/billing/webhook', payload, {
+          'CONTENT_TYPE' => 'application/json',
+          'HTTP_STRIPE_SIGNATURE' => signature,
+        }
+
+        expect(last_response.status).to eq(200)
+        expect(last_response.body).to include('max retries reached')
+        # Should NOT have called enqueue again
+        expect(Onetime::Jobs::Publisher).to have_received(:enqueue_billing_event).once
+      end
+
       it 'rejects malformed JSON payload' do
         invalid_payload = 'not valid json {'
 

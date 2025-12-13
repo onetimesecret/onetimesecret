@@ -92,8 +92,18 @@ module Billing
             }
             res.status = 200
             return json_success('Event already queued')
+          elsif existing_event.max_retries_reached?
+            # Event failed permanently after multiple attempts - stop Stripe retries
+            billing_logger.error 'Webhook event max retries reached - giving up', {
+              event_type: event.type,
+              event_id: event.id,
+              retry_count: existing_event.retry_count,
+              last_error: existing_event.error_message,
+            }
+            res.status = 200  # Return 200 to stop Stripe retries
+            return json_success('Event max retries reached')
           end
-          # If failed, allow re-processing by falling through
+          # If failed but retries remain, allow re-processing by falling through
         end
 
         # Initialize event record for tracking (status: queued)
