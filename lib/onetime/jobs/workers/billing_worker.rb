@@ -25,6 +25,24 @@ require_relative '../queue_config'
 #   received_at: '2024-01-01T00:00:00Z',  # When webhook was received
 # }
 #
+# ## Retry Strategy: Internal vs Broker-Based
+#
+# This worker uses internal retry (with_retry) rather than broker redelivery.
+#
+# Rationale:
+# - Current infrastructure has DLX/DLQ but no retry queues with TTL
+# - Broker-based retry would require: retry queues, TTL config, header-based
+#   retry counting, and routing back to main queue after delay
+# - Internal retry is faster for transient errors (Stripe API blips resolve
+#   in seconds) - no broker round-trip overhead
+# - Thread blocking during sleep is acceptable for short delays (2-8s)
+#
+# Reconsider broker-based retry when:
+# - Retry delays need to exceed 30 seconds (holding thread too long)
+# - Retry visibility in monitoring dashboards becomes important
+# - Retry queue infrastructure is added for other workers
+# - Worker crashes during retry become a recurring problem
+#
 
 module Onetime
   module Jobs
