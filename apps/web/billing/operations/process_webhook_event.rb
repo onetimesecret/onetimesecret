@@ -95,8 +95,9 @@ module Billing
         def handler_class?(klass)
           klass.is_a?(Class) &&
             klass.respond_to?(:handles?) &&
-            klass != WebhookHandlers::BaseHandler &&
-            klass != WebhookHandlers::SubscriptionHandler
+            # Exclude abstract base classes by checking if they implement `process` directly.
+            # Concrete handlers must override `process` from BaseHandler.
+            klass.instance_method(:process).owner != WebhookHandlers::BaseHandler
         end
       end
     end
