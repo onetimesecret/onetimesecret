@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-require 'onetime/jobs/publisher'
+require_relative '../../../jobs/publisher'
 
 module Onetime::Metadata::Features
   module DeprecatedFields
