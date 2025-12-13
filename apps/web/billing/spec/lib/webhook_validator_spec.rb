@@ -228,7 +228,7 @@ RSpec.describe Billing::WebhookValidator, type: :billing do
       expect(event.pending_webhooks).to eq('1')
       expect(event.event_payload).to eq(payload)
       expect(event.first_seen_at).not_to be_nil
-      expect(event.retry_count).to eq('0')
+      expect(event.attempt_count).to eq('0')
     end
 
     it 'stores event payload for replay' do

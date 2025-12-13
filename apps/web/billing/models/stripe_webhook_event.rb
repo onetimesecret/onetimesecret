@@ -47,7 +47,7 @@ module Billing
   #   # Check status
   #   event = StripeWebhookEvent.find_by_identifier(stripe_event.id)
   #   event.success?       # => true if processing succeeded
-  #   event.retryable?     # => true if can retry (retry_count < 3)
+  #   event.retryable?     # => true if can retry (attempt_count < 3)
   #
   class StripeWebhookEvent < Familia::Horreum
     using Familia::Refinements::TimeLiterals
@@ -75,7 +75,7 @@ module Billing
     field :processed_at      # Timestamp when successfully processed
     field :first_seen_at     # Timestamp when first received
     field :last_attempt_at   # Timestamp of most recent processing attempt
-    field :retry_count       # Number of processing attempts (default: 0)
+    field :attempt_count     # Number of webhook delivery attempts (default: 0)
     field :error_message     # Error details if processing failed
 
     # ========================================
@@ -135,15 +135,15 @@ module Billing
     # ========================================
 
     # Check if event can be retried
-    # @return [Boolean] True if retry_count < 3 and not already successful
+    # @return [Boolean] True if attempt_count < 3 and not already successful
     def retryable?
-      retry_count.to_i < 3 && !success?
+      attempt_count.to_i < 3 && !success?
     end
 
-    # Check if max retries have been reached
-    # @return [Boolean] True if retry_count >= 3
-    def max_retries_reached?
-      retry_count.to_i >= 3
+    # Check if max attempts have been reached
+    # @return [Boolean] True if attempt_count >= 3
+    def max_attempts_reached?
+      attempt_count.to_i >= 3
     end
 
     # ========================================
@@ -151,12 +151,12 @@ module Billing
     # ========================================
 
     # Mark event as currently being processed
-    # Increments retry count and updates timestamp
+    # Increments attempt count and updates timestamp
     # @return [Boolean] True if save succeeded
     def mark_processing!
       self.processing_status = 'pending'
       self.last_attempt_at   = Time.now.to_i.to_s
-      self.retry_count       = (retry_count.to_i + 1).to_s
+      self.attempt_count     = (attempt_count.to_i + 1).to_s
       save
     end
 
@@ -175,7 +175,7 @@ module Billing
     # @param error [Exception] The error that caused the failure
     # @return [Boolean] True if save succeeded
     def mark_failed!(error)
-      self.processing_status = max_retries_reached? ? 'failed' : 'retrying'
+      self.processing_status = max_attempts_reached? ? 'failed' : 'retrying'
       self.error_message     = error.message
       self.last_attempt_at   = Time.now.to_i.to_s
       save

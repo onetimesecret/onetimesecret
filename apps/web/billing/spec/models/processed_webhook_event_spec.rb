@@ -28,7 +28,7 @@ RSpec.describe Billing::StripeWebhookEvent, type: :billing do
       event.processing_status = 'pending'
       event.first_seen_at     = Time.now.to_i.to_s
       event.last_attempt_at   = Time.now.to_i.to_s
-      event.retry_count       = '0'
+      event.attempt_count       = '0'
       event.save
 
       # Reload and verify
@@ -44,13 +44,13 @@ RSpec.describe Billing::StripeWebhookEvent, type: :billing do
     it 'persists processing state fields' do
       event                   = described_class.new(stripe_event_id: event_id)
       event.processing_status = 'retrying'
-      event.retry_count       = '2'
+      event.attempt_count       = '2'
       event.error_message     = 'Connection timeout'
       event.save
 
       reloaded = described_class.find_by_identifier(event_id)
       expect(reloaded.processing_status).to eq('retrying')
-      expect(reloaded.retry_count).to eq('2')
+      expect(reloaded.attempt_count).to eq('2')
       expect(reloaded.error_message).to eq('Connection timeout')
     end
   end
@@ -103,52 +103,52 @@ RSpec.describe Billing::StripeWebhookEvent, type: :billing do
 
   describe 'retry logic methods' do
     describe '#retryable?' do
-      it 'returns true when retry_count < 3 and not success' do
+      it 'returns true when attempt_count < 3 and not success' do
         event                   = described_class.new(stripe_event_id: event_id)
         event.processing_status = 'pending'
-        event.retry_count       = '2'
+        event.attempt_count       = '2'
         expect(event.retryable?).to be true
       end
 
-      it 'returns false when retry_count >= 3' do
+      it 'returns false when attempt_count >= 3' do
         event                   = described_class.new(stripe_event_id: event_id)
         event.processing_status = 'pending'
-        event.retry_count       = '3'
+        event.attempt_count       = '3'
         expect(event.retryable?).to be false
       end
 
       it 'returns false when status is success' do
         event                   = described_class.new(stripe_event_id: event_id)
         event.processing_status = 'success'
-        event.retry_count       = '1'
+        event.attempt_count       = '1'
         expect(event.retryable?).to be false
       end
     end
 
-    describe '#max_retries_reached?' do
-      it 'returns true when retry_count >= 3' do
+    describe '#max_attempts_reached?' do
+      it 'returns true when attempt_count >= 3' do
         event             = described_class.new(stripe_event_id: event_id)
-        event.retry_count = '3'
-        expect(event.max_retries_reached?).to be true
+        event.attempt_count = '3'
+        expect(event.max_attempts_reached?).to be true
       end
 
-      it 'returns false when retry_count < 3' do
+      it 'returns false when attempt_count < 3' do
         event             = described_class.new(stripe_event_id: event_id)
-        event.retry_count = '2'
-        expect(event.max_retries_reached?).to be false
+        event.attempt_count = '2'
+        expect(event.max_attempts_reached?).to be false
       end
     end
   end
 
   describe 'state transition methods' do
     describe '#mark_processing!' do
-      it 'increments retry_count' do
+      it 'increments attempt_count' do
         event             = described_class.new(stripe_event_id: event_id)
-        event.retry_count = '1'
+        event.attempt_count = '1'
         event.mark_processing!
 
         reloaded = described_class.find_by_identifier(event_id)
-        expect(reloaded.retry_count.to_i).to eq(2)
+        expect(reloaded.attempt_count.to_i).to eq(2)
       end
 
       it 'sets status to pending' do
@@ -201,7 +201,7 @@ RSpec.describe Billing::StripeWebhookEvent, type: :billing do
     describe '#mark_failed!' do
       it 'sets status to retrying when retries remain' do
         event             = described_class.new(stripe_event_id: event_id)
-        event.retry_count = '1'
+        event.attempt_count = '1'
         error             = StandardError.new('Test error')
         event.mark_failed!(error)
 
@@ -211,7 +211,7 @@ RSpec.describe Billing::StripeWebhookEvent, type: :billing do
 
       it 'sets status to failed when max retries reached' do
         event             = described_class.new(stripe_event_id: event_id)
-        event.retry_count = '3'
+        event.attempt_count = '3'
         error             = StandardError.new('Test error')
         event.mark_failed!(error)
 
@@ -221,7 +221,7 @@ RSpec.describe Billing::StripeWebhookEvent, type: :billing do
 
       it 'stores error message' do
         event             = described_class.new(stripe_event_id: event_id)
-        event.retry_count = '1'
+        event.attempt_count = '1'
         error             = StandardError.new('Connection timeout')
         event.mark_failed!(error)
 
@@ -277,9 +277,10 @@ RSpec.describe Billing::StripeWebhookEvent, type: :billing do
   end
 
   describe 'TTL configuration' do
-    it 'has default expiration of 30 days' do
+    it 'has default expiration of 5 days' do
       event = described_class.new(stripe_event_id: event_id)
-      expect(event.default_expiration).to eq(30 * 24 * 60 * 60)
+      # 5 days covers Stripe retry window + debugging
+      expect(event.default_expiration).to eq(5 * 24 * 60 * 60)
     end
   end
 
@@ -292,7 +293,7 @@ RSpec.describe Billing::StripeWebhookEvent, type: :billing do
 
       reloaded = described_class.find_by_identifier(event_id)
       expect(reloaded.processing_status).to eq('success')
-      expect(reloaded.retry_count.to_i).to eq(1)
+      expect(reloaded.attempt_count.to_i).to eq(1)
       expect(reloaded.processed_at).not_to be_nil
     end
 
@@ -311,32 +312,33 @@ RSpec.describe Billing::StripeWebhookEvent, type: :billing do
 
       final = described_class.find_by_identifier(event_id)
       expect(final.processing_status).to eq('success')
-      expect(final.retry_count.to_i).to eq(2)
+      expect(final.attempt_count.to_i).to eq(2)
       expect(final.error_message).to be_nil
     end
 
     it 'transitions to failed after 3 attempts' do
       event               = described_class.new(stripe_event_id: event_id)
       event.first_seen_at = Time.now.to_i.to_s
+      event.save
 
       # Attempt 1
       event.mark_processing!
       event.mark_failed!(StandardError.new('Error 1'))
 
-      # Attempt 2
-      event = described_class.new(stripe_event_id: event_id)
+      # Attempt 2 - reload from Redis to get updated attempt_count
+      event = described_class.find_by_identifier(event_id)
       event.mark_processing!
       event.mark_failed!(StandardError.new('Error 2'))
 
-      # Attempt 3
-      event = described_class.new(stripe_event_id: event_id)
+      # Attempt 3 - reload from Redis to get updated attempt_count
+      event = described_class.find_by_identifier(event_id)
       event.mark_processing!
       event.mark_failed!(StandardError.new('Error 3'))
 
       final = described_class.find_by_identifier(event_id)
       expect(final.processing_status).to eq('failed')
-      expect(final.retry_count.to_i).to eq(3)
-      expect(final.max_retries_reached?).to be true
+      expect(final.attempt_count.to_i).to eq(3)
+      expect(final.max_attempts_reached?).to be true
     end
   end
 end

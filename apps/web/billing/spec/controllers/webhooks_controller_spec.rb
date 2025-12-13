@@ -161,7 +161,7 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
 
         # Simulate max retries reached by updating the record directly
         event_record = Billing::StripeWebhookEvent.find_by_identifier(event_id)
-        event_record.retry_count = '3'
+        event_record.attempt_count = '3'
         event_record.processing_status = 'failed'
         event_record.error_message = 'Test error after max retries'
         event_record.save

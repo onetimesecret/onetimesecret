@@ -82,7 +82,7 @@ module Onetime
           event.processing_status = 'success'
           event.first_seen_at   ||= event.processed_at || Time.now.to_i.to_s
           event.last_attempt_at ||= event.processed_at || Time.now.to_i.to_s
-          event.retry_count     ||= '0'
+          event.attempt_count   ||= '0'
           event.save
 
           migrated += 1
@@ -118,9 +118,9 @@ module Onetime
         puts "Last Attempt:     #{format_timestamp(event.last_attempt_at)}"
         puts "Processed At:     #{format_timestamp(event.processed_at)}"
         puts ''
-        puts "Retry Count:      #{event.retry_count || 0}"
+        puts "Attempt Count:    #{event.attempt_count || 0}"
         puts "Can Retry:        #{event.retryable? ? 'Yes' : 'No'}"
-        puts "Max Retries:      #{event.max_retries_reached? ? 'Yes' : 'No'}"
+        puts "Max Attempts:     #{event.max_attempts_reached? ? 'Yes' : 'No'}"
         puts ''
 
         if event.error_message
@@ -193,7 +193,7 @@ module Onetime
             event.stripe_event_id,
             event.event_type.to_s[0...35],
             format_status(event.processing_status),
-            event.retry_count || 0,
+            event.attempt_count || 0,
             format_timestamp(event.last_attempt_at),
           )
 
