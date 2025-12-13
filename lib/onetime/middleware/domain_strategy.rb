@@ -193,6 +193,9 @@ module Onetime
           # @param canonical_domain [PublicSuffix::Domain, String] The configured primary domain
           # @return [Symbol, nil] Domain strategy (:canonical, :subdomain, :custom) or nil if invalid
           def choose_strategy(request_domain, canonical_domain)
+            # Guard against nil canonical_domain (can happen if class init ran before Runtime.features was set)
+            return nil if canonical_domain.nil?
+
             canonical_domain = Parser.parse(canonical_domain) unless canonical_domain.is_a?(PublicSuffix::Domain)
             request_domain   = Parser.parse(request_domain)
 
