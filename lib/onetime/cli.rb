@@ -60,6 +60,7 @@ end
 
 # Load core CLI commands
 require_relative 'cli/simple_commands'
+require_relative 'cli/status_command'
 require_relative 'cli/server_command'
 require_relative 'cli/boot_test_command'
 require_relative 'cli/migrate_command'
