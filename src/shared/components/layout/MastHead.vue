@@ -51,7 +51,8 @@
   const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('one-time-secret-literal');
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
   const getLogoSize = () => props.logo?.size || 64;
-  const getShowSiteName = () => props.logo?.showSiteName ?? !!headerConfig.value?.branding?.site_name;
+  // Hide site name when custom domain logo is displayed (unless explicitly configured)
+  const getShowSiteName = () => props.logo?.showSiteName ?? (windowProps.value.domain_logo ? false : !!headerConfig.value?.branding?.site_name);
   const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('one-time-secret-literal');
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
