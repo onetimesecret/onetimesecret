@@ -136,7 +136,7 @@ module Billing
       event.pending_webhooks = stripe_event.pending_webhooks.to_s
       event.event_payload    = payload
       event.first_seen_at    = Time.now.to_i.to_s
-      event.retry_count      = '0'
+      event.attempt_count    = '0'
       event.save
 
       billing_logger.debug '[WebhookValidator] Event metadata initialized', {

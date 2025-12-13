@@ -4,7 +4,6 @@
 
 require_relative 'base'
 require_relative '../lib/webhook_validator'
-require_relative '../operations/process_webhook_event'
 require 'stripe'
 
 module Billing
@@ -14,7 +13,9 @@ module Billing
 
       # Handle Stripe webhook events
       #
-      # Processes subscription lifecycle events and product/price updates.
+      # Validates webhook signature and enqueues for async processing.
+      # This allows Puma to return quickly, eliminating data loss risk.
+      #
       # Uses WebhookValidator for comprehensive security validation:
       # - Signature verification
       # - Timestamp validation (replay attack prevention)
@@ -22,9 +23,9 @@ module Billing
       #
       # POST /billing/webhook
       #
-      # @return [HTTP 200] Success response
+      # @return [HTTP 200] Event queued for processing
       # @return [HTTP 400] Invalid payload, signature, or timestamp
-      # @return [HTTP 500] Processing failure (Stripe will retry)
+      # @return [HTTP 500] Queue unavailable (Stripe will retry)
       #
       def handle_event
         payload    = req.body.read
@@ -73,82 +74,85 @@ module Billing
           return json_error('Invalid event timestamp', status: 400)
         end
 
-        # Check if event was already successfully processed (idempotency)
-        if Billing::StripeWebhookEvent.processed?(event.id)
-          billing_logger.info 'Webhook event already processed successfully (duplicate)', {
-            event_type: event.type,
-            event_id: event.id,
-          }
-          res.status = 200
-          return json_success('Event already processed')
+        # Check if event was already processed or is being processed (idempotency)
+        existing_event = Billing::StripeWebhookEvent.find_by_identifier(event.id)
+        if existing_event
+          if existing_event.success?
+            billing_logger.info 'Webhook event already processed successfully (duplicate)', {
+              event_type: event.type,
+              event_id: event.id,
+            }
+            res.status = 200
+            return json_success('Event already processed')
+          elsif existing_event.pending? || existing_event.retrying?
+            billing_logger.info 'Webhook event already queued for processing (duplicate)', {
+              event_type: event.type,
+              event_id: event.id,
+              status: existing_event.processing_status,
+            }
+            res.status = 200
+            return json_success('Event already queued')
+          elsif existing_event.max_attempts_reached?
+            # Event failed permanently after multiple attempts - stop Stripe retries
+            billing_logger.error 'Webhook event max attempts reached - giving up', {
+              event_type: event.type,
+              event_id: event.id,
+              attempt_count: existing_event.attempt_count,
+              last_error: existing_event.error_message,
+            }
+            res.status = 200  # Return 200 to stop Stripe retries
+            return json_success('Event max retries reached')
+          end
+          # If failed but retries remain, allow re-processing by falling through
         end
 
-        # Initialize event record with full Stripe metadata
-        event_record = validator.initialize_event_record(event, payload)
+        # Initialize event record for tracking (status: queued)
+        event_record = existing_event || validator.initialize_event_record(event, payload)
 
-        # Check if max retries reached (permanent failure)
-        if event_record.max_retries_reached?
-          billing_logger.error 'Webhook event max retries reached - giving up', {
-            event_type: event.type,
-            event_id: event.id,
-            retry_count: event_record.retry_count,
-            last_error: event_record.error_message,
-          }
-          res.status = 200  # Return 200 to stop Stripe retries
-          return json_success('Event max retries reached')
-        end
-
-        billing_logger.info 'Webhook event received and validated', {
+        billing_logger.info 'Webhook event validated, enqueueing for async processing', {
           event_type: event.type,
           event_id: event.id,
-          retry_count: event_record.retry_count,
         }
 
-        # Mark event as currently processing
-        event_record.mark_processing!
-
-        # Process event with error handling and state tracking
+        # Mark event as queued and enqueue for async processing
         begin
-          Billing::Operations::ProcessWebhookEvent.new(event: event).call
+          event_record.mark_processing!
 
-          # Mark as successfully processed
-          event_record.mark_success!
+          Onetime::Jobs::Publisher.enqueue_billing_event(event, payload)
 
-          billing_logger.info 'Webhook event processed successfully', {
+          billing_logger.info 'Webhook event enqueued successfully', {
             event_type: event.type,
             event_id: event.id,
-            retry_count: event_record.retry_count,
           }
 
           res.status = 200
-          json_success('Event processed')
+          json_success('Event queued')
         rescue StandardError => ex
-          # Mark as failed (will set to 'retrying' if retries remain, 'failed' if exhausted)
-          event_record.mark_failed!(ex)
+          # Enqueue failed (RabbitMQ unavailable) - return 500 so Stripe retries
+          begin
+            event_record.mark_failed!(ex)
+          rescue StandardError => marking_error
+            billing_logger.error 'Failed to mark event as failed', {
+              original_error: ex.message,
+              marking_error: marking_error.message,
+              event_id: event.id,
+            }
+          end
 
-          billing_logger.error 'Webhook processing failed', {
+          billing_logger.error 'Failed to enqueue webhook event', {
             event_type: event.type,
             event_id: event.id,
-            retry_count: event_record.retry_count,
-            processing_status: event_record.processing_status,
             error: ex.message,
             backtrace: ex.backtrace&.first(5),
           }
 
-          # Return 500 so Stripe retries (if retries remain)
-          # Return 200 if max retries reached (to stop Stripe retries)
-          if event_record.max_retries_reached?
-            res.status = 200
-            json_error('Event max retries reached', status: 200)
-          else
-            res.status = 500
-            json_error('Webhook processing failed', status: 500)
-          end
+          res.status = 500
+          json_error('Queue unavailable', status: 500)
         end
       end
 
-      # Event processing logic is in Billing::Operations::ProcessWebhookEvent
-      # This keeps the controller focused on HTTP handling and state management
+      # Event processing logic is in BillingWorker -> ProcessWebhookEvent
+      # This controller focuses on validation and enqueueing
     end
   end
 end

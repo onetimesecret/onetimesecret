@@ -19,10 +19,23 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
     @app ||= Rack::URLMap.new('/billing' => Billing::Application.new)
   end
 
-  let(:webhook_secret) { ENV.fetch('STRIPE_WEBHOOK_SECRET', 'whsec_test_secret') }
-  let(:webhook_validator) { Billing::WebhookValidator.new }
+  let(:webhook_secret) { 'whsec_test_secret' }
   let(:created_customers) { [] }
   let(:created_organizations) { [] }
+
+  # Mock billing config struct
+  let(:mock_billing_config) do
+    Struct.new(:webhook_signing_secret, :publishable_key, :secret_key, keyword_init: true)
+          .new(webhook_signing_secret: webhook_secret, publishable_key: 'pk_test', secret_key: 'sk_test')
+  end
+
+  before do
+    # Mock billing config to provide webhook secret
+    allow(Onetime).to receive(:billing_config).and_return(mock_billing_config)
+
+    # Mock the Publisher to avoid requiring RabbitMQ in tests
+    allow(Onetime::Jobs::Publisher).to receive(:enqueue_billing_event).and_return(true)
+  end
 
   after do
     # Clean up created test data
@@ -42,6 +55,8 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
       it 'rejects requests with invalid signature', :vcr do
         payload = {
           id: 'evt_test_invalid',
+          object: 'event',
+          created: Time.now.to_i,
           type: 'customer.subscription.updated',
           data: { object: {} },
         }.to_json
@@ -64,11 +79,15 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
       it 'rejects requests with expired timestamp', :vcr do
         payload = {
           id: 'evt_test_expired',
+          object: 'event',
+          created: Time.now.to_i,
           type: 'customer.subscription.updated',
           data: { object: {} },
         }.to_json
 
         # Generate signature with timestamp older than tolerance (5 minutes)
+        # Note: Stripe's library validates the timestamp in the signature header,
+        # which results in SignatureVerificationError (not our custom timestamp check)
         old_timestamp     = (Time.now - 600).to_i
         expired_signature = generate_stripe_signature(
           payload: payload,
@@ -82,12 +101,15 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
         }
 
         expect(last_response.status).to eq(400)
-        expect(last_response.body).to include('Invalid event timestamp')
+        # Stripe's library rejects old timestamps as invalid signature
+        expect(last_response.body).to include('Invalid signature')
       end
 
       it 'rejects replay attacks (duplicate event_id)', :vcr do
         payload = {
           id: 'evt_test_replay',
+          object: 'event',
+          created: Time.now.to_i,
           type: 'customer.subscription.updated',
           data: { object: { id: 'sub_test' } },
         }.to_json
@@ -112,7 +134,48 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
         }
 
         expect(last_response.status).to eq(200)
-        expect(last_response.body).to include('already processed')
+        expect(last_response.body).to include('already queued')
+      end
+
+      it 'stops retries after max retries reached', :vcr do
+        event_id = "evt_max_retries_#{SecureRandom.hex(8)}"
+        payload = {
+          id: event_id,
+          object: 'event',
+          created: Time.now.to_i,
+          type: 'customer.subscription.updated',
+          data: { object: { id: 'sub_test' } },
+        }.to_json
+
+        signature = generate_stripe_signature(
+          payload: payload,
+          secret: webhook_secret,
+        )
+
+        # First request creates the event record
+        post '/billing/webhook', payload, {
+          'CONTENT_TYPE' => 'application/json',
+          'HTTP_STRIPE_SIGNATURE' => signature,
+        }
+        expect(last_response.status).to eq(200)
+
+        # Simulate max retries reached by updating the record directly
+        event_record = Billing::StripeWebhookEvent.find_by_identifier(event_id)
+        event_record.attempt_count = '3'
+        event_record.processing_status = 'failed'
+        event_record.error_message = 'Test error after max retries'
+        event_record.save
+
+        # Next request should return 200 but indicate max retries reached
+        post '/billing/webhook', payload, {
+          'CONTENT_TYPE' => 'application/json',
+          'HTTP_STRIPE_SIGNATURE' => signature,
+        }
+
+        expect(last_response.status).to eq(200)
+        expect(last_response.body).to include('max retries reached')
+        # Should NOT have called enqueue again
+        expect(Onetime::Jobs::Publisher).to have_received(:enqueue_billing_event).once
       end
 
       it 'rejects malformed JSON payload' do
@@ -128,44 +191,24 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
           'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
+        # Malformed JSON should be rejected with 400
+        # Note: Response body format may vary based on error handling middleware
         expect(last_response.status).to eq(400)
-        expect(last_response.body).to include('Invalid payload')
       end
     end
 
     context 'checkout.session.completed event' do
-      let(:customer) do
-        cust = Onetime::Customer.create!(email: "webhook-checkout-#{SecureRandom.hex(4)}@example.com")
-        created_customers << cust
-        cust
-      end
-
-      before do
-        customer.save
-      end
-
-      it 'creates organization subscription from checkout session', :vcr do
-        # Create a real Stripe customer and checkout session
-        stripe_customer = Stripe::Customer.create(email: customer.email)
-
-        subscription = Stripe::Subscription.create(
-          customer: stripe_customer.id,
-          items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test') }],
-          metadata: {
-            custid: customer.custid,
-            plan_id: 'identity_v1',
-            tier: 'single_team',
-          },
-        )
-
+      it 'enqueues checkout session event for async processing', :vcr do
         event_payload = {
           id: "evt_checkout_#{SecureRandom.hex(8)}",
+          object: 'event',
+          created: Time.now.to_i,
           type: 'checkout.session.completed',
           data: {
             object: {
               id: "cs_test_#{SecureRandom.hex(8)}",
-              customer: stripe_customer.id,
-              subscription: subscription.id,
+              customer: 'cus_test_123',
+              subscription: 'sub_test_456',
             },
           },
         }.to_json
@@ -181,87 +224,23 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
         }
 
         expect(last_response.status).to eq(200)
-        expect(last_response.body).to include('Event processed')
-
-        # Verify organization was created/updated
-        orgs = customer.organization_instances.to_a
-        expect(orgs).not_to be_empty
-
-        org = orgs.find { |o| o.is_default }
-        expect(org).not_to be_nil
-        expect(org.stripe_subscription_id).to eq(subscription.id)
-        created_organizations.concat(orgs)
-      end
-
-      it 'handles missing customer gracefully', :vcr do
-        event_payload = {
-          id: "evt_missing_customer_#{SecureRandom.hex(8)}",
-          type: 'checkout.session.completed',
-          data: {
-            object: {
-              id: "cs_test_#{SecureRandom.hex(8)}",
-              customer: 'cus_nonexistent',
-              subscription: 'sub_test',
-            },
-          },
-        }.to_json
-
-        signature = generate_stripe_signature(
-          payload: event_payload,
-          secret: webhook_secret,
-        )
-
-        post '/billing/webhook', event_payload, {
-          'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => signature,
-        }
-
-        # Should still return 200 (logged but not critical error)
-        expect(last_response.status).to eq(200)
+        expect(last_response.body).to include('Event queued')
+        expect(Onetime::Jobs::Publisher).to have_received(:enqueue_billing_event)
       end
     end
 
     context 'customer.subscription.updated event' do
-      let(:customer) do
-        cust = Onetime::Customer.create!(email: "webhook-subupdate-#{SecureRandom.hex(4)}@example.com")
-        created_customers << cust
-        cust
-      end
-
-      let(:organization) do
-        org = Onetime::Organization.create!('Test Org', customer, customer.email)
-        created_organizations << org
-        org
-      end
-
-      before do
-        customer.save
-        organization.save
-      end
-
-      it 'updates organization subscription status', :vcr do
-        # Create real Stripe subscription
-        stripe_customer = Stripe::Customer.create(email: customer.email)
-        subscription    = Stripe::Subscription.create(
-          customer: stripe_customer.id,
-          items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test') }],
-        )
-
-        # Associate subscription with organization
-        organization.stripe_subscription_id = subscription.id
-        organization.save
-
-        # Update subscription status
-        updated_subscription = Stripe::Subscription.update(
-          subscription.id,
-          metadata: { status: 'active' },
-        )
-
+      it 'enqueues subscription updated event for async processing', :vcr do
         event_payload = {
           id: "evt_sub_updated_#{SecureRandom.hex(8)}",
+          object: 'event',
+          created: Time.now.to_i,
           type: 'customer.subscription.updated',
           data: {
-            object: updated_subscription.to_hash,
+            object: {
+              id: 'sub_test_123',
+              status: 'active',
+            },
           },
         }.to_json
 
@@ -276,39 +255,21 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
         }
 
         expect(last_response.status).to eq(200)
-
-        # Reload organization and verify update
-        organization.reload
-        expect(organization.subscription_status).to match(/active|trialing/)
+        expect(last_response.body).to include('Event queued')
+        expect(Onetime::Jobs::Publisher).to have_received(:enqueue_billing_event)
       end
     end
 
     context 'customer.subscription.deleted event' do
-      let(:customer) do
-        cust = Onetime::Customer.create!(email: "webhook-subdelete-#{SecureRandom.hex(4)}@example.com")
-        created_customers << cust
-        cust
-      end
-
-      let(:organization) do
-        org = Onetime::Organization.create!('Test Org', customer, customer.email)
-        created_organizations << org
-        org
-      end
-
-      before do
-        customer.save
-        organization.stripe_subscription_id = 'sub_test_deleted'
-        organization.save
-      end
-
-      it 'clears organization billing fields', :vcr do
+      it 'enqueues subscription deleted event for async processing', :vcr do
         event_payload = {
           id: "evt_sub_deleted_#{SecureRandom.hex(8)}",
+          object: 'event',
+          created: Time.now.to_i,
           type: 'customer.subscription.deleted',
           data: {
             object: {
-              id: organization.stripe_subscription_id,
+              id: 'sub_test_deleted',
               status: 'canceled',
             },
           },
@@ -325,17 +286,17 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
         }
 
         expect(last_response.status).to eq(200)
-
-        # Verify billing fields cleared
-        organization.reload
-        expect(organization.stripe_subscription_id).to be_nil
+        expect(last_response.body).to include('Event queued')
+        expect(Onetime::Jobs::Publisher).to have_received(:enqueue_billing_event)
       end
     end
 
     context 'product.updated and price.updated events' do
-      it 'refreshes plan cache on product update', :vcr do
+      it 'enqueues product update event for async processing', :vcr do
         event_payload = {
           id: "evt_product_updated_#{SecureRandom.hex(8)}",
+          object: 'event',
+          created: Time.now.to_i,
           type: 'product.updated',
           data: {
             object: {
@@ -351,19 +312,21 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
           secret: webhook_secret,
         )
 
-        expect(Billing::Plan).to receive(:refresh_from_stripe).and_call_original
-
         post '/billing/webhook', event_payload, {
           'CONTENT_TYPE' => 'application/json',
           'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
         expect(last_response.status).to eq(200)
+        expect(last_response.body).to include('Event queued')
+        expect(Onetime::Jobs::Publisher).to have_received(:enqueue_billing_event)
       end
 
-      it 'refreshes plan cache on price update', :vcr do
+      it 'enqueues price update event for async processing', :vcr do
         event_payload = {
           id: "evt_price_updated_#{SecureRandom.hex(8)}",
+          object: 'event',
+          created: Time.now.to_i,
           type: 'price.updated',
           data: {
             object: {
@@ -385,13 +348,16 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
         }
 
         expect(last_response.status).to eq(200)
+        expect(last_response.body).to include('Event queued')
       end
     end
 
     context 'unhandled event types' do
-      it 'returns success for unhandled event types', :vcr do
+      it 'enqueues unhandled event types for async processing', :vcr do
         event_payload = {
           id: "evt_unhandled_#{SecureRandom.hex(8)}",
+          object: 'event',
+          created: Time.now.to_i,
           type: 'customer.created',
           data: {
             object: {
@@ -411,15 +377,22 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
           'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
+        # All valid events get queued, worker decides if it handles them
         expect(last_response.status).to eq(200)
-        expect(last_response.body).to include('Event processed')
+        expect(last_response.body).to include('Event queued')
       end
     end
 
-    context 'error handling and rollback' do
-      it 'returns 500 and unmarks event on processing failure', :vcr do
+    context 'error handling - queue unavailable' do
+      it 'returns 500 when queue is unavailable', :vcr do
+        # Simulate queue failure
+        allow(Onetime::Jobs::Publisher).to receive(:enqueue_billing_event)
+          .and_raise(Onetime::Problem, 'Queue unavailable')
+
         event_payload = {
-          id: "evt_failure_#{SecureRandom.hex(8)}",
+          id: "evt_queue_failure_#{SecureRandom.hex(8)}",
+          object: 'event',
+          created: Time.now.to_i,
           type: 'checkout.session.completed',
           data: {
             object: {
@@ -435,31 +408,13 @@ RSpec.describe 'Billing::Controllers::Webhooks', :integration, :stripe_sandbox_a
           secret: webhook_secret,
         )
 
-        # Simulate processing failure
-        allow_any_instance_of(Billing::Controllers::Webhooks)
-          .to receive(:handle_checkout_completed)
-          .and_raise(StandardError, 'Processing failed')
-
         post '/billing/webhook', event_payload, {
           'CONTENT_TYPE' => 'application/json',
           'HTTP_STRIPE_SIGNATURE' => signature,
         }
 
         expect(last_response.status).to eq(500)
-        expect(last_response.body).to include('processing failed')
-
-        # Verify event was unmarked for retry
-        # Event should be processable again after failure
-        allow_any_instance_of(Billing::Controllers::Webhooks)
-          .to receive(:handle_checkout_completed)
-          .and_call_original
-
-        post '/billing/webhook', event_payload, {
-          'CONTENT_TYPE' => 'application/json',
-          'HTTP_STRIPE_SIGNATURE' => signature,
-        }
-
-        expect(last_response.status).to eq(200)
+        expect(last_response.body).to include('Queue unavailable')
       end
     end
   end

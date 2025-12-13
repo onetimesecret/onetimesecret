@@ -37,7 +37,7 @@ RSpec.describe Onetime::CLI::BillingWebhooksReplayCommand, type: :billing do
     event.processing_status = status
     event.first_seen_at = (first_seen_at || Time.now).to_i.to_s
     event.last_attempt_at = Time.now.to_i.to_s
-    event.retry_count = '0'
+    event.attempt_count = '0'
     event.api_version = '2023-10-16'
     event.livemode = 'false'
     event.data_object_id = customer_id || 'sub_test123'
