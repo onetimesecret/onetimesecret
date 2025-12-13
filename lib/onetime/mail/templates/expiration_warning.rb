@@ -63,7 +63,7 @@ module Onetime
 
         def display_domain
           scheme = site_ssl? ? 'https://' : 'http://'
-          host = data[:share_domain].to_s.empty? ? site_host : data[:share_domain]
+          host   = data[:share_domain].to_s.empty? ? site_host : data[:share_domain]
           "#{scheme}#{host}"
         end
 

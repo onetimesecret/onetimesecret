@@ -67,7 +67,7 @@ module Onetime
           with_retry(max_retries: 2, base_delay: 1.0) do
             operation = Onetime::Operations::DispatchNotification.new(
               data: data,
-              context: { source_message_id: message_id }
+              context: { source_message_id: message_id },
             )
             operation.call
           end

@@ -138,7 +138,7 @@ module Onetime
               source: :async_worker,
               source_message_id: message_id,
               received_at: data[:received_at],
-            }
+            },
           )
           operation.call
         end
@@ -167,7 +167,6 @@ module Onetime
           # Don't fail the job if tracking update fails
           log_error "Failed to mark event as failed: #{ex.message}"
         end
-
       end
     end
   end

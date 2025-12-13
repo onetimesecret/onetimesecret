@@ -101,7 +101,7 @@ module Onetime
           verify_peer: ENV.fetch('RABBITMQ_VERIFY_PEER', 'true') == 'true',
         }
 
-        ca_certs_path = ENV['RABBITMQ_CA_CERTIFICATES']
+        ca_certs_path                 = ENV.fetch('RABBITMQ_CA_CERTIFICATES', nil)
         options[:tls_ca_certificates] = [ca_certs_path] if ca_certs_path
 
         options
