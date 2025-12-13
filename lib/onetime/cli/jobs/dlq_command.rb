@@ -47,7 +47,7 @@ module Onetime
         end
 
         def with_rabbitmq_connection
-          url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+          url  = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
           conn = Bunny.new(url)
           conn.start
           yield conn
@@ -150,7 +150,7 @@ module Onetime
         def list_queue_messages(dlq_name, format, limit)
           with_rabbitmq_connection do |conn|
             channel = conn.create_channel
-            queue = channel.queue(dlq_name, durable: true, passive: true)
+            queue   = channel.queue(dlq_name, durable: true, passive: true)
 
             message_count = queue.message_count
             if message_count == 0
@@ -166,7 +166,8 @@ module Onetime
                 total_messages: message_count,
                 showing: messages.size,
                 messages: messages,
-              })
+              },
+                                       )
             else
               display_messages_text(dlq_name, message_count, messages)
             end
@@ -181,28 +182,30 @@ module Onetime
 
         def peek_messages(channel, dlq_name, count)
           messages = []
-          queue = channel.queue(dlq_name, durable: true, passive: true)
+          queue    = channel.queue(dlq_name, durable: true, passive: true)
 
           count.times do
             delivery_info, properties, payload = queue.pop(manual_ack: true)
             break unless delivery_info
 
-            death_info = extract_death_info(properties.headers)
-            messages << {
-              delivery_tag: delivery_info.delivery_tag,
-              message_id: properties.message_id,
-              timestamp: properties.timestamp&.to_i,
-              age: format_age(properties.timestamp),
-              original_queue: death_info[:queue],
-              death_reason: death_info[:reason],
-              death_count: death_info[:count],
-              error: death_info[:error],
-              content_type: properties.content_type,
-              payload_preview: payload.to_s[0..200],
-            }
-
-            # Reject without requeue to put message back at head of queue
-            channel.nack(delivery_info.delivery_tag, false, true)
+            begin
+              death_info = extract_death_info(properties.headers)
+              messages << {
+                delivery_tag: delivery_info.delivery_tag,
+                message_id: properties.message_id,
+                timestamp: properties.timestamp&.to_i,
+                age: format_age(properties.timestamp),
+                original_queue: death_info[:queue],
+                death_reason: death_info[:reason],
+                death_count: death_info[:count],
+                error: death_info[:error],
+                content_type: properties.content_type,
+                payload_preview: payload.to_s[0..200],
+              }
+            ensure
+              # Always nack with requeue to return message to queue
+              channel.nack(delivery_info.delivery_tag, false, true)
+            end
           end
 
           messages
@@ -268,7 +271,7 @@ module Onetime
         def show_message(dlq_name, message_id, index, format)
           with_rabbitmq_connection do |conn|
             channel = conn.create_channel
-            queue = channel.queue(dlq_name, durable: true, passive: true)
+            queue   = channel.queue(dlq_name, durable: true, passive: true)
 
             if queue.message_count == 0
               puts "No messages in #{dlq_name}"
@@ -294,8 +297,8 @@ module Onetime
         end
 
         def find_message(channel, dlq_name, message_id, index, total)
-          queue = channel.queue(dlq_name, durable: true, passive: true)
-          found = nil
+          queue   = channel.queue(dlq_name, durable: true, passive: true)
+          found   = nil
           checked = []
 
           total.times do |i|
@@ -324,7 +327,7 @@ module Onetime
 
         def build_message_detail(delivery_info, properties, payload)
           headers = properties.headers || {}
-          death = headers['x-death']&.first || {}
+          death   = headers['x-death']&.first || {}
 
           {
             delivery_tag: delivery_info.delivery_tag,
@@ -412,7 +415,7 @@ module Onetime
         def replay_messages(dlq_name, count, format)
           with_rabbitmq_connection do |conn|
             channel = conn.create_channel
-            queue = channel.queue(dlq_name, durable: true, passive: true)
+            queue   = channel.queue(dlq_name, durable: true, passive: true)
 
             available = queue.message_count
             if available == 0
@@ -421,7 +424,7 @@ module Onetime
             end
 
             to_replay = count ? [count, available].min : available
-            results = { replayed: 0, failed: 0, errors: [] }
+            results   = { replayed: 0, failed: 0, errors: [] }
 
             to_replay.times do
               delivery_info, properties, payload = queue.pop(manual_ack: true)
@@ -431,7 +434,8 @@ module Onetime
               unless original_queue
                 results[:failed] += 1
                 results[:errors] << { message_id: properties.message_id, error: 'No original queue found' }
-                channel.nack(delivery_info.delivery_tag, false, true)
+                # Nack without requeue - message stays in DLQ, prevents infinite loop
+                channel.nack(delivery_info.delivery_tag, false, false)
                 next
               end
 
@@ -523,7 +527,7 @@ module Onetime
         def purge_queue(dlq_name, force, format)
           with_rabbitmq_connection do |conn|
             channel = conn.create_channel
-            queue = channel.queue(dlq_name, durable: true, passive: true)
+            queue   = channel.queue(dlq_name, durable: true, passive: true)
 
             count = queue.message_count
             if count == 0
