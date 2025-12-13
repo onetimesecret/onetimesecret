@@ -18,15 +18,11 @@
     displayPoweredBy: true,
   });
 
-  // When MastHead is hidden (custom domains), align content to top with more padding
-  // When MastHead is shown, center content vertically
+  // Content always starts at top - no vertical centering
+  // Custom domains (no MastHead) get extra top padding to compensate
   const mainClasses = computed(() => {
-    const base = 'container mx-auto flex min-w-[320px] max-w-full flex-1 flex-col px-0';
-    if (props.displayMasthead) {
-      return `${base} justify-center py-8`;
-    }
-    // No masthead: content at top with generous padding
-    return `${base} justify-start pt-16 pb-8`;
+    const base = 'container mx-auto flex min-w-[320px] max-w-full flex-1 flex-col px-0 justify-start';
+    return props.displayMasthead ? `${base} py-8` : `${base} pt-16 pb-8`;
   });
 </script>
 
