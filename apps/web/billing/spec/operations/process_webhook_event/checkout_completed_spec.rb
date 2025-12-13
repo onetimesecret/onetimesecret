@@ -106,13 +106,37 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
     end
   end
 
+  context 'with invalid custid format' do
+    let(:subscription_invalid_custid) do
+      build_stripe_subscription(
+        id: stripe_subscription_id,
+        customer: stripe_customer_id,
+        status: 'active',
+        metadata: { 'custid' => '../../../etc/passwd' }, # Malformed input
+      )
+    end
+
+    before do
+      allow(Stripe::Subscription).to receive(:retrieve).and_return(subscription_invalid_custid)
+    end
+
+    it 'returns :skipped when custid format is invalid' do
+      expect(operation.call).to eq(:skipped)
+    end
+
+    it 'does not attempt to load customer' do
+      expect(Onetime::Customer).not_to receive(:load)
+      operation.call
+    end
+  end
+
   context 'with missing customer record' do
     let(:subscription_missing_customer) do
       build_stripe_subscription(
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'active',
-        metadata: { 'custid' => 'nonexistent_custid' },
+        metadata: { 'custid' => 'nonexistent@example.com' },
       )
     end
 

@@ -122,7 +122,7 @@ RSpec.describe 'ProcessWebhookEvent: error handling', :integration, :process_web
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'active',
-        metadata: { 'custid' => 'nonexistent_custid' },
+        metadata: { 'custid' => 'nonexistent@example.com' },
       )
     end
 

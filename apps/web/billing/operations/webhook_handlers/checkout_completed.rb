@@ -43,6 +43,14 @@ module Billing
             return :skipped
           end
 
+          unless valid_identifier?(custid)
+            billing_logger.warn 'Invalid custid format in subscription metadata', {
+              subscription_id: subscription.id,
+              custid: custid.to_s[0, 50], # Truncate for safety
+            }
+            return :skipped
+          end
+
           customer = load_customer(custid)
           return :not_found unless customer
 
@@ -60,6 +68,21 @@ module Billing
         end
 
         private
+
+        # UUID format: 8-4-4-4-12 hex chars (e.g., 019b1598-b0ec-760a-85ae-a1391283a1dc)
+        UUID_PATTERN = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
+
+        # External ID format: prefix + UUID (e.g., ur019b1598-b0ec-760a-85ae-a1391283a1dc)
+        EXTID_PATTERN = /\A[a-z]{2}[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
+
+        # Basic email format (legacy custid format, pre-v0.22)
+        EMAIL_PATTERN = /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/
+
+        def valid_identifier?(value)
+          return false unless value.is_a?(String) && value.length <= 255
+
+          value.match?(UUID_PATTERN) || value.match?(EXTID_PATTERN) || value.match?(EMAIL_PATTERN)
+        end
 
         def load_customer(custid)
           customer = Onetime::Customer.load(custid)
