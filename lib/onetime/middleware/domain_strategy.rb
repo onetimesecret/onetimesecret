@@ -70,8 +70,10 @@ module Onetime
       def initialize(app, application_context: nil)
         @app                 = app
         @application_context = application_context
-        features_config      = OT.conf&.dig('features') || {}
-        self.class.initialize_from_config(features_config)
+
+        domains_config      = OT.conf&.dig('features', 'domains') || {}
+        self.class.initialize_from_config(domains_config)
+
         boot_logger.debug 'DomainStrategy initialized', {
           app_context: @application_context,
           canonical_domain: canonical_domain,
@@ -105,19 +107,21 @@ module Onetime
         # Check for domain context override first (development feature)
         override_domain, override_source = detect_domain_override(env)
 
-        if override_domain
-          display_domain  = override_domain
-          domain_strategy = determine_override_strategy(override_domain)
+        if domains_enabled?
+          if override_domain
+            display_domain  = override_domain
+            domain_strategy = :custom
 
-          http_logger.info '[DomainStrategy] override active', {
-            domain: override_domain,
-            source: override_source,
-            strategy: domain_strategy,
-          }
-        elsif domains_enabled?
-          display_domain  = env[Rack::DetectHost.result_field_name]
-          # OT.ld "[middleware] DomainStrategy: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
-          domain_strategy = Chooserator.choose_strategy(display_domain, canonical_domain_parsed)
+            http_logger.info '[DomainStrategy] override active', {
+              domain: override_domain,
+              source: override_source,
+              strategy: domain_strategy,
+            }
+          else
+            display_domain  = env[Rack::DetectHost.result_field_name]
+            # OT.ld "[middleware] DomainStrategy: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
+            domain_strategy = Chooserator.choose_strategy(display_domain, canonical_domain_parsed)
+          end
         end
 
         env['onetime.display_domain']  = display_domain
@@ -143,6 +147,7 @@ module Onetime
         detected_host = env[Rack::DetectHost.result_field_name]
 
         http_logger.debug '[DomainStrategy] detect_domain_override check', {
+          domains_enabled: domains_enabled?,
           domain_context_enabled: domain_context_enabled?,
           detected_host: detected_host,
           env_var: ENV[DOMAIN_CONTEXT_ENV_VAR],
@@ -159,19 +164,12 @@ module Onetime
         header_override = env[DOMAIN_CONTEXT_HEADER]
         return [header_override, :header] if header_override && !header_override.empty?
 
-        [nil, nil]
-      end
-
-      # Determines the strategy for an override domain.
-      #
-      # @param domain [String] The override domain
-      # @return [Symbol] :custom if domain exists, :custom_simulated if not
-      def determine_override_strategy(domain)
-        if Chooserator.known_custom_domain?(domain)
-          :custom
-        else
-          :custom_simulated
+        # Implicit override: browser navigated to non-canonical domain
+        if detected_host && detected_host != canonical_domain
+          return [detected_host, :detected_host]
         end
+
+        [nil, nil]
       end
 
       def domain_context_enabled?
@@ -183,7 +181,7 @@ module Onetime
       end
 
       def domains_enabled?
-        self.class.domains_enabled # boolean
+        Onetime::Runtime.features.domains?
       end
 
       def canonical_domain_parsed
