@@ -88,11 +88,7 @@ export const stateFixture: OnetimeWindow = {
     instructions_reveal: '',
     primary_color: '#36454F',
   },
-  domain_logo: {
-    content_type: 'image/png',
-    encoded: '',
-    filename: '',
-  },
+  domain_logo: null,
   messages: [],
 } as const;
 

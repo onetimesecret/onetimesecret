@@ -44,6 +44,10 @@ module Core
 
           domain_locale           = output['domain_branding'].fetch('locale', nil)
           output['domain_locale'] = domain_locale
+
+          # Check if custom domain has a logo uploaded
+          has_logo = !custom_domain&.logo&.[]('filename').to_s.empty?
+          output['domain_logo'] = has_logo ? "/imagine/#{custom_domain.domainid}/logo.png" : nil
         end
 
         # There's no custom domain list when the feature is disabled

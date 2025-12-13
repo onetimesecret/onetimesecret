@@ -23,6 +23,7 @@
     'email',
     'cust',
     'ui',
+    'domain_logo',
   ]));
 
   const isColonel = computed(() => windowProps.value.cust?.role === 'colonel');
@@ -45,7 +46,8 @@
   const DEFAULT_LOGO = 'DefaultLogo.vue';
 
   // Helper functions for logo configuration
-  const getLogoUrl = () => props.logo?.url || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
+  // Priority: props > custom domain logo > static config > default
+  const getLogoUrl = () => props.logo?.url || windowProps.value.domain_logo || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
   const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('one-time-secret-literal');
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
   const getLogoSize = () => props.logo?.size || 64;

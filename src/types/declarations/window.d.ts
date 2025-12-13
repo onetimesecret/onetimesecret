@@ -4,7 +4,6 @@ import {
   AuthenticationSettings,
   BrandSettings,
   Customer,
-  ImageProps,
   Locale,
   RegionsConfig,
   SecretOptions,
@@ -161,7 +160,8 @@ export interface OnetimeWindow {
   domain_id: string;
   display_domain: string;
   domain_branding: BrandSettings;
-  domain_logo: ImageProps | null;
+  /** URL to custom domain logo image, or null if no logo uploaded */
+  domain_logo: string | null;
 
   messages: Message[];
 
