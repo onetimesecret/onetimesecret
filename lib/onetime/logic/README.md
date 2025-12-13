@@ -9,7 +9,7 @@ Logic classes handle **HTTP request processing** for API endpoints. They are the
 | Context | Request-bound (receives session, auth, params from HTTP request) |
 | Interface | `process_params`, `raise_concerns`, `process`, `success_data` |
 | Purpose | Parse input, validate, execute domain logic, return API response data |
-| Location | `apps/api/*/logic/` directories (version-specific) |
+| Location | `apps/api/v2/logic/` |
 | Base class | `Onetime::Logic::Base` |
 
 ## Structure

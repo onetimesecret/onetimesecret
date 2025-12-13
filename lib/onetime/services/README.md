@@ -103,7 +103,7 @@ end
 - Receive authentication context (`strategy_result`) and HTTP params
 - Return data structures suitable for JSON API responses
 - Have form error handling for validation feedback
-- Located in `apps/api/*/logic/`
+- Located in `apps/api/v2/logic/`
 
 **Services** are context-independent:
 - Don't know about HTTP, sessions, or authentication
