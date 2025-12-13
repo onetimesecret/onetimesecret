@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../../support/test_helpers'
-require_relative '../../../lib/onetime/redis_key_migrator'
+require_relative '../../../lib/onetime/services/redis_key_migrator'
 
 OT.boot! :test, true
 
@@ -16,21 +16,21 @@ redis_uri = URI.parse(OT.conf['redis']['uri'])
 source_uri = "redis://#{@redis_host}:#{@redis_port}/14"
 target_uri = "redis://#{@redis_host}:#{@redis_port}/15"
 
-migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
+migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)
 migrator.class.name
-#=> "Onetime::RedisKeyMigrator"
+#=> "Onetime::Services::RedisKeyMigrator"
 
 ## Test URI parsing database
 source_uri = "redis://#{@redis_host}:#{@redis_port}/14"
 target_uri = "redis://#{@redis_host}:#{@redis_port}/15"
-migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
+migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)
 migrator.source_uri.path
 #=> "/14"
 
 ## Test strategy detection
 source_uri = "redis://#{@redis_host}:#{@redis_port}/14"
 target_uri = "redis://#{@redis_host}:#{@redis_port}/15"
-migrator = Onetime::RedisKeyMigrator.new(source_uri, target_uri)
+migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)
 strategy = migrator.send(:determine_migration_strategy)
 strategy
 #=> :copy
