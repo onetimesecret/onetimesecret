@@ -71,13 +71,16 @@ function getLayoutPropsForMode(componentMode: string, domainStrategy: string) {
   }
 
   // Apply custom domain overrides if needed
+  // Custom domains get minimal layout - logo goes in content area, not MastHead
   if (domainStrategy === 'custom') {
     layoutProps = {
       ...layoutProps,
-      displayMasthead: true,
+      displayMasthead: false, // Logo goes in page content for centered experience
       displayNavigation: false,
-      displayFooterLinks: false,
+      displayFooterLinks: true, // Keep Terms/Privacy links
       displayFeedback: false,
+      displayVersion: false,
+      displayPoweredBy: true, // Show "Powered by Onetime Secret"
     };
   }
 

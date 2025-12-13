@@ -94,7 +94,15 @@ export const useProductIdentity = defineStore('productIdentity', () => {
   /** Display name for current domain context */
   const displayName = computed(() => state.brand?.description || state.displayDomain);
 
+  /** Logo URL for custom domain, pre-computed by backend with correct extid */
   const logoUri = computed(() => {
+    // Use domain_logo from backend (uses extid for public URLs)
+    // Falls back to generated path if not available
+    const domainLogo = WindowService.get('domain_logo');
+    if (domainLogo) {
+      return domainLogo;
+    }
+    // Fallback: generate from domainId (legacy behavior)
     const template = '/imagine/:custom_domain_id/:image_type.:image_ext';
     return template
       .replace(':custom_domain_id', state.domainId)

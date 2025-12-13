@@ -8,7 +8,9 @@
   import FooterLinks from '@/shared/components/layout/FooterLinks.vue';
   import ThemeToggle from '@/shared/components/ui/ThemeToggle.vue';
   import { WindowService } from '@/services/window.service';
+  import { useProductIdentity } from '@/shared/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
+  import { computed } from 'vue';
 
   withDefaults(defineProps<LayoutProps>(), {
     displayFeedback: true,
@@ -27,6 +29,13 @@
     'ot_version',
     'ui',
   ]);
+
+  const { isCustom } = useProductIdentity();
+
+  // Hide regions toggle on custom domains (they're tied to a specific deployment)
+  const showRegionsToggle = computed(
+    () => windowProps.regions_enabled && windowProps.regions && !isCustom
+  );
 </script>
 
 <template>
@@ -96,7 +105,7 @@
         <div
           v-if="displayToggles"
           class="flex w-full flex-row items-center justify-center gap-4 sm:w-auto sm:justify-end">
-          <JurisdictionToggle v-if="windowProps.regions_enabled && windowProps.regions" />
+          <JurisdictionToggle v-if="showRegionsToggle" />
 
           <!-- prettier-ignore-attribute class -->
           <ThemeToggle
