@@ -38,6 +38,7 @@ module Billing
         rescue StandardError => e
           billing_logger.error 'Failed to refresh plan cache', {
             error: e.message,
+            backtrace: e.backtrace&.first(5),
           }
           # Don't fail webhook for cache refresh failure
           :success

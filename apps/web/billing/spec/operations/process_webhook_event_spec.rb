@@ -40,7 +40,7 @@ RSpec.describe Billing::Operations::ProcessWebhookEvent, :integration, :process_
       let(:test_email) { "ctx-#{SecureRandom.hex(4)}@example.com" }
       let(:stripe_subscription_id) { 'sub_ctx_456' }
 
-      let!(:customer) { create_test_customer(custid: nil, email: test_email) }
+      let!(:customer) { create_test_customer(email: test_email) }
       let!(:organization) do
         org = create_test_organization(customer: customer)
         org.stripe_subscription_id = stripe_subscription_id

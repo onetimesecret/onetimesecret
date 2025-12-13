@@ -72,7 +72,7 @@ module ProcessWebhookEventHelpers
   end
 
   # Create test customer and track for cleanup
-  def create_test_customer(custid:, email:)
+  def create_test_customer(email:)
     cust = Onetime::Customer.create!(email)
     created_customers << cust
     cust

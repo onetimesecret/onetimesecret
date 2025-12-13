@@ -35,7 +35,7 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
   end
 
   context 'with valid subscription checkout' do
-    let!(:customer) { create_test_customer(custid: nil, email: test_email) }
+    let!(:customer) { create_test_customer(email: test_email) }
 
     # Build subscription with actual customer custid
     let(:subscription) do
