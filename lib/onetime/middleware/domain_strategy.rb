@@ -104,10 +104,10 @@ module Onetime
         display_domain  = canonical_domain
         domain_strategy = :canonical
 
-        # Check for domain context override first (development feature)
-        override_domain, override_source = detect_domain_override(env)
 
         if domains_enabled?
+          # Check for domain context override first (development feature)
+          override_domain, override_source = detect_domain_override(env)
           if override_domain
             display_domain  = override_domain
             domain_strategy = :custom
@@ -147,27 +147,24 @@ module Onetime
         detected_host = env[Rack::DetectHost.result_field_name]
 
         http_logger.debug '[DomainStrategy] detect_domain_override check', {
-          domains_enabled: domains_enabled?,
           domain_context_enabled: domain_context_enabled?,
           detected_host: detected_host,
           env_var: ENV[DOMAIN_CONTEXT_ENV_VAR],
           header: env[DOMAIN_CONTEXT_HEADER],
         }
 
-        return [nil, nil] unless domain_context_enabled?
+        return unless domain_context_enabled?
 
         # Check env var first (process-level override)
         env_override = ENV[DOMAIN_CONTEXT_ENV_VAR]
-        return [env_override, :env_var] if env_override && !env_override.empty?
+        return [env_override, :env_var] unless env_override&.empty?
 
         # Check request header (per-request override)
         header_override = env[DOMAIN_CONTEXT_HEADER]
-        return [header_override, :header] if header_override && !header_override.empty?
+        return [header_override, :header] unless header_override&.empty?
 
         # Implicit override: browser navigated to non-canonical domain
-        if detected_host && detected_host != canonical_domain
-          return [detected_host, :detected_host]
-        end
+        return [detected_host, :detected_host] if detected_host != canonical_domain
 
         [nil, nil]
       end

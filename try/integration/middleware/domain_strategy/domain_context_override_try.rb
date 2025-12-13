@@ -148,14 +148,25 @@ middleware.call(env)
 env['onetime.display_domain']
 #=> '127.0.0.1:3000'
 
-## call method falls back to normal behavior when no override present
+## call method returns canonical when detected host matches canonical domain
 middleware = create_middleware_with_override_enabled
+# Use the actual canonical domain from config (127.0.0.1:3000 in test mode)
+actual_canonical = middleware.canonical_domain
 env = {
-  Rack::DetectHost.result_field_name => @canonical_domain,
+  Rack::DetectHost.result_field_name => actual_canonical,
 }
 middleware.call(env)
 env['onetime.domain_strategy']
 #=> :canonical
+
+## call method uses implicit override when detected host differs from canonical
+middleware = create_middleware_with_override_enabled
+env = {
+  Rack::DetectHost.result_field_name => 'custom.example.org',
+}
+middleware.call(env)
+[env['onetime.display_domain'], env['onetime.domain_strategy']]
+#=> ['custom.example.org', :custom_simulated]
 
 # Class Method Tests
 
