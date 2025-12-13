@@ -33,6 +33,8 @@ module Billing
       #   end
       #
       class SubscriptionHandler < BaseHandler
+        abstract_handler! # Intermediate base class, not registered
+
         protected
 
         # Yields organization if found, returns :not_found otherwise.

@@ -11,12 +11,16 @@ module Billing
       # - Consistent logging (start, complete, error)
       # - Error handling with backtrace capture
       # - Context flags (replay?, skip_notifications?)
+      # - Auto-registration with ProcessWebhookEvent via inherited callback
       #
       # Subclasses must implement:
       # - .handles?(event_type) - class method returning true for handled events
       # - #process - protected method containing handler logic
       #
-      # @example
+      # Abstract intermediate base classes should call `abstract_handler!` to
+      # exclude themselves from registration.
+      #
+      # @example Concrete handler
       #   class SubscriptionPaused < BaseHandler
       #     def self.handles?(event_type)
       #       event_type == 'customer.subscription.paused'
@@ -30,8 +34,44 @@ module Billing
       #     end
       #   end
       #
+      # @example Abstract intermediate base class
+      #   class SubscriptionHandler < BaseHandler
+      #     abstract_handler!  # Excludes from registration
+      #
+      #     # Shared logic for subscription handlers...
+      #   end
+      #
       class BaseHandler
         include Onetime::LoggerMethods
+
+        @abstract = true # BaseHandler itself is abstract
+
+        # Mark this handler class as abstract (not registered)
+        def self.abstract_handler!
+          @abstract = true
+        end
+
+        # Check if this handler class is abstract
+        def self.abstract?
+          @abstract == true
+        end
+
+        # Auto-register concrete handlers when they inherit from BaseHandler
+        def self.inherited(subclass)
+          super
+          # Schedule registration after the class is fully defined
+          # Use TracePoint to detect when class definition ends
+          trace = TracePoint.new(:end) do |tp|
+            if tp.self == subclass
+              trace.disable
+              # Only register non-abstract handlers
+              unless subclass.abstract?
+                Billing::Operations::ProcessWebhookEvent.register(subclass)
+              end
+            end
+          end
+          trace.enable
+        end
 
         # @param event_type [String] Stripe event type
         # @return [Boolean] true if this handler processes the event type
