@@ -549,6 +549,10 @@ jobs:
       - check-oci-image
     # always() ensures this runs even if some jobs failed/skipped
     if: always()
+    # Permissions for posting PR comments
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout code
@@ -682,3 +686,78 @@ jobs:
           echo "| Ruby Integration (Full) | ${{ needs.ruby-integration-full.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Disabled) | ${{ needs.ruby-integration-disabled.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Container Validation | ${{ needs.check-oci-image.result }} |" >> $GITHUB_STEP_SUMMARY
+
+      # Post CI metrics summary as PR comment (PRs only)
+      - name: Post metrics to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const status = '${{ steps.check-ci-metrics.outputs.status || 'unknown' }}';
+
+            // Build job results table
+            const jobs = [
+              { name: 'Detect Changes', result: '${{ needs.changes.result }}' },
+              { name: 'Ruby Lint', result: '${{ needs.ruby-lint.result }}' },
+              { name: 'TypeScript Lint', result: '${{ needs.typescript-lint.result }}' },
+              { name: 'Build Assets', result: '${{ needs.build-assets.result }}' },
+              { name: 'Ruby Unit', result: '${{ needs.ruby-unit.result }}' },
+              { name: 'TypeScript Unit', result: '${{ needs.typescript-unit.result }}' },
+              { name: 'Ruby Integration (Simple)', result: '${{ needs.ruby-integration-simple.result }}' },
+              { name: 'Ruby Integration (Full)', result: '${{ needs.ruby-integration-full.result }}' },
+              { name: 'Ruby Integration (Disabled)', result: '${{ needs.ruby-integration-disabled.result }}' },
+              { name: 'Container Validation', result: '${{ needs.check-oci-image.result }}' },
+            ];
+
+            const statusIcon = (result) => {
+              switch(result) {
+                case 'success': return '✅';
+                case 'failure': return '❌';
+                case 'skipped': return '⏭️';
+                case 'cancelled': return '🚫';
+                default: return '❓';
+              }
+            };
+
+            const jobRows = jobs.map(j => `| ${j.name} | ${statusIcon(j.result)} ${j.result} |`).join('\n');
+
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+
+            const comment = `## 📊 CI Metrics Summary
+
+            | Job | Status |
+            |-----|--------|
+            ${jobRows}
+
+            ---
+            🔗 [View full workflow run](${runUrl})
+            `;
+
+            // Find existing bot comment with this header
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' &&
+              c.body.includes('📊 CI Metrics Summary')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment,
+              });
+            }
