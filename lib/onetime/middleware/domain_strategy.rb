@@ -140,6 +140,15 @@ module Onetime
       # @param env [Hash] The Rack environment hash
       # @return [Array<String, Symbol>, Array<nil, nil>] [domain, source] or [nil, nil]
       def detect_domain_override(env)
+        detected_host = env[Rack::DetectHost.result_field_name]
+
+        http_logger.debug '[DomainStrategy] detect_domain_override check', {
+          domain_context_enabled: domain_context_enabled?,
+          detected_host: detected_host,
+          env_var: ENV[DOMAIN_CONTEXT_ENV_VAR],
+          header: env[DOMAIN_CONTEXT_HEADER],
+        }
+
         return [nil, nil] unless domain_context_enabled?
 
         # Check env var first (process-level override)
