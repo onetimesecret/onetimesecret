@@ -23,6 +23,7 @@
     'email',
     'cust',
     'ui',
+    'domain_logo',
   ]));
 
   const isColonel = computed(() => windowProps.value.cust?.role === 'colonel');
@@ -45,11 +46,15 @@
   const DEFAULT_LOGO = 'DefaultLogo.vue';
 
   // Helper functions for logo configuration
-  const getLogoUrl = () => props.logo?.url || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
+  // Priority: props > custom domain logo > static config > default
+  const getLogoUrl = () => props.logo?.url || windowProps.value.domain_logo || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
   const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('one-time-secret-literal');
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
-  const getLogoSize = () => props.logo?.size || 64;
-  const getShowSiteName = () => props.logo?.showSiteName ?? !!headerConfig.value?.branding?.site_name;
+  // Custom domain logos are larger to emphasize brand identity
+  const isCustomDomainLogo = computed(() => !!windowProps.value.domain_logo);
+  const getLogoSize = () => props.logo?.size || (isCustomDomainLogo.value ? 80 : 64);
+  // Hide site name when custom domain logo is displayed (unless explicitly configured)
+  const getShowSiteName = () => props.logo?.showSiteName ?? (windowProps.value.domain_logo ? false : !!headerConfig.value?.branding?.site_name);
   const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('one-time-secret-literal');
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
@@ -142,7 +147,8 @@
             <img
               id="logo"
               :src="logoConfig.url"
-              class="size-12 transition-transform"
+              class="transition-transform"
+              :class="isCustomDomainLogo ? 'size-20' : 'size-12'"
               :height="logoConfig.size"
               :width="logoConfig.size"
               :alt="logoConfig.alt" />

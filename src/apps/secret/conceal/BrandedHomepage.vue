@@ -1,18 +1,51 @@
 <!-- src/apps/secret/conceal/BrandedHomepage.vue -->
 
 <script setup lang="ts">
+  import { ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
+  import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useProductIdentity } from '@/shared/stores/identityStore';
 
-const { t } = useI18n();
+  const { t } = useI18n();
 
-  const { allowPublicHomepage, primaryColor, cornerClass, buttonTextLight } = useProductIdentity();
+  const {
+    allowPublicHomepage,
+    primaryColor,
+    cornerClass,
+    buttonTextLight,
+    logoUri,
+    displayName,
+  } = useProductIdentity();
+
+  // Handle logo 404 errors gracefully
+  const imageError = ref(false);
+  const handleImageError = () => {
+    imageError.value = true;
+  };
 </script>
 
 <template>
-  <div class="container mx-auto mb-28 min-w-[320px] max-w-2xl py-1">
-    <!-- Start of the branded homepage form -->
+  <div class="mx-auto w-full max-w-xl px-4">
+    <!-- Logo + Taglines (since MastHead is disabled for custom domains) -->
+    <div class="mb-8 text-center">
+      <!-- Logo with error handling - hides if 404 -->
+      <div v-if="logoUri && !imageError" class="mb-4 flex justify-center">
+        <img
+          :src="logoUri"
+          class="h-16 max-w-[200px] object-contain"
+          :alt="displayName"
+          @error="handleImageError" />
+      </div>
+      <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
+        {{ t('create-a-secure-link') }}
+      </h1>
+      <p class="mt-2 text-gray-600 dark:text-gray-300">
+        {{ t('send-sensitive-information-that-can-only-be-viewed-once') }}
+      </p>
+    </div>
+
+    <!-- Public homepage with secret form -->
     <SecretForm
       v-if="allowPublicHomepage"
       class="mb-8"
@@ -24,120 +57,72 @@ const { t } = useI18n();
       :with-generate="false" />
 
     <!--
-      BrandedHomepage.vue
+      Private Instance Landing
 
-      Purpose: Landing page for custom domains, secure message service instances.
-
-      This page serves two key functions:
-      1. Shows the current availability status of the secure messaging service
-      2. Provides context for recipients who follow links to the domain
+      Purpose: Landing page for custom domains with restricted access.
 
       Key audiences:
-      - Recipients: People who received/viewed a secure message and are curious about the service
-      - Internal teams: Company employees who need to know how to share sensitive info
-      - Admins: People managing the service who need to understand its current state
+      - Recipients: People who received/viewed a secure message
+      - Internal teams: Employees who need to know how to share sensitive info
+      - Admins: People managing the service
 
       Design notes:
-      - Maintains professional appearance even when disabled
-      - Uses company branding while keeping security/trust as primary focus
-      - Messaging must work for all audiences simultaneously since authentication state is unknown
+      - Professional, minimal appearance
+      - Uses brand color as accent
+      - Trust-focused messaging
     -->
 
-    <div
-      v-else
-      class="overflow-hidden rounded-xl border-t-4 bg-white shadow-lg dark:bg-gray-800"
-      :style="{ borderColor: primaryColor }">
-      <!-- Brand Identity Section -->
-      <!-- Main Content Area -->
+    <div v-else class="space-y-8">
+      <!-- Status Card -->
       <div
-        :class="[cornerClass]"
-        class="bg-white px-6 py-8 dark:bg-gray-800">
+        class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:shadow-none">
+        <!-- Brand accent line -->
         <div
-          class="mb-6 rounded-lg border"
-          :style="{
-            backgroundColor: `${primaryColor}10`,
-            borderColor: `${primaryColor}30`,
-          }">
-          <div class="p-4">
-            <div class="flex items-center">
-              <div class="shrink-0">
-                <svg
-                  class="size-5"
-                  :style="{ color: primaryColor }"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true">
-                  <path
-                    fill-rule="evenodd"
-                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z"
-                    clip-rule="evenodd" />
-                </svg>
-              </div>
-              <div class="ml-3">
-                <p class="text-sm">
-                  {{ t('this-is-a-private-instance-only-authorized-team-') }}
-                </p>
-              </div>
-            </div>
+          class="absolute inset-x-0 top-0 h-1"
+          :style="{ backgroundColor: primaryColor }"></div>
+
+        <!-- Status indicator -->
+        <div class="mb-6 flex items-center gap-3">
+          <div
+            class="flex size-10 items-center justify-center rounded-full"
+            :style="{ backgroundColor: `${primaryColor}20` }">
+            <OIcon
+              collection="heroicons"
+              name="shield-check"
+              class="size-5"
+              :style="{ color: primaryColor }" />
+          </div>
+          <div>
+            <p class="text-sm font-medium text-gray-900 dark:text-white/90">
+              {{ t('this-is-a-private-instance-only-authorized-team-') }}
+            </p>
           </div>
         </div>
 
-        <!-- Trust Elements -->
-        <div class="space-y-6 text-center">
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
-              <div class="flex flex-col items-center space-y-2">
-                <svg
-                  class="size-6 text-gray-600 dark:text-gray-300"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                </svg>
-                <p class="text-sm text-gray-600 dark:text-gray-300">
-                  {{ t('secure-encrypted-storage') }}
-                </p>
-              </div>
-            </div>
-            <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
-              <div class="flex flex-col items-center space-y-2">
-                <svg
-                  class="size-6 text-gray-600 dark:text-gray-300"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke-width="1.5"
-                  stroke="currentColor">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p class="text-sm text-gray-600 dark:text-gray-300">
-                  {{ t('auto-expire-after-viewing') }}
-                </p>
-              </div>
-            </div>
+        <!-- Feature pills -->
+        <div class="flex flex-wrap gap-3">
+          <div
+            class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 dark:border-white/10 dark:bg-white/5">
+            <OIcon
+              collection="heroicons"
+              name="lock-closed"
+              class="size-4 text-gray-500 dark:text-white/60" />
+            <span class="text-sm text-gray-600 dark:text-white/70">
+              {{ t('secure-encrypted-storage') }}
+            </span>
+          </div>
+          <div
+            class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 dark:border-white/10 dark:bg-white/5">
+            <OIcon
+              collection="heroicons"
+              name="clock"
+              class="size-4 text-gray-500 dark:text-white/60" />
+            <span class="text-sm text-gray-600 dark:text-white/70">
+              {{ t('auto-expire-after-viewing') }}
+            </span>
           </div>
         </div>
       </div>
-
-      <!-- Footer Information -->
-      <!-- prettier-ignore-attribute class -->
-      <!-- <div
-        class="border-t border-gray-200 dark:border-gray-700 px-6 py-4
-          bg-gray-50 dark:bg-gray-800/50">
-        <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
-          Links from {{ displayDomain }} are managed by {{ name }}.<br />
-          Contact your {{ name }} representative to share sensitive information.
-        </p>
-      </div> -->
     </div>
   </div>
 </template>

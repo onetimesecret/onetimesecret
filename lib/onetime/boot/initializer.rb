@@ -30,6 +30,8 @@ module Onetime
     #   end
     #
     class Initializer
+      include Onetime::LoggerMethods
+
       attr_reader :status, :error, :elapsed_ms
       attr_accessor :application_class
 

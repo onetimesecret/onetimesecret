@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require 'onetime/mail'
-require 'onetime/jobs/publisher'
+require_relative '../../../../lib/onetime/jobs/publisher'
 
 module Auth::Config::Email
   def self.configure(auth)

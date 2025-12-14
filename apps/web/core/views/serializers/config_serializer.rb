@@ -47,6 +47,12 @@ module Core
         output['frontend_development'] = development['enabled'] || false
         output['frontend_host']        = development['frontend_host'] || ''
 
+        # Pass development config to frontend (includes domain_context_enabled)
+        output['development'] = {
+          'enabled'                => development['enabled'] || false,
+          'domain_context_enabled' => development['domain_context_enabled'] || false,
+        }
+
         sentry                = diagnostics.fetch('sentry', {})
         output['d9s_enabled'] = Onetime.d9s_enabled
         Onetime.with_diagnostics do
@@ -71,6 +77,7 @@ module Core
           {
             'authentication' => nil,
             'd9s_enabled' => nil,
+            'development' => nil,
             'diagnostics' => nil,
             'domains' => nil,
             'domains_enabled' => nil,

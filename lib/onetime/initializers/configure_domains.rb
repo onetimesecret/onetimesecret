@@ -16,16 +16,19 @@ module Onetime
       @provides = [:domains]
 
       def execute(_context)
-        is_enabled = OT.conf.dig('features', 'domains', 'enabled').to_s == 'true'
+        domains_config = OT.conf.dig('features', 'domains') || {}
 
-        unless is_enabled
-          OT.ld '[init] Domains feature disabled'
-          Onetime::Runtime.update_features(domains_enabled: false)
-          return
-        end
+        is_enabled = domains_config['enabled'].to_s == 'true'
 
-        cluster = OT.conf.dig('features', 'domains', 'cluster')
-        OT.ld "[init] Setting OT::Cluster::Features #{cluster}"
+        # Set runtime state
+        Onetime::Runtime.update_features(domains_enabled: is_enabled)
+
+        return app_logger.debug '[init] Domains feature disabled' unless is_enabled
+
+        cluster = domains_config['cluster']
+        non_empty_settings = cluster.reject { _2.to_s.empty? }.keys
+
+        app_logger.debug "[init] ConfigureDomains #{non_empty_settings}"
 
         # Configure OT::Cluster::Features class variables
         klass              = OT::Cluster::Features
@@ -35,14 +38,9 @@ module Onetime
         klass.cluster_host = cluster['cluster_host']
         klass.vhost_target = cluster['vhost_target']
 
-        OT.ld "[init] Domains config: #{cluster}"
-
         unless klass.api_key
-          raise OT::Problem.new, "No `site.domains.cluster` api key (#{klass.api_key})"
+          app_logger.debug "No `site.domains.cluster` api key (#{klass.api_key})"
         end
-
-        # Set runtime state
-        Onetime::Runtime.update_features(domains_enabled: true)
       end
     end
   end

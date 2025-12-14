@@ -49,12 +49,6 @@
 </template>
 
 <style scoped>
-.homepage-container {
-  /* Ensure container has a minimum height to prevent layout shifts */
-  min-height: 500px;
-  position: relative;
-}
-
 /* Transition definitions */
 .homepage-fade-enter-active,
 .homepage-fade-leave-active {

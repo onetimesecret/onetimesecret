@@ -4,6 +4,7 @@
   import DefaultFooter from '@/shared/components/layout/DefaultFooter.vue';
   import DefaultHeader from '@/shared/components/layout/DefaultHeader.vue';
   import type { LayoutProps } from '@/types/ui/layouts';
+  import { computed } from 'vue';
 
   import BaseLayout from './BaseLayout.vue';
 
@@ -16,6 +17,13 @@
     displayToggles: true,
     displayPoweredBy: true,
   });
+
+  // Content always starts at top - no vertical centering
+  // Custom domains (no MastHead) get extra top padding to compensate
+  const mainClasses = computed(() => {
+    const base = 'container mx-auto flex min-w-[320px] max-w-full flex-1 flex-col px-0 justify-start';
+    return props.displayMasthead ? `${base} py-8` : `${base} pt-16 pb-8`;
+  });
 </script>
 
 <template>
@@ -25,9 +33,7 @@
     </template>
 
     <template #main>
-      <main
-        class="max-w-full container mx-auto min-w-[320px] px-0 py-0"
-        name="DefaultLayout">
+      <main :class="mainClasses" name="DefaultLayout">
         <slot></slot>
       </main>
     </template>

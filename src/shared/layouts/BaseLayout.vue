@@ -35,7 +35,7 @@
 </script>
 
 <template>
-  <div>
+  <div class="flex min-h-screen flex-col">
     <!-- All along the watch tower -->
     <div
       class="fixed left-0 top-0 z-50 h-1 w-full"

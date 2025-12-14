@@ -607,6 +607,16 @@ development:
   # - Set to 'http://localhost:5173' to use built-in proxy
   # - Leave empty when using a reverse proxy (like nginx, caddy, etc)
   frontend_host: <%= ENV['FRONTEND_HOST'] || 'http://localhost:5173' %>
+  # Domain Context Override for persona-based testing
+  #
+  # When enabled, allows simulating custom domain experiences without
+  # actual DNS/domain setup. Supports three override mechanisms:
+  # - DOMAIN_CONTEXT env var: Set at server startup for entire process
+  # - O-Domain-Context header: Per-request override for API/curl testing
+  # - Colonel UI component: Browser-based override via sessionStorage
+  #
+  # SECURITY: Must remain false in production. No query param support.
+  domain_context_enabled: <%= ENV['DOMAIN_CONTEXT_ENABLED'] == 'true' %>
 experimental:
   # SECURITY FEATURE: Controls whether the application can run without a
   # site.secret (either in this file or via the SECRET env var).
