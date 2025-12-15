@@ -118,8 +118,8 @@ importers:
         version: 3.4.1(zod@3.24.4)
     devDependencies:
       '@eslint/js':
-        specifier: 9.27.0
-        version: 9.27.0
+        specifier: 9.31.0
+        version: 9.31.0
       '@intlify/devtools-types':
         specifier: 11.1.12
         version: 11.1.12
@@ -776,8 +776,8 @@ packages:
     resolution: {integrity: sha512-gtF186CXhIl1p4pJNGZw8Yc6RlshoePRvE0X91oPGb3vZ8pM3qOS9W9NGPat9LziaBV7XrJWGylNQXkGcnM3IQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@eslint/js@9.27.0':
-    resolution: {integrity: sha512-G5JD9Tu5HJEu4z2Uo4aHY2sLV64B7CDMXxFzqzjl3NKd6RVzSXNoE80jk7Y0lJkTTkjiIhBAqmlYwjuBY3tvpA==}
+  '@eslint/js@9.31.0':
+    resolution: {integrity: sha512-LOm5OVt7D4qiKCqoiPbA7LWmI+tbw1VbTUowBcUMgQSuM6poJufkFkYDcQpo5KfgD39TnNySV26QjOh7VFpSyw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   '@eslint/js@9.35.0':
@@ -4454,7 +4454,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@eslint/js@9.27.0': {}
+  '@eslint/js@9.31.0': {}
 
   '@eslint/js@9.35.0': {}
 
