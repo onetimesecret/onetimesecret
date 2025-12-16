@@ -35,6 +35,16 @@ OPTIONS /secret/conceal                           V2::Controllers::Secrets#gener
 POST   /secret/generate                           V2::Controllers::Secrets#generate_secret
 POST   /secret/conceal                            V2::Controllers::Secrets#conceal_secret
 
+# Guest Routes - Anonymous API access (requires guest_routes.enabled)
+OPTIONS /guest/secret/conceal                     V2::Controllers::Secrets#generate_secret_options
+OPTIONS /guest/secret/generate                    V2::Controllers::Secrets#generate_secret_options
+POST    /guest/secret/conceal                     V2::Controllers::Secrets#guest_conceal_secret
+POST    /guest/secret/generate                    V2::Controllers::Secrets#guest_generate_secret
+GET     /guest/secret/:key                        V2::Controllers::Secrets#guest_get_secret
+POST    /guest/secret/:key/reveal                 V2::Controllers::Secrets#guest_reveal_secret
+POST    /guest/receipt/:key/burn                  V2::Controllers::Secrets#guest_burn_secret
+GET     /guest/receipt/:key                       V2::Controllers::Secrets#guest_get_metadata
+
 GET    /supported-locales                         V2::Controllers::Meta#get_supported_locales
 
 GET    /status                                    V2::Controllers::Meta#status
