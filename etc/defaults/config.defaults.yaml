@@ -135,6 +135,16 @@ site:
     # is completely disabled. Requests to /api/* will return 404.
     api:
       enabled: <%= ENV['API_ENABLED'] != 'false' %>
+      # Guest API routes for anonymous access
+      # When enabled, /api/v3/share/* endpoints allow unauthenticated requests
+      guest_routes:
+        # Global toggle - disables all guest routes when false
+        enabled: <%= ENV['API_GUEST_ROUTES_ENABLED'] != 'false' %>
+        # Fine-grained controls (checked only when enabled=true)
+        conceal: <%= ENV['API_GUEST_CONCEAL'] != 'false' %>
+        generate: <%= ENV['API_GUEST_GENERATE'] != 'false' %>
+        reveal: <%= ENV['API_GUEST_REVEAL'] != 'false' %>
+        burn: <%= ENV['API_GUEST_BURN'] != 'false' %>
   # Configuration options for secret management
   secret_options:
     # Default Time-To-Live (TTL) for secrets in seconds

@@ -7,21 +7,29 @@
 # string-serialized values. Account/domain management lives in separate
 # Account API at /api/account/*.
 
-# Secrets - Private (Authenticated - identifier acts as auth)
-GET    /receipt/recent                            V3::Logic::Secrets::ListMetadata response=json auth=noauth
-POST   /receipt/:identifier/burn                  V3::Logic::Secrets::BurnSecret response=json auth=noauth
-GET    /receipt/:identifier                       V3::Logic::Secrets::ShowMetadata response=json auth=noauth
-GET    /private/recent                            V3::Logic::Secrets::ListMetadata response=json auth=noauth
-POST   /private/:identifier/burn                  V3::Logic::Secrets::BurnSecret response=json auth=noauth
-GET    /private/:identifier                       V3::Logic::Secrets::ShowMetadata response=json auth=noauth
+# Secrets - Authenticated (require session)
+GET    /receipt/recent                            V3::Logic::Secrets::ListMetadata response=json auth=sessionauth
+GET    /receipt/:identifier                       V3::Logic::Secrets::ShowMetadata response=json auth=sessionauth
+POST   /receipt/:identifier/burn                  V3::Logic::Secrets::BurnSecret response=json auth=sessionauth
+GET    /private/recent                            V3::Logic::Secrets::ListMetadata response=json auth=sessionauth
+GET    /private/:identifier                       V3::Logic::Secrets::ShowMetadata response=json auth=sessionauth
+POST   /private/:identifier/burn                  V3::Logic::Secrets::BurnSecret response=json auth=sessionauth
+POST   /secret/conceal                            V3::Logic::Secrets::ConcealSecret response=json auth=sessionauth
+POST   /secret/generate                           V3::Logic::Secrets::GenerateSecret response=json auth=sessionauth
+GET    /secret/:identifier                        V3::Logic::Secrets::ShowSecret response=json auth=sessionauth
+POST   /secret/:identifier/reveal                 V3::Logic::Secrets::RevealSecret response=json auth=sessionauth
 
-# Secrets - Public (Anonymous allowed)
-GET    /secret/:identifier                        V3::Logic::Secrets::ShowSecret response=json auth=noauth
+# Guest Routes (anonymous or authenticated, config-based operations)
+POST   /share/secret/conceal                      V3::Logic::Secrets::ConcealSecret response=json auth=guestauth
+POST   /share/secret/generate                     V3::Logic::Secrets::GenerateSecret response=json auth=guestauth
+GET    /share/secret/:identifier                  V3::Logic::Secrets::ShowSecret response=json auth=guestauth
+POST   /share/secret/:identifier/reveal           V3::Logic::Secrets::RevealSecret response=json auth=guestauth
+GET    /share/receipt/:identifier                 V3::Logic::Secrets::ShowMetadata response=json auth=guestauth
+POST   /share/receipt/:identifier/burn            V3::Logic::Secrets::BurnSecret response=json auth=guestauth
+
+# Meta/Public endpoints (static information, no auth required)
 GET    /secret/:identifier/status                 V3::Logic::Secrets::ShowSecretStatus response=json auth=noauth
 POST   /secret/status                             V3::Logic::Secrets::ListSecretStatus response=json auth=noauth
-POST   /secret/:identifier/reveal                 V3::Logic::Secrets::RevealSecret response=json auth=noauth
-POST   /secret/generate                           V3::Logic::Secrets::GenerateSecret response=json auth=noauth
-POST   /secret/conceal                            V3::Logic::Secrets::ConcealSecret response=json auth=noauth
 
 # OPTIONS preflight for CORS (public)
 OPTIONS /secret/generate                          V3::Logic::Secrets::GenerateSecret response=json
