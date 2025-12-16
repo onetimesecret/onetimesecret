@@ -137,7 +137,6 @@ site:
         generate: <%= ENV['API_GUEST_GENERATE'] != 'false' %>
         reveal: <%= ENV['API_GUEST_REVEAL'] != 'false' %>
         burn: <%= ENV['API_GUEST_BURN'] != 'false' %>
-        incoming: <%= ENV['API_GUEST_INCOMING'] != 'false' %>
   # Configuration options for secret management
   secret_options:
     # Default Time-To-Live (TTL) for secrets in seconds
