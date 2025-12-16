@@ -51,7 +51,16 @@ module Onetime
           },
           'interface' => {
             'ui' => { 'enabled' => true },
-            'api' => { 'enabled' => true },
+            'api' => {
+              'enabled' => true,
+              'guest_routes' => {
+                'enabled' => true,
+                'conceal' => true,
+                'generate' => true,
+                'reveal' => true,
+                'burn' => true,
+              },
+            },
           },
           # All keys that we want to explicitly be set to false when enabled
           # is false, should be represented in this hash.

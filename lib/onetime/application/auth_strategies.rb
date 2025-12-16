@@ -213,6 +213,81 @@ module Onetime
         end
       end
 
+      # Guest strategy - allows anonymous and authenticated access with config-based operations
+      #
+      # Routes: auth=guestauth
+      # Access: Everyone (including authenticated)
+      # User: Customer.anonymous or authenticated Customer
+      # Config: Checks site.interface.api.guest_routes for enabled operations
+      #
+      # Operations are controlled by URL path patterns:
+      # - /share/secret/conceal -> 'conceal'
+      # - /share/secret/generate -> 'generate'
+      # - /share/secret/.*/reveal -> 'reveal'
+      # - /share/receipt/.*/burn -> 'burn'
+      class GuestAuthStrategy < Otto::Security::AuthStrategy
+        include Helpers
+        include Onetime::Application::OrganizationLoader
+
+        @auth_method_name = 'guestauth'
+
+        def authenticate(env, _requirement)
+          # Check if guest routes are enabled
+          unless OT.conf.dig('site', 'interface', 'api', 'guest_routes', 'enabled')
+            return failure('[GUEST_ROUTES_DISABLED] Guest routes are disabled')
+          end
+
+          # Extract the operation from the request path
+          path = env['PATH_INFO']
+          operation = extract_operation(path)
+
+          # Check if the specific operation is enabled
+          if operation && !OT.conf.dig('site', 'interface', 'api', 'guest_routes', operation)
+            return failure("[GUEST_OPERATION_DISABLED] Operation '#{operation}' is disabled")
+          end
+
+          session = env['rack.session']
+
+          # Load customer from session or use anonymous
+          cust = load_user_from_session(session) || Onetime::Customer.anonymous
+
+          # Load organization context if user is authenticated
+          org_context = if cust && !cust.anonymous?
+                          load_organization_context(cust, session, env)
+                        else
+                          {}
+                        end
+
+          success(
+            session: session,
+            user: cust.anonymous? ? nil : cust,  # Pass nil for anonymous users
+            auth_method: 'guestauth',
+            **build_metadata(env, { organization_context: org_context }),
+          )
+        end
+
+        private
+
+        # Extracts the operation from the request path
+        #
+        # @param path [String] The request path
+        # @return [String, nil] The operation name or nil if not found
+        def extract_operation(path)
+          case path
+          when %r{/share/secret/conceal}
+            'conceal'
+          when %r{/share/secret/generate}
+            'generate'
+          when %r{/share/secret/.*/reveal}
+            'reveal'
+          when %r{/share/receipt/.*/burn}
+            'burn'
+          else
+            nil
+          end
+        end
+      end
+
       # Basic auth strategy - HTTP Basic Authentication
       #
       # Routes: auth=basicauth
