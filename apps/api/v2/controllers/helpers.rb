@@ -330,6 +330,25 @@ module V2
       authentication_enabled && signin_enabled
     end
 
+    # Checks if guest API routes are enabled.
+    # @param operation [Symbol, nil] Optional operation for fine-grained control
+    # @return [Boolean]
+    def guest_routes_enabled?(operation = nil)
+      api_config = OT.conf.dig(:site, :interface, :api) || {}
+      guest_config = api_config.dig(:guest_routes) || {}
+
+      return false unless guest_config[:enabled]
+      return true if operation.nil?
+
+      guest_config.fetch(operation, true)
+    end
+
+    # Raises OT::FormError if guest routes disabled
+    def require_guest_routes!(operation = nil)
+      return if guest_routes_enabled?(operation)
+      raise OT::FormError.new("Guest API access is not available")
+    end
+
     def add_response_headers(content_type, nonce)
       # Set the Content-Type header if it's not already set by the application
       res.header['Content-Type'] ||= content_type
