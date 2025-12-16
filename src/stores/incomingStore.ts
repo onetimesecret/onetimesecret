@@ -101,7 +101,7 @@ export const useIncomingStore = defineStore('incoming', () => {
   }
 
   /**
-   * Creates a new incoming secret
+   * Creates a new incoming secret using guest API endpoint
    * @param payload - Validated incoming secret creation payload
    * @throws Will throw an error if the API call fails or validation fails
    * @returns Validated incoming secret response
@@ -113,8 +113,14 @@ export const useIncomingStore = defineStore('incoming', () => {
       throw new Error('Incoming secrets feature is not enabled');
     }
 
-    const response = await $api.post('/api/v2/incoming/secret', {
-      secret: payload,
+    // Use guest secret conceal endpoint
+    // Map incoming payload to conceal format
+    const response = await $api.post('/api/v2/guest/secret/conceal', {
+      secret: {
+        secret: payload.secret,
+        ttl: config.value.default_ttl,
+        // Note: recipient email resolution handled by backend incoming config
+      },
     });
 
     const validated = incomingSecretResponseSchema.parse(response.data);
