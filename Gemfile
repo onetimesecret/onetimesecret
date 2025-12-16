@@ -19,7 +19,7 @@ source 'https://rubygems.org/'
 # Core Application Framework
 # ====================================
 
-gem 'altcha', '~> 0.2.1'
+gem 'altcha', '~> 1.0.0'
 gem 'drydock'
 gem 'gibbler'
 gem 'otto', '~> 1.1.0.pre.alpha4'
