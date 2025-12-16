@@ -1,19 +1,37 @@
 <!-- src/views/incoming/IncomingSuccessView.vue -->
 
 <script setup lang="ts">
-  import { computed, ref } from 'vue';
+  import { computed, ref, onMounted } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import { useNotificationsStore } from '@/stores/notificationsStore';
+  import { useIncomingStore } from '@/stores/incomingStore';
   import { useI18n } from 'vue-i18n';
 
   const { t } = useI18n();
   const route = useRoute();
   const router = useRouter();
   const notifications = useNotificationsStore();
+  const incomingStore = useIncomingStore();
 
   const metadataKey = computed(() => route.params.metadataKey as string);
   const receiptUrl = computed(() => `/receipt/${metadataKey.value}`);
   const copied = ref(false);
+  const receiptData = ref<unknown>(null);
+  const isLoading = ref(false);
+
+  onMounted(async () => {
+    if (metadataKey.value) {
+      isLoading.value = true;
+      try {
+        receiptData.value = await incomingStore.getReceipt(metadataKey.value);
+      } catch (error) {
+        // Receipt fetch is optional - don't block the success page
+        console.warn('Failed to fetch receipt:', error);
+      } finally {
+        isLoading.value = false;
+      }
+    }
+  });
 
   const handleCreateAnother = () => {
     router.push({ name: 'IncomingSecretForm' });
