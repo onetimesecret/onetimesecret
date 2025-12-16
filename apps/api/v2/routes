@@ -44,6 +44,9 @@ GET     /guest/secret/:key                        V2::Controllers::Secrets#guest
 POST    /guest/secret/:key/reveal                 V2::Controllers::Secrets#guest_reveal_secret
 POST    /guest/receipt/:key/burn                  V2::Controllers::Secrets#guest_burn_secret
 GET     /guest/receipt/:key                       V2::Controllers::Secrets#guest_get_metadata
+GET     /guest/incoming/config                    V2::Controllers::Incoming#guest_get_config
+POST    /guest/incoming/secret                    V2::Controllers::Incoming#guest_create_secret
+POST    /guest/incoming/validate                  V2::Controllers::Incoming#guest_validate_recipient
 
 GET    /supported-locales                         V2::Controllers::Meta#get_supported_locales
 
