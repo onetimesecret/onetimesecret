@@ -36,6 +36,7 @@ export type IncomingStore = {
   init: () => { isInitialized: boolean };
   loadConfig: () => Promise<IncomingConfig>;
   createIncomingSecret: (payload: IncomingSecretPayload) => Promise<IncomingSecretResponse>;
+  getReceipt: (key: string) => Promise<unknown>;
   clear: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
@@ -127,6 +128,17 @@ export const useIncomingStore = defineStore('incoming', () => {
     return validated;
   }
 
+  /**
+   * Fetches receipt/metadata for a created secret using guest API endpoint
+   * @param key - The metadata key returned from createIncomingSecret
+   * @throws Will throw an error if the API call fails
+   * @returns Receipt data from guest endpoint
+   */
+  async function getReceipt(key: string) {
+    const response = await $api.get(`/api/v2/guest/receipt/${key}`);
+    return response.data;
+  }
+
   function clear() {
     config.value = null;
     configError.value = null;
@@ -161,6 +173,7 @@ export const useIncomingStore = defineStore('incoming', () => {
     init,
     loadConfig,
     createIncomingSecret,
+    getReceipt,
     clear,
     $reset,
   };
