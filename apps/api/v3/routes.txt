@@ -19,13 +19,13 @@ POST   /secret/generate                           V3::Logic::Secrets::GenerateSe
 GET    /secret/:identifier                        V3::Logic::Secrets::ShowSecret response=json auth=sessionauth
 POST   /secret/:identifier/reveal                 V3::Logic::Secrets::RevealSecret response=json auth=sessionauth
 
-# Guest Routes (anonymous or authenticated, config-based operations)
-POST   /share/secret/conceal                      V3::Logic::Secrets::ConcealSecret response=json auth=guestauth
-POST   /share/secret/generate                     V3::Logic::Secrets::GenerateSecret response=json auth=guestauth
-GET    /share/secret/:identifier                  V3::Logic::Secrets::ShowSecret response=json auth=guestauth
-POST   /share/secret/:identifier/reveal           V3::Logic::Secrets::RevealSecret response=json auth=guestauth
-GET    /share/receipt/:identifier                 V3::Logic::Secrets::ShowMetadata response=json auth=guestauth
-POST   /share/receipt/:identifier/burn            V3::Logic::Secrets::BurnSecret response=json auth=guestauth
+# Guest Routes (public access - anonymous or authenticated)
+POST   /share/secret/conceal                      V3::Logic::Secrets::ConcealSecret response=json auth=noauth
+POST   /share/secret/generate                     V3::Logic::Secrets::GenerateSecret response=json auth=noauth
+GET    /share/secret/:identifier                  V3::Logic::Secrets::ShowSecret response=json auth=noauth
+POST   /share/secret/:identifier/reveal           V3::Logic::Secrets::RevealSecret response=json auth=noauth
+GET    /share/receipt/:identifier                 V3::Logic::Secrets::ShowMetadata response=json auth=noauth
+POST   /share/receipt/:identifier/burn            V3::Logic::Secrets::BurnSecret response=json auth=noauth
 
 # Meta/Public endpoints (static information, no auth required)
 GET    /secret/:identifier/status                 V3::Logic::Secrets::ShowSecretStatus response=json auth=noauth

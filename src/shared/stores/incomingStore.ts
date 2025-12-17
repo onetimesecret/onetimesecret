@@ -4,9 +4,10 @@ import { PiniaPluginOptions } from '@/plugins/pinia';
 import {
   IncomingConfig,
   IncomingSecretPayload,
+  IncomingSecretResponse,
   incomingConfigSchema,
+  incomingSecretResponseSchema,
 } from '@/schemas/api/incoming';
-import { ConcealDataResponse, MetadataResponse, responseSchemas } from '@/schemas/api/v3/responses';
 import { loggingService } from '@/services/logging.service';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
@@ -34,8 +35,7 @@ export type IncomingStore = {
   // Actions
   init: () => { isInitialized: boolean };
   loadConfig: () => Promise<IncomingConfig | undefined>;
-  createIncomingSecret: (payload: IncomingSecretPayload) => Promise<ConcealDataResponse>;
-  getReceipt: (identifier: string) => Promise<MetadataResponse>;
+  createIncomingSecret: (payload: IncomingSecretPayload) => Promise<IncomingSecretResponse>;
   clear: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
@@ -84,34 +84,23 @@ export const useIncomingStore = defineStore('incoming', () => {
   };
 
   /**
-   * Creates a new incoming secret using the guest endpoint
+   * Creates a new incoming secret
    * @param payload - Validated incoming secret creation payload
    * @throws Will throw an error if the API call fails or validation fails
-   * @returns Validated conceal data response with metadata and secret
+   * @returns Validated incoming secret response
    */
   async function createIncomingSecret(
     payload: IncomingSecretPayload
-  ): Promise<ConcealDataResponse> {
+  ): Promise<IncomingSecretResponse> {
     if (!config.value?.enabled) {
       throw new Error('Incoming secrets feature is not enabled');
     }
 
-    const response = await $api.post('/api/v3/share/secret/conceal', {
+    const response = await $api.post('/api/v3/incoming/secret', {
       secret: payload,
     });
 
-    const validated = responseSchemas.concealData.parse(response.data);
-    return validated;
-  }
-
-  /**
-   * Fetches the receipt/metadata for an incoming secret using the guest endpoint
-   * @param identifier - The metadata identifier
-   * @returns Validated metadata response
-   */
-  async function getReceipt(identifier: string): Promise<MetadataResponse> {
-    const response = await $api.get(`/api/v3/share/receipt/${identifier}`);
-    const validated = responseSchemas.metadata.parse(response.data);
+    const validated = incomingSecretResponseSchema.parse(response.data);
     return validated;
   }
 
@@ -149,7 +138,6 @@ export const useIncomingStore = defineStore('incoming', () => {
     init,
     loadConfig,
     createIncomingSecret,
-    getReceipt,
     clear,
     $reset,
   };
