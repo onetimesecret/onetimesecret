@@ -175,7 +175,7 @@ RUN VERSION=$(node -p "require('./package.json').version") \
 ##
 # APPLICATION LAYER (FINAL)
 #
-FROM ruby:3.4-slim-bookworm@sha256:1ca19bf218752c371039ebe6c8a1aa719cd6e6424b32d08faffdb2a6938f3241 AS final
+FROM ruby:3.4-slim-bookworm@sha256:9eb304d8ca9d3eeb32a5a5a39b080b295489735510fa832ababb7ffcc079bb57 AS final
 ARG CODE_ROOT
 ARG VERSION
 LABEL org.opencontainers.image.version=$VERSION
