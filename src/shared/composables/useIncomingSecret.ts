@@ -1,7 +1,8 @@
 // src/shared/composables/useIncomingSecret.ts
 
 import { AsyncHandlerOptions, createError, useAsyncHandler } from '@/shared/composables/useAsyncHandler';
-import { IncomingSecretPayload, IncomingSecretResponse } from '@/schemas/api/incoming';
+import { IncomingSecretPayload } from '@/schemas/api/incoming';
+import { ConcealDataResponse } from '@/schemas/api/v3/responses';
 import { useIncomingStore } from '@/shared/stores/incomingStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { ref, computed } from 'vue';
@@ -14,7 +15,7 @@ interface IncomingSecretForm {
 }
 
 interface IncomingSecretOptions {
-  onSuccess?: (response: IncomingSecretResponse) => Promise<void> | void;
+  onSuccess?: (response: ConcealDataResponse) => Promise<void> | void;
 }
 
 interface ValidationErrors {
@@ -153,7 +154,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
 
       if (options?.onSuccess) {
         await options.onSuccess(response);
-      } else if (response.success && response.record?.metadata?.key) {
+      } else if (response.record?.metadata?.key) {
         // Default navigation to success view
         await router.push({
           name: 'IncomingSuccess',
