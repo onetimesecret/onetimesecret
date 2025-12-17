@@ -29,9 +29,6 @@ module V3
       # Public routes - always available (anonymous or authenticated)
       otto.add_auth_strategy('noauth', Onetime::Application::AuthStrategies::NoAuthStrategy.new)
 
-      # Guest routes - config-based operations (anonymous or authenticated)
-      otto.add_auth_strategy('guestauth', Onetime::Application::AuthStrategies::GuestAuthStrategy.new)
-
       # Check if authentication is enabled at initialization time
       unless Onetime::Application::AuthStrategies.authentication_enabled?
         OT.le '[V3::AuthStrategies] Authentication disabled in config - skipping session strategies'
