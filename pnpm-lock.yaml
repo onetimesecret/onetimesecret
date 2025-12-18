@@ -137,10 +137,10 @@ importers:
         version: 3.4.0
       '@tailwindcss/forms':
         specifier: 0.5.10
-        version: 0.5.10(tailwindcss@3.4.18(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3)))
+        version: 0.5.10(tailwindcss@3.4.19(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3)))
       '@tailwindcss/typography':
         specifier: 0.5.19
-        version: 0.5.19(tailwindcss@3.4.18(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3)))
+        version: 0.5.19(tailwindcss@3.4.19(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3)))
       '@tsconfig/node22':
         specifier: 22.0.5
         version: 22.0.5
@@ -188,7 +188,7 @@ importers:
         version: 2.31.0(@typescript-eslint/parser@8.32.1(eslint@9.35.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-typescript@4.3.5)(eslint@9.35.0(jiti@2.4.2))
       eslint-plugin-tailwindcss:
         specifier: 3.18.2
-        version: 3.18.2(tailwindcss@3.4.18(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3)))
+        version: 3.18.2(tailwindcss@3.4.19(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3)))
       eslint-plugin-vue:
         specifier: 10.4.0
         version: 10.4.0(@typescript-eslint/parser@8.32.1(eslint@9.35.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.35.0(jiti@2.4.2))(vue-eslint-parser@10.2.0(eslint@9.35.0(jiti@2.4.2)))
@@ -229,8 +229,8 @@ importers:
         specifier: 4.40.2
         version: 4.40.2
       tailwindcss:
-        specifier: 3.4.18
-        version: 3.4.18(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3))
+        specifier: 3.4.19
+        version: 3.4.19(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3))
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@types/node@22.15.35)(typescript@5.8.3)
@@ -3512,8 +3512,8 @@ packages:
   tabbable@6.3.0:
     resolution: {integrity: sha512-EIHvdY5bPLuWForiR/AN2Bxngzpuwn1is4asboytXtpTgsArc+WmSJKVLlhdh71u7jFcryDqB2A8lQvj78MkyQ==}
 
-  tailwindcss@3.4.18:
-    resolution: {integrity: sha512-6A2rnmW5xZMdw11LYjhcI5846rt9pbLSabY5XPxo+XWdxwZaFEn47Go4NzFiHu9sNNmr/kXivP1vStfvMaK1GQ==}
+  tailwindcss@3.4.19:
+    resolution: {integrity: sha512-3ofp+LL8E+pK/JuPLPggVAIaEuhvIz4qNcf3nA1Xn2o/7fb7s/TYpHhwGDv1ZU3PkBluUVaF8PyCHcm48cKLWQ==}
     engines: {node: '>=14.0.0'}
     hasBin: true
 
@@ -4837,15 +4837,15 @@ snapshots:
     optionalDependencies:
       pinia: 3.0.4(typescript@5.8.3)(vue@3.5.25(typescript@5.8.3))
 
-  '@tailwindcss/forms@0.5.10(tailwindcss@3.4.18(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3)))':
+  '@tailwindcss/forms@0.5.10(tailwindcss@3.4.19(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3)))':
     dependencies:
       mini-svg-data-uri: 1.4.4
-      tailwindcss: 3.4.18(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3))
+      tailwindcss: 3.4.19(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3))
 
-  '@tailwindcss/typography@0.5.19(tailwindcss@3.4.18(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3)))':
+  '@tailwindcss/typography@0.5.19(tailwindcss@3.4.19(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3)))':
     dependencies:
       postcss-selector-parser: 6.0.10
-      tailwindcss: 3.4.18(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3))
+      tailwindcss: 3.4.19(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3))
 
   '@tanstack/virtual-core@3.13.6': {}
 
@@ -5953,11 +5953,11 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-plugin-tailwindcss@3.18.2(tailwindcss@3.4.18(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3))):
+  eslint-plugin-tailwindcss@3.18.2(tailwindcss@3.4.19(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3))):
     dependencies:
       fast-glob: 3.3.3
       postcss: 8.5.6
-      tailwindcss: 3.4.18(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3))
+      tailwindcss: 3.4.19(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3))
 
   eslint-plugin-vue@10.4.0(@typescript-eslint/parser@8.32.1(eslint@9.35.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.35.0(jiti@2.4.2))(vue-eslint-parser@10.2.0(eslint@9.35.0(jiti@2.4.2))):
     dependencies:
@@ -7320,7 +7320,7 @@ snapshots:
 
   tabbable@6.3.0: {}
 
-  tailwindcss@3.4.18(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3)):
+  tailwindcss@3.4.19(ts-node@10.9.2(@types/node@22.15.35)(typescript@5.8.3)):
     dependencies:
       '@alloc/quick-lru': 5.2.0
       arg: 5.0.2
