@@ -1,13 +1,13 @@
 ##
 # DOCKER COMPOSE - ONETIME SECRET
 #
-# See DOCKER.md for complete setup and usage documentation.
+# See docker/README.md for complete setup and usage documentation.
 
 services:
   proxy:
     build:
       context: .
-      dockerfile: Dockerfile-caddy
+      dockerfile: docker/variants/caddy.dockerfile
     container_name: onetime-proxy
     depends_on:
       app:
