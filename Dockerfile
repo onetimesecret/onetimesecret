@@ -181,104 +181,6 @@ RUN set -eux && \
     date -u +%s > /tmp/build-meta/commit_hash.txt
 
 ##
-# FINAL: Production-ready application image
-#
-FROM docker.io/library/ruby:${RUBY_IMAGE_TAG} AS final
-ARG APP_DIR
-ARG PUBLIC_DIR
-ARG VERSION
-
-LABEL org.opencontainers.image.version=${VERSION} \
-      org.opencontainers.image.title="OneTime Secret" \
-      org.opencontainers.image.description="Keep passwords out of your inboxes and chat logs with links that work only one time." \
-      org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret"
-
-RUN set -eux && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        libsqlite3-0 \
-        libpq5 \
-        curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /var/cache/apt/*
-
-WORKDIR ${APP_DIR}
-
-# Create non-root user for security
-# Note: nologin shell blocks SSH/su, but docker exec still works for debugging:
-#   docker exec -it container /bin/sh
-RUN groupadd -g 1001 appuser && \
-    useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
-
-# Copy only runtime essentials from build stages
-COPY --from=dependencies /usr/local/bin/yq /usr/local/bin/yq
-COPY --from=dependencies /usr/local/bundle /usr/local/bundle
-
-# Copy application files (using --chown to avoid extra layer)
-COPY --chown=appuser:appuser --from=build ${APP_DIR}/public ./public
-COPY --chown=appuser:appuser --from=build ${APP_DIR}/src ./src
-COPY --chown=appuser:appuser --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
-
-# Copy runtime files
-COPY --chown=appuser:appuser bin ./bin
-COPY --chown=appuser:appuser apps ./apps
-COPY --chown=appuser:appuser etc/ ./etc/
-COPY --chown=appuser:appuser lib ./lib
-COPY --chown=appuser:appuser scripts/entrypoint.sh ./bin/
-COPY --chown=appuser:appuser scripts/entrypoint-jobs.sh ./bin/
-COPY --chown=appuser:appuser scripts/update-version.sh ./bin/
-COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
-COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
-
-# Set production environment
-ENV RACK_ENV=production \
-    ONETIME_HOME=${APP_DIR} \
-    PUBLIC_DIR=${PUBLIC_DIR} \
-    RUBY_YJIT_ENABLE=1 \
-    SERVER_TYPE=puma \
-    BUNDLE_WITHOUT="development:test:optional" \
-    PATH=${APP_DIR}/bin:$PATH
-
-# Ensure config files exist (preserve existing if mounted)
-# Copies all default config files from etc/defaults/*.defaults.* to etc/*
-# removing the .defaults suffix. For example:
-#   etc/defaults/config.defaults.yaml -> etc/config.yaml
-#   etc/defaults/auth.defaults.yaml -> etc/auth.yaml
-#   etc/defaults/logging.defaults.yaml -> etc/logging.yaml
-# The --no-clobber flag ensures existing files are not overwritten.
-RUN set -eux && \
-    for file in etc/defaults/*.defaults.*; do \
-        if [ -f "$file" ]; then \
-            target="etc/$(basename "$file" | sed 's/\.defaults//')"; \
-            cp --preserve --no-clobber "$file" "$target"; \
-        fi; \
-    done && \
-    cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
-    chmod +x bin/entrypoint.sh bin/entrypoint-jobs.sh bin/update-version.sh
-
-EXPOSE 3000
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://127.0.0.1:3000/api/v2/status || exit 1
-
-# Run as non-root user
-USER appuser
-
-# About the interplay between the Dockerfile CMD, ENTRYPOINT,
-# and the Docker Compose command settings:
-#
-# 1. The CMD instruction in the Dockerfile sets the default command to
-# be executed when the container is started.
-#
-# 2. The command setting in the Docker Compose configuration overrides
-# the CMD instruction in the Dockerfile.
-#
-# 3. Using the CMD instruction in the Dockerfile provides a fallback
-# command, which can be useful if no specific command is set in the
-# Docker Compose configuration.
-CMD ["bin/entrypoint.sh"]
-
-##
 # FINAL-S6: Production image with S6 overlay for multi-process supervision
 #
 # Build with: docker build --target final-s6 -t onetimesecret:s6 .
@@ -403,3 +305,104 @@ USER appuser
 # Override with command: ["bin/entrypoint-jobs.sh"] for jobs-only
 ENTRYPOINT ["/init"]
 CMD []
+
+##
+# FINAL: Production-ready application image (DEFAULT)
+#
+# This is the default build target when no --target is specified.
+# For S6 multi-process supervision, use: docker build --target final-s6
+#
+FROM docker.io/library/ruby:${RUBY_IMAGE_TAG} AS final
+ARG APP_DIR
+ARG PUBLIC_DIR
+ARG VERSION
+
+LABEL org.opencontainers.image.version=${VERSION} \
+      org.opencontainers.image.title="OneTime Secret" \
+      org.opencontainers.image.description="Keep passwords out of your inboxes and chat logs with links that work only one time." \
+      org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret"
+
+RUN set -eux && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libsqlite3-0 \
+        libpq5 \
+        curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+
+WORKDIR ${APP_DIR}
+
+# Create non-root user for security
+# Note: nologin shell blocks SSH/su, but docker exec still works for debugging:
+#   docker exec -it container /bin/sh
+RUN groupadd -g 1001 appuser && \
+    useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
+
+# Copy only runtime essentials from build stages
+COPY --from=dependencies /usr/local/bin/yq /usr/local/bin/yq
+COPY --from=dependencies /usr/local/bundle /usr/local/bundle
+
+# Copy application files (using --chown to avoid extra layer)
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/public ./public
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/src ./src
+COPY --chown=appuser:appuser --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
+
+# Copy runtime files
+COPY --chown=appuser:appuser bin ./bin
+COPY --chown=appuser:appuser apps ./apps
+COPY --chown=appuser:appuser etc/ ./etc/
+COPY --chown=appuser:appuser lib ./lib
+COPY --chown=appuser:appuser scripts/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser scripts/entrypoint-jobs.sh ./bin/
+COPY --chown=appuser:appuser scripts/update-version.sh ./bin/
+COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
+COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
+
+# Set production environment
+ENV RACK_ENV=production \
+    ONETIME_HOME=${APP_DIR} \
+    PUBLIC_DIR=${PUBLIC_DIR} \
+    RUBY_YJIT_ENABLE=1 \
+    SERVER_TYPE=puma \
+    BUNDLE_WITHOUT="development:test:optional" \
+    PATH=${APP_DIR}/bin:$PATH
+
+# Ensure config files exist (preserve existing if mounted)
+# Copies all default config files from etc/defaults/*.defaults.* to etc/*
+# removing the .defaults suffix. For example:
+#   etc/defaults/config.defaults.yaml -> etc/config.yaml
+#   etc/defaults/auth.defaults.yaml -> etc/auth.yaml
+#   etc/defaults/logging.defaults.yaml -> etc/logging.yaml
+# The --no-clobber flag ensures existing files are not overwritten.
+RUN set -eux && \
+    for file in etc/defaults/*.defaults.*; do \
+        if [ -f "$file" ]; then \
+            target="etc/$(basename "$file" | sed 's/\.defaults//')"; \
+            cp --preserve --no-clobber "$file" "$target"; \
+        fi; \
+    done && \
+    cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
+    chmod +x bin/entrypoint.sh bin/entrypoint-jobs.sh bin/update-version.sh
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://127.0.0.1:3000/api/v2/status || exit 1
+
+# Run as non-root user
+USER appuser
+
+# About the interplay between the Dockerfile CMD, ENTRYPOINT,
+# and the Docker Compose command settings:
+#
+# 1. The CMD instruction in the Dockerfile sets the default command to
+# be executed when the container is started.
+#
+# 2. The command setting in the Docker Compose configuration overrides
+# the CMD instruction in the Dockerfile.
+#
+# 3. Using the CMD instruction in the Dockerfile provides a fallback
+# command, which can be useful if no specific command is set in the
+# Docker Compose configuration.
+CMD ["bin/entrypoint.sh"]
