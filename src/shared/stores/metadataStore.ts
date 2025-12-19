@@ -5,20 +5,9 @@ import { PiniaPluginOptions } from '@/plugins/pinia';
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import { Metadata, MetadataDetails } from '@/schemas/models/metadata';
 import { loggingService } from '@/services/logging.service';
-import { useAuthStore } from '@/shared/stores/authStore';
 import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';
-
-/**
- * Returns the appropriate API prefix based on authentication state.
- * - Authenticated users: /api/v3 (for ownership tracking)
- * - Anonymous users: /api/v3/share (guest routes)
- */
-function getApiPrefix(): string {
-  const authStore = useAuthStore();
-  return authStore.isAuthenticated ? '/api/v3' : '/api/v3/share';
-}
 
 export const METADATA_STATUS = {
   NEW: 'new',
@@ -105,8 +94,7 @@ export const useMetadataStore = defineStore('metadata', () => {
    * @throws {AxiosError} When request fails
    */
   async function fetch(key: string) {
-    const prefix = getApiPrefix();
-    const response = await $api.get(`${prefix}/receipt/${key}`);
+    const response = await $api.get(`/api/v3/receipt/${key}`);
     const validated = responseSchemas.metadata.parse(response.data);
     record.value = validated.record;
     details.value = validated.details as any;
@@ -129,8 +117,7 @@ export const useMetadataStore = defineStore('metadata', () => {
       throw createError('Cannot burn this metadata', 'human', 'error');
     }
 
-    const prefix = getApiPrefix();
-    const response = await $api.post(`${prefix}/receipt/${key}/burn`, {
+    const response = await $api.post(`/api/v3/receipt/${key}/burn`, {
       passphrase,
       continue: true,
     });
