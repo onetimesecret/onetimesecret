@@ -1,8 +1,10 @@
 -- ================================================================
 -- Rollback Extended Features - PostgreSQL
+-- Drops only database-specific features created in 002_extras.sql
+-- Tables are dropped in 002_extras.rb migration
 -- ================================================================
 
--- Drop triggers first
+-- Drop triggers first (depend on functions)
 DROP TRIGGER IF EXISTS trigger_update_last_login_time ON account_authentication_audit_logs;
 DROP TRIGGER IF EXISTS trigger_cleanup_expired_tokens_extended ON account_jwt_refresh_keys;
 
@@ -16,15 +18,3 @@ DROP FUNCTION IF EXISTS get_account_security_summary(BIGINT);
 -- Drop views
 DROP VIEW IF EXISTS recent_auth_events;
 DROP VIEW IF EXISTS account_security_overview_enhanced;
-
--- Drop tables (reverse order of creation)
-DROP TABLE IF EXISTS account_activity_times;
-DROP TABLE IF EXISTS account_webauthn_keys;
-DROP TABLE IF EXISTS account_webauthn_user_ids;
-DROP TABLE IF EXISTS account_sms_codes;
-DROP TABLE IF EXISTS account_jwt_refresh_keys;
-DROP TABLE IF EXISTS account_session_keys;
-DROP TABLE IF EXISTS account_login_change_keys;
-DROP TABLE IF EXISTS account_email_auth_keys;
-DROP TABLE IF EXISTS account_password_change_times;
-DROP TABLE IF EXISTS account_previous_password_hashes;

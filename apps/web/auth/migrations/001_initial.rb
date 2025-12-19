@@ -203,6 +203,13 @@ Sequel.migration do
       DateTime :code_issued_at, null: false, default: Sequel::CURRENT_TIMESTAMP
     end
 
+    # Password history for reuse prevention
+    create_table(:account_previous_password_hashes) do
+      primary_key :id, type: :Bignum
+      foreign_key :account_id, :accounts, null: false, type: :Bignum
+      String :password_hash, null: false
+    end
+
     case database_type
     when :postgres
       # Grant permissions only if separate password role exists

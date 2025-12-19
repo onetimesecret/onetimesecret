@@ -9,16 +9,17 @@ Sequel migrations for the Rodauth authentication system. Migrations run automati
 ```
 migrations/
 ├── 001_initial.rb           # Base Rodauth schema (Sequel migration)
-└── schemas/                 # Raw SQL (reference only)
+├── 002_extras.rb            # Extended features (Sequel migration)
+└── schemas/                 # Database-specific SQL (loaded by migrations)
     ├── postgres/
     │   ├── 001_initial.sql
     │   ├── 001_initial_down.sql
-    │   ├── 002_extras.sql
+    │   ├── 002_extras.sql         # Views, functions, triggers, indexes
     │   └── 002_extras_down.sql
     └── sqlite/
         ├── 001_initial.sql
         ├── 001_initial_down.sql
-        ├── 002_extras.sql
+        ├── 002_extras.sql         # Views, triggers, indexes
         └── 002_extras_down.sql
 ```
 
@@ -40,6 +41,30 @@ Creates core Rodauth tables:
 - `account_email_auth_keys` - Magic link authentication
 - `account_sms_codes` - SMS 2FA codes
 - `account_jwt_refresh_keys` - JWT refresh tokens
+
+## Migration 002: Extended Features
+
+Adds password history and database-specific enhancements:
+
+**Cross-database:**
+- `account_previous_password_hashes` - Password reuse prevention
+
+**PostgreSQL-specific (via schemas/postgres/002_extras.sql):**
+- Performance indexes on foreign keys and deadlines
+- `recent_auth_events` view - Last 30 days of authentication events
+- `account_security_overview_enhanced` view - Comprehensive security status
+- `update_last_login_time()` function + trigger - Automatic activity tracking
+- `cleanup_expired_tokens_extended()` function + trigger - Token cleanup
+- `update_session_last_use()` function - Session tracking helper
+- `cleanup_old_audit_logs()` function - Audit log maintenance
+- `get_account_security_summary()` function - Security status query
+
+**SQLite-specific (via schemas/sqlite/002_extras.sql):**
+- Performance indexes on foreign keys and deadlines
+- `recent_auth_events` view - Last 30 days of authentication events
+- `account_security_overview_enhanced` view - Comprehensive security status
+- `update_login_activity` trigger - Automatic activity tracking
+- `cleanup_expired_jwt_refresh_tokens` trigger - Token cleanup
 
 ## Database Setup
 
