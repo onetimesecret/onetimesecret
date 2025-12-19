@@ -133,7 +133,7 @@ module Onetime
           rabbitmq_connection: $rmq_conn,
           rabbitmq_channel_pool: $rmq_channel_pool,
         )
-      rescue Bunny::TCPConnectionFailed, Bunny::ConnectionTimeout => ex
+      rescue Bunny::TCPConnectionFailed, Bunny::ConnectionTimeout, Bunny::PreconditionFailed => ex
         Onetime.bunny_logger.error "[init] Setup RabbitMQ: Connection failed: #{ex.message}"
         Onetime.bunny_logger.error '[init] Setup RabbitMQ: Jobs will fall back to synchronous execution'
         # Don't raise - allow app to start with degraded functionality
