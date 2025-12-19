@@ -53,6 +53,12 @@ module Onetime
       ENV['AUTH_DATABASE_URL'] || full['database_url'] || 'sqlite://data/auth.db'
     end
 
+    # Full mode database URL for migrations (with elevated privileges)
+    # Falls back to database_url if not set
+    def database_url_migrations
+      full['database_url_migrations'] || database_url
+    end
+
     # Whether full mode is enabled (Rodauth-based)
     def full_enabled?
       mode == 'full'
