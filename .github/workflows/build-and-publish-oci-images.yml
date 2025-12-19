@@ -45,6 +45,7 @@ on:
         required: false
         default: 'linux/amd64,linux/arm64'
         options:
+          - ''
           - 'linux/amd64,linux/arm64'
           - 'linux/amd64'
           - 'linux/arm64'
