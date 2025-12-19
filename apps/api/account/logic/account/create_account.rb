@@ -141,7 +141,7 @@ module AccountAPI::Logic
         return false if email_domain.nil? || email_domain.empty?
 
         # Case-insensitive domain matching
-        normalized_domains = allowed_domains.map(&:downcase)
+        normalized_domains = allowed_domains.compact.map(&:downcase)
         normalized_domains.include?(email_domain)
       end
     end
