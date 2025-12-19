@@ -1,0 +1,7 @@
+#!/command/execlineb -S0
+
+# Log exit for debugging
+foreground { s6-echo "[scheduler finish] Scheduler exited: code=${1} signal=${2}" }
+
+# Exit with same code
+exit ${1}

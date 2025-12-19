@@ -1,0 +1,8 @@
+#!/command/execlineb -S0
+
+# Log exit for debugging
+# $1 = exit code, $2 = signal (0 if normal exit)
+foreground { s6-echo "[web finish] Web server exited: code=${1} signal=${2}" }
+
+# Exit with same code (S6 decides restart policy)
+exit ${1}

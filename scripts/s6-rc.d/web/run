@@ -1,0 +1,61 @@
+#!/command/execlineb -P
+
+# Change to app directory
+cd /app
+
+# Preserve environment variables
+with-contenv
+
+# Determine server type
+backtick -n SERVER_TYPE {
+  importas -D "thin" SERVER_TYPE SERVER_TYPE
+  s6-echo "${SERVER_TYPE}"
+}
+
+importas -u SERVER_TYPE SERVER_TYPE
+
+# Set default port
+backtick -n PORT {
+  importas -D "3000" PORT PORT
+  s6-echo "${PORT}"
+}
+
+importas -u PORT PORT
+
+# Start appropriate server
+ifelse { s6-test "${SERVER_TYPE}" = "puma" } {
+  foreground { s6-echo "[web] Starting Puma server on port ${PORT}" }
+
+  # Enable YJIT and unbuffered output
+  backtick -n PUMA_WORKERS {
+    importas -D "2" PUMA_WORKERS PUMA_WORKERS
+    s6-echo "${PUMA_WORKERS}"
+  }
+  backtick -n PUMA_MIN_THREADS {
+    importas -D "4" PUMA_MIN_THREADS PUMA_MIN_THREADS
+    s6-echo "${PUMA_MIN_THREADS}"
+  }
+  backtick -n PUMA_MAX_THREADS {
+    importas -D "16" PUMA_MAX_THREADS PUMA_MAX_THREADS
+    s6-echo "${PUMA_MAX_THREADS}"
+  }
+
+  importas -u PUMA_WORKERS PUMA_WORKERS
+  importas -u PUMA_MIN_THREADS PUMA_MIN_THREADS
+  importas -u PUMA_MAX_THREADS PUMA_MAX_THREADS
+
+  foreground { s6-echo "[web] Puma workers: ${PUMA_WORKERS}, threads: ${PUMA_MIN_THREADS}-${PUMA_MAX_THREADS}" }
+
+  # Set RUBY_YJIT_ENABLE and RUBY_UNBUFFERED
+  export RUBY_YJIT_ENABLE 1
+  export RUBY_UNBUFFERED 1
+
+  exec bundle exec puma -C etc/puma.rb
+}
+
+foreground { s6-echo "[web] Starting Thin server on port ${PORT}" }
+
+# Set RUBY_UNBUFFERED for Thin
+export RUBY_UNBUFFERED 1
+
+exec bundle exec thin -R config.ru -p "${PORT}" start
