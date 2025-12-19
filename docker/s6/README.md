@@ -2,6 +2,22 @@
 
 This directory contains S6 overlay service definitions for running multiple processes in a single container with proper supervision and graceful shutdown.
 
+## Quick Start
+
+Build with S6 overlay using the build script:
+
+```bash
+./docker/s6/build.sh
+```
+
+Or manually using the main Dockerfile:
+
+```bash
+docker build --target final-s6 -t onetimesecret:s6 .
+```
+
+The S6 build is a multi-stage target in the main `Dockerfile` that adds process supervision to run web + scheduler + worker in a single container.
+
 ## Overview
 
 The S6 overlay provides a production-ready init system (PID 1) and process supervisor for Docker containers. It solves common container problems:
@@ -66,6 +82,24 @@ Continuous processes supervised by S6. Automatically restart on crash.
 
 The `user` bundle groups all three longrun services. When S6 starts, it brings up the entire bundle.
 
+## Build Options
+
+The build script accepts all standard Docker build arguments:
+
+```bash
+# Multi-platform build
+./docker/s6/build.sh --platform linux/amd64,linux/arm64
+
+# No cache
+./docker/s6/build.sh --no-cache
+
+# Custom tag
+TAG=myregistry/onetimesecret:s6 ./docker/s6/build.sh
+
+# Build args
+./docker/s6/build.sh --build-arg VERSION=1.0.0
+```
+
 ## Usage Patterns
 
 ### 1. All Services (Default - Multi-Process Container)
@@ -116,15 +150,15 @@ Run specific services using S6:
 
 ```bash
 # Web only (supervised by S6)
-docker run -p 3000:3000 onetimesecret \
+docker run -p 3000:3000 onetimesecret:s6 \
   /init with-contenv s6-rc -u change web
 
 # Scheduler only
-docker run onetimesecret \
+docker run onetimesecret:s6 \
   /init with-contenv s6-rc -u change scheduler
 
 # Worker only
-docker run onetimesecret \
+docker run onetimesecret:s6 \
   /init with-contenv s6-rc -u change worker
 ```
 

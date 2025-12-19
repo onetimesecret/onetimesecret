@@ -92,7 +92,33 @@ jobs:
         uses: ./.github/actions/build-and-publish-oci-image
         with:
           image-suffix: '-lite'
-          dockerfile: 'Dockerfile-lite'
+          dockerfile: 'docker/variants/lite.dockerfile'
+          platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
+          push: ${{ github.event_name != 'pull_request' }}
+          image-tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=raw,value=next,enable=${{ contains(github.ref, '-rc') || contains(github.ref, 'develop') }}
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-and-publish-s6:
+    name: Build S6 Multi-Process Image
+    runs-on: ubuntu-24.04
+    needs: [build-and-publish-main]
+    if: github.repository == 'onetimesecret/onetimesecret'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Build and publish OCI image
+        uses: ./.github/actions/build-and-publish-oci-image
+        with:
+          image-suffix: '-s6'
+          dockerfile: 'Dockerfile'
+          build-target: 'final-s6'
           platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
           push: ${{ github.event_name != 'pull_request' }}
           image-tags: |
