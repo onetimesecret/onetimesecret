@@ -47,7 +47,7 @@ module Core
 
           # Check if custom domain has a logo uploaded
           # Use extid (external ID) for public URLs, not domainid (internal objid)
-          has_logo = !custom_domain&.logo&.[]('filename').to_s.empty?
+          has_logo              = !custom_domain&.logo&.[]('filename').to_s.empty?
           output['domain_logo'] = has_logo ? "/imagine/#{custom_domain.extid}/logo.png" : nil
         end
 

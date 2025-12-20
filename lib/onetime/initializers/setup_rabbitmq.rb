@@ -31,7 +31,7 @@ module Onetime
         # @deprecated Use InitializerRegistry.cleanup_before_fork instead
         # This wrapper maintains backward compatibility but will be removed in a future version.
         def disconnect
-          warn "[DEPRECATION] SetupRabbitMQ.disconnect is deprecated. Use InitializerRegistry.cleanup_before_fork"
+          warn '[DEPRECATION] SetupRabbitMQ.disconnect is deprecated. Use InitializerRegistry.cleanup_before_fork'
           instance = Onetime::Boot::InitializerRegistry.initializers.find { |i| i.is_a?(SetupRabbitMQ) }
           instance&.cleanup
         end
@@ -39,7 +39,7 @@ module Onetime
         # @deprecated Use InitializerRegistry.reconnect_after_fork instead
         # This wrapper maintains backward compatibility but will be removed in a future version.
         def reconnect
-          warn "[DEPRECATION] SetupRabbitMQ.reconnect is deprecated. Use InitializerRegistry.reconnect_after_fork"
+          warn '[DEPRECATION] SetupRabbitMQ.reconnect is deprecated. Use InitializerRegistry.reconnect_after_fork'
           instance = Onetime::Boot::InitializerRegistry.initializers.find { |i| i.is_a?(SetupRabbitMQ) }
           instance&.reconnect
         end

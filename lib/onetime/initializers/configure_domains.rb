@@ -25,7 +25,7 @@ module Onetime
 
         return app_logger.debug '[init] Domains feature disabled' unless is_enabled
 
-        cluster = domains_config['cluster']
+        cluster            = domains_config['cluster']
         non_empty_settings = cluster.reject { _2.to_s.empty? }.keys
 
         app_logger.debug "[init] ConfigureDomains #{non_empty_settings}"

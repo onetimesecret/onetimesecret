@@ -40,8 +40,8 @@ module Onetime
         MAX_TOTAL_LENGTH    = 253 # RFC 1034 section 3.1
 
         # Domain Context Override constants
-        DOMAIN_CONTEXT_HEADER  = 'HTTP_O_DOMAIN_CONTEXT'.freeze
-        DOMAIN_CONTEXT_ENV_VAR = 'DOMAIN_CONTEXT'.freeze
+        DOMAIN_CONTEXT_HEADER  = 'HTTP_O_DOMAIN_CONTEXT'
+        DOMAIN_CONTEXT_ENV_VAR = 'DOMAIN_CONTEXT'
       end
 
       # Initializes the DomainStrategy middleware instance.
@@ -104,7 +104,6 @@ module Onetime
         display_domain  = canonical_domain
         domain_strategy = :canonical
 
-
         if domains_enabled?
           # Check for domain context override first (development feature)
           override_domain, override_source = detect_domain_override(env)
@@ -149,14 +148,14 @@ module Onetime
         http_logger.debug '[DomainStrategy] detect_domain_override check', {
           domain_context_enabled: domain_context_enabled?,
           detected_host: detected_host,
-          env_var: ENV[DOMAIN_CONTEXT_ENV_VAR],
+          env_var: ENV.fetch(DOMAIN_CONTEXT_ENV_VAR, nil),
           header: env[DOMAIN_CONTEXT_HEADER],
         }
 
         return unless domain_context_enabled?
 
         # Check env var first (process-level override)
-        env_override = ENV[DOMAIN_CONTEXT_ENV_VAR]
+        env_override = ENV.fetch(DOMAIN_CONTEXT_ENV_VAR, nil)
         return [env_override, :env_var] unless env_override.to_s.empty?
 
         # Check request header (per-request override)
@@ -336,7 +335,7 @@ module Onetime
       #   configuration store (e.g., monitor pattern) instead of class variables.
       module ClassMethods
         attr_reader :canonical_domain, :domains_enabled, :canonical_domain_parsed,
-                    :domain_context_enabled
+          :domain_context_enabled
 
         alias domains_enabled? domains_enabled
         alias domain_context_enabled? domain_context_enabled

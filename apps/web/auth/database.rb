@@ -130,7 +130,6 @@ module Auth
       @connection.__connected__?
     end
 
-
     # Parses PostgreSQL multi-host connection URLs into Sequel connection hash.
     #
     # PostgreSQL libpq supports comma-separated hosts for failover:
@@ -153,7 +152,8 @@ module Auth
         (?:,[^/]+)?                   # additional hosts (ignored - use primary)
         (?:/([^?]+))?                 # database name
         (?:\?(.+))?                   # query params
-      }x)
+      }x,
+                       )
 
       raise ArgumentError, "Invalid PostgreSQL URL format: #{url}" unless match
 
@@ -161,13 +161,13 @@ module Auth
 
       # Parse host and port from first host
       host, port = host_port.split(':')
-      port ||= '5432'
+      port     ||= '5432'
 
       # Parse query parameters
       params = {}
       if query_string
         query_string.split('&').each do |param|
-          key, value = param.split('=', 2)
+          key, value         = param.split('=', 2)
           params[key.to_sym] = value
         end
       end
@@ -180,7 +180,7 @@ module Auth
         database: database || 'postgres',
       }
 
-      opts[:user] = user if user
+      opts[:user]     = user if user
       opts[:password] = password if password
 
       # Map PostgreSQL connection params to pg gem options

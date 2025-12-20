@@ -150,10 +150,10 @@ module Auth
 
         # Use dedicated migration connection if AUTH_DATABASE_URL_MIGRATIONS is set
         # Otherwise fall back to regular database connection
-        conn = if Onetime.auth_config.database_url_migrations != Onetime.auth_config.database_url
-          migration_connection
-        else
+        conn = if Onetime.auth_config.database_url_migrations == Onetime.auth_config.database_url
           database_connection
+        else
+          migration_connection
         end
 
         begin
