@@ -17,10 +17,13 @@ require 'apps/web/billing/controllers/base'
   'PATH_INFO' => '/billing/org/test123',
   'rack.input' => StringIO.new,
   'HTTP_ACCEPT' => 'application/json',
-  'rack.locale' => ['en'],
+  'otto.locale' => 'en',
 },
                         )
 @res = Rack::Response.new
+
+## Extend request with Otto middleware helpers
+@req.extend(TestRequestHelpers)
 
 ## Create controller instance
 @controller = Class.new do
@@ -78,9 +81,10 @@ end.new(@req, @res)
   'PATH_INFO' => '/billing/org/test123',
   'rack.input' => StringIO.new,
   'HTTP_ACCEPT' => 'text/html',
-  'rack.locale' => ['en'],
+  'otto.locale' => 'en',
 },
                                     )
+@html_req.extend(TestRequestHelpers)
 @html_controller = Class.new do
   include Billing::Controllers::Base
 end.new(@html_req, Rack::Response.new)

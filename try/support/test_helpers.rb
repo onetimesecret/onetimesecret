@@ -294,3 +294,17 @@ class MockSession
     value
   end
 end
+
+# Test Request Helpers
+#
+# Extends Rack::Request with Otto middleware methods for testing controllers
+# that depend on Otto extensions like req.locale
+module TestRequestHelpers
+  # Get locale from Otto middleware or fallback to default
+  #
+  # Mimics Onetime::Application::RequestHelpers#locale behavior
+  # @return [String] Locale code (e.g., 'en', 'es', 'fr')
+  def locale
+    env['otto.locale'] || OT.default_locale
+  end
+end
