@@ -16,7 +16,6 @@
 
 CREATE INDEX idx_jwt_refresh_keys_account_id ON account_jwt_refresh_keys(account_id);
 CREATE INDEX idx_jwt_refresh_keys_deadline ON account_jwt_refresh_keys(deadline);
-CREATE INDEX idx_previous_password_hashes_account_id ON account_previous_password_hashes(account_id);
 CREATE INDEX idx_activity_times_last_activity ON account_activity_times(last_activity_at);
 CREATE INDEX idx_email_auth_keys_deadline ON account_email_auth_keys(deadline);
 CREATE INDEX idx_activity_times_last_login ON account_activity_times(last_login_at);
