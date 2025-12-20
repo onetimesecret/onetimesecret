@@ -88,6 +88,9 @@ module Onetime
             end
           end
 
+          # Validate fork-sensitive initializers
+          validate_fork_sensitive_initializers!
+
           # Clear cached execution order
           @execution_order = nil
         end
@@ -199,6 +202,65 @@ module Onetime
           }
         end
 
+        # Get fork-sensitive initializers
+        #
+        # Returns initializers that need cleanup before fork and reconnect after fork.
+        #
+        # @return [Array<Initializer>] Fork-sensitive initializers
+        def fork_sensitive_initializers
+          @initializers.select { |init| init.phase == :fork_sensitive }
+        end
+
+        # Cleanup all fork-sensitive initializers before fork
+        #
+        # Calls cleanup method on each fork-sensitive initializer. Methods are
+        # guaranteed to exist by validate_fork_sensitive_initializers!.
+        #
+        # Error handling strategy:
+        # - NoMethodError/NameError: Re-raise (programming errors, expose bugs)
+        # - StandardError: Log and continue (operational errors, degraded mode)
+        #
+        # Individual initializers should handle their own specific errors
+        # for better error messages.
+        #
+        # @return [void]
+        def cleanup_before_fork
+          fork_sensitive_initializers.each do |init|
+            init.cleanup
+          rescue NoMethodError, NameError => ex
+            # Programming errors - re-raise to expose bugs
+            raise
+          rescue StandardError => ex
+            # Operational errors - continue with degraded mode
+            init_logger.warn "[before_fork] Error cleaning up #{init.name}: #{ex.message}"
+          end
+        end
+
+        # Reconnect all fork-sensitive initializers after fork
+        #
+        # Calls reconnect method on each fork-sensitive initializer. Methods are
+        # guaranteed to exist by validate_fork_sensitive_initializers!.
+        #
+        # Error handling strategy:
+        # - NoMethodError/NameError: Re-raise (programming errors, expose bugs)
+        # - StandardError: Log and continue (operational errors, degraded mode)
+        #
+        # Individual initializers should handle their own specific errors
+        # for better error messages.
+        #
+        # @return [void]
+        def reconnect_after_fork
+          fork_sensitive_initializers.each do |init|
+            init.reconnect
+          rescue NoMethodError, NameError => ex
+            # Programming errors - re-raise to expose bugs
+            raise
+          rescue StandardError => ex
+            # Operational errors - continue with degraded mode
+            init_logger.warn "[before_worker_boot] Error reconnecting #{init.name}: #{ex.message}"
+          end
+        end
+
         # Reset registry state (for testing)
         #
         # Clears instance state and cached execution data, but preserves class registrations.
@@ -247,6 +309,28 @@ module Onetime
         end
 
         private
+
+        # Validate fork-sensitive initializers have required methods
+        #
+        # Ensures all :fork_sensitive initializers implement cleanup and reconnect methods.
+        # Called during load_all to fail fast before Puma starts forking.
+        #
+        # @raise [OT::Problem] If fork-sensitive initializer missing required methods
+        # @return [void]
+        def validate_fork_sensitive_initializers!
+          @initializers.each do |initializer|
+            next unless initializer.phase == :fork_sensitive
+
+            missing = []
+            missing << 'cleanup' unless initializer.respond_to?(:cleanup)
+            missing << 'reconnect' unless initializer.respond_to?(:reconnect)
+
+            next if missing.empty?
+
+            raise Onetime::Problem,
+              "Fork-sensitive initializer '#{initializer.name}' must implement: #{missing.join(', ')}"
+          end
+        end
 
         # Check if any of this initializer's dependencies failed
         #
