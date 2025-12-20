@@ -45,6 +45,7 @@ Billing::Plan.clear_cache
 @free_plan.entitlements.add('view_metadata')
 @free_plan.limits['secrets_per_day.max'] = '10'
 @free_plan.limits['secret_lifetime.max'] = '604800'
+@free_plan.show_on_plans_page = 'true'
 @free_plan.save
 
 ## Identity Plus v1
@@ -66,6 +67,7 @@ Billing::Plan.clear_cache
 @identity_plan.limits['members_per_team.max'] = 'unlimited'
 @identity_plan.limits['custom_domains.max']   = 'unlimited'
 @identity_plan.limits['secret_lifetime.max']  = '2592000'
+@identity_plan.show_on_plans_page = 'true'
 @identity_plan.save
 
 ## Multi-Team v1
@@ -91,6 +93,7 @@ Billing::Plan.clear_cache
 @multi_plan.limits['custom_domains.max']   = 'unlimited'
 @multi_plan.limits['api_rate_limit.max']   = '10000'
 @multi_plan.limits['secret_lifetime.max']  = '7776000'
+@multi_plan.show_on_plans_page = 'true'
 @multi_plan.save
 
 ## Legacy Identity v0 (for testing legacy plan support)
@@ -108,6 +111,7 @@ Billing::Plan.clear_cache
 @legacy_plan.limits['teams.max']            = '1'
 @legacy_plan.limits['members_per_team.max'] = '10'
 @legacy_plan.limits['secret_lifetime.max']  = '1209600'
+@legacy_plan.show_on_plans_page = 'false'
 @legacy_plan.save
 
 ## Create unique test ID suffix to avoid collisions

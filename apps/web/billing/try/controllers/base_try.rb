@@ -22,6 +22,9 @@ require 'apps/web/billing/controllers/base'
                         )
 @res = Rack::Response.new
 
+## Extend request with Otto middleware helpers
+@req.extend(TestRequestHelpers)
+
 ## Create controller instance
 @controller = Class.new do
   include Billing::Controllers::Base
@@ -81,6 +84,7 @@ end.new(@req, @res)
   'rack.locale' => ['en'],
 },
                                     )
+@html_req.extend(TestRequestHelpers)
 @html_controller = Class.new do
   include Billing::Controllers::Base
 end.new(@html_req, Rack::Response.new)
