@@ -2,11 +2,14 @@
 #
 # frozen_string_literal: true
 
-MIGRATION_ROOT = __dir__
+MIGRATION_ROOT = __dir__ unless defined?(MIGRATION_ROOT)
 
 Sequel.migration do
   up do
     extension :date_arithmetic
+
+    # Enable citext extension for case-insensitive email (PostgreSQL only)
+    run "CREATE EXTENSION IF NOT EXISTS citext" if database_type == :postgres
 
     # Used by the account verification and close account features
     create_table(:account_statuses) do
@@ -200,10 +203,26 @@ Sequel.migration do
       DateTime :code_issued_at, null: false, default: Sequel::CURRENT_TIMESTAMP
     end
 
+    # Password history for reuse prevention
+    create_table(:account_previous_password_hashes) do
+      primary_key :id, type: :Bignum
+      foreign_key :account_id, :accounts, null: false, type: :Bignum
+      String :password_hash, null: false
+    end
+
     case database_type
     when :postgres
-      user = get(Sequel.lit('current_user')) + '_password'
-      run "GRANT REFERENCES ON accounts TO #{user}"
+      # Grant permissions only if separate password role exists
+      # When running as database owner (testing), this isn't needed
+      current_user = get(Sequel.lit('current_user'))
+      password_role = current_user + '_password'
+
+      # Check if the password role exists
+      role_exists = from(Sequel.lit("pg_roles")).where(rolname: password_role).count > 0
+
+      if role_exists
+        run "GRANT REFERENCES ON accounts TO #{password_role}"
+      end
     when :mysql, :mssql
       user = if database_type == :mysql
         get(Sequel.lit('current_user')).sub(/_password@/, '@')

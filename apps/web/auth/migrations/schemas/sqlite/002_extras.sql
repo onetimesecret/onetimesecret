@@ -1,110 +1,16 @@
 -- ================================================================
--- Rodauth SQLite3 Additional Features (002)
--- Builds on 001_initial.sql
+-- Rodauth SQLite Extended Features (002)
+-- Loaded by 002_extras.rb migration
+--
+-- Tables are created in 001_initial.rb and 002_extras.rb
+-- This file provides SQLite-specific enhancements:
+-- - Performance indexes
+-- - Monitoring views
+-- - Automatic triggers
 -- ================================================================
 
 -- ================================================================
--- PASSWORD HISTORY (For password reuse prevention)
--- ================================================================
-
--- Previous password hashes for password history/reuse prevention
-CREATE TABLE account_previous_password_hashes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    password_hash VARCHAR(255) NOT NULL
-);
-
--- Password change timestamps
-CREATE TABLE account_password_change_times (
-    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
-    changed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- ================================================================
--- ADDITIONAL EMAIL AUTHENTICATION
--- ================================================================
-
--- Email-based authentication tokens
-CREATE TABLE account_email_auth_keys (
-    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
-    key VARCHAR(255) NOT NULL UNIQUE,
-    deadline DATETIME NOT NULL DEFAULT (datetime('now', '+1 day')),
-    email_last_sent DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- Login change verification (email change)
-CREATE TABLE account_login_change_keys (
-    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
-    key VARCHAR(255) NOT NULL UNIQUE,
-    login VARCHAR(255) NOT NULL,
-    deadline DATETIME NOT NULL
-);
-
--- ================================================================
--- ADDITIONAL SESSION MANAGEMENT
--- ================================================================
-
--- Basic session keys
-CREATE TABLE account_session_keys (
-    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
-    key VARCHAR(255) NOT NULL UNIQUE
-);
-
--- JWT refresh tokens
-CREATE TABLE account_jwt_refresh_keys (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    key VARCHAR(255) NOT NULL UNIQUE,
-    deadline DATETIME NOT NULL
-);
-
--- ================================================================
--- ADDITIONAL MULTI-FACTOR AUTHENTICATION
--- ================================================================
-
--- SMS-based two-factor authentication
-CREATE TABLE account_sms_codes (
-    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
-    phone_number VARCHAR(20) NOT NULL,
-    num_failures INTEGER NOT NULL DEFAULT 0,
-    code VARCHAR(10) NOT NULL,
-    code_issued_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- ================================================================
--- WEBAUTHN SUPPORT
--- ================================================================
-
--- WebAuthn user identifiers
-CREATE TABLE account_webauthn_user_ids (
-    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
-    webauthn_id VARCHAR(255) NOT NULL UNIQUE
-);
-
--- WebAuthn public keys and usage tracking
-CREATE TABLE account_webauthn_keys (
-    account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    webauthn_id VARCHAR(255) NOT NULL,
-    public_key TEXT NOT NULL,
-    sign_count INTEGER NOT NULL DEFAULT 0,
-    last_use DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (account_id, webauthn_id)
-);
-
--- ================================================================
--- ACTIVITY TRACKING
--- ================================================================
-
--- Activity tracking and session expiration
-CREATE TABLE account_activity_times (
-    id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
-    last_activity_at DATETIME,
-    last_login_at DATETIME,
-    expired_at DATETIME
-);
-
--- ================================================================
--- ADDITIONAL INDEXES
+-- PERFORMANCE INDEXES
 -- ================================================================
 
 CREATE INDEX account_previous_password_hashes_account_id_idx ON account_previous_password_hashes(account_id);

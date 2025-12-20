@@ -181,7 +181,136 @@ RUN set -eux && \
     date -u +%s > /tmp/build-meta/commit_hash.txt
 
 ##
-# FINAL: Production-ready application image
+# FINAL-S6: Production image with S6 overlay for multi-process supervision
+#
+# Build with: docker build --target final-s6 -t onetimesecret:s6 .
+#
+# This stage provides:
+# - S6 overlay v3.2.0.2 for process supervision
+# - Automatic service restart on crash
+# - Graceful shutdown coordination
+# - Service dependency management
+# - Runs web + scheduler + worker in single container
+#
+# See docker/s6/README.md for usage and deployment patterns.
+#
+FROM docker.io/library/ruby:${RUBY_IMAGE_TAG} AS final-s6
+ARG APP_DIR
+ARG PUBLIC_DIR
+ARG VERSION
+ARG S6_OVERLAY_VERSION=3.2.0.2
+
+LABEL org.opencontainers.image.version=${VERSION} \
+      org.opencontainers.image.title="OneTime Secret (S6)" \
+      org.opencontainers.image.description="Keep passwords out of your inboxes and chat logs with links that work only one time. Multi-process supervised container." \
+      org.opencontainers.image.source="https://github.com/onetimesecret/onetimesecret"
+
+# Install system packages + S6 dependencies
+RUN set -eux && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libsqlite3-0 \
+        libpq5 \
+        curl \
+        xz-utils && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+
+# Install S6 overlay
+RUN set -eux && \
+    ARCH=$(dpkg --print-architecture) && \
+    case "$ARCH" in \
+        amd64) S6_ARCH="x86_64" ;; \
+        arm64) S6_ARCH="aarch64" ;; \
+        armhf) S6_ARCH="armhf" ;; \
+        *) echo "Unsupported architecture: $ARCH" && exit 1 ;; \
+    esac && \
+    cd /tmp && \
+    curl -fsSL "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz" -o s6-overlay-noarch.tar.xz && \
+    curl -fsSL "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz" -o s6-overlay-arch.tar.xz && \
+    tar -C / -Jxpf s6-overlay-noarch.tar.xz && \
+    tar -C / -Jxpf s6-overlay-arch.tar.xz && \
+    rm -f s6-overlay-*.tar.xz
+
+WORKDIR ${APP_DIR}
+
+# Create non-root user
+RUN groupadd -g 1001 appuser && \
+    useradd -r -u 1001 -g appuser -d ${APP_DIR} -s /sbin/nologin appuser
+
+# Copy runtime essentials from build stages
+COPY --from=dependencies /usr/local/bin/yq /usr/local/bin/yq
+COPY --from=dependencies /usr/local/bundle /usr/local/bundle
+
+# Copy application files
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/public ./public
+COPY --chown=appuser:appuser --from=build ${APP_DIR}/src ./src
+COPY --chown=appuser:appuser --from=build /tmp/build-meta/commit_hash.txt ./.commit_hash.txt
+
+# Copy runtime files
+COPY --chown=appuser:appuser bin ./bin
+COPY --chown=appuser:appuser apps ./apps
+COPY --chown=appuser:appuser etc/ ./etc/
+COPY --chown=appuser:appuser lib ./lib
+COPY --chown=appuser:appuser scripts/entrypoint.sh ./bin/
+COPY --chown=appuser:appuser scripts/entrypoint-jobs.sh ./bin/
+COPY --chown=appuser:appuser scripts/update-version.sh ./bin/
+COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
+COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
+
+# Copy S6 service definitions (as root for proper ownership)
+COPY --chown=root:root scripts/s6-rc.d /etc/s6-overlay/s6-rc.d
+
+# Set permissions on service scripts
+RUN find /etc/s6-overlay/s6-rc.d -type f -name "run" -exec chmod +x {} \; && \
+    find /etc/s6-overlay/s6-rc.d -type f -name "finish" -exec chmod +x {} \; && \
+    find /etc/s6-overlay/s6-rc.d -type f -name "up" -exec chmod +x {} \;
+
+# Set production environment
+ENV RACK_ENV=production \
+    ONETIME_HOME=${APP_DIR} \
+    PUBLIC_DIR=${PUBLIC_DIR} \
+    RUBY_YJIT_ENABLE=1 \
+    SERVER_TYPE=puma \
+    BUNDLE_WITHOUT="development:test:optional" \
+    PATH=${APP_DIR}/bin:$PATH
+
+# S6 configuration
+ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
+    S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
+    S6_VERBOSITY=2
+
+# Ensure config files exist
+RUN set -eux && \
+    for file in etc/defaults/*.defaults.*; do \
+        if [ -f "$file" ]; then \
+            target="etc/$(basename "$file" | sed 's/\.defaults//')"; \
+            cp --preserve --no-clobber "$file" "$target"; \
+        fi; \
+    done && \
+    cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
+    chmod +x bin/entrypoint.sh bin/entrypoint-jobs.sh bin/update-version.sh
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD s6-svstat /run/service/web && curl -f http://127.0.0.1:3000/api/v2/status || exit 1
+
+# Run as non-root user
+USER appuser
+
+# S6 overlay entrypoint
+# Default: Starts all services defined in s6-rc.d/user bundle (web + scheduler + worker)
+# Override with command: ["bin/entrypoint.sh"] for web-only
+# Override with command: ["bin/entrypoint-jobs.sh"] for jobs-only
+ENTRYPOINT ["/init"]
+CMD []
+
+##
+# FINAL: Production-ready application image (DEFAULT)
+#
+# This is the default build target when no --target is specified.
+# For S6 multi-process supervision, use: docker build --target final-s6
 #
 FROM docker.io/library/ruby:${RUBY_IMAGE_TAG} AS final
 ARG APP_DIR

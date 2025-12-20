@@ -37,7 +37,18 @@ module Onetime
 
       # Class instance variables for configuration
       class << self
-        attr_accessor :depends_on, :provides, :optional
+        attr_accessor :depends_on, :provides, :optional, :phase
+
+        # Get phase for this initializer (default: :preload)
+        #
+        # Valid phases:
+        # - :preload (default) - Safe to run before fork
+        # - :fork_sensitive - Needs cleanup before fork and reconnect after fork
+        #
+        # @return [Symbol] Phase (:preload or :fork_sensitive)
+        def phase
+          @phase || :preload
+        end
 
         # Auto-register when subclass is defined (Phase 1: Discovery)
         def inherited(subclass)
@@ -198,6 +209,13 @@ module Onetime
       # @return [Boolean]
       def optional
         self.class.optional || false
+      end
+
+      # Get phase for this initializer
+      #
+      # @return [Symbol] Phase (:preload or :fork_sensitive)
+      def phase
+        self.class.phase
       end
 
       # Get application name for logging

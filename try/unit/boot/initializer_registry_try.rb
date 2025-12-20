@@ -3,6 +3,8 @@
 # frozen_string_literal: true
 
 # Unit test - just load the registry, not the full app
+require_relative '../../../lib/onetime/logger_methods'
+require_relative '../../../lib/onetime/errors'
 require_relative '../../../lib/onetime/boot/initializer_registry'
 
 ## Setup
@@ -147,6 +149,284 @@ Onetime::Boot::InitializerRegistry.run_all
 health = Onetime::Boot::InitializerRegistry.health_check
 health[:healthy]
 #=> true
+
+## Default phase is :preload
+Onetime::Boot::InitializerRegistry.reset_all!
+class TestDefaultPhase < Onetime::Boot::Initializer
+  def execute(_ctx); end
+end
+Onetime::Boot::InitializerRegistry.load_all
+init = Onetime::Boot::InitializerRegistry.initializers.first
+init.phase
+#=> :preload
+
+## Phase :fork_sensitive is recognized
+Onetime::Boot::InitializerRegistry.reset_all!
+class TestForkSensitive < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; end
+  def reconnect; end
+end
+Onetime::Boot::InitializerRegistry.load_all
+init = Onetime::Boot::InitializerRegistry.initializers.first
+init.phase
+#=> :fork_sensitive
+
+## fork_sensitive_initializers filters correctly
+Onetime::Boot::InitializerRegistry.reset_all!
+class TestPreload1 < Onetime::Boot::Initializer
+  def execute(_ctx); end
+end
+class TestFork1 < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; end
+  def reconnect; end
+end
+class TestPreload2 < Onetime::Boot::Initializer
+  def execute(_ctx); end
+end
+Onetime::Boot::InitializerRegistry.load_all
+fork_sensitive = Onetime::Boot::InitializerRegistry.fork_sensitive_initializers
+fork_sensitive.size
+#=> 1
+
+## Validation catches missing cleanup method
+Onetime::Boot::InitializerRegistry.reset_all!
+class TestMissingCleanup < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def reconnect; end
+end
+begin
+  Onetime::Boot::InitializerRegistry.load_all
+  'should have raised'
+rescue Onetime::Problem => ex
+  ex.message.include?('cleanup')
+end
+#=> true
+
+## Validation catches missing reconnect method
+Onetime::Boot::InitializerRegistry.reset_all!
+class TestMissingReconnect < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; end
+end
+begin
+  Onetime::Boot::InitializerRegistry.load_all
+  'should have raised'
+rescue Onetime::Problem => ex
+  ex.message.include?('reconnect')
+end
+#=> true
+
+## Validation catches both missing methods
+Onetime::Boot::InitializerRegistry.reset_all!
+class TestMissingBoth < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+end
+begin
+  Onetime::Boot::InitializerRegistry.load_all
+  'should have raised'
+rescue Onetime::Problem => ex
+  ex.message.include?('cleanup') && ex.message.include?('reconnect')
+end
+#=> true
+
+## cleanup_before_fork calls cleanup methods
+Onetime::Boot::InitializerRegistry.reset_all!
+$cleanup_called = []
+class TestCleanup1 < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; $cleanup_called << :cleanup1; end
+  def reconnect; end
+end
+class TestCleanup2 < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; $cleanup_called << :cleanup2; end
+  def reconnect; end
+end
+Onetime::Boot::InitializerRegistry.load_all
+Onetime::Boot::InitializerRegistry.cleanup_before_fork
+$cleanup_called.sort
+#=> [:cleanup1, :cleanup2]
+
+## reconnect_after_fork calls reconnect methods
+Onetime::Boot::InitializerRegistry.reset_all!
+$reconnect_called = []
+class TestReconnect1 < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; end
+  def reconnect; $reconnect_called << :reconnect1; end
+end
+class TestReconnect2 < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; end
+  def reconnect; $reconnect_called << :reconnect2; end
+end
+Onetime::Boot::InitializerRegistry.load_all
+Onetime::Boot::InitializerRegistry.reconnect_after_fork
+$reconnect_called.sort
+#=> [:reconnect1, :reconnect2]
+
+## cleanup_before_fork handles errors gracefully
+Onetime::Boot::InitializerRegistry.reset_all!
+$cleanup_ok = false
+class TestCleanupError < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; raise 'cleanup error'; end
+  def reconnect; end
+end
+class TestCleanupOk < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; $cleanup_ok = true; end
+  def reconnect; end
+end
+Onetime::Boot::InitializerRegistry.load_all
+Onetime::Boot::InitializerRegistry.cleanup_before_fork
+$cleanup_ok
+#=> true
+
+## reconnect_after_fork handles errors gracefully
+Onetime::Boot::InitializerRegistry.reset_all!
+$reconnect_ok = false
+class TestReconnectError < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; end
+  def reconnect; raise 'reconnect error'; end
+end
+class TestReconnectOk < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; end
+  def reconnect; $reconnect_ok = true; end
+end
+Onetime::Boot::InitializerRegistry.load_all
+Onetime::Boot::InitializerRegistry.reconnect_after_fork
+$reconnect_ok
+#=> true
+
+## cleanup_before_fork catches StandardError subclasses
+Onetime::Boot::InitializerRegistry.reset_all!
+$cleanup_after_error = false
+class TestStandardErrorCleanup < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; raise IOError, 'connection failed'; end
+  def reconnect; end
+end
+class TestCleanupAfterStandardError < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; $cleanup_after_error = true; end
+  def reconnect; end
+end
+Onetime::Boot::InitializerRegistry.load_all
+Onetime::Boot::InitializerRegistry.cleanup_before_fork
+$cleanup_after_error
+#=> true
+
+## reconnect_after_fork catches StandardError subclasses
+Onetime::Boot::InitializerRegistry.reset_all!
+$reconnect_after_error = false
+class TestStandardErrorReconnect < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; end
+  def reconnect; raise Timeout::Error, 'timeout'; end
+end
+class TestReconnectAfterStandardError < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; end
+  def reconnect; $reconnect_after_error = true; end
+end
+Onetime::Boot::InitializerRegistry.load_all
+Onetime::Boot::InitializerRegistry.reconnect_after_fork
+$reconnect_after_error
+#=> true
+
+## cleanup_before_fork does NOT catch non-StandardError exceptions
+Onetime::Boot::InitializerRegistry.reset_all!
+class TestNonStandardErrorCleanup < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; raise SignalException, 'SIGTERM'; end
+  def reconnect; end
+end
+Onetime::Boot::InitializerRegistry.load_all
+begin
+  Onetime::Boot::InitializerRegistry.cleanup_before_fork
+  'should have raised'
+rescue SignalException
+  'propagated correctly'
+end
+#=> "propagated correctly"
+
+## reconnect_after_fork does NOT catch non-StandardError exceptions
+Onetime::Boot::InitializerRegistry.reset_all!
+class TestNonStandardErrorReconnect < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; end
+  def reconnect; raise SystemExit, 'exit'; end
+end
+Onetime::Boot::InitializerRegistry.load_all
+begin
+  Onetime::Boot::InitializerRegistry.reconnect_after_fork
+  'should have raised'
+rescue SystemExit
+  'propagated correctly'
+end
+#=> "propagated correctly"
+
+## NoMethodError re-raised (cleanup missing) - exposes validation bugs
+Onetime::Boot::InitializerRegistry.reset_all!
+class TestNoCleanup < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def reconnect; end
+end
+# Manually bypass validation for this test
+Onetime::Boot::InitializerRegistry.instance_variable_set(:@initializers, [])
+init = TestNoCleanup.new
+Onetime::Boot::InitializerRegistry.instance_variable_get(:@initializers) << init
+begin
+  Onetime::Boot::InitializerRegistry.cleanup_before_fork
+  'should have raised'
+rescue NoMethodError
+  'raised as expected'
+end
+#=> "raised as expected"
+
+## NoMethodError re-raised (reconnect missing) - exposes validation bugs
+Onetime::Boot::InitializerRegistry.reset_all!
+class TestNoReconnect < Onetime::Boot::Initializer
+  @phase = :fork_sensitive
+  def execute(_ctx); end
+  def cleanup; end
+end
+# Manually bypass validation for this test
+Onetime::Boot::InitializerRegistry.instance_variable_set(:@initializers, [])
+init = TestNoReconnect.new
+Onetime::Boot::InitializerRegistry.instance_variable_get(:@initializers) << init
+begin
+  Onetime::Boot::InitializerRegistry.reconnect_after_fork
+  'should have raised'
+rescue NoMethodError
+  'raised as expected'
+end
+#=> "raised as expected"
 
 ## Teardown - Full reset to prevent test class pollution
 Onetime::Boot::InitializerRegistry.reset_all!

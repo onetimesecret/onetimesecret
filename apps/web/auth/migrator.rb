@@ -129,30 +129,61 @@ module Auth
         File.join(__dir__, 'migrations')
       end
 
+      # Create a dedicated connection for migrations using AUTH_DATABASE_URL_MIGRATIONS
+      # This allows using a superuser/admin account for schema changes while the
+      # application runs with restricted privileges
+      def migration_connection
+        database_url = Onetime.auth_config.database_url_migrations
+
+        sequel_logger.debug 'Creating migration database connection',
+          url_type: database_url == Onetime.auth_config.database_url ? 'standard' : 'elevated'
+
+        Sequel.connect(
+          database_url,
+          logger: Onetime.get_logger('Sequel'),
+          sql_log_level: :trace,
+        )
+      end
+
       def run_migrations
         Sequel.extension :migration
 
-        # Suppress confusing "no such table" errors during migration checks
-        # Sequel's create_table? checks existence by attempting a SELECT,
-        # which logs an error before being caught. This is expected behavior.
-        suppress_table_check_errors do
-          Sequel::Migrator.run(
-            database_connection,
-            migrations_dir,
-            use_transactions: true,
-          )
+        # Use dedicated migration connection if AUTH_DATABASE_URL_MIGRATIONS is set
+        # Otherwise fall back to regular database connection
+        conn = if Onetime.auth_config.database_url_migrations != Onetime.auth_config.database_url
+          migration_connection
+        else
+          database_connection
+        end
+
+        begin
+          # Suppress confusing "no such table" errors during migration checks
+          # Sequel's create_table? checks existence by attempting a SELECT,
+          # which logs an error before being caught. This is expected behavior.
+          suppress_table_check_errors(conn) do
+            Sequel::Migrator.run(
+              conn,
+              migrations_dir,
+              use_transactions: true,
+            )
+          end
+        ensure
+          # Only disconnect if we created a separate connection
+          if conn != database_connection
+            conn.disconnect
+          end
         end
       end
 
       # Temporarily suppress Sequel's logger to prevent confusing error logs
       # during table existence checks in migrations
-      def suppress_table_check_errors
-        original_loggers = database_connection.loggers.dup
-        database_connection.loggers.clear
+      def suppress_table_check_errors(conn)
+        original_loggers = conn.loggers.dup
+        conn.loggers.clear
         yield
       ensure
-        database_connection.loggers.clear
-        original_loggers.each { |logger| database_connection.loggers << logger }
+        conn.loggers.clear
+        original_loggers.each { |logger| conn.loggers << logger }
       end
     end
   end

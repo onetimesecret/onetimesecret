@@ -2,215 +2,171 @@
 
 ## Overview
 
-This directory contains Sequel migrations for the Rodauth authentication system.
+Sequel migrations for the Rodauth authentication system. Migrations run automatically on application boot in full authentication mode.
 
 ## Structure
 
 ```
 migrations/
-├── 001_initial.rb           # Base Rodauth schema
-├── 002_extras.rb            # Extended features (passwordless, MFA, tracking)
-└── schemas/
+├── 001_initial.rb           # Base Rodauth schema (Sequel migration)
+├── 002_extras.rb            # Extended features (Sequel migration)
+└── schemas/                 # Database-specific SQL (loaded by migrations)
     ├── postgres/
     │   ├── 001_initial.sql
     │   ├── 001_initial_down.sql
-    │   ├── 002_extras.sql
+    │   ├── 002_extras.sql         # Views, functions, triggers, indexes
     │   └── 002_extras_down.sql
     └── sqlite/
         ├── 001_initial.sql
         ├── 001_initial_down.sql
-        ├── 002_extras.sql
+        ├── 002_extras.sql         # Views, triggers, indexes
         └── 002_extras_down.sql
 ```
 
 ## Migration 001: Initial Schema
 
-Base Rodauth tables including:
-- Accounts and statuses
-- Password management
-- Email verification
-- Password reset
-- Brute force protection (lockout)
-- Remember me
-- Active sessions
-- OTP (TOTP) for authenticator apps
-- Recovery codes
-- Audit logging
+Creates core Rodauth tables:
+- `accounts` - User accounts with email (citext on PostgreSQL)
+- `account_statuses` - Account states (unverified, verified, closed)
+- `account_password_hashes` - Bcrypt password storage
+- `account_verification_keys` - Email verification tokens
+- `account_password_reset_keys` - Password reset tokens
+- `account_login_failures` / `account_lockouts` - Brute force protection
+- `account_remember_keys` - Remember me functionality
+- `account_active_session_keys` - Session tracking
+- `account_otp_keys` - TOTP authenticator app support
+- `account_recovery_codes` - Backup codes for MFA
+- `account_authentication_audit_logs` - Login/auth event logging
+- `account_webauthn_user_ids` / `account_webauthn_keys` - Hardware key support
+- `account_email_auth_keys` - Magic link authentication
+- `account_sms_codes` - SMS 2FA codes
+- `account_jwt_refresh_keys` - JWT refresh tokens
 
 ## Migration 002: Extended Features
 
-Additional authentication features:
-- **Email Auth (Magic Links)** - Passwordless email-based login
-- **WebAuthn** - Biometric/hardware key authentication (Face ID, Touch ID, YubiKey)
-- **Password History** - Prevent password reuse
-- **Password Rotation** - Track password change times
-- **JWT Refresh Tokens** - For API authentication
-- **SMS 2FA** - SMS-based two-factor authentication
-- **Activity Tracking** - Login and activity timestamps
-- **Session Management** - Enhanced session tracking
+Adds password history and database-specific enhancements:
+
+**Cross-database:**
+- `account_previous_password_hashes` - Password reuse prevention
+
+**PostgreSQL-specific (via schemas/postgres/002_extras.sql):**
+- Performance indexes on foreign keys and deadlines
+- `recent_auth_events` view - Last 30 days of authentication events
+- `account_security_overview_enhanced` view - Comprehensive security status
+- `update_last_login_time()` function + trigger - Automatic activity tracking
+- `cleanup_expired_tokens_extended()` function + trigger - Token cleanup
+- `update_session_last_use()` function - Session tracking helper
+- `cleanup_old_audit_logs()` function - Audit log maintenance
+- `get_account_security_summary()` function - Security status query
+
+**SQLite-specific (via schemas/sqlite/002_extras.sql):**
+- Performance indexes on foreign keys and deadlines
+- `recent_auth_events` view - Last 30 days of authentication events
+- `account_security_overview_enhanced` view - Comprehensive security status
+- `update_login_activity` trigger - Automatic activity tracking
+- `cleanup_expired_jwt_refresh_tokens` trigger - Token cleanup
+
+## Database Setup
+
+### PostgreSQL
+
+```sql
+-- Create database and user
+CREATE DATABASE onetime_auth_test OWNER postgres;
+CREATE USER onetime_auth WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_auth;
+
+-- Connect and grant schema privileges
+\c onetime_auth_test
+GRANT ALL ON SCHEMA public TO onetime_auth;
+GRANT USAGE, CREATE ON SCHEMA public TO onetime_auth;
+```
+
+### SQLite
+
+No setup required. Database file created automatically at `data/auth.db`.
 
 ## Running Migrations
 
-### Using Sequel CLI
+### Automatic (Recommended)
+
+Migrations run automatically on application boot when `AUTHENTICATION_MODE=full`:
+
+```bash
+export AUTHENTICATION_MODE=full
+export AUTH_DATABASE_URL=postgresql://user:pass@localhost/onetime_auth_test
+
+# For migrations requiring elevated privileges (PostgreSQL extensions, grants)
+export AUTH_DATABASE_URL_MIGRATIONS=postgresql://postgres@localhost/onetime_auth_test
+
+bin/ots boot-test
+```
+
+### Manual (Sequel CLI)
 
 ```bash
 # PostgreSQL
-sequel -m apps/web/auth/migrations postgres://user:pass@localhost/auth_db
+sequel -m apps/web/auth/migrations postgresql://user:pass@localhost/auth_db
 
 # SQLite
 sequel -m apps/web/auth/migrations sqlite://data/auth.db
 ```
 
-### Using App CLI (if available)
+## Database Support
 
-```bash
-# Run specific migration
-bin/ots migrate apps/web/auth/migrations/002_extras.rb --run
+**PostgreSQL** (Recommended for production):
+- `citext` extension for case-insensitive email
+- `jsonb` for audit log metadata
+- Better concurrency and performance
+- Partial indexes for soft-deleted accounts
 
-# Rollback specific migration
-bin/ots migrate apps/web/auth/migrations/002_extras.rb --down
+**SQLite** (Development/testing):
+- Simpler setup, single file
+- Case-insensitive email via COLLATE NOCASE
+- JSON text storage
+- Good for development
+
+## Configuration
+
+Set in `etc/auth.yaml` (captured from environment variables):
+
+```yaml
+full:
+  database_url: <%= ENV['AUTH_DATABASE_URL'] || 'sqlite://data/auth.db' %>
+  database_url_migrations: <%= ENV['AUTH_DATABASE_URL_MIGRATIONS'] || nil %>
 ```
 
-### Direct SQL (Not Recommended)
+**Why two URLs?**
+- `database_url` - Application runtime connection (restricted privileges)
+- `database_url_migrations` - Migration-time connection (elevated privileges for CREATE EXTENSION, etc.)
+
+## Troubleshooting
+
+### PostgreSQL: "type citext does not exist"
+
+The migration creates the extension automatically. Ensure migrations run with a user that has CREATE EXTENSION privileges:
+
+```bash
+export AUTH_DATABASE_URL_MIGRATIONS=postgresql://postgres@localhost/onetime_auth_test
+```
+
+### Check Migration Status
+
+```sql
+-- Current schema version
+SELECT * FROM schema_info;
+
+-- List tables
+\dt  -- PostgreSQL
+.tables  -- SQLite
+```
+
+### Reset Database
 
 ```bash
 # PostgreSQL
-psql -d auth_db < apps/web/auth/migrations/schemas/postgres/002_extras.sql
+psql -U postgres -c "DROP DATABASE onetime_auth_test; CREATE DATABASE onetime_auth_test OWNER onetime_auth;"
 
 # SQLite
-sqlite3 data/auth.db < apps/web/auth/migrations/schemas/sqlite/002_extras.sql
+rm data/auth.db
 ```
-
-## Enabling Features
-
-Features are enabled via environment variables in `apps/web/auth/config.rb`:
-
-```bash
-# Base features (always enabled)
-# - login, logout, create_account, verify_account, reset_password, change_password
-
-# Security features (enabled by default)
-ENABLE_SECURITY_FEATURES=true  # lockout, active_sessions
-
-# MFA features
-ENABLE_MFA=true  # otp, recovery_codes, remember
-
-# Passwordless features (requires migration 002)
-ENABLE_MAGIC_LINKS=true   # email_auth
-ENABLE_WEBAUTHN=true      # webauthn
-```
-
-## Database Support
-
-- **PostgreSQL** - Full feature support with triggers, functions, views
-- **SQLite** - Full feature support with simpler triggers (no functions)
-
-## Schema Differences by Database
-
-### PostgreSQL Advantages
-- Database functions for security (password validation)
-- More sophisticated triggers
-- Better indexing with GIN for JSONB
-- INET type for IP addresses
-
-### SQLite Considerations
-- Uses INTEGER for timestamps (Unix epoch)
-- Simpler trigger syntax
-- TEXT type for IP addresses
-- No database-level functions
-
-## Monitoring
-
-Both databases include views for monitoring:
-
-### `account_auth_methods`
-Shows which authentication methods each account has enabled:
-```sql
-SELECT * FROM account_auth_methods WHERE email = 'user@example.com';
--- has_password, has_otp, has_webauthn, webauthn_key_count, has_pending_magic_link
-```
-
-### `recent_auth_events` (002_extras)
-Authentication events from last 30 days:
-```sql
-SELECT * FROM recent_auth_events WHERE account_id = 1 LIMIT 10;
-```
-
-### `account_security_overview_enhanced` (002_extras)
-Comprehensive security status:
-```sql
-SELECT * FROM account_security_overview_enhanced WHERE has_webauthn = 1;
-```
-
-## Maintenance
-
-```bash
-sqlite3 data/auth.db "UPDATE schema_info SET version = 1"
-```
-
-### Cleanup Expired Tokens (PostgreSQL)
-```sql
-SELECT cleanup_expired_tokens();
-SELECT cleanup_old_audit_logs();
-```
-
-### Cleanup Expired Tokens (SQLite)
-```sql
-DELETE FROM account_email_auth_keys WHERE deadline < datetime('now');
-DELETE FROM account_jwt_refresh_keys WHERE deadline < datetime('now');
-DELETE FROM account_password_reset_keys WHERE deadline < datetime('now');
-```
-
-### Check Account Security Status
-```sql
--- PostgreSQL
-SELECT * FROM get_account_security_summary(1);
-
--- SQLite/PostgreSQL
-SELECT * FROM account_security_overview_enhanced WHERE id = 1;
-```
-
-## Account ID Columns
-
-Tables with id as FK (1:1 relationship, uses primary_key: true):
-
-- account_password_hashes (base.erb)
-- account_otp_keys
-- account_email_auth_keys
-- account_lockouts (login_failures)
-- account_login_failures (lockout.erb)
-- account_password_reset_keys
-- account_remember_keys
-- account_single_session_keys
-- account_sms_codes_keys
-- account_verification_keys
-- account_login_change_keys
-- account_webauthn_user_ids
-- account_expiration_times
-- account_password_change_times
-- account_otp_unlock_keys
-- account_recovery_codes
-
-Tables with account_id as FK (1:many relationship):
-
-- account_active_session_keys
-- account_authentication_audit_logs
-- account_previous_password_hashes
-- account_jwt_refresh_keys
-- account_webauthn_keys
-
-
-## Rollback
-
-```bash
-# Rollback migration 002
-sequel -m apps/web/auth/migrations -M 1 postgres://user:pass@localhost/db
-
-# Or manually
-psql -d auth_db < apps/web/auth/migrations/schemas/postgres/002_extras_down.sql
-```
-
-## See Also
-
-- `docs/PASSWORDLESS_AUTH_IMPLEMENTATION.md` - Frontend implementation guide
-- `apps/web/auth/config/features/` - Rodauth feature configurations

@@ -40,6 +40,10 @@ inputs:
     description: 'Dockerfile to use for the build'
     required: false
     default: 'Dockerfile'
+  build-target:
+    description: 'Build target for multi-stage Dockerfiles (e.g., "final-s6")'
+    required: false
+    default: ''
   image-tags:
     description: 'Docker metadata tags configuration'
     required: false
@@ -175,6 +179,7 @@ runs:
       with:
         context: .
         file: ${{ inputs.dockerfile }}
+        target: ${{ inputs.build-target }}
         push: ${{ inputs.push == 'true' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
