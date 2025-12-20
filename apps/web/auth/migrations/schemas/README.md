@@ -2,6 +2,17 @@
 
 This directory contains database-specific SQL that is loaded by the corresponding Sequel migrations.
 
+## First-Time Setup
+
+**PostgreSQL users:** Run the database setup script BEFORE first application boot:
+
+```bash
+cd postgres
+psql -U postgres -h localhost -f setup_auth_db.sql
+```
+
+This creates the database, user, and configures permissions for migrations. See `postgres/README.md` for details.
+
 ## Purpose
 
 While Sequel migrations handle cross-database table creation, certain features are best implemented using database-specific SQL:

@@ -1,18 +1,22 @@
 ## PostgreSQL Setup
 
+**IMPORTANT:** Run this setup script BEFORE first application boot with `AUTHENTICATION_MODE=full`.
 
 ### Running the Setup
-
-Here's the SQL to run as the PostgreSQL superuser before first boot:
 
 ```bash
 psql -U postgres -h localhost -f setup_auth_db.sql
 ```
 
+This script:
+- Creates the `onetime_auth_test` database
+- Creates the `onetime_auth` user
+- Grants schema privileges
+- Configures default privileges for objects created by superuser migrations
 
-### Automatic Setup
+### After Setup
 
-> **Note:** The application will automatically:
+Once the database and user are configured, the application will automatically:
 > - Create the `citext` extension (requires superuser or extension creation privileges)
 > - Run all Rodauth migrations
 > - Create all 23 authentication tables
