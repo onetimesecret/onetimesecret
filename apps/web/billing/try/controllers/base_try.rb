@@ -17,7 +17,7 @@ require 'apps/web/billing/controllers/base'
   'PATH_INFO' => '/billing/org/test123',
   'rack.input' => StringIO.new,
   'HTTP_ACCEPT' => 'application/json',
-  'rack.locale' => ['en'],
+  'otto.locale' => 'en',
 },
                         )
 @res = Rack::Response.new
@@ -81,7 +81,7 @@ end.new(@req, @res)
   'PATH_INFO' => '/billing/org/test123',
   'rack.input' => StringIO.new,
   'HTTP_ACCEPT' => 'text/html',
-  'rack.locale' => ['en'],
+  'otto.locale' => 'en',
 },
                                     )
 @html_req.extend(TestRequestHelpers)

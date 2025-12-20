@@ -305,6 +305,6 @@ module TestRequestHelpers
   # Mimics Onetime::Application::RequestHelpers#locale behavior
   # @return [String] Locale code (e.g., 'en', 'es', 'fr')
   def locale
-    env['otto.locale'] || env['rack.locale']&.first || OT.default_locale
+    env['otto.locale'] || OT.default_locale
   end
 end
