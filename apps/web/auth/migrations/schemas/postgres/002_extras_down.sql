@@ -15,6 +15,15 @@ DROP FUNCTION IF EXISTS update_session_last_use(BIGINT, VARCHAR);
 DROP FUNCTION IF EXISTS cleanup_old_audit_logs();
 DROP FUNCTION IF EXISTS get_account_security_summary(BIGINT);
 
+-- Drop Indexes
+DROP INDEX IF EXISTS idx_jwt_refresh_keys_account_id;
+DROP INDEX IF EXISTS idx_jwt_refresh_keys_deadline;
+DROP INDEX IF EXISTS idx_previous_password_hashes_account_id;
+DROP INDEX IF EXISTS idx_activity_times_last_activity;
+DROP INDEX IF EXISTS idx_email_auth_keys_deadline;
+DROP INDEX IF EXISTS idx_activity_times_last_login;
+
+
 -- Drop views
 DROP VIEW IF EXISTS recent_auth_events;
 DROP VIEW IF EXISTS account_security_overview_enhanced;
