@@ -171,7 +171,7 @@ $$ LANGUAGE plpgsql;
 -- TABLE AND OBJECT COMMENTS
 -- ================================================================
 
-COMMENT ON TABLE account_previous_password_hashes IS 'Previous password hashes for preventing reuse (created in 002_extras.rb)';
+COMMENT ON TABLE account_previous_password_hashes IS 'Previous password hashes for preventing reuse (created in 001_initial.rb)';
 
 COMMENT ON VIEW recent_auth_events IS 'Authentication events from the last 30 days';
 COMMENT ON VIEW account_security_overview_enhanced IS 'Enhanced security overview with MFA status and session counts';

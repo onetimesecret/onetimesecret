@@ -205,7 +205,7 @@ module Auth
 
         # PostgreSQL multi-host URLs (host1:port1,host2:port2) are not valid URIs
         # Convert them to Sequel's hash format for proper failover support
-        connection_opts = if database_url.match?(/postgresql:.*,.*:/)
+        connection_opts = if database_url.start_with?('postgresql://') && database_url.split('?').first.include?(',')
           parse_postgres_multihost_url(database_url)
         else
           database_url
