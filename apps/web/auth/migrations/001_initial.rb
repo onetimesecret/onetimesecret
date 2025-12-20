@@ -2,7 +2,7 @@
 #
 # frozen_string_literal: true
 
-MIGRATION_ROOT = __dir__
+MIGRATION_ROOT = __dir__ unless defined?(MIGRATION_ROOT)
 
 Sequel.migration do
   up do
