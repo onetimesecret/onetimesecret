@@ -58,7 +58,7 @@ if _worker_count.positive?
     Onetime::Initializers::SetupRabbitMQ.disconnect if defined?(Onetime::Initializers::SetupRabbitMQ)
 
     # Close connections in master before forking
-    # Familia.redis.quit if defined?(Familia)
+    # Familia.dclient.quit if defined?(Familia)
     # Sequel::DATABASES.each(&:disconnect) if defined?(Sequel)
   end
 
