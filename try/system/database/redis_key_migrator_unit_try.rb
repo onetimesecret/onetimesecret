@@ -4,7 +4,7 @@
 
 require_relative '../../support/test_helpers'
 
-## Test basic Redis migration with mock data (without OT dependencies)
+## basic Redis migration with mock data (without OT dependencies)
 require 'redis'
 require 'uri'
 
@@ -146,7 +146,7 @@ class SimpleRedisKeyMigrator
   end
 end
 
-## Test basic initialization
+## basic initialization
 source_uri = "redis://#{@redis_host}:#{@redis_port}/14"
 target_uri = "redis://#{@redis_host}:#{@redis_port}/15"
 
@@ -154,7 +154,7 @@ migrator = SimpleRedisKeyMigrator.new(source_uri, target_uri)
 migrator.class.name.split('::').last
 #=> "SimpleRedisKeyMigrator"
 
-## Test strategy detection for same instance
+## strategy detection for same instance
 source_uri = "redis://#{@redis_host}:#{@redis_port}/14"
 target_uri = "redis://#{@redis_host}:#{@redis_port}/15"
 
@@ -163,7 +163,7 @@ strategy = migrator.send(:determine_migration_strategy)
 strategy
 #=> :copy
 
-## Test strategy detection for different instances
+## strategy detection for different instances
 source_uri = "redis://#{@redis_host}:#{@redis_port}/14"
 target_uri = "redis://otherhost:#{@redis_port}/15"
 
@@ -172,7 +172,7 @@ strategy = migrator.send(:determine_migration_strategy)
 strategy
 #=> :dump_restore
 
-## Test error handling for nil source
+## error handling for nil source
 begin
   migrator = SimpleRedisKeyMigrator.new(nil, "redis://#{@redis_host}:#{@redis_port}/15")
   migrator.migrate_keys('*')
@@ -182,7 +182,7 @@ rescue ArgumentError => e
 end
 #=> true
 
-## Test error handling for identical URIs
+## error handling for identical URIs
 begin
   same_uri = "redis://#{@redis_host}:#{@redis_port}/14"
   migrator = SimpleRedisKeyMigrator.new(same_uri, same_uri)
@@ -193,7 +193,7 @@ rescue ArgumentError => e
 end
 #=> true
 
-## Test basic migration with test data
+## basic migration with test data
 test_db_source = 14
 
 # Setup test data

@@ -31,7 +31,7 @@ OT.info "Cleaned Redis for fresh test run"
 [@org2.class, @org2.display_name]
 #=> [Onetime::Organization, "Second Corp #{@timestamp}"]
 
-## Test load_by_display_domain helper method - non-existent domain
+## load_by_display_domain helper method - non-existent domain
 @result = Onetime::CustomDomain.load_by_display_domain("nonexistent.example.com")
 @result.nil?
 #=> true
@@ -41,12 +41,12 @@ OT.info "Cleaned Redis for fresh test run"
 [@domain1.display_domain, @domain1.org_id]
 #=> ["secrets.example.com", @org1.objid]
 
-## Test load_by_display_domain helper method - existing domain
+## load_by_display_domain helper method - existing domain
 @loaded = Onetime::CustomDomain.load_by_display_domain("secrets.example.com")
 [@loaded.class, @loaded.display_domain, @loaded.org_id]
 #=> [Onetime::CustomDomain, "secrets.example.com", @org1.objid]
 
-## Test orphaned? helper method - non-orphaned domain
+## orphaned? helper method - non-orphaned domain
 Onetime::CustomDomain.orphaned?("secrets.example.com")
 #=> false
 

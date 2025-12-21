@@ -38,7 +38,7 @@ OT.boot! :test, false
 
 # CreateAccount Tests
 
-## Test account creation
+## account creation
 @create_params = {
   'login' => @unique_email.call,
   'password' => 'testpass123',
@@ -60,7 +60,7 @@ logic.process
 
 # UpdatePassword Tests
 
-## Test password update
+## password update
 @update_params = {
   'current' => 'testpass123',
   'newpassword' => 'newpass123',
@@ -73,7 +73,7 @@ logic.instance_variables.include?(:@modified)
 
 # UpdateLocale Tests
 
-## Test locale update
+## locale update
 @locale_params = { 'locale' => 'es', 'login' => @email }
 logic = AccountAPI::Logic::Account::UpdateLocale.new @strategy_result_with_cust, @locale_params
 logic.instance_variables.include?(:@modified)
@@ -81,12 +81,12 @@ logic.instance_variables.include?(:@modified)
 
 # GenerateAPIToken Tests
 
-## Test API token generation, but nothing happens without calling process
+## API token generation, but nothing happens without calling process
 logic = AccountAPI::Logic::Account::GenerateAPIToken.new @strategy_result_with_cust, {}
 [logic.apitoken.nil?, logic.greenlighted]
 #=> [true, nil]
 
-## Test API token generation
+## API token generation
 logic = AccountAPI::Logic::Account::GenerateAPIToken.new @strategy_result_with_cust, {}
 #logic.raise_concerns
 logic.process
@@ -95,7 +95,7 @@ logic.process
 
 # GetAccount Tests
 
-## Test account retrieval
+## account retrieval
 logic = AccountAPI::Logic::Account::GetAccount.new @strategy_result_with_cust, {}
 # NOTE: billing_enabled reflects the global OT.conf setting, not customer-specific state
 [logic.billing_enabled.is_a?(TrueClass) || logic.billing_enabled.is_a?(FalseClass), logic.stripe_customer, logic.stripe_subscription]
@@ -103,7 +103,7 @@ logic = AccountAPI::Logic::Account::GetAccount.new @strategy_result_with_cust, {
 
 # DestroyAccount Tests
 
-## Test account deletion
+## account deletion
 logic = AccountAPI::Logic::Account::DestroyAccount.new @strategy_result_with_cust, {}
 [
   logic.raised_concerns_was_called,

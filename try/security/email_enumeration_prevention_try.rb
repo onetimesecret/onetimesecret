@@ -21,7 +21,7 @@ require 'benchmark'
 # for test.dev domain to avoid MX record lookup failures
 OT.boot! :test
 
-## Setup: Create test customer for enumeration testing
+## Create test customer for enumeration testing
 # Use test.dev domain which is valid for testing
 @test_email = "enum-test-#{SecureRandom.hex(4)}@test.dev"
 @existing_verified_email = "verified-#{SecureRandom.hex(4)}@test.dev"
@@ -42,7 +42,7 @@ OT.boot! :test
 @locale = :en
 @session_id = SecureRandom.hex(16)
 
-## Test 1: New email account creation returns generic success message
+## New email account creation returns generic success message
 # NOTE: CreateAccount uses params['login'] (string keys), not symbols
 params = {
   'login' => @test_email,
@@ -64,7 +64,7 @@ result = logic.process
 @success_message
 #=~> /If an account with this email exists, you will receive a verification email/
 
-## Test 2: Existing verified email returns same generic message (no error)
+## Existing verified email returns same generic message (no error)
 params2 = {
   'login' => @existing_verified_email,
   'password' => 'different_password_abc',
@@ -85,7 +85,7 @@ result2 = logic2.process
 @success_message2
 #=~> /If an account with this email exists, you will receive a verification email/
 
-## Test 3: Existing unverified email returns same generic message
+## Existing unverified email returns same generic message
 params3 = {
   'login' => @existing_unverified_email,
   'password' => 'another_password_xyz',
@@ -106,15 +106,15 @@ result3 = logic3.process
 @success_message3
 #=~> /If an account with this email exists, you will receive a verification email/
 
-## Test 4: Success messages are identical across all scenarios
+## Success messages are identical across all scenarios
 @success_message == @success_message2
 #=> true
 
-## Test 5: Verify messages are identical (all three scenarios)
+## Verify messages are identical (all three scenarios)
 @success_message == @success_message3
 #=> true
 
-## Test 6: No errors are raised for existing accounts
+## No errors are raised for existing accounts
 # This test verifies that existing accounts don't raise FormError
 # The logic should complete successfully without throwing errors
 params4 = {
@@ -140,7 +140,7 @@ rescue OT::FormError => e
 end
 #=> :no_error
 
-## Test 7: Invalid email still shows validation error (not enumeration info)
+## Invalid email still shows validation error (not enumeration info)
 params5 = {
   'login' => 'not-a-valid-email',
   'password' => 'password123',
@@ -163,7 +163,7 @@ rescue OT::FormError => e
 end
 #=~> /valid email address/
 
-## Test 8: Existing customer object is reused (not recreated)
+## Existing customer object is reused (not recreated)
 # For existing accounts, we should reuse the customer object
 @initial_customer_count = Onetime::Customer.dbclient.keys('customer:*').size
 params6 = {
@@ -187,7 +187,7 @@ logic6.process
 @final_customer_count == @initial_customer_count
 #=> true
 
-## Test 9: Response timing consistency check
+## Response timing consistency check
 # Measure response times to ensure they're within acceptable variance
 # This is a basic timing attack prevention check
 require 'benchmark'
@@ -267,7 +267,7 @@ end
 @variance < 0.1
 #=> true
 
-## Teardown: Clean up test data
+## Clean up test data
 @verified_customer.destroy! if @verified_customer
 @unverified_customer.destroy! if @unverified_customer
 # New customer created in Test 1

@@ -1,6 +1,6 @@
 # Database-Specific SQL Schemas
 
-Database-specific SQL loaded by Sequel migrations (`001_initial.rb`, `002_extras.rb`).
+Database-specific SQL loaded by Sequel migrations.
 
 ## First-Time Setup
 
@@ -18,31 +18,28 @@ See `postgres/README.md` for details.
 **Why hybrid Sequel + SQL?**
 
 Sequel handles cross-database table creation. Database-specific SQL provides:
-- Views (complex JOINs/aggregations)
+- Indexes (performance optimization)
 - Functions (PostgreSQL convenience operations)
 - Triggers (automatic behaviors)
-- Indexes (performance)
+- Views (complex JOINs/aggregations)
 - Comments (self-documenting schema)
 
 Raw SQL is clearer, more maintainable, and more powerful for database-specific features than Sequel DSLs.
+
+## Arrow Symbol Convention
+
+- `⬆` (U+2B06) - Up migration (applies changes)
+- `⬇` (U+2B07) - Down migration (rollback)
 
 ## Loading Mechanism
 
 ```ruby
 case database_type
 when :postgres
-  run File.read('schemas/postgres/002_extras.sql')
+  run File.read('schemas/postgres/003_functions_⬆.sql')
 when :sqlite
-  run File.read('schemas/sqlite/002_extras.sql')
+  run File.read('schemas/sqlite/003_functions_⬆.sql')
 end
 ```
 
-## What's Created
-
-See file headers and inline comments in:
-- `postgres/002_extras.sql` - Views, functions, triggers, indexes
-- `sqlite/002_extras.sql` - Views, triggers, indexes
-
-PostgreSQL includes `COMMENT` statements on all objects. SQLite omits functions (not supported).
-
-**Note:** `001_initial.sql` files are reference exports of Sequel-generated schema, not executed by migrations.
+PostgreSQL includes `COMMENT` statements on all objects. SQLite has more inline triggers since it lacks stored functions.

@@ -67,7 +67,7 @@ Onetime::Utils.random_fortune.class
 #=> String
 
 ## random_fortune returns a trimmed fortune
-## Test with trailing whitespace
+## With trailing whitespace
 mock_fortunes = ["Fortune with trailing space   "]
 Onetime::Utils.fortunes = mock_fortunes
 Onetime::Utils.random_fortune

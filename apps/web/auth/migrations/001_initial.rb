@@ -34,6 +34,8 @@ Sequel.migration do
         index :email, unique: true
       end
       String :external_id, null: true, unique: true
+      DateTime :created_at, null: false, default: Sequel::CURRENT_TIMESTAMP
+      DateTime :updated_at, null: false, default: Sequel::CURRENT_TIMESTAMP
     end
 
     create_table(:account_password_hashes) do
@@ -191,6 +193,7 @@ Sequel.migration do
     create_table(:account_recovery_codes) do
       foreign_key :id, :accounts, type: :Bignum
       String :code
+      DateTime :used_at
       primary_key [:id, :code]
     end
 

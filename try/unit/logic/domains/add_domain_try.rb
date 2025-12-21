@@ -46,7 +46,7 @@ require 'apps/api/domains/logic/domains/add_domain'
   metadata: { organization_context: { organization: @org2 } }
 )
 
-## Test AddDomain with valid new domain
+## AddDomain with valid new domain
 @params1 = { 'domain' => @test_domain1 }
 @logic1 = DomainsAPI::Logic::Domains::AddDomain.new(@strategy_result1, @params1)
 @logic1.raise_concerns
@@ -93,7 +93,7 @@ end
 true
 #=> true
 
-## Test validation: empty domain
+## validation: empty domain
 @params_empty = { 'domain' => '' }
 @logic_empty = DomainsAPI::Logic::Domains::AddDomain.new(@strategy_result1, @params_empty)
 begin
@@ -104,7 +104,7 @@ rescue Onetime::FormError => e
 end
 #=> "Please enter a domain"
 
-## Test validation: invalid domain
+## validation: invalid domain
 @params_invalid = { 'domain' => 'not-a-valid-domain' }
 @logic_invalid = DomainsAPI::Logic::Domains::AddDomain.new(@strategy_result1, @params_invalid)
 begin
@@ -138,7 +138,7 @@ rescue Onetime::FormError => e
 end
 #=> "Domain is registered to another organization"
 
-## Test successful creation of second domain for org1
+## successful creation of second domain for org1
 @params4 = { 'domain' => @test_domain2 }
 @logic4 = DomainsAPI::Logic::Domains::AddDomain.new(@strategy_result1, @params4)
 @logic4.raise_concerns

@@ -5,7 +5,8 @@
 # PostgreSQL-specific database trigger integration tests.
 #
 # Tests the actual behavior of PostgreSQL triggers and functions defined in
-# apps/web/auth/migrations/schemas/postgres/002_extras.sql. These tests verify
+# apps/web/auth/migrations/schemas/postgres/003_functions_⬆.sql and
+# apps/web/auth/migrations/schemas/postgres/004_triggers_⬆.sql. These tests verify
 # that triggers fire correctly during HTTP authentication flows and direct
 # database operations.
 #

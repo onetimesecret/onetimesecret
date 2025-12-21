@@ -5,7 +5,7 @@
 require_relative '../../support/test_helpers'
 require_relative '../../../lib/onetime/boot/initializer_registry'
 
-## Setup
+# Setup section
 Onetime::Boot::InitializerRegistry.reset_all!
 
 ## Self-registering pattern works
@@ -99,5 +99,5 @@ preload = Onetime::Boot::InitializerRegistry.initializers.first
 preload.provides
 #=> [:models]
 
-## Teardown
+# Teardown section
 Onetime::Boot::InitializerRegistry.reset_all!

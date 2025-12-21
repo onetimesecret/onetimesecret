@@ -42,7 +42,7 @@ OT.conf['emailer']['auth']
 OT.conf['emailer']['tls']
 #=> nil
 
-## Test environment config is loaded from etc/config.test.yaml
+## Environment config is loaded from etc/config.test.yaml
 # These values match what's configured in etc/config.test.yaml which is loaded
 # during boot when RACK_ENV=test. The YAML config file takes precedence for most
 # settings.

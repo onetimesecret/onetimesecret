@@ -18,7 +18,7 @@ require 'securerandom'
 # Load the app with test configuration
 OT.boot! :test, false
 
-## Test 1: Anonymous user with empty session
+## Anonymous user with empty session
 @env_anon = {
   'rack.session' => {},
   'REMOTE_ADDR' => '127.0.0.1',
@@ -34,7 +34,7 @@ OT.boot! :test, false
 ]
 #=> ['Otto::Security::Authentication::StrategyResult', true, false, 'noauth']
 
-## Test 2: Authenticated user with session
+## Authenticated user with session
 @test_customer = Onetime::Customer.new(email: "test_#{SecureRandom.uuid}@example.com")
 @test_customer.save
 @env_auth = {
@@ -56,7 +56,7 @@ OT.boot! :test, false
 ]
 #=> [false, true, 'Onetime::Customer', true, 'noauth']
 
-## Test 3: Session with identity but customer doesn't exist
+## Session with identity but customer doesn't exist
 @env_missing = {
   'rack.session' => {
     'authenticated' => true,
@@ -74,7 +74,7 @@ OT.boot! :test, false
 ]
 #=> [true, false]
 
-## Test 4: Strategy always succeeds (returns StrategyResult, never fails)
+## Strategy always succeeds (returns StrategyResult, never fails)
 @results = [
   @strategy.authenticate({'rack.session' => {}}, nil),
   @strategy.authenticate({'rack.session' => {'external_id' => 'fake'}}, nil)
@@ -82,7 +82,7 @@ OT.boot! :test, false
 @results.all? { |r| r.is_a?(Otto::Security::Authentication::StrategyResult) }
 #=> true
 
-## Test 5: Metadata is properly set
+## Metadata is properly set
 @env_with_ip = {
   'rack.session' => {},
   'REMOTE_ADDR' => '192.168.1.1',

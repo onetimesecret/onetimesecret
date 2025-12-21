@@ -22,12 +22,16 @@ RSpec.describe 'Rhales Migration Integration', :simple_auth_mode, type: :integra
     OT.instance_variable_set(:@default_locale, 'en')
     OT.instance_variable_set(:@supported_locales, ['en'])
 
-    # Set minimal OT configuration
+    # Save original config for restoration in after(:all)
+    @__original_ot_conf_before_all = OT.conf
+
+    # Set minimal OT configuration - must include site.secret for Session middleware
     mock_config = {
       'site' => {
         'host' => 'localhost:7143',
         'domain' => 'localhost',
-        'ssl' => false
+        'ssl' => false,
+        'secret' => 'test-secret-for-rhales-migration-spec'
       },
       'development' => { 'enabled' => false },
       'diagnostics' => {},
@@ -47,6 +51,11 @@ RSpec.describe 'Rhales Migration Integration', :simple_auth_mode, type: :integra
         config.allowed_unescaped_variables = ['vite_assets_html']
       end
     end
+  end
+
+  after(:all) do
+    # Restore original config to prevent test pollution
+    OT.instance_variable_set(:@conf, @__original_ot_conf_before_all) if @__original_ot_conf_before_all
   end
 
   let(:session) { { 'csrf' => 'test-csrf-token-12345' } }
