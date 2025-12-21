@@ -184,7 +184,8 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
     end
 
     it 'delegates to instance cleanup method' do
-      suppress_warnings { described_class.disconnect }
+      allow($stderr).to receive(:write)
+      described_class.disconnect
       expect(mock_instance).to have_received(:cleanup)
     end
 
@@ -194,7 +195,8 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
       end
 
       it 'does not raise error' do
-        expect { suppress_warnings { described_class.disconnect } }.not_to raise_error
+        allow($stderr).to receive(:write)
+        expect { described_class.disconnect }.not_to raise_error
       end
     end
   end
@@ -214,7 +216,8 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
     end
 
     it 'delegates to instance reconnect method' do
-      suppress_warnings { described_class.reconnect }
+      allow($stderr).to receive(:write)
+      described_class.reconnect
       expect(mock_instance).to have_received(:reconnect)
     end
 
@@ -224,17 +227,10 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
       end
 
       it 'does not raise error' do
-        expect { suppress_warnings { described_class.reconnect } }.not_to raise_error
+        allow($stderr).to receive(:write)
+        expect { described_class.reconnect }.not_to raise_error
       end
     end
   end
 
-  # Helper to suppress deprecation warnings during testing
-  def suppress_warnings
-    original_stderr = $stderr
-    $stderr = StringIO.new
-    yield
-  ensure
-    $stderr = original_stderr
-  end
 end
