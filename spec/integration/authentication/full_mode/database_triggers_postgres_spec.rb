@@ -553,17 +553,30 @@ RSpec.describe 'PostgreSQL Database Triggers', :full_auth_mode, :postgres_databa
   end
 
   describe 'Schema Validation' do
-    it 'validates all trigger column references against actual schema' do
-      errors = AuthTriggerValidator.validate(test_db)
+    it 'trigger functions execute without database errors (validates column references)' do
+      # Instead of parsing SQL with regex, let PostgreSQL validate column references
+      # by actually firing the triggers. If trigger SQL references non-existent columns
+      # (like NEW.account_id when table has 'id'), PostgreSQL will throw an error.
 
-      # Provide detailed error output if validation fails
-      if errors.any?
-        puts "\nTrigger Validation Errors:"
-        errors.each { |error| puts "  - #{error}" }
-      end
+      account = create_verified_account(db: test_db)
 
-      expect(errors).to be_empty,
-        "Trigger validation failed:\n#{errors.join("\n")}"
+      # Exercise update_last_login_time function/trigger
+      expect {
+        test_db[:account_authentication_audit_logs].insert(
+          account_id: account[:id],
+          at: Time.now,
+          message: 'Login successful'  # PostgreSQL uses ILIKE (case-insensitive)
+        )
+      }.not_to raise_error
+
+      # Exercise cleanup_expired_tokens_extended function/trigger
+      expect {
+        test_db[:account_jwt_refresh_keys].insert(
+          account_id: account[:id],
+          key: SecureRandom.urlsafe_base64(32),
+          deadline: Time.now + 86400
+        )
+      }.not_to raise_error
     end
 
     it 'verifies update_last_login_time function exists' do

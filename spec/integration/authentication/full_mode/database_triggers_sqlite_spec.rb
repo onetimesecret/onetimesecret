@@ -34,17 +34,30 @@ RSpec.describe 'SQLite Database Triggers', :full_auth_mode, :sqlite_database do
   end
 
   describe 'schema validation' do
-    it 'validates all trigger column references match actual schema' do
-      errors = AuthTriggerValidator.validate(test_db)
+    it 'triggers fire without database errors (validates column references)' do
+      # Instead of parsing SQL with regex, let the database validate column references
+      # by actually firing the triggers. If trigger SQL references non-existent columns
+      # (like NEW.account_id when table has 'id'), the database will throw an error.
 
-      # If there are errors, provide detailed output for debugging
-      if errors.any?
-        puts "\n=== Trigger Validation Errors ==="
-        errors.each { |error| puts "  - #{error}" }
-        puts "=================================\n"
-      end
+      account = create_verified_account(db: test_db)
 
-      expect(errors).to be_empty, "Trigger validation failed:\n#{errors.join("\n")}"
+      # Exercise update_login_activity trigger
+      expect {
+        test_db[:account_authentication_audit_logs].insert(
+          account_id: account[:id],
+          at: Time.now,
+          message: 'login successful'
+        )
+      }.not_to raise_error
+
+      # Exercise cleanup_expired_jwt_refresh_tokens trigger
+      expect {
+        test_db[:account_jwt_refresh_keys].insert(
+          account_id: account[:id],
+          key: SecureRandom.urlsafe_base64(32),
+          deadline: Time.now + 86400
+        )
+      }.not_to raise_error
     end
   end
 
