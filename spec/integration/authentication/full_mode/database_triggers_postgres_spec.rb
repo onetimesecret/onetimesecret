@@ -426,7 +426,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :full_auth_mode, :postgres_databa
         expect(test_db[:account_jwt_refresh_keys].where(key: new_key).count).to eq(1)
       end
 
-      it 'handles deadline exactly at current time (boundary condition)' do
+      it 'handles deadline in the past (boundary condition)' do
         # Insert token with deadline in the past to create reliable boundary condition
         # This is more deterministic than using sleep
         boundary_key = SecureRandom.hex(32)
