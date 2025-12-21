@@ -174,26 +174,24 @@ module PostgresModeSuiteDatabase
       # Reset sequences for primary keys
       # Optimized: fetch all sequences in a single query instead of looping per table
       begin
-        # Build list of placeholders for parameterized query
-        placeholders = AuthAccountFactory::RODAUTH_TABLES.map { '?' }.join(', ')
+        # Fetch all sequence names for tables with serial columns using Sequel's DSL
+        table_names = AuthAccountFactory::RODAUTH_TABLES.map(&:to_s)
+        sequences_to_reset = @database[:information_schema__columns]
+          .select { pg_get_serial_sequence(quote_ident(:table_name), quote_ident(:column_name)).as(:sequence_name) }
+          .distinct
+          .where(table_schema: 'public')
+          .where(table_name: table_names)
+          .where(Sequel.like(:column_default, 'nextval%'))
+          .all
 
-        # Fetch all sequence names for tables with serial columns
-        sequences_to_reset = @database.fetch(<<~SQL, *AuthAccountFactory::RODAUTH_TABLES).all
-          SELECT DISTINCT pg_get_serial_sequence(quote_ident(table_name), quote_ident(column_name)) AS sequence_name
-          FROM information_schema.columns
-          WHERE table_schema = 'public'
-            AND table_name IN (#{placeholders})
-            AND column_default LIKE 'nextval%'
-        SQL
-
-        # Filter out nil results and build ALTER SEQUENCE commands
-        alter_commands = sequences_to_reset
+        # Filter out nil results and reset each sequence individually
+        sequences_to_reset
           .map { |row| row[:sequence_name] }
           .compact
-          .map { |seq_name| "ALTER SEQUENCE #{Sequel.identifier(seq_name)} RESTART WITH 1" }
-
-        # Execute all commands in a single transaction if any exist
-        @database.run(alter_commands.join(";\n")) if alter_commands.any?
+          .each do |seq_name|
+            # Use Sequel.lit with identifier for safe SQL execution
+            @database.run(Sequel.lit("ALTER SEQUENCE #{Sequel.literal(Sequel.identifier(seq_name))} RESTART WITH 1"))
+          end
       rescue Sequel::DatabaseError
         # Ignore if there's an issue - this is a cleanup optimization
         nil
