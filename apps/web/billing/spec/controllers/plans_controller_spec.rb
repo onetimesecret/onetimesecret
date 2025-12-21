@@ -51,7 +51,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       get "/plans/#{tier}/#{billing_cycle}"
 
       expect(last_response.status).to eq(302)
-      expect(last_response.location).to match(%r{\Ahttps://checkout\.stripe\.com})
+      expect(last_response.location).to match(%r{\Ahttps://checkout\.stripe\.com/})
     end
 
     it 'creates checkout session with correct plan', :vcr do
@@ -124,7 +124,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       get "/plans/#{tier}/#{billing_cycle}"
 
       expect(last_response.status).to eq(302)
-      expect(last_response.location).to match(%r{\Ahttps://[^/]*stripe\.com})
+      expect(last_response.location).to match(%r{\Ahttps://[^/]*stripe\.com/})
     end
 
     it 'detects region for plan selection', :vcr do
@@ -264,7 +264,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       get '/portal'
 
       expect(last_response.status).to eq(302)
-      expect(last_response.location).to match(%r{\Ahttps://billing\.stripe\.com})
+      expect(last_response.location).to match(%r{\Ahttps://billing\.stripe\.com/})
     end
 
     it 'includes return URL to /account', :vcr do

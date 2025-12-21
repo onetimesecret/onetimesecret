@@ -206,7 +206,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       data = JSON.parse(last_response.body)
       expect(data).to have_key('checkout_url')
       expect(data).to have_key('session_id')
-      expect(data['checkout_url']).to match(%r{\Ahttps://checkout\.stripe\.com})
+      expect(data['checkout_url']).to match(%r{\Ahttps://checkout\.stripe\.com/})
     end
 
     it 'returns 400 when tier is missing', :vcr do
