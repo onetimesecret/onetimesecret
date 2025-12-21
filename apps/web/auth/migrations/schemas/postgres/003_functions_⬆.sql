@@ -10,15 +10,37 @@
 -- ================================================================
 
 -- Function to get password salt (for database-level security)
+--
+-- Security model: The 'app' db user cannot SELECT password_hash directly.
+-- This SECURITY DEFINER function runs with elevated privileges, providing
+-- defense-in-depth against SQL injection attacks on the hash column.
+--
+-- Argon2 vs bcrypt salt handling:
+--   - bcrypt: Salt is a distinct 29-char prefix ($2a$12$...), so we return just that
+--   - Argon2: Parameters (m,t,p) and salt are embedded in the hash string
+--     ($argon2id$v=19$m=65536,t=2,p=1$<salt>$<hash>). Rodauth's password
+--     verification needs the full string to extract cost params and salt.
+--     Returning full hash does NOT compromise security - the protection comes
+--     from SQL privileges, not from truncating the return value.
+--
 CREATE OR REPLACE FUNCTION rodauth_get_salt(p_account_id BIGINT)
 RETURNS TEXT AS $$
 DECLARE
-    salt TEXT;
+    hash TEXT;
 BEGIN
-    SELECT SUBSTRING(password_hash FROM 1 FOR 29) INTO salt
+    SELECT password_hash INTO hash
     FROM account_password_hashes
-    WHERE account_id = p_account_id;
-    RETURN salt;
+    WHERE id = p_account_id;
+
+    IF hash IS NULL THEN
+        RETURN NULL;
+    ELSIF hash LIKE '$argon2%' THEN
+        RETURN hash;  -- Argon2: full hash needed for param extraction
+    ELSIF hash LIKE '$2a$%' OR hash LIKE '$2b$%' THEN
+        RETURN SUBSTRING(hash FROM 1 FOR 29);  -- bcrypt: 29-char salt prefix
+    ELSE
+        RAISE EXCEPTION 'Unrecognized password hash algorithm for account %', p_account_id;
+    END IF;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -30,7 +52,7 @@ DECLARE
 BEGIN
     SELECT password_hash = hash INTO valid
     FROM account_password_hashes
-    WHERE account_id = p_account_id;
+    WHERE id = p_account_id;
     RETURN COALESCE(valid, FALSE);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

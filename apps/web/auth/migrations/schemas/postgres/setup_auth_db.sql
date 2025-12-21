@@ -151,3 +151,40 @@ ALTER DEFAULT PRIVILEGES FOR ROLE onetime_migrator IN SCHEMA public
 --    - Application user (onetime_user) always respects RLS policies
 --    - Migration user (onetime_migrator) may bypass RLS as table owner
 --    - Use FORCE ROW LEVEL SECURITY if migrations need policy enforcement
+
+-- ============================================================================
+-- RESET / CLEANUP (for testing from scratch)
+-- ============================================================================
+--
+-- PostgreSQL roles are cluster-wide, so dropping the database alone won't
+-- remove them. To fully reset:
+--
+/*
+
+DROP DATABASE IF EXISTS onetime_auth;
+DROP ROLE IF EXISTS onetime_user;
+DROP ROLE IF EXISTS onetime_migrator;
+DROP ROLE IF EXISTS onetime_auth;
+
+-- Drop the test database too
+DROP DATABASE IF EXISTS onetime_auth_test;
+
+-- Now drop the roles
+DROP ROLE IF EXISTS onetime_user;
+DROP ROLE IF EXISTS onetime_auth;
+
+Or if you want to keep onetime_auth_test, reassign ownership first:
+
+-- Reassign objects owned by these roles to postgres
+REASSIGN OWNED BY onetime_user TO postgres;
+REASSIGN OWNED BY onetime_auth TO postgres;
+
+-- Revoke privileges
+REVOKE ALL PRIVILEGES ON DATABASE onetime_auth_test FROM onetime_user;
+REVOKE ALL PRIVILEGES ON DATABASE onetime_auth_test FROM onetime_auth;
+
+-- Now drop
+DROP ROLE IF EXISTS onetime_user;
+DROP ROLE IF EXISTS onetime_auth;
+
+*/
