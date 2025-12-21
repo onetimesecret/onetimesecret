@@ -177,21 +177,24 @@ module PostgresModeSuiteDatabase
         # Fetch all sequence names for tables with serial columns using Sequel's DSL
         table_names = AuthAccountFactory::RODAUTH_TABLES.map(&:to_s)
         sequences_to_reset = @database[:information_schema__columns]
-          .select { pg_get_serial_sequence(quote_ident(:table_name), quote_ident(:column_name)).as(:sequence_name) }
+          .select { Sequel.function(:pg_get_serial_sequence, :table_name, :column_name).as(:sequence_name) }
           .distinct
           .where(table_schema: 'public')
           .where(table_name: table_names)
           .where(Sequel.like(:column_default, 'nextval%'))
           .all
 
-        # Filter out nil results and reset each sequence individually
-        sequences_to_reset
+        # Filter out nil results and batch reset all sequences in a single call
+        sequence_names = sequences_to_reset
           .map { |row| row[:sequence_name] }
           .compact
-          .each do |seq_name|
-            # Use Sequel.lit with identifier for safe SQL execution
-            @database.run(Sequel.lit("ALTER SEQUENCE #{Sequel.literal(Sequel.identifier(seq_name))} RESTART WITH 1"))
+
+        if sequence_names.any?
+          alter_commands = sequence_names.map do |seq_name|
+            "ALTER SEQUENCE #{Sequel.literal(Sequel.identifier(seq_name))} RESTART WITH 1"
           end
+          @database.run(alter_commands.join('; '))
+        end
       rescue Sequel::DatabaseError
         # Ignore if there's an issue - this is a cleanup optimization
         nil
