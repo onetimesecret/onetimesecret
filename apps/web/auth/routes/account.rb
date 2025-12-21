@@ -14,7 +14,8 @@ module Auth
         return account if account
 
         # Handle orphaned session (account deleted while session active)
-        session.clear
+        # Use destroy (not clear) to invalidate session ID and prevent fixation
+        session.destroy
         response.status = 401
         request.halt({ error: 'Session expired', success: false })
       end

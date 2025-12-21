@@ -33,7 +33,7 @@ module Auth::Config::Hooks
           # Check if this is an orphaned session (account deleted while session active)
           # This can happen when an admin deletes an account while the user has an active session
           account_exists = begin
-            session_account_id.is_a?(Integer) && db[:accounts].where(id: session_account_id).count > 0
+            session_account_id.is_a?(Integer) && !db[:accounts].where(id: session_account_id).empty?
           rescue StandardError
             false
           end
