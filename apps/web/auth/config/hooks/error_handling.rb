@@ -103,7 +103,7 @@ module Auth::Config::Hooks
             session_id: session.id,
             error_class: ex.class.name,
             error_message: ex.message,
-            backtrace2: ex.backtrace&.first(5), # semantic logger removes `backtrace`?
+            error_backtrace: ex.backtrace&.first(5),
           )
           raise ex
         end

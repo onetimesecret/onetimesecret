@@ -5,6 +5,20 @@
 module Auth
   module Routes
     module Account
+      # Rodauth account status IDs
+      VERIFIED_STATUS_ID = 2
+
+      # Validates account exists for current session, returns account or halts with 401
+      def require_valid_account
+        account = rodauth.account_from_session
+        return account if account
+
+        # Handle orphaned session (account deleted while session active)
+        session.clear
+        response.status = 401
+        request.halt({ error: 'Session expired', success: false })
+      end
+
       def handle_account_routes(r)
         # Account info endpoint (JSON extension support)
         r.get 'account.json' do
@@ -13,14 +27,7 @@ module Auth
               next { error: 'Authentication required' }
             end
 
-            account = rodauth.account_from_session
-
-            # Handle orphaned session (account deleted while session active)
-            unless account
-              session.clear
-              response.status = 401
-              next { error: 'Session expired', success: false }
-            end
+            account = require_valid_account
 
             # Check if MFA features are enabled before calling methods
             mfa_enabled          = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
@@ -43,7 +50,7 @@ module Auth
               email: account[:email],
               created_at: account[:created_at],
               status: account[:status_id],
-              email_verified: account[:status_id] == 2,  # Assuming 2 is verified
+              email_verified: account[:status_id] == VERIFIED_STATUS_ID,
               mfa_enabled: mfa_enabled,
               recovery_codes_count: recovery_codes_count,
               active_sessions_count: active_sessions_count,
@@ -63,14 +70,7 @@ module Auth
               next { error: 'Authentication required' }
             end
 
-            account = rodauth.account_from_session
-
-            # Handle orphaned session (account deleted while session active)
-            unless account
-              session.clear
-              response.status = 401
-              next { error: 'Session expired', success: false }
-            end
+            require_valid_account
 
             # Check if MFA features are enabled (OTP or recovery codes)
             #
@@ -122,14 +122,7 @@ module Auth
               next { error: 'Authentication required' }
             end
 
-            account = rodauth.account_from_session
-
-            # Handle orphaned session (account deleted while session active)
-            unless account
-              session.clear
-              response.status = 401
-              next { error: 'Session expired', success: false }
-            end
+            account = require_valid_account
 
             # Check if MFA features are enabled before calling methods
             mfa_enabled          = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
@@ -152,7 +145,7 @@ module Auth
               email: account[:email],
               created_at: account[:created_at],
               status: account[:status_id],
-              email_verified: account[:status_id] == 2,  # Assuming 2 is verified
+              email_verified: account[:status_id] == VERIFIED_STATUS_ID,
               mfa_enabled: mfa_enabled,
               recovery_codes_count: recovery_codes_count,
               active_sessions_count: active_sessions_count,
