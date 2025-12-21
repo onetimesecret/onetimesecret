@@ -1,6 +1,17 @@
 # apps/web/auth/config.rb
 #
 # frozen_string_literal: true
+#
+# IMPORTANT: Test files should NOT require this file or anything below it.
+#
+# This file triggers the full boot chain (database.rb → Onetime.auth_config)
+# which requires production config files and database connections.
+#
+# For specs that need constants from config/features/*.rb, use:
+#   require_relative 'spec/support/auth_test_constants'
+#   include AuthTestConstants
+#
+# This provides test-safe copies of MFA limits, status IDs, etc.
 
 require 'rodauth'
 require 'rodauth/tools'
