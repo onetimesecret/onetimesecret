@@ -11,14 +11,8 @@
 
 require_relative '../../spec_helper'
 
-# Define namespace before loading the MFA module
-module Auth
-  module Config
-    module Features
-    end
-  end
-end
-require_relative '../../../config/features/mfa'
+require_relative '../../support/auth_test_constants'
+include AuthTestConstants
 
 RSpec.describe 'Rodauth Feature Combinations' do
   let(:db) { create_test_database }
@@ -51,7 +45,7 @@ RSpec.describe 'Rodauth Feature Combinations' do
 
         # MFA configuration
         otp_issuer 'OneTimeSecret'
-        otp_auth_failures_limit Auth::Config::Features::MFA::OTP_AUTH_FAILURES_LIMIT
+        otp_auth_failures_limit MFA_OTP_AUTH_FAILURES_LIMIT
         otp_keys_use_hmac? true
 
         # Passwordless configuration
@@ -114,7 +108,7 @@ RSpec.describe 'Rodauth Feature Combinations' do
         ],
       ) do
         otp_issuer 'OneTimeSecret'
-        otp_auth_failures_limit Auth::Config::Features::MFA::OTP_AUTH_FAILURES_LIMIT
+        otp_auth_failures_limit MFA_OTP_AUTH_FAILURES_LIMIT
       end
     end
 

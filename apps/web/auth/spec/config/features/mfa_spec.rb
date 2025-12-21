@@ -12,14 +12,8 @@
 
 require_relative '../../spec_helper'
 
-# Define namespace before loading the MFA module
-module Auth
-  module Config
-    module Features
-    end
-  end
-end
-require_relative '../../../config/features/mfa'
+require_relative '../../support/auth_test_constants'
+include AuthTestConstants
 
 RSpec.describe 'Auth::Config::Features::MFA' do
   let(:db) { create_test_database }
@@ -38,7 +32,7 @@ RSpec.describe 'Auth::Config::Features::MFA' do
         otp_keys_use_hmac? true
         two_factor_modifications_require_password? true
         modifications_require_password? true
-        otp_auth_failures_limit Auth::Config::Features::MFA::OTP_AUTH_FAILURES_LIMIT
+        otp_auth_failures_limit MFA_OTP_AUTH_FAILURES_LIMIT
         auto_add_recovery_codes? true
         auto_remove_recovery_codes? true
       end
@@ -99,7 +93,7 @@ RSpec.describe 'Auth::Config::Features::MFA' do
       end
 
       it 'sets otp_auth_failures_limit to configured constant' do
-        expect(rodauth_instance.otp_auth_failures_limit).to eq(Auth::Config::Features::MFA::OTP_AUTH_FAILURES_LIMIT)
+        expect(rodauth_instance.otp_auth_failures_limit).to eq(MFA_OTP_AUTH_FAILURES_LIMIT)
       end
 
       it 'enables HMAC for OTP keys' do
