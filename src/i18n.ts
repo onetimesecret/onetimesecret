@@ -42,6 +42,10 @@ const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
  */
 function deepMerge(target: Record<string, any>, source: Record<string, any>): Record<string, any> {
   for (const key in source) {
+    // Skip inherited properties to prevent iterating over polluted prototype
+    if (!Object.prototype.hasOwnProperty.call(source, key)) {
+      continue;
+    }
     // Guard against prototype pollution (CWE-1321)
     if (DANGEROUS_KEYS.has(key)) {
       continue;

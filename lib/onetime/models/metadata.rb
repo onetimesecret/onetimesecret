@@ -51,18 +51,18 @@ module Onetime
     # Familia's base destroy! handles the main key and related fields,
     # but class-level sorted sets and sets need explicit cleanup.
     def destroy!
+      # Call Familia's built-in destroy first. If it fails, we won't proceed
+      # with cleaning up the class-level collections, leaving the system in
+      # a more consistent state. Handles: main object key deletion, related
+      # fields cleanup, instances collection removal, objid/extid lookup cleanup.
+      super
+
+      # If super succeeds, clean up our custom class-level collections
       # Remove from expiration timeline tracking (sorted set)
       self.class.expiration_timeline.remove_element(identifier)
 
       # Remove from warnings_sent tracking (set)
       self.class.warnings_sent.remove_element(identifier)
-
-      # Call Familia's built-in destroy which handles:
-      # - Main object key deletion
-      # - Related fields cleanup
-      # - Instances collection removal
-      # - objid/extid lookup cleanup
-      super
     end
 
     def age
