@@ -414,7 +414,7 @@ jobs:
     services:
       redis: *valkey-service
       postgres:
-        image: postgres:16@sha256:09ee71790e8c517f1e2c7e37ec2f6fc4ff2f38f31a9ea0c6d4ffe1ba8eb96b4a
+        image: postgres:17
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres

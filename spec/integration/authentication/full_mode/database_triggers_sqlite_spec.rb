@@ -56,10 +56,10 @@ RSpec.describe 'SQLite Database Triggers', :full_auth_mode, :sqlite_database do
     end
 
     context 'HTTP login flow' do
-      # NOTE: These tests currently fail due to case-sensitivity bug in trigger
-      # Rodauth logs 'Login successful' (capitalized) but trigger matches '%login%successful%' (lowercase)
-      # See: https://github.com/onetime/issues/XXXX
-      # TODO: Update trigger to use case-insensitive matching or update audit log message
+      # NOTE: SQLite LIKE is case-sensitive by default, causing trigger mismatch.
+      # Rodauth logs 'Login successful' (capitalized) but trigger pattern is
+      # '%login%successful%' (lowercase), so the trigger does not fire on real logins.
+      # TODO: Update trigger SQL to use case-insensitive matching with COLLATE NOCASE
 
       xit 'creates account_activity_times record on successful login (PENDING: case sensitivity bug)' do
         # Verify no activity record exists before login

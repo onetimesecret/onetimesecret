@@ -8,7 +8,7 @@ The `postgres_mode_suite_database.rb` support file provides PostgreSQL-specific 
 
 ### Prerequisites
 
-1. PostgreSQL 15+ installed and running
+1. PostgreSQL 17 installed and running
 2. Database user with CREATE DATABASE privileges
 3. Environment variables configured
 

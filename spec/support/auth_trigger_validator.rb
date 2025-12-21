@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'set'
+
 # Validates database trigger SQL against actual schema.
 #
 # This validator parses trigger definitions from migration SQL files and
@@ -294,6 +296,10 @@ module AuthTriggerValidator
       end
 
       # Match: UPDATE table_name SET col1 = ..., col2 = ...
+      # NOTE: This regex handles simple UPDATE statements as used in our trigger SQL.
+      # Limitations: Does not handle UPDATE...FROM, UPDATE...RETURNING, or complex
+      # subqueries with nested WHERE clauses in SET expressions. These patterns are
+      # not used in the current migration SQL files.
       sql.scan(/UPDATE\s+(\w+)\s+SET\s+(.*?)(?:WHERE|$)/mi) do |table, set_clause|
         column_list = set_clause.scan(/(\w+)\s*=/).flatten
         results << [table, column_list]
