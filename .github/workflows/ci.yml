@@ -414,7 +414,7 @@ jobs:
     services:
       redis: *valkey-service
       postgres:
-        image: postgres:17
+        image: postgres:17@sha256:929190a12e0833c89276f78c7cf665aaaa62b5930e6f852e9f733f8b737d3f8f
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -484,7 +484,7 @@ jobs:
       [
         changes,
         ruby-integration-simple,
-        ruby-integration-full,
+        ruby-integration-full-sqlite,
         ruby-integration-full-postgres,
         ruby-integration-disabled,
         typescript-unit,
@@ -493,7 +493,7 @@ jobs:
       always() &&
       (needs.changes.outputs.oci == 'true' || needs.changes.outputs.frontend == 'true') &&
       (needs.ruby-integration-simple.result == 'success' || needs.ruby-integration-simple.result == 'skipped') &&
-      (needs.ruby-integration-full.result == 'success' || needs.ruby-integration-full.result == 'skipped') &&
+      (needs.ruby-integration-full-sqlite.result == 'success' || needs.ruby-integration-full-sqlite.result == 'skipped') &&
       (needs.ruby-integration-full-postgres.result == 'success' || needs.ruby-integration-full-postgres.result == 'skipped') &&
       (needs.ruby-integration-disabled.result == 'success' || needs.ruby-integration-disabled.result == 'skipped') &&
       (needs.typescript-unit.result == 'success' || needs.typescript-unit.result == 'skipped') &&
@@ -587,7 +587,7 @@ jobs:
       - ruby-unit
       - typescript-unit
       - ruby-integration-simple
-      - ruby-integration-full
+      - ruby-integration-full-sqlite
       - ruby-integration-full-postgres
       - ruby-integration-disabled
       - check-oci-image
@@ -730,7 +730,7 @@ jobs:
           echo "| Ruby Unit | ${{ needs.ruby-unit.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| TypeScript Unit | ${{ needs.typescript-unit.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Simple) | ${{ needs.ruby-integration-simple.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Ruby Integration (Full) | ${{ needs.ruby-integration-full.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Full - SQLite) | ${{ needs.ruby-integration-full-sqlite.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Full - PostgreSQL) | ${{ needs.ruby-integration-full-postgres.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Disabled) | ${{ needs.ruby-integration-disabled.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Container Validation | ${{ needs.check-oci-image.result }} |" >> $GITHUB_STEP_SUMMARY
