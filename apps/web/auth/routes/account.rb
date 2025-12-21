@@ -5,6 +5,21 @@
 module Auth
   module Routes
     module Account
+      # Rodauth account status IDs
+      VERIFIED_STATUS_ID = 2
+
+      # Validates account exists for current session, returns account or halts with 401
+      def require_valid_account
+        account = rodauth.account_from_session
+        return account if account
+
+        # Handle orphaned session (account deleted while session active)
+        # Use rodauth.clear_session for complete cleanup (cookie + server-side)
+        rodauth.clear_session
+        response.status = 401
+        request.halt({ error: 'web.auth.security.session_expired', success: false })
+      end
+
       # Helper to count recovery codes for an account
       # Queries database directly to avoid auto-generation side effects
       def recovery_codes_count_for(account_id)
@@ -23,7 +38,7 @@ module Auth
               next { error: 'Authentication required' }
             end
 
-            account = rodauth.account
+            account = require_valid_account
 
             # Check if MFA features are enabled before calling methods
             mfa_enabled          = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
@@ -39,7 +54,7 @@ module Auth
               email: account[:email],
               created_at: account[:created_at],
               status: account[:status_id],
-              email_verified: account[:status_id] == 2,  # Assuming 2 is verified
+              email_verified: account[:status_id] == VERIFIED_STATUS_ID,
               mfa_enabled: mfa_enabled,
               recovery_codes_count: recovery_codes_count,
               active_sessions_count: active_sessions_count,
@@ -59,7 +74,7 @@ module Auth
               next { error: 'Authentication required' }
             end
 
-            rodauth.account_from_session
+            require_valid_account
 
             # Check if MFA features are enabled (OTP or recovery codes)
             #
@@ -105,7 +120,7 @@ module Auth
               next { error: 'Authentication required' }
             end
 
-            account = rodauth.account_from_session
+            account = require_valid_account
 
             # Check if MFA features are enabled before calling methods
             mfa_enabled          = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
@@ -121,7 +136,7 @@ module Auth
               email: account[:email],
               created_at: account[:created_at],
               status: account[:status_id],
-              email_verified: account[:status_id] == 2,  # Assuming 2 is verified
+              email_verified: account[:status_id] == VERIFIED_STATUS_ID,
               mfa_enabled: mfa_enabled,
               recovery_codes_count: recovery_codes_count,
               active_sessions_count: active_sessions_count,

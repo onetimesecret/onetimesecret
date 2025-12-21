@@ -5,9 +5,8 @@
 require 'bcrypt'
 require 'securerandom'
 
-# Define namespace before loading the MFA module for its constants
-module Auth; module Config; module Features; end; end; end
-require_relative '../../../apps/web/auth/config/features/mfa'
+# Load shared auth test constants
+require_relative '../../../apps/web/auth/spec/support/auth_test_constants'
 
 # Factory methods for creating test accounts in Rodauth database.
 #
@@ -20,6 +19,8 @@ require_relative '../../../apps/web/auth/config/features/mfa'
 #   end
 #
 module AuthAccountFactory
+  include AuthTestConstants
+
   # All Rodauth tables that may contain test data (order matters for foreign keys)
   RODAUTH_TABLES = %i[
     account_sms_codes
@@ -45,10 +46,7 @@ module AuthAccountFactory
     accounts
   ].freeze
 
-  # Account status IDs (matches migration seed data)
-  STATUS_UNVERIFIED = 1
-  STATUS_VERIFIED = 2
-  STATUS_CLOSED = 3
+  # Account status IDs inherited from AuthTestConstants
 
   # Create a verified account with password
   #
@@ -140,7 +138,7 @@ module AuthAccountFactory
   # @param account_id [Integer] The account ID
   # @param count [Integer] Number of codes to generate (default: RECOVERY_CODES_LIMIT)
   # @return [Array<String>] The generated recovery codes
-  def create_recovery_codes(db:, account_id:, count: Auth::Config::Features::MFA::RECOVERY_CODES_LIMIT)
+  def create_recovery_codes(db:, account_id:, count: MFA_RECOVERY_CODES_LIMIT)
     codes = count.times.map { SecureRandom.alphanumeric(12).downcase }
 
     codes.each do |code|
