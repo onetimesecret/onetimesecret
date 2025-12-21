@@ -4,14 +4,26 @@
   import { useI18n } from 'vue-i18n';
   import SettingsLayout from '@/shared/components/layout/SettingsLayout.vue';
   import { useMfa } from '@/shared/composables/useMfa';
+  import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { ref, onMounted, computed } from 'vue';
 
   const { t } = useI18n();
-  const { mfaStatus, isLoading, error, fetchMfaStatus, generateNewRecoveryCodes, clearError } =
-    useMfa();
+  const {
+    mfaStatus,
+    recoveryCodes,
+    isLoading,
+    error,
+    fetchMfaStatus,
+    generateNewRecoveryCodes,
+    clearError,
+  } = useMfa();
+  const notificationsStore = useNotificationsStore();
 
   const showGenerateConfirm = ref(false);
   const regeneratePassword = ref('');
+  // Track whether regenerated codes have been saved
+  const showRegeneratedCodes = ref(false);
+  const codesSaved = ref(false);
 
   onMounted(async () => {
     // Fetch MFA status to get the recovery codes count
@@ -48,13 +60,47 @@
     await generateNewRecoveryCodes(regeneratePassword.value);
 
     // If no error occurred, the codes were generated successfully
-    // Close modal and refresh (recoveryCodes.value is already set by the composable)
     if (!error.value) {
       showGenerateConfirm.value = false;
       regeneratePassword.value = '';
+      codesSaved.value = false;
+      showRegeneratedCodes.value = true;
       await fetchMfaStatus();
     }
     // If error exists, modal stays open with error displayed
+  };
+
+  // Download recovery codes as text file
+  const downloadCodes = () => {
+    const content = recoveryCodes.value.join('\n');
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'onetime-recovery-codes.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+    codesSaved.value = true;
+    notificationsStore.show(t('web.auth.recovery-codes.downloaded'), 'success', 'top');
+  };
+
+  // Copy codes to clipboard
+  const copyCodes = async () => {
+    const content = recoveryCodes.value.join('\n');
+    try {
+      await navigator.clipboard.writeText(content);
+      codesSaved.value = true;
+      notificationsStore.show(t('web.auth.recovery-codes.copied'), 'success', 'top');
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      notificationsStore.show(t('web.auth.recovery-codes.copy-failed'), 'error', 'top');
+    }
+  };
+
+  // Close the regenerated codes display
+  const closeCodesDisplay = () => {
+    showRegeneratedCodes.value = false;
+    codesSaved.value = false;
   };
 </script>
 
@@ -110,6 +156,78 @@
         </p>
       </div>
 
+      <!-- Regenerated codes display -->
+      <div
+        v-else-if="showRegeneratedCodes && recoveryCodes.length > 0"
+        class="space-y-6">
+        <div class="rounded-lg bg-green-50 p-4 dark:bg-green-900/20">
+          <div class="flex items-start gap-3">
+            <i class="fas fa-check-circle text-green-600 dark:text-green-400"></i>
+            <p class="text-sm font-medium text-green-800 dark:text-green-300">
+              {{ t('web.auth.recovery-codes.generate-success') }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Save requirement warning -->
+        <div
+          v-if="!codesSaved"
+          role="alert"
+          class="rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-600 dark:bg-amber-900/20">
+          <div class="flex items-start">
+            <i class="fas fa-exclamation-triangle mr-3 mt-0.5 text-amber-600 dark:text-amber-400"></i>
+            <p class="text-sm text-amber-800 dark:text-amber-200">
+              {{ t('web.auth.recovery-codes.save-required') }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Recovery codes grid -->
+        <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
+          <div class="grid grid-cols-2 gap-3">
+            <div
+              v-for="(code, index) in recoveryCodes"
+              :key="index"
+              class="rounded bg-white p-2 font-mono text-sm dark:bg-gray-700 dark:text-gray-300">
+              {{ code }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex gap-3">
+          <button
+            @click="downloadCodes"
+            type="button"
+            class="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+            <i class="fas fa-download mr-2"></i>
+            {{ t('web.auth.recovery-codes.download') }}
+          </button>
+          <button
+            @click="copyCodes"
+            type="button"
+            class="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+            <i class="fas fa-copy mr-2"></i>
+            {{ t('web.auth.recovery-codes.copy') }}
+          </button>
+        </div>
+
+        <!-- Done button -->
+        <button
+          @click="closeCodesDisplay"
+          type="button"
+          :disabled="!codesSaved"
+          :class="[
+            'w-full rounded-md px-4 py-3 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2',
+            codesSaved
+              ? 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500'
+              : 'cursor-not-allowed bg-gray-400 text-gray-200'
+          ]">
+          <i class="fas fa-check mr-2"></i>
+          {{ t('web.COMMON.word_done') }}
+        </button>
+      </div>
+
       <!-- Recovery codes status (shows count, not actual codes) -->
       <div
         v-else-if="hasRecoveryCodes"
@@ -123,21 +241,22 @@
                 {{
                   t('web.auth.recovery-codes.remaining', {
                     count: mfaStatus?.recovery_codes_remaining ?? 0,
+                    limit: mfaStatus?.recovery_codes_limit ?? 4,
                   })
                 }}
               </p>
               <p class="mt-1">
-                Each code can only be used once. Generate new codes if you're running low.
+                Each code can only be used once. Regenerate codes if you're running low.
               </p>
             </div>
           </div>
         </div>
 
-        <!-- Generate new codes -->
+        <!-- Regenerate codes -->
         <div
           class="rounded-lg border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800">
           <h3 class="mb-2 font-semibold dark:text-white">
-            {{ t('web.auth.recovery-codes.generate-new') }}
+            {{ t('web.auth.recovery-codes.regenerate') }}
           </h3>
           <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
             {{ t('web.auth.recovery-codes.generate-new-warning') }}
@@ -147,7 +266,7 @@
             type="button"
             class="rounded-md border border-yellow-300 px-4 py-2 text-sm font-medium text-yellow-700 hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 dark:border-yellow-600 dark:text-yellow-400 dark:hover:bg-yellow-900/20">
             <i class="fas fa-sync mr-2"></i>
-            {{ t('web.auth.recovery-codes.generate-new') }}
+            {{ t('web.auth.recovery-codes.regenerate') }}
           </button>
         </div>
       </div>
@@ -163,7 +282,7 @@
           @click="showGenerateModal"
           type="button"
           class="mt-4 rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">
-          {{ t('web.auth.recovery-codes.generate-new') }}
+          {{ t('web.auth.recovery-codes.regenerate') }}
         </button>
       </div>
 
@@ -182,7 +301,7 @@
             <h3
               id="regenerate-codes-title"
               class="text-lg font-semibold dark:text-white">
-              {{ t('web.auth.recovery-codes.generate-new') }}
+              {{ t('web.auth.recovery-codes.regenerate') }}
             </h3>
           </div>
           <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
@@ -234,7 +353,7 @@
                 :disabled="isLoading || !regeneratePassword"
                 class="rounded-md bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                 <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
-                <span v-else>{{ t('web.auth.recovery-codes.generate-new') }}</span>
+                <span v-else>{{ t('web.auth.recovery-codes.regenerate') }}</span>
               </button>
             </div>
           </form>
