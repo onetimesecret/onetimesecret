@@ -77,7 +77,7 @@ RSpec.describe 'PostgreSQL Mode Test Infrastructure', :full_auth_mode, :postgres
         expect(account[:email]).to match(/test-[a-f0-9]+@example\.com/)
 
         # Cleanup
-        test_db[:accounts].where(id: account[:id]).delete
+        cleanup_account(db: test_db, account_id: account[:id])
       end
     end
   end
