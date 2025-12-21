@@ -76,7 +76,8 @@ module Onetime
         Onetime.bunny_logger.info '[SetupRabbitMQ] Closing RabbitMQ connection before fork'
         conn.close
       rescue StandardError => ex
-        Onetime.bunny_logger.warn "[SetupRabbitMQ] Error during cleanup: #{ex.message}"
+        Onetime.bunny_logger.warn "[SetupRabbitMQ] Error during cleanup (#{ex.class})"
+        Onetime.bunny_logger.debug "[SetupRabbitMQ] Cleanup error details: #{ex.message}"
       end
 
       # Reconnect RabbitMQ after fork.
@@ -91,7 +92,8 @@ module Onetime
         Onetime.bunny_logger.info "[SetupRabbitMQ] Reconnecting RabbitMQ in worker #{Process.pid}"
         setup_rabbitmq_connection
       rescue Bunny::TCPConnectionFailed, Bunny::ConnectionTimeout => ex
-        Onetime.bunny_logger.warn "[SetupRabbitMQ] Reconnect failed: #{ex.message}"
+        Onetime.bunny_logger.warn "[SetupRabbitMQ] Reconnect failed (#{ex.class})"
+        Onetime.bunny_logger.debug "[SetupRabbitMQ] Reconnect error details: #{ex.message}"
       end
 
       private
@@ -148,11 +150,13 @@ module Onetime
           rabbitmq_channel_pool: $rmq_channel_pool,
         )
       rescue Bunny::TCPConnectionFailed, Bunny::ConnectionTimeout, Bunny::PreconditionFailed => ex
-        Onetime.bunny_logger.error "[init] Setup RabbitMQ: Connection failed: #{ex.message}"
+        Onetime.bunny_logger.error "[init] Setup RabbitMQ: Connection failed (#{ex.class})"
+        Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Connection error details: #{ex.message}"
         Onetime.bunny_logger.error '[init] Setup RabbitMQ: Jobs will fall back to synchronous execution'
         # Don't raise - allow app to start with degraded functionality
       rescue StandardError => ex
-        Onetime.bunny_logger.error "[init] Setup RabbitMQ: Unexpected error: #{ex.message}"
+        Onetime.bunny_logger.error "[init] Setup RabbitMQ: Unexpected error (#{ex.class})"
+        Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Unexpected error details: #{ex.message}"
         Onetime.bunny_logger.error ex.backtrace.join("\n") if OT.debug?
         raise
       end
@@ -195,7 +199,8 @@ module Onetime
         # Queue doesn't exist yet - that's fine, connection works
         Onetime.bunny_logger.debug '[init] Setup RabbitMQ: Connectivity verified (queue not yet declared)'
       rescue StandardError => ex
-        Onetime.bunny_logger.error "[init] Setup RabbitMQ: Verification failed: #{ex.message}"
+        Onetime.bunny_logger.error "[init] Setup RabbitMQ: Verification failed (#{ex.class})"
+        Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Verification error details: #{ex.message}"
         raise
       end
 
