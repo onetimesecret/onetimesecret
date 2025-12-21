@@ -14,10 +14,10 @@ module Auth
         return account if account
 
         # Handle orphaned session (account deleted while session active)
-        # Use destroy (not clear) to invalidate session ID and prevent fixation
-        session.destroy
+        # Use rodauth.clear_session for complete cleanup (cookie + server-side)
+        rodauth.clear_session
         response.status = 401
-        request.halt({ error: 'Session expired', success: false })
+        request.halt({ error: 'web.auth.security.session_expired', success: false })
       end
 
       def handle_account_routes(r)

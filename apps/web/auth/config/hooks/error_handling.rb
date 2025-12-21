@@ -77,9 +77,9 @@ module Auth::Config::Hooks
             message: 'Session references deleted account - clearing session',
           )
 
-          # Clear the orphaned session
+          # Clear the orphaned session using Rodauth's clear_session for complete cleanup
           begin
-            session.destroy
+            clear_session
           rescue StandardError => destroy_error
             Auth::Logging.log_auth_event(
               :session_destroy_failed,
@@ -90,13 +90,13 @@ module Auth::Config::Hooks
 
           # Return appropriate response based on route
           # For logout: success (they wanted to log out anyway)
-          # For other routes: 401 unauthorized
+          # For other routes: 401 unauthorized with i18n key for frontend translation
           if current_route == :logout
             request.halt([200, { 'Content-Type' => 'application/json' },
                           [JSON.generate({ success: true, message: 'Logged out' })]])
           else
             request.halt([401, { 'Content-Type' => 'application/json' },
-                          [JSON.generate({ error: 'Session expired', success: false })]])
+                          [JSON.generate({ error: 'web.auth.security.session_expired', success: false })]])
           end
         rescue StandardError => ex
           Auth::Logging.log_auth_event(

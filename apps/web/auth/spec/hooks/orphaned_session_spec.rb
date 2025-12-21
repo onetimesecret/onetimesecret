@@ -109,7 +109,7 @@ RSpec.describe 'Orphaned Session Handling', type: :integration do
         "Expected 401 but got #{last_response.status}: #{last_response.body[0..500]}"
 
       body = JSON.parse(last_response.body)
-      expect(body['error']).to eq('Session expired')
+      expect(body['error']).to eq('web.auth.security.session_expired')
     end
   end
 
@@ -124,7 +124,7 @@ RSpec.describe 'Orphaned Session Handling', type: :integration do
         "Expected 401 but got #{last_response.status}: #{last_response.body[0..500]}"
 
       body = JSON.parse(last_response.body)
-      expect(body['error']).to eq('Session expired')
+      expect(body['error']).to eq('web.auth.security.session_expired')
     end
   end
 
