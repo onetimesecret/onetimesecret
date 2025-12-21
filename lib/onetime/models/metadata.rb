@@ -47,6 +47,24 @@ module Onetime
       self.state ||= 'new'
     end
 
+    # Clean up class-level collections before destroying the object.
+    # Familia's base destroy! handles the main key and related fields,
+    # but class-level sorted sets and sets need explicit cleanup.
+    def destroy!
+      # Remove from expiration timeline tracking (sorted set)
+      self.class.expiration_timeline.remove_element(identifier)
+
+      # Remove from warnings_sent tracking (set)
+      self.class.warnings_sent.remove_element(identifier)
+
+      # Call Familia's built-in destroy which handles:
+      # - Main object key deletion
+      # - Related fields cleanup
+      # - Instances collection removal
+      # - objid/extid lookup cleanup
+      super
+    end
+
     def age
       @age ||= Familia.now.to_i - updated
       @age
