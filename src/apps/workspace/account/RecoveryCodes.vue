@@ -7,178 +7,23 @@
   import { ref, onMounted, computed } from 'vue';
 
   const { t } = useI18n();
-  const {
-    recoveryCodes,
-    mfaStatus,
-    isLoading,
-    error,
-    fetchRecoveryCodes,
-    fetchMfaStatus,
-    generateNewRecoveryCodes,
-    clearError,
-  } = useMfa();
+  const { mfaStatus, isLoading, error, fetchMfaStatus, generateNewRecoveryCodes, clearError } =
+    useMfa();
 
   const showGenerateConfirm = ref(false);
   const regeneratePassword = ref('');
 
   onMounted(async () => {
-    // Fetch recovery codes first (generates/fetches codes)
-    // Then fetch MFA status to get the correct count
-    // Sequential execution prevents race condition where count query
-    // runs between code deletion and insertion
-    await fetchRecoveryCodes();
+    // Fetch MFA status to get the recovery codes count
+    // We don't fetch actual codes - just display the count
     await fetchMfaStatus();
   });
 
   // Check if MFA is enabled
   const mfaEnabled = computed(() => mfaStatus.value?.enabled || false);
 
-  // Download codes as text file
-  const downloadCodes = () => {
-    const content = [
-      'OneTime Secret Recovery Codes',
-      '================================',
-      '',
-      'Keep these codes safe and secure.',
-      'Each code can be used once to access your account if you lose your authenticator device.',
-      '',
-      ...recoveryCodes.value,
-      '',
-      `Generated: ${new Date().toLocaleString()}`,
-    ].join('\n');
-
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `onetime-recovery-codes-${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // Copy codes to clipboard
-  const copyCodes = async () => {
-    const content = recoveryCodes.value.join('\n');
-    try {
-      await navigator.clipboard.writeText(content);
-      alert(t('web.auth.recovery-codes.copied'));
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
-
-  /**
-   * Print recovery codes in a new window
-   *
-   * IMPORTANT: Error Handling Strategy
-   * ==================================
-   * This function is wrapped in try-catch to prevent errors from bubbling up to
-   * Vue's global error handler (defined in globalErrorBoundary.ts).
-   *
-   * THE PROBLEM:
-   * When window.open() creates a new browser window, that window exists OUTSIDE
-   * Vue's component context. If any error occurs during DOM manipulation in the
-   * new window, Vue's global error handler catches it and tries to use inject()
-   * to access the Sentry client. However, inject() ONLY works inside Vue's
-   * setup() or functional components - it crashes when called outside component
-   * context with: "inject() can only be used inside setup() or functional components"
-   *
-   * THE SOLUTION:
-   * By wrapping the entire function in try-catch, we handle errors locally within
-   * the component context. This prevents errors from escaping to the global error
-   * handler, which would attempt to use inject() and crash.
-   *
-   * APPROACH:
-   * 1. Use imperative DOM API (createElement, appendChild) instead of innerHTML
-   *    to avoid XSS vulnerabilities and maintain explicit control
-   * 2. Build the document structure step-by-step for clarity and safety
-   * 3. Catch any errors locally and log them without disrupting Vue's error system
-   * 4. Provide helpful console messages for debugging (popup blocked, etc.)
-   *
-   * ALTERNATIVE APPROACHES CONSIDERED:
-   * - Using a blob URL with print CSS: More complex, harder to debug
-   * - Rendering Vue component in new window: Requires full Vue app setup
-   * - Using @media print CSS: Doesn't allow preview before printing
-   *
-   * This approach balances simplicity, security, and user experience.
-   */
-  /**
- * const printCodes = () => {
-  try {
-    // Open new window for print preview
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
-    if (!printWindow) {
-      console.error('[RecoveryCodes] Failed to open print window - popup blocked?');
-      return;
-    }
-
-    // Build document structure using imperative DOM API (safe from XSS)
-    const doc = printWindow.document;
-    const html = doc.createElement('html');
-    const head = doc.createElement('head');
-    const title = doc.createElement('title');
-    const style = doc.createElement('style');
-    const body = doc.createElement('body');
-
-    // Set document metadata
-    title.textContent = 'OneTime Secret Recovery Codes';
-
-    // Inline styles for print-friendly layout (monospace, readable spacing)
-    style.textContent = `
-      body { font-family: monospace; padding: 2rem; }
-      h1 { margin-bottom: 1rem; }
-      p { margin: 1rem 0; }
-      ul { list-style: none; padding: 0; }
-      li { margin: 0.5rem 0; font-size: 1.2rem; }
-      .footer { margin-top: 2rem; font-size: 0.8rem; color: #666; }
-    `;
-
-    head.appendChild(title);
-    head.appendChild(style);
-
-    // Create page header
-    const h1 = doc.createElement('h1');
-    h1.textContent = 'OneTime Secret Recovery Codes';
-
-    // Add instruction text
-    const p = doc.createElement('p');
-    p.textContent = 'Keep these codes safe and secure. Each code can be used once.';
-
-    // Create recovery codes list (iterate reactive ref safely)
-    const ul = doc.createElement('ul');
-    recoveryCodes.value.forEach(code => {
-      const li = doc.createElement('li');
-      li.textContent = code; // textContent prevents XSS
-      ul.appendChild(li);
-    });
-
-    // Add generation timestamp for reference
-    const footer = doc.createElement('p');
-    footer.className = 'footer';
-    footer.textContent = `Generated: ${new Date().toLocaleString()}`;
-
-    // Assemble document structure
-    body.appendChild(h1);
-    body.appendChild(p);
-    body.appendChild(ul);
-    body.appendChild(footer);
-
-    html.appendChild(head);
-    html.appendChild(body);
-
-    doc.appendChild(html);
-    doc.close(); // Finalize document for rendering
-
-    // Focus window and trigger print dialog
-    printWindow.focus();
-    printWindow.print();
-  } catch (error) {
-    // Local error handling - prevents bubbling to Vue's global error handler
-    // which would crash trying to use inject() outside component context
-    console.error('[RecoveryCodes] Error printing codes:', error);
-  }
- * };
- */
+  // Check if there are recovery codes remaining
+  const hasRecoveryCodes = computed(() => (mfaStatus.value?.recovery_codes_remaining ?? 0) > 0);
 
   // Show generate confirmation modal
   const showGenerateModal = () => {
@@ -265,19 +110,19 @@
         </p>
       </div>
 
-      <!-- Recovery codes display -->
+      <!-- Recovery codes status (shows count, not actual codes) -->
       <div
-        v-else-if="recoveryCodes.length > 0"
+        v-else-if="hasRecoveryCodes"
         class="space-y-6">
         <!-- Status info -->
         <div class="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
           <div class="flex items-start gap-3">
-            <i class="fas fa-info-circle text-blue-600 dark:text-blue-400"></i>
+            <i class="fas fa-shield-alt text-blue-600 dark:text-blue-400"></i>
             <div class="text-sm text-blue-800 dark:text-blue-300">
               <p class="font-semibold">
                 {{
                   t('web.auth.recovery-codes.remaining', {
-                    count: mfaStatus?.recovery_codes_remaining || recoveryCodes.length,
+                    count: mfaStatus?.recovery_codes_remaining ?? 0,
                   })
                 }}
               </p>
@@ -285,36 +130,6 @@
                 Each code can only be used once. Generate new codes if you're running low.
               </p>
             </div>
-          </div>
-        </div>
-
-        <!-- Codes grid -->
-        <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-          <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div
-              v-for="(code, index) in recoveryCodes"
-              :key="index"
-              class="rounded-lg bg-gray-50 p-3 font-mono text-lg dark:bg-gray-700 dark:text-gray-300">
-              {{ code }}
-            </div>
-          </div>
-
-          <!-- Action buttons -->
-          <div class="flex flex-wrap gap-3">
-            <button
-              @click="downloadCodes"
-              type="button"
-              class="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-              <i class="fas fa-download mr-2"></i>
-              {{ t('web.auth.recovery-codes.download') }}
-            </button>
-            <button
-              @click="copyCodes"
-              type="button"
-              class="flex-1 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-              <i class="fas fa-copy mr-2"></i>
-              {{ t('web.auth.recovery-codes.copy') }}
-            </button>
           </div>
         </div>
 
