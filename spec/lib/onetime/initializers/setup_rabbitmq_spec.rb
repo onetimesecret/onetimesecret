@@ -168,4 +168,69 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
       end
     end
   end
+
+  describe '.disconnect (deprecated class method)' do
+    let(:mock_instance) { instance_double(described_class) }
+
+    before do
+      allow(Onetime::Boot::InitializerRegistry).to receive(:initializers)
+        .and_return([mock_instance])
+      allow(mock_instance).to receive(:is_a?).with(described_class).and_return(true)
+      allow(mock_instance).to receive(:cleanup)
+    end
+
+    it 'logs deprecation warning' do
+      expect { described_class.disconnect }.to output(/DEPRECATION.*disconnect is deprecated/).to_stderr
+    end
+
+    it 'delegates to instance cleanup method' do
+      allow($stderr).to receive(:write)
+      described_class.disconnect
+      expect(mock_instance).to have_received(:cleanup)
+    end
+
+    context 'when no instance is registered' do
+      before do
+        allow(Onetime::Boot::InitializerRegistry).to receive(:initializers).and_return([])
+      end
+
+      it 'does not raise error' do
+        allow($stderr).to receive(:write)
+        expect { described_class.disconnect }.not_to raise_error
+      end
+    end
+  end
+
+  describe '.reconnect (deprecated class method)' do
+    let(:mock_instance) { instance_double(described_class) }
+
+    before do
+      allow(Onetime::Boot::InitializerRegistry).to receive(:initializers)
+        .and_return([mock_instance])
+      allow(mock_instance).to receive(:is_a?).with(described_class).and_return(true)
+      allow(mock_instance).to receive(:reconnect)
+    end
+
+    it 'logs deprecation warning' do
+      expect { described_class.reconnect }.to output(/DEPRECATION.*reconnect is deprecated/).to_stderr
+    end
+
+    it 'delegates to instance reconnect method' do
+      allow($stderr).to receive(:write)
+      described_class.reconnect
+      expect(mock_instance).to have_received(:reconnect)
+    end
+
+    context 'when no instance is registered' do
+      before do
+        allow(Onetime::Boot::InitializerRegistry).to receive(:initializers).and_return([])
+      end
+
+      it 'does not raise error' do
+        allow($stderr).to receive(:write)
+        expect { described_class.reconnect }.not_to raise_error
+      end
+    end
+  end
+
 end

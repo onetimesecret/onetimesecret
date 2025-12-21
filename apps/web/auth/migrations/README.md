@@ -66,6 +66,72 @@ Adds password history and database-specific enhancements:
 - `update_login_activity` trigger - Automatic activity tracking
 - `cleanup_expired_jwt_refresh_tokens` trigger - Token cleanup
 
+## Database Trigger Testing
+
+Migration 002 includes database triggers (SQLite) and functions (PostgreSQL) that execute automatically. These are tested to ensure trigger SQL matches the actual schema.
+
+### Schema Validation
+
+**Validator:** `spec/support/auth_trigger_validator.rb`
+
+Parses trigger SQL from migration files and verifies:
+- Column references in triggers match actual table schema
+- `NEW.column_name` patterns exist in target tables
+- Foreign key columns are consistent
+- INSERT/UPDATE statements use correct column names
+
+Catches schema/SQL mismatches before deployment.
+
+### Test Coverage
+
+**SQLite Triggers:**
+- `spec/integration/authentication/full_mode/database_triggers_sqlite_spec.rb`
+- Tests: Login activity tracking, token cleanup, schema validation
+- Tag: `:full_auth_mode`
+
+**PostgreSQL Triggers:**
+- `spec/integration/authentication/full_mode/database_triggers_postgres_spec.rb`
+- Tests: Function-based triggers, upsert behavior, cleanup functions
+- Tag: `:full_auth_mode, :postgres_database`
+
+### Running Trigger Tests
+
+```bash
+# SQLite trigger tests (in-memory)
+bundle exec rspec spec/integration/authentication/full_mode/database_triggers_sqlite_spec.rb
+
+# PostgreSQL trigger tests (requires running PostgreSQL)
+export AUTH_DATABASE_URL=postgresql://postgres:postgres@localhost/onetime_auth_test
+bundle exec rspec --tag postgres_database
+
+# Schema validation only
+bundle exec rspec --tag trigger_validation
+```
+
+### CI Integration
+
+PostgreSQL trigger tests run automatically in CI when backend or migration files change:
+- Job: `ruby-integration-full-postgres`
+- Service: PostgreSQL 16 container
+- Path: `.github/ci-test-paths.json`
+
+### Troubleshooting Trigger Validation
+
+**"Column not found" error:**
+- Check trigger SQL in `schemas/{postgres,sqlite}/002_extras.sql`
+- Verify column names match table definition in `001_initial.rb`
+- Example: `account_activity_times` uses `id` not `account_id`
+
+**Trigger not firing:**
+- Verify trigger condition matches test data
+- Check audit log message format: `%login%successful%`
+- Use direct DB INSERT to isolate from HTTP layer
+
+**PostgreSQL function errors:**
+- Ensure function exists: `SELECT proname FROM pg_proc WHERE proname = 'update_last_login_time';`
+- Check function SQL syntax in `002_extras.sql`
+- Verify trigger references correct function name
+
 ## Database Setup
 
 ### PostgreSQL
