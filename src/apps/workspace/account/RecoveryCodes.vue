@@ -16,6 +16,7 @@
     fetchMfaStatus,
     generateNewRecoveryCodes,
     clearError,
+    clearRecoveryCodes,
   } = useMfa();
   const notificationsStore = useNotificationsStore();
 
@@ -65,7 +66,7 @@
       regeneratePassword.value = '';
       codesSaved.value = false;
       showRegeneratedCodes.value = true;
-      await fetchMfaStatus();
+      // Note: fetchMfaStatus moved to closeCodesDisplay to refresh after user saves
     }
     // If error exists, modal stays open with error displayed
   };
@@ -98,9 +99,13 @@
   };
 
   // Close the regenerated codes display
-  const closeCodesDisplay = () => {
+  const closeCodesDisplay = async () => {
     showRegeneratedCodes.value = false;
     codesSaved.value = false;
+    // Clear sensitive data from memory
+    clearRecoveryCodes();
+    // Refresh MFA status to show updated count
+    await fetchMfaStatus();
   };
 </script>
 
@@ -217,6 +222,7 @@
           @click="closeCodesDisplay"
           type="button"
           :disabled="!codesSaved"
+          :aria-label="codesSaved ? t('web.COMMON.word_done') : t('web.auth.recovery-codes.save-required')"
           :class="[
             'w-full rounded-md px-4 py-3 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2',
             codesSaved
