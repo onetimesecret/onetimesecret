@@ -66,7 +66,7 @@ jobs:
   # ============================================================================
 
   changes:
-    name: Detect Changes
+    name: T0 · Detect Changes
     runs-on: &runs-on ubuntu-24.04
     timeout-minutes: 2
     outputs:
@@ -201,7 +201,7 @@ jobs:
   # ============================================================================
 
   ruby-lint:
-    name: Ruby Lint
+    name: T1 · Ruby Lint
     timeout-minutes: 5
     runs-on: *runs-on
     needs: [changes]
@@ -232,7 +232,7 @@ jobs:
           retention-days: 7
 
   typescript-lint:
-    name: TypeScript Lint
+    name: T1 · TypeScript Lint
     timeout-minutes: 5
     runs-on: *runs-on
     needs: [changes]
@@ -251,7 +251,7 @@ jobs:
         run: pnpm lint
 
   build-assets:
-    name: Build Frontend Assets
+    name: T1 · Build Frontend Assets
     timeout-minutes: 10
     runs-on: *runs-on
     needs: [changes]
@@ -279,7 +279,7 @@ jobs:
   # ============================================================================
 
   ruby-unit:
-    name: Ruby Unit Tests
+    name: T2 · Ruby Unit Tests
     timeout-minutes: 10
     runs-on: *runs-on
     needs: [changes, ruby-lint, build-assets]
@@ -319,7 +319,7 @@ jobs:
           debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
   typescript-unit:
-    name: TypeScript Unit Tests
+    name: T2 · TypeScript Unit Tests
     timeout-minutes: 15
     runs-on: *runs-on
     needs: [changes, typescript-lint]
@@ -346,7 +346,7 @@ jobs:
   # ============================================================================
 
   ruby-integration-simple:
-    name: Ruby Integration (Simple Mode)
+    name: T3 · Ruby Integration (Simple Mode)
     timeout-minutes: 10
     runs-on: *runs-on
     needs: [changes, ruby-unit]
@@ -377,7 +377,7 @@ jobs:
           results-file: 'rspec_simple_results.json'
 
   ruby-integration-full:
-    name: Ruby Integration (Full Mode)
+    name: T3 · Ruby Integration (Full Mode)
     timeout-minutes: 10
     runs-on: *runs-on
     needs: [changes, ruby-unit]
@@ -405,7 +405,7 @@ jobs:
           results-file: 'rspec_full_results.json'
 
   ruby-integration-disabled:
-    name: Ruby Integration (Disabled Mode)
+    name: T3 · Ruby Integration (Disabled Mode)
     timeout-minutes: 10
     runs-on: *runs-on
     needs: [changes, ruby-unit]
@@ -436,7 +436,7 @@ jobs:
   # ============================================================================
 
   check-oci-image:
-    name: Container Validation
+    name: T4 · Container Validation
     timeout-minutes: 10
     runs-on: *runs-on
     needs:
@@ -532,7 +532,7 @@ jobs:
   # ============================================================================
 
   ci-metrics:
-    name: CI Metrics
+    name: T5 · CI Metrics
     runs-on: *runs-on
     timeout-minutes: 2
     # List ALL jobs to ensure this runs last (after all complete/skip/fail)
@@ -585,15 +585,15 @@ jobs:
 
           # Validate expected job names exist (warns if job names change)
           EXPECTED_JOBS=(
-            "Ruby Lint"
-            "TypeScript Lint"
-            "Build Frontend Assets"
-            "Ruby Unit Tests"
-            "TypeScript Unit Tests"
-            "Ruby Integration (Simple Mode)"
-            "Ruby Integration (Full Mode)"
-            "Ruby Integration (Disabled Mode)"
-            "Container Validation"
+            "T1 · Ruby Lint"
+            "T1 · TypeScript Lint"
+            "T1 · Build Frontend Assets"
+            "T2 · Ruby Unit Tests"
+            "T2 · TypeScript Unit Tests"
+            "T3 · Ruby Integration (Simple Mode)"
+            "T3 · Ruby Integration (Full Mode)"
+            "T3 · Ruby Integration (Disabled Mode)"
+            "T4 · Container Validation"
           )
           ACTUAL_JOBS=$(echo "$JOBS_JSON" | jq -r '.[].name')
           for job in "${EXPECTED_JOBS[@]}"; do
@@ -603,45 +603,45 @@ jobs:
           done
 
           # Tier 1: Lint & Build - latest completion of all Tier 1 jobs
-          # Jobs: "Ruby Lint", "TypeScript Lint", "Build Frontend Assets"
+          # Jobs: "T1 · Ruby Lint", "T1 · TypeScript Lint", "T1 · Build Frontend Assets"
           TIER1_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
             [.[] | select(
-                .name == "Ruby Lint" or
-                .name == "TypeScript Lint" or
-                .name == "Build Frontend Assets"
+                .name == "T1 · Ruby Lint" or
+                .name == "T1 · TypeScript Lint" or
+                .name == "T1 · Build Frontend Assets"
               )
               | select(.completed_at != null) | .completed_at]
             | sort | last // empty
           ')
 
           # Tier 2: Unit Tests - latest completion of all Tier 2 jobs
-          # Jobs: "Ruby Unit Tests", "TypeScript Unit Tests"
+          # Jobs: "T2 · Ruby Unit Tests", "T2 · TypeScript Unit Tests"
           TIER2_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
             [.[] | select(
-                .name == "Ruby Unit Tests" or
-                .name == "TypeScript Unit Tests"
+                .name == "T2 · Ruby Unit Tests" or
+                .name == "T2 · TypeScript Unit Tests"
               )
               | select(.completed_at != null) | .completed_at]
             | sort | last // empty
           ')
 
           # Tier 3: Integration Tests - latest completion of all Tier 3 jobs
-          # Jobs: "Ruby Integration (Simple Mode)", "Ruby Integration (Full Mode)",
-          #       "Ruby Integration (Disabled Mode)"
+          # Jobs: "T3 · Ruby Integration (Simple Mode)", "T3 · Ruby Integration (Full Mode)",
+          #       "T3 · Ruby Integration (Disabled Mode)"
           TIER3_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
             [.[] | select(
-                .name == "Ruby Integration (Simple Mode)" or
-                .name == "Ruby Integration (Full Mode)" or
-                .name == "Ruby Integration (Disabled Mode)"
+                .name == "T3 · Ruby Integration (Simple Mode)" or
+                .name == "T3 · Ruby Integration (Full Mode)" or
+                .name == "T3 · Ruby Integration (Disabled Mode)"
               )
               | select(.completed_at != null) | .completed_at]
             | sort | last // empty
           ')
 
           # Tier 4: Container Validation
-          # Jobs: "Container Validation"
+          # Jobs: "T4 · Container Validation"
           TIER4_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
-            [.[] | select(.name == "Container Validation")
+            [.[] | select(.name == "T4 · Container Validation")
               | select(.completed_at != null) | .completed_at]
             | first // empty
           ')
