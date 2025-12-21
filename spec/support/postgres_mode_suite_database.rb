@@ -163,7 +163,8 @@ module PostgresModeSuiteDatabase
         next unless @database.table_exists?(table)
 
         begin
-          @database.run("TRUNCATE TABLE #{table} CASCADE")
+          # Use Sequel's truncate method with cascade option for safe identifier handling
+          @database[table].truncate(cascade: true)
         rescue Sequel::DatabaseError => e
           # Log but don't fail - some tables may have dependencies
           warn "Failed to truncate #{table}: #{e.message}"
@@ -185,8 +186,8 @@ module PostgresModeSuiteDatabase
           sequence_name = result&.values&.first
           next unless sequence_name
 
-          # Restart the sequence
-          @database.run("ALTER SEQUENCE #{sequence_name} RESTART WITH 1")
+          # Restart the sequence using Sequel.identifier for safe identifier quoting
+          @database.run("ALTER SEQUENCE #{Sequel.identifier(sequence_name)} RESTART WITH 1")
         rescue Sequel::DatabaseError
           # Not all tables have sequences, ignore
           nil
