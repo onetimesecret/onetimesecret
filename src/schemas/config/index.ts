@@ -18,7 +18,7 @@
  * - auth.ts: Authentication configuration (auth.defaults.yaml)
  * - logging.ts: Logging configuration (logging.defaults.yaml)
  * - billing.ts: Billing configuration (billing.yaml)
- * - billing-plans.ts: Plan catalog configuration (billing-plans.yaml)
+ * - billing-plans.ts: Plan catalog configuration (billing-catalog.yaml)
  */
 
 // ============================================================================
@@ -153,7 +153,7 @@ export type {
 } from './billing';
 
 // ============================================================================
-// Plan Catalog Configuration (billing-plans.yaml)
+// Plan Catalog Configuration (billing-catalog.yaml)
 // ============================================================================
 export {
   CATALOG_SCHEMA_VERSION,

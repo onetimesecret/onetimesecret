@@ -38,6 +38,7 @@ begin
   Dry::CLI.new(Onetime::CLI).call(arguments: remaining_args)
 rescue RuntimeError => ex
   warn ex.message
+  exit ex.exit_code if ex.respond_to?(:exit_code)
 rescue StandardError => ex
   puts ex.message
   puts ex.backtrace if debug

@@ -3,7 +3,7 @@
 /**
  * Billing Plan Catalog Schema
  *
- * Zod v4 schema for etc/billing/billing-plans.yaml
+ * Zod v4 schema for etc/billing/billing-catalog.yaml
  *
  * Purpose:
  * - Type-safe validation of billing plan catalog structure

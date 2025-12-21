@@ -1,4 +1,4 @@
-# etc/examples/billing-plans.example.yaml
+# etc/examples/billing-catalog.example.yaml
 #
 # Billing Plan Catalog
 #
@@ -28,6 +28,7 @@
 # ```
 
 schema_version: "1.0"
+app_identifier: "onetimesecret"  # Used in Stripe metadata['app'] matching
 
 # NOTE: Configuration (entitlements, stripe_api_version) moved to etc/billing.yaml
 # Plans reference entitlements by ID string. See billing.yaml for full config.

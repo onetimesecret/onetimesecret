@@ -6,7 +6,7 @@
 # Billing Plan Runtime Helpers
 #
 # Utility methods for querying cached plans from Stripe.
-# Plan definitions live in etc/billing/billing-plans.yaml and are
+# Plan definitions live in etc/billing/billing-catalog.yaml and are
 # synced to Redis cache via Billing::Plan model.
 #
 # See docs/billing/plan-definitions.md for catalog reference.

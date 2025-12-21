@@ -16,9 +16,9 @@ module Billing
 
     # Get path to billing plans catalog
     #
-    # @return [String] Absolute path to billing-plans.yaml
+    # @return [String] Absolute path to billing-catalog.yaml
     def self.catalog_path
-      File.join(Onetime::HOME, 'etc', 'billing-plans.yaml')
+      File.join(Onetime::HOME, 'etc', 'billing-catalog.yaml')
     end
 
     # Check if billing config file exists
@@ -38,7 +38,7 @@ module Billing
     # Load entitlements from billing.yaml
     #
     # Loads entitlement definitions from billing configuration.
-    # Falls back to billing-plans.yaml for backward compatibility.
+    # Falls back to billing-catalog.yaml for backward compatibility.
     #
     # @return [Hash] Entitlement definitions by ID
     def self.load_entitlements
@@ -49,7 +49,7 @@ module Billing
         return entitlements if entitlements
       end
 
-      # Fall back to billing-plans.yaml (old location)
+      # Fall back to billing-catalog.yaml
       if catalog_exists?
         catalog = YAML.load_file(catalog_path)
         return catalog['entitlements'] if catalog['entitlements']
