@@ -17,10 +17,10 @@ Sequel.migration do
     # These provide security, trigger automation, and utility functions
     case database_type
     when :postgres
-      sql_file = File.join(MIGRATION_ROOT, 'schemas/postgres/002_functions_up.sql')
+      sql_file = File.join(MIGRATION_ROOT, 'schemas/postgres/002_functions_⬆.sql')
       run File.read(sql_file) if File.exist?(sql_file)
     when :sqlite
-      sql_file = File.join(MIGRATION_ROOT, 'schemas/sqlite/002_functions_up.sql')
+      sql_file = File.join(MIGRATION_ROOT, 'schemas/sqlite/002_functions_⬆.sql')
       run File.read(sql_file) if File.exist?(sql_file)
     end
   end
@@ -29,10 +29,10 @@ Sequel.migration do
     # Drop database-specific functions
     case database_type
     when :postgres
-      sql_file = File.join(MIGRATION_ROOT, 'schemas/postgres/002_functions_down.sql')
+      sql_file = File.join(MIGRATION_ROOT, 'schemas/postgres/002_functions_⬇.sql')
       run File.read(sql_file) if File.exist?(sql_file)
     when :sqlite
-      sql_file = File.join(MIGRATION_ROOT, 'schemas/sqlite/002_functions_down.sql')
+      sql_file = File.join(MIGRATION_ROOT, 'schemas/sqlite/002_functions_⬇.sql')
       run File.read(sql_file) if File.exist?(sql_file)
     end
   end
