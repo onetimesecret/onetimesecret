@@ -44,6 +44,7 @@ module Auth::Config::Features
 
       # Recovery codes configuration
       auth.auto_add_recovery_codes? true  # Automatically generate recovery codes
+      auth.recovery_codes_limit 4 # Number of codes generated
 
       # Critical: Orphaned recovery codes create a "zombie MFA state"
       # where Rodauth still considers MFA active because recovery codes

@@ -134,9 +134,9 @@ module AuthAccountFactory
   #
   # @param db [Sequel::Database] The test database
   # @param account_id [Integer] The account ID
-  # @param count [Integer] Number of codes to generate (default: 10)
+  # @param count [Integer] Number of codes to generate (default: 4)
   # @return [Array<String>] The generated recovery codes
-  def create_recovery_codes(db:, account_id:, count: 10)
+  def create_recovery_codes(db:, account_id:, count: 4)
     codes = count.times.map { SecureRandom.alphanumeric(12).downcase }
 
     codes.each do |code|
