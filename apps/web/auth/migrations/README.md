@@ -1,23 +1,23 @@
 # Auth Database Migrations
 
-Sequel migrations for the Rodauth authentication system. Migrations run automatically on application boot when `AUTHENTICATION_MODE=full`.
+Sequel migrations for the Rodauth authentication system. These migrations are only used when the application authentication mode is set to full (i.e. `AUTHENTICATION_MODE=full`).
 
-## Setup
+## Initialization
 
 ### PostgreSQL
 
 **Run BEFORE first boot:**
 
 ```bash
-cd apps/web/auth/migrations/schemas/postgres
-psql -U postgres -h localhost -f setup_auth_db.sql
+psql -U postgres -h localhost -f apps/web/auth/migrations/schemas/postgres/setup_auth_db.sql
 ```
 
-Creates database `onetime_auth_test`, user `onetime_auth`, and configures privileges for the Rodauth security pattern.
+Creates database `onetime_auth`, and two roles: `oneitme_migrator` and `onetime_user`, each with privileges appropriate for their purpose.
 
 ### SQLite
 
 No setup required. Database file created automatically at `data/auth.db`.
+
 
 ## Configuration
 
@@ -32,3 +32,21 @@ export AUTH_DATABASE_URL_MIGRATIONS=postgresql://postgres@localhost/onetime_auth
 ```
 
 **Why two URLs?** Rodauth security pattern: migrations run with elevated privileges (extensions, grants), application runs with restricted privileges (select, insert, update, delete).
+
+## Running the Migrations
+
+### In Development
+
+To get up and running, the database will be automatically created and the default simplified schema applied when you start the application. This is done by Rodauth::Tools which provides a clean starting point for development and testing. This does not include the advanced functionality provided by the Sequel and SQL migrations.
+
+When working on existing features, create the complete database schema before the first boot as well. See In Production below.
+
+### In Production
+
+Create the complete database schema with advanced functionality provided by the Sequel and SQL migrations, run the following immediately after running `setup_auth_db.sql`:
+
+```bash
+sequel -m apps/web/auth/migrations $AUTH_DATABASE_URL_MIGRATIONS
+```
+
+NOTE: you can rollback by seting the migration index to 0: `sequel -m apps/web/auth/migrations -M 0 $AUTH_DATABASE_URL_MIGRATIONS`

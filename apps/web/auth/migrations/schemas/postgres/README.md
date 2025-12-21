@@ -4,11 +4,10 @@ Rodauth authentication schema with functions, triggers, views, and Row Level Sec
 
 ## Setup
 
-Run before first boot with `AUTHENTICATION_MODE=full`:
+See apps/web/auth/migrations/README.md for setup instructions.
+
 
 ```bash
-psql -U postgres -h localhost -f setup_auth_db.sql
-```
 
 ## Usage Examples
 

@@ -26,15 +26,30 @@ const localeModules = (import.meta as any).glob('@/locales/*/*.json', {
 
 const messages: Record<string, any> = {};
 
+/** Keys that must be rejected to prevent prototype pollution attacks (CWE-1321) */
+const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
 /**
  * Deep merge helper function to recursively merge nested objects.
  * Prevents namespace collisions when multiple locale files share the same top-level keys.
+ *
+ * Includes prototype pollution guards per OWASP recommendations.
+ * @see https://owasp.org/www-community/attacks/Prototype_Pollution
+ *
  * @param target - The target object to merge into
  * @param source - The source object to merge from
  * @returns The merged target object
  */
 function deepMerge(target: Record<string, any>, source: Record<string, any>): Record<string, any> {
   for (const key in source) {
+    // Skip inherited properties to prevent iterating over polluted prototype
+    if (!Object.prototype.hasOwnProperty.call(source, key)) {
+      continue;
+    }
+    // Guard against prototype pollution (CWE-1321)
+    if (DANGEROUS_KEYS.has(key)) {
+      continue;
+    }
     if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
       if (!target[key]) {
         target[key] = {};
@@ -68,6 +83,10 @@ for (const path in localeModules) {
       // Structured file: merge under "web" or "email" keys using deep merge
       // to prevent namespace collisions (e.g., auth.json and auth-full.json both use web.auth)
       Object.keys(content).forEach((topKey) => {
+        // Guard against prototype pollution (CWE-1321)
+        if (DANGEROUS_KEYS.has(topKey)) {
+          return;
+        }
         if (typeof content[topKey] === 'object' && content[topKey] !== null) {
           if (!messages[locale][topKey]) {
             messages[locale][topKey] = {};
@@ -77,7 +96,12 @@ for (const path in localeModules) {
       });
     } else {
       // Flat file (uncategorized): merge keys directly at root level
-      Object.assign(messages[locale], content);
+      // Filter out dangerous keys to prevent prototype pollution (CWE-1321)
+      Object.keys(content).forEach((key) => {
+        if (!DANGEROUS_KEYS.has(key)) {
+          messages[locale][key] = content[key];
+        }
+      });
     }
   }
 }
@@ -184,11 +208,16 @@ export function createCompatibilityLayer(messages: Record<string, any>): Record<
 
   /**
    * Recursively flattens object into dot notation paths.
+   * Includes prototype pollution guards per OWASP recommendations.
    * @param obj - Source object
    * @param prefix - Current key path
    */
   function flattenKeys(obj: Record<string, unknown>, prefix = ''): void {
     Object.entries(obj).forEach(([key, value]) => {
+      // Guard against prototype pollution (CWE-1321)
+      if (DANGEROUS_KEYS.has(key)) {
+        return;
+      }
       if (value && typeof value === 'object') {
         flattenKeys(value as Record<string, unknown>, `${prefix}${key}.`);
       } else {
