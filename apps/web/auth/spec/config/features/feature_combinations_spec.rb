@@ -51,7 +51,7 @@ RSpec.describe 'Rodauth Feature Combinations' do
 
         # MFA configuration
         otp_issuer 'OneTimeSecret'
-        otp_auth_failures_limit 7
+        otp_auth_failures_limit Auth::Config::Features::MFA::OTP_AUTH_FAILURES_LIMIT
         otp_keys_use_hmac? true
 
         # Passwordless configuration
@@ -114,7 +114,7 @@ RSpec.describe 'Rodauth Feature Combinations' do
         ],
       ) do
         otp_issuer 'OneTimeSecret'
-        otp_auth_failures_limit 7
+        otp_auth_failures_limit Auth::Config::Features::MFA::OTP_AUTH_FAILURES_LIMIT
       end
     end
 

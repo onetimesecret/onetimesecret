@@ -74,7 +74,7 @@ RSpec.describe 'ENV-conditional feature loading' do
       if respond_to?(:otp_issuer)
         otp_issuer 'OneTimeSecret'
         otp_keys_use_hmac? true
-        otp_auth_failures_limit 7
+        otp_auth_failures_limit Auth::Config::Features::MFA::OTP_AUTH_FAILURES_LIMIT
       end
     end
   end
