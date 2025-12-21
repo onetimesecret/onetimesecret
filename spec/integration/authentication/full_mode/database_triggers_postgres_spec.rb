@@ -58,7 +58,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :full_auth_mode, :postgres_databa
 
     after do
       # Clean up test data
-      test_db[:accounts].where(id: @account[:id]).delete if @account
+      cleanup_account(db: test_db, account_id: @account[:id]) if @account
     end
 
     context 'HTTP login flow' do
@@ -175,7 +175,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :full_auth_mode, :postgres_databa
           expect(activity).not_to be_nil, "Trigger failed for message: #{message}"
 
           # Cleanup
-          test_db[:accounts].where(id: account[:id]).delete
+          cleanup_account(db: test_db, account_id: account[:id])
         end
       end
 
@@ -244,7 +244,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :full_auth_mode, :postgres_databa
     end
 
     after do
-      test_db[:accounts].where(id: @account[:id]).delete if @account
+      cleanup_account(db: test_db, account_id: @account[:id]) if @account
     end
 
     context 'JWT refresh token cleanup' do
@@ -405,7 +405,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :full_auth_mode, :postgres_databa
 
         # Cleanup test accounts
         expired_email_accounts.each do |data|
-          test_db[:accounts].where(id: data[:account][:id]).delete
+          cleanup_account(db: test_db, account_id: data[:account][:id])
         end
       end
     end
@@ -460,7 +460,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :full_auth_mode, :postgres_databa
       end
 
       after do
-        test_db[:accounts].where(id: @account[:id]).delete if @account
+        cleanup_account(db: test_db, account_id: @account[:id]) if @account
       end
 
       it 'returns security summary for account with password only' do
@@ -547,7 +547,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :full_auth_mode, :postgres_databa
         end
 
         # Cleanup
-        test_db[:accounts].where(id: account[:id]).delete
+        cleanup_account(db: test_db, account_id: account[:id])
       end
     end
   end

@@ -68,6 +68,10 @@ RSpec.describe 'SQLite Database Triggers', :full_auth_mode, :sqlite_database do
       @account = create_verified_account(db: test_db, email: test_email, password: test_password)
     end
 
+    after do
+      cleanup_account(db: test_db, account_id: @account[:id]) if @account
+    end
+
     context 'HTTP login flow' do
       # NOTE: SQLite LIKE is case-sensitive by default, causing trigger mismatch.
       # Rodauth logs 'Login successful' (capitalized) but trigger pattern is
@@ -221,6 +225,10 @@ RSpec.describe 'SQLite Database Triggers', :full_auth_mode, :sqlite_database do
 
   describe 'cleanup_expired_jwt_refresh_tokens trigger' do
     let(:account) { create_verified_account(db: test_db) }
+
+    after do
+      cleanup_account(db: test_db, account_id: account[:id]) if account
+    end
 
     def insert_jwt_token(account_id:, deadline:, key: SecureRandom.urlsafe_base64(32))
       test_db[:account_jwt_refresh_keys].insert(

@@ -59,11 +59,6 @@ RSpec.describe 'PostgreSQL Mode Test Infrastructure', :full_auth_mode, :postgres
 
   describe 'AuthAccountFactory with PostgreSQL' do
     describe '#create_verified_account' do
-      after do
-        # Clean up test account
-        test_db[:accounts].where(email: 'postgres-test@example.com').delete
-      end
-
       it 'creates an account with verified status' do
         account = create_verified_account(db: test_db, email: 'postgres-test@example.com')
         expect(account[:status_id]).to eq(AuthAccountFactory::STATUS_VERIFIED)
