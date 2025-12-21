@@ -18,10 +18,10 @@
 -- Argon2 vs bcrypt salt handling:
 --   - bcrypt: Salt is a distinct 29-char prefix ($2a$12$...), so we return just that
 --   - Argon2: Parameters (m,t,p) and salt are embedded in the hash string
---     ($argon2id$v=19$m=65536,t=2,p=1$<salt>$<hash>). Rodauth's password
---     verification needs the full string to extract cost params and salt.
---     Returning full hash does NOT compromise security - the protection comes
---     from SQL privileges, not from truncating the return value.
+--     ($argon2id$v=19$m=65536,t=2,p=1$<salt>$<hash>). Rodauth's
+--     password_hash_using_salt expects everything EXCEPT the final checksum,
+--     so it can extract the salt with .split('$').last. See migrations.rb
+--     in rodauth gem for the reference implementation.
 --
 CREATE OR REPLACE FUNCTION rodauth_get_salt(p_account_id BIGINT)
 RETURNS TEXT AS $$
@@ -34,8 +34,10 @@ BEGIN
 
     IF hash IS NULL THEN
         RETURN NULL;
-    ELSIF hash LIKE '$argon2%' THEN
-        RETURN hash;  -- Argon2: full hash needed for param extraction
+    ELSIF hash ~ '^\$argon2id' THEN
+        -- Return everything up to and including the salt, excluding the final checksum
+        -- e.g., "$argon2id$v=19$m=65536,t=2,p=1$<salt>$" (note trailing $)
+        RETURN substring(hash from '\$argon2id\$v=\d+\$m=\d+,t=\d+,p=\d+\$.+\$');
     ELSIF hash LIKE '$2a$%' OR hash LIKE '$2b$%' THEN
         RETURN SUBSTRING(hash FROM 1 FOR 29);  -- bcrypt: 29-char salt prefix
     ELSE
