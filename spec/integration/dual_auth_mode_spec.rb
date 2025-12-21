@@ -9,10 +9,12 @@
 # you run at one time: it is a lot of output for small context windows.
 
 require_relative 'integration_spec_helper'
+require_relative '../support/factories/auth_account_factory'
 require 'json'
 require 'familia'
 
 RSpec.describe 'Dual Authentication Mode Integration', type: :request do
+  include AuthTestConstants
   include Rack::Test::Methods
 
   def json_response
@@ -123,7 +125,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :request do
     # status_id: 2 = Verified (see account_statuses table)
     account_id = sql_db[:accounts].insert(
       email: email,
-      status_id: 2  # Verified
+      status_id: STATUS_VERIFIED
     )
 
     # Link SQL account to Redis customer via external_id

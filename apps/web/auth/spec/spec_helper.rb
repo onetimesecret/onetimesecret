@@ -21,9 +21,11 @@ require 'securerandom'
 require 'rack/test'
 
 require_relative '../database'
+require_relative 'support/auth_test_constants'
 
 # Helper module for creating isolated Rodauth test environments
 module RodauthTestHelper
+  include AuthTestConstants
   # Creates a fresh SQLite in-memory database with all Rodauth tables
   #
   # @return [Sequel::Database] configured database connection
@@ -48,11 +50,14 @@ module RodauthTestHelper
       Integer :id, primary_key: true
       String :name, null: false, unique: true
     end
-    db[:account_statuses].import([:id, :name], [[1, 'Unverified'], [2, 'Verified'], [3, 'Closed']])
+    db[:account_statuses].import(
+      [:id, :name],
+      [[STATUS_UNVERIFIED, 'Unverified'], [STATUS_VERIFIED, 'Verified'], [STATUS_CLOSED, 'Closed']]
+    )
 
     db.create_table(:accounts) do
       primary_key :id, type: :Bignum
-      foreign_key :status_id, :account_statuses, null: false, default: 1
+      foreign_key :status_id, :account_statuses, null: false, default: STATUS_UNVERIFIED
       String :email, null: false
       String :external_id, null: true, unique: true
       index :email, unique: true
