@@ -252,7 +252,7 @@
                 }}
               </p>
               <p class="mt-1">
-                Each code can only be used once. Regenerate codes if you're running low.
+                {{ t('web.auth.recovery-codes.usage-hint') }}
               </p>
             </div>
           </div>

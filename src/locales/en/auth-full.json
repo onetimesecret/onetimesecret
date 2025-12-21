@@ -195,6 +195,7 @@
         "code-used": "Used",
         "code-unused": "Unused",
         "remaining": "{count} of {limit} recovery codes remaining",
+        "usage-hint": "Each code can only be used once. Regenerate codes if you're running low.",
         "none-remaining": "No recovery codes remaining",
         "generate-success": "New recovery codes have been generated",
         "link-title": "Recovery Codes"
