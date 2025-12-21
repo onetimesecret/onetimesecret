@@ -5,6 +5,10 @@
 require 'bcrypt'
 require 'securerandom'
 
+# Define namespace before loading the MFA module for its constants
+module Auth; module Config; module Features; end; end; end
+require_relative '../../../apps/web/auth/config/features/mfa'
+
 # Factory methods for creating test accounts in Rodauth database.
 #
 # Usage:
@@ -134,9 +138,9 @@ module AuthAccountFactory
   #
   # @param db [Sequel::Database] The test database
   # @param account_id [Integer] The account ID
-  # @param count [Integer] Number of codes to generate (default: 4)
+  # @param count [Integer] Number of codes to generate (default: RECOVERY_CODES_LIMIT)
   # @return [Array<String>] The generated recovery codes
-  def create_recovery_codes(db:, account_id:, count: 4)
+  def create_recovery_codes(db:, account_id:, count: Auth::Config::Features::MFA::RECOVERY_CODES_LIMIT)
     codes = count.times.map { SecureRandom.alphanumeric(12).downcase }
 
     codes.each do |code|
