@@ -133,7 +133,6 @@ class PostgresSetupCheck
     print "Checking migrations directory... "
 
     # Try to find Onetime::HOME
-    home = nil
     if defined?(Onetime::HOME)
       home = Onetime::HOME
     elsif ENV['ONETIME_HOME']
