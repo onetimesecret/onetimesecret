@@ -307,6 +307,8 @@ module ProductionConfigHelper
   end
 
   def json_get(path)
+    # Clear Content-Type from previous POST requests - GET shouldn't have Content-Type
+    header 'Content-Type', nil
     header 'Accept', 'application/json'
     get path
   end
