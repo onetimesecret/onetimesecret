@@ -167,7 +167,7 @@ DROP ROLE IF EXISTS onetime_migrator;
 DROP ROLE IF EXISTS onetime_auth;
 
 -- Drop the test database too
-DROP DATABASE IF EXISTS onetime_auth_test;
+DROP DATABASE IF EXISTS onetime_auth;
 
 -- Now drop the roles
 DROP ROLE IF EXISTS onetime_user;
