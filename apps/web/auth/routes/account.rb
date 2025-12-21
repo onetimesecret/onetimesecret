@@ -92,6 +92,7 @@ module Auth
               enabled: enabled,
               last_used_at: last_used_at,
               recovery_codes_remaining: recovery_codes_remaining,
+              recovery_codes_limit: Auth::Config::Features::MFA::RECOVERY_CODES_LIMIT,
             }
           rescue StandardError => ex
             puts "Error: #{ex.class} - #{ex.message}"
