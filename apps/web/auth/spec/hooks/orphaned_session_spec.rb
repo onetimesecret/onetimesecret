@@ -99,32 +99,32 @@ RSpec.describe 'Orphaned Session Handling', type: :integration do
   end
 
   describe 'GET /auth/account with deleted account' do
-    # TODO: This test reveals a deeper issue in session/middleware handling
-    # where GET requests with orphaned sessions cause nil.read errors.
-    # The FK violation fix in error_handling.rb only handles POST requests
-    # that trigger audit logging. GET requests need separate handling in
-    # the session middleware or identity resolution layer.
-    it 'returns 401/403 when account no longer exists', :pending do
+    it 'returns 401 when account no longer exists' do
       account = create_and_login_account(email: test_email, password: valid_password)
       delete_account_from_db(account[:id])
 
       json_get '/auth/account'
 
-      expect([401, 403]).to include(last_response.status),
-        "Expected auth error (401/403) but got #{last_response.status}: #{last_response.body[0..500]}"
+      expect(last_response.status).to eq(401),
+        "Expected 401 but got #{last_response.status}: #{last_response.body[0..500]}"
+
+      body = JSON.parse(last_response.body)
+      expect(body['error']).to eq('Session expired')
     end
   end
 
   describe 'GET /auth/mfa-status with deleted account' do
-    # TODO: Same issue as GET /auth/account - needs session middleware fix
-    it 'returns appropriate error when account no longer exists', :pending do
+    it 'returns 401 when account no longer exists' do
       account = create_and_login_account(email: test_email, password: valid_password)
       delete_account_from_db(account[:id])
 
       json_get '/auth/mfa-status'
 
-      expect(last_response.status).not_to eq(500),
-        "Expected non-500 error but got 500: #{last_response.body[0..500]}"
+      expect(last_response.status).to eq(401),
+        "Expected 401 but got #{last_response.status}: #{last_response.body[0..500]}"
+
+      body = JSON.parse(last_response.body)
+      expect(body['error']).to eq('Session expired')
     end
   end
 
@@ -145,16 +145,15 @@ RSpec.describe 'Orphaned Session Handling', type: :integration do
   end
 
   describe 'multiple requests with orphaned session' do
-    # TODO: Same issue as other GET tests - needs session middleware fix
-    it 'does not cause database errors on repeated requests', :pending do
+    it 'returns 401 on repeated requests without database errors' do
       account = create_and_login_account(email: test_email, password: valid_password)
       delete_account_from_db(account[:id])
 
-      # Multiple requests should all fail gracefully, not 500
+      # Multiple requests should all return 401 gracefully
       3.times do
         json_get '/auth/account'
-        expect(last_response.status).not_to eq(500),
-          "Request failed with 500: #{last_response.body[0..500]}"
+        expect(last_response.status).to eq(401),
+          "Expected 401 but got #{last_response.status}: #{last_response.body[0..500]}"
       end
     end
   end

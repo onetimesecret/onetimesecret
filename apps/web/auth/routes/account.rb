@@ -13,7 +13,14 @@ module Auth
               next { error: 'Authentication required' }
             end
 
-            account = rodauth.account
+            account = rodauth.account_from_session
+
+            # Handle orphaned session (account deleted while session active)
+            unless account
+              session.clear
+              response.status = 401
+              next { error: 'Session expired', success: false }
+            end
 
             # Check if MFA features are enabled before calling methods
             mfa_enabled          = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
@@ -56,7 +63,14 @@ module Auth
               next { error: 'Authentication required' }
             end
 
-            rodauth.account_from_session
+            account = rodauth.account_from_session
+
+            # Handle orphaned session (account deleted while session active)
+            unless account
+              session.clear
+              response.status = 401
+              next { error: 'Session expired', success: false }
+            end
 
             # Check if MFA features are enabled (OTP or recovery codes)
             #
@@ -109,6 +123,13 @@ module Auth
             end
 
             account = rodauth.account_from_session
+
+            # Handle orphaned session (account deleted while session active)
+            unless account
+              session.clear
+              response.status = 401
+              next { error: 'Session expired', success: false }
+            end
 
             # Check if MFA features are enabled before calling methods
             mfa_enabled          = rodauth.respond_to?(:otp_exists?) && rodauth.otp_exists?
