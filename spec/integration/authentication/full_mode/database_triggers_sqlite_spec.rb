@@ -431,7 +431,7 @@ RSpec.describe 'SQLite Database Triggers', :full_auth_mode, :sqlite_database do
         expect(total_expired).to eq(0)
       end
 
-      it 'handles exactly-now deadline (boundary condition)' do
+      it 'handles deadline in the past (boundary condition)' do
         # Insert token as valid first
         boundary_key = SecureRandom.urlsafe_base64(32)
         test_db[:account_jwt_refresh_keys].insert(
@@ -440,17 +440,16 @@ RSpec.describe 'SQLite Database Triggers', :full_auth_mode, :sqlite_database do
           deadline: Time.now + 86400
         )
 
-        # Update deadline to exactly now (doesn't trigger cleanup)
+        # Update deadline to be in the past (doesn't trigger cleanup)
+        # Using a small, fixed offset is more reliable than sleep.
+        past_deadline = Time.now - 1
         test_db[:account_jwt_refresh_keys]
           .where(key: boundary_key)
-          .update(deadline: Time.now)
+          .update(deadline: past_deadline)
 
         # Verify token exists
         count_before = test_db[:account_jwt_refresh_keys].where(key: boundary_key).count
         expect(count_before).to eq(1)
-
-        # Sleep briefly to ensure "now" has passed
-        sleep 0.1
 
         # Insert new token (triggers cleanup)
         insert_jwt_token(account_id: account[:id], deadline: Time.now + 86400)
