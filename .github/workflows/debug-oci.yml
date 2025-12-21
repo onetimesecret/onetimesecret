@@ -60,7 +60,7 @@ jobs:
           node-version: '22'
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@e94b270858c939f4f8b43f5c1438fa1d9a67ad5d
+        uses: pnpm/action-setup@1e1c8eafbd745f64b1ef30a7d7ed7965034c486c
         with:
           version: latest
 
