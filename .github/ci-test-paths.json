@@ -14,5 +14,9 @@
   "ruby-integration-disabled": {
     "tryouts-paths": "",
     "rspec-paths": "spec/integration"
+  },
+  "ruby-integration-full-postgres": {
+    "tryouts-paths": "",
+    "rspec-paths": "spec/integration/authentication/full_mode/*_postgres_spec.rb"
   }
 }

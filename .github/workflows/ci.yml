@@ -404,6 +404,47 @@ jobs:
           tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full.tryouts-paths }}
           results-file: 'rspec_full_results.json'
 
+  ruby-integration-full-postgres:
+    name: T3 · Ruby Integration (Full Mode - PostgreSQL)
+    timeout-minutes: 10
+    runs-on: *runs-on
+    needs: [changes, ruby-unit]
+    if: *if-ruby-integration
+
+    services:
+      redis: *valkey-service
+      postgres:
+        image: postgres:16@sha256:09ee71790e8c517f1e2c7e37ec2f6fc4ff2f38f31a9ea0c6d4ffe1ba8eb96b4a
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: onetime_auth_test
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 10s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Run Ruby tests
+        uses: ./.github/actions/run-ruby-tests
+        with:
+          test-type: integration
+          auth-mode: full
+          auth-database-url: 'postgresql://postgres:postgres@localhost:5432/onetime_auth_test'
+          rspec-tag: 'full_auth_mode,postgres_database'
+          rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full-postgres.rspec-paths }}
+          tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full-postgres.tryouts-paths }}
+          results-file: 'rspec_full_postgres_results.json'
+
   ruby-integration-disabled:
     name: T3 · Ruby Integration (Disabled Mode)
     timeout-minutes: 10
@@ -444,6 +485,7 @@ jobs:
         changes,
         ruby-integration-simple,
         ruby-integration-full,
+        ruby-integration-full-postgres,
         ruby-integration-disabled,
         typescript-unit,
       ]
@@ -452,6 +494,7 @@ jobs:
       (needs.changes.outputs.oci == 'true' || needs.changes.outputs.frontend == 'true') &&
       (needs.ruby-integration-simple.result == 'success' || needs.ruby-integration-simple.result == 'skipped') &&
       (needs.ruby-integration-full.result == 'success' || needs.ruby-integration-full.result == 'skipped') &&
+      (needs.ruby-integration-full-postgres.result == 'success' || needs.ruby-integration-full-postgres.result == 'skipped') &&
       (needs.ruby-integration-disabled.result == 'success' || needs.ruby-integration-disabled.result == 'skipped') &&
       (needs.typescript-unit.result == 'success' || needs.typescript-unit.result == 'skipped') &&
       !contains(needs.*.result, 'failure')
@@ -545,6 +588,7 @@ jobs:
       - typescript-unit
       - ruby-integration-simple
       - ruby-integration-full
+      - ruby-integration-full-postgres
       - ruby-integration-disabled
       - check-oci-image
     # always() ensures this runs even if some jobs failed/skipped
@@ -592,6 +636,7 @@ jobs:
             "T2 · TypeScript Unit Tests"
             "T3 · Ruby Integration (Simple Mode)"
             "T3 · Ruby Integration (Full Mode)"
+            "T3 · Ruby Integration (Full Mode - PostgreSQL)"
             "T3 · Ruby Integration (Disabled Mode)"
             "T4 · Container Validation"
           )
@@ -627,11 +672,12 @@ jobs:
 
           # Tier 3: Integration Tests - latest completion of all Tier 3 jobs
           # Jobs: "T3 · Ruby Integration (Simple Mode)", "T3 · Ruby Integration (Full Mode)",
-          #       "T3 · Ruby Integration (Disabled Mode)"
+          #       "T3 · Ruby Integration (Full Mode - PostgreSQL)", "T3 · Ruby Integration (Disabled Mode)"
           TIER3_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
             [.[] | select(
                 .name == "T3 · Ruby Integration (Simple Mode)" or
                 .name == "T3 · Ruby Integration (Full Mode)" or
+                .name == "T3 · Ruby Integration (Full Mode - PostgreSQL)" or
                 .name == "T3 · Ruby Integration (Disabled Mode)"
               )
               | select(.completed_at != null) | .completed_at]
@@ -685,6 +731,7 @@ jobs:
           echo "| TypeScript Unit | ${{ needs.typescript-unit.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Simple) | ${{ needs.ruby-integration-simple.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Full) | ${{ needs.ruby-integration-full.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Ruby Integration (Full - PostgreSQL) | ${{ needs.ruby-integration-full-postgres.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Integration (Disabled) | ${{ needs.ruby-integration-disabled.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Container Validation | ${{ needs.check-oci-image.result }} |" >> $GITHUB_STEP_SUMMARY
 
@@ -763,7 +810,7 @@ jobs:
 
             - **Tier 1 - Lint & Build**: Ruby Lint, TypeScript Lint, Build Frontend Assets
             - **Tier 2 - Unit Tests**: Ruby Unit Tests, TypeScript Unit Tests
-            - **Tier 3 - Integration Tests**: Ruby Integration (Simple, Full, Disabled modes)
+            - **Tier 3 - Integration Tests**: Ruby Integration (Simple, Full, Full PostgreSQL, Disabled modes)
             - **Tier 4 - Container Validation**: Docker build and health check
             - **Tier 5 - CI Metrics**: Performance validation and reporting
 
