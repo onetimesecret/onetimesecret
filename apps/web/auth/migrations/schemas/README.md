@@ -2,17 +2,6 @@
 
 Database-specific SQL loaded by Sequel migrations.
 
-## First-Time Setup
-
-**PostgreSQL users:**
-
-```bash
-cd postgres
-psql -U postgres -h localhost -f setup_auth_db.sql
-```
-
-See `postgres/README.md` for details.
-
 ## Architecture
 
 **Why hybrid Sequel + SQL?**
@@ -42,4 +31,4 @@ when :sqlite
 end
 ```
 
-PostgreSQL includes `COMMENT` statements on all objects. SQLite has more inline triggers since it lacks stored functions.
+PostgreSQL includes `COMMENT` statements.

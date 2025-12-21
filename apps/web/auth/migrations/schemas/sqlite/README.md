@@ -10,6 +10,11 @@ Rodauth authentication schema adapted for SQLite with triggers and views.
 - **More Cleanup Triggers**: Inline triggers replace callable functions (6 total vs 3 in PostgreSQL)
 
 
+## Setup
+
+See apps/web/auth/migrations/README.md for setup instructions.
+
+
 ## Usage Examples
 
 ### Password Management
