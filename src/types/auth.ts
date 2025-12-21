@@ -72,4 +72,5 @@ export interface MfaStatus {
   enabled: boolean;
   last_used_at: string | null;
   recovery_codes_remaining: number;
+  recovery_codes_limit: number;
 }
