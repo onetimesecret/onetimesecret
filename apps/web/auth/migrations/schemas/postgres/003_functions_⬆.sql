@@ -1,5 +1,5 @@
 -- ================================================================
--- Rodauth PostgreSQL Functions (002)
+-- Rodauth PostgreSQL Functions (003)
 -- Loaded by 002_functions.rb migration
 --
 -- All standalone functions and functions used by triggers

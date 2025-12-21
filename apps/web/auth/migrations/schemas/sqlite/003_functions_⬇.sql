@@ -1,5 +1,5 @@
 -- ================================================================
--- Rodauth SQLite Functions Rollback (002)
+-- Rodauth SQLite Functions Rollback (003)
 -- Loaded by 002_functions.rb migration (down)
 --
 -- SQLite Limitation: No Stored Functions/Procedures

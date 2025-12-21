@@ -1,5 +1,5 @@
 -- ================================================================
--- Rodauth PostgreSQL Functions Rollback (002)
+-- Rodauth PostgreSQL Functions Rollback (003)
 -- Loaded by 002_functions.rb migration (down)
 --
 -- Removes all database functions created by 002_functions_up.sql

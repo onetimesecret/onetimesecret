@@ -1,5 +1,5 @@
 -- ================================================================
--- Rodauth SQLite Triggers (003)
+-- Rodauth SQLite Triggers (004)
 -- Loaded by 003_triggers.rb migration
 --
 -- SQLite triggers use inline SQL instead of calling functions

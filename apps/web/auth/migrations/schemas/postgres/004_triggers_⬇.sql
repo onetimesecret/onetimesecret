@@ -1,5 +1,5 @@
 -- ================================================================
--- Rodauth PostgreSQL Triggers Rollback (003)
+-- Rodauth PostgreSQL Triggers Rollback (004)
 -- Loaded by 003_triggers.rb migration (down)
 --
 -- Removes all database triggers created by 003_triggers_up.sql

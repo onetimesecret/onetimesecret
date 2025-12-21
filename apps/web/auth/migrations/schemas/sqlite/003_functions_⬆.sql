@@ -1,5 +1,5 @@
 -- ================================================================
--- Rodauth SQLite Functions (002)
+-- Rodauth SQLite Functions (003)
 -- Loaded by 002_functions.rb migration
 --
 -- SQLite Limitation: No Stored Functions/Procedures

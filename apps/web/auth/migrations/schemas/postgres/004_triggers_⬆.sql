@@ -1,5 +1,5 @@
 -- ================================================================
--- Rodauth PostgreSQL Triggers (003)
+-- Rodauth PostgreSQL Triggers (004)
 -- Loaded by 003_triggers.rb migration
 -- ================================================================
 
