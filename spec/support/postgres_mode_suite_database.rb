@@ -172,26 +172,31 @@ module PostgresModeSuiteDatabase
       end
 
       # Reset sequences for primary keys
-      # Use pg_get_serial_sequence to dynamically find sequence names
-      AuthAccountFactory::RODAUTH_TABLES.each do |table|
-        next unless @database.table_exists?(table)
+      # Optimized: fetch all sequences in a single query instead of looping per table
+      begin
+        # Build list of placeholders for parameterized query
+        placeholders = AuthAccountFactory::RODAUTH_TABLES.map { '?' }.join(', ')
 
-        begin
-          # Get the primary key column
-          pk_column = @database.primary_key(table)
-          next unless pk_column
+        # Fetch all sequence names for tables with serial columns
+        sequences_to_reset = @database.fetch(<<~SQL, *AuthAccountFactory::RODAUTH_TABLES).all
+          SELECT DISTINCT pg_get_serial_sequence(quote_ident(table_name), quote_ident(column_name)) AS sequence_name
+          FROM information_schema.columns
+          WHERE table_schema = 'public'
+            AND table_name IN (#{placeholders})
+            AND column_default LIKE 'nextval%'
+        SQL
 
-          # Get the sequence name associated with the primary key
-          result = @database.fetch("SELECT pg_get_serial_sequence(?, ?)", table.to_s, pk_column.to_s).first
-          sequence_name = result&.values&.first
-          next unless sequence_name
+        # Filter out nil results and build ALTER SEQUENCE commands
+        alter_commands = sequences_to_reset
+          .map { |row| row[:sequence_name] }
+          .compact
+          .map { |seq_name| "ALTER SEQUENCE #{Sequel.identifier(seq_name)} RESTART WITH 1" }
 
-          # Restart the sequence using Sequel.identifier for safe identifier quoting
-          @database.run("ALTER SEQUENCE #{Sequel.identifier(sequence_name)} RESTART WITH 1")
-        rescue Sequel::DatabaseError
-          # Not all tables have sequences, ignore
-          nil
-        end
+        # Execute all commands in a single transaction if any exist
+        @database.run(alter_commands.join(";\n")) if alter_commands.any?
+      rescue Sequel::DatabaseError
+        # Ignore if there's an issue - this is a cleanup optimization
+        nil
       end
     end
   end
