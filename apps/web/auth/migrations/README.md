@@ -27,7 +27,7 @@ No setup required. Database file created automatically at `data/auth.db`.
 export AUTHENTICATION_MODE=full
 
 # Application runtime connection (restricted privileges)
-export AUTH_DATABASE_URL=postgresql://onetime_auth:pass@localhost/onetime_auth_test
+export AUTH_DATABASE_URL=postgresql://onetime_user:pass@localhost/onetime_auth
 
 # Migration-time connection (elevated privileges for CREATE EXTENSION, etc.)
 export AUTH_DATABASE_URL_MIGRATIONS=postgresql://postgres@localhost/onetime_auth_test

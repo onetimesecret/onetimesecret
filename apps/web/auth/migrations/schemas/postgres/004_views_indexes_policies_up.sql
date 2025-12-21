@@ -19,6 +19,7 @@ CREATE INDEX idx_previous_password_hashes_account_id ON account_previous_passwor
 -- ================================================================
 
 -- Account summary with status (from 001_initial.sql)
+-- Note: last_login_at available via JOIN with account_activity_times if needed
 CREATE VIEW accounts_with_status AS
 SELECT
     a.id,
@@ -28,8 +29,6 @@ SELECT
     a.status_id,
     a.created_at,
     a.updated_at,
-    a.last_login_at,
-    a.last_login_ip,
     CASE WHEN ph.id IS NOT NULL THEN TRUE ELSE FALSE END as has_password,
     CASE WHEN otpk.id IS NOT NULL THEN TRUE ELSE FALSE END as has_otp
 FROM accounts a
