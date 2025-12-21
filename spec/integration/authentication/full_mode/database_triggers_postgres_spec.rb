@@ -427,17 +427,15 @@ RSpec.describe 'PostgreSQL Database Triggers', :full_auth_mode, :postgres_databa
       end
 
       it 'handles deadline exactly at current time (boundary condition)' do
-        # Insert token with deadline exactly now
+        # Insert token with deadline in the past to create reliable boundary condition
+        # This is more deterministic than using sleep
         boundary_key = SecureRandom.hex(32)
-        now = Time.now
+        past_deadline = Time.now - 1  # 1 second in the past
         test_db[:account_jwt_refresh_keys].insert(
           account_id: @account[:id],
           key: boundary_key,
-          deadline: now
+          deadline: past_deadline
         )
-
-        # Wait a moment to ensure time has passed
-        sleep 0.1
 
         # Insert new token to trigger cleanup
         new_key = SecureRandom.hex(32)
@@ -447,7 +445,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :full_auth_mode, :postgres_databa
           deadline: Time.now + 86400
         )
 
-        # Token at boundary should be cleaned up (deadline < NOW())
+        # Token with past deadline should be cleaned up (deadline < NOW())
         expect(test_db[:account_jwt_refresh_keys].where(key: boundary_key).count).to eq(0)
       end
     end

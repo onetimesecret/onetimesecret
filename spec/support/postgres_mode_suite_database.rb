@@ -171,15 +171,22 @@ module PostgresModeSuiteDatabase
       end
 
       # Reset sequences for primary keys
+      # Use pg_get_serial_sequence to dynamically find sequence names
       AuthAccountFactory::RODAUTH_TABLES.each do |table|
         next unless @database.table_exists?(table)
 
         begin
-          # Only reset sequence if table has a serial primary key
-          sequence_name = "#{table}_id_seq"
-          if @database.table_exists?(sequence_name.to_sym)
-            @database.run("ALTER SEQUENCE #{sequence_name} RESTART WITH 1")
-          end
+          # Get the primary key column
+          pk_column = @database.primary_key(table)
+          next unless pk_column
+
+          # Get the sequence name associated with the primary key
+          result = @database.fetch("SELECT pg_get_serial_sequence(?, ?)", table.to_s, pk_column.to_s).first
+          sequence_name = result&.values&.first
+          next unless sequence_name
+
+          # Restart the sequence
+          @database.run("ALTER SEQUENCE #{sequence_name} RESTART WITH 1")
         rescue Sequel::DatabaseError
           # Not all tables have sequences, ignore
           nil

@@ -114,8 +114,14 @@ module AuthTriggerValidator
       # Extract function definitions (CREATE OR REPLACE FUNCTION...$$)
       functions = extract_postgres_functions(sql)
 
+      # Extract trigger definitions to map functions to source tables
+      # This allows us to validate NEW/OLD column references
+      trigger_mappings = extract_postgres_trigger_mappings(sql)
+
       functions.each do |function_name, function_sql|
-        validate_postgres_function(function_name, function_sql)
+        # Get source table for this function from trigger definition
+        source_table = trigger_mappings[function_name]
+        validate_postgres_function(function_name, function_sql, source_table)
       end
     end
 
@@ -137,12 +143,26 @@ module AuthTriggerValidator
     def extract_postgres_functions(sql)
       functions = {}
 
-      # Match: CREATE OR REPLACE FUNCTION name() ... $$ LANGUAGE plpgsql;
-      sql.scan(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+(\w+)\s*\([^)]*\)\s+.*?\$\$\s+(.*?)\s+\$\$/mi) do |name, body|
+      # Match: CREATE OR REPLACE FUNCTION name() ... $$ ... $$ LANGUAGE plpgsql;
+      # Use more specific pattern matching closing $$ followed by LANGUAGE
+      sql.scan(/CREATE\s+OR\s+REPLACE\s+FUNCTION\s+(\w+)\s*\([^)]*\)\s+.*?\$\$\s+(.*?)\s+\$\$\s+LANGUAGE/mi) do |name, body|
         functions[name] = body
       end
 
       functions
+    end
+
+    # Extract PostgreSQL CREATE TRIGGER statements to map function names to source tables
+    # Returns hash: { function_name => source_table_name }
+    def extract_postgres_trigger_mappings(sql)
+      mappings = {}
+
+      # Match: CREATE TRIGGER name ... ON table_name ... EXECUTE FUNCTION function_name()
+      sql.scan(/CREATE\s+TRIGGER\s+\w+\s+.*?\s+ON\s+(\w+)\s+.*?\s+EXECUTE\s+(?:FUNCTION|PROCEDURE)\s+(\w+)/mi) do |table, function|
+        mappings[function] = table
+      end
+
+      mappings
     end
 
     # Validate a single SQLite trigger
@@ -164,12 +184,46 @@ module AuthTriggerValidator
     end
 
     # Validate a PostgreSQL function that's used by a trigger
-    def validate_postgres_function(function_name, function_sql)
+    # source_table: the table this function's trigger is attached to (for NEW/OLD validation)
+    def validate_postgres_function(function_name, function_sql, source_table = nil)
       # Extract column references from function body
       column_refs = extract_column_references(function_sql)
 
-      # Validate references against schema
+      # Validate INSERT/UPDATE statement column references
       validate_trigger_column_references(function_name, function_sql, column_refs)
+
+      # If we know the source table, validate NEW/OLD column references
+      if source_table
+        validate_postgres_new_old_references(function_name, function_sql, column_refs, source_table)
+      end
+    end
+
+    # Validate NEW.* and OLD.* column references in PostgreSQL function against source table schema
+    def validate_postgres_new_old_references(function_name, function_sql, column_refs, source_table)
+      return unless db.table_exists?(source_table.to_sym)
+
+      # Get schema for source table
+      schema_columns = db.schema(source_table.to_sym).map { |col| col[0].to_s }.to_set
+
+      # Validate NEW references
+      if column_refs['NEW']
+        column_refs['NEW'].each do |col|
+          next if schema_columns.include?(col)
+
+          @errors << "Function #{function_name}: References NEW.#{col} but " \
+                     "source table '#{source_table}' has columns: #{schema_columns.to_a.sort.join(', ')}"
+        end
+      end
+
+      # Validate OLD references (for UPDATE/DELETE triggers)
+      if column_refs['OLD']
+        column_refs['OLD'].each do |col|
+          next if schema_columns.include?(col)
+
+          @errors << "Function #{function_name}: References OLD.#{col} but " \
+                     "source table '#{source_table}' has columns: #{schema_columns.to_a.sort.join(', ')}"
+        end
+      end
     end
 
     # Extract target table from trigger definition
@@ -231,9 +285,10 @@ module AuthTriggerValidator
     def extract_insert_update_statements(sql)
       results = []
 
-      # Match: INSERT [OR REPLACE] INTO table_name (col1, col2, ...) VALUES (...)
-      # Match: INSERT INTO table_name (col1, col2, ...) VALUES (...) ON CONFLICT ...
-      sql.scan(/INSERT\s+(?:OR\s+REPLACE\s+)?INTO\s+(\w+)\s*\(([^)]+)\)/mi) do |table, cols|
+      # Match: INSERT [OR REPLACE] INTO table_name (col1, col2, ...)
+      # Use non-greedy match (.*?) to correctly handle ON CONFLICT clauses with parentheses
+      # Made VALUES optional to handle partial SQL in tests
+      sql.scan(/INSERT\s+(?:OR\s+REPLACE\s+)?INTO\s+(\w+)\s*\((.*?)\)/mi) do |table, cols|
         column_list = cols.split(',').map { |c| c.strip.gsub(/^["']|["']$/, '') }
         results << [table, column_list]
       end
