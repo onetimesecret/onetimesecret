@@ -12,7 +12,7 @@ redis_uri = URI.parse(OT.conf['redis']['uri'])
 @@redis_host = redis_uri.host
 @@redis_port = redis_uri.port
 
-## Test basic initialization
+## basic initialization
 source_uri = "redis://#{@redis_host}:#{@redis_port}/14"
 target_uri = "redis://#{@redis_host}:#{@redis_port}/15"
 
@@ -20,14 +20,14 @@ migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)
 migrator.class.name
 #=> "Onetime::Services::RedisKeyMigrator"
 
-## Test URI parsing database
+## URI parsing database
 source_uri = "redis://#{@redis_host}:#{@redis_port}/14"
 target_uri = "redis://#{@redis_host}:#{@redis_port}/15"
 migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)
 migrator.source_uri.path
 #=> "/14"
 
-## Test strategy detection
+## strategy detection
 source_uri = "redis://#{@redis_host}:#{@redis_port}/14"
 target_uri = "redis://#{@redis_host}:#{@redis_port}/15"
 migrator = Onetime::Services::RedisKeyMigrator.new(source_uri, target_uri)

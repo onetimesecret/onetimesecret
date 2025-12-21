@@ -156,7 +156,7 @@ OT.conf = @test_config
 # TEST: Method returns nil when mode is not configured
 # -------------------------------------------------------------------
 
-## Test with nil mode value (should return false since header doesn't match nil)
+## With nil mode value (should return false since header doesn't match nil)
 @test_config['site']['interface']['ui']['homepage']['mode'] = nil
 OT.conf = @test_config
 @req_no_mode = create_mock_request('O-Homepage-Mode' => 'protected')
@@ -168,7 +168,7 @@ OT.conf = @test_config
 # TEST: Method returns nil when mode is different
 # -------------------------------------------------------------------
 
-## Test with different expected mode value
+## With different expected mode value
 @test_config['site']['interface']['ui']['homepage']['mode'] = 'some-other-mode'
 OT.conf = @test_config
 @req_other_mode = create_mock_request('O-Homepage-Mode' => 'protected')
@@ -180,7 +180,7 @@ OT.conf = @test_config
 # TEST: Method returns nil when request_header is not configured
 # -------------------------------------------------------------------
 
-## Test with nil header name (should return false)
+## With nil header name (should return false)
 @test_config['site']['interface']['ui']['homepage']['mode'] = 'protected'
 @test_config['site']['interface']['ui']['homepage']['request_header'] = nil
 OT.conf = @test_config
@@ -193,7 +193,7 @@ OT.conf = @test_config
 # TEST: Method returns nil when request_header is empty string
 # -------------------------------------------------------------------
 
-## Test with empty header name (should return false)
+## With empty header name (should return false)
 @test_config['site']['interface']['ui']['homepage']['request_header'] = ''
 OT.conf = @test_config
 @req_empty_header_config = create_mock_request('O-Homepage-Mode' => 'protected')

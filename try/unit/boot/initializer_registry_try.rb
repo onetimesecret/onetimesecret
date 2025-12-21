@@ -7,7 +7,7 @@ require_relative '../../../lib/onetime/logger_methods'
 require_relative '../../../lib/onetime/errors'
 require_relative '../../../lib/onetime/boot/initializer_registry'
 
-## Setup
+# Setup section
 # Mock Onetime methods for testing
 ::Onetime.define_singleton_method(:now_in_μs) do
   (Time.now.to_f * 1_000_000).to_i
@@ -428,5 +428,5 @@ rescue NoMethodError
 end
 #=> "raised as expected"
 
-## Teardown - Full reset to prevent test class pollution
+## Full reset to prevent test class pollution
 Onetime::Boot::InitializerRegistry.reset_all!

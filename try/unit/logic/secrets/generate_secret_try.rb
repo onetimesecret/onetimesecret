@@ -41,7 +41,7 @@ secret.generate_id
 [secret.identifier.is_a?(String), secret.identifier.length > 16]
 #=> [true, true]
 
-## Test basic secret creation
+## basic secret creation
 @secret_payload = {
   'secret' => 'test secret value',
   'passphrase' => 'testpass123',
@@ -77,14 +77,14 @@ logic = Logic::Secrets::ShowSecret.new @strategy_result_with_cust, @view_params
 
 # RevealSecret Tests
 
-## Test secret revealing (v2 API)
+## secret revealing (v2 API)
 logic = V2::Logic::Secrets::RevealSecret.new @strategy_result_with_cust, @view_params
 [logic.identifier, logic.passphrase]
 #=> [@secret.identifier, 'testpass123']
 
 # ShowMetadata Tests
 
-## Test metadata viewing
+## metadata viewing
 logic = Logic::Secrets::ShowMetadata.new @strategy_result_with_cust, { 'identifier' => @metadata.identifier }
 [logic.instance_variables.include?(:@identifier), logic.instance_variables.include?(:@metadata_identifier), logic.instance_variables.include?(:@secret_identifier), logic.secret_identifier, logic.identifier]
 #=> [true, false, false, nil, @metadata.identifier]
@@ -96,14 +96,14 @@ logic = Logic::Secrets::ListMetadata.new @strategy_result_with_cust, {}
 [logic.since.class, logic.now.class]
 #=> [Integer, Float]
 
-## Test metadata list viewing
+## metadata list viewing
 logic = Logic::Secrets::ListMetadata.new @strategy_result_with_cust, {}
 [logic.records.class, logic.since.class, logic.now.class]
 #=> [NilClass, Integer, Float]
 
 # BurnSecret Tests
 
-## Test secret burning
+## secret burning
 logic = Logic::Secrets::BurnSecret.new @strategy_result_with_cust, @view_params
 [logic.identifier, logic.passphrase]
 #=> [@secret.identifier, 'testpass123']

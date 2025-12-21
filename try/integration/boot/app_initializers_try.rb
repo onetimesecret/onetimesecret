@@ -5,7 +5,7 @@
 require_relative '../../support/test_helpers'
 require_relative '../../../lib/onetime/boot/initializer_registry'
 
-## Setup - Reset registry before all tests
+## Reset registry before all tests
 Onetime::Boot::InitializerRegistry.reset!
 
 ## App can register initializer with DSL
@@ -94,5 +94,5 @@ described = Onetime::Boot::InitializerRegistry.initializers.find { |i| i.name ==
 described.description
 #=> 'Custom description'
 
-## Teardown
+# Teardown section
 Onetime::Boot::InitializerRegistry.reset!

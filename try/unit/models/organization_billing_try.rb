@@ -8,7 +8,7 @@ require_relative '../../support/test_helpers'
 #
 # Tests billing field management on Organization model.
 
-## Setup: Ensure feature is loaded
+## Ensure feature is loaded
 require 'lib/onetime/models/organization/features/with_organization_billing'
 require 'onetime/models/organization'
 

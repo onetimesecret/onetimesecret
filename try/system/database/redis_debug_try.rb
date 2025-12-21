@@ -17,7 +17,7 @@ def test_uri(db)
   "redis://#{@redis_host}:#{@redis_port}/#{db}"
 end
 
-## Test basic migrator creation
+## basic migrator creation
 source_uri = test_uri(@test_db_source)
 target_uri = test_uri(15)
 
@@ -25,12 +25,12 @@ target_uri = test_uri(15)
 @migrator.class.name
 #=> "Onetime::Services::RedisKeyMigrator"
 
-## Test strategy determination
+## strategy determination
 strategy = @migrator.send(:determine_migration_strategy)
 strategy
 #=> :copy
 
-## Test key discovery (simple)
+## key discovery (simple)
 discovered_keys = @migrator.send(:discover_keys, 'nonexistent:*')
 discovered_keys.class.name
 #=> "Array"

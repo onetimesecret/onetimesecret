@@ -54,12 +54,12 @@ rescue NotImplementedError => e
 end
 #=> "Onetime::Mail::Templates::Base must implement #subject"
 
-## TestTemplate returns correct subject
+## returns correct subject
 template = TestTemplate.new(@data)
 template.subject
 #=> "Test Subject from alice@example.com"
 
-## TestTemplate returns correct recipient_email
+## returns correct recipient_email
 template = TestTemplate.new(@data)
 template.recipient_email
 #=> 'bob@example.com'

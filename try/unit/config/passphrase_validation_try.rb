@@ -7,7 +7,7 @@ require_relative '../../support/test_logic'
 # Load configuration for testing
 OT.boot! :test, false
 
-## Test passphrase validation when not required
+## passphrase validation when not required
 # Create a mock secret action for testing
 class TestSecretAction < V2::Logic::Secrets::BaseSecretAction
   attr_accessor :test_passphrase_config
@@ -76,7 +76,7 @@ class TestSecretAction < V2::Logic::Secrets::BaseSecretAction
   end
 end
 
-## Test validation with no passphrase required and none provided
+## validation with no passphrase required and none provided
 action = TestSecretAction.new(secret: { passphrase: '' })
 action.test_passphrase_config = { 'required' => false }
 begin
@@ -87,7 +87,7 @@ rescue => e
 end
 #=> true
 
-## Test validation with passphrase required but none provided
+## validation with passphrase required but none provided
 action = TestSecretAction.new(secret: { passphrase: '' })
 action.test_passphrase_config = { 'required' => true }
 begin
@@ -98,7 +98,7 @@ rescue => e
 end
 #=> true
 
-## Test validation with minimum length requirement
+## validation with minimum length requirement
 action = TestSecretAction.new(secret: { passphrase: 'short' })
 action.test_passphrase_config = { 'required' => false, 'minimum_length' => 10 }
 begin
@@ -109,7 +109,7 @@ rescue => e
 end
 #=> true
 
-## Test validation with valid passphrase meeting minimum length
+## validation with valid passphrase meeting minimum length
 action = TestSecretAction.new(secret: { passphrase: 'longenough' })
 action.test_passphrase_config = { 'required' => false, 'minimum_length' => 8 }
 begin
@@ -120,7 +120,7 @@ rescue => e
 end
 #=> true
 
-## Test validation with complexity enforcement
+## validation with complexity enforcement
 action = TestSecretAction.new(secret: { passphrase: 'simplepassword' })
 action.test_passphrase_config = { 'required' => false, 'enforce_complexity' => true }
 begin
@@ -131,7 +131,7 @@ rescue => e
 end
 #=> true
 
-## Test validation with complex passphrase meeting all requirements
+## validation with complex passphrase meeting all requirements
 action = TestSecretAction.new(secret: { passphrase: 'Complex123!' })
 action.test_passphrase_config = { 'required' => false, 'enforce_complexity' => true }
 begin

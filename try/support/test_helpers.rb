@@ -19,7 +19,8 @@ ENV['ONETIME_HOME'] ||= File.expand_path(File.join(__dir__, '..', '..')).freeze
 #
 # IMPORTANT: Override both VALKEY_URL and REDIS_URL to prevent production values
 # from .env file or CI environment leaking into tests.
-
+ENV['VALKEY_URL'] = 'valkey://127.0.0.1:2121/0'
+ENV['REDIS_URL'] = 'redis://127.0.0.1:2121/0'
 
 project_root = ENV['ONETIME_HOME']
 app_root = File.join(project_root, '/apps').freeze
