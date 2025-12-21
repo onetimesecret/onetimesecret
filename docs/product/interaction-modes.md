@@ -40,7 +40,7 @@ This document defines the architectural model for the frontend. It answers:
 |-----|------|---------|
 | Secret | Conceal/Reveal | Transactional (create & view secrets) |
 | Workspace | Manage | Account management |
-| Kernel | Admin | System administration |
+| Colonel | Admin | System administration |
 | Session | Gateway | Authentication |
 
 Three independent dimensions control rendering:
@@ -74,7 +74,7 @@ Interaction Mode is a structural decision made when the route is defined. It det
 | /secret/:key  | Secret    | Reveal  | Recipient viewing shared content           |
 | /receipt/:key | Secret    | Reveal  | Creator checking delivery status           |
 | /dashboard/*  | Workspace | Manage  | Account holder managing history            |
-| /colonel/*    | Kernel    | Admin   | System administrator                       |
+| /colonel/*    | Colonel    | Admin   | System administrator                       |
 | /signin       | Session   | Gateway | Identity verification                      |
 
 ### Dimension 2: Domain Context (Runtime)
@@ -158,7 +158,7 @@ For Reveal, only two dimensions apply (Homepage Mode is irrelevant):
 └─────────────┴─────────────────┴───────────────────┘
 ```
 
-For Workspace/Kernel, neither Domain Context nor Homepage Mode apply:
+For Workspace/Colonel, neither Domain Context nor Homepage Mode apply:
 
 ```
 ┌─────────────┬─────────────────────────────────────┐
@@ -252,12 +252,12 @@ const { theme, uiPermissions } = useSecretContext();  // Dimension 2 + actor rol
 1.  **The Apps (Level 1 - Structural):**
     *   **Secret:** The public/branded transactional layer.
     *   **Workspace:** The authenticated management layer.
-    *   **Kernel:** The system administration layer.
+    *   **Colonel:** The system administration layer.
     *   **Session:** The authentication gateway.
 
 2.  **The Logic (Level 2 - Behavioral):**
     *   **Secret Context:** A dimensional matrix handling the high variance of user states (Owner/Recipient/Anon) unique to secret transactions.
-    *   **RBAC:** A permission system used in Workspace/Kernel to gate specific features based on plan/role.
+    *   **RBAC:** A permission system used in Workspace/Colonel to gate specific features based on plan/role.
 
 
 ```bash
@@ -322,11 +322,10 @@ A new mental model to get used to. Not public<->private or recipient<->creator. 
 *   **Audience:** Account Holders (Creators).
 *   **Key Characteristic:** Always authenticated. Always Onetimesecret-branded (Recipients never see this). Complex UI state.
 
-#### 3. The Kernel (System)
+#### 3. The Colonel (System)
 *   **Intent:** Platform Oversight.
 *   **Audience:** Admins (Colonel).
 *   **Key Characteristic:** Utilitarian, dangerous, raw data views.
-
 
 #### 4. Session (the gateway/access hole)
 
@@ -337,7 +336,7 @@ Auth as a standalone module, responsible for Identity & Access. It doesn't care 
 
 * From Secret (Public): The "Sign In" button in the header is just a link to apps/session.
 * From Workspace (Private): When a token expires, the interceptor redirects to apps/session with a ?return_to= query param.
-* From Kernel (Admin): Uses the same apps/session but might require higher assurance (e.g., immediate MFA prompt).
+* From Colonel (Admin): Uses the same apps/session but might require higher assurance (e.g., immediate MFA prompt).
 
 
 ## Modes & Dimensions
@@ -460,12 +459,12 @@ We can now document our architecture with absolute clarity:
 1.  **The Apps (Level 1 - Structural):**
     *   **Secret:** The public/branded transactional layer.
     *   **Workspace:** The authenticated management layer.
-    *   **Kernel:** The system administration layer.
+    *   **Colonel:** The system administration layer.
     *   **Session:** The authentication gateway.
 
 2.  **The Logic (Level 2 - Behavioral):**
     *   **Secret Context:** A dimensional matrix handling the high variance of user states (Owner/Recipient/Anon) unique to secret transactions.
-    *   **RBAC:** A permission system used in Workspace/Kernel to gate specific features based on plan/role.
+    *   **RBAC:** A permission system used in Workspace/Colonel to gate specific features based on plan/role.
 
 This creates a **"Pit of Success"**: It is hard to put code in the wrong place because the boundaries are defined by *what the code does*, not just *who looks at it*.
 
@@ -546,7 +545,7 @@ export const router = createRouter({
     // 1. Session (Gateway) - Check first (e.g., /logout, /login)
     ...sessionRoutes,
 
-    // 2. Kernel (Admin) - High specificity
+    // 2. Colonel (Admin) - High specificity
     ...colonelRoutes,
 
     // 3. Workspace (Dashboard) - Auth required
