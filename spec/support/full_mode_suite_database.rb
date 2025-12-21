@@ -111,19 +111,19 @@ module FullModeSuiteDatabase
   end
 end
 
-# RSpec configuration for full auth mode tests
+# RSpec configuration for full auth mode tests with SQLite
 RSpec.configure do |config|
-  # Lazy setup: first :full_auth_mode spec triggers database creation
+  # Lazy setup: first :full_auth_mode, :sqlite_database spec triggers database creation
   # Using before(:context) ensures it runs once per describe block,
   # but setup! is idempotent so it's safe if multiple blocks have the tag
-  config.before(:context, :full_auth_mode) do
+  config.before(:context, :full_auth_mode, :sqlite_database) do
     FullModeSuiteDatabase.setup!
   end
 
   # Clean tables between describe blocks to catch leaked test data
   # Individual tests should still clean up after themselves, but this
   # provides a safety net without hiding which test leaked data
-  config.after(:context, :full_auth_mode) do
+  config.after(:context, :full_auth_mode, :sqlite_database) do
     FullModeSuiteDatabase.clean_tables!
   end
 
@@ -133,13 +133,13 @@ RSpec.configure do |config|
     FullModeSuiteDatabase.teardown!
   end
 
-  # Include factory methods for all :full_auth_mode specs
-  config.include AuthAccountFactory, :full_auth_mode
+  # Include factory methods for all :full_auth_mode, :sqlite_database specs
+  config.include AuthAccountFactory, :full_auth_mode, :sqlite_database
 
-  # Provide test_db helper method for :full_auth_mode specs
+  # Provide test_db helper method for :full_auth_mode, :sqlite_database specs
   config.include(Module.new {
     def test_db
       FullModeSuiteDatabase.database
     end
-  }, :full_auth_mode)
+  }, :full_auth_mode, :sqlite_database)
 end

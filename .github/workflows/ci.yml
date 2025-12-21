@@ -376,8 +376,8 @@ jobs:
           tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-simple.tryouts-paths }}
           results-file: 'rspec_simple_results.json'
 
-  ruby-integration-full:
-    name: T3 · Ruby Integration (Full Mode)
+  ruby-integration-full-sqlite:
+    name: T3 · Ruby Integration (Full Mode - SQLite)
     timeout-minutes: 10
     runs-on: *runs-on
     needs: [changes, ruby-unit]
@@ -399,10 +399,10 @@ jobs:
           test-type: integration
           auth-mode: full
           auth-database-url: 'sqlite::memory:'
-          rspec-tag: full_auth_mode
-          rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full.rspec-paths }}
-          tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full.tryouts-paths }}
-          results-file: 'rspec_full_results.json'
+          rspec-tag: full_auth_mode,sqlite_database
+          rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full-sqlite.rspec-paths }}
+          tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full-sqlite.tryouts-paths }}
+          results-file: 'rspec_full_sqlite_results.json'
 
   ruby-integration-full-postgres:
     name: T3 · Ruby Integration (Full Mode - PostgreSQL)
