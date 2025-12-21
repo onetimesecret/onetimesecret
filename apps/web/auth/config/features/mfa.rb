@@ -10,6 +10,10 @@ module Auth::Config::Features
   #
   # @see https://rodauth.jeremyevans.net/rdoc/files/doc/otp_rdoc.html
   module MFA
+    # Configuration constants
+    RECOVERY_CODES_LIMIT = 4
+    OTP_AUTH_FAILURES_LIMIT = 7
+
     def self.configure(auth)
       # Multi-Factor Authentication (conditionally enabled via ENV in config.rb)
       auth.enable :two_factor_base
@@ -40,10 +44,11 @@ module Auth::Config::Features
       # - Recovery codes provide the primary escape mechanism
       # - Our MFA recovery flow provides email-based reset
       # - Too-strict lockout creates support burden
-      auth.otp_auth_failures_limit 10  # Up from default 5
+      auth.otp_auth_failures_limit OTP_AUTH_FAILURES_LIMIT
 
       # Recovery codes configuration
       auth.auto_add_recovery_codes? true  # Automatically generate recovery codes
+      auth.recovery_codes_limit RECOVERY_CODES_LIMIT
 
       # Critical: Orphaned recovery codes create a "zombie MFA state"
       # where Rodauth still considers MFA active because recovery codes

@@ -4,7 +4,9 @@
   import { useI18n } from 'vue-i18n';
 import OtpCodeInput from '@/apps/session/components/OtpCodeInput.vue';
 import { useMfa } from '@/shared/composables/useMfa';
+import { useClipboard } from '@/shared/composables/useClipboard';
 import { WindowService } from '@/services/window.service';
+import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { ref, computed, onMounted } from 'vue';
 
 const emit = defineEmits<{
@@ -14,9 +16,13 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const { setupData, recoveryCodes, isLoading, error, setupMfa, enableMfa } = useMfa();
+const notificationsStore = useNotificationsStore();
+const { copyToClipboard } = useClipboard();
 
 // Simplified wizard: setup or codes
 const currentStep = ref<'setup' | 'codes'>('setup');
+// Track whether recovery codes have been saved (downloaded or copied)
+const codesSaved = ref(false);
 const otpCode = ref('');
 const password = ref('');
 const otpInputRef = ref<InstanceType<typeof OtpCodeInput> | null>(null);
@@ -74,16 +80,19 @@ const downloadCodes = () => {
   a.download = 'onetime-recovery-codes.txt';
   a.click();
   URL.revokeObjectURL(url);
+  codesSaved.value = true;
+  notificationsStore.show(t('web.auth.recovery-codes.downloaded'), 'success', 'top');
 };
 
 // Copy codes to clipboard
 const copyCodes = async () => {
   const content = recoveryCodes.value.join('\n');
-  try {
-    await navigator.clipboard.writeText(content);
-    alert(t('web.auth.recovery-codes.copied'));
-  } catch (err) {
-    console.error('Failed to copy:', err);
+  const success = await copyToClipboard(content);
+  if (success) {
+    codesSaved.value = true;
+    notificationsStore.show(t('web.auth.recovery-codes.copied'), 'success', 'top');
+  } else {
+    notificationsStore.show(t('web.auth.recovery-codes.copy-failed'), 'error', 'top');
   }
 };
 
@@ -243,6 +252,19 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
         {{ t('web.auth.recovery-codes.warning') }}
       </p>
 
+      <!-- Save requirement warning -->
+      <div
+        v-if="!codesSaved"
+        role="alert"
+        class="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-4 dark:border-amber-600 dark:bg-amber-900/20">
+        <div class="flex items-start">
+          <i class="fas fa-exclamation-triangle mr-3 mt-0.5 text-amber-600 dark:text-amber-400"></i>
+          <p class="text-sm text-amber-800 dark:text-amber-200">
+            {{ t('web.auth.recovery-codes.save-required') }}
+          </p>
+        </div>
+      </div>
+
       <!-- Recovery codes list -->
       <div class="mb-6 rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
         <div class="grid grid-cols-2 gap-3">
@@ -277,7 +299,13 @@ const canVerify = computed(() => password.value && otpCode.value.length === 6 &&
       <button
         @click="handleComplete"
         type="button"
-        class="mt-6 w-full rounded-md bg-green-600 px-4 py-3 text-lg font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+        :disabled="!codesSaved"
+        :class="[
+          'mt-6 w-full rounded-md px-4 py-3 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2',
+          codesSaved
+            ? 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500'
+            : 'cursor-not-allowed bg-gray-400 text-gray-200'
+        ]">
         <i class="fas fa-check mr-2"></i>
         {{ t('web.auth.mfa.complete-setup') }}
       </button>
