@@ -478,6 +478,14 @@ export function useMfa() {
     return result ?? false;
   }
 
+  /**
+   * Clear recovery codes from memory
+   * Call this when codes are no longer needed to minimize sensitive data exposure
+   */
+  function clearRecoveryCodes() {
+    recoveryCodes.value = [];
+  }
+
   return {
     isLoading,
     error,
@@ -493,5 +501,6 @@ export function useMfa() {
     generateNewRecoveryCodes,
     verifyRecoveryCode,
     clearError,
+    clearRecoveryCodes,
   };
 }

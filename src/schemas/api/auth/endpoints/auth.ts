@@ -206,5 +206,6 @@ export const mfaStatusResponseSchema = z.object({
   enabled: z.boolean(),
   last_used_at: z.string().nullable(),
   recovery_codes_remaining: z.number(),
+  recovery_codes_limit: z.number(),
 });
 export type MfaStatusResponse = z.infer<typeof mfaStatusResponseSchema>;

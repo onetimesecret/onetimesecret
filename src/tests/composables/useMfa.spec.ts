@@ -38,6 +38,7 @@ describe('useMfa', () => {
         enabled: true,
         last_used_at: '2024-01-01T12:00:00Z',
         recovery_codes_remaining: 8,
+        recovery_codes_limit: 4,
       };
 
       axiosMock.onGet('/auth/mfa-status').reply(200, mockStatus);
@@ -54,6 +55,7 @@ describe('useMfa', () => {
         enabled: false,
         last_used_at: null,
         recovery_codes_remaining: 0,
+        recovery_codes_limit: 4,
       };
 
       axiosMock.onGet('/auth/mfa-status').reply(200, mockStatus);

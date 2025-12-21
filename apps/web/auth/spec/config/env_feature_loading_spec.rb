@@ -31,6 +31,15 @@
 require_relative '../spec_helper'
 require 'climate_control'
 
+# Define namespace before loading the MFA module
+module Auth
+  module Config
+    module Features
+    end
+  end
+end
+require_relative '../../config/features/mfa'
+
 RSpec.describe 'ENV-conditional feature loading' do
   let(:db) { create_test_database }
 
@@ -65,7 +74,7 @@ RSpec.describe 'ENV-conditional feature loading' do
       if respond_to?(:otp_issuer)
         otp_issuer 'OneTimeSecret'
         otp_keys_use_hmac? true
-        otp_auth_failures_limit 10
+        otp_auth_failures_limit Auth::Config::Features::MFA::OTP_AUTH_FAILURES_LIMIT
       end
     end
   end

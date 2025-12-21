@@ -1,4 +1,4 @@
--- apps/web/auth/migrations/schemas/postgres/setup_auth_db.sql
+-- apps/web/auth/migrations/schemas/postgres/initialize_auth_db.sql
 --
 -- PostgreSQL database setup for Rodauth authentication
 -- Run this BEFORE first application boot with AUTHENTICATION_MODE=full
@@ -10,7 +10,7 @@
 -- Note: Extensions (citext) are created by postgres superuser in this script.
 --
 -- Usage:
---   psql -U postgres -h localhost -f setup_auth_db.sql
+--   psql -U postgres -h localhost -f initialize_auth_db.sql
 --
 -- IMPORTANT: Replace placeholder passwords before running in production!
 --   Search for 'CHANGE_ME' and set strong, unique passwords.
