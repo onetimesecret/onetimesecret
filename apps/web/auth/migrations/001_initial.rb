@@ -9,7 +9,7 @@ Sequel.migration do
     extension :date_arithmetic
 
     # Enable citext extension for case-insensitive email (PostgreSQL only)
-    run "CREATE EXTENSION IF NOT EXISTS citext" if database_type == :postgres
+    run 'CREATE EXTENSION IF NOT EXISTS citext' if database_type == :postgres
 
     # Used by the account verification and close account features
     create_table(:account_statuses) do
@@ -214,11 +214,11 @@ Sequel.migration do
     when :postgres
       # Grant permissions only if separate password role exists
       # When running as database owner (testing), this isn't needed
-      current_user = get(Sequel.lit('current_user'))
+      current_user  = get(Sequel.lit('current_user'))
       password_role = current_user + '_password'
 
       # Check if the password role exists
-      role_exists = from(Sequel.lit("pg_roles")).where(rolname: password_role).count > 0
+      role_exists = from(Sequel.lit('pg_roles')).where(rolname: password_role).any?
 
       if role_exists
         run "GRANT REFERENCES ON accounts TO #{password_role}"
@@ -273,6 +273,8 @@ Sequel.migration do
       :account_jwt_refresh_keys,
       :account_password_reset_keys,
       :account_authentication_audit_logs,
+      :account_previous_password_hashes,
+      :account_password_hashes,
       :accounts,
       :account_statuses,
     )

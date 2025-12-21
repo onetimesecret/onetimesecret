@@ -70,17 +70,19 @@ Adds password history and database-specific enhancements:
 
 ### PostgreSQL
 
-```sql
--- Create database and user
-CREATE DATABASE onetime_auth_test OWNER postgres;
-CREATE USER onetime_auth WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE onetime_auth_test TO onetime_auth;
+**IMPORTANT:** Run the setup script BEFORE first boot with `AUTHENTICATION_MODE=full`.
 
--- Connect and grant schema privileges
-\c onetime_auth_test
-GRANT ALL ON SCHEMA public TO onetime_auth;
-GRANT USAGE, CREATE ON SCHEMA public TO onetime_auth;
+```bash
+cd apps/web/auth/migrations/schemas/postgres
+psql -U postgres -h localhost -f setup_auth_db.sql
 ```
+
+This creates:
+- Database: `onetime_auth_test`
+- User: `onetime_auth` with password
+- Grants: Schema privileges and default privileges for future migrations
+
+See `apps/web/auth/migrations/schemas/postgres/README.md` for details.
 
 ### SQLite
 

@@ -49,7 +49,7 @@ module Core
 
         # Pass development config to frontend (includes domain_context_enabled)
         output['development'] = {
-          'enabled'                => development['enabled'] || false,
+          'enabled' => development['enabled'] || false,
           'domain_context_enabled' => development['domain_context_enabled'] || false,
         }
 

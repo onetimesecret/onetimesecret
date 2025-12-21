@@ -28,6 +28,7 @@ module Onetime
     #
     class SetupLoggers < Onetime::Boot::Initializer
       @provides           = [:logging].freeze
+      @phase              = :fork_sensitive
       @logger_definitions = {
         'App' => 'DEBUG_APP',
         'Auth' => 'DEBUG_AUTH',
@@ -62,6 +63,32 @@ module Onetime
 
         log_effective_configuration(cached_loggers) if Onetime.debug?
         Onetime::Runtime.update_infrastructure(cached_loggers: cached_loggers)
+      end
+
+      # Cleanup SemanticLogger before fork.
+      # Called by InitializerRegistry.cleanup_before_fork from Puma's before_fork hook.
+      #
+      # Flushes async appender to prevent lost log messages. The async appender
+      # queues messages in a background thread that won't survive fork.
+      #
+      # @return [void]
+      def cleanup
+        SemanticLogger.flush if defined?(SemanticLogger)
+      rescue StandardError => ex
+        warn "[SetupLoggers] Error during cleanup: #{ex.message}"
+      end
+
+      # Reconnect SemanticLogger after fork.
+      # Called by InitializerRegistry.reconnect_after_fork from Puma's before_worker_boot hook.
+      #
+      # Re-opens appenders to create fresh async processing threads, replacing
+      # zombie thread references inherited from the master process.
+      #
+      # @return [void]
+      def reconnect
+        SemanticLogger.reopen if defined?(SemanticLogger)
+      rescue StandardError => ex
+        warn "[SetupLoggers] Error during reconnect: #{ex.message}"
       end
 
       private

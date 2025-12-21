@@ -14,9 +14,9 @@
 -- PERFORMANCE INDEXES
 -- ================================================================
 
+CREATE INDEX idx_previous_password_hashes_account_id ON account_previous_password_hashes(account_id);
 CREATE INDEX idx_jwt_refresh_keys_account_id ON account_jwt_refresh_keys(account_id);
 CREATE INDEX idx_jwt_refresh_keys_deadline ON account_jwt_refresh_keys(deadline);
-CREATE INDEX idx_previous_password_hashes_account_id ON account_previous_password_hashes(account_id);
 CREATE INDEX idx_activity_times_last_activity ON account_activity_times(last_activity_at);
 CREATE INDEX idx_email_auth_keys_deadline ON account_email_auth_keys(deadline);
 CREATE INDEX idx_activity_times_last_login ON account_activity_times(last_login_at);
@@ -75,9 +75,9 @@ CREATE OR REPLACE FUNCTION update_last_login_time()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.message ILIKE '%login%successful%' THEN
-        INSERT INTO account_activity_times (account_id, last_login_at, last_activity_at)
+        INSERT INTO account_activity_times (id, last_login_at, last_activity_at)
         VALUES (NEW.account_id, NEW.at, NEW.at)
-        ON CONFLICT (account_id)
+        ON CONFLICT (id)
         DO UPDATE SET
             last_login_at = NEW.at,
             last_activity_at = NEW.at;
@@ -171,7 +171,7 @@ $$ LANGUAGE plpgsql;
 -- TABLE AND OBJECT COMMENTS
 -- ================================================================
 
-COMMENT ON TABLE account_previous_password_hashes IS 'Previous password hashes for preventing reuse (created in 002_extras.rb)';
+COMMENT ON TABLE account_previous_password_hashes IS 'Previous password hashes for preventing reuse (created in 001_initial.rb)';
 
 COMMENT ON VIEW recent_auth_events IS 'Authentication events from the last 30 days';
 COMMENT ON VIEW account_security_overview_enhanced IS 'Enhanced security overview with MFA status and session counts';

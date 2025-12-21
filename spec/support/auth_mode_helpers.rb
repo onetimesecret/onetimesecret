@@ -47,6 +47,11 @@ module AuthModeHelpers
       @mode == 'full' ? 'sqlite::memory:' : nil
     end
 
+    def database_url_migrations
+      # In tests, migration connection is same as regular connection
+      database_url
+    end
+
     def full
       @mode == 'full' ? { 'database_url' => 'sqlite::memory:' } : {}
     end

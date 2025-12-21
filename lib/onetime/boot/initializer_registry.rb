@@ -227,8 +227,8 @@ module Onetime
         def cleanup_before_fork
           fork_sensitive_initializers.each do |init|
             init.cleanup
-          rescue NoMethodError, NameError => ex
-            # Programming errors - re-raise to expose bugs
+          rescue NameError
+            # Programming errors (includes NoMethodError) - re-raise to expose bugs
             raise
           rescue StandardError => ex
             # Operational errors - continue with degraded mode
@@ -252,8 +252,8 @@ module Onetime
         def reconnect_after_fork
           fork_sensitive_initializers.each do |init|
             init.reconnect
-          rescue NoMethodError, NameError => ex
-            # Programming errors - re-raise to expose bugs
+          rescue NameError
+            # Programming errors (includes NoMethodError) - re-raise to expose bugs
             raise
           rescue StandardError => ex
             # Operational errors - continue with degraded mode

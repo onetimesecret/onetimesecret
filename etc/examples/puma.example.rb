@@ -40,22 +40,14 @@ bind "tcp://0.0.0.0:#{_port}"
 environment _rack_env
 
 if _worker_count.positive?
-  # Connection management for preload_app! (required for Redis/DB)
+  # Connection management for preload_app! (required for fork-sensitive resources)
   # NOTE: These blocks only run in cluster mode (workers > 0).
   # In development with workers=0, Puma runs in single-process mode.
   before_fork do
-    # Flush SemanticLogger before forking to prevent lost log messages.
-    # The async appender queues messages in a background thread that won't
-    # survive fork - flushing ensures all pending logs are written first.
-    # See: https://github.com/reidmorrison/semantic_logger/blob/master/docs/forking.md
-    SemanticLogger.flush if defined?(SemanticLogger)
-
-    # Close RabbitMQ connection cleanly before fork.
-    # The connection_pool gem's after_fork hook tries to close inherited channels,
-    # but post-fork the TCP socket is dead and Bunny blocks waiting for server ACK.
-    # By closing here while the socket is still alive, we avoid the timeout.
-    # See: https://github.com/onetimesecret/onetimesecret/issues/2167
-    Onetime::Initializers::SetupRabbitMQ.disconnect if defined?(Onetime::Initializers::SetupRabbitMQ)
+    # Cleanup all fork-sensitive initializers (SemanticLogger, RabbitMQ, etc.)
+    # Each initializer marked with @phase = :fork_sensitive implements cleanup method.
+    # See: lib/onetime/boot/initializer_registry.rb
+    Onetime::Boot::InitializerRegistry.cleanup_before_fork if defined?(Onetime::Boot::InitializerRegistry)
 
     # Close connections in master before forking
     # Familia.dclient.quit if defined?(Familia)
@@ -65,16 +57,10 @@ if _worker_count.positive?
   # On Puma 6, use the 'on_worker_boot' hook here instead. Head's
   # up it is deprecated in Puma 7 and will be removed in v8.
   before_worker_boot do
-    # Re-open SemanticLogger appenders in each worker process.
-    # This creates fresh async processing threads after fork, replacing
-    # the zombie thread references inherited from the master process.
-    # Without this, log messages from workers would be lost.
-    SemanticLogger.reopen if defined?(SemanticLogger)
-
-    # Reconnect RabbitMQ in each worker process.
-    # Creates fresh TCP connection and channel pool per worker.
-    # See: https://github.com/onetimesecret/onetimesecret/issues/2167
-    Onetime::Initializers::SetupRabbitMQ.reconnect if defined?(Onetime::Initializers::SetupRabbitMQ)
+    # Reconnect all fork-sensitive initializers (SemanticLogger, RabbitMQ, etc.)
+    # Each initializer marked with @phase = :fork_sensitive implements reconnect method.
+    # See: lib/onetime/boot/initializer_registry.rb
+    Onetime::Boot::InitializerRegistry.reconnect_after_fork if defined?(Onetime::Boot::InitializerRegistry)
 
     # Reconnect in each worker (auto-reconnects for Familia)
     # DB.reconnect if defined?(DB)

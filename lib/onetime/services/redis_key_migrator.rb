@@ -8,7 +8,7 @@ require 'logger'
 
 module Onetime
   module Services
-    # Redis Key Migration Utility
+  # Redis Key Migration Utility
   #
   # This class provides functionality to migrate Redis keys between databases or instances
   # while preserving source data for rollback scenarios. It supports three migration strategies
@@ -106,6 +106,7 @@ module Onetime
   # - Adaptive progress reporting to avoid overwhelming output
   #
 
+  # rubocop:disable Metrics/ClassLength
   class RedisKeyMigrator
     attr_reader :source_uri, :target_uri, :options, :statistics, :logger
 
@@ -752,5 +753,6 @@ module Onetime
       handle_batch_error(batch, ex, source_client, target_client, &)
     end
   end
+    # rubocop:enable Metrics/ClassLength
   end
 end

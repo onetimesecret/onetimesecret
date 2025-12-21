@@ -19,7 +19,7 @@ Sequel.migration do
   end
 
   down do
-    # Drop database-specific features first
+    # Drop database-specific features
     case database_type
     when :postgres
       sql_file = File.join(MIGRATION_ROOT, 'schemas/postgres/002_extras_down.sql')
@@ -28,8 +28,5 @@ Sequel.migration do
       sql_file = File.join(MIGRATION_ROOT, 'schemas/sqlite/002_extras_down.sql')
       run File.read(sql_file) if File.exist?(sql_file)
     end
-
-    # Drop cross-database table
-    drop_table(:account_previous_password_hashes)
   end
 end
