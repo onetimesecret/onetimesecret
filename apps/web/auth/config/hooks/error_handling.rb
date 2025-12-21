@@ -93,7 +93,7 @@ module Auth::Config::Hooks
           # For other routes: 401 unauthorized with i18n key for frontend translation
           if current_route == :logout
             request.halt([200, { 'Content-Type' => 'application/json' },
-                          [JSON.generate({ success: true, message: 'Logged out' })]])
+                          [JSON.generate({ success: true, message: 'web.auth.logout.success' })]])
           else
             request.halt([401, { 'Content-Type' => 'application/json' },
                           [JSON.generate({ error: 'web.auth.security.session_expired', success: false })]])
