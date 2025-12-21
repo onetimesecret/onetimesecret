@@ -14,7 +14,9 @@ import { createCompatibilityLayer } from '@/i18n';
 
 describe('Prototype Pollution Prevention', () => {
   // Save original Object.prototype state
-  const originalPrototype = { ...Object.prototype };
+  // Note: Object.prototype properties are non-enumerable, so we use
+  // getOwnPropertyNames() instead of spread syntax or Object.keys()
+  const originalPrototypeProperties = Object.getOwnPropertyNames(Object.prototype);
 
   afterEach(() => {
     // Clean up any pollution that might have occurred
@@ -133,7 +135,7 @@ describe('Prototype Pollution Prevention', () => {
       const testObj: Record<string, unknown> = {};
       expect(testObj.isAdmin).toBeUndefined();
       expect(testObj.polluted).toBeUndefined();
-      expect(Object.keys(Object.prototype)).toEqual(Object.keys(originalPrototype));
+      expect(Object.getOwnPropertyNames(Object.prototype)).toEqual(originalPrototypeProperties);
     });
   });
 });
