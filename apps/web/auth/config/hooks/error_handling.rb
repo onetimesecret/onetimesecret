@@ -23,40 +23,44 @@ module Auth::Config::Hooks
         begin
           super(&blk)
         rescue Sequel::ForeignKeyConstraintViolation => ex
+          # Handle FK violations that may indicate an orphaned session
+          # (account deleted while session active). We detect this by checking
+          # if the session's account_id references a non-existent account.
+          #
+          # For FK violations on other columns (not account-related), or when
+          # the account exists, treat as a generic server error.
+
           # Extract account_id from session if available
           session_account_id = begin
                                  session[:account_id]
           rescue StandardError
-                                 'unknown'
+                                 nil
           end
 
-          # Check if this is an orphaned session (account deleted while session active)
-          # This can happen when an admin deletes an account while the user has an active session
-          account_exists = begin
-            session_account_id.is_a?(Integer) && !db[:accounts].where(id: session_account_id).empty?
-          rescue StandardError
-            false
+          # Determine if this is an orphaned session scenario:
+          # - Session has an account_id
+          # - That account no longer exists in the database
+          is_orphaned_session = false
+          if session_account_id.is_a?(Integer)
+            account_exists = begin
+              !db[:accounts].where(id: session_account_id).empty?
+            rescue StandardError
+              # If we can't check, assume account exists (don't mask real errors)
+              true
+            end
+            is_orphaned_session = !account_exists
           end
 
-          if account_exists
-            # Account exists but FK failed - this is the dev environment issue
-            # (e.g., worktree with shared Redis but separate SQLite DBs)
-            diagnostic_hint = <<~HINT.strip
-              Account ID #{session_account_id} exists in Redis session but FK constraint
-              still failed. This typically occurs in worktree/multi-instance dev setups
-              with shared Redis. Consider: (1) seeding accounts table, (2) using isolated
-              Redis, or (3) clearing Redis session data.
-            HINT
-
+          # If account exists (or we can't determine), this is a genuine FK error
+          unless is_orphaned_session
             Auth::Logging.log_auth_event(
-              :auth_database_consistency_error,
+              :foreign_key_constraint_violation,
               level: :error,
               current_route: current_route,
               request_path: request.path,
               session_id: session.id,
               error_class: ex.class.name,
               error_message: ex.message,
-              diagnostic_hint: diagnostic_hint,
               backtrace: ex.backtrace&.first(5),
             )
             raise ex
