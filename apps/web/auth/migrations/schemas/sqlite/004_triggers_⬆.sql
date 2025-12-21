@@ -21,11 +21,19 @@ END;
 -- ================================================================
 
 -- Automatically update activity time on successful logins
--- Triggered when audit log contains successful login message
+--
+-- Trigger context: NEW references the inserted audit log row:
+--   - NEW.account_id → audit_logs.account_id (FK to accounts.id)
+--   - NEW.at         → audit_logs.at (timestamp of the event)
+--   - NEW.message    → audit_logs.message (filtered in WHEN clause)
+--
+-- Data flow: audit_logs.account_id → account_activity_times.id
+-- Both are foreign keys to accounts.id, so the value transfer is correct.
 CREATE TRIGGER trigger_update_last_login_time
 AFTER INSERT ON account_authentication_audit_logs
 WHEN NEW.message LIKE '%login%successful%'
 BEGIN
+    -- Insert or update activity times using the account_id from the audit log
     INSERT OR REPLACE INTO account_activity_times (id, last_login_at, last_activity_at)
     VALUES (NEW.account_id, NEW.at, NEW.at);
 END;

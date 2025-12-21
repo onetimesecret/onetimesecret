@@ -82,10 +82,20 @@ $$ LANGUAGE plpgsql;
 -- ================================================================
 
 -- Function to automatically update activity time on successful logins
+--
+-- Trigger context: Fires AFTER INSERT ON account_authentication_audit_logs
+-- Therefore NEW references audit log columns, not account_activity_times:
+--   - NEW.account_id → audit_logs.account_id (FK to accounts.id)
+--   - NEW.at         → audit_logs.at (timestamp of the event)
+--   - NEW.message    → audit_logs.message (checked for login success)
+--
+-- Data flow: audit_logs.account_id → account_activity_times.id
+-- Both are foreign keys to accounts.id, so the value transfer is correct.
 CREATE OR REPLACE FUNCTION update_last_login_time()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.message ILIKE '%login%successful%' THEN
+        -- Insert or update activity times using the account_id from the audit log
         INSERT INTO account_activity_times (id, last_login_at, last_activity_at)
         VALUES (NEW.account_id, NEW.at, NEW.at)
         ON CONFLICT (id)
