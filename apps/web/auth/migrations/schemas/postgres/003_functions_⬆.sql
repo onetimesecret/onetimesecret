@@ -86,9 +86,9 @@ CREATE OR REPLACE FUNCTION update_last_login_time()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.message ILIKE '%login%successful%' THEN
-        INSERT INTO account_activity_times (account_id, last_login_at, last_activity_at)
+        INSERT INTO account_activity_times (id, last_login_at, last_activity_at)
         VALUES (NEW.account_id, NEW.at, NEW.at)
-        ON CONFLICT (account_id)
+        ON CONFLICT (id)
         DO UPDATE SET
             last_login_at = NEW.at,
             last_activity_at = NEW.at;
