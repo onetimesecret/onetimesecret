@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import SettingsLayout from '@/shared/components/layout/SettingsLayout.vue';
   import { useMfa } from '@/shared/composables/useMfa';
+  import { useClipboard } from '@/shared/composables/useClipboard';
   import { useNotificationsStore } from '@/shared/stores/notificationsStore';
   import { ref, onMounted, computed } from 'vue';
 
@@ -19,6 +20,7 @@
     clearRecoveryCodes,
   } = useMfa();
   const notificationsStore = useNotificationsStore();
+  const { copyToClipboard } = useClipboard();
 
   const showGenerateConfirm = ref(false);
   const regeneratePassword = ref('');
@@ -88,12 +90,11 @@
   // Copy codes to clipboard
   const copyCodes = async () => {
     const content = recoveryCodes.value.join('\n');
-    try {
-      await navigator.clipboard.writeText(content);
+    const success = await copyToClipboard(content);
+    if (success) {
       codesSaved.value = true;
       notificationsStore.show(t('web.auth.recovery-codes.copied'), 'success', 'top');
-    } catch (err) {
-      console.error('Failed to copy:', err);
+    } else {
       notificationsStore.show(t('web.auth.recovery-codes.copy-failed'), 'error', 'top');
     }
   };

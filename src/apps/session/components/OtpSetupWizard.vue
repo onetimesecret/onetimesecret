@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
 import OtpCodeInput from '@/apps/session/components/OtpCodeInput.vue';
 import { useMfa } from '@/shared/composables/useMfa';
+import { useClipboard } from '@/shared/composables/useClipboard';
 import { WindowService } from '@/services/window.service';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { ref, computed, onMounted } from 'vue';
@@ -16,6 +17,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const { setupData, recoveryCodes, isLoading, error, setupMfa, enableMfa } = useMfa();
 const notificationsStore = useNotificationsStore();
+const { copyToClipboard } = useClipboard();
 
 // Simplified wizard: setup or codes
 const currentStep = ref<'setup' | 'codes'>('setup');
@@ -85,12 +87,11 @@ const downloadCodes = () => {
 // Copy codes to clipboard
 const copyCodes = async () => {
   const content = recoveryCodes.value.join('\n');
-  try {
-    await navigator.clipboard.writeText(content);
+  const success = await copyToClipboard(content);
+  if (success) {
     codesSaved.value = true;
     notificationsStore.show(t('web.auth.recovery-codes.copied'), 'success', 'top');
-  } catch (err) {
-    console.error('Failed to copy:', err);
+  } else {
     notificationsStore.show(t('web.auth.recovery-codes.copy-failed'), 'error', 'top');
   }
 };
