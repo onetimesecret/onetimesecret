@@ -9,7 +9,7 @@ Sequel migrations for the Rodauth authentication system. These migrations are on
 **Run BEFORE first boot:**
 
 ```bash
-psql -U postgres -h localhost -f apps/web/auth/migrations/schemas/postgres/setup_auth_db.sql
+psql -U postgres -h localhost -f apps/web/auth/migrations/schemas/postgres/initialize_auth_db.sql
 ```
 
 Creates database `onetime_auth`, and two roles: `oneitme_migrator` and `onetime_user`, each with privileges appropriate for their purpose.
@@ -43,7 +43,7 @@ When working on existing features, create the complete database schema before th
 
 ### In Production
 
-Create the complete database schema with advanced functionality provided by the Sequel and SQL migrations, run the following immediately after running `setup_auth_db.sql`:
+Create the complete database schema with advanced functionality provided by the Sequel and SQL migrations, run the following immediately after running `initialize_auth_db.sql`:
 
 ```bash
 sequel -m apps/web/auth/migrations $AUTH_DATABASE_URL_MIGRATIONS
