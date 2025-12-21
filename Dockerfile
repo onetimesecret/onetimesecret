@@ -55,7 +55,7 @@
 #     $ docker logs onetime-app
 
 ARG APP_DIR=/app
-ARG PUBLIC_DIR=/var/www/public
+ARG PUBLIC_DIR=/app/public
 ARG VERSION
 ARG RUBY_IMAGE_TAG=3.4-slim-bookworm@sha256:1ca19bf218752c371039ebe6c8a1aa719cd6e6424b32d08faffdb2a6938f3241
 ARG NODE_IMAGE_TAG=22@sha256:23c24e85395992be118734a39903e08c8f7d1abc73978c46b6bda90060091a49
