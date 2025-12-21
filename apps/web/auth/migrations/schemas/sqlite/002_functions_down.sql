@@ -1,0 +1,16 @@
+-- ================================================================
+-- Rodauth SQLite Functions Rollback (002)
+-- Loaded by 002_functions.rb migration (down)
+--
+-- SQLite Limitation: No Stored Functions/Procedures
+-- ================================================================
+--
+-- SQLite does not support stored functions or procedures like PostgreSQL.
+-- There are no database functions to drop.
+--
+-- The functions documented in 002_functions_up.sql are implemented at
+-- the application level in Ruby code, so no database cleanup is needed.
+--
+-- ================================================================
+
+-- This file intentionally contains no executable SQL.
