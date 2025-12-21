@@ -66,7 +66,7 @@ module PostgresModeSuiteDatabase
       end
 
       unless database_url.start_with?('postgresql://', 'postgres://')
-        raise "AUTH_DATABASE_URL must be a PostgreSQL URL, got: #{database_url}"
+        raise "AUTH_DATABASE_URL must be a PostgreSQL URL (current URL format invalid)"
       end
 
       # Create PostgreSQL database connection

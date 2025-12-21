@@ -43,7 +43,7 @@ RSpec.describe 'PostgreSQL Database Triggers', :full_auth_mode, :postgres_databa
   def login!(email:, password: test_password)
     post_json '/auth/login', { login: email, password: password }
     unless last_response.status == 200
-      raise "Login failed for #{email}: #{last_response.status} - #{last_response.body}"
+      raise "Login failed: HTTP #{last_response.status}"
     end
     true
   end
