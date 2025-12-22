@@ -46,9 +46,26 @@ module Onetime
     # REQUIRED: Through models must have object_identifier for deterministic keys
     feature :object_identifier
     feature :relationships
+    feature :safe_dump
 
     prefix :org_membership
     identifier_field :objid
+
+    # API serialization fields
+    # Use safe_dump for consistent API responses across all invitation endpoints
+    safe_dump_fields(
+      { id: ->(obj) { obj.objid } },
+      { organization_id: ->(obj) { obj.organization&.extid } },
+      { email: ->(obj) { obj.invited_email } },
+      :role,
+      :status,
+      :invited_by,
+      :invited_at,
+      { expires_at: ->(obj) { obj.invitation_expires_at } },
+      { expired: ->(obj) { obj.expired? } },
+      :resend_count,
+      :token,
+    )
 
     # Foreign keys - auto-set by ThroughModelOperations
     # Pattern: {prefix}_objid matches Familia's auto-set convention
@@ -131,6 +148,14 @@ module Onetime
       return false unless invited_at
 
       (Familia.now.to_f - invited_at.to_f) > ttl_seconds
+    end
+
+    # Calculate invitation expiration timestamp (for API responses)
+    # Returns nil for non-pending invitations
+    def invitation_expires_at
+      return nil unless invited_at
+
+      invited_at.to_f + 7.days.to_i
     end
 
     # Get the organization this membership belongs to
