@@ -137,6 +137,7 @@ module Onetime
       raise Onetime::Problem, 'Invitation already accepted' if active?
       raise Onetime::Problem, 'Invitation expired' if expired?
       raise Onetime::Problem, 'Invitation declined' if status == 'declined'
+      raise Onetime::Problem, 'Email mismatch' if invited_email && customer.email != invited_email
 
       self.customer_objid = customer.objid
       self.status = 'active'
