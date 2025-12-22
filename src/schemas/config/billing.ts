@@ -324,12 +324,25 @@ export function limitValueToNumber(value: LimitValue): number {
   return value;
 }
 
+/**
+ * Determines if a plan should be displayed with Stripe pricing on the frontend.
+ *
+ * Note: This is for UI filtering only. The backend catalog_push_command creates
+ * ALL plans in Stripe including free tier. Free plans in Stripe are useful for:
+ * - Downgrade flows (manual or after subscription cancellation)
+ * - Targeted free/discounted plans for non-profits
+ * - Consistent plan metadata across all tiers
+ */
 export function shouldCreateStripeProduct(plan: PlanDefinition): boolean {
   if (!plan.tier) return false;
   if (plan.tier === 'free') return false;
   return true;
 }
 
+/**
+ * Returns plans that have Stripe pricing to display on the frontend.
+ * See shouldCreateStripeProduct for filtering logic.
+ */
 export function getStripePlans(config: BillingConfig): Array<[string, PlanDefinition]> {
   return Object.entries(config.plans).filter(([, plan]) => shouldCreateStripeProduct(plan));
 }

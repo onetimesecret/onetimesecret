@@ -14,6 +14,11 @@ module Onetime
     # products as needed. Prices are NEVER updated - only created when
     # all required fields are provided.
     #
+    # All plans are synced including free tier. Free plans in Stripe enable:
+    # - Downgrade flows (manual or after subscription cancellation)
+    # - Targeted free/discounted plans for non-profits
+    # - Consistent plan metadata across all tiers
+    #
     class BillingCatalogPushCommand < Command
       include BillingHelpers
 

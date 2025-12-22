@@ -77,6 +77,14 @@ entitlements:
     description: Service level agreement
 
 # Plan Definitions
+#
+# All plans are synced to Stripe via `bin/ots billing catalog push`, including
+# free tier. Free plans in Stripe enable:
+# - Downgrade flows (manual or after subscription cancellation)
+# - Targeted free/discounted plans for non-profits
+# - Consistent plan metadata across all tiers
+#
+# Free tier plans typically have `prices: []` (no Stripe prices needed).
 plans:
   # Free Tier - No subscription required
   free_v1:
