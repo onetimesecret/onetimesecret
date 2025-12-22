@@ -3,24 +3,40 @@
 /**
  * Billing Configuration Schema
  *
- * Zod v4 schema for etc/billing/billing.yaml
+ * Zod v4 schema for etc/billing.yaml (unified flat-structure configuration)
  *
  * Purpose:
  * - Type-safe validation of billing configuration
  * - Runtime validation for YAML parsing
  * - TypeScript type inference for billing config usage
  * - Entitlement definitions (system-wide features)
+ * - Plan catalog definitions (active and legacy plans)
  *
  * Usage:
  * ```typescript
  * import { BillingConfigSchema, type BillingConfig } from '@/schemas/config/billing';
  *
  * const config = BillingConfigSchema.parse(yamlData);
- * const canUseDomains = config.billing.entitlements.custom_domains;
+ * const canUseDomains = config.entitlements.custom_domains;
+ * const identityPlan = config.plans.identity_plus_v1;
  * ```
  */
 
 import { z } from 'zod/v4';
+
+// =============================================================================
+// Constants
+// =============================================================================
+
+/**
+ * Schema Version
+ * Must match schema_version in billing.yaml
+ */
+export const CATALOG_SCHEMA_VERSION = '1.0';
+
+// =============================================================================
+// Entitlement Schemas
+// =============================================================================
 
 /**
  * Entitlement Category
@@ -48,94 +64,284 @@ export const EntitlementDefinitionSchema = z.object({
 
 export type EntitlementDefinition = z.infer<typeof EntitlementDefinitionSchema>;
 
+// =============================================================================
+// Plan Component Schemas
+// =============================================================================
+
+/**
+ * Billing Tier
+ * Hierarchical plan tiers
+ */
+export const BillingTierSchema = z.enum(['free', 'single_account', 'single_team', 'multi_team']);
+
+export type BillingTier = z.infer<typeof BillingTierSchema>;
+
+/**
+ * Tenancy Type
+ * Infrastructure isolation level
+ */
+export const TenancyTypeSchema = z.enum([
+  'multi', // Multi-tenant shared infrastructure
+  'dedicated', // Single-tenant dedicated infrastructure
+]);
+
+export type TenancyType = z.infer<typeof TenancyTypeSchema>;
+
+/**
+ * Billing Interval
+ * Subscription billing frequency
+ */
+export const BillingIntervalSchema = z.enum(['month', 'year']);
+
+export type BillingInterval = z.infer<typeof BillingIntervalSchema>;
+
+/**
+ * Currency Code
+ * ISO 4217 currency codes
+ */
+export const CurrencyCodeSchema = z.enum(['usd', 'eur', 'cad']);
+
+export type CurrencyCode = z.infer<typeof CurrencyCodeSchema>;
+
+/**
+ * Limit Value
+ * Resource limits (-1 = unlimited, null = TBD, positive integer = specific limit)
+ */
+export const LimitValueSchema = z.union([
+  z.literal(-1).describe('Unlimited'),
+  z.number().int().positive().describe('Specific limit'),
+  z.null().describe('To be determined'),
+]);
+
+export type LimitValue = z.infer<typeof LimitValueSchema>;
+
+/**
+ * Plan Limits
+ * Resource constraints for a billing plan
+ */
+export const PlanLimitsSchema = z.object({
+  teams: LimitValueSchema.describe('Maximum number of teams'),
+  members_per_team: LimitValueSchema.describe('Maximum members per team'),
+  custom_domains: LimitValueSchema.describe('Maximum custom domains'),
+  secret_lifetime: LimitValueSchema.describe('Maximum secret lifetime in seconds'),
+  secrets_per_day: LimitValueSchema.describe('Daily secret creation limit'),
+});
+
+export type PlanLimits = z.infer<typeof PlanLimitsSchema>;
+
+/**
+ * Plan Price
+ * Stripe price configuration for a billing interval
+ */
+export const PlanPriceSchema = z.object({
+  interval: BillingIntervalSchema,
+  amount: z.number().int().nonnegative().describe('Amount in cents (e.g., 2900 = $29.00)'),
+  currency: CurrencyCodeSchema,
+});
+
+export type PlanPrice = z.infer<typeof PlanPriceSchema>;
+
+/**
+ * Plan Definition
+ * Complete billing plan configuration
+ *
+ * Note: tier is optional to allow incomplete/draft plans in catalog.
+ * - Free tier plans (tier: 'free') are not created in Stripe
+ * - Nil/missing tier plans are skipped with warnings (incomplete definitions)
+ * - All other tiers require Stripe product creation
+ */
+export const PlanDefinitionSchema = z.object({
+  name: z.string().min(1).describe('Display name for the plan'),
+  tier: BillingTierSchema.optional().describe('Billing tier (optional for draft plans)'),
+  tenancy: TenancyTypeSchema.optional().describe('Tenancy type (optional for draft plans)'),
+  region: z.string().min(1).optional().describe('Geographic region (EU, CA, global)'),
+  display_order: z
+    .number()
+    .int()
+    .nonnegative()
+    .describe('Sort order on plans page (higher = earlier)'),
+  show_on_plans_page: z.boolean().describe('Visibility on public plans page'),
+  description: z.string().min(1).optional().describe('Plan description for documentation'),
+
+  entitlements: z.array(z.string().min(1)).describe('Array of entitlement IDs'),
+  limits: PlanLimitsSchema,
+  prices: z.array(PlanPriceSchema).describe('Available pricing options'),
+});
+
+export type PlanDefinition = z.infer<typeof PlanDefinitionSchema>;
+
+/**
+ * Legacy Plan Definition
+ * Grandfathered plans no longer offered to new customers
+ */
+export const LegacyPlanDefinitionSchema = PlanDefinitionSchema.extend({
+  grandfathered_until: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .describe('ISO date until which plan is grandfathered (YYYY-MM-DD)'),
+});
+
+export type LegacyPlanDefinition = z.infer<typeof LegacyPlanDefinitionSchema>;
+
+/**
+ * Stripe Metadata Field Definition
+ */
+export const MetadataFieldSchema = z.record(
+  z.string(),
+  z.string().describe('Field description or example value')
+);
+
+/**
+ * Stripe Metadata Schema Definition
+ */
+export const StripeMetadataSchemaDefinition = z.object({
+  required: MetadataFieldSchema.describe('Required metadata fields'),
+  optional: MetadataFieldSchema.optional().describe('Optional metadata fields'),
+});
+
+export type StripeMetadataSchema = z.infer<typeof StripeMetadataSchemaDefinition>;
+
+// =============================================================================
+// Root Configuration Schema
+// =============================================================================
+
 /**
  * Billing Configuration Root
- * Complete billing.yaml structure
+ * Complete billing.yaml structure (flat, unified configuration)
  */
 export const BillingConfigSchema = z.object({
-  billing: z.object({
-    enabled: z.boolean().describe('Whether billing is enabled'),
-    stripe_key: z.string().min(1).describe('Stripe API key'),
-    webhook_signing_secret: z.string().min(1).describe('Stripe webhook signing secret'),
-    stripe_api_version: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}\.\w+$/, 'Must match format: YYYY-MM-DD.version')
-      .describe('Stripe API version (e.g., 2025-11-20.clover)'),
+  schema_version: z.string().describe('Schema version'),
+  app_identifier: z.string().describe('Application identifier'),
+  enabled: z.boolean().describe('Whether billing is enabled'),
+  stripe_key: z.string().min(1).describe('Stripe API key'),
+  webhook_signing_secret: z.string().min(1).describe('Stripe webhook signing secret'),
+  stripe_api_version: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}\.\w+$/, 'Must match format: YYYY-MM-DD.version')
+    .describe('Stripe API version (e.g., 2025-11-17.clover)'),
 
-    entitlements: z.record(
-      z.string(),
-      EntitlementDefinitionSchema,
-    ).describe('System-wide entitlement definitions'),
-  }),
+  entitlements: z
+    .record(z.string(), EntitlementDefinitionSchema)
+    .describe('System-wide entitlement definitions'),
+
+  plans: z
+    .record(
+      z.string().regex(/^[a-z_]+_v\d+$/, 'Plan ID must match format: name_v1'),
+      PlanDefinitionSchema
+    )
+    .describe('Active plan definitions by plan_id'),
+
+  legacy_plans: z
+    .record(z.string(), LegacyPlanDefinitionSchema)
+    .optional()
+    .describe('Grandfathered plan definitions'),
+
+  stripe_metadata_schema: StripeMetadataSchemaDefinition.optional().describe(
+    'Stripe product metadata schema definition'
+  ),
 });
 
 export type BillingConfig = z.infer<typeof BillingConfigSchema>;
 
-/**
- * Entitlement ID Type
- * Type-safe entitlement identifiers from config
- */
-export type EntitlementId = keyof BillingConfig['billing']['entitlements'];
+// =============================================================================
+// Type Aliases
+// =============================================================================
 
-/**
- * Helper: Get entitlement by ID
- *
- * @param config - Validated billing config
- * @param entitlementId - Entitlement identifier
- * @returns Entitlement definition or undefined
- */
+export type EntitlementId = keyof BillingConfig['entitlements'];
+export type PlanId = keyof BillingConfig['plans'];
+
+// =============================================================================
+// Entitlement Helpers
+// =============================================================================
+
 export function getEntitlementById(
   config: BillingConfig,
-  entitlementId: string,
+  entitlementId: string
 ): EntitlementDefinition | undefined {
-  return config.billing.entitlements[entitlementId];
+  return config.entitlements[entitlementId];
 }
 
-/**
- * Helper: Get entitlements by category
- *
- * @param config - Validated billing config
- * @param category - Entitlement category to filter by
- * @returns Array of [entitlementId, entitlement] tuples
- */
 export function getEntitlementsByCategory(
   config: BillingConfig,
-  category: EntitlementCategory,
+  category: EntitlementCategory
 ): Array<[string, EntitlementDefinition]> {
-  return Object.entries(config.billing.entitlements)
-    .filter(([, ent]) => ent.category === category);
+  return Object.entries(config.entitlements).filter(([, ent]) => ent.category === category);
 }
 
-/**
- * Helper: Check if entitlement exists
- *
- * @param config - Validated billing config
- * @param entitlementId - Entitlement ID to check
- * @returns True if entitlement is defined
- */
-export function hasEntitlement(
-  config: BillingConfig,
-  entitlementId: string,
-): boolean {
-  return entitlementId in config.billing.entitlements;
+export function hasEntitlement(config: BillingConfig, entitlementId: string): boolean {
+  return entitlementId in config.entitlements;
 }
 
-/**
- * Helper: Get all entitlement IDs
- *
- * @param config - Validated billing config
- * @returns Array of entitlement IDs
- */
 export function getAllEntitlementIds(config: BillingConfig): string[] {
-  return Object.keys(config.billing.entitlements);
+  return Object.keys(config.entitlements);
 }
 
-/**
- * Type guard: Check if config is valid
- *
- * @param data - Unknown data to validate
- * @returns True if data matches BillingConfig schema
- */
+// =============================================================================
+// Plan Helpers
+// =============================================================================
+
+export function getPlanById(config: BillingConfig, planId: string): PlanDefinition | undefined {
+  return config.plans[planId];
+}
+
+export function getAllPlanIds(config: BillingConfig): string[] {
+  return Object.keys(config.plans);
+}
+
+export function getPlansSortedByDisplayOrder(
+  config: BillingConfig,
+  includeHidden = false
+): Array<[string, PlanDefinition]> {
+  return Object.entries(config.plans)
+    .filter(([, plan]) => includeHidden || plan.show_on_plans_page)
+    .sort(([, a], [, b]) => b.display_order - a.display_order);
+}
+
+export function getPlansByTier(
+  config: BillingConfig,
+  tier: BillingTier
+): Array<[string, PlanDefinition]> {
+  return Object.entries(config.plans).filter(([, plan]) => plan.tier === tier);
+}
+
+export function planHasEntitlement(plan: PlanDefinition, entitlement: string): boolean {
+  return plan.entitlements.includes(entitlement);
+}
+
+export function getPlanPrice(plan: PlanDefinition, interval: BillingInterval): PlanPrice | undefined {
+  return plan.prices.find((p) => p.interval === interval);
+}
+
+export function formatLimitValue(value: LimitValue): string {
+  if (value === null) return 'TBD';
+  if (value === -1) return 'Unlimited';
+  return value.toString();
+}
+
+export function limitValueToNumber(value: LimitValue): number {
+  if (value === null) return Infinity;
+  return value;
+}
+
+export function shouldCreateStripeProduct(plan: PlanDefinition): boolean {
+  if (!plan.tier) return false;
+  if (plan.tier === 'free') return false;
+  return true;
+}
+
+export function getStripePlans(config: BillingConfig): Array<[string, PlanDefinition]> {
+  return Object.entries(config.plans).filter(([, plan]) => shouldCreateStripeProduct(plan));
+}
+
+export function getIncompletePlans(config: BillingConfig): Array<[string, PlanDefinition]> {
+  return Object.entries(config.plans).filter(([, plan]) => !plan.tier);
+}
+
+// =============================================================================
+// Type Guards
+// =============================================================================
+
 export function isBillingConfig(data: unknown): data is BillingConfig {
   return BillingConfigSchema.safeParse(data).success;
 }

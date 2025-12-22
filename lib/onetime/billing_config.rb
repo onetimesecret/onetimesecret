@@ -33,32 +33,63 @@ module Onetime
     # Whether billing is enabled
     # Returns false if file doesn't exist or enabled is not true
     def enabled?
-      config.dig('billing', 'enabled').to_s == 'true'
+      config['enabled'].to_s == 'true'
     end
 
     # Stripe API key
     def stripe_key
-      config.dig('billing', 'stripe_key')
+      config['stripe_key']
     end
 
     # Stripe webhook signing secret
     def webhook_signing_secret
-      config.dig('billing', 'webhook_signing_secret')
+      config['webhook_signing_secret']
     end
 
     # Stripe API version
     def stripe_api_version
-      config.dig('billing', 'stripe_api_version')
+      config['stripe_api_version']
+    end
+
+    # Schema version
+    def schema_version
+      config['schema_version']
+    end
+
+    # App identifier used in Stripe metadata matching
+    def app_identifier
+      config['app_identifier']
+    end
+
+    # Entitlements configuration
+    def entitlements
+      config['entitlements'] || {}
+    end
+
+    # Active plans configuration
+    def plans
+      config['plans'] || {}
+    end
+
+    # Legacy plans configuration
+    def legacy_plans
+      config['legacy_plans'] || {}
+    end
+
+    # Stripe metadata schema
+    def stripe_metadata_schema
+      config['stripe_metadata_schema'] || {}
     end
 
     # Payment links configuration
     def payment_links
-      config.dig('billing', 'payment_links') || {}
+      config['payment_links'] || {}
     end
 
     # Full billing configuration hash
+    # Returns the entire config for backward compatibility
     def billing
-      config['billing'] || {}
+      config
     end
 
     # Reload configuration (useful for testing)

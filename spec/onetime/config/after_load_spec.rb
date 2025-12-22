@@ -269,9 +269,6 @@ RSpec.describe "Onetime boot configuration process" do
           'host' => 'example.com',
           'secret' => 'test_secret',
         },
-        'billing' => {
-          'enabled' => false,
-        },
         'redis' => { 'uri' => 'redis://localhost:6379/0' },
       }
     end
@@ -328,11 +325,12 @@ RSpec.describe "Onetime boot configuration process" do
       expect(processed_config['features']['domains']).to eq({ 'enabled' => false })
     end
 
-    it 'initializes empty plans configuration' do
+    it 'does not add billing configuration when not present' do
       config = minimal_config.dup
       processed_config = Onetime::Config.after_load(config)
 
-      expect(processed_config['billing']).to eq({ 'enabled' => false })
+      # Billing config comes from billing.yaml, not config.yaml
+      expect(processed_config.key?('billing')).to be false
     end
 
     it 'initializes empty regions configuration' do

@@ -21,8 +21,8 @@ module Onetime
       def call(strict: false, **)
         boot_application!
 
-        catalog_path = Billing::Config.catalog_path
-        schema_path  = File.join(File.dirname(catalog_path), 'billing-catalog.schema.json')
+        catalog_path = Billing::Config.billing_config_path
+        schema_path  = File.join(File.dirname(catalog_path), 'billing.schema.json')
 
         unless File.exist?(catalog_path)
           puts "❌ Error: Catalog file not found: #{catalog_path}"

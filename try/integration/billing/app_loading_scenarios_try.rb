@@ -12,16 +12,15 @@ require 'tempfile'
 require 'fileutils'
 
 ## simulated billing config enabled=false returns correct value
-# Simulate what happens when billing.yaml has enabled: false
+# Simulate what happens when billing.yaml has enabled: false (flat structure)
 def simulate_billing_config_check(yaml_content)
   config = YAML.safe_load(yaml_content, symbolize_names: false) || {}
-  config.dig('billing', 'enabled').to_s == 'true'
+  config['enabled'].to_s == 'true'
 end
 
 yaml_disabled = <<~YAML
-  billing:
-    enabled: false
-    stripe_key: sk_test_disabled
+  enabled: false
+  stripe_key: sk_test_disabled
 YAML
 
 simulate_billing_config_check(yaml_disabled)
@@ -29,9 +28,8 @@ simulate_billing_config_check(yaml_disabled)
 
 ## simulated billing config enabled=true returns correct value
 yaml_enabled = <<~YAML
-  billing:
-    enabled: true
-    stripe_key: sk_test_enabled
+  enabled: true
+  stripe_key: sk_test_enabled
 YAML
 
 simulate_billing_config_check(yaml_enabled)

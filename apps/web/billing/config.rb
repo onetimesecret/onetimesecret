@@ -14,13 +14,6 @@ module Billing
       File.join(Onetime::HOME, 'etc', 'billing.yaml')
     end
 
-    # Get path to billing plans catalog
-    #
-    # @return [String] Absolute path to billing-catalog.yaml
-    def self.catalog_path
-      File.join(Onetime::HOME, 'etc', 'billing-catalog.yaml')
-    end
-
     # Check if billing config file exists
     #
     # @return [Boolean]
@@ -28,37 +21,55 @@ module Billing
       File.exist?(billing_config_path)
     end
 
-    # Check if catalog file exists
-    #
-    # @return [Boolean]
-    def self.catalog_exists?
-      File.exist?(catalog_path)
-    end
-
     # Load entitlements from billing.yaml
     #
-    # Loads entitlement definitions from billing configuration.
-    # Falls back to billing-catalog.yaml for backward compatibility.
+    # Loads entitlement definitions from billing configuration with flat structure.
     #
     # @return [Hash] Entitlement definitions by ID
     def self.load_entitlements
-      # Try billing.yaml first (new location)
-      if billing_config_exists?
-        config       = YAML.load_file(billing_config_path)
-        entitlements = config.dig('billing', 'entitlements')
-        return entitlements if entitlements
-      end
+      return {} unless billing_config_exists?
 
-      # Fall back to billing-catalog.yaml
-      if catalog_exists?
-        catalog = YAML.load_file(catalog_path)
-        return catalog['entitlements'] if catalog['entitlements']
-      end
-
-      # No entitlements found
-      {}
+      config       = YAML.load_file(billing_config_path)
+      entitlements = config['entitlements']
+      entitlements || {}
     rescue Psych::SyntaxError => ex
       OT.le "Failed to load entitlements: #{ex.message}"
+      {}
+    end
+
+    # Load plans from billing.yaml
+    #
+    # Loads plan definitions from billing configuration with flat structure.
+    #
+    # @return [Hash] Plan definitions by ID
+    def self.load_plans
+      return {} unless billing_config_exists?
+
+      config = YAML.load_file(billing_config_path)
+      plans  = config['plans']
+      plans || {}
+    rescue Psych::SyntaxError => ex
+      OT.le "Failed to load plans: #{ex.message}"
+      {}
+    end
+
+    # Load full catalog from billing.yaml
+    #
+    # Loads complete billing catalog including schema_version, app_identifier, entitlements, and plans.
+    #
+    # @return [Hash] Full catalog hash
+    def self.load_catalog
+      return {} unless billing_config_exists?
+
+      config = YAML.load_file(billing_config_path)
+      {
+        'schema_version' => config['schema_version'],
+        'app_identifier' => config['app_identifier'],
+        'entitlements' => config['entitlements'] || {},
+        'plans' => config['plans'] || {},
+      }
+    rescue Psych::SyntaxError => ex
+      OT.le "Failed to load catalog: #{ex.message}"
       {}
     end
 

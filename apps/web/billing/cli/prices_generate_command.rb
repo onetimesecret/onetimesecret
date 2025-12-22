@@ -11,18 +11,18 @@ module Onetime
     class BillingPricesGenerateCommand < Command
       include BillingHelpers
 
-      desc 'Generate price creation commands from billing-catalog.yaml'
+      desc 'Generate price creation commands from billing.yaml'
 
       option :product_id, type: :string, desc: 'Stripe Product ID (e.g., prod_xxx) - required for each plan'
       option :plan, type: :string, desc: 'Generate for specific plan only (e.g., identity_plus_v1)'
-      option :catalog, type: :string, default: 'etc/billing-catalog.yaml',
+      option :catalog, type: :string, default: 'etc/billing.yaml',
         desc: 'Path to billing plans catalog'
       option :lookup, type: :boolean, default: true,
         desc: 'Lookup product IDs from Stripe using plan_id metadata (default: true)'
       option :no_lookup, type: :boolean, default: false,
         desc: 'Skip Stripe lookup and use PRODUCT_ID placeholders'
 
-      def call(product_id: nil, plan: nil, catalog: 'etc/billing-catalog.yaml', lookup: true, no_lookup: false, **)
+      def call(product_id: nil, plan: nil, catalog: 'etc/billing.yaml', lookup: true, no_lookup: false, **)
         # Allow --no-lookup to override default
         lookup = false if no_lookup
 

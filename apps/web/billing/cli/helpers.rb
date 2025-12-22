@@ -318,7 +318,7 @@ module Onetime
       # @return [Array<String>] Array of plan IDs from catalog
       def load_catalog_plan_ids
         require 'yaml'
-        catalog_path = Billing::Config.catalog_path
+        catalog_path = Billing::Config.billing_config_path
         return [] unless File.exist?(catalog_path)
 
         catalog = YAML.load_file(catalog_path)
