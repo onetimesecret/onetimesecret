@@ -114,7 +114,7 @@ resp = JSON.parse(last_response.body)
 @invitation.status
 #=> 'active'
 
-# Create another invitation for accept/decline tests
+## Setup for accept/decline tests - create second invitation
 @invitee2_email = generate_unique_test_email("invite_recipient2")
 @invitee2 = Onetime::Customer.create!(email: @invitee2_email)
 @invitation2 = Onetime::OrganizationMembership.create_invitation!(
@@ -124,6 +124,8 @@ resp = JSON.parse(last_response.body)
   inviter: @owner
 )
 @token2 = @invitation2.token
+[@invitation2.nil?, @token2.nil?]
+#=> [false, false]
 
 ## POST /api/invite/:token/accept - Returns 400 without authentication
 # Clear cookies to simulate unauthenticated request
@@ -134,13 +136,15 @@ post "/api/invite/#{@token2}/accept",
 last_response.status >= 400
 #=> true
 
-# Create invitation for email mismatch test
+## Setup for email mismatch test - create wrong user
 @wrong_user = Onetime::Customer.create!(email: generate_unique_test_email("wrong_user"))
 @wrong_session = {
   'authenticated' => true,
   'external_id' => @wrong_user.extid,
   'email' => @wrong_user.email
 }
+@wrong_user.nil? == false
+#=> true
 
 ## POST /api/invite/:token/accept - Returns 400 when email doesn't match
 post "/api/invite/#{@token2}/accept",
@@ -154,7 +158,7 @@ last_response.status >= 400
 @invitation2.pending?
 #=> true
 
-# Create invitation for decline test
+## Setup for decline test - create third invitation
 @invitee3_email = generate_unique_test_email("invite_recipient3")
 @invitation3 = Onetime::OrganizationMembership.create_invitation!(
   organization: @org,
@@ -163,6 +167,8 @@ last_response.status >= 400
   inviter: @owner
 )
 @token3 = @invitation3.token
+[@invitation3.nil?, @token3.nil?]
+#=> [false, false]
 
 ## POST /api/invite/:token/decline - Declines invitation without authentication
 # No authentication required for decline
@@ -179,7 +185,7 @@ resp = JSON.parse(last_response.body)
 @invitation3.status
 #=> 'declined'
 
-# Create invitation for already-accepted test
+## Setup for already-accepted test - create and accept fourth invitation
 @invitee4_email = generate_unique_test_email("invite_recipient4")
 @invitee4 = Onetime::Customer.create!(email: @invitee4_email)
 @invitee4_session = {
@@ -194,9 +200,10 @@ resp = JSON.parse(last_response.body)
   inviter: @owner
 )
 @token4 = @invitation4.token
-
 # Accept the invitation
 @invitation4.accept!(@invitee4)
+[@invitation4.nil?, @token4.nil?]
+#=> [false, false]
 
 ## POST /api/invite/:token/accept - Returns 400 for already accepted invitation
 post "/api/invite/#{@token4}/accept",
@@ -210,7 +217,7 @@ get "/api/invite/#{@token4}", {}, { 'HTTP_ACCEPT' => 'application/json' }
 last_response.status >= 400
 #=> true
 
-# Create invitation for already-declined test
+## Setup for already-declined test - create and decline fifth invitation
 @invitee5_email = generate_unique_test_email("invite_recipient5")
 @invitation5 = Onetime::OrganizationMembership.create_invitation!(
   organization: @org,
@@ -220,6 +227,8 @@ last_response.status >= 400
 )
 @token5 = @invitation5.token
 @invitation5.decline!
+[@invitation5.nil?, @token5.nil?]
+#=> [false, false]
 
 ## POST /api/invite/:token/decline - Returns 400 for already declined invitation
 post "/api/invite/#{@token5}/decline",

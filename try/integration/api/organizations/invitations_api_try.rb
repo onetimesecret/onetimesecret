@@ -224,10 +224,13 @@ get "/api/organizations/#{@org.extid}/invitations",
 last_response.status >= 400
 #=> true
 
-# Get token for resend/revoke tests
+## Setup for resend tests - find invitation by org+email and verify token lookup works
 @invitation_to_resend = Onetime::OrganizationMembership.find_by_org_email(@org.objid, @invite_email1)
 @token_to_resend = @invitation_to_resend.token
 @original_invited_at = @invitation_to_resend.invited_at
+# Verify the invitation was found and has a token
+[@invitation_to_resend.nil?, @token_to_resend.nil?, @original_invited_at.nil?]
+#=> [false, false, false]
 
 ## POST /api/organizations/:extid/invitations/:token/resend - Owner can resend invitation
 sleep 0.01 # Ensure timestamp difference
@@ -280,7 +283,7 @@ post "/api/organizations/#{@org.extid}/invitations/invalid_token/resend",
 last_response.status >= 400
 #=> true
 
-# Create invitation to test resend limit
+## Setup for resend limit test - create invitation with max resends
 @invite_email_limit = generate_unique_test_email("invite_limit")
 @invitation_limit = Onetime::OrganizationMembership.create_invitation!(
   organization: @org,
@@ -291,6 +294,8 @@ last_response.status >= 400
 @invitation_limit.resend_count = 3 # MAX_RESENDS
 @invitation_limit.save
 @token_limit = @invitation_limit.token
+@token_limit.nil? == false
+#=> true
 
 ## POST /api/organizations/:extid/invitations/:token/resend - Returns 400 when resend limit reached
 post "/api/organizations/#{@org.extid}/invitations/#{@token_limit}/resend",
@@ -299,9 +304,11 @@ post "/api/organizations/#{@org.extid}/invitations/#{@token_limit}/resend",
 last_response.status >= 400
 #=> true
 
-# Get token for revoke test
+## Setup for revoke test - find second invitation
 @invitation_to_revoke = Onetime::OrganizationMembership.find_by_org_email(@org.objid, @invite_email2)
 @token_to_revoke = @invitation_to_revoke.token
+[@invitation_to_revoke.nil?, @token_to_revoke.nil?]
+#=> [false, false]
 
 ## DELETE /api/organizations/:extid/invitations/:token - Owner can revoke invitation
 delete "/api/organizations/#{@org.extid}/invitations/#{@token_to_revoke}",
@@ -311,10 +318,9 @@ resp = JSON.parse(last_response.body)
 [last_response.status, resp['revoked']]
 #=> [200, true]
 
-## DELETE /api/organizations/:extid/invitations/:token - Revoked invitation status updated
-@invitation_to_revoke = Onetime::OrganizationMembership.load(@invitation_to_revoke.objid)
-@invitation_to_revoke.status
-#=> 'revoked'
+## DELETE /api/organizations/:extid/invitations/:token - Revoked invitation no longer findable by token
+Onetime::OrganizationMembership.find_by_token(@token_to_revoke).nil?
+#=> true
 
 ## DELETE /api/organizations/:extid/invitations/:token - Cannot revoke already revoked invitation
 delete "/api/organizations/#{@org.extid}/invitations/#{@token_to_revoke}",
@@ -323,7 +329,7 @@ delete "/api/organizations/#{@org.extid}/invitations/#{@token_to_revoke}",
 last_response.status >= 400
 #=> true
 
-# Create invitation for admin revoke test
+## Setup for admin revoke test - create new invitation
 @invite_email_admin_revoke = generate_unique_test_email("invite_admin_revoke")
 @invitation_admin_revoke = Onetime::OrganizationMembership.create_invitation!(
   organization: @org,
@@ -332,6 +338,8 @@ last_response.status >= 400
   inviter: @owner
 )
 @token_admin_revoke = @invitation_admin_revoke.token
+@token_admin_revoke.nil? == false
+#=> true
 
 ## DELETE /api/organizations/:extid/invitations/:token - Admin can revoke invitation
 delete "/api/organizations/#{@org.extid}/invitations/#{@token_admin_revoke}",
@@ -340,7 +348,7 @@ delete "/api/organizations/#{@org.extid}/invitations/#{@token_admin_revoke}",
 last_response.status
 #=> 200
 
-# Create invitation for member revoke test
+## Setup for member revoke test - create new invitation
 @invite_email_member_revoke = generate_unique_test_email("invite_member_revoke")
 @invitation_member_revoke = Onetime::OrganizationMembership.create_invitation!(
   organization: @org,
@@ -349,6 +357,8 @@ last_response.status
   inviter: @owner
 )
 @token_member_revoke = @invitation_member_revoke.token
+@token_member_revoke.nil? == false
+#=> true
 
 ## DELETE /api/organizations/:extid/invitations/:token - Member cannot revoke invitation
 delete "/api/organizations/#{@org.extid}/invitations/#{@token_member_revoke}",
