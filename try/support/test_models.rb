@@ -27,5 +27,4 @@ CustomDomain = TestVersion::CustomDomain
 Metadata = TestVersion::Metadata
 Secret = TestVersion::Secret
 Feedback = TestVersion::Feedback
-Team = TestVersion::Team
 Organization = TestVersion::Organization

@@ -96,26 +96,6 @@ module Onetime
         organization&.objid
       end
 
-      # Get current team from strategy result metadata
-      #
-      # @return [Onetime::Team, nil] Current team or nil
-      def team
-        return @team if defined?(@team)
-
-        result = strategy_result
-        return nil unless result
-
-        context = result.metadata[:organization_context]
-        @team   = context[:team] if context
-      end
-
-      # Get current team ID
-      #
-      # @return [String, nil] Team objid or nil
-      def team_id
-        team&.objid
-      end
-
       # Switch to a different organization
       #
       # Updates session and clears cache. Organization change takes effect
@@ -138,39 +118,10 @@ module Onetime
 
         # Update current request's memoized values
         @organization = org
-        @team         = nil  # Clear stale team from previous organization
 
         true
       rescue StandardError => ex
         OT.le "[RequestHelpers#switch_organization] Failed to switch: #{ex.message}"
-        false
-      end
-
-      # Switch to a different team within current organization
-      #
-      # @param team_id [String] Team objid to switch to
-      # @return [Boolean] true if switch was successful
-      def switch_team(team_id)
-        return false unless user && team_id && organization
-        return false unless strategy_result&.session || env['rack.session']
-
-        team = Onetime::Team.load(team_id)
-        return false unless team
-        return false unless team.organization_id == organization.objid
-        return false unless team.member?(user)
-
-        session['team_id'] = team_id
-
-        # Clear cache to force reload on next request
-        cache_key = "org_context:#{user.objid}"
-        session.delete(cache_key)
-
-        # Update current request's memoized value
-        @team = team
-
-        true
-      rescue StandardError => ex
-        OT.le "[RequestHelpers#switch_team] Failed to switch: #{ex.message}"
         false
       end
 

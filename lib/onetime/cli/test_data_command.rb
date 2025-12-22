@@ -12,25 +12,22 @@ module Onetime
       option :org_name, type: :string, default: nil,
         desc: 'Organization name (default: auto-generated)'
 
-      option :team_name, type: :string, default: nil,
-        desc: 'Team name (default: auto-generated)'
-
       option :cleanup, type: :boolean, default: false,
-        desc: 'Remove all non-default orgs/teams for the user'
+        desc: 'Remove all non-default orgs for the user'
 
-      def call(email:, org_name: nil, team_name: nil, cleanup: false, **)
+      def call(email:, org_name: nil, cleanup: false, **)
         boot_application!
 
         if cleanup
           cleanup_test_data(email)
         else
-          create_test_data(email, org_name, team_name)
+          create_test_data(email, org_name)
         end
       end
 
       private
 
-      def create_test_data(email, org_name, team_name)
+      def create_test_data(email, org_name)
         # Load customer
         cust = Onetime::Customer.find_by_email(email)
         unless cust
@@ -52,20 +49,11 @@ module Onetime
         puts "  - is_default: #{org.is_default}"
         puts "  - contact_email: #{org.contact_email}"
 
-        # Create team in organization
-        team_display_name = team_name || "#{org_display_name} Team"
-        team              = Onetime::Team.create!(team_display_name, cust, org.objid)
-
-        puts "Created team: #{team.team_id} - #{team.display_name}"
-        puts "  - org_id: #{team.org_id}"
-        puts "  - owner: #{team.owner_id}"
-
         # Summary
         puts ''
         puts '✓ Test data created:'
         puts "  Customer: #{cust.email}"
         puts "  Organization: #{org.display_name} (#{org.objid})"
-        puts "  Team: #{team.display_name} (#{team.team_id})"
         puts ''
         puts "Login as #{email} and visit /billing to see the org link!"
       rescue Onetime::Problem => ex
@@ -92,16 +80,6 @@ module Onetime
 
         orgs.each do |org|
           puts "Removing organization: #{org.display_name} (#{org.objid})"
-
-          # Remove teams first
-          org.teams.each do |team_id|
-            team = Onetime::Team.load(team_id)
-            next unless team
-
-            puts "  Removing team: #{team.display_name}"
-            team.destroy!
-          end
-
           org.destroy!
         end
 

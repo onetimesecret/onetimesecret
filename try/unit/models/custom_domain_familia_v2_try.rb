@@ -170,12 +170,6 @@ end
 @owner_orgs.first.list_domains.size
 #=> 1
 
-## Access pattern: Team Member -> Team -> Organization -> Domains
-@team = Onetime::Team.create!("Engineering", @owner, @org.objid)
-@team_org = Onetime::Organization.load(@org.objid)
-@team_org.list_domains.map(&:display_domain)
-#=> ["secrets.acme.com"]
-
 ## Add member to organization using auto-generated method
 @org.add_members_instance(@member)
 @org.member?(@member)

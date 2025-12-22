@@ -1,5 +1,5 @@
 # Generated rspec code for default_workspace_creation
-# Updated: 2025-12-07
+# Updated: 2024-12-22
 
 require 'spec_helper'
 
@@ -24,7 +24,6 @@ RSpec.describe 'default_workspace_creation_try', order: :defined do
     # Create default workspace for first customer
     @result = Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
     @org = @result[:organization]
-    @team = @result[:team]
 
     # Test idempotency
     @result2 = Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
@@ -48,9 +47,9 @@ RSpec.describe 'default_workspace_creation_try', order: :defined do
     expect(@customer.class).to eq(Onetime::Customer)
   end
 
-  it 'CreateDefaultWorkspace operation creates org and team' do
+  it 'CreateDefaultWorkspace operation creates org' do
     expect(@result.class).to eq(Hash)
-    expect(@result.keys.sort).to eq([:organization, :team])
+    expect(@result.keys.sort).to eq([:organization])
   end
 
   it 'Organization was created with correct owner' do
@@ -68,23 +67,6 @@ RSpec.describe 'default_workspace_creation_try', order: :defined do
 
   it 'Customer is automatically added as org member' do
     expect(@org.member?(@customer)).to eq(true)
-  end
-
-  it 'Team was created with correct owner' do
-    expect(@team.class).to eq(Onetime::Team)
-    expect(@team.owner_id).to eq(@customer.custid)
-  end
-
-  it 'Team has default name' do
-    expect(@team.display_name).to eq("Default Team")
-  end
-
-  it 'Team is linked to the organization' do
-    expect(@team.org_id).to eq(@org.objid)
-  end
-
-  it 'Customer is automatically added as team member' do
-    expect(@team.member?(@customer)).to eq(true)
   end
 
   it 'Running CreateDefaultWorkspace again does nothing (idempotent)' do
@@ -110,16 +92,11 @@ RSpec.describe 'default_workspace_creation_try', order: :defined do
     expect(@workspace).not_to be_nil
   end
 
-  it 'Workspace contains org and team' do
+  it 'Workspace contains org' do
     expect(@workspace[:organization].class).to eq(Onetime::Organization)
-    expect(@workspace[:team].class).to eq(Onetime::Team)
   end
 
   it 'New customer is member of the created org' do
     expect(@workspace[:organization].members.member?(@new_customer.objid)).to eq(true)
-  end
-
-  it 'New customer is member of the created team' do
-    expect(@workspace[:team].members.member?(@new_customer.objid)).to eq(true)
   end
 end
