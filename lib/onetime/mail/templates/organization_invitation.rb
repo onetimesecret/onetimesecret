@@ -37,8 +37,11 @@ module Onetime
         public
 
         def subject
-          # TODO: I18n.t('email.organization_invitation.subject', org: organization_name)
-          "You've been invited to join #{organization_name}"
+          EmailTranslations.translate(
+            'email.organization_invitation.subject',
+            locale: locale,
+            organization_name: organization_name
+          )
         end
 
         def recipient_email
@@ -58,12 +61,11 @@ module Onetime
         end
 
         def role_description
-          case role
-          when 'admin'
-            'an administrator'
-          else
-            'a member'
-          end
+          role_key = role == 'admin' ? 'admin' : 'member'
+          EmailTranslations.translate(
+            "email.organization_invitation.roles.#{role_key}",
+            locale: locale
+          )
         end
 
         def invite_token

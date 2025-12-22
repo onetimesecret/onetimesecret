@@ -24,6 +24,11 @@ module InviteAPI::Logic
 
         @invitation = load_invitation(@token)
 
+        # Check if organization still exists (may have been deleted)
+        unless @invitation.organization
+          raise_form_error('Organization no longer exists', field: :token)
+        end
+
         # Check if invitation is still pending
         unless @invitation.pending?
           raise_form_error(

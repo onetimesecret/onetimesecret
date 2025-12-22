@@ -64,7 +64,7 @@ module InviteAPI
           role: invitation.role,
           invited_email: invitation.invited_email,
           invited_at: invitation.invited_at,
-          expires_at: invitation.invited_at.to_f + 7.days.to_i,
+          expires_at: invitation.invitation_expires_at,
           expired: invitation.expired?,
           status: invitation.status,
         }
