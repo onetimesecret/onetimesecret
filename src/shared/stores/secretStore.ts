@@ -41,7 +41,7 @@ export type SecretStore = {
 /**
  * Store for managing secret records and their details
  */
-
+/* eslint-disable max-lines-per-function */
 export const useSecretStore = defineStore('secrets', () => {
   const $api = inject('api') as AxiosInstance;
 
@@ -102,14 +102,14 @@ export const useSecretStore = defineStore('secrets', () => {
    * should remain the responsibility of this store.
    */
   async function conceal(payload: ConcealPayload): Promise<ConcealDataResponse> {
-    const response = await $api.post('/api/v3/secret/conceal', {
+    const response = await $api.post(`/api/v3/secret/conceal`, {
       secret: payload,
     });
     return response.data;
   }
 
   async function generate(payload: GeneratePayload): Promise<ConcealDataResponse> {
-    const response = await $api.post('/api/v3/secret/generate', {
+    const response = await $api.post(`/api/v3/secret/generate`, {
       secret: payload,
     });
     // const validated = responseSchemas.concealData.parse(response.data); // Fails?

@@ -199,9 +199,19 @@
 
     <!-- Helpful Tips -->
     <div class="mt-8 text-center">
-      <p
-        class="text-sm text-gray-500 dark:text-gray-400 [&_a]:text-brand-600 [&_a]:underline [&_a]:transition-colors [&_a]:duration-200 hover:[&_a]:text-brand-700 dark:[&_a]:text-brand-400 dark:hover:[&_a]:text-brand-300"
-        v-html="t('incoming.end_of_experience_suggestion', { receiptUrl })"></p>
+      <i18n-t
+        keypath="incoming.end_of_experience_suggestion"
+        tag="p"
+        class="text-sm text-gray-500 dark:text-gray-400"
+        scope="global">
+        <template #receipt>
+          <a
+            :href="receiptUrl"
+            class="text-brand-600 underline transition-colors duration-200 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+            {{ t('incoming.receipt_link_text', 'receipt') }}
+          </a>
+        </template>
+      </i18n-t>
     </div>
   </div>
 </template>
