@@ -41,6 +41,14 @@ module Onetime
         router.register_error_handler(Onetime::FormError, status: 422, log_level: :info)
         router.register_error_handler(Onetime::Forbidden, status: 403, log_level: :warn)
 
+        # Entitlement errors return 403 with upgrade path info
+        router.register_error_handler(Onetime::EntitlementRequired, status: 403, log_level: :info) do |error, _req|
+          {
+            'Content-Type' => 'application/json',
+            'X-Entitlement-Required' => error.entitlement,
+          }.merge(body: error.to_h.to_json)
+        end
+
         return unless Onetime.debug?
 
         router.on_request_complete do |req, res, duration|

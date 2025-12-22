@@ -79,6 +79,28 @@ module Onetime
     end
   end
 
+  # Raised when a user lacks the required entitlement for an action.
+  # Contains upgrade path information for the API response.
+  class EntitlementRequired < Forbidden
+    attr_reader :entitlement, :current_plan, :upgrade_to
+
+    def initialize(entitlement, current_plan: nil, upgrade_to: nil, message: nil)
+      @entitlement  = entitlement
+      @current_plan = current_plan
+      @upgrade_to   = upgrade_to
+      super(message || "Feature requires #{entitlement.to_s.tr('_', ' ')} entitlement")
+    end
+
+    def to_h
+      {
+        error: message,
+        entitlement: entitlement,
+        current_plan: current_plan,
+        upgrade_to: upgrade_to,
+      }.compact
+    end
+  end
+
   class Redirect < RuntimeError
     attr_reader :location, :status
 
