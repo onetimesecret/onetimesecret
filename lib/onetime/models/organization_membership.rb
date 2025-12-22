@@ -164,13 +164,30 @@ module Onetime
       end
 
       # Find active memberships for an organization
+      #
+      # Uses pipelined loading to fetch all memberships in a single Redis
+      # round-trip, avoiding N+1 queries.
+      #
+      # @param org [Organization] the organization to query
+      # @return [Array<OrganizationMembership>] active memberships
       def active_for_org(org)
-        # The memberships are auto-managed via org.members sorted set
-        # and :through option. This method provides a convenience wrapper.
-        org.list_members.map do |customer|
-          key = "organization:#{org.objid}:customer:#{customer.objid}:org_membership"
-          load(key)
-        end.compact
+        customers = org.list_members
+        return [] if customers.empty?
+
+        # Generate all keys upfront, then batch load via pipeline
+        keys = customers.map { |customer| membership_key(org, customer) }
+        load_multi_by_keys(keys).compact
+      end
+
+      private
+
+      # Generate the deterministic Redis key for a membership
+      #
+      # @param org [Organization] the organization
+      # @param customer [Customer] the customer
+      # @return [String] the Redis key
+      def membership_key(org, customer)
+        "organization:#{org.objid}:customer:#{customer.objid}:org_membership"
       end
     end
   end
