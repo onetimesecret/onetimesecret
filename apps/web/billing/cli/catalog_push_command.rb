@@ -232,7 +232,11 @@ module Onetime
         catalog_prices = plan_def['prices'] || []
 
         return changes if catalog_prices.empty?
-        return changes unless existing_product # Can't create prices without product
+
+        # For new products, existing_product will be nil. We still analyze prices
+        # and set product_id to nil - it will be resolved in apply_changes after
+        # the product is created.
+        product_id = existing_product&.id
 
         catalog_prices.each do |price_def|
           # Validate all required fields are present
@@ -241,18 +245,19 @@ module Onetime
             next
           end
 
-          # Check if matching price exists
-          matching = existing_prices.find do |p|
-            p.unit_amount == price_def['amount'] &&
-              p.currency == price_def['currency'].downcase &&
-              p.recurring&.interval == price_def['interval']
+          # Check if matching price exists (only for existing products)
+          if existing_product
+            matching = existing_prices.find do |p|
+              p.unit_amount == price_def['amount'] &&
+                p.currency == price_def['currency'].downcase &&
+                p.recurring&.interval == price_def['interval']
+            end
+            next if matching # Price already exists
           end
-
-          next if matching # Price already exists
 
           changes << {
             plan_id: plan_id,
-            product_id: existing_product.id,
+            product_id: product_id, # Can be nil for new products
             amount: price_def['amount'],
             currency: price_def['currency'],
             interval: price_def['interval'],

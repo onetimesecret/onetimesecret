@@ -143,9 +143,13 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :unit do
       expect(result).to eq([])
     end
 
-    it 'returns empty array when existing_product is nil' do
+    it 'returns prices with nil product_id when existing_product is nil (new product)' do
       result = command.send(:analyze_price_changes, 'identity_plus_v1', plan_def, nil, [])
-      expect(result).to eq([])
+      # For new products, we still analyze prices but set product_id to nil
+      # The product_id will be resolved in apply_changes after product creation
+      expect(result.length).to eq(2) # monthly and yearly prices
+      expect(result.all? { |p| p[:product_id].nil? }).to be true
+      expect(result.all? { |p| p[:plan_id] == 'identity_plus_v1' }).to be true
     end
 
     it 'skips incomplete price definitions missing amount' do
