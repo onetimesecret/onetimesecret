@@ -17,7 +17,10 @@ module V2::Logic
         @since = (Familia.now - 30.days).to_i
       end
 
-      def raise_concerns; end
+      def raise_concerns
+        # API access entitlement required for metadata listing
+        require_entitlement!('api_access')
+      end
 
       def process
         # Fetch entries from the sorted set within the past 30 days
