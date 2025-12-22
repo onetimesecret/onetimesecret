@@ -210,13 +210,13 @@ module Onetime
           'entitlements' => (plan_def['entitlements'] || []).join(','),
         }
 
-        # Add limit fields
+        # Add limit fields (always include so removed limits sync as empty strings)
         limits = plan_def['limits'] || {}
-        metadata_fields['limit_teams'] = limits['teams'].to_s if limits['teams']
-        metadata_fields['limit_members_per_team'] = limits['members_per_team'].to_s if limits['members_per_team']
-        metadata_fields['limit_custom_domains'] = limits['custom_domains'].to_s if limits['custom_domains']
-        metadata_fields['limit_secret_lifetime'] = limits['secret_lifetime'].to_s if limits['secret_lifetime']
-        metadata_fields['limit_secrets_per_day'] = limits['secrets_per_day'].to_s if limits['secrets_per_day']
+        metadata_fields['limit_teams'] = limits['teams'].to_s
+        metadata_fields['limit_members_per_team'] = limits['members_per_team'].to_s
+        metadata_fields['limit_custom_domains'] = limits['custom_domains'].to_s
+        metadata_fields['limit_secret_lifetime'] = limits['secret_lifetime'].to_s
+        metadata_fields['limit_secrets_per_day'] = limits['secrets_per_day'].to_s
 
         metadata_fields.each do |field, expected|
           current = existing.metadata[field]

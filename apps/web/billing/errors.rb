@@ -17,13 +17,6 @@ module Billing
   class ForbiddenOperation < RuntimeError
     EXIT_CODE = 87
 
-    attr_reader :message
-
-    def initialize(message = 'Operation forbidden')
-      super
-      @message = message
-    end
-
     def exit_code
       EXIT_CODE
     end
