@@ -68,12 +68,18 @@ module OrganizationAPI::Logic
           inviter: cust,
         )
 
-        # TODO: Queue invitation email via RabbitMQ
-        # Onetime::Jobs::Publisher.enqueue_email(
-        #   :organization_invitation,
-        #   { recipient: @email, ... },
-        #   fallback: :sync
-        # )
+        # Queue invitation email via RabbitMQ
+        Onetime::Jobs::Publisher.enqueue_email(
+          :organization_invitation,
+          {
+            invited_email: @email,
+            organization_name: @organization.display_name,
+            inviter_email: cust.email,
+            role: @role,
+            invite_token: @membership.token,
+          },
+          fallback: :sync
+        )
 
         OT.info "[CreateInvitation] Created invitation #{@membership.objid} for #{@email}"
 

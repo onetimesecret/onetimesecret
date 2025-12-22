@@ -62,12 +62,18 @@ module OrganizationAPI::Logic
         @invitation.resend_count = (@invitation.resend_count.to_i + 1)
         @invitation.save
 
-        # TODO: Queue invitation email via RabbitMQ
-        # Onetime::Jobs::Publisher.enqueue_email(
-        #   :organization_invitation,
-        #   { recipient: @invitation.invited_email, ... },
-        #   fallback: :sync
-        # )
+        # Queue invitation email via RabbitMQ
+        Onetime::Jobs::Publisher.enqueue_email(
+          :organization_invitation,
+          {
+            invited_email: @invitation.invited_email,
+            organization_name: @organization.display_name,
+            inviter_email: cust.email,
+            role: @invitation.role,
+            invite_token: @invitation.token,
+          },
+          fallback: :sync
+        )
 
         OT.info "[ResendInvitation] Resent invitation #{@invitation.objid} (count: #{@invitation.resend_count})"
 
