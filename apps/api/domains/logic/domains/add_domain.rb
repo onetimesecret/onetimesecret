@@ -29,6 +29,11 @@ module DomainsAPI::Logic
         # Require organization for domain ownership
         require_organization!
 
+        # Check custom domains entitlement
+        unless organization.can?('custom_domains')
+          raise_form_error 'Upgrade required for custom domains', field: :domain, error_type: :forbidden
+        end
+
         # Only store a valid, parsed input value to @domain
         @parsed_domain  = Onetime::CustomDomain.parse(@domain_input, organization.objid)
         @display_domain = @parsed_domain.display_domain
