@@ -263,13 +263,19 @@ export const apiLoggingSchema = z.object({
 
 /**
  * Billing schema for API responses
+ * Matches the flat billing.yaml structure (merged from billing.yaml + billing-catalog.yaml)
  */
 export const apiBillingSchema = z.object({
+  schema_version: z.string().nullable().optional(),
+  app_identifier: z.string().nullable().optional(),
   enabled: booleanOrString,
   stripe_key: z.string().nullable().optional(),
   webhook_signing_secret: z.string().nullable().optional(),
   stripe_api_version: z.string().nullable().optional(),
   entitlements: z.record(z.string(), z.any()).nullable().optional(),
+  plans: z.record(z.string(), z.any()).nullable().optional(),
+  legacy_plans: z.record(z.string(), z.any()).nullable().optional(),
+  stripe_metadata_schema: z.any().nullable().optional(),
 });
 
 /**

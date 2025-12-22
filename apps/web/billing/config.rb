@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'yaml'
+require 'erb'
 
 module Billing
   # Billing configuration and catalog management
@@ -10,56 +11,72 @@ module Billing
     # Get path to billing configuration file
     #
     # @return [String] Absolute path to billing.yaml
-    def self.billing_config_path
+    def self.config_path
       File.join(Onetime::HOME, 'etc', 'billing.yaml')
-    end
-
-    # Get path to billing plans catalog
-    #
-    # @return [String] Absolute path to billing-plans.yaml
-    def self.catalog_path
-      File.join(Onetime::HOME, 'etc', 'billing-plans.yaml')
     end
 
     # Check if billing config file exists
     #
     # @return [Boolean]
-    def self.billing_config_exists?
-      File.exist?(billing_config_path)
+    def self.config_exists?
+      File.exist?(config_path)
     end
 
-    # Check if catalog file exists
+    # Safely load and parse billing YAML configuration
     #
-    # @return [Boolean]
-    def self.catalog_exists?
-      File.exist?(catalog_path)
+    # Processes ERB templates and uses safe YAML loading to prevent
+    # arbitrary code execution from malicious YAML content.
+    #
+    # @return [Hash] Parsed configuration or empty hash on error
+    def self.safe_load_config
+      return {} unless config_exists?
+
+      erb_template = ERB.new(File.read(config_path))
+      yaml_content = erb_template.result
+      YAML.safe_load(yaml_content, permitted_classes: [Symbol], symbolize_names: false) || {}
+    rescue Psych::SyntaxError => ex
+      OT.le "YAML syntax error in billing config: #{ex.message}"
+      {}
+    rescue StandardError => ex
+      OT.le "Failed to load billing config: #{ex.message}"
+      {}
     end
 
     # Load entitlements from billing.yaml
     #
-    # Loads entitlement definitions from billing configuration.
-    # Falls back to billing-plans.yaml for backward compatibility.
+    # Loads entitlement definitions from billing configuration with flat structure.
     #
     # @return [Hash] Entitlement definitions by ID
     def self.load_entitlements
-      # Try billing.yaml first (new location)
-      if billing_config_exists?
-        config       = YAML.load_file(billing_config_path)
-        entitlements = config.dig('billing', 'entitlements')
-        return entitlements if entitlements
-      end
+      config = safe_load_config
+      config['entitlements'] || {}
+    end
 
-      # Fall back to billing-plans.yaml (old location)
-      if catalog_exists?
-        catalog = YAML.load_file(catalog_path)
-        return catalog['entitlements'] if catalog['entitlements']
-      end
+    # Load plans from billing.yaml
+    #
+    # Loads plan definitions from billing configuration with flat structure.
+    #
+    # @return [Hash] Plan definitions by ID
+    def self.load_plans
+      config = safe_load_config
+      config['plans'] || {}
+    end
 
-      # No entitlements found
-      {}
-    rescue Psych::SyntaxError => ex
-      OT.le "Failed to load entitlements: #{ex.message}"
-      {}
+    # Load full catalog from billing.yaml
+    #
+    # Loads complete billing catalog including schema_version, app_identifier, entitlements, and plans.
+    #
+    # @return [Hash] Full catalog hash
+    def self.load_catalog
+      config = safe_load_config
+      return {} if config.empty?
+
+      {
+        'schema_version' => config['schema_version'],
+        'app_identifier' => config['app_identifier'],
+        'entitlements' => config['entitlements'] || {},
+        'plans' => config['plans'] || {},
+      }
     end
 
     # Get entitlement definition by ID

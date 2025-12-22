@@ -17,8 +17,7 @@
  * - config.ts: Main config schemas (static, mutable, runtime, API response)
  * - auth.ts: Authentication configuration (auth.defaults.yaml)
  * - logging.ts: Logging configuration (logging.defaults.yaml)
- * - billing.ts: Billing configuration (billing.yaml)
- * - billing-plans.ts: Plan catalog configuration (billing-plans.yaml)
+ * - billing.ts: Unified billing configuration (billing.yaml)
  */
 
 // ============================================================================
@@ -132,31 +131,17 @@ export type {
 } from './logging';
 
 // ============================================================================
-// Billing Configuration (billing.yaml)
+// Billing Configuration (billing.yaml - unified flat structure)
 // ============================================================================
 export {
+  // Constants
+  CATALOG_SCHEMA_VERSION,
+  // Root schema
   BillingConfigSchema,
+  // Entitlement schemas
   EntitlementCategorySchema,
   EntitlementDefinitionSchema,
-  getAllEntitlementIds,
-  getEntitlementsByCategory,
-  getEntitlementById,
-  hasEntitlement,
-  isBillingConfig,
-} from './billing';
-
-export type {
-  BillingConfig,
-  EntitlementCategory,
-  EntitlementDefinition,
-  EntitlementId,
-} from './billing';
-
-// ============================================================================
-// Plan Catalog Configuration (billing-plans.yaml)
-// ============================================================================
-export {
-  CATALOG_SCHEMA_VERSION,
+  // Plan component schemas
   BillingTierSchema,
   TenancyTypeSchema,
   BillingIntervalSchema,
@@ -168,33 +153,41 @@ export {
   LegacyPlanDefinitionSchema,
   MetadataFieldSchema,
   StripeMetadataSchemaDefinition,
-  ValidationRulesSchema,
-  PlanCatalogSchema,
-  formatLimitValue,
-  getIncompletePlans,
+  // Entitlement helpers
+  getEntitlementById,
+  getEntitlementsByCategory,
+  hasEntitlement,
+  getAllEntitlementIds,
+  // Plan helpers
   getPlanById,
-  getPlanPrice,
-  getPlansByTier,
+  getAllPlanIds,
   getPlansSortedByDisplayOrder,
-  getStripePlans,
-  isPlanCatalog,
-  limitValueToNumber,
+  getPlansByTier,
   planHasEntitlement,
+  getPlanPrice,
+  formatLimitValue,
+  limitValueToNumber,
   shouldCreateStripeProduct,
-} from './billing-plans';
+  getStripePlans,
+  getIncompletePlans,
+  // Type guard
+  isBillingConfig,
+} from './billing';
 
 export type {
-  BillingInterval,
+  BillingConfig,
+  EntitlementCategory,
+  EntitlementDefinition,
+  EntitlementId,
   BillingTier,
+  TenancyType,
+  BillingInterval,
   CurrencyCode,
-  LegacyPlanDefinition,
   LimitValue,
-  PlanCatalog,
-  PlanDefinition,
-  PlanId,
   PlanLimits,
   PlanPrice,
-  StripeMetadataSchemaDefinition as StripeMetadataSchema,
-  TenancyType,
-  ValidationRules,
-} from './billing-plans';
+  PlanDefinition,
+  LegacyPlanDefinition,
+  StripeMetadataSchema,
+  PlanId,
+} from './billing';

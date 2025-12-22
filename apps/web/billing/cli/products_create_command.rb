@@ -182,7 +182,8 @@ module Onetime
         current_product = Stripe::Product.retrieve(product_id)
 
         # Merge new metadata with existing, preserving non-empty existing values
-        merged_metadata = current_product.metadata.to_h.merge(metadata) do |_key, old_val, new_val|
+        # NOTE: Stripe's to_h returns symbol keys, convert to string keys for consistency
+        merged_metadata = current_product.metadata.to_h.transform_keys(&:to_s).merge(metadata) do |_key, old_val, new_val|
           # Keep new value unless it's empty and old value exists
           (new_val.nil? || new_val.to_s.strip.empty?) && !old_val.to_s.strip.empty? ? old_val : new_val
         end

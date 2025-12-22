@@ -54,7 +54,8 @@ module Onetime
           prompt_for_metadata
         else
           # Build metadata hash - preserve existing values, ensure all fields exist
-          current_meta = product.metadata.to_h
+          # NOTE: Stripe's to_h returns symbol keys, but we use string keys throughout
+          current_meta = product.metadata.to_h.transform_keys(&:to_s)
 
           # Start with current metadata
           updated_meta = current_meta.dup

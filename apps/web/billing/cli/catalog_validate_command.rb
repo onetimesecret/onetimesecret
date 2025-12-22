@@ -21,8 +21,8 @@ module Onetime
       def call(strict: false, **)
         boot_application!
 
-        catalog_path = Billing::Config.catalog_path
-        schema_path  = File.join(File.dirname(catalog_path), 'billing-catalog.schema.json')
+        catalog_path = Billing::Config.config_path
+        schema_path  = File.join(File.dirname(catalog_path), 'billing.schema.json')
 
         unless File.exist?(catalog_path)
           puts "❌ Error: Catalog file not found: #{catalog_path}"
@@ -62,7 +62,9 @@ module Onetime
       private
 
       def load_catalog(path)
-        YAML.load_file(path)
+        erb_template = ERB.new(File.read(path))
+        yaml_content = erb_template.result
+        YAML.safe_load(yaml_content, permitted_classes: [Symbol], symbolize_names: false)
       rescue Psych::SyntaxError => ex
         puts "❌ YAML syntax error: #{ex.message}"
         nil

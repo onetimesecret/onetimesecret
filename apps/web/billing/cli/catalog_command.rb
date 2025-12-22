@@ -15,14 +15,19 @@ module Onetime
       def call(**)
         puts <<~HELP
           Manage the billing plan catalog including validation,
-          documentation generation, and synchronization with Stripe.
+          synchronization with Stripe, and documentation generation.
 
           Available subcommands:
+            push          - Push catalog to Stripe (create/update products)
+            pull          - Pull from Stripe to Redis cache
             validate      - Validate catalog YAML structure and Stripe consistency
             generate-docs - Generate Markdown documentation from the catalog
 
           Examples:
             bin/ots billing catalog                    # Show this help
+            bin/ots billing catalog push --dry-run    # Preview changes to Stripe
+            bin/ots billing catalog push              # Push catalog to Stripe
+            bin/ots billing catalog pull              # Sync Stripe to Redis
             bin/ots billing catalog validate          # Validate catalog and Stripe sync
             bin/ots billing catalog generate-docs     # Generate catalog documentation
 

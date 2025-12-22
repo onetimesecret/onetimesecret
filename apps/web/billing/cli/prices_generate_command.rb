@@ -7,22 +7,22 @@ require 'yaml'
 
 module Onetime
   module CLI
-    # Generate Stripe price creation commands from billing-plans.yaml
+    # Generate Stripe price creation commands from billing.yaml
     class BillingPricesGenerateCommand < Command
       include BillingHelpers
 
-      desc 'Generate price creation commands from billing-plans.yaml'
+      desc 'Generate price creation commands from billing.yaml'
 
       option :product_id, type: :string, desc: 'Stripe Product ID (e.g., prod_xxx) - required for each plan'
       option :plan, type: :string, desc: 'Generate for specific plan only (e.g., identity_plus_v1)'
-      option :catalog, type: :string, default: 'etc/billing-plans.yaml',
+      option :catalog, type: :string, default: 'etc/billing.yaml',
         desc: 'Path to billing plans catalog'
       option :lookup, type: :boolean, default: true,
         desc: 'Lookup product IDs from Stripe using plan_id metadata (default: true)'
       option :no_lookup, type: :boolean, default: false,
         desc: 'Skip Stripe lookup and use PRODUCT_ID placeholders'
 
-      def call(product_id: nil, plan: nil, catalog: 'etc/billing-plans.yaml', lookup: true, no_lookup: false, **)
+      def call(product_id: nil, plan: nil, catalog: 'etc/billing.yaml', lookup: true, no_lookup: false, **)
         # Allow --no-lookup to override default
         lookup = false if no_lookup
 
@@ -33,12 +33,12 @@ module Onetime
         end
         catalog_path = File.expand_path(catalog, Dir.pwd)
 
-        unless File.exist?(catalog_path)
+        unless Billing::Config.config_exists?
           puts "❌ Catalog not found: #{catalog_path}"
           return
         end
 
-        plans_data = YAML.load_file(catalog_path)
+        plans_data = Billing::Config.safe_load_config
 
         unless plans_data['plans']
           puts '❌ No plans section found in catalog'
