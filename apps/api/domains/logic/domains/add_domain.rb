@@ -31,7 +31,7 @@ module DomainsAPI::Logic
 
         # Check custom domains entitlement
         unless organization.can?('custom_domains')
-          raise_form_error 'Upgrade required for custom domains', field: :domain, error_type: :forbidden
+          raise_form_error 'Upgrade required for custom domains', field: :domain, error_type: :upgrade_required
         end
 
         # Only store a valid, parsed input value to @domain
@@ -69,7 +69,7 @@ module DomainsAPI::Logic
         if organization.respond_to?(:can?) &&
            organization.entitlements.any? &&
            !organization.can?('custom_domains')
-          raise_form_error('Upgrade required for custom domains', field: :domain, error_type: :forbidden)
+          raise_form_error('Upgrade required for custom domains', field: :domain, error_type: :upgrade_required)
         end
 
         @greenlighted  = true

@@ -22,7 +22,7 @@ module TeamAPI::Logic
            org.entitlements.any? &&
            org.respond_to?(:teams) &&
            org.at_limit?('teams', org.teams&.size.to_i)
-          raise_form_error('Team limit reached for your plan', field: :display_name, error_type: :forbidden)
+          raise_form_error('Team limit reached for your plan', field: :display_name, error_type: :upgrade_required)
         end
 
         # Validate display_name
