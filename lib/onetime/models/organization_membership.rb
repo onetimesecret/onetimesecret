@@ -82,9 +82,9 @@ module Onetime
     unique_index :token, :token_lookup
 
     def init
-      @status ||= 'active'
-      @role ||= 'member'
-      @joined_at ||= Familia.now.to_f if @status == 'active'
+      @status       ||= 'active'
+      @role         ||= 'member'
+      @joined_at    ||= Familia.now.to_f if @status == 'active'
       @resend_count ||= 0
       nil
     end
@@ -146,9 +146,9 @@ module Onetime
       raise Onetime::Problem, 'Email mismatch' if invited_email && customer.email != invited_email
 
       self.customer_objid = customer.objid
-      self.status = 'active'
-      self.joined_at = Familia.now.to_f
-      self.token = nil  # Clear token for security
+      self.status         = 'active'
+      self.joined_at      = Familia.now.to_f
+      self.token          = nil  # Clear token for security
       save
     end
 
@@ -157,13 +157,13 @@ module Onetime
       raise Onetime::Problem, 'Cannot decline active membership' if active?
 
       self.status = 'declined'
-      self.token = nil
+      self.token  = nil
       save
     end
 
     class << self
       # Find pending invitations for an organization
-      def pending_for_org(org)
+      def pending_for_org(_org)
         # TODO: Implement with index when available
         # For now, this is a placeholder
         []
