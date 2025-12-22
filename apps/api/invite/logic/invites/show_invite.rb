@@ -51,7 +51,7 @@ module InviteAPI::Logic
 
       def success_data
         {
-          invitation: serialize_invitation_public(@invitation),
+          record: serialize_invitation_public(@invitation),
         }
       end
     end

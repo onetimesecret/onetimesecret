@@ -221,7 +221,7 @@ module Onetime
       score = Familia.now.to_f
       if org
         org.members.add(customer.objid, score)
-        org.pending_invitations.rem(objid) # Remove from pending set
+        org.pending_invitations.remove(objid) # Remove from pending set
       end
       true
     end
@@ -235,7 +235,7 @@ module Onetime
       save
 
       # Remove from org's pending set
-      organization&.pending_invitations&.rem(objid)
+      organization&.pending_invitations&.remove(objid)
     end
 
     # Revoke a pending invitation (by org owner/admin)
@@ -243,7 +243,7 @@ module Onetime
       raise Onetime::Problem, 'Can only revoke pending invitations' unless pending?
 
       # Remove from org's pending set before destroying
-      organization&.pending_invitations&.rem(objid)
+      organization&.pending_invitations&.remove(objid)
       destroy!
     end
 

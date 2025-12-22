@@ -68,23 +68,23 @@ def last_response; @test.last_response; end
 ## GET /api/invite/:token - Shows invitation details with valid token
 get "/api/invite/#{@token}", {}, { 'HTTP_ACCEPT' => 'application/json' }
 resp = JSON.parse(last_response.body)
-[last_response.status, resp.key?('invitation'), resp['invitation']['organization_name']]
+[last_response.status, resp.key?('record'), resp['record']['organization_name']]
 #=> [200, true, 'Test Org for Invites']
 
 ## GET /api/invite/:token - Returns expected invitation fields
 resp = JSON.parse(last_response.body)
-invite = resp['invitation']
+invite = resp['record']
 [
   invite.key?('organization_name'),
   invite.key?('role'),
-  invite.key?('invited_email'),
+  invite.key?('email'),
   invite.key?('expires_at')
 ]
 #=> [true, true, true, true]
 
 ## GET /api/invite/:token - Shows correct role
 resp = JSON.parse(last_response.body)
-resp['invitation']['role']
+resp['record']['role']
 #=> 'member'
 
 ## GET /api/invite/:token - Returns 400 for invalid token
