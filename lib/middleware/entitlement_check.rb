@@ -34,10 +34,10 @@ module Rack
   class EntitlementCheck
     include Middleware::Logging
 
-    def initialize(app, entitlement:, logger: nil)
+    def initialize(app, options = {})
       @app           = app
-      @entitlement   = entitlement.to_s
-      @custom_logger = logger
+      @entitlement   = options.fetch(:entitlement).to_s
+      @custom_logger = options[:logger]
     end
 
     # Override logger to allow custom logger injection
