@@ -146,7 +146,7 @@ last_response.status
 
 ## Response contains invited email for non-existent user
 resp = JSON.parse(last_response.body)
-resp['invitation']['invited_email']
+resp['record']['email']
 #=> @nonexistent_email
 
 ## New user creates account with invited email
