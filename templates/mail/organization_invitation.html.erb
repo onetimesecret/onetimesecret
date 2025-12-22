@@ -33,42 +33,42 @@
 
               <!-- Title -->
               <div style="font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #374550; margin-bottom: 16px;">
-                <p style="margin: 0;">You've been invited to join <%= h(organization_name) %>!</p>
+                <p style="margin: 0;"><%= h(t('email.organization_invitation.title', organization_name: organization_name)) %></p>
               </div>
 
               <!-- Body -->
               <div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #333333;">
-                <p><strong><%= h(inviter_email) %></strong> has invited you to join "<%= h(organization_name) %>" as <%= role_description %>.</p>
+                <p><%= h(t('email.organization_invitation.body', inviter_email: inviter_email, organization_name: organization_name, role_description: role_description)) %></p>
 
                 <div style="margin: 24px 0;">
                   <a href="<%= baseuri %><%= invite_uri %>" style="display: inline-block; padding: 12px 24px; background-color: #dc4a22; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;" rel="noopener noreferrer">
-                    Accept Invitation
+                    <%= t('email.organization_invitation.accept_button') %>
                   </a>
                 </div>
 
                 <p style="color: #666666; font-size: 12px;">
-                  Or copy and paste this link:<br />
+                  <%= t('email.organization_invitation.link_instruction') %><br />
                   <a href="<%= baseuri %><%= invite_uri %>" style="color: #dc4a22; word-break: break-all;"><%= baseuri %><%= invite_uri %></a>
                 </p>
 
                 <p style="color: #666666; font-size: 13px; margin-top: 16px;">
-                  This invitation will expire in <strong><%= expires_in_days %> days</strong>.
+                  <%= t('email.organization_invitation.expiry_notice', days: expires_in_days) %>
                 </p>
 
                 <p style="color: #666666; font-size: 13px;">
-                  If you don't want to join, you can simply ignore this email or decline the invitation.
+                  <%= t('email.organization_invitation.decline_instruction') %>
                 </p>
               </div>
 
               <!-- Signature -->
               <div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333; margin-top: 32px; border-top: 1px solid #eeeeee; padding-top: 16px;">
-                <p style="margin: 0;">Delano<br />
+                <p style="margin: 0;"><%= t('email.organization_invitation.signature') %><br />
                 <a href="<%= baseuri %>" style="color: #dc4a22;"><%= baseuri %></a></p>
               </div>
 
               <!-- Postscript -->
               <p style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #999999; margin-top: 24px;">
-                P.S. This email was sent to <%= h(invited_email) %>. If you weren't expecting this invitation, you can safely ignore this message.
+                <%= t('email.organization_invitation.postscript', invited_email: invited_email) %>
               </p>
             </td>
           </tr>
