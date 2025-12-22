@@ -179,6 +179,24 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
   },
+  {
+    path: '/invite/:token',
+    name: 'Accept Invitation',
+    component: () => import('@/apps/session/views/AcceptInvite.vue'),
+    meta: {
+      title: 'web.TITLES.accept_invitation',
+      requiresAuth: false,
+      layout: TransactionalLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayToggles: true,
+      },
+    },
+  },
 ];
 
 export default routes;
