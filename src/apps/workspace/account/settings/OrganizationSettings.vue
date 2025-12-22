@@ -6,6 +6,7 @@ import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
+import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { classifyError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
 import { WindowService } from '@/services/window.service';
@@ -14,10 +15,11 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useTeamStore } from '@/shared/stores/teamStore';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel } from '@/types/billing';
-import type { Organization } from '@/types/organization';
+import type { CreateInvitationPayload, Organization, OrganizationInvitation } from '@/types/organization';
 import { ENTITLEMENTS } from '@/types/organization';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { z } from 'zod';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -29,13 +31,28 @@ const orgId = computed(() => route.params.extid as string);
 const organization = ref<Organization | null>(null);
 const teams = ref<Team[]>([]);
 const subscription = ref<Subscription | null>(null);
-const activeTab = ref<'general' | 'teams' | 'billing'>('general');
+const invitations = ref<OrganizationInvitation[]>([]);
+const activeTab = ref<'general' | 'teams' | 'members' | 'billing'>('general');
 
 const isLoading = ref(false);
 const isSaving = ref(false);
 const isLoadingBilling = ref(false);
 const error = ref('');
 const success = ref('');
+
+// Invitation form state
+const showInviteForm = ref(false);
+const inviteFormData = ref<CreateInvitationPayload>({
+  email: '',
+  role: 'member',
+});
+const inviteErrors = ref<Record<string, string>>({});
+const inviteGeneralError = ref('');
+const isInviting = ref(false);
+
+const { wrap } = useAsyncHandler({
+  notify: false,
+});
 
 const billingEnabled = computed(() => WindowService.get('billing_enabled') ?? false);
 
@@ -120,6 +137,14 @@ const loadTeams = async () => {
   }
 };
 
+const loadInvitations = async () => {
+  try {
+    invitations.value = await organizationStore.fetchInvitations(orgId.value);
+  } catch (err) {
+    console.error('[OrganizationSettings] Error loading invitations:', err);
+  }
+};
+
 const loadBilling = async () => {
   if (!billingEnabled.value) return;
 
@@ -196,10 +221,82 @@ const handleTeamClick = (team: Team) => {
   router.push(`/teams/${team.extid}`);
 };
 
+const handleInviteMember = async () => {
+  if (isInviting.value) return;
+
+  inviteErrors.value = {};
+  inviteGeneralError.value = '';
+  isInviting.value = true;
+
+  try {
+    await organizationStore.createInvitation(orgId.value, inviteFormData.value);
+
+    inviteFormData.value = {
+      email: '',
+      role: 'member',
+    };
+    showInviteForm.value = false;
+    success.value = t('web.organizations.invitations.invite_sent');
+
+    await loadInvitations();
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      err.issues.forEach((issue) => {
+        const field = issue.path[0] as string;
+        inviteErrors.value[field] = issue.message;
+      });
+    } else {
+      const classified = classifyError(err);
+      inviteGeneralError.value = classified.message || t('web.organizations.invitations.invite_error');
+    }
+  } finally {
+    isInviting.value = false;
+  }
+};
+
+const handleResendInvitation = async (token: string) => {
+  error.value = '';
+  success.value = '';
+
+  const result = await wrap(() => organizationStore.resendInvitation(orgId.value, token));
+
+  if (result !== null) {
+    success.value = t('web.organizations.invitations.resend_success');
+  } else {
+    error.value = t('web.organizations.invitations.resend_error');
+  }
+};
+
+const handleRevokeInvitation = async (token: string) => {
+  error.value = '';
+  success.value = '';
+
+  const result = await wrap(() => organizationStore.revokeInvitation(orgId.value, token));
+
+  if (result !== null) {
+    success.value = t('web.organizations.invitations.revoke_success');
+  } else {
+    error.value = t('web.organizations.invitations.revoke_error');
+  }
+};
+
+const formatDate = (timestamp: number): string => new Date(timestamp * 1000).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+
+const canManageMembers = computed(() => {
+  if (!organization.value) return false;
+  return can(ENTITLEMENTS.MANAGE_MEMBERS);
+});
+
 onMounted(async () => {
   await loadOrganization();
   if (activeTab.value === 'teams') {
     await loadTeams();
+  } else if (activeTab.value === 'members') {
+    await loadInvitations();
   } else if (activeTab.value === 'billing') {
     await loadBilling();
   }
@@ -208,6 +305,8 @@ onMounted(async () => {
 watch(activeTab, async (newTab) => {
   if (newTab === 'teams' && teams.value.length === 0) {
     await loadTeams();
+  } else if (newTab === 'members' && invitations.value.length === 0) {
+    await loadInvitations();
   } else if (newTab === 'billing' && !subscription.value && billingEnabled.value) {
     await loadBilling();
   }
@@ -264,6 +363,18 @@ watch(activeTab, async (newTab) => {
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.teams') }}
+          </button>
+          <!-- Members tab shown when user can manage members -->
+          <button
+            v-if="canManageMembers"
+            @click="activeTab = 'members'"
+            :class="[
+              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              activeTab === 'members'
+                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+            ]">
+            {{ t('web.organizations.tabs.members') }}
           </button>
           <button
             @click="activeTab = 'billing'"
@@ -441,6 +552,184 @@ watch(activeTab, async (newTab) => {
                 aria-hidden="true" />
               <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                 {{ t('web.organizations.no_teams') }}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Members Tab -->
+        <section
+          v-if="activeTab === 'members'"
+          class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+          <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                {{ t('web.organizations.invitations.pending_invitations') }}
+              </h3>
+              <button
+                v-if="canManageMembers"
+                type="button"
+                @click="showInviteForm = !showInviteForm"
+                class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+                <OIcon
+                  collection="heroicons"
+                  name="user-plus"
+                  class="-ml-0.5 mr-1.5 size-5"
+                  aria-hidden="true" />
+                {{ t('web.organizations.invitations.invite_member') }}
+              </button>
+            </div>
+          </div>
+
+          <div class="p-6">
+            <BasicFormAlerts
+              v-if="error"
+              :error="error" />
+            <BasicFormAlerts
+              v-if="success"
+              :success="success" />
+
+            <!-- Invite Form -->
+            <div
+              v-if="showInviteForm"
+              class="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-700/50">
+              <h4 class="text-lg font-medium text-gray-900 dark:text-white">
+                {{ t('web.organizations.invitations.invite_new_member') }}
+              </h4>
+
+              <form
+                @submit.prevent="handleInviteMember"
+                class="mt-4 space-y-4">
+                <BasicFormAlerts
+                  v-if="inviteGeneralError"
+                  :error="inviteGeneralError" />
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label
+                      for="invite-email"
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {{ t('web.organizations.invitations.email_address') }}
+                      <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="invite-email"
+                      v-model="inviteFormData.email"
+                      type="email"
+                      required
+                      :placeholder="t('web.organizations.invitations.email_placeholder')"
+                      :class="[
+                        'mt-1 block w-full rounded-md shadow-sm sm:text-sm',
+                        'focus:border-brand-500 focus:ring-brand-500',
+                        'dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400',
+                        inviteErrors.email
+                          ? 'border-red-300 text-red-900 placeholder:text-red-300 focus:border-red-500 focus:ring-red-500'
+                          : 'border-gray-300 dark:border-gray-600',
+                      ]" />
+                    <p
+                      v-if="inviteErrors.email"
+                      class="mt-1 text-sm text-red-600 dark:text-red-400">
+                      {{ inviteErrors.email }}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label
+                      for="invite-role"
+                      class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {{ t('web.organizations.invitations.role') }}
+                    </label>
+                    <select
+                      id="invite-role"
+                      v-model="inviteFormData.role"
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm">
+                      <option value="member">
+                        {{ t('web.organizations.invitations.roles.member') }}
+                      </option>
+                      <option value="admin">
+                        {{ t('web.organizations.invitations.roles.admin') }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                  <button
+                    type="button"
+                    @click="showInviteForm = false"
+                    :disabled="isInviting"
+                    class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
+                    {{ t('web.COMMON.word_cancel') }}
+                  </button>
+                  <button
+                    type="submit"
+                    :disabled="isInviting || !inviteFormData.email"
+                    class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
+                    <span v-if="!isInviting">{{ t('web.organizations.invitations.send_invite') }}</span>
+                    <span v-else>{{ t('web.COMMON.processing') }}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Invitations List -->
+            <div v-if="invitations.length > 0" class="space-y-3">
+              <div
+                v-for="invitation in invitations"
+                :key="invitation.id"
+                class="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                <div class="flex-1">
+                  <div class="flex items-center gap-3">
+                    <p class="font-medium text-gray-900 dark:text-white">
+                      {{ invitation.email }}
+                    </p>
+                    <span
+                      :class="[
+                        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+                        invitation.status === 'pending'
+                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                          : invitation.status === 'accepted'
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                          : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
+                      ]">
+                      {{ t(`web.organizations.invitations.status.${invitation.status}`) }}
+                    </span>
+                  </div>
+                  <div class="mt-1 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                    <span>{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>
+                    <span>{{ t('web.organizations.invitations.invited_at') }}: {{ formatDate(invitation.invited_at) }}</span>
+                    <span>{{ t('web.organizations.invitations.expires_at') }}: {{ formatDate(invitation.expires_at) }}</span>
+                    <span v-if="invitation.resend_count > 0">
+                      {{ invitation.resend_count === 1 ? t('web.organizations.invitations.resent_count', { count: invitation.resend_count }) : t('web.organizations.invitations.resent_count_plural', { count: invitation.resend_count }) }}
+                    </span>
+                  </div>
+                </div>
+                <div
+                  v-if="invitation.status === 'pending' && invitation.token"
+                  class="flex gap-2">
+                  <button
+                    type="button"
+                    @click="handleResendInvitation(invitation.token!)"
+                    class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
+                    {{ t('web.organizations.invitations.resend') }}
+                  </button>
+                  <button
+                    type="button"
+                    @click="handleRevokeInvitation(invitation.token!)"
+                    class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 dark:bg-red-500 dark:hover:bg-red-400">
+                    {{ t('web.organizations.invitations.revoke') }}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div v-else class="py-12 text-center">
+              <OIcon
+                collection="heroicons"
+                name="envelope"
+                class="mx-auto size-12 text-gray-400"
+                aria-hidden="true" />
+              <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                {{ t('web.organizations.invitations.no_pending_invitations') }}
               </p>
             </div>
           </div>
