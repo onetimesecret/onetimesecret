@@ -7,7 +7,7 @@ require 'yaml'
 
 module Onetime
   module CLI
-    # Generate Stripe price creation commands from billing-catalog.yaml
+    # Generate Stripe price creation commands from billing.yaml
     class BillingPricesGenerateCommand < Command
       include BillingHelpers
 
