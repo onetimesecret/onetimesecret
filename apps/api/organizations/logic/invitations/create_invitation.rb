@@ -59,7 +59,7 @@ module OrganizationAPI::Logic
       end
 
       def process
-        OT.ld "[CreateInvitation] Creating invite for #{@email} to org #{@organization.extid}"
+        OT.ld "[CreateInvitation] Creating invite for #{OT::Utils.obscure_email(@email)} to org #{@organization.extid}"
 
         @membership = Onetime::OrganizationMembership.create_invitation!(
           organization: @organization,
@@ -81,7 +81,7 @@ module OrganizationAPI::Logic
           fallback: :sync
         )
 
-        OT.info "[CreateInvitation] Created invitation #{@membership.objid} for #{@email}"
+        OT.info "[CreateInvitation] Created invitation #{@membership.objid} for #{OT::Utils.obscure_email(@email)}"
 
         success_data
       end

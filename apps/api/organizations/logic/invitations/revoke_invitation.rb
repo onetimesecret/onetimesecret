@@ -45,7 +45,7 @@ module OrganizationAPI::Logic
         email = @invitation.invited_email
         @invitation.revoke!
 
-        OT.info "[RevokeInvitation] Revoked invitation for #{email}"
+        OT.info "[RevokeInvitation] Revoked invitation for #{OT::Utils.obscure_email(email)}"
 
         success_data
       end
