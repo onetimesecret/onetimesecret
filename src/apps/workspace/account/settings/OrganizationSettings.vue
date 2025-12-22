@@ -262,6 +262,7 @@ const handleResendInvitation = async (token: string) => {
 
   if (result !== null) {
     success.value = t('web.organizations.invitations.resend_success');
+    await loadInvitations(); // Refresh the list
   } else {
     error.value = t('web.organizations.invitations.resend_error');
   }
@@ -275,6 +276,7 @@ const handleRevokeInvitation = async (token: string) => {
 
   if (result !== null) {
     success.value = t('web.organizations.invitations.revoke_success');
+    await loadInvitations(); // Refresh the list
   } else {
     error.value = t('web.organizations.invitations.revoke_error');
   }

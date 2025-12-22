@@ -219,7 +219,10 @@ module Onetime
       # try to create a new OrganizationMembership (we already have one - this invitation)
       org   = organization
       score = Familia.now.to_f
-      org.members.add(customer.objid, score) if org
+      if org
+        org.members.add(customer.objid, score)
+        org.pending_invitations.rem(objid) # Remove from pending set
+      end
       true
     end
 
@@ -230,12 +233,17 @@ module Onetime
       self.status = 'declined'
       self.token  = nil
       save
+
+      # Remove from org's pending set
+      organization&.pending_invitations&.rem(objid)
     end
 
     # Revoke a pending invitation (by org owner/admin)
     def revoke!
       raise Onetime::Problem, 'Can only revoke pending invitations' unless pending?
 
+      # Remove from org's pending set before destroying
+      organization&.pending_invitations&.rem(objid)
       destroy!
     end
 
@@ -265,7 +273,7 @@ module Onetime
         token = SecureRandom.urlsafe_base64(32)
 
         # Use create! for proper Familia index auto-population
-        create!(
+        membership = create!(
           organization_objid: organization.objid,
           invited_email: email,
           role: role,
@@ -276,6 +284,11 @@ module Onetime
           resend_count: 0,
           token: token,
         )
+
+        # Add to org's pending_invitations set for efficient querying
+        organization.pending_invitations.add(membership.objid)
+
+        membership
       end
 
       # Find an invitation by its secure token
@@ -323,18 +336,14 @@ module Onetime
 
       # Find pending invitations for an organization
       #
-      # Note: This scans instances since we don't have a status-based index.
-      # For large-scale usage, consider adding a sorted set index by org+status.
+      # Uses the organization's pending_invitations sorted set for O(n) lookup
+      # where n is only the number of pending invitations for this org,
+      # not all OrganizationMembership instances globally.
       #
       # @param org [Organization] the organization to query
       # @return [Array<OrganizationMembership>] pending invitations
       def pending_for_org(org)
-        # Scan all instances and filter by org + pending status
-        # This is acceptable for MVP; optimize with index if needed
-        instances.to_a
-          .map { |objid| load(objid) }
-          .compact
-          .select { |m| m.organization_objid == org.objid && m.pending? }
+        org.list_pending_invitations.select(&:pending?)
       end
 
       # Find active memberships for an organization
