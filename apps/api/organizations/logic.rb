@@ -4,3 +4,4 @@
 
 require_relative 'logic/base'
 require_relative 'logic/organizations'
+require_relative 'logic/invitations'

@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'securerandom'
+
 module Onetime
   # OrganizationMembership - Through model for Organization/Customer participation
   #
@@ -81,12 +83,36 @@ module Onetime
     # Indexes for fast lookups
     unique_index :token, :token_lookup
 
+    # Composite indexes for org-scoped lookups
+    # Note: These use string keys combining the two fields
+    unique_index :org_email_key, :org_email_lookup
+    unique_index :org_customer_key, :org_customer_lookup
+
     def init
       @status       ||= 'active'
       @role         ||= 'member'
       @joined_at    ||= Familia.now.to_f if @status == 'active'
       @resend_count ||= 0
       nil
+    end
+
+    # Composite index key methods
+    # These generate deterministic keys for org-scoped lookups
+
+    # Key for finding pending invites by org + email
+    # Only set for pending invitations (customer_objid is nil)
+    def org_email_key
+      return nil unless organization_objid && invited_email
+
+      "#{organization_objid}:#{invited_email.to_s.downcase}"
+    end
+
+    # Key for finding active memberships by org + customer
+    # Only set for active memberships (customer_objid is set)
+    def org_customer_key
+      return nil unless organization_objid && customer_objid
+
+      "#{organization_objid}:#{customer_objid}"
     end
 
     # Check if this is an active membership
@@ -123,6 +149,14 @@ module Onetime
       @customer ||= Onetime::Customer.load(customer_objid)
     end
 
+    # Get the customer who sent this invitation
+    # Memoized to avoid repeated Redis lookups within same request
+    def inviter
+      return nil unless invited_by
+
+      @inviter ||= Onetime::Customer.load(invited_by)
+    end
+
     # Role checks
     def owner?
       role == 'owner'
@@ -137,6 +171,10 @@ module Onetime
     end
 
     # Accept a pending invitation
+    #
+    # Updates the membership record to active status and adds the customer
+    # to the organization's member sorted set.
+    #
     # @param customer [Onetime::Customer] The customer accepting the invite
     # @return [Boolean] true if acceptance succeeded
     def accept!(customer)
@@ -150,6 +188,14 @@ module Onetime
       self.joined_at      = Familia.now.to_f
       self.token          = nil  # Clear token for security
       save
+
+      # Add customer to organization's member sorted set directly
+      # We bypass add_members_instance because that uses :through which would
+      # try to create a new OrganizationMembership (we already have one - this invitation)
+      org   = organization
+      score = Familia.now.to_f
+      org.members.add(customer.objid, score) if org
+      true
     end
 
     # Decline a pending invitation
@@ -161,12 +207,108 @@ module Onetime
       save
     end
 
+    # Revoke a pending invitation (by org owner/admin)
+    def revoke!
+      raise Onetime::Problem, 'Can only revoke pending invitations' unless pending?
+
+      destroy!
+    end
+
+    # Generate a secure invitation token
+    # 256-bit entropy (32 bytes) for security
+    def generate_token!
+      self.token = SecureRandom.urlsafe_base64(32)
+    end
+
     class << self
+      # Create a new invitation for an organization
+      #
+      # @param organization [Organization] the organization inviting
+      # @param email [String] the email address to invite
+      # @param role [String] the role to assign ('member', 'admin')
+      # @param inviter [Customer] the customer creating the invite
+      # @return [OrganizationMembership] the created invitation
+      # @raise [Onetime::Problem] if invitation already exists for this email
+      def create_invitation!(organization:, email:, inviter:, role: 'member')
+        email = email.to_s.strip.downcase
+
+        # Check for existing pending invitation
+        existing = find_by_org_email(organization.objid, email)
+        raise Onetime::Problem, 'Invitation already pending for this email' if existing&.pending?
+
+        membership = new(
+          organization_objid: organization.objid,
+          invited_email: email,
+          role: role,
+          status: 'pending',
+          invited_by: inviter.objid,
+          invited_at: Familia.now.to_f,
+          joined_at: nil,
+          resend_count: 0,
+        )
+        membership.generate_token!
+        membership.save
+
+        membership
+      end
+
+      # Find an invitation by its secure token
+      #
+      # @param token [String] the invitation token
+      # @return [OrganizationMembership, nil] the invitation or nil if not found
+      def find_by_token(token)
+        return nil if token.nil? || token.empty?
+
+        objid = token_lookup[token]
+        return nil unless objid
+
+        load(objid)
+      end
+
+      # Find an invitation by organization and email
+      #
+      # @param org_objid [String] the organization's objid
+      # @param email [String] the invited email address
+      # @return [OrganizationMembership, nil] the invitation or nil if not found
+      def find_by_org_email(org_objid, email)
+        return nil if org_objid.nil? || email.nil?
+
+        key   = "#{org_objid}:#{email.to_s.strip.downcase}"
+        objid = org_email_lookup[key]
+        return nil unless objid
+
+        load(objid)
+      end
+
+      # Find a membership by organization and customer
+      #
+      # @param org_objid [String] the organization's objid
+      # @param customer_objid [String] the customer's objid
+      # @return [OrganizationMembership, nil] the membership or nil if not found
+      def find_by_org_customer(org_objid, customer_objid)
+        return nil if org_objid.nil? || customer_objid.nil?
+
+        key   = "#{org_objid}:#{customer_objid}"
+        objid = org_customer_lookup[key]
+        return nil unless objid
+
+        load(objid)
+      end
+
       # Find pending invitations for an organization
-      def pending_for_org(_org)
-        # TODO: Implement with index when available
-        # For now, this is a placeholder
-        []
+      #
+      # Note: This scans instances since we don't have a status-based index.
+      # For large-scale usage, consider adding a sorted set index by org+status.
+      #
+      # @param org [Organization] the organization to query
+      # @return [Array<OrganizationMembership>] pending invitations
+      def pending_for_org(org)
+        # Scan all instances and filter by org + pending status
+        # This is acceptable for MVP; optimize with index if needed
+        instances.to_a
+          .map { |objid| load(objid) }
+          .compact
+          .select { |m| m.organization_objid == org.objid && m.pending? }
       end
 
       # Find active memberships for an organization
