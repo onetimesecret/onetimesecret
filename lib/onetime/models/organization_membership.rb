@@ -108,13 +108,19 @@ module Onetime
     end
 
     # Get the organization this membership belongs to
+    # Memoized to avoid repeated Redis lookups within same request
     def organization
-      Onetime::Organization.load(organization_objid) if organization_objid
+      return nil unless organization_objid
+
+      @organization ||= Onetime::Organization.load(organization_objid)
     end
 
     # Get the customer (member) this membership belongs to
+    # Memoized to avoid repeated Redis lookups within same request
     def customer
-      Onetime::Customer.load(customer_objid) if customer_objid
+      return nil unless customer_objid
+
+      @customer ||= Onetime::Customer.load(customer_objid)
     end
 
     # Role checks
