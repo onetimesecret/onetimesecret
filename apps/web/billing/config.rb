@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'yaml'
+require 'erb'
 
 module Billing
   # Billing configuration and catalog management
@@ -21,20 +22,34 @@ module Billing
       File.exist?(config_path)
     end
 
+    # Safely load and parse billing YAML configuration
+    #
+    # Processes ERB templates and uses safe YAML loading to prevent
+    # arbitrary code execution from malicious YAML content.
+    #
+    # @return [Hash] Parsed configuration or empty hash on error
+    def self.safe_load_config
+      return {} unless config_exists?
+
+      erb_template = ERB.new(File.read(config_path))
+      yaml_content = erb_template.result
+      YAML.safe_load(yaml_content, permitted_classes: [Symbol], symbolize_names: false) || {}
+    rescue Psych::SyntaxError => ex
+      OT.le "YAML syntax error in billing config: #{ex.message}"
+      {}
+    rescue StandardError => ex
+      OT.le "Failed to load billing config: #{ex.message}"
+      {}
+    end
+
     # Load entitlements from billing.yaml
     #
     # Loads entitlement definitions from billing configuration with flat structure.
     #
     # @return [Hash] Entitlement definitions by ID
     def self.load_entitlements
-      return {} unless config_exists?
-
-      config       = YAML.load_file(config_path)
-      entitlements = config['entitlements']
-      entitlements || {}
-    rescue Psych::SyntaxError => ex
-      OT.le "Failed to load entitlements: #{ex.message}"
-      {}
+      config = safe_load_config
+      config['entitlements'] || {}
     end
 
     # Load plans from billing.yaml
@@ -43,14 +58,8 @@ module Billing
     #
     # @return [Hash] Plan definitions by ID
     def self.load_plans
-      return {} unless config_exists?
-
-      config = YAML.load_file(config_path)
-      plans  = config['plans']
-      plans || {}
-    rescue Psych::SyntaxError => ex
-      OT.le "Failed to load plans: #{ex.message}"
-      {}
+      config = safe_load_config
+      config['plans'] || {}
     end
 
     # Load full catalog from billing.yaml
@@ -59,18 +68,15 @@ module Billing
     #
     # @return [Hash] Full catalog hash
     def self.load_catalog
-      return {} unless config_exists?
+      config = safe_load_config
+      return {} if config.empty?
 
-      config = YAML.load_file(config_path)
       {
         'schema_version' => config['schema_version'],
         'app_identifier' => config['app_identifier'],
         'entitlements' => config['entitlements'] || {},
         'plans' => config['plans'] || {},
       }
-    rescue Psych::SyntaxError => ex
-      OT.le "Failed to load catalog: #{ex.message}"
-      {}
     end
 
     # Get entitlement definition by ID

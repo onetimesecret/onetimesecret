@@ -62,7 +62,9 @@ module Onetime
       private
 
       def load_catalog(path)
-        YAML.load_file(path)
+        erb_template = ERB.new(File.read(path))
+        yaml_content = erb_template.result
+        YAML.safe_load(yaml_content, permitted_classes: [Symbol], symbolize_names: false)
       rescue Psych::SyntaxError => ex
         puts "❌ YAML syntax error: #{ex.message}"
         nil

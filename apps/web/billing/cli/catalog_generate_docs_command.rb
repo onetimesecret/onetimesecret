@@ -30,9 +30,9 @@ module Onetime
 
         puts "Loading catalog: #{catalog_path}"
 
-        catalog = YAML.load_file(catalog_path)
+        catalog = Billing::Config.safe_load_config
 
-        # Load entitlements from billing.yaml (or fallback to billing-catalog.yaml)
+        # Load entitlements from billing.yaml
         entitlements = Billing::Config.load_entitlements
         puts "Loaded #{entitlements.size} entitlements from billing config"
 

@@ -33,12 +33,12 @@ module Onetime
         end
         catalog_path = File.expand_path(catalog, Dir.pwd)
 
-        unless File.exist?(catalog_path)
+        unless Billing::Config.config_exists?
           puts "❌ Catalog not found: #{catalog_path}"
           return
         end
 
-        plans_data = YAML.load_file(catalog_path)
+        plans_data = Billing::Config.safe_load_config
 
         unless plans_data['plans']
           puts '❌ No plans section found in catalog'

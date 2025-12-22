@@ -317,16 +317,11 @@ module Onetime
       #
       # @return [Array<String>] Array of plan IDs from catalog
       def load_catalog_plan_ids
-        require 'yaml'
-        catalog_path = Billing::Config.config_path
-        return [] unless File.exist?(catalog_path)
+        return [] unless Billing::Config.config_exists?
 
-        catalog = YAML.load_file(catalog_path)
+        catalog = Billing::Config.safe_load_config
         plans   = catalog['plans'] || {}
         plans.keys
-      rescue StandardError => ex
-        OT.le "Error loading catalog: #{ex.message}"
-        []
       end
 
       # Detect duplicate products (same name + region)

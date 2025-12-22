@@ -99,18 +99,18 @@ module Onetime
       private
 
       def load_catalog
-        catalog_path = Billing::Config.config_path
-
-        unless File.exist?(catalog_path)
-          puts "Catalog not found: #{catalog_path}"
+        unless Billing::Config.config_exists?
+          puts "Catalog not found: #{Billing::Config.config_path}"
           return nil
         end
 
-        require 'yaml'
-        YAML.load_file(catalog_path)
-      rescue Psych::SyntaxError => ex
-        puts "YAML syntax error in catalog: #{ex.message}"
-        nil
+        catalog = Billing::Config.safe_load_config
+        if catalog.empty?
+          puts 'Failed to load catalog (check logs for details)'
+          return nil
+        end
+
+        catalog
       end
 
       def fetch_existing_products(app_identifier)

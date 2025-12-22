@@ -309,7 +309,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :unit do
 
     context 'with missing catalog file' do
       before do
-        allow(File).to receive(:exist?).and_return(false)
+        allow(Billing::Config).to receive(:config_exists?).and_return(false)
       end
 
       it 'reports catalog not found and exits early' do
@@ -320,8 +320,8 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :unit do
 
     context 'with empty plans' do
       before do
-        allow(File).to receive(:exist?).and_return(true)
-        allow(YAML).to receive(:load_file).and_return({ 'plans' => {} })
+        allow(Billing::Config).to receive(:config_exists?).and_return(true)
+        allow(Billing::Config).to receive(:safe_load_config).and_return({ 'plans' => {} })
       end
 
       it 'reports no plans found' do
@@ -332,8 +332,8 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :unit do
 
     context 'with --plan filter for unknown plan' do
       before do
-        allow(File).to receive(:exist?).and_return(true)
-        allow(YAML).to receive(:load_file).and_return({
+        allow(Billing::Config).to receive(:config_exists?).and_return(true)
+        allow(Billing::Config).to receive(:safe_load_config).and_return({
           'app_identifier' => 'onetimesecret',
           'plans' => { 'existing_plan' => plan_def },
         })
@@ -349,8 +349,8 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :unit do
 
     context 'when no changes needed' do
       before do
-        allow(File).to receive(:exist?).and_return(true)
-        allow(YAML).to receive(:load_file).and_return({
+        allow(Billing::Config).to receive(:config_exists?).and_return(true)
+        allow(Billing::Config).to receive(:safe_load_config).and_return({
           'app_identifier' => 'onetimesecret',
           'plans' => { 'identity_plus_v1' => plan_def },
         })
@@ -371,8 +371,8 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :unit do
 
     context 'with --dry-run flag' do
       before do
-        allow(File).to receive(:exist?).and_return(true)
-        allow(YAML).to receive(:load_file).and_return({
+        allow(Billing::Config).to receive(:config_exists?).and_return(true)
+        allow(Billing::Config).to receive(:safe_load_config).and_return({
           'app_identifier' => 'onetimesecret',
           'plans' => { 'new_plan_v1' => plan_def },
         })
