@@ -99,7 +99,7 @@ module Onetime
       private
 
       def load_catalog
-        catalog_path = Billing::Config.billing_config_path
+        catalog_path = Billing::Config.config_path
 
         unless File.exist?(catalog_path)
           puts "Catalog not found: #{catalog_path}"

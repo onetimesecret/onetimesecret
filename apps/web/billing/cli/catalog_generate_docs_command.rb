@@ -20,7 +20,7 @@ module Onetime
       def call(output: nil, **)
         boot_application!
 
-        catalog_path = Billing::Config.billing_config_path
+        catalog_path = Billing::Config.config_path
         output_path  = output || File.join('docs', 'billing', 'plan-definitions.md')
 
         unless File.exist?(catalog_path)

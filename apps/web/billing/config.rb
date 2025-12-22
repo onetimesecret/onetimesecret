@@ -10,15 +10,15 @@ module Billing
     # Get path to billing configuration file
     #
     # @return [String] Absolute path to billing.yaml
-    def self.billing_config_path
+    def self.config_path
       File.join(Onetime::HOME, 'etc', 'billing.yaml')
     end
 
     # Check if billing config file exists
     #
     # @return [Boolean]
-    def self.billing_config_exists?
-      File.exist?(billing_config_path)
+    def self.config_exists?
+      File.exist?(config_path)
     end
 
     # Load entitlements from billing.yaml
@@ -27,9 +27,9 @@ module Billing
     #
     # @return [Hash] Entitlement definitions by ID
     def self.load_entitlements
-      return {} unless billing_config_exists?
+      return {} unless config_exists?
 
-      config       = YAML.load_file(billing_config_path)
+      config       = YAML.load_file(config_path)
       entitlements = config['entitlements']
       entitlements || {}
     rescue Psych::SyntaxError => ex
@@ -43,9 +43,9 @@ module Billing
     #
     # @return [Hash] Plan definitions by ID
     def self.load_plans
-      return {} unless billing_config_exists?
+      return {} unless config_exists?
 
-      config = YAML.load_file(billing_config_path)
+      config = YAML.load_file(config_path)
       plans  = config['plans']
       plans || {}
     rescue Psych::SyntaxError => ex
@@ -59,9 +59,9 @@ module Billing
     #
     # @return [Hash] Full catalog hash
     def self.load_catalog
-      return {} unless billing_config_exists?
+      return {} unless config_exists?
 
-      config = YAML.load_file(billing_config_path)
+      config = YAML.load_file(config_path)
       {
         'schema_version' => config['schema_version'],
         'app_identifier' => config['app_identifier'],
