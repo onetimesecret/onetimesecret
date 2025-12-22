@@ -56,11 +56,17 @@ module OrganizationAPI::Logic
       def process
         OT.ld "[ResendInvitation] Resending invitation #{@invitation.objid}"
 
+        # Save old token for index update
+        old_token = @invitation.token
+
         # Generate new token and reset timestamp
         @invitation.generate_token!
         @invitation.invited_at   = Familia.now.to_f
         @invitation.resend_count = (@invitation.resend_count.to_i + 1)
         @invitation.save
+
+        # Update token index: remove old, add new (save only adds new)
+        @invitation.update_in_class_token_lookup(old_token)
 
         # Queue invitation email via RabbitMQ
         Onetime::Jobs::Publisher.enqueue_email(

@@ -261,7 +261,11 @@ module Onetime
         existing = find_by_org_email(organization.objid, email)
         raise Onetime::Problem, 'Invitation already pending for this email' if existing&.pending?
 
-        membership = new(
+        # Generate token before create! so it's included in index population
+        token = SecureRandom.urlsafe_base64(32)
+
+        # Use create! for proper Familia index auto-population
+        create!(
           organization_objid: organization.objid,
           invited_email: email,
           role: role,
@@ -270,11 +274,8 @@ module Onetime
           invited_at: Familia.now.to_f,
           joined_at: nil,
           resend_count: 0,
+          token: token,
         )
-        membership.generate_token!
-        membership.save
-
-        membership
       end
 
       # Find an invitation by its secure token
