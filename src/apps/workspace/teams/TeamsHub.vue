@@ -35,9 +35,7 @@
   const error = ref('');
 
   // Check if user can create teams
-  const canCreateTeam = computed(
-    () => can(ENTITLEMENTS.CREATE_TEAM) || can(ENTITLEMENTS.CREATE_TEAMS)
-  );
+  const canCreateTeam = computed(() => can(ENTITLEMENTS.MANAGE_TEAMS));
 
   // Check if team limit has been reached
   const teamLimitReached = computed(() => {
@@ -163,15 +161,15 @@
           <!-- No entitlement to create teams -->
           <UpgradePrompt
             v-if="!canCreateTeam"
-            :entitlement="ENTITLEMENTS.CREATE_TEAM"
-            :upgrade-plan="upgradePath(ENTITLEMENTS.CREATE_TEAM) || 'multi_team_v1'"
+            :entitlement="ENTITLEMENTS.MANAGE_TEAMS"
+            :upgrade-plan="upgradePath(ENTITLEMENTS.MANAGE_TEAMS) || 'identity_v1'"
             :message="t('web.billing.upgrade.needTeams')" />
 
           <!-- Team limit reached -->
           <UpgradePrompt
             v-else-if="teamLimitReached"
-            :entitlement="ENTITLEMENTS.CREATE_TEAMS"
-            :upgrade-plan="upgradePath(ENTITLEMENTS.CREATE_TEAMS) || 'multi_team_v1'"
+            :entitlement="ENTITLEMENTS.MANAGE_TEAMS"
+            :upgrade-plan="upgradePath(ENTITLEMENTS.MANAGE_TEAMS) || 'multi_team_v1'"
             :message="t('web.billing.limits.teams_upgrade')" />
         </div>
 

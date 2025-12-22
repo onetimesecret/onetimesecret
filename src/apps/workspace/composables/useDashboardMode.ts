@@ -44,7 +44,7 @@ export function useDashboardMode() {
     if (isStandaloneMode.value) return true;
 
     // Check actual entitlements
-    return can(ENTITLEMENTS.CREATE_TEAM) || can(ENTITLEMENTS.CREATE_TEAMS);
+    return can(ENTITLEMENTS.MANAGE_TEAMS);
   });
 
   /**

@@ -38,14 +38,14 @@ const hasOrganizations = computed(() => visibleOrganizations.value.length > 0);
  * Uses entitlement-based framework instead of hardcoded plan checks.
  */
 const canCreateMultipleOrgs = computed(() =>
-  // Users with team creation entitlement can manage multiple organizations
-   can(ENTITLEMENTS.CREATE_TEAMS) || can(ENTITLEMENTS.CREATE_TEAM)
+  // Users with team management entitlement can manage multiple organizations
+  can(ENTITLEMENTS.MANAGE_TEAMS)
 );
 
 /**
  * Determine if user is on a single-user account (no team entitlements)
  */
-const isSingleUserAccount = computed(() => !can(ENTITLEMENTS.CREATE_TEAM) && !can(ENTITLEMENTS.CREATE_TEAMS));
+const isSingleUserAccount = computed(() => !can(ENTITLEMENTS.MANAGE_TEAMS));
 
 onMounted(async () => {
   isLoading.value = true;

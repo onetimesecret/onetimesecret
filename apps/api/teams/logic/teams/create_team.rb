@@ -17,7 +17,7 @@ module TeamAPI::Logic
         raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
 
         # Team quota check - enforced when billing enabled and org has entitlements
-        if org&.respond_to?(:at_limit?) &&
+        if org && org.respond_to?(:at_limit?) &&
            org.respond_to?(:entitlements) &&
            org.entitlements.any? &&
            org.respond_to?(:teams) &&

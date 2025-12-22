@@ -44,9 +44,9 @@ const yearlySavingsPercent = computed(() =>
 const getFeatureLabel = (feature: string): string => {
   const labels: Record<string, string> = {
     [ENTITLEMENTS.CREATE_SECRETS]: 'Unlimited secrets',
-    [ENTITLEMENTS.BASIC_SHARING]: 'Basic sharing features',
-    [ENTITLEMENTS.CREATE_TEAM]: 'Single team',
-    [ENTITLEMENTS.CREATE_TEAMS]: 'Multiple teams',
+    [ENTITLEMENTS.VIEW_METADATA]: 'View secret metadata',
+    [ENTITLEMENTS.MANAGE_TEAMS]: 'Team management',
+    [ENTITLEMENTS.MANAGE_MEMBERS]: 'Member management',
     [ENTITLEMENTS.CUSTOM_DOMAINS]: 'Custom domains',
     [ENTITLEMENTS.API_ACCESS]: 'Full API access',
     [ENTITLEMENTS.PRIORITY_SUPPORT]: 'Priority support',

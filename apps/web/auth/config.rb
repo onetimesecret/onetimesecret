@@ -1,6 +1,7 @@
 # apps/web/auth/config.rb
 #
 # frozen_string_literal: true
+
 #
 # IMPORTANT: Test files should NOT require this file or anything below it.
 #

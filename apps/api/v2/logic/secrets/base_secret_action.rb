@@ -91,7 +91,7 @@ module V2::Logic
 
         # Use organization entitlement limit if available, otherwise config max
         config_max = ttl_options.max || 30.days
-        max_ttl = if org&.respond_to?(:limit_for)
+        max_ttl    = if org && org.respond_to?(:limit_for)
                     org_limit = org.limit_for('secret_lifetime')
                     org_limit.positive? ? org_limit : config_max
                   else
@@ -99,7 +99,7 @@ module V2::Logic
                   end
 
         # Apply default if nil
-        @ttl = default_ttl || 7.days if ttl.nil?
+        @ttl       = default_ttl || 7.days if ttl.nil?
 
         # Convert to integer, now that we know it has a value
         @ttl = ttl.to_i
