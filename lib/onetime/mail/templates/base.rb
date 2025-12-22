@@ -11,7 +11,7 @@ module Onetime
       # Simple translation loader for email templates
       # Loads translations from config/locales/email/*.yml
       class EmailTranslations
-        LOCALES_PATH = File.expand_path('../../../../../config/locales/email', __dir__)
+        LOCALES_PATH = File.expand_path('../../../../config/locales/email', __dir__)
 
         class << self
           def translations
