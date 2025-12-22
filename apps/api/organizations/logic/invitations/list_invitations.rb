@@ -38,7 +38,7 @@ module OrganizationAPI::Logic
         {
           user_id: cust.objid,
           organization_id: @organization.extid,
-          records: @invitations.map { |inv| serialize_invitation(inv) },
+          records: @invitations.map(&:safe_dump),
           count: @invitations.size,
         }
       end
@@ -58,22 +58,6 @@ module OrganizationAPI::Logic
           organization.objid, cust.objid
         )
         membership&.admin?
-      end
-
-      def serialize_invitation(invitation)
-        {
-          id: invitation.objid,
-          token: invitation.token,  # Include token for admin operations
-          organization_id: @organization.extid,
-          email: invitation.invited_email,
-          role: invitation.role,
-          status: invitation.status,
-          invited_by: invitation.invited_by,
-          invited_at: invitation.invited_at,
-          expires_at: invitation.invited_at.to_f + 7.days.to_i,
-          expired: invitation.expired?,
-          resend_count: invitation.resend_count,
-        }
       end
     end
   end

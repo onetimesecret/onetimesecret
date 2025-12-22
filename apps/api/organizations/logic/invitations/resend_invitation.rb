@@ -83,7 +83,7 @@ module OrganizationAPI::Logic
       def success_data
         {
           user_id: cust.objid,
-          record: serialize_invitation(@invitation),
+          record: @invitation.safe_dump,
         }
       end
 
@@ -102,21 +102,6 @@ module OrganizationAPI::Logic
           organization.objid, cust.objid
         )
         membership&.admin?
-      end
-
-      def serialize_invitation(invitation)
-        {
-          id: invitation.objid,
-          token: invitation.token,
-          organization_id: @organization.extid,
-          email: invitation.invited_email,
-          role: invitation.role,
-          status: invitation.status,
-          invited_by: invitation.invited_by,
-          invited_at: invitation.invited_at,
-          expires_at: invitation.invited_at.to_f + 7.days.to_i,
-          resend_count: invitation.resend_count,
-        }
       end
     end
   end
