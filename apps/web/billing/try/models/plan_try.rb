@@ -12,6 +12,9 @@ require_relative '../../../../../try/support/test_helpers'
 ## Setup: Load billing models
 require 'apps/web/billing/models/plan'
 
+## Setup: Enable billing for these plan cache tests
+BillingTestHelpers.restore_billing!
+
 ## Clear any existing plan cache
 Billing::Plan.clear_cache.class
 #=> Integer
@@ -90,3 +93,8 @@ Billing::Plan.list_plans.size
 Billing::Plan.clear_cache
 Billing::Plan.instances.size
 #=> 0
+
+## Teardown: Restore billing state
+BillingTestHelpers.cleanup_billing_state!
+true
+#=> true
