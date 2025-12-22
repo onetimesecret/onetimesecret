@@ -86,7 +86,8 @@ module Onetime
         unless force
           print "\nProceed with these changes? (y/n): "
           response = $stdin.gets
-          return unless response&.chomp&.downcase == 'y'
+          return unless response # Handle EOF/Ctrl+D gracefully
+          return unless response.chomp.downcase == 'y'
         end
 
         # Apply changes
@@ -238,10 +239,15 @@ module Onetime
         # the product is created.
         product_id = existing_product&.id
 
-        catalog_prices.each do |price_def|
+        catalog_prices.each_with_index do |price_def, idx|
           # Validate all required fields are present
-          unless price_def['amount'] && price_def['currency'] && price_def['interval']
-            # Skip incomplete price definitions silently in analysis
+          missing = []
+          missing << 'amount' unless price_def['amount']
+          missing << 'currency' unless price_def['currency']
+          missing << 'interval' unless price_def['interval']
+
+          unless missing.empty?
+            puts "  ⚠ #{plan_id} price[#{idx}]: skipping - missing #{missing.join(', ')}"
             next
           end
 
