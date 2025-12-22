@@ -11,7 +11,7 @@ module Auth::Config::Features
   # @see https://rodauth.jeremyevans.net/rdoc/files/doc/otp_rdoc.html
   module MFA
     # Configuration constants
-    RECOVERY_CODES_LIMIT = 4
+    RECOVERY_CODES_LIMIT    = 4
     OTP_AUTH_FAILURES_LIMIT = 7
 
     def self.configure(auth)

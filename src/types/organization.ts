@@ -11,14 +11,30 @@ import { z } from 'zod';
  * Organization entitlement constants
  */
 export const ENTITLEMENTS = {
+  // Core
   CREATE_SECRETS: 'create_secrets',
-  BASIC_SHARING: 'basic_sharing',
-  CREATE_TEAM: 'create_team',
-  CREATE_TEAMS: 'create_teams',
-  CUSTOM_DOMAINS: 'custom_domains',
+  VIEW_METADATA: 'view_metadata',
+  EXTENDED_DEFAULT_EXPIRATION: 'extended_default_expiration',
+
+  // Infrastructure
   API_ACCESS: 'api_access',
-  PRIORITY_SUPPORT: 'priority_support',
+  CUSTOM_DOMAINS: 'custom_domains',
+
+  // Collaboration
+  MANAGE_TEAMS: 'manage_teams',
+  MANAGE_MEMBERS: 'manage_members',
+
+  // Branding
+  CUSTOM_BRANDING: 'custom_branding',
+  BRANDED_HOMEPAGE: 'branded_homepage',
+
+  // Advanced
   AUDIT_LOGS: 'audit_logs',
+  SSO: 'sso',
+
+  // Support
+  PRIORITY_SUPPORT: 'priority_support',
+  SLA: 'sla',
 } as const;
 
 export type Entitlement = (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS];

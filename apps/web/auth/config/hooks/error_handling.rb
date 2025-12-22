@@ -42,7 +42,7 @@ module Auth::Config::Hooks
           # - That account no longer exists in the database
           is_orphaned_session = false
           if session_account_id.is_a?(Integer)
-            account_exists = begin
+            account_exists      = begin
               !db[:accounts].where(id: session_account_id).empty?
             rescue StandardError
               # If we can't check, assume account exists (don't mask real errors)
@@ -93,10 +93,12 @@ module Auth::Config::Hooks
           # For other routes: 401 unauthorized with i18n key for frontend translation
           if current_route == :logout
             request.halt([200, { 'Content-Type' => 'application/json' },
-                          [JSON.generate({ success: true, message: 'web.auth.logout.success' })]])
+                          [JSON.generate({ success: true, message: 'web.auth.logout.success' })]],
+                        )
           else
             request.halt([401, { 'Content-Type' => 'application/json' },
-                          [JSON.generate({ error: 'web.auth.security.session_expired', success: false })]])
+                          [JSON.generate({ error: 'web.auth.security.session_expired', success: false })]],
+                        )
           end
         rescue StandardError => ex
           Auth::Logging.log_auth_event(

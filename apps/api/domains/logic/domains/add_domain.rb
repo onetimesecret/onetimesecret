@@ -29,6 +29,11 @@ module DomainsAPI::Logic
         # Require organization for domain ownership
         require_organization!
 
+        # Check custom domains entitlement
+        unless organization.can?('custom_domains')
+          raise_form_error 'Upgrade required for custom domains', field: :domain, error_type: :upgrade_required
+        end
+
         # Only store a valid, parsed input value to @domain
         @parsed_domain  = Onetime::CustomDomain.parse(@domain_input, organization.objid)
         @display_domain = @parsed_domain.display_domain
@@ -58,6 +63,15 @@ module DomainsAPI::Logic
       end
 
       def process
+        # Check custom domains entitlement before creation
+        # Only enforce when billing is enabled and entitlements are configured
+        # (can?() returns true in standalone mode, false when plan has no entitlements)
+        if organization.respond_to?(:can?) &&
+           organization.entitlements.any? &&
+           !organization.can?('custom_domains')
+          raise_form_error('Upgrade required for custom domains', field: :domain, error_type: :upgrade_required)
+        end
+
         @greenlighted  = true
         OT.ld "[AddDomain] Processing #{@display_domain}"
 

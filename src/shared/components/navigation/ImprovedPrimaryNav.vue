@@ -35,7 +35,7 @@ const { currentOrganization } = storeToRefs(organizationStore);
 
 // Entitlement checking for dynamic labels
 const { can, ENTITLEMENTS } = useEntitlements(currentOrganization);
-const hasMultipleTeams = computed(() => can(ENTITLEMENTS.CREATE_TEAMS));
+const hasMultipleTeams = computed(() => can(ENTITLEMENTS.MANAGE_TEAMS));
 
 interface NavItem {
   id: string;

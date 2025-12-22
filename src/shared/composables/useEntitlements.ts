@@ -58,8 +58,8 @@ export function useEntitlements(org: Ref<Organization | null>) {
     // Map entitlements to required plans
     // This is a simple mapping - in production, this might come from the API
     const entitlementToPlan: Record<string, string> = {
-      [ENTITLEMENTS.CREATE_TEAM]: 'identity_v1',
-      [ENTITLEMENTS.CREATE_TEAMS]: 'multi_team_v1',
+      [ENTITLEMENTS.MANAGE_TEAMS]: 'identity_v1',
+      [ENTITLEMENTS.MANAGE_MEMBERS]: 'identity_v1',
       [ENTITLEMENTS.API_ACCESS]: 'multi_team_v1',
       [ENTITLEMENTS.CUSTOM_DOMAINS]: 'identity_v1',
       [ENTITLEMENTS.PRIORITY_SUPPORT]: 'identity_v1',

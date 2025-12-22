@@ -22,12 +22,7 @@ require 'apps/web/billing/models/plan'
 ## Setup: Enable billing for these entitlement tests
 # The WithEntitlements module returns STANDALONE_ENTITLEMENTS when billing is disabled.
 # For these tests to validate plan-specific entitlements, we need billing enabled.
-module BillingEnabledForTests
-  def billing_enabled?
-    true
-  end
-end
-Onetime::Organization.prepend(BillingEnabledForTests)
+BillingTestHelpers.restore_billing!
 
 ## Setup: Populate Plan cache with test data (replaces hardcoded PLAN_DEFINITIONS)
 Billing::Plan.clear_cache
@@ -376,5 +371,10 @@ Billing::PlanHelpers.available_plans.include?('identity_v0')
 rescue StandardError
     nil
 end
+true
+#=> true
+
+## Teardown: Restore billing state
+BillingTestHelpers.cleanup_billing_state!
 true
 #=> true

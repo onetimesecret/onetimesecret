@@ -29,7 +29,7 @@
     // Don't show upgrade prompt if we haven't loaded org data yet
     if (!currentOrganization.value) return false;
     // If user can create at least one team, don't show upgrade on dashboard
-    if (can(ENTITLEMENTS.CREATE_TEAM) || can(ENTITLEMENTS.CREATE_TEAMS)) return false;
+    if (can(ENTITLEMENTS.MANAGE_TEAMS)) return false;
     return true;
   });
 </script>

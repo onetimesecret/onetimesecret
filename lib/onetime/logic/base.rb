@@ -117,6 +117,34 @@ module Onetime
         raise ex
       end
 
+      # Require that the organization has a specific entitlement.
+      # Raises EntitlementRequired with upgrade path if check fails.
+      #
+      # @param entitlement [String, Symbol] The entitlement to check
+      # @raise [Onetime::EntitlementRequired] If org lacks the entitlement
+      # @return [true] If entitlement check passes
+      def require_entitlement!(entitlement)
+        entitlement = entitlement.to_s
+
+        # No org context means no entitlement check (public endpoints)
+        return true unless org
+
+        # Check if org has the entitlement
+        return true if org.can?(entitlement)
+
+        # Build upgrade path info
+        current_plan = org.planid
+        upgrade_to   = if defined?(Billing::PlanHelpers)
+                         Billing::PlanHelpers.upgrade_path_for(entitlement, current_plan)
+                       end
+
+        raise Onetime::EntitlementRequired.new(
+          entitlement,
+          current_plan: current_plan,
+          upgrade_to: upgrade_to,
+        )
+      end
+
       def custom_domain?
         domain_strategy.to_s == 'custom'
       end

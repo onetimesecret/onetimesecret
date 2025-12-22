@@ -120,9 +120,8 @@ OT::Config.path = File.join(spec_root, 'config.test.yaml')
 # Use test auth config to avoid issues with local auth.yaml modifications
 Onetime::AuthConfig.path = File.join(spec_root, 'auth.test.yaml')
 
-# Disable billing in tests - set path to non-existent file so enabled? returns false
-# This prevents loading production etc/billing.yaml and calling Stripe API
-Onetime::BillingConfig.path = File.join(spec_root, 'billing.test.yaml')
+# Billing isolation is handled by spec/support/billing_isolation.rb
+# which disables billing before each test and cleans up after tests that enable it
 
 # Load the test configuration so OT.conf is available to tests.
 # This is a minimal config load that doesn't run the full boot process.
@@ -189,3 +188,6 @@ RSpec.configure do |config|
 
   Kernel.srand config.seed
 end
+
+# Load billing isolation support (must be after RSpec.configure)
+require_relative 'support/billing_isolation'

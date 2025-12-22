@@ -309,3 +309,9 @@ module TestRequestHelpers
     env['otto.locale'] || OT.default_locale
   end
 end
+
+# Disable billing by default for all Tryouts tests
+# This ensures billing_enabled? returns false, giving full standalone entitlements.
+# Tests that need billing enabled should use BillingTestHelpers.with_billing_enabled
+require_relative 'billing_helpers'
+BillingTestHelpers.disable_billing!

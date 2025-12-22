@@ -38,9 +38,9 @@ const planStatus = computed(() => selectedOrg.value?.planid ? 'active' : 'free')
 const formatEntitlement = (ent: string): string => {
   const labels: Record<string, string> = {
     [ENTITLEMENTS.CREATE_SECRETS]: t('web.billing.overview.entitlements.create_secrets'),
-    [ENTITLEMENTS.BASIC_SHARING]: t('web.billing.overview.entitlements.basic_sharing'),
-    [ENTITLEMENTS.CREATE_TEAM]: t('web.billing.overview.entitlements.create_team'),
-    [ENTITLEMENTS.CREATE_TEAMS]: t('web.billing.overview.entitlements.create_teams'),
+    [ENTITLEMENTS.VIEW_METADATA]: t('web.billing.overview.entitlements.view_metadata'),
+    [ENTITLEMENTS.MANAGE_TEAMS]: t('web.billing.overview.entitlements.manage_teams'),
+    [ENTITLEMENTS.MANAGE_MEMBERS]: t('web.billing.overview.entitlements.manage_members'),
     [ENTITLEMENTS.CUSTOM_DOMAINS]: t('web.billing.overview.entitlements.custom_domains'),
     [ENTITLEMENTS.API_ACCESS]: t('web.billing.overview.entitlements.api_access'),
     [ENTITLEMENTS.PRIORITY_SUPPORT]: t('web.billing.overview.entitlements.priority_support'),

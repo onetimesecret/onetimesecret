@@ -45,8 +45,8 @@ module Onetime
         puts "HMAC secret: #{hmac_secret}"
         puts ''
         puts 'Use the HMAC secret in your authenticator app.'
-      rescue StandardError => e
-        puts "Error: #{e.message}"
+      rescue StandardError => ex
+        puts "Error: #{ex.message}"
         exit 1
       end
 

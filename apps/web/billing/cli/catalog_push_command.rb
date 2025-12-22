@@ -45,7 +45,7 @@ module Onetime
         return unless catalog
 
         app_identifier = catalog['app_identifier'] || Billing::Metadata::APP_NAME
-        plans = catalog['plans'] || {}
+        plans          = catalog['plans'] || {}
 
         if plans.empty?
           puts 'No plans found in catalog'
@@ -62,7 +62,7 @@ module Onetime
           plans = { plan => plans[plan] }
         end
 
-        puts "Billing Catalog Push#{dry_run ? ' (DRY RUN)' : ''}"
+        puts "Billing Catalog Push#{' (DRY RUN)' if dry_run}"
         puts '=' * 50
         puts "App identifier: #{app_identifier}"
         puts "Plans to process: #{plans.keys.join(', ')}"
@@ -70,7 +70,7 @@ module Onetime
 
         # Fetch existing products from Stripe
         existing_products = fetch_existing_products(app_identifier)
-        existing_prices = fetch_existing_prices(existing_products)
+        existing_prices   = fetch_existing_prices(existing_products)
 
         # Analyze changes
         changes = analyze_changes(plans, existing_products, existing_prices, skip_prices)
@@ -126,7 +126,7 @@ module Onetime
           Stripe::Product.list(active: true, limit: 100).auto_paging_each do |product|
             next unless product.metadata['app'] == app_identifier
 
-            plan_id = product.metadata['plan_id']
+            plan_id           = product.metadata['plan_id']
             products[plan_id] = product if plan_id
           end
         end
@@ -135,7 +135,7 @@ module Onetime
       end
 
       def fetch_existing_prices(products)
-        prices = {}
+        prices      = {}
         product_ids = products.values.map(&:id)
 
         return prices if product_ids.empty?
@@ -186,12 +186,12 @@ module Onetime
           end
 
           # Check prices unless skipped
-          unless skip_prices
-            price_changes = analyze_price_changes(
-              plan_id, plan_def, existing, existing_prices[plan_id] || []
-            )
-            changes[:prices_to_create].concat(price_changes)
-          end
+          next if skip_prices
+
+          price_changes = analyze_price_changes(
+            plan_id, plan_def, existing, existing_prices[plan_id] || []
+          )
+          changes[:prices_to_create].concat(price_changes)
         end
 
         changes
@@ -216,12 +216,12 @@ module Onetime
         }
 
         # Add limit fields (always include so removed limits sync as empty strings)
-        limits = plan_def['limits'] || {}
-        metadata_fields['limit_teams'] = limits['teams'].to_s
+        limits                                    = plan_def['limits'] || {}
+        metadata_fields['limit_teams']            = limits['teams'].to_s
         metadata_fields['limit_members_per_team'] = limits['members_per_team'].to_s
-        metadata_fields['limit_custom_domains'] = limits['custom_domains'].to_s
-        metadata_fields['limit_secret_lifetime'] = limits['secret_lifetime'].to_s
-        metadata_fields['limit_secrets_per_day'] = limits['secrets_per_day'].to_s
+        metadata_fields['limit_custom_domains']   = limits['custom_domains'].to_s
+        metadata_fields['limit_secret_lifetime']  = limits['secret_lifetime'].to_s
+        metadata_fields['limit_secrets_per_day']  = limits['secrets_per_day'].to_s
 
         metadata_fields.each do |field, expected|
           current = existing.metadata[field]
@@ -234,7 +234,7 @@ module Onetime
       end
 
       def analyze_price_changes(plan_id, plan_def, existing_product, existing_prices)
-        changes = []
+        changes        = []
         catalog_prices = plan_def['prices'] || []
 
         return changes if catalog_prices.empty?
@@ -301,21 +301,21 @@ module Onetime
           puts
         end
 
-        unless changes[:prices_to_create].empty?
-          puts "#{prefix}Prices to CREATE:"
-          changes[:prices_to_create].each do |item|
-            amount_display = format_amount(item[:amount], item[:currency])
-            puts "  + #{item[:plan_id]}: #{amount_display}/#{item[:interval]}"
-          end
-          puts
+        return if changes[:prices_to_create].empty?
+
+        puts "#{prefix}Prices to CREATE:"
+        changes[:prices_to_create].each do |item|
+          amount_display = format_amount(item[:amount], item[:currency])
+          puts "  + #{item[:plan_id]}: #{amount_display}/#{item[:interval]}"
         end
+        puts
       end
 
       def apply_changes(changes, app_identifier)
         # Create new products first
         new_products = {}
         changes[:products_to_create].each do |item|
-          product = create_product(item[:plan_id], item[:plan_def], app_identifier)
+          product                      = create_product(item[:plan_id], item[:plan_def], app_identifier)
           new_products[item[:plan_id]] = product if product
         end
 
@@ -339,7 +339,7 @@ module Onetime
         product = with_stripe_retry do
           Stripe::Product.create(
             name: plan_def['name'],
-            metadata: metadata
+            metadata: metadata,
           )
         end
 
@@ -363,7 +363,7 @@ module Onetime
         updates.each do |field, change|
           next unless field.to_s.start_with?('metadata_')
 
-          key = field.to_s.sub('metadata_', '')
+          key                   = field.to_s.sub('metadata_', '')
           metadata_updates[key] = change[:to]
         end
 
@@ -388,7 +388,7 @@ module Onetime
             currency: price_def[:currency].downcase,
             recurring: {
               interval: price_def[:interval],
-            }
+            },
           )
         end
 
@@ -414,11 +414,11 @@ module Onetime
         }
 
         # Add limit fields
-        metadata['limit_teams'] = limits['teams'].to_s if limits['teams']
+        metadata['limit_teams']            = limits['teams'].to_s if limits['teams']
         metadata['limit_members_per_team'] = limits['members_per_team'].to_s if limits['members_per_team']
-        metadata['limit_custom_domains'] = limits['custom_domains'].to_s if limits['custom_domains']
-        metadata['limit_secret_lifetime'] = limits['secret_lifetime'].to_s if limits['secret_lifetime']
-        metadata['limit_secrets_per_day'] = limits['secrets_per_day'].to_s if limits['secrets_per_day']
+        metadata['limit_custom_domains']   = limits['custom_domains'].to_s if limits['custom_domains']
+        metadata['limit_secret_lifetime']  = limits['secret_lifetime'].to_s if limits['secret_lifetime']
+        metadata['limit_secrets_per_day']  = limits['secrets_per_day'].to_s if limits['secrets_per_day']
 
         metadata
       end

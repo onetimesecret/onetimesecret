@@ -1,0 +1,85 @@
+# frozen_string_literal: true
+
+# Shared billing test isolation helpers for Tryouts and RSpec.
+# Ensures billing is disabled by default for all tests, with opt-in
+# for tests that specifically need billing enabled.
+
+module BillingTestHelpers
+  # Path that forces billing to be disabled (non-existent file)
+  BILLING_DISABLED_PATH = '/nonexistent/billing_disabled_for_tests.yaml'.freeze
+
+  class << self
+    # Disable billing globally for tests
+    # Call once at test suite startup
+    def disable_billing!
+      ensure_familia_configured!
+      @original_path = Onetime::BillingConfig.path
+      Onetime::BillingConfig.path = BILLING_DISABLED_PATH
+      reset_billing_singleton!
+    end
+
+    # Restore original billing configuration
+    # Used for cleanup and for tests that need real billing
+    def restore_billing!
+      return unless defined?(@original_path)
+
+      ensure_familia_configured!
+      Onetime::BillingConfig.path = @original_path
+      reset_billing_singleton!
+    end
+
+    # Ensure Familia is configured with test Redis URI
+    # Must be called before any Familia operations if OT.conf isn't loaded
+    def ensure_familia_configured!
+      return if Familia.uri.to_s.include?('2121') # Already configured for test
+
+      # Use test Redis port from ENV (set by test_helpers.rb)
+      test_uri = ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:2121/0'
+      Familia.uri = test_uri
+    end
+
+    # Clear plan cache in Redis
+    # Essential after tests that populate the cache
+    def clear_plan_cache!
+      return unless defined?(::Billing::Plan)
+
+      ensure_familia_configured!
+      ::Billing::Plan.clear_cache
+    rescue StandardError => e
+      warn "[BillingTestHelpers] Failed to clear plan cache: #{e.message}"
+    end
+
+    # Full billing state cleanup
+    def cleanup_billing_state!
+      clear_plan_cache!
+      disable_billing!
+    end
+
+    # Enable billing for a test block
+    # Automatically cleans up afterward
+    def with_billing_enabled(plans: [])
+      restore_billing!
+      populate_test_plans(plans) if plans.any?
+      yield
+    ensure
+      cleanup_billing_state!
+    end
+
+    # Populate Redis plan cache with test data
+    def populate_test_plans(plans)
+      ensure_familia_configured!
+      plans.each do |plan_data|
+        plan = ::Billing::Plan.new(plan_data.slice(:plan_id, :name, :tier, :interval, :region))
+        (plan_data[:entitlements] || []).each { |e| plan.entitlements.add(e) }
+        (plan_data[:limits] || {}).each { |k, v| plan.limits[k] = v.to_s }
+        plan.save
+      end
+    end
+
+    private
+
+    def reset_billing_singleton!
+      Onetime::BillingConfig.instance_variable_set(:@singleton__instance__, nil)
+    end
+  end
+end

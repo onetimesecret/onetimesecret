@@ -126,6 +126,7 @@ module Onetime
           def clear_billing_fields
             self.stripe_subscription_id = nil
             self.subscription_status    = 'canceled'
+            self.planid                 = 'free_v1'
             save
           end
 

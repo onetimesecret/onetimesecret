@@ -47,21 +47,21 @@ const { entitlements, can } = useEntitlements(organization);
  * Identity Plus has custom domains but not multi-team entitlements.
  */
 const isIdentityPlus = computed(() =>
-  can(ENTITLEMENTS.CUSTOM_DOMAINS) && !can(ENTITLEMENTS.CREATE_TEAMS)
+  can(ENTITLEMENTS.CUSTOM_DOMAINS) && !can(ENTITLEMENTS.MANAGE_TEAMS)
 );
 
 /**
  * Determine if this is a multi-team organization.
  */
-const isMultiTeam = computed(() => can(ENTITLEMENTS.CREATE_TEAMS));
+const isMultiTeam = computed(() => can(ENTITLEMENTS.MANAGE_TEAMS));
 
 // Format entitlement for display
 const formatEntitlement = (ent: string): string => {
   const labels: Record<string, string> = {
     [ENTITLEMENTS.CREATE_SECRETS]: 'Create Secrets',
-    [ENTITLEMENTS.BASIC_SHARING]: 'Basic Sharing',
-    [ENTITLEMENTS.CREATE_TEAM]: 'Create Team',
-    [ENTITLEMENTS.CREATE_TEAMS]: 'Create Multiple Teams',
+    [ENTITLEMENTS.VIEW_METADATA]: 'View Metadata',
+    [ENTITLEMENTS.MANAGE_TEAMS]: 'Manage Teams',
+    [ENTITLEMENTS.MANAGE_MEMBERS]: 'Manage Members',
     [ENTITLEMENTS.CUSTOM_DOMAINS]: 'Custom Domains',
     [ENTITLEMENTS.API_ACCESS]: 'API Access',
     [ENTITLEMENTS.PRIORITY_SUPPORT]: 'Priority Support',
