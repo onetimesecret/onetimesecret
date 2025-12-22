@@ -97,7 +97,8 @@ module Onetime
 
     # Participation - bidirectional membership tracking with reverse indexes
     # Organization: org.members gives O(1) access to all members
-    participates_in :Organization, :members, score: :joined
+    # Through model auto-creates OrganizationMembership with role, status, etc.
+    participates_in :Organization, :members, score: :joined, through: Onetime::OrganizationMembership
     participates_in :Team, :members
 
     field_group :core_fields do
