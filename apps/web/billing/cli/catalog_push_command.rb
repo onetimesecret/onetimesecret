@@ -350,7 +350,7 @@ module Onetime
         nil
       end
 
-      def update_product(existing, plan_def, updates)
+      def update_product(existing, _plan_def, updates)
         # Build update params
         params = {}
 
