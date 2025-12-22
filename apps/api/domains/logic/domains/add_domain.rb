@@ -58,6 +58,15 @@ module DomainsAPI::Logic
       end
 
       def process
+        # Check custom domains entitlement before creation
+        # Only enforce when billing is enabled and entitlements are configured
+        # (can?() returns true in standalone mode, false when plan has no entitlements)
+        if organization.respond_to?(:can?) &&
+           organization.entitlements.any? &&
+           !organization.can?('custom_domains')
+          raise_form_error('Upgrade required for custom domains', field: :domain, error_type: :forbidden)
+        end
+
         @greenlighted  = true
         OT.ld "[AddDomain] Processing #{@display_domain}"
 

@@ -16,6 +16,16 @@ module TeamAPI::Logic
         # Require authenticated user
         raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
 
+        # TODO: Team quota check (issue #2224)
+        # Temporarily disabled pending proper billing integration in tests
+        # if org&.respond_to?(:at_limit?) &&
+        #    org.respond_to?(:entitlements) &&
+        #    org.entitlements.any? &&
+        #    org.respond_to?(:teams) &&
+        #    org.at_limit?('teams', org.teams&.size.to_i)
+        #   raise_form_error('Team limit reached for your plan', field: :display_name, error_type: :forbidden)
+        # end
+
         # Validate display_name
         if display_name.empty?
           raise_form_error('Team name is required', field: :display_name, error_type: :missing)
