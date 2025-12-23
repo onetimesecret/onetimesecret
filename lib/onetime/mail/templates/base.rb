@@ -3,10 +3,74 @@
 # frozen_string_literal: true
 
 require 'erb'
+require 'yaml'
 
 module Onetime
   module Mail
     module Templates
+      # Simple translation loader for email templates
+      # Loads translations from config/locales/email/*.yml
+      class EmailTranslations
+        LOCALES_PATH = File.expand_path('../../../../config/locales/email', __dir__)
+
+        class << self
+          def translations
+            @translations ||= {}
+          end
+
+          # Load translations for a locale
+          # @param locale [String] Locale code (e.g., 'en')
+          # @return [Hash] Translation hash for the locale
+          def load_locale(locale)
+            return translations[locale] if translations[locale]
+
+            locale_file = File.join(LOCALES_PATH, "#{locale}.yml")
+            if File.exist?(locale_file)
+              content = YAML.safe_load(File.read(locale_file), permitted_classes: [], permitted_symbols: [], aliases: true)
+              translations[locale] = content[locale] || {}
+            else
+              translations[locale] = {}
+            end
+            translations[locale]
+          end
+
+          # Get a translation value by key path
+          # @param key [String] Dot-separated key path (e.g., 'email.organization_invitation.subject')
+          # @param locale [String] Locale code
+          # @param options [Hash] Interpolation options
+          # @return [String] Translated string with interpolations applied
+          def translate(key, locale: 'en', **options)
+            load_locale(locale)
+            keys = key.to_s.split('.')
+            value = keys.reduce(translations[locale]) do |hash, k|
+              hash.is_a?(Hash) ? hash[k] : nil
+            end
+
+            # Fallback to English if translation not found
+            if value.nil? && locale != 'en'
+              load_locale('en')
+              value = keys.reduce(translations['en']) do |hash, k|
+                hash.is_a?(Hash) ? hash[k] : nil
+              end
+            end
+
+            # Return key if translation still not found
+            return key.to_s if value.nil?
+
+            # Apply interpolations
+            options.each do |opt_key, opt_value|
+              value = value.gsub("%{#{opt_key}}", opt_value.to_s)
+            end
+
+            value
+          end
+
+          # Clear cached translations (useful for testing)
+          def reset!
+            @translations = {}
+          end
+        end
+      end
       # Base class for email templates using ERB.
       #
       # Subclasses define template-specific data and subject lines.
@@ -147,15 +211,13 @@ module Onetime
             @data.key?(name) || @data.key?(name.to_s) || super
           end
 
-          # Future i18n helper - stub for now
-          # When ruby-i18n is integrated, this will call I18n.t()
-          # @param key [String] Translation key
+          # Translation helper for email templates
+          # Loads translations from config/locales/email/*.yml
+          # @param key [String] Translation key (e.g., 'email.organization_invitation.subject')
           # @param options [Hash] Interpolation options
-          # @return [String]
-          def t(key, **_options)
-            # TODO: Replace with I18n.t(key, locale: @locale, **options)
-            # For now, return the key as a placeholder
-            key.to_s
+          # @return [String] Translated string
+          def t(key, **options)
+            EmailTranslations.translate(key, locale: @locale, **options)
           end
 
           # HTML escape helper

@@ -14,3 +14,10 @@ POST   /                                    OrganizationAPI::Logic::Organization
 GET    /:extid                              OrganizationAPI::Logic::Organizations::GetOrganization response=json auth=sessionauth
 PUT    /:extid                              OrganizationAPI::Logic::Organizations::UpdateOrganization response=json auth=sessionauth
 DELETE /:extid                              OrganizationAPI::Logic::Organizations::DeleteOrganization response=json auth=sessionauth
+
+# Organization Invitations
+# Invite management for organization owners/admins
+GET    /:extid/invitations                  OrganizationAPI::Logic::Invitations::ListInvitations response=json auth=sessionauth
+POST   /:extid/invitations                  OrganizationAPI::Logic::Invitations::CreateInvitation response=json auth=sessionauth
+POST   /:extid/invitations/:token/resend    OrganizationAPI::Logic::Invitations::ResendInvitation response=json auth=sessionauth
+DELETE /:extid/invitations/:token           OrganizationAPI::Logic::Invitations::RevokeInvitation response=json auth=sessionauth

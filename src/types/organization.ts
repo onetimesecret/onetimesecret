@@ -129,6 +129,57 @@ export type CreateOrganizationPayload = z.infer<typeof createOrganizationPayload
 export type UpdateOrganizationPayload = z.infer<typeof updateOrganizationPayloadSchema>;
 
 /**
+ * Organization invitation status constants
+ */
+export const INVITATION_STATUSES = {
+  PENDING: 'pending',
+  ACCEPTED: 'accepted',
+  DECLINED: 'declined',
+  EXPIRED: 'expired',
+} as const;
+
+export type InvitationStatus = (typeof INVITATION_STATUSES)[keyof typeof INVITATION_STATUSES];
+
+/**
+ * Organization invitation interface
+ */
+export interface OrganizationInvitation {
+  id: string;
+  organization_id: string;
+  email: string;
+  role: 'member' | 'admin';
+  status: InvitationStatus;
+  invited_by: string;
+  invited_at: number;
+  expires_at: number;
+  resend_count: number;
+  token?: string;
+}
+
+/**
+ * Organization invitation schemas
+ */
+export const organizationInvitationSchema = z.object({
+  id: z.string(),
+  organization_id: z.string(),
+  email: z.string().email(),
+  role: z.enum(['member', 'admin']),
+  status: z.enum(['pending', 'accepted', 'declined', 'expired']),
+  invited_by: z.string(),
+  invited_at: z.number(),
+  expires_at: z.number(),
+  resend_count: z.number().int().min(0),
+  token: z.string().optional(),
+});
+
+export const createInvitationPayloadSchema = z.object({
+  email: z.string().email('Valid email required'),
+  role: z.enum(['member', 'admin']),
+});
+
+export type CreateInvitationPayload = z.infer<typeof createInvitationPayloadSchema>;
+
+/**
  * Display helpers
  */
 

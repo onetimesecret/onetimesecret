@@ -229,6 +229,7 @@
       "verify_account": "Verify Account",
       "mfa_verify": "Two-Factor Authentication",
       "email_login": "Email Login",
+      "accept_invitation": "Accept Invitation",
       "secret": "Secret",
       "metadata": "Secret Details",
       "receipt": "Secret Receipt",

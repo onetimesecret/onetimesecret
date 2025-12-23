@@ -5,12 +5,16 @@ import {
   organizationsResponseSchema,
 } from '@/schemas/api/organizations';
 import type {
+  CreateInvitationPayload,
   CreateOrganizationPayload,
   Organization,
+  OrganizationInvitation,
   UpdateOrganizationPayload,
 } from '@/types/organization';
 import {
+  createInvitationPayloadSchema,
   createOrganizationPayloadSchema,
+  organizationInvitationSchema,
   updateOrganizationPayloadSchema,
 } from '@/types/organization';
 import { AxiosInstance } from 'axios';
@@ -24,6 +28,7 @@ export const useOrganizationStore = defineStore('organization', () => {
   // State
   const organizations = ref<Organization[]>([]);
   const currentOrganization = ref<Organization | null>(null);
+  const invitations = ref<OrganizationInvitation[]>([]);
   const _initialized = ref(false);
   const loading = ref(false);
   const abortController = ref<AbortController | null>(null);
@@ -233,12 +238,87 @@ export const useOrganizationStore = defineStore('organization', () => {
   }
 
   /**
+   * Fetch pending invitations for an organization
+   */
+  async function fetchInvitations(orgId: string): Promise<OrganizationInvitation[]> {
+    loading.value = true;
+
+    try {
+      const response = await $api.get(`/api/organizations/${orgId}/invitations`);
+
+      const validated = response.data.records.map((inv: unknown) =>
+        organizationInvitationSchema.parse(inv)
+      );
+      invitations.value = validated;
+      return invitations.value;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * Create an invitation for an organization
+   */
+  async function createInvitation(
+    orgId: string,
+    payload: CreateInvitationPayload
+  ): Promise<OrganizationInvitation> {
+    loading.value = true;
+
+    try {
+      const validated = createInvitationPayloadSchema.parse(payload);
+
+      const response = await $api.post(`/api/organizations/${orgId}/invitations`, validated);
+
+      const invitation = organizationInvitationSchema.parse(response.data.record);
+      invitations.value.push(invitation);
+
+      return invitation;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * Resend an invitation
+   */
+  async function resendInvitation(orgId: string, token: string): Promise<void> {
+    loading.value = true;
+
+    try {
+      await $api.post(`/api/organizations/${orgId}/invitations/${token}/resend`);
+
+      // Refresh invitations to get updated resend count
+      await fetchInvitations(orgId);
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
+   * Revoke an invitation
+   */
+  async function revokeInvitation(orgId: string, token: string): Promise<void> {
+    loading.value = true;
+
+    try {
+      await $api.delete(`/api/organizations/${orgId}/invitations/${token}`);
+
+      // Remove from invitations array
+      invitations.value = invitations.value.filter((inv) => inv.token !== token);
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  /**
    * Reset the store
    */
   function $reset() {
     abort();
     organizations.value = [];
     currentOrganization.value = null;
+    invitations.value = [];
     _initialized.value = false;
     loading.value = false;
   }
@@ -247,6 +327,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     // State
     organizations,
     currentOrganization,
+    invitations,
     loading,
     _initialized,
 
@@ -265,6 +346,10 @@ export const useOrganizationStore = defineStore('organization', () => {
     deleteOrganization,
     setCurrentOrganization,
     fetchEntitlements,
+    fetchInvitations,
+    createInvitation,
+    resendInvitation,
+    revokeInvitation,
     abort,
     $reset,
   };

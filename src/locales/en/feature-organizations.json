@@ -52,7 +52,8 @@
         "general": "General",
         "company_branding": "Company Branding",
         "teams": "Teams",
-        "billing": "Billing"
+        "billing": "Billing",
+        "members": "Members"
       },
       "danger_zone": "Danger Zone",
       "delete_organization": "Delete Organization",
@@ -60,7 +61,54 @@
       "delete": "Delete",
       "delete_organization_confirm_title": "Delete Organization",
       "delete_organization_confirm_message": "Are you sure you want to delete {name}? This action cannot be undone.",
-      "delete_error": "Failed to delete organization"
+      "delete_error": "Failed to delete organization",
+      "invitations": {
+        "title": "Organization Invitations",
+        "invite_member": "Invite Member",
+        "invite_new_member": "Invite New Member",
+        "pending_invitations": "Pending Invitations",
+        "no_pending_invitations": "No pending invitations",
+        "email_address": "Email Address",
+        "email_placeholder": "member@example.com",
+        "role": "Role",
+        "send_invite": "Send Invitation",
+        "invite_sent": "Invitation sent successfully",
+        "invite_error": "Failed to send invitation",
+        "resend": "Resend",
+        "revoke": "Revoke",
+        "resend_success": "Invitation resent successfully",
+        "resend_error": "Failed to resend invitation",
+        "revoke_success": "Invitation revoked successfully",
+        "revoke_error": "Failed to revoke invitation",
+        "invited_by": "Invited by",
+        "invited_at": "Invited",
+        "expires_at": "Expires",
+        "resent_count": "Resent {count} time",
+        "resent_count_plural": "Resent {count} times",
+        "status": {
+          "pending": "Pending",
+          "accepted": "Accepted",
+          "declined": "Declined",
+          "expired": "Expired"
+        },
+        "roles": {
+          "member": "Member",
+          "admin": "Admin"
+        },
+        "accept_invitation": "Accept Invitation",
+        "decline_invitation": "Decline Invitation",
+        "invitation_details": "Invitation Details",
+        "you_are_invited": "You've been invited to join",
+        "invited_as": "You've been invited as a",
+        "accept_success": "Invitation accepted successfully",
+        "accept_error": "Failed to accept invitation",
+        "decline_success": "Invitation declined",
+        "decline_error": "Failed to decline invitation",
+        "expired_message": "This invitation has expired",
+        "invalid_token": "Invalid or expired invitation",
+        "must_sign_in": "Please sign in to accept this invitation",
+        "loading_invitation": "Loading invitation details"
+      }
     }
   }
 }

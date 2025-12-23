@@ -47,7 +47,7 @@ module TeamAPI::Logic
       end
 
       def process
-        OT.ld "[AddMember] Adding member #{email} to team #{@team_id}"
+        OT.ld "[AddMember] Adding member #{OT::Utils.obscure_email(email)} to team #{@team_id}"
 
         # Add member to team
         @team.add_member(@new_member, 'member')
@@ -56,7 +56,7 @@ module TeamAPI::Logic
         @team.updated = Familia.now.to_i
         @team.save
 
-        OT.info "[AddMember] Added member #{@new_member.custid} to team #{@team_id}"
+        OT.info "[AddMember] Added member #{OT::Utils.obscure_email(@new_member.custid)} to team #{@team_id}"
 
         success_data
       end
