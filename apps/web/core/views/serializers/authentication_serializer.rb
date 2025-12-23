@@ -38,6 +38,17 @@ module Core
           output['email']          = cust.email
           output['customer_since'] = OT::Utils::TimeUtils.epochdom(cust.created) if cust.created
 
+          # Add entitlement test mode state for colonels
+          if cust.role?(:colonel) && sess[:entitlement_test_planid]
+            test_planid = sess[:entitlement_test_planid]
+            test_plan_name = resolve_test_plan_name(test_planid)
+
+            if test_plan_name
+              output['entitlement_test_planid']   = test_planid
+              output['entitlement_test_plan_name'] = test_plan_name
+            end
+          end
+
         # When awaiting MFA, provide minimal data from session (no customer access yet)
         elsif output['awaiting_mfa']
           output['email'] = view_vars['session_email']  # From session, not customer
@@ -46,6 +57,14 @@ module Core
 
         output
       end
+
+      # Predefined test plan names for colonel testing mode
+      # Must stay in sync with WithEntitlements::TEST_PLANS
+      TEST_PLAN_NAMES = {
+        'free' => 'Free',
+        'identity_v1' => 'Identity Plus',
+        'multi_team_v1' => 'Multi-Team',
+      }.freeze
 
       class << self
         # Provides the base template for authentication serializer output
@@ -60,7 +79,22 @@ module Core
             'cust' => nil,
             'email' => nil,
             'customer_since' => nil,
+            'entitlement_test_planid' => nil,
+            'entitlement_test_plan_name' => nil,
           }
+        end
+
+        # Resolve test plan name from Stripe or predefined plans
+        #
+        # @param test_planid [String] Plan ID to resolve
+        # @return [String, nil] Plan name or nil if not found
+        def resolve_test_plan_name(test_planid)
+          # Try Stripe-synced plan first
+          plan = ::Billing::Plan.load(test_planid)
+          return plan.name if plan
+
+          # Fall back to predefined test plans
+          TEST_PLAN_NAMES[test_planid]
         end
       end
 
