@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "Atualização Necessária",
         "viewPlans": "Ver Planos",
-        "needTeams": "Várias equipes exigem plano Multi-Team ou superior",
         "needCustomDomains": "Domínios personalizados exigem Identity Plus ou superior",
         "needApiAccess": "Acesso à API exige plano Multi-Team ou superior",
         "needPrioritySupport": "Suporte prioritário exige Identity Plus ou superior",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "Criar Mensagens Confidenciais",
           "basic_sharing": "Compartilhamento Básico",
-          "create_team": "Criar Equipe",
-          "create_teams": "Criar Várias Equipes",
           "custom_domains": "Domínios Personalizados",
           "api_access": "Acesso à API",
           "priority_support": "Suporte Prioritário",
@@ -60,8 +57,6 @@
         "single_team_plan": "Equipe Única",
         "multi_team_plan": "Várias Equipes",
         "features": "Recursos",
-        "teams_limit": "{count} equipe | {count} equipes",
-        "members_limit": "{count} membro por equipe | {count} membros por equipe",
         "unlimited_secrets": "Mensagens confidenciais ilimitadas",
         "api_access": "Acesso à API",
         "priority_support": "Suporte prioritário",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "A cobrança desta equipe é gerenciada por {orgName}",
-        "view_org_billing": "Ver cobrança da organização",
-        "team_billing_disabled": "A cobrança em nível de equipe é gerenciada através da sua organização"
+        "view_org_billing": "Ver cobrança da organização"
       },
       "limits": {
-        "teams_reached": "Você atingiu o limite do seu plano",
-        "teams_upgrade": "Atualize para criar mais equipes",
         "members_reached": "Você atingiu o limite de membros para esta equipe",
         "members_upgrade": "Atualize para adicionar mais membros"
       },
@@ -99,9 +91,7 @@
         "inactive": "Inativo",
         "past_due": "Vencido",
         "canceled": "Cancelado",
-        "catalog_name": "Plano",
-        "team_usage": "Uso de Equipes",
-        "teams_used": "{used} de {limit} equipes usadas"
+        "catalog_name": "Plano"
       },
       "portal": {
         "title": "Portal de Cobrança",

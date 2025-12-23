@@ -35,8 +35,6 @@
       "organization_settings_description": "Актуализирайте името и описанието на вашата организация",
       "general_settings": "Общи настройки",
       "billing_settings": "Фактуриране и абонамент",
-      "teams_in_organization": "Екипи",
-      "no_teams": "Все още няма екипи в тази организация",
       "save_changes": "Запази промените",
       "update_success": "Организацията е актуализирана успешно",
       "update_error": "Неуспешна актуализация на организацията",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "Общи",
         "company_branding": "Корпоративен брандинг",
-        "teams": "Екипи",
         "billing": "Фактуриране"
       },
       "danger_zone": "Опасна зона",

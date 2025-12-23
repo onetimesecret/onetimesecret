@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "Upgrade vereist",
         "viewPlans": "Abonnementen bekijken",
-        "needTeams": "Meerdere teams vereisen Multi-Team abonnement of hoger",
         "needCustomDomains": "Aangepaste domeinen vereisen Identity Plus of hoger",
         "needApiAccess": "API-toegang vereist Multi-Team abonnement of hoger",
         "needPrioritySupport": "Prioriteitsondersteuning vereist Identity Plus of hoger",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "Berichten aanmaken",
           "basic_sharing": "Basis delen",
-          "create_team": "Team aanmaken",
-          "create_teams": "Meerdere teams aanmaken",
           "custom_domains": "Aangepaste domeinen",
           "api_access": "API-toegang",
           "priority_support": "Prioriteitsondersteuning",
@@ -60,8 +57,6 @@
         "single_team_plan": "Single Team",
         "multi_team_plan": "Multi-Team",
         "features": "Functies",
-        "teams_limit": "{count} team | {count} teams",
-        "members_limit": "{count} lid per team | {count} leden per team",
         "unlimited_secrets": "Onbeperkte berichten",
         "api_access": "API-toegang",
         "priority_support": "Prioriteitsondersteuning",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "Facturering voor dit team wordt beheerd door {orgName}",
-        "view_org_billing": "Organisatiefacturering bekijken",
-        "team_billing_disabled": "Facturering op teamniveau wordt beheerd via je organisatie"
+        "view_org_billing": "Organisatiefacturering bekijken"
       },
       "limits": {
-        "teams_reached": "Je hebt je abonnementslimiet bereikt",
-        "teams_upgrade": "Upgrade om meer teams aan te maken",
         "members_reached": "Je hebt de ledenlimiet voor dit team bereikt",
         "members_upgrade": "Upgrade om meer leden toe te voegen"
       },
@@ -99,9 +91,7 @@
         "inactive": "Inactief",
         "past_due": "Achterstallig",
         "canceled": "Geannuleerd",
-        "catalog_name": "Abonnement",
-        "team_usage": "Teamgebruik",
-        "teams_used": "{used} van {limit} teams gebruikt"
+        "catalog_name": "Abonnement"
       },
       "portal": {
         "title": "Factureringsportaal",

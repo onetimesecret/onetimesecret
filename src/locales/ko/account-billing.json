@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "업그레이드 필요",
         "viewPlans": "플랜 보기",
-        "needTeams": "여러 팀은 Multi-Team 플랜 이상이 필요합니다",
         "needCustomDomains": "맞춤 도메인은 Identity Plus 이상이 필요합니다",
         "needApiAccess": "API 접근은 Multi-Team 플랜 이상이 필요합니다",
         "needPrioritySupport": "우선 지원은 Identity Plus 이상이 필요합니다",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "비밀 메시지 생성",
           "basic_sharing": "기본 공유",
-          "create_team": "팀 생성",
-          "create_teams": "여러 팀 생성",
           "custom_domains": "맞춤 도메인",
           "api_access": "API 접근",
           "priority_support": "우선 지원",
@@ -60,8 +57,6 @@
         "single_team_plan": "단일 팀",
         "multi_team_plan": "다중 팀",
         "features": "기능",
-        "teams_limit": "{count}개 팀 | {count}개 팀",
-        "members_limit": "팀당 {count}명 | 팀당 {count}명",
         "unlimited_secrets": "무제한 비밀 메시지",
         "api_access": "API 접근",
         "priority_support": "우선 지원",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "이 팀의 결제는 {orgName}에서 관리합니다",
-        "view_org_billing": "조직 결제 보기",
-        "team_billing_disabled": "팀 수준 결제는 조직을 통해 관리됩니다"
+        "view_org_billing": "조직 결제 보기"
       },
       "limits": {
-        "teams_reached": "플랜 한도에 도달했습니다",
-        "teams_upgrade": "더 많은 팀을 생성하려면 업그레이드하세요",
         "members_reached": "이 팀의 구성원 한도에 도달했습니다",
         "members_upgrade": "더 많은 구성원을 추가하려면 업그레이드하세요"
       },
@@ -99,9 +91,7 @@
         "inactive": "비활성",
         "past_due": "연체",
         "canceled": "취소됨",
-        "catalog_name": "플랜",
-        "team_usage": "팀 사용량",
-        "teams_used": "{limit}개 팀 중 {used}개 사용"
+        "catalog_name": "플랜"
       },
       "portal": {
         "title": "결제 포털",

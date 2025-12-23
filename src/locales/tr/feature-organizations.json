@@ -35,8 +35,6 @@
       "organization_settings_description": "",
       "general_settings": "",
       "billing_settings": "",
-      "teams_in_organization": "",
-      "no_teams": "",
       "save_changes": "",
       "update_success": "",
       "update_error": "",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "",
         "company_branding": "",
-        "teams": "",
         "billing": ""
       },
       "danger_zone": "",

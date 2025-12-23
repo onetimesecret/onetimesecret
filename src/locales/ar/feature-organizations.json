@@ -35,8 +35,6 @@
       "organization_settings_description": "تحديث اسم ووصف منظمتك",
       "general_settings": "الإعدادات العامة",
       "billing_settings": "الفوترة والاشتراك",
-      "teams_in_organization": "الفرق",
-      "no_teams": "لا توجد فرق في هذه المنظمة بعد",
       "save_changes": "حفظ التغييرات",
       "update_success": "تم تحديث المنظمة بنجاح",
       "update_error": "فشل تحديث المنظمة",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "عام",
         "company_branding": "العلامة التجارية للشركة",
-        "teams": "الفرق",
         "billing": "الفوترة"
       },
       "danger_zone": "منطقة الخطر",

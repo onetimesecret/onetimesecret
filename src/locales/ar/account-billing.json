@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "الترقية مطلوبة",
         "viewPlans": "عرض الخطط",
-        "needTeams": "الفرق المتعددة تتطلب خطة Multi-Team أو أعلى",
         "needCustomDomains": "النطاقات المخصصة تتطلب Identity Plus أو أعلى",
         "needApiAccess": "الوصول إلى API يتطلب خطة Multi-Team أو أعلى",
         "needPrioritySupport": "الدعم ذو الأولوية يتطلب Identity Plus أو أعلى",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "إنشاء أسرار",
           "basic_sharing": "المشاركة الأساسية",
-          "create_team": "إنشاء فريق",
-          "create_teams": "إنشاء فرق متعددة",
           "custom_domains": "نطاقات مخصصة",
           "api_access": "الوصول إلى API",
           "priority_support": "دعم ذو أولوية",
@@ -60,8 +57,6 @@
         "single_team_plan": "Single Team",
         "multi_team_plan": "Multi Team",
         "features": "الميزات",
-        "teams_limit": "{count} فريق | {count} فرق",
-        "members_limit": "{count} عضو لكل فريق | {count} أعضاء لكل فريق",
         "unlimited_secrets": "أسرار غير محدودة",
         "api_access": "الوصول إلى API",
         "priority_support": "دعم ذو أولوية",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "الفوترة لهذا الفريق تُدار من قبل {orgName}",
-        "view_org_billing": "عرض فوترة المنظمة",
-        "team_billing_disabled": "فوترة الفريق تُدار من خلال منظمتك"
+        "view_org_billing": "عرض فوترة المنظمة"
       },
       "limits": {
-        "teams_reached": "لقد وصلت إلى حد خطتك",
-        "teams_upgrade": "قم بالترقية لإنشاء المزيد من الفرق",
         "members_reached": "لقد وصلت إلى حد الأعضاء لهذا الفريق",
         "members_upgrade": "قم بالترقية لإضافة المزيد من الأعضاء"
       },
@@ -99,9 +91,7 @@
         "inactive": "غير نشط",
         "past_due": "متأخر السداد",
         "canceled": "ملغى",
-        "catalog_name": "الخطة",
-        "team_usage": "استخدام الفريق",
-        "teams_used": "{used} من {limit} فريق مستخدم"
+        "catalog_name": "الخطة"
       },
       "portal": {
         "title": "بوابة الفوترة",

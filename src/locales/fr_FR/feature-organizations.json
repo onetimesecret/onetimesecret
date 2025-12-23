@@ -35,8 +35,6 @@
       "organization_settings_description": "Mettre à jour le nom et la description de votre organisation",
       "general_settings": "Paramètres généraux",
       "billing_settings": "Facturation et abonnement",
-      "teams_in_organization": "Équipes",
-      "no_teams": "Aucune équipe dans cette organisation pour le moment",
       "save_changes": "Enregistrer les modifications",
       "update_success": "Organisation mise à jour avec succès",
       "update_error": "Échec de la mise à jour de l'organisation",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "Général",
         "company_branding": "Marque de l'entreprise",
-        "teams": "Équipes",
         "billing": "Facturation"
       },
       "danger_zone": "Zone dangereuse",

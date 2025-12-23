@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "Aggiornamento richiesto",
         "viewPlans": "Visualizza piani",
-        "needTeams": "Team multipli richiedono il piano Multi-Team o superiore",
         "needCustomDomains": "I domini personalizzati richiedono Identity Plus o superiore",
         "needApiAccess": "L'accesso API richiede il piano Multi-Team o superiore",
         "needPrioritySupport": "Il supporto prioritario richiede Identity Plus o superiore",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "Crea segreti",
           "basic_sharing": "Condivisione base",
-          "create_team": "Crea team",
-          "create_teams": "Crea team multipli",
           "custom_domains": "Domini personalizzati",
           "api_access": "Accesso API",
           "priority_support": "Supporto prioritario",
@@ -60,8 +57,6 @@
         "single_team_plan": "Team singolo",
         "multi_team_plan": "Multi Team",
         "features": "Funzionalità",
-        "teams_limit": "{count} team | {count} team",
-        "members_limit": "{count} membro per team | {count} membri per team",
         "unlimited_secrets": "Segreti illimitati",
         "api_access": "Accesso API",
         "priority_support": "Supporto prioritario",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "La fatturazione per questo team è gestita da {orgName}",
-        "view_org_billing": "Visualizza fatturazione organizzazione",
-        "team_billing_disabled": "La fatturazione a livello team è gestita tramite l'organizzazione"
+        "view_org_billing": "Visualizza fatturazione organizzazione"
       },
       "limits": {
-        "teams_reached": "Hai raggiunto il limite del tuo piano",
-        "teams_upgrade": "Aggiorna per creare più team",
         "members_reached": "Hai raggiunto il limite di membri per questo team",
         "members_upgrade": "Aggiorna per aggiungere più membri"
       },
@@ -99,9 +91,7 @@
         "inactive": "Inattivo",
         "past_due": "Scaduto",
         "canceled": "Annullato",
-        "catalog_name": "Piano",
-        "team_usage": "Utilizzo team",
-        "teams_used": "{used} di {limit} team utilizzati"
+        "catalog_name": "Piano"
       },
       "portal": {
         "title": "Portale fatturazione",

@@ -35,8 +35,6 @@
       "organization_settings_description": "組織名と説明を更新します",
       "general_settings": "一般設定",
       "billing_settings": "請求 & サブスクリプション",
-      "teams_in_organization": "チーム",
-      "no_teams": "この組織にはまだチームがありません",
       "save_changes": "変更を保存",
       "update_success": "組織が正常に更新されました",
       "update_error": "組織の更新に失敗しました",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "一般",
         "company_branding": "会社ブランディング",
-        "teams": "チーム",
         "billing": "請求"
       },
       "danger_zone": "危険ゾーン",

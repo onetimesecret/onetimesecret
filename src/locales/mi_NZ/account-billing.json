@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "E Hiahiatia Ana te Whakapai Ake",
         "viewPlans": "Tirohia Ngā Mahere",
-        "needTeams": "Ngā rōpū maha e hiahiatia ana te mahere Multi-Team, neke atu rānei",
         "needCustomDomains": "Ngā rohe ritenga e hiahiatia ana Identity Plus, neke atu rānei",
         "needApiAccess": "Urunga API e hiahiatia ana te mahere Multi-Team, neke atu rānei",
         "needPrioritySupport": "Tautoko matua e hiahiatia ana Identity Plus, neke atu rānei",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "Waihanga Karere Huna",
           "basic_sharing": "Tuari Taketake",
-          "create_team": "Waihanga Rōpū",
-          "create_teams": "Waihanga Ngā Rōpū Maha",
           "custom_domains": "Ngā Rohe Ritenga",
           "api_access": "Urunga API",
           "priority_support": "Tautoko Matua",
@@ -60,8 +57,6 @@
         "single_team_plan": "Rōpū Kotahi",
         "multi_team_plan": "Ngā Rōpū Maha",
         "features": "Ngā Āhuatanga",
-        "teams_limit": "{count} rōpū | {count} ngā rōpū",
-        "members_limit": "{count} mema ia rōpū | {count} ngā mema ia rōpū",
         "unlimited_secrets": "Ngā karere huna mutunga kore",
         "api_access": "Urunga API",
         "priority_support": "Tautoko matua",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "Ko te utu mō tēnei rōpū e whakahaerea ana e {orgName}",
-        "view_org_billing": "Tirohia te utu whakahaere",
-        "team_billing_disabled": "Ko te utu taumata-rōpū e whakahaerea ana mā tō whakahaere"
+        "view_org_billing": "Tirohia te utu whakahaere"
       },
       "limits": {
-        "teams_reached": "Kua tae koe ki te tepe o tō mahere",
-        "teams_upgrade": "Whakapai ake ki te waihanga i ētahi atu rōpū",
         "members_reached": "Kua tae koe ki te tepe mema mō tēnei rōpū",
         "members_upgrade": "Whakapai ake ki te tāpiri i ētahi atu mema"
       },
@@ -99,9 +91,7 @@
         "inactive": "Koretake",
         "past_due": "Tua i te Wā",
         "canceled": "Kua Whakakōretia",
-        "catalog_name": "Mahere",
-        "team_usage": "Whakamahinga Rōpū",
-        "teams_used": "{used} o {limit} ngā rōpū kua whakamahia"
+        "catalog_name": "Mahere"
       },
       "portal": {
         "title": "Tomokanga Utu",

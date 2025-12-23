@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "",
         "viewPlans": "",
-        "needTeams": "",
         "needCustomDomains": "",
         "needApiAccess": "",
         "needPrioritySupport": "",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "",
           "basic_sharing": "",
-          "create_team": "",
-          "create_teams": "",
           "custom_domains": "",
           "api_access": "",
           "priority_support": "",
@@ -60,8 +57,6 @@
         "single_team_plan": "",
         "multi_team_plan": "",
         "features": "",
-        "teams_limit": "",
-        "members_limit": "",
         "unlimited_secrets": "",
         "api_access": "",
         "priority_support": "",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "",
-        "view_org_billing": "",
-        "team_billing_disabled": ""
+        "view_org_billing": ""
       },
       "limits": {
-        "teams_reached": "",
-        "teams_upgrade": "",
         "members_reached": "",
         "members_upgrade": ""
       },
@@ -99,9 +91,7 @@
         "inactive": "",
         "past_due": "",
         "canceled": "",
-        "catalog_name": "",
-        "team_usage": "",
-        "teams_used": ""
+        "catalog_name": ""
       },
       "portal": {
         "title": "",

@@ -35,8 +35,6 @@
       "organization_settings_description": "Zaktualizuj nazwę i opis organizacji",
       "general_settings": "Ustawienia ogólne",
       "billing_settings": "Rozliczenia i subskrypcja",
-      "teams_in_organization": "Zespoły",
-      "no_teams": "Brak zespołów w tej organizacji",
       "save_changes": "Zapisz zmiany",
       "update_success": "Organizacja zaktualizowana pomyślnie",
       "update_error": "Nie udało się zaktualizować organizacji",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "Ogólne",
         "company_branding": "Branding firmy",
-        "teams": "Zespoły",
         "billing": "Rozliczenia"
       },
       "danger_zone": "Strefa niebezpieczeństwa",

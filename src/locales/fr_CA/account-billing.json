@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "Mise à niveau requise",
         "viewPlans": "Consulter les forfaits",
-        "needTeams": "Plusieurs équipes nécessitent le forfait Multi-Équipe ou supérieur",
         "needCustomDomains": "Les domaines personnalisés nécessitent Identity Plus ou supérieur",
         "needApiAccess": "L'accès à l'API nécessite le forfait Multi-Équipe ou supérieur",
         "needPrioritySupport": "Le support prioritaire nécessite Identity Plus ou supérieur",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "Créer des secrets",
           "basic_sharing": "Partage de base",
-          "create_team": "Créer une équipe",
-          "create_teams": "Créer plusieurs équipes",
           "custom_domains": "Domaines personnalisés",
           "api_access": "Accès à l'API",
           "priority_support": "Support prioritaire",
@@ -60,8 +57,6 @@
         "single_team_plan": "Équipe unique",
         "multi_team_plan": "Multi-Équipe",
         "features": "Fonctionnalités",
-        "teams_limit": "{count} équipe | {count} équipes",
-        "members_limit": "{count} membre par équipe | {count} membres par équipe",
         "unlimited_secrets": "Secrets illimités",
         "api_access": "Accès à l'API",
         "priority_support": "Support prioritaire",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "La facturation pour cette équipe est gérée par {orgName}",
-        "view_org_billing": "Consulter la facturation de l'organisation",
-        "team_billing_disabled": "La facturation au niveau de l'équipe est gérée par votre organisation"
+        "view_org_billing": "Consulter la facturation de l'organisation"
       },
       "limits": {
-        "teams_reached": "Vous avez atteint la limite de votre forfait",
-        "teams_upgrade": "Mettre à niveau pour créer plus d'équipes",
         "members_reached": "Vous avez atteint la limite de membres pour cette équipe",
         "members_upgrade": "Mettre à niveau pour ajouter plus de membres"
       },
@@ -99,9 +91,7 @@
         "inactive": "Inactif",
         "past_due": "En souffrance",
         "canceled": "Annulé",
-        "catalog_name": "Forfait",
-        "team_usage": "Utilisation de l'équipe",
-        "teams_used": "{used} de {limit} équipes utilisées"
+        "catalog_name": "Forfait"
       },
       "portal": {
         "title": "Portail de facturation",

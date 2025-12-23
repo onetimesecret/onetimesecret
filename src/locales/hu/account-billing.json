@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "Frissítés szükséges",
         "viewPlans": "Csomagok megtekintése",
-        "needTeams": "Több csapathoz Multi-Team csomag vagy magasabb szükséges",
         "needCustomDomains": "Egyéni doménekhez Identity Plus vagy magasabb szükséges",
         "needApiAccess": "API hozzáféréshez Multi-Team csomag vagy magasabb szükséges",
         "needPrioritySupport": "Elsőbbségi támogatáshoz Identity Plus vagy magasabb szükséges",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "Titkok létrehozása",
           "basic_sharing": "Alapszintű megosztás",
-          "create_team": "Csapat létrehozása",
-          "create_teams": "Több csapat létrehozása",
           "custom_domains": "Egyéni domének",
           "api_access": "API hozzáférés",
           "priority_support": "Elsőbbségi támogatás",
@@ -60,8 +57,6 @@
         "single_team_plan": "Egy csapat",
         "multi_team_plan": "Több csapat",
         "features": "Szolgáltatások",
-        "teams_limit": "{count} csapat | {count} csapat",
-        "members_limit": "{count} tag csapatonként | {count} tag csapatonként",
         "unlimited_secrets": "Korlátlan titkok",
         "api_access": "API hozzáférés",
         "priority_support": "Elsőbbségi támogatás",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "Ennek a csapatnak a számlázását a(z) {orgName} kezeli",
-        "view_org_billing": "Szervezet számlázásának megtekintése",
-        "team_billing_disabled": "A csapatszintű számlázást a szervezeten keresztül kezelik"
+        "view_org_billing": "Szervezet számlázásának megtekintése"
       },
       "limits": {
-        "teams_reached": "Elérte a csomag korlátját",
-        "teams_upgrade": "Frissítsen több csapat létrehozásához",
         "members_reached": "Elérte ennek a csapatnak a taglétszám-korlátját",
         "members_upgrade": "Frissítsen több tag hozzáadásához"
       },
@@ -99,9 +91,7 @@
         "inactive": "Inaktív",
         "past_due": "Lejárt",
         "canceled": "Megszakítva",
-        "catalog_name": "Csomag",
-        "team_usage": "Csapat használat",
-        "teams_used": "{used} / {limit} csapat használatban"
+        "catalog_name": "Csomag"
       },
       "portal": {
         "title": "Számlázási portál",

@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "アップグレードが必要です",
         "viewPlans": "プランを表示",
-        "needTeams": "複数のチームにはマルチチームプラン以上が必要です",
         "needCustomDomains": "カスタムドメインにはIdentity Plus以上が必要です",
         "needApiAccess": "APIアクセスにはマルチチームプラン以上が必要です",
         "needPrioritySupport": "優先サポートにはIdentity Plus以上が必要です",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "シークレットを作成",
           "basic_sharing": "基本的な共有",
-          "create_team": "チームを作成",
-          "create_teams": "複数のチームを作成",
           "custom_domains": "カスタムドメイン",
           "api_access": "APIアクセス",
           "priority_support": "優先サポート",
@@ -60,8 +57,6 @@
         "single_team_plan": "シングルチーム",
         "multi_team_plan": "マルチチーム",
         "features": "機能",
-        "teams_limit": "{count}チーム | {count}チーム",
-        "members_limit": "チームあたり{count}メンバー | チームあたり{count}メンバー",
         "unlimited_secrets": "無制限のシークレット",
         "api_access": "APIアクセス",
         "priority_support": "優先サポート",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "このチームの請求は{orgName}によって管理されています",
-        "view_org_billing": "組織の請求を表示",
-        "team_billing_disabled": "チームレベルの請求は組織を通じて管理されています"
+        "view_org_billing": "組織の請求を表示"
       },
       "limits": {
-        "teams_reached": "プランの上限に達しました",
-        "teams_upgrade": "より多くのチームを作成するにはアップグレードしてください",
         "members_reached": "このチームのメンバー上限に達しました",
         "members_upgrade": "より多くのメンバーを追加するにはアップグレードしてください"
       },
@@ -99,9 +91,7 @@
         "inactive": "非アクティブ",
         "past_due": "支払い期限超過",
         "canceled": "キャンセル済み",
-        "catalog_name": "プラン",
-        "team_usage": "チーム使用状況",
-        "teams_used": "{limit}チーム中{used}チーム使用中"
+        "catalog_name": "プラン"
       },
       "portal": {
         "title": "請求ポータル",

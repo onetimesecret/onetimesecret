@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "Требуется повышение тарифа",
         "viewPlans": "Просмотреть тарифы",
-        "needTeams": "Несколько команд требуют тариф Multi-Team или выше",
         "needCustomDomains": "Пользовательские домены требуют тариф Identity Plus или выше",
         "needApiAccess": "Доступ к API требует тариф Multi-Team или выше",
         "needPrioritySupport": "Приоритетная поддержка требует тариф Identity Plus или выше",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "Создание секретов",
           "basic_sharing": "Базовый обмен",
-          "create_team": "Создание команды",
-          "create_teams": "Создание нескольких команд",
           "custom_domains": "Пользовательские домены",
           "api_access": "Доступ к API",
           "priority_support": "Приоритетная поддержка",
@@ -60,8 +57,6 @@
         "single_team_plan": "Одна команда",
         "multi_team_plan": "Несколько команд",
         "features": "Возможности",
-        "teams_limit": "{count} команда | {count} команды | {count} команд",
-        "members_limit": "{count} участник на команду | {count} участника на команду | {count} участников на команду",
         "unlimited_secrets": "Неограниченное количество секретов",
         "api_access": "Доступ к API",
         "priority_support": "Приоритетная поддержка",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "Выставление счётов для этой команды управляется организацией {orgName}",
-        "view_org_billing": "Просмотреть счёта организации",
-        "team_billing_disabled": "Выставление счётов на уровне команды управляется через вашу организацию"
+        "view_org_billing": "Просмотреть счёта организации"
       },
       "limits": {
-        "teams_reached": "Вы достигли лимита вашего тарифа",
-        "teams_upgrade": "Повысьте тариф, чтобы создать больше команд",
         "members_reached": "Вы достигли лимита участников для этой команды",
         "members_upgrade": "Повысьте тариф, чтобы добавить больше участников"
       },
@@ -99,9 +91,7 @@
         "inactive": "Неактивна",
         "past_due": "Просрочена",
         "canceled": "Отменена",
-        "catalog_name": "Тариф",
-        "team_usage": "Использование команд",
-        "teams_used": "{used} из {limit} команд используется"
+        "catalog_name": "Тариф"
       },
       "portal": {
         "title": "Портал счётов",

@@ -35,8 +35,6 @@
       "organization_settings_description": "Aktualizuj název a popis své organizace",
       "general_settings": "Obecná nastavení",
       "billing_settings": "Fakturace a předplatné",
-      "teams_in_organization": "Týmy",
-      "no_teams": "V této organizaci zatím nejsou žádné týmy",
       "save_changes": "Uložit změny",
       "update_success": "Organizace úspěšně aktualizována",
       "update_error": "Aktualizace organizace se nezdařila",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "Obecné",
         "company_branding": "Firemní branding",
-        "teams": "Týmy",
         "billing": "Fakturace"
       },
       "danger_zone": "Nebezpečná zóna",

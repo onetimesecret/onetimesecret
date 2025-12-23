@@ -35,8 +35,6 @@
       "organization_settings_description": "עדכנו את שם ותיאור הארגון שלכם",
       "general_settings": "הגדרות כלליות",
       "billing_settings": "חיוב ומנוי",
-      "teams_in_organization": "צוותים",
-      "no_teams": "עדיין אין צוותים בארגון זה",
       "save_changes": "שמירת שינויים",
       "update_success": "הארגון עודכן בהצלחה",
       "update_error": "עדכון הארגון נכשל",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "כללי",
         "company_branding": "מיתוג חברה",
-        "teams": "צוותים",
         "billing": "חיוב"
       },
       "danger_zone": "אזור סכנה",

@@ -35,8 +35,6 @@
       "organization_settings_description": "Werk je organisatienaam en beschrijving bij",
       "general_settings": "Algemene instellingen",
       "billing_settings": "Facturering en abonnement",
-      "teams_in_organization": "Teams",
-      "no_teams": "Nog geen teams in deze organisatie",
       "save_changes": "Wijzigingen opslaan",
       "update_success": "Organisatie succesvol bijgewerkt",
       "update_error": "Kon organisatie niet bijwerken",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "Algemeen",
         "company_branding": "Bedrijfsbranding",
-        "teams": "Teams",
         "billing": "Facturering"
       },
       "danger_zone": "Gevaarlijke zone",

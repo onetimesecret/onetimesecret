@@ -35,8 +35,6 @@
       "organization_settings_description": "Aktualisiere deinen Organisationsnamen und die Beschreibung",
       "general_settings": "Allgemeine Einstellungen",
       "billing_settings": "Abrechnung & Abonnement",
-      "teams_in_organization": "Teams",
-      "no_teams": "Noch keine Teams in dieser Organisation",
       "save_changes": "Änderungen speichern",
       "update_success": "Organisation erfolgreich aktualisiert",
       "update_error": "Organisation konnte nicht aktualisiert werden",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "Allgemein",
         "company_branding": "Unternehmensbranding",
-        "teams": "Teams",
         "billing": "Abrechnung"
       },
       "danger_zone": "Gefahrenzone",

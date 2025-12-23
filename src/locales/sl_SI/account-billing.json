@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "Potrebna nadgradnja",
         "viewPlans": "Prikaži pakete",
-        "needTeams": "Več ekip zahteva paket Multi-Team ali višji",
         "needCustomDomains": "Domene po meri zahtevajo paket Identity Plus ali višji",
         "needApiAccess": "Dostop do API zahteva paket Multi-Team ali višji",
         "needPrioritySupport": "Prednostna podpora zahteva paket Identity Plus ali višji",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "Ustvari skrivnosti",
           "basic_sharing": "Osnovno deljenje",
-          "create_team": "Ustvari ekipo",
-          "create_teams": "Ustvari več ekip",
           "custom_domains": "Domene po meri",
           "api_access": "Dostop do API",
           "priority_support": "Prednostna podpora",
@@ -60,8 +57,6 @@
         "single_team_plan": "Ena ekipa",
         "multi_team_plan": "Več ekip",
         "features": "Značilnosti",
-        "teams_limit": "{count} ekipa | {count} ekipi | {count} ekip",
-        "members_limit": "{count} član na ekipo | {count} člana na ekipo | {count} članov na ekipo",
         "unlimited_secrets": "Neomejeno skrivnosti",
         "api_access": "Dostop do API",
         "priority_support": "Prednostna podpora",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "Plačila za to ekipo upravlja {orgName}",
-        "view_org_billing": "Prikaži plačila organizacije",
-        "team_billing_disabled": "Plačila na ravni ekipe se upravljajo preko vaše organizacije"
+        "view_org_billing": "Prikaži plačila organizacije"
       },
       "limits": {
-        "teams_reached": "Dosegli ste omejitev svojega paketa",
-        "teams_upgrade": "Nadgradite za ustvarjanje več ekip",
         "members_reached": "Dosegli ste omejitev članov za to ekipo",
         "members_upgrade": "Nadgradite za dodajanje več članov"
       },
@@ -99,9 +91,7 @@
         "inactive": "Neaktivno",
         "past_due": "Zamujeno",
         "canceled": "Preklicano",
-        "catalog_name": "Paket",
-        "team_usage": "Uporaba ekip",
-        "teams_used": "{used} od {limit} ekip uporabljenih"
+        "catalog_name": "Paket"
       },
       "portal": {
         "title": "Portal za plačila",

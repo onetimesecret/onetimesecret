@@ -35,8 +35,6 @@
       "organization_settings_description": "Posodobite ime in opis svoje organizacije",
       "general_settings": "Splošne nastavitve",
       "billing_settings": "Plačila in naročnina",
-      "teams_in_organization": "Ekipe",
-      "no_teams": "V tej organizaciji še ni ekip",
       "save_changes": "Shrani spremembe",
       "update_success": "Organizacija uspešno posodobljena",
       "update_error": "Posodobitev organizacije ni uspela",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "Splošno",
         "company_branding": "Blagovna znamka podjetja",
-        "teams": "Ekipe",
         "billing": "Plačila"
       },
       "danger_zone": "Nevarno območje",
