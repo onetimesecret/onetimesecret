@@ -150,7 +150,6 @@ export {
   PlanLimitsSchema,
   PlanPriceSchema,
   PlanDefinitionSchema,
-  LegacyPlanDefinitionSchema,
   MetadataFieldSchema,
   StripeMetadataSchemaDefinition,
   // Entitlement helpers
@@ -187,7 +186,6 @@ export type {
   PlanLimits,
   PlanPrice,
   PlanDefinition,
-  LegacyPlanDefinition,
   StripeMetadataSchema,
   PlanId,
 } from './billing';

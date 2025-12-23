@@ -68,20 +68,43 @@ module Billing
 
     # Check if plan is legacy
     #
-    # Determines if a plan is legacy/grandfathered based on version number.
-    # v0 plans are considered legacy, v1+ are current.
+    # Determines if a plan is legacy/grandfathered using multiple detection methods:
+    # 1. Checks billing.yaml config for explicit `legacy: true` flag
+    # 2. Falls back to pattern matching for `_v0` in plan ID (backward compatibility)
+    #
+    # Works with both Stripe-cached plans and billing.yaml config.
     #
     # @param plan_id [String] Plan identifier
-    # @return [Boolean] True if plan is legacy (v0)
+    # @return [Boolean] True if plan is legacy
     #
     # @example
-    #   Billing::PlanHelpers.legacy_plan?('identity_v0')  # => true
+    #   Billing::PlanHelpers.legacy_plan?('identity')  # => true (from config with legacy: true)
+    #   Billing::PlanHelpers.legacy_plan?('identity_v0')  # => true (pattern match)
     #   Billing::PlanHelpers.legacy_plan?('identity_plus_v1')  # => false
     def self.legacy_plan?(plan_id)
       return false if plan_id.to_s.empty?
 
+      # Method 1: Check billing.yaml config for explicit legacy flag
+      # Strip interval suffix if present (e.g., "identity_monthly" -> "identity")
+      base_plan_id = plan_id.to_s.sub(/_(month|year)ly$/, '')
+      plan_def = cached_plans[base_plan_id]
+      return plan_def['legacy'] == true if plan_def
+
+      # Method 2: Pattern matching for backward compatibility
       # v0 plans are legacy, v1+ are current
       plan_id.match?(/_v0(_|$)/)
+    end
+
+    # Cached plans hash to avoid repeated YAML parsing
+    #
+    # @return [Hash] Plan definitions by ID
+    def self.cached_plans
+      @cached_plans ||= ::Billing::Config.load_plans
+    end
+
+    # Clear cached plans (for testing or config reload)
+    def self.clear_cache!
+      @cached_plans = nil
     end
 
     # Get all available (non-legacy) plan IDs

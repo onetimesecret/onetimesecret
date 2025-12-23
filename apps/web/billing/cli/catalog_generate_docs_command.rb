@@ -58,7 +58,6 @@ module Onetime
         parts << generate_entitlements_section(entitlements) if entitlements&.any?
         parts << generate_plans_overview_table(catalog)
         parts << generate_plan_details(catalog, entitlements)
-        parts << generate_legacy_plans(catalog, entitlements) if catalog['legacy_plans']&.any?
         parts << generate_stripe_metadata_section(catalog)
         parts << generate_validation_section
 
@@ -114,14 +113,15 @@ module Onetime
         plans = catalog['plans'] || {}
 
         rows = []
-        rows << '## Active Plans Overview'
+        rows << '## Plans Overview'
         rows << ''
-        rows << '| Plan ID | Name | Tier | Tenancy | Region | Display Order | On Plans Page |'
-        rows << '|---------|------|------|---------|--------|---------------|---------------|'
+        rows << '| Plan ID | Name | Tier | Tenancy | Region | Display Order | On Plans Page | Legacy |'
+        rows << '|---------|------|------|---------|--------|---------------|---------------|--------|'
 
         plans.each do |plan_id, plan_data|
           show_icon = plan_data['show_on_plans_page'] ? '✓' : '✗'
-          rows << format('| %s | %s | %s | %s | %s | %s | %s |',
+          legacy_icon = plan_data['legacy'] ? '⚠️' : ''
+          rows << format('| %s | %s | %s | %s | %s | %s | %s | %s |',
             plan_id,
             plan_data['name'],
             plan_data['tier'],
@@ -129,6 +129,7 @@ module Onetime
             plan_data['region'],
             plan_data['display_order'],
             show_icon,
+            legacy_icon,
           )
         end
 
@@ -153,11 +154,18 @@ module Onetime
       def generate_plan_section(plan_id, plan_data, _entitlements)
         parts = []
 
-        # Header
-        parts << "### #{plan_data['name']} (`#{plan_id}`)"
+        # Header with legacy badge
+        legacy_badge = plan_data['legacy'] ? ' ⚠️ **(Legacy)**' : ''
+        parts << "### #{plan_data['name']} (`#{plan_id}`)#{legacy_badge}"
         parts << ''
         parts << plan_data['description'] if plan_data['description']
         parts << ''
+
+        # Legacy info
+        if plan_data['legacy'] && plan_data['grandfathered_until']
+          parts << "**Grandfathered Until:** #{plan_data['grandfathered_until']}"
+          parts << ''
+        end
 
         # Metadata
         parts << ('**Tier:** ' + plan_data['tier'])
@@ -228,37 +236,6 @@ module Onetime
         else
           ''
         end
-      end
-
-      def generate_legacy_plans(catalog, entitlements)
-        legacy = catalog['legacy_plans'] || {}
-        return '' if legacy.empty?
-
-        parts = ['## Legacy Plans (Grandfathered)', '']
-        parts << 'These plans are no longer offered but remain active for existing customers.'
-        parts << ''
-
-        parts << '| Plan ID | Name | Grandfathered Until | Notes |'
-        parts << '|---------|------|---------------------|-------|'
-
-        legacy.each do |plan_id, plan_data|
-          parts << format('| %s | %s | %s | %s |',
-            plan_id,
-            plan_data['name'],
-            plan_data['grandfathered_until'] || 'Indefinite',
-            plan_data['description'] || '',
-          )
-        end
-
-        parts << ''
-
-        # Detail sections for legacy plans
-        legacy.each do |plan_id, plan_data|
-          parts << generate_plan_section(plan_id, plan_data, entitlements)
-          parts << ''
-        end
-
-        parts.join("\n")
       end
 
       def generate_stripe_metadata_section(catalog)
