@@ -333,17 +333,60 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
     end
   end
 
-  describe 'member quota check (future)', billing: true do
-    # Placeholder for member quota enforcement per #2224
-    # When implemented, add tests similar to CreateOrganization quota tests
+  describe '#check_member_quota!' do
+    let(:entitlements) { double('SortedSet', any?: has_entitlements) }
+    let(:has_entitlements) { false }
 
-    it 'is documented as pending implementation' do
-      pending 'Member quota check not yet implemented - see #2224'
-      # When implemented, test should verify:
-      # - Quota check uses org.at_limit?('members_per_team', current_count)
-      # - Returns upgrade_required error when at limit
-      # - Skips check when billing disabled
-      fail
+    before do
+      allow(Onetime::Organization).to receive(:find_by_extid)
+        .with('ext-org-123').and_return(organization)
+      allow(organization).to receive(:owner?).with(customer).and_return(true)
+      allow(organization).to receive(:respond_to?).with(:at_limit?).and_return(true)
+      allow(organization).to receive(:entitlements).and_return(entitlements)
+      allow(organization).to receive(:member_count).and_return(5)
+      allow(organization).to receive(:pending_invitation_count).and_return(2)
+      allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
+      allow(Onetime::OrganizationMembership).to receive(:find_by_org_email).and_return(nil)
+    end
+
+    context 'when billing is disabled (no entitlements)' do
+      let(:has_entitlements) { false }
+
+      it 'skips quota check (standalone mode)' do
+        expect { logic.raise_concerns }.not_to raise_error
+      end
+    end
+
+    context 'when billing is enabled and at limit', billing: true do
+      let(:has_entitlements) { true }
+
+      before do
+        # Current count: 5 members + 2 pending = 7 total
+        allow(organization).to receive(:at_limit?)
+          .with('members_per_team', 7).and_return(true)
+      end
+
+      it 'raises upgrade_required error' do
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.message).to match(/Member limit reached/)
+          expect(error.instance_variable_get(:@error_type)).to eq(:upgrade_required)
+          expect(error.instance_variable_get(:@field)).to eq('email')
+        end
+      end
+    end
+
+    context 'when billing is enabled and under limit', billing: true do
+      let(:has_entitlements) { true }
+
+      before do
+        # Current count: 5 members + 2 pending = 7 total
+        allow(organization).to receive(:at_limit?)
+          .with('members_per_team', 7).and_return(false)
+      end
+
+      it 'allows invitation creation' do
+        expect { logic.raise_concerns }.not_to raise_error
+      end
     end
   end
 end
