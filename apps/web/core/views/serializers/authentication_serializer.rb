@@ -58,14 +58,6 @@ module Core
         output
       end
 
-      # Predefined test plan names for colonel testing mode
-      # Must stay in sync with WithEntitlements::TEST_PLANS
-      TEST_PLAN_NAMES = {
-        'free' => 'Free',
-        'identity_v1' => 'Identity Plus',
-        'multi_team_v1' => 'Multi-Team',
-      }.freeze
-
       class << self
         # Provides the base template for authentication serializer output
         #
@@ -84,17 +76,14 @@ module Core
           }
         end
 
-        # Resolve test plan name from Stripe or predefined plans
+        # Resolve test plan name from Billing::Plan cache
         #
         # @param test_planid [String] Plan ID to resolve
         # @return [String, nil] Plan name or nil if not found
         def resolve_test_plan_name(test_planid)
-          # Try Stripe-synced plan first
+          # Load from Billing::Plan cache only
           plan = ::Billing::Plan.load(test_planid)
-          return plan.name if plan
-
-          # Fall back to predefined test plans
-          TEST_PLAN_NAMES[test_planid]
+          plan&.name
         end
       end
 

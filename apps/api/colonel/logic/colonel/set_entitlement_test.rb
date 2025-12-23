@@ -41,21 +41,20 @@ module ColonelAPI
       # - Session-scoped (cleared on logout)
       # - Does not modify actual subscription/billing
       class SetEntitlementTest < ColonelAPI::Logic::Base
-        # Predefined test plan configurations for colonel testing.
-        # These are used when actual Stripe-synced plans aren't available,
-        # providing a consistent testing experience regardless of billing setup.
-        TEST_PLANS = {
+        # Minimal fallback plans for dev environments when Billing::Plan cache is empty
+        # Used only as last resort - prefer Billing::Plan.load() for actual plan lookup
+        FALLBACK_PLANS = {
           'free' => {
             name: 'Free',
             entitlements: %w[create_secrets basic_sharing],
             limits: { 'secrets.max' => '10', 'recipients.max' => '1' },
           },
-          'identity_v1' => {
+          'identity_plus_v1_monthly' => {
             name: 'Identity Plus',
             entitlements: %w[create_secrets custom_domains create_organization priority_support],
             limits: { 'secrets.max' => '100', 'recipients.max' => '10', 'organizations.max' => '1' },
           },
-          'multi_team_v1' => {
+          'multi_team_v1_monthly' => {
             name: 'Multi-Team',
             entitlements: %w[create_secrets custom_domains create_organization api_access audit_logs advanced_analytics],
             limits: { 'secrets.max' => 'unlimited', 'recipients.max' => 'unlimited', 'organizations.max' => '5' },
@@ -72,7 +71,7 @@ module ColonelAPI
           verify_one_of_roles!(colonel: true)
 
           # If setting a plan, validate it exists
-          # Check Stripe-synced plans first (production), then predefined test plans (development)
+          # Check Billing::Plan cache first (production/Stripe-synced), then fallback plans (dev)
           return unless @planid && !@planid.empty?
 
           actual_plan       = ::Billing::Plan.load(@planid)
@@ -80,11 +79,11 @@ module ColonelAPI
             {
               name: actual_plan.name,
               entitlements: actual_plan.entitlements.to_a,
-              limits: actual_plan.limits.to_h,
+              limits: actual_plan.limits.hgetall || {},
             }
           else
-            # Fall back to predefined test plans
-            TEST_PLANS[@planid]
+            # Fall back to minimal dev plans when Billing::Plan cache is empty
+            FALLBACK_PLANS[@planid]
                               end
 
           raise_form_error('Invalid plan ID') unless @test_plan_config

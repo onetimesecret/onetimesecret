@@ -28,19 +28,18 @@ module Onetime
           custom_domains api_access priority_support audit_logs
         ].freeze
 
-        # Predefined test plan configurations for colonel testing.
-        # Used when actual Stripe-synced plans aren't available.
-        # Must stay in sync with SetEntitlementTest::TEST_PLANS.
-        TEST_PLANS = {
+        # Minimal fallback plans for dev environments when Billing::Plan cache is empty
+        # Used only when billing is enabled but plan lookup fails (last resort)
+        FALLBACK_PLANS = {
           'free' => {
             entitlements: %w[create_secrets basic_sharing],
             limits: { 'secrets.max' => '10', 'recipients.max' => '1' },
           },
-          'identity_v1' => {
+          'identity_plus_v1_monthly' => {
             entitlements: %w[create_secrets custom_domains create_organization priority_support],
             limits: { 'secrets.max' => '100', 'recipients.max' => '10', 'organizations.max' => '1' },
           },
-          'multi_team_v1' => {
+          'multi_team_v1_monthly' => {
             entitlements: %w[create_secrets custom_domains create_organization api_access audit_logs advanced_analytics],
             limits: { 'secrets.max' => 'unlimited', 'recipients.max' => 'unlimited', 'organizations.max' => '5' },
           },
@@ -196,19 +195,19 @@ module Onetime
 
           # Get entitlements for a test plan (colonel test mode)
           #
-          # Checks Stripe-synced plans first (for production), then falls back
-          # to predefined TEST_PLANS (for development/when Stripe not synced).
+          # Checks Billing::Plan cache first (production/Stripe-synced), then falls back
+          # to minimal FALLBACK_PLANS (for development when billing cache is empty).
           #
           # @param test_planid [String] Plan ID to test
           # @return [Array<String>] List of entitlements for the test plan
           def test_plan_entitlements(test_planid)
-            # Check actual Stripe plan first (production/testing)
+            # Check Billing::Plan cache first (production/testing)
             plan = ::Billing::Plan.load(test_planid)
             return plan.entitlements.to_a if plan
 
-            # Fall back to predefined test plans (development)
-            if (test_config = WithEntitlements::TEST_PLANS[test_planid])
-              return test_config[:entitlements].dup
+            # Fall back to minimal dev plans when cache is empty
+            if (fallback_config = WithEntitlements::FALLBACK_PLANS[test_planid])
+              return fallback_config[:entitlements].dup
             end
 
             []
@@ -216,8 +215,8 @@ module Onetime
 
           # Get limit for a resource from a test plan (colonel test mode)
           #
-          # Checks Stripe-synced plans first (for production), then falls back
-          # to predefined TEST_PLANS (for development/when Stripe not synced).
+          # Checks Billing::Plan cache first (production/Stripe-synced), then falls back
+          # to minimal FALLBACK_PLANS (for development when billing cache is empty).
           #
           # @param test_planid [String] Plan ID to test
           # @param resource [String, Symbol] Resource to check limit for
@@ -226,19 +225,20 @@ module Onetime
             # Flattened key: "teams" => "teams.max"
             key = resource.to_s.include?('.') ? resource.to_s : "#{resource}.max"
 
-            # Check actual Stripe plan first (production/testing)
+            # Check Billing::Plan cache first (production/testing)
             plan = ::Billing::Plan.load(test_planid)
             if plan
-              val = plan.limits[key]
-              return 0 if val.nil? || val.empty?
+              limits_hash = plan.limits.hgetall || {}
+              val         = limits_hash[key]
+              return 0 if val.nil? || val.to_s.empty?
               return Float::INFINITY if val == 'unlimited'
 
               return val.to_i
             end
 
-            # Fall back to predefined test plans (development)
-            if (test_config = WithEntitlements::TEST_PLANS[test_planid])
-              val = test_config[:limits][key]
+            # Fall back to minimal dev plans when cache is empty
+            if (fallback_config = WithEntitlements::FALLBACK_PLANS[test_planid])
+              val = fallback_config[:limits][key]
               return 0 if val.nil?
               return Float::INFINITY if val == 'unlimited'
 

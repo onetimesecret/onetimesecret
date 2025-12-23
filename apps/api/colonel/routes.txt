@@ -6,6 +6,7 @@ GET    /stats                             ColonelAPI::Logic::Colonel::GetColonel
 GET    /config                            ColonelAPI::Logic::Colonel::GetSystemSettings response=json auth=sessionauth
 
 # Entitlement Test Mode
+GET    /available-plans                   ColonelAPI::Logic::Colonel::GetAvailablePlans response=json auth=sessionauth
 POST   /entitlement-test                  ColonelAPI::Logic::Colonel::SetEntitlementTest response=json auth=sessionauth
 
 # Secret Management
