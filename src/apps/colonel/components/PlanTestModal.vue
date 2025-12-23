@@ -31,6 +31,11 @@ interface Plan {
   planid: string;
   name: string;
   tier?: string;
+  tenancy?: string;
+  region?: string;
+  display_order?: number;
+  show_on_plans_page?: boolean;
+  description?: string;
   entitlements?: string[];
   limits?: Record<string, string>;
 }
@@ -328,33 +333,77 @@ const handleClose = () => {
                         isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
                       ]"
                       @click="handleActivateTestMode(plan.planid)">
-                      <div class="flex items-center justify-between">
-                        <div>
+                      <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                          <!-- Plan Name & Status -->
+                          <div class="flex items-center gap-2">
+                            <p
+                              :class="[
+                                'font-medium',
+                                plan.planid === testPlanId
+                                  ? 'text-amber-900 dark:text-amber-100'
+                                  : 'text-gray-900 dark:text-white',
+                              ]">
+                              {{ plan.name }}
+                            </p>
+                            <span
+                              v-if="plan.planid === actualPlanId && !isTestModeActive"
+                              class="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                              Current
+                            </span>
+                            <span
+                              v-if="!plan.show_on_plans_page"
+                              class="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                              Hidden
+                            </span>
+                          </div>
+
+                          <!-- Description -->
                           <p
-                            :class="[
-                              'font-medium',
-                              plan.planid === testPlanId
-                                ? 'text-amber-900 dark:text-amber-100'
-                                : 'text-gray-900 dark:text-white',
-                            ]">
-                            {{ plan.name }}
+                            v-if="plan.description"
+                            class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                            {{ plan.description }}
                           </p>
-                          <p
-                            v-if="plan.tier"
-                            class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-                            {{ plan.tier }}
-                          </p>
-                          <p
-                            v-if="plan.planid === actualPlanId && !isTestModeActive"
-                            class="mt-0.5 text-xs text-green-600 dark:text-green-400">
-                            Current plan
+
+                          <!-- Metadata Grid -->
+                          <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+                            <span
+                              v-if="plan.tier"
+                              class="text-gray-500 dark:text-gray-400">
+                              <span class="font-medium text-gray-600 dark:text-gray-300">tier:</span>
+                              {{ plan.tier }}
+                            </span>
+                            <span
+                              v-if="plan.tenancy"
+                              class="text-gray-500 dark:text-gray-400">
+                              <span class="font-medium text-gray-600 dark:text-gray-300">tenancy:</span>
+                              {{ plan.tenancy }}
+                            </span>
+                            <span
+                              v-if="plan.region"
+                              class="text-gray-500 dark:text-gray-400">
+                              <span class="font-medium text-gray-600 dark:text-gray-300">region:</span>
+                              {{ plan.region }}
+                            </span>
+                            <span
+                              v-if="plan.display_order !== undefined"
+                              class="text-gray-500 dark:text-gray-400">
+                              <span class="font-medium text-gray-600 dark:text-gray-300">order:</span>
+                              {{ plan.display_order }}
+                            </span>
+                          </div>
+
+                          <!-- Plan ID -->
+                          <p class="mt-1.5 font-mono text-xs text-gray-400 dark:text-gray-500">
+                            {{ plan.planid }}
                           </p>
                         </div>
+
                         <OIcon
                           v-if="plan.planid === testPlanId"
                           collection="heroicons"
                           name="check-circle-solid"
-                          class="size-5 text-amber-600 dark:text-amber-400"
+                          class="size-5 shrink-0 text-amber-600 dark:text-amber-400"
                           aria-hidden="true" />
                       </div>
                     </button>

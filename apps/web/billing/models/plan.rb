@@ -80,6 +80,7 @@ module Billing
     field :tenancy                  # One of: multitenant, dedicated
     field :display_order            # Display ordering (higher = earlier)
     field :show_on_plans_page       # Boolean: whether to show on plans page
+    field :description              # Plan description for display
     field :is_soft_deleted          # Boolean: soft-deleted in Stripe
 
     # Additional Stripe Price fields
@@ -247,6 +248,9 @@ module Billing
             # Higher values appear first (100 = leftmost, 0 = rightmost)
             display_order = product.metadata[Metadata::FIELD_DISPLAY_ORDER] || '0'
 
+            # Extract tenancy from product metadata (default to 'multi')
+            tenancy = product.metadata[Metadata::FIELD_TENANCY] || 'multi'
+
             # Extract show_on_plans_page from product metadata (default to 'true')
             # Accepts: 'true', 'false', '1', '0', 'yes', 'no'
             show_on_plans_page_value = product.metadata[Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'true'
@@ -263,8 +267,10 @@ module Billing
               amount: price.unit_amount.to_s,
               currency: price.currency,
               region: region,
+              tenancy: tenancy,
               display_order: display_order,
               show_on_plans_page: show_on_plans_page.to_s,
+              description: product.description,
             )
 
             # Populate additional Stripe Price fields
@@ -412,7 +418,7 @@ module Billing
         plans_hash.map do |plan_id, plan_def|
           # For plans with prices, use monthly interval in the ID
           interval = plan_def['prices']&.first&.dig('interval') || 'month'
-          full_id = plan_def['prices']&.any? ? "#{plan_id}_#{interval}ly" : plan_id
+          full_id  = plan_def['prices']&.any? ? "#{plan_id}_#{interval}ly" : plan_id
 
           config_plan_to_hash(full_id, plan_def)
         end
@@ -436,6 +442,11 @@ module Billing
           planid: plan_id,
           name: plan_def['name'],
           tier: plan_def['tier'],
+          tenancy: plan_def['tenancy'],
+          region: plan_def['region'],
+          display_order: plan_def['display_order'].to_i,
+          show_on_plans_page: plan_def['show_on_plans_page'] == true,
+          description: plan_def['description'],
           entitlements: plan_def['entitlements'] || [],
           limits: limits,
         }

@@ -77,7 +77,7 @@ module ColonelAPI
           plans = ::Billing::Plan.list_plans
 
           # Convert to hash format, deduplicating by tier
-          seen_tiers = {}
+          seen_tiers  = {}
           plans_array = []
 
           plans.each do |plan|
@@ -89,6 +89,11 @@ module ColonelAPI
               planid: plan.plan_id,
               name: plan.name,
               tier: plan.tier,
+              tenancy: plan.tenancy,
+              region: plan.region,
+              display_order: plan.display_order.to_i,
+              show_on_plans_page: plan.show_on_plans_page.to_s == 'true',
+              description: plan.respond_to?(:description) ? plan.description : nil,
               entitlements: plan.entitlements.to_a,
               limits: plan.limits.hgetall || {},
             }
