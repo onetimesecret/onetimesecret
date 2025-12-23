@@ -315,3 +315,9 @@ end
 # Tests that need billing enabled should use BillingTestHelpers.with_billing_enabled
 require_relative 'billing_helpers'
 BillingTestHelpers.disable_billing!
+
+# Clear any stale plan cache from previous test runs
+# Essential for test isolation - ensures quota checks don't fire unexpectedly
+# when billing tests populate the cache and subsequent tests inherit it.
+# See: https://github.com/onetimesecret/onetimesecret/issues/2228
+BillingTestHelpers.clear_plan_cache!

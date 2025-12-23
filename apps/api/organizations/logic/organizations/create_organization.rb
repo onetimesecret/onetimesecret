@@ -17,6 +17,9 @@ module OrganizationAPI::Logic
         # Require authenticated user
         raise_form_error('Authentication required', field: 'user_id', error_type: :unauthorized) if cust.anonymous?
 
+        # Check organization quota (only enforced when billing enabled with plan cache)
+        check_organization_quota!
+
         # Validate display_name
         if display_name.empty?
           raise_form_error('Organization name is required', field: 'display_name', error_type: :missing)
@@ -72,6 +75,35 @@ module OrganizationAPI::Logic
           description: description,
           contact_email: contact_email,
         }
+      end
+
+      private
+
+      # Check organization quota against customer's plan limits
+      #
+      # Uses customer's primary organization plan for billing context.
+      # Only enforced when billing is enabled and plan cache is populated.
+      # Skipped for first organization creation (no primary org to check against).
+      def check_organization_quota!
+        # Get customer's primary organization for plan/billing context
+        primary_org = cust.organization_instances.to_a.find { |o| o.is_default } || cust.organization_instances.first
+
+        # Skip quota check if no primary org (first org creation always succeeds)
+        return unless primary_org
+
+        # Skip if billing disabled or no entitlements (standalone mode gives unlimited)
+        return unless primary_org.respond_to?(:at_limit?)
+        return unless primary_org.entitlements.any?
+
+        current_count = cust.organization_instances.size
+
+        if primary_org.at_limit?('organizations', current_count)
+          raise_form_error(
+            'Organization limit reached. Upgrade your plan to create more organizations.',
+            field: 'display_name',
+            error_type: :upgrade_required
+          )
+        end
       end
     end
   end
