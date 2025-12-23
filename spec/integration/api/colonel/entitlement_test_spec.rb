@@ -287,12 +287,25 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', billing: true d
           colonel?: false,
         )
 
+        # Create properly mocked session
         session = double('Session')
+        allow(session).to receive(:[]).with(:entitlement_test_planid).and_return(nil)
+        allow(session).to receive(:[]=)
+        allow(session).to receive(:delete)
+
+        # Create strategy_result mock (this is what Logic::Base#initialize expects)
+        strategy_result = double('StrategyResult')
+        allow(strategy_result).to receive(:session).and_return(session)
+        allow(strategy_result).to receive(:user).and_return(non_colonel)
+        allow(strategy_result).to receive(:metadata).and_return({ organization: organization })
+
         logic = ColonelAPI::Logic::Colonel::SetEntitlementTest.new(
-          session,
-          non_colonel,
+          strategy_result,
           { planid: 'identity_v1' },
         )
+
+        # Mock organization method
+        allow(logic).to receive(:organization).and_return(organization)
 
         # Mock verify_one_of_roles! to actually check
         allow(logic).to receive(:verify_one_of_roles!) do |roles|
