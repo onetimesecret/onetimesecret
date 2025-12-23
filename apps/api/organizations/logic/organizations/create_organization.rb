@@ -82,7 +82,7 @@ module OrganizationAPI::Logic
             begin
               lock.release(lock_token)
             rescue StandardError => e
-              OT.warn "[CreateOrganization] Lock release failed: #{e.message}"
+              OT.lw "[CreateOrganization] Lock release failed: #{e.message}"
             end
           end
         end

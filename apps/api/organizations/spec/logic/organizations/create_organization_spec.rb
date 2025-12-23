@@ -275,4 +275,99 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       expect(fields[:contact_email]).to eq('contact@example.com')
     end
   end
+
+  describe 'distributed locking behavior' do
+    let(:new_organization) do
+      instance_double(
+        Onetime::Organization,
+        objid: 'org-new-123',
+        extid: 'ext-org-new',
+        display_name: 'My Organization',
+        description: '',
+        contact_email: 'contact@example.com',
+        is_default: false,
+        created: Time.now.to_i,
+        updated: Time.now.to_i,
+        owner_id: 'cust-123',
+        member_count: 1,
+        save: true
+      )
+    end
+
+    let(:lock) { instance_double(Familia::Lock) }
+    let(:lock_token) { 'lock-token-abc123' }
+
+    before do
+      allow(Familia::Lock).to receive(:new).and_return(lock)
+      allow(Onetime::Organization).to receive(:contact_email_exists?).and_return(false)
+      allow(Onetime::Organization).to receive(:create!).and_return(new_organization)
+      allow(new_organization).to receive(:description=)
+      allow(new_organization).to receive(:owner?).with(customer).and_return(true)
+    end
+
+    context 'when lock is successfully acquired' do
+      before do
+        allow(lock).to receive(:acquire).with(ttl: 30).and_return(lock_token)
+        allow(lock).to receive(:release).with(lock_token).and_return(true)
+      end
+
+      it 'acquires and releases the lock' do
+        expect(lock).to receive(:acquire).with(ttl: 30).and_return(lock_token)
+        expect(lock).to receive(:release).with(lock_token)
+        logic.process
+      end
+
+      it 'creates the organization inside the lock' do
+        expect(Onetime::Organization).to receive(:create!)
+        logic.process
+      end
+    end
+
+    context 'when lock acquisition fails (concurrent request)' do
+      before do
+        allow(lock).to receive(:acquire).with(ttl: 30).and_return(false)
+      end
+
+      it 'raises conflict error without creating organization' do
+        expect(Onetime::Organization).not_to receive(:create!)
+        expect { logic.process }.to raise_error(Onetime::FormError) do |error|
+          expect(error.message).to match(/Organization creation in progress/)
+        end
+      end
+
+      it 'does not attempt to release lock' do
+        expect(lock).not_to receive(:release)
+        expect { logic.process }.to raise_error(Onetime::FormError)
+      end
+    end
+
+    context 'when organization creation fails' do
+      before do
+        allow(lock).to receive(:acquire).with(ttl: 30).and_return(lock_token)
+        allow(lock).to receive(:release).with(lock_token).and_return(true)
+        allow(Onetime::Organization).to receive(:create!)
+          .and_raise(StandardError, 'Database error')
+      end
+
+      it 'still releases the lock' do
+        expect(lock).to receive(:release).with(lock_token)
+        expect { logic.process }.to raise_error(StandardError, 'Database error')
+      end
+    end
+
+    context 'when lock release fails' do
+      before do
+        allow(lock).to receive(:acquire).with(ttl: 30).and_return(lock_token)
+        allow(lock).to receive(:release).with(lock_token)
+          .and_raise(Redis::ConnectionError, 'Connection lost')
+        allow(OT).to receive(:lw)
+      end
+
+      it 'logs warning but does not raise' do
+        expect(OT).to receive(:lw).with(/Lock release failed/)
+        result = logic.process
+        expect(result).to have_key(:record)
+      end
+    end
+  end
 end
