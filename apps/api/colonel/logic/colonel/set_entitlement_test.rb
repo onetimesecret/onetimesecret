@@ -73,21 +73,21 @@ module ColonelAPI
 
           # If setting a plan, validate it exists
           # Check Stripe-synced plans first (production), then predefined test plans (development)
-          if @planid && !@planid.empty?
-            actual_plan = ::Billing::Plan.load(@planid)
-            if actual_plan
-              @test_plan_config = {
-                name: actual_plan.name,
-                entitlements: actual_plan.entitlements.to_a,
-                limits: actual_plan.limits.to_h,
-              }
-            else
-              # Fall back to predefined test plans
-              @test_plan_config = TEST_PLANS[@planid]
-            end
+          return unless @planid && !@planid.empty?
 
-            raise_form_error('Invalid plan ID') unless @test_plan_config
-          end
+          actual_plan       = ::Billing::Plan.load(@planid)
+          @test_plan_config = if actual_plan
+            {
+              name: actual_plan.name,
+              entitlements: actual_plan.entitlements.to_a,
+              limits: actual_plan.limits.to_h,
+            }
+          else
+            # Fall back to predefined test plans
+            TEST_PLANS[@planid]
+                              end
+
+          raise_form_error('Invalid plan ID') unless @test_plan_config
         end
 
         def process

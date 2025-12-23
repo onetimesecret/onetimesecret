@@ -40,11 +40,11 @@ module Core
 
           # Add entitlement test mode state for colonels
           if cust.role?(:colonel) && sess[:entitlement_test_planid]
-            test_planid = sess[:entitlement_test_planid]
+            test_planid    = sess[:entitlement_test_planid]
             test_plan_name = resolve_test_plan_name(test_planid)
 
             if test_plan_name
-              output['entitlement_test_planid']   = test_planid
+              output['entitlement_test_planid']    = test_planid
               output['entitlement_test_plan_name'] = test_plan_name
             end
           end

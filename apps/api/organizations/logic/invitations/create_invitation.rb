@@ -78,7 +78,7 @@ module OrganizationAPI::Logic
             role: @role,
             invite_token: @membership.token,
           },
-          fallback: :sync
+          fallback: :sync,
         )
 
         OT.info "[CreateInvitation] Created invitation #{@membership.objid} for #{OT::Utils.obscure_email(@email)}"

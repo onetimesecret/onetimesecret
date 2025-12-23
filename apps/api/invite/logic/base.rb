@@ -57,7 +57,7 @@ module InviteAPI
       # Does NOT include sensitive data like token or internal IDs
       def serialize_invitation_public(invitation)
         organization = invitation.organization
-        inviter = Onetime::Customer.load(invitation.invited_by) if invitation.invited_by
+        inviter      = Onetime::Customer.load(invitation.invited_by) if invitation.invited_by
 
         {
           organization_name: organization&.display_name,

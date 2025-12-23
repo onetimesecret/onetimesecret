@@ -26,7 +26,7 @@ module Onetime
 
             locale_file = File.join(LOCALES_PATH, "#{locale}.yml")
             if File.exist?(locale_file)
-              content = YAML.safe_load(File.read(locale_file), permitted_classes: [], permitted_symbols: [], aliases: true)
+              content              = YAML.safe_load_file(locale_file, permitted_classes: [], permitted_symbols: [], aliases: true)
               translations[locale] = content[locale] || {}
             else
               translations[locale] = {}
@@ -41,7 +41,7 @@ module Onetime
           # @return [String] Translated string with interpolations applied
           def translate(key, locale: 'en', **options)
             load_locale(locale)
-            keys = key.to_s.split('.')
+            keys  = key.to_s.split('.')
             value = keys.reduce(translations[locale]) do |hash, k|
               hash.is_a?(Hash) ? hash[k] : nil
             end
@@ -71,6 +71,7 @@ module Onetime
           end
         end
       end
+
       # Base class for email templates using ERB.
       #
       # Subclasses define template-specific data and subject lines.
@@ -216,8 +217,8 @@ module Onetime
           # @param key [String] Translation key (e.g., 'email.organization_invitation.subject')
           # @param options [Hash] Interpolation options
           # @return [String] Translated string
-          def t(key, **options)
-            EmailTranslations.translate(key, locale: @locale, **options)
+          def t(key, **)
+            EmailTranslations.translate(key, locale: @locale, **)
           end
 
           # HTML escape helper
