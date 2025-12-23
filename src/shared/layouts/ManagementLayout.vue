@@ -16,6 +16,7 @@
   import TestModeBanner from '@/apps/colonel/components/TestModeBanner.vue';
   import { WindowService } from '@/services/window.service';
   import { useDomainsStore, useMetadataListStore } from '@/shared/stores';
+  import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
   import type { ImprovedLayoutProps } from '@/types/ui/layouts';
   import { computed, onMounted } from 'vue';
 
@@ -38,6 +39,9 @@
   const domainsStore = useDomainsStore();
   const domainsEnabled = WindowService.get('domains_enabled');
 
+  // Test plan mode composable
+  const { isTestModeActive } = useTestPlanMode();
+
   // Centralize store refreshing to avoid duplicate API calls from header and footer
   onMounted(() => {
     metadataListStore.refreshRecords(true);
@@ -52,24 +56,13 @@
     const { showSidebar, sidebarPosition, ...rest } = props;
     return rest;
   });
-
-  // Check if entitlement test mode is active (colonel-only feature)
-  const entitlementTestActive = computed(() => {
-    try {
-      // Test mode is active if a test planid is set in window state
-      const testPlanId = WindowService.get('entitlement_test_planid');
-      return !!testPlanId;
-    } catch {
-      return false;
-    }
-  });
 </script>
 
 <template>
   <BaseLayout v-bind="layoutProps">
     <template #header>
       <ImprovedHeader v-bind="layoutProps" />
-      <TestModeBanner v-if="entitlementTestActive" />
+      <TestModeBanner v-if="isTestModeActive" />
     </template>
 
     <template #main>

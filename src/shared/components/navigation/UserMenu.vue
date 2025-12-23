@@ -29,6 +29,7 @@
 import FancyIcon from '@/shared/components/ctas/FancyIcon.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
+import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
 import { Customer } from '@/schemas/models';
 import { WindowService } from '@/services/window.service';
 import PlanTestModal from '@/apps/colonel/components/PlanTestModal.vue';
@@ -47,18 +48,12 @@ const { logout } = useAuth();
 
 const isPlanTestModalOpen = ref(false);
 
+// Test plan mode composable
+const { isTestModeActive } = useTestPlanMode();
+
 const billingEnabled = computed(() => {
   try {
     return WindowService.get('billing_enabled') || false;
-  } catch {
-    return false;
-  }
-});
-
-const entitlementTestActive = computed(() => {
-  try {
-    // Test mode is active if a test planid is set
-    return !!WindowService.get('entitlement_test_planid');
   } catch {
     return false;
   }
@@ -138,7 +133,7 @@ const menuItems = computed<MenuItem[]>(() => [
     id: 'test-plan',
     label: t('web.colonel.testPlanMode'),
     icon: { collection: 'heroicons', name: 'beaker' },
-    variant: entitlementTestActive.value ? 'caution' : 'default',
+    variant: isTestModeActive.value ? 'caution' : 'default',
     condition: () => !props.awaitingMfa && props.colonel,
     onClick: openPlanTestModal,
   },

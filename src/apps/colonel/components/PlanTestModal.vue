@@ -2,8 +2,8 @@
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
 import { useCsrfStore } from '@/shared/stores';
-import { WindowService } from '@/services/window.service';
 import { createApi } from '@/api';
 import {
   Dialog,
@@ -12,14 +12,14 @@ import {
   TransitionChild,
   TransitionRoot,
 } from '@headlessui/vue';
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const csrfStore = useCsrfStore();
 const $api = createApi();
 
-defineProps<{
+const props = defineProps<{
   isOpen: boolean;
 }>();
 
@@ -32,46 +32,59 @@ interface Plan {
   name: string;
 }
 
-const availablePlans: Plan[] = [
-  { id: 'free', name: 'Free' },
-  { id: 'identity_v1', name: 'Identity Plus' },
-  { id: 'multi_team_v1', name: 'Multi-Team' },
-];
+// Test plan mode composable
+const { isTestModeActive, testPlanId, testPlanName, actualPlanId } = useTestPlanMode();
+
+// Dynamic plan loading
+const plans = ref<Plan[]>([]);
+const isLoadingPlans = ref(false);
+const plansError = ref<string | null>(null);
 
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
-// Get current test plan state from window
-const currentTestPlanId = computed(() => {
+// Fetch available plans from API
+const fetchPlans = async () => {
+  isLoadingPlans.value = true;
+  plansError.value = null;
+
   try {
-    return WindowService.get('entitlement_test_planid') || null;
-  } catch {
-    return null;
+    const response = await $api.get('/api/colonel/available-plans');
+    plans.value = response.data.plans || [];
+  } catch (err: unknown) {
+    console.error('Failed to fetch available plans:', err);
+    plansError.value = 'Failed to load available plans';
+    // Fallback to hardcoded plans
+    plans.value = [
+      { id: 'free', name: 'Free' },
+      { id: 'identity_v1', name: 'Identity Plus' },
+      { id: 'multi_team_v1', name: 'Multi-Team' },
+    ];
+  } finally {
+    isLoadingPlans.value = false;
+  }
+};
+
+// Load plans when modal opens
+watch(() => props.isOpen, (isOpen) => {
+  if (isOpen && plans.value.length === 0) {
+    fetchPlans();
   }
 });
 
-const currentTestPlanName = computed(() => {
-  try {
-    return WindowService.get('entitlement_test_plan_name') || null;
-  } catch {
-    return null;
+onMounted(() => {
+  if (props.isOpen) {
+    fetchPlans();
   }
 });
 
-const actualPlanId = computed(() =>
-  // For colonels testing, we should show their actual organization plan
-  // This will come from the backend in the window state
-  // For now, default to 'free' as we don't have direct access to org plan here
-   'free'
-);
-
+// Get actual plan name from plans list
 const actualPlanName = computed(() => {
   const planId = actualPlanId.value;
-  const plan = availablePlans.find(p => p.id === planId);
+  if (!planId) return 'Free';
+  const plan = plans.value.find(p => p.id === planId);
   return plan?.name || 'Free';
 });
-
-const isTestModeActive = computed(() => !!currentTestPlanId.value);
 
 const handleActivateTestMode = async (planId: string) => {
   isLoading.value = true;
@@ -210,7 +223,7 @@ const handleClose = () => {
                       v-if="isTestModeActive"
                       class="mt-3 border-t border-gray-200 pt-3 dark:border-gray-700">
                       <p class="text-sm text-gray-600 dark:text-gray-400">
-                        {{ t('web.colonel.testingAsPlan', { planName: currentTestPlanName }) }}
+                        {{ t('web.colonel.testingAsPlan', { planName: testPlanName }) }}
                       </p>
                     </div>
                   </div>
@@ -225,20 +238,47 @@ const handleClose = () => {
                   </p>
                 </div>
 
+                <!-- Loading Plans State -->
+                <div
+                  v-if="isLoadingPlans"
+                  class="mt-5">
+                  <div class="flex items-center justify-center py-8">
+                    <div class="text-center">
+                      <div class="inline-block size-8 animate-spin rounded-full border-4 border-solid border-brand-500 border-r-transparent"></div>
+                      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        {{ t('web.COMMON.loading') }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Plans Error State -->
+                <div
+                  v-else-if="plansError"
+                  class="mt-5">
+                  <div class="rounded-lg bg-amber-50 p-4 dark:bg-amber-900/20">
+                    <p class="text-sm text-amber-800 dark:text-amber-400">
+                      {{ plansError }}
+                    </p>
+                  </div>
+                </div>
+
                 <!-- Available Plans -->
-                <div class="mt-5">
+                <div
+                  v-else
+                  class="mt-5">
                   <h4 class="text-sm font-medium text-gray-900 dark:text-white">
                     {{ t('web.colonel.availablePlans') }}
                   </h4>
                   <div class="mt-3 space-y-2">
                     <button
-                      v-for="plan in availablePlans"
+                      v-for="plan in plans"
                       :key="plan.id"
                       type="button"
-                      :disabled="isLoading || plan.id === currentTestPlanId"
+                      :disabled="isLoading || plan.id === testPlanId"
                       :class="[
                         'w-full rounded-lg border px-4 py-3 text-left transition-colors',
-                        plan.id === currentTestPlanId
+                        plan.id === testPlanId
                           ? 'border-amber-500 bg-amber-50 dark:border-amber-600 dark:bg-amber-900/20'
                           : 'border-gray-300 bg-white hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700',
                         isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
@@ -249,7 +289,7 @@ const handleClose = () => {
                           <p
                             :class="[
                               'font-medium',
-                              plan.id === currentTestPlanId
+                              plan.id === testPlanId
                                 ? 'text-amber-900 dark:text-amber-100'
                                 : 'text-gray-900 dark:text-white',
                             ]">
@@ -262,7 +302,7 @@ const handleClose = () => {
                           </p>
                         </div>
                         <OIcon
-                          v-if="plan.id === currentTestPlanId"
+                          v-if="plan.id === testPlanId"
                           collection="heroicons"
                           name="check-circle-solid"
                           class="size-5 text-amber-600 dark:text-amber-400"

@@ -2,26 +2,20 @@
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
 import { useCsrfStore } from '@/shared/stores';
-import { WindowService } from '@/services/window.service';
 import { createApi } from '@/api';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const csrfStore = useCsrfStore();
 const $api = createApi();
 
-const isResetting = ref(false);
+// Test plan mode composable
+const { testPlanName } = useTestPlanMode();
 
-const testPlanName = computed(() => {
-  try {
-    // Backend sets 'entitlement_test_plan_name' (with underscore before 'name')
-    return WindowService.get('entitlement_test_plan_name') || null;
-  } catch {
-    return null;
-  }
-});
+const isResetting = ref(false);
 
 const handleReset = async () => {
   isResetting.value = true;
