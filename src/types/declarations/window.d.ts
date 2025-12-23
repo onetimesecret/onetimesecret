@@ -188,4 +188,11 @@ export interface OnetimeWindow {
    */
   entitlement_test_planid?: string | null;
   entitlement_test_plan_name?: string | null;
+
+  /**
+   * Current user's organization (when authenticated)
+   */
+  organization?: {
+    planid?: string;
+  };
 }
