@@ -11,12 +11,14 @@ http_interactions:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_wHiEjMyQyl2x6U","request_duration_ms":915}}'
       Idempotency-Key:
-      - test_a0689678874d93fee533c027e6ecd177
+      - test_c302e577e7867d74e1860e5482778fb0
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
-        Tundra.local 25.2.0 Darwin Kernel Version 25.2.0: Tue Nov 18 21:07:05 PST
-        2025; root:xnu-12377.61.12~1/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
       Content-Type:
       - application/x-www-form-urlencoded
       Accept-Encoding:
@@ -27,17 +29,17 @@ http_interactions:
       - "<STRIPE_VERSION>"
   response:
     status:
-      code: 401
-      message: Unauthorized
+      code: 200
+      message: OK
     headers:
       Server:
       - nginx
       Date:
-      - Fri, 12 Dec 2025 00:54:13 GMT
+      - Tue, 23 Dec 2025 22:05:34 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '113'
+      - '658'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -56,27 +58,57 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=i3ejJEB1B-OciSPqqBPGVm1jRIIfzkwhqkm68H_N9FjWUaN81_aVbCjBqu5XHdk2RWkqb4UjTljvsjPl
-      Vary:
-      - Origin
-      Www-Authenticate:
-      - Bearer realm="Stripe"
-      X-Robots-Tag:
-      - none
-      X-Wc:
-      - ABHIJ
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains; preload
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=Mi-csyE_408F5pXf2zDOA8zAYpt_QNIAJ82MQLTwA0BsuVxjtJqLifOz9x7pN6Mxei0GEE5EyFXSYUgS
+      Idempotency-Key:
+      - test_c302e577e7867d74e1860e5482778fb0
+      Original-Request:
+      - req_WQ2cMj9wY5AJlr
+      Stripe-Should-Retry:
+      - 'false'
       Stripe-Version:
       - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
     body:
       encoding: UTF-8
-      string: |
+      string: |-
         {
-          "error": {
-            "message": "Invalid API Key provided: sk_test_123",
-            "type": "invalid_request_error"
-          }
+          "id": "cus_TexdRODpn5Sela",
+          "object": "customer",
+          "address": null,
+          "balance": 0,
+          "created": 1766527534,
+          "currency": null,
+          "customer_account": null,
+          "default_source": null,
+          "delinquent": false,
+          "description": null,
+          "discount": null,
+          "email": "custom@example.com",
+          "invoice_prefix": "CXLLAWZY",
+          "invoice_settings": {
+            "custom_fields": null,
+            "default_payment_method": null,
+            "footer": null,
+            "rendering_options": null
+          },
+          "livemode": false,
+          "metadata": {},
+          "name": null,
+          "next_invoice_sequence": 1,
+          "phone": null,
+          "preferred_locales": [],
+          "shipping": null,
+          "tax_exempt": "none",
+          "test_clock": null
         }
-  recorded_at: Fri, 12 Dec 2025 00:54:13 GMT
+  recorded_at: Tue, 23 Dec 2025 22:05:34 GMT
 recorded_with: VCR 6.3.1

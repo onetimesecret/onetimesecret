@@ -8,7 +8,8 @@ require_relative '../../lib/stripe_client'
 RSpec.describe Billing::StripeClient, :stripe, type: :billing do
   subject(:client) { described_class.new(api_key: test_api_key) }
 
-  let(:test_api_key) { 'sk_test_123' }
+  # Use real API key for VCR recording, mock key for playback
+  let(:test_api_key) { ENV['STRIPE_API_KEY'] || 'sk_test_123' }
   let(:redis) { Familia.dbclient }
 
   before do

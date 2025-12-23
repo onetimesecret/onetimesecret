@@ -14,6 +14,11 @@
 ENV['STRIPE_KEY'] ||= 'sk_test_mock'
 ENV['RACK_ENV']   ||= 'test'
 
+# Use SQLite for auth database in billing tests
+# Stripe data is stored in Redis, not the auth DB, so we don't need PostgreSQL
+ENV['AUTHENTICATION_MODE'] ||= 'full'
+ENV['AUTH_DATABASE_URL'] ||= 'sqlite::memory:'
+
 require 'spec_helper'
 require 'openssl'
 require 'stripe'
