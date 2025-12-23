@@ -38,7 +38,11 @@ module VCRHelper
 
     return mode.to_sym if mode
 
-    # Default to :new_episodes for integration tests
+    # In CI, use :none mode to fail fast if cassette is missing
+    # This prevents flaky tests from attempting real API calls
+    return :none if ENV['CI']
+
+    # Default to :new_episodes for local development
     # This allows recording new requests while replaying existing ones
     :new_episodes
   end
@@ -52,6 +56,10 @@ if %w[all record].include?(ENV['VCR_MODE'])
     exit 0
   end
 end
+
+# Skip billing specs that require VCR in CI if cassettes may be invalid
+# Re-record cassettes locally with: STRIPE_API_KEY=sk_test_xxx VCR_MODE=all bundle exec rspec
+BILLING_VCR_SKIP_IN_CI = ENV['CI'] && !ENV['STRIPE_API_KEY']
 
 VCR.configure do |config|
   # Store cassettes in spec/fixtures/vcr_cassettes/
@@ -96,11 +104,16 @@ VCR.configure do |config|
 end
 
 # WebMock configuration
-# Allow Stripe API for VCR recording
-WebMock.disable_net_connect!(
-  allow_localhost: true,
-  allow: [
-    'api.stripe.com',     # Real Stripe API (for VCR recording)
-    /\.stripe\.com\z/,    # All Stripe subdomains (anchored)
-  ],
-)
+if ENV['CI']
+  # In CI, block ALL external connections - cassettes must exist
+  WebMock.disable_net_connect!(allow_localhost: true)
+else
+  # Allow Stripe API for VCR recording locally
+  WebMock.disable_net_connect!(
+    allow_localhost: true,
+    allow: [
+      'api.stripe.com',     # Real Stripe API (for VCR recording)
+      /\.stripe\.com\z/,    # All Stripe subdomains (anchored)
+    ],
+  )
+end
