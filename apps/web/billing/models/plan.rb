@@ -4,6 +4,7 @@
 
 require 'stripe'
 require_relative '../metadata'
+require_relative '../config'
 
 module Billing
   unless defined?(RECORD_LIMIT)
@@ -79,6 +80,7 @@ module Billing
     field :tenancy                  # One of: multitenant, dedicated
     field :display_order            # Display ordering (higher = earlier)
     field :show_on_plans_page       # Boolean: whether to show on plans page
+    field :description              # Plan description for display
     field :is_soft_deleted          # Boolean: soft-deleted in Stripe
 
     # Additional Stripe Price fields
@@ -246,6 +248,9 @@ module Billing
             # Higher values appear first (100 = leftmost, 0 = rightmost)
             display_order = product.metadata[Metadata::FIELD_DISPLAY_ORDER] || '0'
 
+            # Extract tenancy from product metadata (default to 'multi')
+            tenancy = product.metadata[Metadata::FIELD_TENANCY] || 'multi'
+
             # Extract show_on_plans_page from product metadata (default to 'true')
             # Accepts: 'true', 'false', '1', '0', 'yes', 'no'
             show_on_plans_page_value = product.metadata[Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'true'
@@ -262,8 +267,10 @@ module Billing
               amount: price.unit_amount.to_s,
               currency: price.currency,
               region: region,
+              tenancy: tenancy,
               display_order: display_order,
               show_on_plans_page: show_on_plans_page.to_s,
+              description: product.description,
             )
 
             # Populate additional Stripe Price fields
@@ -364,6 +371,26 @@ module Billing
         load_multi(instances.to_a)
       end
 
+      # Load a plan from Stripe cache with fallback to billing.yaml config
+      #
+      # Use this method when you need to load a plan from either source.
+      # Centralizes the fallback pattern used across entitlement testing.
+      #
+      # @param plan_id [String] Plan ID to load
+      # @return [Hash] Hash with :plan (Plan or nil), :config (Hash or nil), :source ('stripe' or 'local_config' or nil)
+      def load_with_fallback(plan_id)
+        # Try Stripe-synced cache first (production)
+        stripe_plan = load(plan_id)
+        return { plan: stripe_plan, config: nil, source: 'stripe' } if stripe_plan
+
+        # Fall back to billing.yaml config (dev/standalone)
+        config_plan = load_from_config(plan_id)
+        return { plan: nil, config: config_plan, source: 'local_config' } if config_plan
+
+        # Not found in either source
+        { plan: nil, config: nil, source: nil }
+      end
+
       # Clear all cached plans (for testing or forced refresh)
       def clear_cache
         instances.to_a.each do |plan_id|
@@ -371,6 +398,78 @@ module Billing
           plan&.destroy!
         end
         instances.clear
+      end
+
+      # Load a single plan from billing.yaml config
+      #
+      # Used as fallback when Stripe cache is empty (dev/test environments).
+      # Returns an ephemeral Plan-like hash (not persisted to Redis).
+      #
+      # @param plan_id [String] Plan ID (with or without interval suffix)
+      # @return [Hash, nil] Plan hash with :name, :entitlements, :limits or nil
+      def load_from_config(plan_id)
+        plans_hash = Billing::Config.load_plans
+        return nil if plans_hash.empty?
+
+        # Try exact match first (e.g., "free_v1")
+        if plans_hash.key?(plan_id)
+          return config_plan_to_hash(plan_id, plans_hash[plan_id])
+        end
+
+        # Try stripping interval suffix (e.g., "identity_plus_v1_monthly" -> "identity_plus_v1")
+        base_id = plan_id.sub(/_(month|year)ly$/, '')
+        if plans_hash.key?(base_id)
+          return config_plan_to_hash(plan_id, plans_hash[base_id])
+        end
+
+        nil
+      end
+
+      # Load all plans from billing.yaml config
+      #
+      # Used as fallback when Stripe cache is empty (dev/test environments).
+      # Creates one entry per plan (deduped by tier, preferring monthly).
+      #
+      # @return [Array<Hash>] Array of plan hashes
+      def list_plans_from_config
+        plans_hash = Billing::Config.load_plans
+        return [] if plans_hash.empty?
+
+        plans_hash.map do |plan_id, plan_def|
+          # For plans with prices, use monthly interval in the ID
+          interval = plan_def['prices']&.first&.dig('interval') || 'month'
+          full_id  = plan_def['prices']&.any? ? "#{plan_id}_#{interval}ly" : plan_id
+
+          config_plan_to_hash(full_id, plan_def)
+        end
+      end
+
+      private
+
+      # Convert config plan definition to hash format
+      #
+      # @param plan_id [String] Full plan ID (with interval suffix if applicable)
+      # @param plan_def [Hash] Plan definition from YAML
+      # @return [Hash] Normalized plan hash
+      def config_plan_to_hash(plan_id, plan_def)
+        # Convert limits to flattened format (e.g., "teams" -> "teams.max")
+        limits = (plan_def['limits'] || {}).transform_keys { |k| "#{k}.max" }
+        limits = limits.transform_values do |v|
+          v.nil? || v == -1 ? 'unlimited' : v.to_s
+        end
+
+        {
+          planid: plan_id,
+          name: plan_def['name'],
+          tier: plan_def['tier'],
+          tenancy: plan_def['tenancy'],
+          region: plan_def['region'],
+          display_order: plan_def['display_order'].to_i,
+          show_on_plans_page: plan_def['show_on_plans_page'] == true,
+          description: plan_def['description'],
+          entitlements: plan_def['entitlements'] || [],
+          limits: limits,
+        }
       end
     end
   end

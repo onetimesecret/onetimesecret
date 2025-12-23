@@ -72,10 +72,6 @@ tsconfig.tsbuildinfo
 src/auto-imports.d.ts
 src/.eslintrc-auto-import.json
 
-# Ignore WIP or temp dev files with uppercase names
-[A-Z]*.rb
-[A-Z]*.ts
-
 # Environment files
 .env*
 !.env.example

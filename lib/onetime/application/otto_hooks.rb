@@ -42,11 +42,9 @@ module Onetime
         router.register_error_handler(Onetime::Forbidden, status: 403, log_level: :warn)
 
         # Entitlement errors return 403 with upgrade path info
+        # NOTE: Otto handles Content-Type header automatically; handler returns body hash only
         router.register_error_handler(Onetime::EntitlementRequired, status: 403, log_level: :info) do |error, _req|
-          {
-            'Content-Type' => 'application/json',
-            'X-Entitlement-Required' => error.entitlement,
-          }.merge(body: error.to_h.to_json)
+          error.to_h
         end
 
         return unless Onetime.debug?

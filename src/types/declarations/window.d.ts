@@ -180,4 +180,19 @@ export interface OnetimeWindow {
   };
 
   ui: UiInterface;
+
+  /**
+   * Entitlement test mode (colonel only)
+   * Allows testing with different plan entitlements temporarily.
+   * entitlement_test_planid being set indicates test mode is active.
+   */
+  entitlement_test_planid?: string | null;
+  entitlement_test_plan_name?: string | null;
+
+  /**
+   * Current user's organization (when authenticated)
+   */
+  organization?: {
+    planid?: string;
+  };
 }

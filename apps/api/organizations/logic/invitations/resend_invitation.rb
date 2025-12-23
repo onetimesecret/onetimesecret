@@ -78,7 +78,7 @@ module OrganizationAPI::Logic
             role: @invitation.role,
             invite_token: @invitation.token,
           },
-          fallback: :sync
+          fallback: :sync,
         )
 
         OT.info "[ResendInvitation] Resent invitation #{@invitation.objid} (count: #{@invitation.resend_count})"

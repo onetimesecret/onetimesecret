@@ -3,6 +3,7 @@
 import { Customer } from '@/schemas/models';
 import { AUTH_CHECK_CONFIG, useAuthStore } from '@/shared/stores/authStore';
 import { createApi } from '@/api';
+import { WindowService } from '@/services/window.service';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
@@ -49,6 +50,9 @@ describe('authStore', () => {
   let store: ReturnType<typeof useAuthStore>;
 
   beforeEach(async () => {
+    // Reset WindowService reactive state to sync with window.__ONETIME_STATE__
+    WindowService._resetForTesting();
+
     // Initialize the store
     const { api: testApi } = await setupTestPinia();
     api = testApi;
@@ -132,6 +136,7 @@ describe('authStore', () => {
 
     it('initializes correctly (when true)', () => {
       (window as any).__ONETIME_STATE__.authenticated = true;
+      WindowService._resetForTesting(); // Sync reactive state after window update
       store.init();
       expect(store.isAuthenticated).toBe(true);
     });
@@ -409,6 +414,7 @@ describe('authStore', () => {
         ...(window as any).__ONETIME_STATE__,
         authenticated: true,
       };
+      WindowService._resetForTesting(); // Sync reactive state after window update
 
       store.$reset(); // Reset store to test initialization
       store.init();
@@ -637,6 +643,7 @@ describe('authStore', () => {
         had_valid_session: true,
         cust: null,
       };
+      WindowService._resetForTesting(); // Sync reactive state after window update
 
       // 3. Store initializes
       store.init();
@@ -690,6 +697,7 @@ describe('authStore', () => {
         had_valid_session: true,
         cust: mockCustomer,
       };
+      WindowService._resetForTesting(); // Sync reactive state after window update
 
       store.init();
 

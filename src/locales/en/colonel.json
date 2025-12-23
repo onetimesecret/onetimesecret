@@ -71,7 +71,18 @@
       "workerHealth": "Worker Health",
       "activeWorkers": "active workers",
       "noQueueData": "No queue data available",
-      "loadingQueueData": "Loading queue data..."
+      "loadingQueueData": "Loading queue data...",
+      "testPlanMode": "Test Plan Mode",
+      "testingAsPlan": "Testing as {planName}",
+      "clickToReset": "Click to reset",
+      "selectTestPlan": "Select a plan to test",
+      "resetToActual": "Reset to actual plan",
+      "currentActualPlan": "Current plan",
+      "availablePlans": "Available plans",
+      "activateTestMode": "Activate test mode",
+      "testModeActive": "Test mode active",
+      "testModeDescription": "Test your application with different plan entitlements. Changes are temporary and affect only your session.",
+      "warningTestMode": "You are testing with {planName} entitlements (temporary session override)."
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "When you submit feedback, we'll see:",

@@ -5,6 +5,10 @@ GET    /info                              ColonelAPI::Logic::Colonel::GetColonel
 GET    /stats                             ColonelAPI::Logic::Colonel::GetColonelStats response=json auth=sessionauth
 GET    /config                            ColonelAPI::Logic::Colonel::GetSystemSettings response=json auth=sessionauth
 
+# Entitlement Test Mode
+GET    /available-plans                   ColonelAPI::Logic::Colonel::GetAvailablePlans response=json auth=sessionauth
+POST   /entitlement-test                  ColonelAPI::Logic::Colonel::SetEntitlementTest response=json auth=sessionauth
+
 # Secret Management
 GET    /secrets                           ColonelAPI::Logic::Colonel::ListSecrets response=json auth=sessionauth
 GET    /secrets/:secret_id                ColonelAPI::Logic::Colonel::GetSecretMetadata response=json auth=sessionauth

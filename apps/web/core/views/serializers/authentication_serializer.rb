@@ -38,6 +38,17 @@ module Core
           output['email']          = cust.email
           output['customer_since'] = OT::Utils::TimeUtils.epochdom(cust.created) if cust.created
 
+          # Add entitlement test mode state for colonels
+          if cust.role?(:colonel) && sess[:entitlement_test_planid]
+            test_planid    = sess[:entitlement_test_planid]
+            test_plan_name = resolve_test_plan_name(test_planid)
+
+            if test_plan_name
+              output['entitlement_test_planid']    = test_planid
+              output['entitlement_test_plan_name'] = test_plan_name
+            end
+          end
+
         # When awaiting MFA, provide minimal data from session (no customer access yet)
         elsif output['awaiting_mfa']
           output['email'] = view_vars['session_email']  # From session, not customer
@@ -60,7 +71,21 @@ module Core
             'cust' => nil,
             'email' => nil,
             'customer_since' => nil,
+            'entitlement_test_planid' => nil,
+            'entitlement_test_plan_name' => nil,
           }
+        end
+
+        # Resolve test plan name from Billing::Plan cache or config
+        #
+        # Uses centralized fallback loader to try Stripe cache first,
+        # then billing.yaml config for development/standalone environments.
+        #
+        # @param test_planid [String] Plan ID to resolve
+        # @return [String, nil] Plan name or nil if not found
+        def resolve_test_plan_name(test_planid)
+          result = ::Billing::Plan.load_with_fallback(test_planid)
+          result[:plan]&.name || result[:config]&.dig(:name)
         end
       end
 

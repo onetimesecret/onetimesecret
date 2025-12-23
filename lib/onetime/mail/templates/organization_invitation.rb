@@ -40,7 +40,7 @@ module Onetime
           EmailTranslations.translate(
             'email.organization_invitation.subject',
             locale: locale,
-            organization_name: organization_name
+            organization_name: organization_name,
           )
         end
 
@@ -64,7 +64,7 @@ module Onetime
           role_key = role == 'admin' ? 'admin' : 'member'
           EmailTranslations.translate(
             "email.organization_invitation.roles.#{role_key}",
-            locale: locale
+            locale: locale,
           )
         end
 

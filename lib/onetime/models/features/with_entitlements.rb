@@ -59,6 +59,13 @@ module Onetime
           # @example
           #   org.entitlements  # => ["create_secrets", "create_team", "custom_domains"]
           def entitlements
+            # Colonel test mode override - check Thread.current set by middleware
+            # Empty string should fall back to actual plan (same as nil)
+            test_planid = Thread.current[:entitlement_test_planid]
+            if test_planid && !test_planid.empty?
+              return test_plan_entitlements(test_planid)
+            end
+
             # Standalone fallback: full access when billing disabled
             unless billing_enabled?
               return WithEntitlements::STANDALONE_ENTITLEMENTS.dup
@@ -86,6 +93,13 @@ module Onetime
           #   org.limit_for(:members_per_team)  # => Float::INFINITY
           #   org.limit_for('unknown')          # => 0
           def limit_for(resource)
+            # Colonel test mode override - check Thread.current set by middleware
+            # Empty string should fall back to actual plan (same as nil)
+            test_planid = Thread.current[:entitlement_test_planid]
+            if test_planid && !test_planid.empty?
+              return test_plan_limit_for(test_planid, resource)
+            end
+
             # Standalone fallback: unlimited when billing disabled
             return Float::INFINITY unless billing_enabled?
 
@@ -161,6 +175,61 @@ module Onetime
           end
 
           private
+
+          # Get entitlements for a test plan (colonel test mode)
+          #
+          # Checks Billing::Plan cache first (production/Stripe-synced), then falls back
+          # to billing.yaml config (for development when Stripe cache is empty).
+          #
+          # @param test_planid [String] Plan ID to test
+          # @return [Array<String>] List of entitlements for the test plan
+          def test_plan_entitlements(test_planid)
+            # Check Billing::Plan cache first (production/Stripe-synced)
+            plan = ::Billing::Plan.load(test_planid)
+            return plan.entitlements.to_a if plan
+
+            # Fall back to billing.yaml config when Stripe cache is empty
+            config_plan = ::Billing::Plan.load_from_config(test_planid)
+            return config_plan[:entitlements].dup if config_plan
+
+            []
+          end
+
+          # Get limit for a resource from a test plan (colonel test mode)
+          #
+          # Checks Billing::Plan cache first (production/Stripe-synced), then falls back
+          # to billing.yaml config (for development when Stripe cache is empty).
+          #
+          # @param test_planid [String] Plan ID to test
+          # @param resource [String, Symbol] Resource to check limit for
+          # @return [Numeric] Limit value (Float::INFINITY for unlimited)
+          def test_plan_limit_for(test_planid, resource)
+            # Flattened key: "teams" => "teams.max"
+            key = resource.to_s.include?('.') ? resource.to_s : "#{resource}.max"
+
+            # Check Billing::Plan cache first (production/Stripe-synced)
+            plan = ::Billing::Plan.load(test_planid)
+            if plan
+              limits_hash = plan.limits.hgetall || {}
+              val         = limits_hash[key]
+              return 0 if val.nil? || val.to_s.empty?
+              return Float::INFINITY if val == 'unlimited'
+
+              return val.to_i
+            end
+
+            # Fall back to billing.yaml config when Stripe cache is empty
+            config_plan = ::Billing::Plan.load_from_config(test_planid)
+            if config_plan
+              val = config_plan[:limits][key]
+              return 0 if val.nil?
+              return Float::INFINITY if val == 'unlimited'
+
+              return val.to_i
+            end
+
+            0
+          end
 
           # Check if billing system is enabled
           # Returns false in standalone mode
