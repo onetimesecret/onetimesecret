@@ -28,6 +28,24 @@ module Onetime
           custom_domains api_access priority_support audit_logs
         ].freeze
 
+        # Predefined test plan configurations for colonel testing.
+        # Used when actual Stripe-synced plans aren't available.
+        # Must stay in sync with SetEntitlementTest::TEST_PLANS.
+        TEST_PLANS = {
+          'free' => {
+            entitlements: %w[create_secrets basic_sharing],
+            limits: { 'secrets.max' => '10', 'recipients.max' => '1' },
+          },
+          'identity_v1' => {
+            entitlements: %w[create_secrets custom_domains create_organization priority_support],
+            limits: { 'secrets.max' => '100', 'recipients.max' => '10', 'organizations.max' => '1' },
+          },
+          'multi_team_v1' => {
+            entitlements: %w[create_secrets custom_domains create_organization api_access audit_logs advanced_analytics],
+            limits: { 'secrets.max' => 'unlimited', 'recipients.max' => 'unlimited', 'organizations.max' => '5' },
+          },
+        }.freeze
+
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
           base.include InstanceMethods
@@ -59,6 +77,13 @@ module Onetime
           # @example
           #   org.entitlements  # => ["create_secrets", "create_team", "custom_domains"]
           def entitlements
+            # Colonel test mode override - check Thread.current set by middleware
+            # Empty string should fall back to actual plan (same as nil)
+            test_planid = Thread.current[:entitlement_test_planid]
+            if test_planid && !test_planid.empty?
+              return test_plan_entitlements(test_planid)
+            end
+
             # Standalone fallback: full access when billing disabled
             unless billing_enabled?
               return WithEntitlements::STANDALONE_ENTITLEMENTS.dup
@@ -86,6 +111,13 @@ module Onetime
           #   org.limit_for(:members_per_team)  # => Float::INFINITY
           #   org.limit_for('unknown')          # => 0
           def limit_for(resource)
+            # Colonel test mode override - check Thread.current set by middleware
+            # Empty string should fall back to actual plan (same as nil)
+            test_planid = Thread.current[:entitlement_test_planid]
+            if test_planid && !test_planid.empty?
+              return test_plan_limit_for(test_planid, resource)
+            end
+
             # Standalone fallback: unlimited when billing disabled
             return Float::INFINITY unless billing_enabled?
 
@@ -161,6 +193,60 @@ module Onetime
           end
 
           private
+
+          # Get entitlements for a test plan (colonel test mode)
+          #
+          # Checks Stripe-synced plans first (for production), then falls back
+          # to predefined TEST_PLANS (for development/when Stripe not synced).
+          #
+          # @param test_planid [String] Plan ID to test
+          # @return [Array<String>] List of entitlements for the test plan
+          def test_plan_entitlements(test_planid)
+            # Check actual Stripe plan first (production/testing)
+            plan = ::Billing::Plan.load(test_planid)
+            return plan.entitlements.to_a if plan
+
+            # Fall back to predefined test plans (development)
+            if (test_config = WithEntitlements::TEST_PLANS[test_planid])
+              return test_config[:entitlements].dup
+            end
+
+            []
+          end
+
+          # Get limit for a resource from a test plan (colonel test mode)
+          #
+          # Checks Stripe-synced plans first (for production), then falls back
+          # to predefined TEST_PLANS (for development/when Stripe not synced).
+          #
+          # @param test_planid [String] Plan ID to test
+          # @param resource [String, Symbol] Resource to check limit for
+          # @return [Numeric] Limit value (Float::INFINITY for unlimited)
+          def test_plan_limit_for(test_planid, resource)
+            # Flattened key: "teams" => "teams.max"
+            key = resource.to_s.include?('.') ? resource.to_s : "#{resource}.max"
+
+            # Check actual Stripe plan first (production/testing)
+            plan = ::Billing::Plan.load(test_planid)
+            if plan
+              val = plan.limits[key]
+              return 0 if val.nil? || val.empty?
+              return Float::INFINITY if val == 'unlimited'
+
+              return val.to_i
+            end
+
+            # Fall back to predefined test plans (development)
+            if (test_config = WithEntitlements::TEST_PLANS[test_planid])
+              val = test_config[:limits][key]
+              return 0 if val.nil?
+              return Float::INFINITY if val == 'unlimited'
+
+              return val.to_i
+            end
+
+            0
+          end
 
           # Check if billing system is enabled
           # Returns false in standalone mode
