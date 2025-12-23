@@ -308,13 +308,46 @@ Billing::PlanHelpers.plan_name('identity_v1')
 Billing::PlanHelpers.plan_name('multi_team_v1')
 #=> "Multi-Team"
 
-## Test: Legacy plan detection for v0
+## Test: Legacy plan detection for v0 (pattern matching)
 Billing::PlanHelpers.legacy_plan?('identity_v0')
 #=> true
 
-## Test: Legacy plan detection for v1
+## Test: Legacy plan detection for v1 (not legacy)
 Billing::PlanHelpers.legacy_plan?('identity_v1')
 #=> false
+
+## Test: Legacy plan detection via config flag (identity has legacy: true in billing.yaml)
+Billing::PlanHelpers.legacy_plan?('identity')
+#=> true
+
+## Test: Legacy plan detection with monthly interval suffix
+Billing::PlanHelpers.legacy_plan?('identity_monthly')
+#=> true
+
+## Test: Legacy plan detection with yearly interval suffix
+Billing::PlanHelpers.legacy_plan?('identity_yearly')
+#=> true
+
+## Test: Non-legacy plan with interval suffix
+Billing::PlanHelpers.legacy_plan?('identity_plus_v1_monthly')
+#=> false
+
+## Test: Empty plan_id returns false
+Billing::PlanHelpers.legacy_plan?('')
+#=> false
+
+## Test: Cached plans returns hash
+Billing::PlanHelpers.cached_plans.is_a?(Hash)
+#=> true
+
+## Test: Cached plans includes identity plan
+Billing::PlanHelpers.cached_plans.key?('identity')
+#=> true
+
+## Test: Clear cache resets cached plans
+Billing::PlanHelpers.clear_cache!
+Billing::PlanHelpers.instance_variable_get(:@cached_plans).nil?
+#=> true
 
 ## Test: Available plans includes identity_v1
 Billing::PlanHelpers.available_plans.include?('identity_v1')

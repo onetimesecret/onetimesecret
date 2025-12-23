@@ -219,7 +219,7 @@ export const BillingConfigSchema = z.object({
 
   plans: z
     .record(
-      z.string().regex(/^[a-z_]+(_v\d+)?$/, 'Plan ID must match format: name or name_v1'),
+      z.string().regex(/^[a-z_]+(_v\d+)?$/, 'Plan ID must be lowercase with underscores (e.g., identity, identity_plus_v1)'),
       PlanDefinitionSchema
     )
     .describe('Plan definitions by plan_id (legacy plans use legacy: true flag)'),
