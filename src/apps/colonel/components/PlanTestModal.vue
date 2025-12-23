@@ -28,8 +28,16 @@ const emit = defineEmits<{
 }>();
 
 interface Plan {
-  id: string;
+  planid: string;
   name: string;
+  tier?: string;
+  entitlements?: string[];
+  limits?: Record<string, string>;
+}
+
+interface PlansResponse {
+  plans: Plan[];
+  source: 'stripe' | 'local_config';
 }
 
 // Test plan mode composable
@@ -37,11 +45,15 @@ const { isTestModeActive, testPlanId, testPlanName, actualPlanId } = useTestPlan
 
 // Dynamic plan loading
 const plans = ref<Plan[]>([]);
+const plansSource = ref<'stripe' | 'local_config' | null>(null);
 const isLoadingPlans = ref(false);
 const plansError = ref<string | null>(null);
 
 const isLoading = ref(false);
 const error = ref<string | null>(null);
+
+// Whether we're using local config (Stripe unavailable)
+const isUsingLocalConfig = computed(() => plansSource.value === 'local_config');
 
 // Fetch available plans from API
 const fetchPlans = async () => {
@@ -49,17 +61,14 @@ const fetchPlans = async () => {
   plansError.value = null;
 
   try {
-    const response = await $api.get('/api/colonel/available-plans');
+    const response = await $api.get<PlansResponse>('/api/colonel/available-plans');
     plans.value = response.data.plans || [];
+    plansSource.value = response.data.source || null;
   } catch (err: unknown) {
     console.error('Failed to fetch available plans:', err);
-    plansError.value = 'Failed to load available plans';
-    // Fallback to hardcoded plans
-    plans.value = [
-      { id: 'free', name: 'Free' },
-      { id: 'identity_v1', name: 'Identity Plus' },
-      { id: 'multi_team_v1', name: 'Multi-Team' },
-    ];
+    plansError.value = 'Failed to load available plans. Check billing configuration.';
+    plans.value = [];
+    plansSource.value = null;
   } finally {
     isLoadingPlans.value = false;
   }
@@ -82,8 +91,8 @@ onMounted(() => {
 const actualPlanName = computed(() => {
   const planId = actualPlanId.value;
   if (!planId) return 'Free';
-  const plan = plans.value.find(p => p.id === planId);
-  return plan?.name || 'Free';
+  const plan = plans.value.find(p => p.planid === planId);
+  return plan?.name || planId;
 });
 
 const handleActivateTestMode = async (planId: string) => {
@@ -198,6 +207,29 @@ const handleClose = () => {
                   </div>
                 </div>
 
+                <!-- Local Config Warning -->
+                <div
+                  v-if="isUsingLocalConfig && !isLoadingPlans"
+                  class="mt-4 rounded-lg border border-orange-300 bg-orange-50 p-4 dark:border-orange-700 dark:bg-orange-900/20"
+                  role="alert">
+                  <div class="flex">
+                    <OIcon
+                      collection="heroicons"
+                      name="exclamation-triangle"
+                      class="size-5 shrink-0 text-orange-600 dark:text-orange-400"
+                      aria-hidden="true" />
+                    <div class="ml-3">
+                      <h4 class="text-sm font-medium text-orange-800 dark:text-orange-300">
+                        Using Local Configuration
+                      </h4>
+                      <p class="mt-1 text-sm text-orange-700 dark:text-orange-400">
+                        Plans loaded from billing.yaml, not Stripe. This indicates Stripe integration
+                        is not configured or unavailable. Test mode won't validate Stripe connectivity.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <!-- Current State -->
                 <div class="mt-5">
                   <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-900/50">
@@ -256,8 +288,8 @@ const handleClose = () => {
                 <div
                   v-else-if="plansError"
                   class="mt-5">
-                  <div class="rounded-lg bg-amber-50 p-4 dark:bg-amber-900/20">
-                    <p class="text-sm text-amber-800 dark:text-amber-400">
+                  <div class="rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
+                    <p class="text-sm text-red-800 dark:text-red-400">
                       {{ plansError }}
                     </p>
                   </div>
@@ -265,50 +297,78 @@ const handleClose = () => {
 
                 <!-- Available Plans -->
                 <div
-                  v-else
+                  v-else-if="plans.length > 0"
                   class="mt-5">
-                  <h4 class="text-sm font-medium text-gray-900 dark:text-white">
-                    {{ t('web.colonel.availablePlans') }}
-                  </h4>
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-sm font-medium text-gray-900 dark:text-white">
+                      {{ t('web.colonel.availablePlans') }}
+                    </h4>
+                    <span
+                      v-if="plansSource"
+                      :class="[
+                        'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+                        plansSource === 'stripe'
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                          : 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+                      ]">
+                      {{ plansSource === 'stripe' ? 'Stripe' : 'Local' }}
+                    </span>
+                  </div>
                   <div class="mt-3 space-y-2">
                     <button
                       v-for="plan in plans"
-                      :key="plan.id"
+                      :key="plan.planid"
                       type="button"
-                      :disabled="isLoading || plan.id === testPlanId"
+                      :disabled="isLoading || plan.planid === testPlanId"
                       :class="[
                         'w-full rounded-lg border px-4 py-3 text-left transition-colors',
-                        plan.id === testPlanId
+                        plan.planid === testPlanId
                           ? 'border-amber-500 bg-amber-50 dark:border-amber-600 dark:bg-amber-900/20'
                           : 'border-gray-300 bg-white hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700',
                         isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
                       ]"
-                      @click="handleActivateTestMode(plan.id)">
+                      @click="handleActivateTestMode(plan.planid)">
                       <div class="flex items-center justify-between">
                         <div>
                           <p
                             :class="[
                               'font-medium',
-                              plan.id === testPlanId
+                              plan.planid === testPlanId
                                 ? 'text-amber-900 dark:text-amber-100'
                                 : 'text-gray-900 dark:text-white',
                             ]">
                             {{ plan.name }}
                           </p>
                           <p
-                            v-if="plan.id === actualPlanId && !isTestModeActive"
+                            v-if="plan.tier"
                             class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                            {{ plan.tier }}
+                          </p>
+                          <p
+                            v-if="plan.planid === actualPlanId && !isTestModeActive"
+                            class="mt-0.5 text-xs text-green-600 dark:text-green-400">
                             Current plan
                           </p>
                         </div>
                         <OIcon
-                          v-if="plan.id === testPlanId"
+                          v-if="plan.planid === testPlanId"
                           collection="heroicons"
                           name="check-circle-solid"
                           class="size-5 text-amber-600 dark:text-amber-400"
                           aria-hidden="true" />
                       </div>
                     </button>
+                  </div>
+                </div>
+
+                <!-- No Plans Available -->
+                <div
+                  v-else
+                  class="mt-5">
+                  <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-900/50">
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      No plans available. Check billing configuration.
+                    </p>
                   </div>
                 </div>
               </div>

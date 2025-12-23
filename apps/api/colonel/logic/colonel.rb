@@ -17,6 +17,7 @@ require_relative 'colonel/get_colonel_stats'
 require_relative 'colonel/get_system_settings'
 
 # Entitlement test mode
+require_relative 'colonel/get_available_plans'
 require_relative 'colonel/set_entitlement_test'
 
 # Secret management

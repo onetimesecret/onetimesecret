@@ -28,23 +28,6 @@ module Onetime
           custom_domains api_access priority_support audit_logs
         ].freeze
 
-        # Minimal fallback plans for dev environments when Billing::Plan cache is empty
-        # Used only when billing is enabled but plan lookup fails (last resort)
-        FALLBACK_PLANS = {
-          'free' => {
-            entitlements: %w[create_secrets basic_sharing],
-            limits: { 'secrets.max' => '10', 'recipients.max' => '1' },
-          },
-          'identity_plus_v1_monthly' => {
-            entitlements: %w[create_secrets custom_domains create_organization priority_support],
-            limits: { 'secrets.max' => '100', 'recipients.max' => '10', 'organizations.max' => '1' },
-          },
-          'multi_team_v1_monthly' => {
-            entitlements: %w[create_secrets custom_domains create_organization api_access audit_logs advanced_analytics],
-            limits: { 'secrets.max' => 'unlimited', 'recipients.max' => 'unlimited', 'organizations.max' => '5' },
-          },
-        }.freeze
-
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
           base.include InstanceMethods
@@ -196,19 +179,18 @@ module Onetime
           # Get entitlements for a test plan (colonel test mode)
           #
           # Checks Billing::Plan cache first (production/Stripe-synced), then falls back
-          # to minimal FALLBACK_PLANS (for development when billing cache is empty).
+          # to billing.yaml config (for development when Stripe cache is empty).
           #
           # @param test_planid [String] Plan ID to test
           # @return [Array<String>] List of entitlements for the test plan
           def test_plan_entitlements(test_planid)
-            # Check Billing::Plan cache first (production/testing)
+            # Check Billing::Plan cache first (production/Stripe-synced)
             plan = ::Billing::Plan.load(test_planid)
             return plan.entitlements.to_a if plan
 
-            # Fall back to minimal dev plans when cache is empty
-            if (fallback_config = WithEntitlements::FALLBACK_PLANS[test_planid])
-              return fallback_config[:entitlements].dup
-            end
+            # Fall back to billing.yaml config when Stripe cache is empty
+            config_plan = ::Billing::Plan.load_from_config(test_planid)
+            return config_plan[:entitlements].dup if config_plan
 
             []
           end
@@ -216,7 +198,7 @@ module Onetime
           # Get limit for a resource from a test plan (colonel test mode)
           #
           # Checks Billing::Plan cache first (production/Stripe-synced), then falls back
-          # to minimal FALLBACK_PLANS (for development when billing cache is empty).
+          # to billing.yaml config (for development when Stripe cache is empty).
           #
           # @param test_planid [String] Plan ID to test
           # @param resource [String, Symbol] Resource to check limit for
@@ -225,7 +207,7 @@ module Onetime
             # Flattened key: "teams" => "teams.max"
             key = resource.to_s.include?('.') ? resource.to_s : "#{resource}.max"
 
-            # Check Billing::Plan cache first (production/testing)
+            # Check Billing::Plan cache first (production/Stripe-synced)
             plan = ::Billing::Plan.load(test_planid)
             if plan
               limits_hash = plan.limits.hgetall || {}
@@ -236,9 +218,10 @@ module Onetime
               return val.to_i
             end
 
-            # Fall back to minimal dev plans when cache is empty
-            if (fallback_config = WithEntitlements::FALLBACK_PLANS[test_planid])
-              val = fallback_config[:limits][key]
+            # Fall back to billing.yaml config when Stripe cache is empty
+            config_plan = ::Billing::Plan.load_from_config(test_planid)
+            if config_plan
+              val = config_plan[:limits][key]
               return 0 if val.nil?
               return Float::INFINITY if val == 'unlimited'
 

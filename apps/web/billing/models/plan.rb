@@ -4,6 +4,7 @@
 
 require 'stripe'
 require_relative '../metadata'
+require_relative '../config'
 
 module Billing
   unless defined?(RECORD_LIMIT)
@@ -371,6 +372,73 @@ module Billing
           plan&.destroy!
         end
         instances.clear
+      end
+
+      # Load a single plan from billing.yaml config
+      #
+      # Used as fallback when Stripe cache is empty (dev/test environments).
+      # Returns an ephemeral Plan-like hash (not persisted to Redis).
+      #
+      # @param plan_id [String] Plan ID (with or without interval suffix)
+      # @return [Hash, nil] Plan hash with :name, :entitlements, :limits or nil
+      def load_from_config(plan_id)
+        plans_hash = Billing::Config.load_plans
+        return nil if plans_hash.empty?
+
+        # Try exact match first (e.g., "free_v1")
+        if plans_hash.key?(plan_id)
+          return config_plan_to_hash(plan_id, plans_hash[plan_id])
+        end
+
+        # Try stripping interval suffix (e.g., "identity_plus_v1_monthly" -> "identity_plus_v1")
+        base_id = plan_id.sub(/_(month|year)ly$/, '')
+        if plans_hash.key?(base_id)
+          return config_plan_to_hash(plan_id, plans_hash[base_id])
+        end
+
+        nil
+      end
+
+      # Load all plans from billing.yaml config
+      #
+      # Used as fallback when Stripe cache is empty (dev/test environments).
+      # Creates one entry per plan (deduped by tier, preferring monthly).
+      #
+      # @return [Array<Hash>] Array of plan hashes
+      def list_plans_from_config
+        plans_hash = Billing::Config.load_plans
+        return [] if plans_hash.empty?
+
+        plans_hash.map do |plan_id, plan_def|
+          # For plans with prices, use monthly interval in the ID
+          interval = plan_def['prices']&.first&.dig('interval') || 'month'
+          full_id = plan_def['prices']&.any? ? "#{plan_id}_#{interval}ly" : plan_id
+
+          config_plan_to_hash(full_id, plan_def)
+        end
+      end
+
+      private
+
+      # Convert config plan definition to hash format
+      #
+      # @param plan_id [String] Full plan ID (with interval suffix if applicable)
+      # @param plan_def [Hash] Plan definition from YAML
+      # @return [Hash] Normalized plan hash
+      def config_plan_to_hash(plan_id, plan_def)
+        # Convert limits to flattened format (e.g., "teams" -> "teams.max")
+        limits = (plan_def['limits'] || {}).transform_keys { |k| "#{k}.max" }
+        limits = limits.transform_values do |v|
+          v.nil? || v == -1 ? 'unlimited' : v.to_s
+        end
+
+        {
+          planid: plan_id,
+          name: plan_def['name'],
+          tier: plan_def['tier'],
+          entitlements: plan_def['entitlements'] || [],
+          limits: limits,
+        }
       end
     end
   end

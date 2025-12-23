@@ -183,7 +183,7 @@ export interface OnetimeWindow {
 
   /**
    * Entitlement test mode (colonel only)
-   * Allows testing with different plan capabilities temporarily.
+   * Allows testing with different plan entitlements temporarily.
    * entitlement_test_planid being set indicates test mode is active.
    */
   entitlement_test_planid?: string | null;

@@ -15,25 +15,31 @@ module ColonelAPI
       # ## Request
       #
       # POST /api/colonel/entitlement-test
-      # Body: { planid: "identity_v1" }  - Set test mode
-      #       { planid: null }            - Clear test mode
+      # Body: { planid: "identity_plus_v1_monthly" }  - Set test mode
+      #       { planid: null }                         - Clear test mode
       #
       # ## Response
       #
       # Active override:
       # {
       #   status: "active",
-      #   test_planid: "identity_v1",
+      #   test_planid: "identity_plus_v1_monthly",
       #   test_plan_name: "Identity Plus",
-      #   actual_planid: "free",
-      #   entitlements: ["create_secrets", "custom_domains", ...]
+      #   actual_planid: "free_v1",
+      #   entitlements: ["create_secrets", "custom_domains", ...],
+      #   source: "stripe" | "local_config"
       # }
       #
       # Cleared:
       # {
       #   status: "cleared",
-      #   actual_planid: "free"
+      #   actual_planid: "free_v1"
       # }
+      #
+      # ## Source Indicator
+      #
+      # - "stripe": Plan loaded from Stripe-synced Redis cache
+      # - "local_config": Plan loaded from billing.yaml (Stripe unavailable)
       #
       # ## Security
       #
@@ -41,27 +47,7 @@ module ColonelAPI
       # - Session-scoped (cleared on logout)
       # - Does not modify actual subscription/billing
       class SetEntitlementTest < ColonelAPI::Logic::Base
-        # Minimal fallback plans for dev environments when Billing::Plan cache is empty
-        # Used only as last resort - prefer Billing::Plan.load() for actual plan lookup
-        FALLBACK_PLANS = {
-          'free' => {
-            name: 'Free',
-            entitlements: %w[create_secrets basic_sharing],
-            limits: { 'secrets.max' => '10', 'recipients.max' => '1' },
-          },
-          'identity_plus_v1_monthly' => {
-            name: 'Identity Plus',
-            entitlements: %w[create_secrets custom_domains create_organization priority_support],
-            limits: { 'secrets.max' => '100', 'recipients.max' => '10', 'organizations.max' => '1' },
-          },
-          'multi_team_v1_monthly' => {
-            name: 'Multi-Team',
-            entitlements: %w[create_secrets custom_domains create_organization api_access audit_logs advanced_analytics],
-            limits: { 'secrets.max' => 'unlimited', 'recipients.max' => 'unlimited', 'organizations.max' => '5' },
-          },
-        }.freeze
-
-        attr_reader :planid, :test_plan_config
+        attr_reader :planid, :test_plan_config, :plan_source
 
         def process_params
           @planid = params[:planid]&.to_s&.strip
@@ -71,22 +57,33 @@ module ColonelAPI
           verify_one_of_roles!(colonel: true)
 
           # If setting a plan, validate it exists
-          # Check Billing::Plan cache first (production/Stripe-synced), then fallback plans (dev)
           return unless @planid && !@planid.empty?
 
-          actual_plan       = ::Billing::Plan.load(@planid)
-          @test_plan_config = if actual_plan
-            {
-              name: actual_plan.name,
-              entitlements: actual_plan.entitlements.to_a,
-              limits: actual_plan.limits.hgetall || {},
+          # Try Stripe cache first (production)
+          stripe_plan = ::Billing::Plan.load(@planid)
+          if stripe_plan
+            @plan_source = 'stripe'
+            @test_plan_config = {
+              name: stripe_plan.name,
+              entitlements: stripe_plan.entitlements.to_a,
+              limits: stripe_plan.limits.hgetall || {},
             }
-          else
-            # Fall back to minimal dev plans when Billing::Plan cache is empty
-            FALLBACK_PLANS[@planid]
-                              end
+            return
+          end
 
-          raise_form_error('Invalid plan ID') unless @test_plan_config
+          # Fall back to billing.yaml config (dev/standalone)
+          config_plan = ::Billing::Plan.load_from_config(@planid)
+          if config_plan
+            @plan_source = 'local_config'
+            @test_plan_config = {
+              name: config_plan[:name],
+              entitlements: config_plan[:entitlements],
+              limits: config_plan[:limits],
+            }
+            return
+          end
+
+          raise_form_error('Invalid plan ID')
         end
 
         def process
@@ -109,6 +106,7 @@ module ColonelAPI
               actual_planid: organization&.planid,
               entitlements: @test_plan_config[:entitlements],
               limits: @test_plan_config[:limits],
+              source: @plan_source,
             }
           end
         end

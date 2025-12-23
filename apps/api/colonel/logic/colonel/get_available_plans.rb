@@ -10,8 +10,8 @@ module ColonelAPI
       # Get Available Plans
       #
       # Returns all available plans for entitlement testing, loaded dynamically
-      # from the Billing::Plan cache. Falls back to minimal hardcoded plans
-      # when billing is disabled (dev/standalone environments).
+      # from the Billing::Plan cache (Stripe-synced). Falls back to billing.yaml
+      # config when cache is empty (dev/standalone environments).
       #
       # ## Request
       #
@@ -22,66 +22,36 @@ module ColonelAPI
       # {
       #   plans: [
       #     {
-      #       planid: "free",
+      #       planid: "free_v1",
       #       name: "Free",
       #       tier: "free",
-      #       entitlements: ["create_secrets", "basic_sharing"],
-      #       limits: { "secrets.max" => "10", "recipients.max" => "1" }
+      #       entitlements: ["create_secrets", "view_metadata"],
+      #       limits: { "teams.max" => "0", "custom_domains.max" => "0" }
       #     },
-      #     {
-      #       planid: "identity_plus_v1_monthly",
-      #       name: "Identity Plus",
-      #       tier: "single_team",
-      #       entitlements: ["create_secrets", "custom_domains", ...],
-      #       limits: { "secrets.max" => "100", ... }
-      #     }
+      #     ...
       #   ],
-      #   source: "stripe"  # or "fallback"
+      #   source: "stripe" | "local_config"
       # }
       #
-      # ## Deduplication
+      # ## Source Indicator
       #
-      # If both monthly and yearly versions exist (e.g., identity_plus_v1_monthly
-      # and identity_plus_v1_yearly), only the monthly version is returned to
-      # reduce UI clutter. Colonels test entitlements, not billing intervals.
+      # - "stripe": Plans loaded from Stripe-synced Redis cache (production)
+      # - "local_config": Plans loaded from billing.yaml (dev/no Stripe)
+      #
+      # The UI should display a warning when source is "local_config" since
+      # this indicates the Stripe integration is not configured/available.
       #
       # ## Security
       #
       # - Requires colonel role
       class GetAvailablePlans < ColonelAPI::Logic::Base
-        # Minimal fallback plans for dev/standalone environments
-        # Used when Billing::Plan cache is empty (no Stripe sync)
-        FALLBACK_PLANS = [
-          {
-            planid: 'free',
-            name: 'Free',
-            tier: 'free',
-            entitlements: %w[create_secrets basic_sharing],
-            limits: { 'secrets.max' => '10', 'recipients.max' => '1' },
-          },
-          {
-            planid: 'identity_plus_v1_monthly',
-            name: 'Identity Plus',
-            tier: 'single_team',
-            entitlements: %w[create_secrets custom_domains create_organization priority_support],
-            limits: { 'secrets.max' => '100', 'recipients.max' => '10', 'organizations.max' => '1' },
-          },
-          {
-            planid: 'multi_team_v1_monthly',
-            name: 'Multi-Team',
-            tier: 'multi_team',
-            entitlements: %w[create_secrets custom_domains create_organization api_access audit_logs advanced_analytics],
-            limits: { 'secrets.max' => 'unlimited', 'recipients.max' => 'unlimited', 'organizations.max' => '5' },
-          },
-        ].freeze
-
         def raise_concerns
           verify_one_of_roles!(colonel: true)
         end
 
         def process
-          # Try loading from Billing::Plan cache first
-          cached_plans = load_plans_from_cache
+          # Try loading from Billing::Plan cache (Stripe-synced) first
+          cached_plans = load_plans_from_stripe_cache
 
           if cached_plans.any?
             {
@@ -89,20 +59,21 @@ module ColonelAPI
               source: 'stripe',
             }
           else
-            # Fall back to hardcoded plans for dev environments
+            # Fall back to billing.yaml config
+            config_plans = ::Billing::Plan.list_plans_from_config
             {
-              plans: FALLBACK_PLANS,
-              source: 'fallback',
+              plans: config_plans,
+              source: 'local_config',
             }
           end
         end
 
         private
 
-        # Load plans from Billing::Plan cache
+        # Load plans from Billing::Plan cache (Stripe-synced)
         #
         # @return [Array<Hash>] Array of plan hashes
-        def load_plans_from_cache
+        def load_plans_from_stripe_cache
           plans = ::Billing::Plan.list_plans
 
           # Convert to hash format, deduplicating by tier
@@ -123,11 +94,6 @@ module ColonelAPI
             }
 
             seen_tiers[plan.tier] = true
-          end
-
-          # Add free tier if not present in cache
-          unless plans_array.any? { |p| p[:tier] == 'free' }
-            plans_array.unshift(FALLBACK_PLANS.first)
           end
 
           plans_array
