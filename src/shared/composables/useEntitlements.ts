@@ -95,15 +95,6 @@ export function useEntitlements(org: Ref<Organization | null>) {
    */
   const planId = computed(() => org.value?.planid);
 
-  /** Test plan ID if test mode is active (colonel only) */
-  const testPlanId = computed(() => WindowService.get('entitlement_test_planid') ?? null);
-
-  /** Test plan name if test mode is active */
-  const testPlanName = computed(() => WindowService.get('entitlement_test_plan_name') ?? null);
-
-  /** Check if entitlement test mode is active */
-  const entitlementTestActive = computed(() => !!testPlanId.value);
-
   return {
     can,
     limit,
@@ -112,9 +103,6 @@ export function useEntitlements(org: Ref<Organization | null>) {
     entitlements,
     planId,
     isStandaloneMode,
-    entitlementTestActive,
-    testPlanId,
-    testPlanName,
     ENTITLEMENTS,
   };
 }
