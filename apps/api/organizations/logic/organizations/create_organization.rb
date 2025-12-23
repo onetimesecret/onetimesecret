@@ -122,6 +122,8 @@ module OrganizationAPI::Logic
         return unless primary_org.entitlements.any?
 
         # Fail-closed: billing enabled, enforce quota
+        # NOTE: at_limit?(resource, count) returns true when count >= limit,
+        # meaning creating one more would exceed the plan's allowed quota.
         current_count = cust.organization_instances.size
 
         if primary_org.at_limit?('organizations', current_count)

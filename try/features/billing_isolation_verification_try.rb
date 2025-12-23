@@ -127,7 +127,7 @@ BillingTestHelpers.cleanup_billing_state!
 begin
   BillingTestHelpers.restore_billing!
   @after_path = Onetime::BillingConfig.path
-rescue => e
+rescue StandardError
   # Even if restore fails, the path variable changes
   @after_path = Onetime::BillingConfig.path
 end

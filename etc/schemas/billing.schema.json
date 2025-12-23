@@ -101,6 +101,10 @@
       "type": "object",
       "required": ["teams", "members_per_team", "custom_domains", "secret_lifetime"],
       "properties": {
+        "organizations": {
+          "$ref": "#/definitions/LimitValue",
+          "description": "Maximum number of organizations"
+        },
         "teams": {
           "$ref": "#/definitions/LimitValue",
           "description": "Maximum number of teams"
