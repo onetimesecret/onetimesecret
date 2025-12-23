@@ -114,14 +114,6 @@ RSpec.configure do |config|
   config.include BillingSpecHelper, integration: true
   config.include BillingSpecHelper, billing_cli: true
 
-  # Skip VCR tests in CI when cassettes may be invalid
-  # Re-record cassettes locally with: STRIPE_API_KEY=sk_test_xxx VCR_MODE=all bundle exec rspec
-  config.before(:each, :vcr) do
-    if defined?(BILLING_VCR_SKIP_IN_CI) && BILLING_VCR_SKIP_IN_CI
-      skip 'Skipping VCR test in CI - cassettes need re-recording with real Stripe API key'
-    end
-  end
-
   # VCR: Automatically wrap tests tagged with :vcr in cassettes
   # Cassette naming matches existing directory structure:
   #   Billing_StripeClient/_delete/deletes_regular_resources.yml

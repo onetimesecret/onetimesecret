@@ -117,12 +117,12 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
       expect(retrieved).to be_a(Stripe::Customer)
     end
 
-    it 'handles non-existent resource' do
-      # stripe-mock returns 404 but may not raise InvalidRequestError
-      result = client.retrieve(Stripe::Customer, 'cus_nonexistent')
+    it 'raises InvalidRequestError for non-existent resource' do
+      skip 'Re-record with: STRIPE_API_KEY=sk_test_xxx VCR_MODE=all bundle exec rspec' if ENV['CI']
 
-      # Just verify we get a response (stripe-mock behavior)
-      expect(result).to be_a(Stripe::Customer)
+      expect do
+        client.retrieve(Stripe::Customer, 'cus_nonexistent')
+      end.to raise_error(Stripe::InvalidRequestError, /No such customer/)
     end
   end
 
@@ -153,12 +153,17 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
     end
 
     it 'calls cancel for subscriptions' do
+      # Creates a subscription and cancels it via client.delete
+      # Requires test clock or payment method setup for reliable recording
+      skip 'Re-record with: STRIPE_API_KEY=sk_test_xxx VCR_MODE=all bundle exec rspec' if ENV['CI']
+
       customer     = Stripe::Customer.create({ email: 'sub@example.com' })
       product      = Stripe::Product.create({ name: 'Sub Test' })
       price        = Stripe::Price.create({
         product: product.id,
         currency: 'usd',
         unit_amount: 1000,
+        recurring: { interval: 'month' },
       },
                                          )
       subscription = Stripe::Subscription.create({
