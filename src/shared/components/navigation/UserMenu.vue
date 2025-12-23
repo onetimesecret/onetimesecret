@@ -31,6 +31,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { Customer } from '@/schemas/models';
 import { WindowService } from '@/services/window.service';
+import PlanTestModal from '@/apps/colonel/components/PlanTestModal.vue';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -44,9 +45,20 @@ const props = defineProps<{
 const { t } = useI18n();
 const { logout } = useAuth();
 
+const isPlanTestModalOpen = ref(false);
+
 const billingEnabled = computed(() => {
   try {
     return WindowService.get('billing_enabled') || false;
+  } catch {
+    return false;
+  }
+});
+
+const entitlementTestActive = computed(() => {
+  try {
+    // Test mode is active if a test planid is set
+    return !!WindowService.get('entitlement_test_planid');
   } catch {
     return false;
   }
@@ -68,6 +80,15 @@ interface MenuItem {
   condition?: () => boolean;
   onClick?: () => void | Promise<void>;
 }
+
+const openPlanTestModal = () => {
+  isPlanTestModalOpen.value = true;
+  closeMenu();
+};
+
+const closePlanTestModal = () => {
+  isPlanTestModalOpen.value = false;
+};
 
 // Define menu items
 const menuItems = computed<MenuItem[]>(() => [
@@ -112,6 +133,15 @@ const menuItems = computed<MenuItem[]>(() => [
     icon: { collection: 'mdi', name: 'star' },
     condition: () => !props.awaitingMfa && props.colonel,
   },
+  // Test Plan Mode (colonel only)
+  {
+    id: 'test-plan',
+    label: t('web.colonel.testPlanMode'),
+    icon: { collection: 'heroicons', name: 'beaker' },
+    variant: entitlementTestActive.value ? 'caution' : 'default',
+    condition: () => !props.awaitingMfa && props.colonel,
+    onClick: openPlanTestModal,
+  },
   // Logout (always show)
   {
     id: 'logout',
@@ -137,7 +167,7 @@ const shouldShowDividerBefore = (item: MenuItem, index: number): boolean => {
   // Show divider before upgrade/colonel section
   if (item.id === 'upgrade' || item.id === 'colonel') return true;
 
-  // Show divider before logout
+  // Show divider before logout (but after test-plan if present)
   if (item.id === 'logout') return true;
 
   return false;
@@ -372,5 +402,10 @@ onUnmounted(() => {
         </nav>
       </div>
     </Transition>
+
+    <!-- Plan Test Modal -->
+    <PlanTestModal
+      :is-open="isPlanTestModalOpen"
+      @close="closePlanTestModal" />
   </div>
 </template>
