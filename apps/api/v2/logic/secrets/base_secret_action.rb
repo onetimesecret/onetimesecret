@@ -89,7 +89,7 @@ module V2::Logic
         # Get min/max values safely
         min_ttl = ttl_options.min || 1.minute # Fallback to 1 minute
 
-        # Use organization entitlement limit if available, otherwise config max
+        # Limit enforcement: fail-open (unlimited) when no billing, else plan limit.
         config_max = ttl_options.max || 30.days
         max_ttl    = if org && org.respond_to?(:limit_for)
                     org_limit = org.limit_for('secret_lifetime')

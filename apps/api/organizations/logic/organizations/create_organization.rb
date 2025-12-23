@@ -85,16 +85,17 @@ module OrganizationAPI::Logic
       # Only enforced when billing is enabled and plan cache is populated.
       # Skipped for first organization creation (no primary org to check against).
       def check_organization_quota!
-        # Get customer's primary organization for plan/billing context
+        # Quota enforcement: fail-open when no billing, fail-closed when enabled.
+        # See WithEntitlements module for design rationale.
+
         primary_org = cust.organization_instances.to_a.find { |o| o.is_default } || cust.organization_instances.first
 
-        # Skip quota check if no primary org (first org creation always succeeds)
+        # Fail-open conditions: skip quota check
         return unless primary_org
-
-        # Skip if billing disabled or no entitlements (standalone mode gives unlimited)
         return unless primary_org.respond_to?(:at_limit?)
         return unless primary_org.entitlements.any?
 
+        # Fail-closed: billing enabled, enforce quota
         current_count = cust.organization_instances.size
 
         if primary_org.at_limit?('organizations', current_count)
