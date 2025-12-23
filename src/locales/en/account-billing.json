@@ -81,7 +81,7 @@
         "view_org_billing": "View organization billing"
       },
       "limits": {
-        "members_reached": "You've reached the member limit",
+        "members_reached": "You've reached the member limit for this team",
         "members_upgrade": "Upgrade to add more members"
       },
       "subscription": {
