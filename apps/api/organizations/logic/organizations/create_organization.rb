@@ -47,19 +47,43 @@ module OrganizationAPI::Logic
       def process
         OT.ld "[CreateOrganization] Creating organization '#{display_name}' for user #{cust.custid}"
 
-        # Create organization using class method (contact_email is optional)
-        email_value   = contact_email.empty? ? nil : contact_email
-        @organization = Onetime::Organization.create!(display_name, cust, email_value)
+        # Acquire distributed lock for organization creation to prevent quota race conditions
+        lock_key = "customer:#{cust.objid}:org_creation_lock"
+        lock = Familia::Lock.new(lock_key)
+        lock_token = nil
 
-        # Set description if provided
-        unless description.empty?
-          @organization.description = description
-          @organization.save
+        begin
+          # Attempt to acquire lock with 30s TTL
+          lock_token = lock.acquire(ttl: 30)
+
+          unless lock_token
+            raise_form_error(
+              'Organization creation in progress. Please try again.',
+              field: 'display_name',
+              error_type: :conflict
+            )
+          end
+
+          # Re-check quota inside the lock to prevent TOCTOU race
+          check_organization_quota!
+
+          # Create organization using class method (contact_email is optional)
+          email_value   = contact_email.empty? ? nil : contact_email
+          @organization = Onetime::Organization.create!(display_name, cust, email_value)
+
+          # Set description if provided
+          unless description.empty?
+            @organization.description = description
+            @organization.save
+          end
+
+          OT.info "[CreateOrganization] Created organization #{@organization.objid}"
+
+          success_data
+        ensure
+          # Always release lock if we acquired it
+          lock.release(lock_token) if lock_token
         end
-
-        OT.info "[CreateOrganization] Created organization #{@organization.objid}"
-
-        success_data
       end
 
       def success_data
