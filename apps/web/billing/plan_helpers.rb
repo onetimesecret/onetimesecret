@@ -87,13 +87,24 @@ module Billing
       # Method 1: Check billing.yaml config for explicit legacy flag
       # Strip interval suffix if present (e.g., "identity_monthly" -> "identity")
       base_plan_id = plan_id.to_s.sub(/_(month|year)ly$/, '')
-      plans_hash = ::Billing::Config.load_plans
-      plan_def = plans_hash[base_plan_id]
+      plan_def = cached_plans[base_plan_id]
       return plan_def['legacy'] == true if plan_def
 
       # Method 2: Pattern matching for backward compatibility
       # v0 plans are legacy, v1+ are current
       plan_id.match?(/_v0(_|$)/)
+    end
+
+    # Cached plans hash to avoid repeated YAML parsing
+    #
+    # @return [Hash] Plan definitions by ID
+    def self.cached_plans
+      @cached_plans ||= ::Billing::Config.load_plans
+    end
+
+    # Clear cached plans (for testing or config reload)
+    def self.clear_cache!
+      @cached_plans = nil
     end
 
     # Get all available (non-legacy) plan IDs

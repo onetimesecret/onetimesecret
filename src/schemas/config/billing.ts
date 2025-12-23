@@ -177,20 +177,6 @@ export const PlanDefinitionSchema = z.object({
 export type PlanDefinition = z.infer<typeof PlanDefinitionSchema>;
 
 /**
- * Legacy Plan Definition
- * Grandfathered plans no longer offered to new customers
- */
-export const LegacyPlanDefinitionSchema = PlanDefinitionSchema.extend({
-  grandfathered_until: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional()
-    .describe('ISO date until which plan is grandfathered (YYYY-MM-DD)'),
-});
-
-export type LegacyPlanDefinition = z.infer<typeof LegacyPlanDefinitionSchema>;
-
-/**
  * Stripe Metadata Field Definition
  */
 export const MetadataFieldSchema = z.record(
