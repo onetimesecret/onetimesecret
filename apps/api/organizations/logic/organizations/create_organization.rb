@@ -25,10 +25,6 @@ module OrganizationAPI::Logic
           raise_form_error('Organization name is required', field: 'display_name', error_type: :missing)
         end
 
-        if display_name.empty?
-          raise_form_error('Organization name must be at least 1 character', field: 'display_name', error_type: :invalid)
-        end
-
         if display_name.length > 100
           raise_form_error('Organization name must be less than 100 characters', field: 'display_name', error_type: :invalid)
         end
@@ -82,7 +78,13 @@ module OrganizationAPI::Logic
           success_data
         ensure
           # Always release lock if we acquired it
-          lock.release(lock_token) if lock_token
+          if lock_token
+            begin
+              lock.release(lock_token)
+            rescue StandardError => e
+              OT.warn "[CreateOrganization] Lock release failed: #{e.message}"
+            end
+          end
         end
       end
 
