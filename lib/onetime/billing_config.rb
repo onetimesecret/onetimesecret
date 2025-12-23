@@ -66,14 +66,9 @@ module Onetime
       config['entitlements'] || {}
     end
 
-    # Active plans configuration
+    # Plans configuration (includes legacy plans with `legacy: true` flag)
     def plans
       config['plans'] || {}
-    end
-
-    # Legacy plans configuration
-    def legacy_plans
-      config['legacy_plans'] || {}
     end
 
     # Stripe metadata schema

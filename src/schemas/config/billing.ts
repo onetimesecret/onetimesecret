@@ -162,6 +162,12 @@ export const PlanDefinitionSchema = z.object({
     .describe('Sort order on plans page (higher = earlier)'),
   show_on_plans_page: z.boolean().describe('Visibility on public plans page'),
   description: z.string().min(1).optional().describe('Plan description for documentation'),
+  legacy: z.boolean().optional().describe('Marks plan as legacy/grandfathered (no longer offered)'),
+  grandfathered_until: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .describe('ISO date until which plan is grandfathered (YYYY-MM-DD)'),
 
   entitlements: z.array(z.string().min(1)).describe('Array of entitlement IDs'),
   limits: PlanLimitsSchema,
@@ -227,15 +233,10 @@ export const BillingConfigSchema = z.object({
 
   plans: z
     .record(
-      z.string().regex(/^[a-z_]+_v\d+$/, 'Plan ID must match format: name_v1'),
+      z.string().regex(/^[a-z_]+(_v\d+)?$/, 'Plan ID must match format: name or name_v1'),
       PlanDefinitionSchema
     )
-    .describe('Active plan definitions by plan_id'),
-
-  legacy_plans: z
-    .record(z.string(), LegacyPlanDefinitionSchema)
-    .optional()
-    .describe('Grandfathered plan definitions'),
+    .describe('Plan definitions by plan_id (legacy plans use legacy: true flag)'),
 
   stripe_metadata_schema: StripeMetadataSchemaDefinition.optional().describe(
     'Stripe product metadata schema definition'

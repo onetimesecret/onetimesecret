@@ -54,7 +54,8 @@ module Billing
 
     # Load plans from billing.yaml
     #
-    # Loads plan definitions from billing configuration with flat structure.
+    # Loads plan definitions from billing configuration.
+    # Legacy plans use `legacy: true` flag in the plans section.
     #
     # @return [Hash] Plan definitions by ID
     def self.load_plans

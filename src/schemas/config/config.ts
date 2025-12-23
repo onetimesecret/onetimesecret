@@ -274,7 +274,6 @@ export const apiBillingSchema = z.object({
   stripe_api_version: z.string().nullable().optional(),
   entitlements: z.record(z.string(), z.any()).nullable().optional(),
   plans: z.record(z.string(), z.any()).nullable().optional(),
-  legacy_plans: z.record(z.string(), z.any()).nullable().optional(),
   stripe_metadata_schema: z.any().nullable().optional(),
 });
 
