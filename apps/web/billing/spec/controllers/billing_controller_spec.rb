@@ -294,9 +294,8 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       created_customers << member_customer
       member_customer.save
 
-      # Add as member but not owner
-      team = Onetime::Team.create!(organization, 'Test Team', customer)
-      team.add_member(member_customer)
+      # Add as member but not owner (using Organization's auto-generated method)
+      organization.add_members_instance(member_customer)
 
       # Switch session to member customer
       env 'rack.session', {
