@@ -21,10 +21,17 @@ module BillingTestHelpers
     # Restore original billing configuration
     # Used for cleanup and for tests that need real billing
     def restore_billing!
-      return unless defined?(@original_path)
-
       ensure_familia_configured!
-      Onetime::BillingConfig.path = @original_path
+
+      # If we saved an original path, restore it
+      # Otherwise, use the default billing.yaml path
+      path_to_restore = if defined?(@original_path) && @original_path
+                          @original_path
+                        else
+                          File.join(Onetime::HOME, 'etc', 'billing.yaml')
+                        end
+
+      Onetime::BillingConfig.path = path_to_restore
       reset_billing_singleton!
     end
 
