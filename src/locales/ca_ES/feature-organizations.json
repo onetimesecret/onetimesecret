@@ -35,8 +35,6 @@
       "organization_settings_description": "Actualitza el nom i la descripció de la teva organització",
       "general_settings": "Configuració general",
       "billing_settings": "Facturació i subscripció",
-      "teams_in_organization": "Equips",
-      "no_teams": "Encara no hi ha equips en aquesta organització",
       "save_changes": "Desa els canvis",
       "update_success": "Organització actualitzada correctament",
       "update_error": "No s'ha pogut actualitzar l'organització",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "General",
         "company_branding": "Marca de l'empresa",
-        "teams": "Equips",
         "billing": "Facturació"
       },
       "danger_zone": "Zona de perill",

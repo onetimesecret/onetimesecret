@@ -269,10 +269,6 @@
       "colonel_usage": "Usage Export",
       "colonel_info": "System Information",
       "not_found": "Page Not Found",
-      "teams": "Teams",
-      "team_dashboard": "Team Dashboard",
-      "team_members": "Team Members",
-      "team_settings": "Team Settings",
       "organizations_settings": "Organizations",
       "organization_settings": "Organization Settings"
     },

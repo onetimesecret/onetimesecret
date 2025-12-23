@@ -25,10 +25,6 @@ test_email = "orgcontext-#{Time.now.to_i}@onetimesecret.com"
 
 @org2 = Onetime::Organization.create!('Secondary Workspace', @cust)
 
-# Create teams
-@team1 = Onetime::Team.create!('Alpha Team', @cust, @org1.objid)
-@team2 = Onetime::Team.create!('Beta Team', @cust, @org2.objid)
-
 @session = {}
 @env = {}
 
@@ -45,7 +41,6 @@ end
 
 ## Organization selection: Default organization priority
 @session.delete('organization_id')
-@session.delete('team_id')
 
 context = @strategy.load_organization_context(@cust, @session, @env)
 context[:organization]&.objid
@@ -86,37 +81,6 @@ context2 = @strategy.load_organization_context(@cust, @session, @env)
 context1[:organization]&.objid == context2[:organization]&.objid
 #=> true
 
-## Team selection: First team in organization
-@session.delete('organization_id')
-@session.delete('team_id')
-@session.delete("org_context:#{@cust.objid}")
-
-context = @strategy.load_organization_context(@cust, @session, @env)
-context[:team]&.objid
-#=> @team1.objid
-
-## Team selection: Explicit session selection
-@session.delete("org_context:#{@cust.objid}")
-@session['organization_id'] = @org2.objid
-@session['team_id'] = @team2.objid
-
-context = @strategy.load_organization_context(@cust, @session, @env)
-context[:team]&.objid
-#=> @team2.objid
-
-## Team selection: Invalid team ID cleared
-@session.delete("org_context:#{@cust.objid}")
-@session['organization_id'] = @org1.objid
-@session['team_id'] = 'invalid-team-id'
-
-context = @strategy.load_organization_context(@cust, @session, @env)
-context[:team]&.objid  # Should fall back to first team
-#=> @team1.objid
-
-## Team selection: Invalid team ID cleared from session
-@session['team_id']  # Should clear invalid ID
-#=> nil
-
 ## Anonymous user: Returns empty context
 @session.clear
 context = @strategy.load_organization_context(Onetime::Customer.anonymous, @session, @env)
@@ -137,8 +101,6 @@ context
 #=> nil
 
 ## Clean up test data
-@team1.destroy!
-@team2.destroy!
 @org1.destroy!
 @org2.destroy!
 @cust.destroy!

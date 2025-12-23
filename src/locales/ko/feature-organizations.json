@@ -35,8 +35,6 @@
       "organization_settings_description": "조직 이름 및 설명을 업데이트합니다",
       "general_settings": "일반 설정",
       "billing_settings": "결제 및 구독",
-      "teams_in_organization": "팀",
-      "no_teams": "이 조직에 아직 팀이 없습니다",
       "save_changes": "변경사항 저장",
       "update_success": "조직이 성공적으로 업데이트되었습니다",
       "update_error": "조직 업데이트에 실패했습니다",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "일반",
         "company_branding": "회사 브랜딩",
-        "teams": "팀",
         "billing": "결제"
       },
       "danger_zone": "위험 구역",

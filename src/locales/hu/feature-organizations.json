@@ -35,8 +35,6 @@
       "organization_settings_description": "Szervezet nevének és leírásának frissítése",
       "general_settings": "Általános beállítások",
       "billing_settings": "Számlázás és előfizetés",
-      "teams_in_organization": "Csapatok",
-      "no_teams": "Még nincsenek csapatok ebben a szervezetben",
       "save_changes": "Módosítások mentése",
       "update_success": "Szervezet sikeresen frissítve",
       "update_error": "Nem sikerült frissíteni a szervezetet",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "Általános",
         "company_branding": "Céges márkajelzés",
-        "teams": "Csapatok",
         "billing": "Számlázás"
       },
       "danger_zone": "Veszélyzóna",

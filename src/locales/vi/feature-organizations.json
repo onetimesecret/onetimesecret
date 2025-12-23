@@ -35,8 +35,6 @@
       "organization_settings_description": "Cập nhật tên và mô tả tổ chức của bạn",
       "general_settings": "Cài đặt chung",
       "billing_settings": "Thanh toán & Đăng ký",
-      "teams_in_organization": "Nhóm",
-      "no_teams": "Chưa có nhóm nào trong tổ chức này",
       "save_changes": "Lưu thay đổi",
       "update_success": "Đã cập nhật tổ chức thành công",
       "update_error": "Không thể cập nhật tổ chức",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "Chung",
         "company_branding": "Thương hiệu công ty",
-        "teams": "Nhóm",
         "billing": "Thanh toán"
       },
       "danger_zone": "Vùng nguy hiểm",

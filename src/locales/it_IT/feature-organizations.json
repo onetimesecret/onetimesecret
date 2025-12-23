@@ -35,8 +35,6 @@
       "organization_settings_description": "Aggiorna il nome e la descrizione della tua organizzazione",
       "general_settings": "Impostazioni generali",
       "billing_settings": "Fatturazione e abbonamento",
-      "teams_in_organization": "Team",
-      "no_teams": "Ancora nessun team in questa organizzazione",
       "save_changes": "Salva modifiche",
       "update_success": "Organizzazione aggiornata con successo",
       "update_error": "Aggiornamento organizzazione fallito",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "Generale",
         "company_branding": "Branding aziendale",
-        "teams": "Team",
         "billing": "Fatturazione"
       },
       "danger_zone": "Zona pericolosa",

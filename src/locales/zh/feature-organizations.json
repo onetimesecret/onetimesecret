@@ -35,8 +35,6 @@
       "organization_settings_description": "更新您的组织名称和描述",
       "general_settings": "常规设置",
       "billing_settings": "账单与订阅",
-      "teams_in_organization": "团队",
-      "no_teams": "此组织中暂无团队",
       "save_changes": "保存更改",
       "update_success": "组织更新成功",
       "update_error": "更新组织失败",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "常规",
         "company_branding": "公司品牌",
-        "teams": "团队",
         "billing": "账单"
       },
       "danger_zone": "危险区域",

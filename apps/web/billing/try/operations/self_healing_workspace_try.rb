@@ -30,16 +30,11 @@ require_relative '../../controllers/billing'
 ## Can check CreateDefaultWorkspace operation directly
 result = Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
 @org   = result[:organization]
-@team  = result[:team]
-[@org.class.name, @team.class.name]
-#=> ['Onetime::Organization', 'Onetime::Team']
+@org.class.name
+#=> 'Onetime::Organization'
 
 ## Verifies organization is marked as default
 @org.is_default
-#=> true
-
-## Verifies team is marked as default
-@team.is_default
 #=> true
 
 ## Verifies customer now has organization

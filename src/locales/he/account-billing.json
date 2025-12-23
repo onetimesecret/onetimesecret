@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "נדרש שדרוג",
         "viewPlans": "צפייה בתוכניות",
-        "needTeams": "צוותים מרובים דורשים תוכנית Multi-Team או גבוהה יותר",
         "needCustomDomains": "דומיינים מותאמים אישית דורשים Identity Plus או גבוהה יותר",
         "needApiAccess": "גישת API דורשת תוכנית Multi-Team או גבוהה יותר",
         "needPrioritySupport": "תמיכה עדיפה דורשת Identity Plus או גבוהה יותר",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "יצירת סודות",
           "basic_sharing": "שיתוף בסיסי",
-          "create_team": "יצירת צוות",
-          "create_teams": "יצירת צוותים מרובים",
           "custom_domains": "דומיינים מותאמים אישית",
           "api_access": "גישת API",
           "priority_support": "תמיכה עדיפה",
@@ -60,8 +57,6 @@
         "single_team_plan": "צוות יחיד",
         "multi_team_plan": "צוותים מרובים",
         "features": "תכונות",
-        "teams_limit": "צוות {count} | {count} צוותים",
-        "members_limit": "חבר {count} לצוות | {count} חברים לצוות",
         "unlimited_secrets": "סודות בלתי מוגבלים",
         "api_access": "גישת API",
         "priority_support": "תמיכה עדיפה",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "החיוב לצוות זה מנוהל על ידי {orgName}",
-        "view_org_billing": "צפייה בחיוב הארגון",
-        "team_billing_disabled": "החיוב ברמת הצוות מנוהל דרך הארגון שלכם"
+        "view_org_billing": "צפייה בחיוב הארגון"
       },
       "limits": {
-        "teams_reached": "הגעתם למגבלת התוכנית שלכם",
-        "teams_upgrade": "שדרגו כדי ליצור צוותים נוספים",
         "members_reached": "הגעתם למגבלת החברים בצוות זה",
         "members_upgrade": "שדרגו כדי להוסיף חברים נוספים"
       },
@@ -99,9 +91,7 @@
         "inactive": "לא פעיל",
         "past_due": "באיחור",
         "canceled": "בוטל",
-        "catalog_name": "תוכנית",
-        "team_usage": "שימוש בצוותים",
-        "teams_used": "{used} מתוך {limit} צוותים בשימוש"
+        "catalog_name": "תוכנית"
       },
       "portal": {
         "title": "פורטל חיוב",

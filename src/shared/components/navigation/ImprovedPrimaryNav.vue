@@ -16,9 +16,6 @@
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { WindowService } from '@/services/window.service';
 import { useDomainsStore, useMetadataListStore } from '@/shared/stores';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { useEntitlements } from '@/shared/composables/useEntitlements';
-import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -30,12 +27,6 @@ const domainsEnabled = WindowService.get('domains_enabled');
 // Store instances for counts
 const metadataListStore = useMetadataListStore();
 const domainsStore = useDomainsStore();
-const organizationStore = useOrganizationStore();
-const { currentOrganization } = storeToRefs(organizationStore);
-
-// Entitlement checking for dynamic labels
-const { can, ENTITLEMENTS } = useEntitlements(currentOrganization);
-const hasMultipleTeams = computed(() => can(ENTITLEMENTS.MANAGE_TEAMS));
 
 interface NavItem {
   id: string;
@@ -86,14 +77,6 @@ const primaryNavItems = computed((): NavItem[] => {
       icon: 'globe-alt',
     });
   }
-
-  // Add teams navigation - singular/plural based on entitlement
-  items.push({
-    id: 'teams',
-    path: '/teams',
-    label: hasMultipleTeams.value ? t('web.teams.teams') : t('web.teams.team'),
-    icon: 'users',
-  });
 
   return items;
 });

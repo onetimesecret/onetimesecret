@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "Upgrade erforderlich",
         "viewPlans": "Pläne ansehen",
-        "needTeams": "Mehrere Teams erfordern Multi-Team-Plan oder höher",
         "needCustomDomains": "Benutzerdefinierte Domains erfordern Identity Plus oder höher",
         "needApiAccess": "API-Zugriff erfordert Multi-Team-Plan oder höher",
         "needPrioritySupport": "Prioritäts-Support erfordert Identity Plus oder höher",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "Geheimnisse erstellen",
           "basic_sharing": "Grundlegendes Teilen",
-          "create_team": "Team erstellen",
-          "create_teams": "Mehrere Teams erstellen",
           "custom_domains": "Benutzerdefinierte Domains",
           "api_access": "API-Zugriff",
           "priority_support": "Prioritäts-Support",
@@ -60,8 +57,6 @@
         "single_team_plan": "Einzelnes Team",
         "multi_team_plan": "Multi Team",
         "features": "Funktionen",
-        "teams_limit": "{count} Team | {count} Teams",
-        "members_limit": "{count} Mitglied pro Team | {count} Mitglieder pro Team",
         "unlimited_secrets": "Unbegrenzte Geheimnisse",
         "api_access": "API-Zugriff",
         "priority_support": "Prioritäts-Support",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "Die Abrechnung für dieses Team wird von {orgName} verwaltet",
-        "view_org_billing": "Organisationsabrechnung ansehen",
-        "team_billing_disabled": "Die Team-Abrechnung wird über deine Organisation verwaltet"
+        "view_org_billing": "Organisationsabrechnung ansehen"
       },
       "limits": {
-        "teams_reached": "Du hast dein Plan-Limit erreicht",
-        "teams_upgrade": "Upgrade, um mehr Teams zu erstellen",
         "members_reached": "Du hast das Mitgliederlimit für dieses Team erreicht",
         "members_upgrade": "Upgrade, um mehr Mitglieder hinzuzufügen"
       },
@@ -99,9 +91,7 @@
         "inactive": "Inaktiv",
         "past_due": "Überfällig",
         "canceled": "Gekündigt",
-        "catalog_name": "Plan",
-        "team_usage": "Team-Nutzung",
-        "teams_used": "{used} von {limit} Teams genutzt"
+        "catalog_name": "Plan"
       },
       "portal": {
         "title": "Abrechnungsportal",

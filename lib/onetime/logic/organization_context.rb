@@ -3,20 +3,19 @@
 # frozen_string_literal: true
 
 #
-# Organization and Team Context for Logic Classes
+# Organization Context for Logic Classes
 #
-# This module provides automatic access to organization and team context
+# This module provides automatic access to organization context
 # for all logic classes across the application.
 #
-# The organization and team are extracted from StrategyResult metadata
+# The organization is extracted from StrategyResult metadata
 # (populated by authentication strategies during RouteAuthWrapper execution).
 #
 # Usage:
 #   class MyLogic < Onetime::Logic::Base
 #     def process
-#       # @organization and @team automatically available
+#       # @organization automatically available
 #       @organization.list_domains
-#       @team.members
 #     end
 #   end
 #
@@ -33,7 +32,7 @@
 module Onetime
   module Logic
     module OrganizationContext
-      # Extract organization and team from StrategyResult metadata
+      # Extract organization from StrategyResult metadata
       #
       # Call this in your initialize method after @strategy_result is set
       #
@@ -43,11 +42,10 @@ module Onetime
 
         org_context   = strategy_result.metadata[:organization_context] || {}
         @organization = org_context[:organization]
-        @team         = org_context[:team]
       end
 
-      # Make organization and team readable
-      attr_reader :organization, :team
+      # Make organization readable
+      attr_reader :organization
 
       # Alias for convenience
       def org
@@ -62,16 +60,6 @@ module Onetime
         raise Onetime::Problem, 'No organization context' unless @organization
 
         @organization
-      end
-
-      # Require team to be present
-      #
-      # @raise [Onetime::Problem] if team is nil
-      # @return [Onetime::Team] the team
-      def require_team!
-        raise Onetime::Problem, 'No team context' unless @team
-
-        @team
       end
     end
   end

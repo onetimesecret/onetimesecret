@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "Vyžadován upgrade",
         "viewPlans": "Zobrazit tarify",
-        "needTeams": "Více týmů vyžaduje tarif Multi-Team nebo vyšší",
         "needCustomDomains": "Vlastní domény vyžadují Identity Plus nebo vyšší",
         "needApiAccess": "Přístup k API vyžaduje tarif Multi-Team nebo vyšší",
         "needPrioritySupport": "Prioritní podpora vyžaduje Identity Plus nebo vyšší",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "Vytvářet tajemství",
           "basic_sharing": "Základní sdílení",
-          "create_team": "Vytvořit tým",
-          "create_teams": "Vytvořit více týmů",
           "custom_domains": "Vlastní domény",
           "api_access": "Přístup k API",
           "priority_support": "Prioritní podpora",
@@ -60,8 +57,6 @@
         "single_team_plan": "Jeden tým",
         "multi_team_plan": "Více týmů",
         "features": "Funkce",
-        "teams_limit": "{count} tým | {count} týmy",
-        "members_limit": "{count} člen na tým | {count} členů na tým",
         "unlimited_secrets": "Neomezená tajemství",
         "api_access": "Přístup k API",
         "priority_support": "Prioritní podpora",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "Fakturace pro tento tým je spravována organizací {orgName}",
-        "view_org_billing": "Zobrazit fakturaci organizace",
-        "team_billing_disabled": "Fakturace na úrovni týmu je spravována prostřednictvím tvé organizace"
+        "view_org_billing": "Zobrazit fakturaci organizace"
       },
       "limits": {
-        "teams_reached": "Dosáhl jsi limitu svého tarifu",
-        "teams_upgrade": "Upgraduj pro vytvoření více týmů",
         "members_reached": "Dosáhl jsi limitu členů pro tento tým",
         "members_upgrade": "Upgraduj pro přidání více členů"
       },
@@ -99,9 +91,7 @@
         "inactive": "Neaktivní",
         "past_due": "Po splatnosti",
         "canceled": "Zrušeno",
-        "catalog_name": "Tarif",
-        "team_usage": "Využití týmů",
-        "teams_used": "{used} z {limit} týmů použito"
+        "catalog_name": "Tarif"
       },
       "portal": {
         "title": "Fakturační portál",

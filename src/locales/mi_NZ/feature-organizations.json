@@ -35,8 +35,6 @@
       "organization_settings_description": "Whakahou i tō ingoa whakahaere me te whakamārama",
       "general_settings": "Ngā Tautuhinga Whānui",
       "billing_settings": "Utu me te Ohaurunga",
-      "teams_in_organization": "Ngā Rōpū",
-      "no_teams": "Kāore anō he rōpū i roto i tēnei whakahaere",
       "save_changes": "Tiaki Whakarerekētanga",
       "update_success": "Kua whakahoutia angituhia te whakahaere",
       "update_error": "I rahua te whakahou whakahaere",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "Whānui",
         "company_branding": "Waitohu Kamupene",
-        "teams": "Ngā Rōpū",
         "billing": "Utu"
       },
       "danger_zone": "Wāhi Mōrearea",

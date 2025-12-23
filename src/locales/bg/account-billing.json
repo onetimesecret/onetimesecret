@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "Необходимо е надграждане",
         "viewPlans": "Вижте плановете",
-        "needTeams": "Множество екипи изискват план Multi-Team или по-висок",
         "needCustomDomains": "Персонализираните домейни изискват план Identity Plus или по-висок",
         "needApiAccess": "Достъпът до API изисква план Multi-Team или по-висок",
         "needPrioritySupport": "Приоритетната поддръжка изисква план Identity Plus или по-висок",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "Създаване на тайни",
           "basic_sharing": "Основно споделяне",
-          "create_team": "Създаване на екип",
-          "create_teams": "Създаване на множество екипи",
           "custom_domains": "Персонализирани домейни",
           "api_access": "Достъп до API",
           "priority_support": "Приоритетна поддръжка",
@@ -60,8 +57,6 @@
         "single_team_plan": "Единичен екип",
         "multi_team_plan": "Множество екипи",
         "features": "Функции",
-        "teams_limit": "{count} екип | {count} екипа",
-        "members_limit": "{count} член на екип | {count} члена на екип",
         "unlimited_secrets": "Неограничени тайни",
         "api_access": "Достъп до API",
         "priority_support": "Приоритетна поддръжка",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "Фактурирането за този екип се управлява от {orgName}",
-        "view_org_billing": "Преглед на фактурирането на организацията",
-        "team_billing_disabled": "Фактурирането на ниво екип се управлява чрез вашата организация"
+        "view_org_billing": "Преглед на фактурирането на организацията"
       },
       "limits": {
-        "teams_reached": "Достигнахте лимита на вашия план",
-        "teams_upgrade": "Надградете, за да създадете повече екипи",
         "members_reached": "Достигнахте лимита на членовете за този екип",
         "members_upgrade": "Надградете, за да добавите повече членове"
       },
@@ -99,9 +91,7 @@
         "inactive": "Неактивен",
         "past_due": "Просрочен",
         "canceled": "Отменен",
-        "catalog_name": "План",
-        "team_usage": "Използване на екипи",
-        "teams_used": "{used} от {limit} екипа използвани"
+        "catalog_name": "План"
       },
       "portal": {
         "title": "Портал за фактуриране",

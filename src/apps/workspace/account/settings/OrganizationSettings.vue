@@ -10,29 +10,24 @@ import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { classifyError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
 import { WindowService } from '@/services/window.service';
-import type { Team } from '@/schemas/models/team';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import { useTeamStore } from '@/shared/stores/teamStore';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel } from '@/types/billing';
 import type { CreateInvitationPayload, Organization, OrganizationInvitation } from '@/types/organization';
 import { ENTITLEMENTS } from '@/types/organization';
 import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { z } from 'zod';
 
 const { t } = useI18n();
 const route = useRoute();
-const router = useRouter();
 const organizationStore = useOrganizationStore();
-const teamStore = useTeamStore();
 
 const orgId = computed(() => route.params.extid as string);
 const organization = ref<Organization | null>(null);
-const teams = ref<Team[]>([]);
 const subscription = ref<Subscription | null>(null);
 const invitations = ref<OrganizationInvitation[]>([]);
-const activeTab = ref<'general' | 'teams' | 'members' | 'billing'>('general');
+const activeTab = ref<'general' | 'members' | 'billing'>('general');
 
 const isLoading = ref(false);
 const isSaving = ref(false);
@@ -63,21 +58,13 @@ const { entitlements, can } = useEntitlements(organization);
  * Determine if this is a single-user Identity Plus account.
  * Identity Plus has custom domains but not multi-team entitlements.
  */
-const isIdentityPlus = computed(() =>
-  can(ENTITLEMENTS.CUSTOM_DOMAINS) && !can(ENTITLEMENTS.MANAGE_TEAMS)
-);
-
-/**
- * Determine if this is a multi-team organization.
- */
-const isMultiTeam = computed(() => can(ENTITLEMENTS.MANAGE_TEAMS));
+const isIdentityPlus = computed(() => can(ENTITLEMENTS.CUSTOM_DOMAINS));
 
 // Format entitlement for display
 const formatEntitlement = (ent: string): string => {
   const labels: Record<string, string> = {
     [ENTITLEMENTS.CREATE_SECRETS]: 'Create Secrets',
     [ENTITLEMENTS.VIEW_METADATA]: 'View Metadata',
-    [ENTITLEMENTS.MANAGE_TEAMS]: 'Manage Teams',
     [ENTITLEMENTS.MANAGE_MEMBERS]: 'Manage Members',
     [ENTITLEMENTS.CUSTOM_DOMAINS]: 'Custom Domains',
     [ENTITLEMENTS.API_ACCESS]: 'API Access',
@@ -124,16 +111,6 @@ const loadOrganization = async () => {
     console.error('[OrganizationSettings] Error loading organization:', err);
   } finally {
     isLoading.value = false;
-  }
-};
-
-const loadTeams = async () => {
-  try {
-    // Load all teams and filter by org_id
-    await teamStore.fetchTeams();
-    teams.value = teamStore.teams.filter(team => team.org_id === orgId.value);
-  } catch (err) {
-    console.error('[OrganizationSettings] Error loading teams:', err);
   }
 };
 
@@ -217,10 +194,6 @@ const handleCancel = () => {
   }
 };
 
-const handleTeamClick = (team: Team) => {
-  router.push(`/teams/${team.extid}`);
-};
-
 const handleInviteMember = async () => {
   if (isInviting.value) return;
 
@@ -295,9 +268,7 @@ const canManageMembers = computed(() => {
 
 onMounted(async () => {
   await loadOrganization();
-  if (activeTab.value === 'teams') {
-    await loadTeams();
-  } else if (activeTab.value === 'members') {
+  if (activeTab.value === 'members') {
     await loadInvitations();
   } else if (activeTab.value === 'billing') {
     await loadBilling();
@@ -305,9 +276,7 @@ onMounted(async () => {
 });
 
 watch(activeTab, async (newTab) => {
-  if (newTab === 'teams' && teams.value.length === 0) {
-    await loadTeams();
-  } else if (newTab === 'members' && invitations.value.length === 0) {
+  if (newTab === 'members' && invitations.value.length === 0) {
     await loadInvitations();
   } else if (newTab === 'billing' && !subscription.value && billingEnabled.value) {
     await loadBilling();
@@ -323,7 +292,7 @@ watch(activeTab, async (newTab) => {
         <ol class="flex items-center space-x-2">
           <li>
             <router-link
-              to="/billing/orgs"
+              to="/org"
               class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
               {{ t('web.organizations.title') }}
             </router-link>
@@ -353,18 +322,6 @@ watch(activeTab, async (newTab) => {
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ isIdentityPlus ? t('web.organizations.tabs.company_branding') : t('web.organizations.tabs.general') }}
-          </button>
-          <!-- Teams tab only shown for multi-team organizations -->
-          <button
-            v-if="isMultiTeam"
-            @click="activeTab = 'teams'"
-            :class="[
-              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
-              activeTab === 'teams'
-                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
-            ]">
-            {{ t('web.organizations.tabs.teams') }}
           </button>
           <!-- Members tab shown when user can manage members -->
           <button
@@ -499,63 +456,6 @@ watch(activeTab, async (newTab) => {
                 </button>
               </div>
             </form>
-          </div>
-        </section>
-
-        <!-- Teams Tab -->
-        <section
-          v-if="activeTab === 'teams'"
-          class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-          <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-            <div class="flex items-center justify-between">
-              <h3 class="text-base font-semibold text-gray-900 dark:text-white">
-                {{ t('web.organizations.teams_in_organization') }}
-              </h3>
-              <router-link
-                to="/teams/new"
-                class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
-                <OIcon
-                  collection="heroicons"
-                  name="plus"
-                  class="size-4"
-                  aria-hidden="true" />
-                {{ t('web.teams.create_team') }}
-              </router-link>
-            </div>
-          </div>
-
-          <div class="p-6">
-            <div v-if="teams.length > 0" class="space-y-3">
-              <div
-                v-for="team in teams"
-                :key="team.extid"
-                @click="handleTeamClick(team)"
-                class="flex cursor-pointer items-center justify-between rounded-lg border border-gray-200 p-4 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/50">
-                <div>
-                  <h4 class="text-base font-medium text-gray-900 dark:text-white">
-                    {{ team.display_name }}
-                  </h4>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ team.member_count }} {{ t('web.teams.members') }}
-                  </p>
-                </div>
-                <OIcon
-                  collection="heroicons"
-                  name="chevron-right"
-                  class="size-5 text-gray-400"
-                  aria-hidden="true" />
-              </div>
-            </div>
-            <div v-else class="py-12 text-center">
-              <OIcon
-                collection="heroicons"
-                name="users"
-                class="mx-auto size-12 text-gray-400"
-                aria-hidden="true" />
-              <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                {{ t('web.organizations.no_teams') }}
-              </p>
-            </div>
           </div>
         </section>
 

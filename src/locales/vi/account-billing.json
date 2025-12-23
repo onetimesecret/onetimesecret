@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "Yêu cầu nâng cấp",
         "viewPlans": "Xem gói",
-        "needTeams": "Nhiều nhóm yêu cầu gói Multi-Team hoặc cao hơn",
         "needCustomDomains": "Tên miền tùy chỉnh yêu cầu Identity Plus hoặc cao hơn",
         "needApiAccess": "Truy cập API yêu cầu gói Multi-Team hoặc cao hơn",
         "needPrioritySupport": "Hỗ trợ ưu tiên yêu cầu Identity Plus hoặc cao hơn",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "Tạo bí mật",
           "basic_sharing": "Chia sẻ cơ bản",
-          "create_team": "Tạo nhóm",
-          "create_teams": "Tạo nhiều nhóm",
           "custom_domains": "Tên miền tùy chỉnh",
           "api_access": "Truy cập API",
           "priority_support": "Hỗ trợ ưu tiên",
@@ -60,8 +57,6 @@
         "single_team_plan": "Nhóm đơn",
         "multi_team_plan": "Nhiều nhóm",
         "features": "Tính năng",
-        "teams_limit": "{count} nhóm",
-        "members_limit": "{count} thành viên mỗi nhóm",
         "unlimited_secrets": "Bí mật không giới hạn",
         "api_access": "Truy cập API",
         "priority_support": "Hỗ trợ ưu tiên",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "Thanh toán cho nhóm này được quản lý bởi {orgName}",
-        "view_org_billing": "Xem thanh toán tổ chức",
-        "team_billing_disabled": "Thanh toán cấp nhóm được quản lý qua tổ chức của bạn"
+        "view_org_billing": "Xem thanh toán tổ chức"
       },
       "limits": {
-        "teams_reached": "Bạn đã đạt giới hạn gói của mình",
-        "teams_upgrade": "Nâng cấp để tạo thêm nhóm",
         "members_reached": "Bạn đã đạt giới hạn thành viên cho nhóm này",
         "members_upgrade": "Nâng cấp để thêm thành viên"
       },
@@ -99,9 +91,7 @@
         "inactive": "Không hoạt động",
         "past_due": "Quá hạn",
         "canceled": "Đã hủy",
-        "catalog_name": "Gói",
-        "team_usage": "Sử dụng nhóm",
-        "teams_used": "Đã sử dụng {used} trong số {limit} nhóm"
+        "catalog_name": "Gói"
       },
       "portal": {
         "title": "Cổng thanh toán",

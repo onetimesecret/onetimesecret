@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "Потрібне оновлення",
         "viewPlans": "Переглянути плани",
-        "needTeams": "Декілька команд потребують плану Multi-Team або вище",
         "needCustomDomains": "Власні домени потребують Identity Plus або вище",
         "needApiAccess": "Доступ до API потребує плану Multi-Team або вище",
         "needPrioritySupport": "Пріоритетна підтримка потребує Identity Plus або вище",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "Створювати секрети",
           "basic_sharing": "Базовий обмін",
-          "create_team": "Створити команду",
-          "create_teams": "Створити декілька команд",
           "custom_domains": "Власні домени",
           "api_access": "Доступ до API",
           "priority_support": "Пріоритетна підтримка",
@@ -60,8 +57,6 @@
         "single_team_plan": "Одна команда",
         "multi_team_plan": "Декілька команд",
         "features": "Функції",
-        "teams_limit": "{count} команда | {count} команди",
-        "members_limit": "{count} учасник на команду | {count} учасників на команду",
         "unlimited_secrets": "Необмежена кількість секретів",
         "api_access": "Доступ до API",
         "priority_support": "Пріоритетна підтримка",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "Виставлення рахунків для цієї команди керується {orgName}",
-        "view_org_billing": "Переглянути виставлення рахунків організації",
-        "team_billing_disabled": "Виставлення рахунків на рівні команди керується через вашу організацію"
+        "view_org_billing": "Переглянути виставлення рахунків організації"
       },
       "limits": {
-        "teams_reached": "Ви досягли ліміту вашого плану",
-        "teams_upgrade": "Оновіть, щоб створити більше команд",
         "members_reached": "Ви досягли ліміту учасників для цієї команди",
         "members_upgrade": "Оновіть, щоб додати більше учасників"
       },
@@ -99,9 +91,7 @@
         "inactive": "Неактивна",
         "past_due": "Прострочено",
         "canceled": "Скасовано",
-        "catalog_name": "План",
-        "team_usage": "Використання команд",
-        "teams_used": "Використано {used} з {limit} команд"
+        "catalog_name": "План"
       },
       "portal": {
         "title": "Портал виставлення рахунків",

@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "Wymagana aktualizacja",
         "viewPlans": "Zobacz plany",
-        "needTeams": "Wiele zespołów wymaga planu Multi-Team lub wyższego",
         "needCustomDomains": "Domeny niestandardowe wymagają planu Identity Plus lub wyższego",
         "needApiAccess": "Dostęp do API wymaga planu Multi-Team lub wyższego",
         "needPrioritySupport": "Wsparcie priorytetowe wymaga planu Identity Plus lub wyższego",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "Tworzenie sekretów",
           "basic_sharing": "Podstawowe udostępnianie",
-          "create_team": "Utwórz zespół",
-          "create_teams": "Utwórz wiele zespołów",
           "custom_domains": "Domeny niestandardowe",
           "api_access": "Dostęp do API",
           "priority_support": "Wsparcie priorytetowe",
@@ -60,8 +57,6 @@
         "single_team_plan": "Jeden zespół",
         "multi_team_plan": "Wiele zespołów",
         "features": "Funkcje",
-        "teams_limit": "{count} zespół | {count} zespoły | {count} zespołów",
-        "members_limit": "{count} członek na zespół | {count} członków na zespół | {count} członków na zespół",
         "unlimited_secrets": "Nieograniczone sekrety",
         "api_access": "Dostęp do API",
         "priority_support": "Wsparcie priorytetowe",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "Rozliczenia dla tego zespołu są zarządzane przez {orgName}",
-        "view_org_billing": "Zobacz rozliczenia organizacji",
-        "team_billing_disabled": "Rozliczenia na poziomie zespołu są zarządzane przez organizację"
+        "view_org_billing": "Zobacz rozliczenia organizacji"
       },
       "limits": {
-        "teams_reached": "Osiągnięto limit planu",
-        "teams_upgrade": "Uaktualnij, aby utworzyć więcej zespołów",
         "members_reached": "Osiągnięto limit członków dla tego zespołu",
         "members_upgrade": "Uaktualnij, aby dodać więcej członków"
       },
@@ -99,9 +91,7 @@
         "inactive": "Nieaktywna",
         "past_due": "Zaległa",
         "canceled": "Anulowana",
-        "catalog_name": "Plan",
-        "team_usage": "Wykorzystanie zespołów",
-        "teams_used": "Wykorzystano {used} z {limit} zespołów"
+        "catalog_name": "Plan"
       },
       "portal": {
         "title": "Portal rozliczeń",

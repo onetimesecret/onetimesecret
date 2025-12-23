@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "Upgrade Required",
         "viewPlans": "View Plans",
-        "needTeams": "Multiple teams require Multi-Team plan or higher",
         "needCustomDomains": "Custom domains require Identity Plus or higher",
         "needApiAccess": "API access requires Multi-Team plan or higher",
         "needPrioritySupport": "Priority support requires Identity Plus or higher",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "Create Secrets",
           "basic_sharing": "Basic Sharing",
-          "create_team": "Create Team",
-          "create_teams": "Create Multiple Teams",
           "custom_domains": "Custom Domains",
           "api_access": "API Access",
           "priority_support": "Priority Support",
@@ -60,8 +57,6 @@
         "single_team_plan": "Single Team",
         "multi_team_plan": "Multi Team",
         "features": "Features",
-        "teams_limit": "{count} team | {count} teams",
-        "members_limit": "{count} member per team | {count} members per team",
         "unlimited_secrets": "Unlimited secrets",
         "api_access": "API access",
         "priority_support": "Priority support",
@@ -82,13 +77,10 @@
         "load_error": "Failed to load invoices"
       },
       "notices": {
-        "org_managed": "Billing for this team is managed by {orgName}",
-        "view_org_billing": "View organization billing",
-        "team_billing_disabled": "Team-level billing is managed through your organization"
+        "org_managed": "Billing is managed by {orgName}",
+        "view_org_billing": "View organization billing"
       },
       "limits": {
-        "teams_reached": "You've reached your plan limit",
-        "teams_upgrade": "Upgrade to create more teams",
         "members_reached": "You've reached the member limit for this team",
         "members_upgrade": "Upgrade to add more members"
       },
@@ -99,9 +91,7 @@
         "inactive": "Inactive",
         "past_due": "Past Due",
         "canceled": "Canceled",
-        "catalog_name": "Plan",
-        "team_usage": "Team Usage",
-        "teams_used": "{used} of {limit} teams used"
+        "catalog_name": "Plan"
       },
       "portal": {
         "title": "Billing Portal",

@@ -3,10 +3,10 @@
 # frozen_string_literal: true
 
 #
-# Organization and Team context loading for authenticated requests.
+# Organization context loading for authenticated requests.
 #
 # This module provides centralized logic for determining which organization
-# and team should be active for a given authenticated user request.
+# should be active for a given authenticated user request.
 #
 # Selection Priority:
 # 1. Explicit selection via session['organization_id']
@@ -18,7 +18,6 @@
 # Performance:
 # - Results cached in session for 5 minutes
 # - Cache invalidated on explicit organization switch
-# - Lazy loading of team context (only when needed)
 #
 # Usage:
 #   class MyAuthStrategy < Otto::Security::AuthStrategy
@@ -34,12 +33,12 @@
 module Onetime
   module Application
     module OrganizationLoader
-      # Load organization and team context for authenticated customer
+      # Load organization context for authenticated customer
       #
       # @param customer [Onetime::Customer] Authenticated customer
       # @param session [Hash] Rack session
       # @param env [Hash] Rack environment
-      # @return [Hash] Context hash with organization and team data
+      # @return [Hash] Context hash with organization data
       def load_organization_context(customer, session, env)
         return {} if customer.nil? || customer.anonymous?
 
@@ -51,38 +50,31 @@ module Onetime
           OT.ld "[OrganizationLoader] Using cached IDs for #{customer.objid}"
 
           # Reload objects from cached IDs
-          org  = cached[:organization_id] ? Onetime::Organization.load(cached[:organization_id]) : nil
-          team = cached[:team_id] ? Onetime::Team.load(cached[:team_id]) : nil
+          org = cached[:organization_id] ? Onetime::Organization.load(cached[:organization_id]) : nil
 
           return {
             organization: org,
             organization_id: org&.objid,
-            team: team,
-            team_id: team&.objid,
             expires_at: cached[:expires_at],
           }
         end
 
-        # Determine organization and team
-        org  = determine_organization(customer, session, env)
-        team = determine_team(org, customer, session) if org
+        # Determine organization
+        org = determine_organization(customer, session, env)
 
         # Store only IDs in session cache (not full objects - they can't serialize)
         if session
           session[cache_key] = {
             organization_id: org&.objid,
-            team_id: team&.objid,
             expires_at: Familia.now.to_i + 300, # 5 minute cache
           }
         end
 
-        OT.ld "[OrganizationLoader] Loaded context for #{customer.objid}: org=#{org&.objid}, team=#{team&.objid}"
+        OT.ld "[OrganizationLoader] Loaded context for #{customer.objid}: org=#{org&.objid}"
 
         {
           organization: org,
           organization_id: org&.objid,
-          team: team,
-          team_id: team&.objid,
           expires_at: Familia.now.to_i + 300,
         }
       end
@@ -156,43 +148,7 @@ module Onetime
         create_default_workspace(customer)
       end
 
-      # Determine which team should be active within the organization
-      #
-      # @param organization [Onetime::Organization] Active organization
-      # @param customer [Onetime::Customer] Authenticated customer
-      # @param session [Hash] Rack session
-      # @return [Onetime::Team, nil] Selected team
-      def determine_team(organization, customer, session)
-        return nil unless organization
-
-        # 1. Explicit selection from session
-        if session && session['team_id']
-          team = Onetime::Team.load(session['team_id'])
-          if team && team.org_id == organization.objid && team.member?(customer)
-            OT.ld "[OrganizationLoader] Using explicit team selection: #{team.objid}"
-            return team
-          else
-            # Clear invalid selection
-            session.delete('team_id')
-          end
-        end
-
-        # 2. First team in organization where customer is a member
-        team_ids = organization.teams.to_a
-        return nil if team_ids.empty?
-
-        teams       = Onetime::Team.load_multi(team_ids).compact
-        member_team = teams.find { |t| t.member?(customer) }
-
-        if member_team
-          OT.ld "[OrganizationLoader] Using first team: #{member_team.objid}"
-          return member_team
-        end
-
-        nil
-      end
-
-      # Create default workspace (organization + team) for customer
+      # Create default workspace (organization) for customer
       #
       # This is a self-healing mechanism for customers who don't have
       # any organizations yet (e.g., legacy users, or edge cases).
@@ -211,10 +167,6 @@ module Onetime
         org.save
 
         OT.info "[OrganizationLoader] Created default organization #{org.objid} for #{customer.objid}"
-
-        # Create default team
-        team = Onetime::Team.create!('Default Team', customer, org.objid)
-        OT.info "[OrganizationLoader] Created default team #{team.objid} in org #{org.objid}"
 
         org
       rescue StandardError => ex

@@ -46,8 +46,8 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/billing/orgs',
-    name: 'Billing Organizations',
+    path: '/org',
+    name: 'Organizations',
     beforeEnter: checkBillingEnabled,
     components: {
       default: () => import('@/apps/workspace/account/settings/OrganizationsSettings.vue'),
@@ -62,8 +62,8 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/billing/org/:extid',
-    name: 'Billing Organization Settings',
+    path: '/org/:extid',
+    name: 'Organization Settings',
     beforeEnter: checkBillingEnabled,
     components: {
       default: () => import('@/apps/workspace/account/settings/OrganizationSettings.vue'),
@@ -127,25 +127,37 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/account/settings/organizations',
-    redirect: '/billing/orgs',
+    redirect: '/org',
     beforeEnter: checkBillingEnabled,
   },
   {
     path: '/account/settings/organization/:extid',
     redirect: (to) => ({
-      path: `/billing/org/${to.params.extid}`,
+      path: `/org/${to.params.extid}`,
     }),
     beforeEnter: checkBillingEnabled,
   },
   {
     path: '/billing/organizations',
-    redirect: '/billing/orgs',
+    redirect: '/org',
     beforeEnter: checkBillingEnabled,
   },
   {
     path: '/billing/organization/:extid',
     redirect: (to) => ({
-      path: `/billing/org/${to.params.extid}`,
+      path: `/org/${to.params.extid}`,
+    }),
+    beforeEnter: checkBillingEnabled,
+  },
+  {
+    path: '/billing/orgs',
+    redirect: '/org',
+    beforeEnter: checkBillingEnabled,
+  },
+  {
+    path: '/billing/org/:extid',
+    redirect: (to) => ({
+      path: `/org/${to.params.extid}`,
     }),
     beforeEnter: checkBillingEnabled,
   },

@@ -4,7 +4,6 @@
       "upgrade": {
         "required": "需要升级",
         "viewPlans": "查看套餐",
-        "needTeams": "多个团队需要多团队套餐或更高版本",
         "needCustomDomains": "自定义域名需要 Identity Plus 或更高版本",
         "needApiAccess": "API 访问需要多团队套餐或更高版本",
         "needPrioritySupport": "优先支持需要 Identity Plus 或更高版本",
@@ -39,8 +38,6 @@
         "entitlements": {
           "create_secrets": "创建内容",
           "basic_sharing": "基本分享",
-          "create_team": "创建团队",
-          "create_teams": "创建多个团队",
           "custom_domains": "自定义域名",
           "api_access": "API 访问",
           "priority_support": "优先支持",
@@ -60,8 +57,6 @@
         "single_team_plan": "单团队",
         "multi_team_plan": "多团队",
         "features": "功能",
-        "teams_limit": "{count} 个团队",
-        "members_limit": "每个团队 {count} 名成员",
         "unlimited_secrets": "无限内容",
         "api_access": "API 访问",
         "priority_support": "优先支持",
@@ -83,12 +78,9 @@
       },
       "notices": {
         "org_managed": "此团队的账单由 {orgName} 管理",
-        "view_org_billing": "查看组织账单",
-        "team_billing_disabled": "团队级账单通过您的组织管理"
+        "view_org_billing": "查看组织账单"
       },
       "limits": {
-        "teams_reached": "您已达到套餐限制",
-        "teams_upgrade": "升级以创建更多团队",
         "members_reached": "您已达到此团队的成员限制",
         "members_upgrade": "升级以添加更多成员"
       },
@@ -99,9 +91,7 @@
         "inactive": "未激活",
         "past_due": "逾期",
         "canceled": "已取消",
-        "catalog_name": "套餐",
-        "team_usage": "团队使用情况",
-        "teams_used": "已使用 {used} 个（共 {limit} 个）团队"
+        "catalog_name": "套餐"
       },
       "portal": {
         "title": "账单门户",

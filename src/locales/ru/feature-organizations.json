@@ -35,8 +35,6 @@
       "organization_settings_description": "Обновите название и описание вашей организации",
       "general_settings": "Общие настройки",
       "billing_settings": "Счета и подписка",
-      "teams_in_organization": "Команды",
-      "no_teams": "В этой организации пока нет команд",
       "save_changes": "Сохранить изменения",
       "update_success": "Организация успешно обновлена",
       "update_error": "Не удалось обновить организацию",
@@ -51,7 +49,6 @@
       "tabs": {
         "general": "Общие",
         "company_branding": "Брендинг компании",
-        "teams": "Команды",
         "billing": "Счета"
       },
       "danger_zone": "Опасная зона",

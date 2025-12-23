@@ -5,12 +5,10 @@
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SplitButton from '@/shared/components/ui/SplitButton.vue';
-  // import TeamSelector from '@/shared/components/teams/TeamSelector.vue';
   import { useDomainDropdown } from '@/shared/composables/useDomainDropdown';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { WindowService } from '@/services/window.service';
-  import { useAuthStore } from '@/shared/stores/authStore';
   import { useConcealedMetadataStore } from '@/shared/stores/concealedMetadataStore';
   import {
     DEFAULT_BUTTON_TEXT_LIGHT,
@@ -18,7 +16,6 @@
     DEFAULT_PRIMARY_COLOR,
     useProductIdentity,
   } from '@/shared/stores/identityStore';
-  import { useTeamStore } from '@/shared/stores/teamStore';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import { nanoid } from 'nanoid';
   import { computed, onMounted, ref, watch } from 'vue';
@@ -54,10 +51,7 @@
   const router = useRouter();
   const productIdentity = useProductIdentity();
   const concealedMetadataStore = useConcealedMetadataStore();
-  const authStore = useAuthStore();
-  const teamStore = useTeamStore();
   const showProTip = ref(props.withAsterisk);
-  const selectedTeamId = ref<string | undefined>(undefined);
 
   // Get passphrase configuration for UI hints
   const secretOptions = computed(() => WindowService.get('secret_options'));
@@ -132,22 +126,11 @@
     operations.updateField('share_domain', domain);
   });
 
-  // Watch for team selection changes and update form
-  watch(selectedTeamId, (teamId) => {
-    operations.updateField('team_id', teamId);
-  });
-
   // Focus management when switching between Create Link and Generate Password modes
   const generatePasswordSection = ref<HTMLElement | null>(null);
 
   onMounted(() => {
     operations.updateField('share_domain', selectedDomain.value);
-    // Load teams if user is authenticated
-    if (authStore.isAuthenticated && teamStore.teams.length === 0) {
-      teamStore.fetchTeams().catch(() => {
-        // Silently fail
-      });
-    }
   });
 </script>
 
@@ -418,16 +401,6 @@
                 @input="(e) => updateRecipient((e.target as HTMLInputElement).value)" />
             </div>
           </div>
-
-          <!-- Team Selector (optional - only shows if user has teams) -->
-          <!-- <div
-            v-if="teamStore.hasTeams"
-            class="mt-6">
-            <TeamSelector
-              v-model="selectedTeamId"
-              :teams="teamStore.teams"
-              :disabled="isSubmitting" />
-          </div> -->
         </div>
 
         <!-- Pro tip Section -->

@@ -3,10 +3,10 @@
 # frozen_string_literal: true
 
 #
-# Creates a default Organization and Team for a new customer during registration.
+# Creates a default Organization for a new customer during registration.
 # This ensures every user has a workspace ready, even if they're on an individual plan.
 #
-# Note: The org/team are hidden from individual plan users in the frontend via
+# Note: The org is hidden from individual plan users in the frontend via
 # plan-based feature flags, but the infrastructure exists for seamless upgrades.
 #
 
@@ -21,7 +21,7 @@ module Auth
       end
 
       # Executes the workspace creation operation
-      # @return [Hash] Contains the created organization and team
+      # @return [Hash] Contains the created organization
       def call
         unless @customer
           auth_logger.error '[create-default-workspace] Customer is nil!'
@@ -33,12 +33,11 @@ module Auth
           return nil
         end
 
-        org  = create_default_organization
-        team = create_default_team(org)
+        org = create_default_organization
 
-        auth_logger.info "[create-default-workspace] Created workspace for #{@customer.custid}: org=#{org.objid}, team=#{team.team_id}"
+        auth_logger.info "[create-default-workspace] Created workspace for #{@customer.custid}: org=#{org.objid}"
 
-        { organization: org, team: team }
+        { organization: org }
       end
 
       private
@@ -77,25 +76,6 @@ module Auth
         org
       rescue StandardError => ex
         auth_logger.error "[create-default-workspace] Failed to create organization: #{ex.message}"
-        raise
-      end
-
-      # Creates the default team within the organization
-      # @param org [Onetime::Organization]
-      # @return [Onetime::Team]
-      def create_default_team(org)
-        team = Onetime::Team.create!(
-          'Default Team',  # Not shown to individual plan users
-          @customer,
-          org.objid,
-        )
-
-        # Mark as default workspace (prevents deletion)
-        team.is_default! true
-
-        team
-      rescue StandardError => ex
-        auth_logger.error "[create-default-workspace] Failed to create team: #{ex.message}"
         raise
       end
     end
