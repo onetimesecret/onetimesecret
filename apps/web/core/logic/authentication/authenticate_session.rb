@@ -109,7 +109,9 @@ module Core::Logic
 
             send_verification_email nil
 
-            msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.objid}."
+            locale_data = OT.locales[locale] || OT.locales['en'] || {}
+            verification_msg = locale_data.dig(:web, :COMMON, :verification_sent_to) || 'Verification sent to'
+            msg = "#{verification_msg} #{cust.objid}."
             set_info_message(msg)
           end
 
