@@ -292,7 +292,7 @@ watch(activeTab, async (newTab) => {
         <ol class="flex items-center space-x-2">
           <li>
             <router-link
-              to="/billing/orgs"
+              to="/org"
               class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
               {{ t('web.organizations.title') }}
             </router-link>

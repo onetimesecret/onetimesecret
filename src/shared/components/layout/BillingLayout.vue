@@ -29,7 +29,7 @@ const sections: NavigationItem[] = [
     description: t('web.billing.overview.description'),
   },
   {
-    to: '/billing/orgs',
+    to: '/org',
     icon: { collection: 'ph', name: 'building-office-bold' },
     label: t('web.organizations.title'),
     description: t('web.organizations.organizations_description'),

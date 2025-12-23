@@ -88,7 +88,7 @@
       success.value = t('web.organizations.invitations.accept_success');
 
       setTimeout(() => {
-        router.push('/billing/orgs');
+        router.push('/org');
       }, 2000);
     } catch (err) {
       const classified = classifyError(err);

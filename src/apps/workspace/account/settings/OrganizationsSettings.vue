@@ -65,11 +65,11 @@ const handleCreateOrganization = () => {
 const handleOrganizationCreated = (orgId: string) => {
   showCreateModal.value = false;
   // Navigate to the new organization's settings
-  router.push(`/billing/org/${orgId}`);
+  router.push(`/org/${orgId}`);
 };
 
 const handleManageOrganization = (org: Organization) => {
-  router.push(`/billing/org/${org.id}`);
+  router.push(`/org/${org.id}`);
 };
 </script>
 
