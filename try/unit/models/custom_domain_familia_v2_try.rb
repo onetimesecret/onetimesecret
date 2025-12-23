@@ -303,7 +303,6 @@ end
 @domain4.destroy! if @domain4&.exists?
 @domain3.destroy! if @domain3&.exists?
 @domain2.destroy! if @domain2&.exists?
-@team.destroy! if @team&.exists?
 @org.destroy! if @org&.exists?
 @owner.destroy! if @owner&.exists?
 @member.destroy! if @member&.exists?

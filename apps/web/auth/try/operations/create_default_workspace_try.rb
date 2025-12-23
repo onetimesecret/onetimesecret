@@ -50,7 +50,6 @@ Auth::Operations::CreateDefaultWorkspace.new(customer: @customer).call
 # Teardown
 begin
   # Clean up test data
-  @team.delete! if @team
   @org.delete! if @org
   @customer.delete! if @customer
 rescue StandardError => ex
