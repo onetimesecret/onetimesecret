@@ -88,6 +88,22 @@ Domain Context is detected per-request by `Rack::DetectHost` + `DomainStrategy` 
 
 Each custom domain carries its branding configuration and belongs to exactly one organization. Recognizing the domain implicitly identifies both.
 
+#### Domain Scope (Workspace Extension)
+
+Within the Workspace app, Domain Context can be elevated from a presentation wrapper to a **persistent scope**. This applies to users who manage multiple custom domains (e.g., consultants serving multiple organizations).
+
+| Concept | Role | Applies To |
+|---------|------|------------|
+| Domain Context | Presentation wrapper (runtime) | Secret app |
+| Domain Scope | Management filter + defaults (session) | Workspace app |
+
+When Domain Scope is active:
+- Privacy defaults (TTL, passphrase requirements) are scoped to the selected domain
+- Secrets created from the dashboard use the scoped domain automatically
+- The scope persists across navigation within the session
+
+Users with no custom domains operate in canonical context implicitly (no scope selector shown).
+
 ### Dimension 3: Homepage Mode (Deployment-Time)
 
 Homepage Mode is a scoped gatekeeper configured at deployment. It only applies to the Conceal context (Homepage).
@@ -102,11 +118,12 @@ Homepage Mode is a scoped gatekeeper configured at deployment. It only applies t
 
 Each dimension answers a different question at a different time:
 
-| Dimension        | Binding Time    | Question                  | Role                          |
-|------------------|-----------------|---------------------------|-------------------------------|
-| Interaction Mode | Design-time     | "What is the user doing?" | Router — selects the App      |
-| Domain Context   | Runtime         | "How should it look?"     | Wrapper — adapts presentation |
-| Homepage Mode    | Deployment-time | "Is creation permitted?"  | Gatekeeper — gates access     |
+| Dimension        | Binding Time    | Question                    | Role                          |
+|------------------|-----------------|-----------------------------| ------------------------------|
+| Interaction Mode | Design-time     | "What is the user doing?"   | Router — selects the App      |
+| Domain Context   | Runtime         | "How should it look?"       | Wrapper — adapts presentation |
+| Domain Scope     | Session         | "Which domain am I managing?"| Filter — scopes Workspace     |
+| Homepage Mode    | Deployment-time | "Is creation permitted?"    | Gatekeeper — gates access     |
 
 These are independent axes. Homepage Mode gates; Domain Context wraps:
 
@@ -323,6 +340,7 @@ A new mental model to get used to. Not public<->private or recipient<->creator. 
 *   **Timeframe:** Persistent. Users browse, review, and configure.
 *   **Audience:** Account Holders (Creators).
 *   **Key Characteristic:** Always authenticated. Always Onetimesecret-branded (Recipients never see this). Complex UI state.
+*   **Domain Scope:** Users managing multiple custom domains can select a scope, filtering the management view and applying domain-specific defaults to new secrets.
 
 #### 3. The Colonel (System)
 *   **Intent:** Platform Oversight.
