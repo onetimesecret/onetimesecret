@@ -109,7 +109,7 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
     end
 
     # Skipping: stripe-mock doesn't support expand parameter properly
-    xit 'accepts expand parameter' do
+    it 'accepts expand parameter' do
       # Verify expand parameter is accepted
       retrieved = client.retrieve(Stripe::Customer, customer.id, expand: ['subscriptions'])
 
@@ -118,8 +118,6 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
     end
 
     it 'raises InvalidRequestError for non-existent resource' do
-      skip 'Re-record with: STRIPE_API_KEY=sk_test_xxx VCR_MODE=all bundle exec rspec' if ENV['CI']
-
       expect do
         client.retrieve(Stripe::Customer, 'cus_nonexistent')
       end.to raise_error(Stripe::InvalidRequestError, /No such customer/)
@@ -153,24 +151,28 @@ RSpec.describe Billing::StripeClient, :stripe, type: :billing do
     end
 
     it 'calls cancel for subscriptions' do
-      # Creates a subscription and cancels it via client.delete
-      # Requires test clock or payment method setup for reliable recording
-      skip 'Re-record with: STRIPE_API_KEY=sk_test_xxx VCR_MODE=all bundle exec rspec' if ENV['CI']
+      # Create customer and attach test payment method
+      customer = Stripe::Customer.create({ email: 'sub@example.com' })
+      payment_method = Stripe::PaymentMethod.create({
+        type: 'card',
+        card: { token: 'tok_visa' },
+      })
+      Stripe::PaymentMethod.attach(payment_method.id, { customer: customer.id })
+      Stripe::Customer.update(customer.id, {
+        invoice_settings: { default_payment_method: payment_method.id },
+      })
 
-      customer     = Stripe::Customer.create({ email: 'sub@example.com' })
-      product      = Stripe::Product.create({ name: 'Sub Test' })
-      price        = Stripe::Price.create({
+      product = Stripe::Product.create({ name: 'Sub Test' })
+      price = Stripe::Price.create({
         product: product.id,
         currency: 'usd',
         unit_amount: 1000,
         recurring: { interval: 'month' },
-      },
-                                         )
+      })
       subscription = Stripe::Subscription.create({
         customer: customer.id,
         items: [{ price: price.id }],
-      },
-                                                )
+      })
 
       result = client.delete(Stripe::Subscription, subscription.id)
 
