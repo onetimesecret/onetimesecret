@@ -76,14 +76,16 @@ module Core
           }
         end
 
-        # Resolve test plan name from Billing::Plan cache
+        # Resolve test plan name from Billing::Plan cache or config
+        #
+        # Uses centralized fallback loader to try Stripe cache first,
+        # then billing.yaml config for development/standalone environments.
         #
         # @param test_planid [String] Plan ID to resolve
         # @return [String, nil] Plan name or nil if not found
         def resolve_test_plan_name(test_planid)
-          # Load from Billing::Plan cache only
-          plan = ::Billing::Plan.load(test_planid)
-          plan&.name
+          result = ::Billing::Plan.load_with_fallback(test_planid)
+          result[:plan]&.name || result[:config]&.dig(:name)
         end
       end
 

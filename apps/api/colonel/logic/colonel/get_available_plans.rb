@@ -72,36 +72,41 @@ module ColonelAPI
 
         # Load plans from Billing::Plan cache (Stripe-synced)
         #
+        # Deduplicates by tier, preferring monthly plans over yearly.
+        # Uses a hash to ensure monthly always wins regardless of iteration order.
+        #
         # @return [Array<Hash>] Array of plan hashes
         def load_plans_from_stripe_cache
           plans = ::Billing::Plan.list_plans
 
-          # Convert to hash format, deduplicating by tier
-          seen_tiers  = {}
-          plans_array = []
+          # Group by tier, preferring monthly plans over yearly
+          plans_by_tier = {}
 
           plans.each do |plan|
-            # Skip yearly if we already have monthly for this tier
-            # (prefer monthly for simplicity in testing UI)
-            next if seen_tiers[plan.tier] && plan.interval == 'year'
+            existing = plans_by_tier[plan.tier]
 
-            plans_array << {
-              planid: plan.plan_id,
-              name: plan.name,
-              tier: plan.tier,
-              tenancy: plan.tenancy,
-              region: plan.region,
-              display_order: plan.display_order.to_i,
-              show_on_plans_page: plan.show_on_plans_page.to_s == 'true',
-              description: plan.respond_to?(:description) ? plan.description : nil,
-              entitlements: plan.entitlements.to_a,
-              limits: plan.limits.hgetall || {},
+            # Keep existing if it's monthly (preferred), otherwise replace
+            next if existing && existing[:interval] == 'month'
+
+            plans_by_tier[plan.tier] = {
+              interval: plan.interval, # Track for deduplication
+              data: {
+                planid: plan.plan_id,
+                name: plan.name,
+                tier: plan.tier,
+                tenancy: plan.tenancy,
+                region: plan.region,
+                display_order: plan.display_order.to_i,
+                show_on_plans_page: plan.show_on_plans_page.to_s == 'true',
+                description: plan.respond_to?(:description) ? plan.description : nil,
+                entitlements: plan.entitlements.to_a,
+                limits: plan.limits.hgetall || {},
+              },
             }
-
-            seen_tiers[plan.tier] = true
           end
 
-          plans_array
+          # Extract just the data hashes (without the interval tracking key)
+          plans_by_tier.values.map { |entry| entry[:data] }
         rescue StandardError => ex
           OT.le '[GetAvailablePlans] Error loading plans from cache', {
             exception: ex,

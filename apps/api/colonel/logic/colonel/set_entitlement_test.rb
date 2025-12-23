@@ -59,31 +59,27 @@ module ColonelAPI
           # If setting a plan, validate it exists
           return unless @planid && !@planid.empty?
 
-          # Try Stripe cache first (production)
-          stripe_plan = ::Billing::Plan.load(@planid)
-          if stripe_plan
-            @plan_source = 'stripe'
-            @test_plan_config = {
-              name: stripe_plan.name,
-              entitlements: stripe_plan.entitlements.to_a,
-              limits: stripe_plan.limits.hgetall || {},
-            }
-            return
-          end
+          # Use centralized fallback loader
+          result = ::Billing::Plan.load_with_fallback(@planid)
+          @plan_source = result[:source]
 
-          # Fall back to billing.yaml config (dev/standalone)
-          config_plan = ::Billing::Plan.load_from_config(@planid)
-          if config_plan
-            @plan_source = 'local_config'
+          if result[:plan]
+            # Stripe-synced plan
             @test_plan_config = {
-              name: config_plan[:name],
-              entitlements: config_plan[:entitlements],
-              limits: config_plan[:limits],
+              name: result[:plan].name,
+              entitlements: result[:plan].entitlements.to_a,
+              limits: result[:plan].limits.hgetall || {},
             }
-            return
+          elsif result[:config]
+            # billing.yaml config plan
+            @test_plan_config = {
+              name: result[:config][:name],
+              entitlements: result[:config][:entitlements],
+              limits: result[:config][:limits],
+            }
+          else
+            raise_form_error('Invalid plan ID')
           end
-
-          raise_form_error('Invalid plan ID')
         end
 
         def process

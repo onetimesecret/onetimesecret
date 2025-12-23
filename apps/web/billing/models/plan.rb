@@ -371,6 +371,26 @@ module Billing
         load_multi(instances.to_a)
       end
 
+      # Load a plan from Stripe cache with fallback to billing.yaml config
+      #
+      # Use this method when you need to load a plan from either source.
+      # Centralizes the fallback pattern used across entitlement testing.
+      #
+      # @param plan_id [String] Plan ID to load
+      # @return [Hash] Hash with :plan (Plan or nil), :config (Hash or nil), :source ('stripe' or 'local_config' or nil)
+      def load_with_fallback(plan_id)
+        # Try Stripe-synced cache first (production)
+        stripe_plan = load(plan_id)
+        return { plan: stripe_plan, config: nil, source: 'stripe' } if stripe_plan
+
+        # Fall back to billing.yaml config (dev/standalone)
+        config_plan = load_from_config(plan_id)
+        return { plan: nil, config: config_plan, source: 'local_config' } if config_plan
+
+        # Not found in either source
+        { plan: nil, config: nil, source: nil }
+      end
+
       # Clear all cached plans (for testing or forced refresh)
       def clear_cache
         instances.to_a.each do |plan_id|
