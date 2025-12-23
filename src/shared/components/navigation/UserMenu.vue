@@ -31,7 +31,6 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { Customer } from '@/schemas/models';
 import { WindowService } from '@/services/window.service';
-import { useTeamStore } from '@/shared/stores/teamStore';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -44,7 +43,6 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const { logout } = useAuth();
-const teamStore = useTeamStore();
 
 const billingEnabled = computed(() => {
   try {
@@ -105,14 +103,6 @@ const menuItems = computed<MenuItem[]>(() => [
     label: t('web.navigation.billing'),
     icon: { collection: 'heroicons', name: 'credit-card' },
     condition: () => !props.awaitingMfa && billingEnabled.value,
-  },
-  // Teams (conditional - only show if user has teams)
-  {
-    id: 'teams',
-    to: '/teams',
-    label: t('web.teams.menu.teams'),
-    icon: { collection: 'heroicons', name: 'users-solid' },
-    condition: () => !props.awaitingMfa && teamStore.hasTeams,
   },
   // Colonel (conditional)
   {
