@@ -1,5 +1,8 @@
 # spec/support/vcr_config.rb
 #
+# NOTE: Billing tests use apps/web/billing/spec/support/vcr_setup.rb instead,
+# with cassettes stored in apps/web/billing/spec/fixtures/vcr_cassettes/
+#
 # frozen_string_literal: true
 
 require 'vcr'
