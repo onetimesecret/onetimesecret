@@ -86,6 +86,8 @@ Domain Context is detected per-request by `Rack::DetectHost` + `DomainStrategy` 
 | Canonical   | Config-defined, static        | Default branding, full marketing copy |
 | Custom      | Per-request header inspection | Custom branding, minimal chrome       |
 
+Each custom domain carries its branding configuration and belongs to exactly one organization. Recognizing the domain implicitly identifies both.
+
 ### Dimension 3: Homepage Mode (Deployment-Time)
 
 Homepage Mode is a scoped gatekeeper configured at deployment. It only applies to the Conceal context (Homepage).
@@ -158,11 +160,11 @@ For Reveal, only two dimensions apply (Homepage Mode is irrelevant):
 └─────────────┴─────────────────┴───────────────────┘
 ```
 
-For Workspace/Colonel, neither Domain Context nor Homepage Mode apply:
+For Workspace/Colonel, Homepage Mode does not apply:
 
 ```
 ┌─────────────┬─────────────────────────────────────┐
-│ Manage      │ Always OTS-branded (no custom)      │
+│ Manage      │ Domain Context applies (plan-gated) │
 ├─────────────┼─────────────────────────────────────┤
 │ Admin       │ Always OTS-branded (no custom)      │
 └─────────────┴─────────────────────────────────────┘
