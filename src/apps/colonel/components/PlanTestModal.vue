@@ -4,6 +4,7 @@
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
 import { useCsrfStore } from '@/shared/stores';
+import { WindowService } from '@/services/window.service';
 import { createApi } from '@/api';
 import {
   Dialog,
@@ -116,11 +117,13 @@ const handleActivateTestMode = async (planId: string) => {
       }
     );
 
-    // Reload page to get new window state
-    window.location.reload();
+    // Refresh window state to get updated entitlements (no page reload needed)
+    await WindowService.refresh();
+    emit('close');
   } catch (err: unknown) {
     console.error('Failed to activate test mode:', err);
     error.value = 'Failed to activate test mode. Please try again.';
+  } finally {
     isLoading.value = false;
   }
 };
@@ -141,11 +144,13 @@ const handleResetToActual = async () => {
       }
     );
 
-    // Reload page to get new window state
-    window.location.reload();
+    // Refresh window state to clear test mode (no page reload needed)
+    await WindowService.refresh();
+    emit('close');
   } catch (err: unknown) {
     console.error('Failed to reset test mode:', err);
     error.value = 'Failed to reset test mode. Please try again.';
+  } finally {
     isLoading.value = false;
   }
 };

@@ -4,6 +4,7 @@
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
 import { useCsrfStore } from '@/shared/stores';
+import { WindowService } from '@/services/window.service';
 import { createApi } from '@/api';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -32,9 +33,11 @@ const handleReset = async () => {
       }
     );
 
-    window.location.reload();
+    // Refresh window state to clear test mode (no page reload needed)
+    await WindowService.refresh();
   } catch (err: unknown) {
     console.error('Failed to reset test mode:', err);
+  } finally {
     isResetting.value = false;
   }
 };

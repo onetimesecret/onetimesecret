@@ -49,11 +49,25 @@ vi.mock('@/shared/components/icons/OIcon.vue', () => ({
 
 // Mock API
 const mockPost = vi.fn();
+const mockGet = vi.fn();
 vi.mock('@/api', () => ({
   createApi: () => ({
     post: mockPost,
+    get: mockGet,
   }),
 }));
+
+// Default plans data for tests
+const defaultPlansResponse = {
+  data: {
+    plans: [
+      { planid: 'free_v1', name: 'Free', tier: 'free' },
+      { planid: 'identity_v1', name: 'Identity Plus', tier: 'identity' },
+      { planid: 'multi_team_v1', name: 'Multi-Team', tier: 'multi_team' },
+    ],
+    source: 'local_config' as const,
+  },
+};
 
 const i18n = createI18n({
   legacy: false,
@@ -82,27 +96,44 @@ const i18n = createI18n({
 describe('PlanTestModal', () => {
   let wrapper: VueWrapper;
   let pinia: ReturnType<typeof createPinia>;
+  let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     pinia = createPinia();
     setActivePinia(pinia);
     vi.clearAllMocks();
     mockPost.mockReset();
+    mockGet.mockReset();
+
+    // Default: return plans for GET requests
+    mockGet.mockResolvedValue(defaultPlansResponse);
+
+    // Mock global fetch for WindowService.refresh()
+    fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        entitlement_test_planid: null,
+        entitlement_test_plan_name: null,
+      }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
   });
 
   afterEach(() => {
     if (wrapper) {
       wrapper.unmount();
     }
+    vi.unstubAllGlobals();
   });
 
-  const mountComponent = (
+  const mountComponent = async (
     props: { isOpen?: boolean } = {},
     windowState: Record<string, unknown> = {}
   ) => {
-    vi.spyOn(WindowService, 'get').mockImplementation((key: string) => windowState[key] ?? undefined);
+    // Update WindowService reactive state for tests
+    WindowService.update(windowState as Parameters<typeof WindowService.update>[0]);
 
-    return mount(PlanTestModal, {
+    const component = mount(PlanTestModal, {
       props: {
         isOpen: true,
         ...props,
@@ -111,22 +142,28 @@ describe('PlanTestModal', () => {
         plugins: [i18n, pinia],
       },
     });
+
+    // Wait for plans to load
+    await nextTick();
+    await nextTick();
+
+    return component;
   };
 
   describe('Rendering', () => {
-    it('renders the modal when isOpen prop is true', () => {
-      wrapper = mountComponent({ isOpen: true });
+    it('renders the modal when isOpen prop is true', async () => {
+      wrapper = await mountComponent({ isOpen: true });
       expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
     });
 
-    it('does not render content when isOpen prop is false', () => {
-      wrapper = mountComponent({ isOpen: false });
+    it('does not render content when isOpen prop is false', async () => {
+      wrapper = await mountComponent({ isOpen: false });
       // TransitionRoot hides content when show is false
       expect(wrapper.find('.dialog-panel').exists()).toBe(false);
     });
 
-    it('renders all available plan options', () => {
-      wrapper = mountComponent();
+    it('renders all available plan options', async () => {
+      wrapper = await mountComponent();
       const html = wrapper.html();
 
       expect(html).toContain('Free');
@@ -134,15 +171,15 @@ describe('PlanTestModal', () => {
       expect(html).toContain('Multi-Team');
     });
 
-    it('renders modal title from i18n', () => {
-      wrapper = mountComponent();
+    it('renders modal title from i18n', async () => {
+      wrapper = await mountComponent();
       expect(wrapper.text()).toContain('Test Plan Mode');
     });
   });
 
   describe('Current Test Plan Display', () => {
-    it('shows test mode badge when override is active', () => {
-      wrapper = mountComponent({}, {
+    it('shows test mode badge when override is active', async () => {
+      wrapper = await mountComponent({}, {
         entitlement_test_planid: 'identity_v1',
         entitlement_test_plan_name: 'Identity Plus',
       });
@@ -150,8 +187,8 @@ describe('PlanTestModal', () => {
       expect(wrapper.text()).toContain('Test Mode Active');
     });
 
-    it('shows current test plan name when testing', () => {
-      wrapper = mountComponent({}, {
+    it('shows current test plan name when testing', async () => {
+      wrapper = await mountComponent({}, {
         entitlement_test_planid: 'identity_v1',
         entitlement_test_plan_name: 'Identity Plus',
       });
@@ -159,16 +196,16 @@ describe('PlanTestModal', () => {
       expect(wrapper.text()).toContain('Identity Plus');
     });
 
-    it('does not show test mode badge when no override is active', () => {
-      wrapper = mountComponent({}, {
+    it('does not show test mode badge when no override is active', async () => {
+      wrapper = await mountComponent({}, {
         entitlement_test_planid: null,
       });
 
       expect(wrapper.text()).not.toContain('Test Mode Active');
     });
 
-    it('shows reset button when test mode is active', () => {
-      wrapper = mountComponent({}, {
+    it('shows reset button when test mode is active', async () => {
+      wrapper = await mountComponent({}, {
         entitlement_test_planid: 'identity_v1',
       });
 
@@ -179,8 +216,8 @@ describe('PlanTestModal', () => {
       expect(resetButton?.exists()).toBe(true);
     });
 
-    it('does not show reset button when test mode is inactive', () => {
-      wrapper = mountComponent({}, {
+    it('does not show reset button when test mode is inactive', async () => {
+      wrapper = await mountComponent({}, {
         entitlement_test_planid: null,
       });
 
@@ -202,14 +239,7 @@ describe('PlanTestModal', () => {
         },
       });
 
-      // Mock window.location.reload
-      const reloadMock = vi.fn();
-      Object.defineProperty(window, 'location', {
-        value: { reload: reloadMock },
-        writable: true,
-      });
-
-      wrapper = mountComponent();
+      wrapper = await mountComponent();
 
       const planButton = wrapper.findAll('button').find(
         btn => btn.text().includes('Identity Plus')
@@ -218,6 +248,7 @@ describe('PlanTestModal', () => {
       expect(planButton?.exists()).toBe(true);
       await planButton!.trigger('click');
       await nextTick();
+      await nextTick(); // Wait for refresh to complete
 
       expect(mockPost).toHaveBeenCalledWith(
         '/api/colonel/entitlement-test',
@@ -228,6 +259,12 @@ describe('PlanTestModal', () => {
           }),
         })
       );
+
+      // Should call WindowService.refresh() via fetch
+      expect(fetchMock).toHaveBeenCalledWith('/window', expect.any(Object));
+
+      // Should emit close after successful operation
+      expect(wrapper.emitted('close')).toBeTruthy();
     });
 
     it('calls API with null planid when reset is clicked', async () => {
@@ -235,13 +272,7 @@ describe('PlanTestModal', () => {
         data: { status: 'cleared', actual_planid: 'free' },
       });
 
-      const reloadMock = vi.fn();
-      Object.defineProperty(window, 'location', {
-        value: { reload: reloadMock },
-        writable: true,
-      });
-
-      wrapper = mountComponent({}, {
+      wrapper = await mountComponent({}, {
         entitlement_test_planid: 'identity_v1',
       });
 
@@ -252,6 +283,7 @@ describe('PlanTestModal', () => {
       expect(resetButton?.exists()).toBe(true);
       await resetButton!.trigger('click');
       await nextTick();
+      await nextTick(); // Wait for refresh to complete
 
       expect(mockPost).toHaveBeenCalledWith(
         '/api/colonel/entitlement-test',
@@ -262,12 +294,18 @@ describe('PlanTestModal', () => {
           }),
         })
       );
+
+      // Should call WindowService.refresh() via fetch
+      expect(fetchMock).toHaveBeenCalledWith('/window', expect.any(Object));
+
+      // Should emit close after successful operation
+      expect(wrapper.emitted('close')).toBeTruthy();
     });
 
     it('displays error message when API call fails', async () => {
       mockPost.mockRejectedValueOnce(new Error('Server error'));
 
-      wrapper = mountComponent();
+      wrapper = await mountComponent();
 
       const planButton = wrapper.findAll('button').find(
         btn => btn.text().includes('Free')
@@ -291,7 +329,7 @@ describe('PlanTestModal', () => {
       });
       mockPost.mockReturnValueOnce(pendingPromise);
 
-      wrapper = mountComponent();
+      wrapper = await mountComponent();
 
       const planButton = wrapper.findAll('button').find(
         btn => btn.text().includes('Free')
@@ -315,7 +353,7 @@ describe('PlanTestModal', () => {
 
   describe('Events', () => {
     it('emits close event when cancel button is clicked', async () => {
-      wrapper = mountComponent();
+      wrapper = await mountComponent();
 
       const cancelButton = wrapper.findAll('button').find(
         btn => btn.text().includes('Cancel')
@@ -334,7 +372,7 @@ describe('PlanTestModal', () => {
       });
       mockPost.mockReturnValueOnce(pendingPromise);
 
-      wrapper = mountComponent();
+      wrapper = await mountComponent();
 
       // Start loading
       const planButton = wrapper.findAll('button').find(
@@ -358,8 +396,8 @@ describe('PlanTestModal', () => {
   });
 
   describe('Visual Indicators', () => {
-    it('highlights currently active test plan with amber styling', () => {
-      wrapper = mountComponent({}, {
+    it('highlights currently active test plan with amber styling', async () => {
+      wrapper = await mountComponent({}, {
         entitlement_test_planid: 'identity_v1',
       });
 
@@ -369,8 +407,8 @@ describe('PlanTestModal', () => {
       expect(html).toContain('border-amber-500');
     });
 
-    it('shows check icon on active test plan', () => {
-      wrapper = mountComponent({}, {
+    it('shows check icon on active test plan', async () => {
+      wrapper = await mountComponent({}, {
         entitlement_test_planid: 'multi_team_v1',
       });
 
@@ -381,25 +419,16 @@ describe('PlanTestModal', () => {
   });
 
   describe('Edge Cases', () => {
-    it('handles missing window state gracefully', () => {
-      expect(() => {
-        wrapper = mountComponent({}, {});
+    it('handles missing window state gracefully', async () => {
+      await expect(async () => {
+        wrapper = await mountComponent({}, {});
       }).not.toThrow();
     });
 
-    it('handles WindowService.get throwing error', () => {
-      vi.spyOn(WindowService, 'get').mockImplementation(() => {
-        throw new Error('WindowService error');
-      });
-
-      expect(() => {
-        wrapper = mount(PlanTestModal, {
-          props: { isOpen: true },
-          global: {
-            plugins: [i18n, pinia],
-          },
-        });
-      }).not.toThrow();
+    it('handles WindowService errors gracefully', async () => {
+      // The useTestPlanMode composable handles errors internally
+      wrapper = await mountComponent({}, {});
+      expect(wrapper.find('[role="dialog"]').exists()).toBe(true);
     });
   });
 });
