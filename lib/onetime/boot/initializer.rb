@@ -51,9 +51,17 @@ module Onetime
         end
 
         # Auto-register when subclass is defined (Phase 1: Discovery)
+        #
+        # Registers with both:
+        # - Class-level registry (backward compatibility for production)
+        # - Thread-local instance registry (DI architecture for test isolation)
         def inherited(subclass)
           super
+          # Register with class-level registry (backward compatibility)
           InitializerRegistry.register_class(subclass)
+
+          # Register with thread-local instance registry if active (DI architecture)
+          InitializerRegistry.current&.register_class(subclass)
         end
 
         # Generate name from class name

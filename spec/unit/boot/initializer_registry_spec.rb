@@ -11,35 +11,27 @@ require 'benchmark'
 # These tests complement existing Tryouts tests with RSpec-specific features
 # like mocking, stubbing, and isolation.
 #
-# == Registry Reset Methods ==
+# == DI Architecture (Phase 1) ==
 #
-# The registry has two reset methods with different behaviors:
+# This spec uses instance-based registry for true test isolation.
+# Each test gets a fresh registry instance via `let(:registry)`.
+# The `around` hook sets this instance as `InitializerRegistry.current`,
+# so classes created via helpers auto-register with the test's registry.
 #
-#   | Method        | @registered_classes | Runtime State |
-#   |---------------|---------------------|---------------|
-#   | soft_reset!   | PRESERVED           | Cleared       |
-#   | hard_reset!   | CLEARED             | Cleared       |
-#
-# Production initializers (SetupLoggers, SetupRabbitMQ, etc.) auto-register
-# when spec_helper loads via the inherited hook. This means @registered_classes
-# contains production classes BEFORE any test runs.
-#
-# Use hard_reset! for unit tests that need a truly empty registry (like these).
-# Use soft_reset! for integration tests that need production initializers preserved.
+# Benefits:
+# - No global state pollution between tests
+# - No reset! methods needed
+# - Tests run in true isolation regardless of order
+# - Production initializers remain in class-level registry (unaffected)
 #
 RSpec.describe Onetime::Boot::InitializerRegistry do
-  # Use subject for cleaner test syntax
-  subject(:registry) { described_class }
+  # Fresh registry instance for each test (DI architecture)
+  let(:registry) { described_class.new }
 
-  # Reset registry state before each test to ensure isolation
-  # Use hard_reset! to clear everything (including production initializer classes)
-  # This ensures unit tests run in true isolation
-  before do
-    registry.hard_reset!
-  end
-
-  after do
-    registry.hard_reset!
+  # Bind registry to thread for auto-registration during test
+  # Classes created with Class.new(Initializer) will auto-register here
+  around do |example|
+    described_class.with_registry(registry) { example.run }
   end
 
   # Helper to create a fork-sensitive initializer class for testing
