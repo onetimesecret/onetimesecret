@@ -11,30 +11,24 @@ require 'benchmark'
 # These tests complement existing Tryouts tests with RSpec-specific features
 # like mocking, stubbing, and isolation.
 #
-# == DI Architecture (Phase 1) ==
+# == Pure DI Architecture ==
 #
-# This spec uses instance-based registry for true test isolation.
+# This spec uses instance-based registry with explicit registration.
 # Each test gets a fresh registry instance via `let(:registry)`.
-# The `around` hook sets this instance as `InitializerRegistry.current`,
-# so classes created via helpers auto-register with the test's registry.
+# Helper methods explicitly register classes - no inherited hook dependency.
 #
 # Benefits:
 # - No global state pollution between tests
 # - No reset! methods needed
 # - Tests run in true isolation regardless of order
-# - Production initializers remain in class-level registry (unaffected)
+# - ObjectSpace discovery only used in production (not tests)
 #
 RSpec.describe Onetime::Boot::InitializerRegistry do
   # Fresh registry instance for each test (DI architecture)
   let(:registry) { described_class.new }
 
-  # Bind registry to thread for auto-registration during test
-  # Classes created with Class.new(Initializer) will auto-register here
-  around do |example|
-    described_class.with_registry(registry) { example.run }
-  end
-
   # Helper to create a fork-sensitive initializer class for testing
+  # Explicitly registers with the test's registry instance
   def create_fork_sensitive_initializer(name_suffix, cleanup_proc = nil, reconnect_proc = nil)
     cleanup_block = cleanup_proc || -> {}
     reconnect_block = reconnect_proc || -> {}
@@ -48,23 +42,28 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
     end
 
     klass.define_singleton_method(:name) { "TestForkSensitive#{name_suffix}" }
+    registry.register_class(klass)  # Explicit registration (pure DI)
     klass
   end
 
   # Helper to create a basic preload initializer class
+  # Explicitly registers with the test's registry instance
   def create_preload_initializer(name_suffix)
     klass = Class.new(Onetime::Boot::Initializer) do
       define_method(:execute) { |_ctx| }
     end
 
     klass.define_singleton_method(:name) { "TestPreload#{name_suffix}" }
+    registry.register_class(klass)  # Explicit registration (pure DI)
     klass
   end
 
   describe '#fork_sensitive_initializers' do
     context 'when no initializers are registered' do
       it 'returns an empty array' do
-        registry.load_all
+        # Note: With pure DI, don't call load_all on empty registry
+        # (ObjectSpace discovery would find ALL Initializer subclasses)
+        # Just verify the method works on empty @initializers
         expect(registry.fork_sensitive_initializers).to eq([])
       end
     end
@@ -151,6 +150,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           define_method(:execute) { |_ctx| }
         end
         klass.define_singleton_method(:name) { 'TestNilPhase' }
+        registry.register_class(klass)
 
         registry.load_all
         expect(registry.fork_sensitive_initializers).to eq([])
@@ -190,6 +190,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           define_method(:cleanup) { cleanup_called = true }
         end
         klass.define_singleton_method(:name) { 'TestPreloadWithCleanup' }
+        registry.register_class(klass)
 
         registry.load_all
         registry.cleanup_before_fork
@@ -365,6 +366,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           define_method(:reconnect) { reconnect_called = true }
         end
         klass.define_singleton_method(:name) { 'TestPreloadWithReconnect' }
+        registry.register_class(klass)
 
         registry.load_all
         registry.reconnect_after_fork
@@ -530,11 +532,9 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           # Missing cleanup and reconnect
         end
         klass.define_singleton_method(:name) { 'TestMissingMethods' }
+        registry.register_class(klass)
 
         expect { registry.load_all }.to raise_error(Onetime::Problem, /must implement/)
-
-        # Clean up to prevent pollution of subsequent tests
-        registry.unregister_class(klass)
       end
 
       it 'rejects fork-sensitive initializer without cleanup method' do
@@ -545,11 +545,9 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           # Missing cleanup
         end
         klass.define_singleton_method(:name) { 'TestNoCleanup' }
+        registry.register_class(klass)
 
         expect { registry.load_all }.to raise_error(Onetime::Problem, /cleanup/)
-
-        # Clean up to prevent pollution of subsequent tests
-        registry.unregister_class(klass)
       end
 
       it 'rejects fork-sensitive initializer without reconnect method' do
@@ -560,11 +558,9 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           # Missing reconnect
         end
         klass.define_singleton_method(:name) { 'TestNoReconnect' }
+        registry.register_class(klass)
 
         expect { registry.load_all }.to raise_error(Onetime::Problem, /reconnect/)
-
-        # Clean up to prevent pollution of subsequent tests
-        registry.unregister_class(klass)
       end
 
       it 'rejects fork-sensitive initializer missing both methods' do
@@ -573,6 +569,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           define_method(:execute) { |_ctx| }
         end
         klass.define_singleton_method(:name) { 'TestNoBoth' }
+        registry.register_class(klass)
 
         expect do
           registry.load_all
@@ -580,9 +577,6 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           expect(error.message).to include('cleanup')
           expect(error.message).to include('reconnect')
         end
-
-        # Clean up to prevent pollution of subsequent tests
-        registry.unregister_class(klass)
       end
     end
 
@@ -593,11 +587,9 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           define_method(:execute) { |_ctx| }
         end
         klass.define_singleton_method(:name) { 'TestPreloadPhase' }
+        registry.register_class(klass)
 
         expect { registry.load_all }.not_to raise_error
-
-        # Clean up to prevent pollution of subsequent tests
-        registry.unregister_class(klass)
       end
 
       it 'allows :fork_sensitive phase with required methods' do
@@ -614,6 +606,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           define_method(:execute) { |_ctx| }
         end
         klass.define_singleton_method(:name) { 'TestHelpfulError' }
+        registry.register_class(klass)
 
         expect do
           registry.load_all
@@ -621,9 +614,6 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           expect(error.message).to include('test_helpful_error')
           expect(error.message).to include('must implement')
         end
-
-        # Clean up to prevent pollution of subsequent tests
-        registry.unregister_class(klass)
       end
     end
 
@@ -634,12 +624,10 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           define_method(:execute) { |_ctx| }
         end
         klass.define_singleton_method(:name) { 'TestEarlyValidation' }
+        registry.register_class(klass)
 
         # load_all should fail immediately, not during cleanup/reconnect
         expect { registry.load_all }.to raise_error(Onetime::Problem)
-
-        # Clean up to prevent pollution of subsequent tests
-        registry.unregister_class(klass)
       end
 
       it 'catches configuration errors early' do
@@ -650,14 +638,12 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           # Intentionally define reconnect with wrong arity to catch later
         end
         klass.define_singleton_method(:name) { 'TestConfigError' }
+        registry.register_class(klass)
 
         # Should still fail validation for missing method
         expect do
           registry.load_all
         end.to raise_error(Onetime::Problem, /reconnect/)
-
-        # Clean up to prevent pollution of subsequent tests
-        registry.unregister_class(klass)
       end
     end
 
@@ -670,12 +656,10 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           define_method(:reconnect) { }
         end
         klass.define_singleton_method(:name) { 'TestEdgeCase' }
+        registry.register_class(klass)
 
         # Should pass validation (method exists)
         expect { registry.load_all }.not_to raise_error
-
-        # Clean up to prevent pollution of subsequent tests
-        registry.unregister_class(klass)
       end
     end
   end

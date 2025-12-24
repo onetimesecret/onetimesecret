@@ -247,7 +247,7 @@ module Onetime
           app_class = self
 
           # Create anonymous initializer class
-          Class.new(Onetime::Boot::Initializer) do
+          klass = Class.new(Onetime::Boot::Initializer) do
             @initializer_name  = name
             @application_class = app_class
             @depends_on        = Array(options[:depends_on])
@@ -277,8 +277,12 @@ module Onetime
             end
           end
 
-          # Don't auto-register here - the inherited hook will do it
-          # This prevents double registration
+          # Pure DI: Register with current registry if set (for tests)
+          # In production, ObjectSpace discovery finds all initializer classes
+          current = Onetime::Boot::InitializerRegistry.current
+          current&.register_class(klass)
+
+          klass
         end
       end
     end

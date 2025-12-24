@@ -50,27 +50,6 @@ module Onetime
           @phase || :preload
         end
 
-        # Auto-register when subclass is defined (Phase 1: Discovery)
-        #
-        # Registration strategy (DI architecture):
-        # - If thread-local registry is active: Register ONLY with instance (test isolation)
-        # - Otherwise: Register with class-level registry (production behavior)
-        #
-        # This prevents test classes from polluting the class-level registry.
-        def inherited(subclass)
-          super
-
-          # Check for thread-local instance registry (test mode)
-          current_registry = InitializerRegistry.current
-          if current_registry
-            # Register ONLY with instance (test isolation - no class-level pollution)
-            current_registry.register_class(subclass)
-          else
-            # Register with class-level registry (production mode)
-            InitializerRegistry.register_class(subclass)
-          end
-        end
-
         # Generate name from class name
         # Billing::Initializers::StripeSetup -> :billing.stripe_setup
         def initializer_name

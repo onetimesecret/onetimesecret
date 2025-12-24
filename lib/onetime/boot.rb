@@ -72,19 +72,12 @@ module Onetime
       # of the initializers (via OT.conf).
       @conf = OT::Config.after_load(raw_conf)
 
-      # Phase 1: Discovery - Create instance-based registry (DI architecture)
-      # Initializer classes were already loaded via require at top of file
-      # and auto-registered with the class-level registry via inherited hook.
-      # We create a fresh instance and copy registered classes to it.
+      # Phase 1: Discovery - Create instance-based registry (pure DI)
+      # Initializer classes were already required (lib/onetime/initializers.rb).
+      # load_all will discover them via ObjectSpace - no class-level state needed.
       @boot_registry = Boot::InitializerRegistry.new
 
-      # Copy class-level registrations to instance
-      # (inherited hook registered with class-level registry during require)
-      Boot::InitializerRegistry.registered_classes.each do |klass|
-        @boot_registry.register_class(klass)
-      end
-
-      # Phase 2: Loading - Instantiate and build dependency graph
+      # Phase 2: Loading - Discover via ObjectSpace, instantiate, build dependency graph
       @boot_registry.load_all
 
       # Phase 3: Execution - Run initializers in dependency order (conditional on connect_to_db)

@@ -42,12 +42,10 @@ module Onetime
     class InitializerRegistry
       include TSort  # Instance-level TSort only
 
-      # Class-level state: Only staging area for inherited hook
-      # Initializers are required before boot!, so they register here first.
-      # boot.rb then copies to instance for actual execution.
-      @registered_classes = []
+      # Pure DI architecture - no class-level registration state
+      # Discovery happens via ObjectSpace in load_all
 
-      # Instance-level state (new DI architecture - eliminates global pollution)
+      # Instance-level state only
       attr_reader :initializers, :capability_map, :context, :total_elapsed_ms
 
       # Initialize a new registry instance (thread-safe, isolated)
@@ -64,6 +62,23 @@ module Onetime
         @context             = {}
         @total_elapsed_ms    = 0
         @boot_start_time     = nil
+      end
+
+      # Discover all Initializer subclasses via ObjectSpace
+      #
+      # This is the pure DI approach - no inherited hook, no class-level state.
+      # Used by production boot to find all initializers after they've been required.
+      # Tests should NOT use this - they explicitly register only their test classes.
+      #
+      # @return [self]
+      def discover_initializers
+        ObjectSpace.each_object(Class).each do |klass|
+          next unless klass < Onetime::Boot::Initializer
+          next if klass == Onetime::Boot::Initializer
+
+          register_class(klass) unless @registered_classes.include?(klass)
+        end
+        self
       end
 
       # Get the thread-local active registry (for test isolation)
@@ -95,24 +110,6 @@ module Onetime
       end
 
       class << self
-        attr_reader :registered_classes
-
-        # Register initializer class (called by inherited hook during require)
-        #
-        # @param klass [Class] Initializer subclass
-        # @return [void]
-        def register_class(klass)
-          @registered_classes << klass unless @registered_classes.include?(klass)
-        end
-
-        # Remove a class from the registry (for testing cleanup)
-        #
-        # @param klass [Class] Initializer subclass to remove
-        # @return [void]
-        def unregister_class(klass)
-          @registered_classes.delete(klass)
-        end
-
         # Cleanup all fork-sensitive initializers before fork
         #
         # Pure delegation to boot_registry instance.
@@ -157,8 +154,15 @@ module Onetime
 
       # Load all registered initializers
       #
+      # If no classes have been explicitly registered, auto-discovers via ObjectSpace.
+      # This enables pure DI: production uses discovery, tests use explicit registration.
+      #
       # @return [void]
       def load_all
+        # Auto-discover if no explicit registration (production path)
+        # Tests register explicitly to avoid discovering other test classes
+        discover_initializers if @registered_classes.empty?
+
         @registered_classes.each do |klass|
           next if @initializers.any? { |i| i.name == klass.initializer_name }
 
