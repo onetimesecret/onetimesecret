@@ -371,7 +371,6 @@ jobs:
         with:
           test-type: integration
           auth-mode: simple
-          rspec-tag: simple_auth_mode
           rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-simple.rspec-paths }}
           tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-simple.tryouts-paths }}
           results-file: 'rspec_simple_results.json'
@@ -399,7 +398,6 @@ jobs:
           test-type: integration
           auth-mode: full
           auth-database-url: 'sqlite::memory:'
-          rspec-tag: full_auth_mode,sqlite_database
           rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full-sqlite.rspec-paths }}
           tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full-sqlite.tryouts-paths }}
           results-file: 'rspec_full_sqlite_results.json'
@@ -440,7 +438,7 @@ jobs:
           test-type: integration
           auth-mode: full
           auth-database-url: 'postgresql://postgres:postgres@localhost:5432/onetime_auth_test'
-          rspec-tag: 'full_auth_mode,postgres_database'
+          rspec-tag: 'postgres_database'
           rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full-postgres.rspec-paths }}
           tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full-postgres.tryouts-paths }}
           results-file: 'rspec_full_postgres_results.json'
@@ -467,7 +465,6 @@ jobs:
         with:
           test-type: integration
           auth-mode: disabled
-          rspec-tag: disabled_auth_mode
           rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-disabled.rspec-paths }}
           tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-disabled.tryouts-paths }}
           results-file: 'rspec_disabled_results.json'

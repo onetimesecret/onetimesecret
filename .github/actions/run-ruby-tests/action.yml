@@ -17,9 +17,12 @@
 #       tryouts-paths: 'try/'
 #
 # Auth Modes:
-#   - simple: Basic authentication (default)
-#   - full: Full Rodauth with SQLite/PostgreSQL
-#   - disabled: No authentication
+#   - simple: Basic authentication (uses spec/integration/simple + spec/integration/all)
+#   - full: Full Rodauth with SQLite/PostgreSQL (uses spec/integration/full + spec/integration/all)
+#   - disabled: No authentication (uses spec/integration/disabled + spec/integration/all)
+#
+# Directory structure determines which tests run. The rspec-tag parameter is now
+# only used for database-specific filtering (e.g., postgres_database), not auth modes.
 #
 # Changelog:
 #   1.0.0 - Initial release with RSpec/Tryouts support and job summaries

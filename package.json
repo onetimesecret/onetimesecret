@@ -70,7 +70,7 @@
     "test:chrome:inspect": "pnpm test:base --inspect-brk --no-file-parallelism",
     "test:coverage": "pnpm test:base run --coverage",
     "test:playwright": "pnpm playwright test --reporter=list --config=src/tests/e2e/playwright.config.ts",
-    "test:rspec": "RACK_ENV=test bundle exec rspec",
+    "test:rspec": "bundle exec rake spec",
     "test:rspec:unit": "bundle exec rake spec:unit",
     "test:rspec:cli": "bundle exec rake spec:cli",
     "test:rspec:fast": "bundle exec rake spec:fast",

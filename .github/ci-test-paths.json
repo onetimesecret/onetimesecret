@@ -5,18 +5,18 @@
   },
   "ruby-integration-simple": {
     "tryouts-paths": "try/integration/middleware try/integration/boot try/integration/web try/integration/api try/integration/email try/integration/billing try/integration/homepage_bypass_header_integration_try.rb try/integration/homepage_mode_integration_try.rb",
-    "rspec-paths": "spec/integration"
+    "rspec-paths": "spec/integration/simple spec/integration/all"
   },
   "ruby-integration-full-sqlite": {
     "tryouts-paths": "",
-    "rspec-paths": "spec/integration/authentication/full_mode/*_sqlite_spec.rb"
-  },
-  "ruby-integration-disabled": {
-    "tryouts-paths": "",
-    "rspec-paths": "spec/integration"
+    "rspec-paths": "spec/integration/full spec/integration/all"
   },
   "ruby-integration-full-postgres": {
     "tryouts-paths": "",
-    "rspec-paths": "spec/integration/authentication/full_mode/*_postgres_spec.rb"
+    "rspec-paths": "spec/integration/full --tag postgres_database"
+  },
+  "ruby-integration-disabled": {
+    "tryouts-paths": "",
+    "rspec-paths": "spec/integration/disabled spec/integration/all"
   }
 }
