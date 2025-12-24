@@ -118,6 +118,7 @@ module DomainsAPI::Logic
         validate_color
         validate_font
         validate_corner_style
+        validate_default_ttl
       end
 
       def validate_color
@@ -148,6 +149,22 @@ module DomainsAPI::Logic
 
         OT.ld "[UpdateDomainBrand] Error: Invalid corner style '#{style}'"
         raise_form_error "Invalid corner style - must be one of: #{Onetime::CustomDomain::BrandSettings::CORNERS.join(', ')}"
+      end
+
+      def validate_default_ttl
+        ttl = @brand_settings[:default_ttl]
+        return if ttl.nil?
+
+        # Coerce to integer if string
+        ttl_value = ttl.is_a?(String) ? ttl.to_i : ttl
+
+        unless ttl_value.is_a?(Integer) && ttl_value.positive?
+          OT.ld "[UpdateDomainBrand] Error: Invalid default_ttl '#{ttl}'"
+          raise_form_error 'Invalid default TTL - must be a positive integer (seconds)'
+        end
+
+        # Update the brand_settings hash with the coerced value
+        @brand_settings[:default_ttl] = ttl_value
       end
 
       # Validate extid format (lowercase alphanumeric only)

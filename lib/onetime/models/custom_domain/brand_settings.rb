@@ -29,9 +29,18 @@ module Onetime
         button_text_light: false,
         allow_public_homepage: false,
         allow_public_api: false,
+        default_ttl: nil,
+        passphrase_required: false,
+        notify_enabled: false,
       }.freeze
 
-      BOOLEAN_FIELDS = %w[allow_public_homepage allow_public_api button_text_light].freeze
+      BOOLEAN_FIELDS = %w[
+        allow_public_homepage
+        allow_public_api
+        button_text_light
+        passphrase_required
+        notify_enabled
+      ].freeze
 
       FONTS   = %w[sans serif mono].freeze
       CORNERS = %w[rounded square pill].freeze
@@ -49,6 +58,9 @@ module Onetime
       :allow_public_homepage,
       :allow_public_api,
       :locale,
+      :default_ttl,
+      :passphrase_required,
+      :notify_enabled,
     ) do
       include BrandSettingsConstants
 
@@ -134,6 +146,16 @@ module Onetime
       # @return [Boolean] Whether public API is allowed
       def allow_public_api?
         allow_public_api == true
+      end
+
+      # @return [Boolean] Whether passphrase is required by default
+      def passphrase_required?
+        passphrase_required == true
+      end
+
+      # @return [Boolean] Whether notifications are enabled by default
+      def notify_enabled?
+        notify_enabled == true
       end
     end
 

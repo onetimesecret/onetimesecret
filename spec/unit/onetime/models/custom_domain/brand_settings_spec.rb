@@ -23,6 +23,9 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
         allow_public_homepage
         allow_public_api
         locale
+        default_ttl
+        passphrase_required
+        notify_enabled
       ]
       expect(described_class.members).to match_array(expected_members)
     end
@@ -276,6 +279,118 @@ RSpec.describe Onetime::CustomDomain::BrandSettings do
                end
 
       expect(result).to eq('Serif with #FF0000')
+    end
+  end
+
+  describe 'privacy defaults' do
+    describe 'default values' do
+      it 'sets privacy defaults when creating empty hash' do
+        settings = described_class.from_hash({})
+
+        expect(settings.default_ttl).to be_nil
+        expect(settings.passphrase_required).to be false
+        expect(settings.notify_enabled).to be false
+      end
+
+      it 'applies custom privacy values' do
+        settings = described_class.from_hash(
+          default_ttl: 3600,
+          passphrase_required: true,
+          notify_enabled: true
+        )
+
+        expect(settings.default_ttl).to eq(3600)
+        expect(settings.passphrase_required).to be true
+        expect(settings.notify_enabled).to be true
+      end
+    end
+
+    describe '#passphrase_required?' do
+      it 'returns true when value is string "true"' do
+        settings = described_class.from_hash(passphrase_required: 'true')
+        expect(settings.passphrase_required?).to be true
+      end
+
+      it 'returns true when value is boolean true' do
+        settings = described_class.from_hash(passphrase_required: true)
+        expect(settings.passphrase_required?).to be true
+      end
+
+      it 'returns false when value is string "false"' do
+        settings = described_class.from_hash(passphrase_required: 'false')
+        expect(settings.passphrase_required?).to be false
+      end
+
+      it 'returns false when value is nil' do
+        settings = described_class.from_hash({})
+        expect(settings.passphrase_required?).to be false
+      end
+    end
+
+    describe '#notify_enabled?' do
+      it 'returns true when value is string "true"' do
+        settings = described_class.from_hash(notify_enabled: 'true')
+        expect(settings.notify_enabled?).to be true
+      end
+
+      it 'returns true when value is boolean true' do
+        settings = described_class.from_hash(notify_enabled: true)
+        expect(settings.notify_enabled?).to be true
+      end
+
+      it 'returns false when value is string "false"' do
+        settings = described_class.from_hash(notify_enabled: 'false')
+        expect(settings.notify_enabled?).to be false
+      end
+
+      it 'returns false when value is nil' do
+        settings = described_class.from_hash({})
+        expect(settings.notify_enabled?).to be false
+      end
+    end
+
+    describe 'default_ttl' do
+      it 'accepts integer values' do
+        settings = described_class.from_hash(default_ttl: 7200)
+        expect(settings.default_ttl).to eq(7200)
+      end
+
+      it 'defaults to nil when not provided' do
+        settings = described_class.from_hash({})
+        expect(settings.default_ttl).to be_nil
+      end
+
+      it 'stores in to_h_for_storage when set' do
+        settings = described_class.from_hash(default_ttl: 3600)
+        storage_hash = settings.to_h_for_storage
+
+        expect(storage_hash).to have_key('default_ttl')
+        expect(storage_hash['default_ttl']).to eq('3600')
+      end
+    end
+
+    describe 'privacy defaults in storage' do
+      it 'stores all privacy settings when set' do
+        settings = described_class.from_hash(
+          default_ttl: 3600,
+          passphrase_required: true,
+          notify_enabled: false
+        )
+
+        storage_hash = settings.to_h_for_storage
+
+        expect(storage_hash['default_ttl']).to eq('3600')
+        expect(storage_hash['passphrase_required']).to eq('true')
+        expect(storage_hash['notify_enabled']).to eq('false')
+      end
+
+      it 'excludes nil privacy values from storage' do
+        settings = described_class.from_hash(passphrase_required: true)
+        storage_hash = settings.to_h_for_storage
+
+        expect(storage_hash).not_to have_key('default_ttl')
+        expect(storage_hash).to have_key('passphrase_required')
+      end
     end
   end
 end

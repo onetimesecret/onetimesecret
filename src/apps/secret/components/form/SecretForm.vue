@@ -5,7 +5,7 @@
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SplitButton from '@/shared/components/ui/SplitButton.vue';
-  import { useDomainDropdown } from '@/shared/composables/useDomainDropdown';
+  import { useDomainScope } from '@/shared/composables/useDomainScope';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { WindowService } from '@/services/window.service';
@@ -14,7 +14,6 @@
     DEFAULT_BUTTON_TEXT_LIGHT,
     DEFAULT_CORNER_CLASS,
     DEFAULT_PRIMARY_COLOR,
-    useProductIdentity,
   } from '@/shared/stores/identityStore';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import { nanoid } from 'nanoid';
@@ -23,7 +22,6 @@
 
   const { t } = useI18n();
 
-  import CustomDomainPreview from '@/apps/workspace/components/domains/CustomDomainPreview.vue';
   import SecretContentInputArea from './SecretContentInputArea.vue';
 
   export interface Props {
@@ -49,7 +47,6 @@
   });
 
   const router = useRouter();
-  const productIdentity = useProductIdentity();
   const concealedMetadataStore = useConcealedMetadataStore();
   const showProTip = ref(props.withAsterisk);
 
@@ -104,8 +101,7 @@
     togglePassphraseVisibility,
   } = usePrivacyOptions(operations);
 
-  const { availableDomains, selectedDomain, domainsEnabled, updateSelectedDomain } =
-    useDomainDropdown();
+  const { currentScope, isScopeActive } = useDomainScope();
 
   // Compute whether the form has content or not
   const hasContent = computed(() => !!form.secret && (form.secret as string).trim().length > 0);
@@ -121,8 +117,8 @@
   const secretContentInput = ref<{ clearTextarea: () => void } | null>(null);
   const selectedAction = ref<'create-link' | 'generate-password'>('create-link');
 
-  // Watch for domain changes and update form
-  watch(selectedDomain, (domain) => {
+  // Watch for domain scope changes and update form
+  watch(() => currentScope.value.domain, (domain) => {
     operations.updateField('share_domain', domain);
   });
 
@@ -130,7 +126,7 @@
   const generatePasswordSection = ref<HTMLElement | null>(null);
 
   onMounted(() => {
-    operations.updateField('share_domain', selectedDomain.value);
+    operations.updateField('share_domain', currentScope.value.domain);
   });
 </script>
 
@@ -423,14 +419,30 @@
           <!-- Actions Container -->
           <div class="p-8">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-              <!-- Domain Preview (grows to fill available space) -->
-              <div class="order-1 min-w-0 grow sm:order-2">
-                <CustomDomainPreview
-                  v-if="productIdentity.isCanonical"
-                  :available-domains="availableDomains"
-                  :with-domain-dropdown="domainsEnabled"
-                  @update:selected-domain="updateSelectedDomain"
-                  class="w-full" />
+              <!-- Domain Scope Indicator -->
+              <div
+                v-if="isScopeActive"
+                class="order-1 flex items-center gap-2 text-sm sm:order-1">
+                <span class="text-gray-600 dark:text-gray-400">
+                  {{ t('web.LABELS.creating_in') }}
+                </span>
+                <div
+                  class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5
+                         text-sm font-medium transition-all duration-150"
+                  :class="
+                    currentScope.isCanonical
+                      ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+                      : 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
+                  "
+                  role="status"
+                  :aria-label="t('web.LABELS.scope_indicator', { domain: currentScope.displayName })">
+                  <OIcon
+                    collection="heroicons"
+                    :name="currentScope.isCanonical ? 'user-circle' : 'building-office'"
+                    class="size-4"
+                    aria-hidden="true" />
+                  <span class="max-w-[180px] truncate">{{ currentScope.displayName }}</span>
+                </div>
               </div>
 
               <!-- Action Button (full-width on mobile, normal width on desktop) -->
