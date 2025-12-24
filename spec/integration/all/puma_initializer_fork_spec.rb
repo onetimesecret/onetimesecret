@@ -106,10 +106,11 @@ RSpec.describe 'Puma InitializerRegistry Fork Safety', type: :integration do
           end
         end
 
-        # Load initializers
+        # Load initializers (explicit - bypass ObjectSpace discovery)
         puts "[preload] Loading initializer classes..."
-        registry = Onetime::Boot::InitializerRegistry.current
-        registry.load_all
+        registry = Onetime::Boot::InitializerRegistry.new
+        Onetime::Boot::InitializerRegistry.current = registry
+        registry.load_only([TestForkSensitiveInit])
 
         puts "[preload] Running initializers..."
         registry.run_all
@@ -135,10 +136,8 @@ RSpec.describe 'Puma InitializerRegistry Fork Safety', type: :integration do
             }
             [200, {'content-type' => 'application/json'}, [status.to_json]]
           when '/initializers'
-            # List fork-sensitive initializers
+            # List fork-sensitive initializers (use captured variable from preload)
             require 'json'
-            registry = Onetime::Boot::InitializerRegistry.current
-            fork_sensitive = registry.fork_sensitive_initializers
             data = {
               count: fork_sensitive.size,
               names: fork_sensitive.map(&:name),
@@ -240,7 +239,7 @@ RSpec.describe 'Puma InitializerRegistry Fork Safety', type: :integration do
 
       # Should have at least our test initializer
       expect(data['count']).to be >= 1
-      expect(data['names']).to include('onetime.initializers.test_fork_sensitive_init')
+      expect(data['names']).to include('test_fork_sensitive_init')
 
       # All should have phase = :fork_sensitive
       data['phases'].each do |name, phase|

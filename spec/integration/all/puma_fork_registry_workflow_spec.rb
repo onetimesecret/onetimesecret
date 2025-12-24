@@ -185,40 +185,44 @@ RSpec.describe 'Puma Fork Registry Complete Workflow', type: :integration do
     support_dir = File.expand_path('../../support/puma_integration', __dir__)
 
     <<~RUBY
-      require 'bundler/setup'
+      begin
+        require 'bundler/setup'
 
-      # Load Onetime core and initializer infrastructure
-      require_relative '#{File.join(Onetime::HOME, 'lib', 'onetime')}'
-      require_relative '#{File.join(Onetime::HOME, 'lib', 'onetime', 'boot', 'initializer')}'
-      require_relative '#{File.join(Onetime::HOME, 'lib', 'onetime', 'boot', 'initializer_registry')}'
+        # Load Onetime core and initializer infrastructure
+        require_relative '#{File.join(Onetime::HOME, 'lib', 'onetime')}'
+        require_relative '#{File.join(Onetime::HOME, 'lib', 'onetime', 'boot', 'initializer')}'
+        require_relative '#{File.join(Onetime::HOME, 'lib', 'onetime', 'boot', 'initializer_registry')}'
 
-      # Load test fixtures from spec/support
-      require_relative '#{support_dir}/test_fork_initializers'
-      require_relative '#{support_dir}/fork_workflow_rack_app'
+        # Load test fixtures from spec/support
+        require_relative '#{support_dir}/test_fork_initializers'
+        require_relative '#{support_dir}/fork_workflow_rack_app'
 
-      puts "[preload] Loading test initializers..."
-      registry = Onetime::Boot::InitializerRegistry.new
-      Onetime::Boot::InitializerRegistry.current = registry
+        puts "[preload] Loading test initializers..."
+        registry = Onetime::Boot::InitializerRegistry.new
+        Onetime::Boot::InitializerRegistry.current = registry
 
-      # Explicitly register ONLY test initializers (avoid discovering production ones)
-      [
-        TestForkInit1,
-        TestForkInit2,
-        TestForkInit3,
-        TestForkFailingCleanup,
-        TestForkFailingReconnect
-      ].each { |klass| registry.register_class(klass) }
+        # Load ONLY test initializers (bypass ObjectSpace discovery)
+        registry.load_only([
+          TestForkInit1,
+          TestForkInit2,
+          TestForkInit3,
+          TestForkFailingCleanup,
+          TestForkFailingReconnect
+        ])
 
-      registry.load_all
+        puts "[preload] Running initializers..."
+        results = registry.run_all
 
-      puts "[preload] Running initializers..."
-      results = registry.run_all
+        fork_sensitive = registry.fork_sensitive_initializers
+        puts "[preload] Fork-sensitive: \#{fork_sensitive.map(&:name).join(', ')}"
+        puts "[preload] Results: \#{results[:successful].size} ok, \#{results[:failed].size} failed"
 
-      fork_sensitive = registry.fork_sensitive_initializers
-      puts "[preload] Fork-sensitive: \#{fork_sensitive.map(&:name).join(', ')}"
-      puts "[preload] Results: \#{results[:successful].size} ok, \#{results[:failed].size} failed"
-
-      run PumaIntegration.build_workflow_app(fork_sensitive)
+        run PumaIntegration.build_workflow_app(fork_sensitive)
+      rescue => e
+        puts "[preload] ERROR during preload: \#{e.class} - \#{e.message}"
+        puts e.backtrace
+        exit 27
+      end
     RUBY
   end
 end
