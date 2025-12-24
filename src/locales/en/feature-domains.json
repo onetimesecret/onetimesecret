@@ -5,7 +5,28 @@
       "view-domain-verification-status": "View domain verification status",
       "domain-already-in-organization": "This domain is already registered in your organization",
       "domain-in-other-organization": "This domain is already registered to another organization. Please contact support if you believe this is an error.",
-      "domain-claimed-successfully": "Domain successfully claimed and added to your organization"
+      "domain-claimed-successfully": "Domain successfully claimed and added to your organization",
+      "privacy_defaults_title": "Privacy Defaults",
+      "privacy_defaults_description": "Set default privacy options for secrets created under this domain. These settings will be pre-filled when creating new secrets.",
+      "privacy_defaults": "Privacy Defaults",
+      "privacy_defaults_icon": "Privacy defaults icon",
+      "default_ttl_label": "Default Time-to-Live",
+      "default_ttl_hint": "How long secrets should remain accessible by default",
+      "passphrase_required_label": "Require passphrase",
+      "passphrase_required_hint": "Make passphrase mandatory for all secrets in this domain",
+      "notify_enabled_label": "Enable notifications",
+      "notify_enabled_hint": "Enable email notifications by default when secrets are viewed",
+      "use_global_default": "Use global default",
+      "global_default": "Global",
+      "required": "Required",
+      "optional": "Optional",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "custom": "Custom",
+      "edit_defaults": "Edit Defaults",
+      "ttl_short": "TTL",
+      "passphrase_short": "Passphrase",
+      "notify_short": "Notifications"
     }
   }
 }
