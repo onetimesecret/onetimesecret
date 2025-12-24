@@ -39,6 +39,10 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
     let(:params) { { 'login' => test_email, 'password' => test_password } }
 
     before do
+      # Minimal I18n setup for unit tests
+      I18n.available_locales = [:en] unless I18n.available_locales.include?(:en)
+      I18n.default_locale = :en
+
       # Stub OT.conf for default settings
       allow(OT).to receive_messages(conf: {
         'site' => {
@@ -56,11 +60,8 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       allow(Onetime::Customer).to receive(:anonymous).and_return(double('AnonymousCustomer', anonymous?: true))
 
       # Stub logging
-
-      # Stub i18n
-      allow(logic).to receive_messages(auth_logger: double('Logger', info: nil, warn: nil, error: nil, debug: nil), i18n: {
-        web: { COMMON: { verification_sent_to: 'Verification sent to' } },
-      }
+      allow(logic).to receive(:auth_logger).and_return(
+        double('Logger', info: nil, warn: nil, error: nil, debug: nil)
       )
 
       # Stub set_info_message (it's a no-op in base)

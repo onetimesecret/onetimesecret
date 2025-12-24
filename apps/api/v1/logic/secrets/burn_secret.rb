@@ -44,7 +44,7 @@ module V1::Logic
 
           elsif !correct_passphrase
 
-            message = OT.locales.dig(locale, :web, :COMMON, :error_passphrase) || 'Incorrect passphrase'
+            message = I18n.t('web.COMMON.error_passphrase', locale: locale, default: 'Incorrect passphrase')
             raise_form_error message
 
           end
