@@ -2,17 +2,31 @@
 
 # Shared context for cleaning authentication state between test contexts.
 #
-# This shared context ensures that authentication-related database connections
-# and suite-level database setups are properly torn down before a new context
-# begins. This is critical for preventing state leaks when switching between
-# authentication modes (full, simple, disabled) in the test suite.
+# This shared context tears down suite-level database setups and resets
+# Auth::Database connections to provide a fresh state.
+#
+# WHEN TO USE:
+#   1. Within-mode isolation: When a test file in spec/integration/full/
+#      needs to ensure it doesn't inherit state from previous test files
+#      in the same RSpec run.
+#   2. Explicit fresh state: When a specific test requires a guaranteed
+#      clean database connection, independent of run order.
+#
+# WHEN NOT TO USE:
+#   Cross-mode isolation is NOT a valid use case. With directory-based test
+#   separation (see ADR-007), each auth mode runs in a separate process:
+#     - spec/integration/simple/ runs with AUTHENTICATION_MODE=simple
+#     - spec/integration/full/ runs with AUTHENTICATION_MODE=full
+#     - spec/integration/disabled/ runs with AUTHENTICATION_MODE=disabled
+#   Process boundaries provide complete isolation between modes. Do not use
+#   this context to "switch modes" - that's not how the test suite works.
 #
 # Usage:
-#   RSpec.describe 'My Test', :full_auth_mode do
+#   RSpec.describe 'My Test', type: :integration do
 #     include_context 'clean_auth_state'
 #
-#     it 'has a clean slate' do
-#       # Database connections and suite databases are reset
+#     it 'starts with fresh database state' do
+#       # FullModeSuiteDatabase and Auth::Database are reset
 #     end
 #   end
 #
