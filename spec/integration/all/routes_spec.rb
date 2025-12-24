@@ -8,6 +8,9 @@ RSpec.describe 'routes_try', type: :integration do
     require 'rack'
     require 'rack/mock'
     # Clear Redis env vars to ensure test config defaults are used (port 2121)
+    @original_rack_env = ENV['RACK_ENV']
+    @original_redis_url = ENV['REDIS_URL']
+    @original_valkey_url = ENV['VALKEY_URL']
     ENV.delete('REDIS_URL')
     ENV.delete('VALKEY_URL')
     # Ensure RACK_ENV is test so boot! is idempotent
@@ -17,7 +20,21 @@ RSpec.describe 'routes_try', type: :integration do
   end
 
   after(:all) do
-    ENV.delete('RACK_ENV')
+    if @original_rack_env
+      ENV['RACK_ENV'] = @original_rack_env
+    else
+      ENV.delete('RACK_ENV')
+    end
+    if @original_redis_url
+      ENV['REDIS_URL'] = @original_redis_url
+    else
+      ENV.delete('REDIS_URL')
+    end
+    if @original_valkey_url
+      ENV['VALKEY_URL'] = @original_valkey_url
+    else
+      ENV.delete('VALKEY_URL')
+    end
   end
 
   it 'Authentication is enabled' do
