@@ -15,7 +15,6 @@ RSpec.describe 'Rodauth Security Hooks', type: :integration do
 
     # Reset both registries to clear state from previous test runs
     Onetime::Application::Registry.reset!
-    Onetime::Boot::InitializerRegistry.soft_reset!
 
     # Reload auth config to pick up AUTHENTICATION_MODE env var
     Onetime.auth_config.reload!
