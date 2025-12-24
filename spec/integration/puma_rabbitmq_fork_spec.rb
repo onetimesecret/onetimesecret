@@ -26,7 +26,7 @@ require 'tempfile'
 require 'socket'
 require 'bunny'
 
-RSpec.describe 'Puma RabbitMQ Fork Safety', type: :integration do
+RSpec.describe 'Puma RabbitMQ Fork Safety', :all_auth_modes, type: :integration do
   before(:all) do
     # Skip if RabbitMQ tests are disabled
     skip 'Skipping RabbitMQ tests (SKIP_RABBITMQ_TESTS=1)' if ENV['SKIP_RABBITMQ_TESTS'] == '1'

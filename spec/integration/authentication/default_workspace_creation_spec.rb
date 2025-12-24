@@ -3,7 +3,7 @@
 
 require 'spec_helper'
 
-RSpec.describe 'default_workspace_creation_try', type: :integration, order: :defined do
+RSpec.describe 'default_workspace_creation_try', :all_auth_modes, type: :integration, order: :defined do
   before(:all) do
     require 'securerandom'
     # Clear Redis env vars to ensure test config defaults are used (port 2121)

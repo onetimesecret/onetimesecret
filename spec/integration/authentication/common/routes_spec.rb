@@ -3,7 +3,7 @@
 
 require_relative '../../integration_spec_helper'
 
-RSpec.describe 'routes_try', type: :integration do
+RSpec.describe 'routes_try', :all_auth_modes, type: :integration do
   before(:all) do
     require 'rack'
     require 'rack/mock'

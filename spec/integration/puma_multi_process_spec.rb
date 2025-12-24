@@ -26,7 +26,7 @@ require 'timeout'
 require 'tempfile'
 require 'socket'
 
-RSpec.describe 'Puma Multi-Process Integration', :simple_auth_mode, type: :integration do
+RSpec.describe 'Puma Multi-Process Integration', :all_auth_modes, type: :integration do
   # This test validates core multi-process functionality that's critical for production
   # deployment. Despite being ~2.5s slower than unit tests, it's included in the normal
   # test suite because it verifies process-level behavior that can't be tested otherwise.

@@ -21,7 +21,7 @@ require 'timeout'
 require 'tempfile'
 require 'socket'
 
-RSpec.describe 'Puma SemanticLogger Fork Safety', type: :integration do
+RSpec.describe 'Puma SemanticLogger Fork Safety', :all_auth_modes, type: :integration do
   before(:all) do
     startup_attempts = 0
     max_startup_attempts = 3

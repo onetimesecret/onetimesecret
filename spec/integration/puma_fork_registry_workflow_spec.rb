@@ -23,7 +23,7 @@ require 'timeout'
 require 'tempfile'
 require 'socket'
 
-RSpec.describe 'Puma Fork Registry Complete Workflow', type: :integration do
+RSpec.describe 'Puma Fork Registry Complete Workflow', :all_auth_modes, type: :integration do
   before(:all) do
     startup_attempts = 0
     max_startup_attempts = 3
