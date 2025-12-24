@@ -148,85 +148,42 @@ end
 
 RSpec.configure do |config|
   # ==========================================================================
-  # AUTHENTICATION MODE FILTERING
+  # DIRECTORY-BASED AUTH MODE ISOLATION
   # ==========================================================================
-  # This mirrors CI behavior where each auth mode runs tests in isolation.
-  # Tests tagged with a specific auth mode will only run when that mode is active.
+  # Integration tests are organized by authentication mode. Each mode runs in
+  # a separate process with the appropriate AUTHENTICATION_MODE env var set.
   #
-  # Usage:
-  #   AUTHENTICATION_MODE=simple bundle exec rspec  # Excludes full/disabled mode tests
-  #   AUTHENTICATION_MODE=full bundle exec rspec    # Excludes simple/disabled mode tests
-  #   AUTHENTICATION_MODE=disabled bundle exec rspec # Excludes simple/full mode tests
+  # Directory structure:
+  #   spec/integration/simple/    -> AUTHENTICATION_MODE=simple
+  #   spec/integration/full/      -> AUTHENTICATION_MODE=full
+  #   spec/integration/disabled/  -> AUTHENTICATION_MODE=disabled
+  #   spec/integration/all/       -> Runs in ALL modes (infrastructure tests)
   #
-  # Integration tests (type: :integration) require matching mode tag to run.
-  # Unit tests run in any mode.
+  # Run tests via Rake tasks (recommended):
+  #   bundle exec rake spec:integration:simple
+  #   bundle exec rake spec:integration:full
+  #   bundle exec rake spec:integration:disabled
+  #   bundle exec rake spec:integration:all
   #
-  # To run ALL tests regardless of mode (advanced):
-  #   RSPEC_ALL_MODES=1 bundle exec rspec
+  # Or via pnpm:
+  #   pnpm test:rspec:integration:simple
+  #   pnpm test:rspec:integration:full
+  #   pnpm test:rspec:integration:disabled
+  #
+  # The Rake tasks run mode-specific tests + all/ tests together, matching
+  # production deployment where only one auth mode exists per instance.
   # ==========================================================================
-  current_mode = ENV.fetch('AUTHENTICATION_MODE', 'simple')
-  run_all_modes = ENV['RSPEC_ALL_MODES'] == '1'
 
-  # Map of modes to tags that should be EXCLUDED when running in that mode
-  mode_exclusions = {
-    'simple' => [:full_auth_mode, :disabled_auth_mode],
-    'full' => [:simple_auth_mode, :disabled_auth_mode],
-    'disabled' => [:simple_auth_mode, :full_auth_mode]
-  }
-
-  unless run_all_modes
-    # Auto-exclude tests tagged for other authentication modes
-    excluded_tags = mode_exclusions[current_mode] || []
-    excluded_tags.each { |tag| config.filter_run_excluding(tag) }
-
-    # For integration tests in spec/integration/, require explicit mode tag
-    # All integration tests MUST have an auth mode tag - untagged tests fail fast
-    # Mode-agnostic tests should be tagged with :all_auth_modes
-    mode_tag = "#{current_mode}_auth_mode".to_sym
-    config.define_derived_metadata(file_path: %r{spec/integration}) do |metadata|
-      has_current_mode_tag = metadata[mode_tag]
-      has_all_modes_tag = metadata[:all_auth_modes]
-
-      # Mark untagged integration tests for fast failure
-      unless has_current_mode_tag || has_all_modes_tag
-        metadata[:missing_auth_mode_tag] = true
-      end
-    end
-
-    # Fail fast on untagged integration tests - don't silently skip
-    config.before(:example, :missing_auth_mode_tag) do |example|
-      raise <<~ERROR
-        Integration test missing required auth mode tag!
-
-        File: #{example.metadata[:file_path]}
-        Test: #{example.metadata[:full_description]}
-
-        All integration tests in spec/integration/ MUST have an auth mode tag:
-          - :simple_auth_mode   - runs only in simple mode
-          - :full_auth_mode     - runs only in full mode
-          - :disabled_auth_mode - runs only in disabled mode
-          - :all_auth_modes     - runs in all modes (mode-agnostic tests)
-
-        Current mode: #{current_mode}
-
-        Fix: Add the appropriate tag to your RSpec.describe block, e.g.:
-          RSpec.describe 'MyTest', :all_auth_modes, type: :integration do
-      ERROR
+  # Derive tags from directory paths (for tooling that uses tags)
+  %w[simple full disabled].each do |mode|
+    config.define_derived_metadata(file_path: %r{/integration/#{mode}/}) do |metadata|
+      metadata[:"#{mode}_auth_mode"] = true
     end
   end
 
-  # Report active mode (only when running interactively, not in CI)
-  unless ENV['CI'] || ENV['GITHUB_ACTIONS']
-    puts
-    if run_all_modes
-      puts "[RSpec] RSPEC_ALL_MODES=1 - Running all tests regardless of auth mode"
-    else
-      excluded_tags = mode_exclusions[current_mode] || []
-      puts "[RSpec] AUTHENTICATION_MODE=#{current_mode}"
-      puts "        Excluding: #{excluded_tags.join(', ')}" unless excluded_tags.empty?
-      puts "        Integration tests require: #{current_mode}_auth_mode tag"
-    end
-    puts
+  # Tests in /integration/all/ run in every mode
+  config.define_derived_metadata(file_path: %r{/integration/all/}) do |metadata|
+    metadata[:all_auth_modes] = true
   end
 
   config.expect_with :rspec do |expectations|
