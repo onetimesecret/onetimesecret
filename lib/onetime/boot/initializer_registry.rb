@@ -75,6 +75,7 @@ module Onetime
         ObjectSpace.each_object(Class).each do |klass|
           next unless klass < Onetime::Boot::Initializer
           next if klass == Onetime::Boot::Initializer
+          next unless klass.name # Skip anonymous classes
 
           register_class(klass) unless @registered_classes.include?(klass)
         end
