@@ -89,8 +89,8 @@ module Onetime
           data = JSON.parse(File.read(filename))
 
           # Infer locale from path: src/locales/en/file.json -> "en"
-          if filename =~ %r{/locales/([^/]+)/}
-            locale = ::Regexp.last_match(1)
+          if (match = filename.match(%r{/locales/([^/]+)/}))
+            locale = match[1]
 
             # If data doesn't have locale key at top level, wrap it
             unless data.key?(locale)
