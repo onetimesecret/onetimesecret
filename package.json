@@ -71,6 +71,7 @@
     "test:coverage": "pnpm test:base run --coverage",
     "test:playwright": "pnpm playwright test --reporter=list --config=src/tests/e2e/playwright.config.ts",
     "test:rspec": "RACK_ENV=test bundle exec rspec",
+    "test:rspec:files": "RACK_ENV=test bundle exec rspec spec/integration --dry-run --format json 2>&1 | sed -n '/^{/,$p' | jq -r '.examples[].file_path' | sort -u",
     "test:rspec:all": "pnpm run test:rspec --format documentation spec/ apps/*/*/spec/",
     "test:rspec:failures": "pnpm run test:rspec --format failures",
     "test:rspec:unit": "RACK_ENV=test AUTHENTICATION_MODE=simple bundle exec rspec spec/onetime spec/lib",

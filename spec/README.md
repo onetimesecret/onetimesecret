@@ -6,6 +6,12 @@ This document describes the test architecture for OneTimeSecret's RSpec suite.
 
 OneTimeSecret runs in discrete authentication modes where certain code paths don't exist in certain modes (reduced attack surface). The test suite mirrors this architecture—**tests are not meant to run in a single process across all modes**.
 
+| Approach | Load behavior | Matches prod? | Catches unrelated syntax errors |
+|----------|---------------|---------------|--------------------------------|
+| `--tag` filtering | Only matching files loaded | Yes | No |
+| Env-var + runtime skip | All files loaded, non-matching skipped | No | Yes |
+
+
 ### Available Modes
 
 | Mode | Description | Auth Stack |
