@@ -28,7 +28,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
   let(:registry) { described_class.new }
 
   # Helper to create a fork-sensitive initializer class for testing
-  # Returns the class - caller must pass to load_all([classes])
+  # Returns the class - caller must pass to autodiscover([classes])
   def create_fork_sensitive_initializer(name_suffix, cleanup_proc = nil, reconnect_proc = nil)
     cleanup_block = cleanup_proc || -> {}
     reconnect_block = reconnect_proc || -> {}
@@ -46,7 +46,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
   end
 
   # Helper to create a basic preload initializer class
-  # Returns the class - caller must pass to load_all([classes])
+  # Returns the class - caller must pass to autodiscover([classes])
   def create_preload_initializer(name_suffix)
     klass = Class.new(Onetime::Boot::Initializer) do
       define_method(:execute) { |_ctx| }
@@ -553,7 +553,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
   end
 
   describe 'validation enforcement' do
-    context 'at registration time via load_all' do
+    context 'at registration time via autodiscover' do
       it 'validates phase values when loading initializers' do
         klass = Class.new(Onetime::Boot::Initializer) do
           @phase = :fork_sensitive
@@ -648,7 +648,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         end
         klass.define_singleton_method(:name) { 'TestEarlyValidation' }
 
-        # load_all should fail immediately, not during cleanup/reconnect
+        # autodiscover should fail immediately, not during cleanup/reconnect
         expect { registry.load([klass]) }.to raise_error(Onetime::Problem)
       end
 

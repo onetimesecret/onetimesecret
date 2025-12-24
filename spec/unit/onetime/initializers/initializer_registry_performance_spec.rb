@@ -140,7 +140,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry, :performance do
 
       5.times { |i| classes << create_fork_sensitive_initializer("ForkPerf#{i}") }
 
-      # Measure load_all performance (dependency resolution + validation)
+      # Measure autodiscover performance (dependency resolution + validation)
       load_elapsed = Benchmark.realtime do
         registry.load(classes)
       end
@@ -151,12 +151,12 @@ RSpec.describe Onetime::Boot::InitializerRegistry, :performance do
       end
 
       # Performance expectations for happy path:
-      # - load_all (dependency resolution + validation): <50ms
+      # - autodiscover (dependency resolution + validation): <50ms
       # - fork_sensitive_initializers (filtering): <10ms
       #
       # These establish baseline performance metrics for typical boot scenarios
       expect(load_elapsed).to be < 0.05,
-        "load_all should complete in <50ms, took #{(load_elapsed * 1000).round(2)}ms"
+        "autodiscover should complete in <50ms, took #{(load_elapsed * 1000).round(2)}ms"
 
       expect(filter_elapsed).to be < 0.01,
         "fork_sensitive_initializers should filter in <10ms, took #{(filter_elapsed * 1000).round(2)}ms"

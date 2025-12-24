@@ -98,7 +98,7 @@ RSpec.describe Onetime::Boot::Initializer do
       end
 
       # Note: The base class doesn't validate phase values at the class level.
-      # Validation happens in InitializerRegistry during load_all.
+      # Validation happens in InitializerRegistry during autodiscover.
       it 'stores arbitrary phase values without validation' do
         klass = new_test_class do
           @phase = :invalid_phase
@@ -241,7 +241,7 @@ RSpec.describe Onetime::Boot::Initializer do
     let(:registry) { Onetime::Boot::InitializerRegistry.new }
 
     context 'class loading' do
-      it 'loads classes via explicit load_all call' do
+      it 'loads classes via explicit autodiscover call' do
         klass = new_test_class
         registry.load([klass])
         expect(registry.initializers.map(&:class)).to include(klass)
@@ -298,7 +298,7 @@ RSpec.describe Onetime::Boot::Initializer do
     end
 
     context 'retrieving loaded initializers' do
-      it 'can retrieve loaded initializers after load_all' do
+      it 'can retrieve loaded initializers after autodiscover' do
         klass1 = new_test_class('TestInit1')
         klass2 = new_test_class('TestInit2')
 
@@ -309,7 +309,7 @@ RSpec.describe Onetime::Boot::Initializer do
         expect(classes).to include(klass2)
       end
 
-      it 'creates instances during load_all' do
+      it 'creates instances during autodiscover' do
         klass = new_test_class('TestInit')
 
         registry.load([klass])

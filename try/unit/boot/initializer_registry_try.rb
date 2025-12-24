@@ -449,7 +449,7 @@ end
 TestNamedInit.initializer_name.to_s.include?('test_named_init')
 #=> true
 
-## load_only skips anonymous class without explicit name
+## load skips anonymous class without explicit name
 @registry = Onetime::Boot::InitializerRegistry.new
 @anon_no_name = Class.new(Onetime::Boot::Initializer) do
   def execute(_ctx); end
@@ -458,7 +458,7 @@ end
 @registry.initializers.size
 #=> 0
 
-## load_only accepts anonymous class with explicit name
+## load accepts anonymous class with explicit name
 @registry = Onetime::Boot::InitializerRegistry.new
 @anon_named = Class.new(Onetime::Boot::Initializer) do
   @initializer_name = :explicit_anon_init
@@ -468,7 +468,7 @@ end
 @registry.initializers.size
 #=> 1
 
-## load_only mixed: skips anonymous, loads named
+## load mixed: skips anonymous, loads named
 @registry = Onetime::Boot::InitializerRegistry.new
 @anon_skip = Class.new(Onetime::Boot::Initializer) do
   def execute(_ctx); end
@@ -518,7 +518,7 @@ discovered = Onetime::Boot::InitializerRegistry.discover { |k| k == @floating_an
 # DSL-style initializer tests (simulates application/base.rb pattern)
 # ============================================================
 
-## DSL-style anonymous class with explicit name works with load_only
+## DSL-style anonymous class with explicit name works with load
 @registry = Onetime::Boot::InitializerRegistry.new
 # Simulate the DSL pattern from application/base.rb
 @dsl_init = Class.new(Onetime::Boot::Initializer) do
@@ -557,7 +557,7 @@ results = @registry.run_all
 [@registry.context[:executed], results[:successful].size]
 #=> [true, 1]
 
-## DSL-style with onetime prefix discovered by load_all filter
+## DSL-style with onetime prefix discovered by autodiscover filter
 @registry = Onetime::Boot::InitializerRegistry.new
 @dsl_discoverable = Class.new(Onetime::Boot::Initializer) do
   @initializer_name = :'onetime.apps.my_feature'
@@ -568,14 +568,14 @@ results = @registry.run_all
 
   def execute(_ctx); end
 end
-# Simulate what load_all does - filter by initializer_name prefix
+# Simulate what autodiscover does - filter by initializer_name prefix
 discovered = Onetime::Boot::InitializerRegistry.discover { |k|
   k.initializer_name&.to_s&.start_with?('onetime.')
 }
 discovered.include?(@dsl_discoverable)
 #=> true
 
-## DSL-style without onetime prefix NOT discovered by load_all filter
+## DSL-style without onetime prefix NOT discovered by autodiscover filter
 @registry = Onetime::Boot::InitializerRegistry.new
 @dsl_not_discoverable = Class.new(Onetime::Boot::Initializer) do
   @initializer_name = :my_custom_feature  # No 'onetime.' prefix
@@ -586,7 +586,7 @@ discovered.include?(@dsl_discoverable)
 
   def execute(_ctx); end
 end
-# load_all filter would reject this
+# autodiscover filter would reject this
 discovered = Onetime::Boot::InitializerRegistry.discover { |k|
   k.initializer_name&.to_s&.start_with?('onetime.')
 }

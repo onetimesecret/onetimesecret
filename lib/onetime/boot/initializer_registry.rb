@@ -176,7 +176,7 @@ module Onetime
       #
       # Validates each class has an identifiable name (either explicit
       # @initializer_name or derivable from class name). This is the
-      # single validation point for both discover and load_only paths.
+      # single validation point for both discover and load paths.
       #
       # @param classes [Array<Class>] Initializer classes to load
       # @return [void]

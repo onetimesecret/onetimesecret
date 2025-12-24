@@ -53,7 +53,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
     # To skip specific initializers in tests, you can:
     # 1. Let them run (they're designed to work in test mode)
     # 2. Stub the initializer class's execute method directly
-    # 3. Create a fresh registry instance with explicit load_only([classes]) calls (pure DI)
+    # 3. Create a fresh registry instance with explicit load([classes]) calls (pure DI)
 
     # Reset registry and Onetime ready state before each test
     Onetime.not_ready
