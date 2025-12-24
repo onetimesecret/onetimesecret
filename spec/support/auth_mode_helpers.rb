@@ -113,8 +113,14 @@ module AuthModeHelpers
       original_method = context_metadata[:auth_mode_original_method]
       return unless original_method
 
-      Onetime.define_singleton_method(:auth_config, original_method)
-      context_metadata[:auth_mode_original_method] = nil
+      begin
+        Onetime.define_singleton_method(:auth_config, original_method)
+      rescue => e
+        warn "Failed to restore original auth_config method: #{e.message}"
+        raise
+      ensure
+        context_metadata[:auth_mode_original_method] = nil
+      end
     end
   end
 
