@@ -4,13 +4,18 @@ This document describes the test architecture for OneTimeSecret's RSpec suite.
 
 ## Authentication Mode Partitioning
 
-OneTimeSecret runs in discrete authentication modes where certain code paths don't exist in certain modes (reduced attack surface). The test suite mirrors this architecture—**tests are not meant to run in a single process across all modes**.
+OneTimeSecret runs in discrete authentication modes where certain code paths don't exist in certain modes (reduced attack surface). The test suite mirrors this architecture—**tests are organized by directory and run as separate processes per mode**.
 
-| Approach | Load behavior | Matches prod? | Catches unrelated syntax errors |
-|----------|---------------|---------------|--------------------------------|
-| `--tag` filtering | Only matching files loaded | Yes | No |
-| Env-var + runtime skip | All files loaded, non-matching skipped | No | Yes |
+### Why Directory Separation?
 
+The mode boundary is a security architecture decision. It should be visible in the filesystem, not hidden in tag metadata or runtime switching logic.
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| Tag-based filtering | Flexible | Hidden, can mix modes accidentally |
+| **Directory-based** | Visible, explicit, boring | Requires moving files |
+
+We chose directory-based: `spec/integration/simple/`, `spec/integration/full/`, etc.
 
 ### Available Modes
 
@@ -20,125 +25,158 @@ OneTimeSecret runs in discrete authentication modes where certain code paths don
 | `full` | Complete auth with Rodauth | SQLite or PostgreSQL |
 | `disabled` | No authentication | Public access only |
 
-### Running Tests by Mode
-
-```bash
-# Simple mode (default)
-pnpm test:rspec:simple
-
-# Full mode with SQLite
-pnpm test:rspec:full
-
-# Full mode with PostgreSQL
-pnpm test:rspec:full:postgres
-
-# Disabled mode
-pnpm test:rspec:disabled
-```
-
-## Tagging Integration Tests
-
-All integration tests in `spec/integration/` **must** have an auth mode tag. Tests without tags **fail immediately** with a clear error message.
-
-### Available Tags
-
-| Tag | When to Use | Example |
-|-----|-------------|---------|
-| `:simple_auth_mode` | Test requires simple auth mode | `spec/integration/authentication/simple_mode/adapter_spec.rb` |
-| `:full_auth_mode` | Test requires Rodauth/database auth | `spec/integration/authentication/full_mode/infrastructure_spec.rb` |
-| `:disabled_auth_mode` | Test requires no authentication | `spec/integration/authentication/disabled_mode/public_access_spec.rb` |
-| `:all_auth_modes` | Test is mode-agnostic (infrastructure, etc.) | `spec/integration/puma_fork_registry_workflow_spec.rb` |
-
-### What Happens Without Tags
-
-Untagged integration tests fail immediately with:
-
-```
-Integration test missing required auth mode tag!
-
-File: spec/integration/example_spec.rb
-Test: Example description
-
-All integration tests in spec/integration/ MUST have an auth mode tag:
-  - :simple_auth_mode   - runs only in simple mode
-  - :full_auth_mode     - runs only in full mode
-  - :disabled_auth_mode - runs only in disabled mode
-  - :all_auth_modes     - runs in all modes (mode-agnostic tests)
-
-Fix: Add the appropriate tag to your RSpec.describe block
-```
-
-## Test Distribution
-
-Current test counts by mode:
-
-| Mode | Integration Tests |
-|------|-------------------|
-| simple | ~118 |
-| full | ~338 |
-| disabled | ~87 |
-
-Full mode has the most tests because most auth features require Rodauth.
-
 ## Directory Structure
 
 ```
-spec/
-├── spec_helper.rb           # Main config, auth mode filtering
-├── integration/             # Integration tests (require mode tags)
-│   ├── authentication/      # Auth-specific tests
-│   │   ├── full_mode/       # Rodauth, MFA, sessions
-│   │   ├── simple_mode/     # Basic auth adapter
-│   │   ├── disabled_mode/   # Public access
-│   │   └── common/          # Shared route tests
-│   ├── api/                 # API endpoint tests
-│   └── puma_*.rb            # Infrastructure tests (:all_auth_modes)
-├── onetime/                 # Unit tests (run in any mode)
-├── lib/                     # Library unit tests
-├── cli/                     # CLI command tests
-└── support/
-    ├── auth_mode_helpers.rb          # Auth mode mocking
-    ├── billing_isolation.rb          # Per-example billing cleanup
-    ├── full_mode_suite_database.rb   # SQLite setup for full mode
-    ├── postgres_mode_suite_database.rb # PostgreSQL setup
-    └── shared_contexts/
-        └── clean_auth_state.rb       # Database teardown between modes
+spec/integration/
+├── simple/              # AUTHENTICATION_MODE=simple only
+│   ├── adapter_spec.rb
+│   └── rhales_migration_spec.rb
+│
+├── full/                # AUTHENTICATION_MODE=full only
+│   ├── infrastructure_spec.rb
+│   ├── rodauth_spec.rb
+│   ├── database_triggers/
+│   │   ├── sqlite_spec.rb
+│   │   └── postgres_spec.rb
+│   └── env_toggles/
+│       ├── magic_links_spec.rb
+│       ├── mfa_spec.rb
+│       └── security_features_spec.rb
+│
+├── disabled/            # AUTHENTICATION_MODE=disabled only
+│   └── public_access_spec.rb
+│
+└── all/                 # Runs in ALL modes (infrastructure tests)
+    ├── puma_fork_registry_workflow_spec.rb
+    ├── puma_initializer_fork_spec.rb
+    ├── dual_auth_mode_spec.rb
+    └── ...
 ```
+
+## Running Tests
+
+### Via Rake (Recommended)
+
+```bash
+# Run specific mode (includes all/ tests)
+bundle exec rake spec:integration:simple
+bundle exec rake spec:integration:full
+bundle exec rake spec:integration:disabled
+
+# Run all modes (separate processes)
+bundle exec rake spec:integration:all
+
+# Full mode with PostgreSQL
+bundle exec rake spec:integration:full:postgres
+```
+
+### Via pnpm
+
+```bash
+pnpm test:rspec:integration:simple
+pnpm test:rspec:integration:full
+pnpm test:rspec:integration:disabled
+
+# Run all modes
+pnpm test:rspec:integration
+```
+
+### Direct rspec (advanced)
+
+```bash
+# Mode-specific tests + infrastructure tests
+RACK_ENV=test AUTHENTICATION_MODE=simple bundle exec rspec \
+  spec/integration/simple spec/integration/all
+
+RACK_ENV=test AUTHENTICATION_MODE=full AUTH_DATABASE_URL='sqlite::memory:' \
+  bundle exec rspec spec/integration/full spec/integration/all
+```
+
+## Adding New Integration Tests
+
+1. **Determine which mode** the test requires
+2. **Create the file in the appropriate directory**:
+   - `spec/integration/simple/` — requires simple auth mode
+   - `spec/integration/full/` — requires Rodauth/database auth
+   - `spec/integration/disabled/` — requires no authentication
+   - `spec/integration/all/` — mode-agnostic (infrastructure tests)
+3. **Add `type: :integration`** for Redis cleanup
+4. **No explicit mode tags needed** — directory determines the mode
+
+Example:
+
+```ruby
+# spec/integration/full/my_new_feature_spec.rb
+RSpec.describe 'My New Feature', type: :integration do
+  # This test runs only in full mode because it's in full/
+end
+```
+
+## How It Works
+
+### Directory → Tag Derivation
+
+`spec_helper.rb` automatically derives tags from directory paths:
+
+```ruby
+# Files in /integration/simple/ get :simple_auth_mode tag
+# Files in /integration/full/ get :full_auth_mode tag
+# Files in /integration/disabled/ get :disabled_auth_mode tag
+# Files in /integration/all/ get :all_auth_modes tag
+```
+
+This is for tooling compatibility. The actual isolation comes from running separate processes.
+
+### Process Isolation
+
+Each mode runs in a separate `bundle exec rspec` process with the appropriate `AUTHENTICATION_MODE` env var. This ensures:
+
+- No load-time pollution between modes
+- Mode-specific code paths don't conflict
+- Same isolation as production deployment
 
 ## CI Integration
 
 CI runs each mode as a separate job:
 
-- `ruby-integration-simple` — Simple mode tests
-- `ruby-integration-full-sqlite` — Full mode with SQLite
-- `ruby-integration-full-postgres` — Full mode with PostgreSQL
-- `ruby-integration-disabled` — Disabled mode tests
-
-This ensures complete isolation between modes.
+| Job | Mode | Database |
+|-----|------|----------|
+| `ruby-integration-simple` | simple | Redis only |
+| `ruby-integration-full-sqlite` | full | SQLite |
+| `ruby-integration-full-postgres` | full | PostgreSQL |
+| `ruby-integration-disabled` | disabled | Redis only |
 
 ## State Isolation
 
 ### Redis Cleanup
 
-Tests tagged `type: :integration` automatically get Redis cleanup via `integration_spec_helper.rb`.
+Tests with `type: :integration` automatically get Redis cleanup via `integration_spec_helper.rb`.
 
 ### Auth Database Cleanup
 
-The `clean_auth_state` shared context tears down auth databases between mode switches. See `spec/support/shared_contexts/clean_auth_state.rb`.
+The `clean_auth_state` shared context tears down auth databases. See `spec/support/shared_contexts/clean_auth_state.rb`.
 
 ### ENV Cleanup
 
-Tests that modify ENV should clean up in `after(:all)`. See `spec/integration/admin_interface_spec.rb` for an example.
+Tests that modify ENV should clean up in `after(:all)`:
 
-## Adding New Integration Tests
+```ruby
+after(:all) do
+  ENV.delete('AUTHENTICATION_MODE')
+end
+```
 
-1. Determine which auth mode(s) your test requires
-2. Add the appropriate tag to your `RSpec.describe` (see Examples above)
-3. Add `type: :integration` for Redis cleanup
-4. Run with the matching mode command to verify:
+## Support Files
 
-```bash
-pnpm test:rspec:full spec/integration/path/to/new_spec.rb
+```
+spec/support/
+├── auth_mode_helpers.rb          # Auth mode mocking
+├── billing_isolation.rb          # Per-example billing cleanup
+├── full_mode_suite_database.rb   # SQLite setup for full mode
+├── postgres_mode_suite_database.rb # PostgreSQL setup
+└── shared_contexts/
+    └── clean_auth_state.rb       # Database teardown between modes
 ```
 
 ## Debugging
@@ -146,20 +184,12 @@ pnpm test:rspec:full spec/integration/path/to/new_spec.rb
 ### See which tests would run
 
 ```bash
-AUTHENTICATION_MODE=simple bundle exec rspec spec/integration --dry-run
+bundle exec rspec spec/integration/simple spec/integration/all --dry-run
 ```
 
-### Run all tests regardless of mode (advanced)
+### Run a single test file
 
 ```bash
-RSPEC_ALL_MODES=1 bundle exec rspec spec/integration
-```
-
-### Check mode filtering output
-
-When running locally (not CI), spec_helper prints:
-```
-[RSpec] AUTHENTICATION_MODE=simple
-        Excluding: full_auth_mode, disabled_auth_mode
-        Integration tests require: simple_auth_mode tag
+RACK_ENV=test AUTHENTICATION_MODE=full AUTH_DATABASE_URL='sqlite::memory:' \
+  bundle exec rspec spec/integration/full/infrastructure_spec.rb
 ```
