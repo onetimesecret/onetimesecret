@@ -46,15 +46,8 @@ if _worker_count.positive?
   before_fork do
     # Cleanup all fork-sensitive initializers (SemanticLogger, RabbitMQ, etc.)
     # Each initializer marked with @phase = :fork_sensitive implements cleanup method.
-    #
-    # DI Architecture: Uses OT.boot_registry instance when available.
-    # Falls back to class-level method for backward compatibility.
     # See: lib/onetime/boot/initializer_registry.rb
-    if defined?(Onetime) && Onetime.respond_to?(:boot_registry) && Onetime.boot_registry
-      Onetime.boot_registry.cleanup_before_fork
-    elsif defined?(Onetime::Boot::InitializerRegistry)
-      Onetime::Boot::InitializerRegistry.cleanup_before_fork
-    end
+    Onetime.boot_registry&.cleanup_before_fork
 
     # Close connections in master before forking
     # Familia.dclient.quit if defined?(Familia)
@@ -66,15 +59,8 @@ if _worker_count.positive?
   before_worker_boot do
     # Reconnect all fork-sensitive initializers (SemanticLogger, RabbitMQ, etc.)
     # Each initializer marked with @phase = :fork_sensitive implements reconnect method.
-    #
-    # DI Architecture: Uses OT.boot_registry instance when available.
-    # Falls back to class-level method for backward compatibility.
     # See: lib/onetime/boot/initializer_registry.rb
-    if defined?(Onetime) && Onetime.respond_to?(:boot_registry) && Onetime.boot_registry
-      Onetime.boot_registry.reconnect_after_fork
-    elsif defined?(Onetime::Boot::InitializerRegistry)
-      Onetime::Boot::InitializerRegistry.reconnect_after_fork
-    end
+    Onetime.boot_registry&.reconnect_after_fork
 
     # Reconnect in each worker (auto-reconnects for Familia)
     # DB.reconnect if defined?(DB)
