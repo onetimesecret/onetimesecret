@@ -27,11 +27,25 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       secret.instance_variable_set(:@passphrase_temp, nil)
     end
 
-    it 'uses BCrypt for secure comparison' do
-      # BCrypt::Password instance receives == method for comparison
+    it 'uses Argon2 for secure comparison by default' do
+      # Argon2::Password.verify_password provides constant-time comparison
       # This is what provides the timing attack resistance
+      expect(Argon2::Password).to receive(:verify_password)
+        .with(passphrase, secret.passphrase)
+        .and_return(true)
+
+      secret.passphrase?(passphrase)
+    end
+
+    it 'falls back to BCrypt for legacy hashes' do
+      # Set up a BCrypt hash directly
+      bcrypt_hash = BCrypt::Password.create(passphrase, cost: 12).to_s
+      secret.instance_variable_set(:@passphrase, bcrypt_hash)
+      secret.instance_variable_set(:@passphrase_encryption, '1')
+
+      # Verify it uses BCrypt comparison
       bcrypt_password = instance_double(BCrypt::Password)
-      expect(BCrypt::Password).to receive(:new).with(secret.passphrase).and_return(bcrypt_password)
+      expect(BCrypt::Password).to receive(:new).with(bcrypt_hash).and_return(bcrypt_password)
       expect(bcrypt_password).to receive(:==).with(passphrase).and_return(true)
 
       secret.passphrase?(passphrase)
