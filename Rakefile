@@ -10,13 +10,3 @@ require 'bundler/setup'
 
 # Load application rake tasks
 Dir.glob('lib/tasks/**/*.rake').each { |r| load r }
-
-# Load Rhales rake tasks
-require 'rhales'
-rhales_tasks = File.expand_path('../rhales/lib/tasks/rhales_schema.rake', __dir__)
-if File.exist?(rhales_tasks)
-  load rhales_tasks
-else
-  warn "Warning: Rhales tasks not found at #{rhales_tasks}"
-  warn 'Ensure rhales gem is installed and the path is correct.'
-end
