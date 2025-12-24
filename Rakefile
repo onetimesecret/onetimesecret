@@ -8,6 +8,9 @@
 
 require 'bundler/setup'
 
+# Load application rake tasks
+Dir.glob('lib/tasks/**/*.rake').each { |r| load r }
+
 # Load Rhales rake tasks
 require 'rhales'
 rhales_tasks = File.expand_path('../rhales/lib/tasks/rhales_schema.rake', __dir__)
