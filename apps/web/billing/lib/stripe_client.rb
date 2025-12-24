@@ -126,11 +126,12 @@ module Billing
     #   client.retrieve(Stripe::Subscription, 'sub_123', expand: ['customer'])
     #
     def retrieve(resource_class, id, expand: nil)
-      params          = {}
+      # Stripe SDK 17.x expects expand in the first parameter hash
+      params = { id: id }
       params[:expand] = expand if expand
 
       with_retry do
-        resource_class.retrieve(id, params)
+        resource_class.retrieve(params)
       end
     end
 

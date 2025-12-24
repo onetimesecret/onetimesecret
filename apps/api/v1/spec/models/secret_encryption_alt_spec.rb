@@ -45,8 +45,10 @@ RSpec.describe Onetime::Secret do
     it 'respects size limitations' do
       long_value = "a" * 10_000
 
-      # Mock SecureRandom.rand to return a consistent value for tests
-      allow(SecureRandom).to receive(:rand).and_return(0)
+      # Mock Kernel.rand to return 0 for consistent truncation in tests.
+      # The encrypt_value code uses: random_factor = 1.0 + (rand * 0.2)
+      # With rand=0, factor=1.0, so truncation is exactly at size limit.
+      allow(secret).to receive(:rand).and_return(0)
 
       secret.encrypt_value(long_value, size: 1000)
 

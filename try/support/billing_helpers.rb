@@ -21,17 +21,29 @@ module BillingTestHelpers
     # Restore original billing configuration
     # Used for cleanup and for tests that need real billing
     def restore_billing!
-      return unless defined?(@original_path)
-
       ensure_familia_configured!
-      Onetime::BillingConfig.path = @original_path
+
+      # If we saved an original path, restore it
+      # Otherwise, use the default billing.yaml path
+      path_to_restore = if defined?(@original_path) && @original_path
+                          @original_path
+                        else
+                          File.join(Onetime::HOME, 'etc', 'billing.yaml')
+                        end
+
+      Onetime::BillingConfig.path = path_to_restore
       reset_billing_singleton!
     end
 
     # Ensure Familia is configured with test Redis URI
     # Must be called before any Familia operations if OT.conf isn't loaded
+    #
+    # NOTE: We avoid reconfiguring if Familia is already connected to avoid
+    # disrupting the test infrastructure's Redis connection pool.
     def ensure_familia_configured!
-      return if Familia.uri.to_s.include?('2121') # Already configured for test
+      # Skip if already configured for test port OR if already connected
+      return if Familia.uri.to_s.include?('2121')
+      return if Familia.redis.connected? rescue false
 
       # Use test Redis port from ENV (set by test_helpers.rb)
       test_uri = ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:2121/0'

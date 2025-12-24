@@ -60,19 +60,19 @@ This installs:
 **Default mode (uses stripe-mock + existing VCR cassettes):**
 
 ```bash
-pnpm run test:rspec spec/billing
+pnpm run test:rspec apps/web/billing/spec
 ```
 
 **Record new cassettes (uses REAL Stripe test API):**
 
 ```bash
-STRIPE_API_KEY=sk_test_xxx pnpm run test:rspec spec/billing
+STRIPE_API_KEY=sk_test_xxx pnpm run test:rspec apps/web/billing/spec
 ```
 
 **Force re-record all cassettes:**
 
 ```bash
-VCR_MODE=all STRIPE_API_KEY=sk_test_xxx pnpm run test:rspec spec/billing
+VCR_MODE=all STRIPE_API_KEY=sk_test_xxx pnpm run test:rspec apps/web/billing/spec
 ```
 
 ## RSpec Tag-Based Test Organization
@@ -146,7 +146,7 @@ end
 require 'vcr'
 
 VCR.configure do |config|
-  config.cassette_library_dir = 'spec/fixtures/vcr_cassettes'
+  config.cassette_library_dir = 'apps/web/billing/spec/fixtures/vcr_cassettes'
   config.hook_into :webmock
   config.configure_rspec_metadata!
 
@@ -274,7 +274,7 @@ INTEGRATION=true pnpm run test:rspec --tag integration
 
 ### VCR Cassettes
 
-- Stored in `spec/fixtures/vcr_cassettes/`
+- Stored in `apps/web/billing/spec/fixtures/vcr_cassettes/`
 - Generated from test descriptions
 - Checked into git for consistency
 - Filter sensitive data (API keys)
@@ -384,7 +384,7 @@ end
 
 ```bash
 # Delete old cassette
-rm spec/fixtures/vcr_cassettes/specific_test.yml
+rm apps/web/billing/spec/fixtures/vcr_cassettes/specific_test.yml
 
 # Re-record with real API
 INTEGRATION=true STRIPE_KEY=sk_test_xxx pnpm run test:rspec spec/path/to/spec.rb:42

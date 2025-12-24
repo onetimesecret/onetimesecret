@@ -26,6 +26,18 @@ RSpec.configure do |config|
     @billing_enabled_in_test = true
     BillingTestHelpers.restore_billing!
   end
+
+  # Billing CLI tests need billing enabled
+  config.before(:each, billing_cli: true) do
+    @billing_enabled_in_test = true
+    BillingTestHelpers.restore_billing!
+  end
+
+  # Integration tests tagged with :stripe_sandbox_api need billing enabled
+  config.before(:each, stripe_sandbox_api: true) do
+    @billing_enabled_in_test = true
+    BillingTestHelpers.restore_billing!
+  end
 end
 
 # Helper method available in specs

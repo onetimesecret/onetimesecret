@@ -5,9 +5,12 @@
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
+import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
+import { useEntitlementError } from '@/shared/composables/useEntitlementError';
 import { classifyError } from '@/schemas/errors';
+import type { ApplicationError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
 import { WindowService } from '@/services/window.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -43,6 +46,7 @@ const inviteFormData = ref<CreateInvitationPayload>({
 });
 const inviteErrors = ref<Record<string, string>>({});
 const inviteGeneralError = ref('');
+const inviteUpgradeError = ref<ApplicationError | null>(null);
 const isInviting = ref(false);
 
 const { wrap } = useAsyncHandler({
@@ -199,6 +203,7 @@ const handleInviteMember = async () => {
 
   inviteErrors.value = {};
   inviteGeneralError.value = '';
+  inviteUpgradeError.value = null;
   isInviting.value = true;
 
   try {
@@ -220,7 +225,14 @@ const handleInviteMember = async () => {
       });
     } else {
       const classified = classifyError(err);
-      inviteGeneralError.value = classified.message || t('web.organizations.invitations.invite_error');
+      const { isUpgradeRequired } = useEntitlementError(classified);
+
+      // Check if this is an upgrade-required error
+      if (isUpgradeRequired.value) {
+        inviteUpgradeError.value = classified;
+      } else {
+        inviteGeneralError.value = classified.message || t('web.organizations.invitations.invite_error');
+      }
     }
   } finally {
     isInviting.value = false;
@@ -490,6 +502,14 @@ watch(activeTab, async (newTab) => {
             <BasicFormAlerts
               v-if="success"
               :success="success" />
+
+            <!-- Entitlement Upgrade Prompt -->
+            <EntitlementUpgradePrompt
+              v-if="inviteUpgradeError"
+              :error="inviteUpgradeError"
+              resource-type="members"
+              class="mb-4"
+              @close="inviteUpgradeError = null" />
 
             <!-- Invite Form -->
             <div

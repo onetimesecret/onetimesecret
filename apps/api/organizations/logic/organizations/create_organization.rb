@@ -17,13 +17,12 @@ module OrganizationAPI::Logic
         # Require authenticated user
         raise_form_error('Authentication required', field: 'user_id', error_type: :unauthorized) if cust.anonymous?
 
+        # Check organization quota (only enforced when billing enabled with plan cache)
+        check_organization_quota!
+
         # Validate display_name
         if display_name.empty?
           raise_form_error('Organization name is required', field: 'display_name', error_type: :missing)
-        end
-
-        if display_name.empty?
-          raise_form_error('Organization name must be at least 1 character', field: 'display_name', error_type: :invalid)
         end
 
         if display_name.length > 100
@@ -44,19 +43,49 @@ module OrganizationAPI::Logic
       def process
         OT.ld "[CreateOrganization] Creating organization '#{display_name}' for user #{cust.custid}"
 
-        # Create organization using class method (contact_email is optional)
-        email_value   = contact_email.empty? ? nil : contact_email
-        @organization = Onetime::Organization.create!(display_name, cust, email_value)
+        # Acquire distributed lock for organization creation to prevent quota race conditions
+        lock_key = "customer:#{cust.objid}:org_creation_lock"
+        lock = Familia::Lock.new(lock_key)
+        lock_token = nil
 
-        # Set description if provided
-        unless description.empty?
-          @organization.description = description
-          @organization.save
+        begin
+          # Attempt to acquire lock with 30s TTL
+          lock_token = lock.acquire(ttl: 30)
+
+          unless lock_token
+            raise_form_error(
+              'Organization creation in progress. Please try again.',
+              field: 'display_name',
+              error_type: :conflict
+            )
+          end
+
+          # Re-check quota inside the lock to prevent TOCTOU race
+          check_organization_quota!
+
+          # Create organization using class method (contact_email is optional)
+          email_value   = contact_email.empty? ? nil : contact_email
+          @organization = Onetime::Organization.create!(display_name, cust, email_value)
+
+          # Set description if provided
+          unless description.empty?
+            @organization.description = description
+            @organization.save
+          end
+
+          OT.info "[CreateOrganization] Created organization #{@organization.objid}"
+
+          success_data
+        ensure
+          # Always release lock if we acquired it
+          if lock_token
+            begin
+              lock.release(lock_token)
+            rescue StandardError => e
+              OT.lw "[CreateOrganization] Lock release failed: #{e.message}"
+            end
+          end
         end
-
-        OT.info "[CreateOrganization] Created organization #{@organization.objid}"
-
-        success_data
       end
 
       def success_data
@@ -72,6 +101,38 @@ module OrganizationAPI::Logic
           description: description,
           contact_email: contact_email,
         }
+      end
+
+      private
+
+      # Check organization quota against customer's plan limits
+      #
+      # Uses customer's primary organization plan for billing context.
+      # Only enforced when billing is enabled and plan cache is populated.
+      # Skipped for first organization creation (no primary org to check against).
+      def check_organization_quota!
+        # Quota enforcement: fail-open when no billing, fail-closed when enabled.
+        # See WithEntitlements module for design rationale.
+
+        primary_org = cust.organization_instances.to_a.find { |o| o.is_default } || cust.organization_instances.first
+
+        # Fail-open conditions: skip quota check
+        return unless primary_org
+        return unless primary_org.respond_to?(:at_limit?)
+        return unless primary_org.entitlements.any?
+
+        # Fail-closed: billing enabled, enforce quota
+        # NOTE: at_limit?(resource, count) returns true when count >= limit,
+        # meaning creating one more would exceed the plan's allowed quota.
+        current_count = cust.organization_instances.size
+
+        if primary_org.at_limit?('organizations', current_count)
+          raise_form_error(
+            'Organization limit reached. Upgrade your plan to create more organizations.',
+            field: 'display_name',
+            error_type: :upgrade_required
+          )
+        end
       end
     end
   end

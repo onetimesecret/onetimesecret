@@ -29,6 +29,9 @@ module OrganizationAPI::Logic
         @organization = load_organization(@extid)
         verify_organization_admin(@organization)
 
+        # Check member quota before other validations
+        check_member_quota!
+
         # Validate email
         raise_form_error('Email is required', field: :email) if @email.empty?
         raise_form_error('Invalid email format', field: :email) unless valid_email?(@email)
@@ -98,6 +101,32 @@ module OrganizationAPI::Logic
       end
 
       protected
+
+      # Check member quota against organization's plan limits
+      #
+      # Uses the organization being invited to for billing context.
+      # Only enforced when billing is enabled and plan cache is populated.
+      # Counts both active members and pending invitations.
+      def check_member_quota!
+        # Quota enforcement: fail-open when no billing, fail-closed when enabled.
+        # See WithEntitlements module for design rationale.
+
+        # Fail-open conditions: skip quota check
+        return unless @organization.respond_to?(:at_limit?)
+        return unless @organization.entitlements.any?
+
+        # Fail-closed: billing enabled, enforce quota
+        # Count both active members and pending invitations
+        current_count = @organization.member_count + @organization.pending_invitation_count
+
+        if @organization.at_limit?('members_per_team', current_count)
+          raise_form_error(
+            'Member limit reached. Upgrade your plan to invite more members.',
+            field: 'email',
+            error_type: :upgrade_required
+          )
+        end
+      end
 
       # Verify current user has admin privileges in the organization
       def verify_organization_admin(organization)

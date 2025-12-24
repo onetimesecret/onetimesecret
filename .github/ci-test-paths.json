@@ -1,7 +1,7 @@
 {
   "ruby-unit": {
     "tryouts-paths": "try/unit try/system",
-    "rspec-paths": "spec/onetime spec/lib spec/api spec/cli"
+    "rspec-paths": "spec/onetime spec/lib spec/cli apps/api/*/spec apps/web/core/spec apps/web/auth/spec"
   },
   "ruby-integration-simple": {
     "tryouts-paths": "try/integration/middleware try/integration/boot try/integration/web try/integration/api try/integration/email try/integration/billing try/integration/homepage_bypass_header_integration_try.rb try/integration/homepage_mode_integration_try.rb",
