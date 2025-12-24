@@ -34,7 +34,7 @@
 
 require 'spec_helper'
 
-RSpec.describe 'PostgreSQL Database Triggers', :full_auth_mode, :postgres_database do
+RSpec.describe 'PostgreSQL Database Triggers', :full_auth_mode, :postgres_database, type: :integration do
   include_context 'auth_rack_test'
   # AuthAccountFactory and test_db are provided by :full_auth_mode, :postgres_database tags
 

@@ -8,7 +8,7 @@
 
 require 'spec_helper'
 
-RSpec.describe 'Audit Logging Configuration', :full_auth_mode do
+RSpec.describe 'Audit Logging Configuration', :full_auth_mode, type: :integration do
   # Auth::Config provides Rodauth configuration. It doesn't need boot,
   # just the class loaded. Using allocate to get config without instantiation.
   let(:config) { Auth::Config.allocate }

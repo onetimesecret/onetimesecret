@@ -19,7 +19,7 @@ require 'colonel/application'
 # - Session middleware
 # - Organization with colonel customer
 #
-RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', billing: true do
+RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integration, billing: true do
   include Rack::Test::Methods
 
   let(:app) do

@@ -9,7 +9,7 @@
 require 'spec_helper'
 require 'rack/test'
 
-RSpec.describe 'MFA Toggle', :full_auth_mode do
+RSpec.describe 'MFA Toggle', :full_auth_mode, type: :integration do
   include Rack::Test::Methods
 
   def app

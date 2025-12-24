@@ -13,7 +13,7 @@
 
 require 'spec_helper'
 
-RSpec.describe 'Active Sessions Management', :full_auth_mode do
+RSpec.describe 'Active Sessions Management', :full_auth_mode, type: :integration do
   include_context 'auth_rack_test'
   # AuthAccountFactory and test_db are provided by :full_auth_mode tag
 

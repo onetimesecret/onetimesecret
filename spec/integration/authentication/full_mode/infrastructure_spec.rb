@@ -8,7 +8,7 @@
 
 require 'spec_helper'
 
-RSpec.describe 'Full Mode Test Infrastructure', :full_auth_mode do
+RSpec.describe 'Full Mode Test Infrastructure', :full_auth_mode, type: :integration do
   before(:all) do
     require 'onetime'
     require 'onetime/config'

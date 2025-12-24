@@ -7,7 +7,7 @@
 
 require 'spec_helper'
 
-RSpec.describe 'Disabled Auth Mode', :disabled_auth_mode do
+RSpec.describe 'Disabled Auth Mode', :disabled_auth_mode, type: :integration do
   before(:all) do
     # Clear any database stub left by full_auth_mode tests
     # This ensures Auth::Database.connection returns nil as expected in disabled mode

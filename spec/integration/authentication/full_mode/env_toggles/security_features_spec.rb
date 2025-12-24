@@ -13,7 +13,7 @@ require 'climate_control'
 # Database and application setup is handled by FullModeSuiteDatabase
 # (see spec/support/full_mode_suite_database.rb).
 
-RSpec.describe 'Security Features Toggle', :full_auth_mode do
+RSpec.describe 'Security Features Toggle', :full_auth_mode, type: :integration do
   include Rack::Test::Methods
 
   def app

@@ -18,7 +18,7 @@
 
 require 'spec_helper'
 
-RSpec.describe 'SQLite Database Triggers', :full_auth_mode, :sqlite_database do
+RSpec.describe 'SQLite Database Triggers', :full_auth_mode, :sqlite_database, type: :integration do
   include_context 'auth_rack_test'
   # AuthAccountFactory and test_db are provided by :full_auth_mode, :sqlite_database tags
 

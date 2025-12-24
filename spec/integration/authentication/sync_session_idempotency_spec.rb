@@ -8,7 +8,7 @@
 require 'spec_helper'
 require 'rack/mock'
 
-RSpec.describe 'SyncSession Idempotency', :full_auth_mode do
+RSpec.describe 'SyncSession Idempotency', :full_auth_mode, type: :integration do
   include_context 'auth_rack_test'
 
   let(:test_email) { "idempotency-test-#{SecureRandom.hex(8)}@example.com" }

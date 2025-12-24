@@ -10,7 +10,7 @@
 require 'spec_helper'
 require 'rack/test'
 
-RSpec.describe 'Simple Auth Mode', :simple_auth_mode do
+RSpec.describe 'Simple Auth Mode', :simple_auth_mode, type: :integration do
   before(:all) do
     # Clear any database stub left by full_auth_mode tests
     # This ensures Auth::Database.connection returns nil as expected in simple mode

@@ -8,7 +8,7 @@
 
 require 'spec_helper'
 
-RSpec.describe 'PostgreSQL Mode Test Infrastructure', :full_auth_mode, :postgres_database do
+RSpec.describe 'PostgreSQL Mode Test Infrastructure', :full_auth_mode, :postgres_database, type: :integration do
   before(:all) do
     require 'onetime'
     require 'onetime/config'

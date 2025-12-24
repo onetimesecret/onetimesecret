@@ -7,7 +7,7 @@
 
 require 'spec_helper'
 
-RSpec.describe 'Auth::Logging', :full_auth_mode do
+RSpec.describe 'Auth::Logging', :full_auth_mode, type: :integration do
   before(:all) do
     require_relative '../../../../apps/web/auth/config'
   end

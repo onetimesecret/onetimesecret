@@ -11,7 +11,7 @@
 
 require 'spec_helper'
 
-RSpec.describe 'Rodauth Integration', :full_auth_mode do
+RSpec.describe 'Rodauth Integration', :full_auth_mode, type: :integration do
   include_context 'auth_rack_test'
 
   describe 'mode configuration' do
