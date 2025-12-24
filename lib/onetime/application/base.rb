@@ -280,7 +280,7 @@ module Onetime
           # Pure DI: Register with current registry if set (for tests)
           # In production, ObjectSpace discovery finds all initializer classes
           current = Onetime::Boot::InitializerRegistry.current
-          current&.register_class(klass)
+          current&.load_only([klass])
 
           klass
         end
