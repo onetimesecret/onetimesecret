@@ -62,7 +62,7 @@ module ModelTestHelper
 
     # Implement passphrase? behavior correctly (supports both Argon2 and BCrypt)
     allow(secret).to receive(:passphrase?).and_wrap_original do |original, guess|
-      return false if secret.passphrase.to_s.empty?
+      next false if secret.passphrase.to_s.empty?
       begin
         ret = if secret.passphrase.to_s.start_with?('$argon2id$')
           Argon2::Password.verify_password(guess, secret.passphrase)
@@ -200,7 +200,7 @@ module ModelTestHelper
 
     # Implement passphrase? behavior correctly (supports both Argon2 and BCrypt)
     allow(secret).to receive(:passphrase?).and_wrap_original do |original, guess|
-      return false if secret.passphrase.to_s.empty?
+      next false if secret.passphrase.to_s.empty?
       begin
         ret = if secret.passphrase.to_s.start_with?('$argon2id$')
           Argon2::Password.verify_password(guess, secret.passphrase)
