@@ -165,6 +165,10 @@ RSpec.configure do |config|
   end
 
   config.after(:each) do
+    # Flush SemanticLogger to prevent async thread from logging mock objects
+    # after test lifecycle ends (causes RSpec::Mocks::OutsideOfExampleError)
+    SemanticLogger.flush if defined?(SemanticLogger)
+
     # Restore OT.conf if it was changed during the test
     if OT.conf != @__original_ot_conf
       OT.instance_variable_set(:@conf, @__original_ot_conf)
