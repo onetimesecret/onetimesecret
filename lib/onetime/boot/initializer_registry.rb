@@ -102,7 +102,7 @@ module Onetime
       end
 
       class << self
-        attr_reader :initializers, :capability_map, :context, :total_elapsed_ms
+        attr_reader :initializers, :capability_map, :context, :total_elapsed_ms, :registered_classes
 
         # Phase 1: Register initializer class (called by inherited hook)
         #

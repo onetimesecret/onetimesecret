@@ -8,6 +8,7 @@ module Onetime
   module Initializers
     @conf  = nil
     @ready = nil
+    @boot_registry = nil  # Instance-based registry (DI architecture)
 
     # Session configuration defaults
     # Ensures middleware always has valid values even if site.session is not configured
@@ -18,7 +19,7 @@ module Onetime
       'httponly' => true,
     }.freeze
 
-    attr_reader :conf, :instance
+    attr_reader :conf, :instance, :boot_registry
 
     # Boot reads and interprets the configuration and applies it to the
     # relevant features and services. Must be called after applications
@@ -71,19 +72,28 @@ module Onetime
       # of the initializers (via OT.conf).
       @conf = OT::Config.after_load(raw_conf)
 
-      # Phase 1: Discovery - Initializer classes already loaded via require at top of file
-      # (Each class auto-registers via inherited hook)
+      # Phase 1: Discovery - Create instance-based registry (DI architecture)
+      # Initializer classes were already loaded via require at top of file
+      # and auto-registered with the class-level registry via inherited hook.
+      # We create a fresh instance and copy registered classes to it.
+      @boot_registry = Boot::InitializerRegistry.new
+
+      # Copy class-level registrations to instance
+      # (inherited hook registered with class-level registry during require)
+      Boot::InitializerRegistry.registered_classes.each do |klass|
+        @boot_registry.register_class(klass)
+      end
 
       # Phase 2: Loading - Instantiate and build dependency graph
-      Boot::InitializerRegistry.load_all
+      @boot_registry.load_all
 
       # Phase 3: Execution - Run initializers in dependency order (conditional on connect_to_db)
       if connect_to_db
         # Run all initializers in dependency order
-        Boot::InitializerRegistry.run_all
+        @boot_registry.run_all
       else
         # Run only non-database initializers
-        ordered = Boot::InitializerRegistry.execution_order
+        ordered = @boot_registry.execution_order
         ordered.each do |init|
           # Skip database-related initializers
           next if [:configure_familia, :detect_legacy_data_and_warn,
@@ -95,14 +105,14 @@ module Onetime
             next
           end
 
-          init.run(Boot::InitializerRegistry.context)
+          init.run(@boot_registry.context)
         end
       end
 
       # Verify registry health
-      health = Boot::InitializerRegistry.health_check
+      health = @boot_registry.health_check
       unless health[:healthy]
-        failed       = Boot::InitializerRegistry.initializers.select(&:failed?)
+        failed       = @boot_registry.initializers.select(&:failed?)
         failed_names = failed.map { |i| "#{i.name} (#{i.error.class}: #{i.error.message})" }
         raise OT::Problem, "Initializer(s) failed: #{failed_names.join(', ')}"
       end
