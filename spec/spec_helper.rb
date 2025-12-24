@@ -180,19 +180,38 @@ RSpec.configure do |config|
     excluded_tags.each { |tag| config.filter_run_excluding(tag) }
 
     # For integration tests in spec/integration/, require explicit mode tag
-    # This prevents untagged integration tests from running and failing
-    # Mode-agnostic tests should be tagged with :any_auth_mode
+    # All integration tests MUST have an auth mode tag - untagged tests fail fast
+    # Mode-agnostic tests should be tagged with :all_auth_modes
     mode_tag = "#{current_mode}_auth_mode".to_sym
     config.define_derived_metadata(file_path: %r{spec/integration}) do |metadata|
       has_current_mode_tag = metadata[mode_tag]
-      has_any_mode_tag = metadata[:any_auth_mode]
+      has_all_modes_tag = metadata[:all_auth_modes]
 
-      # Skip integration tests that don't have the current mode's tag
-      # Exception: tests marked :any_auth_mode run in all modes
-      unless has_current_mode_tag || has_any_mode_tag
-        metadata[:skip] = "Requires #{mode_tag} tag (current: #{current_mode}). " \
-                          "Add :any_auth_mode if mode-agnostic."
+      # Mark untagged integration tests for fast failure
+      unless has_current_mode_tag || has_all_modes_tag
+        metadata[:missing_auth_mode_tag] = true
       end
+    end
+
+    # Fail fast on untagged integration tests - don't silently skip
+    config.before(:example, :missing_auth_mode_tag) do |example|
+      raise <<~ERROR
+        Integration test missing required auth mode tag!
+
+        File: #{example.metadata[:file_path]}
+        Test: #{example.metadata[:full_description]}
+
+        All integration tests in spec/integration/ MUST have an auth mode tag:
+          - :simple_auth_mode   - runs only in simple mode
+          - :full_auth_mode     - runs only in full mode
+          - :disabled_auth_mode - runs only in disabled mode
+          - :all_auth_modes     - runs in all modes (mode-agnostic tests)
+
+        Current mode: #{current_mode}
+
+        Fix: Add the appropriate tag to your RSpec.describe block, e.g.:
+          RSpec.describe 'MyTest', :all_auth_modes, type: :integration do
+      ERROR
     end
   end
 
