@@ -44,7 +44,11 @@ RSpec.shared_context 'clean_auth_state' do
       db = Object.const_get(db_name)
       # Only teardown if the database module has been set up
       if db.respond_to?(:setup_complete?) && db.setup_complete?
-        db.teardown!
+        begin
+          db.teardown!
+        rescue => e
+          warn "Failed to teardown #{db_name}: #{e.message}"
+        end
       end
     end
 
