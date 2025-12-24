@@ -56,7 +56,7 @@ RSpec.describe 'Puma Fork Registry Complete Workflow', type: :integration do
         before_fork do
           puts "[before_fork] Calling InitializerRegistry.cleanup_before_fork (PID: \#{Process.pid})"
           if defined?(Onetime::Boot::InitializerRegistry)
-            Onetime::Boot::InitializerRegistry.cleanup_before_fork
+            Onetime::Boot::InitializerRegistry.current.cleanup_before_fork
             puts "[before_fork] Cleanup completed"
           else
             puts "[before_fork] InitializerRegistry not defined"
@@ -66,7 +66,7 @@ RSpec.describe 'Puma Fork Registry Complete Workflow', type: :integration do
         before_worker_boot do
           puts "[before_worker_boot] Calling InitializerRegistry.reconnect_after_fork (PID: \#{Process.pid})"
           if defined?(Onetime::Boot::InitializerRegistry)
-            Onetime::Boot::InitializerRegistry.reconnect_after_fork
+            Onetime::Boot::InitializerRegistry.current.reconnect_after_fork
             puts "[before_worker_boot] Reconnect completed"
           else
             puts "[before_worker_boot] InitializerRegistry not defined"
@@ -97,9 +97,6 @@ RSpec.describe 'Puma Fork Registry Complete Workflow', type: :integration do
             reconnect: []
           }
         }
-
-        # Reset registry to remove any auto-registered real initializers
-        Onetime::Boot::InitializerRegistry.hard_reset!
 
         # Create multiple fork-sensitive initializers to test coordination
         class TestForkInit1 < Onetime::Boot::Initializer
@@ -214,12 +211,13 @@ RSpec.describe 'Puma Fork Registry Complete Workflow', type: :integration do
         end
 
         puts "[preload] Loading test initializers..."
-        Onetime::Boot::InitializerRegistry.load_all
+        registry = Onetime::Boot::InitializerRegistry.current
+        registry.load_all
 
         puts "[preload] Running initializers..."
-        results = Onetime::Boot::InitializerRegistry.run_all
+        results = registry.run_all
 
-        fork_sensitive = Onetime::Boot::InitializerRegistry.fork_sensitive_initializers
+        fork_sensitive = registry.fork_sensitive_initializers
         puts "[preload] Fork-sensitive initializers: \#{fork_sensitive.map(&:name).join(', ')}"
         puts "[preload] Initialization results: \#{results[:successful].size} successful, \#{results[:failed].size} failed, \#{results[:skipped].size} skipped"
 

@@ -56,7 +56,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
     # 3. Use InitializerRegistry.soft_reset! to clear and selectively register
 
     # Reset registry and Onetime ready state before each test
-    Onetime::Boot::InitializerRegistry.soft_reset!
     Onetime.not_ready
 
     # NOTE: Tests that call boot! rely on a real database connection.
@@ -305,7 +304,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
         Familia.dbclient.set('global_banner', test_banner_text)
 
         # Reset and boot again to pick up the banner
-        Onetime::Boot::InitializerRegistry.soft_reset!
         Onetime.not_ready
         Onetime.boot!(:test)
 
@@ -322,7 +320,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
         Familia.dbclient.del('global_banner')
 
         # Reset and boot again
-        Onetime::Boot::InitializerRegistry.soft_reset!
         Onetime.not_ready
         Onetime.boot!(:test)
 
@@ -381,7 +378,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
       Onetime.boot!(:test)
 
       # Check that the ConfigureFamilia initializer completed successfully
-      initializer = Onetime::Boot::InitializerRegistry.initializers.find do |i|
+      initializer = Onetime.boot_registry.initializers.find do |i|
         i.name == :"onetime.initializers.configure_familia"
       end
       expect(initializer).not_to be_nil
@@ -436,7 +433,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
         # It logs system information to help with debugging.
         Onetime.boot!(:test)
 
-        initializer = Onetime::Boot::InitializerRegistry.initializers.find do |i|
+        initializer = Onetime.boot_registry.initializers.find do |i|
           i.name == :"onetime.initializers.print_log_banner"
         end
         expect(initializer).not_to be_nil

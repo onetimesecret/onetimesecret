@@ -56,7 +56,7 @@ RSpec.describe 'Puma InitializerRegistry Fork Safety', type: :integration do
         before_fork do
           puts "[before_fork] Calling InitializerRegistry.cleanup_before_fork (PID: \#{Process.pid})"
           if defined?(Onetime::Boot::InitializerRegistry)
-            Onetime::Boot::InitializerRegistry.cleanup_before_fork
+            Onetime::Boot::InitializerRegistry.current.cleanup_before_fork
             puts "[before_fork] Cleanup completed"
           else
             puts "[before_fork] InitializerRegistry not defined"
@@ -66,7 +66,7 @@ RSpec.describe 'Puma InitializerRegistry Fork Safety', type: :integration do
         before_worker_boot do
           puts "[before_worker_boot] Calling InitializerRegistry.reconnect_after_fork (PID: \#{Process.pid})"
           if defined?(Onetime::Boot::InitializerRegistry)
-            Onetime::Boot::InitializerRegistry.reconnect_after_fork
+            Onetime::Boot::InitializerRegistry.current.reconnect_after_fork
             puts "[before_worker_boot] Reconnect completed"
           else
             puts "[before_worker_boot] InitializerRegistry not defined"
@@ -108,12 +108,13 @@ RSpec.describe 'Puma InitializerRegistry Fork Safety', type: :integration do
 
         # Load initializers
         puts "[preload] Loading initializer classes..."
-        Onetime::Boot::InitializerRegistry.load_all
+        registry = Onetime::Boot::InitializerRegistry.current
+        registry.load_all
 
         puts "[preload] Running initializers..."
-        Onetime::Boot::InitializerRegistry.run_all
+        registry.run_all
 
-        fork_sensitive = Onetime::Boot::InitializerRegistry.fork_sensitive_initializers
+        fork_sensitive = registry.fork_sensitive_initializers
         puts "[preload] Fork-sensitive initializers: \#{fork_sensitive.map(&:name).join(', ')}"
 
         app = proc do |env|
@@ -136,7 +137,8 @@ RSpec.describe 'Puma InitializerRegistry Fork Safety', type: :integration do
           when '/initializers'
             # List fork-sensitive initializers
             require 'json'
-            fork_sensitive = Onetime::Boot::InitializerRegistry.fork_sensitive_initializers
+            registry = Onetime::Boot::InitializerRegistry.current
+            fork_sensitive = registry.fork_sensitive_initializers
             data = {
               count: fork_sensitive.size,
               names: fork_sensitive.map(&:name),

@@ -49,7 +49,6 @@ RSpec.describe "Onetime global state after boot", type: :integration do
     # and are designed to work in test mode.
 
     # Reset registry and Onetime ready state before each test
-    Onetime::Boot::InitializerRegistry.soft_reset!
     Onetime.not_ready
 
     # Mock Truemail configuration
@@ -164,7 +163,6 @@ RSpec.describe "Onetime global state after boot", type: :integration do
         Familia.dbclient.set('global_banner', test_banner)
 
         # Reset and boot again to pick up the banner
-        Onetime::Boot::InitializerRegistry.soft_reset!
         Onetime.not_ready
         Onetime.boot!(:test)
 
@@ -181,7 +179,6 @@ RSpec.describe "Onetime global state after boot", type: :integration do
         Familia.dbclient.del('global_banner')
 
         # Reset and boot again
-        Onetime::Boot::InitializerRegistry.soft_reset!
         Onetime.not_ready
         Onetime.boot!(:test)
 
@@ -195,7 +192,7 @@ RSpec.describe "Onetime global state after boot", type: :integration do
         # It logs system information to help with debugging.
         Onetime.boot!(:test)
 
-        initializer = Onetime::Boot::InitializerRegistry.initializers.find do |i|
+        initializer = Onetime.boot_registry.initializers.find do |i|
           i.name == :"onetime.initializers.print_log_banner"
         end
         expect(initializer).not_to be_nil
@@ -210,7 +207,7 @@ RSpec.describe "Onetime global state after boot", type: :integration do
         Onetime.boot!(:test)
 
         # Check that the ConfigureFamilia initializer completed successfully
-        initializer = Onetime::Boot::InitializerRegistry.initializers.find do |i|
+        initializer = Onetime.boot_registry.initializers.find do |i|
           i.name == :"onetime.initializers.configure_familia"
         end
         expect(initializer).not_to be_nil

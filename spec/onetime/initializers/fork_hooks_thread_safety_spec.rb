@@ -47,17 +47,19 @@ RSpec.describe 'Fork Hooks Thread Safety', type: :concurrency do
     end
   end
 
+  let(:registry) { Onetime::Boot::InitializerRegistry.new }
+
+  around do |example|
+    Onetime::Boot::InitializerRegistry.with_registry(registry) { example.run }
+  end
+
   before(:each) do
     # Reset tracking
     CallTracker.reset!
-
-    # Reset registry state
-    Onetime::Boot::InitializerRegistry.hard_reset!
   end
 
   after(:each) do
     CallTracker.reset!
-    Onetime::Boot::InitializerRegistry.hard_reset!
   end
 
   describe 'fork_sensitive_initializers concurrent read access' do
@@ -77,9 +79,9 @@ RSpec.describe 'Fork Hooks Thread Safety', type: :concurrency do
       end
 
       # Register and load
-      Onetime::Boot::InitializerRegistry.register_class(test_class)
-      Onetime::Boot::InitializerRegistry.load_all
-      Onetime::Boot::InitializerRegistry.run_all
+      registry.register_class(test_class)
+      registry.load_all
+      registry.run_all
 
       # Read from multiple threads
       results = []
@@ -87,7 +89,7 @@ RSpec.describe 'Fork Hooks Thread Safety', type: :concurrency do
 
       threads = 5.times.map do
         Thread.new do
-          fork_sensitive = Onetime::Boot::InitializerRegistry.fork_sensitive_initializers
+          fork_sensitive = registry.fork_sensitive_initializers
           mutex.synchronize do
             results << fork_sensitive.size
           end
@@ -120,12 +122,12 @@ RSpec.describe 'Fork Hooks Thread Safety', type: :concurrency do
       end
 
       # Register and load
-      Onetime::Boot::InitializerRegistry.register_class(test_class)
-      Onetime::Boot::InitializerRegistry.load_all
-      Onetime::Boot::InitializerRegistry.run_all
+      registry.register_class(test_class)
+      registry.load_all
+      registry.run_all
 
       # Call cleanup 3 times
-      3.times { Onetime::Boot::InitializerRegistry.cleanup_before_fork }
+      3.times { registry.cleanup_before_fork }
 
       # Should have 3 cleanup calls
       expect(CallTracker.cleanup_calls.size).to eq(3)
@@ -151,12 +153,12 @@ RSpec.describe 'Fork Hooks Thread Safety', type: :concurrency do
       end
 
       # Register and load
-      Onetime::Boot::InitializerRegistry.register_class(test_class)
-      Onetime::Boot::InitializerRegistry.load_all
-      Onetime::Boot::InitializerRegistry.run_all
+      registry.register_class(test_class)
+      registry.load_all
+      registry.run_all
 
       # Call reconnect 3 times
-      3.times { Onetime::Boot::InitializerRegistry.reconnect_after_fork }
+      3.times { registry.reconnect_after_fork }
 
       # Should have 3 reconnect calls
       expect(CallTracker.reconnect_calls.size).to eq(3)
@@ -186,13 +188,13 @@ RSpec.describe 'Fork Hooks Thread Safety', type: :concurrency do
       end
 
       # Register and load
-      Onetime::Boot::InitializerRegistry.register_class(test_class)
-      Onetime::Boot::InitializerRegistry.load_all
-      Onetime::Boot::InitializerRegistry.run_all
+      registry.register_class(test_class)
+      registry.load_all
+      registry.run_all
 
       # Simulate Puma fork workflow
-      Onetime::Boot::InitializerRegistry.cleanup_before_fork
-      Onetime::Boot::InitializerRegistry.reconnect_after_fork
+      registry.cleanup_before_fork
+      registry.reconnect_after_fork
 
       # Both should have been called once
       expect(CallTracker.cleanup_calls.size).to eq(1)
