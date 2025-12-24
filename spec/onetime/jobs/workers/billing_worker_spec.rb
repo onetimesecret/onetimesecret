@@ -39,7 +39,7 @@ require_relative '../../../../lib/onetime/jobs/queue_config'
 DeliveryInfoStub = Data.define(:delivery_tag, :routing_key, :redelivered?) unless defined?(DeliveryInfoStub)
 MetadataStub = Data.define(:message_id, :headers) unless defined?(MetadataStub)
 
-RSpec.describe Onetime::Jobs::Workers::BillingWorker do
+RSpec.describe Onetime::Jobs::Workers::BillingWorker, type: :integration do
   # Create test worker class with accessible delivery_info
   let(:test_worker_class) do
     Class.new(Onetime::Jobs::Workers::BillingWorker) do

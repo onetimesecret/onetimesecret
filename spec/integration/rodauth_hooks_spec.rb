@@ -27,6 +27,10 @@ RSpec.describe 'Rodauth Security Hooks', :full_auth_mode, type: :integration do
     Onetime::Application::Registry.prepare_application_registry
   end
 
+  after(:all) do
+    ENV.delete('AUTHENTICATION_MODE')
+  end
+
   def app
     Onetime::Application::Registry.generate_rack_url_map
   end

@@ -16,6 +16,10 @@ RSpec.describe 'routes_try' do
     @mock_request = Rack::MockRequest.new(@app)
   end
 
+  after(:all) do
+    ENV.delete('RACK_ENV')
+  end
+
   it 'Authentication is enabled' do
     result = begin
       OT.conf['site']['authentication']['signin']

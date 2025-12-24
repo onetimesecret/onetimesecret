@@ -39,7 +39,7 @@
 require 'spec_helper'
 require_relative '../../../lib/onetime/operations/dispatch_notification'
 
-RSpec.describe Onetime::Operations::DispatchNotification do
+RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
   let(:custid) { 'cust:test-user-456' }
 
   # Helper to stub Addrinfo for SSRF validation in webhook tests.

@@ -78,40 +78,43 @@ module AuthModeHelpers
 
   # Install mock for a given mode - replaces Onetime.auth_config at module level
   # Returns the mock instance for further configuration if needed
-  def self.install_mock(mode, **options)
-    # Capture the REAL original method only once (not a previously installed mock)
-    unless @real_original_method
+  def self.install_mock(mode, context_metadata, **options)
+    # Store the REAL original method in the context metadata (not module-level)
+    # This prevents leaks between test contexts
+    unless context_metadata[:auth_mode_original_method]
       if Onetime.respond_to?(:auth_config) && !Onetime.method(:auth_config).owner.equal?(Onetime.singleton_class)
-        @real_original_method = Onetime.method(:auth_config)
+        context_metadata[:auth_mode_original_method] = Onetime.method(:auth_config)
       end
     end
 
     mock = MockAuthConfig.new(mode, **options)
-    @current_mock = mock
-    @current_mode = mode
+    context_metadata[:auth_mode_current_mock] = mock
+    context_metadata[:auth_mode_current_mode] = mode
     Onetime.define_singleton_method(:auth_config) { mock }
     mock
   end
 
   # Restore original auth_config method
-  def self.restore_original
-    @current_mock = nil
-    @current_mode = nil
+  def self.restore_original(context_metadata)
+    context_metadata[:auth_mode_current_mock] = nil
+    context_metadata[:auth_mode_current_mode] = nil
 
-    # Only restore if we have the real original
-    return unless @real_original_method
+    # Only restore if we have the real original stored in this context
+    original_method = context_metadata[:auth_mode_original_method]
+    return unless original_method
 
-    Onetime.define_singleton_method(:auth_config, @real_original_method)
+    Onetime.define_singleton_method(:auth_config, original_method)
+    context_metadata[:auth_mode_original_method] = nil
   end
 
   # Get current mock mode (useful for debugging)
-  def self.current_mode
-    @current_mode
+  def self.current_mode(context_metadata)
+    context_metadata[:auth_mode_current_mode]
   end
 
   # Check if a mock is currently installed
-  def self.mock_installed?
-    !@current_mock.nil?
+  def self.mock_installed?(context_metadata)
+    !context_metadata[:auth_mode_current_mock].nil?
   end
 
   # Reset cached database connection (call before tests that need fresh connection)
@@ -130,28 +133,28 @@ end
 RSpec.configure do |config|
   # Full auth mode - install mock BEFORE any setup runs
   config.before(:context, :full_auth_mode) do
-    AuthModeHelpers.install_mock('full')
+    AuthModeHelpers.install_mock('full', self.class.metadata)
   end
 
   config.after(:context, :full_auth_mode) do
-    AuthModeHelpers.restore_original
+    AuthModeHelpers.restore_original(self.class.metadata)
   end
 
   # Simple auth mode - install mock BEFORE any setup runs
   config.before(:context, :simple_auth_mode) do
-    AuthModeHelpers.install_mock('simple')
+    AuthModeHelpers.install_mock('simple', self.class.metadata)
   end
 
   config.after(:context, :simple_auth_mode) do
-    AuthModeHelpers.restore_original
+    AuthModeHelpers.restore_original(self.class.metadata)
   end
 
   # Disabled auth mode - install mock BEFORE any setup runs
   config.before(:context, :disabled_auth_mode) do
-    AuthModeHelpers.install_mock('disabled')
+    AuthModeHelpers.install_mock('disabled', self.class.metadata)
   end
 
   config.after(:context, :disabled_auth_mode) do
-    AuthModeHelpers.restore_original
+    AuthModeHelpers.restore_original(self.class.metadata)
   end
 end

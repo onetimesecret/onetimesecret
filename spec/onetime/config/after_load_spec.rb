@@ -10,7 +10,7 @@ require_relative '../../spec_helper'
 # We require sentry-ruby here to test configuration processing, but stub its
 # methods to prevent actual initialization during tests.
 
-RSpec.describe "Onetime boot configuration process" do
+RSpec.describe "Onetime boot configuration process", type: :integration do
   using Familia::Refinements::TimeLiterals
 
   let(:test_config_path) { File.join(Onetime::HOME, 'spec', 'config.test.yaml') }

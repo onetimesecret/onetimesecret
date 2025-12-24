@@ -43,7 +43,7 @@ require 'sneakers'
 DeliveryInfoStub = Data.define(:delivery_tag, :routing_key, :redelivered?) unless defined?(DeliveryInfoStub)
 MetadataStub = Data.define(:message_id, :headers) unless defined?(MetadataStub)
 
-RSpec.describe Onetime::Jobs::Workers::BaseWorker do
+RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
   # Create a test worker class that includes both Sneakers::Worker and BaseWorker
   let(:test_worker_class) do
     Class.new do

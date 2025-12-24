@@ -30,6 +30,10 @@ RSpec.describe 'Full Authentication Mode', :full_auth_mode, type: :integration d
     Onetime::Application::Registry.prepare_application_registry
   end
 
+  after(:all) do
+    ENV.delete('AUTHENTICATION_MODE')
+  end
+
   def app
     Onetime::Application::Registry.generate_rack_url_map
   end
