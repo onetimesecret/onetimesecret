@@ -16,16 +16,17 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
   subject(:registry) { described_class }
 
   # Reset registry state before each test to ensure isolation
-  # Use reset_all! to clear everything (including production initializer classes)
-  # This ensures unit tests run in true isolation
-  # Track test classes for documentation purposes (after hook not strictly needed with reset_all!)
+  # Use reset! to clear instances but preserve production initializer classes
+  # Track test classes for cleanup to prevent pollution across tests
   before do
     @test_classes = []
-    registry.reset_all!
+    registry.reset!
   end
 
   after do
-    registry.reset_all!
+    # Unregister all test classes created during this test
+    @test_classes.each { |klass| registry.unregister_class(klass) }
+    registry.reset!
   end
 
   # Helper to create a basic fork-sensitive initializer class

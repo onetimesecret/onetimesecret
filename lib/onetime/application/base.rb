@@ -177,7 +177,7 @@ module Onetime
               message = "WARMED UP #{base_klass} at #{base_klass.uri_prefix}"
 
               # Use log_box helper for consistent formatting
-              Onetime.log_box([message], logger_method: :app_logger)
+              Onetime.log_box([message], logger_method: :app_logger, level: :debug) # reduce noise at 'info'
             end
           end
 

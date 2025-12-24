@@ -47,7 +47,7 @@ module Onetime
                      handle_unknown_strategy(strategy_name, strict_mode, config)
                    end
 
-        OT.info "[DomainValidation] Using strategy: #{strategy.class.name}"
+        OT.debug "[DomainValidation] Using strategy: #{strategy.class.name}" # reduce 'info' noise
         strategy
       end
 

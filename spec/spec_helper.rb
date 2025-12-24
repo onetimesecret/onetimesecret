@@ -174,14 +174,17 @@ RSpec.configure do |config|
   # production deployment where only one auth mode exists per instance.
   # ==========================================================================
 
-  # Derive tags from directory paths (for tooling that uses tags)
+  # Auto-derive auth mode tags from directory structure.
+  # These tags trigger before(:context) hooks in support/ files that set up
+  # mode-specific infrastructure (database mocks, factories, helpers).
+  # See: spec/support/auth_mode_helpers.rb, spec/support/full_mode_suite_database.rb
   %w[simple full disabled].each do |mode|
     config.define_derived_metadata(file_path: %r{/integration/#{mode}/}) do |metadata|
       metadata[:"#{mode}_auth_mode"] = true
     end
   end
 
-  # Tests in /integration/all/ run in every mode
+  # Tests in /integration/all/ run in every mode - tagged for documentation purposes
   config.define_derived_metadata(file_path: %r{/integration/all/}) do |metadata|
     metadata[:all_auth_modes] = true
   end
