@@ -92,6 +92,28 @@ module Core
         add_message(msg, 'error')
       end
 
+      # Compatibility shim for old i18n hash structure
+      #
+      # The old custom i18n helpers returned a hash with :COMMON, :web, :email keys.
+      # This method provides the same structure using I18n.t() for backward compatibility.
+      #
+      # @return [Hash] Hash with :COMMON and :web keys containing translations
+      def i18n
+        # Use safe locale lookup - fall back to default if locale not available
+        safe_locale = I18n.available_locales.include?(@locale.to_sym) ? @locale.to_sym : I18n.default_locale
+
+        # Cache per locale to handle locale changes correctly
+        @i18n_cache ||= {}
+        @i18n_cache[safe_locale] ||= {
+          COMMON: {
+            description: I18n.t('web.COMMON.description', locale: safe_locale, default: 'Keep sensitive info out of your chat logs & email'),
+            keywords: I18n.t('web.COMMON.keywords', locale: safe_locale, default: 'secret,password,share,private,link')
+          },
+          web: {},
+          email: {}
+        }
+      end
+
       # Run all registered serializers to transform view data for frontend consumption
       #
       # Executes each serializer registered for this view in dependency order,

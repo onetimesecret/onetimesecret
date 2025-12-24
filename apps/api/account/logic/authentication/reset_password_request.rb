@@ -39,7 +39,7 @@ module AccountAPI::Logic
           }
 
           send_verification_email
-          msg = "#{i18n.dig(:web, :COMMON, :verification_sent_to)} #{cust.objid}."
+          msg = "#{I18n.t('web.COMMON.verification_sent_to', locale: @locale)} #{cust.objid}."
           return set_info_message(msg)
         end
 
