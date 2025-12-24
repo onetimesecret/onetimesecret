@@ -55,7 +55,6 @@ module Onetime
       #
       # @return [InitializerRegistry]
       def initialize
-        @registered_classes  = []
         @initializers        = []
         @capability_map      = {}
         @execution_order     = nil
@@ -64,22 +63,36 @@ module Onetime
         @boot_start_time     = nil
       end
 
-      # Discover all Initializer subclasses via ObjectSpace
+      # Discover initializer classes via ObjectSpace with required filter
       #
-      # This is the pure DI approach - no inherited hook, no class-level state.
-      # Used by production boot to find all initializers after they've been required.
-      # Tests should NOT use this - they explicitly register only their test classes.
+      # Separates discovery from loading - returns classes without mutating state.
+      # The filter is required to force intentionality about which classes to load.
       #
-      # @return [self]
-      def discover_initializers
+      # @yield [klass] Filter block receiving each candidate class
+      # @yieldparam klass [Class] An Initializer subclass
+      # @yieldreturn [Boolean] true to include, false to exclude
+      # @return [Array<Class>] Matching initializer classes
+      # @raise [ArgumentError] if no filter block provided
+      #
+      # @example Production - discover all production initializers
+      #   classes = InitializerRegistry.discover { |k| k.name.start_with?('Onetime::Boot::Initializers') }
+      #
+      # @example Test - discover only test initializers
+      #   classes = InitializerRegistry.discover { |k| k.name.include?('TestFork') }
+      #
+      def self.discover(&)
+        raise ArgumentError, 'filter block required' unless block_given?
+
+        classes = []
         ObjectSpace.each_object(Class).each do |klass|
           next unless klass < Onetime::Boot::Initializer
           next if klass == Onetime::Boot::Initializer
           next unless klass.name # Skip anonymous classes
+          next unless yield(klass)
 
-          register_class(klass) unless @registered_classes.include?(klass)
+          classes << klass
         end
-        self
+        classes
       end
 
       # Get the thread-local active registry (for test isolation)
@@ -103,7 +116,9 @@ module Onetime
       # @yield Block to execute with registry as current
       # @return Result of block
       def self.with_registry(registry)
-        previous = self.current
+        raise ArgumentError, 'registry cannot be nil' if registry.nil?
+
+        previous     = current
         self.current = registry
         yield registry
       ensure
@@ -130,41 +145,40 @@ module Onetime
         end
       end
 
+      # Load all initializer classes via ObjectSpace discovery
       #
-      # Instance Methods (DI Architecture)
-      #
-      # These mirror the class methods but operate on instance state,
-      # enabling test isolation without global pollution.
-      #
-
-      # Register initializer class with this instance
-      #
-      # @param klass [Class] Initializer subclass
-      # @return [void]
-      def register_class(klass)
-        @registered_classes << klass unless @registered_classes.include?(klass)
-      end
-
-      # Remove a class from this instance's registry
-      #
-      # @param klass [Class] Initializer subclass to remove
-      # @return [void]
-      def unregister_class(klass)
-        @registered_classes.delete(klass)
-      end
-
-      # Load all registered initializers
-      #
-      # If no classes have been explicitly registered, auto-discovers via ObjectSpace.
-      # This enables pure DI: production uses discovery, tests use explicit registration.
+      # Discovers initializers that match the production namespace filter.
+      # For tests requiring explicit control, use load_only(classes) instead.
       #
       # @return [void]
       def load_all
-        # Auto-discover if no explicit registration (production path)
-        # Tests register explicitly to avoid discovering other test classes
-        discover_initializers if @registered_classes.empty?
+        classes = self.class.discover { |k| k.name&.start_with?('Onetime::') }
+        load_classes(classes)
+      end
 
-        @registered_classes.each do |klass|
+      # Load only the specified initializer classes (no discovery)
+      #
+      # Use this for tests where you need explicit control over which
+      # classes are loaded, avoiding ObjectSpace discovery pollution.
+      #
+      # @param classes [Array<Class>] Initializer classes to load
+      # @return [void]
+      #
+      # @example Test with explicit classes
+      #   registry.load_only([TestInit1, TestInit2])
+      #
+      def load_only(classes)
+        load_classes(classes)
+      end
+
+      private
+
+      # Internal method to load classes into the registry
+      #
+      # @param classes [Array<Class>] Initializer classes to load
+      # @return [void]
+      def load_classes(classes)
+        classes.each do |klass|
           next if @initializers.any? { |i| i.name == klass.initializer_name }
 
           initializer = klass.new
@@ -180,6 +194,8 @@ module Onetime
         validate_fork_sensitive_initializers!
         @execution_order = nil
       end
+
+      public
 
       # Get initializers in dependency order
       #

@@ -17,15 +17,8 @@ require 'benchmark'
 # - Registry operations maintain efficient baseline under normal load
 #
 RSpec.describe Onetime::Boot::InitializerRegistry, :performance do
-  subject(:registry) { described_class }
-
-  before do
-    registry.hard_reset!
-  end
-
-  after do
-    registry.hard_reset!
-  end
+  # Fresh registry instance for each test (pure DI - no global state)
+  let(:registry) { described_class.new }
 
   # Helper to create a minimal fork-sensitive initializer
   # No actual I/O to ensure tests measure registry overhead, not external operations
@@ -54,9 +47,10 @@ RSpec.describe Onetime::Boot::InitializerRegistry, :performance do
     context 'with 10 fork-sensitive initializers' do
       it 'completes within 100ms threshold' do
         # Create 10 minimal fork-sensitive initializers
-        10.times { |i| create_fork_sensitive_initializer("Cleanup10_#{i}") }
+        classes = []
+        10.times { |i| classes << create_fork_sensitive_initializer("Cleanup10_#{i}") }
 
-        registry.load_all
+        registry.load_only(classes)
 
         # Measure cleanup performance
         elapsed = Benchmark.realtime do
@@ -72,9 +66,10 @@ RSpec.describe Onetime::Boot::InitializerRegistry, :performance do
     context 'with 50 fork-sensitive initializers' do
       it 'completes within 200ms threshold' do
         # Create 50 minimal fork-sensitive initializers
-        50.times { |i| create_fork_sensitive_initializer("Cleanup50_#{i}") }
+        classes = []
+        50.times { |i| classes << create_fork_sensitive_initializer("Cleanup50_#{i}") }
 
-        registry.load_all
+        registry.load_only(classes)
 
         # Measure cleanup performance
         elapsed = Benchmark.realtime do
@@ -92,9 +87,10 @@ RSpec.describe Onetime::Boot::InitializerRegistry, :performance do
     context 'with 10 fork-sensitive initializers' do
       it 'completes within 100ms threshold' do
         # Create 10 minimal fork-sensitive initializers
-        10.times { |i| create_fork_sensitive_initializer("Reconnect10_#{i}") }
+        classes = []
+        10.times { |i| classes << create_fork_sensitive_initializer("Reconnect10_#{i}") }
 
-        registry.load_all
+        registry.load_only(classes)
 
         # Measure reconnect performance
         elapsed = Benchmark.realtime do
@@ -110,9 +106,10 @@ RSpec.describe Onetime::Boot::InitializerRegistry, :performance do
     context 'with 50 fork-sensitive initializers' do
       it 'completes within 200ms threshold' do
         # Create 50 minimal fork-sensitive initializers
-        50.times { |i| create_fork_sensitive_initializer("Reconnect50_#{i}") }
+        classes = []
+        50.times { |i| classes << create_fork_sensitive_initializer("Reconnect50_#{i}") }
 
-        registry.load_all
+        registry.load_only(classes)
 
         # Measure reconnect performance
         elapsed = Benchmark.realtime do
@@ -131,18 +128,21 @@ RSpec.describe Onetime::Boot::InitializerRegistry, :performance do
       # Create realistic mixed workload:
       # - 5 preload phase initializers (typical: config, logging, etc)
       # - 5 fork-sensitive initializers (typical: DB, Redis, HTTP clients)
+      classes = []
+
       5.times do |i|
         preload_klass = Class.new(Onetime::Boot::Initializer) do
           define_method(:execute) { |_ctx| }
         end
         preload_klass.define_singleton_method(:name) { "PreloadPerf#{i}" }
+        classes << preload_klass
       end
 
-      5.times { |i| create_fork_sensitive_initializer("ForkPerf#{i}") }
+      5.times { |i| classes << create_fork_sensitive_initializer("ForkPerf#{i}") }
 
       # Measure load_all performance (dependency resolution + validation)
       load_elapsed = Benchmark.realtime do
-        registry.load_all
+        registry.load_only(classes)
       end
 
       # Measure fork_sensitive_initializers filtering performance

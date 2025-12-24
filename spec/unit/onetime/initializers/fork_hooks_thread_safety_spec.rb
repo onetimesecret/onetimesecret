@@ -78,9 +78,8 @@ RSpec.describe 'Fork Hooks Thread Safety', type: :concurrency do
         def reconnect; end
       end
 
-      # Register and load
-      registry.register_class(test_class)
-      registry.load_all
+      # Load and run
+      registry.load_only([test_class])
       registry.run_all
 
       # Read from multiple threads
@@ -121,9 +120,8 @@ RSpec.describe 'Fork Hooks Thread Safety', type: :concurrency do
         def reconnect; end
       end
 
-      # Register and load
-      registry.register_class(test_class)
-      registry.load_all
+      # Load and run
+      registry.load_only([test_class])
       registry.run_all
 
       # Call cleanup 3 times
@@ -152,9 +150,8 @@ RSpec.describe 'Fork Hooks Thread Safety', type: :concurrency do
         end
       end
 
-      # Register and load
-      registry.register_class(test_class)
-      registry.load_all
+      # Load and run
+      registry.load_only([test_class])
       registry.run_all
 
       # Call reconnect 3 times
@@ -187,9 +184,8 @@ RSpec.describe 'Fork Hooks Thread Safety', type: :concurrency do
         end
       end
 
-      # Register and load
-      registry.register_class(test_class)
-      registry.load_all
+      # Load and run
+      registry.load_only([test_class])
       registry.run_all
 
       # Simulate Puma fork workflow
