@@ -9,12 +9,16 @@ require 'spec_helper'
 RSpec.describe Onetime::Boot::Initializer do
   # Helper to create clean test classes
   # Each test gets a fresh class to avoid pollution
+  # Always includes cleanup/reconnect methods so fork_sensitive classes pass validation
   def new_test_class(name = nil, &block)
     Class.new(described_class) do
       define_singleton_method(:name) { name || "TestInitializer#{object_id}" }
       def execute(_context)
         # Default no-op implementation
       end
+      # Required for fork_sensitive initializers - safe no-ops for all phases
+      def cleanup; end
+      def reconnect; end
       class_eval(&block) if block_given?
     end
   end
@@ -214,36 +218,33 @@ RSpec.describe Onetime::Boot::Initializer do
     end
 
     describe 'default implementations' do
-      it 'fork_sensitive initializers must implement cleanup and reconnect' do
+      it 'base Initializer class does not define cleanup or reconnect' do
         # Note: The base class doesn't enforce this - validation happens
         # in InitializerRegistry.validate_fork_sensitive_initializers!
-        klass = new_test_class do
-          @phase = :fork_sensitive
-        end
-        instance = klass.new
-        expect(instance).not_to respond_to(:cleanup)
-        expect(instance).not_to respond_to(:reconnect)
+        # Check base class directly without creating a subclass (which would register)
+        expect(described_class.instance_methods(false)).not_to include(:cleanup)
+        expect(described_class.instance_methods(false)).not_to include(:reconnect)
       end
 
-      it 'preload initializers do not need cleanup or reconnect' do
+      it 'preload initializers default to preload phase' do
         klass = new_test_class # default phase is :preload
         instance = klass.new
         expect(instance.phase).to eq(:preload)
-        expect(instance).not_to respond_to(:cleanup)
-        expect(instance).not_to respond_to(:reconnect)
+        # Note: test helper adds cleanup/reconnect to avoid polluting other tests,
+        # but base Initializer class does not require them for preload phase
       end
     end
   end
 
   describe 'auto-registration' do
     before do
-      # Reset registry before each test to ensure clean state
-      Onetime::Boot::InitializerRegistry.reset_all!
+      # Reset instances but preserve registered classes
+      Onetime::Boot::InitializerRegistry.reset!
     end
 
     after do
-      # Clean up after tests
-      Onetime::Boot::InitializerRegistry.reset_all!
+      # Reset instances but preserve production initializer classes
+      Onetime::Boot::InitializerRegistry.reset!
     end
 
     context 'class registration' do
@@ -354,11 +355,13 @@ RSpec.describe Onetime::Boot::Initializer do
   # Integration test: Verify phase infrastructure works with registry
   describe 'phase infrastructure integration' do
     before do
-      Onetime::Boot::InitializerRegistry.reset_all!
+      # Use reset! to clear instances but preserve registered classes
+      Onetime::Boot::InitializerRegistry.reset!
     end
 
     after do
-      Onetime::Boot::InitializerRegistry.reset_all!
+      # Use reset! to avoid clearing production initializer classes
+      Onetime::Boot::InitializerRegistry.reset!
     end
 
     it 'fork_sensitive initializers appear in fork_sensitive_initializers list' do
@@ -379,14 +382,20 @@ RSpec.describe Onetime::Boot::Initializer do
     end
 
     it 'validates fork_sensitive initializers have required methods during load' do
-      new_test_class do
+      # Create class directly (not via helper) to test validation behavior
+      invalid_class = Class.new(described_class) do
+        define_singleton_method(:name) { "InvalidForkSensitiveTestClass#{object_id}" }
         @phase = :fork_sensitive
-        # Missing cleanup and reconnect methods
+        def execute(_context); end
+        # Missing cleanup and reconnect methods intentionally
       end
 
       expect {
         Onetime::Boot::InitializerRegistry.load_all
       }.to raise_error(Onetime::Problem, /must implement.*cleanup.*reconnect/)
+
+      # Clean up: remove just this invalid class to avoid polluting other tests
+      Onetime::Boot::InitializerRegistry.unregister_class(invalid_class)
     end
 
     it 'allows preload initializers without cleanup/reconnect methods' do

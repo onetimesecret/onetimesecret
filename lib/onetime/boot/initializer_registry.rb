@@ -64,6 +64,14 @@ module Onetime
           @registered_classes << klass unless @registered_classes.include?(klass)
         end
 
+        # Remove a class from the registry (for testing cleanup)
+        #
+        # @param klass [Class] Initializer subclass to remove
+        # @return [void]
+        def unregister_class(klass)
+          @registered_classes.delete(klass)
+        end
+
         # Phase 2: Load all registered initializers
         #
         # Instantiates initializer classes and builds dependency graph.
