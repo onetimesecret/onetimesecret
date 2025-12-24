@@ -120,9 +120,6 @@ RSpec.describe Onetime::Jobs::Workers::BillingWorker, type: :integration do
   let(:operation_instance) { instance_double('ProcessWebhookEventDouble') }
 
   before do
-    # Ensure clean Redis state
-    Familia.dbclient.del("job:processed:#{message_id}")
-
     # Store envelope
     worker.store_envelope(delivery_info, metadata)
 
@@ -133,10 +130,6 @@ RSpec.describe Onetime::Jobs::Workers::BillingWorker, type: :integration do
     # (actual class is loaded at file level, we just mock its behavior)
     allow(Billing::Operations::ProcessWebhookEvent).to receive(:new).and_return(operation_instance)
     allow(operation_instance).to receive(:call).and_return(true)
-  end
-
-  after do
-    Familia.dbclient.del("job:processed:#{message_id}")
   end
 
   describe '#work_with_params' do
@@ -203,8 +196,6 @@ RSpec.describe Onetime::Jobs::Workers::BillingWorker, type: :integration do
       end
 
       it 'creates Redis idempotency key with TTL after successful processing' do
-        Familia.dbclient.del("job:processed:#{message_id}")
-
         worker.work_with_params(message, delivery_info, metadata)
 
         expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy

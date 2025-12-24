@@ -129,11 +129,6 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
     let(:msg_id) { 'test-msg-789' }
     let(:redis_key) { "job:processed:#{msg_id}" }
 
-    after do
-      # Clean up Redis keys
-      Familia.dbclient.del(redis_key)
-    end
-
     context 'when Redis key exists' do
       before do
         Familia.dbclient.setex(redis_key, 3600, '1')
@@ -160,10 +155,6 @@ RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
   describe '#claim_for_processing' do
     let(:msg_id) { 'test-msg-456' }
     let(:redis_key) { "job:processed:#{msg_id}" }
-
-    after do
-      Familia.dbclient.del(redis_key)
-    end
 
     it 'returns true and sets Redis key on first claim' do
       result = worker.claim_for_processing(msg_id)

@@ -35,9 +35,15 @@ RSpec.shared_context 'clean_auth_state' do
     # Teardown any existing suite-level database setups
     # These are lazily initialized and persist across contexts, so we need to
     # explicitly tear them down to prevent cross-contamination
-    [FullModeSuiteDatabase, PostgresModeSuiteDatabase].each do |db|
-      # Only teardown if the database module is defined AND has been set up
-      if defined?(db) && db.respond_to?(:setup_complete?) && db.setup_complete?
+    #
+    # Note: We check Object.const_defined? before referencing the constant,
+    # since these modules may not be loaded in all test environments.
+    %w[FullModeSuiteDatabase PostgresModeSuiteDatabase].each do |db_name|
+      next unless Object.const_defined?(db_name)
+
+      db = Object.const_get(db_name)
+      # Only teardown if the database module has been set up
+      if db.respond_to?(:setup_complete?) && db.setup_complete?
         db.teardown!
       end
     end

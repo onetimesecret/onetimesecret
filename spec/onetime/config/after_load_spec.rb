@@ -102,7 +102,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
     # No need to clean up as we're using an existing file
   end
 
-  describe '.boot!', :allow_redis do
+  describe '.boot!' do
     # NOTE: These tests call boot! which runs the full initializer registry.
     # They require VALKEY_URL to be set to a real database connection.
     # The boot process now uses InitializerRegistry with initializer classes,

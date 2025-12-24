@@ -101,9 +101,6 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
   end
 
   before do
-    # Ensure clean Redis state for idempotency tests
-    Familia.dbclient.del("job:processed:#{message_id}")
-
     # Store envelope is called by work_with_params, but we can also pre-set for tests
     worker.store_envelope(delivery_info, metadata)
 
@@ -216,9 +213,6 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
       end
 
       it 'creates Redis idempotency key after successful delivery' do
-        # Ensure key doesn't exist initially
-        Familia.dbclient.del("job:processed:#{message_id}")
-
         worker.work_with_params(message, delivery_info, metadata)
 
         # Verify key was created with TTL
@@ -262,8 +256,6 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
         # claim_for_processing atomically sets the key BEFORE attempting delivery,
         # so the key exists regardless of delivery success/failure. This prevents
         # re-processing on redelivery even if the original attempt failed.
-        Familia.dbclient.del("job:processed:#{message_id}")
-
         allow(Onetime::Mail).to receive(:deliver).and_raise(StandardError, 'Delivery failed')
 
         worker.work_with_params(message, delivery_info, metadata)
@@ -303,10 +295,5 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
         expect(Onetime::Mail).not_to have_received(:deliver_raw)
       end
     end
-  end
-
-  # Clean up Redis keys after each test
-  after do
-    Familia.dbclient.del("job:processed:#{message_id}")
   end
 end

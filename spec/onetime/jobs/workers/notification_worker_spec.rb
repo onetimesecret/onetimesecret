@@ -95,9 +95,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
   let(:operation_instance) { instance_double(Onetime::Operations::DispatchNotification) }
 
   before do
-    # Ensure clean Redis state
-    Familia.dbclient.del("job:processed:#{message_id}")
-
     # Store envelope
     worker.store_envelope(delivery_info, metadata)
 
@@ -107,10 +104,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
     # Mock operation by default
     allow(Onetime::Operations::DispatchNotification).to receive(:new).and_return(operation_instance)
     allow(operation_instance).to receive(:call).and_return({ via_bell: :success })
-  end
-
-  after do
-    Familia.dbclient.del("job:processed:#{message_id}")
   end
 
   describe '#work_with_params' do
@@ -171,8 +164,6 @@ RSpec.describe Onetime::Jobs::Workers::NotificationWorker, type: :integration do
       end
 
       it 'creates Redis idempotency key with TTL after successful processing' do
-        Familia.dbclient.del("job:processed:#{message_id}")
-
         worker.work_with_params(message, delivery_info, metadata)
 
         expect(Familia.dbclient.exists?("job:processed:#{message_id}")).to be_truthy

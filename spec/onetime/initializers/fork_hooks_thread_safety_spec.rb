@@ -18,7 +18,7 @@
 #
 # This implements Phase 4 (LOW priority) testing for GitHub issue #2205.
 #
-require_relative '../spec_helper'
+require_relative '../../spec_helper'
 
 RSpec.describe 'Fork Hooks Thread Safety', type: :concurrency do
   # Module to track calls across test initializers

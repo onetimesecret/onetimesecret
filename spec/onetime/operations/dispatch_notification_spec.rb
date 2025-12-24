@@ -76,14 +76,6 @@ RSpec.describe Onetime::Operations::DispatchNotification, type: :integration do
     }
   end
 
-  before do
-    # Clean Redis state
-    Familia.dbclient.del("notifications:#{custid}")
-  end
-
-  after do
-    Familia.dbclient.del("notifications:#{custid}")
-  end
 
   describe '#call' do
     context 'in-app notification delivery' do

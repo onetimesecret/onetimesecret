@@ -31,7 +31,7 @@
 # trigger/constraint behaviors. CI runs both; local development defaults to
 # SQLite for speed.
 #
-# See also: docs/adr/adr-001-test-process-boundaries.md
+# See also: docs/adr/adr-007-test-process-boundaries.md
 
 require 'rspec/core/rake_task'
 

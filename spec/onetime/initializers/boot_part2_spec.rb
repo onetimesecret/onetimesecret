@@ -7,7 +7,7 @@ require 'fileutils'
 require 'yaml'
 require 'erb'
 
-RSpec.describe "Onetime global state after boot", :allow_redis, type: :integration do
+RSpec.describe "Onetime global state after boot", type: :integration do
   let(:source_config_path) { File.expand_path(File.join(Onetime::HOME, 'spec', 'config.test.yaml')) }
   let(:loaded_config) { YAML.load(ERB.new(File.read(source_config_path)).result) }
 
