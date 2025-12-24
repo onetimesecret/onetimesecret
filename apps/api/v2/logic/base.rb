@@ -15,7 +15,6 @@ module V2
     # For backward compatibility, this class maintains the V2::Logic::Base
     # interface while delegating core functionality to Onetime::Logic::Base.
     class Base < Onetime::Logic::Base
-      include V2::Logic::I18nHelpers
       include V2::Logic::UriHelpers
     end
   end

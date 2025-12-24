@@ -32,6 +32,12 @@ require 'onetime/models'
 
 OT::Config.path = File.join(project_root, 'spec', 'config.test.yaml')
 
+# Minimal I18n setup for tests that use I18n.t() without full OT.boot!
+# This provides basic configuration so I18n calls don't fail with InvalidLocale
+require 'i18n'
+I18n.available_locales = [:en]
+I18n.default_locale = :en
+
 # NOTE: Database logging is now handled by the SetupDatabaseLogging initializer
 # which runs automatically during OT.boot!. Set DEBUG_DATABASE=1 to enable.
 

@@ -15,6 +15,7 @@ require_relative 'boot/initializer_registry'
 
 # Core initializers (no dependencies)
 require_relative 'initializers/load_locales'
+require_relative 'initializers/setup_i18n'        # requires: [:i18n]
 require_relative 'initializers/setup_loggers'
 require_relative 'initializers/set_secrets'
 require_relative 'initializers/configure_domains'

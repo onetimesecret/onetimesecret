@@ -82,10 +82,10 @@ context = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
 context.u('hello world')
 #=> 'hello%20world'
 
-## TemplateContext t helper returns key as placeholder (i18n stub)
+## TemplateContext t helper delegates to I18n.t (returns missing translation message)
 context = Onetime::Mail::Templates::Base::TemplateContext.new({}, 'en')
 context.t('email.subject')
-#=> 'email.subject'
+#=> 'Translation missing: en.email.subject'
 
 ## TemplateContext method_missing returns data values
 context = Onetime::Mail::Templates::Base::TemplateContext.new({ name: 'Alice' }, 'en')

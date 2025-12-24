@@ -441,6 +441,7 @@ DEPENDENCIES
   familia (~> 2.0.0.pre23)
   fastimage (~> 2.4)
   httparty
+  i18n (~> 1.14)
   irb
   json_schemer
   kicks (~> 3.0)

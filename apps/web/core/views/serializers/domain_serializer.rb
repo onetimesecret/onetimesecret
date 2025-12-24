@@ -20,9 +20,8 @@ module Core
       # information into a consistent format for the frontend.
       #
       # @param view_vars [Hash] The view variables containing domain information
-      # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized domain data
-      def self.serialize(view_vars, _i18n)
+      def self.serialize(view_vars)
         output          = output_template
         features        = view_vars['features'] || {}
         domains_enabled = features.dig('domains', 'enabled')

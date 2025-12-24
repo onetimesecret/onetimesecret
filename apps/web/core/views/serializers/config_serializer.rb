@@ -15,9 +15,8 @@ module Core
       # and environment variables into frontend-safe configuration.
       #
       # @param view_vars [Hash] The view variables containing site configuration
-      # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized configuration data
-      def self.serialize(view_vars, _i18n)
+      def self.serialize(view_vars)
         output = output_template
 
         # NOTE: The keys available in view_vars are defined in initialize_view_vars

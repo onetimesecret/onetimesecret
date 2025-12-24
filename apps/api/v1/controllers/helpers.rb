@@ -153,7 +153,7 @@ module V1
       locale ||= cust.locale if cust&.locale
       locale ||= (req.env['rack.locale'] || []).first
 
-      have_translations = locale && OT.locales.has_key?(locale)
+      have_translations = locale && I18n.available_locales.include?(locale.to_sym)
       lmsg              = format(
         '[check_locale!] class=%s locale=%s cust=%s req=%s t=%s',
         self.class.name,

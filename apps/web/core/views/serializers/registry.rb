@@ -49,14 +49,13 @@ module Core
         #
         # @param serializer_list [Array<Module>] List of serializers to execute
         # @param vars [Hash] View variables to pass to each serializer
-        # @param i18n [Object] Internationalization instance
         # @return [Hash] Combined output from all serializers
-        def run(serializer_list, vars, i18n)
+        def run(serializer_list, vars)
           ordered   = sorted_serializers.select { |s| serializer_list.include?(s) }
           seen_keys = {}
 
           ordered.reduce({}) do |result, serializer|
-            output = serializer.serialize(vars, i18n)
+            output = serializer.serialize(vars)
             if output.nil?
               app_logger.warn 'Serializer returned nil', {
                 serializer: serializer.to_s,

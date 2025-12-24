@@ -68,7 +68,7 @@ module V2::Logic
                 result: :invalid,
               }
               # Do not mark as received obviously
-              raise_form_error i18n.dig(:web, :COMMON, :verification_not_valid) || 'Verification not valid'
+              raise_form_error I18n.t('web.COMMON.verification_not_valid', locale: @locale, default: 'Verification not valid')
             elsif owner.anonymous?
               secret_logger.error 'Invalid verification attempt - owner anonymous', {
                 secret_identifier: secret.shortid,
@@ -78,7 +78,7 @@ module V2::Logic
               # Do not mark as received for an anonymous soul. How did we
               # even get here? It means a verification secret for authentication_mode=basic
               # has a nil or invalid object identifier for the owner.
-              raise_form_error i18n.dig(:web, :COMMON, :verification_not_valid) || 'Verification not valid'
+              raise_form_error I18n.t('web.COMMON.verification_not_valid', locale: @locale, default: 'Verification not valid')
             elsif owner.verified?
               secret_logger.error 'Invalid verification attempt - owner already verified', {
                 secret_identifier: secret.shortid,
@@ -113,9 +113,10 @@ module V2::Logic
                 action: 'verification',
                 result: :already_logged_in,
               }
-              raise_form_error i18n.dig(:web, :COMMON,
-                :verification_already_logged_in
-              ) || 'Cannot verify when logged in'
+              raise_form_error I18n.t('web.COMMON.verification_already_logged_in',
+                locale: @locale,
+                default: 'Cannot verify when logged in'
+              )
             end
           else
             secret_logger.info 'Secret revealed successfully', {
@@ -153,7 +154,7 @@ module V2::Logic
             result: :passphrase_failed,
           }
 
-          message = i18n.dig(:web, :COMMON, :incorrect_passphrase) || 'Incorrect passphrase'
+          message = I18n.t('web.COMMON.incorrect_passphrase', locale: @locale, default: 'Incorrect passphrase')
           raise_form_error message
         end
 

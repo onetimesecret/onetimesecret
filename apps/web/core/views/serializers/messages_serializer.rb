@@ -12,9 +12,8 @@ module Core
       # Serializes messages data from view variables
       #
       # @param view_vars [Hash] The view variables containing message information
-      # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized messages and global banner information
-      def self.serialize(view_vars, _i18n)
+      def self.serialize(view_vars)
         output = output_template
 
         output['messages']      = view_vars['messages']

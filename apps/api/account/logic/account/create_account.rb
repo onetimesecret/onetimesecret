@@ -90,12 +90,12 @@ module AccountAPI::Logic
         end
 
         success_message = if autoverify
-                            i18n.dig(:web, :COMMON, :autoverified_success)
+                            I18n.t('web.COMMON.autoverified_success', locale: @locale)
                           else
                             # Security: Return generic success message that doesn't reveal account existence
                             # This message is identical for: new accounts, existing verified, and existing unverified
                             # Note: Even though we say "verification email", we don't reveal if account already exists
-                            i18n.dig(:web, :COMMON, :signup_success_generic)
+                            I18n.t('web.COMMON.signup_success_generic', locale: @locale)
                           end
 
         @sess['success_message'] = success_message

@@ -12,9 +12,8 @@ module Core
       # Serializes internationalization data from view variables
       #
       # @param view_vars [Hash] The view variables containing locale information
-      # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized i18n configuration including locale settings
-      def self.serialize(view_vars, _i18n)
+      def self.serialize(view_vars)
         output = output_template
 
         output['locale']            = view_vars['locale']

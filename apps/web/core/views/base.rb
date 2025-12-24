@@ -24,14 +24,13 @@ module Core
     class BaseView
       extend Core::Views::InitializeViewVars
       include Core::Views::SanitizerHelpers
-      include Core::Views::I18nHelpers
       include Core::Views::ViteManifest
       include Onetime::Utils::TimeUtils
 
       TEMPLATE_PATH = File.join(__dir__, '..', 'templates')
 
       attr_accessor :req, :form_fields, :pagename, :strategy_result, :locale, :sess, :cust
-      attr_reader :i18n_instance, :view_vars, :serialized_data, :messages
+      attr_reader :view_vars, :serialized_data, :messages
 
       # Initialize a new view with the given request
       #
@@ -62,12 +61,11 @@ module Core
         # Extract locale from request environment
         @locale = req.env.fetch('otto.locale', OT.default_locale)
 
-        @i18n_instance = i18n
-        @messages      = []
+        @messages = []
 
         # Initialize view variables, passing pre-resolved sess/cust
         # to avoid re-extraction (eliminates duplication)
-        @view_vars = self.class.initialize_view_vars(req, i18n_instance, @sess, @cust)
+        @view_vars = self.class.initialize_view_vars(req, @sess, @cust)
 
         # Call subclass init hook if defined
         init if respond_to?(:init)
@@ -101,7 +99,7 @@ module Core
       #
       # @return [Hash] The serialized data
       def run_serializers
-        SerializerRegistry.run(self.class.serializers, view_vars, i18n_instance)
+        SerializerRegistry.run(self.class.serializers, view_vars)
       end
 
       # Render the view using Rhales
