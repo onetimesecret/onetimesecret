@@ -30,7 +30,7 @@ module Core
       TEMPLATE_PATH = File.join(__dir__, '..', 'templates')
 
       attr_accessor :req, :form_fields, :pagename, :strategy_result, :locale, :sess, :cust
-      attr_reader :i18n_instance, :view_vars, :serialized_data, :messages
+      attr_reader :view_vars, :serialized_data, :messages
 
       # Initialize a new view with the given request
       #
@@ -61,12 +61,11 @@ module Core
         # Extract locale from request environment
         @locale = req.env.fetch('otto.locale', OT.default_locale)
 
-        @i18n_instance = i18n
-        @messages      = []
+        @messages = []
 
         # Initialize view variables, passing pre-resolved sess/cust
         # to avoid re-extraction (eliminates duplication)
-        @view_vars = self.class.initialize_view_vars(req, i18n_instance, @sess, @cust)
+        @view_vars = self.class.initialize_view_vars(req, @sess, @cust)
 
         # Call subclass init hook if defined
         init if respond_to?(:init)
@@ -92,28 +91,6 @@ module Core
         add_message(msg, 'error')
       end
 
-      # Compatibility shim for old i18n hash structure
-      #
-      # The old custom i18n helpers returned a hash with :COMMON, :web, :email keys.
-      # This method provides the same structure using I18n.t() for backward compatibility.
-      #
-      # @return [Hash] Hash with :COMMON and :web keys containing translations
-      def i18n
-        # Use safe locale lookup - fall back to default if locale not available
-        safe_locale = I18n.available_locales.include?(@locale.to_sym) ? @locale.to_sym : I18n.default_locale
-
-        # Cache per locale to handle locale changes correctly
-        @i18n_cache ||= {}
-        @i18n_cache[safe_locale] ||= {
-          COMMON: {
-            description: I18n.t('web.COMMON.description', locale: safe_locale, default: 'Keep sensitive info out of your chat logs & email'),
-            keywords: I18n.t('web.COMMON.keywords', locale: safe_locale, default: 'secret,password,share,private,link')
-          },
-          web: {},
-          email: {}
-        }
-      end
-
       # Run all registered serializers to transform view data for frontend consumption
       #
       # Executes each serializer registered for this view in dependency order,
@@ -122,7 +99,7 @@ module Core
       #
       # @return [Hash] The serialized data
       def run_serializers
-        SerializerRegistry.run(self.class.serializers, view_vars, i18n_instance)
+        SerializerRegistry.run(self.class.serializers, view_vars)
       end
 
       # Render the view using Rhales

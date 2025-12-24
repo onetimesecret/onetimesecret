@@ -12,9 +12,8 @@ module Core
       # Serializes system data from view variables
       #
       # @param view_vars [Hash] The view variables containing system information
-      # @param i18n [Object] The internationalization instance
       # @return [Hash] Serialized system data including version and security values
-      def self.serialize(view_vars, _i18n)
+      def self.serialize(view_vars)
         output = output_template
 
         output['ot_version']      = OT::VERSION.to_s
