@@ -24,7 +24,6 @@ module Core
     class BaseView
       extend Core::Views::InitializeViewVars
       include Core::Views::SanitizerHelpers
-      include Core::Views::I18nHelpers
       include Core::Views::ViteManifest
       include Onetime::Utils::TimeUtils
 

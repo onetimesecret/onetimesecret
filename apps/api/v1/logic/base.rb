@@ -11,7 +11,6 @@ module V1
     class Base
       using Familia::Refinements::TimeLiterals
 
-      include V1::Logic::I18nHelpers
       include V1::Logic::UriHelpers
 
       attr_reader :sess, :cust, :params, :locale, :processed_params

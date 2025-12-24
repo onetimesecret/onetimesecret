@@ -22,7 +22,6 @@ require 'onetime/logic/organization_context'
 module V3
   module Logic
     class Base < Onetime::Logic::Base
-      include V2::Logic::I18nHelpers
       include V2::Logic::UriHelpers
 
       # Include organization context for classes that use V3::Logic::Base

@@ -14,12 +14,10 @@
 # Account API uses same modern conventions as v3 API for consistency.
 
 require 'onetime/logic/base'
-require 'v2/logic/helpers/i18n'
 
 module AccountAPI
   module Logic
     class Base < Onetime::Logic::Base
-      include V2::Logic::I18nHelpers
 
       # Extract session ID for logging purposes
       def session_sid

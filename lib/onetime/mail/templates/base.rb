@@ -8,66 +8,30 @@ require 'yaml'
 module Onetime
   module Mail
     module Templates
-      # Simple translation loader for email templates
-      # Loads translations from config/locales/email/*.yml
+      # DEPRECATED: EmailTranslations class
+      #
+      # This class has been replaced by the ruby-i18n gem. It's kept for
+      # backward compatibility during the migration but will be removed.
+      #
+      # Use I18n.t() directly instead:
+      #   I18n.t('email.organization_invitation.subject', locale: 'en')
+      #
       class EmailTranslations
-        LOCALES_PATH = File.expand_path('../../../../config/locales/email', __dir__)
-
         class << self
-          def translations
-            @translations ||= {}
-          end
-
-          # Load translations for a locale
-          # @param locale [String] Locale code (e.g., 'en')
-          # @return [Hash] Translation hash for the locale
-          def load_locale(locale)
-            return translations[locale] if translations[locale]
-
-            locale_file = File.join(LOCALES_PATH, "#{locale}.yml")
-            if File.exist?(locale_file)
-              content              = YAML.safe_load_file(locale_file, permitted_classes: [], permitted_symbols: [], aliases: true)
-              translations[locale] = content[locale] || {}
-            else
-              translations[locale] = {}
-            end
-            translations[locale]
-          end
-
-          # Get a translation value by key path
-          # @param key [String] Dot-separated key path (e.g., 'email.organization_invitation.subject')
+          # Delegate to I18n.t() for translation lookups
+          #
+          # @param key [String] Translation key
           # @param locale [String] Locale code
           # @param options [Hash] Interpolation options
-          # @return [String] Translated string with interpolations applied
+          # @return [String] Translated string
+          #
           def translate(key, locale: 'en', **options)
-            load_locale(locale)
-            keys  = key.to_s.split('.')
-            value = keys.reduce(translations[locale]) do |hash, k|
-              hash.is_a?(Hash) ? hash[k] : nil
-            end
-
-            # Fallback to English if translation not found
-            if value.nil? && locale != 'en'
-              load_locale('en')
-              value = keys.reduce(translations['en']) do |hash, k|
-                hash.is_a?(Hash) ? hash[k] : nil
-              end
-            end
-
-            # Return key if translation still not found
-            return key.to_s if value.nil?
-
-            # Apply interpolations
-            options.each do |opt_key, opt_value|
-              value = value.gsub("%{#{opt_key}}", opt_value.to_s)
-            end
-
-            value
+            I18n.t(key, locale: locale.to_sym, **options)
           end
 
-          # Clear cached translations (useful for testing)
+          # No-op for backward compatibility
           def reset!
-            @translations = {}
+            # I18n doesn't need manual cache clearing
           end
         end
       end
