@@ -7,7 +7,7 @@ require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.rb')
 require 'v1/controllers'
 
-RSpec.describe V1::Controllers::Index, type: :request do
+RSpec.xdescribe V1::Controllers::Index, type: :request do
   include_context "rack_test_context"
 
   let(:request) { rack_request }

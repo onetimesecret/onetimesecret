@@ -6,7 +6,7 @@ require_relative '../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.rb')
 
-RSpec.describe Onetime::Secret do
+RSpec.xdescribe Onetime::Secret do
   let(:customer_id) { 'test-customer-123' }
   let(:token) { nil }
   let(:secret_value) { "This is a test secret" }

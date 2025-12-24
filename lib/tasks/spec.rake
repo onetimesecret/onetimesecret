@@ -37,6 +37,15 @@ require 'rspec/core/rake_task'
 
 INTEGRATION_MODES = %w[simple full disabled].freeze
 
+# Auto-discover app-specific spec directories (co-located with their applications)
+# Scans apps/{type}/{name}/spec for spec directories
+APP_SPECS = Dir.glob('apps/*/*/spec').each_with_object({}) do |path, hash|
+  # path: apps/api/v1/spec -> key: api:v1
+  parts = path.split('/')[1..2] # ['api', 'v1']
+  key = parts.join(':')
+  hash[key] = path
+end.freeze
+
 namespace :spec do
   desc 'Run unit tests'
   RSpec::Core::RakeTask.new(:unit) do |t|
@@ -46,6 +55,29 @@ namespace :spec do
   desc 'Run CLI tests'
   RSpec::Core::RakeTask.new(:cli) do |t|
     t.pattern = 'spec/cli/**/*_spec.rb'
+  end
+
+  # App-specific specs (co-located with their applications)
+  namespace :apps do
+    APP_SPECS.each do |name, path|
+      desc "Run specs for #{name}"
+      RSpec::Core::RakeTask.new(name.tr(':', '_')) do |t|
+        t.pattern = "#{path}/**/*_spec.rb"
+      end
+    end
+
+    namespace :api do
+      desc 'Run all API app specs'
+      task all: APP_SPECS.keys.select { |k| k.start_with?('api:') }.map { |k| k.tr(':', '_') }
+    end
+
+    namespace :web do
+      desc 'Run all web app specs'
+      task all: APP_SPECS.keys.select { |k| k.start_with?('web:') }.map { |k| k.tr(':', '_') }
+    end
+
+    desc 'Run all app specs'
+    task all: APP_SPECS.keys.map { |k| k.tr(':', '_') }
   end
 
   namespace :integration do
@@ -84,8 +116,8 @@ namespace :spec do
     task 'all:with_postgres': INTEGRATION_MODES + ['full:postgres']
   end
 
-  desc 'Run all non-integration specs'
-  task fast: %i[unit cli]
+  desc 'Run all non-integration specs (unit, cli, apps)'
+  task fast: %i[unit cli] + ['apps:all']
 
   desc 'Run the complete test suite'
   task all: ['spec:fast', 'spec:integration:all']
