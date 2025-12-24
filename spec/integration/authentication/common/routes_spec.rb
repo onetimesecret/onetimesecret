@@ -1,9 +1,9 @@
 # Generated rspec code for /Users/d/Projects/opensource/onetime/onetimesecret/try/integration/authentication/common/routes_try.rb
 # Updated: 2025-12-06 19:02:09 -0800
 
-require 'spec_helper'
+require_relative '../../integration_spec_helper'
 
-RSpec.describe 'routes_try' do
+RSpec.describe 'routes_try', type: :integration do
   before(:all) do
     require 'rack'
     require 'rack/mock'
