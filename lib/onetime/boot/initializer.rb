@@ -52,8 +52,13 @@ module Onetime
 
         # Generate name from class name
         # Billing::Initializers::StripeSetup -> :billing.stripe_setup
+        #
+        # Returns nil for anonymous classes without explicit @initializer_name
         def initializer_name
-          @initializer_name ||= name.gsub('::', '.')
+          return @initializer_name if defined?(@initializer_name) && @initializer_name
+          return nil unless name # Guard for anonymous classes
+
+          @initializer_name = name.gsub('::', '.')
             .gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
             .gsub(/([a-z\d])([A-Z])/, '\1_\2')
             .downcase

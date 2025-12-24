@@ -422,3 +422,173 @@ rescue NoMethodError
   'raised as expected'
 end
 #=> "raised as expected"
+
+# ============================================================
+# Anonymous class handling tests
+# ============================================================
+
+## Anonymous class without explicit name returns nil for initializer_name
+@anon_class = Class.new(Onetime::Boot::Initializer) do
+  def execute(_ctx); end
+end
+@anon_class.initializer_name
+#=> nil
+
+## Anonymous class with explicit name returns that name
+@anon_with_name = Class.new(Onetime::Boot::Initializer) do
+  @initializer_name = :my_custom_initializer
+  def execute(_ctx); end
+end
+@anon_with_name.initializer_name
+#=> :my_custom_initializer
+
+## Named class returns derived initializer_name
+class TestNamedInit < Onetime::Boot::Initializer
+  def execute(_ctx); end
+end
+TestNamedInit.initializer_name.to_s.include?('test_named_init')
+#=> true
+
+## load_only skips anonymous class without explicit name
+@registry = Onetime::Boot::InitializerRegistry.new
+@anon_no_name = Class.new(Onetime::Boot::Initializer) do
+  def execute(_ctx); end
+end
+@registry.load_only([@anon_no_name])
+@registry.initializers.size
+#=> 0
+
+## load_only accepts anonymous class with explicit name
+@registry = Onetime::Boot::InitializerRegistry.new
+@anon_named = Class.new(Onetime::Boot::Initializer) do
+  @initializer_name = :explicit_anon_init
+  def execute(_ctx); end
+end
+@registry.load_only([@anon_named])
+@registry.initializers.size
+#=> 1
+
+## load_only mixed: skips anonymous, loads named
+@registry = Onetime::Boot::InitializerRegistry.new
+@anon_skip = Class.new(Onetime::Boot::Initializer) do
+  def execute(_ctx); end
+end
+class TestMixedNamed < Onetime::Boot::Initializer
+  def execute(_ctx); end
+end
+@anon_keep = Class.new(Onetime::Boot::Initializer) do
+  @initializer_name = :anon_with_name
+  def execute(_ctx); end
+end
+@registry.load_only([@anon_skip, TestMixedNamed, @anon_keep])
+@registry.initializers.size
+#=> 2
+
+## discover finds classes matching filter
+class TestDiscoverMe < Onetime::Boot::Initializer
+  def execute(_ctx); end
+end
+classes = Onetime::Boot::InitializerRegistry.discover { |k| k.name&.include?('TestDiscoverMe') }
+classes.size
+#=> 1
+
+## discover with anonymous class in ObjectSpace - filtered by load_classes
+@registry = Onetime::Boot::InitializerRegistry.new
+# Create anonymous class (will be in ObjectSpace)
+@floating_anon = Class.new(Onetime::Boot::Initializer) do
+  def execute(_ctx); end
+end
+# discover finds it (no name filter in discover)
+found = Onetime::Boot::InitializerRegistry.discover { |k| k == @floating_anon }
+found.size
+#=> 1
+
+## load_classes filters out anonymous from discover results
+@registry = Onetime::Boot::InitializerRegistry.new
+@floating_anon2 = Class.new(Onetime::Boot::Initializer) do
+  def execute(_ctx); end
+end
+# Even though discover finds it, load_classes filters it out
+discovered = Onetime::Boot::InitializerRegistry.discover { |k| k == @floating_anon2 }
+@registry.send(:load_classes, discovered)
+@registry.initializers.size
+#=> 0
+
+# ============================================================
+# DSL-style initializer tests (simulates application/base.rb pattern)
+# ============================================================
+
+## DSL-style anonymous class with explicit name works with load_only
+@registry = Onetime::Boot::InitializerRegistry.new
+# Simulate the DSL pattern from application/base.rb
+@dsl_init = Class.new(Onetime::Boot::Initializer) do
+  @initializer_name = :'onetime.my_app.setup_feature'
+  @provides = [:feature]
+  @depends_on = []
+  @optional = false
+
+  class << self
+    attr_reader :initializer_name, :provides, :depends_on, :optional
+  end
+
+  def execute(ctx)
+    ctx[:feature_loaded] = true
+  end
+end
+@registry.load_only([@dsl_init])
+[@registry.initializers.size, @registry.initializers.first.name]
+#=> [1, :"onetime.my_app.setup_feature"]
+
+## DSL-style initializer executes correctly
+@registry = Onetime::Boot::InitializerRegistry.new
+@dsl_exec = Class.new(Onetime::Boot::Initializer) do
+  @initializer_name = :'onetime.test.exec_check'
+
+  class << self
+    attr_reader :initializer_name
+  end
+
+  def execute(ctx)
+    ctx[:executed] = true
+  end
+end
+@registry.load_only([@dsl_exec])
+results = @registry.run_all
+[@registry.context[:executed], results[:successful].size]
+#=> [true, 1]
+
+## DSL-style with onetime prefix discovered by load_all filter
+@registry = Onetime::Boot::InitializerRegistry.new
+@dsl_discoverable = Class.new(Onetime::Boot::Initializer) do
+  @initializer_name = :'onetime.apps.my_feature'
+
+  class << self
+    attr_reader :initializer_name
+  end
+
+  def execute(_ctx); end
+end
+# Simulate what load_all does - filter by initializer_name prefix
+discovered = Onetime::Boot::InitializerRegistry.discover { |k|
+  k.initializer_name&.to_s&.start_with?('onetime.')
+}
+discovered.include?(@dsl_discoverable)
+#=> true
+
+## DSL-style without onetime prefix NOT discovered by load_all filter
+@registry = Onetime::Boot::InitializerRegistry.new
+@dsl_not_discoverable = Class.new(Onetime::Boot::Initializer) do
+  @initializer_name = :my_custom_feature  # No 'onetime.' prefix
+
+  class << self
+    attr_reader :initializer_name
+  end
+
+  def execute(_ctx); end
+end
+# load_all filter would reject this
+discovered = Onetime::Boot::InitializerRegistry.discover { |k|
+  k.initializer_name&.to_s&.start_with?('onetime.')
+}
+discovered.include?(@dsl_not_discoverable)
+#=> false

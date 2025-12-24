@@ -75,24 +75,19 @@ module Onetime
       # @raise [ArgumentError] if no filter block provided
       #
       # @example Production - discover all production initializers
-      #   classes = InitializerRegistry.discover { |k| k.name.start_with?('Onetime::Boot::Initializers') }
+      #   classes = InitializerRegistry.discover { |k| k.initializer_name&.to_s&.start_with?('onetime.') }
       #
       # @example Test - discover only test initializers
-      #   classes = InitializerRegistry.discover { |k| k.name.include?('TestFork') }
+      #   classes = InitializerRegistry.discover { |k| k.initializer_name&.to_s&.include?('test_fork') }
       #
       def self.discover(&)
         raise ArgumentError, 'filter block required' unless block_given?
 
-        classes = []
-        ObjectSpace.each_object(Class).each do |klass|
-          next unless klass < Onetime::Boot::Initializer
-          next if klass == Onetime::Boot::Initializer
-          next unless klass.name # Skip anonymous classes
-          next unless yield(klass)
-
-          classes << klass
+        ObjectSpace.each_object(Class).select do |klass|
+          klass < Onetime::Boot::Initializer &&
+            klass != Onetime::Boot::Initializer &&
+            yield(klass)
         end
-        classes
       end
 
       # Get the thread-local active registry (for test isolation)
@@ -152,7 +147,7 @@ module Onetime
       #
       # @return [void]
       def load_all
-        classes = self.class.discover { |k| k.name&.start_with?('Onetime::') }
+        classes = self.class.discover { |k| k.initializer_name&.to_s&.start_with?('onetime.') }
         load_classes(classes)
       end
 
@@ -175,10 +170,18 @@ module Onetime
 
       # Internal method to load classes into the registry
       #
+      # Validates each class has an identifiable name (either explicit
+      # @initializer_name or derivable from class name). This is the
+      # single validation point for both discover and load_only paths.
+      #
       # @param classes [Array<Class>] Initializer classes to load
       # @return [void]
       def load_classes(classes)
         classes.each do |klass|
+          # Skip unidentifiable classes (anonymous without explicit name)
+          next unless klass.initializer_name
+
+          # Skip duplicates
           next if @initializers.any? { |i| i.name == klass.initializer_name }
 
           initializer = klass.new
