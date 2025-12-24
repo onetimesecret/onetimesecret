@@ -10,10 +10,11 @@ require_relative '../../../lib/onetime/boot/initializer_registry'
 Onetime::Boot::InitializerRegistry.current = @registry
 
 ## Self-registering pattern works
+# App-defined initializers auto-load via current&.load() when defined
 class TestAppForFile < Onetime::Application::Base
 end
 TestAppForFile.initializer(:file_init, provides: [:test]) { |_ctx| }
-@registry.load_all
+# No autodiscover needed - initializer was loaded on definition
 @registry.initializers.size
 #=> 1
 
@@ -23,7 +24,6 @@ Onetime::Boot::InitializerRegistry.current = @registry
 class TestApp2 < Onetime::Application::Base
 end
 TestApp2.initializer(:named_init) { |_ctx| }
-@registry.load_all
 @registry.initializers.first.name
 #=> :named_init
 
@@ -33,7 +33,6 @@ Onetime::Boot::InitializerRegistry.current = @registry
 class TestApp3 < Onetime::Application::Base
 end
 TestApp3.initializer(:provider, provides: [:cap]) { |_ctx| }
-@registry.load_all
 @registry.initializers.first.provides
 #=> [:cap]
 
@@ -43,7 +42,6 @@ Onetime::Boot::InitializerRegistry.current = @registry
 class TestApp4 < Onetime::Application::Base
 end
 TestApp4.initializer(:tracked) { |_ctx| }
-@registry.load_all
 @registry.initializers.first.application_class
 #=> TestApp4
 
@@ -54,7 +52,6 @@ class TestApp5 < Onetime::Application::Base
 end
 TestApp5.initializer(:first, provides: [:a]) { |_ctx| }
 TestApp5.initializer(:second, depends_on: [:a]) { |_ctx| }
-@registry.load_all
 @registry.initializers.size
 #=> 2
 
@@ -65,7 +62,6 @@ class TestApp6 < Onetime::Application::Base
 end
 TestApp6.initializer(:base, provides: [:base]) { |_ctx| }
 TestApp6.initializer(:dependent, depends_on: [:base]) { |_ctx| }
-@registry.load_all
 order = @registry.execution_order.map(&:name)
 order
 #=> [:base, :dependent]
@@ -77,7 +73,6 @@ class BillingStyle < Onetime::Application::Base
 end
 BillingStyle.initializer(:stripe, provides: [:stripe]) { |_ctx| }
 BillingStyle.initializer(:catalog, depends_on: [:database, :stripe], optional: true) { |_ctx| }
-@registry.load_all
 catalog = @registry.initializers.find { |i| i.name == :catalog }
 catalog.dependencies.sort
 #=> [:database, :stripe]
@@ -89,7 +84,6 @@ class BillingStyleOptional < Onetime::Application::Base
 end
 BillingStyleOptional.initializer(:stripe, provides: [:stripe]) { |_ctx| }
 BillingStyleOptional.initializer(:catalog, depends_on: [:database, :stripe], optional: true) { |_ctx| }
-@registry.load_all
 @registry.initializers.find { |i| i.name == :catalog }.optional
 #=> true
 
@@ -99,7 +93,6 @@ Onetime::Boot::InitializerRegistry.current = @registry
 class AuthStyle < Onetime::Application::Base
 end
 AuthStyle.initializer(:migrations, depends_on: [:database], provides: [:schema]) { |_ctx| }
-@registry.load_all
 migrations = @registry.initializers.first
 migrations.dependencies
 #=> [:database]
@@ -110,7 +103,6 @@ Onetime::Boot::InitializerRegistry.current = @registry
 class AcmeStyle < Onetime::Application::Base
 end
 AcmeStyle.initializer(:preload, depends_on: [:database], provides: [:models]) { |_ctx| }
-@registry.load_all
 preload = @registry.initializers.first
 preload.provides
 #=> [:models]

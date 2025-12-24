@@ -59,7 +59,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
   describe '#fork_sensitive_initializers' do
     context 'when no initializers are registered' do
       it 'returns an empty array' do
-        registry.load_only([])
+        registry.load([])
         expect(registry.fork_sensitive_initializers).to eq([])
       end
     end
@@ -71,7 +71,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_fork_sensitive_initializer('B')
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
         fork_sensitive = registry.fork_sensitive_initializers
 
         expect(fork_sensitive.size).to eq(2)
@@ -86,7 +86,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_preload_initializer('B')
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
         expect(registry.fork_sensitive_initializers).to eq([])
       end
     end
@@ -99,7 +99,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_preload_initializer('C')
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
         fork_sensitive = registry.fork_sensitive_initializers
 
         expect(fork_sensitive.size).to eq(1)
@@ -111,7 +111,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         3.times { |i| classes << create_preload_initializer("Preload#{i}") }
         2.times { |i| classes << create_fork_sensitive_initializer("Fork#{i}") }
 
-        registry.load_only(classes)
+        registry.load(classes)
         fork_sensitive = registry.fork_sensitive_initializers
 
         expect(fork_sensitive.size).to eq(2)
@@ -123,7 +123,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
       it 'returns instances, not classes' do
         classes = [create_fork_sensitive_initializer('A')]
 
-        registry.load_only(classes)
+        registry.load(classes)
         fork_sensitive = registry.fork_sensitive_initializers
 
         expect(fork_sensitive.first).to be_a(Onetime::Boot::Initializer)
@@ -139,7 +139,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_fork_sensitive_initializer('Third', -> { calls << :third })
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
         fork_sensitive = registry.fork_sensitive_initializers
 
         # Verify order by calling cleanup in sequence
@@ -156,7 +156,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         end
         klass.define_singleton_method(:name) { 'TestNilPhase' }
 
-        registry.load_only([klass])
+        registry.load([klass])
         expect(registry.fork_sensitive_initializers).to eq([])
       end
     end
@@ -168,7 +168,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         50.times { |i| classes << create_preload_initializer("Preload#{i}") }
         50.times { |i| classes << create_fork_sensitive_initializer("Fork#{i}") }
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         elapsed = Benchmark.realtime do
           registry.fork_sensitive_initializers
@@ -184,7 +184,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
       it 'completes without error' do
         classes = [create_preload_initializer('A')]
 
-        registry.load_only(classes)
+        registry.load(classes)
         expect { registry.cleanup_before_fork }.not_to raise_error
       end
 
@@ -196,7 +196,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         end
         klass.define_singleton_method(:name) { 'TestPreloadWithCleanup' }
 
-        registry.load_only([klass])
+        registry.load([klass])
         registry.cleanup_before_fork
 
         expect(cleanup_called).to be false
@@ -211,7 +211,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_fork_sensitive_initializer('B', -> { calls << :b })
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
         registry.cleanup_before_fork
 
         expect(calls).to contain_exactly(:a, :b)
@@ -225,7 +225,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_fork_sensitive_initializer('Third', -> { calls << 3 })
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
         registry.cleanup_before_fork
 
         expect(calls).to eq([1, 2, 3])
@@ -240,7 +240,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_fork_sensitive_initializer('Ok', -> { calls << :ok })
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         expect { registry.cleanup_before_fork }.not_to raise_error
         expect(calls).to include(:ok)
@@ -249,7 +249,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
       it 'logs errors but does not raise' do
         classes = [create_fork_sensitive_initializer('Error', -> { raise 'connection error' })]
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         # Capture logger output
         logger = instance_double(Logger)
@@ -267,7 +267,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_fork_sensitive_initializer('Third', -> { calls << 3 })
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
         registry.cleanup_before_fork
 
         expect(calls).to eq([1, 3])
@@ -276,7 +276,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
       it 're-raises NoMethodError (programming errors)' do
         classes = [create_fork_sensitive_initializer('Bug', -> { raise NoMethodError, 'undefined method' })]
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         expect { registry.cleanup_before_fork }.to raise_error(NoMethodError)
       end
@@ -284,7 +284,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
       it 're-raises NameError (programming errors)' do
         classes = [create_fork_sensitive_initializer('Bug', -> { raise NameError, 'undefined constant' })]
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         expect { registry.cleanup_before_fork }.to raise_error(NameError)
       end
@@ -297,7 +297,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_fork_sensitive_initializer('Ok', -> { calls << :ok })
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         expect { registry.cleanup_before_fork }.not_to raise_error
         expect(calls).to include(:ok)
@@ -312,7 +312,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_fork_sensitive_initializer('B', -> { cleaned << :b })
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
         registry.cleanup_before_fork
 
         expect(cleaned).to eq(%i[a b])
@@ -322,7 +322,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         call_count = 0
         classes = [create_fork_sensitive_initializer('A', -> { call_count += 1 })]
 
-        registry.load_only(classes)
+        registry.load(classes)
         registry.cleanup_before_fork
         registry.cleanup_before_fork
 
@@ -337,7 +337,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           classes << create_fork_sensitive_initializer("Init#{i}", -> { sleep 0.001 })
         end
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         elapsed = Benchmark.realtime do
           registry.cleanup_before_fork
@@ -353,7 +353,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         mutex = Mutex.new
         classes = [create_fork_sensitive_initializer('Concurrent', -> { mutex.synchronize { calls << :cleanup } })]
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         threads = 3.times.map do
           Thread.new { registry.cleanup_before_fork }
@@ -372,7 +372,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
       it 'completes without error' do
         classes = [create_preload_initializer('A')]
 
-        registry.load_only(classes)
+        registry.load(classes)
         expect { registry.reconnect_after_fork }.not_to raise_error
       end
 
@@ -384,7 +384,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         end
         klass.define_singleton_method(:name) { 'TestPreloadWithReconnect' }
 
-        registry.load_only([klass])
+        registry.load([klass])
         registry.reconnect_after_fork
 
         expect(reconnect_called).to be false
@@ -399,7 +399,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_fork_sensitive_initializer('B', nil, -> { calls << :b })
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
         registry.reconnect_after_fork
 
         expect(calls).to contain_exactly(:a, :b)
@@ -413,7 +413,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_fork_sensitive_initializer('Third', nil, -> { calls << 3 })
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
         registry.reconnect_after_fork
 
         expect(calls).to eq([1, 2, 3])
@@ -428,7 +428,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_fork_sensitive_initializer('Ok', nil, -> { calls << :ok })
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         expect { registry.reconnect_after_fork }.not_to raise_error
         expect(calls).to include(:ok)
@@ -437,7 +437,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
       it 'logs errors but does not raise' do
         classes = [create_fork_sensitive_initializer('Error', nil, -> { raise 'database unavailable' })]
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         logger = instance_double(Logger)
         allow(registry).to receive(:init_logger).and_return(logger)
@@ -454,7 +454,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_fork_sensitive_initializer('Third', nil, -> { calls << 3 })
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
         registry.reconnect_after_fork
 
         expect(calls).to eq([1, 3])
@@ -463,7 +463,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
       it 're-raises NoMethodError (programming errors)' do
         classes = [create_fork_sensitive_initializer('Bug', nil, -> { raise NoMethodError, 'undefined method' })]
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         expect { registry.reconnect_after_fork }.to raise_error(NoMethodError)
       end
@@ -471,7 +471,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
       it 're-raises NameError (programming errors)' do
         classes = [create_fork_sensitive_initializer('Bug', nil, -> { raise NameError, 'undefined constant' })]
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         expect { registry.reconnect_after_fork }.to raise_error(NameError)
       end
@@ -484,7 +484,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_fork_sensitive_initializer('Ok', nil, -> { calls << :ok })
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         expect { registry.reconnect_after_fork }.not_to raise_error
         expect(calls).to include(:ok)
@@ -499,7 +499,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           create_fork_sensitive_initializer('B', nil, -> { reconnected << :b })
         ]
 
-        registry.load_only(classes)
+        registry.load(classes)
         registry.reconnect_after_fork
 
         expect(reconnected).to eq(%i[a b])
@@ -509,7 +509,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         state = { connected: false }
         classes = [create_fork_sensitive_initializer('DB', nil, -> { state[:connected] = true })]
 
-        registry.load_only(classes)
+        registry.load(classes)
         registry.reconnect_after_fork
 
         expect(state[:connected]).to be true
@@ -523,7 +523,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           classes << create_fork_sensitive_initializer("Init#{i}", nil, -> { sleep 0.001 })
         end
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         elapsed = Benchmark.realtime do
           registry.reconnect_after_fork
@@ -539,7 +539,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         mutex = Mutex.new
         classes = [create_fork_sensitive_initializer('Concurrent', nil, -> { mutex.synchronize { calls << :reconnect } })]
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         threads = 3.times.map do
           Thread.new { registry.reconnect_after_fork }
@@ -562,7 +562,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         end
         klass.define_singleton_method(:name) { 'TestMissingMethods' }
 
-        expect { registry.load_only([klass]) }.to raise_error(Onetime::Problem, /must implement/)
+        expect { registry.load([klass]) }.to raise_error(Onetime::Problem, /must implement/)
       end
 
       it 'rejects fork-sensitive initializer without cleanup method' do
@@ -574,7 +574,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         end
         klass.define_singleton_method(:name) { 'TestNoCleanup' }
 
-        expect { registry.load_only([klass]) }.to raise_error(Onetime::Problem, /cleanup/)
+        expect { registry.load([klass]) }.to raise_error(Onetime::Problem, /cleanup/)
       end
 
       it 'rejects fork-sensitive initializer without reconnect method' do
@@ -586,7 +586,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         end
         klass.define_singleton_method(:name) { 'TestNoReconnect' }
 
-        expect { registry.load_only([klass]) }.to raise_error(Onetime::Problem, /reconnect/)
+        expect { registry.load([klass]) }.to raise_error(Onetime::Problem, /reconnect/)
       end
 
       it 'rejects fork-sensitive initializer missing both methods' do
@@ -597,7 +597,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         klass.define_singleton_method(:name) { 'TestNoBoth' }
 
         expect do
-          registry.load_only([klass])
+          registry.load([klass])
         end.to raise_error(Onetime::Problem) do |error|
           expect(error.message).to include('cleanup')
           expect(error.message).to include('reconnect')
@@ -613,13 +613,13 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         end
         klass.define_singleton_method(:name) { 'TestPreloadPhase' }
 
-        expect { registry.load_only([klass]) }.not_to raise_error
+        expect { registry.load([klass]) }.not_to raise_error
       end
 
       it 'allows :fork_sensitive phase with required methods' do
         classes = [create_fork_sensitive_initializer('Valid')]
 
-        expect { registry.load_only(classes) }.not_to raise_error
+        expect { registry.load(classes) }.not_to raise_error
       end
     end
 
@@ -632,7 +632,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         klass.define_singleton_method(:name) { 'TestHelpfulError' }
 
         expect do
-          registry.load_only([klass])
+          registry.load([klass])
         end.to raise_error(Onetime::Problem) do |error|
           expect(error.message).to include('test_helpful_error')
           expect(error.message).to include('must implement')
@@ -649,7 +649,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         klass.define_singleton_method(:name) { 'TestEarlyValidation' }
 
         # load_all should fail immediately, not during cleanup/reconnect
-        expect { registry.load_only([klass]) }.to raise_error(Onetime::Problem)
+        expect { registry.load([klass]) }.to raise_error(Onetime::Problem)
       end
 
       it 'catches configuration errors early' do
@@ -663,7 +663,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
 
         # Should still fail validation for missing method
         expect do
-          registry.load_only([klass])
+          registry.load([klass])
         end.to raise_error(Onetime::Problem, /reconnect/)
       end
     end
@@ -679,7 +679,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
         klass.define_singleton_method(:name) { 'TestEdgeCase' }
 
         # Should pass validation (method exists)
-        expect { registry.load_only([klass]) }.not_to raise_error
+        expect { registry.load([klass]) }.not_to raise_error
       end
     end
   end

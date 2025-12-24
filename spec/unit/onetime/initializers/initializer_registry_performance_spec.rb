@@ -50,7 +50,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry, :performance do
         classes = []
         10.times { |i| classes << create_fork_sensitive_initializer("Cleanup10_#{i}") }
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         # Measure cleanup performance
         elapsed = Benchmark.realtime do
@@ -69,7 +69,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry, :performance do
         classes = []
         50.times { |i| classes << create_fork_sensitive_initializer("Cleanup50_#{i}") }
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         # Measure cleanup performance
         elapsed = Benchmark.realtime do
@@ -90,7 +90,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry, :performance do
         classes = []
         10.times { |i| classes << create_fork_sensitive_initializer("Reconnect10_#{i}") }
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         # Measure reconnect performance
         elapsed = Benchmark.realtime do
@@ -109,7 +109,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry, :performance do
         classes = []
         50.times { |i| classes << create_fork_sensitive_initializer("Reconnect50_#{i}") }
 
-        registry.load_only(classes)
+        registry.load(classes)
 
         # Measure reconnect performance
         elapsed = Benchmark.realtime do
@@ -142,7 +142,7 @@ RSpec.describe Onetime::Boot::InitializerRegistry, :performance do
 
       # Measure load_all performance (dependency resolution + validation)
       load_elapsed = Benchmark.realtime do
-        registry.load_only(classes)
+        registry.load(classes)
       end
 
       # Measure fork_sensitive_initializers filtering performance

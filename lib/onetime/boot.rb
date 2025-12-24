@@ -77,7 +77,7 @@ module Onetime
 
       # Phase 2: Discovery + Loading - Find initializers via ObjectSpace, build dependency graph
       # Initializer classes were already required (lib/onetime/initializers.rb).
-      @boot_registry.load_all
+      @boot_registry.autodiscover
 
       # Phase 3: Execution - Run initializers in dependency order (conditional on connect_to_db)
       if connect_to_db

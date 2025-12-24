@@ -110,7 +110,7 @@ RSpec.describe 'Puma InitializerRegistry Fork Safety', type: :integration do
         puts "[preload] Loading initializer classes..."
         registry = Onetime::Boot::InitializerRegistry.new
         Onetime::Boot::InitializerRegistry.current = registry
-        registry.load_only([TestForkSensitiveInit])
+        registry.load([TestForkSensitiveInit])
 
         puts "[preload] Running initializers..."
         registry.run_all

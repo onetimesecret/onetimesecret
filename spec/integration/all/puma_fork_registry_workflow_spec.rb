@@ -202,7 +202,7 @@ RSpec.describe 'Puma Fork Registry Complete Workflow', type: :integration do
         Onetime::Boot::InitializerRegistry.current = registry
 
         # Load ONLY test initializers (bypass ObjectSpace discovery)
-        registry.load_only([
+        registry.load([
           TestForkInit1,
           TestForkInit2,
           TestForkInit3,

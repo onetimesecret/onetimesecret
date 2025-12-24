@@ -36,14 +36,15 @@ module Onetime
     #     provides: [:database]
     #   ) { |ctx| setup_database }
     #
-    # @example Run all initializers
-    #   InitializerRegistry.run_all
+    # @example Autodiscover and run initializers
+    #   registry.autodiscover
+    #   registry.run_all
     #
     class InitializerRegistry
       include TSort  # Instance-level TSort only
 
       # Pure DI architecture - no class-level registration state
-      # Discovery happens via ObjectSpace in load_all
+      # Discovery happens via ObjectSpace in autodiscover
 
       # Instance-level state only
       attr_reader :initializers, :capability_map, :context, :total_elapsed_ms
@@ -140,29 +141,32 @@ module Onetime
         end
       end
 
-      # Load all initializer classes via ObjectSpace discovery
+      # Automatically discover and load production initializers
       #
-      # Discovers initializers that match the production namespace filter.
-      # For tests requiring explicit control, use load_only(classes) instead.
+      # Scans ObjectSpace for Initializer subclasses matching the production
+      # namespace (onetime.*) and loads them into the registry.
+      #
+      # For tests requiring explicit control, use load(classes) instead.
       #
       # @return [void]
-      def load_all
+      def autodiscover
         classes = self.class.discover { |k| k.initializer_name&.to_s&.start_with?('onetime.') }
         load_classes(classes)
       end
 
-      # Load only the specified initializer classes (no discovery)
+      # Load specific initializer classes (no discovery)
       #
-      # Use this for tests where you need explicit control over which
-      # classes are loaded, avoiding ObjectSpace discovery pollution.
+      # Loads the given classes directly without ObjectSpace discovery.
+      # Use this for tests or when you need explicit control over which
+      # initializers are loaded.
       #
       # @param classes [Array<Class>] Initializer classes to load
       # @return [void]
       #
-      # @example Test with explicit classes
-      #   registry.load_only([TestInit1, TestInit2])
+      # @example Load specific classes
+      #   registry.load([MyInit1, MyInit2])
       #
-      def load_only(classes)
+      def load(classes)
         load_classes(classes)
       end
 

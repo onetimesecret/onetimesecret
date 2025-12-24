@@ -29,7 +29,7 @@ end
 class TestExplicitRegister < Onetime::Boot::Initializer
   def execute(_ctx); end
 end
-@registry.load_only([TestExplicitRegister])
+@registry.load([TestExplicitRegister])
 @registry.initializers.size
 #=> 1
 
@@ -48,7 +48,7 @@ class TestDepC < Onetime::Boot::Initializer
   @depends_on = [:a, :b]
   def execute(_ctx); end
 end
-@registry.load_only([TestDepA, TestDepB, TestDepC])
+@registry.load([TestDepA, TestDepB, TestDepC])
 names = @registry.execution_order.map(&:name)
 # Names include anonymous class prefix, but ordering should be correct
 [names[0].to_s.include?('test_dep_a'), names[1].to_s.include?('test_dep_b'), names[2].to_s.include?('test_dep_c')]
@@ -62,7 +62,7 @@ end
 class TestContextB < Onetime::Boot::Initializer
   def execute(ctx); ctx[:b] = 2; end
 end
-@registry.load_only([TestContextA, TestContextB])
+@registry.load([TestContextA, TestContextB])
 @registry.run_all
 ctx = @registry.context
 [ctx[:a], ctx[:b]]
@@ -83,7 +83,7 @@ class TestOptAfter < Onetime::Boot::Initializer
   @depends_on = [:required]
   def execute(_ctx); end
 end
-@registry.load_only([TestOptRequired, TestOptionalFail, TestOptAfter])
+@registry.load([TestOptRequired, TestOptionalFail, TestOptAfter])
 res = @registry.run_all
 res[:successful].size
 #=> 2
@@ -94,7 +94,7 @@ class TestFailTracked < Onetime::Boot::Initializer
   @optional = true
   def execute(_ctx); raise 'error'; end
 end
-@registry.load_only([TestFailTracked])
+@registry.load([TestFailTracked])
 res = @registry.run_all
 res[:failed].size
 #=> 1
@@ -110,7 +110,7 @@ class TestSkipDependent < Onetime::Boot::Initializer
   @depends_on = [:base]
   def execute(_ctx); end
 end
-@registry.load_only([TestSkipBase, TestSkipDependent])
+@registry.load([TestSkipBase, TestSkipDependent])
 res = @registry.run_all
 res[:skipped].size
 #=> 1
@@ -127,7 +127,7 @@ class TestCircB < Onetime::Boot::Initializer
   @provides = [:b]
   def execute(_ctx); end
 end
-@registry.load_only([TestCircA, TestCircB])
+@registry.load([TestCircA, TestCircB])
 begin
   @registry.execution_order
   'should have raised'
@@ -141,7 +141,7 @@ end
 class TestHealthy < Onetime::Boot::Initializer
   def execute(_ctx); end
 end
-@registry.load_only([TestHealthy])
+@registry.load([TestHealthy])
 @registry.run_all
 health = @registry.health_check
 health[:healthy]
@@ -152,7 +152,7 @@ health[:healthy]
 class TestDefaultPhase < Onetime::Boot::Initializer
   def execute(_ctx); end
 end
-@registry.load_only([TestDefaultPhase])
+@registry.load([TestDefaultPhase])
 init = @registry.initializers.first
 init.phase
 #=> :preload
@@ -165,7 +165,7 @@ class TestForkSensitive < Onetime::Boot::Initializer
   def cleanup; end
   def reconnect; end
 end
-@registry.load_only([TestForkSensitive])
+@registry.load([TestForkSensitive])
 init = @registry.initializers.first
 init.phase
 #=> :fork_sensitive
@@ -184,7 +184,7 @@ end
 class TestPreload2 < Onetime::Boot::Initializer
   def execute(_ctx); end
 end
-@registry.load_only([TestPreload1, TestFork1, TestPreload2])
+@registry.load([TestPreload1, TestFork1, TestPreload2])
 fork_sensitive = @registry.fork_sensitive_initializers
 fork_sensitive.size
 #=> 1
@@ -197,7 +197,7 @@ class TestMissingCleanup < Onetime::Boot::Initializer
   def reconnect; end
 end
 begin
-  @registry.load_only([TestMissingCleanup])
+  @registry.load([TestMissingCleanup])
   'should have raised'
 rescue Onetime::Problem => ex
   ex.message.include?('cleanup')
@@ -212,7 +212,7 @@ class TestMissingReconnect < Onetime::Boot::Initializer
   def cleanup; end
 end
 begin
-  @registry.load_only([TestMissingReconnect])
+  @registry.load([TestMissingReconnect])
   'should have raised'
 rescue Onetime::Problem => ex
   ex.message.include?('reconnect')
@@ -226,7 +226,7 @@ class TestMissingBoth < Onetime::Boot::Initializer
   def execute(_ctx); end
 end
 begin
-  @registry.load_only([TestMissingBoth])
+  @registry.load([TestMissingBoth])
   'should have raised'
 rescue Onetime::Problem => ex
   ex.message.include?('cleanup') && ex.message.include?('reconnect')
@@ -248,7 +248,7 @@ class TestCleanup2 < Onetime::Boot::Initializer
   def cleanup; $cleanup_called << :cleanup2; end
   def reconnect; end
 end
-@registry.load_only([TestCleanup1, TestCleanup2])
+@registry.load([TestCleanup1, TestCleanup2])
 @registry.cleanup_before_fork
 $cleanup_called.sort
 #=> [:cleanup1, :cleanup2]
@@ -268,7 +268,7 @@ class TestReconnect2 < Onetime::Boot::Initializer
   def cleanup; end
   def reconnect; $reconnect_called << :reconnect2; end
 end
-@registry.load_only([TestReconnect1, TestReconnect2])
+@registry.load([TestReconnect1, TestReconnect2])
 @registry.reconnect_after_fork
 $reconnect_called.sort
 #=> [:reconnect1, :reconnect2]
@@ -288,7 +288,7 @@ class TestCleanupOk < Onetime::Boot::Initializer
   def cleanup; $cleanup_ok = true; end
   def reconnect; end
 end
-@registry.load_only([TestCleanupError, TestCleanupOk])
+@registry.load([TestCleanupError, TestCleanupOk])
 @registry.cleanup_before_fork
 $cleanup_ok
 #=> true
@@ -308,7 +308,7 @@ class TestReconnectOk < Onetime::Boot::Initializer
   def cleanup; end
   def reconnect; $reconnect_ok = true; end
 end
-@registry.load_only([TestReconnectError, TestReconnectOk])
+@registry.load([TestReconnectError, TestReconnectOk])
 @registry.reconnect_after_fork
 $reconnect_ok
 #=> true
@@ -328,7 +328,7 @@ class TestCleanupAfterStandardError < Onetime::Boot::Initializer
   def cleanup; $cleanup_after_error = true; end
   def reconnect; end
 end
-@registry.load_only([TestStandardErrorCleanup, TestCleanupAfterStandardError])
+@registry.load([TestStandardErrorCleanup, TestCleanupAfterStandardError])
 @registry.cleanup_before_fork
 $cleanup_after_error
 #=> true
@@ -348,7 +348,7 @@ class TestReconnectAfterStandardError < Onetime::Boot::Initializer
   def cleanup; end
   def reconnect; $reconnect_after_error = true; end
 end
-@registry.load_only([TestStandardErrorReconnect, TestReconnectAfterStandardError])
+@registry.load([TestStandardErrorReconnect, TestReconnectAfterStandardError])
 @registry.reconnect_after_fork
 $reconnect_after_error
 #=> true
@@ -361,7 +361,7 @@ class TestNonStandardErrorCleanup < Onetime::Boot::Initializer
   def cleanup; raise SignalException, 'SIGTERM'; end
   def reconnect; end
 end
-@registry.load_only([TestNonStandardErrorCleanup])
+@registry.load([TestNonStandardErrorCleanup])
 begin
   @registry.cleanup_before_fork
   'should have raised'
@@ -378,7 +378,7 @@ class TestNonStandardErrorReconnect < Onetime::Boot::Initializer
   def cleanup; end
   def reconnect; raise SystemExit, 'exit'; end
 end
-@registry.load_only([TestNonStandardErrorReconnect])
+@registry.load([TestNonStandardErrorReconnect])
 begin
   @registry.reconnect_after_fork
   'should have raised'
@@ -454,7 +454,7 @@ TestNamedInit.initializer_name.to_s.include?('test_named_init')
 @anon_no_name = Class.new(Onetime::Boot::Initializer) do
   def execute(_ctx); end
 end
-@registry.load_only([@anon_no_name])
+@registry.load([@anon_no_name])
 @registry.initializers.size
 #=> 0
 
@@ -464,7 +464,7 @@ end
   @initializer_name = :explicit_anon_init
   def execute(_ctx); end
 end
-@registry.load_only([@anon_named])
+@registry.load([@anon_named])
 @registry.initializers.size
 #=> 1
 
@@ -480,7 +480,7 @@ end
   @initializer_name = :anon_with_name
   def execute(_ctx); end
 end
-@registry.load_only([@anon_skip, TestMixedNamed, @anon_keep])
+@registry.load([@anon_skip, TestMixedNamed, @anon_keep])
 @registry.initializers.size
 #=> 2
 
@@ -535,7 +535,7 @@ discovered = Onetime::Boot::InitializerRegistry.discover { |k| k == @floating_an
     ctx[:feature_loaded] = true
   end
 end
-@registry.load_only([@dsl_init])
+@registry.load([@dsl_init])
 [@registry.initializers.size, @registry.initializers.first.name]
 #=> [1, :"onetime.my_app.setup_feature"]
 
@@ -552,7 +552,7 @@ end
     ctx[:executed] = true
   end
 end
-@registry.load_only([@dsl_exec])
+@registry.load([@dsl_exec])
 results = @registry.run_all
 [@registry.context[:executed], results[:successful].size]
 #=> [true, 1]
