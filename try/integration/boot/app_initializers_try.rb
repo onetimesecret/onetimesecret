@@ -5,8 +5,9 @@
 require_relative '../../support/test_helpers'
 require_relative '../../../lib/onetime/boot/initializer_registry'
 
-## Reset registry before all tests
-Onetime::Boot::InitializerRegistry.soft_reset!
+# Setup section
+@registry = Onetime::Boot::InitializerRegistry.new
+Onetime::Boot::InitializerRegistry.current = @registry
 
 ## App can register initializer with DSL
 class AppWithInit < Onetime::Application::Base
@@ -15,12 +16,14 @@ class AppWithInit < Onetime::Application::Base
   end
 end
 
-Onetime::Boot::InitializerRegistry.load_all
-found = Onetime::Boot::InitializerRegistry.initializers.any? { |i| i.name == :app_init }
+@registry.load_all
+found = @registry.initializers.any? { |i| i.name == :app_init }
 found
 #=> true
 
 ## Initializer can have dependencies
+@registry = Onetime::Boot::InitializerRegistry.new
+Onetime::Boot::InitializerRegistry.current = @registry
 class AppWithDeps < Onetime::Application::Base
   initializer :base_init, provides: [:base] do |_ctx|
   end
@@ -29,70 +32,88 @@ class AppWithDeps < Onetime::Application::Base
   end
 end
 
-Onetime::Boot::InitializerRegistry.load_all
-base = Onetime::Boot::InitializerRegistry.initializers.find { |i| i.name == :base_init }
+@registry.load_all
+base = @registry.initializers.find { |i| i.name == :base_init }
 base.provides
 #=> [:base]
 
 ## Dependent initializer has correct dependencies
-dependent = Onetime::Boot::InitializerRegistry.initializers.find { |i| i.name == :dependent_init }
+dependent = @registry.initializers.find { |i| i.name == :dependent_init }
 dependent.dependencies
 #=> [:base]
 
 ## Dependency ordering resolves correctly
-order = Onetime::Boot::InitializerRegistry.execution_order
+@registry = Onetime::Boot::InitializerRegistry.new
+Onetime::Boot::InitializerRegistry.current = @registry
+class AppForOrdering < Onetime::Application::Base
+  initializer :base_init, provides: [:base] do |_ctx|
+  end
+
+  initializer :dependent_init, depends_on: [:base] do |_ctx|
+  end
+end
+@registry.load_all
+order = @registry.execution_order
 base_idx = order.find_index { |i| i.name == :base_init }
 dep_idx = order.find_index { |i| i.name == :dependent_init }
 base_idx < dep_idx
 #=> true
 
 ## App can register optional initializer
+@registry = Onetime::Boot::InitializerRegistry.new
+Onetime::Boot::InitializerRegistry.current = @registry
 class AppWithOptional < Onetime::Application::Base
   initializer :optional_init, optional: true do |_ctx|
     # Test code
   end
 end
 
-Onetime::Boot::InitializerRegistry.load_all
-optional = Onetime::Boot::InitializerRegistry.initializers.find { |i| i.name == :optional_init }
+@registry.load_all
+optional = @registry.initializers.find { |i| i.name == :optional_init }
 optional.optional
 #=> true
 
 ## Initializer provides capability
+@registry = Onetime::Boot::InitializerRegistry.new
+Onetime::Boot::InitializerRegistry.current = @registry
 class AppWithCapability < Onetime::Application::Base
   initializer :provider, provides: [:test_capability] do |_ctx|
   end
 end
 
-Onetime::Boot::InitializerRegistry.load_all
-Onetime::Boot::InitializerRegistry.capability_map.key?(:test_capability)
+@registry.load_all
+@registry.capability_map.key?(:test_capability)
 #=> true
 
 ## Capability maps to correct initializer
-Onetime::Boot::InitializerRegistry.capability_map[:test_capability].name
+@registry.capability_map[:test_capability].name
 #=> :provider
 
 ## Initializer tracks application class
+@registry = Onetime::Boot::InitializerRegistry.new
+Onetime::Boot::InitializerRegistry.current = @registry
 class AppForTracking < Onetime::Application::Base
   initializer :tracked_init do |_ctx|
   end
 end
 
-Onetime::Boot::InitializerRegistry.load_all
-tracked = Onetime::Boot::InitializerRegistry.initializers.find { |i| i.name == :tracked_init }
+@registry.load_all
+tracked = @registry.initializers.find { |i| i.name == :tracked_init }
 tracked.application_class
 #=> AppForTracking
 
 ## Initializer can have description
+@registry = Onetime::Boot::InitializerRegistry.new
+Onetime::Boot::InitializerRegistry.current = @registry
 class AppWithDescription < Onetime::Application::Base
   initializer :described_init, description: 'Custom description' do |_ctx|
   end
 end
 
-Onetime::Boot::InitializerRegistry.load_all
-described = Onetime::Boot::InitializerRegistry.initializers.find { |i| i.name == :described_init }
+@registry.load_all
+described = @registry.initializers.find { |i| i.name == :described_init }
 described.description
 #=> 'Custom description'
 
-# Teardown section
-Onetime::Boot::InitializerRegistry.soft_reset!
+# Teardown section - clear thread-local binding
+Onetime::Boot::InitializerRegistry.current = nil
