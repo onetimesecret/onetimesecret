@@ -107,6 +107,15 @@ rescue LoadError => ex
   exit 1
 end
 
+# Switch SemanticLogger to synchronous mode for tests.
+# This eliminates race conditions where the async logging thread processes log
+# messages containing mock objects after RSpec has torn down the mock context.
+# The async thread would call .strftime on what should be a Time but is a mock,
+# causing RSpec::Mocks::MockExpectationError.
+#
+# See: https://github.com/reidmorrison/semantic_logger/blob/master/lib/semantic_logger/sync.rb
+require 'semantic_logger/sync'
+
 # Load test utilities
 Dir[File.join(spec_root, 'support', '*.rb')].each { |f| require f }
 Dir[File.join(spec_root, 'support', 'shared_contexts', '*.rb')].each { |f| require f }
@@ -207,44 +216,18 @@ RSpec.configure do |config|
   end
 
   config.after(:each) do
-    # Flush SemanticLogger to prevent async thread from logging mock objects
-    # after test lifecycle ends (causes RSpec::Mocks::OutsideOfExampleError)
+    # Flush SemanticLogger to ensure all log messages are processed before
+    # moving to the next test. Since we use SemanticLogger.sync! (set above),
+    # this is now a synchronous operation with no race conditions.
     #
-    # NOTE: This is temporarily adding a small sleep to give the async thread time
-    # to process the flush before proceeding. In rare cases the async thread
-    # may not have completed processing before the next test starts, leading
-    # to intermittent failures in CI. This is not ideal, but should be sufficient
-    #
-    # CI Issue (2025-01-24): SemanticLogger async thread race condition
-    #
-    # Symptom: Intermittent CI failures where SemanticLogger's async logging
-    # thread tries to format a timestamp using an RSpec mock double after the
-    # test has completed, causing RSpec::Mocks::MockExpectationError.
-    #
-    # Error observed:
-    #   Thread terminated with exception (report_on_exception is true):
-    #   rspec-support/lib/rspec/support.rb:80:in 'block in <module:Support>':
-    #   #<Double (anonymous)> received unexpected message :strftime
-    #   with ("%Y-%m-%d %H:%M:%S.%6N") (RSpec::Mocks::MockExpectationError)
-    #
-    # Root cause: SemanticLogger's async appender (async.rb:76) processes log
-    # messages in a background thread. When a test creates mock objects that
-    # get logged (e.g., in error messages), the async thread may attempt to
-    # format those objects after RSpec has torn down the mock context.
-    #
-    # Mitigation strategy: Double-flush with small sleep between flushes to
-    # allow the async thread to fully drain its queue before mock verification.
-    # We're incrementally adding mitigations to isolate the exact fix needed.
-    #
+    # Note: Some tests stub SemanticLogger.flush to test error handling,
+    # so we rescue any errors here.
     begin
-      if defined?(SemanticLogger)
-        SemanticLogger.flush
-        sleep 0.01 # Give async thread time to process
-        SemanticLogger.flush
-      end
+      SemanticLogger.flush if defined?(SemanticLogger)
     rescue StandardError => ex
-      # Ignore - some tests stub SemanticLogger.flush to raise
-      puts "Warning: Failed to flush SemanticLogger: #{ex.message}"
+      # Log but don't fail - this may be a test stub (setup_loggers_spec.rb)
+      # or a real error worth investigating.
+      warn "SemanticLogger.flush failed (possibly stubbed): #{ex.message}"
     end
 
     # Restore OT.conf if it was changed during the test
