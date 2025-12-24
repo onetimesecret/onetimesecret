@@ -15,31 +15,31 @@ require 'benchmark'
 #
 # The registry has two reset methods with different behaviors:
 #
-#   | Method       | @registered_classes | Runtime State |
-#   |--------------|---------------------|---------------|
-#   | reset!       | PRESERVED           | Cleared       |
-#   | reset_all!   | CLEARED             | Cleared       |
+#   | Method        | @registered_classes | Runtime State |
+#   |---------------|---------------------|---------------|
+#   | soft_reset!   | PRESERVED           | Cleared       |
+#   | hard_reset!   | CLEARED             | Cleared       |
 #
 # Production initializers (SetupLoggers, SetupRabbitMQ, etc.) auto-register
 # when spec_helper loads via the inherited hook. This means @registered_classes
 # contains production classes BEFORE any test runs.
 #
-# Use reset_all! for unit tests that need a truly empty registry (like these).
-# Use reset! for integration tests that need production initializers preserved.
+# Use hard_reset! for unit tests that need a truly empty registry (like these).
+# Use soft_reset! for integration tests that need production initializers preserved.
 #
 RSpec.describe Onetime::Boot::InitializerRegistry do
   # Use subject for cleaner test syntax
   subject(:registry) { described_class }
 
   # Reset registry state before each test to ensure isolation
-  # Use reset_all! to clear everything (including production initializer classes)
+  # Use hard_reset! to clear everything (including production initializer classes)
   # This ensures unit tests run in true isolation
   before do
-    registry.reset_all!
+    registry.hard_reset!
   end
 
   after do
-    registry.reset_all!
+    registry.hard_reset!
   end
 
   # Helper to create a fork-sensitive initializer class for testing

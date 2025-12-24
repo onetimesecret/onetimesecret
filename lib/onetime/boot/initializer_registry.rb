@@ -269,12 +269,14 @@ module Onetime
           end
         end
 
-        # Reset registry state (for testing)
+        # Soft reset - clears instances but preserves registered classes (for integration tests)
         #
         # Clears instance state and cached execution data, but preserves class registrations.
         # Initializer classes are registered once via the inherited hook when first required.
-        # After reset!, calling load_all will re-instantiate from the preserved class list.
-        def reset!
+        # After soft_reset!, calling load_all will re-instantiate from the preserved class list.
+        #
+        # Use for integration tests that need production initializers preserved.
+        def soft_reset!
           # Keep @registered_classes - these are static class references that don't change
           # Only clear instance state and execution data
           @initializers       = []
@@ -285,16 +287,18 @@ module Onetime
           @boot_start_time    = nil
         end
 
-        # Full reset including registered classes - for test isolation only
+        # Hard reset - clears everything including registered classes (for unit tests)
         #
         # WARNING: Only use in tests. Clears all state including class registrations.
         # After calling this, initializer classes must be re-registered (typically
         # by re-requiring the files that define them).
         #
+        # Use for unit tests that need a truly empty registry.
+        #
         # @return [void]
-        def reset_all!
+        def hard_reset!
           @registered_classes = []
-          reset!
+          soft_reset!
         end
 
         # TSort interface: iterate over all nodes

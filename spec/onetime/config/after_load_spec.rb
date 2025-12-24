@@ -121,7 +121,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
         Onetime.d9s_enabled = nil
 
         # Reset registry and Onetime ready state before each test
-        Onetime::Boot::InitializerRegistry.reset!
+        Onetime::Boot::InitializerRegistry.soft_reset!
         # Set @ready to nil (not false) so boot! can set it to true
         Onetime.instance_variable_set(:@ready, nil)
 
@@ -183,7 +183,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
       end
 
       before do
-        Onetime::Boot::InitializerRegistry.reset!
+        Onetime::Boot::InitializerRegistry.soft_reset!
         Onetime.not_ready
         allow(Familia).to receive(:uri=).and_call_original
       end
@@ -205,7 +205,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
     context 'with error handling' do
       before(:each) do
         # Reset initializer registry before each test to avoid "already registered" errors
-        Onetime::Boot::InitializerRegistry.reset!
+        Onetime::Boot::InitializerRegistry.soft_reset!
         # Fully reset global state to ensure boot! runs from scratch
         Onetime.instance_variable_set(:@conf, nil)
         Onetime.instance_variable_set(:@mode, nil)
@@ -217,7 +217,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
       after(:each) do
         # Re-run boot! to restore proper state for subsequent tests
         # Reset registry first to avoid "already registered" errors
-        Onetime::Boot::InitializerRegistry.reset!
+        Onetime::Boot::InitializerRegistry.soft_reset!
         Onetime.instance_variable_set(:@conf, nil)
         Onetime.instance_variable_set(:@mode, nil)
         Onetime.instance_variable_set(:@env, nil)

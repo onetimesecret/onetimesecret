@@ -239,12 +239,12 @@ RSpec.describe Onetime::Boot::Initializer do
   describe 'auto-registration' do
     before do
       # Reset instances but preserve registered classes
-      Onetime::Boot::InitializerRegistry.reset!
+      Onetime::Boot::InitializerRegistry.soft_reset!
     end
 
     after do
       # Reset instances but preserve production initializer classes
-      Onetime::Boot::InitializerRegistry.reset!
+      Onetime::Boot::InitializerRegistry.soft_reset!
     end
 
     context 'class registration' do
@@ -355,13 +355,13 @@ RSpec.describe Onetime::Boot::Initializer do
   # Integration test: Verify phase infrastructure works with registry
   describe 'phase infrastructure integration' do
     before do
-      # Use reset! to clear instances but preserve registered classes
-      Onetime::Boot::InitializerRegistry.reset!
+      # Use soft_reset! to clear instances but preserve registered classes
+      Onetime::Boot::InitializerRegistry.soft_reset!
     end
 
     after do
-      # Use reset! to avoid clearing production initializer classes
-      Onetime::Boot::InitializerRegistry.reset!
+      # Use soft_reset! to avoid clearing production initializer classes
+      Onetime::Boot::InitializerRegistry.soft_reset!
     end
 
     it 'fork_sensitive initializers appear in fork_sensitive_initializers list' do

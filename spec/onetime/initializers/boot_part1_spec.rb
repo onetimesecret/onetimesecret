@@ -53,10 +53,10 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
     # To skip specific initializers in tests, you can:
     # 1. Let them run (they're designed to work in test mode)
     # 2. Stub the initializer class's execute method directly
-    # 3. Use InitializerRegistry.reset! to clear and selectively register
+    # 3. Use InitializerRegistry.soft_reset! to clear and selectively register
 
     # Reset registry and Onetime ready state before each test
-    Onetime::Boot::InitializerRegistry.reset!
+    Onetime::Boot::InitializerRegistry.soft_reset!
     Onetime.not_ready
 
     # NOTE: Tests that call boot! rely on a real database connection.
@@ -305,7 +305,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
         Familia.dbclient.set('global_banner', test_banner_text)
 
         # Reset and boot again to pick up the banner
-        Onetime::Boot::InitializerRegistry.reset!
+        Onetime::Boot::InitializerRegistry.soft_reset!
         Onetime.not_ready
         Onetime.boot!(:test)
 
@@ -322,7 +322,7 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
         Familia.dbclient.del('global_banner')
 
         # Reset and boot again
-        Onetime::Boot::InitializerRegistry.reset!
+        Onetime::Boot::InitializerRegistry.soft_reset!
         Onetime.not_ready
         Onetime.boot!(:test)
 

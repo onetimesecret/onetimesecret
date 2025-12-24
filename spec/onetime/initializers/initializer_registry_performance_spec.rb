@@ -20,11 +20,11 @@ RSpec.describe Onetime::Boot::InitializerRegistry, :performance do
   subject(:registry) { described_class }
 
   before do
-    registry.reset_all!
+    registry.hard_reset!
   end
 
   after do
-    registry.reset_all!
+    registry.hard_reset!
   end
 
   # Helper to create a minimal fork-sensitive initializer

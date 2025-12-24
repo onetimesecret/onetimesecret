@@ -52,12 +52,12 @@ RSpec.describe 'Fork Hooks Thread Safety', type: :concurrency do
     CallTracker.reset!
 
     # Reset registry state
-    Onetime::Boot::InitializerRegistry.reset_all!
+    Onetime::Boot::InitializerRegistry.hard_reset!
   end
 
   after(:each) do
     CallTracker.reset!
-    Onetime::Boot::InitializerRegistry.reset_all!
+    Onetime::Boot::InitializerRegistry.hard_reset!
   end
 
   describe 'fork_sensitive_initializers concurrent read access' do

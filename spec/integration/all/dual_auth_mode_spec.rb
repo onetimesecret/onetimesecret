@@ -158,7 +158,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :integration do
         # Reset both registries to clear state from previous test runs
         # This re-registers loaded applications but skips Auth in simple mode
         Onetime::Application::Registry.reset!
-        Onetime::Boot::InitializerRegistry.reset!
+        Onetime::Boot::InitializerRegistry.soft_reset!
 
         # Reset ready state to allow boot! to reload config
         # Without this, boot! returns early and OT.conf may be stale/nil
@@ -211,7 +211,7 @@ RSpec.describe 'Dual Authentication Mode Integration', type: :integration do
 
         # Reset both registries to clear state from previous test runs
         Onetime::Application::Registry.reset!
-        Onetime::Boot::InitializerRegistry.reset!
+        Onetime::Boot::InitializerRegistry.soft_reset!
 
         # Reload auth config to pick up AUTHENTICATION_MODE env var
         Onetime.auth_config.reload!

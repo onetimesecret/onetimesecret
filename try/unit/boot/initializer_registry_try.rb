@@ -25,7 +25,7 @@ end
 
 # Full reset to clear any classes from previous test files
 # This ensures test isolation when running in batch mode
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 
 ## Classes auto-register via inherited hook
 # Define new class (triggers inherited hook)
@@ -37,7 +37,7 @@ Onetime::Boot::InitializerRegistry.initializers.size
 #=> 1
 
 ## Dependency resolution orders correctly - test name patterns
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestDepA < Onetime::Boot::Initializer
   @provides = [:a]
   def execute(_ctx); end
@@ -58,7 +58,7 @@ names = Onetime::Boot::InitializerRegistry.execution_order.map(&:name)
 #=> [true, true, true]
 
 ## Context is shared between initializers
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestContextA < Onetime::Boot::Initializer
   def execute(ctx); ctx[:a] = 1; end
 end
@@ -72,7 +72,7 @@ ctx = Onetime::Boot::InitializerRegistry.context
 #=> [1, 2]
 
 ## Optional failures don't stop boot
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestOptRequired < Onetime::Boot::Initializer
   @provides = [:required]
   def execute(_ctx); end
@@ -92,7 +92,7 @@ res[:successful].size
 #=> 2
 
 ## Failed initializers are tracked
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestFailTracked < Onetime::Boot::Initializer
   @optional = true
   def execute(_ctx); raise 'error'; end
@@ -103,7 +103,7 @@ res[:failed].size
 #=> 1
 
 ## Skipped when dependency fails
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestSkipBase < Onetime::Boot::Initializer
   @provides = [:base]
   @optional = true
@@ -119,7 +119,7 @@ res[:skipped].size
 #=> 1
 
 ## Circular dependencies detected
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestCircA < Onetime::Boot::Initializer
   @depends_on = [:b]
   @provides = [:a]
@@ -140,7 +140,7 @@ end
 #=> "circular dependency detected"
 
 ## Health check reports status
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestHealthy < Onetime::Boot::Initializer
   def execute(_ctx); end
 end
@@ -151,7 +151,7 @@ health[:healthy]
 #=> true
 
 ## Default phase is :preload
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestDefaultPhase < Onetime::Boot::Initializer
   def execute(_ctx); end
 end
@@ -161,7 +161,7 @@ init.phase
 #=> :preload
 
 ## Phase :fork_sensitive is recognized
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestForkSensitive < Onetime::Boot::Initializer
   @phase = :fork_sensitive
   def execute(_ctx); end
@@ -174,7 +174,7 @@ init.phase
 #=> :fork_sensitive
 
 ## fork_sensitive_initializers filters correctly
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestPreload1 < Onetime::Boot::Initializer
   def execute(_ctx); end
 end
@@ -193,7 +193,7 @@ fork_sensitive.size
 #=> 1
 
 ## Validation catches missing cleanup method
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestMissingCleanup < Onetime::Boot::Initializer
   @phase = :fork_sensitive
   def execute(_ctx); end
@@ -208,7 +208,7 @@ end
 #=> true
 
 ## Validation catches missing reconnect method
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestMissingReconnect < Onetime::Boot::Initializer
   @phase = :fork_sensitive
   def execute(_ctx); end
@@ -223,7 +223,7 @@ end
 #=> true
 
 ## Validation catches both missing methods
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestMissingBoth < Onetime::Boot::Initializer
   @phase = :fork_sensitive
   def execute(_ctx); end
@@ -237,7 +237,7 @@ end
 #=> true
 
 ## cleanup_before_fork calls cleanup methods
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 $cleanup_called = []
 class TestCleanup1 < Onetime::Boot::Initializer
   @phase = :fork_sensitive
@@ -257,7 +257,7 @@ $cleanup_called.sort
 #=> [:cleanup1, :cleanup2]
 
 ## reconnect_after_fork calls reconnect methods
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 $reconnect_called = []
 class TestReconnect1 < Onetime::Boot::Initializer
   @phase = :fork_sensitive
@@ -277,7 +277,7 @@ $reconnect_called.sort
 #=> [:reconnect1, :reconnect2]
 
 ## cleanup_before_fork handles errors gracefully
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 $cleanup_ok = false
 class TestCleanupError < Onetime::Boot::Initializer
   @phase = :fork_sensitive
@@ -297,7 +297,7 @@ $cleanup_ok
 #=> true
 
 ## reconnect_after_fork handles errors gracefully
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 $reconnect_ok = false
 class TestReconnectError < Onetime::Boot::Initializer
   @phase = :fork_sensitive
@@ -317,7 +317,7 @@ $reconnect_ok
 #=> true
 
 ## cleanup_before_fork catches StandardError subclasses
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 $cleanup_after_error = false
 class TestStandardErrorCleanup < Onetime::Boot::Initializer
   @phase = :fork_sensitive
@@ -337,7 +337,7 @@ $cleanup_after_error
 #=> true
 
 ## reconnect_after_fork catches StandardError subclasses
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 $reconnect_after_error = false
 class TestStandardErrorReconnect < Onetime::Boot::Initializer
   @phase = :fork_sensitive
@@ -357,7 +357,7 @@ $reconnect_after_error
 #=> true
 
 ## cleanup_before_fork does NOT catch non-StandardError exceptions
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestNonStandardErrorCleanup < Onetime::Boot::Initializer
   @phase = :fork_sensitive
   def execute(_ctx); end
@@ -374,7 +374,7 @@ end
 #=> "propagated correctly"
 
 ## reconnect_after_fork does NOT catch non-StandardError exceptions
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestNonStandardErrorReconnect < Onetime::Boot::Initializer
   @phase = :fork_sensitive
   def execute(_ctx); end
@@ -391,7 +391,7 @@ end
 #=> "propagated correctly"
 
 ## NoMethodError re-raised (cleanup missing) - exposes validation bugs
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestNoCleanup < Onetime::Boot::Initializer
   @phase = :fork_sensitive
   def execute(_ctx); end
@@ -410,7 +410,7 @@ end
 #=> "raised as expected"
 
 ## NoMethodError re-raised (reconnect missing) - exposes validation bugs
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!
 class TestNoReconnect < Onetime::Boot::Initializer
   @phase = :fork_sensitive
   def execute(_ctx); end
@@ -429,4 +429,4 @@ end
 #=> "raised as expected"
 
 ## Full reset to prevent test class pollution
-Onetime::Boot::InitializerRegistry.reset_all!
+Onetime::Boot::InitializerRegistry.hard_reset!

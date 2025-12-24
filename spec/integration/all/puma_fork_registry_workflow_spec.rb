@@ -99,7 +99,7 @@ RSpec.describe 'Puma Fork Registry Complete Workflow', type: :integration do
         }
 
         # Reset registry to remove any auto-registered real initializers
-        Onetime::Boot::InitializerRegistry.reset_all!
+        Onetime::Boot::InitializerRegistry.hard_reset!
 
         # Create multiple fork-sensitive initializers to test coordination
         class TestForkInit1 < Onetime::Boot::Initializer

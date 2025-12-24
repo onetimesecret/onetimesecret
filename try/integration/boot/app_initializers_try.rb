@@ -6,7 +6,7 @@ require_relative '../../support/test_helpers'
 require_relative '../../../lib/onetime/boot/initializer_registry'
 
 ## Reset registry before all tests
-Onetime::Boot::InitializerRegistry.reset!
+Onetime::Boot::InitializerRegistry.soft_reset!
 
 ## App can register initializer with DSL
 class AppWithInit < Onetime::Application::Base
@@ -95,4 +95,4 @@ described.description
 #=> 'Custom description'
 
 # Teardown section
-Onetime::Boot::InitializerRegistry.reset!
+Onetime::Boot::InitializerRegistry.soft_reset!

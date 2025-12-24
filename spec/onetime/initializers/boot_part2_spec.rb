@@ -49,7 +49,7 @@ RSpec.describe "Onetime global state after boot", type: :integration do
     # and are designed to work in test mode.
 
     # Reset registry and Onetime ready state before each test
-    Onetime::Boot::InitializerRegistry.reset!
+    Onetime::Boot::InitializerRegistry.soft_reset!
     Onetime.not_ready
 
     # Mock Truemail configuration
@@ -164,7 +164,7 @@ RSpec.describe "Onetime global state after boot", type: :integration do
         Familia.dbclient.set('global_banner', test_banner)
 
         # Reset and boot again to pick up the banner
-        Onetime::Boot::InitializerRegistry.reset!
+        Onetime::Boot::InitializerRegistry.soft_reset!
         Onetime.not_ready
         Onetime.boot!(:test)
 
@@ -181,7 +181,7 @@ RSpec.describe "Onetime global state after boot", type: :integration do
         Familia.dbclient.del('global_banner')
 
         # Reset and boot again
-        Onetime::Boot::InitializerRegistry.reset!
+        Onetime::Boot::InitializerRegistry.soft_reset!
         Onetime.not_ready
         Onetime.boot!(:test)
 
