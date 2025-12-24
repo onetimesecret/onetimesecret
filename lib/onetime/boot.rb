@@ -111,7 +111,7 @@ module Onetime
 
       # Log completion with timing
       boot_elapsed_ms = ((Onetime.now_in_μs - boot_start) / 1000.0).round
-      OT.app_logger.info "Initialization complete (in #{boot_elapsed_ms}ms)"
+      OT.boot_logger.info "--- Initialization complete (#{boot_elapsed_ms}ms)"
 
       # Let's be clear about returning the prepared configruation. Previously
       # we returned @conf here which was confusing because already made it
@@ -149,7 +149,6 @@ module Onetime
 
     # Replaces the global configuration instance with the provided data.
     def replace_config!(other)
-      # TODO: Validate the new configuration data before replacing it
       self.conf = other
     end
 
