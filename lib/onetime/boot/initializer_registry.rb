@@ -269,50 +269,46 @@ module Onetime
 
         # Cleanup all fork-sensitive initializers before fork
         #
-        # Calls cleanup method on each fork-sensitive initializer. Methods are
-        # guaranteed to exist by validate_fork_sensitive_initializers!.
-        #
-        # Error handling strategy:
-        # - NoMethodError/NameError: Re-raise (programming errors, expose bugs)
-        # - StandardError: Log and continue (operational errors, degraded mode)
-        #
-        # Individual initializers should handle their own specific errors
-        # for better error messages.
+        # Delegates to OT.boot_registry instance when available (DI architecture).
+        # Falls back to class-level state for backward compatibility.
         #
         # @return [void]
         def cleanup_before_fork
+          # Prefer instance-based registry (DI architecture)
+          if defined?(Onetime) && Onetime.respond_to?(:boot_registry) && Onetime.boot_registry
+            Onetime.boot_registry.cleanup_before_fork
+            return
+          end
+
+          # Fallback to class-level state (backward compatibility)
           fork_sensitive_initializers.each do |init|
             init.cleanup
           rescue NameError
-            # Programming errors (includes NoMethodError) - re-raise to expose bugs
             raise
           rescue StandardError => ex
-            # Operational errors - continue with degraded mode
             init_logger.warn "[before_fork] Error cleaning up #{init.name}: #{ex.message}"
           end
         end
 
         # Reconnect all fork-sensitive initializers after fork
         #
-        # Calls reconnect method on each fork-sensitive initializer. Methods are
-        # guaranteed to exist by validate_fork_sensitive_initializers!.
-        #
-        # Error handling strategy:
-        # - NoMethodError/NameError: Re-raise (programming errors, expose bugs)
-        # - StandardError: Log and continue (operational errors, degraded mode)
-        #
-        # Individual initializers should handle their own specific errors
-        # for better error messages.
+        # Delegates to OT.boot_registry instance when available (DI architecture).
+        # Falls back to class-level state for backward compatibility.
         #
         # @return [void]
         def reconnect_after_fork
+          # Prefer instance-based registry (DI architecture)
+          if defined?(Onetime) && Onetime.respond_to?(:boot_registry) && Onetime.boot_registry
+            Onetime.boot_registry.reconnect_after_fork
+            return
+          end
+
+          # Fallback to class-level state (backward compatibility)
           fork_sensitive_initializers.each do |init|
             init.reconnect
           rescue NameError
-            # Programming errors (includes NoMethodError) - re-raise to expose bugs
             raise
           rescue StandardError => ex
-            # Operational errors - continue with degraded mode
             init_logger.warn "[before_worker_boot] Error reconnecting #{init.name}: #{ex.message}"
           end
         end
