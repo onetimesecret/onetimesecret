@@ -67,11 +67,10 @@ module Onetime
 
       # JSON backend support module for I18n
       #
-      # The I18n gem doesn't support JSON files by default, so we extend
-      # the Simple backend to handle .json files in addition to .yml/.yaml.
-      #
-      # This implementation also handles locale files that don't have the
-      # locale key at the top level by inferring it from the file path.
+      # While JSON is valid YAML, I18n's Simple backend dispatches by file
+      # extension and doesn't have a .json handler. More importantly, our
+      # locale files don't include the locale key at the top level - we
+      # infer it from the directory path (e.g., src/locales/en/file.json).
       #
       module JsonBackend
         # Load JSON file and convert to I18n data structure
