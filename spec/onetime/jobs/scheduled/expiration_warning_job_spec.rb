@@ -240,7 +240,10 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
 
     it 'calculates delay to send email WARNING_BUFFER_SECONDS before expiration' do
       fixed_now = Time.at(1_700_000_000) # Fixed timestamp to prevent flakiness
-      allow(Familia).to receive(:now).and_return(fixed_now)
+      # IMPORTANT: Familia.now returns a Float (Unix timestamp), not a Time object.
+      # Returning a Time object causes mock leaks into SemanticLogger's async thread
+      # which tries to call strftime on the mock.
+      allow(Familia).to receive(:now).and_return(fixed_now.to_f)
 
       metadata = instance_double(
         'Onetime::Metadata',
@@ -266,7 +269,8 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
 
     it 'uses zero delay when less than WARNING_BUFFER_SECONDS remains' do
       fixed_now = Time.at(1_700_000_000) # Fixed timestamp to prevent flakiness
-      allow(Familia).to receive(:now).and_return(fixed_now)
+      # Return Float, not Time - see comment in previous test
+      allow(Familia).to receive(:now).and_return(fixed_now.to_f)
 
       soon_metadata = instance_double(
         'Onetime::Metadata',
