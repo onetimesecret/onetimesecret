@@ -237,21 +237,18 @@ RSpec.describe Onetime::Boot::Initializer do
   end
 
   describe 'auto-registration' do
-    before do
-      # Reset instances but preserve registered classes
-      Onetime::Boot::InitializerRegistry.soft_reset!
-    end
+    # Fresh registry instance for each test (DI architecture)
+    let(:registry) { Onetime::Boot::InitializerRegistry.new }
 
-    after do
-      # Reset instances but preserve production initializer classes
-      Onetime::Boot::InitializerRegistry.soft_reset!
+    # Bind registry to thread so inherited hook registers to this instance
+    around do |example|
+      Onetime::Boot::InitializerRegistry.with_registry(registry) { example.run }
     end
 
     context 'class registration' do
       it 'registers with InitializerRegistry on class definition' do
         klass = new_test_class
-        registered_classes = Onetime::Boot::InitializerRegistry.instance_variable_get(:@registered_classes)
-        expect(registered_classes).to include(klass)
+        expect(registry.instance_variable_get(:@registered_classes)).to include(klass)
       end
 
       it 'includes phase information when registered' do
@@ -261,10 +258,9 @@ RSpec.describe Onetime::Boot::Initializer do
           def reconnect; end
         end
 
-        Onetime::Boot::InitializerRegistry.load_all
-        initializers = Onetime::Boot::InitializerRegistry.initializers
-        initializer = initializers.find { |i| i.class == klass }
+        registry.load_all
 
+        initializer = registry.initializers.find { |i| i.class == klass }
         expect(initializer).not_to be_nil
         expect(initializer.phase).to eq(:fork_sensitive)
       end
@@ -275,36 +271,29 @@ RSpec.describe Onetime::Boot::Initializer do
           define_singleton_method(:name) { 'ChildInitializer' }
         end
 
-        registered_classes = Onetime::Boot::InitializerRegistry.instance_variable_get(:@registered_classes)
-        expect(registered_classes).to include(parent)
-        expect(registered_classes).to include(child)
+        registered = registry.instance_variable_get(:@registered_classes)
+        expect(registered).to include(parent)
+        expect(registered).to include(child)
         expect(parent).not_to eq(child)
       end
 
       it 'registration happens at class definition time' do
-        # Verify registry is initially empty
-        registered_classes = Onetime::Boot::InitializerRegistry.instance_variable_get(:@registered_classes)
-        initial_count = registered_classes.size
+        initial_count = registry.instance_variable_get(:@registered_classes).size
 
-        # Define new class
         klass = new_test_class
 
-        # Verify it was immediately registered
-        registered_classes = Onetime::Boot::InitializerRegistry.instance_variable_get(:@registered_classes)
-        expect(registered_classes.size).to eq(initial_count + 1)
-        expect(registered_classes.last).to eq(klass)
+        registered = registry.instance_variable_get(:@registered_classes)
+        expect(registered.size).to eq(initial_count + 1)
+        expect(registered.last).to eq(klass)
       end
 
       it 'prevents duplicate registration of same class' do
         klass = new_test_class
-        registered_classes = Onetime::Boot::InitializerRegistry.instance_variable_get(:@registered_classes)
-        initial_count = registered_classes.count(klass)
+        initial_count = registry.instance_variable_get(:@registered_classes).count(klass)
 
-        # Try to register again manually (simulating duplicate inherited call)
-        Onetime::Boot::InitializerRegistry.register_class(klass)
+        registry.register_class(klass)
 
-        registered_classes = Onetime::Boot::InitializerRegistry.instance_variable_get(:@registered_classes)
-        expect(registered_classes.count(klass)).to eq(initial_count)
+        expect(registry.instance_variable_get(:@registered_classes).count(klass)).to eq(initial_count)
       end
     end
 
@@ -313,10 +302,9 @@ RSpec.describe Onetime::Boot::Initializer do
         klass1 = new_test_class('TestInit1')
         klass2 = new_test_class('TestInit2')
 
-        Onetime::Boot::InitializerRegistry.load_all
-        initializers = Onetime::Boot::InitializerRegistry.initializers
+        registry.load_all
 
-        classes = initializers.map(&:class)
+        classes = registry.initializers.map(&:class)
         expect(classes).to include(klass1)
         expect(classes).to include(klass2)
       end
@@ -324,27 +312,25 @@ RSpec.describe Onetime::Boot::Initializer do
       it 'creates instances during load_all' do
         klass = new_test_class('TestInit')
 
-        Onetime::Boot::InitializerRegistry.load_all
-        initializers = Onetime::Boot::InitializerRegistry.initializers
+        registry.load_all
 
-        initializer = initializers.find { |i| i.class == klass }
+        initializer = registry.initializers.find { |i| i.class == klass }
         expect(initializer).to be_a(klass)
         expect(initializer).to be_a(Onetime::Boot::Initializer)
       end
 
       it 'preserves phase information in instances' do
-        preload_class = new_test_class('PreloadInit') # default :preload
+        preload_class = new_test_class('PreloadInit')
         fork_class = new_test_class('ForkInit') do
           @phase = :fork_sensitive
           def cleanup; end
           def reconnect; end
         end
 
-        Onetime::Boot::InitializerRegistry.load_all
-        initializers = Onetime::Boot::InitializerRegistry.initializers
+        registry.load_all
 
-        preload_init = initializers.find { |i| i.class == preload_class }
-        fork_init = initializers.find { |i| i.class == fork_class }
+        preload_init = registry.initializers.find { |i| i.class == preload_class }
+        fork_init = registry.initializers.find { |i| i.class == fork_class }
 
         expect(preload_init.phase).to eq(:preload)
         expect(fork_init.phase).to eq(:fork_sensitive)
@@ -354,14 +340,12 @@ RSpec.describe Onetime::Boot::Initializer do
 
   # Integration test: Verify phase infrastructure works with registry
   describe 'phase infrastructure integration' do
-    before do
-      # Use soft_reset! to clear instances but preserve registered classes
-      Onetime::Boot::InitializerRegistry.soft_reset!
-    end
+    # Fresh registry instance for each test (DI architecture)
+    let(:registry) { Onetime::Boot::InitializerRegistry.new }
 
-    after do
-      # Use soft_reset! to avoid clearing production initializer classes
-      Onetime::Boot::InitializerRegistry.soft_reset!
+    # Bind registry to thread so inherited hook registers to this instance
+    around do |example|
+      Onetime::Boot::InitializerRegistry.with_registry(registry) { example.run }
     end
 
     it 'fork_sensitive initializers appear in fork_sensitive_initializers list' do
@@ -374,38 +358,33 @@ RSpec.describe Onetime::Boot::Initializer do
         def reconnect; end
       end
 
-      Onetime::Boot::InitializerRegistry.load_all
-      fork_list = Onetime::Boot::InitializerRegistry.fork_sensitive_initializers
+      registry.load_all
+      fork_list = registry.fork_sensitive_initializers
 
       expect(fork_list.map(&:class)).to include(fork_sensitive)
       expect(fork_list.map(&:class)).not_to include(preload)
     end
 
     it 'validates fork_sensitive initializers have required methods during load' do
-      # Create class directly (not via helper) to test validation behavior
+      # Create invalid class - missing cleanup and reconnect methods
       invalid_class = Class.new(described_class) do
         define_singleton_method(:name) { "InvalidForkSensitiveTestClass#{object_id}" }
         @phase = :fork_sensitive
         def execute(_context); end
-        # Missing cleanup and reconnect methods intentionally
       end
 
       expect {
-        Onetime::Boot::InitializerRegistry.load_all
+        registry.load_all
       }.to raise_error(Onetime::Problem, /must implement.*cleanup.*reconnect/)
-
-      # Clean up: remove just this invalid class to avoid polluting other tests
-      Onetime::Boot::InitializerRegistry.unregister_class(invalid_class)
     end
 
     it 'allows preload initializers without cleanup/reconnect methods' do
       new_test_class do
         @phase = :preload
-        # No cleanup/reconnect needed
       end
 
       expect {
-        Onetime::Boot::InitializerRegistry.load_all
+        registry.load_all
       }.not_to raise_error
     end
   end
