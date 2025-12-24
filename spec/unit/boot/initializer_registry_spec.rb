@@ -11,26 +11,38 @@ require 'benchmark'
 # These tests complement existing Tryouts tests with RSpec-specific features
 # like mocking, stubbing, and isolation.
 #
+# == Registry Reset Methods ==
+#
+# The registry has two reset methods with different behaviors:
+#
+#   | Method       | @registered_classes | Runtime State |
+#   |--------------|---------------------|---------------|
+#   | reset!       | PRESERVED           | Cleared       |
+#   | reset_all!   | CLEARED             | Cleared       |
+#
+# Production initializers (SetupLoggers, SetupRabbitMQ, etc.) auto-register
+# when spec_helper loads via the inherited hook. This means @registered_classes
+# contains production classes BEFORE any test runs.
+#
+# Use reset_all! for unit tests that need a truly empty registry (like these).
+# Use reset! for integration tests that need production initializers preserved.
+#
 RSpec.describe Onetime::Boot::InitializerRegistry do
   # Use subject for cleaner test syntax
   subject(:registry) { described_class }
 
   # Reset registry state before each test to ensure isolation
-  # Use reset! to clear instances but preserve production initializer classes
-  # Track test classes for cleanup to prevent pollution across tests
+  # Use reset_all! to clear everything (including production initializer classes)
+  # This ensures unit tests run in true isolation
   before do
-    @test_classes = []
-    registry.reset!
+    registry.reset_all!
   end
 
   after do
-    # Unregister all test classes created during this test
-    @test_classes.each { |klass| registry.unregister_class(klass) }
-    registry.reset!
+    registry.reset_all!
   end
 
-  # Helper to create a basic fork-sensitive initializer class
-  # Tracks class for automatic cleanup in after hook
+  # Helper to create a fork-sensitive initializer class for testing
   def create_fork_sensitive_initializer(name_suffix, cleanup_proc = nil, reconnect_proc = nil)
     cleanup_block = cleanup_proc || -> {}
     reconnect_block = reconnect_proc || -> {}
@@ -43,25 +55,17 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
       define_method(:reconnect, &reconnect_block)
     end
 
-    # Override class name for better debugging
     klass.define_singleton_method(:name) { "TestForkSensitive#{name_suffix}" }
-
-    # Track for cleanup
-    @test_classes << klass
     klass
   end
 
   # Helper to create a basic preload initializer class
-  # Tracks class for automatic cleanup in after hook
   def create_preload_initializer(name_suffix)
     klass = Class.new(Onetime::Boot::Initializer) do
       define_method(:execute) { |_ctx| }
     end
 
     klass.define_singleton_method(:name) { "TestPreload#{name_suffix}" }
-
-    # Track for cleanup
-    @test_classes << klass
     klass
   end
 
@@ -155,7 +159,6 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           define_method(:execute) { |_ctx| }
         end
         klass.define_singleton_method(:name) { 'TestNilPhase' }
-        @test_classes << klass
 
         registry.load_all
         expect(registry.fork_sensitive_initializers).to eq([])
@@ -195,7 +198,6 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           define_method(:cleanup) { cleanup_called = true }
         end
         klass.define_singleton_method(:name) { 'TestPreloadWithCleanup' }
-        @test_classes << klass
 
         registry.load_all
         registry.cleanup_before_fork
@@ -371,7 +373,6 @@ RSpec.describe Onetime::Boot::InitializerRegistry do
           define_method(:reconnect) { reconnect_called = true }
         end
         klass.define_singleton_method(:name) { 'TestPreloadWithReconnect' }
-        @test_classes << klass
 
         registry.load_all
         registry.reconnect_after_fork
