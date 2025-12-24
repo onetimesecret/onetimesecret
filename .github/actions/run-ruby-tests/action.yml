@@ -3,39 +3,60 @@
 # ==============================================================================
 # Run Ruby Tests - Composite Action
 # ==============================================================================
-# Version: 1.0.0
+# Version: 2.1.0
 # Repository: onetimesecret/onetimesecret
 #
-# Executes Ruby test suites (RSpec and/or Tryouts) with configurable
-# authentication modes. Generates GitHub job summaries with test results.
+# Executes Ruby test suites via rake tasks with configurable authentication
+# modes. Both RSpec and Tryouts run through rake for consistent process
+# isolation. Generates GitHub job summaries with test results.
 #
 # Usage:
+#   # Unit tests (RSpec + Tryouts)
 #   - uses: ./.github/actions/run-ruby-tests
 #     with:
+#       test-type: 'unit'
 #       auth-mode: 'simple'
-#       rspec-paths: 'spec/unit'
-#       tryouts-paths: 'try/'
 #
-# Auth Modes:
-#   - simple: Basic authentication (uses spec/integration/simple + spec/integration/all)
-#   - full: Full Rodauth with SQLite/PostgreSQL (uses spec/integration/full + spec/integration/all)
-#   - disabled: No authentication (uses spec/integration/disabled + spec/integration/all)
+#   # Integration tests (simple mode)
+#   - uses: ./.github/actions/run-ruby-tests
+#     with:
+#       test-type: 'integration'
+#       auth-mode: 'simple'
 #
-# Directory structure determines which tests run. The rspec-tag parameter is now
-# only used for database-specific filtering (e.g., postgres_database), not auth modes.
+#   # Integration tests (full mode with PostgreSQL)
+#   - uses: ./.github/actions/run-ruby-tests
+#     with:
+#       test-type: 'integration'
+#       auth-mode: 'full'
+#       auth-database-url: 'postgresql://...'
+#       rspec-tag: 'postgres_database'
+#
+# Rake Tasks Used:
+#   RSpec:
+#   - spec:fast                  - Unit tests (unit, onetime, cli, apps)
+#   - spec:integration:simple    - Simple mode integration
+#   - spec:integration:full      - Full mode with SQLite
+#   - spec:integration:full:postgres - Full mode with PostgreSQL
+#   - spec:integration:disabled  - Disabled mode integration
+#
+#   Tryouts:
+#   - try:unit                   - Unit tryouts (try/unit, try/system)
+#   - try:integration:simple     - Integration tryouts (simple mode only)
 #
 # Changelog:
+#   2.1.0 - Use spec:fast for unit tests; leverage auto-discovery
+#   2.0.0 - Switch to rake tasks; remove rspec-paths input
 #   1.0.0 - Initial release with RSpec/Tryouts support and job summaries
 # ==============================================================================
 
 name: Run Ruby Tests
 description: |
-  Runs Ruby tests (RSpec and/or Tryouts) with configurable auth mode and test type.
+  Runs Ruby tests via rake tasks with configurable auth mode and test type.
   Generates job summary with test results.
 
 inputs:
   test-type:
-    description: 'Type of tests to run: unit, integration, or both'
+    description: 'Type of tests to run: unit or integration'
     required: true
   auth-mode:
     description: 'Authentication mode: simple, full, or disabled'
@@ -50,15 +71,7 @@ inputs:
     required: false
     default: ''
   rspec-tag:
-    description: 'RSpec tag to filter tests (e.g., simple_auth_mode)'
-    required: false
-    default: ''
-  rspec-paths:
-    description: 'Space-separated RSpec paths to run'
-    required: false
-    default: ''
-  tryouts-paths:
-    description: 'Space-separated Tryouts paths to run'
+    description: 'RSpec tag for special cases (e.g., postgres_database)'
     required: false
     default: ''
   results-file:
@@ -79,43 +92,61 @@ runs:
       with:
         detached: true
 
-    - name: Run Tryouts
-      if: inputs.tryouts-paths != ''
+    - name: Determine rake tasks
+      id: rake-tasks
       shell: bash
-      env:
-        REDIS_URL: ${{ inputs.redis-url }}
-        RACK_ENV: 'test'
-        AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
-        AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
       run: |
-        set -e
-        echo "Running Tryouts with AUTHENTICATION_MODE=${{ inputs.auth-mode }}..."
-        echo "Paths: ${{ inputs.tryouts-paths }}"
-        bundle exec tryouts --agent ${{ inputs.tryouts-paths }}
+        TEST_TYPE="${{ inputs.test-type }}"
+        AUTH_MODE="${{ inputs.auth-mode }}"
+        RSPEC_TAG="${{ inputs.rspec-tag }}"
 
-    - name: Run RSpec
-      if: inputs.rspec-paths != ''
-      shell: bash
-      env:
-        REDIS_URL: ${{ inputs.redis-url }}
-        RACK_ENV: 'test'
-        AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
-        AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
-      run: |
-        set -e
-        echo "Running RSpec with AUTHENTICATION_MODE=${{ inputs.auth-mode }}..."
-        mkdir -p tmp
-
-        TAG_OPTION=""
-        if [ -n "${{ inputs.rspec-tag }}" ]; then
-          TAG_OPTION="--tag ${{ inputs.rspec-tag }}"
+        # Determine RSpec task
+        if [ "$TEST_TYPE" == "unit" ]; then
+          echo "rspec-task=spec:fast" >> $GITHUB_OUTPUT
+          echo "tryouts-task=try:unit" >> $GITHUB_OUTPUT
+        elif [ "$TEST_TYPE" == "integration" ]; then
+          if [ "$AUTH_MODE" == "full" ] && [ "$RSPEC_TAG" == "postgres_database" ]; then
+            echo "rspec-task=spec:integration:full:postgres" >> $GITHUB_OUTPUT
+          else
+            echo "rspec-task=spec:integration:$AUTH_MODE" >> $GITHUB_OUTPUT
+          fi
+          # Tryouts integration only runs in simple mode
+          if [ "$AUTH_MODE" == "simple" ]; then
+            echo "tryouts-task=try:integration:simple" >> $GITHUB_OUTPUT
+          else
+            echo "tryouts-task=" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "::error::Unknown test-type: $TEST_TYPE"
+          exit 1
         fi
 
-        bundle exec rspec \
-          $TAG_OPTION \
-          --format progress \
-          --format json --out "tmp/${{ inputs.results-file }}" \
-          ${{ inputs.rspec-paths }}
+    - name: Run Tryouts via rake
+      if: steps.rake-tasks.outputs.tryouts-task != ''
+      shell: bash
+      env:
+        REDIS_URL: ${{ inputs.redis-url }}
+        RACK_ENV: 'test'
+        AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
+        AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
+      run: |
+        set -e
+        echo "Running rake ${{ steps.rake-tasks.outputs.tryouts-task }}..."
+        bundle exec rake ${{ steps.rake-tasks.outputs.tryouts-task }}
+
+    - name: Run RSpec via rake
+      shell: bash
+      env:
+        REDIS_URL: ${{ inputs.redis-url }}
+        RACK_ENV: 'test'
+        AUTHENTICATION_MODE: ${{ inputs.auth-mode }}
+        AUTH_DATABASE_URL: ${{ inputs.auth-database-url }}
+        RSPEC_OUTPUT_FILE: tmp/${{ inputs.results-file }}
+      run: |
+        set -e
+        mkdir -p tmp
+        echo "Running rake ${{ steps.rake-tasks.outputs.rspec-task }}..."
+        bundle exec rake ${{ steps.rake-tasks.outputs.rspec-task }}
 
     - name: Generate job summary
       if: always()
@@ -123,13 +154,14 @@ runs:
       run: |
         echo "## Ruby Test Results (${{ inputs.auth-mode }} mode)" >> $GITHUB_STEP_SUMMARY
 
-        if [ -f "tmp/${{ inputs.results-file }}" ]; then
-          echo "### RSpec" >> $GITHUB_STEP_SUMMARY
-          echo "- Total: $(jq '.summary.example_count' "tmp/${{ inputs.results-file }}")" >> $GITHUB_STEP_SUMMARY
-          echo "- Failures: $(jq '.summary.failure_count' "tmp/${{ inputs.results-file }}")" >> $GITHUB_STEP_SUMMARY
+        if [ -n "${{ steps.rake-tasks.outputs.tryouts-task }}" ]; then
+          echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
+          echo "- Task: \`${{ steps.rake-tasks.outputs.tryouts-task }}\`" >> $GITHUB_STEP_SUMMARY
         fi
 
-        if [ -n "${{ inputs.tryouts-paths }}" ]; then
-          echo "### Tryouts" >> $GITHUB_STEP_SUMMARY
-          echo "- Paths tested: ${{ inputs.tryouts-paths }}" >> $GITHUB_STEP_SUMMARY
+        if [ -f "tmp/${{ inputs.results-file }}" ]; then
+          echo "### RSpec" >> $GITHUB_STEP_SUMMARY
+          echo "- Task: \`${{ steps.rake-tasks.outputs.rspec-task }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Total: $(jq '.summary.example_count' "tmp/${{ inputs.results-file }}")" >> $GITHUB_STEP_SUMMARY
+          echo "- Failures: $(jq '.summary.failure_count' "tmp/${{ inputs.results-file }}")" >> $GITHUB_STEP_SUMMARY
         fi

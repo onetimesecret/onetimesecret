@@ -75,7 +75,6 @@ jobs:
       frontend: ${{ steps.compute.outputs.frontend }}
       oci: ${{ steps.compute.outputs.oci }}
       ga_workflow_files: ${{ steps.compute.outputs.ga_workflow_files }}
-      test-paths: ${{ steps.load-config.outputs.test-paths }}
     steps:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
@@ -177,14 +176,6 @@ jobs:
             echo "oci=${{ steps.filter.outputs.oci }}" >> $GITHUB_OUTPUT
             echo "ga_workflow_files=false" >> $GITHUB_OUTPUT
           fi
-
-      - name: Load test paths config
-        id: load-config
-        run: |
-          # Test paths are defined in .github/ci-test-paths.json
-          # Edit that file to add/modify test directories for each job
-          CONFIG=$(cat .github/ci-test-paths.json | jq -c '.')
-          echo "test-paths=$CONFIG" >> $GITHUB_OUTPUT
 
       - name: Generate job summary
         run: |
@@ -313,8 +304,6 @@ jobs:
         with:
           test-type: unit
           auth-mode: simple
-          tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-unit.tryouts-paths }}
-          rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-unit.rspec-paths }}
           results-file: 'rspec_unit_results.json'
           debug-enabled: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
@@ -371,8 +360,6 @@ jobs:
         with:
           test-type: integration
           auth-mode: simple
-          rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-simple.rspec-paths }}
-          tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-simple.tryouts-paths }}
           results-file: 'rspec_simple_results.json'
 
   ruby-integration-full-sqlite:
@@ -398,8 +385,6 @@ jobs:
           test-type: integration
           auth-mode: full
           auth-database-url: 'sqlite::memory:'
-          rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full-sqlite.rspec-paths }}
-          tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full-sqlite.tryouts-paths }}
           results-file: 'rspec_full_sqlite_results.json'
 
   ruby-integration-full-postgres:
@@ -439,8 +424,6 @@ jobs:
           auth-mode: full
           auth-database-url: 'postgresql://postgres:postgres@localhost:5432/onetime_auth_test'
           rspec-tag: 'postgres_database'
-          rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full-postgres.rspec-paths }}
-          tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-full-postgres.tryouts-paths }}
           results-file: 'rspec_full_postgres_results.json'
 
   ruby-integration-disabled:
@@ -465,8 +448,6 @@ jobs:
         with:
           test-type: integration
           auth-mode: disabled
-          rspec-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-disabled.rspec-paths }}
-          tryouts-paths: ${{ fromJSON(needs.changes.outputs.test-paths).ruby-integration-disabled.tryouts-paths }}
           results-file: 'rspec_disabled_results.json'
 
   # ============================================================================

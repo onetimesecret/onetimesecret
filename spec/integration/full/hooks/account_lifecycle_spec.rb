@@ -1,45 +1,20 @@
-# apps/web/auth/spec/hooks/account_lifecycle_spec.rb
+# spec/integration/full/hooks/account_lifecycle_spec.rb
 #
 # frozen_string_literal: true
 
-# =============================================================================
-# TEST TYPE: Integration (Smoke Tests)
-# =============================================================================
+# Integration tests for Rodauth lifecycle hooks in full auth mode.
 #
-# These tests verify that Rodauth hooks execute with expected SIDE EFFECTS.
-# They make real HTTP requests and verify state changes in the database.
-#
-# MUST INCLUDE:
-# - Full app boot with Onetime.boot!
+# These tests verify that Rodauth hooks execute with expected SIDE EFFECTS:
 # - Real HTTP requests that trigger hooks
 # - Assertions on DATABASE STATE (Redis Customer records, SQL accounts)
-# - Cleanup after each test
 #
-# MUST NOT INCLUDE:
-# - File.read() on source files
-# - String pattern matching for hook names
-# - Mocked hook execution
-#
-# REQUIREMENTS:
-# - Valkey running on port 2121: pnpm run test:database:start
-# - AUTH_DATABASE_URL set (SQLite or PostgreSQL)
-# - AUTHENTICATION_MODE=full
-#
-# RUN:
-#   VALKEY_URL='valkey://127.0.0.1:2121/0' AUTH_DATABASE_URL='sqlite://data/test_auth.db' \
-#     pnpm run test:rspec apps/web/auth/spec/hooks/account_lifecycle_spec.rb
-#
-# =============================================================================
+# Database and application setup is handled by FullModeSuiteDatabase
+# (see spec/support/full_mode_suite_database.rb).
 
-require_relative '../spec_helper'
-require 'json'
-require 'securerandom'
+require 'spec_helper'
 
-RSpec.describe 'Rodauth Hook Side Effects', type: :integration do
-  # Boot the application once for all tests in this file
-  before(:all) do
-    boot_onetime_app
-  end
+RSpec.describe 'Rodauth Hook Side Effects', :full_auth_mode, type: :integration do
+  include_context 'auth_rack_test'
 
   # Generate unique test email for each test
   let(:test_email) { "hook-test-#{SecureRandom.hex(8)}@example.com" }
@@ -47,7 +22,7 @@ RSpec.describe 'Rodauth Hook Side Effects', type: :integration do
 
   # Helper to create an account via HTTP
   def create_account(email:, password:)
-    json_post '/auth/create-account', {
+    post_json '/auth/create-account', {
       login: email,
       'login-confirm': email,
       password: password,
@@ -58,7 +33,7 @@ RSpec.describe 'Rodauth Hook Side Effects', type: :integration do
 
   # Helper to get account from auth database
   def find_account_by_email(email)
-    auth_db[:accounts].where(email: email).first
+    test_db[:accounts].where(email: email).first
   end
 
   # Helper to get customer from Redis by email
@@ -165,14 +140,14 @@ RSpec.describe 'Rodauth Hook Side Effects', type: :integration do
 
     describe 'after_login hook' do
       it 'allows successful login with correct credentials' do
-        json_post '/auth/login', { login: login_email, password: valid_password }
+        post_json '/auth/login', { login: login_email, password: valid_password }
 
         expect(last_response.status).to eq(200),
           "Expected 200 but got #{last_response.status}: #{last_response.body}"
       end
 
       it 'returns JSON response with success indicator' do
-        json_post '/auth/login', { login: login_email, password: valid_password }
+        post_json '/auth/login', { login: login_email, password: valid_password }
 
         json = JSON.parse(last_response.body)
         # Rodauth returns success as a message string, not a boolean
@@ -186,11 +161,11 @@ RSpec.describe 'Rodauth Hook Side Effects', type: :integration do
         expect(account).not_to be_nil
 
         # Make a failed login attempt
-        json_post '/auth/login', { login: login_email, password: 'wrong-password' }
+        post_json '/auth/login', { login: login_email, password: 'wrong-password' }
         expect(last_response.status).to eq(401)
 
         # Check that failure is tracked
-        failure_record = auth_db[:account_login_failures].where(id: account[:id]).first
+        failure_record = test_db[:account_login_failures].where(id: account[:id]).first
         expect(failure_record).not_to be_nil,
           'Expected login failure to be tracked in account_login_failures table'
         expect(failure_record[:number]).to be >= 1
@@ -201,19 +176,19 @@ RSpec.describe 'Rodauth Hook Side Effects', type: :integration do
 
         # Make some failed attempts
         2.times do
-          json_post '/auth/login', { login: login_email, password: 'wrong' }
+          post_json '/auth/login', { login: login_email, password: 'wrong' }
         end
 
         # Verify failures tracked
-        failure_count = auth_db[:account_login_failures].where(id: account[:id]).first
+        failure_count = test_db[:account_login_failures].where(id: account[:id]).first
         expect(failure_count).not_to be_nil
 
         # Successful login
-        json_post '/auth/login', { login: login_email, password: valid_password }
+        post_json '/auth/login', { login: login_email, password: valid_password }
         expect(last_response.status).to eq(200)
 
         # Failures should be cleared
-        failure_count_after = auth_db[:account_login_failures].where(id: account[:id]).first
+        failure_count_after = test_db[:account_login_failures].where(id: account[:id]).first
         expect(failure_count_after).to be_nil.or(satisfy { |r| r[:number] == 0 })
       end
     end
@@ -228,17 +203,17 @@ RSpec.describe 'Rodauth Hook Side Effects', type: :integration do
     end
 
     it 'allows password reset request for existing account' do
-      json_post '/auth/reset-password-request', { login: password_email }
+      post_json '/auth/reset-password-request', { login: password_email }
 
       # Should succeed (or return success-like response to prevent enumeration)
       expect([200, 422]).to include(last_response.status)
     end
 
     it 'creates password reset key in database' do
-      json_post '/auth/reset-password-request', { login: password_email }
+      post_json '/auth/reset-password-request', { login: password_email }
 
       account   = find_account_by_email(password_email)
-      reset_key = auth_db[:account_password_reset_keys].where(id: account[:id]).first
+      reset_key = test_db[:account_password_reset_keys].where(id: account[:id]).first
 
       # Reset key should be created if the route succeeded
       if last_response.status == 200

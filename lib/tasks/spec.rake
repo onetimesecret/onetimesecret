@@ -31,11 +31,25 @@
 # trigger/constraint behaviors. CI runs both; local development defaults to
 # SQLite for speed.
 #
+# Environment Variables:
+#   RSPEC_OUTPUT_FILE - Path to JSON results file (e.g., tmp/rspec_results.json)
+#                       When set, adds JSON formatter output for CI reporting
+#
 # See also: docs/adr/adr-007-test-process-boundaries.md
 
 require 'rspec/core/rake_task'
 
 INTEGRATION_MODES = %w[simple full disabled].freeze
+
+# Build RSpec format options based on environment
+# @return [String] RSpec format flags
+def rspec_format_options
+  opts = ['--format progress']
+  if ENV['RSPEC_OUTPUT_FILE']
+    opts << "--format json --out #{ENV['RSPEC_OUTPUT_FILE']}"
+  end
+  opts.join(' ')
+end
 
 # Auto-discover app-specific spec directories (co-located with their applications)
 # Scans apps/{type}/{name}/spec for spec directories
@@ -50,11 +64,13 @@ namespace :spec do
   desc 'Run unit tests'
   RSpec::Core::RakeTask.new(:unit) do |t|
     t.pattern = 'spec/unit/**/*_spec.rb'
+    t.rspec_opts = rspec_format_options
   end
 
   desc 'Run CLI tests'
   RSpec::Core::RakeTask.new(:cli) do |t|
     t.pattern = 'spec/cli/**/*_spec.rb'
+    t.rspec_opts = rspec_format_options
   end
 
   # App-specific specs (co-located with their applications)
@@ -63,6 +79,7 @@ namespace :spec do
       desc "Run specs for #{name}"
       RSpec::Core::RakeTask.new(name.tr(':', '_')) do |t|
         t.pattern = "#{path}/**/*_spec.rb"
+        t.rspec_opts = rspec_format_options
       end
     end
 
@@ -95,7 +112,7 @@ namespace :spec do
           "spec/integration/all"
         ].join(' ')
 
-        sh env, "bundle exec rspec #{patterns} --format documentation"
+        sh env, "bundle exec rspec #{patterns} #{rspec_format_options}"
       end
     end
 
@@ -104,9 +121,10 @@ namespace :spec do
       env = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
-        'AUTH_DATABASE_URL' => 'postgresql://postgres@localhost:5432/onetime_auth_test'
+        'AUTH_DATABASE_URL' => ENV.fetch('AUTH_DATABASE_URL',
+                                         'postgresql://postgres@localhost:5432/onetime_auth_test')
       }
-      sh env, 'bundle exec rspec spec/integration/full --tag postgres_database --format documentation'
+      sh env, "bundle exec rspec spec/integration/full --tag postgres_database #{rspec_format_options}"
     end
 
     desc 'Run all integration tests (all modes, isolated processes)'
@@ -121,6 +139,48 @@ namespace :spec do
 
   desc 'Run the complete test suite'
   task all: ['spec:fast', 'spec:integration:all']
+end
+
+# Tryouts test tasks
+# Tryouts is a documentation-first Ruby testing framework where tests are plain
+# Ruby code with comment expectations. These tasks mirror the RSpec structure.
+namespace :try do
+  desc 'Run unit tryouts'
+  task :unit do
+    patterns = %w[try/unit try/system].select { |p| Dir.exist?(p) }.join(' ')
+    sh "bundle exec tryouts --agent #{patterns}" unless patterns.empty?
+  end
+
+  desc 'Run feature tryouts'
+  task :features do
+    sh 'bundle exec tryouts --agent try/features' if Dir.exist?('try/features')
+  end
+
+  namespace :integration do
+    desc 'Run integration tryouts (simple mode only)'
+    task :simple do
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'simple'
+      }
+
+      patterns = %w[
+        try/integration/middleware
+        try/integration/boot
+        try/integration/web
+        try/integration/api
+        try/integration/email
+        try/integration/billing
+        try/integration/homepage_bypass_header_integration_try.rb
+        try/integration/homepage_mode_integration_try.rb
+      ].select { |p| File.exist?(p) || Dir.exist?(p) }.join(' ')
+
+      sh env, "bundle exec tryouts --agent #{patterns}" unless patterns.empty?
+    end
+  end
+
+  desc 'Run all tryouts'
+  task all: %i[unit features integration:simple]
 end
 
 task spec: 'spec:fast'
