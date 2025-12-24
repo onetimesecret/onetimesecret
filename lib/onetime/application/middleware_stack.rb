@@ -155,6 +155,11 @@ module Onetime
             default_locale: OT.default_locale,
             debug: OT.debug?
 
+          # I18n locale middleware (after Otto locale detection)
+          # Sets I18n.locale for the request using env['otto.locale']
+          require 'middleware/i18n_locale'
+          builder.use ::Middleware::I18nLocale
+
           # Domain strategy middleware (after identity)
           builder.use Onetime::Middleware::DomainStrategy, application_context: application_context
 

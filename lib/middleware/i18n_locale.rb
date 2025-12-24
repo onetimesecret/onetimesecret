@@ -36,6 +36,13 @@ module Middleware
       # Ensure locale is a symbol for I18n
       locale_sym = locale.to_sym
 
+      # Validate locale against available_locales, fallback to default if invalid
+      # This prevents I18n::InvalidLocale errors when Otto detects a locale
+      # that hasn't been configured in the I18n backend
+      unless I18n.available_locales.include?(locale_sym)
+        locale_sym = I18n.default_locale
+      end
+
       # Set locale for this request thread only
       I18n.with_locale(locale_sym) do
         @app.call(env)

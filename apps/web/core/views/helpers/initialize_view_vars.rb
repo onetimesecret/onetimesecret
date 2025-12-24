@@ -107,6 +107,15 @@ module Core
         display_domain  = req.env.fetch('onetime.display_domain', nil)
         locale          = req.env.fetch('otto.locale', OT.default_locale)
 
+        # Normalize locale for I18n - validate against available_locales
+        # Otto may detect locales that aren't configured in I18n backend
+        # (e.g., from Accept-Language header or URL params)
+        i18n_locale = if I18n.available_locales.include?(locale.to_sym)
+                        locale.to_sym
+                      else
+                        I18n.default_locale
+                      end
+
         # Controller-level flag whether to display the "internal use only"
         # message. Possible values are nil, 'protected'.
         homepage_mode = req.env.fetch('onetime.homepage_mode', nil)
@@ -114,8 +123,8 @@ module Core
         # HTML Tag vars. These are meant for the view templates themselves
         # and not the onetime state window data passed on to the Vue app (
         # although a serializer could still choose to include any of them).
-        description          = I18n.t('web.COMMON.description', locale: locale, default: 'Keep sensitive info out of your chat logs & email')
-        keywords             = I18n.t('web.COMMON.keywords', locale: locale, default: 'secret,password,share,private,link')
+        description          = I18n.t('web.COMMON.description', locale: i18n_locale, default: 'Keep sensitive info out of your chat logs & email')
+        keywords             = I18n.t('web.COMMON.keywords', locale: i18n_locale, default: 'secret,password,share,private,link')
 
         # Use the display domain name for branded instances, otherwise use the default app name.
         # This provides a default title for initial page load before Vue takes over title management.

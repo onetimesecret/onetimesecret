@@ -33,7 +33,8 @@ module Onetime
         # IMPORTANT: Set available_locales BEFORE default_locale to avoid InvalidLocale error
         I18n.available_locales = OT.supported_locales.map(&:to_sym)
         I18n.default_locale = OT.default_locale.to_sym
-        I18n.fallbacks = [I18n.default_locale]
+        # Configure per-locale fallbacks: each locale falls back to default
+        I18n.fallbacks = I18n::Locale::Fallbacks.new(I18n.default_locale)
 
         # Clear any existing load paths (for test isolation)
         I18n.load_path.clear
