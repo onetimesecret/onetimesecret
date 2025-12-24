@@ -11,7 +11,8 @@ module Onetime
     # SetupI18n initializer
     #
     # Configures the ruby-i18n gem for backend localization. Loads locale
-    # files from src/locales/ (JSON) and config/locales/email/ (YAML).
+    # files from src/locales/ (JSON). All translations including email
+    # templates are unified in the JSON locale files.
     # Provides thread-safe translation lookup with fallback behavior.
     #
     # Runtime state dependencies:
@@ -37,11 +38,8 @@ module Onetime
         # Clear any existing load paths (for test isolation)
         I18n.load_path.clear
 
-        # Load JSON files from src/locales
+        # Load JSON files from src/locales (includes email translations)
         load_json_locales
-
-        # Load YAML email templates
-        load_email_locales
 
         OT.ld "[init] I18n configured: default=#{I18n.default_locale}, " \
               "available=#{I18n.available_locales}, " \
@@ -64,22 +62,6 @@ module Onetime
         end
 
         OT.ld "[init] Loaded #{locale_files.size} JSON locale files"
-      end
-
-      def load_email_locales
-        email_files = Dir[File.join(Onetime::HOME, 'config/locales/email/*.yml')]
-
-        if email_files.empty?
-          OT.ld '[init] No email locale files found (optional)'
-          return
-        end
-
-        # Add each YAML file to load path
-        email_files.each do |file|
-          I18n.load_path << file
-        end
-
-        OT.ld "[init] Loaded #{email_files.size} email locale files"
       end
 
       # JSON backend support module for I18n
