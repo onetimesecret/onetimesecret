@@ -147,6 +147,12 @@ RSpec.describe Onetime::Jobs::Scheduled::ExpirationWarningJob do
   end
 
   describe '.process_expiring_secrets (via send)' do
+    after do
+      # Flush SemanticLogger to prevent async thread from processing log messages
+      # with mocked objects after RSpec verifies expectations
+      SemanticLogger.flush if defined?(SemanticLogger)
+    end
+
     before do
       # Set up config
       allow(OT).to receive(:conf).and_return({

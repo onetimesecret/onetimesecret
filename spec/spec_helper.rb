@@ -128,17 +128,17 @@ Onetime::AuthConfig.path = File.join(spec_root, 'auth.test.yaml')
 # Integration tests that need full boot will call Onetime.boot! separately.
 begin
   OT::Config.before_load
-  raw_conf = OT::Config.load
+  raw_conf       = OT::Config.load
   processed_conf = OT::Config.after_load(raw_conf)
   OT.replace_config!(processed_conf)
 
   # Set Familia.uri from config so integration test hooks can use Familia.dbclient
   # before boot! runs. Without this, Familia uses default redis://127.0.0.1:6379.
-  redis_uri = OT.conf.dig('redis', 'uri')
+  redis_uri   = OT.conf.dig('redis', 'uri')
   Familia.uri = redis_uri if redis_uri
 rescue StandardError => ex
   warn "Failed to load test config: #{ex.message}"
-  warn "Tests requiring OT.conf will fail"
+  warn 'Tests requiring OT.conf will fail'
 end
 
 # Test helpers module
@@ -201,7 +201,7 @@ RSpec.configure do |config|
   # Some tests modify these values directly or set them to nil; this ensures
   # subsequent tests have valid state.
   config.before(:each) do
-    @__original_ot_conf = OT.conf
+    @__original_ot_conf      = OT.conf
     # Save Runtime state - this is where locales and other i18n state lives
     @__original_runtime_i18n = Onetime::Runtime.internationalization
   end
@@ -209,11 +209,42 @@ RSpec.configure do |config|
   config.after(:each) do
     # Flush SemanticLogger to prevent async thread from logging mock objects
     # after test lifecycle ends (causes RSpec::Mocks::OutsideOfExampleError)
-    # Rescue errors since tests may stub flush to raise
+    #
+    # NOTE: This is temporarily adding a small sleep to give the async thread time
+    # to process the flush before proceeding. In rare cases the async thread
+    # may not have completed processing before the next test starts, leading
+    # to intermittent failures in CI. This is not ideal, but should be sufficient
+    #
+    # CI Issue (2025-01-24): SemanticLogger async thread race condition
+    #
+    # Symptom: Intermittent CI failures where SemanticLogger's async logging
+    # thread tries to format a timestamp using an RSpec mock double after the
+    # test has completed, causing RSpec::Mocks::MockExpectationError.
+    #
+    # Error observed:
+    #   Thread terminated with exception (report_on_exception is true):
+    #   rspec-support/lib/rspec/support.rb:80:in 'block in <module:Support>':
+    #   #<Double (anonymous)> received unexpected message :strftime
+    #   with ("%Y-%m-%d %H:%M:%S.%6N") (RSpec::Mocks::MockExpectationError)
+    #
+    # Root cause: SemanticLogger's async appender (async.rb:76) processes log
+    # messages in a background thread. When a test creates mock objects that
+    # get logged (e.g., in error messages), the async thread may attempt to
+    # format those objects after RSpec has torn down the mock context.
+    #
+    # Mitigation strategy: Double-flush with small sleep between flushes to
+    # allow the async thread to fully drain its queue before mock verification.
+    # We're incrementally adding mitigations to isolate the exact fix needed.
+    #
     begin
-      SemanticLogger.flush if defined?(SemanticLogger)
-    rescue StandardError
+      if defined?(SemanticLogger)
+        SemanticLogger.flush
+        sleep 0.01 # Give async thread time to process
+        SemanticLogger.flush
+      end
+    rescue StandardError => ex
       # Ignore - some tests stub SemanticLogger.flush to raise
+      puts "Warning: Failed to flush SemanticLogger: #{ex.message}"
     end
 
     # Restore OT.conf if it was changed during the test
