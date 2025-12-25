@@ -35,9 +35,26 @@ require_relative '../../../spec_helper'
 require 'json'
 
 RSpec.describe 'Auth Route Availability', type: :integration do
+  include Rack::Test::Methods
+
+  def app
+    Onetime::Application::Registry.generate_rack_url_map
+  end
+
+  def json_get(path)
+    header 'Accept', 'application/json'
+    get path
+  end
+
+  def json_post(path, params = {})
+    header 'Content-Type', 'application/json'
+    header 'Accept', 'application/json'
+    post path, JSON.generate(params)
+  end
+
   # Boot the application once for all tests in this file
   before(:all) do
-    boot_onetime_app
+    Onetime.boot! :test
   end
 
   describe 'core routes (always available)' do

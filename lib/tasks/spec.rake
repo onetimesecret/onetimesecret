@@ -105,14 +105,19 @@ namespace :spec do
           'RACK_ENV' => 'test',
           'AUTHENTICATION_MODE' => mode,
         }
-        env['AUTH_DATABASE_URL'] = 'sqlite::memory:' if mode == 'full'
+        # Full mode uses SQLite in-memory database, excluding PostgreSQL-specific tests
+        tag_filter = ''
+        if mode == 'full'
+          env['AUTH_DATABASE_URL'] = 'sqlite::memory:'
+          tag_filter = '--tag ~postgres_database'
+        end
 
         patterns = [
           "spec/integration/#{mode}",
           'spec/integration/all',
         ].join(' ')
 
-        sh env, "bundle exec rspec #{patterns} #{rspec_format_options}"
+        sh env, "bundle exec rspec #{patterns} #{tag_filter} #{rspec_format_options}"
       end
     end
 

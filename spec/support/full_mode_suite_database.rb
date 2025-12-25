@@ -113,19 +113,31 @@ end
 
 # RSpec configuration for full auth mode tests with SQLite
 RSpec.configure do |config|
-  # Lazy setup: first :full_auth_mode, :sqlite_database spec triggers database creation
-  # Using before(:context) ensures it runs once per describe block,
-  # but setup! is idempotent so it's safe if multiple blocks have the tag
-  config.before(:context, :full_auth_mode, :sqlite_database) do
+  # Database setup lambda - shared between :full_auth_mode and :sqlite_database tags
+  # Setup is idempotent, so it's safe if multiple hooks trigger it
+  full_mode_setup = lambda do |example_or_group|
+    # Skip if this is a PostgreSQL test
+    metadata = example_or_group.respond_to?(:metadata) ? example_or_group.metadata : example_or_group.class.metadata
+    return if metadata[:postgres_database]
+
     FullModeSuiteDatabase.setup!
   end
 
-  # Clean tables between describe blocks to catch leaked test data
-  # Individual tests should still clean up after themselves, but this
-  # provides a safety net without hiding which test leaked data
-  config.after(:context, :full_auth_mode, :sqlite_database) do
+  full_mode_cleanup = lambda do |example_or_group|
+    metadata = example_or_group.respond_to?(:metadata) ? example_or_group.metadata : example_or_group.class.metadata
+    return if metadata[:postgres_database]
+
     FullModeSuiteDatabase.clean_tables!
   end
+
+  # Lazy setup for :full_auth_mode specs (derived from spec/integration/full/ directory)
+  # This ensures SQLite database is set up even without explicit :sqlite_database tag
+  config.before(:context, :full_auth_mode, &full_mode_setup)
+  config.after(:context, :full_auth_mode, &full_mode_cleanup)
+
+  # Also support explicit :sqlite_database tag for backward compatibility
+  config.before(:context, :sqlite_database, &full_mode_setup)
+  config.after(:context, :sqlite_database, &full_mode_cleanup)
 
   # Suite-level teardown: only runs once at the very end
   # Note: Simple/disabled mode tests explicitly clear the stub if needed
@@ -133,13 +145,16 @@ RSpec.configure do |config|
     FullModeSuiteDatabase.teardown!
   end
 
-  # Include factory methods for all :full_auth_mode, :sqlite_database specs
-  config.include AuthAccountFactory, :full_auth_mode, :sqlite_database
+  # Include factory methods for :full_auth_mode specs (excluding postgres)
+  config.include AuthAccountFactory, :full_auth_mode
+  config.include AuthAccountFactory, :sqlite_database
 
-  # Provide test_db helper method for :full_auth_mode, :sqlite_database specs
-  config.include(Module.new {
+  # Provide test_db helper method
+  test_db_module = Module.new {
     def test_db
       FullModeSuiteDatabase.database
     end
-  }, :full_auth_mode, :sqlite_database)
+  }
+  config.include(test_db_module, :full_auth_mode)
+  config.include(test_db_module, :sqlite_database)
 end
