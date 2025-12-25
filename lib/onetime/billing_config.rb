@@ -18,9 +18,6 @@ module Onetime
   class BillingConfig
     include Singleton
 
-    class << self
-    end
-
     attr_reader :config, :environment
 
     def initialize
@@ -97,8 +94,6 @@ module Onetime
     end
 
     private
-
-
 
     def load_config
       unless File.exist?(@config_file)

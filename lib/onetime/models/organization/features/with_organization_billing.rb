@@ -112,7 +112,7 @@ module Onetime
             self.stripe_customer_id      = subscription.customer
             self.subscription_status     = subscription.status
             # current_period_end moved from subscription to subscription items in newer Stripe API
-            period_end = subscription.items.data.first&.current_period_end
+            period_end                   = subscription.items.data.first&.current_period_end
             self.subscription_period_end = period_end.to_s if period_end
 
             # Extract plan ID with validation

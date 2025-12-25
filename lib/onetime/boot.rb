@@ -6,8 +6,8 @@ require_relative 'initializers'
 
 module Onetime
   module Initializers
-    @conf  = nil
-    @ready = nil
+    @conf          = nil
+    @ready         = nil
     @boot_registry = nil  # Instance-based registry (DI architecture)
 
     # Session configuration defaults

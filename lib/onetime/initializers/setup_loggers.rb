@@ -113,7 +113,7 @@ module Onetime
 
       def configure_appender(config)
         # Skip if console appender already exists (prevents duplicates during test reruns)
-        return if SemanticLogger.appenders.any? { |a| a.is_a?(SemanticLogger::Appender::IO) }
+        return if SemanticLogger.appenders.any?(SemanticLogger::Appender::IO)
 
         SemanticLogger.add_appender(
           io: $stdout,

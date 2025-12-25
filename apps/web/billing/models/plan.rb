@@ -434,12 +434,12 @@ module Billing
             plan_id  = "#{plan_key}_#{interval}ly"
 
             # Extract plan attributes
-            tier              = plan_def['tier']
-            region            = plan_def['region'] || 'global'
-            tenancy           = plan_def['tenancy'] || 'multi'
-            display_order     = plan_def['display_order'] || 0
+            tier               = plan_def['tier']
+            region             = plan_def['region'] || 'global'
+            tenancy            = plan_def['tenancy'] || 'multi'
+            display_order      = plan_def['display_order'] || 0
             show_on_plans_page = plan_def['show_on_plans_page'] == true
-            entitlements_list = plan_def['entitlements'] || []
+            entitlements_list  = plan_def['entitlements'] || []
 
             # Convert limits to flattened format (e.g., "teams" -> "teams.max")
             limits_hash = (plan_def['limits'] || {}).transform_keys { |k| "#{k}.max" }

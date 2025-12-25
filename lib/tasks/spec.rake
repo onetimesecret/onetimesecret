@@ -55,21 +55,21 @@ end
 # Scans apps/{type}/{name}/spec for spec directories
 APP_SPECS = Dir.glob('apps/*/*/spec').each_with_object({}) do |path, hash|
   # path: apps/api/v1/spec -> key: api:v1
-  parts = path.split('/')[1..2] # ['api', 'v1']
-  key = parts.join(':')
+  parts     = path.split('/')[1..2] # ['api', 'v1']
+  key       = parts.join(':')
   hash[key] = path
 end.freeze
 
 namespace :spec do
   desc 'Run unit tests'
   RSpec::Core::RakeTask.new(:unit) do |t|
-    t.pattern = 'spec/unit/**/*_spec.rb'
+    t.pattern    = 'spec/unit/**/*_spec.rb'
     t.rspec_opts = rspec_format_options
   end
 
   desc 'Run CLI tests'
   RSpec::Core::RakeTask.new(:cli) do |t|
-    t.pattern = 'spec/cli/**/*_spec.rb'
+    t.pattern    = 'spec/cli/**/*_spec.rb'
     t.rspec_opts = rspec_format_options
   end
 
@@ -78,7 +78,7 @@ namespace :spec do
     APP_SPECS.each do |name, path|
       desc "Run specs for #{name}"
       RSpec::Core::RakeTask.new(name.tr(':', '_')) do |t|
-        t.pattern = "#{path}/**/*_spec.rb"
+        t.pattern    = "#{path}/**/*_spec.rb"
         t.rspec_opts = rspec_format_options
       end
     end
@@ -101,15 +101,15 @@ namespace :spec do
     INTEGRATION_MODES.each do |mode|
       desc "Run integration specs for AUTHENTICATION_MODE=#{mode}"
       task mode do
-        env = {
+        env                      = {
           'RACK_ENV' => 'test',
-          'AUTHENTICATION_MODE' => mode
+          'AUTHENTICATION_MODE' => mode,
         }
         env['AUTH_DATABASE_URL'] = 'sqlite::memory:' if mode == 'full'
 
         patterns = [
           "spec/integration/#{mode}",
-          "spec/integration/all"
+          'spec/integration/all',
         ].join(' ')
 
         sh env, "bundle exec rspec #{patterns} #{rspec_format_options}"
@@ -122,7 +122,8 @@ namespace :spec do
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => ENV.fetch('AUTH_DATABASE_URL',
-                                         'postgresql://postgres@localhost:5432/onetime_auth_test')
+          'postgresql://postgres@localhost:5432/onetime_auth_test',
+        ),
       }
       sh env, "bundle exec rspec spec/integration/full --tag postgres_database #{rspec_format_options}"
     end
@@ -135,7 +136,7 @@ namespace :spec do
   end
 
   desc 'Run all non-integration specs (unit, cli, apps)'
-  task fast: %i[unit cli] + ['apps:all']
+  task fast: [:unit, :cli] + ['apps:all']
 
   desc 'Run the complete test suite'
   task all: ['spec:fast', 'spec:integration:all']
@@ -161,7 +162,7 @@ namespace :try do
     task :simple do
       env = {
         'RACK_ENV' => 'test',
-        'AUTHENTICATION_MODE' => 'simple'
+        'AUTHENTICATION_MODE' => 'simple',
       }
 
       patterns = %w[
@@ -180,7 +181,7 @@ namespace :try do
   end
 
   desc 'Run all tryouts'
-  task all: %i[unit features integration:simple]
+  task all: [:unit, :features, :'integration:simple']
 end
 
 # Billing VCR cassette recording tasks
@@ -205,9 +206,9 @@ namespace :vcr do
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => 'sqlite::memory:',
-        'STRIPE_API_KEY' => ENV['STRIPE_API_KEY'],
+        'STRIPE_API_KEY' => ENV.fetch('STRIPE_API_KEY', nil),
         'VCR_MODE' => 'new_episodes',
-        'DEFAULT_LOG_LEVEL' => 'error'
+        'DEFAULT_LOG_LEVEL' => 'error',
       }
 
       specs = %w[
@@ -239,9 +240,9 @@ namespace :vcr do
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => 'sqlite::memory:',
-        'STRIPE_API_KEY' => ENV['STRIPE_API_KEY'],
+        'STRIPE_API_KEY' => ENV.fetch('STRIPE_API_KEY', nil),
         'VCR_MODE' => 'all',
-        'DEFAULT_LOG_LEVEL' => 'error'
+        'DEFAULT_LOG_LEVEL' => 'error',
       }
 
       sh env, "bundle exec rspec apps/web/billing/spec #{rspec_format_options}"
@@ -254,7 +255,7 @@ namespace :vcr do
         'AUTHENTICATION_MODE' => 'full',
         'AUTH_DATABASE_URL' => 'sqlite::memory:',
         'VCR_MODE' => 'none',
-        'DEFAULT_LOG_LEVEL' => 'error'
+        'DEFAULT_LOG_LEVEL' => 'error',
       }
 
       sh env, "bundle exec rspec apps/web/billing/spec #{rspec_format_options}"

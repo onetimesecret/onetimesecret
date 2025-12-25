@@ -127,7 +127,7 @@ module Billing
     #
     def retrieve(resource_class, id, expand: nil)
       # Stripe SDK 17.x expects expand in the first parameter hash
-      params = { id: id }
+      params          = { id: id }
       params[:expand] = expand if expand
 
       with_retry do

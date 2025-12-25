@@ -119,13 +119,13 @@ module OrganizationAPI::Logic
         # Count both active members and pending invitations
         current_count = @organization.member_count + @organization.pending_invitation_count
 
-        if @organization.at_limit?('members_per_team', current_count)
-          raise_form_error(
-            'Member limit reached. Upgrade your plan to invite more members.',
-            field: 'email',
-            error_type: :upgrade_required
-          )
-        end
+        return unless @organization.at_limit?('members_per_team', current_count)
+
+        raise_form_error(
+          'Member limit reached. Upgrade your plan to invite more members.',
+          field: 'email',
+          error_type: :upgrade_required,
+        )
       end
 
       # Verify current user has admin privileges in the organization

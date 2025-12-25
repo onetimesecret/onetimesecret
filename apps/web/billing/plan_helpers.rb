@@ -87,7 +87,7 @@ module Billing
       # Method 1: Check billing.yaml config for explicit legacy flag
       # Strip interval suffix if present (e.g., "identity_monthly" -> "identity")
       base_plan_id = plan_id.to_s.sub(/_(month|year)ly$/, '')
-      plan_def = cached_plans[base_plan_id]
+      plan_def     = cached_plans[base_plan_id]
       return plan_def['legacy'] == true if plan_def
 
       # Method 2: Pattern matching for backward compatibility

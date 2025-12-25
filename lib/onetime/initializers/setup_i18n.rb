@@ -22,7 +22,7 @@ module Onetime
     #
     class SetupI18n < Onetime::Boot::Initializer
       @depends_on = [:i18n]
-      @provides = [:ruby_i18n]
+      @provides   = [:ruby_i18n]
 
       def execute(_context)
         # Add JSON backend support to I18n
@@ -32,9 +32,9 @@ module Onetime
         # Configure I18n from runtime state
         # IMPORTANT: Set available_locales BEFORE default_locale to avoid InvalidLocale error
         I18n.available_locales = OT.supported_locales.map(&:to_sym)
-        I18n.default_locale = OT.default_locale.to_sym
+        I18n.default_locale    = OT.default_locale.to_sym
         # Configure per-locale fallbacks: each locale falls back to default
-        I18n.fallbacks = I18n::Locale::Fallbacks.new(I18n.default_locale)
+        I18n.fallbacks         = I18n::Locale::Fallbacks.new(I18n.default_locale)
 
         # Clear any existing load paths (for test isolation)
         I18n.load_path.clear
@@ -101,8 +101,8 @@ module Onetime
           # Return tuple: [data, keys_symbolized]
           # keys_symbolized=false because we're using string keys like YAML
           [data, false]
-        rescue JSON::ParserError => e
-          raise I18n::InvalidLocaleData.new(filename, e.message)
+        rescue JSON::ParserError => ex
+          raise I18n::InvalidLocaleData.new(filename, ex.message)
         end
       end
     end

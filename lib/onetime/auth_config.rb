@@ -13,9 +13,6 @@ module Onetime
   class AuthConfig
     include Singleton
 
-    class << self
-    end
-
     attr_reader :config, :mode, :environment
 
     def initialize

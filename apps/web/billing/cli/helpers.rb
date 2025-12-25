@@ -230,7 +230,7 @@ module Onetime
         print 'Show on plans page? (yes/no, default: yes): '
         show_on_plans                                         = $stdin.gets.chomp
         # Default to 'yes' if empty, otherwise check for truthy value
-        show_on_plans_value                                   = show_on_plans.empty? ? true : Onetime::Utils.yes?(show_on_plans)
+        show_on_plans_value                                   = show_on_plans.empty? || Onetime::Utils.yes?(show_on_plans)
         metadata[Billing::Metadata::FIELD_SHOW_ON_PLANS_PAGE] = show_on_plans_value.to_s
 
         print 'Limit teams (-1 for unlimited): '
@@ -245,10 +245,10 @@ module Onetime
       end
 
       def format_subscription_row(subscription)
-        customer_id = subscription.customer[0..21]
-        status      = subscription.status[0..11]
-        # Note: current_period_end is now at the subscription item level in Stripe API 2025-11-17.clover
-        period_end_ts = subscription.items&.data&.first&.current_period_end
+        customer_id        = subscription.customer[0..21]
+        status             = subscription.status[0..11]
+        # NOTE: current_period_end is now at the subscription item level in Stripe API 2025-11-17.clover
+        period_end_ts      = subscription.items&.data&.first&.current_period_end
         current_period_end = period_end_ts ? Time.at(period_end_ts).strftime('%Y-%m-%d') : 'N/A'
 
         format('%-22s %-22s %-12s %-12s',

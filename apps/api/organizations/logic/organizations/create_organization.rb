@@ -44,8 +44,8 @@ module OrganizationAPI::Logic
         OT.ld "[CreateOrganization] Creating organization '#{display_name}' for user #{cust.custid}"
 
         # Acquire distributed lock for organization creation to prevent quota race conditions
-        lock_key = "customer:#{cust.objid}:org_creation_lock"
-        lock = Familia::Lock.new(lock_key)
+        lock_key   = "customer:#{cust.objid}:org_creation_lock"
+        lock       = Familia::Lock.new(lock_key)
         lock_token = nil
 
         begin
@@ -56,7 +56,7 @@ module OrganizationAPI::Logic
             raise_form_error(
               'Organization creation in progress. Please try again.',
               field: 'display_name',
-              error_type: :conflict
+              error_type: :conflict,
             )
           end
 
@@ -81,8 +81,8 @@ module OrganizationAPI::Logic
           if lock_token
             begin
               lock.release(lock_token)
-            rescue StandardError => e
-              OT.lw "[CreateOrganization] Lock release failed: #{e.message}"
+            rescue StandardError => ex
+              OT.lw "[CreateOrganization] Lock release failed: #{ex.message}"
             end
           end
         end
@@ -126,13 +126,13 @@ module OrganizationAPI::Logic
         # meaning creating one more would exceed the plan's allowed quota.
         current_count = cust.organization_instances.size
 
-        if primary_org.at_limit?('organizations', current_count)
-          raise_form_error(
-            'Organization limit reached. Upgrade your plan to create more organizations.',
-            field: 'display_name',
-            error_type: :upgrade_required
-          )
-        end
+        return unless primary_org.at_limit?('organizations', current_count)
+
+        raise_form_error(
+          'Organization limit reached. Upgrade your plan to create more organizations.',
+          field: 'display_name',
+          error_type: :upgrade_required,
+        )
       end
     end
   end

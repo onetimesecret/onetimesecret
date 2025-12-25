@@ -74,9 +74,9 @@ module Onetime
           status: canceled.status,
         }
         details[:canceled_at] = format_timestamp(canceled.canceled_at) if canceled.canceled_at
-        # Note: current_period_end is now at the subscription item level in Stripe API 2025-11-17.clover
+        # NOTE: current_period_end is now at the subscription item level in Stripe API 2025-11-17.clover
         if canceled.cancel_at_period_end
-          item_period_end = canceled.items&.data&.first&.current_period_end
+          item_period_end       = canceled.items&.data&.first&.current_period_end
           details[:will_end_at] = format_timestamp(item_period_end) if item_period_end
         end
 
