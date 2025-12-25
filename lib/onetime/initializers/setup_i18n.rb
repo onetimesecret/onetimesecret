@@ -21,7 +21,7 @@ module Onetime
     # This initializer must run AFTER LoadLocales to access locale configuration.
     #
     class SetupI18n < Onetime::Boot::Initializer
-      @requires = [:i18n]
+      @depends_on = [:i18n]
       @provides = [:ruby_i18n]
 
       def execute(_context)

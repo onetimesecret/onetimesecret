@@ -107,6 +107,15 @@ rescue LoadError => ex
   exit 1
 end
 
+# Switch SemanticLogger to synchronous mode for tests.
+# This eliminates race conditions where the async logging thread processes log
+# messages containing mock objects after RSpec has torn down the mock context.
+# The async thread would call .strftime on what should be a Time but is a mock,
+# causing RSpec::Mocks::MockExpectationError.
+#
+# See: https://github.com/reidmorrison/semantic_logger/blob/master/lib/semantic_logger/sync.rb
+require 'semantic_logger/sync'
+
 # Load test utilities
 Dir[File.join(spec_root, 'support', '*.rb')].each { |f| require f }
 Dir[File.join(spec_root, 'support', 'shared_contexts', '*.rb')].each { |f| require f }
@@ -128,17 +137,17 @@ Onetime::AuthConfig.path = File.join(spec_root, 'auth.test.yaml')
 # Integration tests that need full boot will call Onetime.boot! separately.
 begin
   OT::Config.before_load
-  raw_conf = OT::Config.load
+  raw_conf       = OT::Config.load
   processed_conf = OT::Config.after_load(raw_conf)
   OT.replace_config!(processed_conf)
 
   # Set Familia.uri from config so integration test hooks can use Familia.dbclient
   # before boot! runs. Without this, Familia uses default redis://127.0.0.1:6379.
-  redis_uri = OT.conf.dig('redis', 'uri')
+  redis_uri   = OT.conf.dig('redis', 'uri')
   Familia.uri = redis_uri if redis_uri
 rescue StandardError => ex
   warn "Failed to load test config: #{ex.message}"
-  warn "Tests requiring OT.conf will fail"
+  warn 'Tests requiring OT.conf will fail'
 end
 
 # Test helpers module
@@ -147,6 +156,48 @@ module SpecHelpers
 end
 
 RSpec.configure do |config|
+  # ==========================================================================
+  # DIRECTORY-BASED AUTH MODE ISOLATION
+  # ==========================================================================
+  # Integration tests are organized by authentication mode. Each mode runs in
+  # a separate process with the appropriate AUTHENTICATION_MODE env var set.
+  #
+  # Directory structure:
+  #   spec/integration/simple/    -> AUTHENTICATION_MODE=simple
+  #   spec/integration/full/      -> AUTHENTICATION_MODE=full
+  #   spec/integration/disabled/  -> AUTHENTICATION_MODE=disabled
+  #   spec/integration/all/       -> Runs in ALL modes (infrastructure tests)
+  #
+  # Run tests via Rake tasks (recommended):
+  #   bundle exec rake spec:integration:simple
+  #   bundle exec rake spec:integration:full
+  #   bundle exec rake spec:integration:disabled
+  #   bundle exec rake spec:integration:all
+  #
+  # Or via pnpm:
+  #   pnpm test:rspec:integration:simple
+  #   pnpm test:rspec:integration:full
+  #   pnpm test:rspec:integration:disabled
+  #
+  # The Rake tasks run mode-specific tests + all/ tests together, matching
+  # production deployment where only one auth mode exists per instance.
+  # ==========================================================================
+
+  # Auto-derive auth mode tags from directory structure.
+  # These tags trigger before(:context) hooks in support/ files that set up
+  # mode-specific infrastructure (database mocks, factories, helpers).
+  # See: spec/support/auth_mode_helpers.rb, spec/support/full_mode_suite_database.rb
+  %w[simple full disabled].each do |mode|
+    config.define_derived_metadata(file_path: %r{/integration/#{mode}/}) do |metadata|
+      metadata[:"#{mode}_auth_mode"] = true
+    end
+  end
+
+  # Tests in /integration/all/ run in every mode - tagged for documentation purposes
+  config.define_derived_metadata(file_path: %r{/integration/all/}) do |metadata|
+    metadata[:all_auth_modes] = true
+  end
+
   config.expect_with :rspec do |expectations|
     # Use default expectations configuration
   end
@@ -159,19 +210,24 @@ RSpec.configure do |config|
   # Some tests modify these values directly or set them to nil; this ensures
   # subsequent tests have valid state.
   config.before(:each) do
-    @__original_ot_conf = OT.conf
+    @__original_ot_conf      = OT.conf
     # Save Runtime state - this is where locales and other i18n state lives
     @__original_runtime_i18n = Onetime::Runtime.internationalization
   end
 
   config.after(:each) do
-    # Flush SemanticLogger to prevent async thread from logging mock objects
-    # after test lifecycle ends (causes RSpec::Mocks::OutsideOfExampleError)
-    # Rescue errors since tests may stub flush to raise
+    # Flush SemanticLogger to ensure all log messages are processed before
+    # moving to the next test. Since we use SemanticLogger.sync! (set above),
+    # this is now a synchronous operation with no race conditions.
+    #
+    # Note: Some tests stub SemanticLogger.flush to test error handling,
+    # so we rescue any errors here.
     begin
       SemanticLogger.flush if defined?(SemanticLogger)
-    rescue StandardError
-      # Ignore - some tests stub SemanticLogger.flush to raise
+    rescue StandardError => ex
+      # Log but don't fail - this may be a test stub (setup_loggers_spec.rb)
+      # or a real error worth investigating.
+      warn "SemanticLogger.flush failed (possibly stubbed): #{ex.message}"
     end
 
     # Restore OT.conf if it was changed during the test

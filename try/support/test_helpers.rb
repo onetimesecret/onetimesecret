@@ -30,6 +30,9 @@ $LOAD_PATH.unshift(File.join(app_root))
 require 'onetime'
 require 'onetime/models'
 
+# Log using the current thread to avoid async/concurrency issues
+require 'semantic_logger/sync'
+
 OT::Config.path = File.join(project_root, 'spec', 'config.test.yaml')
 
 # Minimal I18n setup for tests that use I18n.t() without full OT.boot!

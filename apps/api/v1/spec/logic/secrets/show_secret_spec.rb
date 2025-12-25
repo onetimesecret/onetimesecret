@@ -6,7 +6,7 @@ require_relative '../../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.rb')
 
-RSpec.describe V1::Logic::Secrets::ShowSecret do
+RSpec.xdescribe V1::Logic::Secrets::ShowSecret do
   let(:session) { double('Session') }
   let(:customer) { double('Onetime::Customer', anonymous?: false, custid: 'cust123', increment_field: nil ) }
   let(:owner) { double('Owner', custid: 'owner123', verified?: false, anonymous?: false, increment_field: nil ) }

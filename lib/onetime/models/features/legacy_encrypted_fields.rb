@@ -180,8 +180,8 @@ module Onetime
             Onetime::Secret.encryption_key nil, key, passphrase_temp
           end
 
-          def update_passphrase!(val)
-            update_passphrase(val)
+          def update_passphrase!(val, algorithm: :argon2)
+            update_passphrase(val, algorithm: algorithm)
               .save_fields(:passphrase_encryption, :passphrase)
           end
 

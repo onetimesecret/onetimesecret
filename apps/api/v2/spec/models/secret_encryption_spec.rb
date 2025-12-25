@@ -127,8 +127,16 @@ RSpec.describe Onetime::Secret, allow_redis: false do
     let(:passphrase) { 'secure-test-passphrase' }
 
     describe '#update_passphrase!' do
-      it 'stores a BCrypt hash of the passphrase' do
+      it 'stores an Argon2 hash of the passphrase by default' do
         secret.update_passphrase!(passphrase)
+
+        expect(secret.passphrase).not_to eq(passphrase)
+        expect(secret.passphrase).to start_with('$argon2id$')
+        expect(secret.passphrase_encryption).to eq('2')
+      end
+
+      it 'stores a BCrypt hash when using legacy algorithm' do
+        secret.update_passphrase!(passphrase, algorithm: :bcrypt)
 
         expect(secret.passphrase).not_to eq(passphrase)
         expect(secret.passphrase).to start_with('$2a$')

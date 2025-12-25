@@ -279,13 +279,11 @@ Existing Puma configuration in `etc/puma.rb` requires **NO changes**. S6 supervi
 ```ruby
 # etc/puma.rb (unchanged)
 before_fork do
-  SemanticLogger.flush if defined?(SemanticLogger)
-  Onetime::Initializers::SetupRabbitMQ.disconnect if defined?(Onetime::Initializers::SetupRabbitMQ)
+  Onetime::Boot::InitializerRegistry.cleanup_before_fork
 end
 
 before_worker_boot do
-  SemanticLogger.reopen if defined?(SemanticLogger)
-  Onetime::Initializers::SetupRabbitMQ.reconnect if defined?(Onetime::Initializers::SetupRabbitMQ)
+  Onetime::Boot::InitializerRegistry.reconnect_after_fork
 end
 ```
 

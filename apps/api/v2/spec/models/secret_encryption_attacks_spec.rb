@@ -27,14 +27,26 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       secret.instance_variable_set(:@passphrase_temp, nil)
     end
 
-    it 'uses BCrypt for secure comparison' do
-      # BCrypt::Password instance receives == method for comparison
+    it 'uses Argon2 for secure comparison by default' do
+      # Argon2::Password.verify_password provides constant-time comparison
       # This is what provides the timing attack resistance
-      bcrypt_password = instance_double(BCrypt::Password)
-      expect(BCrypt::Password).to receive(:new).with(secret.passphrase).and_return(bcrypt_password)
-      expect(bcrypt_password).to receive(:==).with(passphrase).and_return(true)
+      # Default passphrase encryption uses Argon2 (mode '2')
+      expect(secret.passphrase_encryption).to eq('2')
 
-      secret.passphrase?(passphrase)
+      # Verify actual Argon2 comparison works
+      expect(secret.passphrase?(passphrase)).to be true
+      expect(secret.passphrase?('wrong-passphrase')).to be false
+    end
+
+    it 'falls back to BCrypt for legacy hashes' do
+      # Set up a BCrypt hash directly (simulating legacy data)
+      bcrypt_hash = BCrypt::Password.create(passphrase, cost: 12).to_s
+      secret.instance_variable_set(:@passphrase, bcrypt_hash)
+      secret.instance_variable_set(:@passphrase_encryption, '1')
+
+      # Verify actual BCrypt comparison works
+      expect(secret.passphrase?(passphrase)).to be true
+      expect(secret.passphrase?('wrong-passphrase')).to be false
     end
 
     it 'takes similar time for correct and incorrect passphrases' do
@@ -78,6 +90,89 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       # Allow up to 2x difference because BCrypt comparison exits early on
       # hash algorithm mismatch, but actual password comparison is constant time
       expect(avg_incorrect / avg_correct).to be_between(0.5, 2.0)
+    end
+  end
+
+  describe 'passphrase verification across algorithms', allow_redis: false do
+    # Test passphrases covering various character types and lengths
+    # Defined as constant to be accessible at describe/context level
+    TEST_PASSPHRASES = {
+      'simple ASCII' => 'test-passphrase-123',
+      'with spaces' => 'my secret passphrase',
+      'unicode characters' => 'пароль-密码-🔐',
+      'special characters' => '!@#$%^&*()_+-=[]{}|;:,.<>?',
+      'very long' => 'a' * 256,
+      'minimum length' => 'abc',
+    }.freeze
+
+    shared_examples 'correct passphrase verification' do |algorithm_name, encryption_mode|
+      TEST_PASSPHRASES.each do |description, phrase|
+        context "with #{description} passphrase" do
+          let(:test_phrase) { phrase }
+
+          before do
+            case encryption_mode
+            when '2' # Argon2
+              secret.update_passphrase!(test_phrase)
+              secret.instance_variable_set(:@passphrase_temp, nil)
+            when '1' # BCrypt
+              bcrypt_hash = BCrypt::Password.create(test_phrase, cost: 4).to_s
+              secret.instance_variable_set(:@passphrase, bcrypt_hash)
+              secret.instance_variable_set(:@passphrase_encryption, '1')
+            end
+          end
+
+          it "returns true for correct passphrase (#{algorithm_name})" do
+            expect(secret.passphrase?(test_phrase)).to be true
+          end
+
+          it "returns false for incorrect passphrase (#{algorithm_name})" do
+            expect(secret.passphrase?('definitely-wrong')).to be false
+          end
+
+          it "is case-sensitive (#{algorithm_name})" do
+            skip 'No letters to test case sensitivity' unless test_phrase.match?(/[a-zA-Z]/)
+            expect(secret.passphrase?(test_phrase.swapcase)).to be false
+          end
+        end
+      end
+    end
+
+    describe 'Argon2 (current default)' do
+      include_examples 'correct passphrase verification', 'Argon2', '2'
+    end
+
+    describe 'BCrypt (legacy fallback)' do
+      include_examples 'correct passphrase verification', 'BCrypt', '1'
+    end
+
+    describe 'edge cases' do
+      it 'returns false when no passphrase is set' do
+        expect(secret.passphrase).to be_nil
+        expect(secret.passphrase?('any-passphrase')).to be false
+      end
+
+      it 'returns false for empty string when passphrase exists' do
+        secret.update_passphrase!('real-passphrase')
+        secret.instance_variable_set(:@passphrase_temp, nil)
+        expect(secret.passphrase?('')).to be false
+      end
+
+      it 'returns false for nil when passphrase exists' do
+        secret.update_passphrase!('real-passphrase')
+        secret.instance_variable_set(:@passphrase_temp, nil)
+        expect(secret.passphrase?(nil)).to be false
+      end
+
+      it 'handles whitespace-only passphrases correctly' do
+        whitespace_pass = '   '
+        secret.update_passphrase!(whitespace_pass)
+        secret.instance_variable_set(:@passphrase_temp, nil)
+
+        expect(secret.passphrase?(whitespace_pass)).to be true
+        expect(secret.passphrase?('   ')).to be true  # Same whitespace
+        expect(secret.passphrase?('  ')).to be false  # Different length
+      end
     end
   end
 

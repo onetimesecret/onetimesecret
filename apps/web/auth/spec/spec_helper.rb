@@ -278,7 +278,6 @@ module ProductionConfigHelper
     require 'onetime/boot/initializer_registry'
 
     Onetime::Application::Registry.reset! if Onetime::Application::Registry.respond_to?(:reset!)
-    Onetime::Boot::InitializerRegistry.reset! if Onetime::Boot::InitializerRegistry.respond_to?(:reset!)
 
     # Reload auth config to pick up AUTHENTICATION_MODE env var
     require 'onetime/auth_config'

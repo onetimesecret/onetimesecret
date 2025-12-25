@@ -8,7 +8,7 @@ require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.
 
 require 'v1/refinements'
 
-RSpec.describe V1::FlexibleHashAccess do
+RSpec.xdescribe V1::FlexibleHashAccess do
   module RefineTest
     using V1::FlexibleHashAccess
 

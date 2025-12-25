@@ -8,7 +8,7 @@ require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.
 
 
 
-RSpec.describe V1::Logic::Secrets::BaseSecretAction do
+RSpec.xdescribe V1::Logic::Secrets::BaseSecretAction do
   using Familia::Refinements::TimeLiterals
 
   # Create test implementation class

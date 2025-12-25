@@ -123,10 +123,19 @@ RSpec.describe Onetime::Secret, allow_redis: false do
       expect(passphrase_secret.passphrase?('wrong-passphrase')).to be false
     end
 
-    it 'uses BCrypt for secure hashing' do
+    it 'uses Argon2 for secure hashing by default' do
       passphrase_secret.update_passphrase(passphrase)
 
-      expect(passphrase_secret.passphrase).to start_with('$2a$') # BCrypt hash format
+      expect(passphrase_secret.passphrase).to start_with('$argon2id$')
+      expect(passphrase_secret.passphrase_encryption).to eq('2')
+    end
+
+    it 'supports BCrypt for legacy compatibility' do
+      passphrase_secret.update_passphrase(passphrase, algorithm: :bcrypt)
+
+      expect(passphrase_secret.passphrase).to start_with('$2a$')
+      expect(passphrase_secret.passphrase_encryption).to eq('1')
+      expect(passphrase_secret.passphrase?(passphrase)).to be true
     end
   end
 

@@ -27,24 +27,6 @@ module Onetime
       @provides   = [:rabbitmq]
       @phase      = :fork_sensitive
 
-      class << self
-        # @deprecated Use InitializerRegistry.cleanup_before_fork instead
-        # This wrapper maintains backward compatibility but will be removed in a future version.
-        def disconnect
-          warn '[DEPRECATION] SetupRabbitMQ.disconnect is deprecated. Use InitializerRegistry.cleanup_before_fork'
-          instance = Onetime::Boot::InitializerRegistry.initializers.find { |i| i.is_a?(SetupRabbitMQ) }
-          instance&.cleanup
-        end
-
-        # @deprecated Use InitializerRegistry.reconnect_after_fork instead
-        # This wrapper maintains backward compatibility but will be removed in a future version.
-        def reconnect
-          warn '[DEPRECATION] SetupRabbitMQ.reconnect is deprecated. Use InitializerRegistry.reconnect_after_fork'
-          instance = Onetime::Boot::InitializerRegistry.initializers.find { |i| i.is_a?(SetupRabbitMQ) }
-          instance&.reconnect
-        end
-      end
-
       def execute(_context)
         return unless OT.conf.dig('jobs', 'enabled')
 
