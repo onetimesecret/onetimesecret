@@ -135,7 +135,11 @@ RSpec.configure do |config|
   # Returns hierarchical path: Class/_method/test_description
   def vcr_cassette_name(example)
     # e.g., "Billing::StripeClient" -> "Billing_StripeClient"
-    class_name = example.metadata[:described_class]&.to_s&.gsub('::', '_') || 'Unknown'
+    # Falls back to top-level description when described_class is nil
+    # (happens when RSpec.describe uses a string instead of a class)
+    class_name = example.metadata[:described_class]&.to_s ||
+                 example.example_group.top_level_description
+    class_name = class_name&.gsub('::', '_')&.gsub(/\s+/, '_') || 'Unknown'
 
     # e.g., "#delete" -> "_delete"
     method_desc = example.metadata[:example_group][:description] rescue nil
