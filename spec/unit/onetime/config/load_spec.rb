@@ -126,14 +126,16 @@ RSpec.describe Onetime::Config do
         described_class.instance_variable_set(:@path, nil)
       end
 
-      it 'finds config files based on mode' do
-        expect(described_class).to receive(:find_configs).and_return(['/found/config.yaml'])
-        expect(described_class.path).to eq('/found/config.yaml')
+      it 'uses ConfigResolver to find test config in test environment' do
+        # In RACK_ENV=test, ConfigResolver returns spec/config.test.yaml
+        expect(described_class.path).to include('spec/config.test.yaml')
       end
 
-      it 'returns nil when no config files are found' do
-        expect(described_class).to receive(:find_configs).and_return([])
-        expect(described_class.path).to be_nil
+      it 'falls back to find_configs when ConfigResolver returns nil' do
+        # Simulate ConfigResolver returning nil (no config found)
+        allow(Onetime::Utils::ConfigResolver).to receive(:resolve).with('config').and_return(nil)
+        expect(described_class).to receive(:find_configs).and_return(['/found/config.yaml'])
+        expect(described_class.path).to eq('/found/config.yaml')
       end
     end
   end

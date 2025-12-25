@@ -271,9 +271,7 @@ module ProductionConfigHelper
     # Reset registries to clear state from previous test runs
     require 'onetime'
 
-    # Set test config path BEFORE boot (must be done before any config is loaded)
-    spec_root = File.expand_path('../../../../spec', __dir__)
-    OT::Config.path = File.join(spec_root, 'config.test.yaml')
+    # Config resolution is handled automatically by ConfigResolver when RACK_ENV=test
     require 'onetime/application/registry'
     require 'onetime/boot/initializer_registry'
 

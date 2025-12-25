@@ -7,21 +7,20 @@
 require 'yaml'
 require 'erb'
 require 'singleton'
+require_relative 'utils/config_resolver'
 
 module Onetime
   class AuthConfig
     include Singleton
 
     class << self
-      # Allow setting custom config file path (for testing)
-      attr_accessor :path
     end
 
     attr_reader :config, :mode, :environment
 
     def initialize
       @environment = ENV['RACK_ENV'] || 'development'
-      @config_file = self.class.path || File.join(Onetime::HOME, 'etc/auth.yaml')
+      @config_file = Onetime::Utils::ConfigResolver.resolve('auth')
       load_config
     end
 

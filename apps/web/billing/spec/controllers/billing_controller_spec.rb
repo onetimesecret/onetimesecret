@@ -118,8 +118,8 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(data['organization']['billing_email']).to eq(organization.billing_email)
 
       # Verify usage data
-      expect(data['usage']).to have_key('teams')
       expect(data['usage']).to have_key('members')
+      expect(data['usage']).to have_key('domains')
     end
 
     it 'returns subscription data when organization has active subscription', :vcr do

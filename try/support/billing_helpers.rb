@@ -5,33 +5,18 @@
 # for tests that specifically need billing enabled.
 
 module BillingTestHelpers
-  # Path that forces billing to be disabled (non-existent file)
-  BILLING_DISABLED_PATH = '/nonexistent/billing_disabled_for_tests.yaml'.freeze
-
   class << self
-    # Disable billing globally for tests
-    # Call once at test suite startup
+    # Disable billing globally for tests by resetting the singleton
+    # ConfigResolver will return nil when no billing config exists in spec/
     def disable_billing!
       ensure_familia_configured!
-      @original_path = Onetime::BillingConfig.path
-      Onetime::BillingConfig.path = BILLING_DISABLED_PATH
       reset_billing_singleton!
     end
 
-    # Restore original billing configuration
-    # Used for cleanup and for tests that need real billing
+    # Restore billing configuration for tests that need it
+    # Resets singleton so it reloads from ConfigResolver
     def restore_billing!
       ensure_familia_configured!
-
-      # If we saved an original path, restore it
-      # Otherwise, use the default billing.yaml path
-      path_to_restore = if defined?(@original_path) && @original_path
-                          @original_path
-                        else
-                          File.join(Onetime::HOME, 'etc', 'billing.yaml')
-                        end
-
-      Onetime::BillingConfig.path = path_to_restore
       reset_billing_singleton!
     end
 

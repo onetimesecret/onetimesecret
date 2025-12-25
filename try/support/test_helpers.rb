@@ -33,7 +33,8 @@ require 'onetime/models'
 # Log using the current thread to avoid async/concurrency issues
 require 'semantic_logger/sync'
 
-OT::Config.path = File.join(project_root, 'spec', 'config.test.yaml')
+# Config resolution is handled automatically by Onetime::Utils::ConfigResolver
+# when RACK_ENV=test - it uses spec/{name}.test.yaml files
 
 # Minimal I18n setup for tests that use I18n.t() without full OT.boot!
 # This provides basic configuration so I18n calls don't fail with InvalidLocale

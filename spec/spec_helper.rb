@@ -123,11 +123,10 @@ Dir[File.join(spec_root, 'support', 'shared_examples', '*.rb')].each { |f| requi
 Dir[File.join(spec_root, 'support', 'factories', '*.rb')].each { |f| require f }
 
 # Test mode
-OT.mode         = :test
-OT::Config.path = File.join(spec_root, 'config.test.yaml')
+OT.mode = :test
 
-# Use test auth config to avoid issues with local auth.yaml modifications
-Onetime::AuthConfig.path = File.join(spec_root, 'auth.test.yaml')
+# Config resolution is handled automatically by Onetime::Utils::ConfigResolver
+# when RACK_ENV=test - it uses spec/{name}.test.yaml files
 
 # Billing isolation is handled by spec/support/billing_isolation.rb
 # which disables billing before each test and cleans up after tests that enable it

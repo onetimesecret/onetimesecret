@@ -4,6 +4,7 @@
 
 require 'yaml'
 require 'semantic_logger'
+require_relative '../utils/config_resolver'
 
 module Onetime
   module Initializers
@@ -94,8 +95,8 @@ module Onetime
       private
 
       def load_logging_config
-        path = File.join(Onetime::HOME, 'etc', 'logging.yaml')
-        return {} unless File.exist?(path)
+        path = Onetime::Utils::ConfigResolver.resolve('logging')
+        return {} unless path
 
         YAML.load(ERB.new(File.read(path)).result)
       end

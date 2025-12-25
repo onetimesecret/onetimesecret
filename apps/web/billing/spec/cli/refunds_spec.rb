@@ -30,7 +30,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit do
 
     describe '#call (list refunds)' do
       context 'with successful Stripe API response' do
-        it 'lists all refunds without filters' do
+        it 'lists all refunds without filters', :vcr do
           # Create test charge first
           customer = stripe_client.create(Stripe::Customer, {
             email: 'refund-test@example.com',
@@ -153,7 +153,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit do
 
     describe '#call (create refund)' do
       context 'with valid charge ID' do
-        it 'creates full refund with confirmation', :code_smell do
+        it 'creates full refund with confirmation', :code_smell, :vcr do
           # NOTE: stripe-mock returns hardcoded amounts ($1.00), not test input ($50.00)
           # This test validates CLI accepts parameters, not Stripe API behavior
           # Create test charge
@@ -186,7 +186,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit do
           stripe_client.delete(Stripe::Customer, customer.id)
         end
 
-        it 'creates partial refund' do
+        it 'creates partial refund', :vcr do
           customer = stripe_client.create(Stripe::Customer, {
             email: 'partial-refund-test@example.com',
           }
@@ -213,7 +213,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit do
           stripe_client.delete(Stripe::Customer, customer.id)
         end
 
-        it 'includes reason when provided' do
+        it 'includes reason when provided', :vcr do
           customer = stripe_client.create(Stripe::Customer, {
             email: 'refund-reason-test@example.com',
           }
@@ -240,7 +240,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit do
           stripe_client.delete(Stripe::Customer, customer.id)
         end
 
-        it 'bypasses confirmation with --yes flag' do
+        it 'bypasses confirmation with --yes flag', :vcr do
           customer = stripe_client.create(Stripe::Customer, {
             email: 'refund-yes-test@example.com',
           }
@@ -267,7 +267,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit do
           stripe_client.delete(Stripe::Customer, customer.id)
         end
 
-        it 'aborts when user declines confirmation' do
+        it 'aborts when user declines confirmation', :vcr do
           customer = stripe_client.create(Stripe::Customer, {
             email: 'refund-decline-test@example.com',
           }

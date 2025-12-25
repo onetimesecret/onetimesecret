@@ -14,7 +14,7 @@
 
 require_relative '../../support/test_helpers'
 
-OT::Config.path = File.join(Onetime::HOME, 'spec', 'config.test.yaml')
+# Config resolution is handled automatically by ConfigResolver when RACK_ENV=test
 OT.boot! :test
 
 ## mapped_key converts allowed_domains_only to whitelist_validation

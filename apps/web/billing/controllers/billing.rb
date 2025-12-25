@@ -292,11 +292,11 @@ module Billing
       # @param org [Onetime::Organization] Organization instance
       # @return [Hash] Usage data
       def build_usage_data(org)
-        # Phase 1: Basic team/member counts
+        # Basic member counts (teams removed from data schema)
         # Future: Add secret counts, API usage, etc.
         {
-          teams: org.teams.size,
-          members: org.members.size,
+          members: org.member_count,
+          domains: org.domain_count,
         }
       end
     end
