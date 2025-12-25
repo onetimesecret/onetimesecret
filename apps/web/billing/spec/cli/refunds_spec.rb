@@ -62,8 +62,21 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
         end
 
         it 'filters refunds by charge ID' do
-          # NOTE: stripe-mock returns static refund data regardless of filter parameters
-          # This test verifies the CLI accepts the charge filter parameter
+          # NOTE: Real Stripe API validates charge ID, so we mock the response
+          # This test verifies the CLI accepts the charge filter parameter and formats output
+          allow(Stripe::Refund).to receive(:list).and_return(
+            double(data: [
+                     double(
+                       id: 're_test123',
+                       charge: 'ch_test_filter',
+                       amount: 5000,
+                       currency: 'usd',
+                       status: 'succeeded',
+                       created: Time.now.to_i,
+                     ),
+                   ]),
+          )
+
           output = capture_stdout do
             command.call(charge: 'ch_test_filter', limit: 10)
           end

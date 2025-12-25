@@ -12,9 +12,9 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_SC5cwsa8RLaUke","request_duration_ms":242}}'
+      - '{"last_request_metrics":{"request_id":"req_LDzB0ezuWfRMSU","request_duration_ms":279}}'
       Idempotency-Key:
-      - 1766664420-887b22e3-44ea-49f6-b67e-c669f271b7b5
+      - 1766671595-58f168fe-87c4-4b15-a5c0-0da96fde463c
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -35,7 +35,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:07:00 GMT
+      - Thu, 25 Dec 2025 14:06:35 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -58,11 +58,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=EOc8AIwnubEL4_VqEUb4Nb4F0-xpzNX42Nm2OZErskZwZn4xPc-mp6GtSpCYfPM7qexeqrKBD9WWVHyj
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=zXCDMRl5lpyNMGK--5iFgRMMw0TlNcA4RAscLa89nvrb1LvJJbWDPUJihmhCs2MWA423WOZpdU4sFyZW
       Idempotency-Key:
-      - 1766664420-887b22e3-44ea-49f6-b67e-c669f271b7b5
+      - 1766671595-58f168fe-87c4-4b15-a5c0-0da96fde463c
       Original-Request:
-      - req_HOklhXedZTdtAd
+      - req_deLMezrRzEtZpY
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -81,11 +81,11 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TfYQtdb0j4UYDS",
+          "id": "cus_TfaMxZzrHqaQRC",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766664420,
+          "created": 1766671595,
           "currency": null,
           "customer_account": null,
           "default_source": null,
@@ -93,7 +93,7 @@ http_interactions:
           "description": null,
           "discount": null,
           "email": "test@example.com",
-          "invoice_prefix": "UNGTNDMB",
+          "invoice_prefix": "GQRJXI9Y",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -110,5 +110,5 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Thu, 25 Dec 2025 12:07:00 GMT
+  recorded_at: Thu, 25 Dec 2025 14:06:35 GMT
 recorded_with: VCR 6.3.1

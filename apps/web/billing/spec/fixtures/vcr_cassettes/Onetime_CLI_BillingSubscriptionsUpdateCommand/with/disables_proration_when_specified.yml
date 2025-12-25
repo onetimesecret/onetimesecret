@@ -12,9 +12,9 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_b3YkkXuMbqc8D3","request_duration_ms":562}}'
+      - '{"last_request_metrics":{"request_id":"req_wrqvwpFynDwBVm","request_duration_ms":586}}'
       Idempotency-Key:
-      - 1766664296-c524252a-4485-4a70-afe3-2fb20f1f6504
+      - 1766671555-2eae2749-6c20-4a82-a7b2-171539ca6489
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -35,7 +35,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:04:56 GMT
+      - Thu, 25 Dec 2025 14:05:56 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -58,11 +58,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=-SKf7lhGurDqOgVev0py5kBeoS3bKVqTulaHU3M0DuFhWRWQUqMW40c6invmDP9HAAgddSTvKYAPzkxu
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=aLUj37LsqKLYW1hGP6ZpnKoKCfV_qM-blRv2GcyTzBEGAZOsUyHiz5IZPV9spznioHhEkAT5hXSa7gL_
       Idempotency-Key:
-      - 1766664296-c524252a-4485-4a70-afe3-2fb20f1f6504
+      - 1766671555-2eae2749-6c20-4a82-a7b2-171539ca6489
       Original-Request:
-      - req_d5G9dizv51kEeh
+      - req_nwot0SDnSfV4lv
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -81,19 +81,19 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TfYOkR4G095nKS",
+          "id": "cus_TfaLVcJFPL0ZKm",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766664296,
+          "created": 1766671555,
           "currency": null,
           "customer_account": null,
-          "default_source": "card_1SiDHoH54PcLeqtYrdEzfeN5",
+          "default_source": "card_1SiFAtH54PcLeqtY06hCleqO",
           "delinquent": false,
           "description": null,
           "discount": null,
           "email": "sub-test@example.com",
-          "invoice_prefix": "TCDSCCE8",
+          "invoice_prefix": "SGN22RGC",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -110,22 +110,22 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Thu, 25 Dec 2025 12:04:56 GMT
+  recorded_at: Thu, 25 Dec 2025 14:05:56 GMT
 - request:
     method: post
     uri: https://api.stripe.com/v1/products
     body:
       encoding: UTF-8
-      string: name=Test+Product+1766664296
+      string: name=VCR+Test+Product
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_d5G9dizv51kEeh","request_duration_ms":554}}'
+      - '{"last_request_metrics":{"request_id":"req_nwot0SDnSfV4lv","request_duration_ms":568}}'
       Idempotency-Key:
-      - 1766664296-8f2bd01d-c03a-4371-8b2e-dbc9abeb5379
+      - 1766671556-88ee2549-60f4-4c6a-a4f3-95b594b08501
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -146,11 +146,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:04:57 GMT
+      - Thu, 25 Dec 2025 14:05:56 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '473'
+      - '466'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -169,11 +169,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=-SKf7lhGurDqOgVev0py5kBeoS3bKVqTulaHU3M0DuFhWRWQUqMW40c6invmDP9HAAgddSTvKYAPzkxu
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=aLUj37LsqKLYW1hGP6ZpnKoKCfV_qM-blRv2GcyTzBEGAZOsUyHiz5IZPV9spznioHhEkAT5hXSa7gL_
       Idempotency-Key:
-      - 1766664296-8f2bd01d-c03a-4371-8b2e-dbc9abeb5379
+      - 1766671556-88ee2549-60f4-4c6a-a4f3-95b594b08501
       Original-Request:
-      - req_1RaKuxrNGGAr2P
+      - req_XtGbJcwdOpqUkf
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -192,43 +192,43 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "prod_TfYODV4KPXDLG2",
+          "id": "prod_TfaLpUg0M8iXT9",
           "object": "product",
           "active": true,
           "attributes": [],
-          "created": 1766664296,
+          "created": 1766671556,
           "default_price": null,
           "description": null,
           "images": [],
           "livemode": false,
           "marketing_features": [],
           "metadata": {},
-          "name": "Test Product 1766664296",
+          "name": "VCR Test Product",
           "package_dimensions": null,
           "shippable": null,
           "statement_descriptor": null,
           "tax_code": null,
           "type": "service",
           "unit_label": null,
-          "updated": 1766664296,
+          "updated": 1766671556,
           "url": null
         }
-  recorded_at: Thu, 25 Dec 2025 12:04:56 GMT
+  recorded_at: Thu, 25 Dec 2025 14:05:56 GMT
 - request:
     method: post
     uri: https://api.stripe.com/v1/prices
     body:
       encoding: UTF-8
-      string: unit_amount=2000&currency=usd&recurring[interval]=month&product=prod_TfYODV4KPXDLG2
+      string: unit_amount=2000&currency=usd&recurring[interval]=month&product=prod_TfaLpUg0M8iXT9
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_1RaKuxrNGGAr2P","request_duration_ms":177}}'
+      - '{"last_request_metrics":{"request_id":"req_XtGbJcwdOpqUkf","request_duration_ms":187}}'
       Idempotency-Key:
-      - 1766664296-cbd7cb32-d7d6-47f5-817e-1e1285cac085
+      - 1766671556-5e7b187b-2378-47e0-8853-6ab172ac0a8c
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -249,7 +249,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:04:57 GMT
+      - Thu, 25 Dec 2025 14:05:56 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -272,11 +272,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=-SKf7lhGurDqOgVev0py5kBeoS3bKVqTulaHU3M0DuFhWRWQUqMW40c6invmDP9HAAgddSTvKYAPzkxu
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=aLUj37LsqKLYW1hGP6ZpnKoKCfV_qM-blRv2GcyTzBEGAZOsUyHiz5IZPV9spznioHhEkAT5hXSa7gL_
       Idempotency-Key:
-      - 1766664296-cbd7cb32-d7d6-47f5-817e-1e1285cac085
+      - 1766671556-5e7b187b-2378-47e0-8853-6ab172ac0a8c
       Original-Request:
-      - req_uVmZZvAx0iugB5
+      - req_AOjzd6i6vj2N68
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -295,18 +295,18 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "price_1SiDHpH54PcLeqtYC0elKMiA",
+          "id": "price_1SiFAuH54PcLeqtYWKYQAKXz",
           "object": "price",
           "active": true,
           "billing_scheme": "per_unit",
-          "created": 1766664297,
+          "created": 1766671556,
           "currency": "usd",
           "custom_unit_amount": null,
           "livemode": false,
           "lookup_key": null,
           "metadata": {},
           "nickname": null,
-          "product": "prod_TfYODV4KPXDLG2",
+          "product": "prod_TfaLpUg0M8iXT9",
           "recurring": {
             "interval": "month",
             "interval_count": 1,
@@ -321,22 +321,22 @@ http_interactions:
           "unit_amount": 2000,
           "unit_amount_decimal": "2000"
         }
-  recorded_at: Thu, 25 Dec 2025 12:04:57 GMT
+  recorded_at: Thu, 25 Dec 2025 14:05:56 GMT
 - request:
     method: post
     uri: https://api.stripe.com/v1/subscriptions
     body:
       encoding: UTF-8
-      string: customer=cus_TfYOkR4G095nKS&items[0][price]=price_1SiDHpH54PcLeqtYC0elKMiA
+      string: customer=cus_TfaLVcJFPL0ZKm&items[0][price]=price_1SiFAuH54PcLeqtYWKYQAKXz
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_uVmZZvAx0iugB5","request_duration_ms":185}}'
+      - '{"last_request_metrics":{"request_id":"req_AOjzd6i6vj2N68","request_duration_ms":194}}'
       Idempotency-Key:
-      - 1766664297-8317d2af-69f9-4d4b-bb7a-b992455e85f4
+      - 1766671556-e05799dc-ea1a-467f-b672-68f97bb3a346
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -357,7 +357,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:05:05 GMT
+      - Thu, 25 Dec 2025 14:05:59 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -380,11 +380,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=-SKf7lhGurDqOgVev0py5kBeoS3bKVqTulaHU3M0DuFhWRWQUqMW40c6invmDP9HAAgddSTvKYAPzkxu
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=aLUj37LsqKLYW1hGP6ZpnKoKCfV_qM-blRv2GcyTzBEGAZOsUyHiz5IZPV9spznioHhEkAT5hXSa7gL_
       Idempotency-Key:
-      - 1766664297-8317d2af-69f9-4d4b-bb7a-b992455e85f4
+      - 1766671556-e05799dc-ea1a-467f-b672-68f97bb3a346
       Original-Request:
-      - req_5mriCsCf8INgbW
+      - req_DNNzleGbOvJGaV
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -403,7 +403,7 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "sub_1SiDHpH54PcLeqtYcD6cT3Pb",
+          "id": "sub_1SiFAuH54PcLeqtYGrdxD6FZ",
           "object": "subscription",
           "application": null,
           "application_fee_percent": null,
@@ -412,14 +412,14 @@ http_interactions:
             "enabled": false,
             "liability": null
           },
-          "billing_cycle_anchor": 1766664297,
+          "billing_cycle_anchor": 1766671556,
           "billing_cycle_anchor_config": null,
           "billing_mode": {
             "flexible": {
               "proration_discounts": "included"
             },
             "type": "flexible",
-            "updated_at": 1766664297
+            "updated_at": 1766671556
           },
           "billing_thresholds": null,
           "cancel_at": null,
@@ -431,9 +431,9 @@ http_interactions:
             "reason": null
           },
           "collection_method": "charge_automatically",
-          "created": 1766664297,
+          "created": 1766671556,
           "currency": "usd",
-          "customer": "cus_TfYOkR4G095nKS",
+          "customer": "cus_TfaLVcJFPL0ZKm",
           "customer_account": null,
           "days_until_due": null,
           "default_payment_method": null,
@@ -452,22 +452,22 @@ http_interactions:
             "object": "list",
             "data": [
               {
-                "id": "si_TfYOtCYqkZ2Kwk",
+                "id": "si_TfaLlqrycvQarr",
                 "object": "subscription_item",
                 "billing_thresholds": null,
-                "created": 1766664297,
-                "current_period_end": 1769342697,
-                "current_period_start": 1766664297,
+                "created": 1766671557,
+                "current_period_end": 1769349956,
+                "current_period_start": 1766671556,
                 "discounts": [],
                 "metadata": {},
                 "plan": {
-                  "id": "price_1SiDHpH54PcLeqtYC0elKMiA",
+                  "id": "price_1SiFAuH54PcLeqtYWKYQAKXz",
                   "object": "plan",
                   "active": true,
                   "amount": 2000,
                   "amount_decimal": "2000",
                   "billing_scheme": "per_unit",
-                  "created": 1766664297,
+                  "created": 1766671556,
                   "currency": "usd",
                   "interval": "month",
                   "interval_count": 1,
@@ -475,25 +475,25 @@ http_interactions:
                   "metadata": {},
                   "meter": null,
                   "nickname": null,
-                  "product": "prod_TfYODV4KPXDLG2",
+                  "product": "prod_TfaLpUg0M8iXT9",
                   "tiers_mode": null,
                   "transform_usage": null,
                   "trial_period_days": null,
                   "usage_type": "licensed"
                 },
                 "price": {
-                  "id": "price_1SiDHpH54PcLeqtYC0elKMiA",
+                  "id": "price_1SiFAuH54PcLeqtYWKYQAKXz",
                   "object": "price",
                   "active": true,
                   "billing_scheme": "per_unit",
-                  "created": 1766664297,
+                  "created": 1766671556,
                   "currency": "usd",
                   "custom_unit_amount": null,
                   "livemode": false,
                   "lookup_key": null,
                   "metadata": {},
                   "nickname": null,
-                  "product": "prod_TfYODV4KPXDLG2",
+                  "product": "prod_TfaLpUg0M8iXT9",
                   "recurring": {
                     "interval": "month",
                     "interval_count": 1,
@@ -509,15 +509,15 @@ http_interactions:
                   "unit_amount_decimal": "2000"
                 },
                 "quantity": 1,
-                "subscription": "sub_1SiDHpH54PcLeqtYcD6cT3Pb",
+                "subscription": "sub_1SiFAuH54PcLeqtYGrdxD6FZ",
                 "tax_rates": []
               }
             ],
             "has_more": false,
             "total_count": 1,
-            "url": "/v1/subscription_items?subscription=sub_1SiDHpH54PcLeqtYcD6cT3Pb"
+            "url": "/v1/subscription_items?subscription=sub_1SiFAuH54PcLeqtYGrdxD6FZ"
           },
-          "latest_invoice": "in_1SiDHpH54PcLeqtYNBSPUFx2",
+          "latest_invoice": "in_1SiFAuH54PcLeqtYQ08ilgjP",
           "livemode": false,
           "metadata": {},
           "next_pending_invoice_item_invoice": null,
@@ -532,13 +532,13 @@ http_interactions:
           "pending_setup_intent": null,
           "pending_update": null,
           "plan": {
-            "id": "price_1SiDHpH54PcLeqtYC0elKMiA",
+            "id": "price_1SiFAuH54PcLeqtYWKYQAKXz",
             "object": "plan",
             "active": true,
             "amount": 2000,
             "amount_decimal": "2000",
             "billing_scheme": "per_unit",
-            "created": 1766664297,
+            "created": 1766671556,
             "currency": "usd",
             "interval": "month",
             "interval_count": 1,
@@ -546,7 +546,7 @@ http_interactions:
             "metadata": {},
             "meter": null,
             "nickname": null,
-            "product": "prod_TfYODV4KPXDLG2",
+            "product": "prod_TfaLpUg0M8iXT9",
             "tiers_mode": null,
             "transform_usage": null,
             "trial_period_days": null,
@@ -554,7 +554,7 @@ http_interactions:
           },
           "quantity": 1,
           "schedule": null,
-          "start_date": 1766664297,
+          "start_date": 1766671556,
           "status": "active",
           "test_clock": null,
           "transfer_data": null,
@@ -566,10 +566,10 @@ http_interactions:
           },
           "trial_start": null
         }
-  recorded_at: Thu, 25 Dec 2025 12:05:05 GMT
+  recorded_at: Thu, 25 Dec 2025 14:05:59 GMT
 - request:
     method: get
-    uri: https://api.stripe.com/v1/subscriptions/sub_1SiDHpH54PcLeqtYcD6cT3Pb
+    uri: https://api.stripe.com/v1/subscriptions/sub_1SiFAuH54PcLeqtYGrdxD6FZ
     body:
       encoding: US-ASCII
       string: ''
@@ -579,7 +579,7 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_5mriCsCf8INgbW","request_duration_ms":8449}}'
+      - '{"last_request_metrics":{"request_id":"req_DNNzleGbOvJGaV","request_duration_ms":2835}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -598,7 +598,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:05:05 GMT
+      - Thu, 25 Dec 2025 14:05:59 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -621,7 +621,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=-SKf7lhGurDqOgVev0py5kBeoS3bKVqTulaHU3M0DuFhWRWQUqMW40c6invmDP9HAAgddSTvKYAPzkxu
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=aLUj37LsqKLYW1hGP6ZpnKoKCfV_qM-blRv2GcyTzBEGAZOsUyHiz5IZPV9spznioHhEkAT5hXSa7gL_
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -638,7 +638,7 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "sub_1SiDHpH54PcLeqtYcD6cT3Pb",
+          "id": "sub_1SiFAuH54PcLeqtYGrdxD6FZ",
           "object": "subscription",
           "application": null,
           "application_fee_percent": null,
@@ -647,14 +647,14 @@ http_interactions:
             "enabled": false,
             "liability": null
           },
-          "billing_cycle_anchor": 1766664297,
+          "billing_cycle_anchor": 1766671556,
           "billing_cycle_anchor_config": null,
           "billing_mode": {
             "flexible": {
               "proration_discounts": "included"
             },
             "type": "flexible",
-            "updated_at": 1766664297
+            "updated_at": 1766671556
           },
           "billing_thresholds": null,
           "cancel_at": null,
@@ -666,9 +666,9 @@ http_interactions:
             "reason": null
           },
           "collection_method": "charge_automatically",
-          "created": 1766664297,
+          "created": 1766671556,
           "currency": "usd",
-          "customer": "cus_TfYOkR4G095nKS",
+          "customer": "cus_TfaLVcJFPL0ZKm",
           "customer_account": null,
           "days_until_due": null,
           "default_payment_method": null,
@@ -687,22 +687,22 @@ http_interactions:
             "object": "list",
             "data": [
               {
-                "id": "si_TfYOtCYqkZ2Kwk",
+                "id": "si_TfaLlqrycvQarr",
                 "object": "subscription_item",
                 "billing_thresholds": null,
-                "created": 1766664297,
-                "current_period_end": 1769342697,
-                "current_period_start": 1766664297,
+                "created": 1766671557,
+                "current_period_end": 1769349956,
+                "current_period_start": 1766671556,
                 "discounts": [],
                 "metadata": {},
                 "plan": {
-                  "id": "price_1SiDHpH54PcLeqtYC0elKMiA",
+                  "id": "price_1SiFAuH54PcLeqtYWKYQAKXz",
                   "object": "plan",
                   "active": true,
                   "amount": 2000,
                   "amount_decimal": "2000",
                   "billing_scheme": "per_unit",
-                  "created": 1766664297,
+                  "created": 1766671556,
                   "currency": "usd",
                   "interval": "month",
                   "interval_count": 1,
@@ -710,25 +710,25 @@ http_interactions:
                   "metadata": {},
                   "meter": null,
                   "nickname": null,
-                  "product": "prod_TfYODV4KPXDLG2",
+                  "product": "prod_TfaLpUg0M8iXT9",
                   "tiers_mode": null,
                   "transform_usage": null,
                   "trial_period_days": null,
                   "usage_type": "licensed"
                 },
                 "price": {
-                  "id": "price_1SiDHpH54PcLeqtYC0elKMiA",
+                  "id": "price_1SiFAuH54PcLeqtYWKYQAKXz",
                   "object": "price",
                   "active": true,
                   "billing_scheme": "per_unit",
-                  "created": 1766664297,
+                  "created": 1766671556,
                   "currency": "usd",
                   "custom_unit_amount": null,
                   "livemode": false,
                   "lookup_key": null,
                   "metadata": {},
                   "nickname": null,
-                  "product": "prod_TfYODV4KPXDLG2",
+                  "product": "prod_TfaLpUg0M8iXT9",
                   "recurring": {
                     "interval": "month",
                     "interval_count": 1,
@@ -744,15 +744,15 @@ http_interactions:
                   "unit_amount_decimal": "2000"
                 },
                 "quantity": 1,
-                "subscription": "sub_1SiDHpH54PcLeqtYcD6cT3Pb",
+                "subscription": "sub_1SiFAuH54PcLeqtYGrdxD6FZ",
                 "tax_rates": []
               }
             ],
             "has_more": false,
             "total_count": 1,
-            "url": "/v1/subscription_items?subscription=sub_1SiDHpH54PcLeqtYcD6cT3Pb"
+            "url": "/v1/subscription_items?subscription=sub_1SiFAuH54PcLeqtYGrdxD6FZ"
           },
-          "latest_invoice": "in_1SiDHpH54PcLeqtYNBSPUFx2",
+          "latest_invoice": "in_1SiFAuH54PcLeqtYQ08ilgjP",
           "livemode": false,
           "metadata": {},
           "next_pending_invoice_item_invoice": null,
@@ -767,13 +767,13 @@ http_interactions:
           "pending_setup_intent": null,
           "pending_update": null,
           "plan": {
-            "id": "price_1SiDHpH54PcLeqtYC0elKMiA",
+            "id": "price_1SiFAuH54PcLeqtYWKYQAKXz",
             "object": "plan",
             "active": true,
             "amount": 2000,
             "amount_decimal": "2000",
             "billing_scheme": "per_unit",
-            "created": 1766664297,
+            "created": 1766671556,
             "currency": "usd",
             "interval": "month",
             "interval_count": 1,
@@ -781,7 +781,7 @@ http_interactions:
             "metadata": {},
             "meter": null,
             "nickname": null,
-            "product": "prod_TfYODV4KPXDLG2",
+            "product": "prod_TfaLpUg0M8iXT9",
             "tiers_mode": null,
             "transform_usage": null,
             "trial_period_days": null,
@@ -789,7 +789,7 @@ http_interactions:
           },
           "quantity": 1,
           "schedule": null,
-          "start_date": 1766664297,
+          "start_date": 1766671556,
           "status": "active",
           "test_clock": null,
           "transfer_data": null,
@@ -801,10 +801,10 @@ http_interactions:
           },
           "trial_start": null
         }
-  recorded_at: Thu, 25 Dec 2025 12:05:05 GMT
+  recorded_at: Thu, 25 Dec 2025 14:05:59 GMT
 - request:
     method: get
-    uri: https://api.stripe.com/v1/subscriptions/sub_1SiDHpH54PcLeqtYcD6cT3Pb
+    uri: https://api.stripe.com/v1/subscriptions/sub_1SiFAuH54PcLeqtYGrdxD6FZ
     body:
       encoding: US-ASCII
       string: ''
@@ -814,7 +814,7 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_43OLRL69DYs8cg","request_duration_ms":142}}'
+      - '{"last_request_metrics":{"request_id":"req_F7AJL8V8in3yrE","request_duration_ms":148}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -833,7 +833,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:05:05 GMT
+      - Thu, 25 Dec 2025 14:05:59 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -856,7 +856,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=-SKf7lhGurDqOgVev0py5kBeoS3bKVqTulaHU3M0DuFhWRWQUqMW40c6invmDP9HAAgddSTvKYAPzkxu
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=aLUj37LsqKLYW1hGP6ZpnKoKCfV_qM-blRv2GcyTzBEGAZOsUyHiz5IZPV9spznioHhEkAT5hXSa7gL_
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -873,7 +873,7 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "sub_1SiDHpH54PcLeqtYcD6cT3Pb",
+          "id": "sub_1SiFAuH54PcLeqtYGrdxD6FZ",
           "object": "subscription",
           "application": null,
           "application_fee_percent": null,
@@ -882,14 +882,14 @@ http_interactions:
             "enabled": false,
             "liability": null
           },
-          "billing_cycle_anchor": 1766664297,
+          "billing_cycle_anchor": 1766671556,
           "billing_cycle_anchor_config": null,
           "billing_mode": {
             "flexible": {
               "proration_discounts": "included"
             },
             "type": "flexible",
-            "updated_at": 1766664297
+            "updated_at": 1766671556
           },
           "billing_thresholds": null,
           "cancel_at": null,
@@ -901,9 +901,9 @@ http_interactions:
             "reason": null
           },
           "collection_method": "charge_automatically",
-          "created": 1766664297,
+          "created": 1766671556,
           "currency": "usd",
-          "customer": "cus_TfYOkR4G095nKS",
+          "customer": "cus_TfaLVcJFPL0ZKm",
           "customer_account": null,
           "days_until_due": null,
           "default_payment_method": null,
@@ -922,22 +922,22 @@ http_interactions:
             "object": "list",
             "data": [
               {
-                "id": "si_TfYOtCYqkZ2Kwk",
+                "id": "si_TfaLlqrycvQarr",
                 "object": "subscription_item",
                 "billing_thresholds": null,
-                "created": 1766664297,
-                "current_period_end": 1769342697,
-                "current_period_start": 1766664297,
+                "created": 1766671557,
+                "current_period_end": 1769349956,
+                "current_period_start": 1766671556,
                 "discounts": [],
                 "metadata": {},
                 "plan": {
-                  "id": "price_1SiDHpH54PcLeqtYC0elKMiA",
+                  "id": "price_1SiFAuH54PcLeqtYWKYQAKXz",
                   "object": "plan",
                   "active": true,
                   "amount": 2000,
                   "amount_decimal": "2000",
                   "billing_scheme": "per_unit",
-                  "created": 1766664297,
+                  "created": 1766671556,
                   "currency": "usd",
                   "interval": "month",
                   "interval_count": 1,
@@ -945,25 +945,25 @@ http_interactions:
                   "metadata": {},
                   "meter": null,
                   "nickname": null,
-                  "product": "prod_TfYODV4KPXDLG2",
+                  "product": "prod_TfaLpUg0M8iXT9",
                   "tiers_mode": null,
                   "transform_usage": null,
                   "trial_period_days": null,
                   "usage_type": "licensed"
                 },
                 "price": {
-                  "id": "price_1SiDHpH54PcLeqtYC0elKMiA",
+                  "id": "price_1SiFAuH54PcLeqtYWKYQAKXz",
                   "object": "price",
                   "active": true,
                   "billing_scheme": "per_unit",
-                  "created": 1766664297,
+                  "created": 1766671556,
                   "currency": "usd",
                   "custom_unit_amount": null,
                   "livemode": false,
                   "lookup_key": null,
                   "metadata": {},
                   "nickname": null,
-                  "product": "prod_TfYODV4KPXDLG2",
+                  "product": "prod_TfaLpUg0M8iXT9",
                   "recurring": {
                     "interval": "month",
                     "interval_count": 1,
@@ -979,15 +979,15 @@ http_interactions:
                   "unit_amount_decimal": "2000"
                 },
                 "quantity": 1,
-                "subscription": "sub_1SiDHpH54PcLeqtYcD6cT3Pb",
+                "subscription": "sub_1SiFAuH54PcLeqtYGrdxD6FZ",
                 "tax_rates": []
               }
             ],
             "has_more": false,
             "total_count": 1,
-            "url": "/v1/subscription_items?subscription=sub_1SiDHpH54PcLeqtYcD6cT3Pb"
+            "url": "/v1/subscription_items?subscription=sub_1SiFAuH54PcLeqtYGrdxD6FZ"
           },
-          "latest_invoice": "in_1SiDHpH54PcLeqtYNBSPUFx2",
+          "latest_invoice": "in_1SiFAuH54PcLeqtYQ08ilgjP",
           "livemode": false,
           "metadata": {},
           "next_pending_invoice_item_invoice": null,
@@ -1002,13 +1002,13 @@ http_interactions:
           "pending_setup_intent": null,
           "pending_update": null,
           "plan": {
-            "id": "price_1SiDHpH54PcLeqtYC0elKMiA",
+            "id": "price_1SiFAuH54PcLeqtYWKYQAKXz",
             "object": "plan",
             "active": true,
             "amount": 2000,
             "amount_decimal": "2000",
             "billing_scheme": "per_unit",
-            "created": 1766664297,
+            "created": 1766671556,
             "currency": "usd",
             "interval": "month",
             "interval_count": 1,
@@ -1016,7 +1016,7 @@ http_interactions:
             "metadata": {},
             "meter": null,
             "nickname": null,
-            "product": "prod_TfYODV4KPXDLG2",
+            "product": "prod_TfaLpUg0M8iXT9",
             "tiers_mode": null,
             "transform_usage": null,
             "trial_period_days": null,
@@ -1024,7 +1024,7 @@ http_interactions:
           },
           "quantity": 1,
           "schedule": null,
-          "start_date": 1766664297,
+          "start_date": 1766671556,
           "status": "active",
           "test_clock": null,
           "transfer_data": null,
@@ -1036,20 +1036,20 @@ http_interactions:
           },
           "trial_start": null
         }
-  recorded_at: Thu, 25 Dec 2025 12:05:05 GMT
+  recorded_at: Thu, 25 Dec 2025 14:05:59 GMT
 - request:
     method: post
-    uri: https://api.stripe.com/v1/subscriptions/sub_1SiDHpH54PcLeqtYcD6cT3Pb
+    uri: https://api.stripe.com/v1/subscriptions/sub_1SiFAuH54PcLeqtYGrdxD6FZ
     body:
       encoding: UTF-8
-      string: items[0][id]=si_TfYOtCYqkZ2Kwk&items[0][price]=price_1SiDHpH54PcLeqtYC0elKMiA&items[0][quantity]=2&proration_behavior=none
+      string: items[0][id]=si_TfaLlqrycvQarr&items[0][price]=price_1SiFAuH54PcLeqtYWKYQAKXz&items[0][quantity]=2&proration_behavior=none
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_TwQRLcgRhmeEEm","request_duration_ms":143}}'
+      - '{"last_request_metrics":{"request_id":"req_8ZWCgjuLBGyNMZ","request_duration_ms":145}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -1070,7 +1070,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:05:06 GMT
+      - Thu, 25 Dec 2025 14:06:00 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -1093,11 +1093,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=-SKf7lhGurDqOgVev0py5kBeoS3bKVqTulaHU3M0DuFhWRWQUqMW40c6invmDP9HAAgddSTvKYAPzkxu
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=aLUj37LsqKLYW1hGP6ZpnKoKCfV_qM-blRv2GcyTzBEGAZOsUyHiz5IZPV9spznioHhEkAT5hXSa7gL_
       Idempotency-Key:
-      - eaed51b9-ec3a-4f6d-8087-e8179bbb2fc4
+      - f42025c0-ad1a-4c86-8a21-78fd16652d20
       Original-Request:
-      - req_bQ1OvtwmUXu7P2
+      - req_oTTGZGaJkTWTXm
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -1116,7 +1116,7 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "sub_1SiDHpH54PcLeqtYcD6cT3Pb",
+          "id": "sub_1SiFAuH54PcLeqtYGrdxD6FZ",
           "object": "subscription",
           "application": null,
           "application_fee_percent": null,
@@ -1125,14 +1125,14 @@ http_interactions:
             "enabled": false,
             "liability": null
           },
-          "billing_cycle_anchor": 1766664297,
+          "billing_cycle_anchor": 1766671556,
           "billing_cycle_anchor_config": null,
           "billing_mode": {
             "flexible": {
               "proration_discounts": "included"
             },
             "type": "flexible",
-            "updated_at": 1766664297
+            "updated_at": 1766671556
           },
           "billing_thresholds": null,
           "cancel_at": null,
@@ -1144,9 +1144,9 @@ http_interactions:
             "reason": null
           },
           "collection_method": "charge_automatically",
-          "created": 1766664297,
+          "created": 1766671556,
           "currency": "usd",
-          "customer": "cus_TfYOkR4G095nKS",
+          "customer": "cus_TfaLVcJFPL0ZKm",
           "customer_account": null,
           "days_until_due": null,
           "default_payment_method": null,
@@ -1165,22 +1165,22 @@ http_interactions:
             "object": "list",
             "data": [
               {
-                "id": "si_TfYOtCYqkZ2Kwk",
+                "id": "si_TfaLlqrycvQarr",
                 "object": "subscription_item",
                 "billing_thresholds": null,
-                "created": 1766664297,
-                "current_period_end": 1769342697,
-                "current_period_start": 1766664297,
+                "created": 1766671557,
+                "current_period_end": 1769349956,
+                "current_period_start": 1766671556,
                 "discounts": [],
                 "metadata": {},
                 "plan": {
-                  "id": "price_1SiDHpH54PcLeqtYC0elKMiA",
+                  "id": "price_1SiFAuH54PcLeqtYWKYQAKXz",
                   "object": "plan",
                   "active": true,
                   "amount": 2000,
                   "amount_decimal": "2000",
                   "billing_scheme": "per_unit",
-                  "created": 1766664297,
+                  "created": 1766671556,
                   "currency": "usd",
                   "interval": "month",
                   "interval_count": 1,
@@ -1188,25 +1188,25 @@ http_interactions:
                   "metadata": {},
                   "meter": null,
                   "nickname": null,
-                  "product": "prod_TfYODV4KPXDLG2",
+                  "product": "prod_TfaLpUg0M8iXT9",
                   "tiers_mode": null,
                   "transform_usage": null,
                   "trial_period_days": null,
                   "usage_type": "licensed"
                 },
                 "price": {
-                  "id": "price_1SiDHpH54PcLeqtYC0elKMiA",
+                  "id": "price_1SiFAuH54PcLeqtYWKYQAKXz",
                   "object": "price",
                   "active": true,
                   "billing_scheme": "per_unit",
-                  "created": 1766664297,
+                  "created": 1766671556,
                   "currency": "usd",
                   "custom_unit_amount": null,
                   "livemode": false,
                   "lookup_key": null,
                   "metadata": {},
                   "nickname": null,
-                  "product": "prod_TfYODV4KPXDLG2",
+                  "product": "prod_TfaLpUg0M8iXT9",
                   "recurring": {
                     "interval": "month",
                     "interval_count": 1,
@@ -1222,15 +1222,15 @@ http_interactions:
                   "unit_amount_decimal": "2000"
                 },
                 "quantity": 2,
-                "subscription": "sub_1SiDHpH54PcLeqtYcD6cT3Pb",
+                "subscription": "sub_1SiFAuH54PcLeqtYGrdxD6FZ",
                 "tax_rates": []
               }
             ],
             "has_more": false,
             "total_count": 1,
-            "url": "/v1/subscription_items?subscription=sub_1SiDHpH54PcLeqtYcD6cT3Pb"
+            "url": "/v1/subscription_items?subscription=sub_1SiFAuH54PcLeqtYGrdxD6FZ"
           },
-          "latest_invoice": "in_1SiDHpH54PcLeqtYNBSPUFx2",
+          "latest_invoice": "in_1SiFAuH54PcLeqtYQ08ilgjP",
           "livemode": false,
           "metadata": {},
           "next_pending_invoice_item_invoice": null,
@@ -1245,13 +1245,13 @@ http_interactions:
           "pending_setup_intent": null,
           "pending_update": null,
           "plan": {
-            "id": "price_1SiDHpH54PcLeqtYC0elKMiA",
+            "id": "price_1SiFAuH54PcLeqtYWKYQAKXz",
             "object": "plan",
             "active": true,
             "amount": 2000,
             "amount_decimal": "2000",
             "billing_scheme": "per_unit",
-            "created": 1766664297,
+            "created": 1766671556,
             "currency": "usd",
             "interval": "month",
             "interval_count": 1,
@@ -1259,7 +1259,7 @@ http_interactions:
             "metadata": {},
             "meter": null,
             "nickname": null,
-            "product": "prod_TfYODV4KPXDLG2",
+            "product": "prod_TfaLpUg0M8iXT9",
             "tiers_mode": null,
             "transform_usage": null,
             "trial_period_days": null,
@@ -1267,7 +1267,7 @@ http_interactions:
           },
           "quantity": 2,
           "schedule": null,
-          "start_date": 1766664297,
+          "start_date": 1766671556,
           "status": "active",
           "test_clock": null,
           "transfer_data": null,
@@ -1279,10 +1279,10 @@ http_interactions:
           },
           "trial_start": null
         }
-  recorded_at: Thu, 25 Dec 2025 12:05:06 GMT
+  recorded_at: Thu, 25 Dec 2025 14:06:00 GMT
 - request:
     method: delete
-    uri: https://api.stripe.com/v1/customers/cus_TfYOkR4G095nKS
+    uri: https://api.stripe.com/v1/customers/cus_TfaLVcJFPL0ZKm
     body:
       encoding: US-ASCII
       string: ''
@@ -1292,7 +1292,7 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_bQ1OvtwmUXu7P2","request_duration_ms":822}}'
+      - '{"last_request_metrics":{"request_id":"req_oTTGZGaJkTWTXm","request_duration_ms":816}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -1311,7 +1311,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:05:07 GMT
+      - Thu, 25 Dec 2025 14:06:01 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -1334,7 +1334,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=-SKf7lhGurDqOgVev0py5kBeoS3bKVqTulaHU3M0DuFhWRWQUqMW40c6invmDP9HAAgddSTvKYAPzkxu
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=aLUj37LsqKLYW1hGP6ZpnKoKCfV_qM-blRv2GcyTzBEGAZOsUyHiz5IZPV9spznioHhEkAT5hXSa7gL_
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -1351,9 +1351,9 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TfYOkR4G095nKS",
+          "id": "cus_TfaLVcJFPL0ZKm",
           "object": "customer",
           "deleted": true
         }
-  recorded_at: Thu, 25 Dec 2025 12:05:07 GMT
+  recorded_at: Thu, 25 Dec 2025 14:06:01 GMT
 recorded_with: VCR 6.3.1

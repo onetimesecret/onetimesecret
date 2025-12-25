@@ -12,7 +12,7 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_itsK8AzNEILqpc","request_duration_ms":529}}'
+      - '{"last_request_metrics":{"request_id":"req_7nHtxXUxAnqeof","request_duration_ms":513}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -31,7 +31,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:05:51 GMT
+      - Thu, 25 Dec 2025 14:06:01 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -54,7 +54,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=wMWUbyEa82-HEdEH6a--SP57vqEN_Zd-DhuGyY0SojoFjIlR8N6KM2OVGfvK6aiqOUpUYWLb0TXI1BNa
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=dl_LBPlBhTwIKRsGhit0-R6hWnHy92CP4dx5l4yoXKqlJMmS-9UGGqmUsMyqd_ST3nd3fUJee7GjgbeQ
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -76,9 +76,9 @@ http_interactions:
             "doc_url": "https://stripe.com/docs/error-codes/resource-missing",
             "message": "No such subscription: 'sub_nonexistent'",
             "param": "id",
-            "request_log_url": "https://dashboard.stripe.com/test/logs/req_WCLkfim6pdEgMa?t=1766664351",
+            "request_log_url": "https://dashboard.stripe.com/test/logs/req_8QNpLcJvzPUScz?t=1766671561",
             "type": "invalid_request_error"
           }
         }
-  recorded_at: Thu, 25 Dec 2025 12:05:51 GMT
+  recorded_at: Thu, 25 Dec 2025 14:06:01 GMT
 recorded_with: VCR 6.3.1

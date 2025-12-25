@@ -11,8 +11,10 @@ http_interactions:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_F3Ae9LnkdLLrfa","request_duration_ms":218}}'
       Idempotency-Key:
-      - 1766664426-4e3842f7-e39e-43ec-add1-0d5e945deaa5
+      - 1766671658-032a1dd2-4dcf-4a7b-bd85-33eea98e4e32
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -33,7 +35,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:07:06 GMT
+      - Thu, 25 Dec 2025 14:07:38 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -56,11 +58,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=H4OaKD60I20M2ziVCTwwKLbIx9srkM-g53Hun4JDv_m8XIJh_8gCWx7fWkhxxGXvNQsfowDqq25KWKpV
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=9mXqVbAoZnI209LBV4v2Es5-P_D1WJrFXhIwwilimPMvqJhAwd48p43_xlk1cNqRt5INJT_OLXX1rGXO
       Idempotency-Key:
-      - 1766664426-4e3842f7-e39e-43ec-add1-0d5e945deaa5
+      - 1766671658-032a1dd2-4dcf-4a7b-bd85-33eea98e4e32
       Original-Request:
-      - req_UdHVubFwZp6eNH
+      - req_Iz0IMoKyMWNKrA
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -79,11 +81,11 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "prod_TfYQrUP2nuKpfq",
+          "id": "prod_TfaN0QCer492Mh",
           "object": "product",
           "active": true,
           "attributes": [],
-          "created": 1766664426,
+          "created": 1766671658,
           "default_price": null,
           "description": "Test product description",
           "images": [],
@@ -97,13 +99,13 @@ http_interactions:
           "tax_code": null,
           "type": "service",
           "unit_label": null,
-          "updated": 1766664426,
+          "updated": 1766671658,
           "url": null
         }
-  recorded_at: Thu, 25 Dec 2025 12:07:06 GMT
+  recorded_at: Thu, 25 Dec 2025 14:07:38 GMT
 - request:
     method: get
-    uri: https://api.stripe.com/v1/products/prod_TfYQrUP2nuKpfq
+    uri: https://api.stripe.com/v1/products/prod_TfaN0QCer492Mh
     body:
       encoding: US-ASCII
       string: ''
@@ -113,7 +115,7 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_UdHVubFwZp6eNH","request_duration_ms":235}}'
+      - '{"last_request_metrics":{"request_id":"req_Iz0IMoKyMWNKrA","request_duration_ms":232}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -132,7 +134,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:07:06 GMT
+      - Thu, 25 Dec 2025 14:07:38 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -155,7 +157,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=H4OaKD60I20M2ziVCTwwKLbIx9srkM-g53Hun4JDv_m8XIJh_8gCWx7fWkhxxGXvNQsfowDqq25KWKpV
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=9mXqVbAoZnI209LBV4v2Es5-P_D1WJrFXhIwwilimPMvqJhAwd48p43_xlk1cNqRt5INJT_OLXX1rGXO
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -172,11 +174,11 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "prod_TfYQrUP2nuKpfq",
+          "id": "prod_TfaN0QCer492Mh",
           "object": "product",
           "active": true,
           "attributes": [],
-          "created": 1766664426,
+          "created": 1766671658,
           "default_price": null,
           "description": "Test product description",
           "images": [],
@@ -190,13 +192,13 @@ http_interactions:
           "tax_code": null,
           "type": "service",
           "unit_label": null,
-          "updated": 1766664426,
+          "updated": 1766671658,
           "url": null
         }
-  recorded_at: Thu, 25 Dec 2025 12:07:06 GMT
+  recorded_at: Thu, 25 Dec 2025 14:07:38 GMT
 - request:
     method: get
-    uri: https://api.stripe.com/v1/prices?limit=100&product=prod_TfYQrUP2nuKpfq
+    uri: https://api.stripe.com/v1/prices?limit=100&product=prod_TfaN0QCer492Mh
     body:
       encoding: US-ASCII
       string: ''
@@ -206,7 +208,7 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_ywm52JqMcDyftz","request_duration_ms":109}}'
+      - '{"last_request_metrics":{"request_id":"req_LLHKTWo4LsEzeP","request_duration_ms":114}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -225,7 +227,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:07:06 GMT
+      - Thu, 25 Dec 2025 14:07:38 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -248,7 +250,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=H4OaKD60I20M2ziVCTwwKLbIx9srkM-g53Hun4JDv_m8XIJh_8gCWx7fWkhxxGXvNQsfowDqq25KWKpV
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=9mXqVbAoZnI209LBV4v2Es5-P_D1WJrFXhIwwilimPMvqJhAwd48p43_xlk1cNqRt5INJT_OLXX1rGXO
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -270,10 +272,10 @@ http_interactions:
           "has_more": false,
           "url": "/v1/prices"
         }
-  recorded_at: Thu, 25 Dec 2025 12:07:06 GMT
+  recorded_at: Thu, 25 Dec 2025 14:07:38 GMT
 - request:
     method: delete
-    uri: https://api.stripe.com/v1/products/prod_TfYQrUP2nuKpfq
+    uri: https://api.stripe.com/v1/products/prod_TfaN0QCer492Mh
     body:
       encoding: US-ASCII
       string: ''
@@ -283,7 +285,7 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_TsHNxGtBMs694X","request_duration_ms":111}}'
+      - '{"last_request_metrics":{"request_id":"req_F0LXHQWpsQrArt","request_duration_ms":115}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -302,7 +304,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:07:06 GMT
+      - Thu, 25 Dec 2025 14:07:39 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -325,7 +327,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=H4OaKD60I20M2ziVCTwwKLbIx9srkM-g53Hun4JDv_m8XIJh_8gCWx7fWkhxxGXvNQsfowDqq25KWKpV
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=9mXqVbAoZnI209LBV4v2Es5-P_D1WJrFXhIwwilimPMvqJhAwd48p43_xlk1cNqRt5INJT_OLXX1rGXO
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -342,9 +344,9 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "prod_TfYQrUP2nuKpfq",
+          "id": "prod_TfaN0QCer492Mh",
           "object": "product",
           "deleted": true
         }
-  recorded_at: Thu, 25 Dec 2025 12:07:06 GMT
+  recorded_at: Thu, 25 Dec 2025 14:07:39 GMT
 recorded_with: VCR 6.3.1

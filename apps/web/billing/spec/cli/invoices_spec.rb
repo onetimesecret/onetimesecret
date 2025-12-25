@@ -26,8 +26,9 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :code_smell, :inte
   def create_test_invoice(email: 'invoice-test@example.com', status: 'draft')
     customer = stripe_client.create(Stripe::Customer, { email: email })
 
+    # Note: Uses fixed product name for VCR cassette replay (matching on body)
     product = stripe_client.create(Stripe::Product, {
-      name: "Test Product #{Time.now.to_i}",
+      name: 'VCR Test Product',
     }
     )
 
@@ -108,8 +109,9 @@ RSpec.describe 'Billing Invoices CLI Commands', :billing_cli, :code_smell, :inte
           }
           )
 
+          # Note: Uses fixed product name for VCR cassette replay (matching on body)
           product = stripe_client.create(Stripe::Product, {
-            name: "Test Product #{Time.now.to_i}",
+            name: 'VCR Test Product',
           }
           )
 

@@ -12,9 +12,9 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_kncfhvQBjQtLsz","request_duration_ms":219}}'
+      - '{"last_request_metrics":{"request_id":"req_EDCCVKh4mcRbc4","request_duration_ms":246}}'
       Idempotency-Key:
-      - 1766666495-5564633c-b0de-4da1-b322-f94126bf4b9c
+      - 1766671609-13918c2c-af36-479b-8d3a-bce41bed5671
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -35,7 +35,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:41:35 GMT
+      - Thu, 25 Dec 2025 14:06:49 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -58,11 +58,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=4SU-Yacf8l2ZzJH_nVMBJYeIsnZQmv43vzRbpz1KGNuJyqShChZF8K-bXJb-w53vVEu-W-HPARL3HEcM
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=e0uk2Sf7jRPgjWC_j3LKSFHAj5SntXhXCEqZtMgXEoQStTDjmMmzEj__9ANd4uIjLdUZ4hl5hLAjQB3K
       Idempotency-Key:
-      - 1766666495-5564633c-b0de-4da1-b322-f94126bf4b9c
+      - 1766671609-13918c2c-af36-479b-8d3a-bce41bed5671
       Original-Request:
-      - req_Zr9e6u9G9BfiPQ
+      - req_qdFB1YYGwWkaqe
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -81,11 +81,11 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TfYzIntxUw9d4j",
+          "id": "cus_TfaMmH0gaSwoqq",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766666495,
+          "created": 1766671609,
           "currency": null,
           "customer_account": null,
           "default_source": null,
@@ -93,7 +93,7 @@ http_interactions:
           "description": null,
           "discount": null,
           "email": "invoice-test@example.com",
-          "invoice_prefix": "0VDQYPID",
+          "invoice_prefix": "PC7POV1W",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -110,22 +110,22 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Thu, 25 Dec 2025 12:41:35 GMT
+  recorded_at: Thu, 25 Dec 2025 14:06:49 GMT
 - request:
     method: post
     uri: https://api.stripe.com/v1/products
     body:
       encoding: UTF-8
-      string: name=Test+Product+1766666495
+      string: name=VCR+Test+Product
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_Zr9e6u9G9BfiPQ","request_duration_ms":244}}'
+      - '{"last_request_metrics":{"request_id":"req_qdFB1YYGwWkaqe","request_duration_ms":238}}'
       Idempotency-Key:
-      - 1766666495-1b395cfb-0123-4a4e-83b3-6910d4ba55b3
+      - 1766671609-3ac6e84d-1236-4170-9389-c48720848c31
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -146,11 +146,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:41:35 GMT
+      - Thu, 25 Dec 2025 14:06:49 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '473'
+      - '466'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -169,11 +169,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=4SU-Yacf8l2ZzJH_nVMBJYeIsnZQmv43vzRbpz1KGNuJyqShChZF8K-bXJb-w53vVEu-W-HPARL3HEcM
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=e0uk2Sf7jRPgjWC_j3LKSFHAj5SntXhXCEqZtMgXEoQStTDjmMmzEj__9ANd4uIjLdUZ4hl5hLAjQB3K
       Idempotency-Key:
-      - 1766666495-1b395cfb-0123-4a4e-83b3-6910d4ba55b3
+      - 1766671609-3ac6e84d-1236-4170-9389-c48720848c31
       Original-Request:
-      - req_Tu28ArxIjtIsBD
+      - req_7NVPoCiRM06NT8
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -192,43 +192,43 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "prod_TfYz80rgnAt4Vv",
+          "id": "prod_TfaMO5uAdC3jgU",
           "object": "product",
           "active": true,
           "attributes": [],
-          "created": 1766666495,
+          "created": 1766671609,
           "default_price": null,
           "description": null,
           "images": [],
           "livemode": false,
           "marketing_features": [],
           "metadata": {},
-          "name": "Test Product 1766666495",
+          "name": "VCR Test Product",
           "package_dimensions": null,
           "shippable": null,
           "statement_descriptor": null,
           "tax_code": null,
           "type": "service",
           "unit_label": null,
-          "updated": 1766666495,
+          "updated": 1766671609,
           "url": null
         }
-  recorded_at: Thu, 25 Dec 2025 12:41:35 GMT
+  recorded_at: Thu, 25 Dec 2025 14:06:49 GMT
 - request:
     method: post
     uri: https://api.stripe.com/v1/prices
     body:
       encoding: UTF-8
-      string: unit_amount=5000&currency=usd&product=prod_TfYz80rgnAt4Vv
+      string: unit_amount=5000&currency=usd&product=prod_TfaMO5uAdC3jgU
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_Tu28ArxIjtIsBD","request_duration_ms":186}}'
+      - '{"last_request_metrics":{"request_id":"req_7NVPoCiRM06NT8","request_duration_ms":195}}'
       Idempotency-Key:
-      - 1766666495-76988c2d-c14c-429c-b755-5bb3837ee029
+      - 1766671609-16df7ff3-2030-4bd2-93cf-9e7d972564a4
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -249,7 +249,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:41:35 GMT
+      - Thu, 25 Dec 2025 14:06:50 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -272,11 +272,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=4SU-Yacf8l2ZzJH_nVMBJYeIsnZQmv43vzRbpz1KGNuJyqShChZF8K-bXJb-w53vVEu-W-HPARL3HEcM
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=e0uk2Sf7jRPgjWC_j3LKSFHAj5SntXhXCEqZtMgXEoQStTDjmMmzEj__9ANd4uIjLdUZ4hl5hLAjQB3K
       Idempotency-Key:
-      - 1766666495-76988c2d-c14c-429c-b755-5bb3837ee029
+      - 1766671609-16df7ff3-2030-4bd2-93cf-9e7d972564a4
       Original-Request:
-      - req_CAyF6YtRvVeT2Z
+      - req_fw0nGDkzgCt77H
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -295,18 +295,18 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "price_1SiDrHH54PcLeqtYQOCHYdh0",
+          "id": "price_1SiFBmH54PcLeqtYuLzfxJGx",
           "object": "price",
           "active": true,
           "billing_scheme": "per_unit",
-          "created": 1766666495,
+          "created": 1766671610,
           "currency": "usd",
           "custom_unit_amount": null,
           "livemode": false,
           "lookup_key": null,
           "metadata": {},
           "nickname": null,
-          "product": "prod_TfYz80rgnAt4Vv",
+          "product": "prod_TfaMO5uAdC3jgU",
           "recurring": null,
           "tax_behavior": "unspecified",
           "tiers_mode": null,
@@ -315,22 +315,22 @@ http_interactions:
           "unit_amount": 5000,
           "unit_amount_decimal": "5000"
         }
-  recorded_at: Thu, 25 Dec 2025 12:41:35 GMT
+  recorded_at: Thu, 25 Dec 2025 14:06:50 GMT
 - request:
     method: post
     uri: https://api.stripe.com/v1/invoiceitems
     body:
       encoding: UTF-8
-      string: customer=cus_TfYzIntxUw9d4j&pricing[price]=price_1SiDrHH54PcLeqtYQOCHYdh0
+      string: customer=cus_TfaMmH0gaSwoqq&pricing[price]=price_1SiFBmH54PcLeqtYuLzfxJGx
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_CAyF6YtRvVeT2Z","request_duration_ms":178}}'
+      - '{"last_request_metrics":{"request_id":"req_fw0nGDkzgCt77H","request_duration_ms":183}}'
       Idempotency-Key:
-      - 1766666495-640c45be-06c7-41dc-9d40-b163e84a567b
+      - 1766671610-c37188de-fb09-431c-a275-bcb18c3664fa
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -351,11 +351,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:41:36 GMT
+      - Thu, 25 Dec 2025 14:06:50 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '703'
+      - '696'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -374,11 +374,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=4SU-Yacf8l2ZzJH_nVMBJYeIsnZQmv43vzRbpz1KGNuJyqShChZF8K-bXJb-w53vVEu-W-HPARL3HEcM
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=e0uk2Sf7jRPgjWC_j3LKSFHAj5SntXhXCEqZtMgXEoQStTDjmMmzEj__9ANd4uIjLdUZ4hl5hLAjQB3K
       Idempotency-Key:
-      - 1766666495-640c45be-06c7-41dc-9d40-b163e84a567b
+      - 1766671610-c37188de-fb09-431c-a275-bcb18c3664fa
       Original-Request:
-      - req_KlCchnoU3l7ioB
+      - req_OVWiPTP81fqcuz
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -397,14 +397,14 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "ii_1SiDrHH54PcLeqtYtIg441oC",
+          "id": "ii_1SiFBmH54PcLeqtYvAkc24d9",
           "object": "invoiceitem",
           "amount": 5000,
           "currency": "usd",
-          "customer": "cus_TfYzIntxUw9d4j",
+          "customer": "cus_TfaMmH0gaSwoqq",
           "customer_account": null,
-          "date": 1766666495,
-          "description": "Test Product 1766666495",
+          "date": 1766671610,
+          "description": "VCR Test Product",
           "discountable": true,
           "discounts": [],
           "invoice": null,
@@ -412,13 +412,13 @@ http_interactions:
           "metadata": {},
           "parent": null,
           "period": {
-            "end": 1766666495,
-            "start": 1766666495
+            "end": 1766671610,
+            "start": 1766671610
           },
           "pricing": {
             "price_details": {
-              "price": "price_1SiDrHH54PcLeqtYQOCHYdh0",
-              "product": "prod_TfYz80rgnAt4Vv"
+              "price": "price_1SiFBmH54PcLeqtYuLzfxJGx",
+              "product": "prod_TfaMO5uAdC3jgU"
             },
             "type": "price_details",
             "unit_amount_decimal": "5000"
@@ -428,22 +428,22 @@ http_interactions:
           "tax_rates": [],
           "test_clock": null
         }
-  recorded_at: Thu, 25 Dec 2025 12:41:35 GMT
+  recorded_at: Thu, 25 Dec 2025 14:06:50 GMT
 - request:
     method: post
     uri: https://api.stripe.com/v1/invoices
     body:
       encoding: UTF-8
-      string: customer=cus_TfYzIntxUw9d4j&auto_advance=false
+      string: customer=cus_TfaMmH0gaSwoqq&auto_advance=false
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_KlCchnoU3l7ioB","request_duration_ms":264}}'
+      - '{"last_request_metrics":{"request_id":"req_OVWiPTP81fqcuz","request_duration_ms":227}}'
       Idempotency-Key:
-      - 1766666495-09eba0a6-5b75-4fb5-a6cc-1ae153eebd58
+      - 1766671610-7f2dc690-53cc-4e7c-9586-0df0adda2de6
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -464,7 +464,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:41:36 GMT
+      - Thu, 25 Dec 2025 14:06:50 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -487,11 +487,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=4SU-Yacf8l2ZzJH_nVMBJYeIsnZQmv43vzRbpz1KGNuJyqShChZF8K-bXJb-w53vVEu-W-HPARL3HEcM
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=e0uk2Sf7jRPgjWC_j3LKSFHAj5SntXhXCEqZtMgXEoQStTDjmMmzEj__9ANd4uIjLdUZ4hl5hLAjQB3K
       Idempotency-Key:
-      - 1766666495-09eba0a6-5b75-4fb5-a6cc-1ae153eebd58
+      - 1766671610-7f2dc690-53cc-4e7c-9586-0df0adda2de6
       Original-Request:
-      - req_C1I5f55XuQkEbV
+      - req_5owrslfP7YeQHb
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -510,7 +510,7 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "in_1SiDrIH54PcLeqtYZvaJVwyT",
+          "id": "in_1SiFBmH54PcLeqtYhE4xSgjZ",
           "object": "invoice",
           "account_country": "CA",
           "account_name": "Onetime.dev",
@@ -534,10 +534,10 @@ http_interactions:
           "automatically_finalizes_at": null,
           "billing_reason": "manual",
           "collection_method": "charge_automatically",
-          "created": 1766666496,
+          "created": 1766671610,
           "currency": "usd",
           "custom_fields": null,
-          "customer": "cus_TfYzIntxUw9d4j",
+          "customer": "cus_TfaMmH0gaSwoqq",
           "customer_account": null,
           "customer_address": null,
           "customer_email": "invoice-test@example.com",
@@ -568,7 +568,7 @@ http_interactions:
             "data": [],
             "has_more": false,
             "total_count": 0,
-            "url": "/v1/invoices/in_1SiDrIH54PcLeqtYZvaJVwyT/lines"
+            "url": "/v1/invoices/in_1SiFBmH54PcLeqtYhE4xSgjZ/lines"
           },
           "livemode": false,
           "metadata": {},
@@ -581,8 +581,8 @@ http_interactions:
             "payment_method_options": null,
             "payment_method_types": null
           },
-          "period_end": 1766666496,
-          "period_start": 1766666496,
+          "period_end": 1766671610,
+          "period_start": 1766671610,
           "post_payment_credit_notes_amount": 0,
           "pre_payment_credit_notes_amount": 0,
           "receipt_number": null,
@@ -613,9 +613,9 @@ http_interactions:
           "total_excluding_tax": 0,
           "total_pretax_credit_amounts": [],
           "total_taxes": [],
-          "webhooks_delivered_at": 1766666496
+          "webhooks_delivered_at": 1766671610
         }
-  recorded_at: Thu, 25 Dec 2025 12:41:36 GMT
+  recorded_at: Thu, 25 Dec 2025 14:06:50 GMT
 - request:
     method: get
     uri: https://api.stripe.com/v1/invoices?limit=10&status=draft
@@ -628,7 +628,7 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_C1I5f55XuQkEbV","request_duration_ms":358}}'
+      - '{"last_request_metrics":{"request_id":"req_5owrslfP7YeQHb","request_duration_ms":367}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -647,11 +647,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:41:36 GMT
+      - Thu, 25 Dec 2025 14:06:51 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '30333'
+      - '30357'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -670,7 +670,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=4SU-Yacf8l2ZzJH_nVMBJYeIsnZQmv43vzRbpz1KGNuJyqShChZF8K-bXJb-w53vVEu-W-HPARL3HEcM
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=e0uk2Sf7jRPgjWC_j3LKSFHAj5SntXhXCEqZtMgXEoQStTDjmMmzEj__9ANd4uIjLdUZ4hl5hLAjQB3K
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -690,7 +690,7 @@ http_interactions:
           "object": "list",
           "data": [
             {
-              "id": "in_1SiDrIH54PcLeqtYZvaJVwyT",
+              "id": "in_1SiFBmH54PcLeqtYhE4xSgjZ",
               "object": "invoice",
               "account_country": "CA",
               "account_name": "Onetime.dev",
@@ -714,10 +714,10 @@ http_interactions:
               "automatically_finalizes_at": null,
               "billing_reason": "manual",
               "collection_method": "charge_automatically",
-              "created": 1766666496,
+              "created": 1766671610,
               "currency": "usd",
               "custom_fields": null,
-              "customer": "cus_TfYzIntxUw9d4j",
+              "customer": "cus_TfaMmH0gaSwoqq",
               "customer_account": null,
               "customer_address": null,
               "customer_email": "invoice-test@example.com",
@@ -748,7 +748,7 @@ http_interactions:
                 "data": [],
                 "has_more": false,
                 "total_count": 0,
-                "url": "/v1/invoices/in_1SiDrIH54PcLeqtYZvaJVwyT/lines"
+                "url": "/v1/invoices/in_1SiFBmH54PcLeqtYhE4xSgjZ/lines"
               },
               "livemode": false,
               "metadata": {},
@@ -761,8 +761,8 @@ http_interactions:
                 "payment_method_options": null,
                 "payment_method_types": null
               },
-              "period_end": 1766666496,
-              "period_start": 1766666496,
+              "period_end": 1766671610,
+              "period_start": 1766671610,
               "post_payment_credit_notes_amount": 0,
               "pre_payment_credit_notes_amount": 0,
               "receipt_number": null,
@@ -793,10 +793,10 @@ http_interactions:
               "total_excluding_tax": 0,
               "total_pretax_credit_amounts": [],
               "total_taxes": [],
-              "webhooks_delivered_at": 1766666496
+              "webhooks_delivered_at": 1766671610
             },
             {
-              "id": "in_1SiDrEH54PcLeqtYlqKLlg4s",
+              "id": "in_1SiF21H54PcLeqtYMcfA75SC",
               "object": "invoice",
               "account_country": "CA",
               "account_name": "Onetime.dev",
@@ -820,10 +820,10 @@ http_interactions:
               "automatically_finalizes_at": null,
               "billing_reason": "manual",
               "collection_method": "charge_automatically",
-              "created": 1766666492,
+              "created": 1766671005,
               "currency": "usd",
               "custom_fields": null,
-              "customer": "cus_TfYznWj1bon2pw",
+              "customer": "cus_TfaCnl1cfSRHTL",
               "customer_account": null,
               "customer_address": null,
               "customer_email": "invoice-test@example.com",
@@ -854,7 +854,7 @@ http_interactions:
                 "data": [],
                 "has_more": false,
                 "total_count": 0,
-                "url": "/v1/invoices/in_1SiDrEH54PcLeqtYlqKLlg4s/lines"
+                "url": "/v1/invoices/in_1SiF21H54PcLeqtYMcfA75SC/lines"
               },
               "livemode": false,
               "metadata": {},
@@ -867,8 +867,8 @@ http_interactions:
                 "payment_method_options": null,
                 "payment_method_types": null
               },
-              "period_end": 1766666492,
-              "period_start": 1766666492,
+              "period_end": 1766671005,
+              "period_start": 1766671005,
               "post_payment_credit_notes_amount": 0,
               "pre_payment_credit_notes_amount": 0,
               "receipt_number": null,
@@ -899,10 +899,10 @@ http_interactions:
               "total_excluding_tax": 0,
               "total_pretax_credit_amounts": [],
               "total_taxes": [],
-              "webhooks_delivered_at": 1766666492
+              "webhooks_delivered_at": 1766671005
             },
             {
-              "id": "in_1SiDrCH54PcLeqtYKBFREHHg",
+              "id": "in_1SiF1xH54PcLeqtYSTIQ1il1",
               "object": "invoice",
               "account_country": "CA",
               "account_name": "Onetime.dev",
@@ -926,10 +926,10 @@ http_interactions:
               "automatically_finalizes_at": null,
               "billing_reason": "manual",
               "collection_method": "charge_automatically",
-              "created": 1766666490,
+              "created": 1766671001,
               "currency": "usd",
               "custom_fields": null,
-              "customer": "cus_TfYziLgY0KZ1Pn",
+              "customer": "cus_TfaCFYCcV1bKH5",
               "customer_account": null,
               "customer_address": null,
               "customer_email": "invoice-test@example.com",
@@ -960,7 +960,7 @@ http_interactions:
                 "data": [],
                 "has_more": false,
                 "total_count": 0,
-                "url": "/v1/invoices/in_1SiDrCH54PcLeqtYKBFREHHg/lines"
+                "url": "/v1/invoices/in_1SiF1xH54PcLeqtYSTIQ1il1/lines"
               },
               "livemode": false,
               "metadata": {},
@@ -973,8 +973,8 @@ http_interactions:
                 "payment_method_options": null,
                 "payment_method_types": null
               },
-              "period_end": 1766666490,
-              "period_start": 1766666490,
+              "period_end": 1766671001,
+              "period_start": 1766671001,
               "post_payment_credit_notes_amount": 0,
               "pre_payment_credit_notes_amount": 0,
               "receipt_number": null,
@@ -1005,10 +1005,10 @@ http_interactions:
               "total_excluding_tax": 0,
               "total_pretax_credit_amounts": [],
               "total_taxes": [],
-              "webhooks_delivered_at": 1766666490
+              "webhooks_delivered_at": 1766671001
             },
             {
-              "id": "in_1SiDrAH54PcLeqtYiJ0DGsi8",
+              "id": "in_1SiF1vH54PcLeqtYnyHby08l",
               "object": "invoice",
               "account_country": "CA",
               "account_name": "Onetime.dev",
@@ -1032,10 +1032,10 @@ http_interactions:
               "automatically_finalizes_at": null,
               "billing_reason": "manual",
               "collection_method": "charge_automatically",
-              "created": 1766666488,
+              "created": 1766670999,
               "currency": "usd",
               "custom_fields": null,
-              "customer": "cus_TfYz0RhITMFZ9P",
+              "customer": "cus_TfaCDBZwnVxCaQ",
               "customer_account": null,
               "customer_address": null,
               "customer_email": "invoice-test@example.com",
@@ -1066,7 +1066,7 @@ http_interactions:
                 "data": [],
                 "has_more": false,
                 "total_count": 0,
-                "url": "/v1/invoices/in_1SiDrAH54PcLeqtYiJ0DGsi8/lines"
+                "url": "/v1/invoices/in_1SiF1vH54PcLeqtYnyHby08l/lines"
               },
               "livemode": false,
               "metadata": {},
@@ -1079,8 +1079,8 @@ http_interactions:
                 "payment_method_options": null,
                 "payment_method_types": null
               },
-              "period_end": 1766666488,
-              "period_start": 1766666488,
+              "period_end": 1766670999,
+              "period_start": 1766670999,
               "post_payment_credit_notes_amount": 0,
               "pre_payment_credit_notes_amount": 0,
               "receipt_number": null,
@@ -1111,10 +1111,10 @@ http_interactions:
               "total_excluding_tax": 0,
               "total_pretax_credit_amounts": [],
               "total_taxes": [],
-              "webhooks_delivered_at": 1766666488
+              "webhooks_delivered_at": 1766670999
             },
             {
-              "id": "in_1SiDr9H54PcLeqtYvXXBcOl3",
+              "id": "in_1SiF1tH54PcLeqtYCgpWQXJj",
               "object": "invoice",
               "account_country": "CA",
               "account_name": "Onetime.dev",
@@ -1138,10 +1138,10 @@ http_interactions:
               "automatically_finalizes_at": null,
               "billing_reason": "manual",
               "collection_method": "charge_automatically",
-              "created": 1766666487,
+              "created": 1766670997,
               "currency": "usd",
               "custom_fields": null,
-              "customer": "cus_TfYz5AByk3t7fi",
+              "customer": "cus_TfaC9a2yTaqbb8",
               "customer_account": null,
               "customer_address": null,
               "customer_email": "invoice-test@example.com",
@@ -1172,7 +1172,7 @@ http_interactions:
                 "data": [],
                 "has_more": false,
                 "total_count": 0,
-                "url": "/v1/invoices/in_1SiDr9H54PcLeqtYvXXBcOl3/lines"
+                "url": "/v1/invoices/in_1SiF1tH54PcLeqtYCgpWQXJj/lines"
               },
               "livemode": false,
               "metadata": {},
@@ -1185,8 +1185,8 @@ http_interactions:
                 "payment_method_options": null,
                 "payment_method_types": null
               },
-              "period_end": 1766666487,
-              "period_start": 1766666487,
+              "period_end": 1766670997,
+              "period_start": 1766670997,
               "post_payment_credit_notes_amount": 0,
               "pre_payment_credit_notes_amount": 0,
               "receipt_number": null,
@@ -1217,10 +1217,10 @@ http_interactions:
               "total_excluding_tax": 0,
               "total_pretax_credit_amounts": [],
               "total_taxes": [],
-              "webhooks_delivered_at": 1766666487
+              "webhooks_delivered_at": 1766670997
             },
             {
-              "id": "in_1SiDedH54PcLeqtY6rVMqorC",
+              "id": "in_1SiF1sH54PcLeqtYuPFufrrF",
               "object": "invoice",
               "account_country": "CA",
               "account_name": "Onetime.dev",
@@ -1244,10 +1244,10 @@ http_interactions:
               "automatically_finalizes_at": null,
               "billing_reason": "manual",
               "collection_method": "charge_automatically",
-              "created": 1766665711,
+              "created": 1766670996,
               "currency": "usd",
               "custom_fields": null,
-              "customer": "cus_TfYmVW4UTiX47B",
+              "customer": "cus_TfaCOlyYAikHkN",
               "customer_account": null,
               "customer_address": null,
               "customer_email": "invoice-test@example.com",
@@ -1278,7 +1278,7 @@ http_interactions:
                 "data": [],
                 "has_more": false,
                 "total_count": 0,
-                "url": "/v1/invoices/in_1SiDedH54PcLeqtY6rVMqorC/lines"
+                "url": "/v1/invoices/in_1SiF1sH54PcLeqtYuPFufrrF/lines"
               },
               "livemode": false,
               "metadata": {},
@@ -1291,8 +1291,8 @@ http_interactions:
                 "payment_method_options": null,
                 "payment_method_types": null
               },
-              "period_end": 1766665711,
-              "period_start": 1766665711,
+              "period_end": 1766670996,
+              "period_start": 1766670996,
               "post_payment_credit_notes_amount": 0,
               "pre_payment_credit_notes_amount": 0,
               "receipt_number": null,
@@ -1323,10 +1323,10 @@ http_interactions:
               "total_excluding_tax": 0,
               "total_pretax_credit_amounts": [],
               "total_taxes": [],
-              "webhooks_delivered_at": 1766665711
+              "webhooks_delivered_at": 1766670996
             },
             {
-              "id": "in_1SiDecH54PcLeqtYSn9bFroP",
+              "id": "in_1SiF1qH54PcLeqtYiv7H7n7b",
               "object": "invoice",
               "account_country": "CA",
               "account_name": "Onetime.dev",
@@ -1350,13 +1350,13 @@ http_interactions:
               "automatically_finalizes_at": null,
               "billing_reason": "manual",
               "collection_method": "charge_automatically",
-              "created": 1766665710,
+              "created": 1766670994,
               "currency": "usd",
               "custom_fields": null,
-              "customer": "cus_TfYmtZKrWZ9DaE",
+              "customer": "cus_TfaCzgTtZx8SLN",
               "customer_account": null,
               "customer_address": null,
-              "customer_email": "invoice-test@example.com",
+              "customer_email": "invoice-pagination-2@example.com",
               "customer_name": null,
               "customer_phone": null,
               "customer_shipping": null,
@@ -1384,7 +1384,7 @@ http_interactions:
                 "data": [],
                 "has_more": false,
                 "total_count": 0,
-                "url": "/v1/invoices/in_1SiDecH54PcLeqtYSn9bFroP/lines"
+                "url": "/v1/invoices/in_1SiF1qH54PcLeqtYiv7H7n7b/lines"
               },
               "livemode": false,
               "metadata": {},
@@ -1397,8 +1397,8 @@ http_interactions:
                 "payment_method_options": null,
                 "payment_method_types": null
               },
-              "period_end": 1766665710,
-              "period_start": 1766665710,
+              "period_end": 1766670994,
+              "period_start": 1766670994,
               "post_payment_credit_notes_amount": 0,
               "pre_payment_credit_notes_amount": 0,
               "receipt_number": null,
@@ -1429,10 +1429,10 @@ http_interactions:
               "total_excluding_tax": 0,
               "total_pretax_credit_amounts": [],
               "total_taxes": [],
-              "webhooks_delivered_at": 1766665710
+              "webhooks_delivered_at": 1766670994
             },
             {
-              "id": "in_1SiDeaH54PcLeqtYcAenI0OG",
+              "id": "in_1SiF1oH54PcLeqtYJrAx85Mc",
               "object": "invoice",
               "account_country": "CA",
               "account_name": "Onetime.dev",
@@ -1456,13 +1456,13 @@ http_interactions:
               "automatically_finalizes_at": null,
               "billing_reason": "manual",
               "collection_method": "charge_automatically",
-              "created": 1766665708,
+              "created": 1766670992,
               "currency": "usd",
               "custom_fields": null,
-              "customer": "cus_TfYmoVdVg6rogR",
+              "customer": "cus_TfaCC4alY1jCWp",
               "customer_account": null,
               "customer_address": null,
-              "customer_email": "invoice-test@example.com",
+              "customer_email": "invoice-pagination-1@example.com",
               "customer_name": null,
               "customer_phone": null,
               "customer_shipping": null,
@@ -1490,7 +1490,7 @@ http_interactions:
                 "data": [],
                 "has_more": false,
                 "total_count": 0,
-                "url": "/v1/invoices/in_1SiDeaH54PcLeqtYcAenI0OG/lines"
+                "url": "/v1/invoices/in_1SiF1oH54PcLeqtYJrAx85Mc/lines"
               },
               "livemode": false,
               "metadata": {},
@@ -1503,8 +1503,8 @@ http_interactions:
                 "payment_method_options": null,
                 "payment_method_types": null
               },
-              "period_end": 1766665708,
-              "period_start": 1766665708,
+              "period_end": 1766670992,
+              "period_start": 1766670992,
               "post_payment_credit_notes_amount": 0,
               "pre_payment_credit_notes_amount": 0,
               "receipt_number": null,
@@ -1535,10 +1535,10 @@ http_interactions:
               "total_excluding_tax": 0,
               "total_pretax_credit_amounts": [],
               "total_taxes": [],
-              "webhooks_delivered_at": 1766665708
+              "webhooks_delivered_at": 1766670992
             },
             {
-              "id": "in_1SiDeYH54PcLeqtY5kxRyiV3",
+              "id": "in_1SiF1nH54PcLeqtYcGRWw2Za",
               "object": "invoice",
               "account_country": "CA",
               "account_name": "Onetime.dev",
@@ -1562,13 +1562,13 @@ http_interactions:
               "automatically_finalizes_at": null,
               "billing_reason": "manual",
               "collection_method": "charge_automatically",
-              "created": 1766665706,
+              "created": 1766670991,
               "currency": "usd",
               "custom_fields": null,
-              "customer": "cus_TfYmB74AiIJtUf",
+              "customer": "cus_TfaCikFfqoBIi7",
               "customer_account": null,
               "customer_address": null,
-              "customer_email": "invoice-test@example.com",
+              "customer_email": "invoice-pagination-0@example.com",
               "customer_name": null,
               "customer_phone": null,
               "customer_shipping": null,
@@ -1596,7 +1596,7 @@ http_interactions:
                 "data": [],
                 "has_more": false,
                 "total_count": 0,
-                "url": "/v1/invoices/in_1SiDeYH54PcLeqtY5kxRyiV3/lines"
+                "url": "/v1/invoices/in_1SiF1nH54PcLeqtYcGRWw2Za/lines"
               },
               "livemode": false,
               "metadata": {},
@@ -1609,8 +1609,8 @@ http_interactions:
                 "payment_method_options": null,
                 "payment_method_types": null
               },
-              "period_end": 1766665706,
-              "period_start": 1766665706,
+              "period_end": 1766670991,
+              "period_start": 1766670991,
               "post_payment_credit_notes_amount": 0,
               "pre_payment_credit_notes_amount": 0,
               "receipt_number": null,
@@ -1641,10 +1641,10 @@ http_interactions:
               "total_excluding_tax": 0,
               "total_pretax_credit_amounts": [],
               "total_taxes": [],
-              "webhooks_delivered_at": 1766665706
+              "webhooks_delivered_at": 1766670991
             },
             {
-              "id": "in_1SiDeWH54PcLeqtY4ar8zvuI",
+              "id": "in_1SiF1mH54PcLeqtY4KgblalC",
               "object": "invoice",
               "account_country": "CA",
               "account_name": "Onetime.dev",
@@ -1668,10 +1668,10 @@ http_interactions:
               "automatically_finalizes_at": null,
               "billing_reason": "manual",
               "collection_method": "charge_automatically",
-              "created": 1766665704,
+              "created": 1766670990,
               "currency": "usd",
               "custom_fields": null,
-              "customer": "cus_TfYm6MF63I6nuw",
+              "customer": "cus_TfaCV97xYHsVqj",
               "customer_account": null,
               "customer_address": null,
               "customer_email": "invoice-test@example.com",
@@ -1702,7 +1702,7 @@ http_interactions:
                 "data": [],
                 "has_more": false,
                 "total_count": 0,
-                "url": "/v1/invoices/in_1SiDeWH54PcLeqtY4ar8zvuI/lines"
+                "url": "/v1/invoices/in_1SiF1mH54PcLeqtY4KgblalC/lines"
               },
               "livemode": false,
               "metadata": {},
@@ -1715,8 +1715,8 @@ http_interactions:
                 "payment_method_options": null,
                 "payment_method_types": null
               },
-              "period_end": 1766665704,
-              "period_start": 1766665704,
+              "period_end": 1766670990,
+              "period_start": 1766670990,
               "post_payment_credit_notes_amount": 0,
               "pre_payment_credit_notes_amount": 0,
               "receipt_number": null,
@@ -1747,16 +1747,16 @@ http_interactions:
               "total_excluding_tax": 0,
               "total_pretax_credit_amounts": [],
               "total_taxes": [],
-              "webhooks_delivered_at": 1766665704
+              "webhooks_delivered_at": 1766670990
             }
           ],
           "has_more": true,
           "url": "/v1/invoices"
         }
-  recorded_at: Thu, 25 Dec 2025 12:41:36 GMT
+  recorded_at: Thu, 25 Dec 2025 14:06:50 GMT
 - request:
     method: delete
-    uri: https://api.stripe.com/v1/customers/cus_TfYzIntxUw9d4j
+    uri: https://api.stripe.com/v1/customers/cus_TfaMmH0gaSwoqq
     body:
       encoding: US-ASCII
       string: ''
@@ -1766,7 +1766,7 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_4ZZJJn3Jbppr8Z","request_duration_ms":308}}'
+      - '{"last_request_metrics":{"request_id":"req_VVcBhMwEneSdVO","request_duration_ms":344}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -1785,7 +1785,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:41:36 GMT
+      - Thu, 25 Dec 2025 14:06:51 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -1808,7 +1808,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=4SU-Yacf8l2ZzJH_nVMBJYeIsnZQmv43vzRbpz1KGNuJyqShChZF8K-bXJb-w53vVEu-W-HPARL3HEcM
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=e0uk2Sf7jRPgjWC_j3LKSFHAj5SntXhXCEqZtMgXEoQStTDjmMmzEj__9ANd4uIjLdUZ4hl5hLAjQB3K
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -1825,9 +1825,9 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TfYzIntxUw9d4j",
+          "id": "cus_TfaMmH0gaSwoqq",
           "object": "customer",
           "deleted": true
         }
-  recorded_at: Thu, 25 Dec 2025 12:41:36 GMT
+  recorded_at: Thu, 25 Dec 2025 14:06:51 GMT
 recorded_with: VCR 6.3.1

@@ -32,12 +32,13 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
 
   # Helper to create mock subscription with full attributes
   # stripe-mock returns incomplete objects, so we mock for comprehensive testing
+  # Note: current_period_end is now at the subscription item level in Stripe API 2025-11-17.clover
   def mock_subscription(id: 'sub_test123', status: 'active', customer_id: 'cus_test')
+    period_end = Time.now.to_i + 30.days
     double(Stripe::Subscription,
       id: id,
       status: status,
       customer: customer_id,
-      current_period_end: Time.now.to_i + 30.days,
       cancel_at_period_end: false,
       canceled_at: nil,
       pause_collection: nil,
@@ -46,6 +47,8 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
                         id: 'si_test',
                         price: double(id: 'price_test', unit_amount: 2000, currency: 'usd'),
                         quantity: 1,
+                        current_period_end: period_end,
+                        current_period_start: Time.now.to_i,
                       ),
                     ],
                    ),
@@ -53,6 +56,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
   end
 
   # Helper to create test subscription with stripe-mock
+  # Note: Uses fixed product name for VCR cassette replay (matching on body)
   def create_test_subscription(email: 'sub-test@example.com')
     customer = stripe_client.create(Stripe::Customer, {
       email: email,
@@ -61,7 +65,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
     )
 
     product = stripe_client.create(Stripe::Product, {
-      name: "Test Product #{Time.now.to_i}",
+      name: 'VCR Test Product',
     }
     )
 
@@ -155,9 +159,9 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           expect(output).to match(/cus_test/)
         end
 
-        it 'displays available status filters' do
+        it 'displays available status filters when subscriptions exist' do
           allow(Stripe::Subscription).to receive(:list).and_return(
-            double(data: []),
+            double(data: [mock_subscription]),
           )
 
           output = capture_stdout do

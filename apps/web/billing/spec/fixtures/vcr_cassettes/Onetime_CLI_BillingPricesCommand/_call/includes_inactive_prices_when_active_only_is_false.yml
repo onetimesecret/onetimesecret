@@ -12,7 +12,7 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_IJFoLHR7tavDIg","request_duration_ms":310}}'
+      - '{"last_request_metrics":{"request_id":"req_u1CTcETsuT8ZrP","request_duration_ms":175}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -31,7 +31,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:07:09 GMT
+      - Thu, 25 Dec 2025 14:08:04 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -54,7 +54,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=46lUNyW3qyHWpepIxBAVyg4ifzqGt3Zmp0gPQJMIE0plm4YIYSf9psIx9l-pBW-OMLCRHEzamKsX8RNf
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=HN0q1QHwskjU1ih062Srw3JBQ0K0STsvNtfslWEhPvcYgGBp5NpBpVKzOgeszFrgZTHpVCPZ0sQF8wSp
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -547,5 +547,5 @@ http_interactions:
           "has_more": false,
           "url": "/v1/prices"
         }
-  recorded_at: Thu, 25 Dec 2025 12:07:09 GMT
+  recorded_at: Thu, 25 Dec 2025 14:08:04 GMT
 recorded_with: VCR 6.3.1

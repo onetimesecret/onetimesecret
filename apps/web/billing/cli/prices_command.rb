@@ -42,6 +42,8 @@ module Onetime
         end
 
         puts "\nTotal: #{prices.data.size} price(s)"
+      rescue Stripe::StripeError => ex
+        puts "Error fetching prices: #{ex.message}"
       end
     end
   end

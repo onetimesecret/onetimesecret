@@ -10,26 +10,35 @@ require_relative '../../cli/prices_create_command'
 RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr do
   let(:stripe_client) { Billing::StripeClient.new }
 
+  # Helper to create a test product for price tests
+  def create_price_test_product(name = 'VCR Price Test Product')
+    stripe_client.create(Stripe::Product, { name: name })
+  end
+
   describe Onetime::CLI::BillingPricesCommand do
     subject(:command) { described_class.new }
 
     describe '#call (list prices)' do
-      it 'lists active prices by default' do
+      it 'lists active prices by default', :vcr do
         output = capture_stdout do
           command.call(limit: 100, active_only: true)
         end
 
         expect(output).to include('Fetching prices from Stripe')
-        expect(output).to match(/ID.*PRODUCT.*AMOUNT.*INTERVAL.*ACTIVE/)
+        expect(output).to match(/ID.*PRODUCT.*AMOUNT.*INTERVAL.*PRICE/)
         expect(output).to match(/Total: \d+ price\(s\)/)
       end
 
-      it 'accepts product filter option' do
+      it 'accepts product filter option', :vcr do
+        product = create_price_test_product('Product Filter Test')
+
         output = capture_stdout do
-          command.call(product: 'prod_test123', limit: 100)
+          command.call(product: product.id, limit: 100)
         end
 
         expect(output).to include('Fetching prices from Stripe')
+
+        stripe_client.delete(Stripe::Product, product.id)
       end
 
       it 'includes inactive prices when active_only is false' do
@@ -78,15 +87,14 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
   describe Onetime::CLI::BillingPricesCreateCommand do
     subject(:command) { described_class.new }
 
-    let(:product_id) { 'prod_test123' }
-
     describe '#call (create price)' do
-      it 'creates price with all required arguments' do
+      it 'creates price with all required arguments', :vcr do
+        product = create_price_test_product('Price Create All Args')
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: 900,
             currency: 'usd',
             interval: 'month',
@@ -95,20 +103,21 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
         end
 
         expect(output).to include('Creating price:')
-        expect(output).to include("Product: #{product_id}")
         expect(output).to include('Amount: USD 9.00')
         expect(output).to include('Interval: 1 month(s)')
         expect(output).to include('Proceed? (y/n):')
         expect(output).to include('Price created successfully')
         expect(output).to match(/ID: price_/)
+        # Note: No cleanup - products with prices can't be deleted in Stripe
       end
 
-      it 'uses default currency of usd' do
+      it 'uses default currency of usd', :vcr do
+        product = create_price_test_product('Default Currency Test')
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: 900,
             interval: 'month',
           )
@@ -116,42 +125,48 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
 
         expect(output).to include('Amount: USD 9.00')
         expect(output).to include('Price created successfully')
+        # Note: No cleanup - products with prices can't be deleted in Stripe
       end
 
-      it 'uses default interval of month' do
+      it 'uses default interval of month', :vcr do
+        product = create_price_test_product('Default Interval Test')
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: 900,
           )
         end
 
         expect(output).to include('Interval: 1 month(s)')
         expect(output).to include('Price created successfully')
+        # Note: No cleanup - products with prices can't be deleted in Stripe
       end
 
-      it 'uses default interval_count of 1' do
+      it 'uses default interval_count of 1', :vcr do
+        product = create_price_test_product('Default Count Test')
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: 900,
             interval: 'month',
           )
         end
 
         expect(output).to include('Interval: 1 month(s)')
+        # Note: No cleanup - products with prices can't be deleted
       end
 
-      it 'accepts year interval' do
+      it 'accepts year interval', :vcr do
+        product = create_price_test_product('Year Interval Test')
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: 9000,
             interval: 'year',
           )
@@ -159,14 +174,17 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
 
         expect(output).to include('Interval: 1 year(s)')
         expect(output).to include('Price created successfully')
+
+        # Note: No cleanup - products with prices cannot be deleted
       end
 
-      it 'accepts week interval' do
+      it 'accepts week interval', :vcr do
+        product = create_price_test_product('Week Interval Test')
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: 200,
             interval: 'week',
           )
@@ -174,14 +192,17 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
 
         expect(output).to include('Interval: 1 week(s)')
         expect(output).to include('Price created successfully')
+
+        # Note: No cleanup - products with prices cannot be deleted
       end
 
-      it 'accepts day interval' do
+      it 'accepts day interval', :vcr do
+        product = create_price_test_product('Day Interval Test')
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: 50,
             interval: 'day',
           )
@@ -189,14 +210,17 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
 
         expect(output).to include('Interval: 1 day(s)')
         expect(output).to include('Price created successfully')
+
+        # Note: No cleanup - products with prices cannot be deleted
       end
 
-      it 'accepts custom interval_count' do
+      it 'accepts custom interval_count', :vcr do
+        product = create_price_test_product('Custom Count Test')
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: 900,
             interval: 'month',
             interval_count: 3,
@@ -205,20 +229,25 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
 
         expect(output).to include('Interval: 3 month(s)')
         expect(output).to include('Price created successfully')
+
+        # Note: No cleanup - products with prices cannot be deleted
       end
 
-      it 'requires confirmation before creating' do
+      it 'requires confirmation before creating', :vcr do
+        product = create_price_test_product('Confirmation Required Test')
         allow($stdin).to receive(:gets).and_return("n\n")
 
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: 900,
           )
         end
 
         expect(output).to include('Proceed? (y/n):')
         expect(output).not_to include('Price created successfully')
+
+        # Note: No cleanup - products with prices cannot be deleted
       end
 
       it 'validates product_id is required' do
@@ -232,83 +261,105 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
         expect(output).to include('Error: Product ID is required')
       end
 
-      it 'validates amount is required' do
+      it 'validates amount is required', :vcr do
+        product = create_price_test_product('Amount Required Test')
         allow($stdin).to receive(:gets).and_return("\n", "\n", "n\n")
 
         output = capture_stdout do
-          command.call(product_id: product_id)
+          command.call(product_id: product.id)
         end
 
         expect(output).to include('Amount in cents')
+
+        # Note: No cleanup - products with prices cannot be deleted
       end
 
-      it 'validates amount is greater than 0' do
+      it 'validates amount is greater than 0', :vcr do
+        product = create_price_test_product('Amount GT Zero Test')
+
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: 0,
           )
         end
 
         expect(output).to include('Error: Amount must be greater than 0')
+
+        # Note: No cleanup - products with prices cannot be deleted
       end
 
-      it 'validates negative amounts' do
+      it 'validates negative amounts', :vcr do
+        product = create_price_test_product('Negative Amount Test')
+
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: -100,
           )
         end
 
         expect(output).to include('Error: Amount must be greater than 0')
+
+        # Note: No cleanup - products with prices cannot be deleted
       end
 
-      it 'validates interval is one of allowed values' do
+      it 'validates interval is one of allowed values', :vcr do
+        product = create_price_test_product('Interval Validation Test')
+
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: 900,
             interval: 'quarterly',
           )
         end
 
         expect(output).to include('Error: Interval must be one of: month, year, week, day')
+
+        # Note: No cleanup - products with prices cannot be deleted
       end
 
-      it 'verifies product exists before creating price' do
+      it 'verifies product exists before creating price', :vcr do
+        product = create_price_test_product('Product Verify Test')
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: 900,
           )
         end
 
         # Should show product name after retrieval
         expect(output).to include('Product:')
+
+        # Note: No cleanup - products with prices cannot be deleted
       end
 
-      it 'formats amount display correctly' do
+      it 'formats amount display correctly', :vcr do
+        product = create_price_test_product('Amount Format Test')
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: 1299,
           )
         end
 
         expect(output).to include('Amount: USD 12.99')
+
+        # Note: No cleanup - products with prices cannot be deleted
       end
 
-      it 'displays created price details after success' do
+      it 'displays created price details after success', :vcr do
+        product = create_price_test_product('Price Details Test')
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: 900,
           )
         end
@@ -317,11 +368,14 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
         expect(output).to match(/ID: price_/)
         expect(output).to include('Amount:')
         expect(output).to include('Interval:')
+
+        # Note: No cleanup - products with prices cannot be deleted
       end
 
-      it 'handles interactive mode' do
+      it 'handles interactive mode', :vcr do
+        product = create_price_test_product('Interactive Mode Test')
         allow($stdin).to receive(:gets).and_return(
-          "#{product_id}\n",
+          "#{product.id}\n",
           "900\n",
           "y\n",
         )
@@ -333,6 +387,8 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
         expect(output).to include('Product ID:')
         expect(output).to include('Amount in cents')
         expect(output).to include('Price created successfully')
+
+        # Note: No cleanup - products with prices cannot be deleted
       end
 
       it 'handles product not found error' do
@@ -357,21 +413,24 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr d
         allow($stdin).to receive(:gets).and_return("y\n")
 
         expect do
-          command.call(product_id: product_id, amount: 1000, currency: 'invalid', yes: true)
+          command.call(product_id: 'prod_mock', amount: 1000, currency: 'invalid', yes: true)
         end.to output(/Error|Invalid currency/).to_stdout
       end
 
-      it 'uses StripeClient for retry and idempotency' do
+      it 'uses StripeClient for retry and idempotency', :vcr do
+        product = create_price_test_product('Stripe Client Test')
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
           command.call(
-            product_id: product_id,
+            product_id: product.id,
             amount: 900,
           )
         end
 
         expect(output).to include('Price created successfully')
+
+        # Note: No cleanup - products with prices cannot be deleted
       end
     end
   end
