@@ -195,7 +195,7 @@ namespace :vcr do
 
           Usage:
             STRIPE_API_KEY=sk_test_xxx rake vcr:billing:record      # record new only
-            STRIPE_API_KEY=sk_test_xxx rake vcr:billing:record_all  # re-record everything
+            STRIPE_API_KEY=sk_test_xxx rake vcr:billing:rerecord  # re-record everything
 
           Get your test key from: https://dashboard.stripe.com/test/apikeys
         MSG
