@@ -96,6 +96,7 @@ module Onetime
     end
 
     attr_reader :env, :base, :bootstrap
+    attr_writer :path
 
     # Normalizes environment variables prior to loading and rendering the YAML
     # configuration. In some cases, this might include setting default values
