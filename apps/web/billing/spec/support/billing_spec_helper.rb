@@ -208,15 +208,10 @@ RSpec.configure do |config|
     mock_billing_config!
   end
 
-  config.before(:each, type: :integration) do
-    @sleep_delays = []
-    mock_billing_config!
-  end
-
-  # Symbol tag matching for :integration (webhook controller tests use this pattern)
-  config.before(:each, :integration) do |example|
+  # Integration tests: both `type: :integration` and `:integration` symbol tag
+  # get the same setup. Using a shared proc for consistency.
+  integration_setup = lambda do |example|
     # Skip integration tests in CI if VCR cassettes may be invalid
-    # This is a failsafe - tests should pass with cassettes, but skip if they're stale
     if BILLING_VCR_SKIP_IN_CI && example.metadata[:stripe_sandbox_api]
       skip 'Skipping Stripe sandbox test in CI - re-record cassettes with STRIPE_API_KEY'
     end
@@ -226,7 +221,11 @@ RSpec.configure do |config|
     Familia.dbclient.flushdb
   end
 
-  config.after(:each, :integration) do
-    Familia.dbclient.flushdb
-  end
+  config.before(:each, type: :integration, &integration_setup)
+  config.before(:each, :integration, &integration_setup)
+
+  # Cleanup for both integration tag patterns
+  integration_cleanup = ->(_example = nil) { Familia.dbclient.flushdb }
+  config.after(:each, type: :integration, &integration_cleanup)
+  config.after(:each, :integration, &integration_cleanup)
 end
