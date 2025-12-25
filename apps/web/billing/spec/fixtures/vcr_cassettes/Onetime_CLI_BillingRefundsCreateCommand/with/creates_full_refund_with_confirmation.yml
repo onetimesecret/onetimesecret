@@ -5,14 +5,16 @@ http_interactions:
     uri: https://api.stripe.com/v1/customers
     body:
       encoding: UTF-8
-      string: email=refund-create-test%40example.com
+      string: email=refund-create-test%40example.com&source=tok_visa
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_C263MPBdu4O1Nc","request_duration_ms":217}}'
       Idempotency-Key:
-      - 1766643298-d719b405-df6b-40b6-ade1-f97665ed3bda
+      - 1766664439-a8e0cdfb-40d9-4300-9833-23d60b8a42de
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -33,11 +35,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 06:14:58 GMT
+      - Thu, 25 Dec 2025 12:07:19 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '670'
+      - '697'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -56,11 +58,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=CSVuCOwk_UmPl_RJzCn3EZT66q9EzxwnqwmTbDy8LaYZgUTMmVu9k2he8K_9yP3XVCAi21Rl0qAYs5ny
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=ex5xKN0c2K9KxfhoaIpMDpskwIPrFs258lgamFjRhMJ5G-VaqiE1jBrESAuUp_EXdrh-el3KYZ7h1-QU
       Idempotency-Key:
-      - 1766643298-d719b405-df6b-40b6-ade1-f97665ed3bda
+      - 1766664439-a8e0cdfb-40d9-4300-9833-23d60b8a42de
       Original-Request:
-      - req_3LQExOJBSHrisC
+      - req_dR1wWj9aVrsjbq
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -79,19 +81,19 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TfSkH3Sern7byU",
+          "id": "cus_TfYQLsoGVDT7Ip",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766643298,
+          "created": 1766664439,
           "currency": null,
           "customer_account": null,
-          "default_source": null,
+          "default_source": "card_1SiDK7H54PcLeqtYWJS8jJSh",
           "delinquent": false,
           "description": null,
           "discount": null,
           "email": "refund-create-test@example.com",
-          "invoice_prefix": "FUBU9NHZ",
+          "invoice_prefix": "32ZBOITT",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -108,22 +110,22 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Thu, 25 Dec 2025 06:14:58 GMT
+  recorded_at: Thu, 25 Dec 2025 12:07:19 GMT
 - request:
     method: post
     uri: https://api.stripe.com/v1/charges
     body:
       encoding: UTF-8
-      string: amount=5000&currency=usd&customer=cus_TfSkH3Sern7byU&source=tok_visa
+      string: amount=5000&currency=usd&customer=cus_TfYQLsoGVDT7Ip
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_3LQExOJBSHrisC","request_duration_ms":901}}'
+      - '{"last_request_metrics":{"request_id":"req_dR1wWj9aVrsjbq","request_duration_ms":587}}'
       Idempotency-Key:
-      - 1766643298-5ecada20-a8bf-4a24-8fed-34968e0fcfab
+      - 1766664439-49f19a3c-1406-4721-9197-5b5bb97a352a
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -138,17 +140,17 @@ http_interactions:
       - "*/*"
   response:
     status:
-      code: 404
-      message: Not Found
+      code: 200
+      message: OK
     headers:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 06:14:59 GMT
+      - Thu, 25 Dec 2025 12:07:20 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '360'
+      - '3658'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -167,11 +169,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=CSVuCOwk_UmPl_RJzCn3EZT66q9EzxwnqwmTbDy8LaYZgUTMmVu9k2he8K_9yP3XVCAi21Rl0qAYs5ny
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=ex5xKN0c2K9KxfhoaIpMDpskwIPrFs258lgamFjRhMJ5G-VaqiE1jBrESAuUp_EXdrh-el3KYZ7h1-QU
       Idempotency-Key:
-      - 1766643298-5ecada20-a8bf-4a24-8fed-34968e0fcfab
+      - 1766664439-49f19a3c-1406-4721-9197-5b5bb97a352a
       Original-Request:
-      - req_znyB7Lq4ndeJGO
+      - req_62eUlwuRe09pwM
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -188,16 +190,536 @@ http_interactions:
       - max-age=63072000; includeSubDomains; preload
     body:
       encoding: UTF-8
-      string: |
+      string: |-
         {
-          "error": {
-            "code": "resource_missing",
-            "doc_url": "https://stripe.com/docs/error-codes/resource-missing",
-            "message": "Customer cus_TfSkH3Sern7byU does not have card with ID tok_visa",
-            "param": "card",
-            "request_log_url": "https://dashboard.stripe.com/test/logs/req_znyB7Lq4ndeJGO?t=1766643299",
-            "type": "invalid_request_error"
-          }
+          "id": "ch_3SiDK7H54PcLeqtY1TBC3F0u",
+          "object": "charge",
+          "amount": 5000,
+          "amount_captured": 5000,
+          "amount_refunded": 0,
+          "application": null,
+          "application_fee": null,
+          "application_fee_amount": null,
+          "balance_transaction": "txn_3SiDK7H54PcLeqtY1MIcZze7",
+          "billing_details": {
+            "address": {
+              "city": null,
+              "country": null,
+              "line1": null,
+              "line2": null,
+              "postal_code": null,
+              "state": null
+            },
+            "email": null,
+            "name": null,
+            "phone": null,
+            "tax_id": null
+          },
+          "calculated_statement_descriptor": "ONETIME.DEV LINKS",
+          "captured": true,
+          "created": 1766664439,
+          "currency": "usd",
+          "customer": "cus_TfYQLsoGVDT7Ip",
+          "description": null,
+          "destination": null,
+          "dispute": null,
+          "disputed": false,
+          "failure_balance_transaction": null,
+          "failure_code": null,
+          "failure_message": null,
+          "fraud_details": {},
+          "livemode": false,
+          "metadata": {},
+          "on_behalf_of": null,
+          "order": null,
+          "outcome": {
+            "advice_code": null,
+            "network_advice_code": null,
+            "network_decline_code": null,
+            "network_status": "approved_by_network",
+            "reason": null,
+            "risk_level": "normal",
+            "risk_score": 46,
+            "seller_message": "Payment complete.",
+            "type": "authorized"
+          },
+          "paid": true,
+          "payment_intent": null,
+          "payment_method": "card_1SiDK7H54PcLeqtYWJS8jJSh",
+          "payment_method_details": {
+            "card": {
+              "amount_authorized": 5000,
+              "authorization_code": "131448",
+              "brand": "visa",
+              "checks": {
+                "address_line1_check": null,
+                "address_postal_code_check": null,
+                "cvc_check": "pass"
+              },
+              "country": "US",
+              "exp_month": 12,
+              "exp_year": 2026,
+              "extended_authorization": {
+                "status": "disabled"
+              },
+              "fingerprint": "NGrtdUhnYFr7yg93",
+              "funding": "credit",
+              "incremental_authorization": {
+                "status": "unavailable"
+              },
+              "installments": null,
+              "last4": "4242",
+              "mandate": null,
+              "multicapture": {
+                "status": "unavailable"
+              },
+              "network": "visa",
+              "network_token": {
+                "used": false
+              },
+              "network_transaction_id": "787111411610085",
+              "overcapture": {
+                "maximum_amount_capturable": 5000,
+                "status": "unavailable"
+              },
+              "regulated_status": "unregulated",
+              "three_d_secure": null,
+              "wallet": null
+            },
+            "type": "card"
+          },
+          "receipt_email": null,
+          "receipt_number": null,
+          "receipt_url": "https://pay.stripe.com/receipts/payment/CAcaFwoVYWNjdF8xU1JVWFFINTRQY0xlcXRZKPjRtMoGMgZvHltBzTA6LBYbh-bIWJAPE38HORJZBgg1Edv2PqxZYbXYXVQWRdPzRA5aXCSbX_dwyzop",
+          "refunded": false,
+          "review": null,
+          "shipping": null,
+          "source": {
+            "id": "card_1SiDK7H54PcLeqtYWJS8jJSh",
+            "object": "card",
+            "address_city": null,
+            "address_country": null,
+            "address_line1": null,
+            "address_line1_check": null,
+            "address_line2": null,
+            "address_state": null,
+            "address_zip": null,
+            "address_zip_check": null,
+            "allow_redisplay": "unspecified",
+            "brand": "Visa",
+            "country": "US",
+            "customer": "cus_TfYQLsoGVDT7Ip",
+            "cvc_check": "pass",
+            "dynamic_last4": null,
+            "email": null,
+            "exp_month": 12,
+            "exp_year": 2026,
+            "fingerprint": "NGrtdUhnYFr7yg93",
+            "funding": "credit",
+            "last4": "4242",
+            "metadata": {},
+            "name": null,
+            "phone": null,
+            "regulated_status": "unregulated",
+            "tokenization_method": null,
+            "wallet": null
+          },
+          "source_transfer": null,
+          "statement_descriptor": null,
+          "statement_descriptor_suffix": null,
+          "status": "succeeded",
+          "transfer_data": null,
+          "transfer_group": null
         }
-  recorded_at: Thu, 25 Dec 2025 06:14:59 GMT
+  recorded_at: Thu, 25 Dec 2025 12:07:20 GMT
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/charges/ch_3SiDK7H54PcLeqtY1TBC3F0u
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_62eUlwuRe09pwM","request_duration_ms":793}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 12:07:20 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '3658'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=ex5xKN0c2K9KxfhoaIpMDpskwIPrFs258lgamFjRhMJ5G-VaqiE1jBrESAuUp_EXdrh-el3KYZ7h1-QU
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "ch_3SiDK7H54PcLeqtY1TBC3F0u",
+          "object": "charge",
+          "amount": 5000,
+          "amount_captured": 5000,
+          "amount_refunded": 0,
+          "application": null,
+          "application_fee": null,
+          "application_fee_amount": null,
+          "balance_transaction": "txn_3SiDK7H54PcLeqtY1MIcZze7",
+          "billing_details": {
+            "address": {
+              "city": null,
+              "country": null,
+              "line1": null,
+              "line2": null,
+              "postal_code": null,
+              "state": null
+            },
+            "email": null,
+            "name": null,
+            "phone": null,
+            "tax_id": null
+          },
+          "calculated_statement_descriptor": "ONETIME.DEV LINKS",
+          "captured": true,
+          "created": 1766664439,
+          "currency": "usd",
+          "customer": "cus_TfYQLsoGVDT7Ip",
+          "description": null,
+          "destination": null,
+          "dispute": null,
+          "disputed": false,
+          "failure_balance_transaction": null,
+          "failure_code": null,
+          "failure_message": null,
+          "fraud_details": {},
+          "livemode": false,
+          "metadata": {},
+          "on_behalf_of": null,
+          "order": null,
+          "outcome": {
+            "advice_code": null,
+            "network_advice_code": null,
+            "network_decline_code": null,
+            "network_status": "approved_by_network",
+            "reason": null,
+            "risk_level": "normal",
+            "risk_score": 46,
+            "seller_message": "Payment complete.",
+            "type": "authorized"
+          },
+          "paid": true,
+          "payment_intent": null,
+          "payment_method": "card_1SiDK7H54PcLeqtYWJS8jJSh",
+          "payment_method_details": {
+            "card": {
+              "amount_authorized": 5000,
+              "authorization_code": "131448",
+              "brand": "visa",
+              "checks": {
+                "address_line1_check": null,
+                "address_postal_code_check": null,
+                "cvc_check": "pass"
+              },
+              "country": "US",
+              "exp_month": 12,
+              "exp_year": 2026,
+              "extended_authorization": {
+                "status": "disabled"
+              },
+              "fingerprint": "NGrtdUhnYFr7yg93",
+              "funding": "credit",
+              "incremental_authorization": {
+                "status": "unavailable"
+              },
+              "installments": null,
+              "last4": "4242",
+              "mandate": null,
+              "multicapture": {
+                "status": "unavailable"
+              },
+              "network": "visa",
+              "network_token": {
+                "used": false
+              },
+              "network_transaction_id": "787111411610085",
+              "overcapture": {
+                "maximum_amount_capturable": 5000,
+                "status": "unavailable"
+              },
+              "regulated_status": "unregulated",
+              "three_d_secure": null,
+              "wallet": null
+            },
+            "type": "card"
+          },
+          "receipt_email": null,
+          "receipt_number": null,
+          "receipt_url": "https://pay.stripe.com/receipts/payment/CAcaFwoVYWNjdF8xU1JVWFFINTRQY0xlcXRZKPjRtMoGMgZUHf6q8946LBbwGIVqN3lcy5xS5szHIFzbXXakYQ7yij8S6NG1Lv4RUHqKoiE5jQFamsZg",
+          "refunded": false,
+          "review": null,
+          "shipping": null,
+          "source": {
+            "id": "card_1SiDK7H54PcLeqtYWJS8jJSh",
+            "object": "card",
+            "address_city": null,
+            "address_country": null,
+            "address_line1": null,
+            "address_line1_check": null,
+            "address_line2": null,
+            "address_state": null,
+            "address_zip": null,
+            "address_zip_check": null,
+            "allow_redisplay": "unspecified",
+            "brand": "Visa",
+            "country": "US",
+            "customer": "cus_TfYQLsoGVDT7Ip",
+            "cvc_check": "pass",
+            "dynamic_last4": null,
+            "email": null,
+            "exp_month": 12,
+            "exp_year": 2026,
+            "fingerprint": "NGrtdUhnYFr7yg93",
+            "funding": "credit",
+            "last4": "4242",
+            "metadata": {},
+            "name": null,
+            "phone": null,
+            "regulated_status": "unregulated",
+            "tokenization_method": null,
+            "wallet": null
+          },
+          "source_transfer": null,
+          "statement_descriptor": null,
+          "statement_descriptor_suffix": null,
+          "status": "succeeded",
+          "transfer_data": null,
+          "transfer_group": null
+        }
+  recorded_at: Thu, 25 Dec 2025 12:07:20 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/refunds
+    body:
+      encoding: UTF-8
+      string: charge=ch_3SiDK7H54PcLeqtY1TBC3F0u
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_o3otUt2qLHbe1G","request_duration_ms":182}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 12:07:21 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '590'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=ex5xKN0c2K9KxfhoaIpMDpskwIPrFs258lgamFjRhMJ5G-VaqiE1jBrESAuUp_EXdrh-el3KYZ7h1-QU
+      Idempotency-Key:
+      - b7df7333-5d28-46b7-82d8-59ca6abc4ce9
+      Original-Request:
+      - req_uxavY7sNedSiXn
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "re_3SiDK7H54PcLeqtY1v74o3JH",
+          "object": "refund",
+          "amount": 5000,
+          "balance_transaction": "txn_3SiDK7H54PcLeqtY167yTkj2",
+          "charge": "ch_3SiDK7H54PcLeqtY1TBC3F0u",
+          "created": 1766664441,
+          "currency": "usd",
+          "destination_details": {
+            "card": {
+              "reference_status": "pending",
+              "reference_type": "acquirer_reference_number",
+              "type": "refund"
+            },
+            "type": "card"
+          },
+          "metadata": {},
+          "payment_intent": null,
+          "reason": null,
+          "receipt_number": null,
+          "source_transfer_reversal": null,
+          "status": "succeeded",
+          "transfer_reversal": null
+        }
+  recorded_at: Thu, 25 Dec 2025 12:07:21 GMT
+- request:
+    method: delete
+    uri: https://api.stripe.com/v1/customers/cus_TfYQLsoGVDT7Ip
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_uxavY7sNedSiXn","request_duration_ms":965}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 12:07:22 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '75'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=ex5xKN0c2K9KxfhoaIpMDpskwIPrFs258lgamFjRhMJ5G-VaqiE1jBrESAuUp_EXdrh-el3KYZ7h1-QU
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "cus_TfYQLsoGVDT7Ip",
+          "object": "customer",
+          "deleted": true
+        }
+  recorded_at: Thu, 25 Dec 2025 12:07:21 GMT
 recorded_with: VCR 6.3.1

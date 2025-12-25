@@ -12,7 +12,9 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_c2W2VooqVLb9k2","request_duration_ms":893}}'
+      - '{"last_request_metrics":{"request_id":"req_0Z8nTzlFt2U4ck","request_duration_ms":233}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -21,8 +23,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -31,11 +31,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:28:30 GMT
+      - Thu, 25 Dec 2025 12:07:28 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '7866'
+      - '7867'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -54,7 +54,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=x27TtLhuA1isYQe1w7ANamVk3BlBxOP_Sr5WXJaEoQFajUBGyt_7qLwJ10gW-jqbBvrFvfX6e-i9pl3d
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=eYFvC_l8IUJx2Bl927va6yncfOQy3bKqCZ3Ov8ygeuw32raGBNFmSi6BPyyITP2t5D-c8tZ8vvlaI6B8
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -74,11 +74,221 @@ http_interactions:
           "object": "list",
           "data": [
             {
-              "id": "cus_TfS0Ook7IaMm4v",
+              "id": "cus_TfYQ0ByGkVcWph",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766640506,
+              "created": 1766664420,
+              "currency": null,
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "test@example.com",
+              "invoice_prefix": "GDM5V3QG",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": "Test User",
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            },
+            {
+              "id": "cus_TfYQtdb0j4UYDS",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766664420,
+              "currency": null,
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "test@example.com",
+              "invoice_prefix": "UNGTNDMB",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": null,
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            },
+            {
+              "id": "cus_TfYQwwn84cVpJZ",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766664420,
+              "currency": null,
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "test@example.com",
+              "invoice_prefix": "E0T8WBOH",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": null,
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            },
+            {
+              "id": "cus_TfYQNNDwejm7Rv",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766664420,
+              "currency": null,
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "test@example.com",
+              "invoice_prefix": "OSBMT2EC",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": "Test User",
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            },
+            {
+              "id": "cus_TfYQsxl2n63uNE",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766664419,
+              "currency": null,
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "test@example.com",
+              "invoice_prefix": "OC3GI8DR",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": null,
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            },
+            {
+              "id": "cus_TfYQrExE0A5s4p",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766664415,
+              "currency": null,
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "new-welcome-a4a699c1@example.com",
+              "invoice_prefix": "UERPNNUT",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": null,
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            },
+            {
+              "id": "cus_TfYQaft83EsjIn",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766664415,
+              "currency": null,
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "plans-test-bf322c23@example.com",
+              "invoice_prefix": "UZZGNTU0",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": null,
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            },
+            {
+              "id": "cus_TfYQAqaooClmf0",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766664414,
               "currency": null,
               "customer_account": null,
               "default_source": null,
@@ -86,7 +296,7 @@ http_interactions:
               "description": null,
               "discount": null,
               "email": null,
-              "invoice_prefix": "BZFPOI1G",
+              "invoice_prefix": "FMBD0HXG",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -104,11 +314,11 @@ http_interactions:
               "test_clock": null
             },
             {
-              "id": "cus_TfS0rAg1E1Wh44",
+              "id": "cus_TfYQjknOjPpZvE",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766640504,
+              "created": 1766664414,
               "currency": null,
               "customer_account": null,
               "default_source": null,
@@ -116,7 +326,7 @@ http_interactions:
               "description": null,
               "discount": null,
               "email": null,
-              "invoice_prefix": "FXSQSUWE",
+              "invoice_prefix": "UZSFCQTV",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -134,101 +344,11 @@ http_interactions:
               "test_clock": null
             },
             {
-              "id": "cus_TfS0AtATyTiCUQ",
+              "id": "cus_TfYQiS6qcyYRNo",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766640503,
-              "currency": null,
-              "customer_account": null,
-              "default_source": null,
-              "delinquent": false,
-              "description": null,
-              "discount": null,
-              "email": "billing-test-048e9dc3@example.com",
-              "invoice_prefix": "XYYQCINC",
-              "invoice_settings": {
-                "custom_fields": null,
-                "default_payment_method": null,
-                "footer": null,
-                "rendering_options": null
-              },
-              "livemode": false,
-              "metadata": {},
-              "name": null,
-              "next_invoice_sequence": 1,
-              "phone": null,
-              "preferred_locales": [],
-              "shipping": null,
-              "tax_exempt": "none",
-              "test_clock": null
-            },
-            {
-              "id": "cus_TfS0YHsFVVG4W7",
-              "object": "customer",
-              "address": null,
-              "balance": 0,
-              "created": 1766640501,
-              "currency": null,
-              "customer_account": null,
-              "default_source": null,
-              "delinquent": false,
-              "description": null,
-              "discount": null,
-              "email": "plans-test-6855b86c@example.com",
-              "invoice_prefix": "V5GIULE5",
-              "invoice_settings": {
-                "custom_fields": null,
-                "default_payment_method": null,
-                "footer": null,
-                "rendering_options": null
-              },
-              "livemode": false,
-              "metadata": {},
-              "name": null,
-              "next_invoice_sequence": 1,
-              "phone": null,
-              "preferred_locales": [],
-              "shipping": null,
-              "tax_exempt": "none",
-              "test_clock": null
-            },
-            {
-              "id": "cus_TfS0r5F4ewrMiQ",
-              "object": "customer",
-              "address": null,
-              "balance": 0,
-              "created": 1766640500,
-              "currency": null,
-              "customer_account": null,
-              "default_source": null,
-              "delinquent": false,
-              "description": null,
-              "discount": null,
-              "email": "new-welcome-dade557b@example.com",
-              "invoice_prefix": "NQ2PXYHI",
-              "invoice_settings": {
-                "custom_fields": null,
-                "default_payment_method": null,
-                "footer": null,
-                "rendering_options": null
-              },
-              "livemode": false,
-              "metadata": {},
-              "name": null,
-              "next_invoice_sequence": 1,
-              "phone": null,
-              "preferred_locales": [],
-              "shipping": null,
-              "tax_exempt": "none",
-              "test_clock": null
-            },
-            {
-              "id": "cus_TfRzJXCffGlylu",
-              "object": "customer",
-              "address": null,
-              "balance": 0,
-              "created": 1766640499,
+              "created": 1766664414,
               "currency": null,
               "customer_account": null,
               "default_source": null,
@@ -236,127 +356,7 @@ http_interactions:
               "description": null,
               "discount": null,
               "email": null,
-              "invoice_prefix": "XYGAMBTP",
-              "invoice_settings": {
-                "custom_fields": null,
-                "default_payment_method": null,
-                "footer": null,
-                "rendering_options": null
-              },
-              "livemode": false,
-              "metadata": {},
-              "name": null,
-              "next_invoice_sequence": 1,
-              "phone": null,
-              "preferred_locales": [],
-              "shipping": null,
-              "tax_exempt": "none",
-              "test_clock": null
-            },
-            {
-              "id": "cus_TfRzBUPgWQablI",
-              "object": "customer",
-              "address": null,
-              "balance": 0,
-              "created": 1766640499,
-              "currency": null,
-              "customer_account": null,
-              "default_source": null,
-              "delinquent": false,
-              "description": null,
-              "discount": null,
-              "email": null,
-              "invoice_prefix": "Z5YCYQI7",
-              "invoice_settings": {
-                "custom_fields": null,
-                "default_payment_method": null,
-                "footer": null,
-                "rendering_options": null
-              },
-              "livemode": false,
-              "metadata": {},
-              "name": null,
-              "next_invoice_sequence": 1,
-              "phone": null,
-              "preferred_locales": [],
-              "shipping": null,
-              "tax_exempt": "none",
-              "test_clock": null
-            },
-            {
-              "id": "cus_TfRzogNcOpT37r",
-              "object": "customer",
-              "address": null,
-              "balance": 0,
-              "created": 1766640498,
-              "currency": null,
-              "customer_account": null,
-              "default_source": null,
-              "delinquent": false,
-              "description": null,
-              "discount": null,
-              "email": null,
-              "invoice_prefix": "QQEEODAO",
-              "invoice_settings": {
-                "custom_fields": null,
-                "default_payment_method": null,
-                "footer": null,
-                "rendering_options": null
-              },
-              "livemode": false,
-              "metadata": {},
-              "name": null,
-              "next_invoice_sequence": 1,
-              "phone": null,
-              "preferred_locales": [],
-              "shipping": null,
-              "tax_exempt": "none",
-              "test_clock": null
-            },
-            {
-              "id": "cus_TfRzW0pjkwdfzs",
-              "object": "customer",
-              "address": null,
-              "balance": 0,
-              "created": 1766640460,
-              "currency": null,
-              "customer_account": null,
-              "default_source": null,
-              "delinquent": false,
-              "description": null,
-              "discount": null,
-              "email": "invoice-test@example.com",
-              "invoice_prefix": "D6FSOC69",
-              "invoice_settings": {
-                "custom_fields": null,
-                "default_payment_method": null,
-                "footer": null,
-                "rendering_options": null
-              },
-              "livemode": false,
-              "metadata": {},
-              "name": null,
-              "next_invoice_sequence": 1,
-              "phone": null,
-              "preferred_locales": [],
-              "shipping": null,
-              "tax_exempt": "none",
-              "test_clock": null
-            },
-            {
-              "id": "cus_TfRzduocoFPI7e",
-              "object": "customer",
-              "address": null,
-              "balance": 0,
-              "created": 1766640457,
-              "currency": null,
-              "customer_account": null,
-              "default_source": null,
-              "delinquent": false,
-              "description": null,
-              "discount": null,
-              "email": "invoice-pagination-0@example.com",
-              "invoice_prefix": "HDFI2EAE",
+              "invoice_prefix": "RVETGRDT",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -377,5 +377,5 @@ http_interactions:
           "has_more": true,
           "url": "/v1/customers"
         }
-  recorded_at: Thu, 25 Dec 2025 05:28:30 GMT
+  recorded_at: Thu, 25 Dec 2025 12:07:28 GMT
 recorded_with: VCR 6.3.1

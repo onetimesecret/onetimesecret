@@ -11,6 +11,8 @@ http_interactions:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_5p0lx3MN0rRqDK","request_duration_ms":216}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -25,17 +27,17 @@ http_interactions:
       - "*/*"
   response:
     status:
-      code: 401
-      message: Unauthorized
+      code: 200
+      message: OK
     headers:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 11:22:57 GMT
+      - Thu, 25 Dec 2025 12:06:55 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '114'
+      - '642'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -54,27 +56,57 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=RuD-dQyt2FW4RlLdwEB6flmzbRT1nwB9TrCqss198Jl7gqCzpY-oUQ5IPIemUs08w-z1ZU17DkR2Fd4D
-      Vary:
-      - Origin
-      Www-Authenticate:
-      - Bearer realm="Stripe"
-      X-Robots-Tag:
-      - none
-      X-Wc:
-      - ABHIJ
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains; preload
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=g7BvUVf54KdcROttIn2OtY5v8tt7gI1USDSHFjve36Dp4m4TTg1k7wN_AaTFCqaSbgGRMMJOGJNlR5eI
+      Idempotency-Key:
+      - a7d306ac-2ce8-4286-bbff-a57dea2e3e3c
+      Original-Request:
+      - req_RgN6eCIkCbiOnU
+      Stripe-Should-Retry:
+      - 'false'
       Stripe-Version:
       - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
     body:
       encoding: UTF-8
-      string: |
+      string: |-
         {
-          "error": {
-            "message": "Invalid API Key provided: sk_test_mock",
-            "type": "invalid_request_error"
-          }
+          "id": "cus_TfYQAqaooClmf0",
+          "object": "customer",
+          "address": null,
+          "balance": 0,
+          "created": 1766664414,
+          "currency": null,
+          "customer_account": null,
+          "default_source": null,
+          "delinquent": false,
+          "description": null,
+          "discount": null,
+          "email": null,
+          "invoice_prefix": "FMBD0HXG",
+          "invoice_settings": {
+            "custom_fields": null,
+            "default_payment_method": null,
+            "footer": null,
+            "rendering_options": null
+          },
+          "livemode": false,
+          "metadata": {},
+          "name": null,
+          "next_invoice_sequence": 1,
+          "phone": null,
+          "preferred_locales": [],
+          "shipping": null,
+          "tax_exempt": "none",
+          "test_clock": null
         }
-  recorded_at: Thu, 25 Dec 2025 11:22:57 GMT
+  recorded_at: Thu, 25 Dec 2025 12:06:54 GMT
 recorded_with: VCR 6.3.1

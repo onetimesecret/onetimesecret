@@ -11,6 +11,8 @@ http_interactions:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_yQvstwtsc1o6Zy","request_duration_ms":654}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -23,17 +25,17 @@ http_interactions:
       - "*/*"
   response:
     status:
-      code: 401
-      message: Unauthorized
+      code: 200
+      message: OK
     headers:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 11:23:04 GMT
+      - Thu, 25 Dec 2025 12:06:57 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '114'
+      - '5580'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -52,27 +54,238 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=W150mc2gfm-OhzTgSQ3RhGRbxxbSOplQBBPnII1doVZPo_H7sFAyGVtY2fXpDB1g4J3wbdwQWuUErEsj
-      Vary:
-      - Origin
-      Www-Authenticate:
-      - Bearer realm="Stripe"
-      X-Robots-Tag:
-      - none
-      X-Wc:
-      - ABHIJ
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains; preload
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=g7BvUVf54KdcROttIn2OtY5v8tt7gI1USDSHFjve36Dp4m4TTg1k7wN_AaTFCqaSbgGRMMJOGJNlR5eI
       Stripe-Version:
       - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
     body:
       encoding: UTF-8
-      string: |
+      string: |-
         {
-          "error": {
-            "message": "Invalid API Key provided: sk_test_mock",
-            "type": "invalid_request_error"
-          }
+          "object": "list",
+          "data": [
+            {
+              "id": "cus_TfSkkCzDCAcp6Q",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766643311,
+              "currency": null,
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "test@example.com",
+              "invoice_prefix": "WDXODS9P",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": "Test User",
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            },
+            {
+              "id": "cus_TfS0o27VJhPud5",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766640523,
+              "currency": null,
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "test@example.com",
+              "invoice_prefix": "XEIAAJ2Q",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": "Test User",
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            },
+            {
+              "id": "cus_TfRyhTaQiSwpHY",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766640413,
+              "currency": null,
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "test@example.com",
+              "invoice_prefix": "T3DWOXWN",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": "Test User",
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            },
+            {
+              "id": "cus_TexqUAAhxqwBZ2",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766528341,
+              "currency": null,
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "test@example.com",
+              "invoice_prefix": "FLMJQTFF",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": "Test User",
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            },
+            {
+              "id": "cus_TexpupblKvPUxU",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766528241,
+              "currency": null,
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "test@example.com",
+              "invoice_prefix": "YL2BRJM2",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": "Test User",
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            },
+            {
+              "id": "cus_TexoYtYpCqbzBv",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766528197,
+              "currency": null,
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "test@example.com",
+              "invoice_prefix": "6SPGKUBC",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": "Test User",
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            },
+            {
+              "id": "cus_TexdwkhisQvTT2",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766527533,
+              "currency": null,
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "test@example.com",
+              "invoice_prefix": "TPT28VPA",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": "Test User",
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            }
+          ],
+          "has_more": false,
+          "url": "/v1/customers"
         }
-  recorded_at: Thu, 25 Dec 2025 11:23:04 GMT
+  recorded_at: Thu, 25 Dec 2025 12:06:57 GMT
 recorded_with: VCR 6.3.1

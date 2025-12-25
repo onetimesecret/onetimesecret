@@ -29,11 +29,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 06:15:02 GMT
+      - Thu, 25 Dec 2025 12:07:25 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '95'
+      - '3780'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -52,7 +52,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=o8NZ33gh_51wCW2uL4RlwhiIH3p7zJc2QgmDic4TRnOXqIiDYNLFCTU9JFAbdFORng5Q0uieGZ2mcg__
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=H4OaKD60I20M2ziVCTwwKLbIx9srkM-g53Hun4JDv_m8XIJh_8gCWx7fWkhxxGXvNQsfowDqq25KWKpV
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -70,10 +70,136 @@ http_interactions:
       string: |-
         {
           "object": "list",
-          "count": 0,
-          "data": [],
-          "has_more": false,
+          "count": 5,
+          "data": [
+            {
+              "id": "re_3SiDKAH54PcLeqtY1ihmSzYZ",
+              "object": "refund",
+              "amount": 5000,
+              "balance_transaction": "txn_3SiDKAH54PcLeqtY1qWMzlKP",
+              "charge": "ch_3SiDKAH54PcLeqtY1uGNmiyQ",
+              "created": 1766664443,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "3191647969677167",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": null,
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            },
+            {
+              "id": "re_3SiDK7H54PcLeqtY1v74o3JH",
+              "object": "refund",
+              "amount": 5000,
+              "balance_transaction": "txn_3SiDK7H54PcLeqtY167yTkj2",
+              "charge": "ch_3SiDK7H54PcLeqtY1TBC3F0u",
+              "created": 1766664441,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "7239924151101799",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": null,
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            },
+            {
+              "id": "re_3SiDK5H54PcLeqtY1a7QWrIi",
+              "object": "refund",
+              "amount": 3000,
+              "balance_transaction": "txn_3SiDK5H54PcLeqtY1SGjHGX1",
+              "charge": "ch_3SiDK5H54PcLeqtY1HdeJaar",
+              "created": 1766664438,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "1168710365166337",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": "requested_by_customer",
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            },
+            {
+              "id": "re_3SiDK0H54PcLeqtY0fXNY58P",
+              "object": "refund",
+              "amount": 2000,
+              "balance_transaction": "txn_3SiDK0H54PcLeqtY0c2hX3DS",
+              "charge": "ch_3SiDK0H54PcLeqtY00MSei6U",
+              "created": 1766664433,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "3299417513097525",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": null,
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            },
+            {
+              "id": "re_3SiD5gH54PcLeqtY1creqFdL",
+              "object": "refund",
+              "amount": 2000,
+              "balance_transaction": "txn_3SiD5gH54PcLeqtY1oHvhlm8",
+              "charge": "ch_3SiD5gH54PcLeqtY1RWaPiST",
+              "created": 1766663545,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "5375098081954327",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": null,
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            }
+          ],
+          "has_more": true,
           "url": "/v1/refunds"
         }
-  recorded_at: Thu, 25 Dec 2025 06:15:02 GMT
+  recorded_at: Thu, 25 Dec 2025 12:07:25 GMT
 recorded_with: VCR 6.3.1

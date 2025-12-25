@@ -29,7 +29,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 06:14:54 GMT
+      - Thu, 25 Dec 2025 12:06:25 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -52,7 +52,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=CSVuCOwk_UmPl_RJzCn3EZT66q9EzxwnqwmTbDy8LaYZgUTMmVu9k2he8K_9yP3XVCAi21Rl0qAYs5ny
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=2Yx4G_hkUanaQZ3iVJOBAAZU69RoVVwTY3zBWNi7hR7wuzR11qMdTncIG_wtchlo9doEg0izZNUftnXJ
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -74,9 +74,9 @@ http_interactions:
             "doc_url": "https://stripe.com/docs/error-codes/resource-missing",
             "message": "No such customer: 'cus_invalid'",
             "param": "customer",
-            "request_log_url": "https://dashboard.stripe.com/test/logs/req_pAGybPtE8dZ7zW?t=1766643294",
+            "request_log_url": "https://dashboard.stripe.com/test/logs/req_TAXbqYavVe8orL?t=1766664385",
             "type": "invalid_request_error"
           }
         }
-  recorded_at: Thu, 25 Dec 2025 06:14:54 GMT
+  recorded_at: Thu, 25 Dec 2025 12:06:25 GMT
 recorded_with: VCR 6.3.1

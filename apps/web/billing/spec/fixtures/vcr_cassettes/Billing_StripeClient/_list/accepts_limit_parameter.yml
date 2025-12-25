@@ -12,7 +12,9 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_TU1mClHW4zT1Zm","request_duration_ms":308}}'
+      - '{"last_request_metrics":{"request_id":"req_unpwQTyNMbDu20","request_duration_ms":216}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -21,8 +23,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -31,11 +31,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:28:29 GMT
+      - Thu, 25 Dec 2025 12:07:28 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '1612'
+      - '1647'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -54,7 +54,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=aYstusxWyB5aR2lvAV9c-DiOEratEJ9FqCVhfmDMEHLLCo0jiMgziqw-J7mGcVwZ9Br0ijXMdRqOoP3e
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=uLsyOj-YL8mNZSLtxg9GWBAW702j3p_i9gxFdaOVlDTqo9Yc1bq6hDoofG1IUUS4XiCifZcRDnEGXhfG
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -74,19 +74,19 @@ http_interactions:
           "object": "list",
           "data": [
             {
-              "id": "cus_TfS0Ook7IaMm4v",
+              "id": "cus_TfYQ0ByGkVcWph",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766640506,
+              "created": 1766664420,
               "currency": null,
               "customer_account": null,
               "default_source": null,
               "delinquent": false,
               "description": null,
               "discount": null,
-              "email": null,
-              "invoice_prefix": "BZFPOI1G",
+              "email": "test@example.com",
+              "invoice_prefix": "GDM5V3QG",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -95,7 +95,7 @@ http_interactions:
               },
               "livemode": false,
               "metadata": {},
-              "name": null,
+              "name": "Test User",
               "next_invoice_sequence": 1,
               "phone": null,
               "preferred_locales": [],
@@ -104,19 +104,19 @@ http_interactions:
               "test_clock": null
             },
             {
-              "id": "cus_TfS0rAg1E1Wh44",
+              "id": "cus_TfYQtdb0j4UYDS",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766640504,
+              "created": 1766664420,
               "currency": null,
               "customer_account": null,
               "default_source": null,
               "delinquent": false,
               "description": null,
               "discount": null,
-              "email": null,
-              "invoice_prefix": "FXSQSUWE",
+              "email": "test@example.com",
+              "invoice_prefix": "UNGTNDMB",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -137,5 +137,5 @@ http_interactions:
           "has_more": true,
           "url": "/v1/customers"
         }
-  recorded_at: Thu, 25 Dec 2025 05:28:29 GMT
+  recorded_at: Thu, 25 Dec 2025 12:07:28 GMT
 recorded_with: VCR 6.3.1

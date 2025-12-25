@@ -35,6 +35,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
           customer = stripe_client.create(Stripe::Customer, {
             email: 'refund-test@example.com',
             name: 'Refund Test User',
+            source: 'tok_visa',  # Attach payment source at customer creation
           }
           )
 
@@ -42,7 +43,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
             amount: 5000,
             currency: 'usd',
             customer: customer.id,
-            source: 'tok_visa',
+            # Uses customer's attached payment source
           }
           )
 
@@ -153,20 +154,19 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
 
     describe '#call (create refund)' do
       context 'with valid charge ID' do
-        it 'creates full refund with confirmation', :code_smell, :vcr do
-          # NOTE: stripe-mock returns hardcoded amounts ($1.00), not test input ($50.00)
-          # This test validates CLI accepts parameters, not Stripe API behavior
-          # Create test charge
+        it 'creates full refund with confirmation', :vcr do
+          # Create test charge with real Stripe API (VCR records the interaction)
           customer = stripe_client.create(Stripe::Customer, {
             email: 'refund-create-test@example.com',
+            source: 'tok_visa',  # Attach payment source at customer creation
           }
           )
 
           charge = stripe_client.create(Stripe::Charge, {
-            amount: 5000,
+            amount: 5000,  # $50.00
             currency: 'usd',
             customer: customer.id,
-            source: 'tok_visa',
+            # Uses customer's attached payment source
           }
           )
 
@@ -178,8 +178,8 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
           end
 
           expect(output).to match(/Charge: #{charge.id}/)
-          expect(output).to match(/Amount: USD 1\.00/)
-          expect(output).to match(/Refund amount: USD 1\.00/)
+          expect(output).to match(/Amount: USD 50\.00/)  # Real API returns actual amount
+          expect(output).to match(/Refund amount: USD 50\.00/)
           expect(output).to match(/Refund created successfully/)
 
           # Cleanup
@@ -189,6 +189,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
         it 'creates partial refund', :vcr do
           customer = stripe_client.create(Stripe::Customer, {
             email: 'partial-refund-test@example.com',
+            source: 'tok_visa',  # Attach payment source at customer creation
           }
           )
 
@@ -196,7 +197,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
             amount: 10_000,
             currency: 'usd',
             customer: customer.id,
-            source: 'tok_visa',
+            # Uses customer's attached payment source
           }
           )
 
@@ -216,6 +217,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
         it 'includes reason when provided', :vcr do
           customer = stripe_client.create(Stripe::Customer, {
             email: 'refund-reason-test@example.com',
+            source: 'tok_visa',  # Attach payment source at customer creation
           }
           )
 
@@ -223,7 +225,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
             amount: 3000,
             currency: 'usd',
             customer: customer.id,
-            source: 'tok_visa',
+            # Uses customer's attached payment source
           }
           )
 
@@ -243,6 +245,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
         it 'bypasses confirmation with --yes flag', :vcr do
           customer = stripe_client.create(Stripe::Customer, {
             email: 'refund-yes-test@example.com',
+            source: 'tok_visa',  # Attach payment source at customer creation
           }
           )
 
@@ -250,7 +253,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
             amount: 2000,
             currency: 'usd',
             customer: customer.id,
-            source: 'tok_visa',
+            # Uses customer's attached payment source
           }
           )
 
@@ -270,6 +273,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
         it 'aborts when user declines confirmation', :vcr do
           customer = stripe_client.create(Stripe::Customer, {
             email: 'refund-decline-test@example.com',
+            source: 'tok_visa',  # Attach payment source at customer creation
           }
           )
 
@@ -277,7 +281,7 @@ RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr 
             amount: 1000,
             currency: 'usd',
             customer: customer.id,
-            source: 'tok_visa',
+            # Uses customer's attached payment source
           }
           )
 

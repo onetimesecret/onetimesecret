@@ -1,3 +1,0 @@
-# VCR cassettes are checked into git for consistent test replay
-# Only ignore temporary or local-only cassettes
-*.local.yml

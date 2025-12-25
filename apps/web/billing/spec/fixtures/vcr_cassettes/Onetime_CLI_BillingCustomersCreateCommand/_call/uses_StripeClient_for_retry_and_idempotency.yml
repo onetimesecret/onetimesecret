@@ -11,8 +11,10 @@ http_interactions:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_SC5cwsa8RLaUke","request_duration_ms":242}}'
       Idempotency-Key:
-      - 1766661780-312d1f56-b18e-4a15-9284-9f23bc0a5d91
+      - 1766664420-887b22e3-44ea-49f6-b67e-c669f271b7b5
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -27,17 +29,17 @@ http_interactions:
       - "*/*"
   response:
     status:
-      code: 401
-      message: Unauthorized
+      code: 200
+      message: OK
     headers:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 11:23:00 GMT
+      - Thu, 25 Dec 2025 12:07:00 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '114'
+      - '656'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -56,27 +58,57 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=uvKduC66Q4Sir9CV03w2b1led8ps1o0F8LWW6WJvd8zneAUS9NL3l9LbBiEAmjH8obds01dWj5awtLFS
-      Vary:
-      - Origin
-      Www-Authenticate:
-      - Bearer realm="Stripe"
-      X-Robots-Tag:
-      - none
-      X-Wc:
-      - ABHIJ
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains; preload
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=EOc8AIwnubEL4_VqEUb4Nb4F0-xpzNX42Nm2OZErskZwZn4xPc-mp6GtSpCYfPM7qexeqrKBD9WWVHyj
+      Idempotency-Key:
+      - 1766664420-887b22e3-44ea-49f6-b67e-c669f271b7b5
+      Original-Request:
+      - req_HOklhXedZTdtAd
+      Stripe-Should-Retry:
+      - 'false'
       Stripe-Version:
       - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
     body:
       encoding: UTF-8
-      string: |
+      string: |-
         {
-          "error": {
-            "message": "Invalid API Key provided: sk_test_mock",
-            "type": "invalid_request_error"
-          }
+          "id": "cus_TfYQtdb0j4UYDS",
+          "object": "customer",
+          "address": null,
+          "balance": 0,
+          "created": 1766664420,
+          "currency": null,
+          "customer_account": null,
+          "default_source": null,
+          "delinquent": false,
+          "description": null,
+          "discount": null,
+          "email": "test@example.com",
+          "invoice_prefix": "UNGTNDMB",
+          "invoice_settings": {
+            "custom_fields": null,
+            "default_payment_method": null,
+            "footer": null,
+            "rendering_options": null
+          },
+          "livemode": false,
+          "metadata": {},
+          "name": null,
+          "next_invoice_sequence": 1,
+          "phone": null,
+          "preferred_locales": [],
+          "shipping": null,
+          "tax_exempt": "none",
+          "test_clock": null
         }
-  recorded_at: Thu, 25 Dec 2025 11:23:00 GMT
+  recorded_at: Thu, 25 Dec 2025 12:07:00 GMT
 recorded_with: VCR 6.3.1
