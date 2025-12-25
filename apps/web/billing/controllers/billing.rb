@@ -231,7 +231,7 @@ module Billing
               currency: plan.currency,
               region: plan.region,
               features: plan.features.to_a,
-              limits: plan.limits_hash,
+              limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
               entitlements: plan.entitlements.to_a,
               display_order: plan.display_order.to_i,
             }
