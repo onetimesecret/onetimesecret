@@ -25,7 +25,7 @@ require_relative '../../cli/subscriptions_update_command'
 #   - True unit tests (test CLI only, fully mock Stripe SDK)
 #   - Integration tests with :stripe_sandbox_api tag
 
-RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, :unit do
+RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, :integration, :vcr do
   using Familia::Refinements::TimeLiterals
 
   let(:stripe_client) { Billing::StripeClient.new }

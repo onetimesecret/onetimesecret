@@ -22,7 +22,7 @@ require_relative '../../cli/refunds_create_command'
 # - Some try to validate Stripe API behavior with stripe-mock (impossible)
 # - Should either become true unit tests (CLI only) or :integration tests (require sandbox)
 
-RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :unit do
+RSpec.describe 'Billing Refunds CLI Commands', :billing_cli, :integration, :vcr do
   let(:stripe_client) { Billing::StripeClient.new }
 
   describe Onetime::CLI::BillingRefundsCommand do

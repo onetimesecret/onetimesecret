@@ -7,14 +7,14 @@ require 'onetime/cli'
 require_relative '../../cli/prices_command'
 require_relative '../../cli/prices_create_command'
 
-RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
+RSpec.describe 'Billing Prices CLI Commands', :billing_cli, :integration, :vcr do
   let(:stripe_client) { Billing::StripeClient.new }
 
   describe Onetime::CLI::BillingPricesCommand do
     subject(:command) { described_class.new }
 
     describe '#call (list prices)' do
-      it 'lists active prices by default', :unit do
+      it 'lists active prices by default' do
         output = capture_stdout do
           command.call(limit: 100, active_only: true)
         end
@@ -24,7 +24,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         expect(output).to match(/Total: \d+ price\(s\)/)
       end
 
-      it 'accepts product filter option', :unit do
+      it 'accepts product filter option' do
         output = capture_stdout do
           command.call(product: 'prod_test123', limit: 100)
         end
@@ -32,7 +32,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         expect(output).to include('Fetching prices from Stripe')
       end
 
-      it 'includes inactive prices when active_only is false', :unit do
+      it 'includes inactive prices when active_only is false' do
         output = capture_stdout do
           command.call(limit: 100, active_only: false)
         end
@@ -40,7 +40,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         expect(output).to include('Fetching prices from Stripe')
       end
 
-      it 'formats price rows with proper alignment', :unit do
+      it 'formats price rows with proper alignment' do
         output = capture_stdout do
           command.call(limit: 100)
         end
@@ -81,7 +81,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
     let(:product_id) { 'prod_test123' }
 
     describe '#call (create price)' do
-      it 'creates price with all required arguments', :unit do
+      it 'creates price with all required arguments' do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -103,7 +103,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         expect(output).to match(/ID: price_/)
       end
 
-      it 'uses default currency of usd', :unit do
+      it 'uses default currency of usd' do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -118,7 +118,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         expect(output).to include('Price created successfully')
       end
 
-      it 'uses default interval of month', :unit do
+      it 'uses default interval of month' do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -132,7 +132,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         expect(output).to include('Price created successfully')
       end
 
-      it 'uses default interval_count of 1', :unit do
+      it 'uses default interval_count of 1' do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -146,7 +146,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         expect(output).to include('Interval: 1 month(s)')
       end
 
-      it 'accepts year interval', :unit do
+      it 'accepts year interval' do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -161,7 +161,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         expect(output).to include('Price created successfully')
       end
 
-      it 'accepts week interval', :unit do
+      it 'accepts week interval' do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -176,7 +176,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         expect(output).to include('Price created successfully')
       end
 
-      it 'accepts day interval', :unit do
+      it 'accepts day interval' do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -191,7 +191,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         expect(output).to include('Price created successfully')
       end
 
-      it 'accepts custom interval_count', :unit do
+      it 'accepts custom interval_count' do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -207,7 +207,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         expect(output).to include('Price created successfully')
       end
 
-      it 'requires confirmation before creating', :unit do
+      it 'requires confirmation before creating' do
         allow($stdin).to receive(:gets).and_return("n\n")
 
         output = capture_stdout do
@@ -276,7 +276,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         expect(output).to include('Error: Interval must be one of: month, year, week, day')
       end
 
-      it 'verifies product exists before creating price', :unit do
+      it 'verifies product exists before creating price' do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -290,7 +290,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         expect(output).to include('Product:')
       end
 
-      it 'formats amount display correctly', :unit do
+      it 'formats amount display correctly' do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -303,7 +303,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         expect(output).to include('Amount: USD 12.99')
       end
 
-      it 'displays created price details after success', :unit do
+      it 'displays created price details after success' do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -319,7 +319,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         expect(output).to include('Interval:')
       end
 
-      it 'handles interactive mode', :unit do
+      it 'handles interactive mode' do
         allow($stdin).to receive(:gets).and_return(
           "#{product_id}\n",
           "900\n",
@@ -361,7 +361,7 @@ RSpec.describe 'Billing Prices CLI Commands', :billing_cli do
         end.to output(/Error|Invalid currency/).to_stdout
       end
 
-      it 'uses StripeClient for retry and idempotency', :unit do
+      it 'uses StripeClient for retry and idempotency' do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do

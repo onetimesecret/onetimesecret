@@ -9,14 +9,14 @@ require_relative '../../cli/products_create_command'
 require_relative '../../cli/products_show_command'
 require_relative '../../cli/products_update_command'
 
-RSpec.describe 'Billing Products CLI Commands', :billing_cli, :vcr do
+RSpec.describe 'Billing Products CLI Commands', :billing_cli, :integration, :vcr do
   let(:stripe_client) { Billing::StripeClient.new }
 
   describe Onetime::CLI::BillingProductsCommand do
     subject(:command) { described_class.new }
 
     describe '#call (list products)' do
-      it 'lists active products by default', :unit do
+      it 'lists active products by default' do
         output = capture_stdout do
           command.call(limit: 100)
         end
@@ -25,7 +25,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :vcr do
         expect(output).to match(/ID.*NAME.*TIER.*TENANCY.*REGION.*ACTIVE/)
       end
 
-      it 'includes inactive products when active_only is false', :unit do
+      it 'includes inactive products when active_only is false' do
         output = capture_stdout do
           command.call(active_only: false, limit: 100)
         end
@@ -33,7 +33,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :vcr do
         expect(output).to include('Fetching products from Stripe')
       end
 
-      it 'displays product count in output', :unit do
+      it 'displays product count in output' do
         output = capture_stdout do
           command.call(limit: 100)
         end
@@ -41,7 +41,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :vcr do
         expect(output).to match(/Total: \d+ product\(s\)/)
       end
 
-      it 'formats product rows with proper alignment', :unit do
+      it 'formats product rows with proper alignment' do
         output = capture_stdout do
           command.call(limit: 100)
         end
@@ -83,7 +83,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :vcr do
         expect(output).to match(/ID: prod_/)
       end
 
-      it 'requires confirmation before creation', :unit do
+      it 'requires confirmation before creation' do
         allow($stdin).to receive(:gets).and_return("n\n")
 
         output = capture_stdout do
@@ -226,7 +226,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :vcr do
         expect(output).to include('limit_members_per_team:')
       end
 
-      it 'uses StripeClient for retry and idempotency', :unit do
+      it 'uses StripeClient for retry and idempotency' do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
