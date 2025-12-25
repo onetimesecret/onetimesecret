@@ -9,7 +9,7 @@ require_relative '../../cli/products_create_command'
 require_relative '../../cli/products_show_command'
 require_relative '../../cli/products_update_command'
 
-RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
+RSpec.describe 'Billing Products CLI Commands', :billing_cli, :vcr do
   let(:stripe_client) { Billing::StripeClient.new }
 
   describe Onetime::CLI::BillingProductsCommand do
@@ -69,7 +69,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
     subject(:command) { described_class.new }
 
     describe '#call (create product)' do
-      it 'creates product with name argument', :unit do
+      it 'creates product with name argument', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -105,7 +105,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('Error: Product name is required')
       end
 
-      it 'accepts plan_id option', :unit do
+      it 'accepts plan_id option', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -116,7 +116,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('Product created successfully')
       end
 
-      it 'accepts tier option', :unit do
+      it 'accepts tier option', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -126,7 +126,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('tier: single_team')
       end
 
-      it 'accepts region option', :unit do
+      it 'accepts region option', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -136,7 +136,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('region: EU')
       end
 
-      it 'defaults region to global if not specified', :unit do
+      it 'defaults region to global if not specified', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -146,7 +146,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('region: global')
       end
 
-      it 'accepts tenancy option', :unit do
+      it 'accepts tenancy option', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -156,7 +156,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('tenancy: multi')
       end
 
-      it 'accepts entitlements option', :unit do
+      it 'accepts entitlements option', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -166,7 +166,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('entitlements: api,teams')
       end
 
-      it 'accepts marketing_features option', :unit do
+      it 'accepts marketing_features option', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -178,7 +178,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('- Feature 2')
       end
 
-      it 'displays next steps after creation', :unit do
+      it 'displays next steps after creation', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -189,7 +189,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('bin/ots billing prices create --product')
       end
 
-      it 'handles interactive mode', :unit do
+      it 'handles interactive mode', :vcr do
         allow($stdin).to receive(:gets).and_return("Test Product\n", "y\n")
 
         output = capture_stdout do
@@ -200,7 +200,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('Product created successfully')
       end
 
-      it 'includes created timestamp in metadata', :unit do
+      it 'includes created timestamp in metadata', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -210,7 +210,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to match(/created: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z/)
       end
 
-      it 'initializes all metadata fields with empty strings', :unit do
+      it 'initializes all metadata fields with empty strings', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -244,7 +244,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
     let(:product_id) { 'prod_test123' }
 
     describe '#call (show product)' do
-      it 'displays product details', :unit do
+      it 'displays product details', :vcr do
         output = capture_stdout do
           command.call(product_id: product_id)
         end
@@ -255,7 +255,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('Active:')
       end
 
-      it 'displays description if present' do
+      it 'displays description if present', :vcr do
         # Create product with description
         product = stripe_client.create(Stripe::Product, {
           name: 'Product with Description',
@@ -273,7 +273,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         stripe_client.delete(Stripe::Product, product.id)
       end
 
-      it 'displays metadata section', :unit do
+      it 'displays metadata section', :vcr do
         # Create product with metadata
         product = stripe_client.create(Stripe::Product, {
           name: 'Metadata Test Product',
@@ -307,7 +307,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('Marketing Features:')
       end
 
-      it 'displays associated prices', :unit do
+      it 'displays associated prices', :vcr do
         output = capture_stdout do
           command.call(product_id: product_id)
         end
@@ -350,7 +350,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
     let(:product_id) { 'prod_test123' }
 
     describe '#call (update product)' do
-      it 'displays current metadata before update', :unit do
+      it 'displays current metadata before update', :vcr do
         allow($stdin).to receive(:gets).and_return("n\n")
 
         output = capture_stdout do
@@ -361,7 +361,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('Current metadata:')
       end
 
-      it 'requires confirmation before updating', :unit do
+      it 'requires confirmation before updating', :vcr do
         allow($stdin).to receive(:gets).and_return("n\n")
 
         output = capture_stdout do
@@ -372,7 +372,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).not_to include('Product updated successfully')
       end
 
-      it 'updates when confirmed', :unit do
+      it 'updates when confirmed', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -384,7 +384,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('Product updated successfully')
       end
 
-      it 'updates plan_id', :unit do
+      it 'updates plan_id', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -394,7 +394,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('plan_id: new_plan')
       end
 
-      it 'updates tier', :unit do
+      it 'updates tier', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -404,7 +404,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('tier: enterprise')
       end
 
-      it 'updates region', :unit do
+      it 'updates region', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -414,7 +414,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('region: eu-west')
       end
 
-      it 'updates tenancy', :unit do
+      it 'updates tenancy', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -424,7 +424,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('tenancy: single')
       end
 
-      it 'updates entitlements', :unit do
+      it 'updates entitlements', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -440,7 +440,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         skip 'Requires integration test - cannot verify state preservation with stripe-mock'
       end
 
-      it 'ensures all expected metadata fields exist', :unit do
+      it 'ensures all expected metadata fields exist', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -457,7 +457,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('created:')
       end
 
-      it 'adds marketing feature', :unit do
+      it 'adds marketing feature', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -467,7 +467,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('Adding marketing feature: New Feature')
       end
 
-      it 'removes marketing feature', :unit do
+      it 'removes marketing feature', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
@@ -477,7 +477,7 @@ RSpec.describe 'Billing Products CLI Commands', :billing_cli, :unit do
         expect(output).to include('Removing marketing feature: Old Feature')
       end
 
-      it 'displays updated metadata after successful update', :unit do
+      it 'displays updated metadata after successful update', :vcr do
         allow($stdin).to receive(:gets).and_return("y\n")
 
         output = capture_stdout do
