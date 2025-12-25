@@ -11,8 +11,8 @@ http_interactions:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
-      X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_2AS1vNkrIhqfom","request_duration_ms":412}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -21,8 +21,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -31,11 +29,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:28:26 GMT
+      - Thu, 25 Dec 2025 06:14:49 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '18639'
+      - '52967'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -54,7 +52,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=TtC2Mscoh0uNUlClaZgs_aFroRWNLvp8PQI4iYMynm9Lh0iEwqbylbzQTl5QtW6jdjvbxehbaoMOQVor
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=CSVuCOwk_UmPl_RJzCn3EZT66q9EzxwnqwmTbDy8LaYZgUTMmVu9k2he8K_9yP3XVCAi21Rl0qAYs5ny
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -73,6 +71,1348 @@ http_interactions:
         {
           "object": "list",
           "data": [
+            {
+              "id": "prod_TfSkbsuFaANn8f",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643288,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643288",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643288,
+              "url": null
+            },
+            {
+              "id": "prod_TfSkRCqe0JkUGH",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643286,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643286",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643286,
+              "url": null
+            },
+            {
+              "id": "prod_TfSkZj9KW0PIGH",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643284,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643284",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643284,
+              "url": null
+            },
+            {
+              "id": "prod_TfSk7etusYYDtU",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643282,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643282",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643282,
+              "url": null
+            },
+            {
+              "id": "prod_TfSkp6XHfsbDPn",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643280,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643280",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643280,
+              "url": null
+            },
+            {
+              "id": "prod_TfSkdOcn4BYSd9",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643278,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643278",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643278,
+              "url": null
+            },
+            {
+              "id": "prod_TfSkd8kKQTEAcN",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643276,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643276",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643276,
+              "url": null
+            },
+            {
+              "id": "prod_TfSkddb3MscyDg",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643272,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643272",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643272,
+              "url": null
+            },
+            {
+              "id": "prod_TfSk8uRDkeNwEN",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643270,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643270",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643270,
+              "url": null
+            },
+            {
+              "id": "prod_TfSkZTHCkaMsNE",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643268,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643268",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643268,
+              "url": null
+            },
+            {
+              "id": "prod_TfSkdrDyEdd1yu",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643266,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643266",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643266,
+              "url": null
+            },
+            {
+              "id": "prod_TfSkI5OXXpc8eo",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643264,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643264",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643264,
+              "url": null
+            },
+            {
+              "id": "prod_TfSkNiBt6whUWu",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643262,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643262",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643262,
+              "url": null
+            },
+            {
+              "id": "prod_TfSja8Fb0NrfQ2",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643258,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643258",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643258,
+              "url": null
+            },
+            {
+              "id": "prod_TfSjfxk6wUWkCV",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643255,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643255",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643255,
+              "url": null
+            },
+            {
+              "id": "prod_TfSjzxccdhTXQb",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643252,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643252",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643252,
+              "url": null
+            },
+            {
+              "id": "prod_TfSjG2Knhm1FJn",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643249,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643249",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643249,
+              "url": null
+            },
+            {
+              "id": "prod_TfSjWXVBhaBAzd",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643246,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643246",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643246,
+              "url": null
+            },
+            {
+              "id": "prod_TfSjCRXBYaLRTn",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643243,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643243",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643243,
+              "url": null
+            },
+            {
+              "id": "prod_TfSjL5oHbVxhAP",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643240,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643240",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643240,
+              "url": null
+            },
+            {
+              "id": "prod_TfSjtBccKjt0oS",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643237,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643237",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643237,
+              "url": null
+            },
+            {
+              "id": "prod_TfSj9RRMRbdeFm",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766643234,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766643234",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766643234,
+              "url": null
+            },
+            {
+              "id": "prod_TfSc2ds47PP2hf",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766642817,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766642817",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766642817,
+              "url": null
+            },
+            {
+              "id": "prod_TfSc8PLDT3bPs2",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766642816,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766642815",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766642816,
+              "url": null
+            },
+            {
+              "id": "prod_TfSc2k5QxC4Mai",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766642812,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766642812",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766642812,
+              "url": null
+            },
+            {
+              "id": "prod_TfSccSdP10ayXr",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766642810,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766642810",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766642810,
+              "url": null
+            },
+            {
+              "id": "prod_TfSc1iiUYcrZAG",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766642807,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766642806",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766642807,
+              "url": null
+            },
+            {
+              "id": "prod_TfScBT1jjbKAlO",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766642805,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766642805",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766642805,
+              "url": null
+            },
+            {
+              "id": "prod_TfScKnwm0bGjYs",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766642803,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766642803",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766642803,
+              "url": null
+            },
+            {
+              "id": "prod_TfScCI3N3XzwJJ",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766642801,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766642801",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766642801,
+              "url": null
+            },
+            {
+              "id": "prod_TfScYoty5gxDkH",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766642799,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766642799",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766642799,
+              "url": null
+            },
+            {
+              "id": "prod_TfScTDJZBTNbmO",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766642797,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766642797",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766642797,
+              "url": null
+            },
+            {
+              "id": "prod_TfScV0WG2l0otH",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766642795,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766642795",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766642795,
+              "url": null
+            },
+            {
+              "id": "prod_TfScrElmLAge0l",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766642793,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766642793",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766642793,
+              "url": null
+            },
+            {
+              "id": "prod_TfSKcuGRgkNHgk",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766641711,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766641710",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766641711,
+              "url": null
+            },
+            {
+              "id": "prod_TfSKMGIFF1Qtj9",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766641710,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766641709",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766641710,
+              "url": null
+            },
+            {
+              "id": "prod_TfSKo6Vnh0xrQg",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766641708,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766641707",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766641708,
+              "url": null
+            },
+            {
+              "id": "prod_TfSK6h3RRBFOB0",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766641706,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766641706",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766641706,
+              "url": null
+            },
+            {
+              "id": "prod_TfSKyTa4Rh2OJa",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766641705,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766641704",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766641705,
+              "url": null
+            },
+            {
+              "id": "prod_TfSKSUDbYeFbEl",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766641703,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766641703",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766641703,
+              "url": null
+            },
+            {
+              "id": "prod_TfSKMK0lPKHHHP",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766641702,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766641701",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766641702,
+              "url": null
+            },
+            {
+              "id": "prod_TfSKQw6XO2mnLJ",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766641700,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766641700",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766641700,
+              "url": null
+            },
+            {
+              "id": "prod_TfSJ4zRXLo7W4C",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766641699,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766641698",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766641699,
+              "url": null
+            },
+            {
+              "id": "prod_TfSJkKgorgxmjp",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766641696,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766641695",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766641696,
+              "url": null
+            },
+            {
+              "id": "prod_TfSJPlVUKT6O7j",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766641694,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766641694",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766641694,
+              "url": null
+            },
+            {
+              "id": "prod_TfSJL1lusXtluY",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766641693,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766641692",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766641693,
+              "url": null
+            },
+            {
+              "id": "prod_TfSJLIPmoM1YIY",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766641691,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766641690",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766641691,
+              "url": null
+            },
+            {
+              "id": "prod_TfS0Xt5pZ8Gpoq",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640555,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640555",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640555,
+              "url": null
+            },
+            {
+              "id": "prod_TfS0wkrWQoE6Bl",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640553,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640553",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640553,
+              "url": null
+            },
+            {
+              "id": "prod_TfS0ASQ0SKdZXd",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640551,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640551",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640551,
+              "url": null
+            },
+            {
+              "id": "prod_TfS0XsFngmqk71",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640549,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640549",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640549,
+              "url": null
+            },
+            {
+              "id": "prod_TfS0zcn4V7fXeC",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640547,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640546",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640547,
+              "url": null
+            },
+            {
+              "id": "prod_TfS01C3b07Lpre",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640545,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640545",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640545,
+              "url": null
+            },
+            {
+              "id": "prod_TfS0I9hjt7OQbm",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640543,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640543",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640543,
+              "url": null
+            },
+            {
+              "id": "prod_TfS0c2YzZ32RHO",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640540,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640540",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640540,
+              "url": null
+            },
+            {
+              "id": "prod_TfS0K2YdFa5sfp",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640537,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640537",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640537,
+              "url": null
+            },
+            {
+              "id": "prod_TfS0uujVU8oU0H",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640535,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640535",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640535,
+              "url": null
+            },
+            {
+              "id": "prod_TfS0wiilG0Ik8S",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640533,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640533",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640533,
+              "url": null
+            },
+            {
+              "id": "prod_TfS0wxaCoq5zSu",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640531,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640531",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640531,
+              "url": null
+            },
+            {
+              "id": "prod_TfS0V53F5iB9AM",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640529,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640529",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640529,
+              "url": null
+            },
+            {
+              "id": "prod_TfS0Xs6QXEkqZo",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640514,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Sub Test",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640514,
+              "url": null
+            },
             {
               "id": "prod_TfRzYg9tYPFhdN",
               "object": "product",
@@ -766,7 +2106,7 @@ http_interactions:
           "has_more": false,
           "url": "/v1/products"
         }
-  recorded_at: Thu, 25 Dec 2025 05:28:26 GMT
+  recorded_at: Thu, 25 Dec 2025 06:14:50 GMT
 - request:
     method: get
     uri: https://api.stripe.com/v1/prices?active=true&limit=100&product=prod_TeFCbk1uiURbuc
@@ -779,7 +2119,9 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_iOdnIQUkVY53oQ","request_duration_ms":412}}'
+      - '{"last_request_metrics":{"request_id":"req_ESxZdrRLegLgg3","request_duration_ms":635}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -788,8 +2130,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -798,7 +2138,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:28:27 GMT
+      - Thu, 25 Dec 2025 06:14:50 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -821,7 +2161,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=TtC2Mscoh0uNUlClaZgs_aFroRWNLvp8PQI4iYMynm9Lh0iEwqbylbzQTl5QtW6jdjvbxehbaoMOQVor
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=CSVuCOwk_UmPl_RJzCn3EZT66q9EzxwnqwmTbDy8LaYZgUTMmVu9k2he8K_9yP3XVCAi21Rl0qAYs5ny
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -843,7 +2183,7 @@ http_interactions:
           "has_more": false,
           "url": "/v1/prices"
         }
-  recorded_at: Thu, 25 Dec 2025 05:28:27 GMT
+  recorded_at: Thu, 25 Dec 2025 06:14:50 GMT
 - request:
     method: get
     uri: https://api.stripe.com/v1/prices?active=true&limit=100&product=prod_TUpPoXf8R0X8sk
@@ -856,7 +2196,9 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_2HP4alVSzZVgdg","request_duration_ms":305}}'
+      - '{"last_request_metrics":{"request_id":"req_spPf0NZ5kUCzBG","request_duration_ms":296}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -865,8 +2207,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -875,7 +2215,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:28:27 GMT
+      - Thu, 25 Dec 2025 06:14:50 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -898,7 +2238,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=TtC2Mscoh0uNUlClaZgs_aFroRWNLvp8PQI4iYMynm9Lh0iEwqbylbzQTl5QtW6jdjvbxehbaoMOQVor
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=CSVuCOwk_UmPl_RJzCn3EZT66q9EzxwnqwmTbDy8LaYZgUTMmVu9k2he8K_9yP3XVCAi21Rl0qAYs5ny
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -948,7 +2288,7 @@ http_interactions:
           "has_more": false,
           "url": "/v1/prices"
         }
-  recorded_at: Thu, 25 Dec 2025 05:28:27 GMT
+  recorded_at: Thu, 25 Dec 2025 06:14:50 GMT
 - request:
     method: get
     uri: https://api.stripe.com/v1/prices?active=true&limit=100&product=prod_TTZ2GYuFfSZNiw
@@ -961,7 +2301,9 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_CXoqd4o7GtrirZ","request_duration_ms":296}}'
+      - '{"last_request_metrics":{"request_id":"req_op6cWuvjpA4opb","request_duration_ms":294}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -970,8 +2312,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -980,7 +2320,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:28:27 GMT
+      - Thu, 25 Dec 2025 06:14:51 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -1003,7 +2343,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=TtC2Mscoh0uNUlClaZgs_aFroRWNLvp8PQI4iYMynm9Lh0iEwqbylbzQTl5QtW6jdjvbxehbaoMOQVor
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=CSVuCOwk_UmPl_RJzCn3EZT66q9EzxwnqwmTbDy8LaYZgUTMmVu9k2he8K_9yP3XVCAi21Rl0qAYs5ny
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -1080,7 +2420,7 @@ http_interactions:
           "has_more": false,
           "url": "/v1/prices"
         }
-  recorded_at: Thu, 25 Dec 2025 05:28:27 GMT
+  recorded_at: Thu, 25 Dec 2025 06:14:51 GMT
 - request:
     method: get
     uri: https://api.stripe.com/v1/prices?active=true&limit=100&product=prod_TTZ2rRgZLSDzxi
@@ -1093,7 +2433,9 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_vmwBj67gv58haU","request_duration_ms":305}}'
+      - '{"last_request_metrics":{"request_id":"req_Bl1IOE6kb1H0Wf","request_duration_ms":307}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -1102,8 +2444,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -1112,7 +2452,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:28:28 GMT
+      - Thu, 25 Dec 2025 06:14:51 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -1135,7 +2475,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=TtC2Mscoh0uNUlClaZgs_aFroRWNLvp8PQI4iYMynm9Lh0iEwqbylbzQTl5QtW6jdjvbxehbaoMOQVor
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=CSVuCOwk_UmPl_RJzCn3EZT66q9EzxwnqwmTbDy8LaYZgUTMmVu9k2he8K_9yP3XVCAi21Rl0qAYs5ny
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -1212,7 +2552,7 @@ http_interactions:
           "has_more": false,
           "url": "/v1/prices"
         }
-  recorded_at: Thu, 25 Dec 2025 05:28:28 GMT
+  recorded_at: Thu, 25 Dec 2025 06:14:51 GMT
 - request:
     method: get
     uri: https://api.stripe.com/v1/prices?active=true&limit=100&product=prod_TTZ2233777gDDV
@@ -1225,7 +2565,9 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_VmZKfskHpRpKRy","request_duration_ms":305}}'
+      - '{"last_request_metrics":{"request_id":"req_FxUxLrkTSmx2v1","request_duration_ms":299}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -1234,8 +2576,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -1244,7 +2584,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:28:28 GMT
+      - Thu, 25 Dec 2025 06:14:51 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -1267,7 +2607,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=TtC2Mscoh0uNUlClaZgs_aFroRWNLvp8PQI4iYMynm9Lh0iEwqbylbzQTl5QtW6jdjvbxehbaoMOQVor
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=CSVuCOwk_UmPl_RJzCn3EZT66q9EzxwnqwmTbDy8LaYZgUTMmVu9k2he8K_9yP3XVCAi21Rl0qAYs5ny
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -1344,7 +2684,7 @@ http_interactions:
           "has_more": false,
           "url": "/v1/prices"
         }
-  recorded_at: Thu, 25 Dec 2025 05:28:28 GMT
+  recorded_at: Thu, 25 Dec 2025 06:14:51 GMT
 - request:
     method: get
     uri: https://api.stripe.com/v1/prices?active=true&limit=100&product=prod_TTZ2qcBujqqaRC
@@ -1357,7 +2697,9 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_cPjJjAohz2QygM","request_duration_ms":307}}'
+      - '{"last_request_metrics":{"request_id":"req_4dmo3QTplh1058","request_duration_ms":309}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -1366,8 +2708,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -1376,7 +2716,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:28:28 GMT
+      - Thu, 25 Dec 2025 06:14:52 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -1399,7 +2739,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=TtC2Mscoh0uNUlClaZgs_aFroRWNLvp8PQI4iYMynm9Lh0iEwqbylbzQTl5QtW6jdjvbxehbaoMOQVor
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=CSVuCOwk_UmPl_RJzCn3EZT66q9EzxwnqwmTbDy8LaYZgUTMmVu9k2he8K_9yP3XVCAi21Rl0qAYs5ny
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -1476,5 +2816,5 @@ http_interactions:
           "has_more": false,
           "url": "/v1/prices"
         }
-  recorded_at: Thu, 25 Dec 2025 05:28:28 GMT
+  recorded_at: Thu, 25 Dec 2025 06:14:52 GMT
 recorded_with: VCR 6.3.1

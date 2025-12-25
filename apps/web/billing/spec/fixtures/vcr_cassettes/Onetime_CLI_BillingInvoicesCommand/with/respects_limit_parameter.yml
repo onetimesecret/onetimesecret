@@ -11,6 +11,8 @@ http_interactions:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -19,8 +21,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -29,7 +29,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:29:08 GMT
+      - Thu, 25 Dec 2025 06:14:35 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -52,7 +52,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=nfxzOfid_l8Is1I-wU2FCUdLTgqqNeIuo0egBgLhrkAmqcFbQ1XkkXNfjv30we_iYCDsHsjod9q3EpcG
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=Jc3CEImaPiDFYL3MBJVGIRDn7qw-ILJI7IUX9le3wynbfn5EzwjuSgNZCU6zyKrBY5STaYdpKqNSniC-
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -103,12 +103,12 @@ http_interactions:
         ICAiaG9zdGVkX2ludm9pY2VfdXJsIjogImh0dHBzOi8vaW52b2ljZS5zdHJp
         cGUuY29tL2kvYWNjdF8xU1JVWFFINTRQY0xlcXRZL3Rlc3RfWVdOamRGOHhV
         MUpWV0ZGSU5UUlFZMHhsY1hSWkxGOVVabE13ZUdKNVpWZGtjRFUzTjNJM1Uz
-        STViWGw2VlZOWlJXeElaM1pZTERFMU56RTRNVE0wT0EwMjAwclEyTVd4dzU/
+        STViWGw2VlZOWlJXeElaM1pZTERFMU56RTROREEzTlEwMjAwSTBVS1R2OWw/
         cz1hcCIsCiAgICAgICJpbnZvaWNlX3BkZiI6ICJodHRwczovL3BheS5zdHJp
         cGUuY29tL2ludm9pY2UvYWNjdF8xU1JVWFFINTRQY0xlcXRZL3Rlc3RfWVdO
         amRGOHhVMUpWV0ZGSU5UUlFZMHhsY1hSWkxGOVVabE13ZUdKNVpWZGtjRFUz
-        TjNJM1UzSTViWGw2VlZOWlJXeElaM1pZTERFMU56RTRNVE0wT0EwMjAwclEy
-        TVd4dzUvcGRmP3M9YXAiLAogICAgICAiaXNzdWVyIjogewogICAgICAgICJ0
+        TjNJM1UzSTViWGw2VlZOWlJXeElaM1pZTERFMU56RTROREEzTlEwMjAwSTBV
+        S1R2OWwvcGRmP3M9YXAiLAogICAgICAiaXNzdWVyIjogewogICAgICAgICJ0
         eXBlIjogInNlbGYiCiAgICAgIH0sCiAgICAgICJsYXN0X2ZpbmFsaXphdGlv
         bl9lcnJvciI6IG51bGwsCiAgICAgICJsYXRlc3RfcmV2aXNpb24iOiBudWxs
         LAogICAgICAibGluZXMiOiB7CiAgICAgICAgIm9iamVjdCI6ICJsaXN0IiwK
@@ -212,11 +212,11 @@ http_interactions:
         cmwiOiAiaHR0cHM6Ly9pbnZvaWNlLnN0cmlwZS5jb20vaS9hY2N0XzFTUlVY
         UUg1NFBjTGVxdFkvdGVzdF9ZV05qZEY4eFUxSlZXRkZJTlRSUVkweGxjWFJa
         TEY5VVpsSjVXRkJWY2twelMwcDNSVXhOWkZnd1EwOVZjekJYWTI5QmJqbGlM
-        REUxTnpFNE1UTTBPQTAyMDBzUFFickVkdT9zPWFwIiwKICAgICAgImludm9p
+        REUxTnpFNE5EQTNOUTAyMDBVSWpCVjRFbz9zPWFwIiwKICAgICAgImludm9p
         Y2VfcGRmIjogImh0dHBzOi8vcGF5LnN0cmlwZS5jb20vaW52b2ljZS9hY2N0
         XzFTUlVYUUg1NFBjTGVxdFkvdGVzdF9ZV05qZEY4eFUxSlZXRkZJTlRSUVkw
         eGxjWFJaTEY5VVpsSjVXRkJWY2twelMwcDNSVXhOWkZnd1EwOVZjekJYWTI5
-        QmJqbGlMREUxTnpFNE1UTTBPQTAyMDBzUFFickVkdS9wZGY/cz1hcCIsCiAg
+        QmJqbGlMREUxTnpFNE5EQTNOUTAyMDBVSWpCVjRFby9wZGY/cz1hcCIsCiAg
         ICAgICJpc3N1ZXIiOiB7CiAgICAgICAgInR5cGUiOiAic2VsZiIKICAgICAg
         fSwKICAgICAgImxhc3RfZmluYWxpemF0aW9uX2Vycm9yIjogbnVsbCwKICAg
         ICAgImxhdGVzdF9yZXZpc2lvbiI6IG51bGwsCiAgICAgICJsaW5lcyI6IHsK
@@ -320,12 +320,12 @@ http_interactions:
         bCwKICAgICAgImhvc3RlZF9pbnZvaWNlX3VybCI6ICJodHRwczovL2ludm9p
         Y2Uuc3RyaXBlLmNvbS9pL2FjY3RfMVNSVVhRSDU0UGNMZXF0WS90ZXN0X1lX
         TmpkRjh4VTFKVldGRklOVFJRWTB4bGNYUlpMRjlVWlhrMFZWTlRSamxMV0hC
-        cFVtMXZlV1I2Y0VabWJ6ZENaa04zWkZwdUxERTFOekU0TVRNME9BMDIwMHNr
-        RFlKVkxaP3M9YXAiLAogICAgICAiaW52b2ljZV9wZGYiOiAiaHR0cHM6Ly9w
+        cFVtMXZlV1I2Y0VabWJ6ZENaa04zWkZwdUxERTFOekU0TkRBM05RMDIwMDlj
+        czJoZDRBP3M9YXAiLAogICAgICAiaW52b2ljZV9wZGYiOiAiaHR0cHM6Ly9w
         YXkuc3RyaXBlLmNvbS9pbnZvaWNlL2FjY3RfMVNSVVhRSDU0UGNMZXF0WS90
         ZXN0X1lXTmpkRjh4VTFKVldGRklOVFJRWTB4bGNYUlpMRjlVWlhrMFZWTlRS
-        amxMV0hCcFVtMXZlV1I2Y0VabWJ6ZENaa04zWkZwdUxERTFOekU0TVRNME9B
-        MDIwMHNrRFlKVkxaL3BkZj9zPWFwIiwKICAgICAgImlzc3VlciI6IHsKICAg
+        amxMV0hCcFVtMXZlV1I2Y0VabWJ6ZENaa04zWkZwdUxERTFOekU0TkRBM05R
+        MDIwMDljczJoZDRBL3BkZj9zPWFwIiwKICAgICAgImlzc3VlciI6IHsKICAg
         ICAgICAidHlwZSI6ICJzZWxmIgogICAgICB9LAogICAgICAibGFzdF9maW5h
         bGl6YXRpb25fZXJyb3IiOiBudWxsLAogICAgICAibGF0ZXN0X3JldmlzaW9u
         IjogbnVsbCwKICAgICAgImxpbmVzIjogewogICAgICAgICJvYmplY3QiOiAi
@@ -429,11 +429,11 @@ http_interactions:
         dHRwczovL2ludm9pY2Uuc3RyaXBlLmNvbS9pL2FjY3RfMVNSVVhRSDU0UGNM
         ZXF0WS90ZXN0X1lXTmpkRjh4VTFKVldGRklOVFJRWTB4bGNYUlpMRjlVWld4
         NFprcGpkMjVMTUVkb1lVbEVOalZJVTFwV1puZFpSRXhDWldneUxERTFOekU0
-        TVRNME9BMDIwMG5lM3I3ODdUP3M9YXAiLAogICAgICAiaW52b2ljZV9wZGYi
+        TkRBM05RMDIwMDFVOHdzRVhvP3M9YXAiLAogICAgICAiaW52b2ljZV9wZGYi
         OiAiaHR0cHM6Ly9wYXkuc3RyaXBlLmNvbS9pbnZvaWNlL2FjY3RfMVNSVVhR
         SDU0UGNMZXF0WS90ZXN0X1lXTmpkRjh4VTFKVldGRklOVFJRWTB4bGNYUlpM
         RjlVWld4NFprcGpkMjVMTUVkb1lVbEVOalZJVTFwV1puZFpSRXhDWldneUxE
-        RTFOekU0TVRNME9BMDIwMG5lM3I3ODdUL3BkZj9zPWFwIiwKICAgICAgImlz
+        RTFOekU0TkRBM05RMDIwMDFVOHdzRVhvL3BkZj9zPWFwIiwKICAgICAgImlz
         c3VlciI6IHsKICAgICAgICAidHlwZSI6ICJzZWxmIgogICAgICB9LAogICAg
         ICAibGFzdF9maW5hbGl6YXRpb25fZXJyb3IiOiBudWxsLAogICAgICAibGF0
         ZXN0X3JldmlzaW9uIjogbnVsbCwKICAgICAgImxpbmVzIjogewogICAgICAg
@@ -538,12 +538,12 @@ http_interactions:
         dm9pY2UiOiBudWxsLAogICAgICAiaG9zdGVkX2ludm9pY2VfdXJsIjogImh0
         dHBzOi8vaW52b2ljZS5zdHJpcGUuY29tL2kvYWNjdF8xU1JVWFFINTRQY0xl
         cXRZL3Rlc3RfWVdOamRGOHhVMUpWV0ZGSU5UUlFZMHhsY1hSWkxGOVVaV3gy
-        YzJwaU5FbGpWRGhIVWpOdVdIQXhkVEJwTUZoWU9ETkRlamxMTERFMU56RTRN
-        VE0wT0EwMjAwMXU5elBKT1o/cz1hcCIsCiAgICAgICJpbnZvaWNlX3BkZiI6
+        YzJwaU5FbGpWRGhIVWpOdVdIQXhkVEJwTUZoWU9ETkRlamxMTERFMU56RTRO
+        REEzTlEwMjAwdFZ2a2hFeHE/cz1hcCIsCiAgICAgICJpbnZvaWNlX3BkZiI6
         ICJodHRwczovL3BheS5zdHJpcGUuY29tL2ludm9pY2UvYWNjdF8xU1JVWFFI
         NTRQY0xlcXRZL3Rlc3RfWVdOamRGOHhVMUpWV0ZGSU5UUlFZMHhsY1hSWkxG
         OVVaV3gyYzJwaU5FbGpWRGhIVWpOdVdIQXhkVEJwTUZoWU9ETkRlamxMTERF
-        MU56RTRNVE0wT0EwMjAwMXU5elBKT1ovcGRmP3M9YXAiLAogICAgICAiaXNz
+        MU56RTROREEzTlEwMjAwdFZ2a2hFeHEvcGRmP3M9YXAiLAogICAgICAiaXNz
         dWVyIjogewogICAgICAgICJ0eXBlIjogInNlbGYiCiAgICAgIH0sCiAgICAg
         ICJsYXN0X2ZpbmFsaXphdGlvbl9lcnJvciI6IG51bGwsCiAgICAgICJsYXRl
         c3RfcmV2aXNpb24iOiBudWxsLAogICAgICAibGluZXMiOiB7CiAgICAgICAg
@@ -616,5 +616,5 @@ http_interactions:
         dGFsX3RheGVzIjogW10sCiAgICAgICJ3ZWJob29rc19kZWxpdmVyZWRfYXQi
         OiAxNzY2NDgzOTYwCiAgICB9CiAgXSwKICAiaGFzX21vcmUiOiB0cnVlLAog
         ICJ1cmwiOiAiL3YxL2ludm9pY2VzIgp9
-  recorded_at: Thu, 25 Dec 2025 05:29:08 GMT
+  recorded_at: Thu, 25 Dec 2025 06:14:35 GMT
 recorded_with: VCR 6.3.1

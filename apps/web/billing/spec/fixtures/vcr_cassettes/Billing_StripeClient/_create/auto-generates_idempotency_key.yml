@@ -12,9 +12,11 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_sqYO4cj9cv0yN9","request_duration_ms":754}}'
+      - '{"last_request_metrics":{"request_id":"req_ELTZxgDmTTLLIq","request_duration_ms":899}}'
       Idempotency-Key:
-      - 1766640523-aef821fa-f81b-4ce8-87f5-af0455271790
+      - 1766643312-9b483780-134c-4e40-a3b0-e8cfad34a3d8
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -25,8 +27,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -35,7 +35,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:28:44 GMT
+      - Thu, 25 Dec 2025 06:15:13 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -58,11 +58,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=7a0MxlKcNoiAaBmBapYvTX3aL5EUfnFLRTN6ZNtQvDx4J48CCJaIu2nzhVRqejH4C1LdmtuiD1NhHxQy
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=iCYTg-eOqDyWpjb95x2cKv_61gE1ue2qGd2wO6jIbahq19Goo_6XtxKGdcooNaCloXM3NxrbISzx_HJI
       Idempotency-Key:
-      - 1766640523-aef821fa-f81b-4ce8-87f5-af0455271790
+      - 1766643312-9b483780-134c-4e40-a3b0-e8cfad34a3d8
       Original-Request:
-      - req_aSvvdCAWZ2yZDb
+      - req_pbrlfbEZwCuFwQ
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -81,11 +81,11 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TfS0zi1OOsjSue",
+          "id": "cus_TfSkZu2Rgq2wzE",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766640524,
+          "created": 1766643313,
           "currency": null,
           "customer_account": null,
           "default_source": null,
@@ -93,7 +93,7 @@ http_interactions:
           "description": null,
           "discount": null,
           "email": "idempotent@example.com",
-          "invoice_prefix": "GXETJC8C",
+          "invoice_prefix": "07UASVEG",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -110,7 +110,7 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Thu, 25 Dec 2025 05:28:44 GMT
+  recorded_at: Thu, 25 Dec 2025 06:15:13 GMT
 - request:
     method: post
     uri: https://api.stripe.com/v1/customers
@@ -123,9 +123,11 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_aSvvdCAWZ2yZDb","request_duration_ms":890}}'
+      - '{"last_request_metrics":{"request_id":"req_pbrlfbEZwCuFwQ","request_duration_ms":795}}'
       Idempotency-Key:
-      - 1766640524-81aba142-e5f4-47dd-b96e-5d26ff66b572
+      - 1766643313-fac666fc-e3f0-4906-b03b-a2864b86be56
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -136,8 +138,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -146,7 +146,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:28:45 GMT
+      - Thu, 25 Dec 2025 06:15:13 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -169,11 +169,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=7a0MxlKcNoiAaBmBapYvTX3aL5EUfnFLRTN6ZNtQvDx4J48CCJaIu2nzhVRqejH4C1LdmtuiD1NhHxQy
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=iCYTg-eOqDyWpjb95x2cKv_61gE1ue2qGd2wO6jIbahq19Goo_6XtxKGdcooNaCloXM3NxrbISzx_HJI
       Idempotency-Key:
-      - 1766640524-81aba142-e5f4-47dd-b96e-5d26ff66b572
+      - 1766643313-fac666fc-e3f0-4906-b03b-a2864b86be56
       Original-Request:
-      - req_n4poALWL4UpSA7
+      - req_aGS5cAtnS53S8Z
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -192,11 +192,11 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TfS0E7zFilsHq4",
+          "id": "cus_TfSktO5agBd1WH",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766640525,
+          "created": 1766643313,
           "currency": null,
           "customer_account": null,
           "default_source": null,
@@ -204,7 +204,7 @@ http_interactions:
           "description": null,
           "discount": null,
           "email": "idempotent@example.com",
-          "invoice_prefix": "8WJ9J3ET",
+          "invoice_prefix": "EHCOSKTE",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -221,5 +221,5 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Thu, 25 Dec 2025 05:28:45 GMT
+  recorded_at: Thu, 25 Dec 2025 06:15:13 GMT
 recorded_with: VCR 6.3.1

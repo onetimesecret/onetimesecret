@@ -12,9 +12,11 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_SA2G7DU6qOapAo","request_duration_ms":307}}'
+      - '{"last_request_metrics":{"request_id":"req_dSBrzXfJ4jV2Je","request_duration_ms":1045}}'
       Idempotency-Key:
-      - 1766640522-3bd8f988-33e6-4136-8945-326d8ed1eb0e
+      - 1766643311-ac54bf4c-e20a-442d-93b6-17bec073d3f2
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -25,8 +27,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -35,7 +35,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:28:43 GMT
+      - Thu, 25 Dec 2025 06:15:11 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -58,11 +58,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=30AfGczpIjAuIMcE9HkTCTnb-JbIatHke8CmlErDDVkQkMrvoMJF-HwmK3EZb9WWFdsv-EOdcQaQyGDz
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=gWZjkEkCEEmTb8Js2p1KHmaR6f6RVluIDnnYJAOXs_y1v3l16JAwF4FORh_5gtLlnfwQ0Dy9qSvponCa
       Idempotency-Key:
-      - 1766640522-3bd8f988-33e6-4136-8945-326d8ed1eb0e
+      - 1766643311-ac54bf4c-e20a-442d-93b6-17bec073d3f2
       Original-Request:
-      - req_OZN4Ynp8wZhkw3
+      - req_BO0FLEYuPwyw2I
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -81,11 +81,11 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TfS0o27VJhPud5",
+          "id": "cus_TfSkkCzDCAcp6Q",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766640523,
+          "created": 1766643311,
           "currency": null,
           "customer_account": null,
           "default_source": null,
@@ -93,7 +93,7 @@ http_interactions:
           "description": null,
           "discount": null,
           "email": "test@example.com",
-          "invoice_prefix": "XEIAAJ2Q",
+          "invoice_prefix": "WDXODS9P",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -110,5 +110,5 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Thu, 25 Dec 2025 05:28:43 GMT
+  recorded_at: Thu, 25 Dec 2025 06:15:11 GMT
 recorded_with: VCR 6.3.1

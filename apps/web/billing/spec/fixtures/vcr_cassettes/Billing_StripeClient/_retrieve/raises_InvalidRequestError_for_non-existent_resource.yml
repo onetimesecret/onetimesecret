@@ -12,7 +12,9 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_yrGsYhu2YcBnNR","request_duration_ms":315}}'
+      - '{"last_request_metrics":{"request_id":"req_j9cZ6L33CsjdhO","request_duration_ms":398}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -21,8 +23,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 404
@@ -31,7 +31,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:28:41 GMT
+      - Thu, 25 Dec 2025 06:15:07 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -54,7 +54,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=id577ht8VVA1_qD9vHT8Yl_-TWMwdInP5NStJbwohrO_59zzeL7Qmsdmjfexo7KTIZkmTxRNn6qjAPqT
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=71Adl1W4DiqVuAoLWbLgzS-TACM4rixdlSrzFemO1GHng41ae9VOuJL1jP38FApVRxtYmZP63dnFK5gy
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -76,9 +76,9 @@ http_interactions:
             "doc_url": "https://stripe.com/docs/error-codes/resource-missing",
             "message": "No such customer: 'cus_nonexistent'",
             "param": "id",
-            "request_log_url": "https://dashboard.stripe.com/test/logs/req_ORafkrHqsha6Nu?t=1766640521",
+            "request_log_url": "https://dashboard.stripe.com/test/logs/req_YoDodlqJvFlTS2?t=1766643307",
             "type": "invalid_request_error"
           }
         }
-  recorded_at: Thu, 25 Dec 2025 05:28:41 GMT
+  recorded_at: Thu, 25 Dec 2025 06:15:07 GMT
 recorded_with: VCR 6.3.1

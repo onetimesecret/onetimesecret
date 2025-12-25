@@ -5,14 +5,14 @@ http_interactions:
     uri: https://api.stripe.com/v1/customers
     body:
       encoding: UTF-8
-      string: email=refund-create-test%40example.com
+      string: email=refund-reason-test%40example.com
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
       Idempotency-Key:
-      - 1766643298-d719b405-df6b-40b6-ade1-f97665ed3bda
+      - 1766643299-c48c3e2f-ec56-4683-9cd2-de0a491e6109
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -33,7 +33,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 06:14:58 GMT
+      - Thu, 25 Dec 2025 06:15:00 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -56,11 +56,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=CSVuCOwk_UmPl_RJzCn3EZT66q9EzxwnqwmTbDy8LaYZgUTMmVu9k2he8K_9yP3XVCAi21Rl0qAYs5ny
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=o8NZ33gh_51wCW2uL4RlwhiIH3p7zJc2QgmDic4TRnOXqIiDYNLFCTU9JFAbdFORng5Q0uieGZ2mcg__
       Idempotency-Key:
-      - 1766643298-d719b405-df6b-40b6-ade1-f97665ed3bda
+      - 1766643299-c48c3e2f-ec56-4683-9cd2-de0a491e6109
       Original-Request:
-      - req_3LQExOJBSHrisC
+      - req_6fF6GqdwYkVEE6
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -79,19 +79,19 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TfSkH3Sern7byU",
+          "id": "cus_TfSkWemv8c3mh5",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766643298,
+          "created": 1766643299,
           "currency": null,
           "customer_account": null,
           "default_source": null,
           "delinquent": false,
           "description": null,
           "discount": null,
-          "email": "refund-create-test@example.com",
-          "invoice_prefix": "FUBU9NHZ",
+          "email": "refund-reason-test@example.com",
+          "invoice_prefix": "TYKF0VXU",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -108,22 +108,22 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Thu, 25 Dec 2025 06:14:58 GMT
+  recorded_at: Thu, 25 Dec 2025 06:15:00 GMT
 - request:
     method: post
     uri: https://api.stripe.com/v1/charges
     body:
       encoding: UTF-8
-      string: amount=5000&currency=usd&customer=cus_TfSkH3Sern7byU&source=tok_visa
+      string: amount=3000&currency=usd&customer=cus_TfSkWemv8c3mh5&source=tok_visa
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_3LQExOJBSHrisC","request_duration_ms":901}}'
+      - '{"last_request_metrics":{"request_id":"req_6fF6GqdwYkVEE6","request_duration_ms":758}}'
       Idempotency-Key:
-      - 1766643298-5ecada20-a8bf-4a24-8fed-34968e0fcfab
+      - 1766643300-96bb5482-f3d4-4bb9-a725-e52982ebf9be
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -144,7 +144,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 06:14:59 GMT
+      - Thu, 25 Dec 2025 06:15:00 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -167,11 +167,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=CSVuCOwk_UmPl_RJzCn3EZT66q9EzxwnqwmTbDy8LaYZgUTMmVu9k2he8K_9yP3XVCAi21Rl0qAYs5ny
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=o8NZ33gh_51wCW2uL4RlwhiIH3p7zJc2QgmDic4TRnOXqIiDYNLFCTU9JFAbdFORng5Q0uieGZ2mcg__
       Idempotency-Key:
-      - 1766643298-5ecada20-a8bf-4a24-8fed-34968e0fcfab
+      - 1766643300-96bb5482-f3d4-4bb9-a725-e52982ebf9be
       Original-Request:
-      - req_znyB7Lq4ndeJGO
+      - req_5VRQEflEGvGx3E
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -193,11 +193,11 @@ http_interactions:
           "error": {
             "code": "resource_missing",
             "doc_url": "https://stripe.com/docs/error-codes/resource-missing",
-            "message": "Customer cus_TfSkH3Sern7byU does not have card with ID tok_visa",
+            "message": "Customer cus_TfSkWemv8c3mh5 does not have card with ID tok_visa",
             "param": "card",
-            "request_log_url": "https://dashboard.stripe.com/test/logs/req_znyB7Lq4ndeJGO?t=1766643299",
+            "request_log_url": "https://dashboard.stripe.com/test/logs/req_5VRQEflEGvGx3E?t=1766643300",
             "type": "invalid_request_error"
           }
         }
-  recorded_at: Thu, 25 Dec 2025 06:14:59 GMT
+  recorded_at: Thu, 25 Dec 2025 06:15:00 GMT
 recorded_with: VCR 6.3.1
