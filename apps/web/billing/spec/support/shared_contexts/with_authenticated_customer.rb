@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'digest'
+
 # Shared context for authenticated customer with session
 #
 # Purpose: Reduce duplication in controller specs that require authenticated users.
@@ -26,8 +28,14 @@
 RSpec.shared_context 'with_authenticated_customer' do
   let(:created_customers) { [] }
 
+  # Generate deterministic email based on test description for VCR cassette matching
+  def deterministic_email(prefix = 'test')
+    test_hash = Digest::SHA256.hexdigest(RSpec.current_example.full_description)[0..7]
+    "#{prefix}-#{test_hash}@example.com"
+  end
+
   let(:customer) do
-    cust = Onetime::Customer.create!(email: "test-#{SecureRandom.hex(4)}@example.com")
+    cust = Onetime::Customer.create!(email: deterministic_email)
     created_customers << cust
     cust
   end
@@ -54,7 +62,7 @@ RSpec.shared_context 'with_authenticated_customer' do
   # @param email [String] Optional custom email
   # @return [Onetime::Customer]
   def create_other_customer(email: nil)
-    email ||= "other-#{SecureRandom.hex(4)}@example.com"
+    email ||= deterministic_email('other')
     cust = Onetime::Customer.create!(email: email)
     created_customers << cust
     cust.save

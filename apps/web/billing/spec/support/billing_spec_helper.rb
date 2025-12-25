@@ -209,6 +209,12 @@ RSpec.configure do |config|
 
   # Symbol tag matching for :integration (webhook controller tests use this pattern)
   config.before(:each, :integration) do
+    # Skip integration tests in CI if VCR cassettes may be invalid
+    # This is a failsafe - tests should pass with cassettes, but skip if they're stale
+    if BILLING_VCR_SKIP_IN_CI && example.metadata[:stripe_sandbox_api]
+      skip 'Skipping Stripe sandbox test in CI - re-record cassettes with STRIPE_API_KEY'
+    end
+
     @sleep_delays = []
     mock_billing_config!
     Familia.dbclient.flushdb

@@ -5,6 +5,7 @@
 require_relative '../support/billing_spec_helper'
 require 'rack/test'
 require 'stripe'
+require 'digest'
 
 # Load the billing application for controller testing
 require_relative '../../application'
@@ -18,11 +19,18 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     @app ||= Rack::URLMap.new('/billing' => Billing::Application.new)
   end
 
+  # Generate deterministic email based on test description for VCR cassette matching
+  # Same test always produces same email, different tests get different emails
+  def deterministic_email(prefix = 'billing-test')
+    test_hash = Digest::SHA256.hexdigest(RSpec.current_example.full_description)[0..7]
+    "#{prefix}-#{test_hash}@example.com"
+  end
+
   let(:created_customers) { [] }
   let(:created_organizations) { [] }
 
   let(:customer) do
-    cust = Onetime::Customer.create!(email: "billing-test-#{SecureRandom.hex(4)}@example.com")
+    cust = Onetime::Customer.create!(email: deterministic_email)
     created_customers << cust
     cust
   end
@@ -162,7 +170,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     end
 
     it 'returns 403 when customer is not organization member', :vcr do
-      other_customer = Onetime::Customer.create!(email: "other-#{SecureRandom.hex(4)}@example.com")
+      other_customer = Onetime::Customer.create!(email: deterministic_email('other'))
       created_customers << other_customer
       other_customer.save
 
@@ -305,7 +313,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
     it 'returns 403 when customer is not organization owner', :vcr do
       # Create member (non-owner) customer
-      member_customer = Onetime::Customer.create!(email: "member-#{SecureRandom.hex(4)}@example.com")
+      member_customer = Onetime::Customer.create!(email: deterministic_email('member'))
       created_customers << member_customer
       member_customer.save
 
@@ -396,7 +404,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     end
 
     it 'returns 403 when customer is not organization member', :vcr do
-      other_customer = Onetime::Customer.create!(email: "other-invoice-#{SecureRandom.hex(4)}@example.com")
+      other_customer = Onetime::Customer.create!(email: deterministic_email('other-invoice'))
       created_customers << other_customer
       other_customer.save
 
