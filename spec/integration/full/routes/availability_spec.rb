@@ -31,7 +31,7 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
+require_relative '../../../spec_helper'
 require 'json'
 
 RSpec.describe 'Auth Route Availability', type: :integration do

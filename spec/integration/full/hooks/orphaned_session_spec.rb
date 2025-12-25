@@ -27,7 +27,7 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
+require_relative '../../../spec_helper'
 require 'json'
 require 'securerandom'
 
