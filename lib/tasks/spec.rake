@@ -183,4 +183,83 @@ namespace :try do
   task all: %i[unit features integration:simple]
 end
 
+# Billing VCR cassette recording tasks
+# These tasks require a real Stripe test API key to record HTTP interactions
+namespace :vcr do
+  namespace :billing do
+    desc 'Record NEW VCR cassettes for billing CLI specs (requires STRIPE_API_KEY)'
+    task :record do
+      unless ENV['STRIPE_API_KEY']
+        abort <<~MSG
+          ERROR: STRIPE_API_KEY is required to record VCR cassettes.
+
+          Usage:
+            STRIPE_API_KEY=sk_test_xxx rake vcr:billing:record      # record new only
+            STRIPE_API_KEY=sk_test_xxx rake vcr:billing:record_all  # re-record everything
+
+          Get your test key from: https://dashboard.stripe.com/test/apikeys
+        MSG
+      end
+
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'full',
+        'AUTH_DATABASE_URL' => 'sqlite::memory:',
+        'STRIPE_API_KEY' => ENV['STRIPE_API_KEY'],
+        'VCR_MODE' => 'new_episodes',
+        'DEFAULT_LOG_LEVEL' => 'error'
+      }
+
+      specs = %w[
+        apps/web/billing/spec/cli/refunds_spec.rb
+        apps/web/billing/spec/cli/invoices_spec.rb
+        apps/web/billing/spec/cli/subscriptions_spec.rb
+        apps/web/billing/spec/cli/products_spec.rb
+      ].join(' ')
+
+      p [:vcr_billing_record, specs, env.keys]
+
+      sh env, "bundle exec rspec #{specs} #{rspec_format_options}"
+    end
+
+    desc 'Re-record ALL VCR cassettes for billing specs (requires STRIPE_API_KEY)'
+    task :rerecord do
+      unless ENV['STRIPE_API_KEY']
+        abort <<~MSG
+          ERROR: STRIPE_API_KEY is required to record VCR cassettes.
+
+          Usage:
+            STRIPE_API_KEY=sk_test_xxx rake vcr:billing:rerecord
+
+          Get your test key from: https://dashboard.stripe.com/test/apikeys
+        MSG
+      end
+
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'full',
+        'AUTH_DATABASE_URL' => 'sqlite::memory:',
+        'STRIPE_API_KEY' => ENV['STRIPE_API_KEY'],
+        'VCR_MODE' => 'all',
+        'DEFAULT_LOG_LEVEL' => 'error'
+      }
+
+      sh env, "bundle exec rspec apps/web/billing/spec #{rspec_format_options}"
+    end
+
+    desc 'Verify billing specs run with existing VCR cassettes (no API key needed)'
+    task :verify do
+      env = {
+        'RACK_ENV' => 'test',
+        'AUTHENTICATION_MODE' => 'full',
+        'AUTH_DATABASE_URL' => 'sqlite::memory:',
+        'VCR_MODE' => 'none',
+        'DEFAULT_LOG_LEVEL' => 'error'
+      }
+
+      sh env, "bundle exec rspec apps/web/billing/spec #{rspec_format_options}"
+    end
+  end
+end
+
 task spec: 'spec:fast'
