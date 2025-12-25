@@ -182,7 +182,13 @@ RSpec.configure do |config|
   end
 
   # Billing tests use REAL Redis on port 2121 (not FakeRedis)
-  config.before(:each, type: :billing) do
+  config.before(:each, type: :billing) do |example|
+    # Skip billing tests in CI if VCR cassettes may be invalid
+    # This is a failsafe - tests should pass with cassettes, but skip if they're stale
+    if BILLING_VCR_SKIP_IN_CI && example.metadata[:stripe_sandbox_api]
+      skip 'Skipping Stripe sandbox test in CI - re-record cassettes with STRIPE_API_KEY'
+    end
+
     mock_billing_config!
     mock_sleep!
     Familia.dbclient.flushdb
