@@ -208,7 +208,7 @@ RSpec.configure do |config|
   end
 
   # Symbol tag matching for :integration (webhook controller tests use this pattern)
-  config.before(:each, :integration) do
+  config.before(:each, :integration) do |example|
     # Skip integration tests in CI if VCR cassettes may be invalid
     # This is a failsafe - tests should pass with cassettes, but skip if they're stale
     if BILLING_VCR_SKIP_IN_CI && example.metadata[:stripe_sandbox_api]
