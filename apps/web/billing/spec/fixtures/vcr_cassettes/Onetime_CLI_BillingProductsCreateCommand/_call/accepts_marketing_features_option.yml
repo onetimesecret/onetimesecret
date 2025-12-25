@@ -2,19 +2,19 @@
 http_interactions:
 - request:
     method: post
-    uri: https://api.stripe.com/v1/customers
+    uri: https://api.stripe.com/v1/products
     body:
       encoding: UTF-8
-      string: email=custom%40example.com
+      string: name=Test+Product&metadata[app]=onetimesecret&metadata[plan_id]=&metadata[tier]=&metadata[region]=global&metadata[tenancy]=&metadata[entitlements]=&metadata[created]=2025-12-25T05%3A15%3A55Z&metadata[display_order]=0&metadata[show_on_plans_page]=&marketing_features[0][name]=Feature+1&marketing_features[1][name]=Feature+2
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
-      X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_OZN4Ynp8wZhkw3","request_duration_ms":758}}'
       Idempotency-Key:
-      - test_c6b140e7d1daee6c55736d9d4e27ed7d
+      - 48266d6f-c67d-42f4-8150-0688dddecad8
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -25,8 +25,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -35,11 +33,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:28:43 GMT
+      - Thu, 25 Dec 2025 05:15:56 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '658'
+      - '661'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -58,11 +56,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=30AfGczpIjAuIMcE9HkTCTnb-JbIatHke8CmlErDDVkQkMrvoMJF-HwmK3EZb9WWFdsv-EOdcQaQyGDz
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=Fsz11SLOTHfd9Jc8zd75mkjVSaN3ribavKfE2XDnpOoF43skuGyvL5O7y96ivhlMIN3Eo2vNJqfwMYpQ
       Idempotency-Key:
-      - test_c6b140e7d1daee6c55736d9d4e27ed7d
+      - 48266d6f-c67d-42f4-8150-0688dddecad8
       Original-Request:
-      - req_sqYO4cj9cv0yN9
+      - req_xkGk9qwcUQmNoK
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -81,34 +79,38 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TfS0xEGNV0kXUG",
-          "object": "customer",
-          "address": null,
-          "balance": 0,
-          "created": 1766640523,
-          "currency": null,
-          "customer_account": null,
-          "default_source": null,
-          "delinquent": false,
+          "id": "prod_TfRnjEjDpDqGDz",
+          "object": "product",
+          "active": true,
+          "attributes": [],
+          "created": 1766639756,
+          "default_price": null,
           "description": null,
-          "discount": null,
-          "email": "custom@example.com",
-          "invoice_prefix": "NADYISIE",
-          "invoice_settings": {
-            "custom_fields": null,
-            "default_payment_method": null,
-            "footer": null,
-            "rendering_options": null
-          },
+          "images": [],
           "livemode": false,
-          "metadata": {},
-          "name": null,
-          "next_invoice_sequence": 1,
-          "phone": null,
-          "preferred_locales": [],
-          "shipping": null,
-          "tax_exempt": "none",
-          "test_clock": null
+          "marketing_features": [
+            {
+              "name": "Feature 1"
+            },
+            {
+              "name": "Feature 2"
+            }
+          ],
+          "metadata": {
+            "app": "onetimesecret",
+            "created": "2025-12-25T05:15:55Z",
+            "display_order": "0",
+            "region": "global"
+          },
+          "name": "Test Product",
+          "package_dimensions": null,
+          "shippable": null,
+          "statement_descriptor": null,
+          "tax_code": null,
+          "type": "service",
+          "unit_label": null,
+          "updated": 1766639756,
+          "url": null
         }
-  recorded_at: Thu, 25 Dec 2025 05:28:43 GMT
+  recorded_at: Thu, 25 Dec 2025 05:15:56 GMT
 recorded_with: VCR 6.3.1

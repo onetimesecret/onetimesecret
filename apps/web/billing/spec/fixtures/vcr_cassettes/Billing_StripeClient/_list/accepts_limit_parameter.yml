@@ -12,7 +12,7 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_rmfJ9VL6QNGPEh","request_duration_ms":901}}'
+      - '{"last_request_metrics":{"request_id":"req_TU1mClHW4zT1Zm","request_duration_ms":308}}'
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -31,11 +31,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Tue, 23 Dec 2025 22:19:04 GMT
+      - Thu, 25 Dec 2025 05:28:29 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '1649'
+      - '1612'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -54,7 +54,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=ZUw-KDD_UZ0XbJTx7E_HIt8mnA6s0t0N3-XJKNtyL6j8Zgm2CBP1HcUWo-7Au0treYWQr6fVf2JKC0ss
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=aYstusxWyB5aR2lvAV9c-DiOEratEJ9FqCVhfmDMEHLLCo0jiMgziqw-J7mGcVwZ9Br0ijXMdRqOoP3e
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -74,19 +74,19 @@ http_interactions:
           "object": "list",
           "data": [
             {
-              "id": "cus_Texq62FeSNAPYa",
+              "id": "cus_TfS0Ook7IaMm4v",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766528342,
+              "created": 1766640506,
               "currency": null,
               "customer_account": null,
               "default_source": null,
               "delinquent": false,
               "description": null,
               "discount": null,
-              "email": "custom@example.com",
-              "invoice_prefix": "FSEGVQWG",
+              "email": null,
+              "invoice_prefix": "BZFPOI1G",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -104,19 +104,19 @@ http_interactions:
               "test_clock": null
             },
             {
-              "id": "cus_TexqUAAhxqwBZ2",
+              "id": "cus_TfS0rAg1E1Wh44",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766528341,
+              "created": 1766640504,
               "currency": null,
               "customer_account": null,
               "default_source": null,
               "delinquent": false,
               "description": null,
               "discount": null,
-              "email": "test@example.com",
-              "invoice_prefix": "FLMJQTFF",
+              "email": null,
+              "invoice_prefix": "FXSQSUWE",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -125,7 +125,7 @@ http_interactions:
               },
               "livemode": false,
               "metadata": {},
-              "name": "Test User",
+              "name": null,
               "next_invoice_sequence": 1,
               "phone": null,
               "preferred_locales": [],
@@ -137,5 +137,5 @@ http_interactions:
           "has_more": true,
           "url": "/v1/customers"
         }
-  recorded_at: Tue, 23 Dec 2025 22:19:04 GMT
+  recorded_at: Thu, 25 Dec 2025 05:28:29 GMT
 recorded_with: VCR 6.3.1

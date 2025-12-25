@@ -1,41 +1,43 @@
 ---
 http_interactions:
 - request:
-    method: get
-    uri: https://api.stripe.com/v1/customers/cus_nonexistent
+    method: post
+    uri: https://api.stripe.com/v1/products
     body:
-      encoding: US-ASCII
-      string: ''
+      encoding: UTF-8
+      string: name=Metadata+Test+Product&metadata[app]=onetimesecret&metadata[tier]=pro&metadata[region]=global
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
-      X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_yrGsYhu2YcBnNR","request_duration_ms":315}}'
+      Idempotency-Key:
+      - 1766639442-0a2ed54f-be5f-40b8-81f1-241a140a83e4
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
         2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
-      code: 404
-      message: Not Found
+      code: 401
+      message: Unauthorized
     headers:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 05:28:41 GMT
+      - Thu, 25 Dec 2025 05:10:43 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '330'
+      - '114'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -54,31 +56,27 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=id577ht8VVA1_qD9vHT8Yl_-TWMwdInP5NStJbwohrO_59zzeL7Qmsdmjfexo7KTIZkmTxRNn6qjAPqT
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=4Gn6R4PKkFhr5Bjx9xtdsOd7nlRUjiYQ4l9oXhPO7JnA-wCUhAG8l63hh1ATzN3W_Qgyv8VzL_Q72MWR
       Vary:
       - Origin
-      X-Stripe-Priority-Routing-Enabled:
-      - 'true'
-      X-Stripe-Routing-Context-Priority-Tier:
-      - api-testmode
+      Www-Authenticate:
+      - Bearer realm="Stripe"
+      X-Robots-Tag:
+      - none
       X-Wc:
-      - ABGHIJ
+      - ABHIJ
       Strict-Transport-Security:
       - max-age=63072000; includeSubDomains; preload
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
     body:
       encoding: UTF-8
       string: |
         {
           "error": {
-            "code": "resource_missing",
-            "doc_url": "https://stripe.com/docs/error-codes/resource-missing",
-            "message": "No such customer: 'cus_nonexistent'",
-            "param": "id",
-            "request_log_url": "https://dashboard.stripe.com/test/logs/req_ORafkrHqsha6Nu?t=1766640521",
+            "message": "Invalid API Key provided: sk_test_mock",
             "type": "invalid_request_error"
           }
         }
-  recorded_at: Thu, 25 Dec 2025 05:28:41 GMT
+  recorded_at: Thu, 25 Dec 2025 05:10:43 GMT
 recorded_with: VCR 6.3.1

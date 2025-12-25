@@ -1,0 +1,1480 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/products?active=true&limit=100
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_2AS1vNkrIhqfom","request_duration_ms":412}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 05:28:26 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '18639'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=TtC2Mscoh0uNUlClaZgs_aFroRWNLvp8PQI4iYMynm9Lh0iEwqbylbzQTl5QtW6jdjvbxehbaoMOQVor
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "object": "list",
+          "data": [
+            {
+              "id": "prod_TfRzYg9tYPFhdN",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640460,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640460",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640460,
+              "url": null
+            },
+            {
+              "id": "prod_TfRzWyJvhCe2wu",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640458,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640458",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640458,
+              "url": null
+            },
+            {
+              "id": "prod_TfRzCoStNXfr5a",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640454,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640454",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640455,
+              "url": null
+            },
+            {
+              "id": "prod_TfRzaKNGoMHGeX",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640452,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640452",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640453,
+              "url": null
+            },
+            {
+              "id": "prod_TfRz1Nlct5HagC",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640450,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640449",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640450,
+              "url": null
+            },
+            {
+              "id": "prod_TfRzkEz6f89ntI",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640448,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640448",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640448,
+              "url": null
+            },
+            {
+              "id": "prod_TfRzyrO42AOb3f",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640445,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640445",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640445,
+              "url": null
+            },
+            {
+              "id": "prod_TfRzmacYkan7PT",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640443,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640443",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640443,
+              "url": null
+            },
+            {
+              "id": "prod_TfRzUNDYakPuYg",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640441,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640441",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640441,
+              "url": null
+            },
+            {
+              "id": "prod_TfRyW5qN7iC1Qi",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640439,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640439",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640439,
+              "url": null
+            },
+            {
+              "id": "prod_TfRytU0lF1UbB0",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640437,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640437",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640437,
+              "url": null
+            },
+            {
+              "id": "prod_TfRyN1HXrjClD7",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640435,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640435",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640435,
+              "url": null
+            },
+            {
+              "id": "prod_TfRylvWwomij5h",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640434,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Test Product 1766640433",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640434,
+              "url": null
+            },
+            {
+              "id": "prod_TfRyOeM0vIYLXV",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766640416,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Sub Test",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766640416,
+              "url": null
+            },
+            {
+              "id": "prod_TfRnjEjDpDqGDz",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766639756,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [
+                {
+                  "name": "Feature 1"
+                },
+                {
+                  "name": "Feature 2"
+                }
+              ],
+              "metadata": {
+                "app": "onetimesecret",
+                "created": "2025-12-25T05:15:55Z",
+                "display_order": "0",
+                "region": "global"
+              },
+              "name": "Test Product",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766639756,
+              "url": null
+            },
+            {
+              "id": "prod_Tey45ZJAlgLzX2",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766529178,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Sub Test",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766529178,
+              "url": null
+            },
+            {
+              "id": "prod_Tey1uyEAb066Dd",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766529013,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Sub Test",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766529013,
+              "url": null
+            },
+            {
+              "id": "prod_TexsZAxplKcziL",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766528476,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Sub Test",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766528476,
+              "url": null
+            },
+            {
+              "id": "prod_Texpm9PwuDmoWP",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766528247,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Sub Test",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766528247,
+              "url": null
+            },
+            {
+              "id": "prod_Texoga7g1zP1Mr",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766528185,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Sub Test",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766528185,
+              "url": null
+            },
+            {
+              "id": "prod_TexdF8CStJzOpu",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766527527,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {},
+              "name": "Sub Test",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766527527,
+              "url": null
+            },
+            {
+              "id": "prod_TeFCbk1uiURbuc",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1766362279,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {
+                "app": "onetimesecret",
+                "created": "2025-12-22T00:11:19Z",
+                "display_order": "0",
+                "entitlements": "create_secrets,view_metadata,api_access",
+                "limit_custom_domains": "0",
+                "limit_members_per_team": "1",
+                "limit_secret_lifetime": "604800",
+                "limit_teams": "0",
+                "plan_id": "free_v1",
+                "region": "global",
+                "show_on_plans_page": "true",
+                "tenancy": "multi",
+                "tier": "free"
+              },
+              "name": "Free",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766362279,
+              "url": null
+            },
+            {
+              "id": "prod_TUpPoXf8R0X8sk",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1764190577,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {
+                "app": "onetimesecret",
+                "created": "2025-11-26T20:55:52Z",
+                "display_order": "0",
+                "plan_id": "ge_dedicated_v1",
+                "region": "EU",
+                "show_on_plans_page": "false",
+                "tenancy": "single",
+                "tier": "dedicated"
+              },
+              "name": "GE - Dedicated (EU)",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1764190577,
+              "url": null
+            },
+            {
+              "id": "prod_TTZ2GYuFfSZNiw",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1763898988,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {
+                "app": "onetimesecret",
+                "created": "2025-11-23T18:24:27Z",
+                "display_order": "40",
+                "entitlements": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members,audit_logs,sso,priority_support,sla",
+                "limit_custom_domains": "-1",
+                "limit_members_per_team": "-1",
+                "limit_secret_lifetime": "-1",
+                "limit_secrets_per_day": "-1",
+                "limit_teams": "-1",
+                "plan_id": "org_max_v1",
+                "region": "EU",
+                "show_on_plans_page": "false",
+                "tenancy": "dedicated",
+                "tier": "multi_team"
+              },
+              "name": "Organization Max",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766359063,
+              "url": null
+            },
+            {
+              "id": "prod_TTZ2rRgZLSDzxi",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1763898985,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {
+                "app": "onetimesecret",
+                "created": "2025-11-23T18:24:24Z",
+                "display_order": "30",
+                "entitlements": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members,audit_logs,sso",
+                "limit_custom_domains": "-1",
+                "limit_members_per_team": "25",
+                "limit_secret_lifetime": "2592000",
+                "limit_secrets_per_day": "-1",
+                "limit_teams": "-1",
+                "plan_id": "org_plus_v1",
+                "region": "EU",
+                "show_on_plans_page": "false",
+                "tenancy": "multi",
+                "tier": "multi_team"
+              },
+              "name": "Organization Plus",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766362280,
+              "url": null
+            },
+            {
+              "id": "prod_TTZ2233777gDDV",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1763898983,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {
+                "app": "onetimesecret",
+                "created": "2025-11-23T18:24:15Z",
+                "display_order": "20",
+                "entitlements": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members",
+                "limit_custom_domains": "-1",
+                "limit_members_per_team": "10",
+                "limit_secret_lifetime": "2592000",
+                "limit_secrets_per_day": "-1",
+                "limit_teams": "1",
+                "plan_id": "team_plus_v1",
+                "region": "EU",
+                "show_on_plans_page": "true",
+                "tenancy": "multi",
+                "tier": "single_team"
+              },
+              "name": "Team Plus",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766362279,
+              "url": null
+            },
+            {
+              "id": "prod_TTZ2qcBujqqaRC",
+              "object": "product",
+              "active": true,
+              "attributes": [],
+              "created": 1763898980,
+              "default_price": null,
+              "description": null,
+              "images": [],
+              "livemode": false,
+              "marketing_features": [],
+              "metadata": {
+                "app": "onetimesecret",
+                "created": "2025-12-21T21:44:04Z",
+                "display_order": "10",
+                "entitlements": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage",
+                "limit_custom_domains": "-1",
+                "limit_members_per_team": "10",
+                "limit_secret_lifetime": "2592000",
+                "limit_secrets_per_day": "-1",
+                "limit_teams": "0",
+                "plan_id": "identity_plus_v1",
+                "region": "EU",
+                "show_on_plans_page": "true",
+                "tenancy": "multi",
+                "tier": "single_account"
+              },
+              "name": "Identity Plus",
+              "package_dimensions": null,
+              "shippable": null,
+              "statement_descriptor": null,
+              "tax_code": null,
+              "type": "service",
+              "unit_label": null,
+              "updated": 1766362279,
+              "url": null
+            }
+          ],
+          "has_more": false,
+          "url": "/v1/products"
+        }
+  recorded_at: Thu, 25 Dec 2025 05:28:26 GMT
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/prices?active=true&limit=100&product=prod_TeFCbk1uiURbuc
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_iOdnIQUkVY53oQ","request_duration_ms":412}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 05:28:27 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '80'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=TtC2Mscoh0uNUlClaZgs_aFroRWNLvp8PQI4iYMynm9Lh0iEwqbylbzQTl5QtW6jdjvbxehbaoMOQVor
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "object": "list",
+          "data": [],
+          "has_more": false,
+          "url": "/v1/prices"
+        }
+  recorded_at: Thu, 25 Dec 2025 05:28:27 GMT
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/prices?active=true&limit=100&product=prod_TUpPoXf8R0X8sk
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_2HP4alVSzZVgdg","request_duration_ms":305}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 05:28:27 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '818'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=TtC2Mscoh0uNUlClaZgs_aFroRWNLvp8PQI4iYMynm9Lh0iEwqbylbzQTl5QtW6jdjvbxehbaoMOQVor
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "object": "list",
+          "data": [
+            {
+              "id": "price_1SXpmNH54PcLeqtYz1ItF682",
+              "object": "price",
+              "active": true,
+              "billing_scheme": "per_unit",
+              "created": 1764190655,
+              "currency": "eur",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": "prod_TUpPoXf8R0X8sk",
+              "recurring": {
+                "interval": "year",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 115000,
+              "unit_amount_decimal": "115000"
+            }
+          ],
+          "has_more": false,
+          "url": "/v1/prices"
+        }
+  recorded_at: Thu, 25 Dec 2025 05:28:27 GMT
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/prices?active=true&limit=100&product=prod_TTZ2GYuFfSZNiw
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_CXoqd4o7GtrirZ","request_duration_ms":296}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 05:28:27 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '1553'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=TtC2Mscoh0uNUlClaZgs_aFroRWNLvp8PQI4iYMynm9Lh0iEwqbylbzQTl5QtW6jdjvbxehbaoMOQVor
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "object": "list",
+          "data": [
+            {
+              "id": "price_1SWv3mH54PcLeqtYUSZnlZtv",
+              "object": "price",
+              "active": true,
+              "billing_scheme": "per_unit",
+              "created": 1763972626,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": "prod_TTZ2GYuFfSZNiw",
+              "recurring": {
+                "interval": "year",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 999000,
+              "unit_amount_decimal": "999000"
+            },
+            {
+              "id": "price_1SWv3jH54PcLeqtYRaPiJjBs",
+              "object": "price",
+              "active": true,
+              "billing_scheme": "per_unit",
+              "created": 1763972623,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": "prod_TTZ2GYuFfSZNiw",
+              "recurring": {
+                "interval": "month",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 99900,
+              "unit_amount_decimal": "99900"
+            }
+          ],
+          "has_more": false,
+          "url": "/v1/prices"
+        }
+  recorded_at: Thu, 25 Dec 2025 05:28:27 GMT
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/prices?active=true&limit=100&product=prod_TTZ2rRgZLSDzxi
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_vmwBj67gv58haU","request_duration_ms":305}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 05:28:28 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '1553'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=TtC2Mscoh0uNUlClaZgs_aFroRWNLvp8PQI4iYMynm9Lh0iEwqbylbzQTl5QtW6jdjvbxehbaoMOQVor
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "object": "list",
+          "data": [
+            {
+              "id": "price_1SWv3gH54PcLeqtYrInbzrwY",
+              "object": "price",
+              "active": true,
+              "billing_scheme": "per_unit",
+              "created": 1763972620,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": "prod_TTZ2rRgZLSDzxi",
+              "recurring": {
+                "interval": "year",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 299000,
+              "unit_amount_decimal": "299000"
+            },
+            {
+              "id": "price_1SWv3dH54PcLeqtYr4bvbEmk",
+              "object": "price",
+              "active": true,
+              "billing_scheme": "per_unit",
+              "created": 1763972617,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": "prod_TTZ2rRgZLSDzxi",
+              "recurring": {
+                "interval": "month",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 29900,
+              "unit_amount_decimal": "29900"
+            }
+          ],
+          "has_more": false,
+          "url": "/v1/prices"
+        }
+  recorded_at: Thu, 25 Dec 2025 05:28:28 GMT
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/prices?active=true&limit=100&product=prod_TTZ2233777gDDV
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_VmZKfskHpRpKRy","request_duration_ms":305}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 05:28:28 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '1549'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=TtC2Mscoh0uNUlClaZgs_aFroRWNLvp8PQI4iYMynm9Lh0iEwqbylbzQTl5QtW6jdjvbxehbaoMOQVor
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "object": "list",
+          "data": [
+            {
+              "id": "price_1SWv3aH54PcLeqtYmPPc7UWl",
+              "object": "price",
+              "active": true,
+              "billing_scheme": "per_unit",
+              "created": 1763972614,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": "prod_TTZ2233777gDDV",
+              "recurring": {
+                "interval": "year",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 99000,
+              "unit_amount_decimal": "99000"
+            },
+            {
+              "id": "price_1SWv3WH54PcLeqtY0vDIgLta",
+              "object": "price",
+              "active": true,
+              "billing_scheme": "per_unit",
+              "created": 1763972610,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": "prod_TTZ2233777gDDV",
+              "recurring": {
+                "interval": "month",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 9900,
+              "unit_amount_decimal": "9900"
+            }
+          ],
+          "has_more": false,
+          "url": "/v1/prices"
+        }
+  recorded_at: Thu, 25 Dec 2025 05:28:28 GMT
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/prices?active=true&limit=100&product=prod_TTZ2qcBujqqaRC
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_cPjJjAohz2QygM","request_duration_ms":307}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 05:28:28 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '1549'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=TtC2Mscoh0uNUlClaZgs_aFroRWNLvp8PQI4iYMynm9Lh0iEwqbylbzQTl5QtW6jdjvbxehbaoMOQVor
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "object": "list",
+          "data": [
+            {
+              "id": "price_1SWv1fH54PcLeqtYPu9DPUuh",
+              "object": "price",
+              "active": true,
+              "billing_scheme": "per_unit",
+              "created": 1763972495,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": "prod_TTZ2qcBujqqaRC",
+              "recurring": {
+                "interval": "year",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 29000,
+              "unit_amount_decimal": "29000"
+            },
+            {
+              "id": "price_1SWv0sH54PcLeqtYS4epy9MT",
+              "object": "price",
+              "active": true,
+              "billing_scheme": "per_unit",
+              "created": 1763972446,
+              "currency": "usd",
+              "custom_unit_amount": null,
+              "livemode": false,
+              "lookup_key": null,
+              "metadata": {},
+              "nickname": null,
+              "product": "prod_TTZ2qcBujqqaRC",
+              "recurring": {
+                "interval": "month",
+                "interval_count": 1,
+                "meter": null,
+                "trial_period_days": null,
+                "usage_type": "licensed"
+              },
+              "tax_behavior": "unspecified",
+              "tiers_mode": null,
+              "transform_quantity": null,
+              "type": "recurring",
+              "unit_amount": 2900,
+              "unit_amount_decimal": "2900"
+            }
+          ],
+          "has_more": false,
+          "url": "/v1/prices"
+        }
+  recorded_at: Thu, 25 Dec 2025 05:28:28 GMT
+recorded_with: VCR 6.3.1

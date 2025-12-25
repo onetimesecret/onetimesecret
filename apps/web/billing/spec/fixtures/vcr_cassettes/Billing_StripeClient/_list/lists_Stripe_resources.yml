@@ -12,7 +12,7 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_Q6pv6N68Bha2V6","request_duration_ms":767}}'
+      - '{"last_request_metrics":{"request_id":"req_c2W2VooqVLb9k2","request_duration_ms":893}}'
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -31,11 +31,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Tue, 23 Dec 2025 22:19:03 GMT
+      - Thu, 25 Dec 2025 05:28:30 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '7916'
+      - '7866'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -54,7 +54,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=XjVuYwPXdMGAiForJv983Sr_YoxVpm2RwHHFZ5kxo2Vc8ILP-Z-WNVT9Ql0LL6aGwCu5jRE1uC0CUN-_
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=x27TtLhuA1isYQe1w7ANamVk3BlBxOP_Sr5WXJaEoQFajUBGyt_7qLwJ10gW-jqbBvrFvfX6e-i9pl3d
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -74,19 +74,19 @@ http_interactions:
           "object": "list",
           "data": [
             {
-              "id": "cus_Texq62FeSNAPYa",
+              "id": "cus_TfS0Ook7IaMm4v",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766528342,
+              "created": 1766640506,
               "currency": null,
               "customer_account": null,
               "default_source": null,
               "delinquent": false,
               "description": null,
               "discount": null,
-              "email": "custom@example.com",
-              "invoice_prefix": "FSEGVQWG",
+              "email": null,
+              "invoice_prefix": "BZFPOI1G",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -104,49 +104,19 @@ http_interactions:
               "test_clock": null
             },
             {
-              "id": "cus_TexqUAAhxqwBZ2",
+              "id": "cus_TfS0rAg1E1Wh44",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766528341,
+              "created": 1766640504,
               "currency": null,
               "customer_account": null,
               "default_source": null,
               "delinquent": false,
               "description": null,
               "discount": null,
-              "email": "test@example.com",
-              "invoice_prefix": "FLMJQTFF",
-              "invoice_settings": {
-                "custom_fields": null,
-                "default_payment_method": null,
-                "footer": null,
-                "rendering_options": null
-              },
-              "livemode": false,
-              "metadata": {},
-              "name": "Test User",
-              "next_invoice_sequence": 1,
-              "phone": null,
-              "preferred_locales": [],
-              "shipping": null,
-              "tax_exempt": "none",
-              "test_clock": null
-            },
-            {
-              "id": "cus_TexqlwhJUfxqms",
-              "object": "customer",
-              "address": null,
-              "balance": 0,
-              "created": 1766528340,
-              "currency": null,
-              "customer_account": null,
-              "default_source": null,
-              "delinquent": false,
-              "description": null,
-              "discount": null,
-              "email": "card@example.com",
-              "invoice_prefix": "AXN1X7OS",
+              "email": null,
+              "invoice_prefix": "FXSQSUWE",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -164,19 +134,19 @@ http_interactions:
               "test_clock": null
             },
             {
-              "id": "cus_TexqnbJ7g2c4P1",
+              "id": "cus_TfS0AtATyTiCUQ",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766528340,
+              "created": 1766640503,
               "currency": null,
               "customer_account": null,
               "default_source": null,
               "delinquent": false,
               "description": null,
               "discount": null,
-              "email": "idempotent@example.com",
-              "invoice_prefix": "ZNA0WPX4",
+              "email": "billing-test-048e9dc3@example.com",
+              "invoice_prefix": "XYYQCINC",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -194,19 +164,19 @@ http_interactions:
               "test_clock": null
             },
             {
-              "id": "cus_Texqo5nnvUOUTZ",
+              "id": "cus_TfS0YHsFVVG4W7",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766528339,
+              "created": 1766640501,
               "currency": null,
               "customer_account": null,
               "default_source": null,
               "delinquent": false,
               "description": null,
               "discount": null,
-              "email": "idempotent@example.com",
-              "invoice_prefix": "BCDCG0W7",
+              "email": "plans-test-6855b86c@example.com",
+              "invoice_prefix": "V5GIULE5",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -224,19 +194,19 @@ http_interactions:
               "test_clock": null
             },
             {
-              "id": "cus_TexqT0O6GUD5aM",
+              "id": "cus_TfS0r5F4ewrMiQ",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766528338,
+              "created": 1766640500,
               "currency": null,
               "customer_account": null,
               "default_source": null,
               "delinquent": false,
               "description": null,
               "discount": null,
-              "email": "retrieve@example.com",
-              "invoice_prefix": "KZQHNLMQ",
+              "email": "new-welcome-dade557b@example.com",
+              "invoice_prefix": "NQ2PXYHI",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -254,19 +224,19 @@ http_interactions:
               "test_clock": null
             },
             {
-              "id": "cus_TexqhcVN7ULIP6",
+              "id": "cus_TfRzJXCffGlylu",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766528337,
+              "created": 1766640499,
               "currency": null,
               "customer_account": null,
               "default_source": null,
               "delinquent": false,
               "description": null,
               "discount": null,
-              "email": "retrieve@example.com",
-              "invoice_prefix": "GVGETZ4A",
+              "email": null,
+              "invoice_prefix": "XYGAMBTP",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -284,19 +254,19 @@ http_interactions:
               "test_clock": null
             },
             {
-              "id": "cus_TexpbUZpcjljRT",
+              "id": "cus_TfRzBUPgWQablI",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766528251,
+              "created": 1766640499,
               "currency": null,
               "customer_account": null,
               "default_source": null,
               "delinquent": false,
               "description": null,
               "discount": null,
-              "email": "original@example.com",
-              "invoice_prefix": "77INRR3S",
+              "email": null,
+              "invoice_prefix": "Z5YCYQI7",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -305,7 +275,7 @@ http_interactions:
               },
               "livemode": false,
               "metadata": {},
-              "name": "New Name",
+              "name": null,
               "next_invoice_sequence": 1,
               "phone": null,
               "preferred_locales": [],
@@ -314,19 +284,19 @@ http_interactions:
               "test_clock": null
             },
             {
-              "id": "cus_Texpy1RIJM4vcM",
+              "id": "cus_TfRzogNcOpT37r",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766528250,
+              "created": 1766640498,
               "currency": null,
               "customer_account": null,
               "default_source": null,
               "delinquent": false,
               "description": null,
               "discount": null,
-              "email": "original@example.com",
-              "invoice_prefix": "KLYMEZAW",
+              "email": null,
+              "invoice_prefix": "QQEEODAO",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -335,7 +305,7 @@ http_interactions:
               },
               "livemode": false,
               "metadata": {},
-              "name": "Updated Name",
+              "name": null,
               "next_invoice_sequence": 1,
               "phone": null,
               "preferred_locales": [],
@@ -344,19 +314,49 @@ http_interactions:
               "test_clock": null
             },
             {
-              "id": "cus_TexpHNN6607AgO",
+              "id": "cus_TfRzW0pjkwdfzs",
               "object": "customer",
               "address": null,
               "balance": 0,
-              "created": 1766528247,
+              "created": 1766640460,
               "currency": null,
               "customer_account": null,
               "default_source": null,
               "delinquent": false,
               "description": null,
               "discount": null,
-              "email": "sub@example.com",
-              "invoice_prefix": "CJJRU4FQ",
+              "email": "invoice-test@example.com",
+              "invoice_prefix": "D6FSOC69",
+              "invoice_settings": {
+                "custom_fields": null,
+                "default_payment_method": null,
+                "footer": null,
+                "rendering_options": null
+              },
+              "livemode": false,
+              "metadata": {},
+              "name": null,
+              "next_invoice_sequence": 1,
+              "phone": null,
+              "preferred_locales": [],
+              "shipping": null,
+              "tax_exempt": "none",
+              "test_clock": null
+            },
+            {
+              "id": "cus_TfRzduocoFPI7e",
+              "object": "customer",
+              "address": null,
+              "balance": 0,
+              "created": 1766640457,
+              "currency": null,
+              "customer_account": null,
+              "default_source": null,
+              "delinquent": false,
+              "description": null,
+              "discount": null,
+              "email": "invoice-pagination-0@example.com",
+              "invoice_prefix": "HDFI2EAE",
               "invoice_settings": {
                 "custom_fields": null,
                 "default_payment_method": null,
@@ -377,5 +377,5 @@ http_interactions:
           "has_more": true,
           "url": "/v1/customers"
         }
-  recorded_at: Tue, 23 Dec 2025 22:19:03 GMT
+  recorded_at: Thu, 25 Dec 2025 05:28:30 GMT
 recorded_with: VCR 6.3.1
