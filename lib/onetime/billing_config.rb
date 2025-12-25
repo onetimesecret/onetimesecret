@@ -12,21 +12,17 @@
 require 'yaml'
 require 'erb'
 require 'singleton'
+require_relative 'utils/config_resolver'
 
 module Onetime
   class BillingConfig
     include Singleton
 
-    class << self
-      # Allow setting custom config file path (for testing)
-      attr_accessor :path
-    end
-
     attr_reader :config, :environment
 
     def initialize
       @environment = ENV['RACK_ENV'] || 'development'
-      @config_file = resolve_config_file
+      @config_file = Onetime::Utils::ConfigResolver.resolve('billing')
       load_config
     end
 
@@ -38,7 +34,8 @@ module Onetime
 
     # Stripe API key
     def stripe_key
-      config['stripe_key']
+      # STRIPE_API_KEY takes precedence (for testing/VCR recording)
+      ENV['STRIPE_API_KEY'] || config['stripe_key']
     end
 
     # Stripe webhook signing secret
@@ -97,23 +94,6 @@ module Onetime
     end
 
     private
-
-    # Resolve config file path with environment-specific fallback
-    #
-    # Priority:
-    # 1. BillingConfig.path (if explicitly set)
-    # 2. etc/billing.{env}.yaml (environment-specific)
-    # 3. etc/billing.yaml (default)
-    #
-    # @return [String] Path to config file
-    def resolve_config_file
-      return self.class.path if self.class.path
-
-      env_specific = File.join(Onetime::HOME, "etc/billing.#{@environment}.yaml")
-      return env_specific if File.exist?(env_specific)
-
-      File.join(Onetime::HOME, 'etc/billing.yaml')
-    end
 
     def load_config
       unless File.exist?(@config_file)

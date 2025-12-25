@@ -5,6 +5,7 @@
 require_relative '../support/billing_spec_helper'
 require 'rack/test'
 require 'stripe'
+require 'digest'
 
 # Load the billing application for controller testing
 require_relative '../../application'
@@ -18,11 +19,18 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     @app ||= Rack::URLMap.new('/billing' => Billing::Application.new)
   end
 
+  # Generate deterministic email based on test description for VCR cassette matching
+  # Same test always produces same email, different tests get different emails
+  def deterministic_email(prefix = 'billing-test')
+    test_hash = Digest::SHA256.hexdigest(RSpec.current_example.full_description)[0..7]
+    "#{prefix}-#{test_hash}@example.com"
+  end
+
   let(:created_customers) { [] }
   let(:created_organizations) { [] }
 
   let(:customer) do
-    cust = Onetime::Customer.create!(email: "billing-test-#{SecureRandom.hex(4)}@example.com")
+    cust = Onetime::Customer.create!(email: deterministic_email)
     created_customers << cust
     cust
   end
@@ -118,14 +126,23 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(data['organization']['billing_email']).to eq(organization.billing_email)
 
       # Verify usage data
-      expect(data['usage']).to have_key('teams')
       expect(data['usage']).to have_key('members')
+      expect(data['usage']).to have_key('domains')
     end
 
     it 'returns subscription data when organization has active subscription', :vcr do
-      # Create real Stripe subscription
+      # Create Stripe customer with payment method
       stripe_customer = Stripe::Customer.create(email: customer.email)
-      subscription    = Stripe::Subscription.create(
+      payment_method = Stripe::PaymentMethod.create(
+        type: 'card',
+        card: { token: 'tok_visa' }
+      )
+      Stripe::PaymentMethod.attach(payment_method.id, { customer: stripe_customer.id })
+      Stripe::Customer.update(stripe_customer.id, {
+        invoice_settings: { default_payment_method: payment_method.id }
+      })
+
+      subscription = Stripe::Subscription.create(
         customer: stripe_customer.id,
         items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test') }],
       )
@@ -153,7 +170,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     end
 
     it 'returns 403 when customer is not organization member', :vcr do
-      other_customer = Onetime::Customer.create!(email: "other-#{SecureRandom.hex(4)}@example.com")
+      other_customer = Onetime::Customer.create!(email: deterministic_email('other'))
       created_customers << other_customer
       other_customer.save
 
@@ -192,6 +209,12 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     before do
       # Ensure customer is organization owner
       organization.save
+
+      # Mock region to match Stripe plan metadata (EU is our default test region)
+      mock_region!('EU')
+
+      # Sync plans from Stripe to Redis cache (needed for plan lookup)
+      ::Billing::Plan.refresh_from_stripe if ENV['STRIPE_API_KEY']
     end
 
     it 'creates Stripe checkout session', :vcr do
@@ -290,7 +313,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
     it 'returns 403 when customer is not organization owner', :vcr do
       # Create member (non-owner) customer
-      member_customer = Onetime::Customer.create!(email: "member-#{SecureRandom.hex(4)}@example.com")
+      member_customer = Onetime::Customer.create!(email: deterministic_email('member'))
       created_customers << member_customer
       member_customer.save
 
@@ -381,7 +404,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     end
 
     it 'returns 403 when customer is not organization member', :vcr do
-      other_customer = Onetime::Customer.create!(email: "other-invoice-#{SecureRandom.hex(4)}@example.com")
+      other_customer = Onetime::Customer.create!(email: deterministic_email('other-invoice'))
       created_customers << other_customer
       other_customer.save
 

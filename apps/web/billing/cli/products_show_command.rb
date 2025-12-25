@@ -40,7 +40,7 @@ module Onetime
         if product.marketing_features && product.marketing_features.any?
           puts 'Marketing Features:'
           product.marketing_features.each do |feature|
-            puts "  - #{feature.name} (#{feature.id})"
+            puts "  - #{feature.name}"
           end
           puts
         end

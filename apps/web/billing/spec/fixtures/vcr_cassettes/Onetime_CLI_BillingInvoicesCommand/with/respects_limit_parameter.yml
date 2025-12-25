@@ -1,0 +1,611 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/invoices?limit=5
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_aYVEnikuXRysQW","request_duration_ms":220}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 14:07:01 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '15554'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=Jk9JTcuXndHBTPb-KoSosI2kYkh6qlUQNnTjNF-jaHHzz_VywC65geRECO_BJSW8XEk9t8nF0AbnAQhw
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "object": "list",
+          "data": [
+            {
+              "id": "in_1SiFBwH54PcLeqtYeVNbIHHD",
+              "object": "invoice",
+              "account_country": "CA",
+              "account_name": "Onetime.dev",
+              "account_tax_ids": null,
+              "amount_due": 0,
+              "amount_overpaid": 0,
+              "amount_paid": 0,
+              "amount_remaining": 0,
+              "amount_shipping": 0,
+              "application": null,
+              "attempt_count": 0,
+              "attempted": false,
+              "auto_advance": false,
+              "automatic_tax": {
+                "disabled_reason": null,
+                "enabled": false,
+                "liability": null,
+                "provider": null,
+                "status": null
+              },
+              "automatically_finalizes_at": null,
+              "billing_reason": "manual",
+              "collection_method": "charge_automatically",
+              "created": 1766671620,
+              "currency": "usd",
+              "custom_fields": null,
+              "customer": "cus_TfaMqSOUagNNWr",
+              "customer_account": null,
+              "customer_address": null,
+              "customer_email": "invoice-test@example.com",
+              "customer_name": null,
+              "customer_phone": null,
+              "customer_shipping": null,
+              "customer_tax_exempt": "none",
+              "customer_tax_ids": [],
+              "default_payment_method": null,
+              "default_source": null,
+              "default_tax_rates": [],
+              "description": null,
+              "discounts": [],
+              "due_date": null,
+              "effective_at": null,
+              "ending_balance": null,
+              "footer": null,
+              "from_invoice": null,
+              "hosted_invoice_url": null,
+              "invoice_pdf": null,
+              "issuer": {
+                "type": "self"
+              },
+              "last_finalization_error": null,
+              "latest_revision": null,
+              "lines": {
+                "object": "list",
+                "data": [],
+                "has_more": false,
+                "total_count": 0,
+                "url": "/v1/invoices/in_1SiFBwH54PcLeqtYeVNbIHHD/lines"
+              },
+              "livemode": false,
+              "metadata": {},
+              "next_payment_attempt": null,
+              "number": null,
+              "on_behalf_of": null,
+              "parent": null,
+              "payment_settings": {
+                "default_mandate": null,
+                "payment_method_options": null,
+                "payment_method_types": null
+              },
+              "period_end": 1766671620,
+              "period_start": 1766671620,
+              "post_payment_credit_notes_amount": 0,
+              "pre_payment_credit_notes_amount": 0,
+              "receipt_number": null,
+              "rendering": {
+                "amount_tax_display": null,
+                "pdf": {
+                  "page_size": "auto"
+                },
+                "template": null,
+                "template_version": null
+              },
+              "shipping_cost": null,
+              "shipping_details": null,
+              "starting_balance": 0,
+              "statement_descriptor": null,
+              "status": "draft",
+              "status_transitions": {
+                "finalized_at": null,
+                "marked_uncollectible_at": null,
+                "paid_at": null,
+                "voided_at": null
+              },
+              "subtotal": 0,
+              "subtotal_excluding_tax": 0,
+              "test_clock": null,
+              "total": 0,
+              "total_discount_amounts": [],
+              "total_excluding_tax": 0,
+              "total_pretax_credit_amounts": [],
+              "total_taxes": [],
+              "webhooks_delivered_at": 1766671620
+            },
+            {
+              "id": "in_1SiFBuH54PcLeqtYAKZfBiyN",
+              "object": "invoice",
+              "account_country": "CA",
+              "account_name": "Onetime.dev",
+              "account_tax_ids": null,
+              "amount_due": 0,
+              "amount_overpaid": 0,
+              "amount_paid": 0,
+              "amount_remaining": 0,
+              "amount_shipping": 0,
+              "application": null,
+              "attempt_count": 0,
+              "attempted": false,
+              "auto_advance": false,
+              "automatic_tax": {
+                "disabled_reason": null,
+                "enabled": false,
+                "liability": null,
+                "provider": null,
+                "status": null
+              },
+              "automatically_finalizes_at": null,
+              "billing_reason": "manual",
+              "collection_method": "charge_automatically",
+              "created": 1766671618,
+              "currency": "usd",
+              "custom_fields": null,
+              "customer": "cus_TfaMXUrggqBOFy",
+              "customer_account": null,
+              "customer_address": null,
+              "customer_email": "invoice-test@example.com",
+              "customer_name": null,
+              "customer_phone": null,
+              "customer_shipping": null,
+              "customer_tax_exempt": "none",
+              "customer_tax_ids": [],
+              "default_payment_method": null,
+              "default_source": null,
+              "default_tax_rates": [],
+              "description": null,
+              "discounts": [],
+              "due_date": null,
+              "effective_at": null,
+              "ending_balance": null,
+              "footer": null,
+              "from_invoice": null,
+              "hosted_invoice_url": null,
+              "invoice_pdf": null,
+              "issuer": {
+                "type": "self"
+              },
+              "last_finalization_error": null,
+              "latest_revision": null,
+              "lines": {
+                "object": "list",
+                "data": [],
+                "has_more": false,
+                "total_count": 0,
+                "url": "/v1/invoices/in_1SiFBuH54PcLeqtYAKZfBiyN/lines"
+              },
+              "livemode": false,
+              "metadata": {},
+              "next_payment_attempt": null,
+              "number": null,
+              "on_behalf_of": null,
+              "parent": null,
+              "payment_settings": {
+                "default_mandate": null,
+                "payment_method_options": null,
+                "payment_method_types": null
+              },
+              "period_end": 1766671618,
+              "period_start": 1766671618,
+              "post_payment_credit_notes_amount": 0,
+              "pre_payment_credit_notes_amount": 0,
+              "receipt_number": null,
+              "rendering": {
+                "amount_tax_display": null,
+                "pdf": {
+                  "page_size": "auto"
+                },
+                "template": null,
+                "template_version": null
+              },
+              "shipping_cost": null,
+              "shipping_details": null,
+              "starting_balance": 0,
+              "statement_descriptor": null,
+              "status": "draft",
+              "status_transitions": {
+                "finalized_at": null,
+                "marked_uncollectible_at": null,
+                "paid_at": null,
+                "voided_at": null
+              },
+              "subtotal": 0,
+              "subtotal_excluding_tax": 0,
+              "test_clock": null,
+              "total": 0,
+              "total_discount_amounts": [],
+              "total_excluding_tax": 0,
+              "total_pretax_credit_amounts": [],
+              "total_taxes": [],
+              "webhooks_delivered_at": 1766671618
+            },
+            {
+              "id": "in_1SiFBsH54PcLeqtYDzCl2SXr",
+              "object": "invoice",
+              "account_country": "CA",
+              "account_name": "Onetime.dev",
+              "account_tax_ids": null,
+              "amount_due": 0,
+              "amount_overpaid": 0,
+              "amount_paid": 0,
+              "amount_remaining": 0,
+              "amount_shipping": 0,
+              "application": null,
+              "attempt_count": 0,
+              "attempted": false,
+              "auto_advance": false,
+              "automatic_tax": {
+                "disabled_reason": null,
+                "enabled": false,
+                "liability": null,
+                "provider": null,
+                "status": null
+              },
+              "automatically_finalizes_at": null,
+              "billing_reason": "manual",
+              "collection_method": "charge_automatically",
+              "created": 1766671616,
+              "currency": "usd",
+              "custom_fields": null,
+              "customer": "cus_TfaMu4K37WjBZ8",
+              "customer_account": null,
+              "customer_address": null,
+              "customer_email": "invoice-test@example.com",
+              "customer_name": null,
+              "customer_phone": null,
+              "customer_shipping": null,
+              "customer_tax_exempt": "none",
+              "customer_tax_ids": [],
+              "default_payment_method": null,
+              "default_source": null,
+              "default_tax_rates": [],
+              "description": null,
+              "discounts": [],
+              "due_date": null,
+              "effective_at": null,
+              "ending_balance": null,
+              "footer": null,
+              "from_invoice": null,
+              "hosted_invoice_url": null,
+              "invoice_pdf": null,
+              "issuer": {
+                "type": "self"
+              },
+              "last_finalization_error": null,
+              "latest_revision": null,
+              "lines": {
+                "object": "list",
+                "data": [],
+                "has_more": false,
+                "total_count": 0,
+                "url": "/v1/invoices/in_1SiFBsH54PcLeqtYDzCl2SXr/lines"
+              },
+              "livemode": false,
+              "metadata": {},
+              "next_payment_attempt": null,
+              "number": null,
+              "on_behalf_of": null,
+              "parent": null,
+              "payment_settings": {
+                "default_mandate": null,
+                "payment_method_options": null,
+                "payment_method_types": null
+              },
+              "period_end": 1766671616,
+              "period_start": 1766671616,
+              "post_payment_credit_notes_amount": 0,
+              "pre_payment_credit_notes_amount": 0,
+              "receipt_number": null,
+              "rendering": {
+                "amount_tax_display": null,
+                "pdf": {
+                  "page_size": "auto"
+                },
+                "template": null,
+                "template_version": null
+              },
+              "shipping_cost": null,
+              "shipping_details": null,
+              "starting_balance": 0,
+              "statement_descriptor": null,
+              "status": "draft",
+              "status_transitions": {
+                "finalized_at": null,
+                "marked_uncollectible_at": null,
+                "paid_at": null,
+                "voided_at": null
+              },
+              "subtotal": 0,
+              "subtotal_excluding_tax": 0,
+              "test_clock": null,
+              "total": 0,
+              "total_discount_amounts": [],
+              "total_excluding_tax": 0,
+              "total_pretax_credit_amounts": [],
+              "total_taxes": [],
+              "webhooks_delivered_at": 1766671616
+            },
+            {
+              "id": "in_1SiFBqH54PcLeqtYaOlnFiVH",
+              "object": "invoice",
+              "account_country": "CA",
+              "account_name": "Onetime.dev",
+              "account_tax_ids": null,
+              "amount_due": 0,
+              "amount_overpaid": 0,
+              "amount_paid": 0,
+              "amount_remaining": 0,
+              "amount_shipping": 0,
+              "application": null,
+              "attempt_count": 0,
+              "attempted": false,
+              "auto_advance": false,
+              "automatic_tax": {
+                "disabled_reason": null,
+                "enabled": false,
+                "liability": null,
+                "provider": null,
+                "status": null
+              },
+              "automatically_finalizes_at": null,
+              "billing_reason": "manual",
+              "collection_method": "charge_automatically",
+              "created": 1766671614,
+              "currency": "usd",
+              "custom_fields": null,
+              "customer": "cus_TfaMlzsTsGI8RH",
+              "customer_account": null,
+              "customer_address": null,
+              "customer_email": "invoice-test@example.com",
+              "customer_name": null,
+              "customer_phone": null,
+              "customer_shipping": null,
+              "customer_tax_exempt": "none",
+              "customer_tax_ids": [],
+              "default_payment_method": null,
+              "default_source": null,
+              "default_tax_rates": [],
+              "description": null,
+              "discounts": [],
+              "due_date": null,
+              "effective_at": null,
+              "ending_balance": null,
+              "footer": null,
+              "from_invoice": null,
+              "hosted_invoice_url": null,
+              "invoice_pdf": null,
+              "issuer": {
+                "type": "self"
+              },
+              "last_finalization_error": null,
+              "latest_revision": null,
+              "lines": {
+                "object": "list",
+                "data": [],
+                "has_more": false,
+                "total_count": 0,
+                "url": "/v1/invoices/in_1SiFBqH54PcLeqtYaOlnFiVH/lines"
+              },
+              "livemode": false,
+              "metadata": {},
+              "next_payment_attempt": null,
+              "number": null,
+              "on_behalf_of": null,
+              "parent": null,
+              "payment_settings": {
+                "default_mandate": null,
+                "payment_method_options": null,
+                "payment_method_types": null
+              },
+              "period_end": 1766671614,
+              "period_start": 1766671614,
+              "post_payment_credit_notes_amount": 0,
+              "pre_payment_credit_notes_amount": 0,
+              "receipt_number": null,
+              "rendering": {
+                "amount_tax_display": null,
+                "pdf": {
+                  "page_size": "auto"
+                },
+                "template": null,
+                "template_version": null
+              },
+              "shipping_cost": null,
+              "shipping_details": null,
+              "starting_balance": 0,
+              "statement_descriptor": null,
+              "status": "draft",
+              "status_transitions": {
+                "finalized_at": null,
+                "marked_uncollectible_at": null,
+                "paid_at": null,
+                "voided_at": null
+              },
+              "subtotal": 0,
+              "subtotal_excluding_tax": 0,
+              "test_clock": null,
+              "total": 0,
+              "total_discount_amounts": [],
+              "total_excluding_tax": 0,
+              "total_pretax_credit_amounts": [],
+              "total_taxes": [],
+              "webhooks_delivered_at": 1766671614
+            },
+            {
+              "id": "in_1SiFBoH54PcLeqtYN2pFIdTb",
+              "object": "invoice",
+              "account_country": "CA",
+              "account_name": "Onetime.dev",
+              "account_tax_ids": null,
+              "amount_due": 0,
+              "amount_overpaid": 0,
+              "amount_paid": 0,
+              "amount_remaining": 0,
+              "amount_shipping": 0,
+              "application": null,
+              "attempt_count": 0,
+              "attempted": true,
+              "auto_advance": false,
+              "automatic_tax": {
+                "disabled_reason": null,
+                "enabled": false,
+                "liability": null,
+                "provider": null,
+                "status": null
+              },
+              "automatically_finalizes_at": null,
+              "billing_reason": "manual",
+              "collection_method": "charge_automatically",
+              "created": 1766671612,
+              "currency": "usd",
+              "custom_fields": null,
+              "customer": "cus_TfaMXifpSQerb8",
+              "customer_account": null,
+              "customer_address": null,
+              "customer_email": "invoice-test@example.com",
+              "customer_name": null,
+              "customer_phone": null,
+              "customer_shipping": null,
+              "customer_tax_exempt": "none",
+              "customer_tax_ids": [],
+              "default_payment_method": null,
+              "default_source": null,
+              "default_tax_rates": [],
+              "description": null,
+              "discounts": [],
+              "due_date": null,
+              "effective_at": 1766671612,
+              "ending_balance": 0,
+              "footer": null,
+              "from_invoice": null,
+              "hosted_invoice_url": "https://invoice.stripe.com/i/acct_1SRUXQH54PcLeqtY/test_YWNjdF8xU1JVWFFINTRQY0xlcXRZLF9UZmFNZjJNY3p5ZFZ5dVg0eFZXZlNiNjRmWGVwcE5BLDE1NzIxMjQyMQ0200y7DWYo2f?s=ap",
+              "invoice_pdf": "https://pay.stripe.com/invoice/acct_1SRUXQH54PcLeqtY/test_YWNjdF8xU1JVWFFINTRQY0xlcXRZLF9UZmFNZjJNY3p5ZFZ5dVg0eFZXZlNiNjRmWGVwcE5BLDE1NzIxMjQyMQ0200y7DWYo2f/pdf?s=ap",
+              "issuer": {
+                "type": "self"
+              },
+              "last_finalization_error": null,
+              "latest_revision": null,
+              "lines": {
+                "object": "list",
+                "data": [],
+                "has_more": false,
+                "total_count": 0,
+                "url": "/v1/invoices/in_1SiFBoH54PcLeqtYN2pFIdTb/lines"
+              },
+              "livemode": false,
+              "metadata": {},
+              "next_payment_attempt": null,
+              "number": "0MMDOPEA-0001",
+              "on_behalf_of": null,
+              "parent": null,
+              "payment_settings": {
+                "default_mandate": null,
+                "payment_method_options": null,
+                "payment_method_types": null
+              },
+              "period_end": 1766671612,
+              "period_start": 1766671612,
+              "post_payment_credit_notes_amount": 0,
+              "pre_payment_credit_notes_amount": 0,
+              "receipt_number": null,
+              "rendering": {
+                "amount_tax_display": null,
+                "pdf": {
+                  "page_size": "letter"
+                },
+                "template": null,
+                "template_version": null
+              },
+              "shipping_cost": null,
+              "shipping_details": null,
+              "starting_balance": 0,
+              "statement_descriptor": null,
+              "status": "paid",
+              "status_transitions": {
+                "finalized_at": 1766671612,
+                "marked_uncollectible_at": null,
+                "paid_at": 1766671612,
+                "voided_at": null
+              },
+              "subtotal": 0,
+              "subtotal_excluding_tax": 0,
+              "test_clock": null,
+              "total": 0,
+              "total_discount_amounts": [],
+              "total_excluding_tax": 0,
+              "total_pretax_credit_amounts": [],
+              "total_taxes": [],
+              "webhooks_delivered_at": 1766671612
+            }
+          ],
+          "has_more": true,
+          "url": "/v1/invoices"
+        }
+  recorded_at: Thu, 25 Dec 2025 14:07:01 GMT
+recorded_with: VCR 6.3.1

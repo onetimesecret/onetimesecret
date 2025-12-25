@@ -25,8 +25,8 @@ module Onetime
           # @param options [Hash] Interpolation options
           # @return [String] Translated string
           #
-          def translate(key, locale: 'en', **options)
-            I18n.t(key, locale: locale.to_sym, **options)
+          def translate(key, locale: 'en', **)
+            I18n.t(key, locale: locale.to_sym, **)
           end
 
           # No-op for backward compatibility

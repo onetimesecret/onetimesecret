@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require_relative 'utils/config_resolver'
+
 module Onetime
   module Config
     extend self
@@ -94,7 +96,6 @@ module Onetime
     end
 
     attr_reader :env, :base, :bootstrap
-    attr_writer :path
 
     # Normalizes environment variables prior to loading and rendering the YAML
     # configuration. In some cases, this might include setting default values
@@ -351,7 +352,7 @@ module Onetime
     end
 
     def path
-      @path ||= find_configs.first
+      @path ||= Onetime::Utils::ConfigResolver.resolve('config') || find_configs.first
     end
 
     def mapped_key(key)

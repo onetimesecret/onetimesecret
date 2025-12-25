@@ -231,7 +231,7 @@ module Billing
               currency: plan.currency,
               region: plan.region,
               features: plan.features.to_a,
-              limits: plan.limits_hash,
+              limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
               entitlements: plan.entitlements.to_a,
               display_order: plan.display_order.to_i,
             }
@@ -292,11 +292,11 @@ module Billing
       # @param org [Onetime::Organization] Organization instance
       # @return [Hash] Usage data
       def build_usage_data(org)
-        # Phase 1: Basic team/member counts
+        # Basic member counts (teams removed from data schema)
         # Future: Add secret counts, API usage, etc.
         {
-          teams: org.teams.size,
-          members: org.members.size,
+          members: org.member_count,
+          domains: org.domain_count,
         }
       end
     end

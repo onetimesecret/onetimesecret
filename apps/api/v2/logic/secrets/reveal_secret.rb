@@ -115,7 +115,7 @@ module V2::Logic
               }
               raise_form_error I18n.t('web.COMMON.verification_already_logged_in',
                 locale: @locale,
-                default: 'Cannot verify when logged in'
+                default: 'Cannot verify when logged in',
               )
             end
           else

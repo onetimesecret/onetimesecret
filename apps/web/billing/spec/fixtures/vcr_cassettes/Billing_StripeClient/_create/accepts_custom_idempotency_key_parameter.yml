@@ -12,9 +12,11 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_j9HgMGGVCLgWOc","request_duration_ms":768}}'
+      - '{"last_request_metrics":{"request_id":"req_fXjAuHKlnfMP7t","request_duration_ms":211}}'
       Idempotency-Key:
-      - test_bde4c471822c9f73c01eb5cd0cf05852
+      - test_cd58a86fc3875e96e2e358d8d29f24e6
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -25,8 +27,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -35,7 +35,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Tue, 23 Dec 2025 22:19:02 GMT
+      - Thu, 25 Dec 2025 12:07:29 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -58,11 +58,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=y6wwuSPVAH7vJW2GqKAhl292TXbIHqDbG-vUQOH4j5IgEEa_mhc67558X3I10_cgfobdyGg7W03P4Uwj
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=BgYGiCVDyrcpDy7JjtXs6SFpi-FnheKnCNir2lD3ZbjLKeKbAuOsvxPpxuC3380UEZYQgppbpOE9Zw0j
       Idempotency-Key:
-      - test_bde4c471822c9f73c01eb5cd0cf05852
+      - test_cd58a86fc3875e96e2e358d8d29f24e6
       Original-Request:
-      - req_Q6pv6N68Bha2V6
+      - req_3MyVESICIbhRaZ
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -81,11 +81,11 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_Texq62FeSNAPYa",
+          "id": "cus_TfYRn6j3TBCnCw",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766528342,
+          "created": 1766664449,
           "currency": null,
           "customer_account": null,
           "default_source": null,
@@ -93,7 +93,7 @@ http_interactions:
           "description": null,
           "discount": null,
           "email": "custom@example.com",
-          "invoice_prefix": "FSEGVQWG",
+          "invoice_prefix": "HE9FLY2C",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -110,5 +110,5 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Tue, 23 Dec 2025 22:19:02 GMT
+  recorded_at: Thu, 25 Dec 2025 12:07:29 GMT
 recorded_with: VCR 6.3.1

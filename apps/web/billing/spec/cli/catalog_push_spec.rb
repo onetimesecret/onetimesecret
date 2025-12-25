@@ -7,7 +7,7 @@ require 'onetime/cli'
 require_relative '../../cli/catalog_push_command'
 require_relative '../../errors'
 
-RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :unit do
+RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
   subject(:command) { Onetime::CLI::BillingCatalogPushCommand.new }
 
   def capture_stdout

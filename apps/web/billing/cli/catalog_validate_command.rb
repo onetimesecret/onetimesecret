@@ -105,8 +105,8 @@ module Onetime
         plans = catalog['plans'] || {}
         plans.each do |plan_id, plan_data|
           plan_entitlements = plan_data['entitlements'] || []
-          is_legacy = plan_data['legacy'] == true
-          label = is_legacy ? "Legacy plan #{plan_id}" : "Plan #{plan_id}"
+          is_legacy         = plan_data['legacy'] == true
+          label             = is_legacy ? "Legacy plan #{plan_id}" : "Plan #{plan_id}"
 
           plan_entitlements.each do |ent_id|
             unless entitlements.key?(ent_id)

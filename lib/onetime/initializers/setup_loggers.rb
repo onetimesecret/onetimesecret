@@ -4,6 +4,7 @@
 
 require 'yaml'
 require 'semantic_logger'
+require_relative '../utils/config_resolver'
 
 module Onetime
   module Initializers
@@ -94,8 +95,8 @@ module Onetime
       private
 
       def load_logging_config
-        path = File.join(Onetime::HOME, 'etc', 'logging.yaml')
-        return {} unless File.exist?(path)
+        path = Onetime::Utils::ConfigResolver.resolve('logging')
+        return {} unless path
 
         YAML.load(ERB.new(File.read(path)).result)
       end
@@ -112,7 +113,7 @@ module Onetime
 
       def configure_appender(config)
         # Skip if console appender already exists (prevents duplicates during test reruns)
-        return if SemanticLogger.appenders.any? { |a| a.is_a?(SemanticLogger::Appender::IO) }
+        return if SemanticLogger.appenders.any?(SemanticLogger::Appender::IO)
 
         SemanticLogger.add_appender(
           io: $stdout,

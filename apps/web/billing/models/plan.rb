@@ -400,6 +400,111 @@ module Billing
         instances.clear
       end
 
+      # Load all plans from billing.yaml config into Redis cache
+      #
+      # Bypasses Stripe API and loads plans directly from YAML configuration.
+      # Creates Plan instances in Redis for each plan+interval combination.
+      # Uses plan_id format: "{plan_key}_{interval}ly" (e.g., "identity_plus_v1_monthly").
+      #
+      # Uses ConfigResolver to load from spec/billing.test.yaml in test environment.
+      #
+      # @param clear_first [Boolean] Whether to clear existing cache before loading (default: true)
+      # @return [Integer] Number of plans loaded into Redis
+      def load_all_from_config(clear_first: true)
+        plans_hash = OT.billing_config.plans
+        return 0 if plans_hash.empty?
+
+        # Clear existing cache if requested
+        clear_cache if clear_first
+
+        plans_count = 0
+
+        plans_hash.each do |plan_key, plan_def|
+          prices = plan_def['prices'] || []
+
+          # Skip plans without prices (e.g., free tier)
+          if prices.empty?
+            OT.ld "[Plan.load_all_from_config] Skipping plan without prices: #{plan_key}"
+            next
+          end
+
+          # Create a Plan instance for each interval (monthly, yearly)
+          prices.each do |price|
+            interval = price['interval'] # 'month' or 'year'
+            plan_id  = "#{plan_key}_#{interval}ly"
+
+            # Extract plan attributes
+            tier               = plan_def['tier']
+            region             = plan_def['region'] || 'global'
+            tenancy            = plan_def['tenancy'] || 'multi'
+            display_order      = plan_def['display_order'] || 0
+            show_on_plans_page = plan_def['show_on_plans_page'] == true
+            entitlements_list  = plan_def['entitlements'] || []
+
+            # Convert limits to flattened format (e.g., "teams" -> "teams.max")
+            limits_hash = (plan_def['limits'] || {}).transform_keys { |k| "#{k}.max" }
+            limits_hash = limits_hash.transform_values do |v|
+              v.nil? || v == -1 ? 'unlimited' : v.to_s
+            end
+
+            # Create Plan instance
+            plan = new(
+              plan_id: plan_id,
+              stripe_price_id: nil,  # No Stripe ID for config-based plans
+              stripe_product_id: nil,
+              name: plan_def['name'],
+              tier: tier,
+              interval: interval,
+              amount: price['amount'].to_s,
+              currency: price['currency'],
+              region: region,
+              tenancy: tenancy,
+              display_order: display_order.to_s,
+              show_on_plans_page: show_on_plans_page.to_s,
+              description: plan_def['description'],
+            )
+
+            # Populate additional fields
+            plan.active            = 'true'
+            plan.billing_scheme    = 'per_unit'
+            plan.usage_type        = 'licensed'
+            plan.trial_period_days = nil
+            plan.nickname          = nil
+            plan.last_synced_at    = Time.now.to_i.to_s
+
+            # Add entitlements to set
+            plan.entitlements.clear
+            entitlements_list.each { |ent| plan.entitlements.add(ent) }
+
+            # Add features to set (empty for config-based plans)
+            plan.features.clear
+
+            # Add limits to hashkey
+            plan.limits.clear
+            limits_hash.each do |key, val|
+              plan.limits[key] = val
+            end
+
+            # No stripe_data_snapshot for config-based plans
+            plan.stripe_data_snapshot.value = nil
+
+            plan.save
+
+            OT.ld "[Plan.load_all_from_config] Cached plan: #{plan_id}", {
+              tier: tier,
+              interval: interval,
+              amount: price['amount'],
+              currency: price['currency'],
+            }
+
+            plans_count += 1
+          end
+        end
+
+        OT.li "[Plan.load_all_from_config] Cached #{plans_count} plans from config"
+        plans_count
+      end
+
       # Load a single plan from billing.yaml config
       #
       # Used as fallback when Stripe cache is empty (dev/test environments).

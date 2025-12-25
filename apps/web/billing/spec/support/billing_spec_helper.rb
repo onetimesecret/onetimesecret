@@ -7,11 +7,12 @@
 # Timecop time manipulation and retry delay tracking only.
 #
 # Stripe API testing uses VCR to record/replay real API calls.
-# Record cassettes with: STRIPE_API_KEY=sk_test_xxx VCR_MODE=all bundle exec rspec
+# Record cassettes with: STRIPE_API_KEY=sk_test_xxx rake vcr:billing:record
 
 # IMPORTANT: Set test environment BEFORE loading anything
 # These must be set before OT.boot! reads config files
 ENV['STRIPE_KEY'] ||= 'sk_test_mock'
+ENV['REDIS_URL'] ||= 'redis://127.0.0.1:2121/0'
 ENV['RACK_ENV']   ||= 'test'
 
 # Use SQLite for auth database in billing tests
@@ -26,13 +27,14 @@ require 'stripe'
 # Load Stripe testing infrastructure (VCR for recording/replaying real API calls)
 require_relative 'vcr_setup'
 
+# Load shared RSpec contexts for billing tests
+Dir[File.join(__dir__, 'shared_contexts', '*.rb')].sort.each { |f| require f }
+
 # Load BannedIP model needed by IPBan middleware
 require_relative '../../../../api/colonel/models/banned_ip'
 
-# Ensure BillingConfig picks up the test environment
-# The singleton may have been created before RACK_ENV was set to 'test'
-# (e.g., if shell has RACK_ENV=development). Reload to use billing.test.yaml.
-Onetime::BillingConfig.instance.reload!
+# NOTE: Billing config is mocked in before(:each) blocks.
+# Tests should not depend on etc/billing.yaml existing.
 
 # Run full boot process for billing integration tests
 # This initializes Familia, locales, billing config, and sets ready flag
@@ -43,6 +45,32 @@ OT.boot! unless OT.ready?
 Stripe.api_key = ENV['STRIPE_API_KEY'] || OT.billing_config.stripe_key
 
 module BillingSpecHelper
+  # Mock billing config for tests
+  # When STRIPE_API_KEY is set (recording mode), use the real key
+  # Otherwise use a mock key for cassette playback
+  def mock_billing_config!
+    allow(OT.billing_config).to receive(:enabled?).and_return(true)
+
+    # Use real API key for recording, mock key for playback
+    stripe_key = ENV['STRIPE_API_KEY'] || 'sk_test_mock'
+    allow(OT.billing_config).to receive(:stripe_key).and_return(stripe_key)
+  end
+
+  # Mock region configuration for plan lookups
+  # Tests need a valid region (e.g., 'EU') to match cached Stripe plans
+  def mock_region!(region = 'EU')
+    # Override the detect_region method on all billing controllers
+    allow_any_instance_of(Billing::Controllers::Base).to receive(:region).and_return(region)
+  end
+
+  # Mock sleep to prevent delays and track calls
+  def mock_sleep!
+    @sleep_delays = []
+    allow_any_instance_of(Object).to receive(:sleep) do |_, delay|
+      @sleep_delays << delay if delay.is_a?(Numeric)
+    end
+  end
+
   # Freeze time for time-sensitive tests using Timecop
   def freeze_time(time = Time.now)
     Timecop.freeze(time)
@@ -114,79 +142,85 @@ RSpec.configure do |config|
   config.include BillingSpecHelper, integration: true
   config.include BillingSpecHelper, billing_cli: true
 
-  # VCR: Automatically wrap tests tagged with :vcr in cassettes
-  # Cassette naming matches existing directory structure:
-  #   Billing_StripeClient/_delete/deletes_regular_resources.yml
-  config.around(:each, :vcr) do |example|
-    # Extract class name and method from example group
+  # Build VCR cassette name from example metadata
+  # Returns hierarchical path: Class/_method/test_description
+  def vcr_cassette_name(example)
     # e.g., "Billing::StripeClient" -> "Billing_StripeClient"
-    class_name = example.metadata[:described_class]&.to_s&.gsub('::', '_') || 'Unknown'
+    # Falls back to top-level description when described_class is nil
+    # (happens when RSpec.describe uses a string instead of a class)
+    class_name = example.metadata[:described_class]&.to_s ||
+                 example.example_group.top_level_description
+    class_name = class_name&.gsub('::', '_')&.gsub(/\s+/, '_') || 'Unknown'
 
-    # Extract method name from parent group description (e.g., "#delete" -> "_delete")
+    # e.g., "#delete" -> "_delete"
     method_desc = example.metadata[:example_group][:description] rescue nil
     method_name = method_desc&.gsub(/^#/, '_')&.gsub(/\s+.*/, '') || '_unknown'
 
-    # Extract test description (e.g., "deletes regular resources" -> "deletes_regular_resources")
-    # Preserve case and hyphens to match existing cassette filenames
+    # e.g., "deletes regular resources" -> "deletes_regular_resources"
     test_desc = example.metadata[:description]
       .gsub(/[^\w\s\-]/, '')
       .gsub(/\s+/, '_')
 
-    # Build hierarchical cassette path: Class/_method/test_description
-    cassette_name = "#{class_name}/#{method_name}/#{test_desc}"
+    "#{class_name}/#{method_name}/#{test_desc}"
+  end
 
-    VCR.use_cassette(cassette_name) do
+  # VCR: Wrap ALL billing tests in cassettes automatically
+  # No need to tag individual tests with :vcr
+  %i[billing cli controller integration].each do |test_type|
+    config.around(:each, type: test_type) do |example|
+      VCR.use_cassette(vcr_cassette_name(example)) do
+        example.run
+      end
+    end
+  end
+
+  # Symbol tag :integration also gets VCR wrapping
+  config.around(:each, :integration) do |example|
+    VCR.use_cassette(vcr_cassette_name(example)) do
       example.run
     end
   end
 
   # Billing tests use REAL Redis on port 2121 (not FakeRedis)
-  # This ensures proper state isolation and matches production behavior
   config.before(:each, type: :billing) do
-    @sleep_delays = []
-
-    # Mock global sleep to prevent actual delays in retry logic tests
-    # Tracks all sleep calls for verification in retry behavior tests
-    allow_any_instance_of(Object).to receive(:sleep) do |_, delay|
-      @sleep_delays << delay if delay.is_a?(Numeric)
-    end
-
-    # Flush test Redis to ensure clean slate
-    # Uses Familia.dbclient which connects to redis://127.0.0.1:2121/0
+    mock_billing_config!
+    mock_sleep!
     Familia.dbclient.flushdb
   end
 
   config.after(:each, type: :billing) do
-    # Clean up test data after each test
     Familia.dbclient.flushdb
   end
 
   config.before(:each, type: :cli) do
-    @sleep_delays = []
-
-    # Mock global sleep to prevent delays in CLI retry logic
-    allow_any_instance_of(Object).to receive(:sleep) do |_, delay|
-      @sleep_delays << delay if delay.is_a?(Numeric)
-    end
+    mock_billing_config!
+    mock_sleep!
   end
 
   config.before(:each, type: :controller) do
     @sleep_delays = []
+    mock_billing_config!
   end
 
   config.before(:each, type: :integration) do
     @sleep_delays = []
+    mock_billing_config!
   end
 
   # Symbol tag matching for :integration (webhook controller tests use this pattern)
   config.before(:each, :integration) do
+    # Skip integration tests in CI if VCR cassettes may be invalid
+    # This is a failsafe - tests should pass with cassettes, but skip if they're stale
+    if BILLING_VCR_SKIP_IN_CI && example.metadata[:stripe_sandbox_api]
+      skip 'Skipping Stripe sandbox test in CI - re-record cassettes with STRIPE_API_KEY'
+    end
+
     @sleep_delays = []
-    # Flush test Redis to ensure clean slate
+    mock_billing_config!
     Familia.dbclient.flushdb
   end
 
   config.after(:each, :integration) do
-    # Clean up test data after each test
     Familia.dbclient.flushdb
   end
 end

@@ -10,7 +10,7 @@ require_relative '../../cli/customers_create_command'
 require_relative '../../cli/customers_show_command'
 require_relative '../../cli/customers_delete_command'
 
-RSpec.describe 'Billing Customers CLI Commands', :billing_cli, :unit do
+RSpec.describe 'Billing Customers CLI Commands', :billing_cli, :integration, :vcr do
   let(:stripe_client) { Billing::StripeClient.new }
 
   describe Onetime::CLI::BillingCustomersCommand do
@@ -150,59 +150,92 @@ RSpec.describe 'Billing Customers CLI Commands', :billing_cli, :unit do
     subject(:command) { described_class.new }
 
     describe '#call (show customer)' do
-      it 'displays customer details with correct format' do
-        # NOTE: stripe-mock returns static customer data
-        # This test verifies CLI output formatting is correct
+      it 'displays customer details with correct format', :vcr do
+        customer = stripe_client.create(Stripe::Customer, {
+          email: 'show-details@example.com',
+          name: 'Show Details Test',
+        }
+        )
+
         output = capture_stdout do
-          command.call(customer_id: 'cus_test123')
+          command.call(customer_id: customer.id)
         end
 
         # Verify section headers and structure
         expect(output).to include('Customer Details:')
         expect(output).to match(/ID: cus_\w+/)  # Customer ID format
         expect(output).to match(/Created: \d{4}-\d{2}-\d{2}/)  # Date format
-        expect(output).to include('Currency:')
+        # Note: Currency only shown if customer has one set
         expect(output).to include('Balance:')
+
+        # Note: No cleanup - VCR tests dont need deletion
       end
 
-      it 'displays payment methods section' do
-        # stripe-mock returns static payment method data
+      it 'displays payment methods section', :vcr do
+        customer = stripe_client.create(Stripe::Customer, {
+          email: 'payment-methods@example.com',
+          name: 'Payment Methods Test',
+          source: 'tok_visa',
+        }
+        )
+
         output = capture_stdout do
-          command.call(customer_id: 'cus_test123')
+          command.call(customer_id: customer.id)
         end
 
         expect(output).to include('Payment Methods:')
-        # Verify format if payment methods exist
-        # stripe-mock may include card details in format: pm_xxx - card
+
+        # Note: No cleanup - VCR tests dont need deletion
       end
 
-      it 'displays subscriptions section' do
-        # stripe-mock returns static subscription data
+      it 'displays subscriptions section', :vcr do
+        customer = stripe_client.create(Stripe::Customer, {
+          email: 'subscriptions-section@example.com',
+          name: 'Subscriptions Section Test',
+        }
+        )
+
         output = capture_stdout do
-          command.call(customer_id: 'cus_test123')
+          command.call(customer_id: customer.id)
         end
 
         expect(output).to include('Subscriptions:')
-        # Verify subscription format if present: sub_xyz - status
-        # May include (paused) marker
+
+        # Note: No cleanup - VCR tests dont need deletion
       end
 
-      it 'formats timestamps in readable format' do
+      it 'formats timestamps in readable format', :vcr do
+        customer = stripe_client.create(Stripe::Customer, {
+          email: 'timestamp-format@example.com',
+          name: 'Timestamp Format Test',
+        }
+        )
+
         output = capture_stdout do
-          command.call(customer_id: 'cus_test123')
+          command.call(customer_id: customer.id)
         end
 
         # Verify timestamp format (YYYY-MM-DD HH:MM:SS UTC)
         expect(output).to match(/Created: \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC/)
+
+        # Note: No cleanup - VCR tests dont need deletion
       end
 
-      it 'formats currency amounts correctly' do
+      it 'formats currency amounts correctly', :vcr do
+        customer = stripe_client.create(Stripe::Customer, {
+          email: 'currency-format@example.com',
+          name: 'Currency Format Test',
+        }
+        )
+
         output = capture_stdout do
-          command.call(customer_id: 'cus_test123')
+          command.call(customer_id: customer.id)
         end
 
         # Verify currency format (USD X.XX or USD -X.XX for credits)
         expect(output).to match(/Balance: USD -?\d+\.\d{2}/)
+
+        # Note: No cleanup - VCR tests dont need deletion
       end
     end
   end
@@ -211,31 +244,65 @@ RSpec.describe 'Billing Customers CLI Commands', :billing_cli, :unit do
     subject(:command) { described_class.new }
 
     describe '#call (delete customer)' do
-      it 'warns about active subscriptions without --yes flag' do
-        # NOTE: stripe-mock returns customers with active subscriptions
+      it 'warns about active subscriptions without --yes flag', :vcr do
+        # Create customer with subscription for this test
+        customer = stripe_client.create(Stripe::Customer, {
+          email: 'delete-warn@example.com',
+          name: 'Delete Warning Test',
+          source: 'tok_visa',
+        }
+        )
+
+        product = stripe_client.create(Stripe::Product, { name: 'Delete Warn Product' })
+        price = stripe_client.create(Stripe::Price, {
+          product: product.id,
+          unit_amount: 1000,
+          currency: 'usd',
+          recurring: { interval: 'month' },
+        }
+        )
+        stripe_client.create(Stripe::Subscription, {
+          customer: customer.id,
+          items: [{ price: price.id }],
+        }
+        )
+
         output = capture_stdout do
-          command.call(customer_id: 'cus_test123')
+          command.call(customer_id: customer.id)
         end
 
         expect(output).to include('⚠️  Customer has active subscriptions!')
         expect(output).to include('Cancel subscriptions first or use --yes to force deletion with cancellation')
         expect(output).not_to include('Customer deleted successfully')
+
+        # Cleanup (force deletion)
+        # Note: No cleanup - VCR tests dont need deletion
       end
 
-      it 'cancels subscriptions and deletes with --yes flag' do
-        # Test that --yes skips confirmation and handles subscriptions
+      it 'cancels subscriptions and deletes with --yes flag', :vcr do
+        customer = stripe_client.create(Stripe::Customer, {
+          email: 'delete-yes@example.com',
+          name: 'Delete Yes Test',
+        }
+        )
+
         output = capture_stdout do
-          command.call(customer_id: 'cus_test456', yes: true)
+          command.call(customer_id: customer.id, yes: true)
         end
 
         expect(output).not_to include('⚠️  Delete customer permanently? (y/n):')
-        # Verify deletion workflow (may cancel subscriptions first)
         expect(output).to include('Customer deleted successfully')
       end
 
-      it 'displays customer ID in output' do
+      it 'displays customer ID in output', :vcr do
+        customer = stripe_client.create(Stripe::Customer, {
+          email: 'delete-id@example.com',
+          name: 'Delete ID Test',
+        }
+        )
+
         output = capture_stdout do
-          command.call(customer_id: 'cus_test789', yes: true)
+          command.call(customer_id: customer.id, yes: true)
         end
 
         # Verify customer ID appears in output

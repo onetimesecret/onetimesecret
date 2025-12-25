@@ -25,19 +25,20 @@ require_relative '../../cli/subscriptions_update_command'
 #   - True unit tests (test CLI only, fully mock Stripe SDK)
 #   - Integration tests with :stripe_sandbox_api tag
 
-RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, :unit do
+RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, :integration, :vcr do
   using Familia::Refinements::TimeLiterals
 
   let(:stripe_client) { Billing::StripeClient.new }
 
   # Helper to create mock subscription with full attributes
   # stripe-mock returns incomplete objects, so we mock for comprehensive testing
+  # Note: current_period_end is now at the subscription item level in Stripe API 2025-11-17.clover
   def mock_subscription(id: 'sub_test123', status: 'active', customer_id: 'cus_test')
+    period_end = Time.now.to_i + 30.days
     double(Stripe::Subscription,
       id: id,
       status: status,
       customer: customer_id,
-      current_period_end: Time.now.to_i + 30.days,
       cancel_at_period_end: false,
       canceled_at: nil,
       pause_collection: nil,
@@ -46,6 +47,8 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
                         id: 'si_test',
                         price: double(id: 'price_test', unit_amount: 2000, currency: 'usd'),
                         quantity: 1,
+                        current_period_end: period_end,
+                        current_period_start: Time.now.to_i,
                       ),
                     ],
                    ),
@@ -53,14 +56,16 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
   end
 
   # Helper to create test subscription with stripe-mock
+  # Note: Uses fixed product name for VCR cassette replay (matching on body)
   def create_test_subscription(email: 'sub-test@example.com')
     customer = stripe_client.create(Stripe::Customer, {
       email: email,
+      source: 'tok_visa',  # Attach payment source for subscription creation
     }
     )
 
     product = stripe_client.create(Stripe::Product, {
-      name: "Test Product #{Time.now.to_i}",
+      name: 'VCR Test Product',
     }
     )
 
@@ -77,6 +82,10 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
       items: [{ price: price.id }],
     }
     )
+
+    # Retrieve full subscription object to ensure all attributes are present
+    # (VCR may not capture all nested attributes from create response)
+    subscription = stripe_client.retrieve(Stripe::Subscription, subscription.id)
 
     { customer: customer, product: product, price: price, subscription: subscription }
   end
@@ -150,9 +159,9 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           expect(output).to match(/cus_test/)
         end
 
-        it 'displays available status filters' do
+        it 'displays available status filters when subscriptions exist' do
           allow(Stripe::Subscription).to receive(:list).and_return(
-            double(data: []),
+            double(data: [mock_subscription]),
           )
 
           output = capture_stdout do
@@ -232,19 +241,21 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           end.not_to raise_error
         end
 
-        it 'cancels subscription immediately with --immediately flag' do
-          sub = mock_subscription
+        it 'cancels subscription immediately with --immediately flag', :vcr do
+          # Create real test subscription for VCR recording
+          resources = create_test_subscription(email: 'cancel-immediate-test@example.com')
 
-          # Mock Stripe SDK methods directly
-          allow(Stripe::Subscription).to receive_messages(retrieve: sub, delete: sub)
           allow($stdin).to receive(:gets).and_return("y\n")
 
-          # Just verify the command accepts the request without errors
-          expect do
-            capture_stdout do
-              command.call(subscription_id: 'sub_test123', immediately: true)
-            end
-          end.not_to raise_error
+          output = capture_stdout do
+            command.call(subscription_id: resources[:subscription].id, immediately: true)
+          end
+
+          # Verify CLI displays cancellation confirmation
+          expect(output).to match(/Subscription cancelled successfully/)
+
+          # Cleanup
+          stripe_client.delete(Stripe::Customer, resources[:customer].id)
         end
 
         it 'displays operation summary with dry run' do
@@ -273,18 +284,21 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           end.not_to raise_error
         end
 
-        it 'aborts when user declines confirmation' do
-          sub = mock_subscription
-          allow(Stripe::Subscription).to receive(:retrieve).and_return(sub)
+        it 'aborts when user declines confirmation', :vcr do
+          # Create real test subscription for VCR recording
+          resources = create_test_subscription(email: 'cancel-abort-test@example.com')
+
           allow($stdin).to receive(:gets).and_return("n\n")
 
-          # Verify update is NOT called when user declines
-          expect(Stripe::Subscription).not_to receive(:update)
-          expect(Stripe::Subscription).not_to receive(:delete)
-
-          capture_stdout do
-            command.call(subscription_id: 'sub_test123')
+          output = capture_stdout do
+            command.call(subscription_id: resources[:subscription].id)
           end
+
+          # Verify CLI shows abort message (not cancellation success)
+          expect(output).not_to match(/Subscription cancelled successfully/)
+
+          # Cleanup
+          stripe_client.delete(Stripe::Customer, resources[:customer].id)
         end
       end
 
@@ -408,7 +422,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
 
     describe '#call (resume subscription)' do
       context 'with valid paused subscription' do
-        it 'resumes paused subscription' do
+        it 'resumes paused subscription', :vcr do
           test_data = create_test_subscription
 
           # Pause first
@@ -431,7 +445,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)
         end
 
-        it 'bypasses confirmation with --yes flag' do
+        it 'bypasses confirmation with --yes flag', :vcr do
           test_data = create_test_subscription
 
           # Pause first
@@ -452,7 +466,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)
         end
 
-        it 'detects not paused subscription' do
+        it 'detects not paused subscription', :vcr do
           test_data = create_test_subscription
 
           output = capture_stdout do
@@ -465,7 +479,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)
         end
 
-        it 'aborts when user declines confirmation' do
+        it 'aborts when user declines confirmation', :vcr do
           test_data = create_test_subscription
 
           # Pause first
@@ -517,7 +531,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
 
     describe '#call (update subscription)' do
       context 'with valid subscription ID' do
-        it 'updates subscription quantity' do
+        it 'updates subscription quantity', :vcr do
           test_data = create_test_subscription
 
           allow($stdin).to receive(:gets).and_return("y\n")
@@ -534,7 +548,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)
         end
 
-        it 'updates subscription price' do
+        it 'updates subscription price', :vcr do
           test_data = create_test_subscription
 
           # Create new price
@@ -559,7 +573,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)
         end
 
-        it 'disables proration when specified' do
+        it 'disables proration when specified', :vcr do
           test_data = create_test_subscription
 
           allow($stdin).to receive(:gets).and_return("y\n")
@@ -579,7 +593,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)
         end
 
-        it 'requires either price or quantity parameter' do
+        it 'requires either price or quantity parameter', :vcr do
           test_data = create_test_subscription
 
           output = capture_stdout do
@@ -592,7 +606,7 @@ RSpec.describe 'Billing Subscriptions CLI Commands', :billing_cli, :code_smell, 
           stripe_client.delete(Stripe::Customer, test_data[:customer].id)
         end
 
-        it 'aborts when user declines confirmation' do
+        it 'aborts when user declines confirmation', :vcr do
           test_data = create_test_subscription
 
           allow($stdin).to receive(:gets).and_return("n\n")

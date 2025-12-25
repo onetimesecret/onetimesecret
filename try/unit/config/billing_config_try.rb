@@ -5,13 +5,17 @@
 require_relative '../../../lib/onetime'
 require 'fileutils'
 
-# Force BillingConfig to use a non-existent path
-# This bypasses the normal file resolution which finds etc/billing.yaml
-@original_path = Onetime::BillingConfig.path
-Onetime::BillingConfig.path = '/nonexistent/billing.yaml'
+# Test BillingConfig behavior when no config file exists
+# We stub ConfigResolver to return a non-existent path
+@original_resolve = Onetime::Utils::ConfigResolver.method(:resolve)
 
-# Clear the singleton instance to force fresh load with new path
-# Ruby's Singleton module uses @singleton__instance__ internally
+# Stub resolve to return nil for 'billing', forcing empty config
+Onetime::Utils::ConfigResolver.define_singleton_method(:resolve) do |name|
+  return nil if name == 'billing'
+  @original_resolve.call(name)
+end
+
+# Clear the singleton instance to force fresh load
 Onetime::BillingConfig.instance_variable_set(:@singleton__instance__, nil)
 
 ## Can load BillingConfig when file doesn't exist
@@ -39,6 +43,6 @@ config = Onetime::BillingConfig.instance
 config.payment_links
 #=> {}
 
-# Teardown: Restore original path and clear singleton
-Onetime::BillingConfig.path = @original_path
+# Teardown: Restore original method and clear singleton
+Onetime::Utils::ConfigResolver.define_singleton_method(:resolve, @original_resolve)
 Onetime::BillingConfig.instance_variable_set(:@singleton__instance__, nil)

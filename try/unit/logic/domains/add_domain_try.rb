@@ -26,6 +26,10 @@ require 'apps/api/domains/logic/domains/add_domain'
 @org1 = Onetime::Organization.create!("First Corp", @owner1, "domains1_#{@timestamp}@first.com")
 @org2 = Onetime::Organization.create!("Second Corp", @owner2, "domains2_#{@timestamp}@second.com")
 
+# Enable standalone mode (billing disabled) to grant custom_domains entitlement
+@org1.define_singleton_method(:billing_enabled?) { false }
+@org2.define_singleton_method(:billing_enabled?) { false }
+
 # Define unique test domain names
 @test_domain1 = "secrets-#{@timestamp}.example.com"
 @test_domain2 = "api-#{@timestamp}.example.com"

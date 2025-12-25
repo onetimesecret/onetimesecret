@@ -60,7 +60,7 @@ module ColonelAPI
           return unless @planid && !@planid.empty?
 
           # Use centralized fallback loader
-          result = ::Billing::Plan.load_with_fallback(@planid)
+          result       = ::Billing::Plan.load_with_fallback(@planid)
           @plan_source = result[:source]
 
           if result[:plan]

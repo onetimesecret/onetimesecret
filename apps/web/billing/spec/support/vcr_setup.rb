@@ -68,10 +68,25 @@ VCR.configure do |config|
   # Use webmock for HTTP stubbing
   config.hook_into :webmock
 
+  # Custom body matcher that ignores dynamic timestamp fields
+  # The 'created' metadata field uses Time.now.utc.iso8601 and changes on every run
+  config.register_request_matcher :body_without_timestamps do |request1, request2|
+    # Normalize bodies by removing the created timestamp field
+    normalize_body = ->(body) {
+      return body if body.nil? || body.empty?
+
+      # Handle form-urlencoded bodies (Stripe API)
+      body.gsub(/metadata%5Bcreated%5D=[^&]*/, 'metadata%5Bcreated%5D=NORMALIZED')
+          .gsub(/metadata\[created\]=[^&]*/, 'metadata[created]=NORMALIZED')
+    }
+
+    normalize_body.call(request1.body) == normalize_body.call(request2.body)
+  end
+
   # Default cassette options
   config.default_cassette_options = {
     record: VCRHelper.record_mode,
-    match_requests_on: [:method, :uri, :body],
+    match_requests_on: [:method, :uri, :body_without_timestamps],
     allow_playback_repeats: true,
   }
 

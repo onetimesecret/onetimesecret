@@ -119,7 +119,7 @@ module Onetime
         rows << '|---------|------|------|---------|--------|---------------|---------------|--------|'
 
         plans.each do |plan_id, plan_data|
-          show_icon = plan_data['show_on_plans_page'] ? '✓' : '✗'
+          show_icon   = plan_data['show_on_plans_page'] ? '✓' : '✗'
           legacy_icon = plan_data['legacy'] ? '⚠️' : ''
           rows << format('| %s | %s | %s | %s | %s | %s | %s | %s |',
             plan_id,

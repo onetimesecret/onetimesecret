@@ -1,0 +1,844 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/customers
+    body:
+      encoding: UTF-8
+      string: email=refund-test%40example.com&name=Refund+Test+User&source=tok_visa
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_5n0IzTrBphIgPe","request_duration_ms":202}}'
+      Idempotency-Key:
+      - 1766671652-2d9edfce-85b0-4a76-8b87-76aa945d461a
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 14:07:33 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '704'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=rmm5sN-qy6cUF7k_eQsXnyrSHEfeeJovVmAh60zJa15AyzQq419GNxh1JdNDlIkCnDXz5SLRkXAY18-9
+      Idempotency-Key:
+      - 1766671652-2d9edfce-85b0-4a76-8b87-76aa945d461a
+      Original-Request:
+      - req_HA7q3B8k8vMkcp
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "cus_TfaNl0Z2WchgBS",
+          "object": "customer",
+          "address": null,
+          "balance": 0,
+          "created": 1766671652,
+          "currency": null,
+          "customer_account": null,
+          "default_source": "card_1SiFCSH54PcLeqtY2mBHO0ga",
+          "delinquent": false,
+          "description": null,
+          "discount": null,
+          "email": "refund-test@example.com",
+          "invoice_prefix": "9GOII5WF",
+          "invoice_settings": {
+            "custom_fields": null,
+            "default_payment_method": null,
+            "footer": null,
+            "rendering_options": null
+          },
+          "livemode": false,
+          "metadata": {},
+          "name": "Refund Test User",
+          "next_invoice_sequence": 1,
+          "phone": null,
+          "preferred_locales": [],
+          "shipping": null,
+          "tax_exempt": "none",
+          "test_clock": null
+        }
+  recorded_at: Thu, 25 Dec 2025 14:07:32 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/charges
+    body:
+      encoding: UTF-8
+      string: amount=5000&currency=usd&customer=cus_TfaNl0Z2WchgBS
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_HA7q3B8k8vMkcp","request_duration_ms":541}}'
+      Idempotency-Key:
+      - 1766671652-87d7530a-f448-4323-b121-ac024700284b
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 14:07:33 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '3658'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=rmm5sN-qy6cUF7k_eQsXnyrSHEfeeJovVmAh60zJa15AyzQq419GNxh1JdNDlIkCnDXz5SLRkXAY18-9
+      Idempotency-Key:
+      - 1766671652-87d7530a-f448-4323-b121-ac024700284b
+      Original-Request:
+      - req_dDv7VPuKIhef6N
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "ch_3SiFCTH54PcLeqtY1397R7t1",
+          "object": "charge",
+          "amount": 5000,
+          "amount_captured": 5000,
+          "amount_refunded": 0,
+          "application": null,
+          "application_fee": null,
+          "application_fee_amount": null,
+          "balance_transaction": "txn_3SiFCTH54PcLeqtY1GDPiPAR",
+          "billing_details": {
+            "address": {
+              "city": null,
+              "country": null,
+              "line1": null,
+              "line2": null,
+              "postal_code": null,
+              "state": null
+            },
+            "email": null,
+            "name": null,
+            "phone": null,
+            "tax_id": null
+          },
+          "calculated_statement_descriptor": "ONETIME.DEV LINKS",
+          "captured": true,
+          "created": 1766671653,
+          "currency": "usd",
+          "customer": "cus_TfaNl0Z2WchgBS",
+          "description": null,
+          "destination": null,
+          "dispute": null,
+          "disputed": false,
+          "failure_balance_transaction": null,
+          "failure_code": null,
+          "failure_message": null,
+          "fraud_details": {},
+          "livemode": false,
+          "metadata": {},
+          "on_behalf_of": null,
+          "order": null,
+          "outcome": {
+            "advice_code": null,
+            "network_advice_code": null,
+            "network_decline_code": null,
+            "network_status": "approved_by_network",
+            "reason": null,
+            "risk_level": "normal",
+            "risk_score": 16,
+            "seller_message": "Payment complete.",
+            "type": "authorized"
+          },
+          "paid": true,
+          "payment_intent": null,
+          "payment_method": "card_1SiFCSH54PcLeqtY2mBHO0ga",
+          "payment_method_details": {
+            "card": {
+              "amount_authorized": 5000,
+              "authorization_code": "634797",
+              "brand": "visa",
+              "checks": {
+                "address_line1_check": null,
+                "address_postal_code_check": null,
+                "cvc_check": "pass"
+              },
+              "country": "US",
+              "exp_month": 12,
+              "exp_year": 2026,
+              "extended_authorization": {
+                "status": "disabled"
+              },
+              "fingerprint": "NGrtdUhnYFr7yg93",
+              "funding": "credit",
+              "incremental_authorization": {
+                "status": "unavailable"
+              },
+              "installments": null,
+              "last4": "4242",
+              "mandate": null,
+              "multicapture": {
+                "status": "unavailable"
+              },
+              "network": "visa",
+              "network_token": {
+                "used": false
+              },
+              "network_transaction_id": "787111411610085",
+              "overcapture": {
+                "maximum_amount_capturable": 5000,
+                "status": "unavailable"
+              },
+              "regulated_status": "unregulated",
+              "three_d_secure": null,
+              "wallet": null
+            },
+            "type": "card"
+          },
+          "receipt_email": null,
+          "receipt_number": null,
+          "receipt_url": "https://pay.stripe.com/receipts/payment/CAcaFwoVYWNjdF8xU1JVWFFINTRQY0xlcXRZKKWKtcoGMgZG_5LIB-86LBYQlDGDEt0k9LIUybLuyp0m9StZw7io16RSAsGkVlrDMmT1ESIw5CPdNJL-",
+          "refunded": false,
+          "review": null,
+          "shipping": null,
+          "source": {
+            "id": "card_1SiFCSH54PcLeqtY2mBHO0ga",
+            "object": "card",
+            "address_city": null,
+            "address_country": null,
+            "address_line1": null,
+            "address_line1_check": null,
+            "address_line2": null,
+            "address_state": null,
+            "address_zip": null,
+            "address_zip_check": null,
+            "allow_redisplay": "unspecified",
+            "brand": "Visa",
+            "country": "US",
+            "customer": "cus_TfaNl0Z2WchgBS",
+            "cvc_check": "pass",
+            "dynamic_last4": null,
+            "email": null,
+            "exp_month": 12,
+            "exp_year": 2026,
+            "fingerprint": "NGrtdUhnYFr7yg93",
+            "funding": "credit",
+            "last4": "4242",
+            "metadata": {},
+            "name": null,
+            "phone": null,
+            "regulated_status": "unregulated",
+            "tokenization_method": null,
+            "wallet": null
+          },
+          "source_transfer": null,
+          "statement_descriptor": null,
+          "statement_descriptor_suffix": null,
+          "status": "succeeded",
+          "transfer_data": null,
+          "transfer_group": null
+        }
+  recorded_at: Thu, 25 Dec 2025 14:07:33 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/refunds
+    body:
+      encoding: UTF-8
+      string: charge=ch_3SiFCTH54PcLeqtY1397R7t1
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_dDv7VPuKIhef6N","request_duration_ms":796}}'
+      Idempotency-Key:
+      - 1766671653-ec404225-8e30-4856-8320-e1db4b6c2379
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 14:07:34 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '590'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=rmm5sN-qy6cUF7k_eQsXnyrSHEfeeJovVmAh60zJa15AyzQq419GNxh1JdNDlIkCnDXz5SLRkXAY18-9
+      Idempotency-Key:
+      - 1766671653-ec404225-8e30-4856-8320-e1db4b6c2379
+      Original-Request:
+      - req_hSXHKXkZ5Wwyjp
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "re_3SiFCTH54PcLeqtY1FXlPQfX",
+          "object": "refund",
+          "amount": 5000,
+          "balance_transaction": "txn_3SiFCTH54PcLeqtY18ndYPZI",
+          "charge": "ch_3SiFCTH54PcLeqtY1397R7t1",
+          "created": 1766671654,
+          "currency": "usd",
+          "destination_details": {
+            "card": {
+              "reference_status": "pending",
+              "reference_type": "acquirer_reference_number",
+              "type": "refund"
+            },
+            "type": "card"
+          },
+          "metadata": {},
+          "payment_intent": null,
+          "reason": null,
+          "receipt_number": null,
+          "source_transfer_reversal": null,
+          "status": "succeeded",
+          "transfer_reversal": null
+        }
+  recorded_at: Thu, 25 Dec 2025 14:07:34 GMT
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/refunds?limit=10
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_hSXHKXkZ5Wwyjp","request_duration_ms":960}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 14:07:34 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '7418'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=rmm5sN-qy6cUF7k_eQsXnyrSHEfeeJovVmAh60zJa15AyzQq419GNxh1JdNDlIkCnDXz5SLRkXAY18-9
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "object": "list",
+          "count": 10,
+          "data": [
+            {
+              "id": "re_3SiFCTH54PcLeqtY1FXlPQfX",
+              "object": "refund",
+              "amount": 5000,
+              "balance_transaction": "txn_3SiFCTH54PcLeqtY18ndYPZI",
+              "charge": "ch_3SiFCTH54PcLeqtY1397R7t1",
+              "created": 1766671654,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference_status": "pending",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": null,
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            },
+            {
+              "id": "re_3SiFCPH54PcLeqtY0yiWyZz2",
+              "object": "refund",
+              "amount": 5000,
+              "balance_transaction": "txn_3SiFCPH54PcLeqtY0bC7uuEj",
+              "charge": "ch_3SiFCPH54PcLeqtY0429mFIi",
+              "created": 1766671651,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "2869891975494417",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": null,
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            },
+            {
+              "id": "re_3SiFCNH54PcLeqtY0rea8Hnu",
+              "object": "refund",
+              "amount": 5000,
+              "balance_transaction": "txn_3SiFCNH54PcLeqtY0uvZVTub",
+              "charge": "ch_3SiFCNH54PcLeqtY01I4MIXm",
+              "created": 1766671648,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "4753070534690511",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": null,
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            },
+            {
+              "id": "re_3SiFCKH54PcLeqtY1obRKtLl",
+              "object": "refund",
+              "amount": 3000,
+              "balance_transaction": "txn_3SiFCKH54PcLeqtY1t1n0uRd",
+              "charge": "ch_3SiFCKH54PcLeqtY1p355aSS",
+              "created": 1766671645,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "3652214255221835",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": "requested_by_customer",
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            },
+            {
+              "id": "re_3SiFCFH54PcLeqtY1neqwGBR",
+              "object": "refund",
+              "amount": 2000,
+              "balance_transaction": "txn_3SiFCFH54PcLeqtY1CT1MTzK",
+              "charge": "ch_3SiFCFH54PcLeqtY1N1wpOy1",
+              "created": 1766671640,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "2240033478217801",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": null,
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            },
+            {
+              "id": "re_3SiF1OH54PcLeqtY1ddXr8aR",
+              "object": "refund",
+              "amount": 5000,
+              "balance_transaction": "txn_3SiF1OH54PcLeqtY1gu7F6xN",
+              "charge": "ch_3SiF1OH54PcLeqtY123aJyVR",
+              "created": 1766670967,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "5287294437562484",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": null,
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            },
+            {
+              "id": "re_3SiF1LH54PcLeqtY0qCx2erz",
+              "object": "refund",
+              "amount": 5000,
+              "balance_transaction": "txn_3SiF1LH54PcLeqtY063tYx33",
+              "charge": "ch_3SiF1LH54PcLeqtY0XhU0CyH",
+              "created": 1766670964,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "4939747546736146",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": null,
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            },
+            {
+              "id": "re_3SiF1HH54PcLeqtY0v67aRpt",
+              "object": "refund",
+              "amount": 2000,
+              "balance_transaction": "txn_3SiF1HH54PcLeqtY0noMg219",
+              "charge": "ch_3SiF1HH54PcLeqtY0nh5WOTS",
+              "created": 1766670960,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "4881538502846539",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": null,
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            },
+            {
+              "id": "re_3SiF1EH54PcLeqtY0QBtxTU2",
+              "object": "refund",
+              "amount": 3000,
+              "balance_transaction": "txn_3SiF1EH54PcLeqtY00Vsj72u",
+              "charge": "ch_3SiF1EH54PcLeqtY02RsSGDB",
+              "created": 1766670957,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "60233704654772",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": "requested_by_customer",
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            },
+            {
+              "id": "re_3SiF1BH54PcLeqtY15zdEh8h",
+              "object": "refund",
+              "amount": 5000,
+              "balance_transaction": "txn_3SiF1BH54PcLeqtY18kcYCxS",
+              "charge": "ch_3SiF1BH54PcLeqtY1F36RfKp",
+              "created": 1766670954,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "7502842963742800",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": null,
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            }
+          ],
+          "has_more": true,
+          "url": "/v1/refunds"
+        }
+  recorded_at: Thu, 25 Dec 2025 14:07:34 GMT
+- request:
+    method: delete
+    uri: https://api.stripe.com/v1/customers/cus_TfaNl0Z2WchgBS
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_a89FIdCyu1clgm","request_duration_ms":206}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Thu, 25 Dec 2025 14:07:35 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '75'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=rmm5sN-qy6cUF7k_eQsXnyrSHEfeeJovVmAh60zJa15AyzQq419GNxh1JdNDlIkCnDXz5SLRkXAY18-9
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "cus_TfaNl0Z2WchgBS",
+          "object": "customer",
+          "deleted": true
+        }
+  recorded_at: Thu, 25 Dec 2025 14:07:35 GMT
+recorded_with: VCR 6.3.1

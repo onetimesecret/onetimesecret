@@ -110,9 +110,10 @@ module Core::Logic
             send_verification_email nil
 
             verification_msg = I18n.t('web.COMMON.verification_sent_to',
-                                        locale: locale,
-                                        default: 'Verification sent to')
-            msg = "#{verification_msg} #{cust.objid}."
+              locale: locale,
+              default: 'Verification sent to',
+            )
+            msg              = "#{verification_msg} #{cust.objid}."
             set_info_message(msg)
           end
 

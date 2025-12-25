@@ -36,13 +36,15 @@ module Onetime
         subscription = stripe_client.retrieve(Stripe::Subscription, subscription_id)
 
         # Display operation summary
+        # Note: current_period_end is now at the subscription item level in Stripe API 2025-11-17.clover
+        period_end = subscription.items&.data&.first&.current_period_end
         display_operation_summary(
           'Cancel subscription',
           {
             subscription_id: subscription.id,
             customer_id: subscription.customer,
             current_status: subscription.status,
-            period_end: format_timestamp(subscription.current_period_end),
+            period_end: period_end ? format_timestamp(period_end) : 'N/A',
             cancel_mode: immediately ? 'IMMEDIATE' : 'At period end',
           },
           dry_run: dry_run,
@@ -72,9 +74,13 @@ module Onetime
           status: canceled.status,
         }
         details[:canceled_at] = format_timestamp(canceled.canceled_at) if canceled.canceled_at
-        details[:will_end_at] = format_timestamp(canceled.current_period_end) if canceled.cancel_at_period_end
+        # NOTE: current_period_end is now at the subscription item level in Stripe API 2025-11-17.clover
+        if canceled.cancel_at_period_end
+          item_period_end       = canceled.items&.data&.first&.current_period_end
+          details[:will_end_at] = format_timestamp(item_period_end) if item_period_end
+        end
 
-        display_success('Subscription canceled successfully', details)
+        display_success('Subscription cancelled successfully', details)
       rescue Stripe::StripeError => ex
         display_error(
           format_stripe_error('Subscription cancellation failed', ex),

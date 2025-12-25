@@ -18,7 +18,6 @@ require 'onetime/logic/base'
 module AccountAPI
   module Logic
     class Base < Onetime::Logic::Base
-
       # Extract session ID for logging purposes
       def session_sid
         sess&.[]('sid') || sess&.[](:sid) || 'unknown'

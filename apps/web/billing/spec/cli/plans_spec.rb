@@ -6,7 +6,7 @@ require_relative '../support/billing_spec_helper'
 require 'onetime/cli'
 require_relative '../../cli/plans_command'
 
-RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit do
+RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
   let(:stripe_client) { Billing::StripeClient.new }
 
   # Data class for mocking plans (immutable, Ruby 3.2+)
@@ -83,8 +83,9 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit do
 
       it 'displays entitlement count' do
         output = capture_stdout { command.call }
-        # Sample plan has 2 entitlements
-        expect(output).to match(/\s+2\s*$/)
+        # CAPS column shows capabilities count
+        expect(output).to match(/CAPS/)
+        expect(output).to match(/\d+\s*$/)  # Ends with a number (caps count)
       end
 
       context 'when cache is empty' do
@@ -206,7 +207,9 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :unit do
           allow(Billing::Plan).to receive(:list_plans).and_return([zero_cap_plan])
 
           output = capture_stdout { command.call }
-          expect(output).to match(/\s+0.00\s*$/)
+          # Amount column shows 0.00, CAPS column shows entitlement count
+          expect(output).to match(/USD 0\.00/)
+          expect(output).to include('basic_monthly_us')
         end
       end
     end

@@ -11,8 +11,12 @@ http_interactions:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_e1xCR9JVKEA3qh","request_duration_ms":252}}'
       Idempotency-Key:
-      - 1766528339-4b1feb9c-a5e4-45ed-bebe-db2e5b640ea9
+      - 1766664449-4999416c-df66-4fb7-8365-16da8d4d6d13
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -23,8 +27,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -33,7 +35,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Tue, 23 Dec 2025 22:18:59 GMT
+      - Thu, 25 Dec 2025 12:07:29 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -56,11 +58,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=zG7o83gUbtkelk3G08fPz0Ch-6R-V_QAu29mLBvIQfLbgDlnIov181xOPObE1nJttU6jPvJR2a_sxmNb
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=kxyzdhcT78UvS-XEIy_WjyrLiXz5MpecHpq7-AD9TUv7LnxIrtvjHIDGVqmn1IGkR4_Y3jT2Hgej_e-g
       Idempotency-Key:
-      - 1766528339-4b1feb9c-a5e4-45ed-bebe-db2e5b640ea9
+      - 1766664449-4999416c-df66-4fb7-8365-16da8d4d6d13
       Original-Request:
-      - req_5kUskJfbPNu9xq
+      - req_2PzdJS71XH97Vr
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -79,11 +81,11 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_Texqo5nnvUOUTZ",
+          "id": "cus_TfYR5reVG1uguH",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766528339,
+          "created": 1766664449,
           "currency": null,
           "customer_account": null,
           "default_source": null,
@@ -91,7 +93,7 @@ http_interactions:
           "description": null,
           "discount": null,
           "email": "idempotent@example.com",
-          "invoice_prefix": "BCDCG0W7",
+          "invoice_prefix": "MPCHFH06",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -108,7 +110,7 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Tue, 23 Dec 2025 22:18:59 GMT
+  recorded_at: Thu, 25 Dec 2025 12:07:29 GMT
 - request:
     method: post
     uri: https://api.stripe.com/v1/customers
@@ -121,9 +123,11 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_5kUskJfbPNu9xq","request_duration_ms":758}}'
+      - '{"last_request_metrics":{"request_id":"req_2PzdJS71XH97Vr","request_duration_ms":246}}'
       Idempotency-Key:
-      - 1766528339-cfebb3b7-2f8d-4ddb-9977-61f177dc48db
+      - 1766664449-ffb8ab54-514f-47fe-ac89-a64194582e68
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
       - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
@@ -134,8 +138,6 @@ http_interactions:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
   response:
     status:
       code: 200
@@ -144,7 +146,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Tue, 23 Dec 2025 22:19:00 GMT
+      - Thu, 25 Dec 2025 12:07:29 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -167,11 +169,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=zG7o83gUbtkelk3G08fPz0Ch-6R-V_QAu29mLBvIQfLbgDlnIov181xOPObE1nJttU6jPvJR2a_sxmNb
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=kxyzdhcT78UvS-XEIy_WjyrLiXz5MpecHpq7-AD9TUv7LnxIrtvjHIDGVqmn1IGkR4_Y3jT2Hgej_e-g
       Idempotency-Key:
-      - 1766528339-cfebb3b7-2f8d-4ddb-9977-61f177dc48db
+      - 1766664449-ffb8ab54-514f-47fe-ac89-a64194582e68
       Original-Request:
-      - req_rCMnt9VgUXLWot
+      - req_fXjAuHKlnfMP7t
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -190,11 +192,11 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TexqnbJ7g2c4P1",
+          "id": "cus_TfYRganPBckCzq",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766528340,
+          "created": 1766664449,
           "currency": null,
           "customer_account": null,
           "default_source": null,
@@ -202,7 +204,7 @@ http_interactions:
           "description": null,
           "discount": null,
           "email": "idempotent@example.com",
-          "invoice_prefix": "ZNA0WPX4",
+          "invoice_prefix": "HFRSC72Q",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -219,5 +221,5 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Tue, 23 Dec 2025 22:19:00 GMT
+  recorded_at: Thu, 25 Dec 2025 12:07:29 GMT
 recorded_with: VCR 6.3.1

@@ -6,7 +6,7 @@ require_relative '../support/billing_spec_helper'
 require 'onetime/cli'
 require_relative '../../cli/catalog_pull_command'
 
-RSpec.describe 'Billing Catalog Pull CLI', :billing_cli, :unit do
+RSpec.describe 'Billing Catalog Pull CLI', :billing_cli, :integration, :vcr do
   subject(:command) { Onetime::CLI::BillingCatalogPullCommand.new }
 
   def capture_stdout
