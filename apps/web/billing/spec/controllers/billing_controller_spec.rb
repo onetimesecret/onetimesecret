@@ -123,9 +123,18 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     end
 
     it 'returns subscription data when organization has active subscription', :vcr do
-      # Create real Stripe subscription
+      # Create Stripe customer with payment method
       stripe_customer = Stripe::Customer.create(email: customer.email)
-      subscription    = Stripe::Subscription.create(
+      payment_method = Stripe::PaymentMethod.create(
+        type: 'card',
+        card: { token: 'tok_visa' }
+      )
+      Stripe::PaymentMethod.attach(payment_method.id, { customer: stripe_customer.id })
+      Stripe::Customer.update(stripe_customer.id, {
+        invoice_settings: { default_payment_method: payment_method.id }
+      })
+
+      subscription = Stripe::Subscription.create(
         customer: stripe_customer.id,
         items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test') }],
       )
@@ -192,6 +201,12 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     before do
       # Ensure customer is organization owner
       organization.save
+
+      # Mock region to match Stripe plan metadata (EU is our default test region)
+      mock_region!('EU')
+
+      # Sync plans from Stripe to Redis cache (needed for plan lookup)
+      ::Billing::Plan.refresh_from_stripe if ENV['STRIPE_API_KEY']
     end
 
     it 'creates Stripe checkout session', :vcr do

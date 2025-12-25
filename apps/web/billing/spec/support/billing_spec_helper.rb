@@ -12,6 +12,7 @@
 # IMPORTANT: Set test environment BEFORE loading anything
 # These must be set before OT.boot! reads config files
 ENV['STRIPE_KEY'] ||= 'sk_test_mock'
+ENV['REDIS_URL'] ||= 'redis://127.0.0.1:2121/0'
 ENV['RACK_ENV']   ||= 'test'
 
 # Use SQLite for auth database in billing tests
@@ -25,6 +26,9 @@ require 'stripe'
 
 # Load Stripe testing infrastructure (VCR for recording/replaying real API calls)
 require_relative 'vcr_setup'
+
+# Load shared RSpec contexts for billing tests
+Dir[File.join(__dir__, 'shared_contexts', '*.rb')].sort.each { |f| require f }
 
 # Load BannedIP model needed by IPBan middleware
 require_relative '../../../../api/colonel/models/banned_ip'
@@ -50,6 +54,13 @@ module BillingSpecHelper
     # Use real API key for recording, mock key for playback
     stripe_key = ENV['STRIPE_API_KEY'] || 'sk_test_mock'
     allow(OT.billing_config).to receive(:stripe_key).and_return(stripe_key)
+  end
+
+  # Mock region configuration for plan lookups
+  # Tests need a valid region (e.g., 'EU') to match cached Stripe plans
+  def mock_region!(region = 'EU')
+    # Override the detect_region method on all billing controllers
+    allow_any_instance_of(Billing::Controllers::Base).to receive(:region).and_return(region)
   end
 
   # Mock sleep to prevent delays and track calls
