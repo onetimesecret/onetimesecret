@@ -73,12 +73,7 @@ RSpec.describe 'SQLite Database Triggers', :sqlite_database, type: :integration 
     end
 
     context 'HTTP login flow' do
-      # NOTE: SQLite LIKE is case-sensitive by default, causing trigger mismatch.
-      # Rodauth logs 'Login successful' (capitalized) but trigger pattern is
-      # '%login%successful%' (lowercase), so the trigger does not fire on real logins.
-      # TODO: Update trigger SQL to use case-insensitive matching with COLLATE NOCASE
-
-      xit 'creates account_activity_times record on successful login (PENDING: case sensitivity bug)' do
+      it 'creates account_activity_times record on successful login' do
         # Verify no activity record exists before login
         activity = test_db[:account_activity_times].where(id: @account[:id]).first
         expect(activity).to be_nil
@@ -92,28 +87,20 @@ RSpec.describe 'SQLite Database Triggers', :sqlite_database, type: :integration 
         expect(activity[:id]).to eq(@account[:id])
       end
 
-      it 'audit log contains capitalized message that does not match trigger' do
-        # This documents the bug: Rodauth logs "Login successful" but trigger expects "login successful"
+      it 'audit log contains login message that triggers activity update' do
         login!(email: test_email)
 
-        # Verify audit log was created with capitalized message
+        # Verify audit log was created
         audit_log = test_db[:account_authentication_audit_logs]
           .where(account_id: @account[:id])
           .order(:at)
           .last
 
-        expect(audit_log[:message]).to eq('Login successful')  # Capitalized
+        expect(audit_log[:message]).to eq('Login successful')
 
-        # Trigger pattern won't match due to case (check for THIS account only)
-        matching_logs = test_db[:account_authentication_audit_logs]
-          .where(account_id: @account[:id])
-          .where(Sequel.like(:message, '%login%successful%'))
-          .count
-        expect(matching_logs).to eq(0)  # No match due to case sensitivity
-
-        # Activity record was NOT created
+        # Activity record was created by trigger (case-insensitive COLLATE NOCASE)
         activity = test_db[:account_activity_times].where(id: @account[:id]).first
-        expect(activity).to be_nil
+        expect(activity).not_to be_nil
       end
 
       it 'does not trigger on failed login' do
@@ -143,14 +130,17 @@ RSpec.describe 'SQLite Database Triggers', :sqlite_database, type: :integration 
         expect(activity[:last_login_at].to_i).to eq(timestamp.to_i)
       end
 
-      it 'triggers with various successful login message patterns' do
-        # Note: Pattern is '%login%successful%' - requires 'login' before 'successful'
-        # SQLite LIKE is case-sensitive, so 'login' must be lowercase
+      it 'triggers with various successful login message patterns (case-insensitive)' do
+        # Trigger uses COLLATE NOCASE for case-insensitive matching
+        # and matches "login" AND "successful" in any order
         test_cases = [
           'login successful',
+          'Login successful',
+          'LOGIN SUCCESSFUL',
+          'successful login',
+          'Successful LOGIN attempt',
           'user login successful',
-          'login successful - mfa required',
-          'attempted login successful'
+          'login successful - mfa required'
         ]
 
         test_cases.each_with_index do |message, index|
@@ -168,20 +158,6 @@ RSpec.describe 'SQLite Database Triggers', :sqlite_database, type: :integration 
           activity = test_db[:account_activity_times].where(id: account[:id]).first
           expect(activity).not_to be_nil, "Failed for message: #{message}"
         end
-      end
-
-      it 'does NOT trigger with capitalized Login (case-sensitive LIKE)' do
-        # This documents current behavior: trigger uses lowercase pattern
-        # Rodauth actually logs 'Login successful' (capitalized)
-        test_db[:account_authentication_audit_logs].insert(
-          account_id: @account[:id],
-          at: Time.now,
-          message: 'Login successful'  # Capitalized - won't match trigger
-        )
-
-        # Trigger does not fire due to case mismatch
-        activity = test_db[:account_activity_times].where(id: @account[:id]).first
-        expect(activity).to be_nil
       end
 
       it 'does not trigger on failed login messages' do
@@ -472,8 +448,7 @@ RSpec.describe 'SQLite Database Triggers', :sqlite_database, type: :integration 
   describe 'trigger integration with Rodauth flows' do
     let(:test_email) { "integration-#{SecureRandom.hex(8)}@example.com" }
 
-    # NOTE: Activity tracking tests are pending due to case sensitivity bug
-    xit 'activity tracking works with full login -> logout -> login cycle (PENDING: case sensitivity)' do
+    it 'activity tracking works with full login -> logout -> login cycle' do
       # Create account and login
       account = create_verified_account(db: test_db, email: test_email, password: test_password)
       login!(email: test_email)

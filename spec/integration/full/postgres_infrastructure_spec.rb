@@ -60,16 +60,24 @@ RSpec.describe 'PostgreSQL Mode Test Infrastructure', :postgres_database, type: 
   describe 'AuthAccountFactory with PostgreSQL' do
     describe '#create_verified_account' do
       it 'creates an account with verified status' do
-        account = create_verified_account(db: test_db, email: 'postgres-test@example.com')
+        test_email = "postgres-test-#{SecureRandom.hex(4)}@example.com"
+        account = create_verified_account(db: test_db, email: test_email)
         expect(account[:status_id]).to eq(AuthAccountFactory::STATUS_VERIFIED)
-        expect(account[:email]).to eq('postgres-test@example.com')
+        expect(account[:email]).to eq(test_email)
+
+        # Cleanup
+        cleanup_account(db: test_db, account_id: account[:id])
       end
 
       it 'creates a password hash' do
-        account = create_verified_account(db: test_db, email: 'postgres-test@example.com')
+        test_email = "postgres-test-#{SecureRandom.hex(4)}@example.com"
+        account = create_verified_account(db: test_db, email: test_email)
         hash_row = test_db[:account_password_hashes].where(id: account[:id]).first
         expect(hash_row).not_to be_nil
         expect(hash_row[:password_hash]).to start_with('$2')
+
+        # Cleanup
+        cleanup_account(db: test_db, account_id: account[:id])
       end
 
       it 'generates random email when not provided' do

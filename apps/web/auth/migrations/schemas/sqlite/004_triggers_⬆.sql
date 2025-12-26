@@ -29,9 +29,14 @@ END;
 --
 -- Data flow: audit_logs.account_id → account_activity_times.id
 -- Both are foreign keys to accounts.id, so the value transfer is correct.
+--
+-- Pattern matching: Uses LOWER() for case-insensitive matching since
+-- COLLATE NOCASE doesn't work in trigger WHEN clauses.
+-- Matches messages containing both "login" and "successful" in any order,
+-- consistent with PostgreSQL's ILIKE behavior.
 CREATE TRIGGER trigger_update_last_login_time
 AFTER INSERT ON account_authentication_audit_logs
-WHEN NEW.message LIKE '%login%successful%'
+WHEN LOWER(NEW.message) LIKE '%login%' AND LOWER(NEW.message) LIKE '%successful%'
 BEGIN
     -- Insert or update activity times using the account_id from the audit log
     INSERT OR REPLACE INTO account_activity_times (id, last_login_at, last_activity_at)
@@ -39,11 +44,28 @@ BEGIN
 END;
 
 -- Clean up expired tokens when new JWT refresh key is inserted
--- Removes expired JWT refresh keys and email auth keys
+--
+-- Design: Opportunistic global cleanup
+-- When any user creates a token, clean up ALL expired tokens system-wide.
+-- This avoids needing a separate scheduled cleanup job for low-volume deployments.
+--
+-- The newly inserted row is excluded from cleanup to ensure predictable behavior
+-- even if a token is inserted with a past deadline (edge case, useful for testing).
+--
+-- Potential concern for high-scale systems:
+-- - Cross-account coupling: User A's insert triggers deletes for Users B, C, D...
+-- - Lock contention: Large DELETE operations may block concurrent inserts
+-- - Unpredictable timing: Cleanup happens based on user activity patterns
+-- For high-volume deployments, consider account-scoped cleanup with a separate
+-- scheduled job for global maintenance.
+--
 CREATE TRIGGER trigger_cleanup_expired_tokens_extended
 AFTER INSERT ON account_jwt_refresh_keys
 BEGIN
-    DELETE FROM account_jwt_refresh_keys WHERE deadline < datetime('now');
+    -- Exclude the newly inserted row from cleanup
+    DELETE FROM account_jwt_refresh_keys
+    WHERE deadline < datetime('now')
+      AND NOT (account_id = NEW.account_id AND key = NEW.key);
     DELETE FROM account_email_auth_keys WHERE deadline < datetime('now');
 END;
 
