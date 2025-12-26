@@ -24,6 +24,10 @@ RSpec.describe 'Simple Mode Configuration', type: :integration do
   end
 
   before(:all) do
+    # Configure I18n for Otto::Locale::Middleware (normally done by OT.boot!)
+    I18n.available_locales = [:en]
+    I18n.default_locale = :en
+
     # Force app loading by calling app method
     app
   end
