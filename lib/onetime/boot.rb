@@ -6,8 +6,16 @@ require_relative 'initializers'
 
 module Onetime
   module Initializers
+    # Kubernetes-style boot state constants
+    # Replaces ambiguous nil/true/false with explicit states
+    BOOT_NOT_STARTED = :not_started  # boot! never called
+    BOOT_STARTING    = :starting     # boot! in progress
+    BOOT_STARTED     = :started      # boot! succeeded
+    BOOT_FAILED      = :failed       # boot! failed with error
+
     @conf          = nil
-    @ready         = nil
+    @boot_state    = nil  # Defaults to BOOT_NOT_STARTED via accessor
+    @boot_error    = nil  # Stores error from failed boot
     @boot_registry = nil  # Instance-based registry (DI architecture)
 
     # Session configuration defaults
@@ -19,7 +27,7 @@ module Onetime
       'httponly' => true,
     }.freeze
 
-    attr_reader :conf, :instance, :boot_registry
+    attr_reader :conf, :instance, :boot_registry, :boot_error
 
     # Boot reads and interprets the configuration and applies it to the
     # relevant features and services. Must be called after applications
@@ -40,13 +48,24 @@ module Onetime
       OT.mode = mode unless mode.nil?
       OT.env  = ENV['RACK_ENV'] || 'production'
 
-      # In test mode, silently return if already booted (idempotent)
-      # In other environments, raise to catch unintended double-boot bugs
-      if OT.ready?
-        return if OT.testing?
-
+      # Kubernetes-style state guard with pattern matching (Ruby 3.0+)
+      # Handles all four states explicitly to prevent ambiguity
+      case [boot_state, OT.testing?]
+      in [BOOT_STARTED, true]
+        return  # Idempotent in test mode
+      in [BOOT_STARTED, false]
         raise OT::Problem, 'Boot already completed'
+      in [BOOT_STARTING, _]
+        raise OT::Problem, 'Boot already in progress'
+      in [BOOT_FAILED, true]
+        reset_ready!  # Allow retry in test mode
+      in [BOOT_FAILED, false]
+        raise OT::Problem, "Boot previously failed: #{boot_error&.message}"
+      else
+        # BOOT_NOT_STARTED - proceed normally
       end
+
+      starting!
 
       # Sets a unique, 64-bit hexadecimal ID for this process instance.
       @instance ||= Familia.generate_trace_id.freeze
@@ -109,7 +128,7 @@ module Onetime
         raise OT::Problem, "Initializer(s) failed: #{failed_names.join(', ')}"
       end
 
-      @ready = true if @ready.nil?
+      started!
 
       # Log completion with timing
       boot_elapsed_ms = ((Onetime.now_in_μs - boot_start) / 1000.0).round
@@ -122,6 +141,7 @@ module Onetime
       # is from within this boot! method.
       nil
     rescue OT::Problem => ex
+      failed!(ex)
       OT.le "Problem booting: #{ex}"
       OT.ld ex.backtrace.join("\n")
 
@@ -145,6 +165,7 @@ module Onetime
       #
       raise ex unless mode?(:cli) # allows for debugging in the console
     rescue Redis::CannotConnectError => ex
+      failed!(ex)
       OT.le "Cannot connect to the database #{Familia.uri} (#{ex.class})"
       raise ex unless mode?(:cli)
     end
@@ -154,19 +175,42 @@ module Onetime
       self.conf = other
     end
 
-    def ready?
-      @ready == true
+    # Boot state accessor with default (Ruby 3.0+ endless method)
+    def boot_state = @boot_state || BOOT_NOT_STARTED
+
+    # State predicates (Ruby 3.0+ endless methods)
+    def ready? = boot_state == BOOT_STARTED
+    def boot_started? = boot_state == BOOT_STARTED
+    def boot_starting? = boot_state == BOOT_STARTING
+    def boot_failed? = boot_state == BOOT_FAILED
+    def boot_not_started? = boot_state == BOOT_NOT_STARTED
+
+    # State transitions
+    def starting!
+      @boot_state = BOOT_STARTING
+      @boot_error = nil
     end
 
+    def started!
+      @boot_state = BOOT_STARTED
+      @boot_error = nil
+    end
+
+    def failed!(error)
+      @boot_state = BOOT_FAILED
+      @boot_error = error
+    end
+
+    # Backward compatibility: marks as failed with explicit message
     def not_ready
-      @ready = false
+      failed!(StandardError.new('Explicitly marked not ready'))
     end
 
-    # Resets the ready state to nil, allowing boot! to set it to true again.
-    # This is intended for test cleanup where tests call not_ready and need
-    # to restore the state for subsequent tests.
+    # Resets boot state to initial, allowing boot! to run again.
+    # This is intended for test cleanup where tests manipulate boot state.
     def reset_ready!
-      @ready = nil
+      @boot_state = nil
+      @boot_error = nil
     end
 
     # Session configuration accessor
