@@ -105,10 +105,11 @@ namespace :spec do
           'RACK_ENV' => 'test',
           'AUTHENTICATION_MODE' => mode,
         }
-        # Full mode uses SQLite in-memory database, excluding PostgreSQL-specific tests
+        # Full mode uses SQLite, excluding PostgreSQL-specific tests
+        # Respect AUTH_DATABASE_URL if set (e.g., file-based SQLite from CI)
         tag_filter = ''
         if mode == 'full'
-          env['AUTH_DATABASE_URL'] = 'sqlite::memory:'
+          env['AUTH_DATABASE_URL'] = ENV.fetch('AUTH_DATABASE_URL', 'sqlite::memory:')
           tag_filter = '--tag ~postgres_database'
         end
 
