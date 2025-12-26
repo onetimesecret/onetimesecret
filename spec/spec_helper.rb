@@ -239,6 +239,11 @@ RSpec.configure do |config|
     end
     # Configure Timecop - automatically return to real time after each test
     Timecop.return
+
+    # Clear thread-local initializer registry to prevent state leakage between tests.
+    # The InitializerRegistry.with_registry pattern saves/restores, but direct assignments
+    # to Thread.current[:initializer_registry] may not be cleaned up.
+    Thread.current[:initializer_registry] = nil
   end
 
   # Include Rack::Test::Methods for request specs

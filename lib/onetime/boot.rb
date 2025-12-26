@@ -85,7 +85,9 @@ module Onetime
       raw_conf = OT::Config.load
 
       # SAFETY MEASURE: Freeze the (inevitably) shared config
-      OT::Config.deep_freeze(raw_conf)
+      # Skip freezing in test mode to allow config modifications for test isolation.
+      # Tests may need to modify config values without triggering FrozenError.
+      OT::Config.deep_freeze(raw_conf) unless OT.testing?
 
       # Normalize the configuration and make it available to the rest
       # of the initializers (via OT.conf).
