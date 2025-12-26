@@ -323,7 +323,7 @@ end
 # Disable billing by default for all Tryouts tests
 # This ensures billing_enabled? returns false, giving full standalone entitlements.
 # Tests that need billing enabled should use BillingTestHelpers.with_billing_enabled
-require_relative '../../apps/web/billing/spec/support/billing_isolation'
+require_relative '../../apps/web/billing/lib/test_support/billing_helpers'
 BillingTestHelpers.disable_billing!
 
 # Clear any stale plan cache from previous test runs
