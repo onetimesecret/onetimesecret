@@ -17,7 +17,7 @@ require 'rack/mock'
 require 'onetime/middleware'
 require 'onetime/application/registry'
 Onetime::Application::Registry.prepare_application_registry
-Onetime.instance_variable_set(:@ready, true) unless Onetime.ready?
+Onetime.started! unless Onetime.ready?
 
 mapped = Onetime::Application::Registry.generate_rack_url_map
 @mock_request = Rack::MockRequest.new(mapped)

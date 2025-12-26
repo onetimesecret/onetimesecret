@@ -209,9 +209,11 @@ RSpec.configure do |config|
   # Some tests modify these values directly or set them to nil; this ensures
   # subsequent tests have valid state.
   config.before(:each) do
-    @__original_ot_conf      = OT.conf
+    @__original_ot_conf       = OT.conf
     # Save Runtime state - this is where locales and other i18n state lives
-    @__original_runtime_i18n = Onetime::Runtime.internationalization
+    @__original_runtime_i18n  = Onetime::Runtime.internationalization
+    # Save boot state - tests that manipulate boot state need this restored
+    @__original_boot_state    = Onetime.boot_state
   end
 
   config.after(:each) do
@@ -244,6 +246,22 @@ RSpec.configure do |config|
     # The InitializerRegistry.with_registry pattern saves/restores, but direct assignments
     # to Thread.current[:initializer_registry] may not be cleaned up.
     Thread.current[:initializer_registry] = nil
+
+    # Restore boot state if it was changed during the test.
+    # This follows the same save/restore pattern as OT.conf and Runtime.internationalization.
+    # Tests that manipulate boot state (e.g., boot! tests, error handling tests) will have
+    # their changes restored, while tests that depend on persistent boot state (e.g., routes
+    # tests using before(:all)) won't have their state unexpectedly reset.
+    if Onetime.boot_state != @__original_boot_state
+      case @__original_boot_state
+      when Onetime::Initializers::BOOT_STARTED
+        Onetime.started!
+      when Onetime::Initializers::BOOT_FAILED
+        Onetime.failed!(StandardError.new('Restored from test'))
+      else
+        Onetime.reset_ready!
+      end
+    end
   end
 
   # Include Rack::Test::Methods for request specs
