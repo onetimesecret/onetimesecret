@@ -277,4 +277,6 @@ RSpec.configure do |config|
 end
 
 # Load billing isolation support (must be after RSpec.configure)
-require_relative 'support/billing_isolation'
+# Shared helpers live in try/support/ for both RSpec and Tryouts frameworks.
+# The file conditionally adds RSpec configuration when RSpec is defined.
+require_relative '../try/support/billing_helpers'
