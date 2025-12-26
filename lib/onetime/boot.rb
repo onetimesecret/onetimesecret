@@ -71,9 +71,9 @@ module Onetime
     BOOT_FAILED      = :failed       # boot! failed with error
 
     @conf          = nil
-    @boot_state    = nil  # Defaults to BOOT_NOT_STARTED via accessor
-    @boot_error    = nil  # Stores error from failed boot
-    @boot_registry = nil  # Instance-based registry (DI architecture)
+    @boot_state    = BOOT_NOT_STARTED  # Explicit initial state
+    @boot_error    = nil                # Stores error from failed boot
+    @boot_registry = nil                # Instance-based registry (DI architecture)
 
     # Session configuration defaults
     # Ensures middleware always has valid values even if site.session is not configured
@@ -118,8 +118,10 @@ module Onetime
         reset_ready!  # Allow retry in test mode
       in [BOOT_FAILED, false]
         raise OT::Problem, "Boot previously failed: #{boot_error&.message}"
+      in [BOOT_NOT_STARTED, _]
+        # Proceed normally - this is the expected initial state
       else
-        # BOOT_NOT_STARTED - proceed normally
+        raise OT::Problem, "Unknown boot state: #{boot_state}"
       end
 
       starting!
@@ -268,7 +270,7 @@ module Onetime
     # Resets boot state to initial, allowing boot! to run again.
     # This is intended for test cleanup where tests manipulate boot state.
     def reset_ready!
-      @boot_state = nil
+      @boot_state = BOOT_NOT_STARTED
       @boot_error = nil
     end
 
