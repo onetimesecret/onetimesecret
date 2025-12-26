@@ -71,6 +71,7 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
       tables_with_id_fk = %i[
         account_password_hashes
         account_otp_keys
+        account_otp_unlocks
         account_webauthn_user_ids
         account_email_auth_keys
         account_lockouts
@@ -79,11 +80,10 @@ RSpec.describe 'Full Mode - Auth Endpoints', type: :integration do
         account_remember_keys
         account_verification_keys
         account_login_change_keys
-        account_single_session_keys
-        account_sms_codes_keys
-        account_expiration_times
+        account_session_keys
+        account_sms_codes
+        account_activity_times
         account_password_change_times
-        account_otp_unlock_keys
         account_recovery_codes
       ]
 
