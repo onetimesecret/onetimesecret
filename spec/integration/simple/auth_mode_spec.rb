@@ -28,9 +28,15 @@ RSpec.describe 'Simple Mode Configuration', type: :integration do
     I18n.available_locales = [:en]
     I18n.default_locale = :en
 
-    # Configure OT locale settings (required by MiddlewareStack.build_available_locales)
-    OT.instance_variable_set(:@default_locale, 'en')
-    OT.instance_variable_set(:@supported_locales, ['en'])
+    # Configure Runtime.internationalization (required by MiddlewareStack.build_available_locales)
+    # This is the proper way to set locale configuration since v0.21+
+    Onetime::Runtime.internationalization = Onetime::Runtime::Internationalization.new(
+      enabled: true,
+      supported_locales: ['en'],
+      default_locale: 'en',
+      fallback_locale: 'en',
+      locales: { 'en' => { code: 'en', name: 'English' } },
+    )
 
     # Force app loading by calling app method
     app

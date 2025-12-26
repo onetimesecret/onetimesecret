@@ -128,8 +128,9 @@ OT.mode = :test
 # Config resolution is handled automatically by Onetime::Utils::ConfigResolver
 # when RACK_ENV=test - it uses spec/{name}.test.yaml files
 
-# Billing isolation is handled by spec/support/billing_isolation.rb
-# which disables billing before each test and cleans up after tests that enable it
+# Billing isolation for RSpec is handled by apps/web/billing/spec/support/billing_isolation.rb
+# which disables billing before each test and cleans up after tests that enable it.
+# Framework-agnostic helpers live in apps/web/billing/lib/test_support/billing_helpers.rb
 
 # Load the test configuration so OT.conf is available to tests.
 # This is a minimal config load that doesn't run the full boot process.
@@ -277,4 +278,5 @@ RSpec.configure do |config|
 end
 
 # Load billing isolation support (must be after RSpec.configure)
-require_relative 'support/billing_isolation'
+# RSpec-specific hooks live in billing_isolation.rb, which requires the shared helpers.
+require_relative '../apps/web/billing/spec/support/billing_isolation'

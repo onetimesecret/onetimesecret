@@ -43,19 +43,19 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
     created_customers.each(&:destroy!)
   end
 
-  describe 'GET /plans/:tier/:billing_cycle' do
+  describe 'GET /billing/plans/:tier/:billing_cycle' do
     let(:tier) { 'single_team' }
     let(:billing_cycle) { 'monthly' }
 
     it 'redirects to Stripe checkout session', :vcr do
-      get "/plans/#{tier}/#{billing_cycle}"
+      get "/billing/plans/#{tier}/#{billing_cycle}"
 
       expect(last_response.status).to eq(302)
       expect(last_response.location).to match(%r{\Ahttps://checkout\.stripe\.com/})
     end
 
     it 'creates checkout session with correct plan', :vcr do
-      get "/plans/#{tier}/#{billing_cycle}"
+      get "/billing/plans/#{tier}/#{billing_cycle}"
 
       expect(last_response.status).to eq(302)
 
@@ -68,7 +68,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
     end
 
     it 'pre-fills customer email for authenticated users', :vcr do
-      get "/plans/#{tier}/#{billing_cycle}"
+      get "/billing/plans/#{tier}/#{billing_cycle}"
 
       expect(last_response.status).to eq(302)
 
@@ -79,7 +79,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
     end
 
     it 'includes customer ID in metadata for authenticated users', :vcr do
-      get "/plans/#{tier}/#{billing_cycle}"
+      get "/billing/plans/#{tier}/#{billing_cycle}"
 
       expect(last_response.status).to eq(302)
 
@@ -90,7 +90,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
     end
 
     it 'redirects to /signup when plan is not found', :vcr do
-      get '/plans/nonexistent_tier/monthly'
+      get '/billing/plans/nonexistent_tier/monthly'
 
       expect(last_response.status).to eq(302)
       expect(last_response.location).to include('/signup')
@@ -107,7 +107,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
     end
 
     it 'uses yearly billing_cycle parameter', :vcr do
-      get "/plans/#{tier}/yearly"
+      get "/billing/plans/#{tier}/yearly"
 
       expect(last_response.status).to eq(302)
 
@@ -121,7 +121,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
     it 'does not require authentication', :vcr do
       env 'rack.session', {}
 
-      get "/plans/#{tier}/#{billing_cycle}"
+      get "/billing/plans/#{tier}/#{billing_cycle}"
 
       expect(last_response.status).to eq(302)
       expect(last_response.location).to match(%r{\Ahttps://[^/]*stripe\.com/})
@@ -131,7 +131,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       # Future: Test with different CloudFlare headers
       # For now, verify default region works
 
-      get "/plans/#{tier}/#{billing_cycle}"
+      get "/billing/plans/#{tier}/#{billing_cycle}"
 
       expect(last_response.status).to eq(302)
 
@@ -142,9 +142,9 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
     end
   end
 
-  describe 'GET /welcome' do
+  describe 'GET /billing/welcome' do
     it 'redirects to /account when session_id is missing', :vcr do
-      get '/welcome'
+      get '/billing/welcome'
 
       expect(last_response.status).to eq(302)
       expect(last_response.location).to include('/account')
@@ -171,7 +171,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
         cancel_url: 'http://example.com/cancel',
       )
 
-      get "/welcome?session_id=#{checkout_session.id}"
+      get "/billing/welcome?session_id=#{checkout_session.id}"
 
       expect(last_response.status).to eq(302)
       expect(last_response.location).to include('/account')
@@ -185,7 +185,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
     end
 
     it 'handles Stripe errors gracefully', :vcr do
-      get '/welcome?session_id=cs_test_invalid'
+      get '/billing/welcome?session_id=cs_test_invalid'
 
       expect(last_response.status).to eq(302)
       expect(last_response.location).to include('/account')
@@ -222,7 +222,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
         cancel_url: 'http://example.com/cancel',
       )
 
-      get "/welcome?session_id=#{checkout_session.id}"
+      get "/billing/welcome?session_id=#{checkout_session.id}"
 
       expect(last_response.status).to eq(302)
 
@@ -237,7 +237,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
     end
   end
 
-  describe 'GET /portal' do
+  describe 'GET /billing/portal' do
     let(:organization) do
       org = Onetime::Organization.create!('Test Org', customer, customer.email)
       created_organizations << org
@@ -249,7 +249,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
     end
 
     it 'redirects to /account when organization has no Stripe customer', :vcr do
-      get '/portal'
+      get '/billing/portal'
 
       expect(last_response.status).to eq(302)
       expect(last_response.location).to include('/account')
@@ -261,7 +261,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       organization.stripe_customer_id = stripe_customer.id
       organization.save
 
-      get '/portal'
+      get '/billing/portal'
 
       expect(last_response.status).to eq(302)
       expect(last_response.location).to match(%r{\Ahttps://billing\.stripe\.com/})
@@ -272,7 +272,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       organization.stripe_customer_id = stripe_customer.id
       organization.save
 
-      get '/portal'
+      get '/billing/portal'
 
       expect(last_response.status).to eq(302)
 
@@ -284,7 +284,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       organization.stripe_customer_id = 'cus_invalid'
       organization.save
 
-      get '/portal'
+      get '/billing/portal'
 
       expect(last_response.status).to eq(302)
       expect(last_response.location).to include('/account')
@@ -293,7 +293,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
     it 'requires authentication', :vcr do
       env 'rack.session', {}
 
-      get '/portal'
+      get '/billing/portal'
 
       expect(last_response.status).to eq(401)
     end
@@ -311,7 +311,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       # Customer has no organizations initially
       expect(new_customer.organization_instances.to_a).to be_empty
 
-      get '/portal'
+      get '/billing/portal'
 
       # Should redirect to account (no Stripe customer yet)
       expect(last_response.status).to eq(302)
@@ -327,7 +327,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       organization.stripe_customer_id = stripe_customer.id
       organization.save
 
-      get '/portal'
+      get '/billing/portal'
 
       # Verify cache control headers are set
       # (exact headers depend on res.do_not_cache! implementation)

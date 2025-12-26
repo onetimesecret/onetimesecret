@@ -1,11 +1,14 @@
+# apps/web/billing/spec/support/billing_isolation.rb
+#
 # frozen_string_literal: true
 
-# spec/support/billing_isolation.rb
+# RSpec-specific billing test isolation.
+# Configures RSpec hooks to disable billing by default and provides
+# tag-based opt-in for tests that need billing enabled.
 #
-# RSpec-specific billing isolation using shared helpers.
-# Ensures billing is disabled before each test and cleaned up after.
+# Framework-agnostic helpers live in lib/test_support/billing_helpers.rb
 
-require_relative '../../try/support/billing_helpers'
+require_relative '../../lib/test_support/billing_helpers'
 
 RSpec.configure do |config|
   # Disable billing before each test by default
@@ -40,7 +43,7 @@ RSpec.configure do |config|
   end
 end
 
-# Helper method available in specs
+# Helper methods available in specs
 module BillingSpecHelpers
   def with_billing_enabled(plans: [], &block)
     @billing_enabled_in_test = true

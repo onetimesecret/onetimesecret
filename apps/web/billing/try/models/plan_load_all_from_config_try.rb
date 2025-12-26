@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../../../../../try/support/test_helpers'
-require_relative '../../../../../try/support/billing_helpers'
+require_relative '../../lib/test_support/billing_helpers'
 
 # Billing::Plan.load_all_from_config tests
 #

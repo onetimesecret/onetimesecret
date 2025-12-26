@@ -1,8 +1,12 @@
+# apps/web/billing/lib/test_support/billing_helpers.rb
+#
 # frozen_string_literal: true
 
-# Shared billing test isolation helpers for Tryouts and RSpec.
-# Ensures billing is disabled by default for all tests, with opt-in
-# for tests that specifically need billing enabled.
+# Framework-agnostic billing test helpers.
+# Used by both RSpec and Tryouts for billing state management.
+#
+# This module provides methods to disable/enable billing, clear caches,
+# and manage test state. It has no test framework dependencies.
 
 module BillingTestHelpers
   class << self
