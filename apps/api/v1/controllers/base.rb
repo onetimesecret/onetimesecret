@@ -101,7 +101,8 @@ module V1
 
           if OT.debug?
             ip_address = req.client_ipaddress.to_s
-            session_id = session.id&.private_id || 'unknown'
+            # session may be a Hash fallback when no session middleware is available
+            session_id = (session.respond_to?(:id) && session.id&.private_id) || 'unknown'
             message = "[authorized] Anonymous session via #{ip_address} (session #{session_id})"
             OT.ld message
           end
