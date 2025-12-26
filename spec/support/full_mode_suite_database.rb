@@ -40,8 +40,14 @@ module FullModeSuiteDatabase
       require 'auth/database'
       Sequel.extension :migration
 
-      # Create in-memory SQLite database
-      @database = Sequel.sqlite
+      # Use AUTH_DATABASE_URL if provided (e.g., file-based SQLite from CI),
+      # otherwise use in-memory SQLite for local development
+      database_url = ENV.fetch('AUTH_DATABASE_URL', nil)
+      @database = if database_url && !database_url.empty?
+        Sequel.connect(database_url)
+      else
+        Sequel.sqlite  # In-memory SQLite
+      end
 
       # Run Rodauth migrations
       migrations_path = File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations')
