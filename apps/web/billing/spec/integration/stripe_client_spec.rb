@@ -5,7 +5,7 @@
 require_relative '../support/billing_spec_helper'
 require_relative '../../lib/stripe_client'
 
-RSpec.describe Billing::StripeClient, :stripe, type: :billing do
+RSpec.describe Billing::StripeClient, :stripe, :stripe_sandbox_api, type: :billing do
   subject(:client) { described_class.new(api_key: test_api_key) }
 
   # Use real API key for VCR recording, mock key for playback

@@ -20,13 +20,14 @@ module ProcessWebhookEventHelpers
 
   # Build a Stripe::Subscription for testing
   def build_stripe_subscription(id:, customer:, status:, metadata: {}, current_period_end: nil)
+    period_end = current_period_end || (Time.now + 30 * 24 * 60 * 60).to_i
     Stripe::Subscription.construct_from({
       id: id,
       object: 'subscription',
       customer: customer,
       status: status,
       metadata: metadata,
-      current_period_end: current_period_end || (Time.now + 30 * 24 * 60 * 60).to_i,
+      current_period_end: period_end,
       items: {
         data: [{
           price: {
@@ -34,6 +35,8 @@ module ProcessWebhookEventHelpers
             product: 'prod_test',
             metadata: {},
           },
+          # current_period_end on items (Stripe API 2025-11-17 structure)
+          current_period_end: period_end,
         }],
       },
     })

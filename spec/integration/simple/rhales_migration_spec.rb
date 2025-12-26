@@ -8,6 +8,10 @@ require 'nokogiri'
 RSpec.describe 'Rhales Migration Integration', type: :integration do
   # Initialize OT configuration for views
   before(:all) do
+    # Configure I18n to accept :en locale (normally done by OT.boot!)
+    I18n.available_locales = [:en]
+    I18n.default_locale = :en
+
     # Set minimal OT locale data
     OT.instance_variable_set(:@locales, {
       'en' => {

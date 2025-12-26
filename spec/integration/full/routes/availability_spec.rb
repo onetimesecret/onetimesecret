@@ -31,13 +31,31 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
+require_relative '../../../spec_helper'
 require 'json'
 
 RSpec.describe 'Auth Route Availability', type: :integration do
+  include Rack::Test::Methods
+
+  def app
+    Onetime::Application::Registry.generate_rack_url_map
+  end
+
+  def json_get(path)
+    header 'Content-Type', nil  # Clear Content-Type from previous POST requests
+    header 'Accept', 'application/json'
+    get path
+  end
+
+  def json_post(path, params = {})
+    header 'Content-Type', 'application/json'
+    header 'Accept', 'application/json'
+    post path, JSON.generate(params)
+  end
+
   # Boot the application once for all tests in this file
   before(:all) do
-    boot_onetime_app
+    Onetime.boot! :test
   end
 
   describe 'core routes (always available)' do
@@ -174,7 +192,11 @@ RSpec.describe 'Auth Route Availability', type: :integration do
     end
   end
 
-  describe 'MFA routes (when ENABLE_MFA=true)', if: ENV['ENABLE_MFA'] == 'true' do
+  describe 'MFA routes (when ENABLE_MFA=true)' do
+    before do
+      skip 'MFA not enabled (ENABLE_MFA != true)' unless ENV['ENABLE_MFA'] == 'true'
+    end
+
     describe 'GET /auth/otp-setup' do
       it 'requires authentication or returns error for unauthenticated request' do
         json_get '/auth/otp-setup'

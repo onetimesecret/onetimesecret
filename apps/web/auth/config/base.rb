@@ -13,7 +13,7 @@ module Auth::Config::Base
     auth.db Auth::Database.connection
 
     auth.table_guard_mode :error
-    auth.table_guard_sequel_mode :create
+    auth.table_guard_sequel_mode :log  # Log missing tables; OTS migrations handle creation
     auth.table_guard_logger Onetime.get_logger('Auth')
 
     # Configure external_id column for Redis-SQL synchronization

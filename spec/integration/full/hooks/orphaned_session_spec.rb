@@ -27,13 +27,36 @@
 #
 # =============================================================================
 
-require_relative '../spec_helper'
+require_relative '../../../spec_helper'
 require 'json'
 require 'securerandom'
 
 RSpec.describe 'Orphaned Session Handling', type: :integration do
+  include Rack::Test::Methods
+
+  def app
+    Onetime::Application::Registry.generate_rack_url_map
+  end
+
+  def json_get(path)
+    header 'Content-Type', nil  # Clear Content-Type from previous POST requests
+    header 'Accept', 'application/json'
+    get path
+  end
+
+  def json_post(path, params = {})
+    header 'Content-Type', 'application/json'
+    header 'Accept', 'application/json'
+    post path, JSON.generate(params)
+  end
+
+  # Access the Rodauth/Sequel auth database
+  def auth_db
+    Auth::Database.connection
+  end
+
   before(:all) do
-    boot_onetime_app
+    Onetime.boot! :test
   end
 
   let(:test_email) { "orphan-#{SecureRandom.hex(8)}@example.com" }
@@ -65,17 +88,32 @@ RSpec.describe 'Orphaned Session Handling', type: :integration do
   # This simulates admin deletion while user has active session
   def delete_account_from_db(account_id)
     # Delete in correct order to respect FK constraints
+    # Tables with account_id foreign key
     auth_db[:account_authentication_audit_logs].where(account_id: account_id).delete
     auth_db[:account_active_session_keys].where(account_id: account_id).delete
+    auth_db[:account_jwt_refresh_keys].where(account_id: account_id).delete rescue nil
+    auth_db[:account_webauthn_keys].where(account_id: account_id).delete rescue nil
+    auth_db[:account_previous_password_hashes].where(account_id: account_id).delete rescue nil
+
+    # Tables with id foreign key (id = account_id)
     auth_db[:account_session_keys].where(id: account_id).delete rescue nil
-    auth_db[:account_login_failures].where(id: account_id).delete
+    auth_db[:account_login_failures].where(id: account_id).delete rescue nil
     auth_db[:account_lockouts].where(id: account_id).delete rescue nil
     auth_db[:account_otp_keys].where(id: account_id).delete rescue nil
+    auth_db[:account_otp_unlocks].where(id: account_id).delete rescue nil
     auth_db[:account_recovery_codes].where(id: account_id).delete rescue nil
     auth_db[:account_remember_keys].where(id: account_id).delete rescue nil
     auth_db[:account_password_hashes].where(id: account_id).delete
     auth_db[:account_password_reset_keys].where(id: account_id).delete rescue nil
     auth_db[:account_verification_keys].where(id: account_id).delete rescue nil
+    auth_db[:account_login_change_keys].where(id: account_id).delete rescue nil
+    auth_db[:account_email_auth_keys].where(id: account_id).delete rescue nil
+    auth_db[:account_password_change_times].where(id: account_id).delete rescue nil
+    auth_db[:account_activity_times].where(id: account_id).delete rescue nil
+    auth_db[:account_webauthn_user_ids].where(id: account_id).delete rescue nil
+    auth_db[:account_sms_codes].where(id: account_id).delete rescue nil
+
+    # Finally delete the account
     auth_db[:accounts].where(id: account_id).delete
   end
 

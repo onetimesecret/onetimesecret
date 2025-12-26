@@ -80,10 +80,11 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
       it 'sets last_login_at timestamp matching audit log' do
         login!(email: test_email)
 
-        # Get the audit log entry
+        # Get the audit log entry (use ilike for case-insensitive match like the trigger)
         audit_log = test_db[:account_authentication_audit_logs]
                       .where(account_id: @account[:id])
-                      .where(Sequel.like(:message, '%login%successful%'))
+                      .where(Sequel.ilike(:message, '%login%'))
+                      .where(Sequel.ilike(:message, '%successful%'))
                       .order(Sequel.desc(:at))
                       .first
 
@@ -97,9 +98,11 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
       it 'sets last_activity_at timestamp matching audit log' do
         login!(email: test_email)
 
+        # Use ilike for case-insensitive match like the trigger
         audit_log = test_db[:account_authentication_audit_logs]
                       .where(account_id: @account[:id])
-                      .where(Sequel.like(:message, '%login%successful%'))
+                      .where(Sequel.ilike(:message, '%login%'))
+                      .where(Sequel.ilike(:message, '%successful%'))
                       .order(Sequel.desc(:at))
                       .first
 
@@ -354,59 +357,70 @@ RSpec.describe 'PostgreSQL Database Triggers', :postgres_database, type: :integr
 
     context 'multiple expired tokens' do
       it 'cleans up all expired tokens in a single trigger execution' do
-        # Insert multiple expired JWT tokens
-        expired_jwt_keys = 5.times.map do |i|
-          key = SecureRandom.hex(32)
+        # Disable trigger during setup to accumulate expired tokens
+        test_db.run('ALTER TABLE account_jwt_refresh_keys DISABLE TRIGGER trigger_cleanup_expired_tokens_extended')
+
+        begin
+          # Insert multiple expired JWT tokens
+          expired_jwt_keys = 5.times.map do |i|
+            key = SecureRandom.hex(32)
+            test_db[:account_jwt_refresh_keys].insert(
+              account_id: @account[:id],
+              key: key,
+              deadline: Time.now - (i + 1) * 3600 # All expired at different times
+            )
+            key
+          end
+
+          # Insert multiple expired email auth keys (different accounts to avoid PK conflict)
+          expired_email_accounts = 3.times.map do
+            account = create_verified_account(db: test_db)
+            key = SecureRandom.hex(32)
+            test_db[:account_email_auth_keys].insert(
+              id: account[:id],
+              key: key,
+              deadline: Time.now - 3600,
+              email_last_sent: Time.now - 7200
+            )
+            { account: account, key: key }
+          end
+
+          # Verify all expired tokens exist
+          expired_jwt_keys.each do |key|
+            expect(test_db[:account_jwt_refresh_keys].where(key: key).count).to eq(1)
+          end
+          expired_email_accounts.each do |data|
+            expect(test_db[:account_email_auth_keys].where(key: data[:key]).count).to eq(1)
+          end
+
+          # Re-enable trigger before inserting new token
+          test_db.run('ALTER TABLE account_jwt_refresh_keys ENABLE TRIGGER trigger_cleanup_expired_tokens_extended')
+
+          # Insert new token to trigger cleanup
+          new_key = SecureRandom.hex(32)
           test_db[:account_jwt_refresh_keys].insert(
             account_id: @account[:id],
-            key: key,
-            deadline: Time.now - (i + 1) * 3600 # All expired at different times
+            key: new_key,
+            deadline: Time.now + 86400
           )
-          key
-        end
 
-        # Insert multiple expired email auth keys (different accounts to avoid PK conflict)
-        expired_email_accounts = 3.times.map do
-          account = create_verified_account(db: test_db)
-          key = SecureRandom.hex(32)
-          test_db[:account_email_auth_keys].insert(
-            id: account[:id],
-            key: key,
-            deadline: Time.now - 3600,
-            email_last_sent: Time.now - 7200
-          )
-          { account: account, key: key }
-        end
+          # Verify all expired JWT tokens were cleaned up
+          expired_jwt_keys.each do |key|
+            expect(test_db[:account_jwt_refresh_keys].where(key: key).count).to eq(0)
+          end
 
-        # Verify all expired tokens exist
-        expired_jwt_keys.each do |key|
-          expect(test_db[:account_jwt_refresh_keys].where(key: key).count).to eq(1)
-        end
-        expired_email_accounts.each do |data|
-          expect(test_db[:account_email_auth_keys].where(key: data[:key]).count).to eq(1)
-        end
+          # Verify all expired email auth keys were cleaned up
+          expired_email_accounts.each do |data|
+            expect(test_db[:account_email_auth_keys].where(key: data[:key]).count).to eq(0)
+          end
 
-        # Insert new token to trigger cleanup
-        new_key = SecureRandom.hex(32)
-        test_db[:account_jwt_refresh_keys].insert(
-          account_id: @account[:id],
-          key: new_key,
-          deadline: Time.now + 86400
-        )
-
-        # Verify all expired JWT tokens were cleaned up
-        expired_jwt_keys.each do |key|
-          expect(test_db[:account_jwt_refresh_keys].where(key: key).count).to eq(0)
-        end
-
-        # Verify all expired email auth keys were cleaned up
-        expired_email_accounts.each do |data|
-          expect(test_db[:account_email_auth_keys].where(key: data[:key]).count).to eq(0)
-        end
-
-        # Cleanup test accounts
-        expired_email_accounts.each do |data|
-          cleanup_account(db: test_db, account_id: data[:account][:id])
+          # Cleanup test accounts
+          expired_email_accounts.each do |data|
+            cleanup_account(db: test_db, account_id: data[:account][:id])
+          end
+        ensure
+          # Always re-enable trigger
+          test_db.run('ALTER TABLE account_jwt_refresh_keys ENABLE TRIGGER trigger_cleanup_expired_tokens_extended')
         end
       end
     end

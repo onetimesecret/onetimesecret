@@ -208,14 +208,14 @@ RSpec.configure do |config|
   # Lazy setup: first :postgres_database spec triggers database creation
   # Using before(:context) ensures it runs once per describe block,
   # but setup! is idempotent so it's safe if multiple blocks have the tag
-  config.before(:context, :full_auth_mode, :postgres_database) do
+  config.before(:context, :postgres_database) do
     PostgresModeSuiteDatabase.setup!
   end
 
   # Clean tables between describe blocks to catch leaked test data
   # Individual tests should still clean up after themselves, but this
   # provides a safety net without hiding which test leaked data
-  config.after(:context, :full_auth_mode, :postgres_database) do
+  config.after(:context, :postgres_database) do
     PostgresModeSuiteDatabase.clean_tables!
   end
 
@@ -225,12 +225,12 @@ RSpec.configure do |config|
   end
 
   # Include factory methods for all :postgres_database specs
-  config.include AuthAccountFactory, :full_auth_mode, :postgres_database
+  config.include AuthAccountFactory, :postgres_database
 
   # Provide test_db helper method for :postgres_database specs
   config.include(Module.new {
     def test_db
       PostgresModeSuiteDatabase.database
     end
-  }, :full_auth_mode, :postgres_database)
+  }, :postgres_database)
 end

@@ -94,7 +94,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION update_last_login_time()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.message ILIKE '%login%successful%' THEN
+    -- Match messages containing both "login" and "successful" in any order
+    IF NEW.message ILIKE '%login%' AND NEW.message ILIKE '%successful%' THEN
         -- Insert or update activity times using the account_id from the audit log
         INSERT INTO account_activity_times (id, last_login_at, last_activity_at)
         VALUES (NEW.account_id, NEW.at, NEW.at)
@@ -108,11 +109,28 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Enhanced cleanup function for new token types
+--
+-- Design: Opportunistic global cleanup
+-- When any user creates a token, clean up ALL expired tokens system-wide.
+-- This avoids needing a separate scheduled cleanup job for low-volume deployments.
+--
+-- The newly inserted row is excluded from cleanup to ensure predictable behavior
+-- even if a token is inserted with a past deadline (edge case, useful for testing).
+--
+-- Potential concern for high-scale systems:
+-- - Cross-account coupling: User A's insert triggers deletes for Users B, C, D...
+-- - Lock contention: Large DELETE operations may block concurrent inserts
+-- - Unpredictable timing: Cleanup happens based on user activity patterns
+-- For high-volume deployments, consider account-scoped cleanup with a separate
+-- scheduled job for global maintenance.
+--
 CREATE OR REPLACE FUNCTION cleanup_expired_tokens_extended()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Clean up expired JWT refresh tokens
-    DELETE FROM account_jwt_refresh_keys WHERE deadline < NOW();
+    -- Clean up expired JWT refresh tokens (excluding the newly inserted row)
+    DELETE FROM account_jwt_refresh_keys
+    WHERE deadline < NOW()
+      AND NOT (account_id = NEW.account_id AND key = NEW.key);
 
     -- Clean up expired email auth keys
     DELETE FROM account_email_auth_keys WHERE deadline < NOW();
@@ -180,7 +198,7 @@ BEGIN
         EXISTS(SELECT 1 FROM account_sms_codes WHERE id = p_account_id),
         EXISTS(SELECT 1 FROM account_webauthn_keys WHERE account_id = p_account_id),
         (SELECT COUNT(*)::INTEGER FROM account_active_session_keys WHERE account_id = p_account_id),
-        (SELECT last_login_at FROM account_activity_times WHERE id = p_account_id),
+        (SELECT last_login_at::TIMESTAMPTZ FROM account_activity_times WHERE id = p_account_id),
         COALESCE((SELECT number FROM account_login_failures WHERE id = p_account_id), 0);
 END;
 $$ LANGUAGE plpgsql;

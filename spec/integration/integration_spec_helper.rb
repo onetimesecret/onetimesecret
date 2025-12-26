@@ -39,7 +39,10 @@ RSpec.configure do |config|
   end
 
   # Clean Valkey database before each integration test
-  config.before(:each, type: :integration) do
+  # Skip if :shared_db_state metadata is set (for specs using before(:all) shared setup)
+  config.before(:each, type: :integration) do |example|
+    next if example.metadata[:shared_db_state]
+
     if redis_uri&.include?(':2121')
       begin
         # Use the real Familia client to flush the test database
@@ -51,7 +54,10 @@ RSpec.configure do |config|
   end
 
   # Clean up after integration tests
-  config.after(:each, type: :integration) do
+  # Skip if :shared_db_state metadata is set (for specs using before(:all) shared setup)
+  config.after(:each, type: :integration) do |example|
+    next if example.metadata[:shared_db_state]
+
     if redis_uri&.include?(':2121')
       begin
         Familia.dbclient.flushdb
