@@ -120,9 +120,9 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
         # Explicitly reset the d9s_enabled to nil before each test
         Onetime.d9s_enabled = nil
 
-        # Reset registry and Onetime ready state before each test
-        # Set @ready to nil (not false) so boot! can set it to true
-        Onetime.instance_variable_set(:@ready, nil)
+        # Reset boot state so boot! can run fresh each test
+        # Uses reset_ready! which sets @boot_state = nil (defaults to BOOT_NOT_STARTED)
+        Onetime.reset_ready!
 
         # Mock config to return our test config (but use real database)
         allow(Onetime::Config).to receive(:load).and_return(test_config)
@@ -206,7 +206,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
         Onetime.instance_variable_set(:@conf, nil)
         Onetime.instance_variable_set(:@mode, nil)
         Onetime.instance_variable_set(:@env, nil)
-        Onetime.instance_variable_set(:@ready, nil) # Critical: this controls ready? check in boot!
+        Onetime.reset_ready! # Reset boot state machine (sets @boot_state = nil)
         Onetime.instance_variable_set(:@instance, nil)
       end
 
@@ -215,7 +215,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
         Onetime.instance_variable_set(:@conf, nil)
         Onetime.instance_variable_set(:@mode, nil)
         Onetime.instance_variable_set(:@env, nil)
-        Onetime.instance_variable_set(:@ready, nil)
+        Onetime.reset_ready! # Reset boot state machine (sets @boot_state = nil)
         Onetime.instance_variable_set(:@instance, nil)
         Onetime.boot!(:test) rescue nil
       end

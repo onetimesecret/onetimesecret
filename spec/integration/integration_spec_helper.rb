@@ -27,7 +27,12 @@ RSpec.configure do |config|
   redis_uri = redis_conf['uri']
 
   # Clean Valkey database before all integration tests in a group
-  config.before(:all, type: :integration) do
+  # Skip if :shared_db_state metadata is set (for specs using before(:all) shared setup)
+  # Skip if :billing metadata is set (billing tests manage their own plan data)
+  config.before(:all, type: :integration) do |context|
+    next if context.class.metadata[:shared_db_state]
+    next if context.class.metadata[:billing]
+
     if redis_uri&.include?(':2121')
       begin
         # Use the real Familia client to flush the test database
@@ -40,8 +45,10 @@ RSpec.configure do |config|
 
   # Clean Valkey database before each integration test
   # Skip if :shared_db_state metadata is set (for specs using before(:all) shared setup)
+  # Skip if :billing metadata is set (billing tests manage their own plan data)
   config.before(:each, type: :integration) do |example|
     next if example.metadata[:shared_db_state]
+    next if example.metadata[:billing]
 
     if redis_uri&.include?(':2121')
       begin
@@ -55,8 +62,10 @@ RSpec.configure do |config|
 
   # Clean up after integration tests
   # Skip if :shared_db_state metadata is set (for specs using before(:all) shared setup)
+  # Skip if :billing metadata is set (billing tests manage their own plan data)
   config.after(:each, type: :integration) do |example|
     next if example.metadata[:shared_db_state]
+    next if example.metadata[:billing]
 
     if redis_uri&.include?(':2121')
       begin

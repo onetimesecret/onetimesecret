@@ -30,6 +30,7 @@
 # Run with: pnpm run test:rspec spec/onetime/jobs/workers/billing_worker_spec.rb
 
 require 'spec_helper'
+require 'integration/integration_spec_helper'
 require 'sneakers'
 require 'stripe'
 require 'onetime/jobs/workers/billing_worker'

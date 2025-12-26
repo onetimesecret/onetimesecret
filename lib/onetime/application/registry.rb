@@ -125,6 +125,20 @@ module Onetime
           reregister_loaded_applications
         end
 
+        # Hard reset registry state without re-registration (for test isolation)
+        #
+        # Unlike reset!, this does NOT re-register loaded application classes.
+        # Use this when tests need truly empty registry state, such as when
+        # testing the registration process itself or when simulating pre-boot state.
+        #
+        # @note This is intended for test use only. Production code should use reset!
+        def hard_reset!
+          @mount_mappings        = {}
+          @application_classes   = []
+          @application_instances = {}
+          # NOTE: Does NOT call reregister_loaded_applications
+        end
+
         # Re-register application classes that are already in memory
         def reregister_loaded_applications
           ObjectSpace.each_object(Class)

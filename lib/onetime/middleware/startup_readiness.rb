@@ -112,9 +112,13 @@ module Onetime
           # warn. That's acceptable most of the time but it's really confusing
           # when this middleware is running and returning 503 responses without
           # any indication of why in the logs. So we use $stdout.puts directly.
-          $stdout.puts "[StartupReadiness] Application not ready #{@app.inspect}"
+          state_info = Onetime.boot_state.to_s
+          if (error = Onetime.boot_error) && Onetime.boot_failed?
+            state_info << " (#{error.class}: #{error.message})"
+          end
+          $stdout.puts "[StartupReadiness] Application not ready: #{state_info} #{@app.inspect}"
         else
-          warn '[StartupReadiness] Application not ready'
+          warn "[StartupReadiness] Application not ready (#{Onetime.boot_state})"
         end
 
         if should_return_json?(env)

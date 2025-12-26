@@ -2,13 +2,78 @@
 #
 # frozen_string_literal: true
 
+# =============================================================================
+# Boot State & Runtime State Contract
+# =============================================================================
+#
+# This application has two separate state management systems that work together
+# during initialization but serve different purposes:
+#
+# 1. BOOT STATE (this file - boot.rb)
+#    - Tracks the boot lifecycle: NOT_STARTED → STARTING → STARTED/FAILED
+#    - Answers: "Has boot! been called? Did it succeed?"
+#    - Controls whether boot! can run again
+#    - Reset via: Onetime.reset_ready!
+#
+# 2. RUNTIME STATE (runtime.rb)
+#    - Holds computed values from initializers (secrets, config, features)
+#    - Organized into domains: Security, Localization, Infrastructure, etc.
+#    - Answers: "What values did initializers compute during boot?"
+#    - Reset via: Onetime::Runtime.reset!
+#
+# Initialization Flow:
+# ┌─────────────────────────────────────────────────────────────────────────┐
+# │  boot!(:mode)                                                           │
+# │    ├─ boot_state = BOOT_STARTING                                        │
+# │    ├─ Load config from YAML                                             │
+# │    ├─ Run initializers (each may call Runtime.update_*)                 │
+# │    │    ├─ GlobalSecretInitializer → Runtime.update_security(...)       │
+# │    │    ├─ LocalizationInitializer → Runtime.update_internationalization│
+# │    │    └─ ...                                                          │
+# │    └─ boot_state = BOOT_STARTED                                         │
+# └─────────────────────────────────────────────────────────────────────────┘
+#
+# Initializers are discovered from lib/onetime/initializers/ and executed
+# in dependency order. Each initializer may populate Runtime state.
+#
+# Test Reset Quick Reference:
+#   reset_ready!            → Re-run boot! (Runtime overwritten by initializers)
+#   Runtime.reset!          → Reset computed values only (rarely needed alone)
+#   reset_all_boot_state!   → Nuclear option: complete clean slate
+#
+# !! INVALID STATE WARNING !!
+#    Calling Runtime.reset! alone (without reset_ready!) creates an
+#    inconsistent state: boot claims STARTED but Runtime holds defaults.
+#    This WILL cause subtle bugs. Always use reset_all_boot_state! for
+#    complete resets.
+#
+# ✓ SAFE PATTERN:
+#   Calling reset_ready! without Runtime.reset! is safe because the next
+#   boot! call will run initializers that overwrite Runtime state anyway.
+#
+# Edge Cases:
+# - Partial boot failure: If boot! fails mid-way, some Runtime domains
+#   may have been updated. reset_all_boot_state! handles this correctly.
+# - Re-entrant boot in test mode: boot! auto-calls reset_ready! when
+#   boot_state is BOOT_FAILED and OT.testing? is true.
+#
+# =============================================================================
+
 require_relative 'initializers'
 
 module Onetime
   module Initializers
+    # Kubernetes-style boot state constants
+    # Replaces ambiguous nil/true/false with explicit states
+    BOOT_NOT_STARTED = :not_started  # boot! never called
+    BOOT_STARTING    = :starting     # boot! in progress
+    BOOT_STARTED     = :started      # boot! succeeded
+    BOOT_FAILED      = :failed       # boot! failed with error
+
     @conf          = nil
-    @ready         = nil
-    @boot_registry = nil  # Instance-based registry (DI architecture)
+    @boot_state    = BOOT_NOT_STARTED  # Explicit initial state
+    @boot_error    = nil                # Stores error from failed boot
+    @boot_registry = nil                # Instance-based registry (DI architecture)
 
     # Session configuration defaults
     # Ensures middleware always has valid values even if site.session is not configured
@@ -19,7 +84,7 @@ module Onetime
       'httponly' => true,
     }.freeze
 
-    attr_reader :conf, :instance, :boot_registry
+    attr_reader :conf, :instance, :boot_registry, :boot_error
 
     # Boot reads and interprets the configuration and applies it to the
     # relevant features and services. Must be called after applications
@@ -40,13 +105,26 @@ module Onetime
       OT.mode = mode unless mode.nil?
       OT.env  = ENV['RACK_ENV'] || 'production'
 
-      # In test mode, silently return if already booted (idempotent)
-      # In other environments, raise to catch unintended double-boot bugs
-      if OT.ready?
-        return if OT.testing?
-
+      # Kubernetes-style state guard with pattern matching (Ruby 3.0+)
+      # Handles all four states explicitly to prevent ambiguity
+      case [boot_state, OT.testing?]
+      in [BOOT_STARTED, true]
+        return  # Idempotent in test mode
+      in [BOOT_STARTED, false]
         raise OT::Problem, 'Boot already completed'
+      in [BOOT_STARTING, _]
+        raise OT::Problem, 'Boot already in progress'
+      in [BOOT_FAILED, true]
+        reset_ready!  # Allow retry in test mode
+      in [BOOT_FAILED, false]
+        raise OT::Problem, "Boot previously failed: #{boot_error&.message}"
+      in [BOOT_NOT_STARTED, _]
+        # Proceed normally - this is the expected initial state
+      else
+        raise OT::Problem, "Unknown boot state: #{boot_state}"
       end
+
+      starting!
 
       # Sets a unique, 64-bit hexadecimal ID for this process instance.
       @instance ||= Familia.generate_trace_id.freeze
@@ -66,7 +144,9 @@ module Onetime
       raw_conf = OT::Config.load
 
       # SAFETY MEASURE: Freeze the (inevitably) shared config
-      OT::Config.deep_freeze(raw_conf)
+      # Skip freezing in test mode to allow config modifications for test isolation.
+      # Tests may need to modify config values without triggering FrozenError.
+      OT::Config.deep_freeze(raw_conf) unless OT.testing?
 
       # Normalize the configuration and make it available to the rest
       # of the initializers (via OT.conf).
@@ -109,7 +189,7 @@ module Onetime
         raise OT::Problem, "Initializer(s) failed: #{failed_names.join(', ')}"
       end
 
-      @ready = true if @ready.nil?
+      started!
 
       # Log completion with timing
       boot_elapsed_ms = ((Onetime.now_in_μs - boot_start) / 1000.0).round
@@ -122,6 +202,7 @@ module Onetime
       # is from within this boot! method.
       nil
     rescue OT::Problem => ex
+      failed!(ex)
       OT.le "Problem booting: #{ex}"
       OT.ld ex.backtrace.join("\n")
 
@@ -145,6 +226,7 @@ module Onetime
       #
       raise ex unless mode?(:cli) # allows for debugging in the console
     rescue Redis::CannotConnectError => ex
+      failed!(ex)
       OT.le "Cannot connect to the database #{Familia.uri} (#{ex.class})"
       raise ex unless mode?(:cli)
     end
@@ -154,19 +236,68 @@ module Onetime
       self.conf = other
     end
 
-    def ready?
-      @ready == true
+    # Boot state accessor with default (Ruby 3.0+ endless method)
+    def boot_state = @boot_state || BOOT_NOT_STARTED
+
+    # State predicates (Ruby 3.0+ endless methods)
+    def ready? = boot_state == BOOT_STARTED
+    def boot_started? = boot_state == BOOT_STARTED
+    def boot_starting? = boot_state == BOOT_STARTING
+    def boot_failed? = boot_state == BOOT_FAILED
+    def boot_not_started? = boot_state == BOOT_NOT_STARTED
+
+    # State transitions
+    def starting!
+      @boot_state = BOOT_STARTING
+      @boot_error = nil
     end
 
+    def started!
+      @boot_state = BOOT_STARTED
+      @boot_error = nil
+    end
+
+    def failed!(error)
+      @boot_state = BOOT_FAILED
+      @boot_error = error
+    end
+
+    # Backward compatibility: marks as failed with explicit message
     def not_ready
-      @ready = false
+      failed!(StandardError.new('Explicitly marked not ready'))
     end
 
-    # Resets the ready state to nil, allowing boot! to set it to true again.
-    # This is intended for test cleanup where tests call not_ready and need
-    # to restore the state for subsequent tests.
+    # Resets boot state to initial, allowing boot! to run again.
+    # This is intended for test cleanup where tests manipulate boot state.
     def reset_ready!
-      @ready = nil
+      @boot_state = BOOT_NOT_STARTED
+      @boot_error = nil
+    end
+
+    # Resets ALL boot-related state for testing scenarios requiring a clean slate.
+    #
+    # This resets:
+    # - Boot state (allows boot! to run again)
+    # - Boot error (clears any stored error)
+    # - Runtime state (all domains reset to defaults)
+    # - Configuration (requires reload)
+    # - Boot registry (clears initializer registry)
+    #
+    # Use this when you need a complete reset. For surgical resets, use the
+    # individual methods: reset_ready!, Runtime.reset!, etc.
+    #
+    # @raise [RuntimeError] if called outside test mode
+    # @return [nil]
+    #
+    def reset_all_boot_state!
+      raise 'reset_all_boot_state! is only available in test mode' unless OT.testing?
+
+      reset_ready!
+      Runtime.reset!
+      @conf = nil
+      @boot_registry = nil
+      Thread.current[:initializer_registry] = nil
+      nil
     end
 
     # Session configuration accessor

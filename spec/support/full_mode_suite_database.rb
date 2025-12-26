@@ -145,6 +145,20 @@ RSpec.configure do |config|
   config.before(:context, :sqlite_database, &full_mode_setup)
   config.after(:context, :sqlite_database, &full_mode_cleanup)
 
+  # Per-test cleanup to prevent data leakage between tests within the same context.
+  # The context-level cleanup only runs at the end of a describe block, but tests
+  # within that block may create data that affects subsequent tests.
+  full_mode_per_test_cleanup = lambda do |example|
+    metadata = example.respond_to?(:metadata) ? example.metadata : example.class.metadata
+    return if metadata[:postgres_database]
+    return unless FullModeSuiteDatabase.setup_complete?
+
+    FullModeSuiteDatabase.clean_tables!
+  end
+
+  config.after(:each, :full_auth_mode, &full_mode_per_test_cleanup)
+  config.after(:each, :sqlite_database, &full_mode_per_test_cleanup)
+
   # Suite-level teardown: only runs once at the very end
   # Note: Simple/disabled mode tests explicitly clear the stub if needed
   config.after(:suite) do
