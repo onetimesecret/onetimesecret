@@ -12,19 +12,26 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
     I18n.available_locales = [:en]
     I18n.default_locale = :en
 
-    # Set minimal OT locale data
-    OT.instance_variable_set(:@locales, {
-      'en' => {
-        web: {
-          COMMON: {
-            title: 'Onetime Secret',
-            tagline: 'Keep sensitive info out of your email & chat logs.'
+    # Configure Runtime.internationalization (required by MiddlewareStack.build_available_locales)
+    # This is the proper way to set locale configuration since v0.21+
+    Onetime::Runtime.internationalization = Onetime::Runtime::Internationalization.new(
+      enabled: true,
+      supported_locales: ['en'],
+      default_locale: 'en',
+      fallback_locale: 'en',
+      locales: {
+        'en' => {
+          code: 'en',
+          name: 'English',
+          web: {
+            COMMON: {
+              title: 'Onetime Secret',
+              tagline: 'Keep sensitive info out of your email & chat logs.'
+            }
           }
         }
-      }
-    })
-    OT.instance_variable_set(:@default_locale, 'en')
-    OT.instance_variable_set(:@supported_locales, ['en'])
+      },
+    )
 
     # Save original config for restoration in after(:all)
     @__original_ot_conf_before_all = OT.conf
