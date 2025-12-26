@@ -39,6 +39,7 @@ RSpec.describe 'Orphaned Session Handling', type: :integration do
   end
 
   def json_get(path)
+    header 'Content-Type', nil  # Clear Content-Type from previous POST requests
     header 'Accept', 'application/json'
     get path
   end
