@@ -14,7 +14,7 @@
 # 4. BillingTestHelpers properly isolate test state
 
 require_relative '../support/test_helpers'
-require_relative '../support/billing_helpers'
+require_relative '../../apps/web/billing/spec/support/billing_isolation'
 
 ## Billing is disabled by default in test environment
 Onetime::BillingConfig.path
