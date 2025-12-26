@@ -28,6 +28,10 @@ RSpec.describe 'Simple Mode Configuration', type: :integration do
     I18n.available_locales = [:en]
     I18n.default_locale = :en
 
+    # Configure OT locale settings (required by MiddlewareStack.build_available_locales)
+    OT.instance_variable_set(:@default_locale, 'en')
+    OT.instance_variable_set(:@supported_locales, ['en'])
+
     # Force app loading by calling app method
     app
   end
