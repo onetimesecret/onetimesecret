@@ -234,7 +234,7 @@ module V1::Logic
       private
 
       def create_secret_pair
-        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, token
+        @metadata, @secret = Onetime::Secret.legacy_spawn_pair cust.custid
       end
 
       def handle_passphrase
