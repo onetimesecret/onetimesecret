@@ -38,6 +38,8 @@ glob = [
   "*.lock", "pnpm-lock.yaml", "Gemfile.lock",
   "dist/**", "*.min.js", "*.min.css", "public/web/dist/**",
   "node_modules/**", "coverage/**", "playwright-report/**", "test-results/**",
+  # test fixtures
+  "**/spec/fixtures/vcr_cassettes/**",
   # common binaries and large assets
   "**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.gif", "**/*.webp", "**/*.svg",
   "**/*.ico", "**/*.pdf", "**/*.zip", "**/*.tar", "**/*.gz", "**/*.tgz",
@@ -59,12 +61,12 @@ enable = true
 require_score_review=false
 require_tests_review=true
 require_estimate_effort_to_review=false
-require_can_be_split_review=false
+require_can_be_split_review=true
 # soc2
 require_soc2_ticket=false
 soc2_ticket_prompt="Does the PR description include a link to ticket in a project management system (e.g., Jira, Asana, Trello, etc.) ?"
 # general options
-num_code_suggestions=0
+num_code_suggestions=3
 inline_code_comments = true
 inline_code_comments_max_lines = 25
 ask_and_reflect=true
@@ -73,6 +75,8 @@ persistent_comment=true
 extra_instructions = ""
 final_update_message = true
 # review labels
+# Note: Effort labels renamed to "Complexity X/5" - focuses on change complexity
+# (which authors control) rather than reviewer effort (which varies by person)
 enable_review_labels_security=false
 enable_review_labels_effort=false
 # specific configurations for incremental review (/review -i)
@@ -98,6 +102,7 @@ enable_help_text=false
 enable_help_comment=false
 ## changes walkthrough section
 enable_semantic_files_types=true
+enable_pr_diagram=false  # Mermaid diagrams can clutter small PRs
 collapsible_file_list='adaptive' # true, false, 'adaptive'
 inline_file_summary='table' # false, true, 'table'
 # markers
@@ -167,7 +172,7 @@ override_deployment_type = true
 handle_pr_actions = ['opened', 'reopened', 'ready_for_review']
 pr_commands = [
     "/describe --pr_description.add_original_user_description=true --pr_description.keep_original_user_title=true",
-    "/review --pr_reviewer.num_code_suggestions=0",
+    "/review --pr_reviewer.num_code_suggestions=3",
     "/improve --pr_code_suggestions.summarize=true",
 ]
 # settings for "pull_request" event with "synchronize" action - used to detect and handle push triggers for new commits
@@ -179,7 +184,7 @@ push_trigger_pending_tasks_backlog = true
 push_trigger_pending_tasks_ttl = 300
 push_commands = [
     "/describe --pr_description.add_original_user_description=true --pr_description.keep_original_user_title=true",
-    "/review --pr_reviewer.num_code_suggestions=0",
+    "/review --pr_reviewer.num_code_suggestions=3",
 ]
 ignore_pr_title = []
 ignore_bot_pr = true

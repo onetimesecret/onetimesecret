@@ -31,4 +31,30 @@ code_review:
     summary: true
     code_review: true
     include_drafts: true
-ignore_patterns: []
+ignore_patterns:
+  # Lock files and dependencies
+  - "*.lock"
+  - "pnpm-lock.yaml"
+  - "Gemfile.lock"
+  # Build artifacts
+  - "dist/**"
+  - "*.min.js"
+  - "*.min.css"
+  - "public/web/dist/**"
+  - "node_modules/**"
+  - "coverage/**"
+  - "playwright-report/**"
+  - "test-results/**"
+  # Test fixtures
+  - "**/spec/fixtures/vcr_cassettes/**"
+  # Binary and large assets
+  - "**/*.png"
+  - "**/*.jpg"
+  - "**/*.jpeg"
+  - "**/*.gif"
+  - "**/*.webp"
+  - "**/*.svg"
+  - "**/*.ico"
+  - "**/*.pdf"
+  - "**/*.woff*"
+  - "**/*.ttf"

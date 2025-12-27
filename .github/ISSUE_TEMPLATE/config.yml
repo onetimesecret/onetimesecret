@@ -1,0 +1,9 @@
+# Issue template chooser configuration
+# Keep templates minimal.
+
+blank_issues_enabled: true
+
+contact_links:
+  - name: Documentation
+    url: https://docs.onetimesecret.com
+    about: Check our documentation for answers
