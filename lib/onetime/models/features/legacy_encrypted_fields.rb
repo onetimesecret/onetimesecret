@@ -22,7 +22,19 @@ module Onetime
         end
 
         module ClassMethods
+          # DEPRECATED: Use Onetime::Metadata.spawn_pair instead.
+          #
+          # This method stores the custid parameter in the `custid` field, which
+          # historically contained email addresses (PII). New code should use
+          # Metadata.spawn_pair which stores the owner's objid in `owner_id`.
+          #
+          # @param custid [String] Customer identifier (historically email, now objid)
+          # @return [Array<Metadata, Secret>] The linked metadata/secret pair
+          # @deprecated Use {Onetime::Metadata.spawn_pair} with objid instead
+          #
           def legacy_spawn_pair(custid)
+            OT.info "[DEPRECATED] legacy_spawn_pair called - use Metadata.spawn_pair with objid instead"
+
             secret   = Onetime::Secret.create!
             metadata = Onetime::Metadata.create!(custid: custid)
 
