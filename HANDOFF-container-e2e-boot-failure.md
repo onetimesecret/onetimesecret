@@ -2,7 +2,27 @@
 
 **Branch:** `fix/2267-container-e2e-boot-failure`
 **Created:** 2025-12-26
-**Status:** Investigation in progress
+**Status:** RESOLVED
+
+## Resolution
+
+**Root Cause:** `PrintLogBanner` initializer was missing a dependency on `:familia_config`.
+
+The initializer calls `Familia.dbclient.info` (line 49) to display Redis version in the startup banner, but it only depended on `:logging`. This caused it to potentially run before `ConfigureFamilia`, which sets `Familia.uri` from the `REDIS_URL` environment variable.
+
+Without this dependency, `Familia.uri` defaulted to `redis://127.0.0.1:6379`, causing connection failures in Docker environments where Redis/Valkey runs on a different host.
+
+**Fix:** Added `:familia_config` to `PrintLogBanner`'s dependencies in `lib/onetime/initializers/print_log_banner.rb`:
+
+```ruby
+# Before
+@depends_on = [:logging]
+
+# After
+@depends_on = [:logging, :familia_config]
+```
+
+**Commit:** `1745fbb1a` - "[#2267] Fix container E2E boot failure - add Familia dependency"
 
 ## Problem Statement
 
