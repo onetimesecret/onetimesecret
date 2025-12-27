@@ -29,10 +29,7 @@ module OrganizationAPI::Logic
         @organization = load_organization(@extid)
         verify_organization_admin(@organization)
 
-        # Check member quota before other validations
-        check_member_quota!
-
-        # Validate email
+        # Validate email (basic validation before quota check)
         raise_form_error('Email is required', field: :email) if @email.empty?
         raise_form_error('Invalid email format', field: :email) unless valid_email?(@email)
 
@@ -59,6 +56,10 @@ module OrganizationAPI::Logic
         if existing_invite&.pending?
           raise_form_error('Invitation already pending for this email', field: :email)
         end
+
+        # Check member quota AFTER basic validation
+        # Users should get validation errors before quota/upgrade errors
+        check_member_quota!
       end
 
       def process

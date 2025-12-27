@@ -230,6 +230,12 @@ module V1::Logic
 
       private
 
+      # Creates the metadata/secret pair using the modern Metadata.spawn_pair API.
+      #
+      # IMPORTANT: Uses cust.objid (non-PII identifier) NOT cust.custid (email).
+      # The legacy custid field stored email addresses; owner_id stores objid.
+      # See: Onetime::Metadata.spawn_pair in lib/onetime/models/metadata.rb
+      #
       def create_secret_pair
         @metadata, @secret = Onetime::Metadata.spawn_pair(
           cust&.objid, ttl, secret_value, passphrase: passphrase, domain: share_domain

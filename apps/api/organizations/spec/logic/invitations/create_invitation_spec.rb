@@ -375,6 +375,25 @@ RSpec.describe OrganizationAPI::Logic::Invitations::CreateInvitation do
       end
     end
 
+    # Validation ordering: input errors before quota errors (#2256)
+    context 'when at limit with invalid email', billing: true do
+      let(:has_entitlements) { true }
+      let(:params) { { 'extid' => 'ext-org-123', 'email' => 'not-valid', 'role' => 'member' } }
+
+      before do
+        allow(organization).to receive(:at_limit?)
+          .with('members_per_team', 7).and_return(true)
+      end
+
+      it 'returns email validation error before quota error' do
+        # User should see "invalid email" not "upgrade required"
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.message).to match(/Invalid email format/)
+          expect(error.message).not_to match(/limit reached/)
+        end
+      end
+    end
+
     context 'when billing is enabled and under limit', billing: true do
       let(:has_entitlements) { true }
 
