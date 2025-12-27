@@ -54,12 +54,18 @@ ruby:
           - '.ruby-version'
 
 # Infrastructure labels
+#
+# Container/OCI - covers Docker, Podman, and other OCI-compliant runtimes
+# Note: Uses existing 'docker' label. Consider renaming to 'containers' or 'oci'.
 docker:
   - changed-files:
       - any-glob-to-any-file:
           - 'Dockerfile*'
+          - 'Containerfile*'
           - 'docker-compose*.yml'
+          - 'compose*.yml'
           - '.dockerignore'
+          - '.containerignore'
 
 github_actions:
   - changed-files:
