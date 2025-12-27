@@ -139,6 +139,13 @@ pnpm run test:all:clean
 - Types: `src/types/`
 - Tests: `tests/`, `src/**/__tests__/`
 
+## Files to Skip in Reviews
+When analyzing PRs or code changes, skip these generated/non-essential files:
+- Lock files: `*.lock`, `pnpm-lock.yaml`, `Gemfile.lock`
+- Build artifacts: `dist/**`, `public/web/dist/**`, `*.min.js`, `*.min.css`
+- Test fixtures: `**/spec/fixtures/vcr_cassettes/**`
+- Binary assets: images, fonts, PDFs
+
 # important-instruction-reminders
 Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
