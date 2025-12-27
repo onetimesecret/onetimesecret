@@ -42,7 +42,8 @@ RSpec.configure do |config|
       begin
         Familia.dbclient.flushdb
       rescue StandardError => e
-        warn "Failed to clean test database before all: #{e.message}" if ENV['DEBUG']
+        warn "Failed to clean test database before all: #{e.message}"
+        warn e.backtrace.join("\n") if ENV['ONETIME_DEBUG']
       end
     end
   end
@@ -58,7 +59,8 @@ RSpec.configure do |config|
       begin
         Familia.dbclient.flushdb
       rescue StandardError => e
-        warn "Failed to clean test database: #{e.message}" if ENV['DEBUG']
+        warn "Failed to clean test database: #{e.message}"
+        warn e.backtrace.join("\n") if ENV['ONETIME_DEBUG']
       end
     end
   end

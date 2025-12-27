@@ -232,7 +232,8 @@ RSpec.configure do |config|
       rescue URI::InvalidURIError
         # Malformed URI wouldn't match the port check, safe to ignore
       rescue StandardError => e
-        warn "Redis cleanup failed: #{e.message}" if ENV['DEBUG']
+        warn "Redis cleanup failed: #{e.message}"
+        warn e.backtrace.join("\n") if ENV['ONETIME_DEBUG']
       end
     end
   end
