@@ -1,0 +1,22 @@
+# Feature request template - keep minimal
+
+name: Feature Request
+description: Suggest an idea or improvement
+labels: ["improvement"]
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What would you like?
+      description: Describe the feature or improvement.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Use case, alternatives considered, etc.
+    validations:
+      required: false
