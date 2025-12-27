@@ -13,7 +13,7 @@ module Onetime
     # runtime state that needs to be tracked.
     #
     class PrintLogBanner < Onetime::Boot::Initializer
-      @depends_on = [:logging]
+      @depends_on = [:logging, :familia_config]
 
       using Familia::Refinements::TimeLiterals
 
