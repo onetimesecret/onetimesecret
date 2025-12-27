@@ -26,7 +26,11 @@
       "edit_defaults": "Edit Defaults",
       "ttl_short": "TTL",
       "passphrase_short": "Passphrase",
-      "notify_short": "Notifications"
+      "notify_short": "Notifications",
+      "scope_switch_label": "Switch domain scope",
+      "scope_list_label": "Available domains",
+      "scope_header": "Domain Scope",
+      "scope_personal": "Personal"
     }
   }
 }
