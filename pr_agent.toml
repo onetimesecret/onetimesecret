@@ -73,6 +73,8 @@ persistent_comment=true
 extra_instructions = ""
 final_update_message = true
 # review labels
+# Note: Effort labels renamed to "Complexity X/5" - focuses on change complexity
+# (which authors control) rather than reviewer effort (which varies by person)
 enable_review_labels_security=false
 enable_review_labels_effort=false
 # specific configurations for incremental review (/review -i)
