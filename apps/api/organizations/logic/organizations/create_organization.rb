@@ -42,7 +42,9 @@ module OrganizationAPI::Logic
       end
 
       def process
-        OT.ld "[CreateOrganization] Creating organization '#{display_name[0, 3]}...' for user #{cust.custid}"
+        # Mask display_name in debug logs - safe even for 1-2 char names (Ruby returns available chars)
+        masked_name = display_name.length > 3 ? "#{display_name[0, 3]}..." : "[#{display_name.length}chars]"
+        OT.ld "[CreateOrganization] Creating organization '#{masked_name}' for user #{cust.custid}"
 
         # Acquire distributed lock for organization creation to prevent quota race conditions
         lock_key   = "customer:#{cust.objid}:org_creation_lock"

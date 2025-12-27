@@ -193,6 +193,25 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       end
     end
 
+    # Validation ordering: input errors before quota errors (#2256)
+    context 'when at limit with invalid display_name', billing: true do
+      let(:has_entitlements) { true }
+      let(:params) { { 'display_name' => '', 'description' => '', 'contact_email' => '' } }
+
+      before do
+        allow(primary_org).to receive(:at_limit?)
+          .with('organizations', 1).and_return(true)
+      end
+
+      it 'returns validation error before quota error' do
+        # User should see "name required" not "upgrade required"
+        expect { logic.raise_concerns }.to raise_error(Onetime::FormError) do |error|
+          expect(error.message).to match(/Organization name is required/)
+          expect(error.message).not_to match(/limit reached/)
+        end
+      end
+    end
+
     context 'when billing is enabled and under limit', billing: true do
       let(:has_entitlements) { true }
 
@@ -262,6 +281,25 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
         expect(Onetime::Organization).to receive(:create!)
           .with('My Organization', customer, nil)
           .and_return(new_organization)
+        logic.process
+      end
+    end
+
+    # PII masking in debug logs (#2256)
+    context 'with short display_name (1-3 chars)' do
+      let(:params) do
+        { 'display_name' => 'AB', 'description' => '', 'contact_email' => '' }
+      end
+
+      it 'masks short organization name in debug logs' do
+        expect(OT).to receive(:ld).with(/\[2chars\]/)
+        logic.process
+      end
+    end
+
+    context 'with normal display_name (>3 chars)' do
+      it 'masks organization name showing only first 3 chars' do
+        expect(OT).to receive(:ld).with(/Creating organization 'My \.\.\.'/)
         logic.process
       end
     end
