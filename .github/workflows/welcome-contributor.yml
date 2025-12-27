@@ -1,0 +1,44 @@
+# .github/workflows/welcome-contributor.yml
+---
+# Onetime Secret Ops
+#
+# Welcomes first-time contributors when they open their first PR or issue.
+#
+# Documentation:
+# https://github.com/actions/first-interaction
+#
+# ## Workflow Guidance
+#
+# - Use existing tags, don't create new tags, but suggestions always welcome.
+# - Keep any Issue or PR templates minimal.
+# - Use separate github workflows for triggers that are not copacetic: for
+#   example, something that runs when an issue created shouldn't run when a
+#   PR is created as well; or workflows that are meant to run on different
+#   schedules.
+#
+name: Welcome Contributor
+on:
+  pull_request_target:
+    types: [opened]
+  issues:
+    types: [opened]
+jobs:
+  welcome:
+    runs-on: ubuntu-24.04
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/first-interaction@34f15f655ac3bc46baac7085c7454a71a963afdc # v1.3.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            Thanks for opening this. I'll take a look and follow up here.
+
+            – Delano
+          pr-message: |
+            Thanks for the PR. I'll review it when I get a chance.
+
+            Heads up: there's a fair amount of automated review activity on this repo (linting, security checks, etc). Take advantage of the feedback if it's useful, but don't feel obligated to address everything. I'll sort out what matters during review.
+
+            – Delano

@@ -114,7 +114,7 @@ RSpec.describe 'routes_try', type: :integration do
   end
 
   it 'Can access the API generate endpoint' do
-    # V1 API generate endpoint allows anonymous secret creation
+    # V1 generate endpoint creates a random secret (no auth/data required)
     result = begin
       response = @mock_request.post('/api/v1/generate')
       response.status
