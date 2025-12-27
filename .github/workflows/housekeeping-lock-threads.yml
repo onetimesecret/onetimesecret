@@ -40,13 +40,13 @@ jobs:
     steps:
       - uses: dessant/lock-threads@1bf7ec25051fe7c00c4f1cf6d1cd62a14af0f455 # v5.0.1
         with:
-          # Lock issues that have been closed for 180 days
-          issue-inactive-days: 180
+          # Lock issues that have been closed for 90 days
+          issue-inactive-days: 90
           issue-lock-reason: 'resolved'
           issue-comment: ''
 
-          # Lock PRs that have been closed for 180 days
-          pr-inactive-days: 180
+          # Lock PRs that have been closed for 90 days
+          pr-inactive-days: 90
           pr-lock-reason: 'resolved'
           pr-comment: ''
 

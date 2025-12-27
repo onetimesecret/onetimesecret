@@ -77,8 +77,6 @@ config:
       - any-glob-to-any-file:
           - 'config/**/*'
           - '.env*'
-          - '*.config.js'
-          - '*.config.ts'
 
 # Content labels
 documentation:
