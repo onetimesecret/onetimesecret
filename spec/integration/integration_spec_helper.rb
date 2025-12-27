@@ -23,8 +23,13 @@ RSpec.configure do |config|
   config.include Rack::Test::Methods, type: :request
   config.include Rack::Test::Methods, type: :integration
 
-  redis_conf = OT.conf&.fetch('redis') || {}
-  redis_uri = redis_conf['uri']
+  # Parse Redis URI once at configuration time for robust port checking
+  redis_uri_string = OT.conf&.dig('redis', 'uri')
+  test_redis_port = begin
+    URI.parse(redis_uri_string).port if redis_uri_string
+  rescue URI::InvalidURIError
+    nil
+  end
 
   # Clean Valkey database before all integration tests in a group
   # Skip if :shared_db_state metadata is set (for specs using before(:all) shared setup)
@@ -33,9 +38,8 @@ RSpec.configure do |config|
     next if context.class.metadata[:shared_db_state]
     next if context.class.metadata[:billing]
 
-    if redis_uri&.include?(':2121')
+    if test_redis_port == 2121
       begin
-        # Use the real Familia client to flush the test database
         Familia.dbclient.flushdb
       rescue StandardError => e
         warn "Failed to clean test database before all: #{e.message}" if ENV['DEBUG']
@@ -50,9 +54,8 @@ RSpec.configure do |config|
     next if example.metadata[:shared_db_state]
     next if example.metadata[:billing]
 
-    if redis_uri&.include?(':2121')
+    if test_redis_port == 2121
       begin
-        # Use the real Familia client to flush the test database
         Familia.dbclient.flushdb
       rescue StandardError => e
         warn "Failed to clean test database: #{e.message}" if ENV['DEBUG']

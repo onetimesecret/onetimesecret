@@ -224,10 +224,13 @@ RSpec.configure do |config|
     next if example.metadata[:shared_db_state]
     next if example.metadata[:billing]
 
-    redis_uri = OT.conf&.dig('redis', 'uri')
-    if redis_uri&.include?(':2121')
+    redis_uri_string = OT.conf&.dig('redis', 'uri')
+    if redis_uri_string
       begin
-        Familia.dbclient.flushdb
+        uri = URI.parse(redis_uri_string)
+        Familia.dbclient.flushdb if uri.port == 2121
+      rescue URI::InvalidURIError
+        # Malformed URI wouldn't match the port check, safe to ignore
       rescue StandardError => e
         warn "Redis cleanup failed: #{e.message}" if ENV['DEBUG']
       end
