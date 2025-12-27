@@ -59,12 +59,12 @@ enable = true
 require_score_review=false
 require_tests_review=true
 require_estimate_effort_to_review=false
-require_can_be_split_review=false
+require_can_be_split_review=true
 # soc2
 require_soc2_ticket=false
 soc2_ticket_prompt="Does the PR description include a link to ticket in a project management system (e.g., Jira, Asana, Trello, etc.) ?"
 # general options
-num_code_suggestions=0
+num_code_suggestions=3
 inline_code_comments = true
 inline_code_comments_max_lines = 25
 ask_and_reflect=true
@@ -100,6 +100,7 @@ enable_help_text=false
 enable_help_comment=false
 ## changes walkthrough section
 enable_semantic_files_types=true
+enable_pr_diagram=false  # Mermaid diagrams can clutter small PRs
 collapsible_file_list='adaptive' # true, false, 'adaptive'
 inline_file_summary='table' # false, true, 'table'
 # markers
