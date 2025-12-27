@@ -17,10 +17,7 @@ module OrganizationAPI::Logic
         # Require authenticated user
         raise_form_error('Authentication required', field: 'user_id', error_type: :unauthorized) if cust.anonymous?
 
-        # Check organization quota (only enforced when billing enabled with plan cache)
-        check_organization_quota!
-
-        # Validate display_name
+        # Validate display_name (basic validation before quota check)
         if display_name.empty?
           raise_form_error('Organization name is required', field: 'display_name', error_type: :missing)
         end
@@ -38,10 +35,14 @@ module OrganizationAPI::Logic
         if !description.empty? && description.length > 500
           raise_form_error('Description must be less than 500 characters', field: 'description', error_type: :invalid)
         end
+
+        # Check organization quota AFTER basic validation
+        # Users should get validation errors before quota/upgrade errors
+        check_organization_quota!
       end
 
       def process
-        OT.ld "[CreateOrganization] Creating organization '#{display_name}' for user #{cust.custid}"
+        OT.ld "[CreateOrganization] Creating organization '#{display_name[0, 3]}...' for user #{cust.custid}"
 
         # Acquire distributed lock for organization creation to prevent quota race conditions
         lock_key   = "customer:#{cust.objid}:org_creation_lock"
