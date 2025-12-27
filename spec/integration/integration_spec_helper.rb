@@ -60,19 +60,6 @@ RSpec.configure do |config|
     end
   end
 
-  # Clean up after integration tests
-  # Skip if :shared_db_state metadata is set (for specs using before(:all) shared setup)
-  # Skip if :billing metadata is set (billing tests manage their own plan data)
-  config.after(:each, type: :integration) do |example|
-    next if example.metadata[:shared_db_state]
-    next if example.metadata[:billing]
-
-    if redis_uri&.include?(':2121')
-      begin
-        Familia.dbclient.flushdb
-      rescue StandardError => e
-        warn "Failed to clean test database: #{e.message}" if ENV['DEBUG']
-      end
-    end
-  end
+  # NOTE: after(:each) cleanup is handled centrally in spec/spec_helper.rb
+  # to ensure ALL integration tests get cleanup regardless of which helper they load.
 end
