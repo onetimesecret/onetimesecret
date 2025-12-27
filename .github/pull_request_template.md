@@ -1,10 +1,13 @@
 ## Summary
 
+[#ISSUE_NUMBER](https://github.com/onetimesecret/onetimesecret/issues/ISSUE_NUMBER)
+
 <!-- Brief description of changes -->
 
 ## Related Issues
 
-<!-- Use "Fixes #123" to auto-close issues when merged -->
+<!-- Keywords that auto-close issues when merged: Fixes, Closes, Resolves -->
+<!-- Example: Fixes #123 -->
 
 ## Test Plan
 
