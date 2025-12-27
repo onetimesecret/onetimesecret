@@ -217,6 +217,27 @@ RSpec.configure do |config|
     @__original_boot_state    = Onetime.boot_state
   end
 
+  # Clean Redis/Valkey database after each integration test to prevent state leakage.
+  # This ensures tests don't pollute each other regardless of which helper they require.
+  # Port 2121 check prevents accidental flush of development/production databases.
+  config.after(:each, type: :integration) do |example|
+    next if example.metadata[:shared_db_state]
+    next if example.metadata[:billing]
+
+    redis_uri_string = OT.conf&.dig('redis', 'uri')
+    if redis_uri_string
+      begin
+        uri = URI.parse(redis_uri_string)
+        Familia.dbclient.flushdb if uri.port == 2121
+      rescue URI::InvalidURIError
+        # Malformed URI wouldn't match the port check, safe to ignore
+      rescue StandardError => e
+        warn "Redis cleanup failed: #{e.message}"
+        warn e.backtrace.join("\n") if ENV['ONETIME_DEBUG']
+      end
+    end
+  end
+
   config.after(:each) do
     # Flush SemanticLogger to ensure all log messages are processed before
     # moving to the next test. Since we use SemanticLogger.sync! (set above),

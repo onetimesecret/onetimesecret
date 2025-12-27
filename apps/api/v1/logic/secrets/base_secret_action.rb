@@ -10,7 +10,6 @@ module V1::Logic
     class BaseSecretAction < V1::Logic::Base
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
       attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload, :default_expiration
-      attr_accessor :token
 
       # Process methods populate instance variables with the values. The
       # raise_concerns and process methods deal with the values in the instance
@@ -37,8 +36,6 @@ module V1::Logic
 
       def process
         create_secret_pair
-        handle_passphrase
-        save_secret
         handle_success
       end
 
@@ -234,26 +231,10 @@ module V1::Logic
       private
 
       def create_secret_pair
-        @metadata, @secret = Onetime::Secret.spawn_pair cust.custid, token
-      end
+        @metadata, @secret = Onetime::Metadata.spawn_pair(
+          cust&.objid, ttl, secret_value, passphrase: passphrase, domain: share_domain
+        )
 
-      def handle_passphrase
-        return if passphrase.to_s.empty?
-        secret.update_passphrase passphrase
-        metadata.passphrase = secret.passphrase
-      end
-
-      def save_secret
-        secret.encrypt_value secret_value
-        metadata.default_expiration, secret.default_expiration = ttl*2, ttl
-        metadata.lifespan = metadata.default_expiration.to_i
-        metadata.secret_ttl = secret.default_expiration.to_i
-        metadata.secret_shortid = secret.shortid
-        metadata.share_domain = share_domain
-        secret.lifespan = secret.default_expiration.to_i
-        secret.share_domain = share_domain
-        secret.save
-        metadata.save
         @greenlighted = metadata.valid? && secret.valid?
       end
 
