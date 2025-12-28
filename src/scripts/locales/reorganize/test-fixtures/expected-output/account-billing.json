@@ -1,0 +1,8 @@
+{
+  "web": {
+    "billing": {
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    }
+  }
+}

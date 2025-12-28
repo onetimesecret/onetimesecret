@@ -1,0 +1,9 @@
+{
+  "web": {
+    "common": {
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive"
+    }
+  }
+}
