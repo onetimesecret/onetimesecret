@@ -13,6 +13,8 @@
 # - GenerateSecret: guest generate toggle
 # - RevealSecret: guest reveal toggle
 # - BurnSecret: guest burn toggle
+# - ShowSecret: guest show toggle
+# - ShowMetadata: guest show_metadata toggle
 
 require_relative '../../v2/logic/secrets'
 require_relative 'base'
@@ -83,7 +85,12 @@ module V3
 
       # Show secret metadata without revealing value
       class ShowSecret < V2::Logic::Secrets::ShowSecret
-        # include ::V3::Logic::Base
+        include Onetime::Logic::GuestRouteGating
+
+        def raise_concerns
+          require_guest_route_enabled!(:show)
+          super
+        end
       end
 
       # Show secret status
@@ -113,7 +120,12 @@ module V3
 
       # Show metadata for a secret (receipt/private endpoints)
       class ShowMetadata < V2::Logic::Secrets::ShowMetadata
-        # include ::V3::Logic::Base
+        include Onetime::Logic::GuestRouteGating
+
+        def raise_concerns
+          require_guest_route_enabled!(:show_metadata)
+          super
+        end
       end
     end
   end

@@ -59,21 +59,74 @@ def clear_cookies; @test.clear_cookies; end
 
 ## Guest share/conceal endpoint returns a response (not server error)
 # The /api/v3/share/* routes use auth=noauth, allowing anonymous access
+# Note: Payload must be wrapped in 'secret' key per V2/V3 API contract
 clear_cookies
 post '/api/v3/share/secret/conceal',
-  { secret: 'test secret value', ttl: 3600 }.to_json,
+  { secret: { secret: 'test secret value', ttl: 3600 } }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 # Should not be a server error
 last_response.status < 500
 #=> true
 
+## Guest share/conceal returns 200 with valid payload
+clear_cookies
+post '/api/v3/share/secret/conceal',
+  { secret: { secret: 'my test secret', ttl: 3600 } }.to_json,
+  { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+last_response.status
+#=> 200
+
+## Guest share/conceal response includes record.metadata structure
+clear_cookies
+post '/api/v3/share/secret/conceal',
+  { secret: { secret: 'test secret for metadata', ttl: 3600 } }.to_json,
+  { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+@conceal_response = JSON.parse(last_response.body)
+@conceal_response.dig('record', 'metadata').is_a?(Hash)
+#=> true
+
+## Guest share/conceal metadata includes required fields
+# Metadata should have key, identifier (or equivalent identifiers)
+@conceal_response.dig('record', 'metadata').keys.include?('key') ||
+  @conceal_response.dig('record', 'metadata').keys.include?('identifier')
+#=> true
+
+## Guest share/conceal response includes record.secret structure
+@conceal_response.dig('record', 'secret').is_a?(Hash)
+#=> true
+
+## Guest share/conceal response includes details structure
+@conceal_response.key?('details')
+#=> true
+
 ## Guest share/generate endpoint returns a response (not server error)
 clear_cookies
 post '/api/v3/share/secret/generate',
-  { ttl: 3600 }.to_json,
+  { secret: { ttl: 3600 } }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 # Should not be a server error
 last_response.status < 500
+#=> true
+
+## Guest share/generate returns 200 with valid payload
+clear_cookies
+post '/api/v3/share/secret/generate',
+  { secret: { ttl: 3600 } }.to_json,
+  { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+last_response.status
+#=> 200
+
+## Guest share/generate response includes record.metadata structure
+@generate_response = JSON.parse(last_response.body)
+@generate_response.dig('record', 'metadata').is_a?(Hash)
+#=> true
+
+## Guest share/generate response includes record.secret structure
+@generate_response.dig('record', 'secret').is_a?(Hash)
+#=> true
+
+## Guest share/generate response includes details structure
+@generate_response.key?('details')
 #=> true
 
 ## Authenticated secret/conceal endpoint requires authentication
@@ -81,7 +134,7 @@ last_response.status < 500
 # Without valid session, should return 401 Unauthorized
 clear_cookies
 post '/api/v3/secret/conceal',
-  { secret: 'test value', ttl: 3600 }.to_json,
+  { secret: { secret: 'test value', ttl: 3600 } }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 # Should return 401 Unauthorized without session
 last_response.status
@@ -119,6 +172,11 @@ post '/api/v3/feedback',
 # Should not require authentication (auth=noauth in routes)
 last_response.status < 500
 #=> true
+
+# Note: Tests for guest routes disabled behavior would require a separate test
+# config file with guest_routes.enabled=false. The config is frozen at runtime
+# and cannot be modified during tests. See try/integration/api/v3/guest_routes_disabled_try.rb
+# for those tests (requires separate test run with modified config).
 
 # Teardown
 @cust.destroy!

@@ -17,6 +17,13 @@ import { computed, inject, ref } from 'vue';
 interface StoreOptions extends PiniaPluginOptions {}
 
 /**
+ * API mode for secret operations.
+ * - 'authenticated': Uses /api/v3 endpoints (requires authentication)
+ * - 'public': Uses /api/v3/share endpoints (guest access)
+ */
+export type ApiMode = 'authenticated' | 'public';
+
+/**
  * Type definition for SecretStore.
  */
 export type SecretStore = {
@@ -24,6 +31,7 @@ export type SecretStore = {
   record: Secret | null;
   details: SecretDetails | null;
   status: SecretState | null;
+  apiMode: ApiMode;
   _initialized: boolean;
 
   // Getters
@@ -31,6 +39,7 @@ export type SecretStore = {
 
   // Actions
   init: () => { isInitialized: boolean };
+  setApiMode: (mode: ApiMode) => void;
   fetch: (secretIdentifier: string) => Promise<void>;
   reveal: (secretIdentifier: string, passphrase?: string) => Promise<void>;
   getStatus: (secretIdentifier: string) => Promise<SecretState>;
@@ -49,6 +58,7 @@ export const useSecretStore = defineStore('secrets', () => {
   const record = ref<Secret | null>(null);
   const details = ref<SecretDetails | null>(null);
   const status = ref<SecretState | null>(null);
+  const apiMode = ref<ApiMode>('authenticated');
   const _initialized = ref(false);
 
   // Getters
@@ -67,13 +77,31 @@ export const useSecretStore = defineStore('secrets', () => {
   }
 
   /**
+   * Sets the API mode for secret operations
+   * @param mode - 'authenticated' for /api/v3 or 'public' for /api/v3/share
+   */
+  function setApiMode(mode: ApiMode) {
+    apiMode.value = mode;
+  }
+
+  /**
+   * Returns the appropriate endpoint path based on current API mode
+   * @param path - The path suffix (e.g., '/secret/conceal')
+   * @returns Full endpoint path with correct prefix
+   */
+  function getEndpoint(path: string): string {
+    const prefix = apiMode.value === 'public' ? '/api/v3/share' : '/api/v3';
+    return `${prefix}${path}`;
+  }
+
+  /**
    * Loads a secret by its key
    * @param secretIdentifier - Unique identifier for the secret
    * @throws Will throw an error if the API call fails
    * @returns Validated secret response
    */
   async function fetch(secretIdentifier: string) {
-    const response = await $api.get(`/api/v3/secret/${secretIdentifier}`);
+    const response = await $api.get(getEndpoint(`/secret/${secretIdentifier}`));
     const validated = responseSchemas.secret.parse(response.data);
     record.value = validated.record;
     details.value = validated.details as any;
@@ -102,14 +130,14 @@ export const useSecretStore = defineStore('secrets', () => {
    * should remain the responsibility of this store.
    */
   async function conceal(payload: ConcealPayload): Promise<ConcealDataResponse> {
-    const response = await $api.post(`/api/v3/secret/conceal`, {
+    const response = await $api.post(getEndpoint('/secret/conceal'), {
       secret: payload,
     });
     return response.data;
   }
 
   async function generate(payload: GeneratePayload): Promise<ConcealDataResponse> {
-    const response = await $api.post(`/api/v3/secret/generate`, {
+    const response = await $api.post(getEndpoint('/secret/generate'), {
       secret: payload,
     });
     // const validated = responseSchemas.concealData.parse(response.data); // Fails?
@@ -126,10 +154,13 @@ export const useSecretStore = defineStore('secrets', () => {
    * @returns Validated secret response
    */
   async function reveal(secretIdentifier: string, passphrase?: string) {
-    const response = await $api.post<SecretResponse>(`/api/v3/secret/${secretIdentifier}/reveal`, {
-      passphrase,
-      continue: true,
-    });
+    const response = await $api.post<SecretResponse>(
+      getEndpoint(`/secret/${secretIdentifier}/reveal`),
+      {
+        passphrase,
+        continue: true,
+      }
+    );
 
     const validated = responseSchemas.secret.parse(response.data);
     record.value = validated.record;
@@ -151,6 +182,7 @@ export const useSecretStore = defineStore('secrets', () => {
     record.value = null;
     details.value = null;
     status.value = null;
+    apiMode.value = 'authenticated';
     _initialized.value = false;
   }
 
@@ -159,6 +191,7 @@ export const useSecretStore = defineStore('secrets', () => {
     record,
     details,
     status,
+    apiMode,
     _initialized,
 
     // Getters
@@ -166,6 +199,7 @@ export const useSecretStore = defineStore('secrets', () => {
 
     // Actions
     init,
+    setApiMode,
     clear,
     fetch,
     conceal,

@@ -59,6 +59,8 @@ module Onetime
                 'generate' => true,
                 'reveal' => true,
                 'burn' => true,
+                'show' => true,
+                'show_metadata' => true,
               },
             },
           },
