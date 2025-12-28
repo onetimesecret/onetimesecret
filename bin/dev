@@ -31,7 +31,7 @@
 #   Usage: Essential for 'binding.pry', 'debugger', or surgical restarts.
 # -----------------------------------------------------------------------------
 
-if ! command -v overmind &> /dev/null; then
+if ! command -v overmind >/dev/null 2>&1; then
   echo "Error: Overmind not found. Install with: brew install overmind"
   exit 1
 fi
