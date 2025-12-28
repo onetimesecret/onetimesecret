@@ -13,6 +13,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+import DomainScopeSwitcher from '@/shared/components/navigation/DomainScopeSwitcher.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { WindowService } from '@/services/window.service';
 import { useDomainsStore, useMetadataListStore } from '@/shared/stores';
@@ -153,6 +154,9 @@ const isActiveRoute = (path: string): boolean => {
 
     <!-- Quick actions -->
     <div class="flex items-center gap-3">
+      <!-- Domain Scope Switcher -->
+      <DomainScopeSwitcher />
+
       <!-- Create Secret Button -->
       <router-link
         v-for="action in quickActions"

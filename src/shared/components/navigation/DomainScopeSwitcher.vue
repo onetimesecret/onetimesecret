@@ -25,7 +25,7 @@ const { t } = useI18n();
 const {
   currentScope,
   availableDomains,
-  hasMultipleScopes,
+  // hasMultipleScopes,
   isScopeActive,
   setScope,
 } = useDomainScope();
@@ -156,7 +156,7 @@ const handleOptionActivation = (domain: string, index: number): void => {
 useClickOutside(dropdownRef, closeDropdown);
 
 // Computed: should component be visible
-const shouldShow = computed(() => isScopeActive.value && hasMultipleScopes.value);
+const shouldShow = computed(() => isScopeActive.value);
 </script>
 
 <template>

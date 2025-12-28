@@ -84,7 +84,8 @@ export function useDomainScope() {
   /**
    * Whether domain scope feature is active (user has custom domains)
    */
-  const isScopeActive = computed<boolean>(() => domainsEnabled && customDomains && customDomains.length > 0);
+  // const isScopeActive = computed<boolean>(() => domainsEnabled && customDomains && customDomains.length > 0);
+  const isScopeActive = computed<boolean>(() => domainsEnabled); // Always show when domains enabled
 
   /**
    * Whether multiple scopes are available for switching
