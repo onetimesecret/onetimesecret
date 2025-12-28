@@ -22,6 +22,8 @@ export interface LogoConfig {
   ariaLabel?: string;
   /** Whether to identify that we are in the colonel area */
   isColonelArea?: boolean;
+  /** Whether a user is present (logged in partially or fully) */
+  isUserPresent: boolean;
 }
 
 /**

@@ -33,7 +33,7 @@
   // Fully: all authentication steps complete (authenticated = true, has cust)
   const isUserPresent = computed(() => {
     const { authenticated, awaiting_mfa, cust, email } = windowProps.value;
-    return (authenticated && cust) || (awaiting_mfa && email);
+    return !!((authenticated && cust) || (awaiting_mfa && email));
   });
 
   // i18n setup
@@ -133,10 +133,11 @@
       <div class="flex items-center gap-3">
         <div v-if="isVueComponent">
           <component
-            :is="logoComponent"
             id="logo"
+            :is="logoComponent"
             v-if="logoComponent"
             v-bind="logoConfig"
+            :is-user-present="isUserPresent"
             class="transition-transform" />
         </div>
         <div v-else>
