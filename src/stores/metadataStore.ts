@@ -17,6 +17,13 @@ export const METADATA_STATUS = {
   ORPHANED: 'orphaned',
 } as const;
 
+/**
+ * API mode for metadata operations.
+ * - 'authenticated': Uses standard /api/v2 endpoints (requires auth)
+ * - 'public': Uses /api/v2/guest endpoints (no auth required)
+ */
+export type ApiMode = 'authenticated' | 'public';
+
 interface StoreOptions extends PiniaPluginOptions {}
 
 /**
@@ -26,6 +33,7 @@ export type MetadataStore = {
   // State
   record: Metadata | null;
   details: MetadataDetails | null;
+  apiMode: ApiMode;
   _initialized: boolean;
 
   // Getters
@@ -34,6 +42,8 @@ export type MetadataStore = {
 
   // Actions
   init: () => { isInitialized: boolean };
+  setApiMode: (mode: ApiMode) => void;
+  getEndpoint: (path: string) => string;
   fetch: (key: string) => Promise<void>;
   burn: (key: string, passphrase?: string) => Promise<void>;
   $reset: () => void;
@@ -45,6 +55,7 @@ export const useMetadataStore = defineStore('metadata', () => {
   // State
   const record = ref<Metadata | null>(null);
   const details = ref<MetadataDetails | null>(null);
+  const apiMode = ref<ApiMode>('authenticated');
   const _initialized = ref(false);
 
   // Getters
@@ -63,6 +74,24 @@ export const useMetadataStore = defineStore('metadata', () => {
 
     _initialized.value = true;
     return { isInitialized };
+  }
+
+  /**
+   * Sets the API mode for metadata operations.
+   * @param mode - 'authenticated' for standard endpoints, 'public' for guest endpoints
+   */
+  function setApiMode(mode: ApiMode) {
+    apiMode.value = mode;
+  }
+
+  /**
+   * Returns the full API endpoint path based on current API mode.
+   * @param path - The endpoint path (e.g., '/receipt/abc123')
+   * @returns Full endpoint path with appropriate prefix
+   */
+  function getEndpoint(path: string): string {
+    const base = apiMode.value === 'public' ? '/api/v2/guest' : '/api/v2';
+    return `${base}${path}`;
   }
 
   const canBurn = computed((): boolean => {
@@ -94,7 +123,7 @@ export const useMetadataStore = defineStore('metadata', () => {
    * @throws {AxiosError} When request fails
    */
   async function fetch(key: string) {
-    const response = await $api.get(`/api/v2/receipt/${key}`);
+    const response = await $api.get(getEndpoint(`/receipt/${key}`));
     const validated = responseSchemas.metadata.parse(response.data);
     record.value = validated.record;
     details.value = validated.details;
@@ -117,7 +146,7 @@ export const useMetadataStore = defineStore('metadata', () => {
       throw createError('Cannot burn this metadata', 'human', 'error');
     }
 
-    const response = await $api.post(`/api/v2/receipt/${key}/burn`, {
+    const response = await $api.post(getEndpoint(`/receipt/${key}/burn`), {
       passphrase,
       continue: true,
     });
@@ -136,6 +165,7 @@ export const useMetadataStore = defineStore('metadata', () => {
   function $reset() {
     record.value = null;
     details.value = null;
+    apiMode.value = 'authenticated';
     _initialized.value = false;
   }
 
@@ -143,12 +173,15 @@ export const useMetadataStore = defineStore('metadata', () => {
     // State
     record,
     details,
+    apiMode,
 
     // Getters
     canBurn,
 
     // Actions
     init,
+    setApiMode,
+    getEndpoint,
     fetch,
     burn,
     $reset,

@@ -14,6 +14,13 @@ import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';
 
+/**
+ * API mode for secret operations.
+ * - 'authenticated': Uses standard /api/v2 endpoints (requires auth)
+ * - 'public': Uses /api/v2/guest endpoints (no auth required)
+ */
+export type ApiMode = 'authenticated' | 'public';
+
 interface StoreOptions extends PiniaPluginOptions {}
 
 /**
@@ -24,6 +31,7 @@ export type SecretStore = {
   record: Secret | null;
   details: SecretDetails | null;
   status: SecretState | null;
+  apiMode: ApiMode;
   _initialized: boolean;
 
   // Getters
@@ -31,6 +39,8 @@ export type SecretStore = {
 
   // Actions
   init: () => { isInitialized: boolean };
+  setApiMode: (mode: ApiMode) => void;
+  getEndpoint: (path: string) => string;
   fetch: (secretKey: string) => Promise<void>;
   reveal: (secretKey: string, passphrase?: string) => Promise<void>;
   getStatus: (secretKey: string) => Promise<SecretState>;
@@ -49,6 +59,7 @@ export const useSecretStore = defineStore('secrets', () => {
   const record = ref<Secret | null>(null);
   const details = ref<SecretDetails | null>(null);
   const status = ref<SecretState | null>(null);
+  const apiMode = ref<ApiMode>('authenticated');
   const _initialized = ref(false);
 
   // Getters
@@ -67,13 +78,31 @@ export const useSecretStore = defineStore('secrets', () => {
   }
 
   /**
+   * Sets the API mode for secret operations.
+   * @param mode - 'authenticated' for standard endpoints, 'public' for guest endpoints
+   */
+  function setApiMode(mode: ApiMode) {
+    apiMode.value = mode;
+  }
+
+  /**
+   * Returns the full API endpoint path based on current API mode.
+   * @param path - The endpoint path (e.g., '/secret/abc123')
+   * @returns Full endpoint path with appropriate prefix
+   */
+  function getEndpoint(path: string): string {
+    const base = apiMode.value === 'public' ? '/api/v2/guest' : '/api/v2';
+    return `${base}${path}`;
+  }
+
+  /**
    * Loads a secret by its key
    * @param secretKey - Unique identifier for the secret
    * @throws Will throw an error if the API call fails
    * @returns Validated secret response
    */
   async function fetch(secretKey: string) {
-    const response = await $api.get(`/api/v2/secret/${secretKey}`);
+    const response = await $api.get(getEndpoint(`/secret/${secretKey}`));
     const validated = responseSchemas.secret.parse(response.data);
     record.value = validated.record;
     details.value = validated.details;
@@ -102,14 +131,14 @@ export const useSecretStore = defineStore('secrets', () => {
    * should remain the responsibility of this store.
    */
   async function conceal(payload: ConcealPayload): Promise<ConcealDataResponse> {
-    const response = await $api.post('/api/v2/secret/conceal', {
+    const response = await $api.post(getEndpoint('/secret/conceal'), {
       secret: payload,
     });
     return response.data;
   }
 
   async function generate(payload: GeneratePayload): Promise<ConcealDataResponse> {
-    const response = await $api.post('/api/v2/secret/generate', {
+    const response = await $api.post(getEndpoint('/secret/generate'), {
       secret: payload,
     });
     // const validated = responseSchemas.concealData.parse(response.data); // Fails?
@@ -126,7 +155,7 @@ export const useSecretStore = defineStore('secrets', () => {
    * @returns Validated secret response
    */
   async function reveal(secretKey: string, passphrase?: string) {
-    const response = await $api.post<SecretResponse>(`/api/v2/secret/${secretKey}/reveal`, {
+    const response = await $api.post<SecretResponse>(getEndpoint(`/secret/${secretKey}/reveal`), {
       passphrase,
       continue: true,
     });
@@ -151,6 +180,7 @@ export const useSecretStore = defineStore('secrets', () => {
     record.value = null;
     details.value = null;
     status.value = null;
+    apiMode.value = 'authenticated';
     _initialized.value = false;
   }
 
@@ -159,6 +189,7 @@ export const useSecretStore = defineStore('secrets', () => {
     record,
     details,
     status,
+    apiMode,
     _initialized,
 
     // Getters
@@ -166,6 +197,8 @@ export const useSecretStore = defineStore('secrets', () => {
 
     // Actions
     init,
+    setApiMode,
+    getEndpoint,
     clear,
     fetch,
     conceal,

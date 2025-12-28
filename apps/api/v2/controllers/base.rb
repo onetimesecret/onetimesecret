@@ -18,7 +18,7 @@ module V2
     end
 
     def publically
-      carefully do
+      carefully(redirect=nil, content_type='application/json', app: :api) do
         check_session!
         check_locale!
         yield
