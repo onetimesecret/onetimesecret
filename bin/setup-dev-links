@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+# bin/setup-dev-links
+#
+# Run this in any checkout/worktree to link shared dev resources
+
+set -euo pipefail
+
+OTS_DEV_CONFIG="${OTS_DEV_CONFIG:-$HOME/.config/onetimesecret-dev}"
+
+# Files/dirs to symlink: local_path -> shared_path
+declare -A LINKS=(
+    ["etc/config.yaml"]="config.yaml"
+    ["etc/auth.yaml"]="auth.yaml"
+    ["etc/billing.yaml"]="billing.yaml"
+    ["etc/logging.yaml"]="logging.yaml"
+    ["data"]="data"
+)
+
+# Optional: .env if you have one
+if [[ -f "$OTS_DEV_CONFIG/.env" ]]; then
+    LINKS[".env"]=".env"
+fi
+
+link_resource() {
+    local local_path="$1"
+    local shared_name="$2"
+    local target="$OTS_DEV_CONFIG/$shared_name"
+
+    if [[ ! -e "$target" ]]; then
+        echo "Skip: $target does not exist"
+        return
+    fi
+
+    # Already correctly linked
+    if [[ -L "$local_path" && "$(readlink "$local_path")" == "$target" ]]; then
+        echo "OK:   $local_path -> $target"
+        return
+    fi
+
+    # Exists but not a symlink - back it up
+    if [[ -e "$local_path" && ! -L "$local_path" ]]; then
+        local backup="${local_path}.bak.$(date +%Y%m%d-%H%M%S)"
+        echo "Backup: $local_path -> $backup"
+        mv "$local_path" "$backup"
+    fi
+
+    # Remove stale symlink
+    if [[ -L "$local_path" ]]; then
+        rm "$local_path"
+    fi
+
+    # Create parent directory if needed
+    mkdir -p "$(dirname "$local_path")"
+
+    ln -s "$target" "$local_path"
+    echo "Link: $local_path -> $target"
+}
+
+# Sanity check
+if [[ ! -f "Gemfile" ]]; then
+    echo "Error: Run this from an OTS checkout root"
+    exit 1
+fi
+
+echo "Linking dev resources from $OTS_DEV_CONFIG"
+echo "---"
+
+for local_path in "${!LINKS[@]}"; do
+    link_resource "$local_path" "${LINKS[$local_path]}"
+done
+
+echo "---"
+echo "Done. Run 'bin/dev' to start."
