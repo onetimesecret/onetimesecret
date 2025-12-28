@@ -461,7 +461,7 @@ describe('metadataStore', () => {
         expect(axiosMock?.history.get[0].url).toBe(`/api/v3/receipt/${testKey}`);
       });
 
-      it('fetch uses /api/v3/share/receipt in public mode', async () => {
+      it('fetch uses /api/v3/guest/receipt in public mode', async () => {
         const testKey = mockMetadataRecord.key;
         const mockResponse = {
           record: mockMetadataRecordRaw,
@@ -469,12 +469,12 @@ describe('metadataStore', () => {
         };
 
         store.setApiMode('public');
-        axiosMock?.onGet(`/api/v3/share/receipt/${testKey}`).reply(200, mockResponse);
+        axiosMock?.onGet(`/api/v3/guest/receipt/${testKey}`).reply(200, mockResponse);
 
         await store.fetch(testKey);
 
         expect(axiosMock?.history.get).toHaveLength(1);
-        expect(axiosMock?.history.get[0].url).toBe(`/api/v3/share/receipt/${testKey}`);
+        expect(axiosMock?.history.get[0].url).toBe(`/api/v3/guest/receipt/${testKey}`);
       });
 
       it('burn uses /api/v3/receipt in authenticated mode', async () => {
@@ -494,7 +494,7 @@ describe('metadataStore', () => {
         expect(axiosMock?.history.post[0].url).toBe(`/api/v3/receipt/${testKey}/burn`);
       });
 
-      it('burn uses /api/v3/share/receipt in public mode', async () => {
+      it('burn uses /api/v3/guest/receipt in public mode', async () => {
         const testKey = mockMetadataRecord.key;
         const mockResponse = {
           record: mockBurnedMetadataRecordRaw,
@@ -503,12 +503,12 @@ describe('metadataStore', () => {
 
         store.record = { ...mockMetadataRecord, burned: null, state: 'new' };
         store.setApiMode('public');
-        axiosMock?.onPost(`/api/v3/share/receipt/${testKey}/burn`).reply(200, mockResponse);
+        axiosMock?.onPost(`/api/v3/guest/receipt/${testKey}/burn`).reply(200, mockResponse);
 
         await store.burn(testKey);
 
         expect(axiosMock?.history.post).toHaveLength(1);
-        expect(axiosMock?.history.post[0].url).toBe(`/api/v3/share/receipt/${testKey}/burn`);
+        expect(axiosMock?.history.post[0].url).toBe(`/api/v3/guest/receipt/${testKey}/burn`);
       });
     });
   });

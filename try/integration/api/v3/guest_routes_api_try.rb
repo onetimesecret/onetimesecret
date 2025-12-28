@@ -5,20 +5,20 @@
 #
 # Integration tests for V3 API guest routes (#2190)
 #
-# Tests the /api/v3/share/* endpoints with guest route gating enabled/disabled.
+# Tests the /api/v3/guest/* endpoints with guest route gating enabled/disabled.
 # These endpoints use auth=noauth strategy and are subject to guest_routes config.
 #
 # Routes from apps/api/v3/routes.txt:
 # - /api/v3/secret/* routes use auth=sessionauth (require authentication)
-# - /api/v3/share/* routes use auth=noauth (guest accessible)
+# - /api/v3/guest/* routes use auth=noauth (guest accessible)
 #
 # Guest Routes (from routes.txt lines 19-25):
-# - POST /api/v3/share/secret/conceal
-# - POST /api/v3/share/secret/generate
-# - GET  /api/v3/share/secret/:identifier
-# - POST /api/v3/share/secret/:identifier/reveal
-# - GET  /api/v3/share/receipt/:identifier
-# - POST /api/v3/share/receipt/:identifier/burn
+# - POST /api/v3/guest/secret/conceal
+# - POST /api/v3/guest/secret/generate
+# - GET  /api/v3/guest/secret/:identifier
+# - POST /api/v3/guest/secret/:identifier/reveal
+# - GET  /api/v3/guest/receipt/:identifier
+# - POST /api/v3/guest/receipt/:identifier/burn
 #
 # Test Scenarios:
 # 1. Guest routes return successful responses when enabled (default)
@@ -58,10 +58,10 @@ def clear_cookies; @test.clear_cookies; end
 #=> [true, true, true]
 
 ## Guest share/conceal endpoint returns a response (not server error)
-# The /api/v3/share/* routes use auth=noauth, allowing anonymous access
+# The /api/v3/guest/* routes use auth=noauth, allowing anonymous access
 # Note: Payload must be wrapped in 'secret' key per V2/V3 API contract
 clear_cookies
-post '/api/v3/share/secret/conceal',
+post '/api/v3/guest/secret/conceal',
   { secret: { secret: 'test secret value', ttl: 3600 } }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 # Should not be a server error
@@ -70,7 +70,7 @@ last_response.status < 500
 
 ## Guest share/conceal returns 200 with valid payload
 clear_cookies
-post '/api/v3/share/secret/conceal',
+post '/api/v3/guest/secret/conceal',
   { secret: { secret: 'my test secret', ttl: 3600 } }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 last_response.status
@@ -78,7 +78,7 @@ last_response.status
 
 ## Guest share/conceal response includes record.metadata structure
 clear_cookies
-post '/api/v3/share/secret/conceal',
+post '/api/v3/guest/secret/conceal',
   { secret: { secret: 'test secret for metadata', ttl: 3600 } }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 @conceal_response = JSON.parse(last_response.body)
@@ -101,7 +101,7 @@ post '/api/v3/share/secret/conceal',
 
 ## Guest share/generate endpoint returns a response (not server error)
 clear_cookies
-post '/api/v3/share/secret/generate',
+post '/api/v3/guest/secret/generate',
   { secret: { ttl: 3600 } }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 # Should not be a server error
@@ -110,7 +110,7 @@ last_response.status < 500
 
 ## Guest share/generate returns 200 with valid payload
 clear_cookies
-post '/api/v3/share/secret/generate',
+post '/api/v3/guest/secret/generate',
   { secret: { ttl: 3600 } }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 last_response.status

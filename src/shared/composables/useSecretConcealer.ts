@@ -17,7 +17,7 @@ import { useSecretForm } from './useSecretForm';
 
 interface SecretConcealerOptions {
   onSuccess?: (response: ConcealDataResponse) => Promise<void> | void;
-  /** Use public /api/v3/share endpoints instead of authenticated /api/v3 */
+  /** Use public /api/v3/guest endpoints instead of authenticated /api/v3 */
   usePublicApi?: boolean;
 }
 

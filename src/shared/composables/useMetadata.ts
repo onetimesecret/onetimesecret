@@ -17,7 +17,7 @@ import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 interface MetadataOptions {
   /**
    * Force public API mode regardless of auth state.
-   * When true, uses /api/v3/share/receipt/* endpoints.
+   * When true, uses /api/v3/guest/receipt/* endpoints.
    * When false/undefined, auto-detects based on auth state.
    */
   usePublicApi?: boolean;
@@ -30,7 +30,7 @@ export function useMetadata(metadataIdentifier: string, options?: MetadataOption
   const authStore = useAuthStore();
 
   // Set API mode based on auth state or explicit option
-  // Uses public /share endpoints for anonymous users
+  // Uses public /guest endpoints for anonymous users
   const usePublicApi = options?.usePublicApi ?? !authStore.isAuthenticated;
   store.setApiMode(usePublicApi ? 'public' : 'authenticated');
 

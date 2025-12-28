@@ -82,14 +82,14 @@ describe('secretStore', () => {
         expect(axiosMock?.history.post[0].url).toBe('/api/v3/secret/conceal');
       });
 
-      it('conceal() uses /api/v3/share/secret/conceal in public mode', async () => {
+      it('conceal() uses /api/v3/guest/secret/conceal in public mode', async () => {
         store.setApiMode('public');
-        axiosMock?.onPost('/api/v3/share/secret/conceal').reply(200, mockConcealResponse);
+        axiosMock?.onPost('/api/v3/guest/secret/conceal').reply(200, mockConcealResponse);
 
         await store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal' });
 
         expect(axiosMock?.history.post.length).toBe(1);
-        expect(axiosMock?.history.post[0].url).toBe('/api/v3/share/secret/conceal');
+        expect(axiosMock?.history.post[0].url).toBe('/api/v3/guest/secret/conceal');
       });
 
       it('generate() uses /api/v3/secret/generate in authenticated mode', async () => {
@@ -101,14 +101,14 @@ describe('secretStore', () => {
         expect(axiosMock?.history.post[0].url).toBe('/api/v3/secret/generate');
       });
 
-      it('generate() uses /api/v3/share/secret/generate in public mode', async () => {
+      it('generate() uses /api/v3/guest/secret/generate in public mode', async () => {
         store.setApiMode('public');
-        axiosMock?.onPost('/api/v3/share/secret/generate').reply(200, mockConcealResponse);
+        axiosMock?.onPost('/api/v3/guest/secret/generate').reply(200, mockConcealResponse);
 
         await store.generate({ ttl: 3600, kind: 'generate' });
 
         expect(axiosMock?.history.post.length).toBe(1);
-        expect(axiosMock?.history.post[0].url).toBe('/api/v3/share/secret/generate');
+        expect(axiosMock?.history.post[0].url).toBe('/api/v3/guest/secret/generate');
       });
 
       it('fetch() uses /api/v3/secret/:id in authenticated mode', async () => {
@@ -120,14 +120,14 @@ describe('secretStore', () => {
         expect(axiosMock?.history.get[0].url).toBe('/api/v3/secret/abc123');
       });
 
-      it('fetch() uses /api/v3/share/secret/:id in public mode', async () => {
+      it('fetch() uses /api/v3/guest/secret/:id in public mode', async () => {
         store.setApiMode('public');
-        axiosMock?.onGet('/api/v3/share/secret/abc123').reply(200, mockSecretResponse);
+        axiosMock?.onGet('/api/v3/guest/secret/abc123').reply(200, mockSecretResponse);
 
         await store.fetch('abc123');
 
         expect(axiosMock?.history.get.length).toBe(1);
-        expect(axiosMock?.history.get[0].url).toBe('/api/v3/share/secret/abc123');
+        expect(axiosMock?.history.get[0].url).toBe('/api/v3/guest/secret/abc123');
       });
 
       it('reveal() uses /api/v3/secret/:id/reveal in authenticated mode', async () => {
@@ -143,9 +143,9 @@ describe('secretStore', () => {
         expect(axiosMock?.history.post[0].url).toBe('/api/v3/secret/abc123/reveal');
       });
 
-      it('reveal() uses /api/v3/share/secret/:id/reveal in public mode', async () => {
+      it('reveal() uses /api/v3/guest/secret/:id/reveal in public mode', async () => {
         store.setApiMode('public');
-        axiosMock?.onPost('/api/v3/share/secret/abc123/reveal').reply(200, {
+        axiosMock?.onPost('/api/v3/guest/secret/abc123/reveal').reply(200, {
           ...mockSecretResponse,
           record: { ...mockSecretRecord, secret_value: 'revealed' },
           details: { ...mockSecretResponse.details, show_secret: true },
@@ -154,7 +154,7 @@ describe('secretStore', () => {
         await store.reveal('abc123', 'password');
 
         expect(axiosMock?.history.post.length).toBe(1);
-        expect(axiosMock?.history.post[0].url).toBe('/api/v3/share/secret/abc123/reveal');
+        expect(axiosMock?.history.post[0].url).toBe('/api/v3/guest/secret/abc123/reveal');
       });
     });
   });

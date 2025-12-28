@@ -12,7 +12,7 @@ import { computed, inject, ref } from 'vue';
 /**
  * API mode for endpoint selection.
  * - 'authenticated': Uses /api/v3/receipt/* endpoints (requires session)
- * - 'public': Uses /api/v3/share/receipt/* endpoints (no auth required)
+ * - 'public': Uses /api/v3/guest/receipt/* endpoints (no auth required)
  */
 export type ApiMode = 'authenticated' | 'public';
 
@@ -65,13 +65,13 @@ export const useMetadataStore = defineStore('metadata', () => {
    * @returns Full endpoint path with correct prefix
    */
   function getEndpoint(path: string): string {
-    const prefix = apiMode.value === 'public' ? '/api/v3/share' : '/api/v3';
+    const prefix = apiMode.value === 'public' ? '/api/v3/guest' : '/api/v3';
     return `${prefix}${path}`;
   }
 
   /**
    * Sets the API mode for endpoint selection.
-   * @param mode - 'authenticated' for /api/v3/receipt/*, 'public' for /api/v3/share/receipt/*
+   * @param mode - 'authenticated' for /api/v3/receipt/*, 'public' for /api/v3/guest/receipt/*
    */
   function setApiMode(mode: ApiMode) {
     apiMode.value = mode;

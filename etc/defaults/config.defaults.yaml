@@ -136,7 +136,7 @@ site:
     api:
       enabled: <%= ENV['API_ENABLED'] != 'false' %>
       # Guest API routes for anonymous access
-      # When enabled, /api/v3/share/* endpoints allow unauthenticated requests
+      # When enabled, /api/v3/guest/* endpoints allow unauthenticated requests
       guest_routes:
         # Global toggle - disables all guest routes when false
         enabled: <%= ENV['API_GUEST_ROUTES_ENABLED'] != 'false' %>

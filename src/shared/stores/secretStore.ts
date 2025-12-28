@@ -19,7 +19,7 @@ interface StoreOptions extends PiniaPluginOptions {}
 /**
  * API mode for secret operations.
  * - 'authenticated': Uses /api/v3 endpoints (requires authentication)
- * - 'public': Uses /api/v3/share endpoints (guest access)
+ * - 'public': Uses /api/v3/guest endpoints (guest access)
  */
 export type ApiMode = 'authenticated' | 'public';
 
@@ -78,7 +78,7 @@ export const useSecretStore = defineStore('secrets', () => {
 
   /**
    * Sets the API mode for secret operations
-   * @param mode - 'authenticated' for /api/v3 or 'public' for /api/v3/share
+   * @param mode - 'authenticated' for /api/v3 or 'public' for /api/v3/guest
    */
   function setApiMode(mode: ApiMode) {
     apiMode.value = mode;
@@ -90,7 +90,7 @@ export const useSecretStore = defineStore('secrets', () => {
    * @returns Full endpoint path with correct prefix
    */
   function getEndpoint(path: string): string {
-    const prefix = apiMode.value === 'public' ? '/api/v3/share' : '/api/v3';
+    const prefix = apiMode.value === 'public' ? '/api/v3/guest' : '/api/v3';
     return `${prefix}${path}`;
   }
 

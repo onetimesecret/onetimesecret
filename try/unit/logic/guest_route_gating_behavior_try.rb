@@ -12,10 +12,10 @@
 # 4. Skips checks entirely for authenticated users
 #
 # Operations gated:
-# - conceal: POST /api/v3/share/secret/conceal
-# - generate: POST /api/v3/share/secret/generate
-# - reveal: POST /api/v3/share/secret/:id/reveal
-# - burn: POST /api/v3/share/receipt/:id/burn
+# - conceal: POST /api/v3/guest/secret/conceal
+# - generate: POST /api/v3/guest/secret/generate
+# - reveal: POST /api/v3/guest/secret/:id/reveal
+# - burn: POST /api/v3/guest/receipt/:id/burn
 #
 # Config structure:
 #   site:
