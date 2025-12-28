@@ -2,10 +2,11 @@
 
 import { useMetadata } from '@/shared/composables/useMetadata';
 import { AxiosError } from 'axios';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useMetadataStore } from '@/shared/stores/metadataStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { createPinia, setActivePinia } from 'pinia';
-import { beforeEach, describe, expect, it, vi, Mock } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ref } from 'vue';
 import { Router, useRouter } from 'vue-router';
 import { getRouter } from 'vue-router-mock';
@@ -23,6 +24,7 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
+vi.mock('@/shared/stores/authStore');
 vi.mock('@/shared/stores/metadataStore');
 vi.mock('@/shared/stores/notificationsStore');
 vi.mock('vue-router');
@@ -31,7 +33,12 @@ const storeMock: Partial<ReturnType<typeof useMetadataStore>> = {
   fetch: vi.fn(),
   record: mockMetadataRecord,
   details: mockMetadataDetails,
+  setApiMode: vi.fn(),
   $reset: vi.fn(),
+};
+
+const authStoreMock: Partial<ReturnType<typeof useAuthStore>> = {
+  isAuthenticated: true,
 };
 
 const notificationsMock: Partial<ReturnType<typeof useNotificationsStore>> = {
@@ -41,12 +48,11 @@ const notificationsMock: Partial<ReturnType<typeof useNotificationsStore>> = {
 const mockRouter: Router = getRouter();
 
 vi.mocked(useRouter).mockReturnValue(mockRouter);
+vi.mocked(useAuthStore).mockReturnValue(authStoreMock as ReturnType<typeof useAuthStore>);
 vi.mocked(useMetadataStore).mockReturnValue(storeMock as ReturnType<typeof useMetadataStore>);
 vi.mocked(useNotificationsStore).mockReturnValue(
   notificationsMock as ReturnType<typeof useNotificationsStore>
 );
-
-const mockMetadata = { id: 'test-key', value: 'secret-data' };
 
 describe('useMetadata', () => {
   beforeEach(() => {
@@ -62,6 +68,7 @@ describe('useMetadata', () => {
       record: ref(null),
       details: ref(null),
       canBurn: ref(false),
+      setApiMode: vi.fn(),
       $reset: vi.fn(),
     };
 
@@ -138,6 +145,7 @@ describe('useMetadata', () => {
         record: ref(null),
         details: ref(null),
         isLoading: ref(false),
+        setApiMode: vi.fn(),
         $reset: vi.fn(),
       };
       vi.mocked(useMetadataStore).mockReturnValue(storeMock as ReturnType<typeof useMetadataStore>);
@@ -184,6 +192,7 @@ describe('useMetadata', () => {
       record: ref(null),
       details: ref(null),
       isLoading: ref(false),
+      setApiMode: vi.fn(),
     };
 
     beforeEach(() => {
@@ -271,6 +280,7 @@ describe('useMetadata', () => {
         canBurn: ref(true),
         record: ref(mockMetadataRecord),
         details: ref(mockMetadataDetails),
+        setApiMode: vi.fn(),
       };
       const notifications = { show: vi.fn() };
       const mockRouter = {
@@ -305,6 +315,7 @@ describe('useMetadata', () => {
         fetch: vi.fn().mockResolvedValue(mockMetadataRecord),
         canBurn: ref(false),
         record: ref(mockMetadataRecord),
+        setApiMode: vi.fn(),
       };
       const notifications = { show: vi.fn() };
       const router = { push: vi.fn() };
@@ -328,6 +339,73 @@ describe('useMetadata', () => {
         severity: 'error',
       });
       expect(notifications.show).toHaveBeenCalledWith('Cannot burn this secret', 'error');
+    });
+  });
+
+  describe('API mode selection', () => {
+    const store = {
+      fetch: vi.fn().mockResolvedValue(mockMetadataRecord),
+      burn: vi.fn(),
+      record: ref(null),
+      details: ref(null),
+      canBurn: ref(false),
+      setApiMode: vi.fn(),
+      $reset: vi.fn(),
+    };
+
+    beforeEach(() => {
+      vi.mocked(useMetadataStore).mockReturnValue(store as ReturnType<typeof useMetadataStore>);
+      store.setApiMode.mockClear();
+    });
+
+    it('uses authenticated mode when user is authenticated', () => {
+      vi.mocked(useAuthStore).mockReturnValue({
+        isAuthenticated: true,
+      } as ReturnType<typeof useAuthStore>);
+
+      useMetadata('test-key');
+
+      expect(store.setApiMode).toHaveBeenCalledWith('authenticated');
+    });
+
+    it('uses public mode when user is not authenticated', () => {
+      vi.mocked(useAuthStore).mockReturnValue({
+        isAuthenticated: false,
+      } as ReturnType<typeof useAuthStore>);
+
+      useMetadata('test-key');
+
+      expect(store.setApiMode).toHaveBeenCalledWith('public');
+    });
+
+    it('uses public mode when isAuthenticated is null/undefined', () => {
+      vi.mocked(useAuthStore).mockReturnValue({
+        isAuthenticated: null,
+      } as unknown as ReturnType<typeof useAuthStore>);
+
+      useMetadata('test-key');
+
+      expect(store.setApiMode).toHaveBeenCalledWith('public');
+    });
+
+    it('usePublicApi: true forces public mode regardless of auth state', () => {
+      vi.mocked(useAuthStore).mockReturnValue({
+        isAuthenticated: true,
+      } as ReturnType<typeof useAuthStore>);
+
+      useMetadata('test-key', { usePublicApi: true });
+
+      expect(store.setApiMode).toHaveBeenCalledWith('public');
+    });
+
+    it('usePublicApi: false forces authenticated mode regardless of auth state', () => {
+      vi.mocked(useAuthStore).mockReturnValue({
+        isAuthenticated: false,
+      } as ReturnType<typeof useAuthStore>);
+
+      useMetadata('test-key', { usePublicApi: false });
+
+      expect(store.setApiMode).toHaveBeenCalledWith('authenticated');
     });
   });
 });

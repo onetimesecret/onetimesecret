@@ -2,7 +2,6 @@
 
 // IMPORTANT: This test uses centralized test setup pattern
 // DO NOT revert to individual axios.create() - use setupTestPinia() instead
-import { errorGuards } from '@/schemas/errors';
 import { useMetadataStore } from '@/shared/stores/metadataStore';
 import { setupTestPinia } from '../setup';
 import type AxiosMockAdapter from 'axios-mock-adapter';
@@ -11,7 +10,7 @@ import type { ComponentPublicInstance } from 'vue';
 import axios from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ZodError, ZodIssue } from 'zod';
+import { ZodIssue } from 'zod';
 
 import {
   createMetadataWithPassphrase,
@@ -25,7 +24,7 @@ import {
   mockMetadataRecordRaw,
 } from '../fixtures/metadata.fixture';
 
-function isZodInvalidTypeIssue(
+function _isZodInvalidTypeIssue(
   issue: ZodIssue
 ): issue is ZodIssue & { code: 'invalid_type'; received: string } {
   return issue.code === 'invalid_type' && 'received' in issue;
@@ -39,16 +38,16 @@ function isZodInvalidTypeIssue(
  */
 describe('metadataStore', () => {
   let axiosMock: AxiosMockAdapter | null;
-  let api: AxiosInstance;
+  let _api: AxiosInstance;
   let store: ReturnType<typeof useMetadataStore>;
-  let appInstance: ComponentPublicInstance | null;
+  let _appInstance: ComponentPublicInstance | null;
 
   beforeEach(async () => {
     // Setup testing environment with all needed components
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock;
-    api = setup.api;
-    appInstance = setup.appInstance;
+    _api = setup.api;
+    _appInstance = setup.appInstance;
 
     // Initialize the store
     store = useMetadataStore();
@@ -244,8 +243,8 @@ describe('metadataStore', () => {
     // Initialization Flexibility
     describe('Store Initialization', () => {
       it('supports custom error handling during initialization', async () => {
-        const mockNotify = vi.fn();
-        const mockLog = vi.fn();
+        const _mockNotify = vi.fn();
+        const _mockLog = vi.fn();
         const mockAxios = axios.create();
 
         // Setup store with custom error handlers
@@ -419,6 +418,97 @@ describe('metadataStore', () => {
         // Verify final state reflects the successful burn
         expect(store.record).toEqual(mockBurnedMetadataRecord);
         expect(store.details).toEqual(mockBurnedMetadataDetails);
+      });
+    });
+  });
+
+  describe('apiMode', () => {
+    it('defaults to authenticated mode', () => {
+      expect(store.apiMode).toBe('authenticated');
+    });
+
+    it('setApiMode changes to public mode', () => {
+      store.setApiMode('public');
+      expect(store.apiMode).toBe('public');
+    });
+
+    it('setApiMode changes back to authenticated mode', () => {
+      store.setApiMode('public');
+      store.setApiMode('authenticated');
+      expect(store.apiMode).toBe('authenticated');
+    });
+
+    it('$reset resets apiMode to authenticated', () => {
+      store.setApiMode('public');
+      store.$reset();
+      expect(store.apiMode).toBe('authenticated');
+    });
+
+    describe('endpoint selection', () => {
+      it('fetch uses /api/v3/receipt in authenticated mode', async () => {
+        const testKey = mockMetadataRecord.key;
+        const mockResponse = {
+          record: mockMetadataRecordRaw,
+          details: mockMetadataDetailsRaw,
+        };
+
+        store.setApiMode('authenticated');
+        axiosMock?.onGet(`/api/v3/receipt/${testKey}`).reply(200, mockResponse);
+
+        await store.fetch(testKey);
+
+        expect(axiosMock?.history.get).toHaveLength(1);
+        expect(axiosMock?.history.get[0].url).toBe(`/api/v3/receipt/${testKey}`);
+      });
+
+      it('fetch uses /api/v3/share/receipt in public mode', async () => {
+        const testKey = mockMetadataRecord.key;
+        const mockResponse = {
+          record: mockMetadataRecordRaw,
+          details: mockMetadataDetailsRaw,
+        };
+
+        store.setApiMode('public');
+        axiosMock?.onGet(`/api/v3/share/receipt/${testKey}`).reply(200, mockResponse);
+
+        await store.fetch(testKey);
+
+        expect(axiosMock?.history.get).toHaveLength(1);
+        expect(axiosMock?.history.get[0].url).toBe(`/api/v3/share/receipt/${testKey}`);
+      });
+
+      it('burn uses /api/v3/receipt in authenticated mode', async () => {
+        const testKey = mockMetadataRecord.key;
+        const mockResponse = {
+          record: mockBurnedMetadataRecordRaw,
+          details: mockBurnedMetadataDetailsRaw,
+        };
+
+        store.record = { ...mockMetadataRecord, burned: null, state: 'new' };
+        store.setApiMode('authenticated');
+        axiosMock?.onPost(`/api/v3/receipt/${testKey}/burn`).reply(200, mockResponse);
+
+        await store.burn(testKey);
+
+        expect(axiosMock?.history.post).toHaveLength(1);
+        expect(axiosMock?.history.post[0].url).toBe(`/api/v3/receipt/${testKey}/burn`);
+      });
+
+      it('burn uses /api/v3/share/receipt in public mode', async () => {
+        const testKey = mockMetadataRecord.key;
+        const mockResponse = {
+          record: mockBurnedMetadataRecordRaw,
+          details: mockBurnedMetadataDetailsRaw,
+        };
+
+        store.record = { ...mockMetadataRecord, burned: null, state: 'new' };
+        store.setApiMode('public');
+        axiosMock?.onPost(`/api/v3/share/receipt/${testKey}/burn`).reply(200, mockResponse);
+
+        await store.burn(testKey);
+
+        expect(axiosMock?.history.post).toHaveLength(1);
+        expect(axiosMock?.history.post[0].url).toBe(`/api/v3/share/receipt/${testKey}/burn`);
       });
     });
   });
