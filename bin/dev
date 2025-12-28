@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # bin/dev - Overmind Development Runner (tmux-powered)
 #
@@ -32,13 +32,15 @@
 # -----------------------------------------------------------------------------
 
 if ! command -v overmind &> /dev/null; then
-  echo "Installing overmind..."
-  brew install overmind
+  echo "Error: Overmind not found. Install with: brew install overmind"
+  exit 1
 fi
 
-# Load local environment if present
+# Load local environment if present (export all variables)
 if [ -f .env.sh ]; then
+  set -a
   . .env.sh
+  set +a
 fi
 
 # Ensure PORT is a valid integer (Overmind fails if empty or invalid)

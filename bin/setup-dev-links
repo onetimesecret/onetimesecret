@@ -27,6 +27,12 @@ link_resource() {
     local shared_name="$2"
     local target="$OTS_DEV_CONFIG/$shared_name"
 
+    # Validate target is within expected config directory (prevent path traversal)
+    case "$target" in
+        "$OTS_DEV_CONFIG"/*) ;;
+        *) echo "Error: Invalid target path: $target"; return 1 ;;
+    esac
+
     if [[ ! -e "$target" ]]; then
         echo "Skip: $target does not exist"
         return
