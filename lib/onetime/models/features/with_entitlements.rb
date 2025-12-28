@@ -13,8 +13,8 @@ module Onetime
       # - Limits: How many times can org do X? (numeric/quota check)
       #
       # Usage:
-      #   org.can?('create_team')           # => true/false
-      #   org.entitlements                  # => ["create_secrets", "create_team", ...]
+      #   org.can?('custom_domains')        # => true/false
+      #   org.entitlements                  # => ["api_access", "custom_domains", ...]
       #   org.limit_for('teams')            # => 1 (or Float::INFINITY)
       #   org.check_entitlement('api_access') # => {allowed: false, upgrade_needed: true, ...}
       #
@@ -91,7 +91,7 @@ module Onetime
           # This ensures full feature access in standalone mode.
           #
           # @example
-          #   org.entitlements  # => ["create_secrets", "create_team", "custom_domains"]
+          #   org.entitlements  # => ["api_access", "custom_domains", "manage_teams"]
           def entitlements
             # Colonel test mode override - check Thread.current set by middleware
             # Empty string should fall back to actual plan (same as nil)

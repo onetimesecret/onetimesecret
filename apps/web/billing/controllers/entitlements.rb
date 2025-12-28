@@ -21,7 +21,7 @@ module Billing
       #   {
       #     "planid": "identity_plus_v1",
       #     "plan_name": "Identity Plus",
-      #     "entitlements": ["create_secrets", "create_team", "custom_domains"],
+      #     "entitlements": ["api_access", "custom_domains", "manage_teams"],
       #     "limits": {
       #       "teams": 1,
       #       "members_per_team": null,
@@ -119,11 +119,11 @@ module Billing
       # Response:
       #   {
       #     "entitlements": {
-      #       "core": ["create_secrets", "basic_sharing", "view_metadata"],
-      #       "collaboration": ["create_team", "create_teams"],
-      #       "infrastructure": ["custom_domains", "api_access"],
-      #       "support": ["priority_support"],
-      #       "advanced": ["audit_logs", "advanced_analytics", "extended_lifetime"]
+      #       "core": ["api_access", "custom_privacy_defaults", "extended_default_expiration"],
+      #       "collaboration": ["manage_orgs", "manage_teams", "manage_members"],
+      #       "infrastructure": ["custom_domains", "custom_branding", "branded_homepage"],
+      #       "communication": ["incoming_secrets", "custom_mail_defaults"],
+      #       "advanced": ["audit_logs"]
       #     },
       #     "plans": {
       #       "free": { ... },

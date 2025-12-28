@@ -9,32 +9,34 @@ import { z } from 'zod';
 
 /**
  * Organization entitlement constants
+ *
+ * These map to STANDALONE_ENTITLEMENTS in the backend (lib/onetime/billing/catalog.rb)
+ * Used for feature gating based on plan tier.
  */
 export const ENTITLEMENTS = {
-  // Core
-  CREATE_SECRETS: 'create_secrets',
-  VIEW_METADATA: 'view_metadata',
-  EXTENDED_DEFAULT_EXPIRATION: 'extended_default_expiration',
-
   // Infrastructure
   API_ACCESS: 'api_access',
   CUSTOM_DOMAINS: 'custom_domains',
 
-  // Collaboration
-  MANAGE_TEAMS: 'manage_teams',
-  MANAGE_MEMBERS: 'manage_members',
+  // Privacy & Defaults
+  CUSTOM_PRIVACY_DEFAULTS: 'custom_privacy_defaults',
+  EXTENDED_DEFAULT_EXPIRATION: 'extended_default_expiration',
+  CUSTOM_MAIL_DEFAULTS: 'custom_mail_defaults',
 
   // Branding
   CUSTOM_BRANDING: 'custom_branding',
   BRANDED_HOMEPAGE: 'branded_homepage',
 
+  // Secret Features
+  INCOMING_SECRETS: 'incoming_secrets',
+
+  // Organization Management
+  MANAGE_ORGS: 'manage_orgs',
+  MANAGE_TEAMS: 'manage_teams',
+  MANAGE_MEMBERS: 'manage_members',
+
   // Advanced
   AUDIT_LOGS: 'audit_logs',
-  SSO: 'sso',
-
-  // Support
-  PRIORITY_SUPPORT: 'priority_support',
-  SLA: 'sla',
 } as const;
 
 export type Entitlement = (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS];

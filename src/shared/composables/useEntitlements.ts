@@ -60,9 +60,15 @@ export function useEntitlements(org: Ref<Organization | null>) {
     const entitlementToPlan: Record<string, string> = {
       [ENTITLEMENTS.MANAGE_TEAMS]: 'identity_v1',
       [ENTITLEMENTS.MANAGE_MEMBERS]: 'identity_v1',
-      [ENTITLEMENTS.API_ACCESS]: 'multi_team_v1',
+      [ENTITLEMENTS.MANAGE_ORGS]: 'identity_v1',
+      [ENTITLEMENTS.API_ACCESS]: 'identity_v1',
       [ENTITLEMENTS.CUSTOM_DOMAINS]: 'identity_v1',
-      [ENTITLEMENTS.PRIORITY_SUPPORT]: 'identity_v1',
+      [ENTITLEMENTS.CUSTOM_BRANDING]: 'identity_v1',
+      [ENTITLEMENTS.BRANDED_HOMEPAGE]: 'identity_v1',
+      [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'identity_v1',
+      [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'identity_v1',
+      [ENTITLEMENTS.CUSTOM_MAIL_DEFAULTS]: 'identity_v1',
+      [ENTITLEMENTS.INCOMING_SECRETS]: 'identity_v1',
       [ENTITLEMENTS.AUDIT_LOGS]: 'multi_team_v1',
     };
 

@@ -28,7 +28,7 @@ module Billing
   #     "plan_id": "identity_plus_v1",
   #     "tier": "single_team",
   #     "region": "EU",
-  #     "entitlements": "create_secrets,create_team,custom_domains",
+  #     "entitlements": "api_access,custom_domains,manage_teams",
   #     "limit_teams": "1",
   #     "limit_members_per_team": "-1"
   #   }
@@ -230,7 +230,7 @@ module Billing
             plan_id      = "#{base_plan_id}_#{interval}ly"
 
             # Extract entitlements from product metadata
-            # Expected format: "create_secrets,create_team,custom_domains"
+            # Expected format: "api_access,custom_domains,manage_teams"
             entitlements_str = product.metadata[Metadata::FIELD_ENTITLEMENTS] || ''
             entitlements     = entitlements_str.split(',').map(&:strip).reject(&:empty?)
 

@@ -67,12 +67,17 @@ const isIdentityPlus = computed(() => can(ENTITLEMENTS.CUSTOM_DOMAINS));
 // Format entitlement for display
 const formatEntitlement = (ent: string): string => {
   const labels: Record<string, string> = {
-    [ENTITLEMENTS.CREATE_SECRETS]: 'Create Secrets',
-    [ENTITLEMENTS.VIEW_METADATA]: 'View Metadata',
-    [ENTITLEMENTS.MANAGE_MEMBERS]: 'Manage Members',
-    [ENTITLEMENTS.CUSTOM_DOMAINS]: 'Custom Domains',
     [ENTITLEMENTS.API_ACCESS]: 'API Access',
-    [ENTITLEMENTS.PRIORITY_SUPPORT]: 'Priority Support',
+    [ENTITLEMENTS.CUSTOM_DOMAINS]: 'Custom Domains',
+    [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'Custom Privacy Defaults',
+    [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'Extended Default Expiration',
+    [ENTITLEMENTS.CUSTOM_MAIL_DEFAULTS]: 'Custom Mail Defaults',
+    [ENTITLEMENTS.CUSTOM_BRANDING]: 'Custom Branding',
+    [ENTITLEMENTS.BRANDED_HOMEPAGE]: 'Branded Homepage',
+    [ENTITLEMENTS.INCOMING_SECRETS]: 'Incoming Secrets',
+    [ENTITLEMENTS.MANAGE_ORGS]: 'Manage Organizations',
+    [ENTITLEMENTS.MANAGE_TEAMS]: 'Manage Teams',
+    [ENTITLEMENTS.MANAGE_MEMBERS]: 'Manage Members',
     [ENTITLEMENTS.AUDIT_LOGS]: 'Audit Logs',
   };
   return labels[ent] || ent;

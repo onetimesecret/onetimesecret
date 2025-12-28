@@ -43,13 +43,17 @@ const yearlySavingsPercent = computed(() =>
 
 const getFeatureLabel = (feature: string): string => {
   const labels: Record<string, string> = {
-    [ENTITLEMENTS.CREATE_SECRETS]: 'Unlimited secrets',
-    [ENTITLEMENTS.VIEW_METADATA]: 'View secret metadata',
+    [ENTITLEMENTS.API_ACCESS]: 'Full API access',
+    [ENTITLEMENTS.CUSTOM_DOMAINS]: 'Custom domains',
+    [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'Custom privacy defaults',
+    [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'Extended default expiration',
+    [ENTITLEMENTS.CUSTOM_MAIL_DEFAULTS]: 'Custom mail defaults',
+    [ENTITLEMENTS.CUSTOM_BRANDING]: 'Custom branding',
+    [ENTITLEMENTS.BRANDED_HOMEPAGE]: 'Branded homepage',
+    [ENTITLEMENTS.INCOMING_SECRETS]: 'Incoming secrets',
+    [ENTITLEMENTS.MANAGE_ORGS]: 'Organization management',
     [ENTITLEMENTS.MANAGE_TEAMS]: 'Team management',
     [ENTITLEMENTS.MANAGE_MEMBERS]: 'Member management',
-    [ENTITLEMENTS.CUSTOM_DOMAINS]: 'Custom domains',
-    [ENTITLEMENTS.API_ACCESS]: 'Full API access',
-    [ENTITLEMENTS.PRIORITY_SUPPORT]: 'Priority support',
     [ENTITLEMENTS.AUDIT_LOGS]: 'Audit logs',
   };
   return labels[feature] || feature;

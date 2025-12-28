@@ -29,7 +29,7 @@ const displayMessage = computed(() => {
 
   // Default messages based on entitlement
   const entitlementMessages: Record<string, string> = {
-    create_teams: t('web.billing.upgrade.needTeams'),
+    manage_teams: t('web.billing.upgrade.needTeams'),
     custom_domains: t('web.billing.upgrade.needCustomDomains'),
     api_access: t('web.billing.upgrade.needApiAccess'),
   };

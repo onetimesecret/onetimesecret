@@ -37,13 +37,17 @@ const planStatus = computed(() => selectedOrg.value?.planid ? 'active' : 'free')
 
 const formatEntitlement = (ent: string): string => {
   const labels: Record<string, string> = {
-    [ENTITLEMENTS.CREATE_SECRETS]: t('web.billing.overview.entitlements.create_secrets'),
-    [ENTITLEMENTS.VIEW_METADATA]: t('web.billing.overview.entitlements.view_metadata'),
+    [ENTITLEMENTS.API_ACCESS]: t('web.billing.overview.entitlements.api_access'),
+    [ENTITLEMENTS.CUSTOM_DOMAINS]: t('web.billing.overview.entitlements.custom_domains'),
+    [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: t('web.billing.overview.entitlements.custom_privacy_defaults'),
+    [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: t('web.billing.overview.entitlements.extended_default_expiration'),
+    [ENTITLEMENTS.CUSTOM_MAIL_DEFAULTS]: t('web.billing.overview.entitlements.custom_mail_defaults'),
+    [ENTITLEMENTS.CUSTOM_BRANDING]: t('web.billing.overview.entitlements.custom_branding'),
+    [ENTITLEMENTS.BRANDED_HOMEPAGE]: t('web.billing.overview.entitlements.branded_homepage'),
+    [ENTITLEMENTS.INCOMING_SECRETS]: t('web.billing.overview.entitlements.incoming_secrets'),
+    [ENTITLEMENTS.MANAGE_ORGS]: t('web.billing.overview.entitlements.manage_orgs'),
     [ENTITLEMENTS.MANAGE_TEAMS]: t('web.billing.overview.entitlements.manage_teams'),
     [ENTITLEMENTS.MANAGE_MEMBERS]: t('web.billing.overview.entitlements.manage_members'),
-    [ENTITLEMENTS.CUSTOM_DOMAINS]: t('web.billing.overview.entitlements.custom_domains'),
-    [ENTITLEMENTS.API_ACCESS]: t('web.billing.overview.entitlements.api_access'),
-    [ENTITLEMENTS.PRIORITY_SUPPORT]: t('web.billing.overview.entitlements.priority_support'),
     [ENTITLEMENTS.AUDIT_LOGS]: t('web.billing.overview.entitlements.audit_logs'),
   };
   return labels[ent] || ent;
