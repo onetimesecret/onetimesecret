@@ -27,7 +27,7 @@ const localeModules = (import.meta as any).glob('@/locales/*/*.json', {
 const messages: Record<string, any> = {};
 
 /** Keys that must be rejected to prevent prototype pollution attacks (CWE-1321) */
-const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+export const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
 /**
  * Deep merge helper function to recursively merge nested objects.
@@ -40,7 +40,7 @@ const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
  * @param source - The source object to merge from
  * @returns The merged target object
  */
-function deepMerge(target: Record<string, any>, source: Record<string, any>): Record<string, any> {
+export function deepMerge(target: Record<string, any>, source: Record<string, any>): Record<string, any> {
   for (const key in source) {
     // Skip inherited properties to prevent iterating over polluted prototype
     if (!Object.prototype.hasOwnProperty.call(source, key)) {
@@ -60,6 +60,49 @@ function deepMerge(target: Record<string, any>, source: Record<string, any>): Re
     }
   }
   return target;
+}
+
+/**
+ * Merges a structured locale file content (has "web" or "email" keys) into messages.
+ * Exported for testing purposes - allows direct testing of production merge logic.
+ *
+ * @param messages - Target messages object for a specific locale
+ * @param content - Structured content with "web" or "email" keys
+ */
+export function mergeStructuredContent(
+  messages: Record<string, any>,
+  content: Record<string, any>
+): void {
+  Object.keys(content).forEach((topKey) => {
+    // Guard against prototype pollution (CWE-1321)
+    if (DANGEROUS_KEYS.has(topKey)) {
+      return;
+    }
+    if (typeof content[topKey] === 'object' && content[topKey] !== null) {
+      if (!messages[topKey]) {
+        messages[topKey] = {};
+      }
+      deepMerge(messages[topKey], content[topKey]);
+    }
+  });
+}
+
+/**
+ * Merges a flat locale file content (no "web" or "email" keys) into messages.
+ * Exported for testing purposes - allows direct testing of production merge logic.
+ *
+ * @param messages - Target messages object for a specific locale
+ * @param content - Flat content with direct key-value pairs
+ */
+export function mergeFlatContent(
+  messages: Record<string, any>,
+  content: Record<string, any>
+): void {
+  Object.keys(content).forEach((key) => {
+    if (!DANGEROUS_KEYS.has(key)) {
+      messages[key] = content[key];
+    }
+  });
 }
 
 // Process each imported module
@@ -82,26 +125,10 @@ for (const path in localeModules) {
     if (hasStructuredKeys) {
       // Structured file: merge under "web" or "email" keys using deep merge
       // to prevent namespace collisions (e.g., auth.json and auth-full.json both use web.auth)
-      Object.keys(content).forEach((topKey) => {
-        // Guard against prototype pollution (CWE-1321)
-        if (DANGEROUS_KEYS.has(topKey)) {
-          return;
-        }
-        if (typeof content[topKey] === 'object' && content[topKey] !== null) {
-          if (!messages[locale][topKey]) {
-            messages[locale][topKey] = {};
-          }
-          deepMerge(messages[locale][topKey], content[topKey]);
-        }
-      });
+      mergeStructuredContent(messages[locale], content);
     } else {
       // Flat file (uncategorized): merge keys directly at root level
-      // Filter out dangerous keys to prevent prototype pollution (CWE-1321)
-      Object.keys(content).forEach((key) => {
-        if (!DANGEROUS_KEYS.has(key)) {
-          messages[locale][key] = content[key];
-        }
-      });
+      mergeFlatContent(messages[locale], content);
     }
   }
 }
