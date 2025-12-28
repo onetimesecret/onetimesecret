@@ -135,7 +135,9 @@ site:
         # Fine-grained controls (checked only when enabled=true)
         conceal: <%= ENV['API_GUEST_CONCEAL'] != 'false' %>
         generate: <%= ENV['API_GUEST_GENERATE'] != 'false' %>
+        show: <%= ENV['API_GUEST_SHOW'] != 'false' %>
         reveal: <%= ENV['API_GUEST_REVEAL'] != 'false' %>
+        receipt: <%= ENV['API_GUEST_RECEIPT'] != 'false' %>
         burn: <%= ENV['API_GUEST_BURN'] != 'false' %>
   # Configuration options for secret management
   secret_options:

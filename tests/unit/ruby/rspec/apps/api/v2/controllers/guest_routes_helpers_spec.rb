@@ -56,7 +56,9 @@ RSpec.describe V2::ControllerHelpers do
                   enabled: true,
                   conceal: true,
                   generate: true,
+                  show: true,
                   reveal: false,
+                  receipt: false,
                   burn: true
                 }
               }
@@ -72,11 +74,13 @@ RSpec.describe V2::ControllerHelpers do
       it 'returns true for enabled operations' do
         expect(helper.guest_routes_enabled?(:conceal)).to be true
         expect(helper.guest_routes_enabled?(:generate)).to be true
+        expect(helper.guest_routes_enabled?(:show)).to be true
         expect(helper.guest_routes_enabled?(:burn)).to be true
       end
 
       it 'returns false for disabled operations' do
         expect(helper.guest_routes_enabled?(:reveal)).to be false
+        expect(helper.guest_routes_enabled?(:receipt)).to be false
       end
 
       it 'returns true for unknown operations (defaults to true)' do

@@ -96,7 +96,7 @@ module V2
 
       def guest_get_secret
         publically do
-          require_guest_routes!(:reveal)
+          require_guest_routes!(:show)
           retrieve_guest_records(V2::Logic::Secrets::ShowSecret)
         end
       end
@@ -117,7 +117,7 @@ module V2
 
       def guest_get_metadata
         publically do
-          require_guest_routes!(:reveal)
+          require_guest_routes!(:receipt)
           retrieve_guest_records(V2::Logic::Secrets::ShowMetadata)
         end
       end
