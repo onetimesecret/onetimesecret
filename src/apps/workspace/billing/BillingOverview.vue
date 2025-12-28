@@ -9,10 +9,9 @@ import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import type { PaymentMethod } from '@/types/billing';
+import type { PaymentMethod, PlanType } from '@/types/billing';
 import { getPlanLabel } from '@/types/billing';
 import type { Organization } from '@/types/organization';
-import { ENTITLEMENTS } from '@/types/organization';
 import { computed, onMounted, ref } from 'vue';
 
 const { t } = useI18n();
@@ -26,32 +25,14 @@ const isLoading = ref(false);
 const error = ref('');
 
 const organizations = computed(() => organizationStore.organizations);
-const { entitlements } = useEntitlements(selectedOrg);
+const { entitlements, formatEntitlement, initDefinitions } = useEntitlements(selectedOrg);
 
 const planName = computed(() => {
   if (!selectedOrg.value?.planid) return t('web.billing.plans.free_plan');
-  return getPlanLabel(selectedOrg.value.planid as any) || selectedOrg.value.planid;
+  return getPlanLabel(selectedOrg.value.planid as PlanType) || selectedOrg.value.planid;
 });
 
 const planStatus = computed(() => selectedOrg.value?.planid ? 'active' : 'free');
-
-const formatEntitlement = (ent: string): string => {
-  const labels: Record<string, string> = {
-    [ENTITLEMENTS.API_ACCESS]: t('web.billing.overview.entitlements.api_access'),
-    [ENTITLEMENTS.CUSTOM_DOMAINS]: t('web.billing.overview.entitlements.custom_domains'),
-    [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: t('web.billing.overview.entitlements.custom_privacy_defaults'),
-    [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: t('web.billing.overview.entitlements.extended_default_expiration'),
-    [ENTITLEMENTS.CUSTOM_MAIL_DEFAULTS]: t('web.billing.overview.entitlements.custom_mail_defaults'),
-    [ENTITLEMENTS.CUSTOM_BRANDING]: t('web.billing.overview.entitlements.custom_branding'),
-    [ENTITLEMENTS.BRANDED_HOMEPAGE]: t('web.billing.overview.entitlements.branded_homepage'),
-    [ENTITLEMENTS.INCOMING_SECRETS]: t('web.billing.overview.entitlements.incoming_secrets'),
-    [ENTITLEMENTS.MANAGE_ORGS]: t('web.billing.overview.entitlements.manage_orgs'),
-    [ENTITLEMENTS.MANAGE_TEAMS]: t('web.billing.overview.entitlements.manage_teams'),
-    [ENTITLEMENTS.MANAGE_MEMBERS]: t('web.billing.overview.entitlements.manage_members'),
-    [ENTITLEMENTS.AUDIT_LOGS]: t('web.billing.overview.entitlements.audit_logs'),
-  };
-  return labels[ent] || ent;
-};
 
 const loadOrganizationData = async (orgId: string) => {
   isLoading.value = true;
@@ -109,6 +90,9 @@ const daysUntilBilling = computed(() => {
 
 onMounted(async () => {
   try {
+    // Initialize entitlement definitions for formatting
+    await initDefinitions();
+
     if (organizations.value.length === 0) {
       await organizationStore.fetchOrganizations();
     }

@@ -36,6 +36,8 @@
         "no_organizations_title": "No Organizations",
         "no_organizations_description": "Create an organization to manage your billing and subscription",
         "entitlements": {
+          "create_secrets": "Create Secrets",
+          "view_metadata": "View Metadata",
           "api_access": "API Access",
           "custom_domains": "Custom Domains",
           "custom_privacy_defaults": "Custom Privacy Defaults",
@@ -47,7 +49,10 @@
           "manage_orgs": "Manage Organizations",
           "manage_teams": "Manage Teams",
           "manage_members": "Manage Members",
-          "audit_logs": "Audit Logs"
+          "audit_logs": "Audit Logs",
+          "sso": "Single Sign-On",
+          "priority_support": "Priority Support",
+          "sla": "Service Level Agreement"
         }
       },
       "plans": {

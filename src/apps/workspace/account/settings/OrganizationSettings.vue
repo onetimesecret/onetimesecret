@@ -17,7 +17,6 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel } from '@/types/billing';
 import type { CreateInvitationPayload, Organization, OrganizationInvitation } from '@/types/organization';
-import { ENTITLEMENTS } from '@/types/organization';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { z } from 'zod';
@@ -55,33 +54,14 @@ const { wrap } = useAsyncHandler({
 
 const billingEnabled = computed(() => WindowService.get('billing_enabled') ?? false);
 
-// Entitlements
-const { entitlements, can } = useEntitlements(organization);
+// Entitlements - formatEntitlement uses API-driven i18n keys
+const { entitlements, can, formatEntitlement, initDefinitions, ENTITLEMENTS } = useEntitlements(organization);
 
 /**
  * Determine if this is a single-user Identity Plus account.
  * Identity Plus has custom domains but not multi-team entitlements.
  */
 const isIdentityPlus = computed(() => can(ENTITLEMENTS.CUSTOM_DOMAINS));
-
-// Format entitlement for display
-const formatEntitlement = (ent: string): string => {
-  const labels: Record<string, string> = {
-    [ENTITLEMENTS.API_ACCESS]: 'API Access',
-    [ENTITLEMENTS.CUSTOM_DOMAINS]: 'Custom Domains',
-    [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'Custom Privacy Defaults',
-    [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'Extended Default Expiration',
-    [ENTITLEMENTS.CUSTOM_MAIL_DEFAULTS]: 'Custom Mail Defaults',
-    [ENTITLEMENTS.CUSTOM_BRANDING]: 'Custom Branding',
-    [ENTITLEMENTS.BRANDED_HOMEPAGE]: 'Branded Homepage',
-    [ENTITLEMENTS.INCOMING_SECRETS]: 'Incoming Secrets',
-    [ENTITLEMENTS.MANAGE_ORGS]: 'Manage Organizations',
-    [ENTITLEMENTS.MANAGE_TEAMS]: 'Manage Teams',
-    [ENTITLEMENTS.MANAGE_MEMBERS]: 'Manage Members',
-    [ENTITLEMENTS.AUDIT_LOGS]: 'Audit Logs',
-  };
-  return labels[ent] || ent;
-};
 
 // Form data
 const formData = ref({
@@ -284,6 +264,9 @@ const canManageMembers = computed(() => {
 });
 
 onMounted(async () => {
+  // Initialize entitlement definitions for formatting
+  await initDefinitions();
+
   await loadOrganization();
   if (activeTab.value === 'members') {
     await loadInvitations();

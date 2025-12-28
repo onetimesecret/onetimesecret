@@ -4,12 +4,12 @@
   import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
 import { BillingService, type Plan as BillingPlan } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { BillingInterval } from '@/types/billing';
 import { formatCurrency } from '@/types/billing';
-import { ENTITLEMENTS } from '@/types/organization';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -32,6 +32,10 @@ const selectedOrg = computed(() =>
   organizations.value.find(org => org.id === selectedOrgId.value)
 );
 
+// Use entitlements composable for formatting
+const selectedOrgRef = computed(() => selectedOrg.value ?? null);
+const { formatEntitlement, initDefinitions } = useEntitlements(selectedOrgRef);
+
 const currentPlanId = computed(() => selectedOrg.value?.planid || 'free');
 
 // Filter plans by selected billing interval
@@ -41,23 +45,11 @@ const yearlySavingsPercent = computed(() =>
    17 // ~2 months free
 );
 
-const getFeatureLabel = (feature: string): string => {
-  const labels: Record<string, string> = {
-    [ENTITLEMENTS.API_ACCESS]: 'Full API access',
-    [ENTITLEMENTS.CUSTOM_DOMAINS]: 'Custom domains',
-    [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'Custom privacy defaults',
-    [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'Extended default expiration',
-    [ENTITLEMENTS.CUSTOM_MAIL_DEFAULTS]: 'Custom mail defaults',
-    [ENTITLEMENTS.CUSTOM_BRANDING]: 'Custom branding',
-    [ENTITLEMENTS.BRANDED_HOMEPAGE]: 'Branded homepage',
-    [ENTITLEMENTS.INCOMING_SECRETS]: 'Incoming secrets',
-    [ENTITLEMENTS.MANAGE_ORGS]: 'Organization management',
-    [ENTITLEMENTS.MANAGE_TEAMS]: 'Team management',
-    [ENTITLEMENTS.MANAGE_MEMBERS]: 'Member management',
-    [ENTITLEMENTS.AUDIT_LOGS]: 'Audit logs',
-  };
-  return labels[feature] || feature;
-};
+/**
+ * Get the display label for a feature/entitlement
+ * Uses API-driven i18n keys via useEntitlements
+ */
+const getFeatureLabel = (feature: string): string => formatEntitlement(feature);
 
 // Get base plan for comparison (Identity Plus is always the base)
 const getBasePlan = (plan: BillingPlan): BillingPlan | undefined => {
@@ -158,8 +150,11 @@ const handlePlanSelect = async (plan: BillingPlan) => {
 
 onMounted(async () => {
   try {
-    // Load plans from API
-    await loadPlans();
+    // Load entitlement definitions and plans in parallel
+    await Promise.all([
+      initDefinitions(),
+      loadPlans(),
+    ]);
 
     if (organizations.value.length === 0) {
       await organizationStore.fetchOrganizations();

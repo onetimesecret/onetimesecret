@@ -1,9 +1,49 @@
 // src/shared/composables/useEntitlements.ts
 
 import { WindowService } from '@/services/window.service';
+import { useEntitlementsStore } from '@/shared/stores/entitlementsStore';
 import type { Organization } from '@/types/organization';
 import { ENTITLEMENTS } from '@/types/organization';
 import { computed, type Ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+/**
+ * Fallback i18n keys for entitlement display names
+ * Used when API data is not available
+ */
+const FALLBACK_DISPLAY_KEYS: Record<string, string> = {
+  [ENTITLEMENTS.API_ACCESS]: 'web.billing.overview.entitlements.api_access',
+  [ENTITLEMENTS.CUSTOM_DOMAINS]: 'web.billing.overview.entitlements.custom_domains',
+  [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'web.billing.overview.entitlements.custom_privacy_defaults',
+  [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'web.billing.overview.entitlements.extended_default_expiration',
+  [ENTITLEMENTS.CUSTOM_MAIL_DEFAULTS]: 'web.billing.overview.entitlements.custom_mail_defaults',
+  [ENTITLEMENTS.CUSTOM_BRANDING]: 'web.billing.overview.entitlements.custom_branding',
+  [ENTITLEMENTS.BRANDED_HOMEPAGE]: 'web.billing.overview.entitlements.branded_homepage',
+  [ENTITLEMENTS.INCOMING_SECRETS]: 'web.billing.overview.entitlements.incoming_secrets',
+  [ENTITLEMENTS.MANAGE_ORGS]: 'web.billing.overview.entitlements.manage_orgs',
+  [ENTITLEMENTS.MANAGE_TEAMS]: 'web.billing.overview.entitlements.manage_teams',
+  [ENTITLEMENTS.MANAGE_MEMBERS]: 'web.billing.overview.entitlements.manage_members',
+  [ENTITLEMENTS.AUDIT_LOGS]: 'web.billing.overview.entitlements.audit_logs',
+};
+
+/**
+ * Fallback entitlement to plan mapping
+ * Used when API data is not available
+ */
+const FALLBACK_ENTITLEMENT_TO_PLAN: Record<string, string> = {
+  [ENTITLEMENTS.MANAGE_TEAMS]: 'identity_v1',
+  [ENTITLEMENTS.MANAGE_MEMBERS]: 'identity_v1',
+  [ENTITLEMENTS.MANAGE_ORGS]: 'identity_v1',
+  [ENTITLEMENTS.API_ACCESS]: 'identity_v1',
+  [ENTITLEMENTS.CUSTOM_DOMAINS]: 'identity_v1',
+  [ENTITLEMENTS.CUSTOM_BRANDING]: 'identity_v1',
+  [ENTITLEMENTS.BRANDED_HOMEPAGE]: 'identity_v1',
+  [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'identity_v1',
+  [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'identity_v1',
+  [ENTITLEMENTS.CUSTOM_MAIL_DEFAULTS]: 'identity_v1',
+  [ENTITLEMENTS.INCOMING_SECRETS]: 'identity_v1',
+  [ENTITLEMENTS.AUDIT_LOGS]: 'multi_team_v1',
+};
 
 /**
  * Composable for checking organization entitlements
@@ -11,7 +51,11 @@ import { computed, type Ref } from 'vue';
  * @param org - Reactive reference to the organization
  * @returns Functions and computed values for entitlement checking
  */
+/* eslint-disable max-lines-per-function */
 export function useEntitlements(org: Ref<Organization | null>) {
+  const { t } = useI18n();
+  const entitlementsStore = useEntitlementsStore();
+
   /**
    * Check if running in standalone mode (all entitlements available)
    * When billing is disabled, full access is granted
@@ -20,6 +64,16 @@ export function useEntitlements(org: Ref<Organization | null>) {
     const billingEnabled = WindowService.get('billing_enabled');
     return !billingEnabled;
   });
+
+  /**
+   * Loading state from the entitlements store
+   */
+  const isLoadingDefinitions = computed(() => entitlementsStore.isLoading);
+
+  /**
+   * Error state from the entitlements store
+   */
+  const definitionsError = computed(() => entitlementsStore.error);
 
   /**
    * Check if the organization has a specific entitlement
@@ -32,7 +86,7 @@ export function useEntitlements(org: Ref<Organization | null>) {
     if (isStandaloneMode.value) return true;
 
     if (!org.value) return false;
-    return org.value.entitlements?.includes(entitlement as any) ?? false;
+    return org.value.entitlements?.includes(entitlement as (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS]) ?? false;
   };
 
   /**
@@ -47,7 +101,8 @@ export function useEntitlements(org: Ref<Organization | null>) {
   };
 
   /**
-   * Get the upgrade plan needed for a entitlement
+   * Get the upgrade plan needed for an entitlement
+   * Uses API-provided mapping when available, falls back to hardcoded values
    *
    * @param entitlement - The entitlement to check
    * @returns The plan ID needed, or null if already available
@@ -55,24 +110,14 @@ export function useEntitlements(org: Ref<Organization | null>) {
   const upgradePath = (entitlement: string): string | null => {
     if (can(entitlement)) return null;
 
-    // Map entitlements to required plans
-    // This is a simple mapping - in production, this might come from the API
-    const entitlementToPlan: Record<string, string> = {
-      [ENTITLEMENTS.MANAGE_TEAMS]: 'identity_v1',
-      [ENTITLEMENTS.MANAGE_MEMBERS]: 'identity_v1',
-      [ENTITLEMENTS.MANAGE_ORGS]: 'identity_v1',
-      [ENTITLEMENTS.API_ACCESS]: 'identity_v1',
-      [ENTITLEMENTS.CUSTOM_DOMAINS]: 'identity_v1',
-      [ENTITLEMENTS.CUSTOM_BRANDING]: 'identity_v1',
-      [ENTITLEMENTS.BRANDED_HOMEPAGE]: 'identity_v1',
-      [ENTITLEMENTS.CUSTOM_PRIVACY_DEFAULTS]: 'identity_v1',
-      [ENTITLEMENTS.EXTENDED_DEFAULT_EXPIRATION]: 'identity_v1',
-      [ENTITLEMENTS.CUSTOM_MAIL_DEFAULTS]: 'identity_v1',
-      [ENTITLEMENTS.INCOMING_SECRETS]: 'identity_v1',
-      [ENTITLEMENTS.AUDIT_LOGS]: 'multi_team_v1',
-    };
+    // Try store data first
+    const storePlan = entitlementsStore.getRequiredPlan(entitlement);
+    if (storePlan) {
+      return storePlan;
+    }
 
-    return entitlementToPlan[entitlement] ?? 'identity_v1';
+    // Fallback to hardcoded mapping
+    return FALLBACK_ENTITLEMENT_TO_PLAN[entitlement] ?? 'identity_v1';
   };
 
   /**
@@ -92,6 +137,57 @@ export function useEntitlements(org: Ref<Organization | null>) {
   };
 
   /**
+   * Format an entitlement key to a display string using i18n
+   * Uses API-provided display_name when available, falls back to hardcoded keys
+   *
+   * @param entitlementKey - The entitlement key to format
+   * @returns The translated display string
+   */
+  const formatEntitlement = (entitlementKey: string): string => {
+    // Try store data first (returns i18n key)
+    const storeDisplayName = entitlementsStore.getDisplayName(entitlementKey);
+
+    // If store returned something other than the raw key, use it
+    if (storeDisplayName !== entitlementKey) {
+      return t(storeDisplayName);
+    }
+
+    // Fallback to hardcoded i18n keys
+    const fallbackKey = FALLBACK_DISPLAY_KEYS[entitlementKey];
+    if (fallbackKey) {
+      return t(fallbackKey);
+    }
+
+    // Last resort: return the raw key
+    return entitlementKey;
+  };
+
+  /**
+   * Get the i18n key for an entitlement (without translating)
+   *
+   * @param entitlementKey - The entitlement key
+   * @returns The i18n key for the entitlement display name
+   */
+  const getEntitlementI18nKey = (entitlementKey: string): string => {
+    // Try store data first
+    const storeDisplayName = entitlementsStore.getDisplayName(entitlementKey);
+    if (storeDisplayName !== entitlementKey) {
+      return storeDisplayName;
+    }
+
+    // Fallback to hardcoded keys
+    return FALLBACK_DISPLAY_KEYS[entitlementKey] ?? entitlementKey;
+  };
+
+  /**
+   * Initialize entitlement definitions from API
+   * Call this early in the app lifecycle to populate the store
+   */
+  const initDefinitions = async (): Promise<void> => {
+    await entitlementsStore.init();
+  };
+
+  /**
    * Computed list of all entitlements
    */
   const entitlements = computed(() => org.value?.entitlements ?? []);
@@ -102,6 +198,7 @@ export function useEntitlements(org: Ref<Organization | null>) {
   const planId = computed(() => org.value?.planid);
 
   return {
+    // Core entitlement checking
     can,
     limit,
     upgradePath,
@@ -110,5 +207,14 @@ export function useEntitlements(org: Ref<Organization | null>) {
     planId,
     isStandaloneMode,
     ENTITLEMENTS,
+
+    // Formatting
+    formatEntitlement,
+    getEntitlementI18nKey,
+
+    // Store state
+    isLoadingDefinitions,
+    definitionsError,
+    initDefinitions,
   };
 }
