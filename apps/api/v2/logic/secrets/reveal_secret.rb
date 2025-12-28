@@ -33,6 +33,7 @@ module V2::Logic
       end
 
       def raise_concerns
+        require_entitlement!('api_access')
         raise OT::MissingSecret if secret.nil? || !secret.viewable?
       end
 
