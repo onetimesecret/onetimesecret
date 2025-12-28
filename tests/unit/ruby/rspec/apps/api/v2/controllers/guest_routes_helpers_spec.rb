@@ -83,8 +83,8 @@ RSpec.describe V2::ControllerHelpers do
         expect(helper.guest_routes_enabled?(:receipt)).to be false
       end
 
-      it 'returns true for unknown operations (defaults to true)' do
-        expect(helper.guest_routes_enabled?(:unknown_op)).to be true
+      it 'returns false for unknown operations (secure by default)' do
+        expect(helper.guest_routes_enabled?(:unknown_op)).to be false
       end
     end
   end

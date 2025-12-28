@@ -340,7 +340,7 @@ module V2
       return false unless guest_config[:enabled]
       return true if operation.nil?
 
-      guest_config.fetch(operation, true)
+      guest_config.fetch(operation, false)
     end
 
     # Raises OT::FormError if guest routes disabled
