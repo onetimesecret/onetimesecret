@@ -57,7 +57,7 @@ describe('useDomainScope', () => {
       const { currentScope, isScopeActive, hasMultipleScopes } = useDomainScope();
 
       expect(currentScope.value.domain).toBe('onetimesecret.com');
-      expect(currentScope.value.displayName).toBe('Personal');
+      expect(currentScope.value.displayName).toBe('onetimesecret.com'); // Uses display_domain fallback
       expect(currentScope.value.isCanonical).toBe(true);
       expect(isScopeActive.value).toBe(true); // domains_enabled=true shows switcher
       expect(hasMultipleScopes.value).toBe(false);
@@ -190,10 +190,10 @@ describe('useDomainScope', () => {
       // Switch to canonical
       setScope('onetimesecret.com');
       expect(currentScope.value.isCanonical).toBe(true);
-      expect(currentScope.value.displayName).toBe('Personal');
+      expect(currentScope.value.displayName).toBe('onetimesecret.com'); // Uses display_domain fallback
     });
 
-    it('sets displayName to "Personal" for canonical domain', async () => {
+    it('sets displayName to domain name for canonical domain', async () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
@@ -203,7 +203,8 @@ describe('useDomainScope', () => {
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { currentScope } = useDomainScope();
 
-      expect(currentScope.value.displayName).toBe('Personal');
+      // Uses display_domain if available, falls back to site_host
+      expect(currentScope.value.displayName).toBe('onetimesecret.com');
     });
 
     it('sets displayName to domain for custom domains', async () => {
