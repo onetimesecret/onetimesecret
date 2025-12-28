@@ -123,7 +123,7 @@ module V3
         include Onetime::Logic::GuestRouteGating
 
         def raise_concerns
-          require_guest_route_enabled!(:show_metadata)
+          require_guest_route_enabled!(:receipt)
           super
         end
       end

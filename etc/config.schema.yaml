@@ -42,6 +42,8 @@ site:
         generate: any(bool(), str())
         reveal: any(bool(), str())
         burn: any(bool(), str())
+        show: any(bool(), str())
+        receipt: any(bool(), str())
   secret_options:
     default_ttl: any(str(), int())
     ttl_options: str()

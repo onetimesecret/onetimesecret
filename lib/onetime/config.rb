@@ -60,7 +60,7 @@ module Onetime
                 'reveal' => true,
                 'burn' => true,
                 'show' => true,
-                'show_metadata' => true,
+                'receipt' => true,
               },
             },
           },

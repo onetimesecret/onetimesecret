@@ -64,7 +64,7 @@ end
 
 ## Default config allows guest routes (all enabled)
 default_config = OT.conf.dig('site', 'interface', 'api', 'guest_routes')
-[default_config['enabled'], default_config['conceal'], default_config['generate'], default_config['reveal'], default_config['burn'], default_config['show'], default_config['show_metadata']]
+[default_config['enabled'], default_config['conceal'], default_config['generate'], default_config['reveal'], default_config['burn'], default_config['show'], default_config['receipt']]
 #=> [true, true, true, true, true, true, true]
 
 ## Authenticated users bypass guest route checks
@@ -116,7 +116,7 @@ end
 
 ## Missing config defaults are provided by Onetime::Config::DEFAULTS
 defaults = Onetime::Config::DEFAULTS.dig('site', 'interface', 'api', 'guest_routes')
-[defaults['enabled'], defaults['conceal'], defaults['generate'], defaults['reveal'], defaults['burn'], defaults['show'], defaults['show_metadata']]
+[defaults['enabled'], defaults['conceal'], defaults['generate'], defaults['reveal'], defaults['burn'], defaults['show'], defaults['receipt']]
 #=> [true, true, true, true, true, true, true]
 
 ## Config deep merge preserves defaults when values are missing
