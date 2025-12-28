@@ -27,7 +27,7 @@ const localeModules = (import.meta as any).glob('@/locales/*/*.json', {
 const messages: Record<string, any> = {};
 
 /** Keys that must be rejected to prevent prototype pollution attacks (CWE-1321) */
-const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+export const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
 
 /**
  * Deep merge helper function to recursively merge nested objects.
@@ -40,7 +40,7 @@ const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
  * @param source - The source object to merge from
  * @returns The merged target object
  */
-function deepMerge(target: Record<string, any>, source: Record<string, any>): Record<string, any> {
+export function deepMerge(target: Record<string, any>, source: Record<string, any>): Record<string, any> {
   for (const key in source) {
     // Skip inherited properties to prevent iterating over polluted prototype
     if (!Object.prototype.hasOwnProperty.call(source, key)) {
