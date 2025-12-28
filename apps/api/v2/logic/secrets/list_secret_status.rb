@@ -17,7 +17,9 @@ module V2::Logic
         @secrets          = secret_objects.map(&:safe_dump)
       end
 
-      def raise_concerns; end
+      def raise_concerns
+        require_entitlement!('api_access')
+      end
 
       def process
         # We don't get the actual TTL value for batches of secrets

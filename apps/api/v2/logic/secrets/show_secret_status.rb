@@ -14,7 +14,9 @@ module V2::Logic
         @secret     = Onetime::Secret.load identifier
       end
 
-      def raise_concerns; end
+      def raise_concerns
+        require_entitlement!('api_access')
+      end
 
       def process
         @current_expiration = secret.current_expiration unless secret.nil?
