@@ -476,6 +476,13 @@ jobs:
   scheduler:
     enabled: <%= ENV['JOBS_SCHEDULER_ENABLED'] == 'true' || false %>
 
+  # Plan Cache Refresh Job
+  # Proactively refreshes Billing::Plan cache from Stripe API every 6 hours.
+  # This ensures plan data remains available even if Stripe webhooks fail.
+  # The cache has a 12-hour TTL, so 6-hour refresh provides redundancy.
+  # Skips gracefully if no Stripe API key is configured (standalone mode).
+  plan_cache_refresh_enabled: <%= ENV['JOBS_PLAN_CACHE_REFRESH_ENABLED'] == 'true' || false %>
+
   # Expiration warning emails
   # Send email notifications before secrets expire to warn recipients
   expiration_warnings:

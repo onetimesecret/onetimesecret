@@ -35,9 +35,9 @@ Billing::Plan.clear_cache
   interval: 'month',
   region: 'us-east',
 )
-@free_plan.entitlements.add('create_secrets')
-@free_plan.entitlements.add('basic_sharing')
-@free_plan.entitlements.add('view_metadata')
+@free_plan.entitlements.add('api_access')
+@free_plan.entitlements.add('custom_privacy_defaults')
+@free_plan.entitlements.add('extended_default_expiration')
 @free_plan.limits['secrets_per_day.max'] = '10'
 @free_plan.limits['secret_lifetime.max'] = '604800'
 @free_plan.show_on_plans_page = true
@@ -51,13 +51,13 @@ Billing::Plan.clear_cache
   interval: 'month',
   region: 'us-east',
 )
-@identity_plan.entitlements.add('create_secrets')
-@identity_plan.entitlements.add('basic_sharing')
-@identity_plan.entitlements.add('view_metadata')
-@identity_plan.entitlements.add('create_team')
+@identity_plan.entitlements.add('api_access')
+@identity_plan.entitlements.add('custom_privacy_defaults')
+@identity_plan.entitlements.add('extended_default_expiration')
+@identity_plan.entitlements.add('manage_teams')
 @identity_plan.entitlements.add('custom_domains')
-@identity_plan.entitlements.add('priority_support')
-@identity_plan.entitlements.add('extended_lifetime')
+@identity_plan.entitlements.add('incoming_secrets')
+@identity_plan.entitlements.add('custom_mail_defaults')
 @identity_plan.limits['teams.max']            = '1'
 @identity_plan.limits['members_per_team.max'] = 'unlimited'
 @identity_plan.limits['custom_domains.max']   = 'unlimited'
@@ -73,16 +73,18 @@ Billing::Plan.clear_cache
   interval: 'month',
   region: 'us-east',
 )
-@multi_plan.entitlements.add('create_secrets')
-@multi_plan.entitlements.add('basic_sharing')
-@multi_plan.entitlements.add('view_metadata')
-@multi_plan.entitlements.add('create_teams')
-@multi_plan.entitlements.add('custom_domains')
 @multi_plan.entitlements.add('api_access')
-@multi_plan.entitlements.add('priority_support')
-@multi_plan.entitlements.add('extended_lifetime')
+@multi_plan.entitlements.add('custom_privacy_defaults')
+@multi_plan.entitlements.add('extended_default_expiration')
+@multi_plan.entitlements.add('manage_orgs')
+@multi_plan.entitlements.add('manage_teams')
+@multi_plan.entitlements.add('manage_members')
+@multi_plan.entitlements.add('custom_domains')
+@multi_plan.entitlements.add('custom_branding')
+@multi_plan.entitlements.add('branded_homepage')
+@multi_plan.entitlements.add('incoming_secrets')
+@multi_plan.entitlements.add('custom_mail_defaults')
 @multi_plan.entitlements.add('audit_logs')
-@multi_plan.entitlements.add('advanced_analytics')
 @multi_plan.limits['teams.max']            = 'unlimited'
 @multi_plan.limits['members_per_team.max'] = 'unlimited'
 @multi_plan.limits['custom_domains.max']   = 'unlimited'
@@ -98,11 +100,11 @@ Billing::Plan.clear_cache
   interval: 'month',
   region: 'us-east',
 )
-@legacy_plan.entitlements.add('create_secrets')
-@legacy_plan.entitlements.add('basic_sharing')
-@legacy_plan.entitlements.add('view_metadata')
-@legacy_plan.entitlements.add('create_team')
-@legacy_plan.entitlements.add('priority_support')
+@legacy_plan.entitlements.add('api_access')
+@legacy_plan.entitlements.add('custom_privacy_defaults')
+@legacy_plan.entitlements.add('extended_default_expiration')
+@legacy_plan.entitlements.add('manage_teams')
+@legacy_plan.entitlements.add('incoming_secrets')
 @legacy_plan.limits['teams.max']            = '1'
 @legacy_plan.limits['members_per_team.max'] = '10'
 @legacy_plan.limits['secret_lifetime.max']  = '1209600'
@@ -160,54 +162,54 @@ Billing::Plan.clear_cache
 
 ## Test: Free plan entitlements
 @free_org.entitlements.sort
-#=> ["basic_sharing", "create_secrets", "view_metadata"]
+#=> ["api_access", "custom_privacy_defaults", "extended_default_expiration"]
 
-## Test: Free plan can create secrets
-@free_org.can?('create_secrets')
+## Test: Free plan has api_access
+@free_org.can?('api_access')
 #=> true
 
-## Test: Free plan cannot create teams
-@free_org.can?('create_team')
+## Test: Free plan cannot manage teams
+@free_org.can?('manage_teams')
 #=> false
 
 ## Test: Free plan cannot access custom domains
 @free_org.can?('custom_domains')
 #=> false
 
-## Test: Identity Plus v1 can create team
-@identity_org.can?('create_team')
+## Test: Identity Plus v1 can manage teams
+@identity_org.can?('manage_teams')
 #=> true
 
 ## Test: Identity Plus v1 has custom domains
 @identity_org.can?('custom_domains')
 #=> true
 
-## Test: Identity Plus v1 does not have API access
-@identity_org.can?('api_access')
+## Test: Identity Plus v1 does not have custom branding
+@identity_org.can?('custom_branding')
 #=> false
 
 ## Test: Identity Plus v1 does not have audit logs
 @identity_org.can?('audit_logs')
 #=> false
 
-## Test: Multi-Team can create multiple teams
-@multi_org.can?('create_teams')
+## Test: Multi-Team can manage orgs
+@multi_org.can?('manage_orgs')
 #=> true
 
-## Test: Multi-Team has API access
-@multi_org.can?('api_access')
+## Test: Multi-Team has custom branding
+@multi_org.can?('custom_branding')
 #=> true
 
 ## Test: Multi-Team has audit logs
 @multi_org.can?('audit_logs')
 #=> true
 
-## Test: Multi-Team has advanced analytics
-@multi_org.can?('advanced_analytics')
+## Test: Multi-Team has branded homepage
+@multi_org.can?('branded_homepage')
 #=> true
 
-## Test: Legacy plan can create team
-@legacy_org.can?('create_team')
+## Test: Legacy plan can manage teams
+@legacy_org.can?('manage_teams')
 #=> true
 
 ## Test: Legacy plan does NOT have custom domains
@@ -288,8 +290,8 @@ Billing::Plan.clear_cache
 Billing::PlanHelpers.upgrade_path_for('custom_domains', 'free')
 #=> "identity_v1"
 
-## Test: Upgrade path from Identity to audit_logs is multi_team
-Billing::PlanHelpers.upgrade_path_for('audit_logs', 'identity_v1')
+## Test: Upgrade path from Identity to custom_branding is multi_team
+Billing::PlanHelpers.upgrade_path_for('custom_branding', 'identity_v1')
 #=> "multi_team_v1"
 
 ## Test: Upgrade path for nonexistent entitlement returns nil
@@ -367,8 +369,8 @@ Billing::PlanHelpers.available_plans.include?('identity_v0')
 @no_plan_org.entitlements
 #=> []
 
-## Test: Fail-safe for nil planid denies create_secrets
-@no_plan_org.can?('create_secrets')
+## Test: Fail-safe for nil planid denies api_access
+@no_plan_org.can?('api_access')
 #=> false
 
 ## Test: Fail-safe for nil planid returns 0 limit
@@ -394,8 +396,8 @@ Billing::PlanHelpers.available_plans.include?('identity_v0')
 @new_org.planid
 #=> 'free'
 
-## Test: New organization can create secrets
-@new_org.can?('create_secrets')
+## Test: New organization has api_access
+@new_org.can?('api_access')
 #=> true
 
 ## Teardown: Clean up test organizations

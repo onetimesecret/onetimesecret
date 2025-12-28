@@ -24,7 +24,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
         amount: '2900',
         currency: 'usd',
         region: 'US',
-        entitlements: '["create_secrets","create_team"]',
+        entitlements: '["api_access","manage_teams"]',
       )
     end
 
@@ -36,7 +36,7 @@ RSpec.describe 'Billing Plans CLI Commands', :billing_cli, :integration, :vcr do
         amount: '99900',
         currency: 'eur',
         region: 'EU',
-        entitlements: '["create_secrets","create_team","custom_domains"]',
+        entitlements: '["api_access","manage_teams","custom_domains"]',
       )
     end
 

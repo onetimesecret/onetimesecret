@@ -28,7 +28,7 @@ module Billing
   #     "plan_id": "identity_plus_v1",
   #     "tier": "single_team",
   #     "region": "EU",
-  #     "entitlements": "create_secrets,create_team,custom_domains",
+  #     "entitlements": "api_access,custom_domains,manage_teams",
   #     "limit_teams": "1",
   #     "limit_members_per_team": "-1"
   #   }
@@ -152,9 +152,19 @@ module Billing
       # Fetches all active products and prices from Stripe, filters by app metadata,
       # and caches them in Redis with computed plan IDs.
       #
+      # ## Consistency Guarantee
+      #
+      # This method uses a "collect-then-write" pattern to minimize inconsistency:
+      # 1. **Fetch phase**: All Stripe data is fetched and validated in memory first
+      # 2. **Write phase**: Only after all data is collected, plans are saved to Redis
+      #
+      # If Stripe API fails during the fetch phase, no cache modifications occur.
+      # If a write fails mid-save, previously cached plans remain valid (12-hour TTL),
+      # and the next refresh attempt will overwrite them.
+      #
       # @param progress [Proc, nil] Optional progress callback (called with status messages)
       # @return [Integer] Number of plans cached
-      # @raise [Stripe::StripeError] If Stripe API call fails
+      # @raise [Stripe::StripeError] If Stripe API call fails during fetch phase
       def refresh_from_stripe(progress: nil)
         # Skip Stripe sync in CI/test environments without API key
         stripe_key = Onetime.billing_config.stripe_key
@@ -163,8 +173,38 @@ module Billing
           return 0
         end
 
-        OT.li '[Plan.refresh_from_stripe] Starting Stripe sync'
+        OT.li '[Plan.refresh_from_stripe] Starting Stripe sync (collect-then-write)'
 
+        # PHASE 1: Fetch all data from Stripe into memory
+        # No Redis writes occur during this phase
+        plan_data_list = collect_stripe_plans(progress: progress)
+
+        if plan_data_list.empty?
+          OT.lw '[Plan.refresh_from_stripe] No valid plans fetched from Stripe'
+          return 0
+        end
+
+        progress&.call("Writing #{plan_data_list.size} plans to cache...")
+
+        # PHASE 2: Write all collected plans to Redis
+        # This happens only after all Stripe API calls succeeded
+        items_count = persist_collected_plans(plan_data_list)
+
+        OT.li "[Plan.refresh_from_stripe] Cached #{items_count} plans"
+        items_count
+      end
+
+      private
+
+      # Fetches all plan data from Stripe API into memory
+      #
+      # No Redis writes occur during this phase. If any Stripe API call fails,
+      # the exception propagates up and no cache modifications happen.
+      #
+      # @param progress [Proc, nil] Optional progress callback
+      # @return [Array<Hash>] Array of plan data hashes ready for persistence
+      # @raise [Stripe::StripeError] If any Stripe API call fails
+      def collect_stripe_plans(progress: nil)
         # Fetch all active products with onetimesecret metadata
         products = Stripe::Product.list({
           active: true,
@@ -172,7 +212,7 @@ module Billing
         },
                                        )
 
-        items_count        = 0
+        plan_data_list     = []
         products_processed = 0
 
         progress&.call('Fetching products from Stripe...')
@@ -180,9 +220,10 @@ module Billing
         products.auto_paging_each do |product|
           products_processed += 1
           progress&.call("Processing product #{products_processed}: #{product.name[0..40]}...") if products_processed == 1 || products_processed % 5 == 0
+
           # Skip products without required metadata
           unless product.metadata[Metadata::FIELD_APP] == Metadata::APP_NAME
-            OT.ld '[Plan.refresh_from_stripe] Skipping product (not onetimesecret app)', {
+            OT.ld '[Plan.collect_stripe_plans] Skipping product (not onetimesecret app)', {
               product_id: product.id,
               product_name: product.name,
               app: product.metadata[Metadata::FIELD_APP],
@@ -191,7 +232,7 @@ module Billing
           end
 
           unless product.metadata[Metadata::FIELD_TIER]
-            OT.lw '[Plan.refresh_from_stripe] Skipping product (missing tier)', {
+            OT.lw '[Plan.collect_stripe_plans] Skipping product (missing tier)', {
               product_id: product.id,
               product_name: product.name,
             }
@@ -199,7 +240,7 @@ module Billing
           end
 
           unless product.metadata[Metadata::FIELD_REGION]
-            OT.lw '[Plan.refresh_from_stripe] Skipping product (missing region)', {
+            OT.lw '[Plan.collect_stripe_plans] Skipping product (missing region)', {
               product_id: product.id,
               product_name: product.name,
             }
@@ -218,130 +259,172 @@ module Billing
             # Skip non-recurring prices
             next unless price.type == 'recurring'
 
-            interval = price.recurring.interval # 'month' or 'year'
-            tier     = product.metadata[Metadata::FIELD_TIER]
-            region   = product.metadata[Metadata::FIELD_REGION]
+            plan_data = extract_plan_data(product, price)
+            plan_data_list << plan_data
 
-            # Use explicit plan_id from metadata with interval appended, or compute from tier_interval_region
-            # TODO: Investigate why yearly plans don't appear in API response
-            # Current behavior: plan_id from metadata (e.g., "identity_plus_v1") is same for monthly/yearly
-            # This may cause yearly to overwrite monthly in cache if plan_id is used as Redis key
-            base_plan_id = product.metadata[Metadata::FIELD_PLAN_ID] || "#{tier}_#{region}"
-            plan_id      = "#{base_plan_id}_#{interval}ly"
-
-            # Extract entitlements from product metadata
-            # Expected format: "create_secrets,create_team,custom_domains"
-            entitlements_str = product.metadata[Metadata::FIELD_ENTITLEMENTS] || ''
-            entitlements     = entitlements_str.split(',').map(&:strip).reject(&:empty?)
-
-            # Extract limits from product metadata using Metadata helper
-            limits = {}
-            product.metadata.each do |key, value|
-              key_str = key.to_s  # Ensure key is a string
-              next unless key_str.start_with?('limit_')
-
-              resource         = key_str.sub('limit_', '').to_sym
-              limits[resource] = Metadata.normalize_limit(value)
-            end
-
-            # Extract display_order from product metadata (default to 0)
-            # Higher values appear first (100 = leftmost, 0 = rightmost)
-            display_order = product.metadata[Metadata::FIELD_DISPLAY_ORDER] || '0'
-
-            # Extract tenancy from product metadata (default to 'multi')
-            tenancy = product.metadata[Metadata::FIELD_TENANCY] || 'multi'
-
-            # Extract show_on_plans_page from product metadata (default to 'true')
-            # Accepts: 'true', 'false', '1', '0', 'yes', 'no'
-            show_on_plans_page_value = product.metadata[Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'true'
-            show_on_plans_page       = %w[true 1 yes].include?(show_on_plans_page_value.to_s.downcase)
-
-            # Create or update plan cache
-            plan = new(
-              plan_id: plan_id,
-              stripe_price_id: price.id,
-              stripe_product_id: product.id,
-              name: product.name,
-              tier: tier,
-              interval: interval,
-              amount: price.unit_amount.to_s,
-              currency: price.currency,
-              region: region,
-              tenancy: tenancy,
-              display_order: display_order,
-              show_on_plans_page: show_on_plans_page.to_s,
-              description: product.description,
-            )
-
-            # Populate additional Stripe Price fields
-            plan.active            = price.active.to_s
-            plan.billing_scheme    = price.billing_scheme
-            plan.usage_type        = price.recurring&.usage_type || 'licensed'
-            plan.trial_period_days = price.recurring&.trial_period_days&.to_s
-            plan.nickname          = price.nickname
-            plan.last_synced_at    = Time.now.to_i.to_s
-
-            # Add entitlements to set (unique values)
-            plan.entitlements.clear
-            entitlements.each { |ent| plan.entitlements.add(ent) }
-
-            # Add features to set
-            plan.features.clear
-            marketing_features = product.marketing_features&.map(&:name) || []
-            marketing_features.each { |feat| plan.features.add(feat) }
-
-            # Add limits to hashkey with flattened keys
-            plan.limits.clear
-            limits.each do |resource, value|
-              # Flatten: "teams" => "teams.max", value -1 => "unlimited"
-              key              = "#{resource}.max"
-              val              = value == -1 ? 'unlimited' : value.to_s
-              plan.limits[key] = val
-            end
-
-            # Store original Stripe data for recovery/debugging
-            # Allows re-parsing without full Stripe API sync if logic changes
-            stripe_snapshot                 = {
-              product: {
-                id: product.id,
-                name: product.name,
-                metadata: product.metadata.to_h,
-                marketing_features: product.marketing_features&.map(&:name) || [],
-              },
-              price: {
-                id: price.id,
-                type: price.type,
-                currency: price.currency,
-                unit_amount: price.unit_amount,
-                recurring: {
-                  interval: price.recurring.interval,
-                },
-              },
-              cached_at: Time.now.to_i,
-            }
-            plan.stripe_data_snapshot.value = stripe_snapshot.to_json
-
-            plan.save
-
-            OT.ld "[Plan] Cached plan: #{plan_id}", {
+            OT.ld "[Plan.collect_stripe_plans] Collected plan: #{plan_data[:plan_id]}", {
               stripe_price_id: price.id,
               amount: price.unit_amount,
-              currency: price.currency,
             }
-
-            items_count += 1
           end
         end
 
-        OT.li "[Plan.refresh_from_stripe] Cached #{items_count} plans"
-        items_count
-      rescue Stripe::StripeError => ex
-        OT.le '[Plan.refresh_from_stripe] Stripe error', {
-          exception: ex,
-          message: ex.message,
-        }
-        raise
+        OT.li "[Plan.collect_stripe_plans] Collected #{plan_data_list.size} plans from Stripe"
+        plan_data_list
       end
+
+      # Extracts plan data from Stripe product and price objects
+      #
+      # @param product [Stripe::Product] Stripe product object
+      # @param price [Stripe::Price] Stripe price object
+      # @return [Hash] Plan data ready for persistence
+      def extract_plan_data(product, price)
+        interval = price.recurring.interval # 'month' or 'year'
+        tier     = product.metadata[Metadata::FIELD_TIER]
+        region   = product.metadata[Metadata::FIELD_REGION]
+
+        # Use explicit plan_id from metadata with interval appended, or compute from tier_interval_region
+        base_plan_id = product.metadata[Metadata::FIELD_PLAN_ID] || "#{tier}_#{region}"
+        plan_id      = "#{base_plan_id}_#{interval}ly"
+
+        # Extract entitlements from product metadata
+        entitlements_str = product.metadata[Metadata::FIELD_ENTITLEMENTS] || ''
+        entitlements     = entitlements_str.split(',').map(&:strip).reject(&:empty?)
+
+        # Extract limits from product metadata using Metadata helper
+        limits = {}
+        product.metadata.each do |key, value|
+          key_str = key.to_s
+          next unless key_str.start_with?('limit_')
+
+          resource         = key_str.sub('limit_', '').to_sym
+          limits[resource] = Metadata.normalize_limit(value)
+        end
+
+        # Extract display_order from product metadata (default to 0)
+        display_order = product.metadata[Metadata::FIELD_DISPLAY_ORDER] || '0'
+
+        # Extract tenancy from product metadata (default to 'multi')
+        tenancy = product.metadata[Metadata::FIELD_TENANCY] || 'multi'
+
+        # Extract show_on_plans_page from product metadata (default to 'true')
+        show_on_plans_page_value = product.metadata[Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'true'
+        show_on_plans_page       = %w[true 1 yes].include?(show_on_plans_page_value.to_s.downcase)
+
+        # Build stripe snapshot for recovery
+        stripe_snapshot = {
+          product: {
+            id: product.id,
+            name: product.name,
+            metadata: product.metadata.to_h,
+            marketing_features: product.marketing_features&.map(&:name) || [],
+          },
+          price: {
+            id: price.id,
+            type: price.type,
+            currency: price.currency,
+            unit_amount: price.unit_amount,
+            recurring: {
+              interval: price.recurring.interval,
+            },
+          },
+          cached_at: Time.now.to_i,
+        }
+
+        {
+          plan_id: plan_id,
+          stripe_price_id: price.id,
+          stripe_product_id: product.id,
+          name: product.name,
+          tier: tier,
+          interval: interval,
+          amount: price.unit_amount.to_s,
+          currency: price.currency,
+          region: region,
+          tenancy: tenancy,
+          display_order: display_order,
+          show_on_plans_page: show_on_plans_page.to_s,
+          description: product.description,
+          active: price.active.to_s,
+          billing_scheme: price.billing_scheme,
+          usage_type: price.recurring&.usage_type || 'licensed',
+          trial_period_days: price.recurring&.trial_period_days&.to_s,
+          nickname: price.nickname,
+          entitlements: entitlements,
+          features: product.marketing_features&.map(&:name) || [],
+          limits: limits,
+          stripe_snapshot: stripe_snapshot,
+        }
+      end
+
+      # Persists collected plan data to Redis
+      #
+      # @param plan_data_list [Array<Hash>] Array of plan data hashes
+      # @return [Integer] Number of plans successfully saved
+      def persist_collected_plans(plan_data_list)
+        sync_timestamp = Time.now.to_i.to_s
+        saved_count    = 0
+
+        plan_data_list.each do |data|
+          plan = new(
+            plan_id: data[:plan_id],
+            stripe_price_id: data[:stripe_price_id],
+            stripe_product_id: data[:stripe_product_id],
+            name: data[:name],
+            tier: data[:tier],
+            interval: data[:interval],
+            amount: data[:amount],
+            currency: data[:currency],
+            region: data[:region],
+            tenancy: data[:tenancy],
+            display_order: data[:display_order],
+            show_on_plans_page: data[:show_on_plans_page],
+            description: data[:description],
+          )
+
+          # Populate additional Stripe Price fields
+          plan.active            = data[:active]
+          plan.billing_scheme    = data[:billing_scheme]
+          plan.usage_type        = data[:usage_type]
+          plan.trial_period_days = data[:trial_period_days]
+          plan.nickname          = data[:nickname]
+          plan.last_synced_at    = sync_timestamp
+
+          # Add entitlements to set (unique values)
+          plan.entitlements.clear
+          data[:entitlements].each { |ent| plan.entitlements.add(ent) }
+
+          # Add features to set
+          plan.features.clear
+          data[:features].each { |feat| plan.features.add(feat) }
+
+          # Add limits to hashkey with flattened keys
+          plan.limits.clear
+          data[:limits].each do |resource, value|
+            key              = "#{resource}.max"
+            val              = value == -1 ? 'unlimited' : value.to_s
+            plan.limits[key] = val
+          end
+
+          # Store original Stripe data for recovery/debugging
+          plan.stripe_data_snapshot.value = data[:stripe_snapshot].to_json
+
+          plan.save
+
+          OT.ld "[Plan.persist_collected_plans] Cached plan: #{data[:plan_id]}"
+          saved_count += 1
+        rescue StandardError => ex
+          # Log but continue - don't let one plan failure stop others
+          OT.le '[Plan.persist_collected_plans] Failed to save plan', {
+            plan_id: data[:plan_id],
+            error: ex.message,
+          }
+        end
+
+        saved_count
+      end
+
+      public
 
       # Get plan by tier, interval, and region
       #

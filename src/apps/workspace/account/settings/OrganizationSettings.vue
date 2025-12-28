@@ -17,7 +17,6 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel } from '@/types/billing';
 import type { CreateInvitationPayload, Organization, OrganizationInvitation } from '@/types/organization';
-import { ENTITLEMENTS } from '@/types/organization';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { z } from 'zod';
@@ -55,28 +54,22 @@ const { wrap } = useAsyncHandler({
 
 const billingEnabled = computed(() => WindowService.get('billing_enabled') ?? false);
 
-// Entitlements
-const { entitlements, can } = useEntitlements(organization);
+// Entitlements - formatEntitlement uses API-driven i18n keys
+const {
+  entitlements,
+  can,
+  formatEntitlement,
+  initDefinitions,
+  isLoadingDefinitions,
+  definitionsError,
+  ENTITLEMENTS,
+} = useEntitlements(organization);
 
 /**
  * Determine if this is a single-user Identity Plus account.
  * Identity Plus has custom domains but not multi-team entitlements.
  */
 const isIdentityPlus = computed(() => can(ENTITLEMENTS.CUSTOM_DOMAINS));
-
-// Format entitlement for display
-const formatEntitlement = (ent: string): string => {
-  const labels: Record<string, string> = {
-    [ENTITLEMENTS.CREATE_SECRETS]: 'Create Secrets',
-    [ENTITLEMENTS.VIEW_METADATA]: 'View Metadata',
-    [ENTITLEMENTS.MANAGE_MEMBERS]: 'Manage Members',
-    [ENTITLEMENTS.CUSTOM_DOMAINS]: 'Custom Domains',
-    [ENTITLEMENTS.API_ACCESS]: 'API Access',
-    [ENTITLEMENTS.PRIORITY_SUPPORT]: 'Priority Support',
-    [ENTITLEMENTS.AUDIT_LOGS]: 'Audit Logs',
-  };
-  return labels[ent] || ent;
-};
 
 // Form data
 const formData = ref({
@@ -279,6 +272,9 @@ const canManageMembers = computed(() => {
 });
 
 onMounted(async () => {
+  // Initialize entitlement definitions for formatting
+  await initDefinitions();
+
   await loadOrganization();
   if (activeTab.value === 'members') {
     await loadInvitations();
@@ -742,11 +738,29 @@ watch(activeTab, async (newTab) => {
                   </div>
 
                   <!-- Current Entitlements -->
-                  <div v-if="entitlements.length > 0" class="border-t border-gray-200 pt-4 dark:border-gray-700">
+                  <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
                     <p class="mb-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                      Your Plan Includes:
+                      {{ t('web.billing.overview.plan_features') }}
                     </p>
-                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+
+                    <!-- Loading skeleton for entitlements -->
+                    <div v-if="isLoadingDefinitions" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <div
+                        v-for="i in 4"
+                        :key="i"
+                        class="flex animate-pulse items-center gap-2">
+                        <div class="size-5 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                        <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
+                      </div>
+                    </div>
+
+                    <!-- Error state for entitlements -->
+                    <div v-else-if="definitionsError" class="text-sm text-amber-600 dark:text-amber-400">
+                      {{ t('web.billing.overview.entitlements_load_error') }}
+                    </div>
+
+                    <!-- Entitlements list -->
+                    <div v-else-if="entitlements.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <div
                         v-for="ent in entitlements"
                         :key="ent"
@@ -758,6 +772,11 @@ watch(activeTab, async (newTab) => {
                           aria-hidden="true" />
                         {{ formatEntitlement(ent) }}
                       </div>
+                    </div>
+
+                    <!-- No entitlements -->
+                    <div v-else class="text-sm text-gray-500 dark:text-gray-400">
+                      {{ t('web.billing.overview.no_entitlements') }}
                     </div>
                   </div>
 

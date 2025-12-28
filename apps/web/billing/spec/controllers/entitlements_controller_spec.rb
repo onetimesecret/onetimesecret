@@ -213,34 +213,34 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
     end
 
     it 'returns allowed status for granted entitlement', :vcr do
-      # identity_v1 has create_secrets entitlement
-      get "/billing/api/entitlements/#{organization.extid}/create_secrets"
+      # identity_v1 has api_access entitlement
+      get "/billing/api/entitlements/#{organization.extid}/api_access"
 
       expect(last_response.status).to eq(200)
       expect(last_response.content_type).to include('application/json')
 
       data = JSON.parse(last_response.body)
       expect(data['allowed']).to be(true)
-      expect(data['entitlement']).to eq('create_secrets')
+      expect(data['entitlement']).to eq('api_access')
       expect(data['current_plan']).to eq('identity_v1')
       expect(data['upgrade_needed']).to be(false)
     end
 
     it 'returns denied status for missing entitlement', :vcr do
-      # identity_v1 does not have api_access entitlement
-      get "/billing/api/entitlements/#{organization.extid}/api_access"
+      # identity_v1 does not have custom_branding entitlement
+      get "/billing/api/entitlements/#{organization.extid}/custom_branding"
 
       expect(last_response.status).to eq(200)
 
       data = JSON.parse(last_response.body)
       expect(data['allowed']).to be(false)
-      expect(data['entitlement']).to eq('api_access')
+      expect(data['entitlement']).to eq('custom_branding')
       expect(data['current_plan']).to eq('identity_v1')
       expect(data['upgrade_needed']).to be(true)
     end
 
     it 'includes upgrade information when entitlement is denied', :vcr do
-      get "/billing/api/entitlements/#{organization.extid}/api_access"
+      get "/billing/api/entitlements/#{organization.extid}/custom_branding"
 
       data = JSON.parse(last_response.body)
 
@@ -284,7 +284,7 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
         'external_id' => other_customer.extid,
       }
 
-      get "/billing/api/entitlements/#{organization.extid}/create_secrets"
+      get "/billing/api/entitlements/#{organization.extid}/api_access"
 
       expect(last_response.status).to eq(403)
     end
@@ -292,13 +292,13 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
     it 'requires authentication', :vcr do
       env 'rack.session', {}
 
-      get "/billing/api/entitlements/#{organization.extid}/create_secrets"
+      get "/billing/api/entitlements/#{organization.extid}/api_access"
 
       expect(last_response.status).to eq(401)
     end
 
     it 'builds user-friendly upgrade message', :vcr do
-      get "/billing/api/entitlements/#{organization.extid}/api_access"
+      get "/billing/api/entitlements/#{organization.extid}/custom_branding"
 
       data = JSON.parse(last_response.body)
 
@@ -309,7 +309,7 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
     end
 
     it 'verifies multiple entitlements in sequence', :vcr do
-      entitlements_to_test = %w[create_secrets create_team custom_domains api_access]
+      entitlements_to_test = %w[api_access manage_teams custom_domains custom_branding]
 
       results = entitlements_to_test.map do |ent|
         get "/billing/api/entitlements/#{organization.extid}/#{ent}"

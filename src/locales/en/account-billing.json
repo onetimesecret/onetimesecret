@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Upgrade Required",
         "viewPlans": "View Plans",
+        "needTeams": "Team management requires Identity Plus or higher",
         "needCustomDomains": "Custom domains require Identity Plus or higher",
-        "needApiAccess": "API access requires Multi-Team plan or higher",
-        "needPrioritySupport": "Priority support requires Identity Plus or higher",
+        "needApiAccess": "API access requires Identity Plus or higher",
         "needAuditLogs": "Audit logs require Multi-Team plan or higher"
       },
       "manage_subscription_and_billing": "Manage your subscription, organizations, and billing settings",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Create an organization to manage your billing and subscription",
         "entitlements": {
           "create_secrets": "Create Secrets",
-          "basic_sharing": "Basic Sharing",
-          "custom_domains": "Custom Domains",
+          "view_metadata": "View Metadata",
           "api_access": "API Access",
+          "custom_domains": "Custom Domains",
+          "custom_privacy_defaults": "Custom Privacy Defaults",
+          "extended_default_expiration": "Extended Default Expiration",
+          "custom_mail_defaults": "Custom Mail Defaults",
+          "custom_branding": "Custom Branding",
+          "branded_homepage": "Branded Homepage",
+          "incoming_secrets": "Incoming Secrets",
+          "manage_orgs": "Manage Organizations",
+          "manage_teams": "Manage Teams",
+          "manage_members": "Manage Members",
+          "audit_logs": "Audit Logs",
+          "sso": "Single Sign-On",
           "priority_support": "Priority Support",
-          "audit_logs": "Audit Logs"
-        }
+          "sla": "Service Level Agreement"
+        },
+        "entitlements_load_error": "Could not load feature details",
+        "no_entitlements": "No features available"
       },
       "plans": {
         "title": "Select a Plan",

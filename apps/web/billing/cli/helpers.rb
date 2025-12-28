@@ -220,7 +220,7 @@ module Onetime
         print 'Tenancy (e.g., single, multi): '
         metadata[Billing::Metadata::FIELD_TENANCY] = $stdin.gets.chomp
 
-        print 'Entitlements (comma-separated, e.g., create_secrets,create_team): '
+        print 'Entitlements (comma-separated, e.g., api_access,custom_domains): '
         metadata[Billing::Metadata::FIELD_ENTITLEMENTS] = $stdin.gets.chomp
 
         print 'Display order (higher = earlier, default: 0): '
