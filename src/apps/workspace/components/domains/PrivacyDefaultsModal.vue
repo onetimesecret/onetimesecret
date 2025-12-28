@@ -24,8 +24,10 @@
 
   const emit = defineEmits<{
     (e: 'close'): void;
-    (e: 'save', settings: Partial<BrandSettings>): void;
+    (e: 'save', settings: Partial<BrandSettings>): Promise<void>;
   }>();
+
+  const saveError = ref<string | null>(null);
 
   // Form validation schema
   const privacyDefaultsSchema = z.object({
@@ -65,6 +67,7 @@
           notify_enabled: props.brandSettings.notify_enabled ?? false,
         };
         formErrors.value = {};
+        saveError.value = null;
       }
     }
   );
@@ -101,9 +104,14 @@
     if (!validateForm()) return;
 
     isSaving.value = true;
+    saveError.value = null;
     try {
-      emit('save', formData.value);
+      await emit('save', formData.value);
       emit('close');
+    } catch (error) {
+      // Network or server error - keep modal open so user can retry
+      saveError.value =
+        error instanceof Error ? error.message : 'Failed to save settings. Please try again.';
     } finally {
       isSaving.value = false;
     }
@@ -253,6 +261,22 @@
                     </label>
                     <p class="text-xs text-gray-500 dark:text-gray-400">
                       {{ t('web.domains.notify_enabled_hint') }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Error Message -->
+                <div
+                  v-if="saveError"
+                  class="rounded-md bg-red-50 p-3 dark:bg-red-900/30">
+                  <div class="flex items-center gap-2">
+                    <OIcon
+                      collection="mdi"
+                      name="alert-circle-outline"
+                      class="size-5 text-red-500 dark:text-red-400"
+                      aria-hidden="true" />
+                    <p class="text-sm text-red-700 dark:text-red-300">
+                      {{ saveError }}
                     </p>
                   </div>
                 </div>

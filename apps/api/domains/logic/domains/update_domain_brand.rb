@@ -155,8 +155,16 @@ module DomainsAPI::Logic
         ttl = @brand_settings[:default_ttl]
         return if ttl.nil?
 
-        # Coerce to integer if string
-        ttl_value = ttl.is_a?(String) ? ttl.to_i : ttl
+        # Coerce to integer if string with strict validation
+        ttl_value = ttl
+        if ttl.is_a?(String)
+          begin
+            ttl_value = Integer(ttl, 10)
+          rescue ArgumentError
+            OT.ld "[UpdateDomainBrand] Error: Invalid integer string for default_ttl '#{ttl}'"
+            raise_form_error 'Invalid default TTL - must be a positive integer (seconds)'
+          end
+        end
 
         unless ttl_value.is_a?(Integer) && ttl_value.positive?
           OT.ld "[UpdateDomainBrand] Error: Invalid default_ttl '#{ttl}'"
