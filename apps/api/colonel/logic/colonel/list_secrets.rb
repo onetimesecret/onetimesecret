@@ -22,36 +22,11 @@ module ColonelAPI
         end
 
         def process
-          # Get all secret keys from Redis
-          secret_keys  = Onetime::Secret.new.dbclient.keys('secret*:object')
-          @total_count = secret_keys.size
+          # Get paginated secrets using non-blocking SCAN
+          result       = scan_secrets_paginated
+          @secrets     = result[:secrets]
+          @total_count = result[:total_count]
           @total_pages = (@total_count.to_f / @per_page).ceil
-
-          # Paginate
-          start_idx      = (@page - 1) * @per_page
-          end_idx        = start_idx + @per_page - 1
-          paginated_keys = secret_keys[start_idx..end_idx] || []
-
-          # Load secret data
-          @secrets = paginated_keys.map do |key|
-            # Extract objid from key (e.g., "secret:abc123:object" -> "abc123")
-            objid  = key.split(':')[1]
-            secret = Onetime::Secret.load(objid)
-            next unless secret&.exists?
-
-            {
-              secret_id: secret.objid,
-              shortid: secret.shortid,
-              owner_id: secret.owner_id,
-              state: secret.state,
-              created: secret.created,
-              expiration: secret.expiration,
-              lifespan: secret.lifespan,
-              metadata_id: secret.metadata_identifier,
-              age: secret.age,
-              has_ciphertext: !secret.ciphertext.to_s.empty?,
-            }
-          end.compact
 
           success_data
         end
@@ -69,6 +44,56 @@ module ColonelAPI
               },
             },
           }
+        end
+
+        private
+
+        # Scan secrets using non-blocking Redis SCAN with in-memory pagination
+        # Replaces blocking KEYS operation
+        #
+        # Note: For very large datasets, consider implementing cursor-based pagination
+        # where the cursor is passed to the client for subsequent requests
+        def scan_secrets_paginated
+          all_secrets = []
+          cursor      = '0'
+          dbclient    = Onetime::Secret.new.dbclient
+          pattern     = 'secret:*:object'
+
+          loop do
+            cursor, keys = dbclient.scan(cursor, match: pattern, count: 100)
+
+            keys.each do |key|
+              objid  = key.split(':')[1]
+              secret = Onetime::Secret.load(objid)
+              next unless secret&.exists?
+
+              all_secrets << {
+                secret_id: secret.objid,
+                shortid: secret.shortid,
+                owner_id: secret.owner_id,
+                state: secret.state,
+                created: secret.created,
+                expiration: secret.expiration,
+                lifespan: secret.lifespan,
+                metadata_id: secret.metadata_identifier,
+                age: secret.age,
+                has_ciphertext: !secret.ciphertext.to_s.empty?,
+              }
+            end
+
+            break if all_secrets.size >= 10_000
+            break if cursor == '0'
+          end
+
+          # Sort by created timestamp (most recent first)
+          all_secrets.sort_by! { |s| -(s[:created] || 0) }
+
+          # Apply pagination
+          start_idx = (page - 1) * per_page
+          end_idx   = start_idx + per_page - 1
+          paginated = all_secrets[start_idx..end_idx] || []
+
+          { secrets: paginated, total_count: all_secrets.size }
         end
       end
     end
