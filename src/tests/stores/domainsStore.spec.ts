@@ -51,8 +51,10 @@ describe('domainsStore', () => {
         allow_public_api: false,
         allow_public_homepage: false,
         locale: 'en',
-      }, // Added expected brand field
-      vhost: {}, // Added expected vhost field
+        notify_enabled: false,
+        passphrase_required: false,
+      },
+      vhost: {},
     };
 
     it('should add a new domain', async () => {

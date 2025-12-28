@@ -40,11 +40,18 @@ export function useDomainsManager() {
     },
     setLoading: (loading) => (isLoading.value = loading),
     onError: (err) => {
-      if (err.code === 404 || err.code === 422 || err.code === 403) {
+      // 404: resource not found - redirect to NotFound page
+      if (err.code === 404) {
         return router.push({ name: 'NotFound' });
       }
 
+      // 422: validation error (e.g., upgrade required) - show the error message
+      // 403: permission denied - show the error message
+      // These should surface to the user, not redirect to NotFound
       error.value = err;
+      if (err.message) {
+        notifications.show(err.message, 'error');
+      }
     },
   };
 
