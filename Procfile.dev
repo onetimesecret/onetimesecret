@@ -1,5 +1,8 @@
 # Procfile.dev
 
-backend: bundle exec puma -p 7143 -t 2:4 -w 0 -e development
+# The "sh -c" Explicitly invokes a shell to interpret the command
+backend: sh -c 'bundle exec puma -p $${PORT:-3000} -t 2:4 -w 0 -e development'
+
 frontend: pnpm run dev
+
 worker: bundle exec bin/ots jobs worker
