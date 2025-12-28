@@ -18,11 +18,13 @@
 
 require 'onetime/logic/base'
 require 'onetime/logic/organization_context'
+require 'onetime/logic/guest_route_gating'
 
 module V3
   module Logic
     class Base < Onetime::Logic::Base
       include V2::Logic::UriHelpers
+      include Onetime::Logic::GuestRouteGating
 
       # Include organization context for classes that use V3::Logic::Base
       # without inheriting from V2::Logic::Base

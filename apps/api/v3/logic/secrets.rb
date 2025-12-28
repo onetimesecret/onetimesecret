@@ -7,26 +7,48 @@
 # Inherits from V2 logic but uses JSON-type serialization via V3::Logic::Base.
 # Includes all secret operations (create, reveal, metadata, burn).
 # No business logic changes needed - only serialization format differs.
+#
+# Guest route gating is enforced for operations that support anonymous access:
+# - ConcealSecret: guest conceal toggle
+# - GenerateSecret: guest generate toggle
+# - RevealSecret: guest reveal toggle
+# - BurnSecret: guest burn toggle
 
 require_relative '../../v2/logic/secrets'
+require_relative 'base'
 
 module V3
   module Logic
     module Secrets
       # Conceal a secret (create from user-provided value)
       class ConcealSecret < V2::Logic::Secrets::ConcealSecret
-        # include ::V3::Logic::Base
+        include Onetime::Logic::GuestRouteGating
+
+        def raise_concerns
+          require_guest_route_enabled!(:conceal)
+          super
+        end
       end
 
       # Generate a secret (create from system-generated value)
       class GenerateSecret < V2::Logic::Secrets::GenerateSecret
-        # include ::V3::Logic::Base
+        include Onetime::Logic::GuestRouteGating
+
+        def raise_concerns
+          require_guest_route_enabled!(:generate)
+          super
+        end
       end
 
       # Reveal a secret (decrypt and return value)
       # Extended to notify owner when their secret is revealed
       class RevealSecret < V2::Logic::Secrets::RevealSecret
-        # include ::V3::Logic::Base
+        include Onetime::Logic::GuestRouteGating
+
+        def raise_concerns
+          require_guest_route_enabled!(:reveal)
+          super
+        end
 
         def process
           result = super
@@ -81,7 +103,12 @@ module V3
 
       # Burn a secret
       class BurnSecret < V2::Logic::Secrets::BurnSecret
-        # include ::V3::Logic::Base
+        include Onetime::Logic::GuestRouteGating
+
+        def raise_concerns
+          require_guest_route_enabled!(:burn)
+          super
+        end
       end
 
       # Show metadata for a secret (receipt/private endpoints)

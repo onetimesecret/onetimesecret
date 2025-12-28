@@ -47,6 +47,11 @@ module Onetime
           error.to_h
         end
 
+        # Guest routes disabled errors return 403 with error code
+        router.register_error_handler(Onetime::GuestRoutesDisabled, status: 403, log_level: :info) do |error, _req|
+          error.to_h
+        end
+
         return unless Onetime.debug?
 
         router.on_request_complete do |req, res, duration|
