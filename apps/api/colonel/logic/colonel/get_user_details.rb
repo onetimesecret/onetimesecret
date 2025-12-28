@@ -23,40 +23,11 @@ module ColonelAPI
         end
 
         def process
-          # Get all secrets owned by this user
-          all_secret_keys = Onetime::Secret.new.dbclient.keys('secret*:object')
-          @user_secrets   = all_secret_keys.select do |key|
-            objid  = key.split(':')[1]
-            secret = Onetime::Secret.load(objid)
-            secret&.owner_id == user.objid
-          end.map do |key|
-            objid  = key.split(':')[1]
-            secret = Onetime::Secret.load(objid)
-            {
-              secret_id: secret.objid,
-              shortid: secret.shortid,
-              state: secret.state,
-              created: secret.created,
-              expiration: secret.expiration,
-            }
-          end
+          # Get all secrets owned by this user using non-blocking SCAN
+          @user_secrets = scan_user_secrets
 
-          # Get all metadata owned by this user
-          all_metadata_keys = Onetime::Metadata.new.dbclient.keys('metadata*:object')
-          @user_metadata    = all_metadata_keys.select do |key|
-            objid    = key.split(':')[1]
-            metadata = Onetime::Metadata.load(objid)
-            metadata&.owner_id == user.objid
-          end.map do |key|
-            objid    = key.split(':')[1]
-            metadata = Onetime::Metadata.load(objid)
-            {
-              metadata_id: metadata.objid,
-              shortid: metadata.shortid,
-              state: metadata.state,
-              created: metadata.created,
-            }
-          end
+          # Get all metadata owned by this user using non-blocking SCAN
+          @user_metadata = scan_user_metadata
 
           # Get user's organizations (if they participate in any)
           @organizations = []
@@ -75,6 +46,73 @@ module ColonelAPI
           end
 
           success_data
+        end
+
+        private
+
+        # Scan secrets owned by user using non-blocking Redis SCAN
+        # Replaces blocking KEYS operation
+        def scan_user_secrets
+          secrets  = []
+          cursor   = '0'
+          dbclient = Onetime::Secret.new.dbclient
+          pattern  = 'secret:*:object'
+
+          loop do
+            cursor, keys = dbclient.scan(cursor, match: pattern, count: 100)
+
+            keys.each do |key|
+              objid  = key.split(':')[1]
+              secret = Onetime::Secret.load(objid)
+              next unless secret&.exists?
+              next unless secret.owner_id == user.objid
+
+              secrets << {
+                secret_id: secret.objid,
+                shortid: secret.shortid,
+                state: secret.state,
+                created: secret.created,
+                expiration: secret.expiration,
+              }
+            end
+
+            break if secrets.size >= 10_000
+            break if cursor == '0'
+          end
+
+          secrets
+        end
+
+        # Scan metadata owned by user using non-blocking Redis SCAN
+        # Replaces blocking KEYS operation
+        def scan_user_metadata
+          metadata_list = []
+          cursor        = '0'
+          dbclient      = Onetime::Metadata.new.dbclient
+          pattern       = 'metadata:*:object'
+
+          loop do
+            cursor, keys = dbclient.scan(cursor, match: pattern, count: 100)
+
+            keys.each do |key|
+              objid    = key.split(':')[1]
+              metadata = Onetime::Metadata.load(objid)
+              next unless metadata&.exists?
+              next unless metadata.owner_id == user.objid
+
+              metadata_list << {
+                metadata_id: metadata.objid,
+                shortid: metadata.shortid,
+                state: metadata.state,
+                created: metadata.created,
+              }
+            end
+
+            break if metadata_list.size >= 10_000
+            break if cursor == '0'
+          end
+
+          metadata_list
         end
 
         def success_data

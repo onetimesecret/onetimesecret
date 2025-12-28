@@ -32,16 +32,8 @@ module ColonelAPI
         end
 
         def process
-          # Get all secrets and filter by date range
-          all_secret_keys  = Onetime::Secret.new.dbclient.keys('secret*:object')
-          secrets_in_range = all_secret_keys.map do |key|
-            objid  = key.split(':')[1]
-            secret = Onetime::Secret.load(objid)
-            next unless secret&.exists?
-            next unless secret.created && secret.created >= start_date && secret.created <= end_date
-
-            secret
-          end.compact
+          # Get all secrets in date range using non-blocking SCAN
+          secrets_in_range = scan_secrets_in_date_range
 
           # Get all customers and filter by date range
           all_customers_objids = Onetime::Customer.instances.to_a
@@ -88,6 +80,35 @@ module ColonelAPI
               users_by_day: users_by_day,
             },
           }
+        end
+
+        private
+
+        # Scan secrets in date range using non-blocking Redis SCAN
+        # Replaces blocking KEYS operation
+        def scan_secrets_in_date_range
+          secrets  = []
+          cursor   = '0'
+          dbclient = Onetime::Secret.new.dbclient
+          pattern  = 'secret:*:object'
+
+          loop do
+            cursor, keys = dbclient.scan(cursor, match: pattern, count: 100)
+
+            keys.each do |key|
+              objid  = key.split(':')[1]
+              secret = Onetime::Secret.load(objid)
+              next unless secret&.exists?
+              next unless secret.created && secret.created >= start_date && secret.created <= end_date
+
+              secrets << secret
+            end
+
+            break if secrets.size >= 10_000
+            break if cursor == '0'
+          end
+
+          secrets
         end
       end
     end

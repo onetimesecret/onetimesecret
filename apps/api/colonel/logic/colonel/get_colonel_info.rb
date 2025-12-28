@@ -82,8 +82,9 @@ module ColonelAPI
         private :process_customers
 
         def process_statistics
-          @metadata_count  = Onetime::Metadata.new.dbclient.keys('metadata*:object').count
-          @secret_count    = Onetime::Secret.new.dbclient.keys('secret*:object').count
+          # Use O(1) ZCARD-based count via Familia instances instead of O(N) blocking KEYS
+          @metadata_count  = Onetime::Metadata.count
+          @secret_count    = Onetime::Secret.count
           # TODO: Re-enable global statistics when Customer.global is implemented
           # @secrets_created = Onetime::Customer.global.secrets_created.to_s
           # @secrets_shared  = Onetime::Customer.global.secrets_shared.to_s

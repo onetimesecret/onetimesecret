@@ -70,9 +70,10 @@ module ColonelAPI
               total_keys: total_keys,
               memory_stats: memory_stats,
               model_counts: {
+                # All model counts use O(1) ZCARD-based count via Familia instances
                 customers: Onetime::Customer.count,
-                secrets: Onetime::Secret.new.dbclient.keys('secret*:object').count,
-                metadata: Onetime::Metadata.new.dbclient.keys('metadata*:object').count,
+                secrets: Onetime::Secret.count,
+                metadata: Onetime::Metadata.count,
               },
             },
           }

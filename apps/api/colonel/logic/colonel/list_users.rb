@@ -43,16 +43,13 @@ module ColonelAPI
           end_idx             = start_idx + @per_page - 1
           paginated_customers = all_customers[start_idx..end_idx] || []
 
+          # Build owner_id -> secret count index using non-blocking SCAN
+          # This is done once per request instead of per-user to avoid O(N*M)
+          secrets_count_by_owner = build_secrets_count_by_owner
+
           # Format user data
           @users = paginated_customers.map do |cust|
             next if cust.anonymous?
-
-            # Count secrets owned by this user
-            user_secrets_count = Onetime::Secret.new.dbclient.keys('secret*:object').count do |key|
-              objid  = key.split(':')[1]
-              secret = Onetime::Secret.load(objid)
-              secret&.owner_id == cust.objid
-            end
 
             {
               user_id: cust.objid,
@@ -63,13 +60,41 @@ module ColonelAPI
               created: cust.created,
               last_login: cust.last_login,
               planid: cust.planid,
-              secrets_count: user_secrets_count,
+              secrets_count: secrets_count_by_owner[cust.objid] || 0,
               secrets_created: cust.respond_to?(:secrets_created) ? cust.secrets_created : 0,
               secrets_shared: cust.respond_to?(:secrets_shared) ? cust.secrets_shared : 0,
             }
           end.compact
 
           success_data
+        end
+
+        private
+
+        # Build a hash of owner_id -> secret count using non-blocking Redis SCAN
+        # This replaces the O(N*M) pattern of calling KEYS inside a loop
+        def build_secrets_count_by_owner
+          counts   = Hash.new(0)
+          cursor   = '0'
+          dbclient = Onetime::Secret.new.dbclient
+          pattern  = 'secret:*:object'
+
+          loop do
+            cursor, keys = dbclient.scan(cursor, match: pattern, count: 100)
+
+            keys.each do |key|
+              objid  = key.split(':')[1]
+              secret = Onetime::Secret.load(objid)
+              next unless secret&.exists?
+
+              counts[secret.owner_id] += 1 if secret.owner_id
+            end
+
+            break if counts.size >= 10_000
+            break if cursor == '0'
+          end
+
+          counts
         end
 
         def success_data
