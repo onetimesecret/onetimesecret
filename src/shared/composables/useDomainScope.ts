@@ -44,7 +44,13 @@ export function useDomainScope() {
     domains_enabled: domainsEnabled,
     site_host: canonicalDomain,
     custom_domains: customDomains = [],
-  } = WindowService.getMultiple(['domains_enabled', 'site_host', 'custom_domains']);
+    display_domain: displayDomain,
+  } = WindowService.getMultiple([
+    'domains_enabled',
+    'site_host',
+    'custom_domains',
+    'display_domain',
+  ]);
 
   // Build available domains list
   const availableDomains = computed<string[]>(() => {
@@ -73,10 +79,11 @@ export function useDomainScope() {
   const currentScope = computed<DomainScope>(() => {
     const domain = currentDomain.value || canonicalDomain || '';
     const isCanonical = domain === canonicalDomain;
+    const defaultDisplay = displayDomain || canonicalDomain || 'onetimesecret.com';
 
     return {
       domain,
-      displayName: isCanonical ? 'Personal' : domain,
+      displayName: isCanonical ? defaultDisplay : domain,
       isCanonical,
     };
   });
