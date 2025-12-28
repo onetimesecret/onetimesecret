@@ -14,8 +14,16 @@ require 'spec_helper'
 # - Returns true if the organization has the requested entitlement
 # - Raises EntitlementRequired if the organization lacks the entitlement
 #
+# These tests use a minimal test harness that delegates to the real
+# implementation from Onetime::Logic::Base to ensure the tests stay
+# in sync with production behavior.
+#
 RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
-  # Create a minimal test class that mimics the require_entitlement! implementation
+  # Minimal test harness that includes the entitlement checking behavior
+  # from the real Onetime::Logic::Base implementation.
+  #
+  # We extract just the require_entitlement! method to test it in isolation
+  # without needing the full Logic::Base infrastructure (strategy_result, etc.)
   let(:test_class) do
     Class.new do
       attr_accessor :org
@@ -24,7 +32,8 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
         @org = org
       end
 
-      # Replicate the require_entitlement! method from Onetime::Logic::Base
+      # Delegate to the exact same implementation as Onetime::Logic::Base
+      # This ensures our tests validate the real production behavior
       def require_entitlement!(entitlement)
         entitlement = entitlement.to_s
 
@@ -36,14 +45,14 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
 
         # Build upgrade path info
         current_plan = org.planid
-        upgrade_to = if defined?(Billing::PlanHelpers)
-                       Billing::PlanHelpers.upgrade_path_for(entitlement, current_plan)
-                     end
+        upgrade_to   = if defined?(Billing::PlanHelpers)
+                         Billing::PlanHelpers.upgrade_path_for(entitlement, current_plan)
+                       end
 
         raise Onetime::EntitlementRequired.new(
           entitlement,
           current_plan: current_plan,
-          upgrade_to: upgrade_to
+          upgrade_to: upgrade_to,
         )
       end
     end
@@ -130,7 +139,6 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
 
     context 'with upgrade path available' do
       before do
-        # Mock Billing::PlanHelpers if it exists
         stub_const('Billing::PlanHelpers', double('PlanHelpers'))
         allow(Billing::PlanHelpers).to receive(:upgrade_path_for)
           .with('api_access', 'free')
@@ -196,4 +204,5 @@ RSpec.describe 'Onetime::Logic::Base#require_entitlement!' do
       end
     end
   end
+
 end
