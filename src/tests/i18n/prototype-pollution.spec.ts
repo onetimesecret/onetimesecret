@@ -16,7 +16,13 @@
  * @see https://cwe.mitre.org/data/definitions/1321.html
  */
 
-import { createCompatibilityLayer, deepMerge, DANGEROUS_KEYS } from '@/i18n';
+import {
+  createCompatibilityLayer,
+  deepMerge,
+  DANGEROUS_KEYS,
+  mergeStructuredContent,
+  mergeFlatContent,
+} from '@/i18n';
 
 describe('Prototype Pollution Prevention', () => {
   // Save original Object.prototype state
@@ -25,17 +31,39 @@ describe('Prototype Pollution Prevention', () => {
   const originalPrototypeProperties = Object.getOwnPropertyNames(Object.prototype);
 
   afterEach(() => {
-    // Clean up any pollution that might have occurred
-    // @ts-expect-error - Testing prototype pollution
-    delete Object.prototype.isAdmin;
-    // @ts-expect-error - Testing prototype pollution
-    delete Object.prototype.polluted;
-    // @ts-expect-error - Testing prototype pollution
-    delete Object.prototype.malicious;
-    // @ts-expect-error - Testing prototype pollution
-    delete Object.prototype.injected;
-    // @ts-expect-error - Testing prototype pollution
-    delete Object.prototype.deepNested;
+    // Clean up known attack vectors (explicit for security test documentation)
+    const knownAttackVectors = [
+      'isAdmin',
+      'polluted',
+      'malicious',
+      'injected',
+      'deepNested',
+      'globalAdmin',
+      'deepAttack',
+      'veryDeep',
+      'a',
+      'b',
+      'c',
+      'attack1',
+      'attack2',
+      'attack3',
+    ];
+    knownAttackVectors.forEach((prop) => {
+      // @ts-expect-error - Intentional cleanup of prototype pollution
+      delete Object.prototype[prop];
+    });
+
+    // Dynamic verification: catch any unexpected prototype pollution
+    const currentProps = Object.getOwnPropertyNames(Object.prototype);
+    const unexpected = currentProps.filter((p) => !originalPrototypeProperties.includes(p));
+    if (unexpected.length > 0) {
+      // Clean up unexpected pollution
+      unexpected.forEach((prop) => {
+        // @ts-expect-error - Cleanup unexpected pollution
+        delete Object.prototype[prop];
+      });
+      throw new Error(`Unexpected prototype pollution detected: ${unexpected.join(', ')}`);
+    }
   });
 
   describe('DANGEROUS_KEYS constant', () => {
@@ -182,28 +210,11 @@ describe('Prototype Pollution Prevention', () => {
     });
   });
 
-  describe('Structured file merge path simulation', () => {
+  describe('Structured file merge path (mergeStructuredContent)', () => {
     /**
-     * Simulates the structured file merge logic from i18n.ts lines 82-96
-     * This tests the guard at lines 87-89 where DANGEROUS_KEYS.has(topKey)
+     * Tests the real mergeStructuredContent() function exported from i18n.ts.
+     * This function handles files with "web" or "email" structure.
      */
-    function simulateStructuredMerge(
-      messages: Record<string, any>,
-      content: Record<string, any>
-    ): void {
-      Object.keys(content).forEach((topKey) => {
-        // Guard against prototype pollution (CWE-1321)
-        if (DANGEROUS_KEYS.has(topKey)) {
-          return;
-        }
-        if (typeof content[topKey] === 'object' && content[topKey] !== null) {
-          if (!messages[topKey]) {
-            messages[topKey] = {};
-          }
-          deepMerge(messages[topKey], content[topKey]);
-        }
-      });
-    }
 
     it('should merge valid web/email structured content', () => {
       const messages: Record<string, any> = {};
@@ -212,7 +223,7 @@ describe('Prototype Pollution Prevention', () => {
         email: { welcome: { subject: 'Welcome!' } },
       };
 
-      simulateStructuredMerge(messages, content);
+      mergeStructuredContent(messages, content);
 
       expect(messages.web.auth.login).toBe('Login');
       expect(messages.email.welcome.subject).toBe('Welcome!');
@@ -225,7 +236,7 @@ describe('Prototype Pollution Prevention', () => {
         __proto__: { isAdmin: true },
       };
 
-      simulateStructuredMerge(messages, maliciousContent);
+      mergeStructuredContent(messages, maliciousContent);
 
       // Verify no prototype pollution occurred
       const testObj: Record<string, unknown> = {};
@@ -243,7 +254,7 @@ describe('Prototype Pollution Prevention', () => {
         constructor: { prototype: { polluted: true } },
       };
 
-      simulateStructuredMerge(messages, maliciousContent);
+      mergeStructuredContent(messages, maliciousContent);
 
       // Verify no prototype pollution occurred
       const testObj: Record<string, unknown> = {};
@@ -260,7 +271,7 @@ describe('Prototype Pollution Prevention', () => {
         prototype: { malicious: true },
       };
 
-      simulateStructuredMerge(messages, maliciousContent);
+      mergeStructuredContent(messages, maliciousContent);
 
       const testObj: Record<string, unknown> = {};
       expect(testObj.malicious).toBeUndefined();
@@ -277,7 +288,7 @@ describe('Prototype Pollution Prevention', () => {
         prototype: { attack3: true },
       };
 
-      simulateStructuredMerge(messages, maliciousContent);
+      mergeStructuredContent(messages, maliciousContent);
 
       const testObj: Record<string, unknown> = {};
       expect(testObj.attack1).toBeUndefined();
@@ -296,7 +307,7 @@ describe('Prototype Pollution Prevention', () => {
         },
       };
 
-      simulateStructuredMerge(messages, maliciousContent);
+      mergeStructuredContent(messages, maliciousContent);
 
       const testObj: Record<string, unknown> = {};
       expect(testObj.isAdmin).toBeUndefined();
@@ -304,21 +315,11 @@ describe('Prototype Pollution Prevention', () => {
     });
   });
 
-  describe('Flat file merge path simulation', () => {
+  describe('Flat file merge path (mergeFlatContent)', () => {
     /**
-     * Simulates the flat file merge logic from i18n.ts lines 98-105
-     * This tests the guard at lines 100-103 where !DANGEROUS_KEYS.has(key)
+     * Tests the real mergeFlatContent() function exported from i18n.ts.
+     * This function handles flat files like uncategorized.json.
      */
-    function simulateFlatMerge(
-      messages: Record<string, any>,
-      content: Record<string, any>
-    ): void {
-      Object.keys(content).forEach((key) => {
-        if (!DANGEROUS_KEYS.has(key)) {
-          messages[key] = content[key];
-        }
-      });
-    }
 
     it('should merge valid flat content', () => {
       const messages: Record<string, any> = {};
@@ -328,7 +329,7 @@ describe('Prototype Pollution Prevention', () => {
         nested: { key: 'value' },
       };
 
-      simulateFlatMerge(messages, content);
+      mergeFlatContent(messages, content);
 
       expect(messages.greeting).toBe('Hello');
       expect(messages.farewell).toBe('Goodbye');
@@ -342,7 +343,7 @@ describe('Prototype Pollution Prevention', () => {
         __proto__: { isAdmin: true },
       };
 
-      simulateFlatMerge(messages, maliciousContent);
+      mergeFlatContent(messages, maliciousContent);
 
       const testObj: Record<string, unknown> = {};
       expect(testObj.isAdmin).toBeUndefined();
@@ -356,7 +357,7 @@ describe('Prototype Pollution Prevention', () => {
         constructor: { prototype: { polluted: true } },
       };
 
-      simulateFlatMerge(messages, maliciousContent);
+      mergeFlatContent(messages, maliciousContent);
 
       const testObj: Record<string, unknown> = {};
       expect(testObj.polluted).toBeUndefined();
@@ -370,7 +371,7 @@ describe('Prototype Pollution Prevention', () => {
         prototype: { malicious: true },
       };
 
-      simulateFlatMerge(messages, maliciousContent);
+      mergeFlatContent(messages, maliciousContent);
 
       const testObj: Record<string, unknown> = {};
       expect(testObj.malicious).toBeUndefined();
@@ -386,7 +387,7 @@ describe('Prototype Pollution Prevention', () => {
         prototype: { c: 3 },
       };
 
-      simulateFlatMerge(messages, maliciousContent);
+      mergeFlatContent(messages, maliciousContent);
 
       expect(Object.keys(messages)).toEqual(['legitimate']);
       expect(messages.legitimate).toBe('value');
@@ -395,8 +396,9 @@ describe('Prototype Pollution Prevention', () => {
 
   describe('Integration test: malicious locale file loading', () => {
     /**
-     * Simulates the complete locale loading pipeline with poisoned JSON
-     * to verify end-to-end defense across all merge paths.
+     * Tests the complete locale loading pipeline using the real exported
+     * mergeStructuredContent and mergeFlatContent functions from i18n.ts.
+     * This verifies end-to-end defense across all merge paths.
      */
     function simulateLocaleLoading(
       localeFiles: Array<{ path: string; content: Record<string, any> }>
@@ -415,27 +417,15 @@ describe('Prototype Pollution Prevention', () => {
           messages[locale] = {};
         }
 
-        // Check if structured or flat file
+        // Check if structured or flat file (matches i18n.ts logic)
         const hasStructuredKeys = 'web' in content || 'email' in content;
 
         if (hasStructuredKeys) {
-          // Structured file merge with guards
-          Object.keys(content).forEach((topKey) => {
-            if (DANGEROUS_KEYS.has(topKey)) return;
-            if (typeof content[topKey] === 'object' && content[topKey] !== null) {
-              if (!messages[locale][topKey]) {
-                messages[locale][topKey] = {};
-              }
-              deepMerge(messages[locale][topKey], content[topKey]);
-            }
-          });
+          // Use the real production function
+          mergeStructuredContent(messages[locale], content);
         } else {
-          // Flat file merge with guards
-          Object.keys(content).forEach((key) => {
-            if (!DANGEROUS_KEYS.has(key)) {
-              messages[locale][key] = content[key];
-            }
-          });
+          // Use the real production function
+          mergeFlatContent(messages[locale], content);
         }
       }
 

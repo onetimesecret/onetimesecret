@@ -62,6 +62,49 @@ export function deepMerge(target: Record<string, any>, source: Record<string, an
   return target;
 }
 
+/**
+ * Merges a structured locale file content (has "web" or "email" keys) into messages.
+ * Exported for testing purposes - allows direct testing of production merge logic.
+ *
+ * @param messages - Target messages object for a specific locale
+ * @param content - Structured content with "web" or "email" keys
+ */
+export function mergeStructuredContent(
+  messages: Record<string, any>,
+  content: Record<string, any>
+): void {
+  Object.keys(content).forEach((topKey) => {
+    // Guard against prototype pollution (CWE-1321)
+    if (DANGEROUS_KEYS.has(topKey)) {
+      return;
+    }
+    if (typeof content[topKey] === 'object' && content[topKey] !== null) {
+      if (!messages[topKey]) {
+        messages[topKey] = {};
+      }
+      deepMerge(messages[topKey], content[topKey]);
+    }
+  });
+}
+
+/**
+ * Merges a flat locale file content (no "web" or "email" keys) into messages.
+ * Exported for testing purposes - allows direct testing of production merge logic.
+ *
+ * @param messages - Target messages object for a specific locale
+ * @param content - Flat content with direct key-value pairs
+ */
+export function mergeFlatContent(
+  messages: Record<string, any>,
+  content: Record<string, any>
+): void {
+  Object.keys(content).forEach((key) => {
+    if (!DANGEROUS_KEYS.has(key)) {
+      messages[key] = content[key];
+    }
+  });
+}
+
 // Process each imported module
 for (const path in localeModules) {
   // Extract locale code from path: /src/locales/en/file.json -> en
@@ -82,26 +125,10 @@ for (const path in localeModules) {
     if (hasStructuredKeys) {
       // Structured file: merge under "web" or "email" keys using deep merge
       // to prevent namespace collisions (e.g., auth.json and auth-full.json both use web.auth)
-      Object.keys(content).forEach((topKey) => {
-        // Guard against prototype pollution (CWE-1321)
-        if (DANGEROUS_KEYS.has(topKey)) {
-          return;
-        }
-        if (typeof content[topKey] === 'object' && content[topKey] !== null) {
-          if (!messages[locale][topKey]) {
-            messages[locale][topKey] = {};
-          }
-          deepMerge(messages[locale][topKey], content[topKey]);
-        }
-      });
+      mergeStructuredContent(messages[locale], content);
     } else {
       // Flat file (uncategorized): merge keys directly at root level
-      // Filter out dangerous keys to prevent prototype pollution (CWE-1321)
-      Object.keys(content).forEach((key) => {
-        if (!DANGEROUS_KEYS.has(key)) {
-          messages[locale][key] = content[key];
-        }
-      });
+      mergeFlatContent(messages[locale], content);
     }
   }
 }
