@@ -19,8 +19,10 @@ import { useClickOutside } from '@/shared/composables/useClickOutside';
 import { useDomainScope } from '@/shared/composables/useDomainScope';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
 const { t } = useI18n();
+const router = useRouter();
 
 const {
   currentScope,
@@ -157,6 +159,14 @@ useClickOutside(dropdownRef, closeDropdown);
 
 // Computed: should component be visible
 const shouldShow = computed(() => isScopeActive.value);
+
+/**
+ * Navigate to domains management page to add a new domain
+ */
+const navigateToAddDomain = (): void => {
+  closeDropdown();
+  router.push('/domains');
+};
 </script>
 
 <template>
@@ -265,6 +275,34 @@ const shouldShow = computed(() => isScopeActive.value);
               name="check-20-solid"
               class="size-5 text-brand-600 dark:text-brand-400"
               aria-hidden="true" />
+          </span>
+        </li>
+
+        <!-- Divider -->
+        <li
+          class="my-1 border-t border-gray-200 dark:border-gray-700"
+          role="separator"
+          aria-hidden="true" ></li>
+
+        <!-- Add Domain Link -->
+        <li
+          class="cursor-pointer select-none px-3 py-2
+                 text-gray-700 transition-colors duration-150
+                 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+          role="option"
+          tabindex="0"
+          @click="navigateToAddDomain"
+          @keydown.enter.prevent="navigateToAddDomain"
+          @keydown.space.prevent="navigateToAddDomain">
+          <span class="flex items-center gap-2">
+            <OIcon
+              collection="heroicons"
+              name="plus"
+              class="size-4 text-brand-500 dark:text-brand-400"
+              aria-hidden="true" />
+            <span class="text-brand-600 dark:text-brand-400">
+              {{ t('web.domains.add_domain') }}
+            </span>
           </span>
         </li>
       </ul>

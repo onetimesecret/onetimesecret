@@ -59,7 +59,7 @@ describe('useDomainScope', () => {
       expect(currentScope.value.domain).toBe('onetimesecret.com');
       expect(currentScope.value.displayName).toBe('Personal');
       expect(currentScope.value.isCanonical).toBe(true);
-      expect(isScopeActive.value).toBe(false); // No custom domains
+      expect(isScopeActive.value).toBe(true); // domains_enabled=true shows switcher
       expect(hasMultipleScopes.value).toBe(false);
     });
 
@@ -136,7 +136,7 @@ describe('useDomainScope', () => {
       const { currentScope, isScopeActive } = useDomainScope();
 
       expect(currentScope.value.domain).toBe('onetimesecret.com');
-      expect(isScopeActive.value).toBe(false);
+      expect(isScopeActive.value).toBe(true); // domains_enabled=true shows switcher
     });
   });
 
@@ -338,7 +338,7 @@ describe('useDomainScope', () => {
       expect(isScopeActive.value).toBe(false);
     });
 
-    it('returns false when custom_domains is empty', async () => {
+    it('returns true when domains_enabled even with empty custom_domains', async () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
@@ -348,10 +348,11 @@ describe('useDomainScope', () => {
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { isScopeActive } = useDomainScope();
 
-      expect(isScopeActive.value).toBe(false);
+      // Shows switcher so "Add domain" link is accessible
+      expect(isScopeActive.value).toBe(true);
     });
 
-    it('returns false when custom_domains is undefined', async () => {
+    it('returns true when domains_enabled even with undefined custom_domains', async () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
@@ -361,7 +362,8 @@ describe('useDomainScope', () => {
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { isScopeActive } = useDomainScope();
 
-      expect(isScopeActive.value).toBe(false);
+      // Shows switcher so "Add domain" link is accessible
+      expect(isScopeActive.value).toBe(true);
     });
 
     it('returns true when domains enabled and custom domains exist', async () => {

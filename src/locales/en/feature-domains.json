@@ -30,7 +30,8 @@
       "scope_switch_label": "Switch domain scope",
       "scope_list_label": "Available domains",
       "scope_header": "Domain Scope",
-      "scope_personal": "Personal"
+      "scope_personal": "Personal",
+      "add_domain": "Add domain"
     }
   }
 }
