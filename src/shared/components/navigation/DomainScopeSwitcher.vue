@@ -30,22 +30,13 @@ const {
   // hasMultipleScopes,
   isScopeActive,
   setScope,
+  getDomainDisplayName,
 } = useDomainScope();
 
 const isOpen = ref(false);
 const dropdownRef = ref<HTMLElement | null>(null);
 const listboxRef = ref<HTMLElement | null>(null);
 const activeIndex = ref(0);
-
-/**
- * Get display name for a domain
- */
-const getDisplayName = (domain: string): string => {
-  if (domain === currentScope.value.domain && currentScope.value.isCanonical) {
-    return t('web.domains.scope_personal');
-  }
-  return domain;
-};
 
 /**
  * Check if a domain is the currently selected scope
@@ -262,7 +253,7 @@ const navigateToAddDomain = (): void => {
             <span
               class="block truncate"
               :class="{ 'font-semibold': isCurrentScope(domain) }">
-              {{ getDisplayName(domain) }}
+              {{ getDomainDisplayName(domain) }}
             </span>
           </span>
 

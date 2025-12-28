@@ -74,16 +74,24 @@ export function useDomainScope() {
   }
 
   /**
+   * Get display name for a given domain
+   */
+  const getDomainDisplayName = (domain: string): string => {
+    const isCanonical = domain === canonicalDomain;
+    const defaultDisplay = displayDomain || canonicalDomain || 'onetimesecret.com';
+    return isCanonical ? defaultDisplay : domain;
+  };
+
+  /**
    * Current domain scope as a structured object
    */
   const currentScope = computed<DomainScope>(() => {
     const domain = currentDomain.value || canonicalDomain || '';
     const isCanonical = domain === canonicalDomain;
-    const defaultDisplay = displayDomain || canonicalDomain || 'onetimesecret.com';
 
     return {
       domain,
-      displayName: isCanonical ? defaultDisplay : domain,
+      displayName: getDomainDisplayName(domain),
       isCanonical,
     };
   });
@@ -125,5 +133,6 @@ export function useDomainScope() {
     availableDomains,
     setScope,
     resetScope,
+    getDomainDisplayName,
   };
 }
