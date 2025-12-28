@@ -1,0 +1,5 @@
+# Procfile.dev
+
+backend: bundle exec puma -p 7143 -t 2:4 -w 0 -e development
+frontend: pnpm run dev
+worker: bundle exec bin/ots jobs worker

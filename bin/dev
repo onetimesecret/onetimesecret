@@ -1,0 +1,47 @@
+#!/usr/bin/env sh
+
+# bin/dev - Overmind Development Runner (tmux-powered)
+#
+# WINDOW MODES:
+#   Main Window (bin/dev): Pure log stream. Bird's-eye view of all processes.
+#                          Non-interactive (Ctrl+C kills everything).
+#   Connect Mode:          Interactive TTY. Run in a separate terminal tab to
+#                          access debuggers (pry/debugger) or restart services.
+#
+# -----------------------------------------------------------------------------
+# MAIN WINDOW (Current Tab)
+# -----------------------------------------------------------------------------
+#   $ bin/dev                       # Start everything
+#   Ctrl+C                          # Gracefully stop all processes
+#
+# -----------------------------------------------------------------------------
+# CONTROL COMMANDS (New Terminal Tab)
+# -----------------------------------------------------------------------------
+#   $ overmind connect <name>       # Open interactive TTY (backend|frontend|worker)
+#   $ overmind restart <name>       # Restart a specific process
+#   $ overmind stop <name>          # Kill a specific process
+#
+# -----------------------------------------------------------------------------
+# CONNECT MODE SHORTCUTS (Inside 'overmind connect')
+# -----------------------------------------------------------------------------
+#   Ctrl+b, d                       # Detach (Return to shell, process keeps running)
+#   r                               # Restart the process you are connected to
+#   q                               # Quit connection (Process keeps running)
+#
+#   Usage: Essential for 'binding.pry', 'debugger', or surgical restarts.
+# -----------------------------------------------------------------------------
+
+if ! command -v overmind &> /dev/null; then
+  echo "Installing overmind..."
+  brew install overmind
+fi
+
+# Load local environment if present
+if [ -f .env.sh ]; then
+  . .env.sh
+fi
+
+# Ensure PORT is a valid integer (Overmind fails if empty or invalid)
+export PORT="${PORT:-7143}"
+
+exec overmind start -f Procfile.dev "$@"
