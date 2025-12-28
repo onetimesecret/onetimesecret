@@ -34,7 +34,12 @@ const selectedOrg = computed(() =>
 
 // Use entitlements composable for formatting
 const selectedOrgRef = computed(() => selectedOrg.value ?? null);
-const { formatEntitlement, initDefinitions } = useEntitlements(selectedOrgRef);
+const {
+  formatEntitlement,
+  initDefinitions,
+  isLoadingDefinitions,
+  definitionsError,
+} = useEntitlements(selectedOrgRef);
 
 const currentPlanId = computed(() => selectedOrg.value?.planid || 'free');
 
@@ -50,6 +55,11 @@ const yearlySavingsPercent = computed(() =>
  * Uses API-driven i18n keys via useEntitlements
  */
 const getFeatureLabel = (feature: string): string => formatEntitlement(feature);
+
+/**
+ * Combined loading state for the component
+ */
+const isLoadingContent = computed(() => isLoadingPlans.value || isLoadingDefinitions.value);
 
 // Get base plan for comparison (Identity Plus is always the base)
 const getBasePlan = (plan: BillingPlan): BillingPlan | undefined => {
@@ -238,11 +248,26 @@ onMounted(async () => {
         </select>
       </div>
 
-      <!-- Error Alert -->
+      <!-- Error Alerts -->
       <BasicFormAlerts v-if="error" :error="error" />
+      <BasicFormAlerts v-if="definitionsError" :error="definitionsError" />
+
+      <!-- Loading State -->
+      <div v-if="isLoadingContent" class="flex items-center justify-center py-12">
+        <div class="text-center">
+          <OIcon
+            collection="heroicons"
+            name="arrow-path"
+            class="mx-auto size-8 animate-spin text-gray-400"
+            aria-hidden="true" />
+          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            {{ t('web.COMMON.loading') }}
+          </p>
+        </div>
+      </div>
 
       <!-- No Plans Message -->
-      <div v-if="!isLoadingPlans && filteredPlans.length === 0" class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-900/50">
+      <div v-else-if="filteredPlans.length === 0" class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-900/50">
         <p class="text-gray-600 dark:text-gray-400">
           No {{ billingInterval === 'year' ? 'yearly' : 'monthly' }} plans available at this time.
         </p>

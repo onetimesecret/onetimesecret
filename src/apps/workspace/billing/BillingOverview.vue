@@ -25,7 +25,13 @@ const isLoading = ref(false);
 const error = ref('');
 
 const organizations = computed(() => organizationStore.organizations);
-const { entitlements, formatEntitlement, initDefinitions } = useEntitlements(selectedOrg);
+const {
+  entitlements,
+  formatEntitlement,
+  initDefinitions,
+  isLoadingDefinitions,
+  definitionsError,
+} = useEntitlements(selectedOrg);
 
 const planName = computed(() => {
   if (!selectedOrg.value?.planid) return t('web.billing.plans.free_plan');
@@ -221,11 +227,29 @@ onMounted(async () => {
             </div>
 
             <!-- Plan Features -->
-            <div v-if="entitlements.length > 0" class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
+            <div class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
               <p class="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
                 {{ t('web.billing.overview.plan_features') }}
               </p>
-              <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+
+              <!-- Loading skeleton for entitlements -->
+              <div v-if="isLoadingDefinitions" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div
+                  v-for="i in 4"
+                  :key="i"
+                  class="flex animate-pulse items-center gap-2">
+                  <div class="size-5 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                  <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+              </div>
+
+              <!-- Error state for entitlements -->
+              <div v-else-if="definitionsError" class="text-sm text-amber-600 dark:text-amber-400">
+                {{ t('web.billing.overview.entitlements_load_error') }}
+              </div>
+
+              <!-- Entitlements list -->
+              <div v-else-if="entitlements.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div
                   v-for="ent in entitlements"
                   :key="ent"
@@ -237,6 +261,11 @@ onMounted(async () => {
                     aria-hidden="true" />
                   {{ formatEntitlement(ent) }}
                 </div>
+              </div>
+
+              <!-- No entitlements -->
+              <div v-else class="text-sm text-gray-500 dark:text-gray-400">
+                {{ t('web.billing.overview.no_entitlements') }}
               </div>
             </div>
           </div>

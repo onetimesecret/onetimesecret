@@ -53,7 +53,9 @@
           "sso": "Single Sign-On",
           "priority_support": "Priority Support",
           "sla": "Service Level Agreement"
-        }
+        },
+        "entitlements_load_error": "Could not load feature details",
+        "no_entitlements": "No features available"
       },
       "plans": {
         "title": "Select a Plan",

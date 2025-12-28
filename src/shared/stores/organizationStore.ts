@@ -31,6 +31,7 @@ export const useOrganizationStore = defineStore('organization', () => {
   const invitations = ref<OrganizationInvitation[]>([]);
   const _initialized = ref(false);
   const loading = ref(false);
+  const entitlementsError = ref<string | null>(null);
   const abortController = ref<AbortController | null>(null);
 
   // Getters
@@ -206,8 +207,16 @@ export const useOrganizationStore = defineStore('organization', () => {
   /**
    * Fetch entitlements for an organization
    * This method fetches the organization's billing entitlements and limits
+   *
+   * @param orgId - The organization ID
+   * @param options.throwOnError - If true, throws on error instead of swallowing
    */
-  async function fetchEntitlements(orgId: string): Promise<void> {
+  async function fetchEntitlements(
+    orgId: string,
+    options: { throwOnError?: boolean } = {}
+  ): Promise<void> {
+    entitlementsError.value = null;
+
     try {
       const response = await $api.get(`/api/billing/entitlements/${orgId}`);
 
@@ -232,9 +241,23 @@ export const useOrganizationStore = defineStore('organization', () => {
         };
       }
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load entitlements';
+      entitlementsError.value = message;
       console.error('[OrganizationStore] Error fetching entitlements:', err);
-      // Don't throw - entitlements are optional enhancements
+
+      // Optionally throw for callers that want to handle errors explicitly
+      if (options.throwOnError) {
+        throw err;
+      }
+      // Otherwise, fail gracefully - entitlements are optional enhancements
     }
+  }
+
+  /**
+   * Clear the entitlements error state
+   */
+  function clearEntitlementsError(): void {
+    entitlementsError.value = null;
   }
 
   /**
@@ -321,6 +344,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     invitations.value = [];
     _initialized.value = false;
     loading.value = false;
+    entitlementsError.value = null;
   }
 
   return {
@@ -329,6 +353,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     currentOrganization,
     invitations,
     loading,
+    entitlementsError,
     _initialized,
 
     // Getters
@@ -346,6 +371,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     deleteOrganization,
     setCurrentOrganization,
     fetchEntitlements,
+    clearEntitlementsError,
     fetchInvitations,
     createInvitation,
     resendInvitation,
