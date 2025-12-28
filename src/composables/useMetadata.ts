@@ -1,6 +1,7 @@
 // src/composables/useMetadata.ts
 
 import { ApplicationError } from '@/schemas';
+import { useAuthStore } from '@/stores/authStore';
 import { useMetadataStore } from '@/stores/metadataStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import { NotificationSeverity } from '@/types/ui/notifications';
@@ -10,13 +11,30 @@ import { useRouter } from 'vue-router';
 import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
 /**
+ * Options for configuring metadata composable behavior.
+ */
+export interface MetadataOptions {
+  /** Force public API mode regardless of auth state */
+  usePublicApi?: boolean;
+}
+
+/**
+ * Composable for managing metadata operations.
+ * Automatically detects guest mode based on authentication state.
  *
+ * @param metadataKey - The unique identifier for the metadata
+ * @param options - Optional configuration for API mode
  */
 /* eslint-disable max-lines-per-function */
-export function useMetadata(metadataKey: string) {
+export function useMetadata(metadataKey: string, options?: MetadataOptions) {
   const router = useRouter();
   const notifications = useNotificationsStore();
+  const authStore = useAuthStore();
   const store = useMetadataStore();
+
+  // Auto-detect guest mode based on auth state unless explicitly overridden
+  const usePublicApi = options?.usePublicApi ?? !authStore.isAuthenticated;
+  store.setApiMode(usePublicApi ? 'public' : 'authenticated');
 
   // The `StoreGeneric` type assertion helps bridge the gap between the specific
   // store type and the generic store. This is a known issue when using

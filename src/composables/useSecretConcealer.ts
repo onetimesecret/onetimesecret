@@ -2,6 +2,7 @@
 
 import { ref } from 'vue';
 import { useSecretForm } from './useSecretForm';
+import { useAuthStore } from '@/stores/authStore';
 import { useSecretStore } from '@/stores/secretStore';
 import { useNotificationsStore } from '@/stores/notificationsStore';
 import {
@@ -15,6 +16,8 @@ import { ConcealDataResponse } from '@/schemas/api';
 
 interface SecretConcealerOptions {
   onSuccess?: (response: ConcealDataResponse) => Promise<void> | void;
+  /** Force public API mode regardless of auth state */
+  usePublicApi?: boolean;
 }
 
 type SubmitType = 'conceal' | 'generate';
@@ -35,8 +38,13 @@ type SubmitType = 'conceal' | 'generate';
  */
 /* eslint-disable max-lines-per-function */
 export function useSecretConcealer(options?: SecretConcealerOptions) {
+  const authStore = useAuthStore();
   const secretStore = useSecretStore();
   const notifications = useNotificationsStore();
+
+  // Auto-detect guest mode based on auth state unless explicitly overridden
+  const usePublicApi = options?.usePublicApi ?? !authStore.isAuthenticated;
+  secretStore.setApiMode(usePublicApi ? 'public' : 'authenticated');
 
   const isSubmitting = ref(false);
 
