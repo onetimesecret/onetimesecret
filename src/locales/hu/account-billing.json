@@ -98,7 +98,31 @@
         "description": "Előfizetés, fizetési módok és számlázási előzmények kezelése",
         "open_portal": "Számlázási portál megnyitása",
         "redirecting": "Átirányítás a számlázási portálra..."
-      }
+      },
+      "start-today": "Kezdés ma",
+      "start-today-with-identity-plus": "Kezdés ma az Identity Plus-szal",
+      "per-month": "havonta",
+      "full-api-access": "Teljes API hozzáférés",
+      "privacy-first-design": "Adatvédelem-központú tervezés",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Kattintson erre a villámra az egyéni doménekre való frissítéshez",
+      "maybe-later": "Talán később",
+      "upgrade-account": "Fiók frissítése",
+      "upgrade-to-identity-plus": "Frissítés Identity Plus-ra",
+      "upgrade-for-teams": "Frissítés csapatokhoz",
+      "benefits-of": "Előnyei",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Frissítés erre",
+      "upgrade-for-yourdomain": "Frissítés a titkok.ondomain.hu címhez",
+      "includes-all-features-and-unlimited-sharing-capa": "Minden csomag tartalmazza az adatvédelmi funkciókat és korlátlan megosztási kapacitást",
+      "includes-all-data-locality-options": "Minden csomag tartalmazza az adatlokáció választását: {0} régió",
+      "get-started": "Kezdés",
+      "frequency-value-annually-annual-monthly-subscrip": "{0} előfizetés",
+      "elevate-your-secure-sharing-with-custom-domains-": "Emelje fel biztonságos megosztását egyéni doménekkel, korlátlan kapacitással és vállalati szintű funkciókkal.",
+      "payment-frequency": "Fizetési gyakoriság",
+      "secure-your-brand-and-build-customer-trust-with-": "Biztosítsa márkáját és építsen ügyfélbizalmat doménjéről származó hivatkozásokkal. Tökéletes a magánéletet és professzionalizmust értékelő vállalkozásoknak.",
+      "secure-links-stronger-connections": "Biztonságos hivatkozások, erősebb kapcsolatok",
+      "identity-tier-not-found-in-product-tiers": "Identity szint nem található a termékszintekben"
     }
   }
 }

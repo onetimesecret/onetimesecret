@@ -98,7 +98,31 @@
         "description": "Gérer votre abonnement, vos moyens de paiement et votre historique de facturation",
         "open_portal": "Ouvrir le portail de facturation",
         "redirecting": "Redirection vers le portail de facturation..."
-      }
+      },
+      "start-today": "Commencez dès aujourd'hui",
+      "start-today-with-identity-plus": "Commencez dès aujourd'hui avec Identity Plus",
+      "per-month": "par mois",
+      "full-api-access": "Accès complet à l'API",
+      "privacy-first-design": "Conception privilégiant la protection de la vie privée",
+      "identity-plus": "Identité Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Cliquez sur cet éclair pour mettre à niveau les domaines personnalisés",
+      "maybe-later": "Peut-être plus tard",
+      "upgrade-account": "Mise à niveau du compte",
+      "upgrade-to-identity-plus": "Passer à l'Identité Plus",
+      "upgrade-for-teams": "Mise à niveau pour les équipes",
+      "benefits-of": "Avantages de la",
+      "t-benefits-of-identity-plus": "{0} : Identité Plus",
+      "upgrade-to": "Passer à",
+      "upgrade-for-yourdomain": "Mettre à niveau pour secrets.yourdomain.com",
+      "includes-all-features-and-unlimited-sharing-capa": "Comprend toutes les fonctionnalités et une capacité de partage illimitée",
+      "includes-all-data-locality-options": "Tous les forfaits incluent le choix de localité des données : régions {0}",
+      "get-started": "Commencer",
+      "frequency-value-annually-annual-monthly-subscrip": "{0} souscription",
+      "elevate-your-secure-sharing-with-custom-domains-": "Améliorez votre partage sécurisé avec des domaines personnalisés, une capacité illimitée et des fonctionnalités de niveau entreprise.",
+      "payment-frequency": "Fréquence des paiements",
+      "secure-your-brand-and-build-customer-trust-with-": "Protégez votre marque et renforcez la confiance de vos clients grâce à des liens provenant de votre domaine. Parfait pour les entreprises qui accordent de l'importance à la confidentialité et au professionnalisme.",
+      "secure-links-stronger-connections": "Des liens sécurisés, des connexions plus fortes",
+      "identity-tier-not-found-in-product-tiers": "Le niveau d'identité n'est pas trouvé dans les niveaux de produits"
     }
   }
 }

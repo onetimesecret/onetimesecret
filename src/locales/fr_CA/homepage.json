@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "Ce service est configuré pour un usage interne uniquement.",
         "tagline1": "L'interface utilisateur et les fonctionnalités de connexion ne sont pas disponibles."
-      }
+      },
+      "link-preview": "Aperçu du lien",
+      "meets-and-exceeds-compliance-standards": "Respecter et dépasser les normes de conformité",
+      "secure-your-brand-build-customer-trust-etc": "Sécurisez votre marque, renforcez la confiance de vos clients avec des liens depuis votre domaine.",
+      "a-trusted-way-to-share-sensitive-information-etc": "Un moyen fiable de partager des informations sensibles qui s'autodétruisent après avoir été consultées.",
+      "secure-links": "Liens sécurisés",
+      "about-onetime-secret-0": "À propos de Onetime Secret",
+      "log-in-to-onetime-secret": "Se connecter à Onetime Secret",
+      "about-onetime-secret": "À propos de Onetime Secret",
+      "signup-individual-and-business-plans": "Inscription - Plans individuels et professionnels",
+      "tagline-signed": "Signé",
+      "tagline-sealed": "Scellé",
+      "tagline-delivered": "Remis",
+      "onetime-secret": "Secret unique",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "One-Time Secret",
+      "onetime-secret-homepage": "Page d'accueil de Onetime Secret",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Envoyer des informations sensibles qui ne peuvent être consultées qu'une seule fois",
+      "create-a-secure-link": "Créer un lien sécurisé",
+      "now-with-custom-domains": "Maintenant avec des domaines personnalisés",
+      "this-is-a-private-instance-only-authorized-team-": "Il s'agit d'une instance privée. Seuls les membres autorisés de l'équipe peuvent générer de nouveaux liens sécurisés.",
+      "welcome-to-onetime-secret": "Bienvenue sur le site de Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret nous aide à partager des informations sensibles en toute sécurité tout en conservant notre façade professionnelle.",
+      "information-shared-through-this-service-can-only": "Les informations partagées par l'intermédiaire de ce service ne peuvent être consultées qu'une seule fois. Une fois consulté, le contenu est définitivement supprimé afin de garantir la confidentialité.",
+      "welcome-to-the-global-broadcast": "Bienvenue à la diffusion mondiale !"
     }
   }
 }

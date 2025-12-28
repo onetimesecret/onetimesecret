@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "Tránh lưu lại những thông tin nhạy cảm ở email hoặc lịch sử trò chuyện.",
         "tagline1": "Dán một mật khẩu, thông tin bí mật hoặc một đường dẫn riêng tư ở phía dưới."
-      }
+      },
+      "link-preview": "Xem trước liên kết",
+      "meets-and-exceeds-compliance-standards": "Đáp ứng và vượt qua các tiêu chuẩn tuân thủ",
+      "secure-your-brand-build-customer-trust-etc": "Bảo mật thương hiệu của bạn, xây dựng lòng tin khách hàng với liên kết từ tên miền của bạn.",
+      "a-trusted-way-to-share-sensitive-information-etc": "Một cách đáng tin cậy để chia sẻ thông tin nhạy cảm tự hủy sau khi được xem.",
+      "secure-links": "Liên kết an toàn",
+      "about-onetime-secret-0": "Về Onetime Secret",
+      "log-in-to-onetime-secret": "Đăng nhập vào Onetime Secret",
+      "about-onetime-secret": "Về Onetime Secret",
+      "signup-individual-and-business-plans": "Đăng ký - Gói cá nhân và doanh nghiệp",
+      "tagline-signed": "Đã ký",
+      "tagline-sealed": "Đã niêm phong",
+      "tagline-delivered": "Đã gửi",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "One-Time Secret",
+      "onetime-secret-homepage": "Trang chủ Onetime Secret",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Gửi thông tin nhạy cảm chỉ có thể xem một lần",
+      "create-a-secure-link": "Tạo liên kết an toàn",
+      "now-with-custom-domains": "Hiện có tên miền tùy chỉnh",
+      "this-is-a-private-instance-only-authorized-team-": "Đây là phiên bản riêng tư. Chỉ các thành viên nhóm được ủy quyền mới có thể tạo liên kết an toàn mới.",
+      "welcome-to-onetime-secret": "Chào mừng đến với Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret giúp chúng tôi chia sẻ thông tin nhạy cảm một cách an toàn trong khi duy trì vẻ ngoài chuyên nghiệp của chúng tôi.",
+      "information-shared-through-this-service-can-only": "Thông tin được chia sẻ qua dịch vụ này chỉ có thể được truy cập một lần. Sau khi xem, nội dung sẽ bị xóa vĩnh viễn để đảm bảo tính bảo mật.",
+      "welcome-to-the-global-broadcast": "Chào mừng đến với Global Broadcast!"
     }
   }
 }

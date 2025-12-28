@@ -1,0 +1,18 @@
+{
+  "web": {
+    "testimonials": {
+      "ai-generated-testimonial": "AI-gegenereerde testimonial",
+      "ai-generated-content-disclaimer": "AI-gegenereerde inhoud voor demonstratie. \nNiet van een echte persoon of bedrijf.",
+      "randomtestimonial-stars-5": "{0}/5",
+      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
+      "randomtestimonial-quote": "\"{0}\"",
+      "t-ai-generated-testimonial": "{0}:",
+      "what-leading-ai-says-about-us": "Wat toonaangevende AI over ons zegt",
+      "ai-generated-testimonials": "AI-gegenereerde testimonials",
+      "this-quote-was-generated-by": "Dit citaat is gegenereerd door",
+      "it-was-based-on-the-content-of-the-page-and-does": "Het was gebaseerd op de inhoud van de pagina en vertegenwoordigt geen echte persoon of bedrijf.",
+      "artificial-feedback": "Kunstmatige feedback",
+      "this-content-is-ai-generated-based-on-the-conten": "Deze inhoud is door AI gegenereerd op basis van de inhoud van deze pagina en vertegenwoordigt geen echte persoon of bedrijf."
+    }
+  }
+}

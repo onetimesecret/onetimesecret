@@ -1,0 +1,25 @@
+{
+  "web": {
+    "errors": {
+      "why-is-this-secret-unavailable": "Tại sao bí mật này không khả dụng?",
+      "secrets-are-designed-to-be-viewed-only-once": "Bí mật được thiết kế để chỉ xem một lần. Liên kết này có thể đã được truy cập, hết hạn hoặc bị người gửi xóa thủ công.",
+      "what-should-i-do-now": "Tôi nên làm gì bây giờ?",
+      "contact-the-person-who-sent-you-this-link": "Liên hệ với người đã gửi cho bạn liên kết này và yêu cầu họ tạo một bí mật mới. Cho họ biết bạn không thể truy cập thông tin ban đầu.",
+      "warning-dismissed": "Đã bỏ qua cảnh báo",
+      "dismiss-truncation-warning": "Bỏ qua cảnh báo cắt ngắn",
+      "oops-the-page-you-are-looking-for-doesnt-exist-o": "Rất tiếc! Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển.",
+      "404-page-not-found-0": "404 - Không tìm thấy trang",
+      "404-page-not-found": "404 - Không tìm thấy trang",
+      "dismiss-warning": "Bỏ qua cảnh báo",
+      "dismiss-notification": "Bỏ qua thông báo",
+      "if-youre-unsure-what-to-do-next-please-follow-up": "Nếu bạn không chắc phải làm gì tiếp theo, vui lòng liên hệ lại với người đã gửi cho bạn liên kết này để biết thêm thông tin.",
+      "information-shared-through-our-service-can-only-": "Thông tin được chia sẻ qua dịch vụ của chúng tôi chỉ có thể được truy cập một lần. Sau khi xem, nội dung sẽ bị xóa vĩnh viễn khỏi máy chủ của chúng tôi để đảm bảo tính bảo mật. Cách tiếp cận này giúp bảo vệ dữ liệu nhạy cảm của bạn bằng cách hạn chế tiếp xúc và ngăn chặn truy cập trái phép.",
+      "were-sorry-but-an-unexpected-error-occurred-whil": "Chúng tôi xin lỗi, nhưng đã xảy ra lỗi không mong muốn trong khi xử lý yêu cầu của bạn. Nhóm của chúng tôi đã được thông báo và chúng tôi đang làm việc để khắc phục.",
+      "t-web-common-oops-something-went-wrong": "{0} Đã xảy ra lỗi",
+      "go-share-a-secret": "Đi chia sẻ bí mật!",
+      "the-page-youre-looking-for-doesnt-exist-or-has-b": "Trang bạn đang tìm kiếm không tồn tại hoặc đã được di chuyển. Đừng lo lắng, điều này xảy ra với những người giỏi nhất trong chúng ta!",
+      "t-web-common-oops-404": "{0} 404",
+      "unable-to-load-data-due-to-data-format-issues-pl": "Không thể tải dữ liệu do vấn đề định dạng dữ liệu. Vui lòng thử lại sau."
+    }
+  }
+}

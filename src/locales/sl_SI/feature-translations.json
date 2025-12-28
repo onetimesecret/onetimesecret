@@ -1,0 +1,29 @@
+{
+  "web": {
+    "translations": {
+      "welcomes-contributors-for-both-existing-and-new-": "pozdravlja sodelavce za obstoječe in nove jezike.",
+      "our-github-project": "naš projekt GitHub",
+      "if-youre-interested-in-translation": "Če vas zanima prevajanje,",
+      "whove-helped-with-translations-as-we-continue-to": "ki so pomagali pri prevodih, medtem ko nadaljujemo z razvojem novih funkcij.",
+      "25-contributors": "Več kot 25 sodelavcev",
+      "were-grateful-to-the": "Hvaležni smo",
+      "as-we-add-new-features-our-translations-graduall": "Ko dodajamo nove funkcije, naši prevodi postopoma potrebujejo posodobitve, da ostanejo aktualni. To vpliva tako na onetimesecret.com kot na tisoče samo-gostovanih namestitev po vsem svetu.",
+      "remember-to-include-your-email-if-youre-not-logg": "- ne pozabite vključiti svoje e-pošte, če niste prijavljeni. Vsak prevod pomaga več ljudem varno komunicirati.",
+      "reach-out-to-us": "Stopite v stik z nami",
+      "have-questions": "Imate vprašanja?",
+      "send-translations-by-email-to": "Pošljite prevode po e-pošti na",
+      "english-template": "Angleška predloga",
+      "start-a-new-translation-from-our": "Začnite nov prevod iz naše",
+      "update-a-language-directly-through-our-github-pr": "Posodobite jezik neposredno preko našega projekta GitHub",
+      "review-existing-translations-using-the-language-": "Preglejte obstoječe prevode z uporabo izbirnika jezika zgoraj",
+      "ready-to-help-some-ways-to-contribute": "Pripravljeni pomagati? Nekateri načini za prispevanje:",
+      "the-following-people-have-donated-their-time-to-": "Naslednje osebe so darovale svoj čas, da bi pomagale razširiti doseg Onetime Secret:",
+      "translations": "Prevodi",
+      "fork-on-github-and-submit-a-pr": "Razdvojite na GitHub in pošljite PR",
+      "your-language-skills-can-help-expand-access-to-s": "Vaše jezikovne spretnosti lahko pomagajo razširiti dostop do varne komunikacije.",
+      "thanks-to-our-community-we-support-over-20-langu": "Zahvaljujoč naši skupnosti danes podpiramo več kot 20 jezikov. Vendar zaradi našega hitrega tempa razvoja mnogi prevodi potrebujejo posodobitve, da ostanejo aktualni. To vpliva tako na onetimesecret.com kot na tisoče samo-gostovanih namestitev po vsem svetu.",
+      "since-2012-onetime-secret-has-provided-a-secure-": "Od leta 2012 Onetime Secret zagotavlja varen način deljenja občutljivih informacij po vsem svetu. Z uporabniki v regijah, kjer angleščina ni primarni jezik, so natančni prevodi bistvenega pomena za dostopnost varne komunikacije vsakomur.",
+      "help-secure-communication-go-global": "Pomagajte varni komunikaciji postati globalna"
+    }
+  }
+}

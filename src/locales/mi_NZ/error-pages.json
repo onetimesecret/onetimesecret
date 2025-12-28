@@ -1,0 +1,25 @@
+{
+  "web": {
+    "errors": {
+      "why-is-this-secret-unavailable": "He aha tēnei karere huna kāore e wātea?",
+      "secrets-are-designed-to-be-viewed-only-once": "Kua hoahoatia ngā karere huna kia kitea kotahi noa te wā. Kua urunga pea tēnei hononga, kua pau, kua mukua ā-ringa rānei e te kaituku.",
+      "what-should-i-do-now": "Me aha au ināianei?",
+      "contact-the-person-who-sent-you-this-link": "Whakapā atu ki te tangata nāna i tuku tēnei hononga, ā, tonoa ki te waihanga i tētahi karere huna hou. Kia mōhio rātou kāore koe i taea te uru ki ngā mōhiohio taketake.",
+      "warning-dismissed": "Kua whakakorehia te whakatūpato",
+      "dismiss-truncation-warning": "Whakakore i te whakatūpato poroa",
+      "oops-the-page-you-are-looking-for-doesnt-exist-o": "Auē! Kāore te whārangi e rapu ana koe i te tīari, kua nekehia rānei.",
+      "404-page-not-found-0": "404 - Kāore i Kitea te Whārangi",
+      "404-page-not-found": "404 - Kāore i Kitea te Whārangi",
+      "dismiss-warning": "Whakakore whakatūpato",
+      "dismiss-notification": "Whakakore whakamōhiotanga",
+      "if-youre-unsure-what-to-do-next-please-follow-up": "Mēnā kāore koe e tino mōhio me aha koe ā muri ake nei, tēnā whai ake ki te tangata nāna i tuku tēnei hononga mō ētahi atu mōhiohio.",
+      "information-shared-through-our-service-can-only-": "Ko ngā mōhiohio i tuari mā tā mātou ratonga ka taea te uru kotahi anake. Ka tirohia ana, ka mukua pūmautia te ihirangi mai i ā mātou tūmau hei whakaū i te noho muna. Ka āwhina tēnei huarahi ki te tiaki i ō raraunga tairongo mā te whakawhāiti i tōna whakaaturanga me te ārai i te urunga whakaaetia-kore.",
+      "were-sorry-but-an-unexpected-error-occurred-whil": "E whakapāha ana mātou, engari i puta he hapa ohorere i te wā o te tukatuka i tō tono. Kua whakamōhiotia tō mātou rōpū, ā, kei te mahi mātou ki te whakatika.",
+      "t-web-common-oops-something-went-wrong": "{0} Kua hē tētahi mea",
+      "go-share-a-secret": "Haere tuari i tētahi karere huna!",
+      "the-page-youre-looking-for-doesnt-exist-or-has-b": "Kāore te whārangi e rapu ana koe i te tīari, kua nekehia rānei. Kaua e māharahara, ka pā tēnei ki te pai rawa o tātou!",
+      "t-web-common-oops-404": "{0} 404",
+      "unable-to-load-data-due-to-data-format-issues-pl": "Kāore e taea te uta raraunga nā ngā take whakatakotoranga raraunga. Tēnā ngana anō ā muri ake."
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "web": {
+    "feedback": {
+      "your-feedback": "המשוב שלכם",
+      "all-feedback-welcome": "כל משוב מתקבל בברכה!",
+      "help-us-improve": "עזרו לנו להשתפר",
+      "close-feedback-modal": "סגירת חלון משוב",
+      "share-your-feedback": "שתפו את המשוב שלכם",
+      "delano-mandelbaum": "Delano Mandelbaum",
+      "delano": "Delano",
+      "help-content-goes-here": "תוכן עזרה נמצא כאן.",
+      "thanks-for-helping-onetime-secret-improve-it-mea": "תודה על העזרה ב-Onetime Secret להשתפר. זה אומר הרבה.",
+      "weve-built-this-tool-to-help-you-share-sensitive": "בנינו כלי זה כדי לעזור לכם לשתף מידע רגיש בצורה מאובטחת, והניסיון שלכם בעולם האמיתי חיוני למיקוד המאמצים שלנו. זה עוזר לנו להבין על מה לעבוד בהמשך וכיצד להפוך את השירות לטוב יותר עבור כולם.",
+      "hey-there-thanks-for-stopping-by-our-feedback-pa": "היי, תודה שעצרתם בעמוד המשוב שלנו. הקלט שלכם לא רק מתקבל בברכה - הוא קריטי.",
+      "a-note-from-delano-founder-of-onetime-secret": "הערה מ-Delano, מייסד Onetime Secret",
+      "open-feedback-form": "פתיחת טופס משוב",
+      "enter-your-feedback": "הזינו את המשוב שלכם"
+    }
+  }
+}

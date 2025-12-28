@@ -56,7 +56,23 @@
         "configureDomainsDesc": "",
         "systemSettings": "",
         "systemSettingsDesc": ""
-      }
+      },
+      "redis-info": "Πληροφορίες Redis",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `επαληθευμένο` : `μη επαληθευμένο`",
+      "customers-details-counts-recent_customer_count-o": "Πελάτες ({0} από {1})",
+      "user-feedback-total-details-counts-feedback_coun": "Σχόλια Χρηστών (Σύνολο: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "Μεταδεδομένα / Μυστικά: {0}/{1} ({2}/{3}/{4} σύνολο)",
+      "secrets-details-counts-secret_count": "Μυστικά ({0})",
+      "active-in-the-past-5-minutes": "(ενεργό τα τελευταία 5 λεπτά)",
+      "past-14-days": "Τελευταίες 14 Ημέρες",
+      "yesterday": "Χθες",
+      "today": "Σήμερα",
+      "misc": "Διάφορα",
+      "feedback": "Σχόλια",
+      "customers": "Πελάτες",
+      "test-exception-message-substring-11": "Δοκιμαστική εξαίρεση: {0}",
+      "test-error-triggered-via-feedback": "Δοκιμαστικό σφάλμα που προκλήθηκε μέσω σχολίων"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Όταν υποβάλλετε σχόλια, θα δούμε:",

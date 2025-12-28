@@ -26,7 +26,8 @@
       "disabled": {
         "tagline2": "Denne tjeneste er kun sat op til intern brug.",
         "tagline1": "Brugergrænseflade og login-funktioner er ikke tilgængelige."
-      }
+      },
+      "secure-links": "Sikre links"
     }
   }
 }

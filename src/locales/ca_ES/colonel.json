@@ -56,7 +56,23 @@
         "configureDomainsDesc": "Configuració de dominis i DNS",
         "systemSettings": "Configuració del sistema",
         "systemSettingsDesc": "Configuració de l'aplicació"
-      }
+      },
+      "redis-info": "Informació de Redis",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `verified` : `not verified",
+      "customers-details-counts-recent_customer_count-o": "Clients ({0} de {1})",
+      "user-feedback-total-details-counts-feedback_coun": "Comentaris d'usuaris (Total: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "Metadades / Secrets: {0}/{1} ({2}/{3}/{4} total)",
+      "secrets-details-counts-secret_count": "Secrets ({0})",
+      "active-in-the-past-5-minutes": "(actiu en els darrers 5 minuts)",
+      "past-14-days": "Darrers 14 dies",
+      "yesterday": "Ahir",
+      "today": "Avui",
+      "misc": "Misc",
+      "feedback": "Comentaris",
+      "customers": "Clients",
+      "test-exception-message-substring-11": "Excepció de prova: {0}",
+      "test-error-triggered-via-feedback": "Error de prova activat a través de comentaris"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Quan enviïs comentaris, veurem:",

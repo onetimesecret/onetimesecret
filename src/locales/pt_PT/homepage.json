@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "Mantenha informações sensíveis fora do seu e-mail e registos de chat.",
         "tagline1": "Cole uma palavra-passe, mensagem secreta ou link privado abaixo."
-      }
+      },
+      "link-preview": "Pré-visualização do Link",
+      "meets-and-exceeds-compliance-standards": "Atende e excede os padrões de conformidade",
+      "secure-your-brand-build-customer-trust-etc": "Proteja a sua marca, construa a confiança do cliente com links do seu domínio.",
+      "a-trusted-way-to-share-sensitive-information-etc": "Uma forma confiável de partilhar informações sensíveis que se autodestruem após serem visualizadas.",
+      "secure-links": "Links Seguros",
+      "about-onetime-secret-0": "Sobre Onetime Secret",
+      "log-in-to-onetime-secret": "Iniciar sessão no Onetime Secret",
+      "about-onetime-secret": "Sobre Onetime Secret",
+      "signup-individual-and-business-plans": "Registo - Planos individuais e empresariais",
+      "tagline-signed": "Assinado",
+      "tagline-sealed": "Selado",
+      "tagline-delivered": "Entregue",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "One-Time Secret",
+      "onetime-secret-homepage": "Página Inicial do Onetime Secret",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Envie informações sensíveis que só podem ser visualizadas uma vez",
+      "create-a-secure-link": "Criar um link seguro",
+      "now-with-custom-domains": "Agora com domínios personalizados",
+      "this-is-a-private-instance-only-authorized-team-": "Esta é uma instância privada. Apenas membros autorizados da equipa podem gerar novos links seguros.",
+      "welcome-to-onetime-secret": "Bem-vindo ao Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret ajuda-nos a partilhar informações sensíveis com segurança, mantendo a nossa fachada profissional.",
+      "information-shared-through-this-service-can-only": "As informações partilhadas através deste serviço só podem ser acedidas uma vez. Uma vez visualizado, o conteúdo é permanentemente eliminado para garantir a confidencialidade.",
+      "welcome-to-the-global-broadcast": "Bem-vindo à Transmissão Global!"
     }
   }
 }

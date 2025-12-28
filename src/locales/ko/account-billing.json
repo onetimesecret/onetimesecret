@@ -98,7 +98,31 @@
         "description": "구독, 결제 수단 및 결제 기록을 관리합니다",
         "open_portal": "결제 포털 열기",
         "redirecting": "결제 포털로 리디렉션 중..."
-      }
+      },
+      "start-today": "오늘 시작하기",
+      "start-today-with-identity-plus": "Identity Plus로 오늘 시작하세요",
+      "per-month": "월 요금",
+      "full-api-access": "전체 API 접근",
+      "privacy-first-design": "개인정보 우선 설계",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "맞춤 도메인으로 업그레이드하려면 이 번개 아이콘을 클릭하세요",
+      "maybe-later": "나중에",
+      "upgrade-account": "계정 업그레이드",
+      "upgrade-to-identity-plus": "Identity Plus로 업그레이드",
+      "upgrade-for-teams": "팀 업그레이드",
+      "benefits-of": "혜택",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "업그레이드",
+      "upgrade-for-yourdomain": "secrets.yourdomain.com으로 업그레이드",
+      "includes-all-features-and-unlimited-sharing-capa": "모든 플랜에는 개인 정보 보호 기능과 무제한 공유 기능이 포함됩니다",
+      "includes-all-data-locality-options": "모든 플랜에는 데이터 지역성 선택이 포함됩니다: {0} 지역",
+      "get-started": "시작하기",
+      "frequency-value-annually-annual-monthly-subscrip": "{0} 구독",
+      "elevate-your-secure-sharing-with-custom-domains-": "맞춤 도메인, 무제한 용량 및 기업급 기능으로 안전한 공유를 향상시키세요.",
+      "payment-frequency": "결제 주기",
+      "secure-your-brand-and-build-customer-trust-with-": "귀하의 도메인에서 링크로 브랜드를 보호하고 고객 신뢰를 구축하세요. 개인 정보 보호와 전문성을 중요시하는 기업에 적합합니다.",
+      "secure-links-stronger-connections": "보안 링크, 더 강한 연결",
+      "identity-tier-not-found-in-product-tiers": "제품 등급에서 Identity 등급을 찾을 수 없습니다"
     }
   }
 }

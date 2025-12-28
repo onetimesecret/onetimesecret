@@ -1,0 +1,18 @@
+{
+  "web": {
+    "testimonials": {
+      "ai-generated-testimonial": "Μαρτυρία Δημιουργημένη από AI",
+      "ai-generated-content-disclaimer": "Περιεχόμενο δημιουργημένο από AI για επίδειξη. Όχι από πραγματικό άτομο ή εταιρεία.",
+      "randomtestimonial-stars-5": "{0}/5",
+      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
+      "randomtestimonial-quote": "\"{0}\"",
+      "t-ai-generated-testimonial": "{0}:",
+      "what-leading-ai-says-about-us": "Τι λέει η κορυφαία AI για εμάς",
+      "ai-generated-testimonials": "Μαρτυρίες Δημιουργημένες από AI",
+      "this-quote-was-generated-by": "Αυτό το απόσπασμα δημιουργήθηκε από",
+      "it-was-based-on-the-content-of-the-page-and-does": "Βασίστηκε στο περιεχόμενο της σελίδας και δεν αντιπροσωπεύει πραγματικό άτομο ή εταιρεία.",
+      "artificial-feedback": "Τεχνητά Σχόλια",
+      "this-content-is-ai-generated-based-on-the-conten": "Αυτό το περιεχόμενο δημιουργήθηκε από AI με βάση το περιεχόμενο αυτής της σελίδας και δεν αντιπροσωπεύει πραγματικό άτομο ή εταιρεία."
+    }
+  }
+}

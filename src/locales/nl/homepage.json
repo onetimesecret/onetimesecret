@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "Deze service is ingesteld voor alleen intern gebruik.",
         "tagline1": "Gebruikersinterface en login-mogelijkheden zijn niet beschikbaar."
-      }
+      },
+      "link-preview": "Linkvoorbeeld",
+      "meets-and-exceeds-compliance-standards": "Voldoet aan en overtreft nalevingsstandaarden",
+      "secure-your-brand-build-customer-trust-etc": "Beveilig uw merk, bouw klantenvertrouwen op met links vanaf uw domein.",
+      "a-trusted-way-to-share-sensitive-information-etc": "Een betrouwbare manier om gevoelige informatie te delen die zichzelf vernietigt na bekeken te zijn.",
+      "secure-links": "Veilige links",
+      "about-onetime-secret-0": "Over Onetime Secret",
+      "log-in-to-onetime-secret": "Log in bij Onetime Secret",
+      "about-onetime-secret": "Over Onetime Secret",
+      "signup-individual-and-business-plans": "Aanmelden - Individuele en Zakelijke abonnementen",
+      "tagline-signed": "Ondertekend",
+      "tagline-sealed": "Verzegeld",
+      "tagline-delivered": "Afgeleverd",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "Eenmalig Bericht",
+      "onetime-secret-homepage": "Onetime Secret Homepagina",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Verstuur gevoelige informatie die slechts één keer kan worden bekeken",
+      "create-a-secure-link": "Maak een veilige link",
+      "now-with-custom-domains": "Nu met aangepaste domeinen",
+      "this-is-a-private-instance-only-authorized-team-": "Dit is een privé-instantie. Alleen geautoriseerde teamleden kunnen nieuwe veilige links genereren.",
+      "welcome-to-onetime-secret": "Welkom bij Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret helpt ons gevoelige informatie veilig te delen terwijl we onze professionele uitstraling behouden.",
+      "information-shared-through-this-service-can-only": "Informatie die via deze service wordt gedeeld, kan slechts één keer worden bekeken. Eenmaal bekeken wordt de inhoud permanent verwijderd om vertrouwelijkheid te waarborgen.",
+      "welcome-to-the-global-broadcast": "Welkom bij de wereldwijde uitzending!"
     }
   }
 }

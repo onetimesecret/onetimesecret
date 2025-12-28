@@ -1,0 +1,18 @@
+{
+  "web": {
+    "testimonials": {
+      "ai-generated-testimonial": "Whakaaturanga Hangaia-AI",
+      "ai-generated-content-disclaimer": "Ihirangi hangaia-AI mō te whakaaturanga. Ehara i te tangata, kamupene rānei tūturu.",
+      "randomtestimonial-stars-5": "{0}/5",
+      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
+      "randomtestimonial-quote": "\"{0}\"",
+      "t-ai-generated-testimonial": "{0}:",
+      "what-leading-ai-says-about-us": "He aha ngā kōrero a te AI mātāmua mō mātou",
+      "ai-generated-testimonials": "Ngā Whakaaturanga Hangaia-AI",
+      "this-quote-was-generated-by": "I hangaia tēnei whakataukī e",
+      "it-was-based-on-the-content-of-the-page-and-does": "I hāngai ki te ihirangi o te whārangi, ā, kāore i te tohu i tētahi tangata, kamupene rānei tūturu.",
+      "artificial-feedback": "Urupare Hangahanga",
+      "this-content-is-ai-generated-based-on-the-conten": "Ko tēnei ihirangi he ai-hangaia i runga i te ihirangi o tēnei whārangi, ā, kāore i te tohu i tētahi tangata, kamupene rānei tūturu."
+    }
+  }
+}

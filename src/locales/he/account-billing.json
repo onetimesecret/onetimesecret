@@ -98,7 +98,31 @@
         "description": "ניהול המנוי, אמצעי התשלום והיסטוריית החיוב שלכם",
         "open_portal": "פתיחת פורטל חיוב",
         "redirecting": "מפנה לפורטל חיוב..."
-      }
+      },
+      "start-today": "התחילו היום",
+      "start-today-with-identity-plus": "התחילו היום עם Identity Plus",
+      "per-month": "לחודש",
+      "full-api-access": "גישה מלאה ל-API",
+      "privacy-first-design": "עיצוב בעדיפות פרטיות",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "לחצו על ברק זה לשדרוג לדומיינים מותאמים אישית",
+      "maybe-later": "אולי מאוחר יותר",
+      "upgrade-account": "שדרוג חשבון",
+      "upgrade-to-identity-plus": "שדרוג ל-Identity Plus",
+      "upgrade-for-teams": "שדרוג לצוותים",
+      "benefits-of": "יתרונות של",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "שדרוג ל",
+      "upgrade-for-yourdomain": "שדרוג עבור secrets.yourdomain.com",
+      "includes-all-features-and-unlimited-sharing-capa": "כל התוכניות כוללות תכונות פרטיות וקיבולת שיתוף בלתי מוגבלת",
+      "includes-all-data-locality-options": "כל התוכניות כוללות בחירה של מיקום נתונים: {0} אזורים",
+      "get-started": "התחילו",
+      "frequency-value-annually-annual-monthly-subscrip": "מנוי {0}",
+      "elevate-your-secure-sharing-with-custom-domains-": "הרימו את השיתוף המאובטח שלכם עם דומיינים מותאמים אישית, קיבולת בלתי מוגבלת ותכונות ברמת ארגון.",
+      "payment-frequency": "תדירות תשלום",
+      "secure-your-brand-and-build-customer-trust-with-": "אבטחו את המותג שלכם ובנו אמון לקוחות עם קישורים מהדומיין שלכם. מושלם לעסקים שמעריכים פרטיות ומקצועיות.",
+      "secure-links-stronger-connections": "קישורים מאובטחים, קשרים חזקים יותר",
+      "identity-tier-not-found-in-product-tiers": "רמת Identity לא נמצאה ברמות המוצר"
     }
   }
 }

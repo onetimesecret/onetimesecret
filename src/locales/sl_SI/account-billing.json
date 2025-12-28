@@ -98,7 +98,31 @@
         "description": "Upravljajte svojo naročnino, načine plačila in zgodovino plačil",
         "open_portal": "Odpri portal za plačila",
         "redirecting": "Preusmerjanje v portal za plačila..."
-      }
+      },
+      "start-today": "Začnite danes",
+      "start-today-with-identity-plus": "Začnite danes z Identity Plus",
+      "per-month": "na mesec",
+      "full-api-access": "Poln dostop do API",
+      "privacy-first-design": "Zasnova, ki daje prednost zasebnosti",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Kliknite to strelo za nadgradnjo za domene po meri",
+      "maybe-later": "Morda kasneje",
+      "upgrade-account": "Nadgradi račun",
+      "upgrade-to-identity-plus": "Nadgradite na Identity Plus",
+      "upgrade-for-teams": "Nadgradite za ekipe",
+      "benefits-of": "Prednosti",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Nadgradi na",
+      "upgrade-for-yourdomain": "Nadgradi za skrivnosti.vašadomena.si",
+      "includes-all-features-and-unlimited-sharing-capa": "Vsi načrti vključujejo funkcije zasebnosti in neomejeno zmogljivost deljenja",
+      "includes-all-data-locality-options": "Vsi načrti vključujejo izbiro lokalnosti podatkov: {0} regij",
+      "get-started": "Začnite",
+      "frequency-value-annually-annual-monthly-subscrip": "{0} naročnina",
+      "elevate-your-secure-sharing-with-custom-domains-": "Povzdignite svoje varno deljenje z domenami po meri, neomejeno zmogljivostjo in funkcijami poslovnega razreda.",
+      "payment-frequency": "Pogostost plačevanja",
+      "secure-your-brand-and-build-customer-trust-with-": "Zavarujte svojo blagovno znamko in zgradite zaupanje strank s povezavami iz vaše domene. Popolno za podjetja, ki cenijo zasebnost in profesionalnost.",
+      "secure-links-stronger-connections": "Varne povezave, močnejše povezave",
+      "identity-tier-not-found-in-product-tiers": "Stopnja identitete ni bila najdena v stopnjah produkta"
     }
   }
 }

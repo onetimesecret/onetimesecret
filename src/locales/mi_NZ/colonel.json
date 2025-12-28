@@ -56,7 +56,23 @@
         "configureDomainsDesc": "Ngā tautuhinga rohe me DNS",
         "systemSettings": "Ngā Tautuhinga Pūnaha",
         "systemSettingsDesc": "Whirihoranga taupānga"
-      }
+      },
+      "redis-info": "Redis Info",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `verified` : `not verified",
+      "customers-details-counts-recent_customer_count-o": "Ngā Kiritaki ({0} o {1})",
+      "user-feedback-total-details-counts-feedback_coun": "Urupare Kaiwhakamahi (Tapeke: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "Metadata / Ngā Karere Huna: {0}/{1} ({2}/{3}/{4} tapeke)",
+      "secrets-details-counts-secret_count": "Ngā Karere Huna ({0})",
+      "active-in-the-past-5-minutes": "(hohe i ngā meneti 5 kua hipa)",
+      "past-14-days": "14 Rā Kua Hipa",
+      "yesterday": "Inanahi",
+      "today": "I tēnei rā",
+      "misc": "Kē",
+      "feedback": "Urupare",
+      "customers": "Ngā Kiritaki",
+      "test-exception-message-substring-11": "Whakamātautau whakakorekore: {0}",
+      "test-error-triggered-via-feedback": "He hapa whakamātautau i whakaohorere mā te urupare"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Ina tuku koe i te urupare, ka kite mātou:",

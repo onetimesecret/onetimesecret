@@ -18,7 +18,24 @@
       "compliance-title": "Naleving van regelgeving",
       "compliance-description": "Voldoen aan regionale gegevensbeschermingsvereisten zoals AVG, HIPAA, CCPA en anderen",
       "performance-title": "Snellere toegang",
-      "performance-description": "Gegevens die dichter bij jou worden opgeslagen betekenen lagere latentie en betere prestaties"
+      "performance-description": "Gegevens die dichter bij jou worden opgeslagen betekenen lagere latentie en betere prestaties",
+      "regions": "Regio's",
+      "contact-our-compliance-team": "neem contact op met ons compliance team",
+      "review-our-documentation": "bekijk onze documentatie",
+      "your-account-and-data-are-protected-under-the-la": "Uw account en gegevens worden beschermd onder de wetten en voorschriften van",
+      "this-regulatory-framework-is-determined-by-your-": "Dit regelgevingskader wordt bepaald door uw toegangsdomein:",
+      "each-jurisdiction-maintains-separate-legal-compl": "Elke jurisdictie heeft afzonderlijke wettelijke naleving en gegevensbeheer. Hoewel u accounts in meerdere jurisdicties kunt aanmaken, blijven ze juridisch gescheiden zonder gegevensuitwisseling tussen regelgevingszones.",
+      "to-understand-the-specific-regulations-and-prote": "Om de specifieke regelgeving en beschermingen te begrijpen die van toepassing zijn op uw account,",
+      "current": "Huidig",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "Beschikbare regio's",
+      "jurisdiction": "Jurisdictie",
+      "data-center-location-currentjurisdiction-identif": "Datacentrum locatie: {0}",
+      "data-region": "Dataregio",
+      "unknown-jurisdiction": "Onbekende jurisdictie",
+      "serving-you-from-the": "We bedienen u vanuit de",
+      "continue-to-jurisdiction-domain": "Doorgaan naar {0}",
+      "current-jurisdiction": "Huidige jurisdictie:"
     }
   }
 }

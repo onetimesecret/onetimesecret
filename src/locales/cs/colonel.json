@@ -56,7 +56,23 @@
         "configureDomainsDesc": "Nastavení domén a DNS",
         "systemSettings": "Nastavení systému",
         "systemSettingsDesc": "Konfigurace aplikace"
-      }
+      },
+      "redis-info": "Redis Info",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `ověřeno` : `neověřeno",
+      "customers-details-counts-recent_customer_count-o": "Zákazníci ({0} z {1})",
+      "user-feedback-total-details-counts-feedback_coun": "Zpětná vazba uživatelů (Celkem: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "Metadata / Tajemství: {0}/{1} ({2}/{3}/{4} celkem)",
+      "secrets-details-counts-secret_count": "Tajemství ({0})",
+      "active-in-the-past-5-minutes": "(aktivní za posledních 5 minut)",
+      "past-14-days": "Posledních 14 dní",
+      "yesterday": "Včera",
+      "today": "Dnes",
+      "misc": "Různé",
+      "feedback": "Zpětná vazba",
+      "customers": "Zákazníci",
+      "test-exception-message-substring-11": "Testovací výjimka: {0}",
+      "test-error-triggered-via-feedback": "Testovací chyba spuštěná prostřednictvím zpětné vazby"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Když odešleš zpětnou vazbu, uvidíme:",

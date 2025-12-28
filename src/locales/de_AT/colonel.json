@@ -56,7 +56,23 @@
         "configureDomainsDesc": "",
         "systemSettings": "",
         "systemSettingsDesc": ""
-      }
+      },
+      "redis-info": "Redis-Informationen",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "+Kunde.verifiziert ? verifiziert\" : \"nicht verifiziert",
+      "customers-details-counts-recent_customer_count-o": "Kunden ({0} von {1})",
+      "user-feedback-total-details-counts-feedback_coun": "Benutzer-Rückmeldung (Insgesamt: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "Metadaten/Geheimnisse: {0}/{1} ({2}/{3}/{4} insgesamt)",
+      "secrets-details-counts-secret_count": "Geheimnisse ({0})",
+      "active-in-the-past-5-minutes": "(aktiv in den letzten 5 Minuten)",
+      "past-14-days": "Letzte 14 Tage",
+      "yesterday": "Gestern",
+      "today": "Heute",
+      "misc": "Sonstiges",
+      "feedback": "Rückmeldung",
+      "customers": "Kunden",
+      "test-exception-message-substring-11": "Test-Ausnahme: {0}",
+      "test-error-triggered-via-feedback": "Testfehler ausgelöst durch Rückmeldung"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Wenn Sie ein Rückmeldung abgeben, werden wir es sehen:",

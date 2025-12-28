@@ -1,0 +1,25 @@
+{
+  "web": {
+    "errors": {
+      "why-is-this-secret-unavailable": "Miért nem érhető el ez a titok?",
+      "secrets-are-designed-to-be-viewed-only-once": "A titkok csak egyszer tekinthetők meg. Ez a hivatkozás már elérésre kerülhetett, lejárt, vagy a feladó manuálisan törölte.",
+      "what-should-i-do-now": "Mit tegyek most?",
+      "contact-the-person-who-sent-you-this-link": "Lépjen kapcsolatba azzal a személlyel, aki ezt a hivatkozást küldte, és kérje meg, hogy hozzon létre új titkot. Tudassa vele, hogy nem tudta elérni az eredeti információt.",
+      "warning-dismissed": "Figyelmeztetés elvetése",
+      "dismiss-truncation-warning": "Rövidítési figyelmeztetés elvetése",
+      "oops-the-page-you-are-looking-for-doesnt-exist-o": "Hoppá! A keresett oldal nem létezik vagy áthelyezésre került.",
+      "404-page-not-found-0": "404 - Az oldal nem található",
+      "404-page-not-found": "404 - Az oldal nem található",
+      "dismiss-warning": "Figyelmeztetés elvetése",
+      "dismiss-notification": "Értesítés elvetése",
+      "if-youre-unsure-what-to-do-next-please-follow-up": "Ha nem biztos abban, mit tegyen ezután, kérjük, lépjen kapcsolatba azzal a személlyel, aki ezt a hivatkozást küldte további információért.",
+      "information-shared-through-our-service-can-only-": "Szolgáltatásunkon keresztül megosztott információk csak egyszer érhetők el. Megtekintés után a tartalom véglegesen törlődik szervereinkről a bizalmasság biztosítása érdekében. Ez a megközelítés segít megvédeni érzékeny adatait azáltal, hogy korlátozza annak kitettségét és megakadályozza a jogosulatlan hozzáférést.",
+      "were-sorry-but-an-unexpected-error-occurred-whil": "Elnézést kérünk, de váratlan hiba történt kérése feldolgozása közben. Csapatunkat értesítettük és dolgozunk a javításon.",
+      "t-web-common-oops-something-went-wrong": "{0} Valami hiba történt",
+      "go-share-a-secret": "Menjen és osszon meg egy titkot!",
+      "the-page-youre-looking-for-doesnt-exist-or-has-b": "A keresett oldal nem létezik vagy áthelyezésre került. Ne aggódjon, ez a legjobbakkal is megtörténik!",
+      "t-web-common-oops-404": "{0} 404",
+      "unable-to-load-data-due-to-data-format-issues-pl": "Nem sikerült betölteni az adatokat adatformátum problémák miatt. Kérjük, próbálja újra később."
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "web": {
+    "testimonials": {
+      "ai-generated-testimonial": "המלצה שנוצרה על ידי AI",
+      "ai-generated-content-disclaimer": "תוכן שנוצר על ידי AI להדגמה. לא מאדם או חברה בפועל.",
+      "randomtestimonial-stars-5": "{0}/5",
+      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
+      "randomtestimonial-quote": "\"{0}\"",
+      "t-ai-generated-testimonial": "{0}:",
+      "what-leading-ai-says-about-us": "מה AI מוביל אומר עלינו",
+      "ai-generated-testimonials": "המלצות שנוצרו על ידי AI",
+      "this-quote-was-generated-by": "ציטוט זה נוצר על ידי",
+      "it-was-based-on-the-content-of-the-page-and-does": "הוא התבסס על תוכן העמוד ואינו מייצג אדם או חברה בפועל.",
+      "artificial-feedback": "משוב מלאכותי",
+      "this-content-is-ai-generated-based-on-the-conten": "תוכן זה נוצר על ידי AI בהתבסס על תוכן העמוד ואינו מייצג אדם או חברה בפועל."
+    }
+  }
+}

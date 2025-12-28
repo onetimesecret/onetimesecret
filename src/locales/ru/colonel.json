@@ -59,7 +59,23 @@
         "configureDomainsDesc": "Параметры доменов и DNS",
         "systemSettings": "Системные настройки",
         "systemSettingsDesc": "Конфигурация приложения"
-      }
+      },
+      "redis-info": "Информация Redis",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `подтверждён` : `не подтверждён",
+      "customers-details-counts-recent_customer_count-o": "Клиенты ({0} из {1})",
+      "user-feedback-total-details-counts-feedback_coun": "Отзывы пользователей (всего: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "Метаданные / Секреты: {0}/{1} (всего {2}/{3}/{4})",
+      "secrets-details-counts-secret_count": "Секреты ({0})",
+      "active-in-the-past-5-minutes": "(активен за последние 5 минут)",
+      "past-14-days": "Последние 14 дней",
+      "yesterday": "Вчера",
+      "today": "Сегодня",
+      "misc": "Разное",
+      "feedback": "Обратная связь",
+      "customers": "Клиенты",
+      "test-exception-message-substring-11": "Тестовое исключение: {0}",
+      "test-error-triggered-via-feedback": "Тестовая ошибка, вызванная через обратную связь"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Когда вы отправите отзыв, мы увидим:",

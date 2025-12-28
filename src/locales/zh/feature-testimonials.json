@@ -1,0 +1,18 @@
+{
+  "web": {
+    "testimonials": {
+      "ai-generated-testimonial": "AI 生成的推荐",
+      "ai-generated-content-disclaimer": "AI 生成的内容用于演示。不是来自实际的人或公司。",
+      "randomtestimonial-stars-5": "{0}/5",
+      "randomtestimonial-name-randomtestimonial-company": "- {0}，{1}",
+      "randomtestimonial-quote": "「{0}」",
+      "t-ai-generated-testimonial": "{0}：",
+      "what-leading-ai-says-about-us": "领先的 AI 如何评价我们",
+      "ai-generated-testimonials": "AI 生成的推荐",
+      "this-quote-was-generated-by": "此引用由以下生成",
+      "it-was-based-on-the-content-of-the-page-and-does": "它基于页面内容，不代表实际的人或公司。",
+      "artificial-feedback": "人工反馈",
+      "this-content-is-ai-generated-based-on-the-conten": "此内容是基于此页面内容的 AI 生成内容，不代表实际的人或公司。"
+    }
+  }
+}

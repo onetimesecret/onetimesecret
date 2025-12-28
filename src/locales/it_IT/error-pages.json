@@ -1,0 +1,25 @@
+{
+  "web": {
+    "errors": {
+      "why-is-this-secret-unavailable": "Perché questo segreto non è disponibile?",
+      "secrets-are-designed-to-be-viewed-only-once": "I segreti sono progettati per essere visualizzati una sola volta. Questo link potrebbe essere già stato consultato, essere scaduto o essere stato cancellato manualmente dal mittente.",
+      "what-should-i-do-now": "Cosa devo fare ora?",
+      "contact-the-person-who-sent-you-this-link": "Contattate la persona che vi ha inviato questo link e chiedetele di creare un nuovo segreto. Fategli sapere che non siete riusciti ad accedere alle informazioni originali",
+      "warning-dismissed": "Avviso respinto",
+      "dismiss-truncation-warning": "Avviso di troncamento respinto",
+      "oops-the-page-you-are-looking-for-doesnt-exist-o": "Oops! La pagina che stai cercando non esiste o è stata spostata",
+      "404-page-not-found-0": "404 - Pagina non trovata",
+      "404-page-not-found": "404 - Pagina non trovata",
+      "dismiss-warning": "Avviso di licenziamento",
+      "dismiss-notification": "Notifica di licenziamento",
+      "if-youre-unsure-what-to-do-next-please-follow-up": "Se non siete sicuri di cosa fare in seguito, vi preghiamo di contattare la persona che vi ha inviato questo link per ulteriori informazioni",
+      "information-shared-through-our-service-can-only-": "Le informazioni condivise attraverso il nostro servizio possono essere consultate solo una volta. Una volta visualizzato, il contenuto viene eliminato in modo permanente dai nostri server per garantire la riservatezza. Questo approccio aiuta a proteggere i vostri dati sensibili limitandone l'esposizione e impedendo l'accesso non autorizzato.",
+      "were-sorry-but-an-unexpected-error-occurred-whil": "Siamo spiacenti, ma si è verificato un errore imprevisto durante l'elaborazione della richiesta. Il nostro team è stato informato e stiamo lavorando per risolvere il problema",
+      "t-web-common-oops-something-went-wrong": "{0} Qualcosa è andato storto",
+      "go-share-a-secret": "Vai a condividere un segreto!",
+      "the-page-youre-looking-for-doesnt-exist-or-has-b": "La pagina che stai cercando non esiste o è stata spostata. Non preoccuparti, succede anche ai migliori di noi!",
+      "t-web-common-oops-404": "{0} 404",
+      "unable-to-load-data-due-to-data-format-issues-pl": "Impossibile caricare i dati a causa di problemi di formato dei dati. Riprovare più tardi"
+    }
+  }
+}

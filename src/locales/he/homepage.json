@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "שירות זה מוגדר לשימוש פנימי בלבד.",
         "tagline1": "ממשק משתמש ויכולות התחברות אינם זמינים."
-      }
+      },
+      "link-preview": "תצוגה מקדימה של קישור",
+      "meets-and-exceeds-compliance-standards": "עומד ועולה על תקני ציות",
+      "secure-your-brand-build-customer-trust-etc": "אבטחו את המותג שלכם, בנו אמון לקוחות עם קישורים מהדומיין שלכם.",
+      "a-trusted-way-to-share-sensitive-information-etc": "דרך מהימנה לשתף מידע רגיש שמשמיד את עצמו לאחר צפייה.",
+      "secure-links": "קישורים מאובטחים",
+      "about-onetime-secret-0": "אודות Onetime Secret",
+      "log-in-to-onetime-secret": "התחברות ל-Onetime Secret",
+      "about-onetime-secret": "אודות Onetime Secret",
+      "signup-individual-and-business-plans": "הרשמה - תוכניות פרטיות ועסקיות",
+      "tagline-signed": "חתום",
+      "tagline-sealed": "אטום",
+      "tagline-delivered": "נמסר",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "One-Time Secret",
+      "onetime-secret-homepage": "דף הבית של Onetime Secret",
+      "send-sensitive-information-that-can-only-be-viewed-once": "שלחו מידע רגיש שניתן לצפות בו פעם אחת בלבד",
+      "create-a-secure-link": "יצירת קישור מאובטח",
+      "now-with-custom-domains": "כעת עם דומיינים מותאמים אישית",
+      "this-is-a-private-instance-only-authorized-team-": "זהו מופע פרטי. רק חברי צוות מורשים יכולים ליצור קישורים מאובטחים חדשים.",
+      "welcome-to-onetime-secret": "ברוכים הבאים ל-Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret עוזר לנו לשתף מידע רגיש בצורה מאובטחת תוך שמירה על החזות המקצועית שלנו.",
+      "information-shared-through-this-service-can-only": "מידע המשותף דרך שירות זה ניתן לגישה פעם אחת בלבד. ברגע שנצפה, התוכן נמחק לצמיתות כדי להבטיח סודיות.",
+      "welcome-to-the-global-broadcast": "ברוכים הבאים לשידור הגלובלי!"
     }
   }
 }

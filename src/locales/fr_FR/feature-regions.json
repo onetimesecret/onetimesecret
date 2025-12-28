@@ -18,7 +18,24 @@
       "compliance-title": "Conformité réglementaire",
       "compliance-description": "Conformité aux exigences RGPD, HIPAA, CCPA et autres exigences régionales de protection des données",
       "performance-title": "Accès plus rapide",
-      "performance-description": "Les données stockées près de vous signifient une latence plus faible et de meilleures performances."
+      "performance-description": "Les données stockées près de vous signifient une latence plus faible et de meilleures performances.",
+      "regions": "Régions",
+      "contact-our-compliance-team": "contactez notre équipe de conformité",
+      "review-our-documentation": "examiner notre documentation",
+      "your-account-and-data-are-protected-under-the-la": "Votre compte et vos données sont protégés par les lois et règlements des pays suivants",
+      "this-regulatory-framework-is-determined-by-your-": "Ce cadre réglementaire est déterminé par votre domaine d'accès :",
+      "each-jurisdiction-maintains-separate-legal-compl": "Chaque juridiction maintient une conformité légale et une gouvernance des données distinctes. Bien que vous puissiez créer des comptes dans plusieurs juridictions, celles-ci restent juridiquement distinctes et les données ne sont pas partagées entre les zones réglementaires.",
+      "to-understand-the-specific-regulations-and-prote": "Pour comprendre les réglementations et protections spécifiques qui s'appliquent à votre compte, veuillez",
+      "current": "Actuel",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "Régions disponibles",
+      "jurisdiction": "Compétence",
+      "data-center-location-currentjurisdiction-identif": "Emplacement du centre de données : {0}",
+      "data-region": "Région de données",
+      "unknown-jurisdiction": "Juridiction inconnue",
+      "serving-you-from-the": "Service hébergé depuis",
+      "continue-to-jurisdiction-domain": "Continuer vers {0}",
+      "current-jurisdiction": "Juridiction actuelle :"
     }
   }
 }

@@ -1,0 +1,25 @@
+{
+  "web": {
+    "errors": {
+      "why-is-this-secret-unavailable": "为什么此内容不可用？",
+      "secrets-are-designed-to-be-viewed-only-once": "内容设计为只能查看一次。此链接可能已被访问、过期或被发送者手动删除。",
+      "what-should-i-do-now": "我现在应该做什么？",
+      "contact-the-person-who-sent-you-this-link": "联系向您发送此链接的人并要求他们创建新内容。让他们知道您无法访问原始信息。",
+      "warning-dismissed": "警告已关闭",
+      "dismiss-truncation-warning": "关闭截断警告",
+      "oops-the-page-you-are-looking-for-doesnt-exist-o": "哎呀，您正在寻找的页面不存在或已被移动。",
+      "404-page-not-found-0": "404 - 页面未找到",
+      "404-page-not-found": "404 - 页面未找到",
+      "dismiss-warning": "关闭警告",
+      "dismiss-notification": "关闭通知",
+      "if-youre-unsure-what-to-do-next-please-follow-up": "如果您不确定下一步该做什么，请与向您发送此链接的人联系以获取更多信息。",
+      "information-shared-through-our-service-can-only-": "通过我们的服务分享的信息只能访问一次。一旦查看，内容将从我们的服务器上永久删除以确保机密性。这种方法通过限制其暴露并防止未经授权的访问来帮助保护您的敏感数据。",
+      "were-sorry-but-an-unexpected-error-occurred-whil": "很抱歉，处理您的请求时发生了意外错误。我们的团队已收到通知，正在努力修复。",
+      "t-web-common-oops-something-went-wrong": "{0} 出了点问题",
+      "go-share-a-secret": "去分享内容吧",
+      "the-page-youre-looking-for-doesnt-exist-or-has-b": "您正在寻找的页面不存在或已被移动。别担心，我们都会遇到这种情况",
+      "t-web-common-oops-404": "{0} 404",
+      "unable-to-load-data-due-to-data-format-issues-pl": "由于数据格式问题无法加载数据。请稍后再试。"
+    }
+  }
+}

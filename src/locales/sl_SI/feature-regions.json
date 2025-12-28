@@ -18,7 +18,24 @@
       "compliance-title": "Skladnost s predpisi",
       "compliance-description": "Izpolnite zahteve GDPR, HIPAA, CCPA in druge regionalne zahteve za zaščito podatkov",
       "performance-title": "Hitrejši dostop",
-      "performance-description": "Podatki, shranjeni bliže vam, pomenijo nižjo zakasnitev in boljšo zmogljivost."
+      "performance-description": "Podatki, shranjeni bliže vam, pomenijo nižjo zakasnitev in boljšo zmogljivost.",
+      "regions": "Regije",
+      "contact-our-compliance-team": "kontaktirajte našo ekipo za skladnost",
+      "review-our-documentation": "preglejte našo dokumentacijo",
+      "your-account-and-data-are-protected-under-the-la": "Vaš račun in podatki so zaščiteni pod zakoni",
+      "this-regulatory-framework-is-determined-by-your-": "Vaš regulativni okvir je določen z vašo domeno dostopa:",
+      "each-jurisdiction-maintains-separate-legal-compl": "Vsaka regija je popolnoma ločena z lastno infrastrukturo, ko je mogoče z lastnim lokalnim ponudnikom gostovanja. Račune lahko ustvarite v več regijah, vendar se med njimi podatki ne delijo.",
+      "to-understand-the-specific-regulations-and-prote": "Za podrobnosti o predpisih in zaščitah, ki veljajo za vaš račun,",
+      "current": "Trenutno",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "Razpoložljive regije",
+      "jurisdiction": "Jurisdikcija",
+      "data-center-location-currentjurisdiction-identif": "Lokacija podatkovnega centra: {0}",
+      "data-region": "Podatkovna regija",
+      "unknown-jurisdiction": "Neznana jurisdikcija",
+      "serving-you-from-the": "Strežemo vam iz",
+      "continue-to-jurisdiction-domain": "Nadaljuj na {0}",
+      "current-jurisdiction": "Trenutna jurisdikcija:"
     }
   }
 }

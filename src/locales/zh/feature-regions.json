@@ -18,7 +18,24 @@
       "compliance-title": "监管合规",
       "compliance-description": "满足 GDPR、HIPAA、CCPA 和其他区域数据保护要求",
       "performance-title": "更快的访问",
-      "performance-description": "数据存储在离您更近的地方意味着更低的延迟和更好的性能。"
+      "performance-description": "数据存储在离您更近的地方意味着更低的延迟和更好的性能。",
+      "regions": "区域",
+      "contact-our-compliance-team": "联系我们的合规团队",
+      "review-our-documentation": "查看我们的文档",
+      "your-account-and-data-are-protected-under-the-la": "您的账户和数据受以下法律保护",
+      "this-regulatory-framework-is-determined-by-your-": "您的监管框架由您的访问域名决定：",
+      "each-jurisdiction-maintains-separate-legal-compl": "每个区域都是完全独立的，拥有自己的基础设施，在可能的情况下拥有自己的本地托管提供商。您可以在多个区域创建账户，但它们之间不共享数据。",
+      "to-understand-the-specific-regulations-and-prote": "有关适用于您账户的法规和保护的详细信息，",
+      "current": "当前",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "可用区域",
+      "jurisdiction": "司法管辖区",
+      "data-center-location-currentjurisdiction-identif": "数据中心位置：{0}",
+      "data-region": "数据区域",
+      "unknown-jurisdiction": "未知司法管辖区",
+      "serving-you-from-the": "正在为您提供服务，来自",
+      "continue-to-jurisdiction-domain": "继续到 {0}",
+      "current-jurisdiction": "当前司法管辖区："
     }
   }
 }

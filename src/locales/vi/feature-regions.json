@@ -18,7 +18,24 @@
       "compliance-title": "Tuân thủ quy định",
       "compliance-description": "Đáp ứng GDPR, HIPAA, CCPA và các yêu cầu bảo vệ dữ liệu khu vực khác",
       "performance-title": "Truy cập nhanh hơn",
-      "performance-description": "Dữ liệu lưu trữ gần bạn hơn có nghĩa là độ trễ thấp hơn và hiệu suất tốt hơn."
+      "performance-description": "Dữ liệu lưu trữ gần bạn hơn có nghĩa là độ trễ thấp hơn và hiệu suất tốt hơn.",
+      "regions": "Khu vực",
+      "contact-our-compliance-team": "liên hệ nhóm tuân thủ của chúng tôi",
+      "review-our-documentation": "xem lại tài liệu của chúng tôi",
+      "your-account-and-data-are-protected-under-the-la": "Tài khoản và dữ liệu của bạn được bảo vệ theo luật pháp của",
+      "this-regulatory-framework-is-determined-by-your-": "Khung pháp lý của bạn được xác định bởi tên miền truy cập của bạn:",
+      "each-jurisdiction-maintains-separate-legal-compl": "Mỗi khu vực hoàn toàn riêng biệt với cơ sở hạ tầng riêng, khi có thể với nhà cung cấp lưu trữ địa phương riêng. Bạn có thể tạo tài khoản ở nhiều khu vực, nhưng không có dữ liệu nào được chia sẻ giữa chúng.",
+      "to-understand-the-specific-regulations-and-prote": "Để biết chi tiết về các quy định và biện pháp bảo vệ áp dụng cho tài khoản của bạn,",
+      "current": "Hiện tại",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "Khu vực khả dụng",
+      "jurisdiction": "Quyền tài phán",
+      "data-center-location-currentjurisdiction-identif": "Vị trí trung tâm dữ liệu: {0}",
+      "data-region": "Khu vực dữ liệu",
+      "unknown-jurisdiction": "Quyền tài phán không xác định",
+      "serving-you-from-the": "Phục vụ bạn từ",
+      "continue-to-jurisdiction-domain": "Tiếp tục đến {0}",
+      "current-jurisdiction": "Quyền tài phán hiện tại:"
     }
   }
 }

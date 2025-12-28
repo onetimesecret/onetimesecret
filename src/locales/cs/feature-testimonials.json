@@ -1,0 +1,18 @@
+{
+  "web": {
+    "testimonials": {
+      "ai-generated-testimonial": "Vygenerováno AI - Reference",
+      "ai-generated-content-disclaimer": "Obsah vygenerovaný AI pro demonstraci. Nepochází od skutečné osoby nebo společnosti.",
+      "randomtestimonial-stars-5": "{0}/5",
+      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
+      "randomtestimonial-quote": "\"{0}\"",
+      "t-ai-generated-testimonial": "{0}:",
+      "what-leading-ai-says-about-us": "Co o nás říká přední AI",
+      "ai-generated-testimonials": "Vygenerované AI - Reference",
+      "this-quote-was-generated-by": "Tento citát byl vygenerován pomocí",
+      "it-was-based-on-the-content-of-the-page-and-does": "Byl založen na obsahu stránky a nepředstavuje skutečnou osobu nebo společnost.",
+      "artificial-feedback": "Umělá zpětná vazba",
+      "this-content-is-ai-generated-based-on-the-conten": "Tento obsah je vygenerován AI na základě obsahu této stránky a nepředstavuje skutečnou osobu nebo společnost."
+    }
+  }
+}

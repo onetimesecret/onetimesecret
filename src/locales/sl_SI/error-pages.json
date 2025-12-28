@@ -1,0 +1,25 @@
+{
+  "web": {
+    "errors": {
+      "why-is-this-secret-unavailable": "Zakaj ta skrivnost ni na voljo?",
+      "secrets-are-designed-to-be-viewed-only-once": "Skrivnosti so zasnovane tako, da si jih je mogoče ogledati samo enkrat. Ta povezava je morda že bila dostopana, je potekla ali jo je pošiljatelj ročno izbrisal.",
+      "what-should-i-do-now": "Kaj naj storim zdaj?",
+      "contact-the-person-who-sent-you-this-link": "Kontaktirajte osebo, ki vam je poslala to povezavo, in jo prosite, naj ustvari novo skrivnost. Povejte ji, da niste mogli dostopati do izvirnih informacij.",
+      "warning-dismissed": "Opozorilo opuščeno",
+      "dismiss-truncation-warning": "Opusti opozorilo o okrnitvi",
+      "oops-the-page-you-are-looking-for-doesnt-exist-o": "Ups! Stran, ki jo iščete, ne obstaja ali je bila premaknjena.",
+      "404-page-not-found-0": "404 - Stran ni najdena",
+      "404-page-not-found": "404 - Stran ni najdena",
+      "dismiss-warning": "Opusti opozorilo",
+      "dismiss-notification": "Opusti obvestilo",
+      "if-youre-unsure-what-to-do-next-please-follow-up": "Če niste prepričani, kaj storiti naprej, se prosimo obrnite na osebo, ki vam je poslala to povezavo za več informacij.",
+      "information-shared-through-our-service-can-only-": "Informacije, deljene preko naše storitve, je mogoče dostopati samo enkrat. Ko so ogledane, je vsebina trajno izbrisana z naših strežnikov za zagotovitev zaupnosti. Ta pristop pomaga zaščititi vaše občutljive podatke z omejevanjem njihove izpostavljenosti in preprečevanjem nepooblaščenega dostopa.",
+      "were-sorry-but-an-unexpected-error-occurred-whil": "Opravičujemo se, vendar je prišlo do nepričakovane napake med obdelavo vaše zahteve. Naša ekipa je bila obveščena in delamo na odpravi težave.",
+      "t-web-common-oops-something-went-wrong": "{0} Nekaj je šlo narobe",
+      "go-share-a-secret": "Pojdi deliti skrivnost!",
+      "the-page-youre-looking-for-doesnt-exist-or-has-b": "Stran, ki jo iščete, ne obstaja ali je bila premaknjena. Ne skrbite, to se zgodi najboljšim!",
+      "t-web-common-oops-404": "{0} 404",
+      "unable-to-load-data-due-to-data-format-issues-pl": "Ni mogoče naložiti podatkov zaradi težav s formatom podatkov. Poskusite znova kasneje."
+    }
+  }
+}

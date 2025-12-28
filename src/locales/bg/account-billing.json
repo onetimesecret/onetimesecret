@@ -98,7 +98,31 @@
         "description": "Управлявайте вашия абонамент, методи на плащане и история на фактурирането",
         "open_portal": "Отворете портала за фактуриране",
         "redirecting": "Пренасочване към портала за фактуриране..."
-      }
+      },
+      "start-today": "Започнете днес",
+      "start-today-with-identity-plus": "Започнете днес с Identity Plus",
+      "per-month": "на месец",
+      "full-api-access": "Пълен API достъп",
+      "privacy-first-design": "Дизайн с приоритет на поверителността",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Кликнете върху тази светкавица, за да надстроите за персонализирани домейни",
+      "maybe-later": "Може би по-късно",
+      "upgrade-account": "Надграждане на акаунт",
+      "upgrade-to-identity-plus": "Надградете до Identity Plus",
+      "upgrade-for-teams": "Надграждане за екипи",
+      "benefits-of": "Предимства на",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Надгради до",
+      "upgrade-for-yourdomain": "Надгради за secrets.yourdomain.com",
+      "includes-all-features-and-unlimited-sharing-capa": "Всички планове включват функции за поверителност и неограничена възможност за споделяне",
+      "includes-all-data-locality-options": "Всички планове включват избор на локалност на данните: {0} региони",
+      "get-started": "Започнете",
+      "frequency-value-annually-annual-monthly-subscrip": "{0} абонамент",
+      "elevate-your-secure-sharing-with-custom-domains-": "Повишете сигурното споделяне с персонализирани домейни, неограничени възможности и корпоративни функции.",
+      "payment-frequency": "Честота на плащанията",
+      "secure-your-brand-and-build-customer-trust-with-": "Защитете вашата марка и изградете доверие у клиентите чрез връзки от вашия домейн. Идеално за компании, които ценят поверителността и професионализма.",
+      "secure-links-stronger-connections": "Сигурни връзки, по-силни връзки",
+      "identity-tier-not-found-in-product-tiers": "Нивото на идентичност не е намерено в продуктовите нива"
     }
   }
 }

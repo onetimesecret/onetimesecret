@@ -98,7 +98,31 @@
         "description": "",
         "open_portal": "",
         "redirecting": ""
-      }
+      },
+      "start-today": "Ξεκινήστε σήμερα",
+      "start-today-with-identity-plus": "Ξεκινήστε σήμερα με το Identity Plus",
+      "per-month": "ανά μήνα",
+      "full-api-access": "Πλήρης πρόσβαση API",
+      "privacy-first-design": "Σχεδιασμός με προτεραιότητα το απόρρητο",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Κάντε κλικ σε αυτόν τον κεραυνό για αναβάθμιση για προσαρμοσμένα domain",
+      "maybe-later": "Ίσως Αργότερα",
+      "upgrade-account": "Αναβάθμιση λογαριασμού",
+      "upgrade-to-identity-plus": "Αναβάθμιση σε Identity Plus",
+      "upgrade-for-teams": "",
+      "benefits-of": "Οφέλη του",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Αναβάθμιση σε",
+      "upgrade-for-yourdomain": "Αναβάθμιση για secrets.yourdomain.com",
+      "includes-all-features-and-unlimited-sharing-capa": "Όλα τα πλάνα περιλαμβάνουν δυνατότητες απορρήτου και απεριόριστη χωρητικότητα κοινοποίησης",
+      "includes-all-data-locality-options": "Όλα τα πλάνα περιλαμβάνουν επιλογή τοποθεσίας δεδομένων: {0} περιοχές",
+      "get-started": "Ξεκινήστε",
+      "frequency-value-annually-annual-monthly-subscrip": "{0} συνδρομή",
+      "elevate-your-secure-sharing-with-custom-domains-": "Αναβαθμίστε την ασφαλή κοινοποίησή σας με προσαρμοσμένα domain, απεριόριστη χωρητικότητα και δυνατότητες επιπέδου επιχείρησης.",
+      "payment-frequency": "Συχνότητα πληρωμής",
+      "secure-your-brand-and-build-customer-trust-with-": "Ασφαλίστε την επωνυμία σας και χτίστε εμπιστοσύνη πελατών με συνδέσμους από το domain σας. Ιδανικό για επιχειρήσεις που εκτιμούν το απόρρητο και τον επαγγελματισμό.",
+      "secure-links-stronger-connections": "Ασφαλείς Σύνδεσμοι, Ισχυρότερες Συνδέσεις",
+      "identity-tier-not-found-in-product-tiers": "Το επίπεδο Identity δεν βρέθηκε στα επίπεδα προϊόντων"
     }
   }
 }

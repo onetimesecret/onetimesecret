@@ -12,6 +12,9 @@
         },
         "privacy-note": "Notifikations-e-mails indeholder kun tidsstempel og besked-ID. Oplysninger om seeren inkluderes aldrig."
       }
+    },
+    "account": {
+      "api-key": "API -nøgle"
     }
   }
 }

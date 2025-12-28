@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "Αυτή η υπηρεσία έχει ρυθμιστεί για εσωτερική χρήση μόνο.",
         "tagline1": "Δεν είναι διαθέσιμη η διεπαφή χρήστη και οι δυνατότητες σύνδεσης."
-      }
+      },
+      "link-preview": "Προεπισκόπηση Συνδέσμου",
+      "meets-and-exceeds-compliance-standards": "Πληροί και υπερβαίνει τα πρότυπα συμμόρφωσης",
+      "secure-your-brand-build-customer-trust-etc": "Ασφαλίστε την επωνυμία σας, χτίστε εμπιστοσύνη πελατών με συνδέσμους από το domain σας.",
+      "a-trusted-way-to-share-sensitive-information-etc": "Ένας αξιόπιστος τρόπος κοινοποίησης ευαίσθητων πληροφοριών που αυτοκαταστρέφονται αφού προβληθούν.",
+      "secure-links": "Ασφαλείς Σύνδεσμοι",
+      "about-onetime-secret-0": "Σχετικά με το Onetime Secret",
+      "log-in-to-onetime-secret": "Σύνδεση στο Onetime Secret",
+      "about-onetime-secret": "Σχετικά με το Onetime Secret",
+      "signup-individual-and-business-plans": "Εγγραφή - Ατομικά και Επιχειρηματικά πλάνα",
+      "tagline-signed": "Υπογεγραμμένο",
+      "tagline-sealed": "Σφραγισμένο",
+      "tagline-delivered": "Παραδόθηκε",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "",
+      "onetime-secret-homepage": "Αρχική Σελίδα Onetime Secret",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Στείλτε ευαίσθητες πληροφορίες που μπορούν να προβληθούν μόνο μία φορά",
+      "create-a-secure-link": "Δημιουργήστε έναν ασφαλή σύνδεσμο",
+      "now-with-custom-domains": "Τώρα με προσαρμοσμένα domain",
+      "this-is-a-private-instance-only-authorized-team-": "Αυτή είναι μια ιδιωτική εγκατάσταση. Μόνο εξουσιοδοτημένα μέλη της ομάδας μπορούν να δημιουργήσουν νέους ασφαλείς συνδέσμους.",
+      "welcome-to-onetime-secret": "Καλώς ορίσατε στο Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Το Onetime Secret μας βοηθά να μοιραζόμαστε ευαίσθητες πληροφορίες με ασφάλεια διατηρώντας παράλληλα την επαγγελματική μας εικόνα.",
+      "information-shared-through-this-service-can-only": "Οι πληροφορίες που κοινοποιούνται μέσω αυτής της υπηρεσίας μπορούν να προσπελαστούν μόνο μία φορά. Μόλις προβληθεί, το περιεχόμενο διαγράφεται μόνιμα για να διασφαλιστεί η εμπιστευτικότητα.",
+      "welcome-to-the-global-broadcast": "Καλώς ορίσατε στην Παγκόσμια Μετάδοση!"
     }
   }
 }

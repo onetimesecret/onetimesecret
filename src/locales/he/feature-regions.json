@@ -18,7 +18,24 @@
       "compliance-title": "עמידה ברגולציה",
       "compliance-description": "עמדו בדרישות GDPR, HIPAA, CCPA ודרישות הגנת מידע אזוריות אחרות",
       "performance-title": "גישה מהירה יותר",
-      "performance-description": "נתונים המאוחסנים קרוב אליכם משמעותם זמן תגובה נמוך יותר וביצועים טובים יותר."
+      "performance-description": "נתונים המאוחסנים קרוב אליכם משמעותם זמן תגובה נמוך יותר וביצועים טובים יותר.",
+      "regions": "אזורים",
+      "contact-our-compliance-team": "צרו קשר עם צוות הציות שלנו",
+      "review-our-documentation": "עיינו בתיעוד שלנו",
+      "your-account-and-data-are-protected-under-the-la": "החשבון והנתונים שלכם מוגנים תחת חוקי",
+      "this-regulatory-framework-is-determined-by-your-": "מסגרת רגולציה שלכם נקבעת על ידי דומיין הגישה שלכם:",
+      "each-jurisdiction-maintains-separate-legal-compl": "כל אזור הוא נפרד לחלוטין עם תשתית משלו, כאשר אפשרי עם ספק אירוח מקומי משלו. אתם יכולים ליצור חשבונות באזורים מרובים, אך אין נתונים משותפים ביניהם.",
+      "to-understand-the-specific-regulations-and-prote": "לפרטים על רגולציות והגנות החלות על החשבון שלכם,",
+      "current": "נוכחי",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "אזורים זמינים",
+      "jurisdiction": "תחום שיפוט",
+      "data-center-location-currentjurisdiction-identif": "מיקום מרכז נתונים: {0}",
+      "data-region": "אזור נתונים",
+      "unknown-jurisdiction": "תחום שיפוט לא ידוע",
+      "serving-you-from-the": "משרתים אתכם מ",
+      "continue-to-jurisdiction-domain": "המשך אל {0}",
+      "current-jurisdiction": "תחום שיפוט נוכחי:"
     }
   }
 }

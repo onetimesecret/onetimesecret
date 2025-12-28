@@ -56,7 +56,23 @@
         "configureDomainsDesc": "Impostazioni dominio e DNS",
         "systemSettings": "Impostazioni di sistema",
         "systemSettingsDesc": "Configurazione applicazione"
-      }
+      },
+      "redis-info": "Redis Info",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+cliente.verificato? `verificato` : `non verificato",
+      "customers-details-counts-recent_customer_count-o": "Clienti ({0} di {1})",
+      "user-feedback-total-details-counts-feedback_coun": "Feedback degli utenti (totale: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "Metadati / Segreti: {0}/{1} ({2}/{3}/{4} totale)",
+      "secrets-details-counts-secret_count": "Segreti ({0})",
+      "active-in-the-past-5-minutes": "(attivo negli ultimi 5 minuti)",
+      "past-14-days": "Ultimi 14 giorni",
+      "yesterday": "Ieri",
+      "today": "Oggi",
+      "misc": "Misc",
+      "feedback": "Feedback",
+      "customers": "Clienti",
+      "test-exception-message-substring-11": "Eccezione di test: {0}",
+      "test-error-triggered-via-feedback": "Errore di test innescato tramite feedback"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Quando invii un feedback, vediamo:",

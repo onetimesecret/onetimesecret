@@ -18,7 +18,24 @@
       "compliance-title": "Einhaltung gesetzlicher Vorschriften",
       "compliance-description": "Erfülle DSGVO, HIPAA, CCPA und andere regionale Datenschutzanforderungen",
       "performance-title": "Schnellerer Zugriff",
-      "performance-description": "Daten, die näher bei dir gespeichert sind, bedeuten geringere Latenz und bessere Leistung."
+      "performance-description": "Daten, die näher bei dir gespeichert sind, bedeuten geringere Latenz und bessere Leistung.",
+      "regions": "Regionen",
+      "contact-our-compliance-team": "kontaktiere unser Compliance-Team",
+      "review-our-documentation": "unsere Dokumentation überprüfen",
+      "your-account-and-data-are-protected-under-the-la": "Dein Konto und deine Daten sind gemäß den Gesetzen und Vorschriften von",
+      "this-regulatory-framework-is-determined-by-your-": "Dieser regulatorische Rahmen wird durch deine Zugriffsdomain bestimmt:",
+      "each-jurisdiction-maintains-separate-legal-compl": "Jede Gerichtsbarkeit unterhält separate rechtliche Compliance und Datenverwaltung. Obwohl du Konten in mehreren Gerichtsbarkeiten erstellen kannst, bleiben sie rechtlich getrennt ohne Datenaustausch zwischen regulatorischen Zonen.",
+      "to-understand-the-specific-regulations-and-prote": "Um die spezifischen Vorschriften und Schutzmaßnahmen zu verstehen, die für dein Konto gelten, bitte",
+      "current": "Aktuell",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "Verfügbare Regionen",
+      "jurisdiction": "Gerichtsbarkeit",
+      "data-center-location-currentjurisdiction-identif": "Rechenzentrumsstandort: {0}",
+      "data-region": "Datenregion",
+      "unknown-jurisdiction": "Unbekannte Gerichtsbarkeit",
+      "serving-you-from-the": "Wir bedienen dich von",
+      "continue-to-jurisdiction-domain": "Weiter zu {0}",
+      "current-jurisdiction": "Aktuelle Gerichtsbarkeit:"
     }
   }
 }

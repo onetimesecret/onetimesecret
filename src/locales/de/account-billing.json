@@ -98,7 +98,31 @@
         "description": "Verwalte dein Abonnement, Zahlungsmethoden und Abrechnungsverlauf",
         "open_portal": "Abrechnungsportal öffnen",
         "redirecting": "Wird zum Abrechnungsportal weitergeleitet..."
-      }
+      },
+      "start-today": "Heute starten",
+      "start-today-with-identity-plus": "Heute mit Identity Plus starten",
+      "per-month": "pro Monat",
+      "full-api-access": "Voller API-Zugriff",
+      "privacy-first-design": "Datenschutzorientiertes Design",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Klicke auf diesen Blitz, um für benutzerdefinierte Domains zu upgraden",
+      "maybe-later": "Vielleicht später",
+      "upgrade-account": "Konto upgraden",
+      "upgrade-to-identity-plus": "Upgrade auf Identity Plus",
+      "upgrade-for-teams": "Upgrade für Teams",
+      "benefits-of": "Vorteile von",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Upgrade auf",
+      "upgrade-for-yourdomain": "Upgrade für secrets.yourdomain.com",
+      "includes-all-features-and-unlimited-sharing-capa": "Alle Pläne beinhalten Datenschutzfunktionen und unbegrenzte Teilkapazität",
+      "includes-all-data-locality-options": "Alle Pläne beinhalten die Wahl der Datenlokalität: {0} Regionen",
+      "get-started": "Loslegen",
+      "frequency-value-annually-annual-monthly-subscrip": "{0} Abonnement",
+      "elevate-your-secure-sharing-with-custom-domains-": "Verbessere dein sicheres Teilen mit benutzerdefinierten Domains, unbegrenzter Kapazität und Funktionen auf Unternehmensniveau.",
+      "payment-frequency": "Zahlungsfrequenz",
+      "secure-your-brand-and-build-customer-trust-with-": "Sichere deine Marke und baue Kundenvertrauen mit Links von deiner Domain auf. Perfekt für Unternehmen, die Wert auf Datenschutz und Professionalität legen.",
+      "secure-links-stronger-connections": "Sichere Links, stärkere Verbindungen",
+      "identity-tier-not-found-in-product-tiers": "Identity-Stufe in Produktstufen nicht gefunden"
     }
   }
 }

@@ -1,0 +1,18 @@
+{
+  "web": {
+    "testimonials": {
+      "ai-generated-testimonial": "Testimoni generat per IA",
+      "ai-generated-content-disclaimer": "Contingut generat per IA per a demostració. No d'una persona o empresa real.",
+      "randomtestimonial-stars-5": "{0}/5",
+      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
+      "randomtestimonial-quote": "\"{0}\"",
+      "t-ai-generated-testimonial": "{0}:",
+      "what-leading-ai-says-about-us": "El que diu la IA líder sobre nosaltres",
+      "ai-generated-testimonials": "Testimonis generats per IA",
+      "this-quote-was-generated-by": "Aquesta cita va ser generada per",
+      "it-was-based-on-the-content-of-the-page-and-does": "Es va basar en el contingut de la pàgina i no representa una persona o empresa real.",
+      "artificial-feedback": "Comentaris artificials",
+      "this-content-is-ai-generated-based-on-the-conten": "Aquest contingut està generat per IA basat en el contingut d'aquesta pàgina i no representa una persona o empresa real."
+    }
+  }
+}

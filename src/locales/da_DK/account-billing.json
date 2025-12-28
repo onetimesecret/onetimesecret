@@ -98,7 +98,31 @@
         "description": "",
         "open_portal": "",
         "redirecting": ""
-      }
+      },
+      "start-today": "Start i dag",
+      "start-today-with-identity-plus": "Start i dag med Identity Plus",
+      "per-month": "per måned",
+      "full-api-access": "Fuld API-adgang",
+      "privacy-first-design": "Privacy-first-design",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Klik på dette lyn for at opgradere til brugerdefinerede domæner",
+      "maybe-later": "Måske senere",
+      "upgrade-account": "Opgrader konto",
+      "upgrade-to-identity-plus": "Opgrader til Identity Plus",
+      "upgrade-for-teams": "",
+      "benefits-of": "Fordele ved",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Opgrader til",
+      "upgrade-for-yourdomain": "Opgrader til secrets.yourdomain.com",
+      "includes-all-features-and-unlimited-sharing-capa": "Alle planer inkluderer privatlivsfunktioner og ubegrænset delingskapacitet",
+      "includes-all-data-locality-options": "Alle abonnementer inkluderer valg af datalokalitet: {0} regioner",
+      "get-started": "Kom godt i gang",
+      "frequency-value-annually-annual-monthly-subscrip": "{0} abonnement",
+      "elevate-your-secure-sharing-with-custom-domains-": "Løft din sikre deling med brugerdefinerede domæner, ubegrænset kapacitet og funktioner i virksomhedsklasse.",
+      "payment-frequency": "Betalingsfrekvens",
+      "secure-your-brand-and-build-customer-trust-with-": "Sikr dit brand, og opbyg kundernes tillid med links fra dit domæne. Perfekt til virksomheder, der værdsætter privatliv og professionalisme.",
+      "secure-links-stronger-connections": "Sikre links, stærkere forbindelser",
+      "identity-tier-not-found-in-product-tiers": "Identitetsniveau ikke fundet i produktniveauer"
     }
   }
 }

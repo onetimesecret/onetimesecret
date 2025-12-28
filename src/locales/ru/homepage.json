@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "Не пересылайте конфиденциальную информацию через беседы и эл-почту.",
         "tagline1": "Вставьте пароль, тайное сообщение или закрытую ссылку ниже."
-      }
+      },
+      "link-preview": "Предпросмотр ссылки",
+      "meets-and-exceeds-compliance-standards": "Соответствует и превосходит стандарты соблюдения требований",
+      "secure-your-brand-build-customer-trust-etc": "Защитите свой бренд, завоюйте доверие клиентов с помощью ссылок из Вашего домена.",
+      "a-trusted-way-to-share-sensitive-information-etc": "Надёжный способ делиться конфиденциальной информацией, которая самоуничтожается после просмотра.",
+      "secure-links": "Безопасные ссылки",
+      "about-onetime-secret-0": "О Onetime Secret",
+      "log-in-to-onetime-secret": "Войти в Onetime Secret",
+      "about-onetime-secret": "О Onetime Secret",
+      "signup-individual-and-business-plans": "Регистрация - Индивидуальные и бизнес-тарифы",
+      "tagline-signed": "Подписано",
+      "tagline-sealed": "Запечатано",
+      "tagline-delivered": "Доставлено",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "Одноразовый секрет",
+      "onetime-secret-homepage": "Главная страница Onetime Secret",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Отправьте конфиденциальную информацию, которую можно просмотреть только один раз",
+      "create-a-secure-link": "Создать безопасную ссылку",
+      "now-with-custom-domains": "Теперь с пользовательскими доменами",
+      "this-is-a-private-instance-only-authorized-team-": "Это частный экземпляр. Только авторизованные члены команды могут создавать новые безопасные ссылки.",
+      "welcome-to-onetime-secret": "Добро пожаловать в Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret помогает нам безопасно делиться конфиденциальной информацией, сохраняя при этом наш профессиональный имидж.",
+      "information-shared-through-this-service-can-only": "Информация, переданная через этот сервис, может быть доступна только один раз. После просмотра содержимое будет безвозвратно удалено для обеспечения конфиденциальности.",
+      "welcome-to-the-global-broadcast": "Добро пожаловать в глобальное вещание!"
     }
   }
 }

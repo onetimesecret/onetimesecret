@@ -1,0 +1,20 @@
+{
+  "web": {
+    "feedback": {
+      "your-feedback": "Your feedback",
+      "all-feedback-welcome": "All feedback welcome!",
+      "help-us-improve": "Help us improve",
+      "close-feedback-modal": "Close feedback modal",
+      "share-your-feedback": "Share your feedback",
+      "delano-mandelbaum": "Delano Mandelbaum",
+      "delano": "Delano",
+      "help-content-goes-here": "Help content goes here.",
+      "thanks-for-helping-onetime-secret-improve-it-mea": "Thanks for helping Onetime Secret improve. It means a lot.",
+      "weve-built-this-tool-to-help-you-share-sensitive": "We've built this tool to help you share sensitive info securely, and your real-world experiences are crucial for focusing our efforts. It helps us figure out what to work on next and how to make the service better for everyone.",
+      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Hey there, thanks for stopping by our feedback page. Your input isn't just welcome - it's crucial.",
+      "a-note-from-delano-founder-of-onetime-secret": "A note from Delano, founder of Onetime Secret",
+      "open-feedback-form": "Open feedback form",
+      "enter-your-feedback": "Enter your feedback"
+    }
+  }
+}

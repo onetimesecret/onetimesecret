@@ -1,0 +1,20 @@
+{
+  "web": {
+    "feedback": {
+      "your-feedback": "Ihr Rückmeldung",
+      "all-feedback-welcome": "Jedes Rückmeldung ist willkommen!",
+      "help-us-improve": "Helfen Sie uns zu verbessern",
+      "close-feedback-modal": "Rückmeldung-Modal schließen",
+      "share-your-feedback": "Teilen Sie Ihr Rückmeldung mit",
+      "delano-mandelbaum": "Delano Mandelbaum",
+      "delano": "Delano",
+      "help-content-goes-here": "Hilfe-Inhalte finden Sie hier.",
+      "thanks-for-helping-onetime-secret-improve-it-mea": "Danke, dass Sie Onetime Secret geholfen haben, sich zu verbessern. Das bedeutet mir sehr viel.",
+      "weve-built-this-tool-to-help-you-share-sensitive": "Wir haben dieses Tool entwickelt, um Ihnen zu helfen, vertrauliche Informationen sicher auszutauschen, und Ihre Erfahrungen aus der Praxis sind entscheidend für die Ausrichtung unserer Bemühungen. Sie helfen uns, herauszufinden, woran wir als Nächstes arbeiten und wie wir den Dienst für alle verbessern können.",
+      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Hallo, danke, dass Sie auf unserer Rückmeldung-Seite vorbeischauen. Ihr Beitrag ist nicht nur willkommen - er ist entscheidend.",
+      "a-note-from-delano-founder-of-onetime-secret": "Eine Anmerkung von Delano, dem Gründer von Onetime Secret",
+      "open-feedback-form": "Rückmeldung-Formular öffnen",
+      "enter-your-feedback": "Geben Sie Ihr Rückmeldung ein"
+    }
+  }
+}

@@ -18,7 +18,24 @@
       "compliance-title": "",
       "compliance-description": "",
       "performance-title": "",
-      "performance-description": ""
+      "performance-description": "",
+      "regions": "Regions",
+      "contact-our-compliance-team": "kontakt vores compliance-team",
+      "review-our-documentation": "gennemgå vores dokumentation",
+      "your-account-and-data-are-protected-under-the-la": "Din konto og dine data er beskyttet i henhold til love og regler i",
+      "this-regulatory-framework-is-determined-by-your-": "Denne lovgivningsmæssige ramme bestemmes af dit adgangsdomæne:",
+      "each-jurisdiction-maintains-separate-legal-compl": "Hver jurisdiktion opretholder separat juridisk overholdelse og datastyring. Selvom du kan oprette konti i flere jurisdiktioner, forbliver de juridisk adskilte uden datadeling mellem reguleringszoner.",
+      "to-understand-the-specific-regulations-and-prote": "For at forstå de specifikke regler og beskyttelser, der gælder for din konto, bedes du",
+      "current": "Current",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "Tilgængelige regioner",
+      "jurisdiction": "Jurisdiktion",
+      "data-center-location-currentjurisdiction-identif": "Datacenterplacering: {0}",
+      "data-region": "Dataregion",
+      "unknown-jurisdiction": "Ukendt jurisdiktion",
+      "serving-you-from-the": "Betjener dig fra",
+      "continue-to-jurisdiction-domain": "Fortsæt til {0}",
+      "current-jurisdiction": "Nuværende jurisdiktion:"
     }
   }
 }

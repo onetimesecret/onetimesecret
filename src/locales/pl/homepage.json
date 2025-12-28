@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "Ta usługa jest skonfigurowana wyłącznie do użytku wewnętrznego.",
         "tagline1": "Interfejs użytkownika i możliwość logowania nie są dostępne."
-      }
+      },
+      "link-preview": "Podgląd linku",
+      "meets-and-exceeds-compliance-standards": "Spełnia i przekracza standardy zgodności",
+      "secure-your-brand-build-customer-trust-etc": "Zabezpiecz swoją markę, buduj zaufanie klientów dzięki linkom z Twojej domeny.",
+      "a-trusted-way-to-share-sensitive-information-etc": "Zaufany sposób udostępniania poufnych informacji, które ulegają samozniszczeniu po wyświetleniu.",
+      "secure-links": "Bezpieczne linki",
+      "about-onetime-secret-0": "O Onetime Secret",
+      "log-in-to-onetime-secret": "Zaloguj się do Onetime Secret",
+      "about-onetime-secret": "O Onetime Secret",
+      "signup-individual-and-business-plans": "Rejestracja - Plany indywidualne i biznesowe",
+      "tagline-signed": "Podpisane",
+      "tagline-sealed": "Zapieczętowane",
+      "tagline-delivered": "Dostarczone",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "One-Time Secret",
+      "onetime-secret-homepage": "Strona główna Onetime Secret",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Wysyłaj poufne informacje, które można wyświetlić tylko raz",
+      "create-a-secure-link": "Utwórz bezpieczny link",
+      "now-with-custom-domains": "Teraz z domenami niestandardowymi",
+      "this-is-a-private-instance-only-authorized-team-": "To jest instancja prywatna. Tylko autoryzowani członkowie zespołu mogą generować nowe bezpieczne linki.",
+      "welcome-to-onetime-secret": "Witamy w Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret pomaga nam bezpiecznie udostępniać poufne informacje, zachowując jednocześnie naszą profesjonalną fasadę.",
+      "information-shared-through-this-service-can-only": "Informacje udostępniane za pośrednictwem tej usługi można uzyskać tylko raz. Po wyświetleniu treść jest trwale usuwana w celu zapewnienia poufności.",
+      "welcome-to-the-global-broadcast": "Witamy w Globalnym Komunikacie!"
     }
   }
 }

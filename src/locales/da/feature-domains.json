@@ -1,3 +1,7 @@
 {
-  "web": {}
+  "web": {
+    "domains": {
+      "custom-domain": "Brugerdefineret domæne"
+    }
+  }
 }

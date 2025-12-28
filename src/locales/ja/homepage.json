@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "このサービスは内部利用専用に設定されています。",
         "tagline1": "ユーザーインターフェースとログイン機能は利用できません。"
-      }
+      },
+      "link-preview": "リンクプレビュー",
+      "meets-and-exceeds-compliance-standards": "コンプライアンス基準を満たし、それを上回っています",
+      "secure-your-brand-build-customer-trust-etc": "あなたのブランドを保護し、あなたのドメインからのリンクでお客様の信頼を構築します。",
+      "a-trusted-way-to-share-sensitive-information-etc": "閲覧後に自動的に削除される機密情報を共有するための信頼された方法。",
+      "secure-links": "セキュアリンク",
+      "about-onetime-secret-0": "Onetime Secret について",
+      "log-in-to-onetime-secret": "Onetime Secret にログイン",
+      "about-onetime-secret": "Onetime Secret について",
+      "signup-individual-and-business-plans": "サインアップ - 個人およびビジネスプラン",
+      "tagline-signed": "署名済み",
+      "tagline-sealed": "封印済み",
+      "tagline-delivered": "配信済み",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "One-Time Secret",
+      "onetime-secret-homepage": "Onetime Secret ホームページ",
+      "send-sensitive-information-that-can-only-be-viewed-once": "一度だけ閲覧できる機密情報を送信する",
+      "create-a-secure-link": "安全なリンクを作成する",
+      "now-with-custom-domains": "カスタムドメイン対応",
+      "this-is-a-private-instance-only-authorized-team-": "これはプライベートインスタンスです。許可されたチームメンバーのみが新しいセキュアリンクを生成できます。",
+      "welcome-to-onetime-secret": "Onetime Secretへようこそ。",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secretは、プロフェッショナルな外観を維持しながら、機密情報を安全に共有するのに役立ちます。",
+      "information-shared-through-this-service-can-only": "このサービスを通じて共有された情報は一度だけアクセスできます。一度表示されると、機密性を確保するためにコンテンツは完全に削除されます。",
+      "welcome-to-the-global-broadcast": "グローバルブロードキャストへようこそ！"
     }
   }
 }

@@ -56,7 +56,23 @@
         "configureDomainsDesc": "도메인 및 DNS 설정",
         "systemSettings": "시스템 설정",
         "systemSettingsDesc": "애플리케이션 구성"
-      }
+      },
+      "redis-info": "Redis 정보",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `verified` : `not verified",
+      "customers-details-counts-recent_customer_count-o": "고객 ({0} / {1})",
+      "user-feedback-total-details-counts-feedback_coun": "사용자 피드백 (총: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "메타데이터 / 비밀 메시지: {0}/{1} ({2}/{3}/{4} 총계)",
+      "secrets-details-counts-secret_count": "비밀 메시지 ({0})",
+      "active-in-the-past-5-minutes": "(최근 5분간 활성화)",
+      "past-14-days": "지난 14일",
+      "yesterday": "어제",
+      "today": "오늘",
+      "misc": "기타",
+      "feedback": "피드백",
+      "customers": "고객",
+      "test-exception-message-substring-11": "테스트 예외: {0}",
+      "test-error-triggered-via-feedback": "피드백을 통해 트리거된 테스트 오류"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "피드백을 제출하면 저희가 확인할 수 있는 정보:",

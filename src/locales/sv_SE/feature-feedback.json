@@ -1,0 +1,20 @@
+{
+  "web": {
+    "feedback": {
+      "your-feedback": "Din feedback",
+      "all-feedback-welcome": "All feedback välkommen!",
+      "help-us-improve": "Hjälp oss att förbättra",
+      "close-feedback-modal": "Stäng feedback-modal",
+      "share-your-feedback": "Dela din feedback",
+      "delano-mandelbaum": "Delano Mandelbaum",
+      "delano": "Delano",
+      "help-content-goes-here": "Hjälpinnehåll kommer här.",
+      "thanks-for-helping-onetime-secret-improve-it-mea": "Tack för att du hjälper Onetime Secret att förbättras. Det betyder mycket.",
+      "weve-built-this-tool-to-help-you-share-sensitive": "Vi har byggt detta verktyg för att hjälpa dig att dela känslig information säkert, och dina verkliga erfarenheter är avgörande för att fokusera våra ansträngningar. Det hjälper oss att avgöra vad vi ska arbeta med härnäst och hur vi kan göra tjänsten bättre för alla.",
+      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Hej där, tack för att du besöker vår feedback-sida. Din input är inte bara välkommen - den är avgörande.",
+      "a-note-from-delano-founder-of-onetime-secret": "En notering från Delano, grundare av Onetime Secret",
+      "open-feedback-form": "Öppna feedbackformulär",
+      "enter-your-feedback": "Ange din feedback"
+    }
+  }
+}

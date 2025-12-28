@@ -1,0 +1,18 @@
+{
+  "web": {
+    "testimonials": {
+      "ai-generated-testimonial": "Отзив, генериран от AI",
+      "ai-generated-content-disclaimer": "Съдържание, генерирано от AI за демонстрация. Не е от реален човек или компания.",
+      "randomtestimonial-stars-5": "{0}/5",
+      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
+      "randomtestimonial-quote": "\"{0}\"",
+      "t-ai-generated-testimonial": "{0}:",
+      "what-leading-ai-says-about-us": "Какво казва водещата AI за нас",
+      "ai-generated-testimonials": "AI генерирани отзиви",
+      "this-quote-was-generated-by": "Този цитат е генериран от",
+      "it-was-based-on-the-content-of-the-page-and-does": "Той е базиран върху съдържанието на страницата и не представлява действителен човек или компания.",
+      "artificial-feedback": "Изкуствена обратна връзка",
+      "this-content-is-ai-generated-based-on-the-conten": "Това съдържание е генерирано от AI на базата на съдържанието на тази страница и не представлява действителен човек или компания."
+    }
+  }
+}

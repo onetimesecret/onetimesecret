@@ -1,0 +1,20 @@
+{
+  "web": {
+    "feedback": {
+      "your-feedback": "Az Ön visszajelzése",
+      "all-feedback-welcome": "Minden visszajelzést szívesen fogadunk!",
+      "help-us-improve": "Segítsen nekünk fejlődni",
+      "close-feedback-modal": "Visszajelzés ablak bezárása",
+      "share-your-feedback": "Ossza meg visszajelzését",
+      "delano-mandelbaum": "Delano Mandelbaum",
+      "delano": "Delano",
+      "help-content-goes-here": "Súgó tartalom itt jelenik meg.",
+      "thanks-for-helping-onetime-secret-improve-it-mea": "Köszönjük, hogy segít az Onetime Secret fejlesztésében. Sokat jelent.",
+      "weve-built-this-tool-to-help-you-share-sensitive": "Ezt az eszközt azért hoztuk létre, hogy segítsünk biztonságosan megosztani érzékeny információkat, és valós tapasztalatai kulcsfontosságúak erőfeszítéseink fókuszálásához. Segít megértenünk, min dolgozzunk tovább, és hogyan tegyük jobbá a szolgáltatást mindenki számára.",
+      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Szia, köszönjük, hogy felkereste visszajelzési oldalunkat. Észrevételei nem csak szívesen látottak - létfontosságúak.",
+      "a-note-from-delano-founder-of-onetime-secret": "Üzenet Delanótól, az Onetime Secret alapítójától",
+      "open-feedback-form": "Visszajelzési űrlap megnyitása",
+      "enter-your-feedback": "Adja meg visszajelzését"
+    }
+  }
+}

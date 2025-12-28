@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "Тази услуга е настроена само за вътрешна употреба.",
         "tagline1": "Потребителският интерфейс и възможностите за вход не са налични."
-      }
+      },
+      "link-preview": "Преглед на връзка",
+      "meets-and-exceeds-compliance-standards": "Отговаря и надхвърля стандартите за съответствие",
+      "secure-your-brand-build-customer-trust-etc": "Защитете вашата марка, изградете доверие у клиентите с връзки от вашия домейн.",
+      "a-trusted-way-to-share-sensitive-information-etc": "Доверен начин за споделяне на чувствителна информация, която се самоунищожава след преглед.",
+      "secure-links": "Сигурни връзки",
+      "about-onetime-secret-0": "За Onetime Secret",
+      "log-in-to-onetime-secret": "Вход в Onetime Secret",
+      "about-onetime-secret": "За Onetime Secret",
+      "signup-individual-and-business-plans": "Регистрация - Индивидуални и бизнес планове",
+      "tagline-signed": "Подписано",
+      "tagline-sealed": "Запечатано",
+      "tagline-delivered": "Доставено",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "One-Time Secret",
+      "onetime-secret-homepage": "Начална страница на Onetime Secret",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Изпратете чувствителна информация, която може да бъде прегледана само веднъж",
+      "create-a-secure-link": "Създайте сигурна връзка",
+      "now-with-custom-domains": "Сега с персонализирани домейни",
+      "this-is-a-private-instance-only-authorized-team-": "Това е частна инсталация. Само оторизирани членове на екипа могат да генерират нови сигурни връзки.",
+      "welcome-to-onetime-secret": "Добре дошли в Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret ни помага да споделяме чувствителна информация сигурно, докато поддържаме нашата професионална фасада.",
+      "information-shared-through-this-service-can-only": "Информацията, споделена чрез тази услуга, може да бъде достъпна само веднъж. След преглед, съдържанието е перманентно изтрито, за да се осигури конфиденциалност.",
+      "welcome-to-the-global-broadcast": "Добре дошли в глобалното излъчване!"
     }
   }
 }

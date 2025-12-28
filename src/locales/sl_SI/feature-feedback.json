@@ -1,0 +1,20 @@
+{
+  "web": {
+    "feedback": {
+      "your-feedback": "Vaše povratne informacije",
+      "all-feedback-welcome": "Vsa povratna informacija je dobrodošla!",
+      "help-us-improve": "Pomagajte nam izboljšati",
+      "close-feedback-modal": "Zapri modalno okno za povratne informacije",
+      "share-your-feedback": "Delite svoje povratne informacije",
+      "delano-mandelbaum": "Delano Mandelbaum",
+      "delano": "Delano",
+      "help-content-goes-here": "Vsebina pomoči gre tukaj.",
+      "thanks-for-helping-onetime-secret-improve-it-mea": "Hvala, da pomagate izboljšati Onetime Secret. To nam veliko pomeni.",
+      "weve-built-this-tool-to-help-you-share-sensitive": "To orodje smo zgradili, da vam pomagamo varno deliti občutljive informacije, in vaše izkušnje iz resničnega sveta so ključnega pomena za osredotočanje naših prizadevanj. Pomaga nam ugotoviti, na čem delati naprej in kako storitev izboljšati za vse.",
+      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Pozdravljeni, hvala, da ste obiskali našo stran za povratne informacije. Vaš prispevek ni samo dobrodošel - je ključnega pomena.",
+      "a-note-from-delano-founder-of-onetime-secret": "Opomba od Delana, ustanovitelja Onetime Secret",
+      "open-feedback-form": "Odpri obrazec za povratne informacije",
+      "enter-your-feedback": "Vnesite svoje povratne informacije"
+    }
+  }
+}

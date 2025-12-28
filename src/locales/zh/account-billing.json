@@ -98,7 +98,31 @@
         "description": "管理您的订阅、付款方式和账单历史",
         "open_portal": "打开账单门户",
         "redirecting": "正在跳转到账单门户"
-      }
+      },
+      "start-today": "今天开始",
+      "start-today-with-identity-plus": "今天就开始使用 Identity Plus",
+      "per-month": "每月",
+      "full-api-access": "完整 API 访问",
+      "privacy-first-design": "隐私优先设计",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "点击此闪电图标以升级获取自定义域名",
+      "maybe-later": "稍后再说",
+      "upgrade-account": "升级账户",
+      "upgrade-to-identity-plus": "升级到 Identity Plus",
+      "upgrade-for-teams": "升级团队版",
+      "benefits-of": "优势",
+      "t-benefits-of-identity-plus": "{0}：Identity Plus",
+      "upgrade-to": "升级到",
+      "upgrade-for-yourdomain": "为 secrets.yourdomain.com 升级",
+      "includes-all-features-and-unlimited-sharing-capa": "所有套餐都包含隐私功能和无限分享容量",
+      "includes-all-data-locality-options": "所有套餐都包含数据位置选择：{0} 个区域",
+      "get-started": "开始使用",
+      "frequency-value-annually-annual-monthly-subscrip": "{0} 订阅",
+      "elevate-your-secure-sharing-with-custom-domains-": "使用自定义域名、无限容量和企业级功能提升您的安全分享。",
+      "payment-frequency": "付款频率",
+      "secure-your-brand-and-build-customer-trust-with-": "使用来自您域名的链接保护您的品牌并建立客户信任。非常适合重视隐私和专业性的企业。",
+      "secure-links-stronger-connections": "安全链接，更强连接",
+      "identity-tier-not-found-in-product-tiers": "在产品层级中找不到 Identity 层级"
     }
   }
 }

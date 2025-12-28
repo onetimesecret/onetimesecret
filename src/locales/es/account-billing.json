@@ -98,7 +98,31 @@
         "description": "Gestiona tu suscripción, métodos de pago e historial de facturación",
         "open_portal": "Abrir Portal de Facturación",
         "redirecting": "Redirigiendo al portal de facturación..."
-      }
+      },
+      "start-today": "Empieza hoy",
+      "start-today-with-identity-plus": "Empieza hoy con Identity Plus",
+      "per-month": "por mes",
+      "full-api-access": "Acceso completo a la API",
+      "privacy-first-design": "Diseño centrado en la privacidad",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Haz clic en este rayo para actualizar a dominios personalizados",
+      "maybe-later": "Quizás más tarde",
+      "upgrade-account": "Actualizar cuenta",
+      "upgrade-to-identity-plus": "Actualizar a Identity Plus",
+      "upgrade-for-teams": "Upgrade for Teams",
+      "benefits-of": "Beneficios de",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Actualizar a",
+      "upgrade-for-yourdomain": "Actualizar para secrets.yourdomain.com",
+      "includes-all-features-and-unlimited-sharing-capa": "Todos los planes incluyen funciones de privacidad y capacidad de compartición ilimitada",
+      "includes-all-data-locality-options": "Todos los planes incluyen elección de localidad de datos: {0} regiones",
+      "get-started": "Empezar",
+      "frequency-value-annually-annual-monthly-subscrip": "Suscripción {0}",
+      "elevate-your-secure-sharing-with-custom-domains-": "Eleva tu compartición segura con dominios personalizados, capacidad ilimitada y características de nivel empresarial.",
+      "payment-frequency": "Frecuencia de pago",
+      "secure-your-brand-and-build-customer-trust-with-": "Asegura tu marca y genera confianza en el cliente con enlaces desde tu dominio. Perfecto para empresas que valoran la privacidad y el profesionalismo.",
+      "secure-links-stronger-connections": "Enlaces Seguros, Conexiones Más Fuertes",
+      "identity-tier-not-found-in-product-tiers": "Nivel de identidad no encontrado en los niveles de producto"
     }
   }
 }

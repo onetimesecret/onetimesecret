@@ -98,7 +98,31 @@
         "description": "",
         "open_portal": "",
         "redirecting": ""
-      }
+      },
+      "start-today": "Börja idag",
+      "start-today-with-identity-plus": "Börja idag med Identity Plus",
+      "per-month": "per månad",
+      "full-api-access": "Fullständig API-åtkomst",
+      "privacy-first-design": "Integritetsfokuserad design",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Klicka på denna blixt för att uppgradera för anpassade domäner",
+      "maybe-later": "Kanske senare",
+      "upgrade-account": "Uppgradera konto",
+      "upgrade-to-identity-plus": "Uppgradera till Identity Plus",
+      "upgrade-for-teams": "",
+      "benefits-of": "Fördelar med",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Uppgradera till",
+      "upgrade-for-yourdomain": "Uppgradera för secrets.yourdomain.com",
+      "includes-all-features-and-unlimited-sharing-capa": "Alla planer inkluderar integritetsfunktioner och obegränsad delningskapacitet",
+      "includes-all-data-locality-options": "Alla planer inkluderar val av datalokalitet: {0} regioner",
+      "get-started": "Kom igång",
+      "frequency-value-annually-annual-monthly-subscrip": "{0} prenumeration",
+      "elevate-your-secure-sharing-with-custom-domains-": "Förhöj din säkra delning med anpassade domäner, obegränsad kapacitet och funktioner i företagsklass.",
+      "payment-frequency": "Betalningsfrekvens",
+      "secure-your-brand-and-build-customer-trust-with-": "Säkra ditt varumärke och bygg kundförtroende med länkar från din domän. Perfekt för företag som värdesätter integritet och professionalism.",
+      "secure-links-stronger-connections": "Säkra länkar, starkare kopplingar",
+      "identity-tier-not-found-in-product-tiers": "Identity-nivå hittades inte i produktnivåer"
     }
   }
 }

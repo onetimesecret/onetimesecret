@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "Dieser Dienst ist nur für den internen Gebrauch eingerichtet.",
         "tagline1": "Benutzeroberfläche und Login-Funktionen sind nicht verfügbar."
-      }
+      },
+      "link-preview": "Link-Vorschau",
+      "meets-and-exceeds-compliance-standards": "Erfüllt und übertrifft Compliance-Standards",
+      "secure-your-brand-build-customer-trust-etc": "Sichere deine Marke, baue Kundenvertrauen mit Links von deiner Domain auf.",
+      "a-trusted-way-to-share-sensitive-information-etc": "Ein vertrauenswürdiger Weg, sensible Informationen zu teilen, die sich nach dem Ansehen selbst zerstören.",
+      "secure-links": "Sichere Links",
+      "about-onetime-secret-0": "Über Onetime Secret",
+      "log-in-to-onetime-secret": "Bei Onetime Secret anmelden",
+      "about-onetime-secret": "Über Onetime Secret",
+      "signup-individual-and-business-plans": "Registrierung - Einzel- und Geschäftspläne",
+      "tagline-signed": "Signiert",
+      "tagline-sealed": "Versiegelt",
+      "tagline-delivered": "Zugestellt",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "One-Time Secret",
+      "onetime-secret-homepage": "Onetime Secret Startseite",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Sende sensible Informationen, die nur einmal angesehen werden können",
+      "create-a-secure-link": "Einen sicheren Link erstellen",
+      "now-with-custom-domains": "Jetzt mit benutzerdefinierten Domains",
+      "this-is-a-private-instance-only-authorized-team-": "Dies ist eine private Instanz. Nur autorisierte Teammitglieder können neue sichere Links generieren.",
+      "welcome-to-onetime-secret": "Willkommen bei Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret hilft uns, sensible Informationen sicher zu teilen und gleichzeitig unsere professionelle Fassade zu wahren.",
+      "information-shared-through-this-service-can-only": "Informationen, die über diesen Dienst geteilt werden, können nur einmal abgerufen werden. Nach dem Ansehen wird der Inhalt dauerhaft gelöscht, um die Vertraulichkeit zu gewährleisten.",
+      "welcome-to-the-global-broadcast": "Willkommen beim Global Broadcast!"
     }
   }
 }

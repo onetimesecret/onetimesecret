@@ -1,0 +1,25 @@
+{
+  "web": {
+    "errors": {
+      "why-is-this-secret-unavailable": "Proč je toto tajemství nedostupné?",
+      "secrets-are-designed-to-be-viewed-only-once": "Tajemství jsou navržena k zobrazení pouze jednou. Tento odkaz již mohl být otevřen, vypršel nebo byl ručně smazán odesílatelem.",
+      "what-should-i-do-now": "Co mám teď dělat?",
+      "contact-the-person-who-sent-you-this-link": "Kontaktuj osobu, která ti poslala tento odkaz, a požádej ji o vytvoření nového tajemství. Dej jí vědět, že ses k původním informacím nemohl dostat.",
+      "warning-dismissed": "Varování zavřeno",
+      "dismiss-truncation-warning": "Zavřít varování o zkrácení",
+      "oops-the-page-you-are-looking-for-doesnt-exist-o": "Jejda! Stránka, kterou hledáš, neexistuje nebo byla přesunuta.",
+      "404-page-not-found-0": "404 - Stránka nenalezena",
+      "404-page-not-found": "404 - Stránka nenalezena",
+      "dismiss-warning": "Zavřít varování",
+      "dismiss-notification": "Zavřít oznámení",
+      "if-youre-unsure-what-to-do-next-please-follow-up": "Pokud si nejsi jistý, co dělat dál, prosím kontaktuj osobu, která ti poslala tento odkaz, pro více informací.",
+      "information-shared-through-our-service-can-only-": "Informace sdílené prostřednictvím naší služby lze otevřít pouze jednou. Po zobrazení je obsah trvale smazán z našich serverů, aby byla zajištěna důvěrnost. Tento přístup pomáhá chránit tvá citlivá data omezením jejich vystavení a prevencí neoprávněného přístupu.",
+      "were-sorry-but-an-unexpected-error-occurred-whil": "Je nám líto, ale došlo k neočekávané chybě při zpracování tvého požadavku. Náš tým byl informován a pracujeme na opravě.",
+      "t-web-common-oops-something-went-wrong": "{0} Něco se pokazilo",
+      "go-share-a-secret": "Jdi sdílet tajemství!",
+      "the-page-youre-looking-for-doesnt-exist-or-has-b": "Stránka, kterou hledáš, neexistuje nebo byla přesunuta. Neboj, stává se to i těm nejlepším z nás!",
+      "t-web-common-oops-404": "{0} 404",
+      "unable-to-load-data-due-to-data-format-issues-pl": "Nelze načíst data kvůli problémům s formátem dat. Zkus to prosím později."
+    }
+  }
+}

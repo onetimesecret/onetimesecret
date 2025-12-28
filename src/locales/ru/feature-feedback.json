@@ -1,0 +1,20 @@
+{
+  "web": {
+    "feedback": {
+      "your-feedback": "Ваш отзыв",
+      "all-feedback-welcome": "Приветствуется любая обратная связь",
+      "help-us-improve": "Помогите нам улучшиться",
+      "close-feedback-modal": "Закрыть модальное окно обратной связи",
+      "share-your-feedback": "Поделитесь своим отзывом",
+      "delano-mandelbaum": "Delano Mandelbaum",
+      "delano": "Delano",
+      "help-content-goes-here": "Содержимое справки появится здесь.",
+      "thanks-for-helping-onetime-secret-improve-it-mea": "Спасибо за помощь в улучшении Onetime Secret. Это очень важно.",
+      "weve-built-this-tool-to-help-you-share-sensitive": "Мы создали этот инструмент, чтобы помочь Вам безопасно делиться конфиденциальной информацией, и Ваш реальный опыт использования имеет решающее значение для того, чтобы мы сосредоточили наши усилия. Это помогает нам определить, что делать дальше и как улучшить сервис для всех.",
+      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Привет, спасибо, что посетили нашу страницу обратной связи. Ваше мнение не только приветствуется, но и имеет решающее значение.",
+      "a-note-from-delano-founder-of-onetime-secret": "Заметка от Delano, основателя Onetime Secret",
+      "open-feedback-form": "Открыть форму обратной связи",
+      "enter-your-feedback": "Введите Ваш отзыв"
+    }
+  }
+}

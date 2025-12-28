@@ -1,0 +1,18 @@
+{
+  "web": {
+    "testimonials": {
+      "ai-generated-testimonial": "Đánh giá do AI tạo",
+      "ai-generated-content-disclaimer": "Nội dung do AI tạo ra để trình diễn. \nKhông phải từ một người hoặc công ty thực tế.",
+      "randomtestimonial-stars-5": "{0}/5",
+      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
+      "randomtestimonial-quote": "\"{0}\"",
+      "t-ai-generated-testimonial": "{0}:",
+      "what-leading-ai-says-about-us": "AI hàng đầu nói gì về chúng tôi",
+      "ai-generated-testimonials": "Đánh giá do AI tạo",
+      "this-quote-was-generated-by": "Trích dẫn này được tạo bởi",
+      "it-was-based-on-the-content-of-the-page-and-does": "Nó dựa trên nội dung của trang và không đại diện cho một người hoặc công ty thực tế.",
+      "artificial-feedback": "Phản hồi nhân tạo",
+      "this-content-is-ai-generated-based-on-the-conten": "Nội dung này do AI tạo dựa trên nội dung của trang này và không đại diện cho một người hoặc công ty thực tế."
+    }
+  }
+}

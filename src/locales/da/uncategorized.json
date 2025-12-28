@@ -1,9 +1,3 @@
 {
-  "api-key": "API -nøgle",
-  "custom-domain": "Brugerdefineret domæne",
-  "security": "Sikkerhed",
-  "secure-links": "Sikre links",
-  "enter-a-passphrase": "Gå ind i en adgangssætning",
-  "email-address": "E -mail -adresse",
-  "ai-generated-content-disclaimer": "AI-genereret indhold til demonstration. \nIkke fra en faktisk person eller virksomhed."
+  "security": "Sikkerhed"
 }

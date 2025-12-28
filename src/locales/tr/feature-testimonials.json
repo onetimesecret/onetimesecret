@@ -1,0 +1,18 @@
+{
+  "web": {
+    "testimonials": {
+      "ai-generated-testimonial": "Yapay Zeka Tarafından Oluşturulan Görüş",
+      "ai-generated-content-disclaimer": "Gösteri için AI tarafından oluşturulan içerik. \nGerçek bir kişiden veya şirketten değil.",
+      "randomtestimonial-stars-5": "{0}/5",
+      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
+      "randomtestimonial-quote": "\"{0}\"",
+      "t-ai-generated-testimonial": "{0}:",
+      "what-leading-ai-says-about-us": "Önde gelen yapay zeka bizim hakkımızda ne diyor",
+      "ai-generated-testimonials": "Yapay Zeka Tarafından Oluşturulan Görüşler",
+      "this-quote-was-generated-by": "Bu alıntı tarafından oluşturuldu",
+      "it-was-based-on-the-content-of-the-page-and-does": "Sayfanın içeriğine dayanıyordu ve gerçek bir kişiyi veya şirketi temsil etmiyor.",
+      "artificial-feedback": "Yapay Geri Bildirim",
+      "this-content-is-ai-generated-based-on-the-conten": "Bu içerik, bu sayfanın içeriğine göre yapay zeka tarafından oluşturulmuştur ve gerçek bir kişiyi veya şirketi temsil etmemektedir."
+    }
+  }
+}

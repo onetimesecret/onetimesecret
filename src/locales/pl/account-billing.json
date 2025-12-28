@@ -98,7 +98,31 @@
         "description": "Zarządzaj subskrypcją, metodami płatności i historią rozliczeń",
         "open_portal": "Otwórz portal rozliczeń",
         "redirecting": "Przekierowywanie do portalu rozliczeń..."
-      }
+      },
+      "start-today": "Zacznij dzisiaj",
+      "start-today-with-identity-plus": "Zacznij dzisiaj z Identity Plus",
+      "per-month": "miesięcznie",
+      "full-api-access": "Pełny dostęp do API",
+      "privacy-first-design": "Projekt z priorytetem prywatności",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Kliknij tę błyskawicę, aby uaktualnić do domen niestandardowych",
+      "maybe-later": "Może później",
+      "upgrade-account": "Uaktualnij konto",
+      "upgrade-to-identity-plus": "Uaktualnij do Identity Plus",
+      "upgrade-for-teams": "Upgrade for Teams",
+      "benefits-of": "Korzyści z",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Uaktualnij do",
+      "upgrade-for-yourdomain": "Uaktualnij dla wiadomosci.twojadomena.com",
+      "includes-all-features-and-unlimited-sharing-capa": "Wszystkie plany obejmują funkcje prywatności i nieograniczoną pojemność udostępniania",
+      "includes-all-data-locality-options": "Wszystkie plany obejmują wybór lokalizacji danych: {0} regionów",
+      "get-started": "Rozpocznij",
+      "frequency-value-annually-annual-monthly-subscrip": "Subskrypcja {0}",
+      "elevate-your-secure-sharing-with-custom-domains-": "Podnieś poziom bezpiecznego udostępniania dzięki niestandardowym domenom, nieograniczonej pojemności i funkcjom klasy korporacyjnej.",
+      "payment-frequency": "Częstotliwość płatności",
+      "secure-your-brand-and-build-customer-trust-with-": "Zabezpiecz swoją markę i buduj zaufanie klientów dzięki linkom z Twojej domeny. Idealne dla firm ceniących prywatność i profesjonalizm.",
+      "secure-links-stronger-connections": "Bezpieczne linki, silniejsze połączenia",
+      "identity-tier-not-found-in-product-tiers": "Poziom Identity nie znaleziony w poziomach produktów"
     }
   }
 }
