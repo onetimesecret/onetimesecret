@@ -9,6 +9,13 @@ import { AxiosInstance } from 'axios';
 import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';
 
+/**
+ * API mode for endpoint selection.
+ * - 'authenticated': Uses /api/v3/receipt/* endpoints (requires session)
+ * - 'public': Uses /api/v3/guest/receipt/* endpoints (no auth required)
+ */
+export type ApiMode = 'authenticated' | 'public';
+
 export const METADATA_STATUS = {
   NEW: 'new',
   SHARED: 'shared',
@@ -27,6 +34,7 @@ export type MetadataStore = {
   // State
   record: Metadata | null;
   details: MetadataDetails | null;
+  apiMode: ApiMode;
   _initialized: boolean;
 
   // Getters
@@ -37,15 +45,37 @@ export type MetadataStore = {
   init: () => { isInitialized: boolean };
   fetch: (key: string) => Promise<void>;
   burn: (key: string, passphrase?: string) => Promise<void>;
+  setApiMode: (mode: ApiMode) => void;
   $reset: () => void;
 } & PiniaCustomProperties;
 
+// eslint-disable-next-line max-lines-per-function -- Store definition naturally groups related functionality
 export const useMetadataStore = defineStore('metadata', () => {
   const $api = inject('api') as AxiosInstance;
+
   // State
   const record = ref<Metadata | null>(null);
   const details = ref<MetadataDetails | null>(null);
   const _initialized = ref(false);
+  const apiMode = ref<ApiMode>('authenticated');
+
+  /**
+   * Returns the appropriate endpoint path based on current API mode.
+   * @param path - The path suffix (e.g., '/receipt/abc123')
+   * @returns Full endpoint path with correct prefix
+   */
+  function getEndpoint(path: string): string {
+    const prefix = apiMode.value === 'public' ? '/api/v3/guest' : '/api/v3';
+    return `${prefix}${path}`;
+  }
+
+  /**
+   * Sets the API mode for endpoint selection.
+   * @param mode - 'authenticated' for /api/v3/receipt/*, 'public' for /api/v3/guest/receipt/*
+   */
+  function setApiMode(mode: ApiMode) {
+    apiMode.value = mode;
+  }
 
   // Getters
   const isInitialized = computed(() => _initialized.value);
@@ -94,7 +124,8 @@ export const useMetadataStore = defineStore('metadata', () => {
    * @throws {AxiosError} When request fails
    */
   async function fetch(key: string) {
-    const response = await $api.get(`/api/v3/receipt/${key}`);
+    const endpoint = getEndpoint(`/receipt/${key}`);
+    const response = await $api.get(endpoint);
     const validated = responseSchemas.metadata.parse(response.data);
     record.value = validated.record;
     details.value = validated.details as any;
@@ -117,7 +148,8 @@ export const useMetadataStore = defineStore('metadata', () => {
       throw createError('Cannot burn this metadata', 'human', 'error');
     }
 
-    const response = await $api.post(`/api/v3/receipt/${key}/burn`, {
+    const endpoint = getEndpoint(`/receipt/${key}/burn`);
+    const response = await $api.post(endpoint, {
       passphrase,
       continue: true,
     });
@@ -131,11 +163,12 @@ export const useMetadataStore = defineStore('metadata', () => {
 
   /**
    * Resets store state to initial values.
-   * Clears record, details and initialization status.
+   * Clears record, details, API mode, and initialization status.
    */
   function $reset() {
     record.value = null;
     details.value = null;
+    apiMode.value = 'authenticated';
     _initialized.value = false;
   }
 
@@ -143,6 +176,7 @@ export const useMetadataStore = defineStore('metadata', () => {
     // State
     record,
     details,
+    apiMode,
 
     // Getters
     canBurn,
@@ -151,6 +185,7 @@ export const useMetadataStore = defineStore('metadata', () => {
     init,
     fetch,
     burn,
+    setApiMode,
     $reset,
   };
 });

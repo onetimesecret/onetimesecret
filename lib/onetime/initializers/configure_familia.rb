@@ -30,6 +30,11 @@ module Onetime
 
         uri = OT.conf.dig('redis', 'uri') || ''
 
+        # Strip surrounding quotes that may have been introduced via ENV var
+        # misconfiguration (e.g., REDIS_URL="redis://..." instead of REDIS_URL=redis://...)
+        # This prevents URI::InvalidURIError: bad URI (is not URI?)
+        uri = uri.to_s.strip.gsub(/\A["']|["']\z/, '')
+
         # Early validation: Check if Redis URI is properly configured
         raise_error = if uri.empty?
           OT.boot_logger.fatal '[configure_familia] Invalid URI'

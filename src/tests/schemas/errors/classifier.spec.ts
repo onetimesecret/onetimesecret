@@ -8,8 +8,9 @@ import axios from 'axios';
 
 describe('error classifier', () => {
   describe('classifyError', () => {
-    it('classifies 403 as security error', () => {
-      // Create a proper AxiosError instance
+    it('classifies 403 with message as human error (shows backend message)', () => {
+      // When backend sends a user-friendly message with 403, it should be shown
+      // Example: "Guest API access is disabled" for guest route gating
       const axiosError = new axios.AxiosError(
         'Forbidden',
         '403',
@@ -18,7 +19,33 @@ describe('error classifier', () => {
         {
           status: 403,
           statusText: 'Forbidden',
-          data: { message: 'Forbidden' },
+          data: { message: 'Guest API access is disabled' },
+          headers: {},
+          config: {} as any,
+        }
+      );
+
+      const error = classifyError(axiosError);
+
+      expect(error).toMatchObject({
+        message: 'Guest API access is disabled',
+        type: 'human',
+        severity: 'error',
+      });
+      expect(errorGuards.isOfHumanInterest(error)).toBe(true);
+    });
+
+    it('classifies 403 without message as security error (generic message)', () => {
+      // When 403 has no user-friendly message, classify as security to show generic error
+      const axiosError = new axios.AxiosError(
+        'Forbidden',
+        '403',
+        undefined,
+        undefined,
+        {
+          status: 403,
+          statusText: 'Forbidden',
+          data: {},
           headers: {},
           config: {} as any,
         }
@@ -83,7 +110,8 @@ describe('error classifier', () => {
       });
     });
 
-    it('classifies axios errors correctly', () => {
+    it('classifies 429 with message as human error (shows rate limit message)', () => {
+      // When backend sends a user-friendly message with 429, it should be shown
       const axiosError = new axios.AxiosError(
         'Request failed with status 429',
         'ERR_BAD_REQUEST',
@@ -99,10 +127,33 @@ describe('error classifier', () => {
 
       expect(error).toMatchObject({
         message: 'Too Many Requests',
+        type: 'human',
+        severity: 'error',
+        code: 429,
+      });
+      expect(errorGuards.isOfHumanInterest(error)).toBe(true);
+    });
+
+    it('classifies 429 without message as security error', () => {
+      const axiosError = new axios.AxiosError(
+        'Request failed with status 429',
+        'ERR_BAD_REQUEST',
+        undefined,
+        undefined,
+        {
+          status: 429,
+          data: {},
+        } as any
+      ) as AxiosError;
+
+      const error = classifyError(axiosError);
+
+      expect(error).toMatchObject({
         type: 'security',
         severity: 'error',
         code: 429,
       });
+      expect(errorGuards.isSecurityIssue(error)).toBe(true);
     });
 
     it('classifies fetch errors correctly', () => {

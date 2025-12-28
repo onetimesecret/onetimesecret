@@ -85,12 +85,23 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
 
     BillingTestHelpers.populate_test_plans([
       {
-        plan_id: 'free',
+        # Test plan WITHOUT api_access - for testing entitlement denial
+        plan_id: 'free_test_no_api_access',
+        name: 'Free (No API)',
+        tier: 0,
+        interval: 'month',
+        region: 'us',
+        entitlements: %w[create_secrets basic_sharing],
+        limits: { 'teams.max' => '0' },
+      },
+      {
+        # Standard free plan WITH api_access - matches production free tier
+        plan_id: 'free_v1',
         name: 'Free',
         tier: 1,
         interval: 'month',
         region: 'us',
-        entitlements: %w[create_secrets basic_sharing],
+        entitlements: %w[create_secrets basic_sharing api_access view_metadata],
         limits: { 'teams.max' => '0' },
       },
       {
@@ -118,7 +129,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
     let(:logic_class) { V2::Logic::Secrets::ShowSecret }
 
     context 'when organization lacks api_access entitlement' do
-      let(:org) { mock_organization(planid: 'free', entitlements: %w[create_secrets basic_sharing]) }
+      let(:org) { mock_organization(planid: 'free_test_no_api_access', entitlements: %w[create_secrets basic_sharing]) }
 
       it 'raises EntitlementRequired in raise_concerns' do
         # Create a test secret
@@ -131,12 +142,12 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
           logic.raise_concerns
         }.to raise_error(Onetime::EntitlementRequired) do |error|
           expect(error.entitlement).to eq('api_access')
-          expect(error.current_plan).to eq('free')
+          expect(error.current_plan).to eq('free_test_no_api_access')
         end
       end
     end
 
-    context 'when organization has api_access entitlement' do
+    context 'when organization has api_access entitlement (paid plan)' do
       let(:org) { mock_organization(planid: 'multi_team_v1', entitlements: %w[create_secrets api_access]) }
 
       it 'does not raise EntitlementRequired' do
@@ -146,6 +157,20 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
         logic.process_params
 
         # Should pass entitlement check without raising
+        expect { logic.raise_concerns }.not_to raise_error
+      end
+    end
+
+    context 'when organization has api_access entitlement (free plan)' do
+      let(:org) { mock_organization(planid: 'free_v1', entitlements: %w[create_secrets api_access view_metadata]) }
+
+      it 'does not raise EntitlementRequired for free users with api_access' do
+        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+
+        logic = create_logic(logic_class, params: { 'identifier' => secret.identifier }, org: org)
+        logic.process_params
+
+        # Free plan includes api_access, so should pass
         expect { logic.raise_concerns }.not_to raise_error
       end
     end
@@ -203,7 +228,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
     let(:logic_class) { V2::Logic::Secrets::ListSecretStatus }
 
     context 'when organization lacks api_access entitlement' do
-      let(:org) { mock_organization(planid: 'free', entitlements: %w[create_secrets]) }
+      let(:org) { mock_organization(planid: 'free_test_no_api_access', entitlements: %w[create_secrets]) }
 
       it 'raises EntitlementRequired' do
         logic = create_logic(logic_class, params: { 'identifiers' => %w[abc123 def456] }, org: org)
@@ -239,7 +264,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
     let(:logic_class) { V2::Logic::Secrets::ShowMetadata }
 
     context 'when organization lacks api_access entitlement' do
-      let(:org) { mock_organization(planid: 'free', entitlements: %w[create_secrets]) }
+      let(:org) { mock_organization(planid: 'free_test_no_api_access', entitlements: %w[create_secrets]) }
 
       it 'raises EntitlementRequired' do
         metadata, _secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
@@ -258,7 +283,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
     let(:logic_class) { V2::Logic::Secrets::BurnSecret }
 
     context 'when organization lacks api_access entitlement' do
-      let(:org) { mock_organization(planid: 'free', entitlements: %w[create_secrets]) }
+      let(:org) { mock_organization(planid: 'free_test_no_api_access', entitlements: %w[create_secrets]) }
 
       it 'raises EntitlementRequired' do
         metadata, _secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
@@ -274,7 +299,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
   end
 
   describe 'EntitlementRequired error structure' do
-    let(:org) { mock_organization(planid: 'free', entitlements: %w[create_secrets]) }
+    let(:org) { mock_organization(planid: 'free_test_no_api_access', entitlements: %w[create_secrets]) }
 
     it 'includes entitlement name' do
       _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')

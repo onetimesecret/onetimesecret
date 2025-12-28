@@ -8,6 +8,7 @@ import {
 import { ConcealDataResponse } from '@/schemas/api/v3';
 import { ConcealPayload, GeneratePayload } from '@/schemas/api/v3/payloads';
 import { WindowService } from '@/services/window.service';
+import { useAuthStore } from '@/shared/stores/authStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useSecretStore } from '@/shared/stores/secretStore';
 import { ref } from 'vue';
@@ -16,6 +17,8 @@ import { useSecretForm } from './useSecretForm';
 
 interface SecretConcealerOptions {
   onSuccess?: (response: ConcealDataResponse) => Promise<void> | void;
+  /** Use public /api/v3/guest endpoints instead of authenticated /api/v3 */
+  usePublicApi?: boolean;
 }
 
 type SubmitType = 'conceal' | 'generate';
@@ -36,8 +39,13 @@ type SubmitType = 'conceal' | 'generate';
  */
 
 export function useSecretConcealer(options?: SecretConcealerOptions) {
+  const authStore = useAuthStore();
   const secretStore = useSecretStore();
   const notifications = useNotificationsStore();
+
+  // Determine API mode: explicit option takes precedence, otherwise based on auth state
+  const usePublicApi = options?.usePublicApi ?? !authStore.isAuthenticated;
+  secretStore.setApiMode(usePublicApi ? 'public' : 'authenticated');
 
   const isSubmitting = ref(false);
 

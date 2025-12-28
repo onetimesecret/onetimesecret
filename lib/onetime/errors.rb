@@ -109,4 +109,22 @@ module Onetime
       @status   = s
     end
   end
+
+  # Raised when guest API routes are disabled or a specific guest operation is disabled.
+  # Contains an error code for the API response.
+  class GuestRoutesDisabled < Forbidden
+    attr_reader :code
+
+    def initialize(message = 'Guest API access is disabled', code: 'GUEST_ROUTES_DISABLED')
+      super(message)
+      @code = code
+    end
+
+    def to_h
+      {
+        message: message,
+        code: code,
+      }
+    end
+  end
 end

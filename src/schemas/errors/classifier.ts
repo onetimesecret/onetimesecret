@@ -80,22 +80,27 @@ export const errorClassifier = {
       return 'human';
     }
 
-    // Check if status code is explicitly classified as security (auth/rate-limit)
-    // This must happen before the heuristic to ensure security codes like 401/403
-    // are always classified correctly even when they have user messages
-    if (HTTP_STATUS_CODES.SECURITY.has(status)) {
-      return 'security';
-    }
-
     // Heuristic: If backend sends a user-friendly message for a client error (4xx),
-    // it's signaling that this error is user-actionable.
-    // The backend controls classification by choosing to include a friendly message.
+    // it's signaling that this error is user-actionable. This applies even to
+    // security status codes (401, 403, 429) when the backend provides a clear message.
+    //
+    // Examples:
+    // - 403 with "Guest API access is disabled" -> human (show message)
+    // - 403 with no message -> security (show generic)
+    // - 401 with "Invalid credentials" -> human (show message)
+    // - 429 with "Too many requests" -> human (show message)
     const hasUserMessage = Boolean(details.error || details.message);
     const isClientError = status >= 400 && status < 500;
 
     if (hasUserMessage && isClientError) {
-      // All 4xx with friendly messages are user-actionable
+      // Backend is signaling this error is user-actionable by providing a message
       return 'human';
+    }
+
+    // For security status codes without user messages, classify as security
+    // This ensures silent auth failures don't leak information
+    if (HTTP_STATUS_CODES.SECURITY.has(status)) {
+      return 'security';
     }
 
     // Fall back to status-based classification

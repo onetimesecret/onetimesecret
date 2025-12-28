@@ -31,6 +31,7 @@
     "create_another": "Send Another Secret",
     "tagline1": "Share sensitive information securely",
     "tagline2": "Keep passwords and private data out of email and chat logs",
-    "end_of_experience_suggestion": "Save your <a href='{receiptUrl}'>receipt</a> for your records."
+    "end_of_experience_suggestion": "Save your {receipt} for your records.",
+    "receipt_link_text": "receipt"
   }
 }
