@@ -145,7 +145,7 @@ export function useEntitlements(org: Ref<Organization | null>) {
         '- call initDefinitions() for API-driven values'
       );
     }
-    return FALLBACK_ENTITLEMENT_TO_PLAN[entitlement] ?? 'identity_v1';
+    return FALLBACK_ENTITLEMENT_TO_PLAN[entitlement] ?? null;
   };
 
   /**
