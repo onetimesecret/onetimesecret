@@ -64,6 +64,38 @@ describe('secretStore', () => {
       expect(store.apiMode).toBe('authenticated');
     });
 
+    it('$reset resets apiMode to authenticated', () => {
+      store.setApiMode('public');
+      store.$reset();
+      expect(store.apiMode).toBe('authenticated');
+    });
+
+    it('persists apiMode across multiple operations', async () => {
+      store.setApiMode('public');
+
+      // Mock responses for public endpoints
+      axiosMock?.onGet('/api/v3/guest/secret/abc123').reply(200, mockSecretResponse);
+      axiosMock?.onPost('/api/v3/guest/secret/abc123/reveal').reply(200, {
+        ...mockSecretResponse,
+        record: { ...mockSecretRecord, secret_value: 'revealed' },
+        details: { ...mockSecretResponse.details, show_secret: true },
+      });
+
+      // Perform multiple operations
+      await store.fetch('abc123');
+      await store.reveal('abc123', 'password');
+
+      // Both should have used public endpoints
+      expect(axiosMock?.history.get[0].url).toBe('/api/v3/guest/secret/abc123');
+      expect(axiosMock?.history.post[0].url).toBe('/api/v3/guest/secret/abc123/reveal');
+    });
+
+    it('clear() does not affect apiMode', () => {
+      store.setApiMode('public');
+      store.clear();
+      expect(store.apiMode).toBe('public');
+    });
+
     describe('endpoint selection', () => {
       const mockConcealResponse = {
         record: {

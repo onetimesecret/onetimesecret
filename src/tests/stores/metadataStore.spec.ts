@@ -444,6 +444,34 @@ describe('metadataStore', () => {
       expect(store.apiMode).toBe('authenticated');
     });
 
+    it('persists apiMode across multiple operations', async () => {
+      const testKey = mockMetadataRecord.key;
+      const mockFetchResponse = {
+        record: mockMetadataRecordRaw,
+        details: mockMetadataDetailsRaw,
+      };
+      const mockBurnResponse = {
+        record: mockBurnedMetadataRecordRaw,
+        details: mockBurnedMetadataDetailsRaw,
+      };
+
+      store.setApiMode('public');
+
+      // Mock responses for public endpoints
+      axiosMock?.onGet(`/api/v3/guest/receipt/${testKey}`).reply(200, mockFetchResponse);
+      axiosMock?.onPost(`/api/v3/guest/receipt/${testKey}/burn`).reply(200, mockBurnResponse);
+
+      // Perform fetch (updates store.record)
+      await store.fetch(testKey);
+
+      // Perform burn
+      await store.burn(testKey);
+
+      // Both should have used public endpoints
+      expect(axiosMock?.history.get[0].url).toBe(`/api/v3/guest/receipt/${testKey}`);
+      expect(axiosMock?.history.post[0].url).toBe(`/api/v3/guest/receipt/${testKey}/burn`);
+    });
+
     describe('endpoint selection', () => {
       it('fetch uses /api/v3/receipt in authenticated mode', async () => {
         const testKey = mockMetadataRecord.key;
