@@ -384,7 +384,7 @@ jobs:
         with:
           test-type: integration
           auth-mode: full
-          auth-database-url: 'sqlite:///tmp/auth_test.db'
+          auth-database-url: 'sqlite::memory:'
           results-file: 'rspec_full_sqlite_results.json'
 
   ruby-integration-full-postgres:
