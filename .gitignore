@@ -75,6 +75,7 @@ src/.eslintrc-auto-import.json
 # Environment files
 .env*
 !.env.example
+!.env.sh
 
 # Playwright paths
 test-results/
