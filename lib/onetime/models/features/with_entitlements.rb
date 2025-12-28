@@ -56,8 +56,10 @@ module Onetime
         # Full entitlement set for standalone mode
         # When billing is disabled or plan cache is empty, users get full access
         STANDALONE_ENTITLEMENTS = %w[
-          create_secrets basic_sharing create_team create_teams
-          custom_domains api_access priority_support audit_logs
+          api_access custom_privacy_defaults extended_default_expiration
+          custom_domains custom_branding branded_homepage
+          incoming_secrets custom_mail_defaults
+          manage_orgs manage_teams manage_members audit_logs
         ].freeze
 
         def self.included(base)

@@ -36,7 +36,7 @@ OT.boot! :test
 #=> Onetime::Models::Features::WithEntitlements::STANDALONE_ENTITLEMENTS.sort
 
 ## Standalone: can? returns true for standard entitlements
-@org.can?('create_secrets')
+@org.can?('api_access')
 #=> true
 
 ## Standalone: can? returns true for premium entitlements
@@ -55,7 +55,7 @@ OT.boot! :test
 #=> []
 
 ## SaaS empty planid: can? returns false
-@org.can?('create_secrets')
+@org.can?('api_access')
 #=> false
 
 ## SaaS empty planid: limit_for returns 0
@@ -68,7 +68,7 @@ OT.boot! :test
 #=> []
 
 ## SaaS plan cache miss: can? returns false (fail-closed behavior)
-@org.can?('create_secrets')
+@org.can?('api_access')
 #=> false
 
 ## SaaS plan cache miss: limit_for returns 0 (fail-closed behavior)

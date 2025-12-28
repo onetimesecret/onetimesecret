@@ -60,6 +60,22 @@ entitlements:
     category: collaboration
     description: Can add and manage team members
 
+  custom_privacy_defaults:
+    category: advanced
+    description: Custom privacy default settings
+
+  incoming_secrets:
+    category: core
+    description: Can receive secrets from others
+
+  custom_mail_defaults:
+    category: infrastructure
+    description: Custom mail and DKIM settings
+
+  manage_orgs:
+    category: collaboration
+    description: Can create and manage organizations
+
   audit_logs:
     category: advanced
     description: Access to audit log features
