@@ -1,0 +1,29 @@
+{
+  "web": {
+    "translations": {
+      "welcomes-contributors-for-both-existing-and-new-": "verwelkomt bijdragers voor zowel bestaande als nieuwe talen.",
+      "our-github-project": "ons GitHub project",
+      "if-youre-interested-in-translation": "Als u geïnteresseerd bent in vertaling,",
+      "whove-helped-with-translations-as-we-continue-to": "die geholpen hebben met vertalingen terwijl we nieuwe functies blijven ontwikkelen.",
+      "25-contributors": "25+ bijdragers",
+      "were-grateful-to-the": "We zijn dankbaar voor de",
+      "as-we-add-new-features-our-translations-graduall": "Naarmate we nieuwe functies toevoegen, hebben onze vertalingen geleidelijk updates nodig om actueel te blijven. Dit beïnvloedt zowel onetimesecret.com als duizenden zelf-gehoste installaties wereldwijd.",
+      "remember-to-include-your-email-if-youre-not-logg": "- vergeet niet uw e-mail toe te voegen als u niet bent ingelogd. Elke vertaling helpt meer mensen veilig te communiceren.",
+      "reach-out-to-us": "Neem contact met ons op",
+      "have-questions": "Heeft u vragen?",
+      "send-translations-by-email-to": "Stuur vertalingen per e-mail naar",
+      "english-template": "Engels sjabloon",
+      "start-a-new-translation-from-our": "Begin een nieuwe vertaling vanuit ons",
+      "update-a-language-directly-through-our-github-pr": "Update een taal direct via ons GitHub-project",
+      "review-existing-translations-using-the-language-": "Bekijk bestaande vertalingen met de taalselector hierboven",
+      "ready-to-help-some-ways-to-contribute": "Klaar om te helpen? Enkele manieren om bij te dragen:",
+      "the-following-people-have-donated-their-time-to-": "De volgende mensen hebben hun tijd gedoneerd om het bereik van Onetime Secret te helpen uitbreiden:",
+      "translations": "Vertalingen",
+      "fork-on-github-and-submit-a-pr": "Fork op GitHub en dien een PR in",
+      "your-language-skills-can-help-expand-access-to-s": "Uw taalvaardigheden kunnen helpen bij het uitbreiden van toegang tot veilige communicatie.",
+      "thanks-to-our-community-we-support-over-20-langu": "Dankzij onze gemeenschap ondersteunen we vandaag meer dan 20 talen. Echter, met ons snelle ontwikkelingstempo hebben veel vertalingen updates nodig om actueel te blijven. Dit beïnvloedt zowel onetimesecret.com als de duizenden zelf-gehoste installaties wereldwijd.",
+      "since-2012-onetime-secret-has-provided-a-secure-": "Sinds 2012 biedt Onetime Secret wereldwijd een veilige manier om gevoelige informatie te delen. Met gebruikers in regio's waar Engels niet de primaire taal is, zijn nauwkeurige vertalingen essentieel om veilige communicatie voor iedereen toegankelijk te maken.",
+      "help-secure-communication-go-global": "Help veilige communicatie wereldwijd te maken"
+    }
+  }
+}

@@ -56,7 +56,23 @@
         "configureDomainsDesc": "",
         "systemSettings": "",
         "systemSettingsDesc": ""
-      }
+      },
+      "redis-info": "Redis Bilgisi",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `doğrulandı` : `doğrulanmadı`",
+      "customers-details-counts-recent_customer_count-o": "Müşteriler ({1} kişiden {0})",
+      "user-feedback-total-details-counts-feedback_coun": "Kullanıcı Geri Bildirimi (Toplam: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "Meta Veri / Mesajlar: {0}/{1} ({2}/{3}/{4} toplam)",
+      "secrets-details-counts-secret_count": "Mesajlar ({0})",
+      "active-in-the-past-5-minutes": "(son 5 dakika içinde aktif)",
+      "past-14-days": "Son 14 Gün",
+      "yesterday": "Dün",
+      "today": "Bugün",
+      "misc": "Çeşitli",
+      "feedback": "Geri bildirim",
+      "customers": "Müşteriler",
+      "test-exception-message-substring-11": "Test istisnası: {0}",
+      "test-error-triggered-via-feedback": "Geri bildirim yoluyla tetiklenen test hatası"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Geribildirim gönderdiğinizde göreceğimiz bilgiler:",

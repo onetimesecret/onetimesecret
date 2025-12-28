@@ -98,7 +98,31 @@
         "description": "Manage your subscription, payment methods, and billing history",
         "open_portal": "Open Billing Portal",
         "redirecting": "Redirecting to billing portal..."
-      }
+      },
+      "start-today": "Start today",
+      "start-today-with-identity-plus": "Start today with Identity Plus",
+      "per-month": "per month",
+      "full-api-access": "Full API access",
+      "privacy-first-design": "Privacy-first design",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Click this lightning bolt to upgrade for custom domains",
+      "maybe-later": "Maybe Later",
+      "upgrade-account": "Upgrade account",
+      "upgrade-to-identity-plus": "Upgrade to Identity Plus",
+      "upgrade-for-teams": "Upgrade for Teams",
+      "benefits-of": "Benefits of",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Upgrade to",
+      "upgrade-for-yourdomain": "Upgrade for secrets.yourdomain.com",
+      "includes-all-features-and-unlimited-sharing-capa": "All plans include privacy features and unlimited sharing capacity",
+      "includes-all-data-locality-options": "All plans include choice of data locality: {0} regions",
+      "get-started": "Get started",
+      "frequency-value-annually-annual-monthly-subscrip": "{0} subscription",
+      "elevate-your-secure-sharing-with-custom-domains-": "Elevate your secure sharing with custom domains, unlimited capacity, and enterprise-grade features.",
+      "payment-frequency": "Payment frequency",
+      "secure-your-brand-and-build-customer-trust-with-": "Secure your brand and build customer trust with links from your domain. Perfect for businesses that value privacy and professionalism.",
+      "secure-links-stronger-connections": "Secure Links, Stronger Connections",
+      "identity-tier-not-found-in-product-tiers": "Identity tier not found in product tiers"
     }
   }
 }

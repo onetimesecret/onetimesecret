@@ -1,0 +1,25 @@
+{
+  "web": {
+    "errors": {
+      "why-is-this-secret-unavailable": "Bu mesaj neden kullanılamıyor?",
+      "secrets-are-designed-to-be-viewed-only-once": "Mesajlar yalnızca bir kez görüntülenecek şekilde tasarlanmıştır. Bu bağlantıya zaten erişilmiş, süresi dolmuş veya gönderen tarafından manuel olarak silinmiş olabilir.",
+      "what-should-i-do-now": "Şimdi ne yapmalıyım?",
+      "contact-the-person-who-sent-you-this-link": "Size bu bağlantıyı gönderen kişiyle iletişime geçin ve yeni bir mesaj oluşturmalarını isteyin. Orijinal bilgilere erişemediğinizi bildirin.",
+      "warning-dismissed": "Uyarı kapatıldı",
+      "dismiss-truncation-warning": "Kısaltma uyarısını kapat",
+      "oops-the-page-you-are-looking-for-doesnt-exist-o": "Hay aksi! Aradığınız sayfa mevcut değil veya taşınmış.",
+      "404-page-not-found-0": "404 - Sayfa Bulunamadı",
+      "404-page-not-found": "404 - Sayfa Bulunamadı",
+      "dismiss-warning": "Uyarıyı kapat",
+      "dismiss-notification": "Bildirimi kapat",
+      "if-youre-unsure-what-to-do-next-please-follow-up": "Sırada ne yapacağınızdan emin değilseniz, lütfen daha fazla bilgi için size bu bağlantıyı gönderen kişiyle iletişime geçin.",
+      "information-shared-through-our-service-can-only-": "Hizmetimiz aracılığıyla paylaşılan bilgilere yalnızca bir kez erişilebilir. Görüntülendikten sonra, içerik gizliliği sağlamak için sunucularımızdan kalıcı olarak silinir. Bu yaklaşım, hassas verilerinizi maruz kalmasını sınırlayarak ve yetkisiz erişimi önleyerek korumaya yardımcı olur.",
+      "were-sorry-but-an-unexpected-error-occurred-whil": "Üzgünüz, ancak isteğinizi işlerken beklenmeyen bir hata oluştu. Ekibimiz bilgilendirildi ve düzeltmek için çalışıyoruz.",
+      "t-web-common-oops-something-went-wrong": "{0} Bir şeyler ters gitti",
+      "go-share-a-secret": "Git bir mesaj paylaş!",
+      "the-page-youre-looking-for-doesnt-exist-or-has-b": "Aradığınız sayfa mevcut değil veya taşınmış. Endişelenmeyin, en iyilerimizin başına gelir!",
+      "t-web-common-oops-404": "{0} 404",
+      "unable-to-load-data-due-to-data-format-issues-pl": "Veri biçimi sorunları nedeniyle veri yüklenemiyor. Lütfen daha sonra tekrar deneyin."
+    }
+  }
+}

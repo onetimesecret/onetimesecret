@@ -98,7 +98,31 @@
         "description": "Керуйте вашою підпискою, способами оплати та історією виставлення рахунків",
         "open_portal": "Відкрити портал виставлення рахунків",
         "redirecting": "Перенаправлення до порталу виставлення рахунків..."
-      }
+      },
+      "start-today": "Почніть сьогодні",
+      "start-today-with-identity-plus": "Почніть сьогодні з Identity Plus",
+      "per-month": "на місяць",
+      "full-api-access": "Повний доступ до API",
+      "privacy-first-design": "Дизайн, орієнтований на конфіденційність",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Натисніть цю блискавку, щоб оновити для власних доменів",
+      "maybe-later": "Можливо, пізніше",
+      "upgrade-account": "Оновити обліковий запис",
+      "upgrade-to-identity-plus": "Оновити до Identity Plus",
+      "upgrade-for-teams": "Оновити для команд",
+      "benefits-of": "Переваги",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Оновити до",
+      "upgrade-for-yourdomain": "Оновити для secrets.yourdomain.com",
+      "includes-all-features-and-unlimited-sharing-capa": "Усі плани включають функції конфіденційності та необмежену можливість обміну",
+      "includes-all-data-locality-options": "Усі плани включають вибір локальності даних: {0} регіонів",
+      "get-started": "Почати",
+      "frequency-value-annually-annual-monthly-subscrip": "{0} підписка",
+      "elevate-your-secure-sharing-with-custom-domains-": "Покращуйте свій безпечний обмін за допомогою власних доменів, необмеженої ємності та функцій корпоративного рівня.",
+      "payment-frequency": "Частота платежів",
+      "secure-your-brand-and-build-customer-trust-with-": "Захистіть свій бренд та будуйте довіру клієнтів за допомогою посилань з вашого домену. Ідеально підходить для бізнесу, який цінує конфіденційність та професіоналізм.",
+      "secure-links-stronger-connections": "Безпечні посилання, міцніші зв'язки",
+      "identity-tier-not-found-in-product-tiers": "Рівень Identity не знайдено серед рівнів продукту"
     }
   }
 }

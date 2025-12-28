@@ -56,7 +56,23 @@
         "configureDomainsDesc": "Domein- en DNS-instellingen",
         "systemSettings": "Systeeminstellingen",
         "systemSettingsDesc": "Applicatieconfiguratie"
-      }
+      },
+      "redis-info": "Redis info",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `geverifieerd` : `niet geverifieerd",
+      "customers-details-counts-recent_customer_count-o": "Klanten ({0} van {1})",
+      "user-feedback-total-details-counts-feedback_coun": "Gebruikersfeedback (Totaal: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "Metadata / Berichten: {0}/{1} ({2}/{3}/{4} totaal)",
+      "secrets-details-counts-secret_count": "Berichten ({0})",
+      "active-in-the-past-5-minutes": "(actief in de afgelopen 5 minuten)",
+      "past-14-days": "Afgelopen 14 dagen",
+      "yesterday": "Gisteren",
+      "today": "Vandaag",
+      "misc": "Diversen",
+      "feedback": "Feedback",
+      "customers": "Klanten",
+      "test-exception-message-substring-11": "Testuitzondering: {0}",
+      "test-error-triggered-via-feedback": "Testfout veroorzaakt via feedback"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Wanneer je feedback verstuurt, zien wij:",

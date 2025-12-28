@@ -56,7 +56,23 @@
         "configureDomainsDesc": "Cài đặt tên miền và DNS",
         "systemSettings": "Cài đặt hệ thống",
         "systemSettingsDesc": "Cấu hình ứng dụng"
-      }
+      },
+      "redis-info": "Thông tin Redis",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `verified` : `not verified",
+      "customers-details-counts-recent_customer_count-o": "Khách hàng ({0} trong {1})",
+      "user-feedback-total-details-counts-feedback_coun": "Phản hồi người dùng (Tổng: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "Metadata / Bí mật: {0}/{1} ({2}/{3}/{4} tổng)",
+      "secrets-details-counts-secret_count": "Bí mật ({0})",
+      "active-in-the-past-5-minutes": "(hoạt động trong 5 phút qua)",
+      "past-14-days": "14 ngày qua",
+      "yesterday": "Hôm qua",
+      "today": "Hôm nay",
+      "misc": "Khác",
+      "feedback": "Phản hồi",
+      "customers": "Khách hàng",
+      "test-exception-message-substring-11": "Ngoại lệ thử nghiệm: {0}",
+      "test-error-triggered-via-feedback": "Lỗi thử nghiệm được kích hoạt qua phản hồi"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Khi bạn gửi phản hồi, chúng tôi sẽ thấy:",

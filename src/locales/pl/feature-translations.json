@@ -1,0 +1,29 @@
+{
+  "web": {
+    "translations": {
+      "welcomes-contributors-for-both-existing-and-new-": "zaprasza współtwórców zarówno dla istniejących, jak i nowych języków.",
+      "our-github-project": "nasz projekt na GitHubie",
+      "if-youre-interested-in-translation": "Jeśli interesuje Cię tłumaczenie,",
+      "whove-helped-with-translations-as-we-continue-to": ", którzy pomogli w tłumaczeniach, podczas gdy my kontynuujemy rozwój nowych funkcji.",
+      "25-contributors": "ponad 25 współtwórców",
+      "were-grateful-to-the": "Jesteśmy wdzięczni",
+      "as-we-add-new-features-our-translations-graduall": "W miarę dodawania nowych funkcji nasze tłumaczenia stopniowo wymagają aktualizacji, aby pozostać aktualnymi. Dotyczy to zarówno onetimesecret.com, jak i tysięcy samodzielnie hostowanych instalacji na całym świecie.",
+      "remember-to-include-your-email-if-youre-not-logg": "- pamiętaj o podaniu swojego adresu e-mail, jeśli nie jesteś zalogowany. Każde tłumaczenie pomaga większej liczbie osób bezpiecznie komunikować się.",
+      "reach-out-to-us": "Skontaktuj się z nami",
+      "have-questions": "Masz pytania?",
+      "send-translations-by-email-to": "Wyślij tłumaczenia e-mailem na adres",
+      "english-template": "Szablon angielski",
+      "start-a-new-translation-from-our": "Rozpocznij nowe tłumaczenie z naszego",
+      "update-a-language-directly-through-our-github-pr": "Zaktualizuj język bezpośrednio przez nasz projekt na GitHubie",
+      "review-existing-translations-using-the-language-": "Przejrzyj istniejące tłumaczenia za pomocą selektora języka powyżej",
+      "ready-to-help-some-ways-to-contribute": "Gotowy do pomocy? Kilka sposobów na wkład:",
+      "the-following-people-have-donated-their-time-to-": "Następujące osoby poświęciły swój czas, aby pomóc poszerzyć zasięg Onetime Secret:",
+      "translations": "Tłumaczenia",
+      "fork-on-github-and-submit-a-pr": "Utwórz fork na GitHubie i prześlij PR",
+      "your-language-skills-can-help-expand-access-to-s": "Twoje umiejętności językowe mogą pomóc poszerzyć dostęp do bezpiecznej komunikacji.",
+      "thanks-to-our-community-we-support-over-20-langu": "Dzięki naszej społeczności obsługujemy dziś ponad 20 języków. Jednak przy naszym szybkim tempie rozwoju wiele tłumaczeń wymaga aktualizacji, aby pozostać na bieżąco. Dotyczy to zarówno onetimesecret.com, jak i tysięcy samodzielnie hostowanych instalacji na całym świecie.",
+      "since-2012-onetime-secret-has-provided-a-secure-": "Od 2012 roku Onetime Secret zapewnia bezpieczny sposób udostępniania poufnych informacji na całym świecie. Użytkownicy pochodzą z regionów, w których angielski nie jest językiem podstawowym, dlatego dokładne tłumaczenia są niezbędne, aby bezpieczna komunikacja była dostępna dla wszystkich.",
+      "help-secure-communication-go-global": "Pomóż bezpiecznej komunikacji stać się globalną"
+    }
+  }
+}

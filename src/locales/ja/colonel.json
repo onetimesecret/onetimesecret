@@ -56,7 +56,23 @@
         "configureDomainsDesc": "ドメインとDNS設定",
         "systemSettings": "システム設定",
         "systemSettingsDesc": "アプリケーション設定"
-      }
+      },
+      "redis-info": "Redis情報",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `verified` : `not verified",
+      "customers-details-counts-recent_customer_count-o": "顧客 ({0} / {1})",
+      "user-feedback-total-details-counts-feedback_coun": "ユーザーフィードバック（合計: {0}）",
+      "metadata-secrets-details-counts-metadata_count-d": "メタデータ/シークレット: {0}/{1}（{2}/{3}/{4}合計）",
+      "secrets-details-counts-secret_count": "シークレット ({0})",
+      "active-in-the-past-5-minutes": "（過去5分間アクティブ）",
+      "past-14-days": "過去14日間",
+      "yesterday": "昨日",
+      "today": "今日",
+      "misc": "その他",
+      "feedback": "フィードバック",
+      "customers": "顧客",
+      "test-exception-message-substring-11": "テスト例外: {0}",
+      "test-error-triggered-via-feedback": "フィードバックから発生したテストエラー"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "フィードバックを送信すると、以下が表示されます:",

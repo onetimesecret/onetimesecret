@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "Ez a szolgáltatás csak belső használatra van beállítva.",
         "tagline1": "A felhasználói felület és bejelentkezési lehetőségek nem érhetők el."
-      }
+      },
+      "link-preview": "Hivatkozás előnézete",
+      "meets-and-exceeds-compliance-standards": "Megfelel és meghaladja a megfelelőségi szabványokat",
+      "secure-your-brand-build-customer-trust-etc": "Biztosítsa márkáját, építsen ügyfélbizalmat doménjéről származó hivatkozásokkal.",
+      "a-trusted-way-to-share-sensitive-information-etc": "Megbízható módja az érzékeny információk megosztásának, amely megtekintés után önmegsemmisül.",
+      "secure-links": "Biztonságos hivatkozások",
+      "about-onetime-secret-0": "Az Onetime Secret-ről",
+      "log-in-to-onetime-secret": "Bejelentkezés az Onetime Secret-be",
+      "about-onetime-secret": "Az Onetime Secret-ről",
+      "signup-individual-and-business-plans": "Regisztráció - Egyéni és üzleti csomagok",
+      "tagline-signed": "Aláírva",
+      "tagline-sealed": "Lezárva",
+      "tagline-delivered": "Kézbesítve",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "One-Time Secret",
+      "onetime-secret-homepage": "Onetime Secret Kezdőlap",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Küldjön érzékeny információt, amely csak egyszer tekinthető meg",
+      "create-a-secure-link": "Biztonságos hivatkozás létrehozása",
+      "now-with-custom-domains": "Most egyéni doménekkel",
+      "this-is-a-private-instance-only-authorized-team-": "Ez egy privát példány. Csak jogosult csapattagok hozhatnak létre új biztonságos hivatkozásokat.",
+      "welcome-to-onetime-secret": "Üdvözöljük az Onetime Secret-nél.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Az Onetime Secret segít biztonságosan megosztani érzékeny információkat, miközben fenntartjuk professzionális homlokzatunkat.",
+      "information-shared-through-this-service-can-only": "Ezen a szolgáltatáson keresztül megosztott információk csak egyszer érhetők el. Megtekintés után a tartalom véglegesen törlődik a bizalmasság biztosítása érdekében.",
+      "welcome-to-the-global-broadcast": "Üdvözöljük a Global Broadcast-ban!"
     }
   }
 }

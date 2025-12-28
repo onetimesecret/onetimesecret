@@ -98,7 +98,31 @@
         "description": "Verwalten Sie Ihr Abonnement, Zahlungsmethoden und Abrechnungsverlauf",
         "open_portal": "Abrechnungsportal öffnen",
         "redirecting": "Weiterleitung zum Abrechnungsportal..."
-      }
+      },
+      "start-today": "Heute beginnen",
+      "start-today-with-identity-plus": "Beginnen Sie noch heute mit Identity Plus",
+      "per-month": "pro Monat",
+      "full-api-access": "Vollständiger API-Zugang",
+      "privacy-first-design": "Datenschutz als oberstes Gebot",
+      "identity-plus": "Identität Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Klicken Sie auf diesen Blitz, um ein Upgrade für benutzerdefinierte Bereiche durchzuführen",
+      "maybe-later": "Vielleicht später",
+      "upgrade-account": "Konto aktualisieren",
+      "upgrade-to-identity-plus": "Upgrade auf Identity Plus",
+      "upgrade-for-teams": "Upgrade für Teams",
+      "benefits-of": "Vorteile von",
+      "t-benefits-of-identity-plus": "{0}: Identität Plus",
+      "upgrade-to": "Upgrade auf",
+      "upgrade-for-yourdomain": "Upgrade für secrets.ihredomäne.com",
+      "includes-all-features-and-unlimited-sharing-capa": "Enthält alle Funktionen und unbegrenzte Freigabekapazität",
+      "includes-all-data-locality-options": "Alle Pläne beinhalten die Wahl des Datenstandorts: {0} Regionen",
+      "get-started": "Los geht's",
+      "frequency-value-annually-annual-monthly-subscrip": "{0} Abonnement",
+      "elevate-your-secure-sharing-with-custom-domains-": "Verbessern Sie Ihre sichere Freigabe mit benutzerdefinierten Bereiche, unbegrenzter Kapazität und Funktionen auf Unternehmensniveau.",
+      "payment-frequency": "Häufigkeit der Zahlungen",
+      "secure-your-brand-and-build-customer-trust-with-": "Sichern Sie Ihre Marke und bauen Sie das Vertrauen Ihrer Kunden mit Links von Ihrer Bereich aus auf. Perfekt für Unternehmen, die Wert auf Privatsphäre und Professionalität legen.",
+      "secure-links-stronger-connections": "Sichere Verbindungen, stärkere Verbindungen",
+      "identity-tier-not-found-in-product-tiers": "Identitätsebene nicht in Produktebenen enthalten"
     }
   }
 }

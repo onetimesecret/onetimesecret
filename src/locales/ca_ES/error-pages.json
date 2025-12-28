@@ -1,0 +1,25 @@
+{
+  "web": {
+    "errors": {
+      "why-is-this-secret-unavailable": "Per què aquest secret no està disponible?",
+      "secrets-are-designed-to-be-viewed-only-once": "Els secrets estan dissenyats per visualitzar-se només una vegada. Aquest enllaç pot haver estat ja accedit, caducat o suprimit manualment pel remitent.",
+      "what-should-i-do-now": "Què hauria de fer ara?",
+      "contact-the-person-who-sent-you-this-link": "Contacta amb la persona que t'ha enviat aquest enllaç i demana-li que creï un secret nou. Fes-li saber que no has pogut accedir a la informació original.",
+      "warning-dismissed": "Advertència descartada",
+      "dismiss-truncation-warning": "Descarta l'advertència de truncament",
+      "oops-the-page-you-are-looking-for-doesnt-exist-o": "Ups! La pàgina que busques no existeix o s'ha mogut.",
+      "404-page-not-found-0": "404 - Pàgina no trobada",
+      "404-page-not-found": "404 - Pàgina no trobada",
+      "dismiss-warning": "Descarta l'advertència",
+      "dismiss-notification": "Descarta la notificació",
+      "if-youre-unsure-what-to-do-next-please-follow-up": "Si no estàs segur de què fer després, si us plau, segueix amb la persona que t'ha enviat aquest enllaç per obtenir més informació.",
+      "information-shared-through-our-service-can-only-": "La informació compartida a través del nostre servei només es pot accedir una vegada. Una vegada visualitzada, el contingut se suprimeix permanentment dels nostres servidors per garantir la confidencialitat. Aquest enfocament ajuda a protegir les teves dades sensibles limitant la seva exposició i evitant l'accés no autoritzat.",
+      "were-sorry-but-an-unexpected-error-occurred-whil": "Ho sentim, però s'ha produït un error inesperat mentre processàvem la teva sol·licitud. El nostre equip ha estat notificat i estem treballant per solucionar-ho.",
+      "t-web-common-oops-something-went-wrong": "{0} Alguna cosa ha anat malament",
+      "go-share-a-secret": "Ves a compartir un secret!",
+      "the-page-youre-looking-for-doesnt-exist-or-has-b": "La pàgina que busques no existeix o s'ha mogut. No et preocupis, passa als millors!",
+      "t-web-common-oops-404": "{0} 404",
+      "unable-to-load-data-due-to-data-format-issues-pl": "No es poden carregar les dades a causa de problemes de format de dades. Torna-ho a provar més tard."
+    }
+  }
+}

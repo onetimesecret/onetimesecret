@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "Цей сервіс налаштовано лише для внутрішнього використання.",
         "tagline1": "Інтерфейс користувача та можливості входу недоступні."
-      }
+      },
+      "link-preview": "Попередній перегляд посилання",
+      "meets-and-exceeds-compliance-standards": "Відповідає та перевищує стандарти відповідності",
+      "secure-your-brand-build-customer-trust-etc": "Захистіть свій бренд, будуйте довіру клієнтів за допомогою посилань з вашого домену.",
+      "a-trusted-way-to-share-sensitive-information-etc": "Надійний спосіб обміну конфіденційною інформацією, яка самознищується після перегляду.",
+      "secure-links": "Безпечні посилання",
+      "about-onetime-secret-0": "Про Onetime Secret",
+      "log-in-to-onetime-secret": "Увійти в Onetime Secret",
+      "about-onetime-secret": "Про Onetime Secret",
+      "signup-individual-and-business-plans": "Реєстрація - Індивідуальні та бізнес-плани",
+      "tagline-signed": "Підписано",
+      "tagline-sealed": "Запечатано",
+      "tagline-delivered": "Доставлено",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "One-Time Secret",
+      "onetime-secret-homepage": "Домашня сторінка Onetime Secret",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Надсилайте конфіденційну інформацію, яку можна переглянути лише один раз",
+      "create-a-secure-link": "Створити безпечне посилання",
+      "now-with-custom-domains": "Тепер з власними доменами",
+      "this-is-a-private-instance-only-authorized-team-": "Це приватний екземпляр. Тільки авторизовані члени команди можуть генерувати нові безпечні посилання.",
+      "welcome-to-onetime-secret": "Ласкаво просимо до Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret допомагає нам безпечно ділитися конфіденційною інформацією, зберігаючи при цьому наш професійний імідж.",
+      "information-shared-through-this-service-can-only": "Інформація, передана через цей сервіс, може бути доступна лише один раз. Після перегляду вміст назавжди видаляється для забезпечення конфіденційності.",
+      "welcome-to-the-global-broadcast": "Ласкаво просимо до Глобального мовлення."
     }
   }
 }

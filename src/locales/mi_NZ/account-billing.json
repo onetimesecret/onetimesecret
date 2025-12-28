@@ -98,7 +98,31 @@
         "description": "Whakahaere i tō ohaurunga, ngā tikanga utu, me te hītori utu",
         "open_portal": "Huaki Tomokanga Utu",
         "redirecting": "Kei te tuku atu ki te tomokanga utu..."
-      }
+      },
+      "start-today": "Tīmata i tēnei rā",
+      "start-today-with-identity-plus": "Tīmata i tēnei rā me Identity Plus",
+      "per-month": "ia marama",
+      "full-api-access": "Urunga API Katoa",
+      "privacy-first-design": "Hoahoa matatapu-tuatahi",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Pāwhiria tēnei uira hei whakahou mō ngā rohe ritenga",
+      "maybe-later": "Ka Mutu Ake Pea",
+      "upgrade-account": "Whakapai ake pūkete",
+      "upgrade-to-identity-plus": "Whakapai ake ki Identity Plus",
+      "upgrade-for-teams": "Whakapai ake mō ngā Rōpū",
+      "benefits-of": "Ngā painga o",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Whakapai ake ki",
+      "upgrade-for-yourdomain": "Whakapai ake mō secrets.yourdomain.com",
+      "includes-all-features-and-unlimited-sharing-capa": "Ka whai ngā mahere katoa i ngā āhuatanga matatapu me te kaha tuari mutunga kore",
+      "includes-all-data-locality-options": "Ka whai ngā mahere katoa i te kōwhiringa o te wāhi raraunga: {0} rohe",
+      "get-started": "Tīmata",
+      "frequency-value-annually-annual-monthly-subscrip": "Ohaurunga {0}",
+      "elevate-your-secure-sharing-with-custom-domains-": "Whakapikihia tō tuari haumaru ki ngā rohe ritenga, kaha mutunga kore, me ngā āhuatanga papatono.",
+      "payment-frequency": "Auautanga utu",
+      "secure-your-brand-and-build-customer-trust-with-": "Tiakina tō waitohu me te hanga i te whakawhirinaki kiritaki me ngā hononga mai i tō rohe. He tino pai mō ngā pakihi e uara ana i te matatapu me te ngaiotanga.",
+      "secure-links-stronger-connections": "Ngā Hononga Haumaru, Ngā Hononga Kaha Ake",
+      "identity-tier-not-found-in-product-tiers": "Kāore i kitea te taumata Tuakiri i roto i ngā taumata hua"
     }
   }
 }

@@ -1,0 +1,20 @@
+{
+  "web": {
+    "feedback": {
+      "your-feedback": "あなたのフィードバック",
+      "all-feedback-welcome": "すべてのフィードバックを歓迎します！",
+      "help-us-improve": "改善にご協力ください",
+      "close-feedback-modal": "フィードバック モーダルを閉じる",
+      "share-your-feedback": "フィードバックを共有する",
+      "delano-mandelbaum": "デラノ・マンデルバウム",
+      "delano": "デラノ",
+      "help-content-goes-here": "ヘルプ コンテンツがここに表示されます。",
+      "thanks-for-helping-onetime-secret-improve-it-mea": "Onetime Secretの改善にご協力いただきありがとうございます。とても重要です。",
+      "weve-built-this-tool-to-help-you-share-sensitive": "私たちは、このツールを作成して、機密情報を安全に共有できるようにしました。皆さんの実際の経験は、私たちの取り組みを集中させるために非常に重要です。次に何に取り組むべきか、そしてサービスをどのように改善すればよいかを把握するのに役立ちます。",
+      "hey-there-thanks-for-stopping-by-our-feedback-pa": "こんにちは、フィードバックページにお越しいただきありがとうございます。あなたの意見は歓迎されるだけでなく、非常に重要です。",
+      "a-note-from-delano-founder-of-onetime-secret": "Onetime Secretの創設者であるデラノからのメッセージ",
+      "open-feedback-form": "フィードバックフォームを開く",
+      "enter-your-feedback": "フィードバックを入力してください"
+    }
+  }
+}

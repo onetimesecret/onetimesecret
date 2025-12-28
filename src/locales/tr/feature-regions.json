@@ -18,7 +18,24 @@
       "compliance-title": "",
       "compliance-description": "",
       "performance-title": "",
-      "performance-description": ""
+      "performance-description": "",
+      "regions": "Bölgeler",
+      "contact-our-compliance-team": "uyumluluk ekibimizle iletişime geçin",
+      "review-our-documentation": "belgelerimizi inceleyin",
+      "your-account-and-data-are-protected-under-the-la": "Hesabınız ve verileriniz yasaları ve düzenlemeleri altında korunmaktadır",
+      "this-regulatory-framework-is-determined-by-your-": "Bu düzenleyici çerçeve, erişim alan adınız tarafından belirlenir:",
+      "each-jurisdiction-maintains-separate-legal-compl": "Her yargı bölgesi ayrı yasal uyumluluk ve veri yönetimi sağlar. Birden fazla yargı bölgesinde hesap oluşturabilseniz de, düzenleyici bölgeler arasında veri paylaşımı olmaksızın yasal olarak ayrı kalırlar.",
+      "to-understand-the-specific-regulations-and-prote": "Hesabınız için geçerli olan belirli düzenlemeleri ve korumaları anlamak için lütfen",
+      "current": "Mevcut",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "Mevcut Bölgeler",
+      "jurisdiction": "Yargı Bölgesi",
+      "data-center-location-currentjurisdiction-identif": "Veri merkezi konumu: {0}",
+      "data-region": "Veri Bölgesi",
+      "unknown-jurisdiction": "Bilinmeyen Yargı Bölgesi",
+      "serving-you-from-the": "Size şuradan hizmet veriyoruz",
+      "continue-to-jurisdiction-domain": "{0} adresine devam et",
+      "current-jurisdiction": "Mevcut yargı bölgesi:"
     }
   }
 }

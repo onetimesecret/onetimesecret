@@ -18,7 +18,24 @@
       "compliance-title": "الامتثال التنظيمي",
       "compliance-description": "استوفِ متطلبات GDPR و HIPAA و CCPA وغيرها من متطلبات حماية البيانات الإقليمية",
       "performance-title": "وصول أسرع",
-      "performance-description": "تخزين البيانات بالقرب منك يعني زمن انتقال أقل وأداء أفضل."
+      "performance-description": "تخزين البيانات بالقرب منك يعني زمن انتقال أقل وأداء أفضل.",
+      "regions": "المناطق",
+      "contact-our-compliance-team": "اتصل بفريق الامتثال لدينا",
+      "review-our-documentation": "راجع وثائقنا",
+      "your-account-and-data-are-protected-under-the-la": "حسابك وبياناتك محمية بموجب قوانين",
+      "this-regulatory-framework-is-determined-by-your-": "يتم تحديد إطارك التنظيمي من خلال نطاق الوصول الخاص بك:",
+      "each-jurisdiction-maintains-separate-legal-compl": "كل منطقة منفصلة تماماً مع بنيتها التحتية الخاصة، عندما يكون ذلك ممكناً مع موفر استضافة محلي خاص بها. يمكنك إنشاء حسابات في مناطق متعددة، ولكن لا تتم مشاركة أي بيانات بينها.",
+      "to-understand-the-specific-regulations-and-prote": "للحصول على تفاصيل حول اللوائح والحماية المطبقة على حسابك،",
+      "current": "الحالي",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "المناطق المتاحة",
+      "jurisdiction": "الولاية القضائية",
+      "data-center-location-currentjurisdiction-identif": "موقع مركز البيانات: {0}",
+      "data-region": "منطقة البيانات",
+      "unknown-jurisdiction": "ولاية قضائية غير معروفة",
+      "serving-you-from-the": "نخدمك من",
+      "continue-to-jurisdiction-domain": "المتابعة إلى {0}",
+      "current-jurisdiction": "الولاية القضائية الحالية:"
     }
   }
 }

@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "이 서비스는 내부 사용만을 위해 설정되었습니다.",
         "tagline1": "사용자 인터페이스 및 로그인 기능을 사용할 수 없습니다."
-      }
+      },
+      "link-preview": "링크 미리보기",
+      "meets-and-exceeds-compliance-standards": "규정 준수 표준을 충족하고 초과합니다",
+      "secure-your-brand-build-customer-trust-etc": "귀하의 도메인에서 링크를 통해 브랜드를 보호하고 고객 신뢰를 구축하세요.",
+      "a-trusted-way-to-share-sensitive-information-etc": "열람 후 자동으로 파기되는 민감한 정보를 공유하는 신뢰할 수 있는 방법입니다.",
+      "secure-links": "보안 링크",
+      "about-onetime-secret-0": "Onetime Secret 소개",
+      "log-in-to-onetime-secret": "Onetime Secret 로그인",
+      "about-onetime-secret": "Onetime Secret 소개",
+      "signup-individual-and-business-plans": "가입 - 개인 및 비즈니스 플랜",
+      "tagline-signed": "서명됨",
+      "tagline-sealed": "봉인됨",
+      "tagline-delivered": "전달됨",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "One-Time Secret",
+      "onetime-secret-homepage": "Onetime Secret 홈페이지",
+      "send-sensitive-information-that-can-only-be-viewed-once": "단 한 번만 볼 수 있는 민감한 정보 보내기",
+      "create-a-secure-link": "보안 링크 생성",
+      "now-with-custom-domains": "이제 맞춤 도메인 지원",
+      "this-is-a-private-instance-only-authorized-team-": "이것은 비공개 인스턴스입니다. 승인된 팀원만 새로운 보안 링크를 생성할 수 있습니다.",
+      "welcome-to-onetime-secret": "Onetime Secret에 오신 것을 환영합니다.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret은 전문적인 모습을 유지하면서 민감한 정보를 안전하게 공유하는 데 도움을 줍니다.",
+      "information-shared-through-this-service-can-only": "이 서비스를 통해 공유된 정보는 단 한 번만 접근할 수 있습니다. 열람 후에는 기밀성을 보장하기 위해 내용이 영구적으로 삭제됩니다.",
+      "welcome-to-the-global-broadcast": "글로벌 브로드캐스트에 오신 것을 환영합니다!"
     }
   }
 }

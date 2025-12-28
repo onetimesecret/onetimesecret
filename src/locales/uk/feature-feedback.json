@@ -1,0 +1,20 @@
+{
+  "web": {
+    "feedback": {
+      "your-feedback": "Ваш відгук",
+      "all-feedback-welcome": "Будь-який відгук вітається!",
+      "help-us-improve": "Допоможіть нам стати кращими",
+      "close-feedback-modal": "Закрити модальне вікно відгуку",
+      "share-your-feedback": "Поділіться своїм відгуком",
+      "delano-mandelbaum": "Делано Мандельбаум",
+      "delano": "Делано",
+      "help-content-goes-here": "Тут буде довідковий контент.",
+      "thanks-for-helping-onetime-secret-improve-it-mea": "Дякуємо за допомогу у вдосконаленні Onetime Secret. Це багато значить.",
+      "weve-built-this-tool-to-help-you-share-sensitive": "Ми створили цей інструмент, щоб допомогти вам безпечно ділитися конфіденційною інформацією, і ваш реальний досвід є вирішальним для зосередження наших зусиль. Це допомагає нам зрозуміти, над чим працювати далі та як зробити сервіс кращим для всіх.",
+      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Привіт, дякуємо, що завітали на нашу сторінку відгуків. Ваш внесок не просто вітається - він надзвичайно важливий.",
+      "a-note-from-delano-founder-of-onetime-secret": "Записка від Делано, засновника Onetime Secret",
+      "open-feedback-form": "Відкрити форму відгуку",
+      "enter-your-feedback": "Введіть ваш відгук"
+    }
+  }
+}

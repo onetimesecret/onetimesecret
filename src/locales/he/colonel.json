@@ -56,7 +56,23 @@
         "configureDomainsDesc": "הגדרות דומיין ו-DNS",
         "systemSettings": "הגדרות מערכת",
         "systemSettingsDesc": "תצורת אפליקציה"
-      }
+      },
+      "redis-info": "מידע Redis",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `verified` : `not verified",
+      "customers-details-counts-recent_customer_count-o": "לקוחות ({0} מתוך {1})",
+      "user-feedback-total-details-counts-feedback_coun": "משוב משתמשים (סה״כ: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "מטא-נתונים / סודות: {0}/{1} ({2}/{3}/{4} סה״כ)",
+      "secrets-details-counts-secret_count": "סודות ({0})",
+      "active-in-the-past-5-minutes": "(פעיל ב-5 הדקות האחרונות)",
+      "past-14-days": "14 הימים האחרונים",
+      "yesterday": "אתמול",
+      "today": "היום",
+      "misc": "שונות",
+      "feedback": "משוב",
+      "customers": "לקוחות",
+      "test-exception-message-substring-11": "חריג בדיקה: {0}",
+      "test-error-triggered-via-feedback": "שגיאת בדיקה שהופעלה דרך משוב"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "כאשר תשלחו משוב, נראה:",

@@ -98,7 +98,31 @@
         "description": "Gestiona la teva subscripció, mètodes de pagament i historial de facturació",
         "open_portal": "Obre el portal de facturació",
         "redirecting": "Redirigint al portal de facturació..."
-      }
+      },
+      "start-today": "Comença avui",
+      "start-today-with-identity-plus": "Comença avui amb Identity Plus",
+      "per-month": "al mes",
+      "full-api-access": "Accés complet a l'API",
+      "privacy-first-design": "Disseny que prioritza la privadesa",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Fes clic en aquest llamp per actualitzar per a dominis personalitzats",
+      "maybe-later": "Potser més tard",
+      "upgrade-account": "Actualitza el compte",
+      "upgrade-to-identity-plus": "Actualitza a Identity Plus",
+      "upgrade-for-teams": "Actualitza per a equips",
+      "benefits-of": "Beneficis de",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Actualitza a",
+      "upgrade-for-yourdomain": "Actualitza per a secrets.elteudomain.com",
+      "includes-all-features-and-unlimited-sharing-capa": "Tots els plans inclouen funcions de privadesa i capacitat de compartició il·limitada",
+      "includes-all-data-locality-options": "Tots els plans inclouen opcions de localitat de dades: {0} regions",
+      "get-started": "Comença",
+      "frequency-value-annually-annual-monthly-subscrip": "Subscripció {0}",
+      "elevate-your-secure-sharing-with-custom-domains-": "Eleva la teva compartició segura amb dominis personalitzats, capacitat il·limitada i funcions de nivell empresarial.",
+      "payment-frequency": "Freqüència de pagament",
+      "secure-your-brand-and-build-customer-trust-with-": "Assegura la teva marca i genera confiança amb els clients amb enllaços del teu domini. Perfecte per a empreses que valoren la privadesa i el professionalisme.",
+      "secure-links-stronger-connections": "Enllaços segurs, connexions més fortes",
+      "identity-tier-not-found-in-product-tiers": "No s'ha trobat el nivell d'identitat als nivells de producte"
     }
   }
 }

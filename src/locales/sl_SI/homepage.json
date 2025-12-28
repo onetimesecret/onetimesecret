@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "Ta storitev je nastavljena samo za notranjo uporabo.",
         "tagline1": "Uporabniški vmesnik in možnosti prijave niso na voljo."
-      }
+      },
+      "link-preview": "Predogled povezave",
+      "meets-and-exceeds-compliance-standards": "Izpolnjuje in presega standarde skladnosti",
+      "secure-your-brand-build-customer-trust-etc": "Zavarujte svojo blagovno znamko, zgradite zaupanje strank s povezavami iz vaše domene.",
+      "a-trusted-way-to-share-sensitive-information-etc": "Zaupanja vreden način deljenja občutljivih informacij, ki se samouniči po ogledu.",
+      "secure-links": "Varne povezave",
+      "about-onetime-secret-0": "O Onetime Secret",
+      "log-in-to-onetime-secret": "Prijavite se v Onetime Secret",
+      "about-onetime-secret": "O Onetime Secret",
+      "signup-individual-and-business-plans": "Registracija - Načrti za posameznike in podjetja",
+      "tagline-signed": "Podpisano",
+      "tagline-sealed": "Zapečateno",
+      "tagline-delivered": "Dostavljeno",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "Enkratna skrivnost",
+      "onetime-secret-homepage": "Domača stran Onetime Secret",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Pošljite občutljive informacije, ki si jih je mogoče ogledati samo enkrat",
+      "create-a-secure-link": "Ustvarite varno povezavo",
+      "now-with-custom-domains": "Zdaj z domenami po meri",
+      "this-is-a-private-instance-only-authorized-team-": "To je zasebna instanca. Samo pooblaščeni člani ekipe lahko generirajo nove varne povezave.",
+      "welcome-to-onetime-secret": "Dobrodošli v Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret nam pomaga varno deliti občutljive informacije, medtem ko ohranjamo našo profesionalno fasado.",
+      "information-shared-through-this-service-can-only": "Informacije, deljene preko te storitve, je mogoče dostopati samo enkrat. Ko so ogledane, je vsebina trajno izbrisana za zagotovitev zaupnosti.",
+      "welcome-to-the-global-broadcast": "Dobrodošli v globalni oddaji!"
     }
   }
 }

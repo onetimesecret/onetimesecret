@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "",
         "tagline1": ""
-      }
+      },
+      "link-preview": "Länkförhandsgranskning",
+      "meets-and-exceeds-compliance-standards": "Uppfyller och överträffar efterlevnadsstandarder",
+      "secure-your-brand-build-customer-trust-etc": "Säkra ditt varumärke, bygg kundförtroende med länkar från din domän.",
+      "a-trusted-way-to-share-sensitive-information-etc": "Ett pålitligt sätt att dela känslig information som självförstörs efter att den har visats.",
+      "secure-links": "Säkra länkar",
+      "about-onetime-secret-0": "Om Onetime Secret",
+      "log-in-to-onetime-secret": "Logga in på Onetime Secret",
+      "about-onetime-secret": "Om Onetime Secret",
+      "signup-individual-and-business-plans": "Registrering - Individuella och Företagsplaner",
+      "tagline-signed": "Signerad",
+      "tagline-sealed": "Förseglad",
+      "tagline-delivered": "Levererad",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "",
+      "onetime-secret-homepage": "Onetime Secret Hemsida",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Skicka känslig information som bara kan ses en gång",
+      "create-a-secure-link": "Skapa en säker länk",
+      "now-with-custom-domains": "Nu med anpassade domäner",
+      "this-is-a-private-instance-only-authorized-team-": "Detta är en privat instans. Endast auktoriserade teammedlemmar kan generera nya säkra länkar.",
+      "welcome-to-onetime-secret": "Välkommen till Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret hjälper oss att dela känslig information säkert samtidigt som vi bibehåller vår professionella fasad.",
+      "information-shared-through-this-service-can-only": "Information som delas via denna tjänst kan endast nås en gång. När den har visats raderas innehållet permanent för att säkerställa konfidentialitet.",
+      "welcome-to-the-global-broadcast": "Välkommen till den globala sändningen!"
     }
   }
 }

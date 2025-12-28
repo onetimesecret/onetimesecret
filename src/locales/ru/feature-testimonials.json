@@ -1,0 +1,18 @@
+{
+  "web": {
+    "testimonials": {
+      "ai-generated-testimonial": "Отзыв, сгенерированный ИИ",
+      "ai-generated-content-disclaimer": "АИ-сгенерированный контент для демонстрации. \nНе от реального человека или компании.",
+      "randomtestimonial-stars-5": "{0}/5",
+      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
+      "randomtestimonial-quote": "«{0}»",
+      "t-ai-generated-testimonial": "{0}:",
+      "what-leading-ai-says-about-us": "Что говорят о нас ведущие ИИ",
+      "ai-generated-testimonials": "Отзывы, сгенерированные ИИ",
+      "this-quote-was-generated-by": "Эта цитата была создана",
+      "it-was-based-on-the-content-of-the-page-and-does": "Это было основано на содержании страницы и не представляет реального человека или компанию.",
+      "artificial-feedback": "Искусственная обратная связь",
+      "this-content-is-ai-generated-based-on-the-conten": "Это содержимое создано ИИ на основе содержимого этой страницы и не представляет реального человека или компанию."
+    }
+  }
+}

@@ -18,7 +18,24 @@
       "compliance-title": "Соответствие нормативным требованиям",
       "compliance-description": "Соответствуйте требованиям GDPR, HIPAA, CCPA и другим региональным требованиям защиты данных",
       "performance-title": "Более быстрый доступ",
-      "performance-description": "Данные, хранящиеся ближе к вам, означают меньшую задержку и лучшую производительность."
+      "performance-description": "Данные, хранящиеся ближе к вам, означают меньшую задержку и лучшую производительность.",
+      "regions": "Регионы",
+      "contact-our-compliance-team": "свяжитесь с нашей командой по соблюдению требований",
+      "review-our-documentation": "ознакомьтесь с нашей документацией",
+      "your-account-and-data-are-protected-under-the-la": "Ваша учётная запись и данные защищены в соответствии с законами и нормативными актами",
+      "this-regulatory-framework-is-determined-by-your-": "Данная нормативно-правовая база определяется доменом вашего доступа:",
+      "each-jurisdiction-maintains-separate-legal-compl": "Каждая юрисдикция поддерживает отдельное юридическое соответствие и управление данными. Хотя вы можете создавать учётные записи в нескольких юрисдикциях, они остаются юридически независимыми без обмена данными между регулятивными зонами.",
+      "to-understand-the-specific-regulations-and-prote": "Чтобы понять конкретные нормативные требования и меры защиты, применимые к вашей учётной записи, пожалуйста",
+      "current": "Текущий",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "Доступные регионы",
+      "jurisdiction": "Юрисдикция",
+      "data-center-location-currentjurisdiction-identif": "Местоположение центра обработки данных: {0}",
+      "data-region": "Регион данных",
+      "unknown-jurisdiction": "Неизвестная юрисдикция",
+      "serving-you-from-the": "Обслуживаем Вас из",
+      "continue-to-jurisdiction-domain": "Перейти к {0}",
+      "current-jurisdiction": "Текущая юрисдикция:"
     }
   }
 }

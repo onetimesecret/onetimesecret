@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "Dieser Dienst ist ausschließlich für den internen Gebrauch eingerichtet.",
         "tagline1": "Benutzeroberfläche und Anmeldefunktionen sind derzeit nicht verfügbar."
-      }
+      },
+      "link-preview": "Link-Vorschau",
+      "meets-and-exceeds-compliance-standards": "Erfüllt und übertrifft die Konformitätsstandards",
+      "secure-your-brand-build-customer-trust-etc": "Sichern Sie Ihre Marke, bauen Sie das Vertrauen Ihrer Kunden mit Links von Ihrer Bereich auf.",
+      "a-trusted-way-to-share-sensitive-information-etc": "Ein vertrauenswürdiger Weg zur Weitergabe vertraulicher Informationen, die sich nach dem Ansehen selbst zerstören.",
+      "secure-links": "Sichere Links",
+      "about-onetime-secret-0": "Über Onetime Secret",
+      "log-in-to-onetime-secret": "Anmelden bei Onetime Secret",
+      "about-onetime-secret": "Über Onetime Secret",
+      "signup-individual-and-business-plans": "Anmeldung - Individuelle und geschäftliche Pläne",
+      "tagline-signed": "Signiert",
+      "tagline-sealed": "Verschlüsselt",
+      "tagline-delivered": "Zugestellt",
+      "onetime-secret": "Einmaliges Geheimnis",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "One-Time Secret",
+      "onetime-secret-homepage": "Startseite für Einmalgeheimnisse",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Senden Sie sensible Informationen, die nur einmal eingesehen werden können",
+      "create-a-secure-link": "Erstellen Sie einen sicheren Link",
+      "now-with-custom-domains": "Jetzt mit benutzerdefinierten Bereiche",
+      "this-is-a-private-instance-only-authorized-team-": "Dies ist eine private Instanz. Nur autorisierte Teammitglieder können neue sichere Links erstellen.",
+      "welcome-to-onetime-secret": "Willkommen bei Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Mit Onetime Secret können wir sensible Informationen sicher weitergeben und gleichzeitig unsere professionelle Fassade wahren.",
+      "information-shared-through-this-service-can-only": "Auf die über diesen Dienst geteilten Informationen kann nur einmal zugegriffen werden. Nach der Einsichtnahme wird der Inhalt dauerhaft gelöscht, um die Vertraulichkeit zu gewährleisten.",
+      "welcome-to-the-global-broadcast": "Willkommen bei der Global Broadcast!"
     }
   }
 }

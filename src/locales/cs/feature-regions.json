@@ -18,7 +18,24 @@
       "compliance-title": "Regulační soulad",
       "compliance-description": "Splň požadavky GDPR, HIPAA, CCPA a dalších regionálních předpisů o ochraně dat",
       "performance-title": "Rychlejší přístup",
-      "performance-description": "Data uložená blíže k tobě znamenají nižší latenci a lepší výkon."
+      "performance-description": "Data uložená blíže k tobě znamenají nižší latenci a lepší výkon.",
+      "regions": "Regiony",
+      "contact-our-compliance-team": "kontaktuj náš tým pro soulad",
+      "review-our-documentation": "přečti si naši dokumentaci",
+      "your-account-and-data-are-protected-under-the-la": "Tvůj účet a data jsou chráněny podle zákonů",
+      "this-regulatory-framework-is-determined-by-your-": "Tvůj regulační rámec je určen tvou přístupovou doménou:",
+      "each-jurisdiction-maintains-separate-legal-compl": "Každý region je zcela oddělený s vlastní infrastrukturou, pokud možno s vlastním lokálním poskytovatelem hostingu. Můžeš vytvářet účty ve více regionech, ale žádná data mezi nimi nejsou sdílena.",
+      "to-understand-the-specific-regulations-and-prote": "Pro podrobnosti o předpisech a ochraně, které se vztahují na tvůj účet,",
+      "current": "Aktuální",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "Dostupné regiony",
+      "jurisdiction": "Jurisdikce",
+      "data-center-location-currentjurisdiction-identif": "Umístění datového centra: {0}",
+      "data-region": "Datový region",
+      "unknown-jurisdiction": "Neznámá jurisdikce",
+      "serving-you-from-the": "Obsluhujeme tě z",
+      "continue-to-jurisdiction-domain": "Pokračovat na {0}",
+      "current-jurisdiction": "Aktuální jurisdikce:"
     }
   }
 }

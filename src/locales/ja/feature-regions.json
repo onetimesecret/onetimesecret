@@ -18,7 +18,24 @@
       "compliance-title": "規制準拠",
       "compliance-description": "GDPR、HIPAA、CCPA、その他の地域データ保護要件を満たします",
       "performance-title": "高速アクセス",
-      "performance-description": "データが近くに保存されるため、レイテンシが低く、パフォーマンスが向上します。"
+      "performance-description": "データが近くに保存されるため、レイテンシが低く、パフォーマンスが向上します。",
+      "regions": "地域",
+      "contact-our-compliance-team": "コンプライアンスチームに連絡する",
+      "review-our-documentation": "ドキュメントを確認する",
+      "your-account-and-data-are-protected-under-the-la": "あなたのアカウントとデータは次の法律と規制の下で保護されています",
+      "this-regulatory-framework-is-determined-by-your-": "この規制フレームワークは、アクセスドメインによって決定されます：",
+      "each-jurisdiction-maintains-separate-legal-compl": "各管轄区域は、別々の法的コンプライアンスとデータガバナンスを維持しています。複数の管轄区域でアカウントを作成することはできますが、それらは法的に区別されており、規制区域間でデータの共有はありません。",
+      "to-understand-the-specific-regulations-and-prote": "あなたのアカウントに適用される特定の規制と保護を理解するには、",
+      "current": "現在",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "利用可能な地域",
+      "jurisdiction": "管轄区域",
+      "data-center-location-currentjurisdiction-identif": "データセンターの場所: {0}",
+      "data-region": "データ地域",
+      "unknown-jurisdiction": "不明な管轄区域",
+      "serving-you-from-the": "サービス提供元：",
+      "continue-to-jurisdiction-domain": "{0}に進む",
+      "current-jurisdiction": "現在の管轄区域："
     }
   }
 }

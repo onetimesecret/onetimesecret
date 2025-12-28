@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "此服务仅限内部使用。",
         "tagline1": "用户界面和登录功能不可用。"
-      }
+      },
+      "link-preview": "链接预览",
+      "meets-and-exceeds-compliance-standards": "满足并超越合规标准",
+      "secure-your-brand-build-customer-trust-etc": "使用来自您域名的链接保护您的品牌，建立客户信任。",
+      "a-trusted-way-to-share-sensitive-information-etc": "一种值得信赖的方式来分享查看后自毁的敏感信息。",
+      "secure-links": "安全链接",
+      "about-onetime-secret-0": "关于 Onetime Secret",
+      "log-in-to-onetime-secret": "登录 Onetime Secret",
+      "about-onetime-secret": "关于 Onetime Secret",
+      "signup-individual-and-business-plans": "注册 - 个人和企业套餐",
+      "tagline-signed": "已签名",
+      "tagline-sealed": "已密封",
+      "tagline-delivered": "已发送",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "一次性内容",
+      "onetime-secret-homepage": "Onetime Secret 首页",
+      "send-sensitive-information-that-can-only-be-viewed-once": "发送只能查看一次的敏感信息",
+      "create-a-secure-link": "创建安全链接",
+      "now-with-custom-domains": "现支持自定义域名",
+      "this-is-a-private-instance-only-authorized-team-": "这是一个私有实例。只有授权的团队成员可以生成新的安全链接。",
+      "welcome-to-onetime-secret": "欢迎使用 Onetime Secret。",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret 帮助我们安全地分享敏感信息，同时保持我们的专业形象。",
+      "information-shared-through-this-service-can-only": "通过此服务分享的信息只能访问一次。一旦查看，内容将被永久删除以确保机密性。",
+      "welcome-to-the-global-broadcast": "欢迎来到全球广播"
     }
   }
 }

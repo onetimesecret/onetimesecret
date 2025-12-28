@@ -98,7 +98,31 @@
         "description": "Spravuj své předplatné, platební metody a historii fakturace",
         "open_portal": "Otevřít fakturační portál",
         "redirecting": "Přesměrovávám do fakturačního portálu..."
-      }
+      },
+      "start-today": "Začni dnes",
+      "start-today-with-identity-plus": "Začni dnes s Identity Plus",
+      "per-month": "za měsíc",
+      "full-api-access": "Plný přístup k API",
+      "privacy-first-design": "Design zaměřený na soukromí",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Klikni na tento blesk pro upgrade na vlastní domény",
+      "maybe-later": "Možná později",
+      "upgrade-account": "Upgradovat účet",
+      "upgrade-to-identity-plus": "Upgradovat na Identity Plus",
+      "upgrade-for-teams": "Upgradovat pro týmy",
+      "benefits-of": "Výhody",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Upgradovat na",
+      "upgrade-for-yourdomain": "Upgradovat pro secrets.tvojadomena.cz",
+      "includes-all-features-and-unlimited-sharing-capa": "Všechny tarify zahrnují funkce pro ochranu soukromí a neomezenou kapacitu sdílení",
+      "includes-all-data-locality-options": "Všechny tarify zahrnují výběr umístění dat: {0} regiony",
+      "get-started": "Začít",
+      "frequency-value-annually-annual-monthly-subscrip": "předplatné {0}",
+      "elevate-your-secure-sharing-with-custom-domains-": "Posuň své zabezpečené sdílení s vlastními doménami, neomezenou kapacitou a funkcemi na podnikové úrovni.",
+      "payment-frequency": "Frekvence plateb",
+      "secure-your-brand-and-build-customer-trust-with-": "Zabezpeč svou značku a buduj důvěru zákazníků pomocí odkazů z tvé domény. Perfektní pro firmy, které si cení soukromí a profesionality.",
+      "secure-links-stronger-connections": "Zabezpečené odkazy, silnější spojení",
+      "identity-tier-not-found-in-product-tiers": "Úroveň identity nebyla nalezena v produktových úrovních"
     }
   }
 }

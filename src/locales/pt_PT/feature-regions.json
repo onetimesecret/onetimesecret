@@ -18,7 +18,24 @@
       "compliance-title": "Conformidade Regulatória",
       "compliance-description": "Cumpra os requisitos de proteção de dados regionais GDPR, HIPAA, CCPA e outros",
       "performance-title": "Acesso Mais Rápido",
-      "performance-description": "Dados armazenados mais perto de si significam menor latência e melhor desempenho."
+      "performance-description": "Dados armazenados mais perto de si significam menor latência e melhor desempenho.",
+      "regions": "Regiões",
+      "contact-our-compliance-team": "contacte a nossa equipa de conformidade",
+      "review-our-documentation": "reveja a nossa documentação",
+      "your-account-and-data-are-protected-under-the-la": "A sua conta e dados estão protegidos sob as leis de",
+      "this-regulatory-framework-is-determined-by-your-": "Este quadro regulatório é determinado pelo seu domínio de acesso:",
+      "each-jurisdiction-maintains-separate-legal-compl": "Cada região é completamente separada com a sua própria infraestrutura, quando possível com o seu próprio fornecedor de hospedagem local. Pode criar contas em múltiplas regiões, mas nenhum dado é partilhado entre elas.",
+      "to-understand-the-specific-regulations-and-prote": "Para detalhes sobre regulamentações e proteções que se aplicam à sua conta,",
+      "current": "Atual",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "Regiões Disponíveis",
+      "jurisdiction": "Jurisdição",
+      "data-center-location-currentjurisdiction-identif": "Localização do data center: {0}",
+      "data-region": "Região de Dados",
+      "unknown-jurisdiction": "Jurisdição Desconhecida",
+      "serving-you-from-the": "A servi-lo de",
+      "continue-to-jurisdiction-domain": "Continuar para {0}",
+      "current-jurisdiction": "Jurisdição atual:"
     }
   }
 }

@@ -26,7 +26,33 @@
         "updating": "جارٍ التحديث..."
       },
       "timezone": "المنطقة الزمنية",
-      "customer-id": "معرف العميل"
+      "customer-id": "معرف العميل",
+      "account-id-customerid": "معرّف الحساب",
+      "created-windowprops-cust-secrets_created-secrets": "تم إنشاء {0} أسرار منذ {1}.",
+      "delete-account": "حذف الحساب",
+      "api-key": "مفتاح API",
+      "account-type-windowprops-plan-options-name": "نوع الحساب: {0}",
+      "your-account": "حسابك",
+      "support-details": "تفاصيل الدعم",
+      "back-to-details": "العودة إلى التفاصيل",
+      "customer-id-cust-custid": "معرّف العميل: {0}",
+      "token-generated": "تم إنشاء الرمز.",
+      "keep-this-token-secure-it-provides-full-access-t": "🔐 احتفظ بهذا الرمز آمناً! إنه يوفر وصولاً كاملاً إلى حسابك.",
+      "confirm-with-your-password": "أكد بكلمة المرور الخاصة بك",
+      "are-you-sure-you-want-to-permanently-delete-your": "هل أنت متأكد من أنك تريد حذف حسابك نهائياً؟ لا يمكن التراجع عن هذا الإجراء.",
+      "confirm-account-deletion": "تأكيد حذف الحساب",
+      "deleting-cust-custid": "جارٍ حذف {0}",
+      "permanently-delete-account": "حذف الحساب نهائياً",
+      "permanent-and-non-reversible": "نهائي ولا رجعة فيه.",
+      "deleting-your-account-is": "حذف حسابك هو",
+      "burn-them-before-continuing": "احذفها نهائياً قبل المتابعة",
+      "any-secrets-you-wish-to-remove": "أي أسرار ترغب في إزالتها،",
+      "secrets-will-remain-active-until-they-expire": "ستبقى الأسرار نشطة حتى تنتهي صلاحيتها.",
+      "please-be-advised": "يرجى العلم:",
+      "account-deleted-successfully": "تم حذف الحساب بنجاح.",
+      "deactivate": "تعطيل",
+      "are-you-sure-you-want-to-deactivate-your-account": "هل أنت متأكد من أنك تريد تعطيل حسابك؟ ستتم إزالة جميع بياناتك نهائياً من خوادمنا إلى الأبد. لا يمكن التراجع عن هذا الإجراء.",
+      "deactivate-account": "تعطيل الحساب"
     },
     "settings": {
       "title": "الإعدادات",

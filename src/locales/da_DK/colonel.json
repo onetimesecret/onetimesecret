@@ -56,7 +56,23 @@
         "configureDomainsDesc": "",
         "systemSettings": "",
         "systemSettingsDesc": ""
-      }
+      },
+      "redis-info": "Redis Info",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `verificeret` : `ikke-verificeret",
+      "customers-details-counts-recent_customer_count-o": "Kunder ({0} af {1})",
+      "user-feedback-total-details-counts-feedback_coun": "Brugerfeedback (i alt: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "Metadata/hemmeligheder: {0}/{1} ({2}/{3}/{4} i alt)",
+      "secrets-details-counts-secret_count": "Hemmeligheder ({0})",
+      "active-in-the-past-5-minutes": "(aktiv i de sidste 5 minutter)",
+      "past-14-days": "Sidste 14 dage",
+      "yesterday": "I går",
+      "today": "I dag",
+      "misc": "Misc",
+      "feedback": "Feedback",
+      "customers": "Kunder",
+      "test-exception-message-substring-11": "Test-undtagelse: {0}",
+      "test-error-triggered-via-feedback": "Testfejl udløst via feedback"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Når du sender feedback, vil vi se:",

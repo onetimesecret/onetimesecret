@@ -1,0 +1,29 @@
+{
+  "web": {
+    "translations": {
+      "welcomes-contributors-for-both-existing-and-new-": "välkomnar bidragsgivare för både befintliga och nya språk.",
+      "our-github-project": "vårt GitHub-projekt",
+      "if-youre-interested-in-translation": "Om du är intresserad av översättning,",
+      "whove-helped-with-translations-as-we-continue-to": "som har hjälpt till med översättningar medan vi fortsätter att utveckla nya funktioner.",
+      "25-contributors": "25+ bidragsgivare",
+      "were-grateful-to-the": "Vi är tacksamma för",
+      "as-we-add-new-features-our-translations-graduall": "När vi lägger till nya funktioner behöver våra översättningar gradvis uppdateras för att hålla sig aktuella. Detta påverkar både onetimesecret.com och tusentals självhostade installationer världen över.",
+      "remember-to-include-your-email-if-youre-not-logg": "- kom ihåg att inkludera din e-post om du inte är inloggad. Varje översättning hjälper fler människor att kommunicera säkert.",
+      "reach-out-to-us": "Kontakta oss",
+      "have-questions": "Har du frågor?",
+      "send-translations-by-email-to": "Skicka översättningar via e-post till",
+      "english-template": "Engelsk mall",
+      "start-a-new-translation-from-our": "Starta en ny översättning från vår",
+      "update-a-language-directly-through-our-github-pr": "Uppdatera ett språk direkt via vårt GitHub-projekt",
+      "review-existing-translations-using-the-language-": "Granska befintliga översättningar med hjälp av språkväljaren ovan",
+      "ready-to-help-some-ways-to-contribute": "Redo att hjälpa? Några sätt att bidra:",
+      "the-following-people-have-donated-their-time-to-": "Följande personer har donerat sin tid för att hjälpa till att utöka räckvidden för Onetime Secret:",
+      "translations": "Översättningar",
+      "fork-on-github-and-submit-a-pr": "Forka på GitHub och skicka en PR",
+      "your-language-skills-can-help-expand-access-to-s": "Dina språkkunskaper kan hjälpa till att utöka tillgången till säker kommunikation.",
+      "thanks-to-our-community-we-support-over-20-langu": "Tack vare vår community stöder vi över 20 språk idag. Men med vår snabba utvecklingstakt behöver många översättningar uppdateras för att hålla sig aktuella. Detta påverkar både onetimesecret.com och de tusentals självhostade installationerna världen över.",
+      "since-2012-onetime-secret-has-provided-a-secure-": "Sedan 2012 har Onetime Secret tillhandahållit ett säkert sätt att dela känslig information världen över. Med användare i regioner där engelska inte är huvudspråket är korrekta översättningar avgörande för att göra säker kommunikation tillgänglig för alla.",
+      "help-secure-communication-go-global": "Hjälp säker kommunikation att bli global"
+    }
+  }
+}

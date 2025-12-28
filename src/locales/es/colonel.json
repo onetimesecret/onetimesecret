@@ -56,7 +56,23 @@
         "configureDomainsDesc": "Configuración de dominios y DNS",
         "systemSettings": "Configuración del Sistema",
         "systemSettingsDesc": "Configuración de la aplicación"
-      }
+      },
+      "redis-info": "Información de Redis",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `verificado` : `no verificado`",
+      "customers-details-counts-recent_customer_count-o": "Clientes ({0} de {1})",
+      "user-feedback-total-details-counts-feedback_coun": "Comentarios de Usuarios (Total: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "Metadatos / Secretos: {0}/{1} ({2}/{3}/{4} total)",
+      "secrets-details-counts-secret_count": "Secretos ({0})",
+      "active-in-the-past-5-minutes": "(activo en los últimos 5 minutos)",
+      "past-14-days": "Últimos 14 días",
+      "yesterday": "Ayer",
+      "today": "Hoy",
+      "misc": "Varios",
+      "feedback": "Comentarios",
+      "customers": "Clientes",
+      "test-exception-message-substring-11": "Excepción de prueba: {0}",
+      "test-error-triggered-via-feedback": "Error de prueba activado a través de comentarios"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Cuando envíes comentarios, veremos:",

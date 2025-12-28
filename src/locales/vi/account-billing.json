@@ -98,7 +98,31 @@
         "description": "Quản lý đăng ký, phương thức thanh toán và lịch sử thanh toán của bạn",
         "open_portal": "Mở cổng thanh toán",
         "redirecting": "Đang chuyển hướng đến cổng thanh toán..."
-      }
+      },
+      "start-today": "Bắt đầu ngay hôm nay",
+      "start-today-with-identity-plus": "Bắt đầu ngay hôm nay với Identity Plus",
+      "per-month": "mỗi tháng",
+      "full-api-access": "Truy cập API đầy đủ",
+      "privacy-first-design": "Thiết kế ưu tiên quyền riêng tư",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Nhấp vào biểu tượng tia chớp này để nâng cấp cho tên miền tùy chỉnh",
+      "maybe-later": "Để sau",
+      "upgrade-account": "Nâng cấp tài khoản",
+      "upgrade-to-identity-plus": "Nâng cấp lên Identity Plus",
+      "upgrade-for-teams": "Nâng cấp cho nhóm",
+      "benefits-of": "Lợi ích của",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Nâng cấp lên",
+      "upgrade-for-yourdomain": "Nâng cấp cho secrets.yourdomain.com",
+      "includes-all-features-and-unlimited-sharing-capa": "Tất cả gói đều bao gồm tính năng quyền riêng tư và khả năng chia sẻ không giới hạn",
+      "includes-all-data-locality-options": "Tất cả gói đều bao gồm lựa chọn vị trí dữ liệu: {0} khu vực",
+      "get-started": "Bắt đầu",
+      "frequency-value-annually-annual-monthly-subscrip": "Đăng ký {0}",
+      "elevate-your-secure-sharing-with-custom-domains-": "Nâng cao chia sẻ an toàn của bạn với tên miền tùy chỉnh, dung lượng không giới hạn và các tính năng cấp doanh nghiệp.",
+      "payment-frequency": "Tần suất thanh toán",
+      "secure-your-brand-and-build-customer-trust-with-": "Bảo mật thương hiệu của bạn và xây dựng lòng tin khách hàng với liên kết từ tên miền của bạn. Hoàn hảo cho các doanh nghiệp coi trọng quyền riêng tư và tính chuyên nghiệp.",
+      "secure-links-stronger-connections": "Liên kết an toàn, kết nối mạnh mẽ hơn",
+      "identity-tier-not-found-in-product-tiers": "Không tìm thấy cấp độ Identity trong các cấp sản phẩm"
     }
   }
 }

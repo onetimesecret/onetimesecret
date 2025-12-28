@@ -98,7 +98,31 @@
         "description": "إدارة اشتراكك وطرق الدفع وسجل الفوترة",
         "open_portal": "فتح بوابة الفوترة",
         "redirecting": "جارٍ إعادة التوجيه إلى بوابة الفوترة..."
-      }
+      },
+      "start-today": "ابدأ اليوم",
+      "start-today-with-identity-plus": "ابدأ اليوم مع Identity Plus",
+      "per-month": "شهرياً",
+      "full-api-access": "وصول كامل لـ API",
+      "privacy-first-design": "تصميم يعطي الأولوية للخصوصية",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "انقر على هذه الصاعقة للترقية للنطاقات المخصصة",
+      "maybe-later": "ربما لاحقاً",
+      "upgrade-account": "ترقية الحساب",
+      "upgrade-to-identity-plus": "الترقية إلى Identity Plus",
+      "upgrade-for-teams": "الترقية للفرق",
+      "benefits-of": "مزايا",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "الترقية إلى",
+      "upgrade-for-yourdomain": "الترقية لـ secrets.yourdomain.com",
+      "includes-all-features-and-unlimited-sharing-capa": "تتضمن جميع الخطط ميزات الخصوصية وسعة مشاركة غير محدودة",
+      "includes-all-data-locality-options": "تتضمن جميع الخطط اختيار موقع البيانات: {0} مناطق",
+      "get-started": "ابدأ الآن",
+      "frequency-value-annually-annual-monthly-subscrip": "اشتراك {0}",
+      "elevate-your-secure-sharing-with-custom-domains-": "ارتق بمشاركتك الآمنة مع نطاقات مخصصة وسعة غير محدودة وميزات على مستوى المؤسسات.",
+      "payment-frequency": "تكرار الدفع",
+      "secure-your-brand-and-build-customer-trust-with-": "أمّن علامتك التجارية وابنِ ثقة العملاء بروابط من نطاقك. مثالي للشركات التي تقدّر الخصوصية والاحترافية.",
+      "secure-links-stronger-connections": "روابط آمنة، اتصالات أقوى",
+      "identity-tier-not-found-in-product-tiers": "لم يتم العثور على مستوى Identity في مستويات المنتج"
     }
   }
 }

@@ -56,7 +56,23 @@
         "configureDomainsDesc": "域名和 DNS 设置",
         "systemSettings": "系统设置",
         "systemSettingsDesc": "应用程序配置"
-      }
+      },
+      "redis-info": "Redis 信息",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `verified` : `not verified",
+      "customers-details-counts-recent_customer_count-o": "客户（{0} / {1}）",
+      "user-feedback-total-details-counts-feedback_coun": "用户反馈（总计：{0}）",
+      "metadata-secrets-details-counts-metadata_count-d": "元数据 / 内容：{0}/{1}（{2}/{3}/{4} 总计）",
+      "secrets-details-counts-secret_count": "内容（{0}）",
+      "active-in-the-past-5-minutes": "（过去 5 分钟内活跃）",
+      "past-14-days": "过去 14 天",
+      "yesterday": "昨天",
+      "today": "今天",
+      "misc": "杂项",
+      "feedback": "反馈",
+      "customers": "客户",
+      "test-exception-message-substring-11": "测试异常：{0}",
+      "test-error-triggered-via-feedback": "通过反馈触发的测试错误"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "当您提交反馈时，我们将看到：",

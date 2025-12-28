@@ -56,7 +56,23 @@
         "configureDomainsDesc": "Налаштування доменів та DNS",
         "systemSettings": "Системні налаштування",
         "systemSettingsDesc": "Конфігурація додатку"
-      }
+      },
+      "redis-info": "Інформація про Redis",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `підтверджено` : `не підтверджено`",
+      "customers-details-counts-recent_customer_count-o": "Клієнти ({0} з {1})",
+      "user-feedback-total-details-counts-feedback_coun": "Відгуки користувачів (Всього: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "Метадані / Секрети: {0}/{1} (Всього: {2}/{3}/{4})",
+      "secrets-details-counts-secret_count": "Секрети ({0})",
+      "active-in-the-past-5-minutes": "(активний за останні 5 хвилин)",
+      "past-14-days": "Останні 14 днів",
+      "yesterday": "Вчора",
+      "today": "Сьогодні",
+      "misc": "Різне",
+      "feedback": "Відгук",
+      "customers": "Клієнти",
+      "test-exception-message-substring-11": "Тестовий виняток: {0}",
+      "test-error-triggered-via-feedback": "Тестова помилка, викликана через відгук"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "Коли ви надсилаєте відгук, ми побачимо:",

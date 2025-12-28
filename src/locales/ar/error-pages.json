@@ -1,0 +1,25 @@
+{
+  "web": {
+    "errors": {
+      "why-is-this-secret-unavailable": "لماذا هذا السر غير متاح؟",
+      "secrets-are-designed-to-be-viewed-only-once": "الأسرار مصممة لعرضها مرة واحدة فقط. ربما تم الوصول إلى هذا الرابط بالفعل، أو انتهت صلاحيته، أو تم حذفه يدوياً من قبل المرسل.",
+      "what-should-i-do-now": "ماذا يجب أن أفعل الآن؟",
+      "contact-the-person-who-sent-you-this-link": "اتصل بالشخص الذي أرسل لك هذا الرابط واطلب منه إنشاء سر جديد. أخبره أنك لم تتمكن من الوصول إلى المعلومات الأصلية.",
+      "warning-dismissed": "تم إغلاق التحذير",
+      "dismiss-truncation-warning": "إغلاق تحذير الاقتطاع",
+      "oops-the-page-you-are-looking-for-doesnt-exist-o": "عذراً! الصفحة التي تبحث عنها غير موجودة أو تم نقلها.",
+      "404-page-not-found-0": "404 - الصفحة غير موجودة",
+      "404-page-not-found": "404 - الصفحة غير موجودة",
+      "dismiss-warning": "إغلاق التحذير",
+      "dismiss-notification": "إغلاق الإشعار",
+      "if-youre-unsure-what-to-do-next-please-follow-up": "إذا لم تكن متأكداً مما يجب فعله بعد ذلك، يرجى المتابعة مع الشخص الذي أرسل لك هذا الرابط للحصول على مزيد من المعلومات.",
+      "information-shared-through-our-service-can-only-": "يمكن الوصول إلى المعلومات المشتركة من خلال خدمتنا مرة واحدة فقط. بمجرد العرض، يتم حذف المحتوى نهائياً من خوادمنا لضمان السرية. يساعد هذا النهج في حماية بياناتك الحساسة عن طريق الحد من تعرضها ومنع الوصول غير المصرح به.",
+      "were-sorry-but-an-unexpected-error-occurred-whil": "نأسف، لكن حدث خطأ غير متوقع أثناء معالجة طلبك. تم إخطار فريقنا ونحن نعمل على إصلاحه.",
+      "t-web-common-oops-something-went-wrong": "{0} حدث خطأ ما",
+      "go-share-a-secret": "اذهب وشارك سراً!",
+      "the-page-youre-looking-for-doesnt-exist-or-has-b": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها. لا تقلق، يحدث ذلك لأفضل منا!",
+      "t-web-common-oops-404": "{0} 404",
+      "unable-to-load-data-due-to-data-format-issues-pl": "تعذر تحميل البيانات بسبب مشاكل في تنسيق البيانات. يرجى المحاولة مرة أخرى لاحقاً."
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "web": {
+    "errors": {
+      "why-is-this-secret-unavailable": "¿Por qué no está disponible este secreto?",
+      "secrets-are-designed-to-be-viewed-only-once": "Los secretos están diseñados para ser vistos solo una vez. Es posible que este enlace ya haya sido accedido, haya expirado o haya sido eliminado manualmente por el remitente.",
+      "what-should-i-do-now": "¿Qué debo hacer ahora?",
+      "contact-the-person-who-sent-you-this-link": "Contacta a la persona que te envió este enlace y pídele que cree un nuevo secreto. Hazle saber que no pudiste acceder a la información original.",
+      "warning-dismissed": "Advertencia descartada",
+      "dismiss-truncation-warning": "Descartar advertencia de truncamiento",
+      "oops-the-page-you-are-looking-for-doesnt-exist-o": "¡Ups! La página que buscas no existe o ha sido movida.",
+      "404-page-not-found-0": "404 - Página no encontrada",
+      "404-page-not-found": "404 - Página no encontrada",
+      "dismiss-warning": "Descartar advertencia",
+      "dismiss-notification": "Descartar notificación",
+      "if-youre-unsure-what-to-do-next-please-follow-up": "Si no estás seguro de qué hacer a continuación, por favor contacta a la persona que te envió este enlace para obtener más información.",
+      "information-shared-through-our-service-can-only-": "La información compartida a través de nuestro servicio solo se puede acceder una vez. Una vez vista, el contenido se elimina permanentemente de nuestros servidores para garantizar la confidencialidad. Este enfoque ayuda a proteger tus datos sensibles limitando su exposición y previniendo el acceso no autorizado.",
+      "were-sorry-but-an-unexpected-error-occurred-whil": "Lo sentimos, pero ocurrió un error inesperado al procesar tu solicitud. Nuestro equipo ha sido notificado y estamos trabajando para solucionarlo.",
+      "t-web-common-oops-something-went-wrong": "{0} Algo salió mal",
+      "go-share-a-secret": "¡Ve a compartir un secreto!",
+      "the-page-youre-looking-for-doesnt-exist-or-has-b": "La página que buscas no existe o ha sido movida. ¡No te preocupes, le pasa a los mejores!",
+      "t-web-common-oops-404": "{0} 404",
+      "unable-to-load-data-due-to-data-format-issues-pl": "No se pueden cargar los datos debido a problemas de formato. Por favor, inténtalo de nuevo más tarde."
+    }
+  }
+}

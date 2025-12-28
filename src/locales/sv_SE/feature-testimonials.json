@@ -1,0 +1,18 @@
+{
+  "web": {
+    "testimonials": {
+      "ai-generated-testimonial": "AI-genererat omdöme",
+      "ai-generated-content-disclaimer": "AI-genererat innehåll för demonstration. Inte från en verklig person eller företag.",
+      "randomtestimonial-stars-5": "{0}/5",
+      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
+      "randomtestimonial-quote": "\"{0}\"",
+      "t-ai-generated-testimonial": "{0}:",
+      "what-leading-ai-says-about-us": "Vad ledande AI säger om oss",
+      "ai-generated-testimonials": "AI-genererade omdömen",
+      "this-quote-was-generated-by": "Detta citat genererades av",
+      "it-was-based-on-the-content-of-the-page-and-does": "Det baserades på innehållet på sidan och representerar inte en verklig person eller företag.",
+      "artificial-feedback": "Artificiell feedback",
+      "this-content-is-ai-generated-based-on-the-conten": "Detta innehåll är AI-genererat baserat på innehållet på denna sida och representerar inte en verklig person eller företag."
+    }
+  }
+}

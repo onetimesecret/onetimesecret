@@ -56,7 +56,23 @@
         "configureDomainsDesc": "",
         "systemSettings": "",
         "systemSettingsDesc": ""
-      }
+      },
+      "redis-info": "Redis Info",
+      "customer-secrets_created-customer-secrets_shared": "{0}/{1}/{2} [{3}]",
+      "customer-verified-verified-not-verified": "`+customer.verified ? `verifierad` : `ej verifierad`",
+      "customers-details-counts-recent_customer_count-o": "Kunder ({0} av {1})",
+      "user-feedback-total-details-counts-feedback_coun": "Användarfeedback (Totalt: {0})",
+      "metadata-secrets-details-counts-metadata_count-d": "Metadata / Hemligheter: {0}/{1} ({2}/{3}/{4} totalt)",
+      "secrets-details-counts-secret_count": "Hemligheter ({0})",
+      "active-in-the-past-5-minutes": "(aktiv under de senaste 5 minuterna)",
+      "past-14-days": "Senaste 14 dagarna",
+      "yesterday": "Igår",
+      "today": "Idag",
+      "misc": "Övrigt",
+      "feedback": "Feedback",
+      "customers": "Kunder",
+      "test-exception-message-substring-11": "Testundantag: {0}",
+      "test-error-triggered-via-feedback": "Testfel utlöst via feedback"
     },
     "feedback": {
       "when-you-submit-feedback-well-see": "När du skickar feedback ser vi:",

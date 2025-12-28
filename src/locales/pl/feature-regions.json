@@ -18,7 +18,24 @@
       "compliance-title": "Zgodność regulacyjna",
       "compliance-description": "Spełniaj wymogi RODO, HIPAA, CCPA i innych regionalnych przepisów dotyczących ochrony danych",
       "performance-title": "Szybszy dostęp",
-      "performance-description": "Dane przechowywane bliżej Ciebie oznaczają niższe opóźnienia i lepszą wydajność."
+      "performance-description": "Dane przechowywane bliżej Ciebie oznaczają niższe opóźnienia i lepszą wydajność.",
+      "regions": "Regiony",
+      "contact-our-compliance-team": "skontaktuj się z naszym zespołem ds. zgodności",
+      "review-our-documentation": "przejrzyj naszą dokumentację",
+      "your-account-and-data-are-protected-under-the-la": "Twoje konto i dane są chronione zgodnie z prawem i przepisami",
+      "this-regulatory-framework-is-determined-by-your-": "Te ramy regulacyjne są określane przez Twoją domenę dostępu:",
+      "each-jurisdiction-maintains-separate-legal-compl": "Każda jurysdykcja utrzymuje odrębną zgodność prawną i zarządzanie danymi. Chociaż możesz tworzyć konta w wielu jurysdykcjach, pozostają one prawnie odrębne bez udostępniania danych między strefami regulacyjnymi.",
+      "to-understand-the-specific-regulations-and-prote": "Aby zrozumieć szczegółowe przepisy i zabezpieczenia dotyczące Twojego konta, proszę",
+      "current": "Bieżący",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "Dostępne regiony",
+      "jurisdiction": "Jurysdykcja",
+      "data-center-location-currentjurisdiction-identif": "Lokalizacja centrum danych: {0}",
+      "data-region": "Region danych",
+      "unknown-jurisdiction": "Nieznana jurysdykcja",
+      "serving-you-from-the": "Obsługujemy Cię z",
+      "continue-to-jurisdiction-domain": "Kontynuuj do {0}",
+      "current-jurisdiction": "Bieżąca jurysdykcja:"
     }
   }
 }

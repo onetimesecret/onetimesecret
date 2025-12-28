@@ -1,0 +1,25 @@
+{
+  "web": {
+    "errors": {
+      "why-is-this-secret-unavailable": "למה הסוד הזה לא זמין?",
+      "secrets-are-designed-to-be-viewed-only-once": "סודות מתוכננים לצפייה פעם אחת בלבד. קישור זה אולי כבר נצפה, פג תוקפו, או נמחק ידנית על ידי השולח.",
+      "what-should-i-do-now": "מה אני צריך לעשות עכשיו?",
+      "contact-the-person-who-sent-you-this-link": "צרו קשר עם האדם ששלח לכם קישור זה ובקשו ממנו ליצור סוד חדש. יידעו אותם שלא הצלחתם לגשת למידע המקורי.",
+      "warning-dismissed": "האזהרה נדחתה",
+      "dismiss-truncation-warning": "דחיית אזהרת קיצוץ",
+      "oops-the-page-you-are-looking-for-doesnt-exist-o": "אופס! העמוד שאתם מחפשים לא קיים או הועבר.",
+      "404-page-not-found-0": "404 - העמוד לא נמצא",
+      "404-page-not-found": "404 - העמוד לא נמצא",
+      "dismiss-warning": "דחיית אזהרה",
+      "dismiss-notification": "דחיית הודעה",
+      "if-youre-unsure-what-to-do-next-please-follow-up": "אם אינכם בטוחים מה לעשות הלאה, אנא צרו קשר עם האדם ששלח לכם קישור זה למידע נוסף.",
+      "information-shared-through-our-service-can-only-": "מידע המשותף דרך השירות שלנו ניתן לגישה פעם אחת בלבד. ברגע שנצפה, התוכן נמחק לצמיתות מהשרתים שלנו כדי להבטיח סודיות. גישה זו עוזרת להגן על הנתונים הרגישים שלכם על ידי הגבלת החשיפה שלהם ומניעת גישה לא מורשית.",
+      "were-sorry-but-an-unexpected-error-occurred-whil": "אנו מצטערים, אך אירעה שגיאה לא צפויה בעת עיבוד הבקשה שלכם. הצוות שלנו קיבל הודעה ואנחנו עובדים על תיקון.",
+      "t-web-common-oops-something-went-wrong": "{0} משהו השתבש",
+      "go-share-a-secret": "לכו לשתף סוד!",
+      "the-page-youre-looking-for-doesnt-exist-or-has-b": "העמוד שאתם מחפשים לא קיים או הועבר. אל דאגה, זה קורה לטובים שבנו!",
+      "t-web-common-oops-404": "{0} 404",
+      "unable-to-load-data-due-to-data-format-issues-pl": "לא ניתן לטעון נתונים עקב בעיות בפורמט נתונים. אנא נסו שוב מאוחר יותר."
+    }
+  }
+}

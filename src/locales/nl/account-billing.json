@@ -98,7 +98,31 @@
         "description": "Beheer je abonnement, betaalmethoden en factureringsgeschiedenis",
         "open_portal": "Factureringsportaal openen",
         "redirecting": "Doorverwijzen naar factureringsportaal..."
-      }
+      },
+      "start-today": "Begin vandaag",
+      "start-today-with-identity-plus": "Begin vandaag met Identity Plus",
+      "per-month": "per maand",
+      "full-api-access": "Volledige API-toegang",
+      "privacy-first-design": "Privacy-eerst ontwerp",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Klik op deze bliksemschicht om te upgraden voor aangepaste domeinen",
+      "maybe-later": "Misschien later",
+      "upgrade-account": "Account upgraden",
+      "upgrade-to-identity-plus": "Upgrade naar Identity Plus",
+      "upgrade-for-teams": "Upgrade voor Teams",
+      "benefits-of": "Voordelen van",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Upgraden naar",
+      "upgrade-for-yourdomain": "Upgrade voor berichten.joudomein.com",
+      "includes-all-features-and-unlimited-sharing-capa": "Inclusief alle functies en onbeperkte deelmogelijkheden",
+      "includes-all-data-locality-options": "Alle abonnementen bevatten keuze van datalocatie: {0} regio's",
+      "get-started": "Aan de slag",
+      "frequency-value-annually-annual-monthly-subscrip": "{0} abonnement",
+      "elevate-your-secure-sharing-with-custom-domains-": "Verbeter uw veilige delen met aangepaste domeinen, onbeperkte capaciteit en functies op bedrijfsniveau.",
+      "payment-frequency": "Betalingsfrequentie",
+      "secure-your-brand-and-build-customer-trust-with-": "Beveilig uw merk en bouw klantenvertrouwen op met links vanaf uw domein. Perfect voor bedrijven die privacy en professionaliteit waarderen.",
+      "secure-links-stronger-connections": "Veilige links, sterkere verbindingen",
+      "identity-tier-not-found-in-product-tiers": "Identity-niveau niet gevonden in productniveaus"
     }
   }
 }

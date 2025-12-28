@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "لا تستخدم معلوماتك الحساسة في محادثاتك او رسائل البريد",
         "tagline1": ".ضع كلمة مرور، رسالة سرية او رابطاً خاصاً أدناه"
-      }
+      },
+      "link-preview": "معاينة الرابط",
+      "meets-and-exceeds-compliance-standards": "يلبي ويتجاوز معايير الامتثال",
+      "secure-your-brand-build-customer-trust-etc": "أمّن علامتك التجارية، وابنِ ثقة العملاء بروابط من نطاقك.",
+      "a-trusted-way-to-share-sensitive-information-etc": "طريقة موثوقة لمشاركة المعلومات الحساسة التي تدمر نفسها تلقائياً بعد عرضها.",
+      "secure-links": "روابط آمنة",
+      "about-onetime-secret-0": "عن Onetime Secret",
+      "log-in-to-onetime-secret": "تسجيل الدخول إلى Onetime Secret",
+      "about-onetime-secret": "عن Onetime Secret",
+      "signup-individual-and-business-plans": "التسجيل - خطط فردية وتجارية",
+      "tagline-signed": "موقّع",
+      "tagline-sealed": "مختوم",
+      "tagline-delivered": "تم التسليم",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "One-Time Secret",
+      "onetime-secret-homepage": "الصفحة الرئيسية لـ Onetime Secret",
+      "send-sensitive-information-that-can-only-be-viewed-once": "أرسل معلومات حساسة يمكن عرضها مرة واحدة فقط",
+      "create-a-secure-link": "أنشئ رابطاً آمناً",
+      "now-with-custom-domains": "الآن مع نطاقات مخصصة",
+      "this-is-a-private-instance-only-authorized-team-": "هذه نسخة خاصة. يمكن فقط لأعضاء الفريق المصرح لهم إنشاء روابط آمنة جديدة.",
+      "welcome-to-onetime-secret": "مرحباً بك في Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "يساعدنا Onetime Secret في مشاركة المعلومات الحساسة بشكل آمن مع الحفاظ على واجهتنا المهنية.",
+      "information-shared-through-this-service-can-only": "يمكن الوصول إلى المعلومات المشتركة من خلال هذه الخدمة مرة واحدة فقط. بمجرد العرض، يتم حذف المحتوى نهائياً لضمان السرية.",
+      "welcome-to-the-global-broadcast": "مرحباً بك في البث العالمي!"
     }
   }
 }

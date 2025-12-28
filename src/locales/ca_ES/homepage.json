@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "Mantén protegida la informació sensible del correu electrònic i dels registres de xat",
         "tagline1": "Enganxa una contrasenya, un missatge secret o un enllaç privat a sota."
-      }
+      },
+      "link-preview": "Vista prèvia de l'enllaç",
+      "meets-and-exceeds-compliance-standards": "Compleix i supera els estàndards de compliment",
+      "secure-your-brand-build-customer-trust-etc": "Assegura la teva marca, genera confiança amb els clients amb enllaços del teu domini.",
+      "a-trusted-way-to-share-sensitive-information-etc": "Una manera de confiança de compartir informació sensible que s'autodestrueix després de ser visualitzada.",
+      "secure-links": "Enllaços segurs",
+      "about-onetime-secret-0": "Sobre Onetime Secret",
+      "log-in-to-onetime-secret": "Inicia sessió a Onetime Secret",
+      "about-onetime-secret": "Sobre Onetime Secret",
+      "signup-individual-and-business-plans": "Registra't - Plans individuals i empresarials",
+      "tagline-signed": "Signat",
+      "tagline-sealed": "Segellat",
+      "tagline-delivered": "Lliurat",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "One-Time Secret",
+      "onetime-secret-homepage": "Pàgina inicial d'Onetime Secret",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Envia informació sensible que només es pot visualitzar una vegada",
+      "create-a-secure-link": "Crea un enllaç segur",
+      "now-with-custom-domains": "Ara amb dominis personalitzats",
+      "this-is-a-private-instance-only-authorized-team-": "Aquesta és una instància privada. Només els membres autoritzats de l'equip poden generar nous enllaços segurs.",
+      "welcome-to-onetime-secret": "Benvingut a Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret ens ajuda a compartir informació sensible de manera segura mentre mantenim la nostra façana professional.",
+      "information-shared-through-this-service-can-only": "La informació compartida a través d'aquest servei només es pot accedir una vegada. Una vegada visualitzada, el contingut se suprimeix permanentment per garantir la confidencialitat.",
+      "welcome-to-the-global-broadcast": "Benvingut a la difusió global!"
     }
   }
 }

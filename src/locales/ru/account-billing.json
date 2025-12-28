@@ -98,7 +98,31 @@
         "description": "Управляйте вашей подпиской, способами оплаты и историей счётов",
         "open_portal": "Открыть портал счётов",
         "redirecting": "Перенаправление на портал счётов..."
-      }
+      },
+      "start-today": "Начните сегодня",
+      "start-today-with-identity-plus": "Начните сегодня с Identity Plus",
+      "per-month": "в месяц",
+      "full-api-access": "Полный доступ к API",
+      "privacy-first-design": "Дизайн, ориентированный на конфиденциальность",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "Нажмите на этот значок молнии, чтобы перейти на тариф с пользовательскими доменами",
+      "maybe-later": "Возможно, позже",
+      "upgrade-account": "Повысить уровень учётной записи",
+      "upgrade-to-identity-plus": "Обновить до Identity Plus",
+      "upgrade-for-teams": "Обновление для команд",
+      "benefits-of": "Преимущества",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "Обновить до",
+      "upgrade-for-yourdomain": "Обновление для secrets.ваш-домен.com",
+      "includes-all-features-and-unlimited-sharing-capa": "Все тарифы включают функции конфиденциальности и неограниченные возможности обмена",
+      "includes-all-data-locality-options": "Все тарифы включают выбор местоположения данных: {0} регионов",
+      "get-started": "Начать",
+      "frequency-value-annually-annual-monthly-subscrip": "Подписка {0}",
+      "elevate-your-secure-sharing-with-custom-domains-": "Поднимите Ваш безопасный обмен на новый уровень с пользовательскими доменами, неограниченными возможностями и функциями корпоративного уровня.",
+      "payment-frequency": "Периодичность платежей",
+      "secure-your-brand-and-build-customer-trust-with-": "Защитите свой бренд и завоюйте доверие клиентов с помощью ссылок из Вашего домена. Идеально подходит для компаний, которые ценят конфиденциальность и профессионализм.",
+      "secure-links-stronger-connections": "Безопасные ссылки, более надёжные связи",
+      "identity-tier-not-found-in-product-tiers": "Уровень Identity не найден в уровнях продукта"
     }
   }
 }

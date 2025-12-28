@@ -1,0 +1,10 @@
+{
+  "web": {
+    "layout": {
+      "your-feedback": "Your feedback",
+      "link-preview": "Link Preview",
+      "continue": "Continue",
+      "back": "Back"
+    }
+  }
+}

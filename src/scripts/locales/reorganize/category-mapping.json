@@ -1,0 +1,2131 @@
+{
+  "description": "Category mapping for reorganizing uncategorized.json keys into proper locale files",
+  "version": "1.0.0",
+  "mappings": [
+    {
+      "source_key": "domain-name",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.domain-name"
+    },
+    {
+      "source_key": "add-domain",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.add-domain"
+    },
+    {
+      "source_key": "domains",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.domains"
+    },
+    {
+      "source_key": "manage-and-configure-your-verified-custom-domains",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.manage-and-configure-your-verified-custom-domains"
+    },
+    {
+      "source_key": "last-monitored",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.last-monitored"
+    },
+    {
+      "source_key": "ssl-status",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.ssl-status"
+    },
+    {
+      "source_key": "ssl-renews",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.ssl-renews"
+    },
+    {
+      "source_key": "dns-record",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.dns-record"
+    },
+    {
+      "source_key": "target-address",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.target-address"
+    },
+    {
+      "source_key": "domain-status",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.domain-status"
+    },
+    {
+      "source_key": "custom-domain",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.custom-domain"
+    },
+    {
+      "source_key": "open-domain-in-new-tab",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.open-domain-in-new-tab"
+    },
+    {
+      "source_key": "back-to-domains",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.back-to-domains"
+    },
+    {
+      "source_key": "return-to-domains-list",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.return-to-domains-list"
+    },
+    {
+      "source_key": "verify-domain",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.verify-domain"
+    },
+    {
+      "source_key": "manage-brand",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.manage-brand"
+    },
+    {
+      "source_key": "added-formatdistancetonow-domain-created-addsuffix-true",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.added-formatdistancetonow-domain-created-addsuffix-true"
+    },
+    {
+      "source_key": "add-your-domain",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.add-your-domain"
+    },
+    {
+      "source_key": "get-started-by-adding-a-custom-domain",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.get-started-by-adding-a-custom-domain"
+    },
+    {
+      "source_key": "no-domains-found",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.no-domains-found"
+    },
+    {
+      "source_key": "loading-domain-information",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.loading-domain-information"
+    },
+    {
+      "source_key": "in-order-to-connect-your-domain-youll-need-to-ha",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.in-order-to-connect-your-domain-youll-need-to-ha"
+    },
+    {
+      "source_key": "if-you-already-have-a-cname-record-for-that-addr",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.if-you-already-have-a-cname-record-for-that-addr"
+    },
+    {
+      "source_key": "a-cname-record-is-not-allowed-instead-youll-need",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.a-cname-record-is-not-allowed-instead-youll-need"
+    },
+    {
+      "source_key": "and-remove-any-other-a-aaaa-or-cname-records-for",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.and-remove-any-other-a-aaaa-or-cname-records-for"
+    },
+    {
+      "source_key": "youll-need-to-complete-these-steps",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.youll-need-to-complete-these-steps"
+    },
+    {
+      "source_key": "before-we-can-activate-links-for",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.before-we-can-activate-links-for"
+    },
+    {
+      "source_key": "please-note-that-for-apex-domains",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.please-note-that-for-apex-domains"
+    },
+    {
+      "source_key": "verify-your-domain",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.verify-your-domain"
+    },
+    {
+      "source_key": "domain-verification-steps",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.domain-verification-steps"
+    },
+    {
+      "source_key": "follow-these-steps-to-verify-domain-ownership-an",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.follow-these-steps-to-verify-domain-ownership-an"
+    },
+    {
+      "source_key": "1-create-a-txt-record",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.1-create-a-txt-record"
+    },
+    {
+      "source_key": "add-this-hostname-to-your-dns-configuration",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.add-this-hostname-to-your-dns-configuration"
+    },
+    {
+      "source_key": "2-create-the-a-record",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.2-create-the-a-record"
+    },
+    {
+      "source_key": "2-create-the-cname-record",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.2-create-the-cname-record"
+    },
+    {
+      "source_key": "3-wait-for-propagation",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.3-wait-for-propagation"
+    },
+    {
+      "source_key": "dns-changes-can-take-as-little-as-60-seconds-or-",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.dns-changes-can-take-as-little-as-60-seconds-or-"
+    },
+    {
+      "source_key": "it-may-take-a-few-minutes-for-your-ssl-certifica",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.it-may-take-a-few-minutes-for-your-ssl-certifica"
+    },
+    {
+      "source_key": "domain-verification-initiated-successfully",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.domain-verification-initiated-successfully"
+    },
+    {
+      "source_key": "are-you-sure-you-want-to-remove-this-domain",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.are-you-sure-you-want-to-remove-this-domain"
+    },
+    {
+      "source_key": "remove-domain",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.remove-domain"
+    },
+    {
+      "source_key": "domain-removed-successfully",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.domain-removed-successfully"
+    },
+    {
+      "source_key": "failed-to-add-domain",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.failed-to-add-domain"
+    },
+    {
+      "source_key": "domain-added-successfully",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.domain-added-successfully"
+    },
+    {
+      "source_key": "type-0",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.type-0"
+    },
+    {
+      "source_key": "type-1",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.type-1"
+    },
+    {
+      "source_key": "type-2",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.type-2"
+    },
+    {
+      "source_key": "host-0",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.host-0"
+    },
+    {
+      "source_key": "host-1",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.host-1"
+    },
+    {
+      "source_key": "value-0",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.value-0"
+    },
+    {
+      "source_key": "value-1",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.value-1"
+    },
+    {
+      "source_key": "value-2",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.value-2"
+    },
+    {
+      "source_key": "control-whether-users-can-create-secret-links",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.control-whether-users-can-create-secret-links"
+    },
+    {
+      "source_key": "homepage-access",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.homepage-access"
+    },
+    {
+      "source_key": "and-status",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.and-status"
+    },
+    {
+      "source_key": "domain",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.domain"
+    },
+    {
+      "source_key": "custom-domains-count",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.custom-domains-count"
+    },
+    {
+      "source_key": "please-enter-a-domain-name",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.please-enter-a-domain-name"
+    },
+    {
+      "source_key": "secrets-example-dot-com",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.secrets-example-dot-com"
+    },
+    {
+      "source_key": "customize-your-domain-branding",
+      "target_file": "feature-domains.json",
+      "target_path": "web.domains.customize-your-domain-branding"
+    },
+    {
+      "source_key": "done",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.done"
+    },
+    {
+      "source_key": "remove",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.remove"
+    },
+    {
+      "source_key": "preview",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.preview"
+    },
+    {
+      "source_key": "escape",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.escape"
+    },
+    {
+      "source_key": "enter",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.enter"
+    },
+    {
+      "source_key": "next",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.next"
+    },
+    {
+      "source_key": "previous",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.previous"
+    },
+    {
+      "source_key": "loading_ellipses",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.loading_ellipses"
+    },
+    {
+      "source_key": "adding_ellipses",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.adding_ellipses"
+    },
+    {
+      "source_key": "status",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.status"
+    },
+    {
+      "source_key": "active",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.active"
+    },
+    {
+      "source_key": "inactive",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.inactive"
+    },
+    {
+      "source_key": "general",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.general"
+    },
+    {
+      "source_key": "theme",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.theme"
+    },
+    {
+      "source_key": "appearance",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.appearance"
+    },
+    {
+      "source_key": "language",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.language"
+    },
+    {
+      "source_key": "version",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.version"
+    },
+    {
+      "source_key": "features",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.features"
+    },
+    {
+      "source_key": "monthly",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.monthly"
+    },
+    {
+      "source_key": "yearly",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.yearly"
+    },
+    {
+      "source_key": "type",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.type"
+    },
+    {
+      "source_key": "host",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.host"
+    },
+    {
+      "source_key": "value",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.value"
+    },
+    {
+      "source_key": "supported",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.supported"
+    },
+    {
+      "source_key": "not-found",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.not-found"
+    },
+    {
+      "source_key": "note",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.note"
+    },
+    {
+      "source_key": "important",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.important"
+    },
+    {
+      "source_key": "go-on-then",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.go-on-then"
+    },
+    {
+      "source_key": "click-to-continue",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.click-to-continue"
+    },
+    {
+      "source_key": "press-esc-to-close",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.press-esc-to-close"
+    },
+    {
+      "source_key": "press_copy_button_below",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.press_copy_button_below"
+    },
+    {
+      "source_key": "secret-copied-to-clipboard",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.secret-copied-to-clipboard"
+    },
+    {
+      "source_key": "copy-secret-to-clipboard",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.copy-secret-to-clipboard"
+    },
+    {
+      "source_key": "an-error-occurred",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.an-error-occurred"
+    },
+    {
+      "source_key": "passwords-do-not-match",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.passwords-do-not-match"
+    },
+    {
+      "source_key": "confirm-password",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.confirm-password"
+    },
+    {
+      "source_key": "new-password",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.new-password"
+    },
+    {
+      "source_key": "email-address",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.email-address"
+    },
+    {
+      "source_key": "password-strength",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.password-strength"
+    },
+    {
+      "source_key": "great",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.great"
+    },
+    {
+      "source_key": "pretty-good",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.pretty-good"
+    },
+    {
+      "source_key": "fair",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.fair"
+    },
+    {
+      "source_key": "meh",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.meh"
+    },
+    {
+      "source_key": "not-great",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.not-great"
+    },
+    {
+      "source_key": "Double check that passphrase",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.Double check that passphrase"
+    },
+    {
+      "source_key": "open-options",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.open-options"
+    },
+    {
+      "source_key": "switch",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.switch"
+    },
+    {
+      "source_key": "e-g-example",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.e-g-example"
+    },
+    {
+      "source_key": "end",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.end"
+    },
+    {
+      "source_key": "email-address-copied-to-clipboard",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.email-address-copied-to-clipboard"
+    },
+    {
+      "source_key": "emoji-x",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.emoji-x"
+    },
+    {
+      "source_key": "emoji-checkmark",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.emoji-checkmark"
+    },
+    {
+      "source_key": "other",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.other"
+    },
+    {
+      "source_key": "not-received",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.not-received"
+    },
+    {
+      "source_key": "ctrl-enter",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.ctrl-enter"
+    },
+    {
+      "source_key": "enter-0",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.enter-0"
+    },
+    {
+      "source_key": "mac",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.mac"
+    },
+    {
+      "source_key": "min-width-1024px",
+      "target_file": "_common.json",
+      "target_path": "web.COMMON.min-width-1024px"
+    },
+    {
+      "source_key": "create-a-secret",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.create-a-secret"
+    },
+    {
+      "source_key": "enter-the-secret-content-here",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.enter-the-secret-content-here"
+    },
+    {
+      "source_key": "enter-the-secret-content-to-share-here",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.enter-the-secret-content-to-share-here"
+    },
+    {
+      "source_key": "enter-a-passphrase",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.enter-a-passphrase"
+    },
+    {
+      "source_key": "formattedcharcount-formattedmaxlength-chars",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.formattedcharcount-formattedmaxlength-chars"
+    },
+    {
+      "source_key": "secret-link",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.secret-link"
+    },
+    {
+      "source_key": "secret-content",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.secret-content"
+    },
+    {
+      "source_key": "secret-confirmation",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.secret-confirmation"
+    },
+    {
+      "source_key": "secret-access-form",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.secret-access-form"
+    },
+    {
+      "source_key": "content-status",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.content-status"
+    },
+    {
+      "source_key": "secret-content-copied-to-clipboard",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.secret-content-copied-to-clipboard"
+    },
+    {
+      "source_key": "secret-value-not-available",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.secret-value-not-available"
+    },
+    {
+      "source_key": "you-can-safely-close-this-tab",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.you-can-safely-close-this-tab"
+    },
+    {
+      "source_key": "that-information-is-no-longer-available",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.that-information-is-no-longer-available"
+    },
+    {
+      "source_key": "information-no-longer-available",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.information-no-longer-available"
+    },
+    {
+      "source_key": "create-another-secret",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.create-another-secret"
+    },
+    {
+      "source_key": "you-have-a-message",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.you-have-a-message"
+    },
+    {
+      "source_key": "viewed-on-record-received",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.viewed-on-record-received"
+    },
+    {
+      "source_key": "deleted-on-record-burned",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.deleted-on-record-burned"
+    },
+    {
+      "source_key": "permanently-deleted",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.permanently-deleted"
+    },
+    {
+      "source_key": "sample-secret-content-this-could-be-sensitive-data",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.sample-secret-content-this-could-be-sensitive-data"
+    },
+    {
+      "source_key": "sample-secret-content",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.sample-secret-content"
+    },
+    {
+      "source_key": "auto-expire-after-viewing",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.auto-expire-after-viewing"
+    },
+    {
+      "source_key": "secure-encrypted-storage",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.secure-encrypted-storage"
+    },
+    {
+      "source_key": "youve-got-secret-mail",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.youve-got-secret-mail"
+    },
+    {
+      "source_key": "a-secure-one-time-message-awaits-you",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.a-secure-one-time-message-awaits-you"
+    },
+    {
+      "source_key": "before-you-open-it-heres-what-you-should-know",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.before-you-open-it-heres-what-you-should-know"
+    },
+    {
+      "source_key": "what-is-this",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.what-is-this"
+    },
+    {
+      "source_key": "is-it-secure",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.is-it-secure"
+    },
+    {
+      "source_key": "what-happens-next",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.what-happens-next"
+    },
+    {
+      "source_key": "when-ready-click-the-view-secret-button-at-the-t",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.when-ready-click-the-view-secret-button-at-the-t"
+    },
+    {
+      "source_key": "onetime-secret-is-a-secure-way-to-share-sensitiv",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.onetime-secret-is-a-secure-way-to-share-sensitiv"
+    },
+    {
+      "source_key": "yes-after-viewing-the-secret-is-permanently-dele",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.yes-after-viewing-the-secret-is-permanently-dele"
+    },
+    {
+      "source_key": "hide-secret",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.hide-secret"
+    },
+    {
+      "source_key": "hide-secret-message",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.hide-secret-message"
+    },
+    {
+      "source_key": "view-secret-message",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.view-secret-message"
+    },
+    {
+      "source_key": "content-hidden",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.content-hidden"
+    },
+    {
+      "source_key": "secret-viewing-page",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.secret-viewing-page"
+    },
+    {
+      "source_key": "theyll-appear-here-once-youve-shared-them",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.theyll-appear-here-once-youve-shared-them"
+    },
+    {
+      "source_key": "recent-secrets-count",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.recent-secrets-count"
+    },
+    {
+      "source_key": "recipient-delivery-is-optional",
+      "target_file": "feature-secrets.json",
+      "target_path": "web.secrets.recipient-delivery-is-optional"
+    },
+    {
+      "source_key": "per-month",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.per-month"
+    },
+    {
+      "source_key": "full-api-access",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.full-api-access"
+    },
+    {
+      "source_key": "privacy-first-design",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.privacy-first-design"
+    },
+    {
+      "source_key": "identity-plus",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.identity-plus"
+    },
+    {
+      "source_key": "click-this-lightning-bolt-to-upgrade-for-custom-domains",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.click-this-lightning-bolt-to-upgrade-for-custom-domains"
+    },
+    {
+      "source_key": "upgrade-to",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.upgrade-to"
+    },
+    {
+      "source_key": "upgrade-account",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.upgrade-account"
+    },
+    {
+      "source_key": "upgrade-to-identity-plus",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.upgrade-to-identity-plus"
+    },
+    {
+      "source_key": "upgrade-for-teams",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.upgrade-for-teams"
+    },
+    {
+      "source_key": "upgrade-for-yourdomain",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.upgrade-for-yourdomain"
+    },
+    {
+      "source_key": "maybe-later",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.maybe-later"
+    },
+    {
+      "source_key": "benefits-of",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.benefits-of"
+    },
+    {
+      "source_key": "payment-frequency",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.payment-frequency"
+    },
+    {
+      "source_key": "get-started",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.get-started"
+    },
+    {
+      "source_key": "frequency-value-annually-annual-monthly-subscrip",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.frequency-value-annually-annual-monthly-subscrip"
+    },
+    {
+      "source_key": "includes-all-features-and-unlimited-sharing-capa",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.includes-all-features-and-unlimited-sharing-capa"
+    },
+    {
+      "source_key": "includes-all-data-locality-options",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.includes-all-data-locality-options"
+    },
+    {
+      "source_key": "elevate-your-secure-sharing-with-custom-domains-",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.elevate-your-secure-sharing-with-custom-domains-"
+    },
+    {
+      "source_key": "secure-your-brand-and-build-customer-trust-with-",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.secure-your-brand-and-build-customer-trust-with-"
+    },
+    {
+      "source_key": "secure-links-stronger-connections",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.secure-links-stronger-connections"
+    },
+    {
+      "source_key": "identity-tier-not-found-in-product-tiers",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.identity-tier-not-found-in-product-tiers"
+    },
+    {
+      "source_key": "start-today",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.start-today"
+    },
+    {
+      "source_key": "start-today-with-identity-plus",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.start-today-with-identity-plus"
+    },
+    {
+      "source_key": "t-benefits-of-identity-plus",
+      "target_file": "account-billing.json",
+      "target_path": "web.billing.t-benefits-of-identity-plus"
+    },
+    {
+      "source_key": "site-footer",
+      "target_file": "layout.json",
+      "target_path": "web.layout.site-footer"
+    },
+    {
+      "source_key": "toggle-dark-mode",
+      "target_file": "layout.json",
+      "target_path": "web.layout.toggle-dark-mode"
+    },
+    {
+      "source_key": "provide-feedback",
+      "target_file": "layout.json",
+      "target_path": "web.layout.provide-feedback"
+    },
+    {
+      "source_key": "company-logo",
+      "target_file": "layout.json",
+      "target_path": "web.layout.company-logo"
+    },
+    {
+      "source_key": "brand-logo",
+      "target_file": "layout.json",
+      "target_path": "web.layout.brand-logo"
+    },
+    {
+      "source_key": "main-navigation",
+      "target_file": "layout.json",
+      "target_path": "web.layout.main-navigation"
+    },
+    {
+      "source_key": "mobile-navigation",
+      "target_file": "layout.json",
+      "target_path": "web.layout.mobile-navigation"
+    },
+    {
+      "source_key": "dashboard-navigation",
+      "target_file": "layout.json",
+      "target_path": "web.layout.dashboard-navigation"
+    },
+    {
+      "source_key": "mobile-nav-item-count",
+      "target_file": "layout.json",
+      "target_path": "web.layout.mobile-nav-item-count"
+    },
+    {
+      "source_key": "footer-navigation",
+      "target_file": "layout.json",
+      "target_path": "web.layout.footer-navigation"
+    },
+    {
+      "source_key": "view-privacy-policy",
+      "target_file": "layout.json",
+      "target_path": "web.layout.view-privacy-policy"
+    },
+    {
+      "source_key": "view-terms-of-service",
+      "target_file": "layout.json",
+      "target_path": "web.layout.view-terms-of-service"
+    },
+    {
+      "source_key": "visit-onetime-secret-homepage",
+      "target_file": "layout.json",
+      "target_path": "web.layout.visit-onetime-secret-homepage"
+    },
+    {
+      "source_key": "privacy-policy",
+      "target_file": "layout.json",
+      "target_path": "web.layout.privacy-policy"
+    },
+    {
+      "source_key": "terms-of-service",
+      "target_file": "layout.json",
+      "target_path": "web.layout.terms-of-service"
+    },
+    {
+      "source_key": "return-home",
+      "target_file": "layout.json",
+      "target_path": "web.layout.return-home"
+    },
+    {
+      "source_key": "return-to-home-page",
+      "target_file": "layout.json",
+      "target_path": "web.layout.return-to-home-page"
+    },
+    {
+      "source_key": "return-to-home",
+      "target_file": "layout.json",
+      "target_path": "web.layout.return-to-home"
+    },
+    {
+      "source_key": "language-changed-to-newlocale",
+      "target_file": "layout.json",
+      "target_path": "web.layout.language-changed-to-newlocale"
+    },
+    {
+      "source_key": "current-language-is-currentlocal",
+      "target_file": "layout.json",
+      "target_path": "web.layout.current-language-is-currentlocal"
+    },
+    {
+      "source_key": "switch-to-blank-mode",
+      "target_file": "layout.json",
+      "target_path": "web.layout.switch-to-blank-mode"
+    },
+    {
+      "source_key": "blank-mode-enabled",
+      "target_file": "layout.json",
+      "target_path": "web.layout.blank-mode-enabled"
+    },
+    {
+      "source_key": "go-back-to-previous-page",
+      "target_file": "layout.json",
+      "target_path": "web.layout.go-back-to-previous-page"
+    },
+    {
+      "source_key": "view-source-on-github",
+      "target_file": "layout.json",
+      "target_path": "web.layout.view-source-on-github"
+    },
+    {
+      "source_key": "website-version-v-ot_version",
+      "target_file": "layout.json",
+      "target_path": "web.layout.website-version-v-ot_version"
+    },
+    {
+      "source_key": "release-notes",
+      "target_file": "layout.json",
+      "target_path": "web.layout.release-notes"
+    },
+    {
+      "source_key": "icon-library",
+      "target_file": "layout.json",
+      "target_path": "web.layout.icon-library"
+    },
+    {
+      "source_key": "heroicons",
+      "target_file": "layout.json",
+      "target_path": "web.layout.heroicons"
+    },
+    {
+      "source_key": "carbon",
+      "target_file": "layout.json",
+      "target_path": "web.layout.carbon"
+    },
+    {
+      "source_key": "font-awesome-6",
+      "target_file": "layout.json",
+      "target_path": "web.layout.font-awesome-6"
+    },
+    {
+      "source_key": "material-design-icons",
+      "target_file": "layout.json",
+      "target_path": "web.layout.material-design-icons"
+    },
+    {
+      "source_key": "google-material",
+      "target_file": "layout.json",
+      "target_path": "web.layout.google-material"
+    },
+    {
+      "source_key": "settings-sections-0",
+      "target_file": "layout.json",
+      "target_path": "web.layout.settings-sections-0"
+    },
+    {
+      "source_key": "settings-sections",
+      "target_file": "layout.json",
+      "target_path": "web.layout.settings-sections"
+    },
+    {
+      "source_key": "close-settings",
+      "target_file": "layout.json",
+      "target_path": "web.layout.close-settings"
+    },
+    {
+      "source_key": "loading-settings-content",
+      "target_file": "layout.json",
+      "target_path": "web.layout.loading-settings-content"
+    },
+    {
+      "source_key": "customize-your-app-preferences-and-settings",
+      "target_file": "layout.json",
+      "target_path": "web.layout.customize-your-app-preferences-and-settings"
+    },
+    {
+      "source_key": "your-account",
+      "target_file": "account.json",
+      "target_path": "web.account.your-account"
+    },
+    {
+      "source_key": "account-id-customerid",
+      "target_file": "account.json",
+      "target_path": "web.account.account-id-customerid"
+    },
+    {
+      "source_key": "delete-account",
+      "target_file": "account.json",
+      "target_path": "web.account.delete-account"
+    },
+    {
+      "source_key": "confirm-account-deletion",
+      "target_file": "account.json",
+      "target_path": "web.account.confirm-account-deletion"
+    },
+    {
+      "source_key": "are-you-sure-you-want-to-permanently-delete-your",
+      "target_file": "account.json",
+      "target_path": "web.account.are-you-sure-you-want-to-permanently-delete-your"
+    },
+    {
+      "source_key": "permanently-delete-account",
+      "target_file": "account.json",
+      "target_path": "web.account.permanently-delete-account"
+    },
+    {
+      "source_key": "deleting-your-account-is",
+      "target_file": "account.json",
+      "target_path": "web.account.deleting-your-account-is"
+    },
+    {
+      "source_key": "permanent-and-non-reversible",
+      "target_file": "account.json",
+      "target_path": "web.account.permanent-and-non-reversible"
+    },
+    {
+      "source_key": "any-secrets-you-wish-to-remove",
+      "target_file": "account.json",
+      "target_path": "web.account.any-secrets-you-wish-to-remove"
+    },
+    {
+      "source_key": "burn-them-before-continuing",
+      "target_file": "account.json",
+      "target_path": "web.account.burn-them-before-continuing"
+    },
+    {
+      "source_key": "secrets-will-remain-active-until-they-expire",
+      "target_file": "account.json",
+      "target_path": "web.account.secrets-will-remain-active-until-they-expire"
+    },
+    {
+      "source_key": "please-be-advised",
+      "target_file": "account.json",
+      "target_path": "web.account.please-be-advised"
+    },
+    {
+      "source_key": "account-deleted-successfully",
+      "target_file": "account.json",
+      "target_path": "web.account.account-deleted-successfully"
+    },
+    {
+      "source_key": "deleting-cust-custid",
+      "target_file": "account.json",
+      "target_path": "web.account.deleting-cust-custid"
+    },
+    {
+      "source_key": "confirm-with-your-password",
+      "target_file": "account.json",
+      "target_path": "web.account.confirm-with-your-password"
+    },
+    {
+      "source_key": "token-generated",
+      "target_file": "account.json",
+      "target_path": "web.account.token-generated"
+    },
+    {
+      "source_key": "keep-this-token-secure-it-provides-full-access-t",
+      "target_file": "account.json",
+      "target_path": "web.account.keep-this-token-secure-it-provides-full-access-t"
+    },
+    {
+      "source_key": "api-key",
+      "target_file": "account.json",
+      "target_path": "web.account.api-key"
+    },
+    {
+      "source_key": "deactivate",
+      "target_file": "account.json",
+      "target_path": "web.account.deactivate"
+    },
+    {
+      "source_key": "deactivate-account",
+      "target_file": "account.json",
+      "target_path": "web.account.deactivate-account"
+    },
+    {
+      "source_key": "are-you-sure-you-want-to-deactivate-your-account",
+      "target_file": "account.json",
+      "target_path": "web.account.are-you-sure-you-want-to-deactivate-your-account"
+    },
+    {
+      "source_key": "account-type-windowprops-plan-options-name",
+      "target_file": "account.json",
+      "target_path": "web.account.account-type-windowprops-plan-options-name"
+    },
+    {
+      "source_key": "created-windowprops-cust-secrets_created-secrets",
+      "target_file": "account.json",
+      "target_path": "web.account.created-windowprops-cust-secrets_created-secrets"
+    },
+    {
+      "source_key": "customer-id-cust-custid",
+      "target_file": "account.json",
+      "target_path": "web.account.customer-id-cust-custid"
+    },
+    {
+      "source_key": "support-details",
+      "target_file": "account.json",
+      "target_path": "web.account.support-details"
+    },
+    {
+      "source_key": "back-to-details",
+      "target_file": "account.json",
+      "target_path": "web.account.back-to-details"
+    },
+    {
+      "source_key": "sign-in-to-your-account",
+      "target_file": "auth.json",
+      "target_path": "web.auth.sign-in-to-your-account"
+    },
+    {
+      "source_key": "create-account",
+      "target_file": "auth.json",
+      "target_path": "web.auth.create-account"
+    },
+    {
+      "source_key": "i-agree-to-the",
+      "target_file": "auth.json",
+      "target_path": "web.auth.i-agree-to-the"
+    },
+    {
+      "source_key": "back-to-sign-in",
+      "target_file": "auth.json",
+      "target_path": "web.auth.back-to-sign-in"
+    },
+    {
+      "source_key": "forgot-password",
+      "target_file": "auth.json",
+      "target_path": "web.auth.forgot-password"
+    },
+    {
+      "source_key": "request-password-reset",
+      "target_file": "auth.json",
+      "target_path": "web.auth.request-password-reset"
+    },
+    {
+      "source_key": "request-reset",
+      "target_file": "auth.json",
+      "target_path": "web.auth.request-reset"
+    },
+    {
+      "source_key": "choose-a-new-password",
+      "target_file": "auth.json",
+      "target_path": "web.auth.choose-a-new-password"
+    },
+    {
+      "source_key": "please-enter-your-new-password-below-make-sure-i",
+      "target_file": "auth.json",
+      "target_path": "web.auth.please-enter-your-new-password-below-make-sure-i"
+    },
+    {
+      "source_key": "enter-your-email-address-below-and-well-send-you",
+      "target_file": "auth.json",
+      "target_path": "web.auth.enter-your-email-address-below-and-well-send-you"
+    },
+    {
+      "source_key": "google",
+      "target_file": "auth.json",
+      "target_path": "web.auth.google"
+    },
+    {
+      "source_key": "secure-your-brand-build-customer-trust-etc",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.secure-your-brand-build-customer-trust-etc"
+    },
+    {
+      "source_key": "a-trusted-way-to-share-sensitive-information-etc",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.a-trusted-way-to-share-sensitive-information-etc"
+    },
+    {
+      "source_key": "secure-links",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.secure-links"
+    },
+    {
+      "source_key": "about-onetime-secret-0",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.about-onetime-secret-0"
+    },
+    {
+      "source_key": "about-onetime-secret",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.about-onetime-secret"
+    },
+    {
+      "source_key": "log-in-to-onetime-secret",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.log-in-to-onetime-secret"
+    },
+    {
+      "source_key": "signup-individual-and-business-plans",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.signup-individual-and-business-plans"
+    },
+    {
+      "source_key": "tagline-signed",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.tagline-signed"
+    },
+    {
+      "source_key": "tagline-sealed",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.tagline-sealed"
+    },
+    {
+      "source_key": "tagline-delivered",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.tagline-delivered"
+    },
+    {
+      "source_key": "onetime-secret",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.onetime-secret"
+    },
+    {
+      "source_key": "onetime-secret-literal",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.onetime-secret-literal"
+    },
+    {
+      "source_key": "one-time-secret-literal",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.one-time-secret-literal"
+    },
+    {
+      "source_key": "onetime-secret-homepage",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.onetime-secret-homepage"
+    },
+    {
+      "source_key": "send-sensitive-information-that-can-only-be-viewed-once",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.send-sensitive-information-that-can-only-be-viewed-once"
+    },
+    {
+      "source_key": "create-a-secure-link",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.create-a-secure-link"
+    },
+    {
+      "source_key": "now-with-custom-domains",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.now-with-custom-domains"
+    },
+    {
+      "source_key": "meets-and-exceeds-compliance-standards",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.meets-and-exceeds-compliance-standards"
+    },
+    {
+      "source_key": "onetime-secret-helps-us-share-sensitive-informat",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.onetime-secret-helps-us-share-sensitive-informat"
+    },
+    {
+      "source_key": "information-shared-through-this-service-can-only",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.information-shared-through-this-service-can-only"
+    },
+    {
+      "source_key": "this-is-a-private-instance-only-authorized-team-",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.this-is-a-private-instance-only-authorized-team-"
+    },
+    {
+      "source_key": "welcome-to-onetime-secret",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.welcome-to-onetime-secret"
+    },
+    {
+      "source_key": "welcome-to-the-global-broadcast",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.welcome-to-the-global-broadcast"
+    },
+    {
+      "source_key": "link-preview",
+      "target_file": "homepage.json",
+      "target_path": "web.homepage.link-preview"
+    },
+    {
+      "source_key": "redis-info",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.redis-info"
+    },
+    {
+      "source_key": "customer-secrets_created-customer-secrets_shared",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.customer-secrets_created-customer-secrets_shared"
+    },
+    {
+      "source_key": "customer-verified-verified-not-verified",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.customer-verified-verified-not-verified"
+    },
+    {
+      "source_key": "customers-details-counts-recent_customer_count-o",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.customers-details-counts-recent_customer_count-o"
+    },
+    {
+      "source_key": "user-feedback-total-details-counts-feedback_coun",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.user-feedback-total-details-counts-feedback_coun"
+    },
+    {
+      "source_key": "metadata-secrets-details-counts-metadata_count-d",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.metadata-secrets-details-counts-metadata_count-d"
+    },
+    {
+      "source_key": "secrets-details-counts-secret_count",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.secrets-details-counts-secret_count"
+    },
+    {
+      "source_key": "active-in-the-past-5-minutes",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.active-in-the-past-5-minutes"
+    },
+    {
+      "source_key": "past-14-days",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.past-14-days"
+    },
+    {
+      "source_key": "yesterday",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.yesterday"
+    },
+    {
+      "source_key": "today",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.today"
+    },
+    {
+      "source_key": "misc",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.misc"
+    },
+    {
+      "source_key": "feedback",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.feedback"
+    },
+    {
+      "source_key": "customers",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.customers"
+    },
+    {
+      "source_key": "test-exception-message-substring-11",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.test-exception-message-substring-11"
+    },
+    {
+      "source_key": "test-error-triggered-via-feedback",
+      "target_file": "colonel.json",
+      "target_path": "web.colonel.test-error-triggered-via-feedback"
+    },
+    {
+      "source_key": "regions",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.regions"
+    },
+    {
+      "source_key": "jurisdiction",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.jurisdiction"
+    },
+    {
+      "source_key": "data-region",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.data-region"
+    },
+    {
+      "source_key": "data-center-location-currentjurisdiction-identif",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.data-center-location-currentjurisdiction-identif"
+    },
+    {
+      "source_key": "available-regions",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.available-regions"
+    },
+    {
+      "source_key": "current",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.current"
+    },
+    {
+      "source_key": "jurisdiction-display_name-iscurrentjurisdiction-",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.jurisdiction-display_name-iscurrentjurisdiction-"
+    },
+    {
+      "source_key": "your-account-and-data-are-protected-under-the-la",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.your-account-and-data-are-protected-under-the-la"
+    },
+    {
+      "source_key": "this-regulatory-framework-is-determined-by-your-",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.this-regulatory-framework-is-determined-by-your-"
+    },
+    {
+      "source_key": "each-jurisdiction-maintains-separate-legal-compl",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.each-jurisdiction-maintains-separate-legal-compl"
+    },
+    {
+      "source_key": "to-understand-the-specific-regulations-and-prote",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.to-understand-the-specific-regulations-and-prote"
+    },
+    {
+      "source_key": "contact-our-compliance-team",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.contact-our-compliance-team"
+    },
+    {
+      "source_key": "review-our-documentation",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.review-our-documentation"
+    },
+    {
+      "source_key": "unknown-jurisdiction",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.unknown-jurisdiction"
+    },
+    {
+      "source_key": "serving-you-from-the",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.serving-you-from-the"
+    },
+    {
+      "source_key": "current-jurisdiction",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.current-jurisdiction"
+    },
+    {
+      "source_key": "continue-to-jurisdiction-domain",
+      "target_file": "feature-regions.json",
+      "target_path": "web.regions.continue-to-jurisdiction-domain"
+    },
+    {
+      "source_key": "preview-and-customize",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.preview-and-customize"
+    },
+    {
+      "source_key": "preview-of-the-secret-link-page-for-recipients",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.preview-of-the-secret-link-page-for-recipients"
+    },
+    {
+      "source_key": "brand-color",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.brand-color"
+    },
+    {
+      "source_key": "corner-style",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.corner-style"
+    },
+    {
+      "source_key": "font-family",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.font-family"
+    },
+    {
+      "source_key": "use-setting",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.use-setting"
+    },
+    {
+      "source_key": "color-picker",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.color-picker"
+    },
+    {
+      "source_key": "logo-controls",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.logo-controls"
+    },
+    {
+      "source_key": "upload-logo",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.upload-logo"
+    },
+    {
+      "source_key": "click-to-upload-a-logo-with-recommendation",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.click-to-upload-a-logo-with-recommendation"
+    },
+    {
+      "source_key": "loading-preview",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.loading-preview"
+    },
+    {
+      "source_key": "preview-how-recipients-will-see-your-secrets",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.preview-how-recipients-will-see-your-secrets"
+    },
+    {
+      "source_key": "click-the-preview-image-below-to-update-your-logo",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.click-the-preview-image-below-to-update-your-logo"
+    },
+    {
+      "source_key": "use-the-controls-above-to-customize-brand-details",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.use-the-controls-above-to-customize-brand-details"
+    },
+    {
+      "source_key": "you-have-unsaved-changes-are-you-sure",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.you-have-unsaved-changes-are-you-sure"
+    },
+    {
+      "source_key": "failed-to-load-brand-settings",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.failed-to-load-brand-settings"
+    },
+    {
+      "source_key": "this-is-an-interactive-preview-o",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.this-is-an-interactive-preview-o"
+    },
+    {
+      "source_key": "this-is-an-interactive-preview-of-how-recipients",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.this-is-an-interactive-preview-of-how-recipients"
+    },
+    {
+      "source_key": "pre-reveal-instructions",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.pre-reveal-instructions"
+    },
+    {
+      "source_key": "post-reveal-instructions",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.post-reveal-instructions"
+    },
+    {
+      "source_key": "instructions",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.instructions"
+    },
+    {
+      "source_key": "example-pre-reveal-instructions",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.example-pre-reveal-instructions"
+    },
+    {
+      "source_key": "example-post-reveal-instructions",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.example-post-reveal-instructions"
+    },
+    {
+      "source_key": "these-instructions-will-be-shown-to-recipients-before",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.these-instructions-will-be-shown-to-recipients-before"
+    },
+    {
+      "source_key": "these-instructions-will-be-shown-to-recipients-after",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.these-instructions-will-be-shown-to-recipients-after"
+    },
+    {
+      "source_key": "charactercount-500-characters",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.charactercount-500-characters"
+    },
+    {
+      "source_key": "default-logo-icon",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.default-logo-icon"
+    },
+    {
+      "source_key": "powered-by-onetime-secret",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.powered-by-onetime-secret"
+    },
+    {
+      "source_key": "heading-logo",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.heading-logo"
+    },
+    {
+      "source_key": "current-label-modelvalue-click-to-cycle-through-options",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.current-label-modelvalue-click-to-cycle-through-options"
+    },
+    {
+      "source_key": "safari",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.safari"
+    },
+    {
+      "source_key": "edge",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.edge"
+    },
+    {
+      "source_key": "microsoft-edge",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.microsoft-edge"
+    },
+    {
+      "source_key": "switch-to-safari-preview",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.switch-to-safari-preview"
+    },
+    {
+      "source_key": "switch-to-edge-preview",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.switch-to-edge-preview"
+    },
+    {
+      "source_key": "switch-to-safari-browser-view",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.switch-to-safari-browser-view"
+    },
+    {
+      "source_key": "switch-to-edge-browser-view",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.switch-to-edge-browser-view"
+    },
+    {
+      "source_key": "maximize-window",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.maximize-window"
+    },
+    {
+      "source_key": "minimize-window",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.minimize-window"
+    },
+    {
+      "source_key": "eye-icon",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.eye-icon"
+    },
+    {
+      "source_key": "image-icon",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.image-icon"
+    },
+    {
+      "source_key": "customization-icon",
+      "target_file": "feature-branding.json",
+      "target_path": "web.branding.customization-icon"
+    },
+    {
+      "source_key": "your-feedback",
+      "target_file": "feature-feedback.json",
+      "target_path": "web.feedback.your-feedback"
+    },
+    {
+      "source_key": "all-feedback-welcome",
+      "target_file": "feature-feedback.json",
+      "target_path": "web.feedback.all-feedback-welcome"
+    },
+    {
+      "source_key": "help-us-improve",
+      "target_file": "feature-feedback.json",
+      "target_path": "web.feedback.help-us-improve"
+    },
+    {
+      "source_key": "close-feedback-modal",
+      "target_file": "feature-feedback.json",
+      "target_path": "web.feedback.close-feedback-modal"
+    },
+    {
+      "source_key": "share-your-feedback",
+      "target_file": "feature-feedback.json",
+      "target_path": "web.feedback.share-your-feedback"
+    },
+    {
+      "source_key": "enter-your-feedback",
+      "target_file": "feature-feedback.json",
+      "target_path": "web.feedback.enter-your-feedback"
+    },
+    {
+      "source_key": "send-feedback",
+      "target_file": "feature-feedback.json",
+      "target_path": "web.feedback.send-feedback"
+    },
+    {
+      "source_key": "open-feedback-form",
+      "target_file": "feature-feedback.json",
+      "target_path": "web.feedback.open-feedback-form"
+    },
+    {
+      "source_key": "thanks-for-helping-onetime-secret-improve-it-mea",
+      "target_file": "feature-feedback.json",
+      "target_path": "web.feedback.thanks-for-helping-onetime-secret-improve-it-mea"
+    },
+    {
+      "source_key": "weve-built-this-tool-to-help-you-share-sensitive",
+      "target_file": "feature-feedback.json",
+      "target_path": "web.feedback.weve-built-this-tool-to-help-you-share-sensitive"
+    },
+    {
+      "source_key": "hey-there-thanks-for-stopping-by-our-feedback-pa",
+      "target_file": "feature-feedback.json",
+      "target_path": "web.feedback.hey-there-thanks-for-stopping-by-our-feedback-pa"
+    },
+    {
+      "source_key": "a-note-from-delano-founder-of-onetime-secret",
+      "target_file": "feature-feedback.json",
+      "target_path": "web.feedback.a-note-from-delano-founder-of-onetime-secret"
+    },
+    {
+      "source_key": "delano-mandelbaum",
+      "target_file": "feature-feedback.json",
+      "target_path": "web.feedback.delano-mandelbaum"
+    },
+    {
+      "source_key": "delano",
+      "target_file": "feature-feedback.json",
+      "target_path": "web.feedback.delano"
+    },
+    {
+      "source_key": "help-content-goes-here",
+      "target_file": "feature-feedback.json",
+      "target_path": "web.feedback.help-content-goes-here"
+    },
+    {
+      "source_key": "translations",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.translations"
+    },
+    {
+      "source_key": "welcomes-contributors-for-both-existing-and-new-",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.welcomes-contributors-for-both-existing-and-new-"
+    },
+    {
+      "source_key": "our-github-project",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.our-github-project"
+    },
+    {
+      "source_key": "if-youre-interested-in-translation",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.if-youre-interested-in-translation"
+    },
+    {
+      "source_key": "whove-helped-with-translations-as-we-continue-to",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.whove-helped-with-translations-as-we-continue-to"
+    },
+    {
+      "source_key": "25-contributors",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.25-contributors"
+    },
+    {
+      "source_key": "were-grateful-to-the",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.were-grateful-to-the"
+    },
+    {
+      "source_key": "as-we-add-new-features-our-translations-graduall",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.as-we-add-new-features-our-translations-graduall"
+    },
+    {
+      "source_key": "the-following-people-have-donated-their-time-to-",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.the-following-people-have-donated-their-time-to-"
+    },
+    {
+      "source_key": "fork-on-github-and-submit-a-pr",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.fork-on-github-and-submit-a-pr"
+    },
+    {
+      "source_key": "your-language-skills-can-help-expand-access-to-s",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.your-language-skills-can-help-expand-access-to-s"
+    },
+    {
+      "source_key": "thanks-to-our-community-we-support-over-20-langu",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.thanks-to-our-community-we-support-over-20-langu"
+    },
+    {
+      "source_key": "since-2012-onetime-secret-has-provided-a-secure-",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.since-2012-onetime-secret-has-provided-a-secure-"
+    },
+    {
+      "source_key": "help-secure-communication-go-global",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.help-secure-communication-go-global"
+    },
+    {
+      "source_key": "ready-to-help-some-ways-to-contribute",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.ready-to-help-some-ways-to-contribute"
+    },
+    {
+      "source_key": "review-existing-translations-using-the-language-",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.review-existing-translations-using-the-language-"
+    },
+    {
+      "source_key": "update-a-language-directly-through-our-github-pr",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.update-a-language-directly-through-our-github-pr"
+    },
+    {
+      "source_key": "start-a-new-translation-from-our",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.start-a-new-translation-from-our"
+    },
+    {
+      "source_key": "english-template",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.english-template"
+    },
+    {
+      "source_key": "send-translations-by-email-to",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.send-translations-by-email-to"
+    },
+    {
+      "source_key": "have-questions",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.have-questions"
+    },
+    {
+      "source_key": "reach-out-to-us",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.reach-out-to-us"
+    },
+    {
+      "source_key": "remember-to-include-your-email-if-youre-not-logg",
+      "target_file": "feature-translations.json",
+      "target_path": "web.translations.remember-to-include-your-email-if-youre-not-logg"
+    },
+    {
+      "source_key": "404-page-not-found",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.404-page-not-found"
+    },
+    {
+      "source_key": "404-page-not-found-0",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.404-page-not-found-0"
+    },
+    {
+      "source_key": "oops-the-page-you-are-looking-for-doesnt-exist-o",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.oops-the-page-you-are-looking-for-doesnt-exist-o"
+    },
+    {
+      "source_key": "t-web-common-oops-404",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.t-web-common-oops-404"
+    },
+    {
+      "source_key": "t-web-common-oops-something-went-wrong",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.t-web-common-oops-something-went-wrong"
+    },
+    {
+      "source_key": "the-page-youre-looking-for-doesnt-exist-or-has-b",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.the-page-youre-looking-for-doesnt-exist-or-has-b"
+    },
+    {
+      "source_key": "go-share-a-secret",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.go-share-a-secret"
+    },
+    {
+      "source_key": "were-sorry-but-an-unexpected-error-occurred-whil",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.were-sorry-but-an-unexpected-error-occurred-whil"
+    },
+    {
+      "source_key": "unable-to-load-data-due-to-data-format-issues-pl",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.unable-to-load-data-due-to-data-format-issues-pl"
+    },
+    {
+      "source_key": "why-is-this-secret-unavailable",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.why-is-this-secret-unavailable"
+    },
+    {
+      "source_key": "secrets-are-designed-to-be-viewed-only-once",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.secrets-are-designed-to-be-viewed-only-once"
+    },
+    {
+      "source_key": "what-should-i-do-now",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.what-should-i-do-now"
+    },
+    {
+      "source_key": "contact-the-person-who-sent-you-this-link",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.contact-the-person-who-sent-you-this-link"
+    },
+    {
+      "source_key": "if-youre-unsure-what-to-do-next-please-follow-up",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.if-youre-unsure-what-to-do-next-please-follow-up"
+    },
+    {
+      "source_key": "information-shared-through-our-service-can-only-",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.information-shared-through-our-service-can-only-"
+    },
+    {
+      "source_key": "dismiss-warning",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.dismiss-warning"
+    },
+    {
+      "source_key": "dismiss-notification",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.dismiss-notification"
+    },
+    {
+      "source_key": "dismiss-truncation-warning",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.dismiss-truncation-warning"
+    },
+    {
+      "source_key": "warning-dismissed",
+      "target_file": "error-pages.json",
+      "target_path": "web.errors.warning-dismissed"
+    },
+    {
+      "source_key": "ai-generated-testimonial",
+      "target_file": "feature-testimonials.json",
+      "target_path": "web.testimonials.ai-generated-testimonial"
+    },
+    {
+      "source_key": "ai-generated-content-disclaimer",
+      "target_file": "feature-testimonials.json",
+      "target_path": "web.testimonials.ai-generated-content-disclaimer"
+    },
+    {
+      "source_key": "ai-generated-testimonials",
+      "target_file": "feature-testimonials.json",
+      "target_path": "web.testimonials.ai-generated-testimonials"
+    },
+    {
+      "source_key": "what-leading-ai-says-about-us",
+      "target_file": "feature-testimonials.json",
+      "target_path": "web.testimonials.what-leading-ai-says-about-us"
+    },
+    {
+      "source_key": "this-quote-was-generated-by",
+      "target_file": "feature-testimonials.json",
+      "target_path": "web.testimonials.this-quote-was-generated-by"
+    },
+    {
+      "source_key": "it-was-based-on-the-content-of-the-page-and-does",
+      "target_file": "feature-testimonials.json",
+      "target_path": "web.testimonials.it-was-based-on-the-content-of-the-page-and-does"
+    },
+    {
+      "source_key": "artificial-feedback",
+      "target_file": "feature-testimonials.json",
+      "target_path": "web.testimonials.artificial-feedback"
+    },
+    {
+      "source_key": "this-content-is-ai-generated-based-on-the-conten",
+      "target_file": "feature-testimonials.json",
+      "target_path": "web.testimonials.this-content-is-ai-generated-based-on-the-conten"
+    },
+    {
+      "source_key": "randomtestimonial-stars-5",
+      "target_file": "feature-testimonials.json",
+      "target_path": "web.testimonials.randomtestimonial-stars-5"
+    },
+    {
+      "source_key": "randomtestimonial-name-randomtestimonial-company",
+      "target_file": "feature-testimonials.json",
+      "target_path": "web.testimonials.randomtestimonial-name-randomtestimonial-company"
+    },
+    {
+      "source_key": "randomtestimonial-quote",
+      "target_file": "feature-testimonials.json",
+      "target_path": "web.testimonials.randomtestimonial-quote"
+    },
+    {
+      "source_key": "t-ai-generated-testimonial",
+      "target_file": "feature-testimonials.json",
+      "target_path": "web.testimonials.t-ai-generated-testimonial"
+    }
+  ]
+}

@@ -98,7 +98,31 @@
         "description": "サブスクリプション、支払い方法、請求履歴を管理します",
         "open_portal": "請求ポータルを開く",
         "redirecting": "請求ポータルにリダイレクト中..."
-      }
+      },
+      "start-today": "今日から始める",
+      "start-today-with-identity-plus": "Identity Plus で今日から始める",
+      "per-month": "月額",
+      "full-api-access": "完全なAPIアクセス",
+      "privacy-first-design": "プライバシー第一の設計",
+      "identity-plus": "Identity Plus",
+      "click-this-lightning-bolt-to-upgrade-for-custom-domains": "カスタムドメインのアップグレードには、このライトニングボルトをクリックしてください",
+      "maybe-later": "後で",
+      "upgrade-account": "アカウントをアップグレード",
+      "upgrade-to-identity-plus": "Identity Plusにアップグレード",
+      "upgrade-for-teams": "チーム向けにアップグレード",
+      "benefits-of": "のメリット",
+      "t-benefits-of-identity-plus": "{0}: Identity Plus",
+      "upgrade-to": "アップグレード先",
+      "upgrade-for-yourdomain": "secrets.yourdomain.comにアップグレード",
+      "includes-all-features-and-unlimited-sharing-capa": "すべてのプランにはプライバシー機能と無制限の共有容量が含まれています",
+      "includes-all-data-locality-options": "すべてのプランにはデータロケーリティの選択肢が含まれています: {0}地域",
+      "get-started": "始める",
+      "frequency-value-annually-annual-monthly-subscrip": "{0}サブスクリプション",
+      "elevate-your-secure-sharing-with-custom-domains-": "カスタムドメイン、無制限の容量、エンタープライズグレードの機能で、安全な共有を向上させましょう。",
+      "payment-frequency": "支払い頻度",
+      "secure-your-brand-and-build-customer-trust-with-": "あなたのドメインからのリンクでブランドを保護し、顧客の信頼を構築します。プライバシーとプロフェッショナリズムを重視するビジネスに最適です。",
+      "secure-links-stronger-connections": "安全なリンク、より強いつながり",
+      "identity-tier-not-found-in-product-tiers": "製品ティアにIdentityティアが見つかりません"
     }
   }
 }

@@ -1,0 +1,29 @@
+{
+  "web": {
+    "translations": {
+      "welcomes-contributors-for-both-existing-and-new-": "accueille des contributeurs pour les langues existantes et nouvelles.",
+      "our-github-project": "notre projet GitHub",
+      "if-youre-interested-in-translation": "Si vous êtes intéressé par la traduction,",
+      "whove-helped-with-translations-as-we-continue-to": "qui ont participé aux traductions, alors que nous continuons à développer de nouvelles fonctionnalités.",
+      "25-contributors": "25+ contributeurs",
+      "were-grateful-to-the": "Nous sommes reconnaissants à la",
+      "as-we-add-new-features-our-translations-graduall": "Au fur et à mesure que nous ajoutons de nouvelles fonctionnalités, nos traductions doivent être mises à jour pour rester actuelles. Cela concerne à la fois onetimesecret.com et des milliers d'installations auto-hébergées dans le monde entier.",
+      "remember-to-include-your-email-if-youre-not-logg": "- n'oubliez pas d'indiquer votre adresse électronique si vous n'êtes pas connecté. Chaque traduction permet à un plus grand nombre de personnes de communiquer en toute sécurité.",
+      "reach-out-to-us": "Nous contacter",
+      "have-questions": "Vous avez des questions ?",
+      "send-translations-by-email-to": "Envoyez les traductions par courrier électronique à",
+      "english-template": "Modèle anglais",
+      "start-a-new-translation-from-our": "Commencer une nouvelle traduction à partir de notre",
+      "update-a-language-directly-through-our-github-pr": "Mettre à jour une langue directement via notre projet GitHub",
+      "review-existing-translations-using-the-language-": "Réviser les traductions existantes à l'aide du sélecteur de langue ci-dessus",
+      "ready-to-help-some-ways-to-contribute": "Prêt à aider ? Quelques façons de contribuer :",
+      "the-following-people-have-donated-their-time-to-": "Les personnes suivantes ont donné de leur temps pour aider à étendre la portée de Onetime Secret :",
+      "translations": "Traductions",
+      "fork-on-github-and-submit-a-pr": "Fork sur GitHub et soumettre un PR",
+      "your-language-skills-can-help-expand-access-to-s": "Vos compétences linguistiques peuvent contribuer à élargir l'accès aux communications sécurisées.",
+      "thanks-to-our-community-we-support-over-20-langu": "Grâce à notre communauté, nous prenons aujourd'hui en charge plus de 20 langues. Cependant, avec notre rythme de développement rapide, de nombreuses traductions ont besoin de mises à jour pour rester d'actualité. Cela concerne à la fois onetimesecret.com et les milliers d'installations auto-hébergées dans le monde.",
+      "since-2012-onetime-secret-has-provided-a-secure-": "Depuis 2012, Onetime Secret offre un moyen sûr de partager des informations sensibles dans le monde entier. Avec des utilisateurs dans des régions où l'anglais n'est pas la langue principale, des traductions précises sont essentielles pour rendre la communication sécurisée accessible à tous.",
+      "help-secure-communication-go-global": "Contribuer à la mondialisation des communications sécurisées"
+    }
+  }
+}

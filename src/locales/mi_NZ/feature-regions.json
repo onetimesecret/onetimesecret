@@ -18,7 +18,24 @@
       "compliance-title": "Whakaū Ture",
       "compliance-description": "Whakatutuki i ngā whakaritenga tiaki raraunga rohe pērā i GDPR, HIPAA, CCPA, me ētahi atu",
       "performance-title": "Urunga Tere Ake",
-      "performance-description": "Ko ngā raraunga kua rokirokihia tata ki a koe, ka iti ake te wā takaroa, ka pai ake te mahi."
+      "performance-description": "Ko ngā raraunga kua rokirokihia tata ki a koe, ka iti ake te wā takaroa, ka pai ake te mahi.",
+      "regions": "Ngā Rohe",
+      "contact-our-compliance-team": "whakapā atu ki tō mātou rōpū tūtohu",
+      "review-our-documentation": "arotake i ā mātou tuhinga",
+      "your-account-and-data-are-protected-under-the-la": "Ka tiakina tō pūkete me ō raraunga i raro i ngā ture me ngā whakaritenga o",
+      "this-regulatory-framework-is-determined-by-your-": "Ka whakaritea tēnei anga whakahaere e tō rohe uru:",
+      "each-jurisdiction-maintains-separate-legal-compl": "Ka pupuri ia mana whakahaere i ngā tūtohutanga ture motuhake me te mana whakahaere raraunga. Ahakoa ka taea e koe te waihanga pūkete i ngā mana whakahaere maha, ka noho ture motuhake tonu me te kore tuari raraunga i waenga i ngā rohe whakahaere.",
+      "to-understand-the-specific-regulations-and-prote": "Ki te mārama ki ngā ture motuhake me ngā whakamarumaru e hāngai ana ki tō pūkete, tēnā",
+      "current": "O Nāianei",
+      "jurisdiction-display_name-iscurrentjurisdiction-": "{0} {1}",
+      "available-regions": "Ngā Rohe E Wātea Ana",
+      "jurisdiction": "Mana Whakahaere",
+      "data-center-location-currentjurisdiction-identif": "Wāhi pokapū raraunga: {0}",
+      "data-region": "Rohe Raraunga",
+      "unknown-jurisdiction": "Mana Whakahaere Tē Mōhiotia",
+      "serving-you-from-the": "E manaaki ana i a koe mai i te",
+      "continue-to-jurisdiction-domain": "Haere tonu ki {0}",
+      "current-jurisdiction": "Mana whakahaere o nāianei:"
     }
   }
 }

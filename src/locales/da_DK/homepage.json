@@ -26,7 +26,31 @@
       "disabled": {
         "tagline2": "Denne tjeneste er kun sat op til intern brug.",
         "tagline1": "Brugergrænseflade og login-funktioner er ikke tilgængelige."
-      }
+      },
+      "link-preview": "Forhåndsvisning af link",
+      "meets-and-exceeds-compliance-standards": "Opfylder og overgår overholdelsesstandarder",
+      "secure-your-brand-build-customer-trust-etc": "Sikre dit brand, opbyg kundernes tillid med links fra dit domæne.",
+      "a-trusted-way-to-share-sensitive-information-etc": "En pålidelig måde at dele følsomme oplysninger på, som selvdestruerer, når de er blevet set.",
+      "secure-links": "Sikre links",
+      "about-onetime-secret-0": "Om Onetime Secret",
+      "log-in-to-onetime-secret": "Log ind på Onetime Secret",
+      "about-onetime-secret": "Om Onetime Secret",
+      "signup-individual-and-business-plans": "Tilmelding - Individuelle planer og forretningsplaner",
+      "tagline-signed": "Underskrevet",
+      "tagline-sealed": "Forseglet",
+      "tagline-delivered": "Leveret",
+      "onetime-secret": "Onetime Secret",
+      "onetime-secret-literal": "Onetime Secret",
+      "one-time-secret-literal": "",
+      "onetime-secret-homepage": "Onetime Secret-hjemmeside",
+      "send-sensitive-information-that-can-only-be-viewed-once": "Send følsomme oplysninger, der kun kan ses én gang",
+      "create-a-secure-link": "Opret et sikkert link",
+      "now-with-custom-domains": "Nu med brugerdefinerede domæner",
+      "this-is-a-private-instance-only-authorized-team-": "Dette er en privat instans. Kun autoriserede teammedlemmer kan generere nye sikre links.",
+      "welcome-to-onetime-secret": "Velkommen til Onetime Secret.",
+      "onetime-secret-helps-us-share-sensitive-informat": "Onetime Secret hjælper os med at dele følsomme oplysninger sikkert, mens vi bevarer vores professionelle facade.",
+      "information-shared-through-this-service-can-only": "Oplysninger, der deles via denne tjeneste, kan kun tilgås én gang. Når indholdet er set, slettes det permanent for at sikre fortrolighed.",
+      "welcome-to-the-global-broadcast": "Velkommen til den globale udsendelse!"
     }
   }
 }

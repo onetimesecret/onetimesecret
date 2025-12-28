@@ -1,0 +1,18 @@
+{
+  "web": {
+    "testimonials": {
+      "ai-generated-testimonial": "Opinia wygenerowana przez AI",
+      "ai-generated-content-disclaimer": "Treść wygenerowana przez AI w celach demonstracyjnych.\nNie pochodzi od rzeczywistej osoby ani firmy.",
+      "randomtestimonial-stars-5": "{0}/5",
+      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
+      "randomtestimonial-quote": "\"{0}\"",
+      "t-ai-generated-testimonial": "{0}:",
+      "what-leading-ai-says-about-us": "Co mówi o nas wiodąca AI",
+      "ai-generated-testimonials": "Opinie wygenerowane przez AI",
+      "this-quote-was-generated-by": "Ten cytat został wygenerowany przez",
+      "it-was-based-on-the-content-of-the-page-and-does": "Został oparty na treści strony i nie reprezentuje rzeczywistej osoby ani firmy.",
+      "artificial-feedback": "Sztuczna opinia",
+      "this-content-is-ai-generated-based-on-the-conten": "Ta treść jest generowana przez AI na podstawie zawartości tej strony i nie reprezentuje rzeczywistej osoby ani firmy."
+    }
+  }
+}
