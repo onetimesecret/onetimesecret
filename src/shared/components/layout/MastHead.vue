@@ -6,7 +6,7 @@
   import UserMenu from '@/shared/components/navigation/UserMenu.vue';
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { computed, watch, type Component } from 'vue';
+  import { computed, watch, type Component, onMounted } from 'vue';
   import { shallowRef } from 'vue';
 
   const props = withDefaults(defineProps<LayoutProps>(), {
@@ -33,7 +33,7 @@
   // Fully: all authentication steps complete (authenticated = true, has cust)
   const isUserPresent = computed(() => {
     const { authenticated, awaiting_mfa, cust, email } = windowProps.value;
-    return (authenticated && cust) || (awaiting_mfa && email);
+    return !!((authenticated && cust) || (awaiting_mfa && email));
   });
 
   // i18n setup
@@ -124,6 +124,15 @@
   // Watch for changes to logoUrl and load Vue component if needed
   watch(() => logoConfig.value.url, loadLogoComponent, { immediate: true });
 
+  // Refresh window state to ensure auth status is up to date
+  onMounted(async () => {
+    try {
+      await WindowService.refresh();
+    } catch (error) {
+      console.warn('Failed to refresh window state:', error);
+    }
+  });
+
 </script>
 
 <template>
@@ -133,10 +142,11 @@
       <div class="flex items-center gap-3">
         <div v-if="isVueComponent">
           <component
-            :is="logoComponent"
             id="logo"
+            :is="logoComponent"
             v-if="logoComponent"
             v-bind="logoConfig"
+            :is-user-present="isUserPresent"
             class="transition-transform" />
         </div>
         <div v-else>

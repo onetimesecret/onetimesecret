@@ -154,7 +154,9 @@
       "create-link": "Create Secret Link",
       "create-request-short": "Create Request",
       "create-request": "Create Request Link",
-      "related-settings": "Related Settings"
+      "related-settings": "Related Settings",
+      "creating_in": "Creating in",
+      "scope_indicator": "Creating secrets in {domain}"
     },
     "STATUS": {
       "new": "New",

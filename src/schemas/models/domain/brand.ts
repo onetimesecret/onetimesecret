@@ -88,6 +88,9 @@ export const brandSettingschema = z
     font_family: z.enum(fontOptions).default(FontFamily.SANS),
     corner_style: z.enum(cornerStyleOptions).default(CornerStyle.ROUNDED),
     locale: localeSchema.default('en'),
+    default_ttl: transforms.fromString.number.nullish(),
+    passphrase_required: transforms.fromString.boolean.default(false),
+    notify_enabled: transforms.fromString.boolean.default(false),
   })
   .partial(); // Makes all fields optional;
 

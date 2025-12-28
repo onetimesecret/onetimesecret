@@ -16,7 +16,7 @@ require 'onetime/models/custom_domain'
 
 ## BrandSettings defines expected members
 @bs.members.sort
-#=> [:allow_public_api, :allow_public_homepage, :button_text_light, :corner_style, :font_family, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :primary_color]
+#=> [:allow_public_api, :allow_public_homepage, :button_text_light, :corner_style, :default_ttl, :font_family, :instructions_post_reveal, :instructions_pre_reveal, :instructions_reveal, :locale, :logo, :notify_enabled, :passphrase_required, :primary_color]
 
 ## DEFAULTS constant is accessible and frozen
 [@bs::DEFAULTS.frozen?, @bs::DEFAULTS[:font_family]]
@@ -131,3 +131,37 @@ result = case @pattern_test
          end
 result
 #=> 'matched serif'
+
+## from_hash applies privacy defaults
+@privacy = @bs.from_hash({})
+[@privacy.default_ttl, @privacy.passphrase_required, @privacy.notify_enabled]
+#=> [nil, false, false]
+
+## from_hash handles privacy custom values
+@custom_privacy = @bs.from_hash(default_ttl: 3600, passphrase_required: true, notify_enabled: true)
+[@custom_privacy.default_ttl, @custom_privacy.passphrase_required, @custom_privacy.notify_enabled]
+#=> [3600, true, true]
+
+## passphrase_required? handles various truthy values
+[@bs.from_hash(passphrase_required: 'true').passphrase_required?,
+ @bs.from_hash(passphrase_required: true).passphrase_required?,
+ @bs.from_hash(passphrase_required: 'false').passphrase_required?,
+ @bs.from_hash({}).passphrase_required?]
+#=> [true, true, false, false]
+
+## notify_enabled? handles various truthy values
+[@bs.from_hash(notify_enabled: 'true').notify_enabled?,
+ @bs.from_hash(notify_enabled: true).notify_enabled?,
+ @bs.from_hash(notify_enabled: 'false').notify_enabled?,
+ @bs.from_hash({}).notify_enabled?]
+#=> [true, true, false, false]
+
+## default_ttl accepts integer values
+@ttl_settings = @bs.from_hash(default_ttl: 7200)
+@ttl_settings.default_ttl
+#=> 7200
+
+## to_h_for_storage includes privacy defaults when set
+@privacy_storage = @bs.from_hash(default_ttl: 3600, passphrase_required: true).to_h_for_storage
+[@privacy_storage.key?('default_ttl'), @privacy_storage['default_ttl'], @privacy_storage['passphrase_required']]
+#=> [true, '3600', 'true']

@@ -19,7 +19,9 @@
     mode: 'light',
     href: '/',
     isColonelArea: false,
-    showSiteName: true,
+    isUserPresent: false,
+    // showSiteName: true,
+    // showRegionSelector: true,
   });
 
   const { t } = useI18n();
@@ -27,15 +29,23 @@
   // Core logo properties
   const ariaLabel = computed(() => props.ariaLabel || t('one-time-secret-literal'));
   const siteName = computed(() => props.siteName || t('one-time-secret-literal'));
+  const showSiteName = computed(() => !props.isUserPresent && !!siteName.value);
   const svgSize = computed(() =>
     typeof props.size === 'number' && props.size > 0 ? props.size : 64
   );
+  const svgBrightness = computed(() => props.isUserPresent ? 0.9 : 1);
 
   // Jurisdiction store and selection handling
   const jurisdictionStore = useJurisdictionStore();
   const currentJurisdiction = computed<Jurisdiction | null>(
     () => jurisdictionStore.getCurrentJurisdiction
   );
+
+  const canShowJurisdictionSelector = computed(() => (
+      !props.isUserPresent &&
+      jurisdictionStore.enabled &&
+      jurisdictionStore.jurisdictions.length > 1
+    ));
 
   // Jurisdiction icon helper functions
   const getIconCollection = (jurisdiction: Jurisdiction | null): string =>
@@ -118,12 +128,13 @@
         <OnetimeSecretIcon
           :size="svgSize"
           :aria-label="ariaLabel"
+          :brightness="svgBrightness"
           class="shrink-0 rounded-lg"
           :style="{ width: `${svgSize}px`, height: `${svgSize}px` }" /></a>
 
       <!-- Jurisdiction selector button -->
       <div
-        v-if="jurisdictionStore.enabled"
+        v-if="canShowJurisdictionSelector"
         class="relative">
         <!-- prettier-ignore-attribute class -->
         <button
@@ -216,7 +227,7 @@
 
     <!-- Text content -->
     <div
-      v-if="props.showSiteName && siteName"
+      v-if="showSiteName"
       class="flex flex-col ">
       <a
         :href="props.href"
