@@ -6,7 +6,7 @@
   import UserMenu from '@/shared/components/navigation/UserMenu.vue';
   import { WindowService } from '@/services/window.service';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { computed, watch, type Component } from 'vue';
+  import { computed, watch, type Component, onMounted } from 'vue';
   import { shallowRef } from 'vue';
 
   const props = withDefaults(defineProps<LayoutProps>(), {
@@ -123,6 +123,15 @@
 
   // Watch for changes to logoUrl and load Vue component if needed
   watch(() => logoConfig.value.url, loadLogoComponent, { immediate: true });
+
+  // Refresh window state to ensure auth status is up to date
+  onMounted(async () => {
+    try {
+      await WindowService.refresh();
+    } catch (error) {
+      console.warn('Failed to refresh window state:', error);
+    }
+  });
 
 </script>
 
