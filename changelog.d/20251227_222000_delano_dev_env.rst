@@ -1,0 +1,17 @@
+Added
+-----
+
+- Development process manager (``bin/dev``) for single-command startup of backend, frontend, and worker processes using Overmind.
+- Configuration linking script (``bin/setup-dev-links``) to symlink shared dev resources from ``~/.config/onetimesecret-dev``, enabling consistent multi-worktree development.
+- New ``Procfile.dev`` defining development services: Puma backend (port 7143), Vite frontend, and background worker.
+
+Changed
+-------
+
+- Simplified ``.env.example`` by removing shell export directives and adding explicit ``NODE_ENV=production``.
+- Added ``.env.sh`` symlink convention for environment sourcing.
+
+AI Assistance
+-------------
+
+- Claude Code assisted with PR feedback implementation: security improvements (removing auto-install behavior), path traversal validation, and shell script best practices.
