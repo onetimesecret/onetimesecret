@@ -3,11 +3,13 @@
 <!--
   Simplified footer for authenticated workspace users.
   Based on ImprovedFooter with:
-  - Removed: Region selector, color mode toggle, language toggle, feedback toggle
-  - Added: Standard SaaS footer links (API Docs, Branding Guide, Plans, etc.)
+  - Removed: Region selector, color mode toggle, language toggle
+  - Added: Standard SaaS footer links (API Docs, Branding Guide, Plans)
+  - Kept: FeedbackToggle for authenticated users
 -->
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
+  import FeedbackToggle from '@/apps/secret/components/support/FeedbackToggle.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { WindowService } from '@/services/window.service';
   import { useDomainsStore, useMetadataListStore } from '@/shared/stores';
@@ -15,13 +17,15 @@
   import { computed } from 'vue';
   import { useRoute } from 'vue-router';
 
-  withDefaults(defineProps<LayoutProps>(), {
-    displayFeedback: false,
+  const props = withDefaults(defineProps<LayoutProps>(), {
+    displayFeedback: true,
     displayFooterLinks: true,
     displayVersion: true,
     displayToggles: false,
     displayPoweredBy: true,
   });
+
+  const authEnabled = WindowService.get('authentication')?.enabled ?? false;
 
   const { t } = useI18n();
   const route = useRoute();
@@ -101,16 +105,6 @@
       href: '/pricing',
       external: false,
     },
-    {
-      label: t('web.footer.status'),
-      href: 'https://status.onetimesecret.com',
-      external: true,
-    },
-    {
-      label: t('web.footer.support'),
-      href: '/feedback',
-      external: false,
-    },
   ]);
 
   // Check if a route is active
@@ -176,7 +170,7 @@ class="size-6" />
       md:py-6"
     :aria-label="t('web.layout.site_footer')">
     <div class="container mx-auto max-w-4xl px-4">
-      <!-- Footer Links Section -->
+      <!-- Footer Links and Feedback Section -->
       <div v-if="displayFooterLinks" class="mb-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
         <template v-for="link in footerLinks" :key="link.href">
           <a
@@ -185,11 +179,18 @@ class="size-6" />
             :rel="link.external ? 'noopener noreferrer' : undefined"
             class="text-sm text-gray-600 transition-colors duration-200 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
             {{ link.label }}
-            <span v-if="link.external"
-class="ml-0.5 text-xs opacity-60"
-aria-hidden="true">↗</span>
+            <span
+              v-if="link.external"
+              class="ml-0.5 text-xs opacity-60"
+              aria-hidden="true">↗</span>
           </a>
         </template>
+
+        <!-- Feedback Toggle -->
+        <FeedbackToggle
+          v-if="props.displayFeedback && authEnabled"
+          class="text-sm text-gray-600 transition-colors duration-200 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          :aria-label="t('web.layout.provide_feedback')" />
       </div>
 
       <!-- Version and Powered By -->
