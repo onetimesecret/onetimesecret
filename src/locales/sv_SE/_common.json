@@ -107,6 +107,7 @@
       "saving": "Sparar...",
       "adding_ellipses": "Lägger till...",
       "e-g-example": "t.ex.",
+      "example_placeholder": "t.ex. {example}",
       "status": "Status",
       "escape": "Avbryt",
       "active": "Aktiv",

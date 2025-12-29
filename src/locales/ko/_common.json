@@ -107,6 +107,7 @@
       "saving": "저장 중...",
       "adding_ellipses": "추가 중",
       "e-g-example": "예시",
+      "example_placeholder": "예: {example}",
       "status": "상태",
       "escape": "취소",
       "active": "활성",

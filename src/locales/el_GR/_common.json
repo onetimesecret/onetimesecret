@@ -107,6 +107,7 @@
       "saving": "Αποθήκευση...",
       "adding_ellipses": "Προσθήκη...",
       "e-g-example": "π.χ.",
+      "example_placeholder": "π.χ. {example}",
       "status": "Κατάσταση",
       "escape": "Διαφυγή",
       "active": "Ενεργό",

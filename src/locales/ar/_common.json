@@ -107,6 +107,7 @@
       "saving": "جارٍ الحفظ...",
       "adding_ellipses": "جارٍ الإضافة",
       "e-g-example": "مثال:",
+      "example_placeholder": "مثال: {example}",
       "status": "الحالة",
       "escape": "خروج",
       "active": "نشط",

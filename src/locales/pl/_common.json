@@ -107,6 +107,7 @@
       "saving": "Zapisywanie...",
       "adding_ellipses": "Dodawanie...",
       "e-g-example": "np.",
+      "example_placeholder": "np. {example}",
       "status": "Status",
       "escape": "Escape",
       "active": "Aktywny",
