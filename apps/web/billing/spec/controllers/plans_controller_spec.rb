@@ -239,7 +239,9 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
 
   describe 'GET /billing/portal' do
     let(:organization) do
-      org = Onetime::Organization.create!('Test Org', customer, customer.email)
+      org            = Onetime::Organization.create!('Test Org', customer, customer.email)
+      org.is_default = true
+      org.save
       created_organizations << org
       org
     end
