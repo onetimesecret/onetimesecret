@@ -6,6 +6,39 @@
 
 set -euo pipefail
 
+# Repair .env.sh if it's a symlink (historical git issue)
+repair_env_sh() {
+    if [[ -L ".env.sh" ]]; then
+        echo "Repairing .env.sh (removing stale symlink)..."
+        rm ".env.sh"
+    fi
+
+    if [[ ! -f ".env.sh" ]]; then
+        echo "Creating .env.sh wrapper..."
+        cat > ".env.sh" << 'EOF'
+#!/usr/bin/env bash
+# .env.sh
+
+# A convenience wrapper so that .env is just a basic environment file
+# that is compatible everywhere while still using the auto-export
+# functionality the shell gods left for us.
+
+# set -a enables automatic export mode. All variable assignments between
+# here and and set +a will be exported to child processes without needing
+# 'export' keyword.
+set -a
+
+# Load the vars
+[ -f .env ] && . .env
+
+# Set +a restores default behavior where variables must be explicitly exported
+set +a
+EOF
+        chmod +x ".env.sh"
+        echo "Created and marked executable: .env.sh"
+    fi
+}
+
 OTS_DEV_CONFIG="${OTS_DEV_CONFIG:-$HOME/.config/onetimesecret-dev}"
 
 # Files/dirs to symlink: local_path -> shared_path
@@ -68,6 +101,9 @@ if [[ ! -f "Gemfile" ]]; then
     echo "Error: Run this from an OTS checkout root"
     exit 1
 fi
+
+# Repair .env.sh before proceeding with other links
+repair_env_sh
 
 echo "Linking dev resources from $OTS_DEV_CONFIG"
 echo "---"
