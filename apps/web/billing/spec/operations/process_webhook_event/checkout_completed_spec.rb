@@ -76,6 +76,96 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
     end
   end
 
+  context 'with plan_id in subscription metadata' do
+    let!(:customer) { create_test_customer(email: test_email) }
+
+    let(:subscription_with_planid) do
+      build_stripe_subscription(
+        id: stripe_subscription_id,
+        customer: stripe_customer_id,
+        status: 'active',
+        metadata: {
+          'custid' => customer.custid,
+          Billing::Metadata::FIELD_PLAN_ID => 'identity_plus_v1',
+        },
+      )
+    end
+
+    before do
+      allow(Stripe::Subscription).to receive(:retrieve)
+        .with(stripe_subscription_id)
+        .and_return(subscription_with_planid)
+    end
+
+    it 'sets organization planid from subscription metadata' do
+      operation.call
+      org = customer.organization_instances.to_a.first
+      expect(org.planid).to eq('identity_plus_v1')
+    end
+  end
+
+  context 'with plan_id only in price metadata' do
+    let!(:customer) { create_test_customer(email: test_email) }
+
+    let(:subscription_with_price_planid) do
+      build_stripe_subscription(
+        id: stripe_subscription_id,
+        customer: stripe_customer_id,
+        status: 'active',
+        metadata: { 'custid' => customer.custid },
+        price_metadata: { Billing::Metadata::FIELD_PLAN_ID => 'multi_team_v1' },
+      )
+    end
+
+    before do
+      allow(Stripe::Subscription).to receive(:retrieve)
+        .with(stripe_subscription_id)
+        .and_return(subscription_with_price_planid)
+    end
+
+    it 'sets organization planid from price metadata as fallback' do
+      operation.call
+      org = customer.organization_instances.to_a.first
+      expect(org.planid).to eq('multi_team_v1')
+    end
+  end
+
+  context 'with no plan_id in any metadata' do
+    let!(:customer) { create_test_customer(email: test_email) }
+
+    let(:subscription_no_planid) do
+      build_stripe_subscription(
+        id: stripe_subscription_id,
+        customer: stripe_customer_id,
+        status: 'active',
+        metadata: { 'custid' => customer.custid },
+        price_metadata: {},
+      )
+    end
+
+    before do
+      allow(Stripe::Subscription).to receive(:retrieve)
+        .with(stripe_subscription_id)
+        .and_return(subscription_no_planid)
+    end
+
+    it 'logs warning when no plan_id found' do
+      expect(OT).to receive(:lw).with(
+        '[Organization.extract_plan_id_from_subscription] No plan_id in metadata',
+        hash_including(subscription_id: stripe_subscription_id)
+      )
+      operation.call
+    end
+
+    it 'organization keeps default planid' do
+      allow(OT).to receive(:lw) # Suppress warning output
+      operation.call
+      org = customer.organization_instances.to_a.first
+      # Organization has default planid of 'free' when no plan_id is extracted
+      expect(org.planid).to eq('free')
+    end
+  end
+
   context 'with one-time payment (no subscription)' do
     let(:payment_session) do
       build_stripe_session(id: 'cs_payment', customer: stripe_customer_id, subscription: nil, mode: 'payment')
