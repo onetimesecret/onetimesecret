@@ -201,7 +201,7 @@ describe('useMfa', () => {
       const result = await enableMfa('wrong_code', 'password123');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('web.auth.mfa.invalid-code');
+      expect(error.value).toBe('web.auth.mfa.invalid_code');
     });
 
     it('handles incorrect password error', async () => {
@@ -265,7 +265,7 @@ describe('useMfa', () => {
       const result = await verifyOtp('wrong_code');
 
       expect(result).toBe(false);
-      expect(error.value).toBe('web.auth.mfa.invalid-code');
+      expect(error.value).toBe('web.auth.mfa.invalid_code');
     });
 
     it('handles session expired error', async () => {
