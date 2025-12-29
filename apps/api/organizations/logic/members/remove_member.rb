@@ -130,7 +130,10 @@ module OrganizationAPI::Logic
         return if cust.role?(:colonel)
 
         # Check actor's role permissions
-        actor_role = @actor_membership&.role || 'member'
+        # Note: @actor_membership is guaranteed non-nil here because:
+        # 1. Colonels already returned at line 130
+        # 2. Non-colonels without membership would have raised in load_actor_membership
+        actor_role = @actor_membership.role
         target_role = @target_membership.role
 
         case actor_role
