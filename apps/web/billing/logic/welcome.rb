@@ -127,9 +127,11 @@ module Billing
         def update_organization_billing(customer)
           return unless stripe_subscription
 
-          org = customer.organization_instances.first
+          # Find default organization (matches CheckoutCompleted pattern)
+          orgs = customer.organization_instances.to_a
+          org = orgs.find { |o| o.is_default }
           unless org
-            OT.lw "[FromStripePaymentLink] No organization found for customer #{customer.obscure_email}"
+            OT.lw "[FromStripePaymentLink] No default organization found for customer #{customer.obscure_email}"
             return
           end
 
@@ -141,69 +143,83 @@ module Billing
         end
       end
 
-      # Handles Stripe webhook events (legacy endpoint)
+      # Processes checkout session redirect from Stripe
       #
-      # @note Modern webhook handling uses Billing::Controllers::Webhooks with
-      #   async processing via RabbitMQ. This class is maintained for backward
-      #   compatibility with the /welcome/stripe/webhook endpoint.
+      # Handles the redirect after a customer completes checkout via
+      # Billing::Controllers::Plans (using ?session_id= parameter).
+      # Retrieves the full checkout session with expanded subscription,
+      # finds/creates the customer's organization, and updates billing.
       #
-      class StripeWebhook < Onetime::Logic::Base
-        attr_reader :event
-        attr_accessor :payload, :stripe_signature
+      # @note This is used by /billing/welcome endpoint
+      #
+      class ProcessCheckoutSession < Onetime::Logic::Base
+        attr_reader :session_id, :checkout_session, :subscription
 
         def process_params
-          @endpoint_secret = OT.billing_config.webhook_signing_secret
-          @event           = nil
+          @session_id = params[:session_id]
         end
 
         def raise_concerns
-          raise_form_error 'No endpoint secret set' unless @endpoint_secret
-          raise_form_error 'No Stripe payload' unless payload
-          raise_form_error 'No Stripe signature' unless stripe_signature
+          raise_form_error 'No session_id provided' unless session_id
 
-          begin
-            @event = Stripe::Webhook.construct_event(
-              payload,
-              stripe_signature,
-              @endpoint_secret,
-            )
-          rescue JSON::ParserError => ex
-            OT.le "[webhook] JSON parsing error: #{ex}: sig:#{stripe_signature}"
-            raise_form_error 'Invalid payload'
-          rescue Stripe::SignatureVerificationError => ex
-            OT.le "[webhook] Signature verification failed: #{ex}: sig:#{stripe_signature}"
-            raise_form_error 'Bad signature'
-          end
+          @checkout_session = Stripe::Checkout::Session.retrieve({
+            id: session_id,
+            expand: %w[subscription customer],
+          })
+          raise_form_error 'Invalid checkout session' unless checkout_session
+
+          @subscription = checkout_session.subscription
+          # Note: subscription may be nil for one-time payments
         end
 
         def process
-          OT.ld "[webhook: #{event.type}] Event data: #{event.data}"
+          return success_data unless subscription
 
-          case event.type
-          when 'checkout.session.completed'
-            session = event.data.object
-            # Handle successful checkout
-            OT.info "[webhook: #{event.type}] session: #{session} "
+          metadata = subscription.metadata
+          custid   = metadata['custid']
+          plan_id  = metadata['plan_id']
 
-          when 'customer.subscription.created'
-            subscription = event.data.object
-            # Handle new subscription
-            # ... handle other events as needed
-            OT.info "[webhook: #{event.type}] subscription: #{subscription} "
+          OT.info '[ProcessCheckoutSession] Processing checkout', {
+            session_id: session_id,
+            custid: custid,
+            plan_id: plan_id,
+            subscription_id: subscription.id,
+          }
 
-          else
-            OT.info "[webhook: #{event.type}] Unhandled event"
-          end
+          # Find or create default organization for the customer
+          org = find_or_create_default_organization(cust)
+
+          # Update organization with subscription details (extracts planid, etc.)
+          org.update_from_stripe_subscription(subscription)
+
+          OT.info '[ProcessCheckoutSession] Organization subscription activated', {
+            orgid: org.objid,
+            subscription_id: subscription.id,
+            plan_id: plan_id,
+          }
 
           success_data
         end
 
         def success_data
-          response_status  = 200
-          response_headers = { 'content-type' => 'application/json' }
-          response_content = { welcome: 'thank you' }
+          { session_id: session_id, success: true }
+        end
 
-          [response_status, response_headers, [response_content.to_json]]
+        private
+
+        # Find existing default organization or create one
+        #
+        # @param customer [Onetime::Customer] The customer
+        # @return [Onetime::Organization] The default organization
+        def find_or_create_default_organization(customer)
+          orgs = customer.organization_instances.to_a
+          org = orgs.find { |o| o.is_default }
+
+          return org if org
+
+          # Create default organization if none exists
+          OT.info "[ProcessCheckoutSession] Creating default organization for #{customer.obscure_email}"
+          Onetime::Organization.create(customer)
         end
       end
     end
