@@ -4,16 +4,16 @@
   Improved Primary Navigation Component
 
   Key improvements:
-  - Domain scope switcher on far left for context awareness
   - Tab navigation temporarily hidden (redesign pending)
   - Quick actions area for future features
   - Cleaner visual hierarchy
   - Room for growth without clutter
+
+  Note: Domain scope switcher moved to OrganizationContextBar
 -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import DomainScopeSwitcher from '@/shared/components/navigation/DomainScopeSwitcher.vue';
 
   const { t } = useI18n();
 </script>
@@ -22,9 +22,9 @@
   <nav
     class="flex items-center justify-between py-2"
     :aria-label="t('web.layout.main_navigation')">
-    <!-- Left side: Domain Scope Switcher (far left per mockup) -->
+    <!-- Left side: Reserved for future navigation items -->
     <div class="flex items-center">
-      <DomainScopeSwitcher />
+      <!-- Future: Tab navigation, breadcrumbs, etc. -->
     </div>
 
     <!-- Right side: Reserved for future quick actions -->

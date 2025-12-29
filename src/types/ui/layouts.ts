@@ -33,6 +33,7 @@ export interface LayoutDisplay {
   displayGlobalBroadcast: boolean;
   displayMasthead: boolean;
   displayNavigation: boolean;
+  displayPrimaryNav: boolean;
   displayFooterLinks: boolean;
   displayFeedback: boolean;
   displayVersion: boolean;

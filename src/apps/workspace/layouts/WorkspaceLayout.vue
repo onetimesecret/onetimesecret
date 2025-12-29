@@ -6,6 +6,7 @@
 -->
 
 <script setup lang="ts">
+  import OrganizationContextBar from '@/apps/workspace/components/navigation/OrganizationContextBar.vue';
   import WorkspaceFooter from '@/apps/workspace/components/layout/WorkspaceFooter.vue';
   import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
   import TestModeBanner from '@/apps/colonel/components/TestModeBanner.vue';
@@ -22,6 +23,7 @@
     displayFooterLinks: true,
     displayMasthead: true,
     displayNavigation: true,
+    displayPrimaryNav: false,
     displayVersion: true,
     displayToggles: true,
     displayPoweredBy: true,
@@ -56,7 +58,9 @@
 <template>
   <BaseLayout v-bind="layoutProps">
     <template #header>
-      <ImprovedHeader v-bind="layoutProps" />
+      <ImprovedHeader v-bind="layoutProps">
+        <OrganizationContextBar />
+      </ImprovedHeader>
       <TestModeBanner v-if="isTestModeActive" />
     </template>
 
