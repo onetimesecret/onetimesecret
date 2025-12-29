@@ -128,13 +128,9 @@ module Core
         logic.raise_concerns
         logic.process
 
-        @cust = logic.cust
-
-        # Regenerate session ID after new account creation to prevent fixation attacks
-        if logic.new_account_created && req.env['rack.session.options']
-          req.env['rack.session.options'][:renew] = true
-        end
-
+        # Note: For new accounts, logic.process raises OT::Redirect to /signin
+        # requiring email verification before login. Only authenticated users
+        # completing checkout reach this redirect.
         res.redirect '/account'
       end
 

@@ -102,7 +102,9 @@ module V2::Logic
                 action: 'verification',
                 result: :verified,
               }
-              owner.verified! 'true'
+              owner.verified    = true
+              owner.verified_by = 'email'  # Track email verification method
+              owner.save
               owner.reset_secret.delete!
               sess.destroy!
               secret.received!

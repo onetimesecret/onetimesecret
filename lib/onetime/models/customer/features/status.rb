@@ -13,6 +13,7 @@ module Onetime::Customer::Features
       base.field :role
       base.field :joined
       base.field :verified
+      base.field :verified_by  # 'email', 'stripe_payment', 'autoverify', nil
     end
 
     module ClassMethods
@@ -21,6 +22,16 @@ module Onetime::Customer::Features
     module InstanceMethods
       def verified?
         !anonymous? && verified.to_s.eql?('true')
+      end
+
+      # Check if account was verified via email confirmation
+      def email_verified?
+        verified? && verified_by.to_s == 'email'
+      end
+
+      # Check if account was created via Stripe payment (not email verified)
+      def payment_verified?
+        verified? && verified_by.to_s == 'stripe_payment'
       end
 
       def active?

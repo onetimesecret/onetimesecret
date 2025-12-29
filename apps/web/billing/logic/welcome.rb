@@ -17,7 +17,7 @@ module Billing
       #
       class FromStripePaymentLink < Onetime::Logic::Base
         attr_reader :checkout_session_id, :checkout_session, :checkout_email,
-          :update_customer_fields, :stripe_subscription, :new_account_created
+          :update_customer_fields, :stripe_subscription
 
         def process_params
           @checkout_session_id = params[:checkout]
@@ -83,28 +83,29 @@ module Billing
 
               raise OT::Redirect.new('/signin')
             else
-              OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with new user #{OT::Utils.obscure_email(checkout_email)}"
+              # Security: Create account but require email verification before login.
+              # This prevents an attacker from using victim's email in checkout
+              # and gaining immediate authenticated access.
+              OT.info "[FromStripePaymentLink] Creating unverified account for #{OT::Utils.obscure_email(checkout_email)}"
 
-              cust          = Onetime::Customer.create!(checkout_email)
-              cust.verified = true  # Familia v2 uses JSON primitives, not strings
-              cust.role     = 'customer'
-              cust.update_passphrase Onetime::Utils.strand(12)
-              cust.apply_fields(**update_customer_fields).commit_fields
-
-              OT.info "[FromStripePaymentLink:login-success] #{cust.obscure_email} #{cust.role}"
-
-              # Set session authentication data
-              # Note: Controller should regenerate session ID after this to prevent fixation
-              sess['external_id']      = cust.extid
-              sess['authenticated']    = true
-              sess['authenticated_at'] = Familia.now.to_i
-
-              # Flag that a new account was created (controller should regenerate session)
-              @new_account_created = true
+              new_cust             = Onetime::Customer.create!(checkout_email)
+              new_cust.verified    = false  # Require email verification
+              new_cust.verified_by = 'stripe_payment'  # Track payment-initiated account
+              new_cust.role        = 'customer'
+              new_cust.update_passphrase Onetime::Utils.strand(12)
+              new_cust.apply_fields(**update_customer_fields).commit_fields
 
               # Update organization billing from subscription (extracts planid, etc.)
-              update_organization_billing(cust)
+              update_organization_billing(new_cust)
 
+              # Send verification email so they can complete account setup
+              send_verification_email_to(new_cust)
+
+              OT.info "[FromStripePaymentLink] Verification email sent to #{new_cust.obscure_email}"
+
+              # Do NOT authenticate - require email verification first
+              # Redirect to signin with message about checking email
+              raise OT::Redirect.new('/signin')
             end
 
           end
@@ -148,6 +149,35 @@ module Billing
         rescue Stripe::StripeError, Familia::Problem => ex
           # Log but don't fail the checkout flow - billing can be reconciled later
           OT.le "[FromStripePaymentLink] Error updating organization billing: #{ex.message}"
+        end
+
+        # Send verification email to a specific customer
+        #
+        # Creates a verification secret and sends the welcome email.
+        # Similar to base class send_verification_email but takes customer as param.
+        #
+        # @param customer [Onetime::Customer] The customer to send verification to
+        # @return [void]
+        def send_verification_email_to(customer)
+          msg = format(
+            "Thanks for your purchase! Please verify your email to activate your account.\n\n\"%s\"",
+            OT::Utils.random_fortune
+          )
+
+          _metadata, secret = Onetime::Metadata.spawn_pair(customer.objid, 24.days, msg)
+
+          secret.verification = true
+          secret.custid       = customer.custid
+          secret.save
+
+          customer.reset_secret = secret.identifier
+
+          Onetime::Mail::Mailer.deliver(:welcome, {
+            email_address: customer.email,
+            secret: secret,
+          })
+        rescue StandardError => ex
+          OT.le "[FromStripePaymentLink] Error sending verification email: #{ex.message}"
         end
       end
 

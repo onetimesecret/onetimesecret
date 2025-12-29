@@ -44,7 +44,8 @@ module Auth
       # Updates the customer's verified status
       # @param customer [Onetime::Customer]
       def verify_customer(customer)
-        customer.verified = true
+        customer.verified    = true
+        customer.verified_by = 'email'  # Track that this was email-verified
         customer.save
 
         OT.info "[verify-customer] Verified customer: #{customer.custid}"
