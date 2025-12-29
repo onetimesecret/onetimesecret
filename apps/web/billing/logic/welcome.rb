@@ -1,14 +1,23 @@
-# apps/web/core/logic/welcome.rb
+# apps/web/billing/logic/welcome.rb
 #
 # frozen_string_literal: true
 
 require 'onetime/logic/base'
 
-module Core
+module Billing
   module Logic
     module Welcome
+      # Handles redirect from Stripe Payment Links after successful payment
+      #
+      # This logic class associates the Stripe checkout session with the
+      # customer's account and updates their organization's billing details
+      # (planid, subscription status, etc.) after completing a purchase.
+      #
+      # @note The external API remains unchanged: GET /welcome?checkout={ID}
+      #
       class FromStripePaymentLink < Onetime::Logic::Base
-        attr_reader :checkout_session_id, :checkout_session, :checkout_email, :update_customer_fields
+        attr_reader :checkout_session_id, :checkout_session, :checkout_email,
+          :update_customer_fields, :stripe_subscription
 
         def process_params
           @checkout_session_id = params[:checkout]
@@ -18,6 +27,11 @@ module Core
           raise_form_error 'No Stripe checkout_session_id' unless checkout_session_id
           @checkout_session = Stripe::Checkout::Session.retrieve(checkout_session_id)
           raise_form_error 'Invalid Stripe checkout session' unless checkout_session
+
+          # Fetch the full subscription to extract plan metadata
+          if checkout_session.subscription
+            @stripe_subscription = Stripe::Subscription.retrieve(checkout_session.subscription)
+          end
 
           @checkout_email         = checkout_session.customer_details.email
           @update_customer_fields = {
@@ -46,6 +60,9 @@ module Core
             # TODO: Handle case where the user is already a Stripe customer
             cust.apply_fields(**update_customer_fields).commit_fields
 
+            # Update organization billing from subscription (extracts planid, etc.)
+            update_organization_billing(cust)
+
           else
             # If the user is not authenticated, check if the email address is already
             # associated with an account. If not, we can create a new account for them
@@ -60,6 +77,9 @@ module Core
               OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with existing user #{cust.email}"
 
               cust.apply_fields(**update_customer_fields).commit_fields
+
+              # Update organization billing from subscription (extracts planid, etc.)
+              update_organization_billing(cust)
 
               raise OT::Redirect.new('/signin')
             else
@@ -81,6 +101,9 @@ module Core
               sess['authenticated']    = true
               sess['authenticated_at'] = Familia.now.to_i
 
+              # Update organization billing from subscription (extracts planid, etc.)
+              update_organization_billing(cust)
+
             end
 
           end
@@ -91,8 +114,39 @@ module Core
         def success_data
           { checkout_session_id: checkout_session_id }
         end
+
+        private
+
+        # Update the customer's organization with subscription billing details
+        #
+        # Fetches the customer's primary organization and updates it with the
+        # subscription data, which includes extracting planid from metadata.
+        #
+        # @param customer [Onetime::Customer] The customer whose organization to update
+        # @return [void]
+        def update_organization_billing(customer)
+          return unless stripe_subscription
+
+          org = customer.organization_instances.first
+          unless org
+            OT.lw "[FromStripePaymentLink] No organization found for customer #{customer.obscure_email}"
+            return
+          end
+
+          OT.info "[FromStripePaymentLink] Updating organization #{org.objid} billing from subscription #{stripe_subscription.id}"
+          org.update_from_stripe_subscription(stripe_subscription)
+        rescue StandardError => ex
+          # Log but don't fail the checkout flow - billing can be reconciled later
+          OT.le "[FromStripePaymentLink] Error updating organization billing: #{ex.message}"
+        end
       end
 
+      # Handles Stripe webhook events (legacy endpoint)
+      #
+      # @note Modern webhook handling uses Billing::Controllers::Webhooks with
+      #   async processing via RabbitMQ. This class is maintained for backward
+      #   compatibility with the /welcome/stripe/webhook endpoint.
+      #
       class StripeWebhook < Onetime::Logic::Base
         attr_reader :event
         attr_accessor :payload, :stripe_signature

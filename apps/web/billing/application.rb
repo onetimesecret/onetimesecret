@@ -10,6 +10,7 @@ require 'onetime/logger_methods'
 
 require_relative '../core/auth_strategies'
 require_relative 'controllers'
+require_relative 'logic'
 require_relative 'models'
 require_relative 'initializers/stripe_setup'
 require_relative 'initializers/billing_catalog'

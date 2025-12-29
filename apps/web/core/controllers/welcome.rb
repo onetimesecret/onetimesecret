@@ -106,7 +106,8 @@ module Core
 
       # Handles the redirect from Stripe Payment Links after a successful payment
       #
-      # This endpoint processes the customer's payment information and sets up their account
+      # This endpoint associates the Stripe checkout session with the customer's account
+      # and updates their organization's billing details (planid, subscription status, etc.)
       # after they've completed a purchase through a Stripe Payment Link.
       #
       # GET /welcome?checkout={CHECKOUT_SESSION_ID}
@@ -115,7 +116,7 @@ module Core
       #
       # @return [HTTP 302] Redirects to the user's account page upon successful processing
       #
-      # @see V2::Logic::Welcome::FromStripePaymentLink For the business logic implementation
+      # @see Billing::Logic::Welcome::FromStripePaymentLink For the business logic implementation
       #
       # @note This endpoint is noauth accessible and sets a secure session cookie
       #       if the site is configured to use SSL
@@ -123,7 +124,7 @@ module Core
       # e.g. https://staging.onetimesecret.com/welcome?checkout={CHECKOUT_SESSION_ID}
       #
       def welcome
-        logic = V2::Logic::Welcome::FromStripePaymentLink.new(strategy_result, req.params, locale)
+        logic = Billing::Logic::Welcome::FromStripePaymentLink.new(strategy_result, req.params, locale)
         logic.raise_concerns
         logic.process
 
@@ -145,7 +146,7 @@ module Core
       def welcome_webhook
         # CSRF exemption handled by route parameter csrf=exempt since these
         # are coming via redirects from Stripe after payment completion.
-        logic                  = V2::Logic::Welcome::StripeWebhook.new(strategy_result, req.params, locale)
+        logic                  = Billing::Logic::Welcome::StripeWebhook.new(strategy_result, req.params, locale)
         logic.stripe_signature = req.env['HTTP_STRIPE_SIGNATURE']
         logic.payload          = req.body.read
         logic.raise_concerns
