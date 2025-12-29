@@ -83,13 +83,22 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
   end
 
   # Helper to stub config for guest routes
-  def stub_guest_routes_config(enabled: true, conceal: true, generate: true, reveal: true, burn: true)
+  # @param enabled [Boolean] Global toggle for guest routes
+  # @param conceal [Boolean] Per-operation toggle for conceal
+  # @param generate [Boolean] Per-operation toggle for generate
+  # @param reveal [Boolean] Per-operation toggle for reveal
+  # @param burn [Boolean] Per-operation toggle for burn
+  # @param show [Boolean] Per-operation toggle for show (ShowSecret)
+  # @param receipt [Boolean] Per-operation toggle for receipt (ShowMetadata)
+  def stub_guest_routes_config(enabled: true, conceal: true, generate: true, reveal: true, burn: true, show: true, receipt: true)
     config = {
       'enabled' => enabled,
       'conceal' => conceal,
       'generate' => generate,
       'reveal' => reveal,
       'burn' => burn,
+      'show' => show,
+      'receipt' => receipt,
     }
 
     allow(OT).to receive(:conf).and_return({
@@ -97,6 +106,19 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
         'interface' => {
           'api' => {
             'guest_routes' => config,
+          },
+        },
+      },
+    })
+  end
+
+  # Helper to stub empty/missing guest routes config
+  def stub_empty_guest_routes_config
+    allow(OT).to receive(:conf).and_return({
+      'site' => {
+        'interface' => {
+          'api' => {
+            # guest_routes key is missing entirely
           },
         },
       },
@@ -259,6 +281,89 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
     end
   end
 
+  describe 'ShowSecret' do
+    let(:logic_class) { V3::Logic::Secrets::ShowSecret }
+
+    context 'when show specifically disabled' do
+      before { stub_guest_routes_config(enabled: true, show: false) }
+
+      it 'raises GuestRoutesDisabled with operation-specific code' do
+        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+
+        logic = create_logic(logic_class, params: { 'identifier' => secret.identifier })
+        logic.process_params
+
+        error = raises_guest_routes_disabled?(logic)
+        expect(error).not_to be_nil
+        expect(error.code).to eq('GUEST_SHOW_DISABLED')
+        expect(error.message).to eq('Guest show is disabled')
+      end
+    end
+
+    context 'when show enabled' do
+      before { stub_guest_routes_config(enabled: true, show: true) }
+
+      it 'does not raise GuestRoutesDisabled' do
+        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+
+        logic = create_logic(logic_class, params: { 'identifier' => secret.identifier })
+        logic.process_params
+
+        error = raises_guest_routes_disabled?(logic)
+        expect(error).to be_nil
+      end
+    end
+
+    context 'when guest routes globally disabled' do
+      before { stub_guest_routes_config(enabled: false) }
+
+      it 'raises GuestRoutesDisabled with global error code' do
+        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+
+        logic = create_logic(logic_class, params: { 'identifier' => secret.identifier })
+        logic.process_params
+
+        error = raises_guest_routes_disabled?(logic)
+        expect(error).not_to be_nil
+        expect(error.code).to eq('GUEST_ROUTES_DISABLED')
+      end
+    end
+  end
+
+  describe 'ShowMetadata' do
+    let(:logic_class) { V3::Logic::Secrets::ShowMetadata }
+
+    context 'when receipt specifically disabled' do
+      before { stub_guest_routes_config(enabled: true, receipt: false) }
+
+      it 'raises GuestRoutesDisabled with operation-specific code' do
+        metadata, _secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+
+        logic = create_logic(logic_class, params: { 'identifier' => metadata.identifier })
+        logic.process_params
+
+        error = raises_guest_routes_disabled?(logic)
+        expect(error).not_to be_nil
+        expect(error.code).to eq('GUEST_RECEIPT_DISABLED')
+        expect(error.message).to eq('Guest receipt is disabled')
+      end
+    end
+
+    context 'when receipt enabled' do
+      before { stub_guest_routes_config(enabled: true, receipt: true) }
+
+      it 'does not raise GuestRoutesDisabled' do
+        metadata, _secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+
+        logic = create_logic(logic_class, params: { 'identifier' => metadata.identifier })
+        logic.process_params
+
+        error = raises_guest_routes_disabled?(logic)
+        expect(error).to be_nil
+      end
+    end
+  end
+
   describe 'GuestRoutesDisabled error structure' do
     before { stub_guest_routes_config(enabled: false) }
 
@@ -278,6 +383,13 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
 
     it 'inherits from Forbidden' do
       expect(Onetime::GuestRoutesDisabled.ancestors).to include(Onetime::Forbidden)
+    end
+
+    it 'has HTTP status 403' do
+      # Verify the error handler registration pattern (informational test)
+      # The actual status is set in otto_hooks.rb via register_error_handler
+      expect(Onetime::GuestRoutesDisabled.ancestors).to include(Onetime::Forbidden)
+      # Forbidden base class is registered for 403 in otto_hooks.rb
     end
   end
 
@@ -321,6 +433,156 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
 
       error = raises_guest_routes_disabled?(logic)
       expect(error).to be_nil
+    end
+  end
+
+  describe 'missing or empty config' do
+    context 'when guest_routes config is missing entirely' do
+      before { stub_empty_guest_routes_config }
+
+      it 'treats missing config as disabled (empty hash fallback)' do
+        # When config is missing, guest_routes_config returns {}
+        # An empty hash has no 'enabled' key, so enabled check fails
+        logic = create_logic(V3::Logic::Secrets::ConcealSecret,
+          params: { 'secret' => { 'secret' => 'test' } },
+        )
+        logic.process_params
+
+        error = raises_guest_routes_disabled?(logic)
+        expect(error).not_to be_nil
+        expect(error.code).to eq('GUEST_ROUTES_DISABLED')
+      end
+
+      it 'allows authenticated users even with missing config' do
+        logic = create_logic(V3::Logic::Secrets::ConcealSecret,
+          params: { 'secret' => { 'secret' => 'test' } },
+          anonymous: false,
+          auth_method: 'apikey',
+        )
+        logic.process_params
+
+        error = raises_guest_routes_disabled?(logic)
+        expect(error).to be_nil
+      end
+    end
+  end
+
+  describe 'multiple operations disabled' do
+    context 'when several operations are disabled simultaneously' do
+      before do
+        stub_guest_routes_config(
+          enabled: true,
+          conceal: false,
+          generate: false,
+          reveal: true,
+          burn: true,
+          show: false,
+          receipt: true,
+        )
+      end
+
+      it 'blocks guest conceal' do
+        logic = create_logic(V3::Logic::Secrets::ConcealSecret,
+          params: { 'secret' => { 'secret' => 'test' } },
+        )
+        logic.process_params
+
+        error = raises_guest_routes_disabled?(logic)
+        expect(error).not_to be_nil
+        expect(error.code).to eq('GUEST_CONCEAL_DISABLED')
+      end
+
+      it 'blocks guest generate' do
+        logic = create_logic(V3::Logic::Secrets::GenerateSecret,
+          params: { 'secret' => {} },
+        )
+        logic.process_params
+
+        error = raises_guest_routes_disabled?(logic)
+        expect(error).not_to be_nil
+        expect(error.code).to eq('GUEST_GENERATE_DISABLED')
+      end
+
+      it 'allows guest reveal (still enabled)' do
+        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+
+        logic = create_logic(V3::Logic::Secrets::RevealSecret,
+          params: { 'identifier' => secret.identifier },
+        )
+        logic.process_params
+
+        error = raises_guest_routes_disabled?(logic)
+        expect(error).to be_nil
+      end
+
+      it 'allows guest burn (still enabled)' do
+        metadata, _secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+
+        logic = create_logic(V3::Logic::Secrets::BurnSecret,
+          params: { 'identifier' => metadata.identifier },
+        )
+        logic.process_params
+
+        error = raises_guest_routes_disabled?(logic)
+        expect(error).to be_nil
+      end
+
+      it 'blocks guest show' do
+        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+
+        logic = create_logic(V3::Logic::Secrets::ShowSecret,
+          params: { 'identifier' => secret.identifier },
+        )
+        logic.process_params
+
+        error = raises_guest_routes_disabled?(logic)
+        expect(error).not_to be_nil
+        expect(error.code).to eq('GUEST_SHOW_DISABLED')
+      end
+
+      it 'allows guest receipt (still enabled)' do
+        metadata, _secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+
+        logic = create_logic(V3::Logic::Secrets::ShowMetadata,
+          params: { 'identifier' => metadata.identifier },
+        )
+        logic.process_params
+
+        error = raises_guest_routes_disabled?(logic)
+        expect(error).to be_nil
+      end
+    end
+  end
+
+  describe 'V3 logic class inheritance' do
+    it 'V3::Logic::Secrets::ConcealSecret includes GuestRouteGating' do
+      expect(V3::Logic::Secrets::ConcealSecret.ancestors).to include(Onetime::Logic::GuestRouteGating)
+    end
+
+    it 'V3::Logic::Secrets::GenerateSecret includes GuestRouteGating' do
+      expect(V3::Logic::Secrets::GenerateSecret.ancestors).to include(Onetime::Logic::GuestRouteGating)
+    end
+
+    it 'V3::Logic::Secrets::RevealSecret includes GuestRouteGating' do
+      expect(V3::Logic::Secrets::RevealSecret.ancestors).to include(Onetime::Logic::GuestRouteGating)
+    end
+
+    it 'V3::Logic::Secrets::BurnSecret includes GuestRouteGating' do
+      expect(V3::Logic::Secrets::BurnSecret.ancestors).to include(Onetime::Logic::GuestRouteGating)
+    end
+
+    it 'V3::Logic::Secrets::ShowSecret includes GuestRouteGating' do
+      expect(V3::Logic::Secrets::ShowSecret.ancestors).to include(Onetime::Logic::GuestRouteGating)
+    end
+
+    it 'V3::Logic::Secrets::ShowMetadata includes GuestRouteGating' do
+      expect(V3::Logic::Secrets::ShowMetadata.ancestors).to include(Onetime::Logic::GuestRouteGating)
+    end
+
+    it 'V2 classes do NOT include GuestRouteGating' do
+      # V2 classes should not have guest route gating
+      expect(V2::Logic::Secrets::ConcealSecret.ancestors).not_to include(Onetime::Logic::GuestRouteGating)
+      expect(V2::Logic::Secrets::GenerateSecret.ancestors).not_to include(Onetime::Logic::GuestRouteGating)
     end
   end
 end

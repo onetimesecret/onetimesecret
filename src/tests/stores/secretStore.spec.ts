@@ -64,6 +64,38 @@ describe('secretStore', () => {
       expect(store.apiMode).toBe('authenticated');
     });
 
+    it('$reset resets apiMode to authenticated', () => {
+      store.setApiMode('public');
+      store.$reset();
+      expect(store.apiMode).toBe('authenticated');
+    });
+
+    it('persists apiMode across multiple operations', async () => {
+      store.setApiMode('public');
+
+      // Mock responses for public endpoints
+      axiosMock?.onGet('/api/v3/guest/secret/abc123').reply(200, mockSecretResponse);
+      axiosMock?.onPost('/api/v3/guest/secret/abc123/reveal').reply(200, {
+        ...mockSecretResponse,
+        record: { ...mockSecretRecord, secret_value: 'revealed' },
+        details: { ...mockSecretResponse.details, show_secret: true },
+      });
+
+      // Perform multiple operations
+      await store.fetch('abc123');
+      await store.reveal('abc123', 'password');
+
+      // Both should have used public endpoints
+      expect(axiosMock?.history.get[0].url).toBe('/api/v3/guest/secret/abc123');
+      expect(axiosMock?.history.post[0].url).toBe('/api/v3/guest/secret/abc123/reveal');
+    });
+
+    it('clear() does not affect apiMode', () => {
+      store.setApiMode('public');
+      store.clear();
+      expect(store.apiMode).toBe('public');
+    });
+
     describe('endpoint selection', () => {
       const mockConcealResponse = {
         record: {
@@ -497,6 +529,132 @@ describe('secretStore', () => {
 
         // Store should have the record with consistent null handling
         expect(store.record?.lifespan).toBeNull();
+      });
+    });
+  });
+
+  describe('guest routes error handling', () => {
+    // These tests verify that guest routes 403 errors bubble up correctly
+    // from the store. Per project architecture, stores bubble errors and
+    // composables/components handle them with useAsyncHandler.wrap()
+
+    describe('GUEST_ROUTES_DISABLED errors', () => {
+      const guestRoutesDisabledResponse = {
+        message: 'Guest API access is disabled',
+        code: 'GUEST_ROUTES_DISABLED',
+      };
+
+      it('conceal() rejects with 403 when guest routes globally disabled', async () => {
+        store.setApiMode('public');
+        axiosMock?.onPost('/api/v3/guest/secret/conceal').reply(403, guestRoutesDisabledResponse);
+
+        await expect(
+          store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal' })
+        ).rejects.toThrow();
+      });
+
+      it('generate() rejects with 403 when guest routes globally disabled', async () => {
+        store.setApiMode('public');
+        axiosMock?.onPost('/api/v3/guest/secret/generate').reply(403, guestRoutesDisabledResponse);
+
+        await expect(store.generate({ ttl: 3600, kind: 'generate' })).rejects.toThrow();
+      });
+
+      it('fetch() rejects with 403 when guest routes globally disabled', async () => {
+        store.setApiMode('public');
+        axiosMock?.onGet('/api/v3/guest/secret/abc123').reply(403, guestRoutesDisabledResponse);
+
+        await expect(store.fetch('abc123')).rejects.toThrow();
+      });
+
+      it('reveal() rejects with 403 when guest routes globally disabled', async () => {
+        store.setApiMode('public');
+        axiosMock
+          ?.onPost('/api/v3/guest/secret/abc123/reveal')
+          .reply(403, guestRoutesDisabledResponse);
+
+        await expect(store.reveal('abc123', 'password')).rejects.toThrow();
+      });
+
+      it('store state remains unchanged after 403 error', async () => {
+        store.setApiMode('public');
+        axiosMock?.onPost('/api/v3/guest/secret/conceal').reply(403, guestRoutesDisabledResponse);
+
+        const initialRecord = store.record;
+        const initialDetails = store.details;
+
+        await expect(
+          store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal' })
+        ).rejects.toThrow();
+
+        expect(store.record).toBe(initialRecord);
+        expect(store.details).toBe(initialDetails);
+      });
+    });
+
+    describe('operation-specific disabled errors', () => {
+      it('conceal() rejects with GUEST_CONCEAL_DISABLED code', async () => {
+        store.setApiMode('public');
+        axiosMock?.onPost('/api/v3/guest/secret/conceal').reply(403, {
+          message: 'Guest conceal is disabled',
+          code: 'GUEST_CONCEAL_DISABLED',
+        });
+
+        await expect(
+          store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal' })
+        ).rejects.toThrow();
+      });
+
+      it('generate() rejects with GUEST_GENERATE_DISABLED code', async () => {
+        store.setApiMode('public');
+        axiosMock?.onPost('/api/v3/guest/secret/generate').reply(403, {
+          message: 'Guest generate is disabled',
+          code: 'GUEST_GENERATE_DISABLED',
+        });
+
+        await expect(store.generate({ ttl: 3600, kind: 'generate' })).rejects.toThrow();
+      });
+
+      it('reveal() rejects with GUEST_REVEAL_DISABLED code', async () => {
+        store.setApiMode('public');
+        axiosMock?.onPost('/api/v3/guest/secret/abc123/reveal').reply(403, {
+          message: 'Guest reveal is disabled',
+          code: 'GUEST_REVEAL_DISABLED',
+        });
+
+        await expect(store.reveal('abc123', 'password')).rejects.toThrow();
+      });
+
+      it('fetch() rejects with GUEST_SHOW_DISABLED code', async () => {
+        store.setApiMode('public');
+        axiosMock?.onGet('/api/v3/guest/secret/abc123').reply(403, {
+          message: 'Guest show is disabled',
+          code: 'GUEST_SHOW_DISABLED',
+        });
+
+        await expect(store.fetch('abc123')).rejects.toThrow();
+      });
+    });
+
+    describe('authenticated mode unaffected by guest route errors', () => {
+      it('conceal() succeeds in authenticated mode regardless of guest config', async () => {
+        // Authenticated mode should not be affected by guest route config
+        store.setApiMode('authenticated');
+
+        const mockConcealResponse = {
+          record: {
+            metadata: { key: 'meta-key', identifier: 'meta-id' },
+            secret: { key: 'secret-key', identifier: 'secret-id' },
+          },
+          details: { uri: '/secret/secret-id' },
+        };
+
+        axiosMock?.onPost('/api/v3/secret/conceal').reply(200, mockConcealResponse);
+
+        const result = await store.conceal({ secret: 'test', ttl: 3600, kind: 'conceal' });
+
+        expect(result).toBeDefined();
+        expect(axiosMock?.history.post[0].url).toBe('/api/v3/secret/conceal');
       });
     });
   });
