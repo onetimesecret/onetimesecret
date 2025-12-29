@@ -12,13 +12,13 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_LDzB0ezuWfRMSU","request_duration_ms":279}}'
+      - '{"last_request_metrics":{"request_id":"req_JGf3qpU7VtEGBx","request_duration_ms":417}}'
       Idempotency-Key:
-      - 1766671595-58f168fe-87c4-4b15-a5c0-0da96fde463c
+      - 1766985451-f8c779ff-06e4-48dc-b48e-7faa183b281f
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
         2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
       Content-Type:
@@ -35,7 +35,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 14:06:35 GMT
+      - Mon, 29 Dec 2025 05:17:32 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -58,11 +58,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=zXCDMRl5lpyNMGK--5iFgRMMw0TlNcA4RAscLa89nvrb1LvJJbWDPUJihmhCs2MWA423WOZpdU4sFyZW
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=2pvSIWNpuAg3EBaC1K8Szzaq9H5YaKgDbgRLG1xeK_Xlj2Wl03EAyJ4-OFk8998GbEeAEP20xFPmm_tO
       Idempotency-Key:
-      - 1766671595-58f168fe-87c4-4b15-a5c0-0da96fde463c
+      - 1766985451-f8c779ff-06e4-48dc-b48e-7faa183b281f
       Original-Request:
-      - req_deLMezrRzEtZpY
+      - req_Llq3q554HZv8Jq
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -81,11 +81,11 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TfaMxZzrHqaQRC",
+          "id": "cus_TgwjX213W35IBq",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766671595,
+          "created": 1766985452,
           "currency": null,
           "customer_account": null,
           "default_source": null,
@@ -93,7 +93,7 @@ http_interactions:
           "description": null,
           "discount": null,
           "email": "test@example.com",
-          "invoice_prefix": "GQRJXI9Y",
+          "invoice_prefix": "58NBTJGP",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -110,5 +110,5 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Thu, 25 Dec 2025 14:06:35 GMT
+  recorded_at: Mon, 29 Dec 2025 05:17:32 GMT
 recorded_with: VCR 6.3.1

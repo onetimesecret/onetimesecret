@@ -12,11 +12,11 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_FZq8xVp7MnpaRn","request_duration_ms":165}}'
+      - '{"last_request_metrics":{"request_id":"req_KxuFVzdFC2dkO3","request_duration_ms":438}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
         2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
       Accept-Encoding:
@@ -31,11 +31,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 14:07:32 GMT
+      - Mon, 29 Dec 2025 05:22:39 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '7437'
+      - '7463'
       Connection:
       - keep-alive
       Access-Control-Allow-Credentials:
@@ -54,7 +54,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=jdcx2sA7pJS5hmEpXnMUzM5yDbJ7HJpZzcJASpJEu8Iw_6ftLY7S3vjNaly8BIAF92sdcyAT_eAvheWU
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=6HnIFT3dln8o6aOSGKjm_EQC1VSkhEFM5J34-IssCt8poybrxUYpFbjMMiuq9ZgTBaKbHxm6zJC_G9c0
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -75,6 +75,56 @@ http_interactions:
           "count": 10,
           "data": [
             {
+              "id": "re_3SjYueH54PcLeqtY1qeMFfWc",
+              "object": "refund",
+              "amount": 5000,
+              "balance_transaction": "txn_3SjYueH54PcLeqtY1YYqemWc",
+              "charge": "ch_3SjYueH54PcLeqtY1KA2ankJ",
+              "created": 1766985757,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "1981735034150608",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": null,
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            },
+            {
+              "id": "re_3SiFCTH54PcLeqtY1FXlPQfX",
+              "object": "refund",
+              "amount": 5000,
+              "balance_transaction": "txn_3SiFCTH54PcLeqtY18ndYPZI",
+              "charge": "ch_3SiFCTH54PcLeqtY1397R7t1",
+              "created": 1766671654,
+              "currency": "usd",
+              "destination_details": {
+                "card": {
+                  "reference": "9830518548196182",
+                  "reference_status": "available",
+                  "reference_type": "acquirer_reference_number",
+                  "type": "refund"
+                },
+                "type": "card"
+              },
+              "metadata": {},
+              "payment_intent": null,
+              "reason": null,
+              "receipt_number": null,
+              "source_transfer_reversal": null,
+              "status": "succeeded",
+              "transfer_reversal": null
+            },
+            {
               "id": "re_3SiFCPH54PcLeqtY0yiWyZz2",
               "object": "refund",
               "amount": 5000,
@@ -84,7 +134,8 @@ http_interactions:
               "currency": "usd",
               "destination_details": {
                 "card": {
-                  "reference_status": "pending",
+                  "reference": "2869891975494417",
+                  "reference_status": "available",
                   "reference_type": "acquirer_reference_number",
                   "type": "refund"
                 },
@@ -272,60 +323,10 @@ http_interactions:
               "source_transfer_reversal": null,
               "status": "succeeded",
               "transfer_reversal": null
-            },
-            {
-              "id": "re_3SiF1BH54PcLeqtY15zdEh8h",
-              "object": "refund",
-              "amount": 5000,
-              "balance_transaction": "txn_3SiF1BH54PcLeqtY18kcYCxS",
-              "charge": "ch_3SiF1BH54PcLeqtY1F36RfKp",
-              "created": 1766670954,
-              "currency": "usd",
-              "destination_details": {
-                "card": {
-                  "reference": "7502842963742800",
-                  "reference_status": "available",
-                  "reference_type": "acquirer_reference_number",
-                  "type": "refund"
-                },
-                "type": "card"
-              },
-              "metadata": {},
-              "payment_intent": null,
-              "reason": null,
-              "receipt_number": null,
-              "source_transfer_reversal": null,
-              "status": "succeeded",
-              "transfer_reversal": null
-            },
-            {
-              "id": "re_3SiEWKH54PcLeqtY1KoBCk68",
-              "object": "refund",
-              "amount": 3000,
-              "balance_transaction": "txn_3SiEWKH54PcLeqtY1NybpRud",
-              "charge": "ch_3SiEWKH54PcLeqtY1P6Y32iF",
-              "created": 1766669041,
-              "currency": "usd",
-              "destination_details": {
-                "card": {
-                  "reference": "2854803396639923",
-                  "reference_status": "available",
-                  "reference_type": "acquirer_reference_number",
-                  "type": "refund"
-                },
-                "type": "card"
-              },
-              "metadata": {},
-              "payment_intent": null,
-              "reason": "requested_by_customer",
-              "receipt_number": null,
-              "source_transfer_reversal": null,
-              "status": "succeeded",
-              "transfer_reversal": null
             }
           ],
           "has_more": true,
           "url": "/v1/refunds"
         }
-  recorded_at: Thu, 25 Dec 2025 14:07:32 GMT
+  recorded_at: Mon, 29 Dec 2025 05:22:39 GMT
 recorded_with: VCR 6.3.1

@@ -12,13 +12,13 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_LTpA7YfYuSLd1O","request_duration_ms":247}}'
+      - '{"last_request_metrics":{"request_id":"req_Nvr316X001tGQe","request_duration_ms":1146}}'
       Idempotency-Key:
-      - 1766664448-d2a25792-d6a0-4731-b15f-6a7453345be5
+      - 1766986411-8b41ee5f-d5ce-4bfd-8334-a040c7c13462
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
         2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
       Content-Type:
@@ -35,7 +35,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:07:29 GMT
+      - Mon, 29 Dec 2025 05:33:32 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -58,11 +58,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=eYFvC_l8IUJx2Bl927va6yncfOQy3bKqCZ3Ov8ygeuw32raGBNFmSi6BPyyITP2t5D-c8tZ8vvlaI6B8
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=uvKduC66Q4Sir9CV03w2b1led8ps1o0F8LWW6WJvd8zneAUS9NL3l9LbBiEAmjH8obds01dWj5awtLFS
       Idempotency-Key:
-      - 1766664448-d2a25792-d6a0-4731-b15f-6a7453345be5
+      - 1766986411-8b41ee5f-d5ce-4bfd-8334-a040c7c13462
       Original-Request:
-      - req_e1xCR9JVKEA3qh
+      - req_2BQp3Xx66ckJ0m
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -81,11 +81,11 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TfYRlQbUlcogxe",
+          "id": "cus_TgwzuqjmnvkU0F",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766664449,
+          "created": 1766986412,
           "currency": null,
           "customer_account": null,
           "default_source": null,
@@ -93,7 +93,7 @@ http_interactions:
           "description": null,
           "discount": null,
           "email": "card@example.com",
-          "invoice_prefix": "5SN5MIDO",
+          "invoice_prefix": "U84AFCOG",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -110,5 +110,5 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Thu, 25 Dec 2025 12:07:29 GMT
+  recorded_at: Mon, 29 Dec 2025 05:33:32 GMT
 recorded_with: VCR 6.3.1
