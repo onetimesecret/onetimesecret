@@ -1,15 +1,10 @@
-> Summary:
-⏺ All 21 agents have completed. Let me finalize the todo list and verify the analysis files are in place:
+# i18n Locale Analysis Summary
 
-⏺ Bash(ls -la /Users/d/Projects/opensource/onetime/onetimesecret/src/locales/en/*.analysis.md)
-⎿  .rw------- d staff  15 KB Sat Dec 27 23:55:58 2025 /Users/d/Projects/opensource/onetime/onetimesecret/src/locales/en/_common.analysis.md
-    .rw------- d staff 8.5 KB Sat Dec 27 23:55:30 2025 /Users/d/Projects/opensource/onetime/onetimesecret/src/locales/en/account-billing.analysis.md
-    .rw------- d staff 6.9 KB Sat Dec 27 23:55:14 2025 /Users/d/Projects/opensource/onetime/onetimesecret/src/locales/en/account.analysis.md
-    … +18 lines (ctrl+o to expand)
+> **Note on Truncated Keys:** Many keys appear cut off mid-word (e.g., `a-cname-record-is-not-allowed-instead-youll-need`). These are intentionally truncated to work with i18n tools that have character limits on key names. This is expected behavior and not an error.
 
-⏺ All 21 analysis files have been created in /Users/d/Projects/opensource/onetime/onetimesecret/src/locales/en/. Here's a summary:
+All 21 analysis files have been created in `src/locales/en/`. Here's a summary:
 
-Completed Analysis Files (21 total, ~141 KB)
+## Completed Analysis Files (21 total, ~141 KB)
 
 | File                              | Size   | Key Findings                                                                             |
 |-----------------------------------|--------|------------------------------------------------------------------------------------------|
@@ -35,18 +30,18 @@ Completed Analysis Files (21 total, ~141 KB)
 | layout.analysis.md                | 7.6 KB | Translation notices → feature-translations.json, secret FAQ → feature-secrets.json       |
 | uncategorized.analysis.md         | 2.9 KB | All 4 keys are duplicates - file can be emptied                                          |
 
-Common Themes Across All Files
+## Common Themes Across All Files
 
-Ignore:
-1. Truncated key names - Many keys cut off mid-word (auto-generated, max-length)
-2. Placeholder inconsistency - Mix of {0} and named {variable} styles
+### Ignore:
+1. **Truncated key names** - Many keys cut off mid-word (auto-generated with max-length for i18n tool compatibility)
+2. **Placeholder inconsistency** - Mix of {0} and named {variable} styles
 
-To be addressed:
-1. Inconsistent naming - Mix of kebab-case, snake_case, camelCase -> standardize to snake_case for double-clickability.
-2. Flat hierarchies - Most files need nested structure for findability -> to be studied and recommended prior to making changes.
-3. Cross-file duplication - _common.json receives from everywhere but also has keys that belong elsewhere -> keys belonging elsewhere should be moved.
+### To be addressed:
+1. **Inconsistent naming** - Mix of kebab-case, snake_case, camelCase -> standardize to snake_case for double-clickability.
+2. **Flat hierarchies** - Most files need nested structure for findability -> to be studied and recommended prior to making changes.
+3. **Cross-file duplication** - _common.json receives from everywhere but also has keys that belong elsewhere -> keys belonging elsewhere should be moved.
 
-Suggested New Files
+## Suggested New Files
 
-- legal.json - consolidate terms/privacy from layout.json and footer
-- feature-secrets-faq.json - if FAQ content continues growing
+- `legal.json` - consolidate terms/privacy from layout.json and footer
+- `feature-secrets-faq.json` - if FAQ content continues growing

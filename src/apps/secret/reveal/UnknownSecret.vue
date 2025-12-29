@@ -114,7 +114,7 @@ const { t } = useI18n();
             'px-6 py-3 font-brand text-lg hover:border-brand-600 dark:hover:border-brand-400',
             'w-full text-center sm:w-auto'
           ]"
-          :aria-label="t('web.layout.return-to-home-page')">
+          :aria-label="t('web.secrets.create-a-secret')">
           {{ t('web.secrets.create-a-secret') }}
         </router-link>
       </div>

@@ -121,7 +121,7 @@ const verify = async () => {
 
         <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
           <DetailField
-            :label="t('web.domains.type-0')"
+            :label="t('web.COMMON.type')"
             value="A" />
           <DetailField
             :label="t('web.COMMON.host')"

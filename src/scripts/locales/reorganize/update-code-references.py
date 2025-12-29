@@ -78,7 +78,12 @@ def update_file_content(content: str, mappings: Dict[str, str], verbose: bool = 
     changes = []
     new_content = content
 
-    for source_key, target_path in mappings.items():
+    # Sort keys by length descending to process longer keys first
+    # This prevents incorrect partial replacements when one key is a substring of another
+    sorted_keys = sorted(mappings.keys(), key=len, reverse=True)
+
+    for source_key in sorted_keys:
+        target_path = mappings[source_key]
         pattern = create_replacement_pattern(source_key)
 
         # Find all matches
