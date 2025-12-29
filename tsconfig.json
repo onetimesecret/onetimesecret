@@ -64,6 +64,7 @@
   "include": [
     "src/auto-imports.d.ts",
     "src/types/declarations/*.d.ts",
+    "src/types/generated/*.d.ts",
     "src/types/**/*.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
