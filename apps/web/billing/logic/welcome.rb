@@ -219,7 +219,11 @@ module Billing
 
           # Create default organization if none exists
           OT.info "[ProcessCheckoutSession] Creating default organization for #{customer.obscure_email}"
-          Onetime::Organization.create(customer)
+          Onetime::Organization.create!(
+            "#{customer.email}'s Workspace",
+            customer,
+            customer.email,
+          )
         end
       end
     end

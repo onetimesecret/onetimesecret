@@ -12,11 +12,13 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_TYDqkYBqKD9iDA","request_duration_ms":125}}'
+      - '{"last_request_metrics":{"request_id":"req_uI9TQLp4pmyiV6","request_duration_ms":460}}'
+      Idempotency-Key:
+      - a222fca0-586a-489a-b867-5198b46d2337
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
         2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
       Content-Type:
@@ -33,7 +35,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:06:54 GMT
+      - Mon, 29 Dec 2025 02:00:05 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -56,11 +58,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=g7BvUVf54KdcROttIn2OtY5v8tt7gI1USDSHFjve36Dp4m4TTg1k7wN_AaTFCqaSbgGRMMJOGJNlR5eI
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=b3FWrW3ktPcBlIPFIFdTzKJGV60kcQOoHXv76oAnzmzlr_8FrNff0Jje4WvwySJNMLLdjPXHXQgJ9xbI
       Idempotency-Key:
-      - d8119027-bdbe-4dd0-a4ab-97ae2951b233
+      - a222fca0-586a-489a-b867-5198b46d2337
       Original-Request:
-      - req_FYxgrOrJh9sBcz
+      - req_IajJqc1fwgEKNe
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -79,11 +81,11 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TfYQiS6qcyYRNo",
+          "id": "cus_TgtXgyxmvYuGTn",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766664414,
+          "created": 1766973605,
           "currency": null,
           "customer_account": null,
           "default_source": null,
@@ -91,7 +93,7 @@ http_interactions:
           "description": null,
           "discount": null,
           "email": null,
-          "invoice_prefix": "RVETGRDT",
+          "invoice_prefix": "NIJKEKQI",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -108,5 +110,5 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Thu, 25 Dec 2025 12:06:54 GMT
+  recorded_at: Mon, 29 Dec 2025 02:00:05 GMT
 recorded_with: VCR 6.3.1

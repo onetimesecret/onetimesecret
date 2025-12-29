@@ -323,7 +323,8 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
       begin
         logic.raise_concerns
       rescue Onetime::EntitlementRequired => e
-        expect(e.current_plan).to eq('free')
+        # Matches the planid set in the org mock ('free_test_no_api_access')
+        expect(e.current_plan).to eq('free_test_no_api_access')
       end
     end
 
