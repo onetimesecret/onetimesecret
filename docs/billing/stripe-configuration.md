@@ -16,7 +16,7 @@ Billing is optional and disabled by default. To enable:
 
 2. **Configure environment variables** (or edit `etc/billing.yaml` directly):
    ```bash
-   STRIPE_KEY=sk_test_...              # Secret key from Stripe dashboard
+   STRIPE_API_KEY=sk_test_...           # Secret key from Stripe dashboard
    STRIPE_WEBHOOK_SECRET=whsec_...     # From webhook endpoint setup
    ```
 

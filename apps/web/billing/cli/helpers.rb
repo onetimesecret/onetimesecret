@@ -72,7 +72,7 @@ module Onetime
         when Stripe::InvalidRequestError
           "#{context}: Invalid parameters - #{error.message}"
         when Stripe::AuthenticationError
-          "#{context}: Authentication failed - check STRIPE_KEY configuration"
+          "#{context}: Authentication failed - check STRIPE_API_KEY configuration"
         when Stripe::CardError
           "#{context}: Card error - #{error.message}"
         when Stripe::APIConnectionError
@@ -93,8 +93,8 @@ module Onetime
         end
 
         stripe_key = OT.billing_config.stripe_key
-        if stripe_key.to_s.strip.empty? || stripe_key == 'nostripkey'
-          puts 'Error: STRIPE_KEY environment variable not set or billing.yaml has no valid key'
+        if stripe_key.to_s.strip.empty? || stripe_key == 'nostripekey'
+          puts 'Error: STRIPE_API_KEY environment variable not set or billing.yaml has no valid key'
           return false
         end
 

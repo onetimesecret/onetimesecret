@@ -11,7 +11,7 @@
 
 # IMPORTANT: Set test environment BEFORE loading anything
 # These must be set before OT.boot! reads config files
-ENV['STRIPE_KEY'] ||= 'sk_test_mock'
+ENV['STRIPE_API_KEY'] ||= 'sk_test_mock'
 ENV['REDIS_URL'] ||= 'redis://127.0.0.1:2121/0'
 ENV['RACK_ENV']   ||= 'test'
 

@@ -9,8 +9,8 @@ The `bin/ots billing` command suite provides tools for managing Stripe products,
    - Must have `enabled: true`
 
 2. **Stripe API Key**
-   - Set environment variable: `STRIPE_KEY=sk_test_...` or `STRIPE_KEY=sk_live_...`
-   - Or configure in `etc/billing.yaml`: `stripe_key: <%= ENV['STRIPE_KEY'] %>`
+   - Set environment variable: `STRIPE_API_KEY=sk_test_...` or `STRIPE_API_KEY=sk_live_...`
+   - Or configure in `etc/billing.yaml`: `stripe_key: <%= ENV['STRIPE_API_KEY'] %>`
 
 3. **Redis Running**
    - Required for plan cache operations
@@ -562,8 +562,8 @@ All products **must** include these metadata fields:
 - Ensure `etc/billing.yaml` exists
 - Check that `billing.enabled: true`
 
-### "Error: STRIPE_KEY not set"
-- Set environment variable: `export STRIPE_KEY=sk_test_...`
+### "Error: STRIPE_API_KEY not set"
+- Set environment variable: `export STRIPE_API_KEY=sk_test_...`
 - Or configure in `etc/billing.yaml`
 
 ### "Error: Product not found"
@@ -581,13 +581,13 @@ All products **must** include these metadata fields:
 
 **Test Mode (recommended for development):**
 ```bash
-export STRIPE_KEY=sk_test_...
+export STRIPE_API_KEY=sk_test_...
 bin/ots billing products
 ```
 
 **Live Mode (production only):**
 ```bash
-export STRIPE_KEY=sk_live_...
+export STRIPE_API_KEY=sk_live_...
 bin/ots billing products
 ```
 

@@ -82,7 +82,7 @@ module Onetime
         puts '#        Make sure to replace PRODUCT_ID with actual Stripe product ID'
         puts
         puts '# Required: Set your Stripe API key first'
-        puts '# export STRIPE_KEY=sk_test_...'
+        puts '# export STRIPE_API_KEY=sk_test_...'
         puts
 
         plans_to_generate.each do |plan_id, plan_data|

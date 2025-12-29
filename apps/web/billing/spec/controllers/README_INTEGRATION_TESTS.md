@@ -35,7 +35,7 @@ billing_cycle: monthly|yearly
 ### 2. Environment Variables
 
 ```bash
-export STRIPE_KEY='sk_test_YOUR_STRIPE_TEST_KEY'
+export STRIPE_API_KEY='sk_test_YOUR_STRIPE_TEST_KEY'
 export STRIPE_WEBHOOK_SECRET='whsec_YOUR_WEBHOOK_SECRET'
 export STRIPE_TEST_PRICE_ID='price_YOUR_TEST_PRICE_ID'
 ```
@@ -49,7 +49,7 @@ Once Stripe is configured, record VCR cassettes:
 rm -rf apps/web/billing/spec/fixtures/vcr_cassettes/
 
 # Re-record with real Stripe Test API
-VCR_MODE=all STRIPE_KEY=sk_test_xxx pnpm run test:rspec apps/web/billing/spec/controllers
+VCR_MODE=all STRIPE_API_KEY=sk_test_xxx pnpm run test:rspec apps/web/billing/spec/controllers
 ```
 
 ### 4. Running Tests
@@ -61,7 +61,7 @@ After setup:
 pnpm run test:rspec apps/web/billing/spec/controllers
 
 # Re-record cassettes
-VCR_MODE=all STRIPE_KEY=sk_test_xxx pnpm run test:rspec apps/web/billing/spec/controllers
+VCR_MODE=all STRIPE_API_KEY=sk_test_xxx pnpm run test:rspec apps/web/billing/spec/controllers
 ```
 
 ## Alternative: Mock-Based Testing
