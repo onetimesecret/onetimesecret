@@ -30,7 +30,7 @@ const handleSubmit = () => {
 
   // Check for empty submission first
   if (!domain.value.trim()) {
-    localError.value = createError(t('web.domains.please_enter_a_domain_name', ''), "human");
+    localError.value = createError(t('web.domains.please_enter_a_domain_name'), "human");
     isValid.value = false;
     return;
   }

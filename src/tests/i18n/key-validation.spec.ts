@@ -89,6 +89,8 @@ function loadLocaleMessages(localeDir: string): LocaleMessages {
 function deepMerge(target: LocaleMessages, source: LocaleMessages): LocaleMessages {
   for (const key of Object.keys(source)) {
     if (key.startsWith('_')) continue; // Skip metadata keys like _context, _README
+    // Guard against prototype pollution
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
     if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
       if (!target[key]) {
         target[key] = {};
