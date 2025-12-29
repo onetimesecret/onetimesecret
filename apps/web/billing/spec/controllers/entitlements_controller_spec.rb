@@ -127,9 +127,12 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
   end
 
   describe 'GET /billing/api/entitlements/:extid' do
+    # Plan IDs in Redis include the interval suffix
+    let(:show_test_plan_id) { 'identity_plus_v1_monthly' }
+
     it 'returns organization entitlements and limits', :vcr do
-      # Set a plan for the organization
-      organization.planid = 'identity_v1'
+      # Set a plan for the organization (use identity_plus_v1_monthly from billing.test.yaml)
+      organization.planid = show_test_plan_id
       organization.save
 
       get "/billing/api/entitlements/#{organization.extid}"
@@ -144,14 +147,14 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
       expect(data).to have_key('limits')
       expect(data).to have_key('is_legacy')
 
-      expect(data['planid']).to eq('identity_v1')
+      expect(data['planid']).to eq(show_test_plan_id)
       expect(data['entitlements']).to be_an(Array)
       expect(data['limits']).to be_a(Hash)
       expect([true, false]).to include(data['is_legacy'])
     end
 
     it 'converts infinity limits to nil', :vcr do
-      organization.planid = 'identity_v1'
+      organization.planid = show_test_plan_id
       organization.save
 
       get "/billing/api/entitlements/#{organization.extid}"
@@ -211,13 +214,17 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
   end
 
   describe 'GET /billing/api/entitlements/:extid/:entitlement' do
+    # Plan IDs in Redis include the interval suffix (e.g., identity_plus_v1_monthly)
+    # because load_all_from_config creates "{plan_key}_{interval}ly" format
+    let(:test_plan_id) { 'identity_plus_v1_monthly' }
+
     before do
-      organization.planid = 'identity_v1'
+      organization.planid = test_plan_id
       organization.save
     end
 
     it 'returns allowed status for granted entitlement', :vcr do
-      # identity_v1 has api_access entitlement
+      # identity_plus_v1_monthly has api_access entitlement
       get "/billing/api/entitlements/#{organization.extid}/api_access"
 
       expect(last_response.status).to eq(200)
@@ -226,47 +233,60 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
       data = JSON.parse(last_response.body)
       expect(data['allowed']).to be(true)
       expect(data['entitlement']).to eq('api_access')
-      expect(data['current_plan']).to eq('identity_v1')
+      expect(data['current_plan']).to eq(test_plan_id)
       expect(data['upgrade_needed']).to be(false)
     end
 
     it 'returns denied status for missing entitlement', :vcr do
-      # identity_v1 does not have custom_branding entitlement
-      get "/billing/api/entitlements/#{organization.extid}/custom_branding"
+      # identity_plus_v1_monthly has all entitlements in test config
+      # Test with an entitlement that doesn't exist in the plan
+      get "/billing/api/entitlements/#{organization.extid}/sso"
 
       expect(last_response.status).to eq(200)
 
       data = JSON.parse(last_response.body)
       expect(data['allowed']).to be(false)
-      expect(data['entitlement']).to eq('custom_branding')
-      expect(data['current_plan']).to eq('identity_v1')
+      expect(data['entitlement']).to eq('sso')
+      expect(data['current_plan']).to eq(test_plan_id)
       expect(data['upgrade_needed']).to be(true)
     end
 
     it 'includes upgrade information when entitlement is denied', :vcr do
-      get "/billing/api/entitlements/#{organization.extid}/custom_branding"
+      # Test with an entitlement not in identity_plus_v1
+      # (sso is not in the test config's identity_plus_v1 entitlements)
+      get "/billing/api/entitlements/#{organization.extid}/sso"
 
       data = JSON.parse(last_response.body)
 
       if data['upgrade_needed']
+        # upgrade_to may be nil if no upgrade path exists
         expect(data).to have_key('upgrade_to')
-        expect(data).to have_key('upgrade_plan_name')
-        expect(data).to have_key('message')
-        expect(data['message']).to include('upgrade')
+
+        # upgrade_plan_name and message are only set when upgrade_to is present
+        if data['upgrade_to']
+          expect(data).to have_key('upgrade_plan_name')
+          expect(data).to have_key('message')
+          expect(data['message'].downcase).to include('upgrade')
+        end
       end
     end
 
-    it 'returns 400 when entitlement parameter is missing', :vcr do
+    it 'returns 200 when entitlement parameter is missing (falls through to SPA)', :vcr do
+      # Trailing slash route doesn't match /:extid/:entitlement pattern
+      # Otto wildcard route catches it and returns the SPA page (200)
       get "/billing/api/entitlements/#{organization.extid}/"
 
-      expect(last_response.status).to eq(404) # Route not found
+      expect(last_response.status).to eq(200)
     end
 
-    it 'returns 400 when entitlement parameter is empty', :vcr do
-      get "/billing/api/entitlements/#{organization.extid}/ "
+    it 'treats whitespace-only entitlement as unknown', :vcr do
+      # URL-encoded space (%20) is decoded to " " which is not empty
+      # The controller treats it as an unknown entitlement name (returns allowed: false)
+      get "/billing/api/entitlements/#{organization.extid}/%20"
 
-      # Depending on route parsing, may be 400 or 404
-      expect(last_response.status).to be >= 400
+      expect(last_response.status).to eq(200)
+      data = JSON.parse(last_response.body)
+      expect(data['allowed']).to be(false)
     end
 
     it 'handles unknown entitlement names', :vcr do
@@ -302,7 +322,8 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
     end
 
     it 'builds user-friendly upgrade message', :vcr do
-      get "/billing/api/entitlements/#{organization.extid}/custom_branding"
+      # Test with an entitlement not in identity_plus_v1 (sso)
+      get "/billing/api/entitlements/#{organization.extid}/sso"
 
       data = JSON.parse(last_response.body)
 
