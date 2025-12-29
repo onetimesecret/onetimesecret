@@ -2,28 +2,27 @@
 
 // Shared layout configuration for route definitions.
 // Centralizes layout props to reduce duplication and ensure consistency.
+// Note: Workspace app has its own WorkspaceLayout in src/apps/workspace/layouts/
 
 import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
 import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
-import WorkspaceFooter from '@/apps/workspace/components/layout/WorkspaceFooter.vue';
-import ImprovedLayout from '@/shared/layouts/ManagementLayout.vue';
+import ManagementLayout from '@/shared/layouts/ManagementLayout.vue';
 
 /**
  * Standard layout props for authenticated pages with full navigation.
- * Used across account, billing, and teams routes.
  */
 export const standardLayoutProps = {
   displayMasthead: true,
   displayNavigation: true,
   displayFooterLinks: true,
-  displayFeedback: false,
+  displayFeedback: true,
   displayPoweredBy: false,
   displayVersion: true,
   showSidebar: false,
 } as const;
 
 /**
- * Standard components configuration for routes using ImprovedLayout.
+ * Standard components configuration for routes using ManagementLayout.
  */
 export const improvedLayoutComponents = {
   header: ImprovedHeader,
@@ -31,20 +30,11 @@ export const improvedLayoutComponents = {
 } as const;
 
 /**
- * Workspace components configuration for authenticated workspace routes.
- * Uses simplified WorkspaceFooter with standard SaaS links.
- */
-export const workspaceLayoutComponents = {
-  header: ImprovedHeader,
-  footer: WorkspaceFooter,
-} as const;
-
-/**
  * Standard meta configuration for authenticated routes.
  */
 export const improvedLayoutMeta = {
-  layout: ImprovedLayout,
+  layout: ManagementLayout,
   layoutProps: standardLayoutProps,
 } as const;
 
-export { ImprovedFooter, ImprovedHeader, ImprovedLayout, WorkspaceFooter };
+export { ImprovedFooter, ImprovedHeader, ManagementLayout };
