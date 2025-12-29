@@ -162,13 +162,15 @@
       "an-error-occurred": "Er is een fout opgetreden",
       "copy-secret-to-clipboard": "Bericht kopiëren naar klembord",
       "secret-copied-to-clipboard": "Bericht gekopieerd naar klembord",
-      "Double check that passphrase": "Controleer die wachtwoordzin nogmaals",
-      "press_copy_button_below": "Klik op de kopieerknop hieronder."
+      "press_copy_button_below": "Klik op de kopieerknop hieronder.",
+      "Double check that passphrase": "Controleer die wachtwoordzin nogmaals"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Tonen",
-        "hide": "Verbergen"
+        "hide": "Verbergen",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "Tijdlijn",
       "lifespan": "Levensduur",
@@ -212,7 +214,10 @@
       "create-link": "Geheime link aanmaken",
       "create-request-short": "Verzoek aanmaken",
       "create-request": "Verzoeklink aanmaken",
-      "related-settings": "Gerelateerde instellingen"
+      "related-settings": "Gerelateerde instellingen",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "Nieuw",

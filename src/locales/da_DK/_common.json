@@ -162,13 +162,15 @@
       "an-error-occurred": "Der opstod en fejl",
       "copy-secret-to-clipboard": "Kopier hemmelighed til udklipsholder",
       "secret-copied-to-clipboard": "Hemmelighed kopieret til udklipsholder",
-      "Double check that passphrase": "Dobbelttjek den passphrase",
-      "press_copy_button_below": "Tryk på kopiknappen nedenfor."
+      "press_copy_button_below": "Tryk på kopiknappen nedenfor.",
+      "Double check that passphrase": "Dobbelttjek den passphrase"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Show",
-        "hide": "Hide"
+        "hide": "Hide",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "Timeline",
       "lifespan": "Lifespan",
@@ -212,7 +214,10 @@
       "create-link": "Opret hemmeligt link",
       "create-request-short": "Opret anmodning",
       "create-request": "Opret link til anmodning",
-      "related-settings": ""
+      "related-settings": "",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "New",

@@ -162,13 +162,15 @@
       "an-error-occurred": "Произошла ошибка",
       "copy-secret-to-clipboard": "Скопировать секрет в буфер обмена",
       "secret-copied-to-clipboard": "Секрет скопирован в буфер обмена",
-      "Double check that passphrase": "Внимательно проверьте эту кодовую фразу",
-      "press_copy_button_below": "Нажмите кнопку копирования ниже."
+      "press_copy_button_below": "Нажмите кнопку копирования ниже.",
+      "Double check that passphrase": "Внимательно проверьте эту кодовую фразу"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Показать",
-        "hide": "Скрыть"
+        "hide": "Скрыть",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "Временная шкала",
       "lifespan": "Срок действия",
@@ -212,7 +214,10 @@
       "create-link": "Создать ссылку на секрет",
       "create-request-short": "Создать запрос",
       "create-request": "Создать ссылку для запроса",
-      "related-settings": "Связанные настройки"
+      "related-settings": "Связанные настройки",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "Новый",

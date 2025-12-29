@@ -162,13 +162,15 @@
       "an-error-occurred": "Hiba történt",
       "copy-secret-to-clipboard": "Titok másolása vágólapra",
       "secret-copied-to-clipboard": "Titok vágólapra másolva",
-      "Double check that passphrase": "Ellenőrizze újra a hozzáférési mondatot",
-      "press_copy_button_below": "Nyomja meg az alábbi másolás gombot."
+      "press_copy_button_below": "Nyomja meg az alábbi másolás gombot.",
+      "Double check that passphrase": "Ellenőrizze újra a hozzáférési mondatot"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Megjelenítés",
-        "hide": "Elrejtés"
+        "hide": "Elrejtés",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "Idővonal",
       "lifespan": "Élettartam",
@@ -212,7 +214,10 @@
       "create-link": "Titkos hivatkozás létrehozása",
       "create-request-short": "Kérés létrehozása",
       "create-request": "Kérési hivatkozás létrehozása",
-      "related-settings": "Kapcsolódó beállítások"
+      "related-settings": "Kapcsolódó beállítások",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "Új",

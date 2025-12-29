@@ -162,13 +162,15 @@
       "an-error-occurred": "Došlo k chybě",
       "copy-secret-to-clipboard": "Zkopírovat tajemství do schránky",
       "secret-copied-to-clipboard": "Tajemství zkopírováno do schránky",
-      "Double check that passphrase": "Zkontroluj si tu přístupovou frázi",
-      "press_copy_button_below": "Stiskni tlačítko kopírovat níže."
+      "press_copy_button_below": "Stiskni tlačítko kopírovat níže.",
+      "Double check that passphrase": "Zkontroluj si tu přístupovou frázi"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Zobrazit",
-        "hide": "Skrýt"
+        "hide": "Skrýt",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "Časová osa",
       "lifespan": "Životnost",
@@ -212,7 +214,10 @@
       "create-link": "Vytvořit tajný odkaz",
       "create-request-short": "Vytvořit požadavek",
       "create-request": "Vytvořit odkaz na požadavek",
-      "related-settings": "Související nastavení"
+      "related-settings": "Související nastavení",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "Nové",

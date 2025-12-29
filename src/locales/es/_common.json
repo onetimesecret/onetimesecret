@@ -162,13 +162,15 @@
       "an-error-occurred": "Ocurrió un error",
       "copy-secret-to-clipboard": "Copiar secreto al portapapeles",
       "secret-copied-to-clipboard": "Secreto copiado al portapapeles",
-      "Double check that passphrase": "Verifica bien esa frase de contraseña",
-      "press_copy_button_below": "Presiona el botón de copiar a continuación."
+      "press_copy_button_below": "Presiona el botón de copiar a continuación.",
+      "Double check that passphrase": "Verifica bien esa frase de contraseña"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Mostrar",
-        "hide": "Ocultar"
+        "hide": "Ocultar",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "Cronología",
       "lifespan": "Duración",
@@ -212,7 +214,10 @@
       "create-link": "Crear Enlace Secreto",
       "create-request-short": "Crear Solicitud",
       "create-request": "Crear Enlace de Solicitud",
-      "related-settings": "Configuración Relacionada"
+      "related-settings": "Configuración Relacionada",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "Nuevo",

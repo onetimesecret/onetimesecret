@@ -162,13 +162,15 @@
       "an-error-occurred": "Đã xảy ra lỗi",
       "copy-secret-to-clipboard": "Sao chép bí mật vào clipboard",
       "secret-copied-to-clipboard": "Đã sao chép bí mật vào clipboard",
-      "Double check that passphrase": "Kiểm tra lại cụm mật khẩu đó",
-      "press_copy_button_below": "Nhấn nút sao chép bên dưới."
+      "press_copy_button_below": "Nhấn nút sao chép bên dưới.",
+      "Double check that passphrase": "Kiểm tra lại cụm mật khẩu đó"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Hiển thị",
-        "hide": "Ẩn"
+        "hide": "Ẩn",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "Dòng thời gian",
       "lifespan": "Thời gian tồn tại",
@@ -212,7 +214,10 @@
       "create-link": "Tạo liên kết bí mật",
       "create-request-short": "Tạo yêu cầu",
       "create-request": "Tạo liên kết yêu cầu",
-      "related-settings": "Cài đặt liên quan"
+      "related-settings": "Cài đặt liên quan",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "Mới",

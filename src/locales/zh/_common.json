@@ -162,13 +162,15 @@
       "an-error-occurred": "发生错误",
       "copy-secret-to-clipboard": "将内容复制到剪贴板",
       "secret-copied-to-clipboard": "内容已复制到剪贴板",
-      "Double check that passphrase": "请仔细检查该口令",
-      "press_copy_button_below": "请按下方的复制按钮。"
+      "press_copy_button_below": "请按下方的复制按钮。",
+      "Double check that passphrase": "请仔细检查该口令"
     },
     "LABELS": {
       "view_toggle": {
         "show": "显示",
-        "hide": "隐藏"
+        "hide": "隐藏",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "时间线",
       "lifespan": "生命周期",
@@ -212,7 +214,10 @@
       "create-link": "创建一次性链接",
       "create-request-short": "创建请求",
       "create-request": "创建请求链接",
-      "related-settings": "相关设置"
+      "related-settings": "相关设置",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "新建",

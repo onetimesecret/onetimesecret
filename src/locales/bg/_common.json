@@ -162,12 +162,15 @@
       "an-error-occurred": "Възникна грешка",
       "copy-secret-to-clipboard": "Копирай тайната в клипборда",
       "secret-copied-to-clipboard": "Тайната е копирана в клипборда",
-      "press_copy_button_below": "Натиснете бутона за копиране по-долу."
+      "press_copy_button_below": "Натиснете бутона за копиране по-долу.",
+      "Double check that passphrase": "Double check that passphrase"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Покажи",
-        "hide": "Скрий"
+        "hide": "Скрий",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "Хронология",
       "lifespan": "Продължителност на живот",
@@ -211,7 +214,10 @@
       "create-link": "Създай тайна връзка",
       "create-request-short": "Създай заявка",
       "create-request": "Създай връзка за заявка",
-      "related-settings": "Свързани настройки"
+      "related-settings": "Свързани настройки",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "Нова",

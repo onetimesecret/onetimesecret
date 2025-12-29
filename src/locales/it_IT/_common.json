@@ -162,13 +162,15 @@
       "an-error-occurred": "Si è verificato un errore",
       "copy-secret-to-clipboard": "Copia il segreto negli appunti",
       "secret-copied-to-clipboard": "Segreto copiato negli appunti",
-      "Double check that passphrase": "Controlla due volte la passphrase",
-      "press_copy_button_below": "Premi il pulsante di copia qui sotto"
+      "press_copy_button_below": "Premi il pulsante di copia qui sotto",
+      "Double check that passphrase": "Controlla due volte la passphrase"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Mostra",
-        "hide": "Nascondi"
+        "hide": "Nascondi",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "Cronologia",
       "lifespan": "Durata della vita",
@@ -212,7 +214,10 @@
       "create-link": "Crea link segreto",
       "create-request-short": "Crea richiesta",
       "create-request": "Crea link di richiesta",
-      "related-settings": "Impostazioni correlate"
+      "related-settings": "Impostazioni correlate",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "Nuovo",

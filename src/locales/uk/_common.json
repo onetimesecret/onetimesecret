@@ -162,13 +162,15 @@
       "an-error-occurred": "Сталася помилка",
       "copy-secret-to-clipboard": "Копіювати секрет в буфер обміну",
       "secret-copied-to-clipboard": "Секрет скопійовано в буфер обміну",
-      "Double check that passphrase": "Перевірте ще раз цю парольну фразу",
-      "press_copy_button_below": "Натисніть кнопку копіювання нижче."
+      "press_copy_button_below": "Натисніть кнопку копіювання нижче.",
+      "Double check that passphrase": "Перевірте ще раз цю парольну фразу"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Показати",
-        "hide": "Сховати"
+        "hide": "Сховати",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "Хронологія",
       "lifespan": "Термін життя",
@@ -212,7 +214,10 @@
       "create-link": "Створити секретне посилання",
       "create-request-short": "Створити запит",
       "create-request": "Створити посилання на запит",
-      "related-settings": "Пов'язані налаштування"
+      "related-settings": "Пов'язані налаштування",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "Новий",

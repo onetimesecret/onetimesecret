@@ -162,13 +162,15 @@
       "an-error-occurred": "오류가 발생했습니다",
       "copy-secret-to-clipboard": "비밀 메시지를 클립보드에 복사",
       "secret-copied-to-clipboard": "비밀 메시지가 클립보드에 복사되었습니다",
-      "Double check that passphrase": "접근 문구를 다시 확인하세요",
-      "press_copy_button_below": "아래 복사 버튼을 누르세요."
+      "press_copy_button_below": "아래 복사 버튼을 누르세요.",
+      "Double check that passphrase": "접근 문구를 다시 확인하세요"
     },
     "LABELS": {
       "view_toggle": {
         "show": "표시",
-        "hide": "숨기기"
+        "hide": "숨기기",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "타임라인",
       "lifespan": "수명",
@@ -212,7 +214,10 @@
       "create-link": "비밀 링크 생성",
       "create-request-short": "요청 생성",
       "create-request": "요청 링크 생성",
-      "related-settings": "관련 설정"
+      "related-settings": "관련 설정",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "신규",

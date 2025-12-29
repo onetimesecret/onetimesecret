@@ -162,13 +162,15 @@
       "an-error-occurred": "حدث خطأ",
       "copy-secret-to-clipboard": "نسخ السر إلى الحافظة",
       "secret-copied-to-clipboard": "تم نسخ السر إلى الحافظة",
-      "Double check that passphrase": "تحقق مرة أخرى من عبارة المرور",
-      "press_copy_button_below": "اضغط على زر النسخ أدناه."
+      "press_copy_button_below": "اضغط على زر النسخ أدناه.",
+      "Double check that passphrase": "تحقق مرة أخرى من عبارة المرور"
     },
     "LABELS": {
       "view_toggle": {
         "show": "إظهار",
-        "hide": "إخفاء"
+        "hide": "إخفاء",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "الجدول الزمني",
       "lifespan": "مدة الصلاحية",
@@ -212,7 +214,10 @@
       "create-link": "إنشاء رابط سر",
       "create-request-short": "إنشاء طلب",
       "create-request": "إنشاء رابط طلب",
-      "related-settings": "الإعدادات ذات الصلة"
+      "related-settings": "الإعدادات ذات الصلة",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "جديد",

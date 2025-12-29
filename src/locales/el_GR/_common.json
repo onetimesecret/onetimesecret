@@ -162,13 +162,15 @@
       "an-error-occurred": "Παρουσιάστηκε σφάλμα",
       "copy-secret-to-clipboard": "Αντιγραφή μυστικού στο πρόχειρο",
       "secret-copied-to-clipboard": "Το μυστικό αντιγράφηκε στο πρόχειρο",
-      "Double check that passphrase": "Ελέγξτε ξανά αυτή τη φράση πρόσβασης",
-      "press_copy_button_below": "Πατήστε το παρακάτω κουμπί αντιγραφής."
+      "press_copy_button_below": "Πατήστε το παρακάτω κουμπί αντιγραφής.",
+      "Double check that passphrase": "Ελέγξτε ξανά αυτή τη φράση πρόσβασης"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Εμφάνιση",
-        "hide": "Απόκρυψη"
+        "hide": "Απόκρυψη",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "Χρονολόγιο",
       "lifespan": "Διάρκεια Ζωής",
@@ -212,7 +214,10 @@
       "create-link": "Δημιουργία Μυστικού Συνδέσμου",
       "create-request-short": "Δημιουργία Αιτήματος",
       "create-request": "Δημιουργία Συνδέσμου Αιτήματος",
-      "related-settings": ""
+      "related-settings": "",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "Νέο",

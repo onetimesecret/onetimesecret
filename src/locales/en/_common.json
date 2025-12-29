@@ -169,8 +169,13 @@
     "LABELS": {
       "view_toggle": {
         "show": "Show",
-        "hide": "Hide"
+        "hide": "Hide",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats",
       "timeline": "Timeline",
       "lifespan": "Lifespan",
       "expiration_time": "Expiration Time",

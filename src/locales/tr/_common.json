@@ -162,13 +162,15 @@
       "an-error-occurred": "Bir hata oluştu",
       "copy-secret-to-clipboard": "Mesajı panoya kopyala",
       "secret-copied-to-clipboard": "Mesaj panoya kopyalandı",
-      "Double check that passphrase": "Parolayı iki kez kontrol edin",
-      "press_copy_button_below": "Aşağıdaki kopyala düğmesine basın."
+      "press_copy_button_below": "Aşağıdaki kopyala düğmesine basın.",
+      "Double check that passphrase": "Parolayı iki kez kontrol edin"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Göster",
-        "hide": "Gizle"
+        "hide": "Gizle",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "Zaman Çizelgesi",
       "lifespan": "Yaşam Süresi",
@@ -212,7 +214,10 @@
       "create-link": "Gizli Bağlantı Oluştur",
       "create-request-short": "İstek Oluştur",
       "create-request": "İstek Bağlantısı Oluştur",
-      "related-settings": ""
+      "related-settings": "",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "Yeni",

@@ -162,13 +162,15 @@
       "an-error-occurred": "Ett fel inträffade",
       "copy-secret-to-clipboard": "Kopiera hemlighet till urklipp",
       "secret-copied-to-clipboard": "Hemlighet kopierad till urklipp",
-      "Double check that passphrase": "Dubbelkolla den lösenfrasen",
-      "press_copy_button_below": "Tryck på kopieringsknappen nedan."
+      "press_copy_button_below": "Tryck på kopieringsknappen nedan.",
+      "Double check that passphrase": "Dubbelkolla den lösenfrasen"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Visa",
-        "hide": "Dölj"
+        "hide": "Dölj",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "Tidslinje",
       "lifespan": "Livslängd",
@@ -212,7 +214,10 @@
       "create-link": "Skapa hemlig länk",
       "create-request-short": "Skapa förfrågan",
       "create-request": "Skapa förfrågningslänk",
-      "related-settings": ""
+      "related-settings": "",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "Ny",

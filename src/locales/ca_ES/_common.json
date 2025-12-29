@@ -162,13 +162,15 @@
       "an-error-occurred": "S'ha produït un error",
       "copy-secret-to-clipboard": "Copia el secret al porta-retalls",
       "secret-copied-to-clipboard": "Secret copiat al porta-retalls",
-      "Double check that passphrase": "Comprova doblement aquesta frase de contrasenya",
-      "press_copy_button_below": "Prem el botó de copiar de sota."
+      "press_copy_button_below": "Prem el botó de copiar de sota.",
+      "Double check that passphrase": "Comprova doblement aquesta frase de contrasenya"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Mostra",
-        "hide": "Amaga"
+        "hide": "Amaga",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "Línia de temps",
       "lifespan": "Durada de vida",
@@ -212,7 +214,10 @@
       "create-link": "Crea un enllaç secret",
       "create-request-short": "Crea una sol·licitud",
       "create-request": "Crea un enllaç de sol·licitud",
-      "related-settings": "Configuració relacionada"
+      "related-settings": "Configuració relacionada",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "Nou",

@@ -162,13 +162,15 @@
       "an-error-occurred": "Prišlo je do napake",
       "copy-secret-to-clipboard": "Kopiraj skrivnost v odložišče",
       "secret-copied-to-clipboard": "Skrivnost kopirana v odložišče",
-      "Double check that passphrase": "Dvakrat preverite pristopno frazo",
-      "press_copy_button_below": "Pritisnite spodnji gumb za kopiranje."
+      "press_copy_button_below": "Pritisnite spodnji gumb za kopiranje.",
+      "Double check that passphrase": "Dvakrat preverite pristopno frazo"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Prikaži",
-        "hide": "Skrij"
+        "hide": "Skrij",
+        "show_more": "Show More",
+        "show_less": "Show Less"
       },
       "timeline": "Časovnica",
       "lifespan": "Življenjska doba",
@@ -212,7 +214,10 @@
       "create-link": "Ustvari skrivno povezavo",
       "create-request-short": "Ustvari zahtevo",
       "create-request": "Ustvari povezavo za zahtevo",
-      "related-settings": "Povezane nastavitve"
+      "related-settings": "Povezane nastavitve",
+      "enable": "Enable",
+      "disable": "Disable",
+      "stats": "Stats"
     },
     "STATUS": {
       "new": "Novo",
