@@ -540,4 +540,112 @@ describe('metadataStore', () => {
       });
     });
   });
+
+  describe('guest routes error handling', () => {
+    // These tests verify that guest routes 403 errors bubble up correctly
+    // from the store. Per project architecture, stores bubble errors and
+    // composables/components handle them with useAsyncHandler.wrap()
+
+    describe('GUEST_ROUTES_DISABLED errors', () => {
+      const guestRoutesDisabledResponse = {
+        message: 'Guest API access is disabled',
+        code: 'GUEST_ROUTES_DISABLED',
+      };
+
+      it('fetch() rejects with 403 when guest routes globally disabled', async () => {
+        const testKey = mockMetadataRecord.key;
+        store.setApiMode('public');
+        axiosMock
+          ?.onGet(`/api/v3/guest/receipt/${testKey}`)
+          .reply(403, guestRoutesDisabledResponse);
+
+        await expect(store.fetch(testKey)).rejects.toThrow();
+      });
+
+      it('burn() rejects with 403 when guest routes globally disabled', async () => {
+        const testKey = mockMetadataRecord.key;
+        store.setApiMode('public');
+        store.record = { ...mockMetadataRecord, burned: null, state: 'new' };
+        axiosMock
+          ?.onPost(`/api/v3/guest/receipt/${testKey}/burn`)
+          .reply(403, guestRoutesDisabledResponse);
+
+        await expect(store.burn(testKey)).rejects.toThrow();
+      });
+
+      it('store state remains unchanged after fetch 403 error', async () => {
+        const testKey = mockMetadataRecord.key;
+        store.setApiMode('public');
+        axiosMock
+          ?.onGet(`/api/v3/guest/receipt/${testKey}`)
+          .reply(403, guestRoutesDisabledResponse);
+
+        const initialRecord = store.record;
+        const initialDetails = store.details;
+
+        await expect(store.fetch(testKey)).rejects.toThrow();
+
+        expect(store.record).toBe(initialRecord);
+        expect(store.details).toBe(initialDetails);
+      });
+    });
+
+    describe('operation-specific disabled errors', () => {
+      it('fetch() rejects with GUEST_RECEIPT_DISABLED code', async () => {
+        const testKey = mockMetadataRecord.key;
+        store.setApiMode('public');
+        axiosMock?.onGet(`/api/v3/guest/receipt/${testKey}`).reply(403, {
+          message: 'Guest receipt is disabled',
+          code: 'GUEST_RECEIPT_DISABLED',
+        });
+
+        await expect(store.fetch(testKey)).rejects.toThrow();
+      });
+
+      it('burn() rejects with GUEST_BURN_DISABLED code', async () => {
+        const testKey = mockMetadataRecord.key;
+        store.setApiMode('public');
+        store.record = { ...mockMetadataRecord, burned: null, state: 'new' };
+        axiosMock?.onPost(`/api/v3/guest/receipt/${testKey}/burn`).reply(403, {
+          message: 'Guest burn is disabled',
+          code: 'GUEST_BURN_DISABLED',
+        });
+
+        await expect(store.burn(testKey)).rejects.toThrow();
+      });
+    });
+
+    describe('authenticated mode unaffected by guest route errors', () => {
+      it('fetch() succeeds in authenticated mode regardless of guest config', async () => {
+        const testKey = mockMetadataRecord.key;
+        store.setApiMode('authenticated');
+
+        axiosMock?.onGet(`/api/v3/receipt/${testKey}`).reply(200, {
+          record: mockMetadataRecordRaw,
+          details: mockMetadataDetailsRaw,
+        });
+
+        await store.fetch(testKey);
+
+        expect(store.record).toEqual(mockMetadataRecord);
+        expect(axiosMock?.history.get[0].url).toBe(`/api/v3/receipt/${testKey}`);
+      });
+
+      it('burn() succeeds in authenticated mode regardless of guest config', async () => {
+        const testKey = mockMetadataRecord.key;
+        store.setApiMode('authenticated');
+        store.record = { ...mockMetadataRecord, burned: null, state: 'new' };
+
+        axiosMock?.onPost(`/api/v3/receipt/${testKey}/burn`).reply(200, {
+          record: mockBurnedMetadataRecordRaw,
+          details: mockBurnedMetadataDetailsRaw,
+        });
+
+        await store.burn(testKey);
+
+        expect(store.record).toEqual(mockBurnedMetadataRecord);
+        expect(axiosMock?.history.post[0].url).toBe(`/api/v3/receipt/${testKey}/burn`);
+      });
+    });
+  });
 });
