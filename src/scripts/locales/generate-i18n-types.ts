@@ -176,6 +176,7 @@ ${nestedStructure}
  * - t('web.COMMO.typo') - TypeScript error
  */
 declare module 'vue-i18n' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   export interface DefineLocaleMessage extends LocaleMessageSchema {}
 }
 `;

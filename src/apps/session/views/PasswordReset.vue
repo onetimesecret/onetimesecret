@@ -36,13 +36,13 @@ const handleSubmit = async () => {
 
 <template>
   <AuthView
-    :heading="t('web.auth.choose-a-new-password')"
+    :heading="t('web.auth.password_reset.title')"
     heading-id="password-reset-heading"
     :with-subheading="false"
     :hide-icon="true">
     <template #form>
       <p class="mb-6 text-gray-700 dark:text-gray-300">
-        {{ t('web.auth.please-enter-your-new-password-below-make-sure-i') }}
+        {{ t('web.auth.password_reset.description') }}
       </p>
 
       <!-- Missing reset key error -->
@@ -151,7 +151,7 @@ const handleSubmit = async () => {
       <router-link
         to="/signin"
         class="text-gray-600 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-        {{ t('web.auth.back-to-sign-in') }}
+        {{ t('web.auth.magicLink.backToSignin') }}
       </router-link>
     </template>
   </AuthView>

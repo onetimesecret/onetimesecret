@@ -245,7 +245,7 @@ export function useMfa() {
       // Check for error response (validation failure)
       if (isAuthError(validated)) {
         // Use centralized i18n message for invalid codes
-        throw createError(t('web.auth.mfa.invalid-code'), 'human', 'error', {
+        throw createError(t('web.auth.mfa.invalid_code'), 'human', 'error', {
           'field-error': validated['field-error'],
         });
       }
@@ -290,7 +290,7 @@ export function useMfa() {
 
       if (isAuthError(validated)) {
         // Use centralized i18n message for invalid OTP codes
-        throw createError(t('web.auth.mfa.invalid-code'), 'human', 'error');
+        throw createError(t('web.auth.mfa.invalid_code'), 'human', 'error');
       }
 
       return true;

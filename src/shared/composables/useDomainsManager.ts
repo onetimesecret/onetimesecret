@@ -87,13 +87,13 @@ export function useDomainsManager() {
   const verifyDomain = async (extid: string) =>
     wrap(async () => {
       const result = await store.verifyDomain(extid);
-      notifications.show(t('web.domains.domain-verification-initiated-successfully'), 'success');
+      notifications.show(t('web.domains.domain_verification_initiated_successfully'), 'success');
       return result;
     });
 
   const handleDomainExistsError = async (domain: string, errorMessage: string) => {
     if (errorMessage.includes('already registered in your organization')) {
-      notifications.show(t('web.domains.domain-already-in-organization'), 'warning');
+      notifications.show(t('web.domains.domain_already_in_organization'), 'warning');
       await store.fetchList();
       const existingDomain = store.records?.find(d => d.display_domain === domain);
       if (existingDomain) {
@@ -104,7 +104,7 @@ export function useDomainsManager() {
       return null;
     }
     if (errorMessage.includes('registered to another organization')) {
-      notifications.show(t('web.domains.domain-in-other-organization'), 'error');
+      notifications.show(t('web.domains.domain_in_other_organization'), 'error');
       return null;
     }
     return undefined; // Signal to re-throw
@@ -115,12 +115,12 @@ export function useDomainsManager() {
       try {
         const result = await store.addDomain(domain);
         if (!result) {
-          error.value = createError(t('web.domains.failed-to-add-domain'), 'human', 'error');
+          error.value = createError(t('web.domains.failed_to_add_domain'), 'human', 'error');
           return null;
         }
 
         const isReclaimed = result.updated.getTime() > result.created.getTime();
-        const message = isReclaimed ? 'web.domains.domain-claimed-successfully' : 'domain-added-successfully';
+        const message = isReclaimed ? 'web.domains.domain_claimed_successfully' : 'web.domains.domain_added_successfully';
         notifications.show(t(message), 'success');
 
         router.push({ name: 'DomainVerify', params: { extid: result.extid } });
@@ -136,7 +136,7 @@ export function useDomainsManager() {
 
   const deleteDomain = async (domainId: string) => {
     await store.deleteDomain(domainId);
-    notifications.show(t('web.domains.domain-removed-successfully'), 'success');
+    notifications.show(t('web.domains.domain_removed_successfully'), 'success');
   };
 
   return {

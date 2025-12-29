@@ -201,7 +201,7 @@ const handleSubmit = async () => {
         <label
           for="terms-agreement"
           class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
-          {{ t('web.auth.i-agree-to-the') }}
+          {{ t('web.auth.terms.agree_prefix') }}
           <router-link
             to="/info/terms"
             class="font-medium text-brand-600 hover:text-brand-500
@@ -234,7 +234,7 @@ const handleSubmit = async () => {
                      disabled:cursor-not-allowed disabled:opacity-50
                      dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800">
         <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
-        <span v-else>{{ t('web.auth.create-account') }}</span>
+        <span v-else>{{ t('web.COMMON.button_create_account') }}</span>
       </button>
       <!-- Loading state announcement (screen reader only) -->
       <div
