@@ -533,7 +533,7 @@ module Billing
             # Create Plan instance
             plan = new(
               plan_id: plan_id,
-              stripe_price_id: price['price_id'],  # Use price_id from config if available
+              stripe_price_id: price.key?('price_id') ? price['price_id'] : nil,
               stripe_product_id: nil,
               name: plan_def['name'],
               tier: tier,

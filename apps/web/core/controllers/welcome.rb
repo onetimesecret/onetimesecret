@@ -130,7 +130,10 @@ module Core
 
         @cust = logic.cust
 
-        # Session cookie handled by Rack::Session middleware
+        # Regenerate session ID after new account creation to prevent fixation attacks
+        if logic.new_account_created && req.env['rack.session.options']
+          req.env['rack.session.options'][:renew] = true
+        end
 
         res.redirect '/account'
       end

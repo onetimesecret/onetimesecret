@@ -17,7 +17,7 @@ module Billing
       #
       class FromStripePaymentLink < Onetime::Logic::Base
         attr_reader :checkout_session_id, :checkout_session, :checkout_email,
-          :update_customer_fields, :stripe_subscription
+          :update_customer_fields, :stripe_subscription, :new_account_created
 
         def process_params
           @checkout_session_id = params[:checkout]
@@ -25,18 +25,21 @@ module Billing
 
         def raise_concerns
           raise_form_error 'No Stripe checkout_session_id' unless checkout_session_id
-          @checkout_session = Stripe::Checkout::Session.retrieve(checkout_session_id)
+
+          # Use expand to fetch subscription in a single API call
+          @checkout_session = Stripe::Checkout::Session.retrieve({
+            id: checkout_session_id,
+            expand: ['subscription'],
+          })
           raise_form_error 'Invalid Stripe checkout session' unless checkout_session
 
-          # Fetch the full subscription to extract plan metadata
-          if checkout_session.subscription
-            @stripe_subscription = Stripe::Subscription.retrieve(checkout_session.subscription)
-          end
+          # The full subscription object is now available via expand
+          @stripe_subscription = checkout_session.subscription
 
           @checkout_email         = checkout_session.customer_details.email
           @update_customer_fields = {
             stripe_checkout_email: checkout_email,
-            stripe_subscription_id: checkout_session.subscription,
+            stripe_subscription_id: stripe_subscription&.id,
             stripe_customer_id: checkout_session.customer,
           }
         end
@@ -44,18 +47,15 @@ module Billing
         def process
           if @sess['authenticated'] == true
             # If the user is already authenticated, we can associate the checkout
-            # session with their account.
+            # session with their account - but only if emails match.
 
-            if checkout_email.eql?(cust.email)
-              OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with authenticated user #{cust.email}"
-
-            else
-              # Log the discrepancy
-              OT.le "[FromStripePaymentLink] Email mismatch: #{checkout_email} !== authenticated user email #{cust.email}"
+            unless checkout_email.eql?(cust.email)
+              # Security: Don't link checkout to a different account than checkout_email
+              OT.le "[FromStripePaymentLink] Email mismatch: checkout email differs from authenticated user #{cust.obscure_email}"
+              raise_form_error 'Please log out first to complete checkout with a different email address'
             end
 
-            # Proceed with associating the checkout session with the
-            # authenticated account.
+            OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with authenticated user #{cust.obscure_email}"
 
             # TODO: Handle case where the user is already a Stripe customer
             cust.apply_fields(**update_customer_fields).commit_fields
@@ -74,7 +74,7 @@ module Billing
               # associate the checkout session with that account and then direct
               # them to sign in.
 
-              OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with existing user #{cust.email}"
+              OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with existing user #{cust.obscure_email}"
 
               cust.apply_fields(**update_customer_fields).commit_fields
 
@@ -83,23 +83,24 @@ module Billing
 
               raise OT::Redirect.new('/signin')
             else
-              OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with new user #{checkout_email}"
+              OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with new user #{OT::Utils.obscure_email(checkout_email)}"
 
               cust          = Onetime::Customer.create!(checkout_email)
-              cust.verified = 'true'
+              cust.verified = true  # Familia v2 uses JSON primitives, not strings
               cust.role     = 'customer'
               cust.update_passphrase Onetime::Utils.strand(12)
               cust.apply_fields(**update_customer_fields).commit_fields
 
-              # Create a completely new session, new id, new everything (incl
-              # cookie which the controllor will implicitly do above when it
-              # resends the cookie with the new session id).
-              OT.info "[FromStripePaymentLink:login-success] #{sess} #{cust.obscure_email} #{cust.role}"
+              OT.info "[FromStripePaymentLink:login-success] #{cust.obscure_email} #{cust.role}"
 
               # Set session authentication data
+              # Note: Controller should regenerate session ID after this to prevent fixation
               sess['external_id']      = cust.extid
               sess['authenticated']    = true
               sess['authenticated_at'] = Familia.now.to_i
+
+              # Flag that a new account was created (controller should regenerate session)
+              @new_account_created = true
 
               # Update organization billing from subscription (extracts planid, etc.)
               update_organization_billing(cust)
@@ -127,17 +128,24 @@ module Billing
         def update_organization_billing(customer)
           return unless stripe_subscription
 
-          # Find default organization (matches CheckoutCompleted pattern)
+          # Find or create default organization
           orgs = customer.organization_instances.to_a
-          org = orgs.find { |o| o.is_default }
+          org = orgs.find(&:is_default)
+
           unless org
-            OT.lw "[FromStripePaymentLink] No default organization found for customer #{customer.obscure_email}"
-            return
+            OT.info "[FromStripePaymentLink] No default organization found, creating one for customer #{customer.obscure_email}"
+            org = Onetime::Organization.create!(
+              "#{customer.email}'s Workspace",
+              customer,
+              customer.email,
+            )
+            org.is_default = true
+            org.save
           end
 
           OT.info "[FromStripePaymentLink] Updating organization #{org.objid} billing from subscription #{stripe_subscription.id}"
           org.update_from_stripe_subscription(stripe_subscription)
-        rescue StandardError => ex
+        rescue Stripe::StripeError, Familia::Problem => ex
           # Log but don't fail the checkout flow - billing can be reconciled later
           OT.le "[FromStripePaymentLink] Error updating organization billing: #{ex.message}"
         end
@@ -195,7 +203,7 @@ module Billing
           OT.info '[ProcessCheckoutSession] Organization subscription activated', {
             orgid: org.objid,
             subscription_id: subscription.id,
-            plan_id: plan_id,
+            plan_id: org.planid,  # Use actual planid set by update_from_stripe_subscription
           }
 
           success_data
