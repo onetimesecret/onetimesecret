@@ -58,9 +58,9 @@ OT.info "Cleaned Redis for fresh test run"
 @owner_membership.customer_objid
 #=> @owner.objid
 
-## Through model has default role
+## Through model has owner role (set via through_attrs in Organization.create!)
 @owner_membership.role
-#=> 'member'
+#=> 'owner'
 
 ## Through model has default status
 @owner_membership.status

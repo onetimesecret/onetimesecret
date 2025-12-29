@@ -21,3 +21,10 @@ GET    /:extid/invitations                  OrganizationAPI::Logic::Invitations:
 POST   /:extid/invitations                  OrganizationAPI::Logic::Invitations::CreateInvitation response=json auth=sessionauth
 POST   /:extid/invitations/:token/resend    OrganizationAPI::Logic::Invitations::ResendInvitation response=json auth=sessionauth
 DELETE /:extid/invitations/:token           OrganizationAPI::Logic::Invitations::RevokeInvitation response=json auth=sessionauth
+
+# Organization Members
+# Member and role management for organization owners/admins
+# Role hierarchy: owner > admin > member
+GET    /:extid/members                      OrganizationAPI::Logic::Members::ListMembers response=json auth=sessionauth
+PATCH  /:extid/members/:member_extid/role   OrganizationAPI::Logic::Members::UpdateMemberRole response=json auth=sessionauth
+DELETE /:extid/members/:member_extid        OrganizationAPI::Logic::Members::RemoveMember response=json auth=sessionauth

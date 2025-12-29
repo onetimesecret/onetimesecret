@@ -214,6 +214,12 @@ module Onetime
       self.token          = nil  # Clear token for security
       save
 
+      # Update the org_customer_lookup index since customer_objid changed
+      # This index enables find_by_org_customer to work for active memberships
+      if org_customer_key
+        self.class.org_customer_lookup[org_customer_key] = objid
+      end
+
       # Add customer to organization's member sorted set directly
       # We bypass add_members_instance because that uses :through which would
       # try to create a new OrganizationMembership (we already have one - this invitation)
@@ -244,6 +250,32 @@ module Onetime
 
       # Remove from org's pending set before destroying
       organization&.pending_invitations&.remove(objid)
+
+      # Use destroy_with_index_cleanup! to prevent orphaned Redis index entries
+      destroy_with_index_cleanup!
+    end
+
+    # Destroy the membership with proper index cleanup
+    #
+    # Cleans up all unique index entries before destroying the record,
+    # which allows the email to be re-invited later.
+    def destroy_with_index_cleanup!
+      # Remove org_email_lookup entry if exists
+      # Use remove_field since the index is a Familia::HashKey
+      if org_email_key
+        self.class.org_email_lookup.remove_field(org_email_key)
+      end
+
+      # Remove org_customer_lookup entry if exists
+      if org_customer_key
+        self.class.org_customer_lookup.remove_field(org_customer_key)
+      end
+
+      # Remove token_lookup entry if exists
+      if token
+        self.class.token_lookup.remove_field(token)
+      end
+
       destroy!
     end
 
@@ -348,29 +380,23 @@ module Onetime
 
       # Find active memberships for an organization
       #
-      # Uses pipelined loading to fetch all memberships in a single Redis
-      # round-trip, avoiding N+1 queries.
+      # Uses batch lookup via HMGET on the org_customer_lookup index,
+      # then bulk loads all memberships with load_multi.
       #
       # @param org [Organization] the organization to query
       # @return [Array<OrganizationMembership>] active memberships
       def active_for_org(org)
-        customers = org.list_members
-        return [] if customers.empty?
+        customer_objids = org.members.to_a
+        return [] if customer_objids.empty?
 
-        # Generate all keys upfront, then batch load via pipeline
-        keys = customers.map { |customer| membership_key(org, customer) }
-        load_multi_by_keys(keys).compact
-      end
+        # Build composite keys for batch lookup: "org_objid:customer_objid"
+        composite_keys = customer_objids.map { |cust_objid| "#{org.objid}:#{cust_objid}" }
 
-      private
+        # Batch lookup via HMGET (single Redis call instead of N)
+        membership_objids = org_customer_lookup.values_at(*composite_keys).compact
 
-      # Generate the deterministic Redis key for a membership
-      #
-      # @param org [Organization] the organization
-      # @param customer [Customer] the customer
-      # @return [String] the Redis key
-      def membership_key(org, customer)
-        "organization:#{org.objid}:customer:#{customer.objid}:org_membership"
+        # Bulk load all memberships (single MGET instead of N HGETALL)
+        load_multi(membership_objids).compact.select(&:active?)
       end
     end
   end

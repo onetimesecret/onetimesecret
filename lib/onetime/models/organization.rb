@@ -198,8 +198,8 @@ module Onetime
         )
         org.save
 
-        # Add owner as first member using Familia v2 auto-generated bidirectional method
-        org.add_members_instance(owner_customer)
+        # Add owner as first member with owner role using Familia v2 auto-generated bidirectional method
+        org.add_members_instance(owner_customer, through_attrs: { role: 'owner' })
 
         OT.ld "[Organization.create!] org: extid.objid}, owner: #{owner_customer.custid}"
 
