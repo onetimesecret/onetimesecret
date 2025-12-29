@@ -135,26 +135,6 @@ module Core
         res.redirect '/account'
       end
 
-      # Receives users from the Stripe Webhook after a successful payment for a new
-      # subscription. The redirect can optionally include a CHECKOUT_SESSION_ID which
-      # allows this webhook to call the Stripe API for the checkout details.
-      #
-      # e.g. https://onetimesecret.com/welcome?checkout={CHECKOUT_SESSION_ID}
-      #
-      # @see https://docs.stripe.com/payment-links/post-payment#change-confirmation-behavior
-      #
-      def welcome_webhook
-        # CSRF exemption handled by route parameter csrf=exempt since these
-        # are coming via redirects from Stripe after payment completion.
-        logic                  = Billing::Logic::Welcome::StripeWebhook.new(strategy_result, req.params, locale)
-        logic.stripe_signature = req.env['HTTP_STRIPE_SIGNATURE']
-        logic.payload          = req.body.read
-        logic.raise_concerns
-        logic.process
-
-        res.status = 200
-      end
-
       # Redirects authenticated users to the Stripe Customer Portal
       #
       # This endpoint creates a Stripe Customer Portal session for the authenticated user
