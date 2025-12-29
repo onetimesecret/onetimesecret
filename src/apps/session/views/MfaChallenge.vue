@@ -114,7 +114,7 @@
         <!-- OTP Mode -->
         <div v-if="!useRecoveryMode">
           <p id="otp-instructions" class="mb-4 text-center text-gray-600 dark:text-gray-400">
-            {{ t('web.auth.mfa.enter-code') }}
+            {{ t('web.auth.mfa.enter_code') }}
           </p>
 
           <!-- OTP Input -->
@@ -128,7 +128,7 @@
 
           <!-- Mode announcement (screen reader only) -->
           <div aria-live="polite" class="sr-only">
-            {{ t('web.auth.mfa.otp-mode-active') }}
+            {{ t('web.auth.mfa.otp_mode_active') }}
           </div>
 
           <!-- Error message -->
@@ -156,7 +156,7 @@
             <span v-else>{{ t('web.auth.mfa.verify') }}</span>
           </button>
           <span id="verify-button-hint" class="sr-only">
-            {{ otpCode.length === 6 ? '' : t('web.auth.mfa.enter-all-digits') }}
+            {{ otpCode.length === 6 ? '' : t('web.auth.mfa.enter_all_digits') }}
           </span>
 
           <!-- Loading state announcement (screen reader only) -->
@@ -165,7 +165,7 @@
             aria-live="polite"
             aria-atomic="true"
             class="sr-only">
-            {{ t('web.COMMON.form-processing') }}
+            {{ t('web.COMMON.form_processing') }}
           </div>
 
           <!-- Switch to recovery code and cancel -->
@@ -174,7 +174,7 @@
               @click="toggleRecoveryMode"
               type="button"
               class="text-sm text-brand-600 transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-              {{ t('web.auth.mfa.use-recovery-code') }}
+              {{ t('web.auth.mfa.use_recovery_code') }}
             </button>
             <div class="mt-3">
               <button
@@ -193,11 +193,11 @@
         <div v-else>
           <!-- Mode announcement (screen reader only) -->
           <div aria-live="polite" class="sr-only">
-            {{ t('web.auth.mfa.recovery-code-mode-active') }}
+            {{ t('web.auth.mfa.recovery_code_mode_active') }}
           </div>
 
           <p class="mb-4 text-center text-gray-600 dark:text-gray-400">
-            {{ t('web.auth.mfa.enter-recovery-code') }}
+            {{ t('web.auth.mfa.enter_recovery_code') }}
           </p>
 
           <form
@@ -207,7 +207,7 @@
             <div>
               <label
                 for="recovery-code"
-                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('web.auth.mfa.recovery-code-label') }}</label>
+                class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ t('web.auth.mfa.recovery_code_label') }}</label>
               <input
                 id="recovery-code"
                 v-model="recoveryCode"
@@ -215,7 +215,7 @@
                 :disabled="isLoading"
                 :aria-invalid="error ? 'true' : undefined"
                 :aria-describedby="error ? 'recovery-code-error' : undefined"
-                :placeholder="t('web.auth.mfa.recovery-code-placeholder')"
+                :placeholder="t('web.auth.mfa.recovery_code_placeholder')"
                 class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-500" />
             </div>
 
@@ -238,7 +238,7 @@
               :disabled="isLoading || !recoveryCode.trim()"
               class="w-full rounded-md bg-brand-600 px-4 py-2 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
               <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
-              <span v-else>{{ t('web.auth.mfa.verify-recovery-code') }}</span>
+              <span v-else>{{ t('web.auth.mfa.verify_recovery_code') }}</span>
             </button>
 
             <!-- Loading state announcement (screen reader only) -->
@@ -247,7 +247,7 @@
               aria-live="polite"
               aria-atomic="true"
               class="sr-only">
-              {{ t('web.COMMON.form-processing') }}
+              {{ t('web.COMMON.form_processing') }}
             </div>
 
             <!-- Switch back to OTP and cancel -->
@@ -256,7 +256,7 @@
                 @click="toggleRecoveryMode"
                 type="button"
                 class="text-sm text-brand-600 transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-                {{ t('web.auth.mfa.back-to-code') }}
+                {{ t('web.auth.mfa.back_to_code') }}
               </button>
               <div class="mt-3">
                 <button

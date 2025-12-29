@@ -40,7 +40,7 @@ const { t } = useI18n();
         target="_blank"
         rel="noopener noreferrer"
         class="inline-flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-        :title="t('web.domains.open-domain-in-new-tab')">
+        :title="t('web.domains.open_domain_in_new_tab')">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="size-4"
@@ -63,7 +63,7 @@ const { t } = useI18n();
 
       <span class="text-xs text-gray-500 dark:text-gray-400">
         {{
-          t('web.domains.added-formatdistancetonow-domain-created-addsuffix-true', [
+          t('web.domains.added_formatdistancetonow_domain_created_addsuffix_true', [
             formatDistanceToNow(domain.created, { addSuffix: true }),
           ])
         }}

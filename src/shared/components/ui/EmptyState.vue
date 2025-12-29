@@ -34,8 +34,8 @@ defineProps<{
     </h3>
     <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
       <slot name="description">
-        <div>{{ t('web.dashboard.get-started-by-creating-your-first-secret') }}</div>
-        <div>{{ t('web.secrets.theyll-appear-here-once-youve-shared-them') }}</div>
+        <div>{{ t('web.dashboard.get_started_by_creating_your_first_secret') }}</div>
+        <div>{{ t('web.secrets.theyll_appear_here_once_youve_shared_them') }}</div>
       </slot>
     </p>
     <div v-if="showAction !== false" class="mt-6">

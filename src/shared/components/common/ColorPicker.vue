@@ -23,7 +23,7 @@ const emit = defineEmits<{
 }>();
 
 // Provide default props
-const label = computed(() => props.label || t('web.branding.color-picker'));
+const label = computed(() => props.label || t('web.branding.color_picker'));
 const id = computed(() => props.id || 'color-picker');
 const name = computed(() => props.name || 'color');
 const currentColor = computed(() => props.modelValue || '#dc4a22');

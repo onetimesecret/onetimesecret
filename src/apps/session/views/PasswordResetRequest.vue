@@ -72,7 +72,7 @@ const handleSubmit = async () => {
           <label
             class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300"
             for="custidField">
-            {{ t('web.COMMON.email-address') }}
+            {{ t('web.COMMON.email_address') }}
           </label>
           <input
             type="email"

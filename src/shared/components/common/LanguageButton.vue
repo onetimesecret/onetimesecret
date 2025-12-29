@@ -64,7 +64,7 @@ const cycleValue = () => {
              focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800
              dark:ring-gray-700 dark:hover:bg-gray-700
              dark:focus:ring-brand-400 dark:focus:ring-offset-0"
-      :aria-label="t('web.branding.current-label-modelvalue-click-to-cycle-through-options', [displayValue])">
+      :aria-label="t('web.branding.current_label_modelvalue_click_to_cycle_through_options', [displayValue])">
       <div class="relative size-5 text-gray-700 dark:text-gray-200">
         {{ modelValue }}
         <OIcon

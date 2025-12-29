@@ -88,11 +88,11 @@ const handleRemove = () => {
         <div class="mt-2 space-y-1 text-sm text-gray-600 dark:text-gray-400">
           <div v-if="session.ip_address" class="flex items-center gap-2">
             <i class="fas fa-map-marker-alt w-4 text-xs"></i>
-            <span>{{ t('web.auth.sessions.ip-address') }}: {{ session.ip_address }}</span>
+            <span>{{ t('web.auth.sessions.ip_address') }}: {{ session.ip_address }}</span>
           </div>
           <div class="flex items-center gap-2">
             <i class="fas fa-clock w-4 text-xs"></i>
-            <span>{{ t('web.auth.sessions.last-active') }}: {{ lastActiveFormatted }}</span>
+            <span>{{ t('web.auth.sessions.last_active') }}: {{ lastActiveFormatted }}</span>
           </div>
           <div class="flex items-center gap-2">
             <i class="fas fa-calendar w-4 text-xs"></i>

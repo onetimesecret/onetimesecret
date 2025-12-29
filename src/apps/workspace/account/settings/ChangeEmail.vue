@@ -33,18 +33,18 @@
     successMessage.value = '';
 
     if (!newEmail.value || !password.value) {
-      errorMessage.value = t('web.settings.profile.all-fields-required');
+      errorMessage.value = t('web.settings.profile.all_fields_required');
       return;
     }
 
     if (!validateEmail(newEmail.value)) {
-      errorMessage.value = t('web.settings.profile.invalid-email');
+      errorMessage.value = t('web.settings.profile.invalid_email');
       isValidEmail.value = false;
       return;
     }
 
     if (newEmail.value === currentEmail.value) {
-      errorMessage.value = t('web.settings.profile.email-same-as-current');
+      errorMessage.value = t('web.settings.profile.email_same_as_current');
       return;
     }
 
@@ -57,13 +57,13 @@
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      successMessage.value = t('web.settings.profile.email-change-success');
+      successMessage.value = t('web.settings.profile.email_change_success');
       currentEmail.value = newEmail.value;
       newEmail.value = '';
       password.value = '';
     } catch (error) {
       console.error('Error changing email:', error);
-      errorMessage.value = t('web.settings.profile.email-change-error');
+      errorMessage.value = t('web.settings.profile.email_change_error');
     } finally {
       isLoading.value = false;
     }
@@ -88,7 +88,7 @@
               class="size-5 text-gray-500 dark:text-gray-400"
               aria-hidden="true" />
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ t('web.settings.profile.current-email') }}
+              {{ t('web.settings.profile.current_email') }}
             </h2>
           </div>
         </div>
@@ -119,10 +119,10 @@
               aria-hidden="true" />
             <div class="min-w-0 flex-1">
               <h2 class="text-lg font-semibold leading-tight text-gray-900 dark:text-white">
-                {{ t('web.settings.profile.change-email') }}
+                {{ t('web.settings.profile.change_email') }}
               </h2>
               <p class="mt-1 text-sm leading-tight text-gray-600 dark:text-gray-400">
-                {{ t('web.settings.profile.change-email-description') }}
+                {{ t('web.settings.profile.change_email_description') }}
               </p>
             </div>
           </div>
@@ -169,7 +169,7 @@
               <label
                 for="new-email"
                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ t('web.settings.profile.new-email') }}
+                {{ t('web.settings.profile.new_email') }}
               </label>
               <div class="relative mt-1">
                 <input
@@ -190,7 +190,7 @@
               <p
                 v-if="!isValidEmail && newEmail"
                 class="mt-1 text-sm text-red-600 dark:text-red-400">
-                {{ t('web.settings.profile.invalid-email') }}
+                {{ t('web.settings.profile.invalid_email') }}
               </p>
             </div>
 
@@ -199,7 +199,7 @@
               <label
                 for="current-password"
                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ t('web.settings.profile.current-password') }}
+                {{ t('web.settings.profile.current_password') }}
               </label>
               <div class="relative mt-1">
                 <input
@@ -213,7 +213,7 @@
                   type="button"
                   @click="togglePasswordVisibility"
                   class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  :aria-label="showPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')">
+                  :aria-label="showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')">
                   <OIcon
                     collection="heroicons"
                     :name="showPassword ? 'eye-slash-solid' : 'eye-solid'"
@@ -222,14 +222,14 @@
                 </button>
               </div>
               <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {{ t('web.settings.profile.password-required-for-security') }}
+                {{ t('web.settings.profile.password_required_for_security') }}
               </p>
             </div>
 
             <!-- Submit Button -->
             <div class="flex flex-col items-start gap-4 border-t border-gray-200 pt-6 dark:border-gray-700 sm:flex-row sm:items-center sm:justify-between">
               <p class="text-sm text-gray-600 dark:text-gray-400">
-                {{ t('web.settings.profile.verification-email-notice') }}
+                {{ t('web.settings.profile.verification_email_notice') }}
               </p>
               <button
                 type="submit"
@@ -247,7 +247,7 @@
                   name="arrow-path-solid"
                   class="size-4 animate-spin"
                   aria-hidden="true" />
-                {{ isLoading ? t('web.COMMON.processing') : t('web.settings.profile.update-email') }}
+                {{ isLoading ? t('web.COMMON.processing') : t('web.settings.profile.update_email') }}
               </button>
             </div>
           </form>

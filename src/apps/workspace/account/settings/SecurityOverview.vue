@@ -49,7 +49,7 @@
       {
         id: 'password',
         icon: { collection: 'heroicons', name: 'lock-closed-solid' },
-        title: t('web.auth.change-password.title'),
+        title: t('web.auth.change_password.title'),
         description: t('web.settings.password.update_account_password'),
         status: 'active',
         statusText: t('web.settings.security.configured'),
@@ -62,11 +62,11 @@
         id: 'mfa',
         icon: { collection: 'heroicons', name: 'key-solid' },
         title: t('web.auth.mfa.title'),
-        description: t('web.auth.mfa.setup-description'),
+        description: t('web.auth.mfa.setup_description'),
         status: accountInfo.value.mfa_enabled ? 'active' : 'warning',
         statusText: accountInfo.value.mfa_enabled
-          ? t('web.auth.account.mfa-enabled')
-          : t('web.auth.account.mfa-disabled'),
+          ? t('web.auth.account.mfa_enabled')
+          : t('web.auth.account.mfa_disabled'),
         action: {
           label: accountInfo.value.mfa_enabled
             ? t('web.settings.security.manage')
@@ -77,13 +77,13 @@
       {
         id: 'recovery-codes',
         icon: { collection: 'heroicons', name: 'document-text-solid' },
-        title: t('web.auth.recovery-codes.title'),
-        description: t('web.auth.recovery-codes.description'),
+        title: t('web.auth.recovery_codes.title'),
+        description: t('web.auth.recovery_codes.description'),
         status: accountInfo.value.recovery_codes_count > 0 ? 'active' : 'inactive',
         statusText:
           accountInfo.value.recovery_codes_count > 0
-            ? t('web.settings.security.codes-available', [accountInfo.value.recovery_codes_count])
-            : t('web.settings.security.no-codes'),
+            ? t('web.settings.security.codes_available', [accountInfo.value.recovery_codes_count])
+            : t('web.settings.security.no_codes'),
         action: {
           label: t('web.settings.security.manage'),
           to: '/account/settings/security/recovery-codes',
@@ -95,7 +95,7 @@
         title: t('web.auth.sessions.title'),
         description: t('web.settings.sessions.manage_active_sessions'),
         status: 'active',
-        statusText: t('web.settings.security.active-sessions', [
+        statusText: t('web.settings.security.active_sessions', [
           accountInfo.value.active_sessions_count || 1,
         ]),
         action: {
@@ -142,10 +142,10 @@
         <div class="flex items-start justify-between">
           <div>
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ t('web.settings.security.security-score') }}
+              {{ t('web.settings.security.security_score') }}
             </h2>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              {{ t('web.settings.security.score-description') }}
+              {{ t('web.settings.security.score_description') }}
             </p>
           </div>
           <div class="text-right">
@@ -184,14 +184,14 @@
               aria-hidden="true" />
             <div class="text-sm text-blue-700 dark:text-blue-300">
               <p class="font-medium">
-                {{ t('web.settings.security.improve-security') }}
+                {{ t('web.settings.security.improve_security') }}
               </p>
               <ul class="mt-2 list-inside list-disc space-y-1">
                 <li v-if="!accountInfo?.mfa_enabled">
-                  {{ t('web.settings.security.enable-mfa-recommendation') }}
+                  {{ t('web.settings.security.enable_mfa_recommendation') }}
                 </li>
                 <li v-if="!accountInfo?.recovery_codes_count">
-                  {{ t('web.settings.security.generate-recovery-codes-recommendation') }}
+                  {{ t('web.settings.security.generate_recovery_codes_recommendation') }}
                 </li>
               </ul>
             </div>
@@ -260,7 +260,7 @@
             name="light-bulb"
             class="size-5 text-yellow-500"
             aria-hidden="true" />
-          {{ t('web.settings.security.best-practices') }}
+          {{ t('web.settings.security.best_practices') }}
         </h2>
         <ul class="mt-4 space-y-3 text-sm text-gray-600 dark:text-gray-400">
           <li class="flex gap-3">
@@ -269,7 +269,7 @@
               name="check-circle-solid"
               class="size-5 shrink-0 text-green-600 dark:text-green-400"
               aria-hidden="true" />
-            {{ t('web.settings.security.use-strong-unique-password') }}
+            {{ t('web.settings.security.use_strong_unique_password') }}
           </li>
           <li class="flex gap-3">
             <OIcon
@@ -277,7 +277,7 @@
               name="check-circle-solid"
               class="size-5 shrink-0 text-green-600 dark:text-green-400"
               aria-hidden="true" />
-            {{ t('web.settings.security.enable-mfa-for-protection') }}
+            {{ t('web.settings.security.enable_mfa_for_protection') }}
           </li>
           <li class="flex gap-3">
             <OIcon
@@ -285,7 +285,7 @@
               name="check-circle-solid"
               class="size-5 shrink-0 text-green-600 dark:text-green-400"
               aria-hidden="true" />
-            {{ t('web.settings.security.save-recovery-codes-safely') }}
+            {{ t('web.settings.security.save_recovery_codes_safely') }}
           </li>
           <li class="flex gap-3">
             <OIcon
@@ -293,7 +293,7 @@
               name="check-circle-solid"
               class="size-5 shrink-0 text-green-600 dark:text-green-400"
               aria-hidden="true" />
-            {{ t('web.settings.security.review-sessions-regularly') }}
+            {{ t('web.settings.security.review_sessions_regularly') }}
           </li>
         </ul>
       </div>

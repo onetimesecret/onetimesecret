@@ -51,10 +51,10 @@ onMounted(() => {
         action-route="/domains/add"
         action-text="Add a Domain">
         <template #title>
-          {{ t('web.domains.no-domains-found') }}
+          {{ t('web.domains.no_domains_found') }}
         </template>
         <template #description>
-          {{ t('web.domains.get-started-by-adding-a-custom-domain') }}
+          {{ t('web.domains.get_started_by_adding_a_custom_domain') }}
         </template>
       </EmptyState>
     </div>

@@ -23,14 +23,14 @@ const emit = defineEmits<{
   (e: 'back'): void
 }>();
 
-const placeholderText = computed(() => `${t('web.COMMON.e-g-example')} ${t('web.domains.secrets-example-dot-com')}`);
+const placeholderText = computed(() => `${t('web.COMMON.e_g_example')} ${t('web.domains.secrets_example_dot_com')}`);
 
 const handleSubmit = () => {
   localError.value = null;
 
   // Check for empty submission first
   if (!domain.value.trim()) {
-    localError.value = createError(t('web.domains.please-enter-a-domain-name', ''), "human");
+    localError.value = createError(t('web.domains.please_enter_a_domain_name', ''), "human");
     isValid.value = false;
     return;
   }
@@ -41,7 +41,7 @@ const handleSubmit = () => {
     emit('submit', validated.domain);
   } catch {
     isValid.value = false;
-    localError.value = createError(t('web.domains.please-enter-a-domain-name', 'valid'), "human");
+    localError.value = createError(t('web.domains.please_enter_a_domain_name', 'valid'), "human");
   }
 };
 </script>
@@ -78,7 +78,7 @@ const handleSubmit = () => {
             focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600
             dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700
             dark:focus:ring-offset-gray-900 sm:w-1/2"
-          :aria-label="t('web.layout.go-back-to-previous-page')">
+          :aria-label="t('web.layout.go_back_to_previous_page')">
           <svg
             class="-ml-1 mr-2 size-5"
             xmlns="http://www.w3.org/2000/svg"

@@ -46,7 +46,7 @@
 <template>
   <div class="">
     <h1 class="mb-6 text-3xl font-bold text-gray-900 dark:text-white">
-      {{ t('web.domains.verify-your-domain') }}
+      {{ t('web.domains.verify_your_domain') }}
     </h1>
 
     <DomainVerificationInfo
@@ -56,11 +56,11 @@
     <p
       v-else-if="domain"
       class="mb-6 text-lg text-gray-600 dark:text-gray-300">
-      {{ t('web.domains.before-we-can-activate-links-for') }}
+      {{ t('web.domains.before_we_can_activate_links_for') }}
       <span class="bg-white text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{
         domain.display_domain
       }}</span>
-      {{ t('web.domains.youll-need-to-complete-these-steps') }}
+      {{ t('web.domains.youll_need_to_complete_these_steps') }}
     </p>
 
     <MoreInfoText
@@ -69,32 +69,32 @@
       <div class="prose max-w-none">
         <div class="text-base text-gray-600 dark:text-gray-300">
           <p>
-            {{ t('web.domains.in-order-to-connect-your-domain-youll-need-to-ha') }}
+            {{ t('web.domains.in_order_to_connect_your_domain_youll_need_to_ha') }}
             <span
               class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>
             at
             <span
               :title="cluster?.cluster_name ?? ''"
-              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>{{ t('web.domains.if-you-already-have-a-cname-record-for-that-addr') }}
+              class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>{{ t('web.domains.if_you_already_have_a_cname_record_for_that_addr') }}
             <span
               :title="cluster?.cluster_name ?? ''"
               class="bg-white px-2 dark:bg-gray-800">{{ cluster?.cluster_host }}</span>
-            {{ t('web.domains.and-remove-any-other-a-aaaa-or-cname-records-for') }}
+            {{ t('web.domains.and_remove_any_other_a_aaaa_or_cname_records_for') }}
           </p>
           <p
             v-if="domain?.is_apex"
             class="border-l-4 border-yellow-500 bg-yellow-100 p-4 text-yellow-700">
             <!-- Disclaimer for apex domains -->
-            <strong>{{ t('web.COMMON.important') }}:</strong> {{ t('web.domains.please-note-that-for-apex-domains') }}
+            <strong>{{ t('web.COMMON.important') }}:</strong> {{ t('web.domains.please_note_that_for_apex_domains') }}
             <span
-              class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>{{ t('web.domains.a-cname-record-is-not-allowed-instead-youll-need') }}
+              class="bg-white px-2 font-bold text-brand-600 dark:bg-gray-800 dark:text-brand-400">{{ domain?.display_domain }}</span>{{ t('web.domains.a_cname_record_is_not_allowed_instead_youll_need') }}
           </p>
         </div>
         <div class="mt-4 text-sm">
           <a
             href="#"
             class="font-medium text-brandcomp-600 hover:text-brandcomp-500 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
-            <!-- {{ t('web.domains.learn-more-dns') }} <span aria-hidden="true">&rarr;</span> -->
+            <!-- {{ t('web.domains.learn_more_dns') }} <span aria-hidden="true">&rarr;</span> -->
           </a>
         </div>
       </div>
@@ -109,7 +109,7 @@
     <p
       v-else
       class="text-gray-600 dark:text-gray-400">
-      {{ t('web.domains.loading-domain-information') }}
+      {{ t('web.domains.loading_domain_information') }}
     </p>
   </div>
 </template>

@@ -58,7 +58,7 @@
   const hasImageError = ref(false);
   const { isCopied, copyToClipboard } = useClipboard();
 
-  const logoAriaLabel = hasImageError.value ? t('web.branding.default-logo-icon') : t('web.layout.brand-logo')
+  const logoAriaLabel = hasImageError.value ? t('web.branding.default_logo_icon') : t('web.layout.brand_logo')
   const copySecretContent = async () => {
     if (props.record?.secret_value === undefined) {
       return;
@@ -70,7 +70,7 @@
     const announcement = document.createElement('div');
     announcement.setAttribute('role', 'status');
     announcement.setAttribute('aria-live', 'polite');
-    announcement.textContent = t('web.secrets.secret-content-copied-to-clipboard');
+    announcement.textContent = t('web.secrets.secret_content_copied_to_clipboard');
     document.body.appendChild(announcement);
     setTimeout(() => announcement.remove(), 1000);
   };
@@ -88,7 +88,7 @@
 <template>
   <!-- Updated -->
   <BaseSecretDisplay
-    :default-title="t('web.secrets.you-have-a-message')"
+    :default-title="t('web.secrets.you_have_a_message')"
     :preview-i18n="i18n"
     :domain-branding="safeBrandSettings"
     :corner-class="cornerClass"
@@ -131,7 +131,7 @@
           <p class="text-sm">
             {{
               submissionStatus.message ||
-                (submissionStatus.status === 'error' ? t('web.COMMON.an-error-occurred') : t('web.STATUS.success'))
+                (submissionStatus.status === 'error' ? t('web.COMMON.an_error_occurred') : t('web.STATUS.success'))
             }}
           </p>
         </div>
@@ -166,7 +166,7 @@
             <img
               v-if="logoImage && !hasImageError"
               :src="logoImage"
-              :alt="t('web.layout.brand-logo')"
+              :alt="t('web.layout.brand_logo')"
               class="size-16 object-contain"
               :class="[cornerClass]"
               @error="handleImageError" />
@@ -181,7 +181,7 @@
           <label
             :for="'secret-content-' + record?.identifier"
             class="sr-only">
-            {{ t('web.secrets.secret-content') }}
+            {{ t('web.secrets.secret_content') }}
           </label>
           <textarea
             :id="'secret-content-' + record?.identifier"
@@ -189,7 +189,7 @@
             readonly
             :rows="details?.display_lines ?? 4"
             :value="record?.secret_value"
-            :aria-label="t('web.secrets.secret-content')"
+            :aria-label="t('web.secrets.secret_content')"
             ref="secretContent"></textarea>
         </div>
       </div>
@@ -206,7 +206,7 @@
           color: (brandSettings?.button_text_light ?? true) ? '#ffffff' : '#000000'
         }"
         aria-live="polite"
-        :aria-label="isCopied ? t('web.COMMON.secret-copied-to-clipboard') : t('web.COMMON.copy-secret-to-clipboard')"
+        :aria-label="isCopied ? t('web.COMMON.secret_copied_to_clipboard') : t('web.COMMON.copy_secret_to_clipboard')"
         :aria-pressed="isCopied">
         <svg
           v-if="!isCopied"

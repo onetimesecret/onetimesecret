@@ -141,7 +141,7 @@ const { t } = useI18n();
   <!-- prettier-ignore-attribute class -->
   <div
     v-if="withDomainDropdown"
-    :title="t('web.homepage.link-preview')"
+    :title="t('web.homepage.link_preview')"
     class="mb-0 rounded-lg border border-dashed border-gray-300
       bg-gray-50 p-3 shadow-sm transition-all duration-200
       hover:border-gray-400 hover:shadow-md dark:border-gray-600
@@ -261,7 +261,7 @@ const { t } = useI18n();
               to="/pricing"
               class="block w-full py-1
                 font-medium hover:underline">
-              {{ t('web.billing.upgrade-for-yourdomain') }}
+              {{ t('web.billing.upgrade_for_yourdomain') }}
             </router-link>
           </div>
         </div>

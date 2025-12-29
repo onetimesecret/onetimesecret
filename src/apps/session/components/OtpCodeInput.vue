@@ -138,7 +138,7 @@ defineExpose({ clear, focus });
   <div>
     <!-- Group label for screen readers -->
     <span id="otp-code-label" class="sr-only">
-      {{ t('web.auth.mfa.six-digit-code') }}
+      {{ t('web.auth.mfa.six_digit_code') }}
     </span>
 
     <div
@@ -157,7 +157,7 @@ defineExpose({ clear, focus });
         @keydown="handleKeydown(0, $event)"
         @paste="handlePaste"
         class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-        :aria-label="t('web.auth.mfa.digit-of-count', { current: 1, total: 6 })" />
+        :aria-label="t('web.auth.mfa.digit_of_count', { current: 1, total: 6 })" />
       <input
         ref="input2"
         v-model="digit2"
@@ -169,7 +169,7 @@ defineExpose({ clear, focus });
         @keydown="handleKeydown(1, $event)"
         @paste="handlePaste"
         class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-        :aria-label="t('web.auth.mfa.digit-of-count', { current: 2, total: 6 })" />
+        :aria-label="t('web.auth.mfa.digit_of_count', { current: 2, total: 6 })" />
       <input
         ref="input3"
         v-model="digit3"
@@ -181,7 +181,7 @@ defineExpose({ clear, focus });
         @keydown="handleKeydown(2, $event)"
         @paste="handlePaste"
         class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-        :aria-label="t('web.auth.mfa.digit-of-count', { current: 3, total: 6 })" />
+        :aria-label="t('web.auth.mfa.digit_of_count', { current: 3, total: 6 })" />
 
       <span class="text-2xl text-gray-400" aria-hidden="true">-</span>
 
@@ -196,7 +196,7 @@ defineExpose({ clear, focus });
         @keydown="handleKeydown(3, $event)"
         @paste="handlePaste"
         class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-        :aria-label="t('web.auth.mfa.digit-of-count', { current: 4, total: 6 })" />
+        :aria-label="t('web.auth.mfa.digit_of_count', { current: 4, total: 6 })" />
       <input
         ref="input5"
         v-model="digit5"
@@ -208,7 +208,7 @@ defineExpose({ clear, focus });
         @keydown="handleKeydown(4, $event)"
         @paste="handlePaste"
         class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-        :aria-label="t('web.auth.mfa.digit-of-count', { current: 5, total: 6 })" />
+        :aria-label="t('web.auth.mfa.digit_of_count', { current: 5, total: 6 })" />
       <input
         ref="input6"
         v-model="digit6"
@@ -220,7 +220,7 @@ defineExpose({ clear, focus });
         @keydown="handleKeydown(5, $event)"
         @paste="handlePaste"
         class="size-12 rounded-lg border-2 border-gray-300 text-center text-2xl font-semibold focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-brand-500"
-        :aria-label="t('web.auth.mfa.digit-of-count', { current: 6, total: 6 })" />
+        :aria-label="t('web.auth.mfa.digit_of_count', { current: 6, total: 6 })" />
     </div>
   </div>
 </template>

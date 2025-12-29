@@ -57,16 +57,16 @@
   const instructionFields = computed(() => [
     {
       key: 'instructions_pre_reveal',
-      label: t('web.branding.pre-reveal-instructions'),
-      tooltipContent: t('web.branding.these-instructions-will-be-shown-to-recipients-before'),
-      placeholderKey: t('web.branding.example-pre-reveal-instructions'),
+      label: t('web.branding.pre_reveal_instructions'),
+      tooltipContent: t('web.branding.these_instructions_will_be_shown_to_recipients_before'),
+      placeholderKey: t('web.branding.example_pre_reveal_instructions'),
       value: brandSettings.value?.instructions_pre_reveal || ''
     },
     {
       key: 'instructions_post_reveal',
-      label: t('web.branding.post-reveal-instructions'),
-      tooltipContent: t('web.branding.these-instructions-will-be-shown-to-recipients-after'),
-      placeholderKey: t('web.branding.example-post-reveal-instructions'),
+      label: t('web.branding.post_reveal_instructions'),
+      tooltipContent: t('web.branding.these_instructions_will_be_shown_to_recipients_after'),
+      placeholderKey: t('web.branding.example_post_reveal_instructions'),
       value: brandSettings.value?.instructions_post_reveal || ''
     }
   ]);
@@ -86,7 +86,7 @@
     () => isLoading.value,
     (loading) => {
       if (!loading && !brandSettings.value) {
-        error.value = createError(t('web.branding.failed-to-load-brand-settings'), 'technical', 'error');
+        error.value = createError(t('web.branding.failed_to_load_brand_settings'), 'technical', 'error');
       }
     }
   );
@@ -98,7 +98,7 @@
 
   onBeforeRouteLeave((to, from, next) => {
     if (hasUnsavedChanges.value) {
-      const answer = window.confirm(t('web.branding.you-have-unsaved-changes-are-you-sure'));
+      const answer = window.confirm(t('web.branding.you_have_unsaved_changes_are_you_sure'));
       if (answer) next();
       else next(false);
     } else {
@@ -149,14 +149,14 @@
           <h2
             id="previewHeading"
             class="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">
-            {{ t('web.branding.preview-and-customize') }}
+            {{ t('web.branding.preview_and_customize') }}
           </h2>
 
           <!-- Instructions for screen readers -->
           <div
             class="sr-only"
             role="note">
-            {{ t('web.branding.this-is-an-interactive-preview-of-how-recipients') }}
+            {{ t('web.branding.this_is_an_interactive_preview_of_how_recipients') }}
           </div>
 
           <!-- Visual instructions -->
@@ -168,8 +168,8 @@
                 collection="mdi"
                 name="palette-outline"
                 class="size-5"
-                :aria-label="t('web.branding.customization-icon')" />
-              {{ t('web.branding.use-the-controls-above-to-customize-brand-details') }}
+                :aria-label="t('web.branding.customization_icon')" />
+              {{ t('web.branding.use_the_controls_above_to_customize_brand_details') }}
             </li>
 
             <li class="flex items-center gap-2">
@@ -177,8 +177,8 @@
                 collection="mdi"
                 name="image-outline"
                 class="size-5"
-                :aria-label="t('web.branding.image-icon')" />
-              {{ t('web.branding.click-the-preview-image-below-to-update-your-logo') }}
+                :aria-label="t('web.branding.image_icon')" />
+              {{ t('web.branding.click_the_preview_image_below_to_update_your_logo') }}
             </li>
 
             <li class="flex items-center gap-2">
@@ -186,8 +186,8 @@
                 collection="mdi"
                 name="eye-outline"
                 class="size-5"
-                :aria-label="t('web.branding.eye-icon')" />
-              {{ t('web.branding.preview-how-recipients-will-see-your-secrets') }}
+                :aria-label="t('web.branding.eye_icon')" />
+              {{ t('web.branding.preview_how_recipients_will_see_your_secrets') }}
             </li>
           </ul>
 
@@ -218,7 +218,7 @@
             v-if="isLoading"
             role="status"
             class="py-8 text-center">
-            <span class="sr-only">{{ t('web.branding.loading-preview') }}</span>
+            <span class="sr-only">{{ t('web.branding.loading_preview') }}</span>
             <!-- Add isLoading spinner -->
           </div>
         </div>

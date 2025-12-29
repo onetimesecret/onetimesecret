@@ -41,7 +41,7 @@ const { t } = useI18n();
                 : 'text-gray-700 dark:text-gray-200',
               'block px-4 py-2 text-sm transition-colors duration-200',
             ]">
-            {{ t('web.domains.manage-brand') }}
+            {{ t('web.domains.manage_brand') }}
           </router-link>
         </MenuItem>
         <MenuItem v-slot="{ active }">
@@ -56,7 +56,7 @@ const { t } = useI18n();
                 : 'text-gray-700 dark:text-gray-200',
               'block px-4 py-2 text-sm transition-colors duration-200',
             ]">
-            {{ t('web.domains.verify-domain') }}
+            {{ t('web.domains.verify_domain') }}
           </router-link>
         </MenuItem>
         <MenuItem v-slot="{ active }">

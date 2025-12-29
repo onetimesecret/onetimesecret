@@ -36,7 +36,7 @@
         <div
           class="relative"
           role="region"
-          :aria-label="t('web.layout.brand-logo')">
+          :aria-label="t('web.layout.brand_logo')">
           <router-link to="/">
             <div
               :class="[

@@ -119,7 +119,7 @@ const handleSubmit = async () => {
             type="button"
             @click="togglePasswordVisibility"
             :disabled="isLoading"
-            :aria-label="showPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')"
+            :aria-label="showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')"
             class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50">
             <OIcon
               collection="heroicons"
@@ -154,7 +154,7 @@ const handleSubmit = async () => {
           {{ t('web.login.remember_me') }}
         </label>
         <span id="remember-me-description" class="sr-only">
-          {{ t('web.COMMON.remember-me-description') }}
+          {{ t('web.COMMON.remember_me_description') }}
         </span>
       </div>
 
@@ -189,7 +189,7 @@ const handleSubmit = async () => {
         aria-live="polite"
         aria-atomic="true"
         class="sr-only">
-        {{ t('web.COMMON.form-processing') }}
+        {{ t('web.COMMON.form_processing') }}
       </div>
     </div>
   </form>

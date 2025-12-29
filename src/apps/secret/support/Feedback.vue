@@ -15,7 +15,7 @@ const { t } = useI18n();
     <h3
       id="feedback-section-title"
       lass="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-      {{ t('web.feedback.share-your-feedback') }}
+      {{ t('web.feedback.share_your_feedback') }}
     </h3>
 
     <FeedbackForm :show-red-button="true" />
@@ -29,17 +29,17 @@ const { t } = useI18n();
         <h2
           id="founders-message"
           class="mb-4 text-xl font-semibold text-gray-800 dark:text-gray-200">
-          {{ t('web.feedback.a-note-from-delano-founder-of-onetime-secret') }}
+          {{ t('web.feedback.a_note_from_delano_founder_of_onetime_secret') }}
         </h2>
         <div class="space-y-3 text-gray-600 dark:text-gray-400">
           <p>
-            {{ t('web.feedback.hey-there-thanks-for-stopping-by-our-feedback-pa') }}
+            {{ t('web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa') }}
           </p>
           <p>
-            {{ t('web.feedback.weve-built-this-tool-to-help-you-share-sensitive') }}
+            {{ t('web.feedback.weve_built_this_tool_to_help_you_share_sensitive') }}
           </p>
           <p>
-            {{ t('web.feedback.thanks-for-helping-onetime-secret-improve-it-mea') }}
+            {{ t('web.feedback.thanks_for_helping_onetime_secret_improve_it_mea') }}
           </p>
           <p class="font-medium">
             - {{ t('web.feedback.delano') }}

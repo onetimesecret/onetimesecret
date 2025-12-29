@@ -224,7 +224,7 @@
               class="mb-3 size-10 text-gray-400 dark:text-gray-500"
               aria-hidden="true" />
             <p class="text-gray-600 dark:text-gray-400">
-              {{ t('web.COMMON.go-on-then') }}
+              {{ t('web.COMMON.go_on_then') }}
               <router-link
                 to="/"
                 class="text-brand-500 hover:underline">

@@ -31,7 +31,7 @@
     if (!accountInfo.value) return '';
     return accountInfo.value.email_verified
       ? t('web.auth.account.verified')
-      : t('web.auth.account.not-verified');
+      : t('web.auth.account.not_verified');
   });
 
   const handleThemeChange = async (isDark: boolean) => {
@@ -198,27 +198,27 @@
               <div class="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
                 <div class="prose prose-sm prose-blue max-w-none dark:prose-invert">
                   <p class="text-sm text-blue-700 dark:text-blue-300">
-                    {{ t('web.translations.as-we-add-new-features-our-translations-graduall') }}
+                    {{ t('web.translations.as_we_add_new_features_our_translations_graduall') }}
                   </p>
                   <p class="text-sm text-blue-700 dark:text-blue-300">
-                    {{ t('web.translations.were-grateful-to-the') }}
+                    {{ t('web.translations.were_grateful_to_the') }}
                     <router-link
                       to="/translations"
                       class="font-medium underline hover:no-underline">
-                      {{ t('web.translations.25-contributors') }}
+                      {{ t('web.translations.25_contributors') }}
                     </router-link>
-                    {{ t('web.translations.whove-helped-with-translations-as-we-continue-to') }}
+                    {{ t('web.translations.whove_helped_with_translations_as_we_continue_to') }}
                   </p>
                   <p class="text-sm text-blue-700 dark:text-blue-300">
-                    {{ t('web.translations.if-youre-interested-in-translation') }}
+                    {{ t('web.translations.if_youre_interested_in_translation') }}
                     <a
                       href="https://github.com/onetimesecret/onetimesecret"
                       target="_blank"
                       rel="noopener noreferrer"
                       class="font-medium underline hover:no-underline">
-                      {{ t('web.translations.our-github-project') }}
+                      {{ t('web.translations.our_github_project') }}
                     </a>
-                    {{ t('web.translations.welcomes-contributors-for-both-existing-and-new-') }}
+                    {{ t('web.translations.welcomes_contributors_for_both_existing_and_new_') }}
                   </p>
                 </div>
               </div>

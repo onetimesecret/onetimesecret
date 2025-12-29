@@ -166,7 +166,7 @@
                   3. Other form fields (passphrase, expiration, etc.) keep visible labels as they
                       represent configuration options that need explicit identification
                 -->
-              {{ t('web.secrets.secret-content') || 'Secret Content' }}
+              {{ t('web.secrets.secret_content') || 'Secret Content' }}
             </label>
 
             <SecretContentInputArea

@@ -23,10 +23,10 @@ import { useRoute } from 'vue-router';
 
     // Map common Rodauth errors to user-friendly messages
     const errorMap: Record<string, string> = {
-      'invalid verification key': t('web.auth.verify.invalid-key'),
-      'expired verification key': t('web.auth.verify.expired-key'),
-      'already verified': t('web.auth.verify.already-verified'),
-      'unable to verify account': t('web.auth.verify.unable-to-verify'),
+      'invalid verification key': t('web.auth.verify.invalid_key'),
+      'expired verification key': t('web.auth.verify.expired_key'),
+      'already verified': t('web.auth.verify.already_verified'),
+      'unable to verify account': t('web.auth.verify.unable_to_verify'),
     };
 
     const lowerError = error.value.toLowerCase();
@@ -156,7 +156,7 @@ import { useRoute } from 'vue-router';
             </div>
             <div class="ml-3 flex-1">
               <h3 class="text-sm font-medium text-red-800 dark:text-red-200">
-                {{ t('web.auth.verify.error-title') }}
+                {{ t('web.auth.verify.error_title') }}
               </h3>
               <div class="mt-2 text-sm text-red-700 dark:text-red-300">
                 <p>{{ errorMessage || t('web.auth.verify.error') }}</p>
@@ -183,13 +183,13 @@ import { useRoute } from 'vue-router';
             </div>
             <div class="ml-3 flex-1">
               <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
-                {{ t('web.auth.verify.what-to-do') }}
+                {{ t('web.auth.verify.what_to_do') }}
               </h3>
               <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
                 <ul class="list-disc space-y-1 pl-5">
-                  <li>{{ t('web.auth.verify.check-email-help') }}</li>
-                  <li>{{ t('web.auth.verify.check-spam') }}</li>
-                  <li>{{ t('web.auth.verify.contact-support') }}</li>
+                  <li>{{ t('web.auth.verify.check_email_help') }}</li>
+                  <li>{{ t('web.auth.verify.check_spam') }}</li>
+                  <li>{{ t('web.auth.verify.contact_support') }}</li>
                 </ul>
               </div>
             </div>
@@ -207,15 +207,15 @@ import { useRoute } from 'vue-router';
             <router-link
               to="/signup"
               class="inline-flex justify-center rounded-md bg-white px-4 py-2 font-brand text-lg  text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-white dark:ring-gray-700 dark:hover:bg-gray-700">
-              {{ t('web.auth.verify.create-new-account') }}
+              {{ t('web.auth.verify.create_new_account') }}
             </router-link>
           </div>
           <div class="text-center">
             <router-link
               to="/"
               class="text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-              :aria-label="t('web.layout.return-to-home-page')">
-              {{ t('web.layout.return-home') }}
+              :aria-label="t('web.layout.return_to_home_page')">
+              {{ t('web.layout.return_home') }}
             </router-link>
           </div>
         </div>
@@ -242,10 +242,10 @@ import { useRoute } from 'vue-router';
             </div>
             <div class="ml-3 flex-1">
               <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                {{ t('web.auth.verify.missing-key-title') }}
+                {{ t('web.auth.verify.missing_key_title') }}
               </h3>
               <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
-                <p>{{ t('web.auth.verify.missing-key-message') }}</p>
+                <p>{{ t('web.auth.verify.missing_key_message') }}</p>
               </div>
             </div>
           </div>
@@ -263,8 +263,8 @@ import { useRoute } from 'vue-router';
             <router-link
               to="/"
               class="text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-              :aria-label="t('web.layout.return-to-home-page')">
-              {{ t('web.layout.return-home') }}
+              :aria-label="t('web.layout.return_to_home_page')">
+              {{ t('web.layout.return_home') }}
             </router-link>
           </div>
         </div>

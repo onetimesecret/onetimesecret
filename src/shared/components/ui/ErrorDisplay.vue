@@ -14,7 +14,7 @@ const props = defineProps<{
 const isZodError = computed(() => props.error.cause instanceof ZodError);
 const friendlyMessage = computed(() => {
   if (!isZodError.value) return props.error.message;
-  return t('web.errors.unable-to-load-data-due-to-data-format-issues-pl');
+  return t('web.errors.unable_to_load_data_due_to_data_format_issues_pl');
 });
 </script>
 

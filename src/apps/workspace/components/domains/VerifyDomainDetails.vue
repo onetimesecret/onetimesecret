@@ -34,7 +34,7 @@ const { t } = useI18n();
 const success = ref<string | undefined>(undefined);
 const buttonDisabledDelay = ref(false);
 const isButtonDisabled = computed(() => isLoading.value || buttonDisabledDelay.value);
-const buttonText = computed(() => isLoading.value ? t('web.COMMON.processing') : t('web.domains.verify-domain'));
+const buttonText = computed(() => isLoading.value ? t('web.COMMON.processing') : t('web.domains.verify_domain'));
 
 const verify = async () => {
   console.info('Refreshing DNS verification details...');
@@ -42,7 +42,7 @@ const verify = async () => {
   try {
     const result = await verifyDomain(props.domain.display_domain);
     if (result) {
-      success.value = t('web.domains.domain-verification-initiated-successfully')
+      success.value = t('web.domains.domain_verification_initiated_successfully')
       emit('domainVerify', result);
 
       buttonDisabledDelay.value = true;
@@ -60,10 +60,10 @@ const verify = async () => {
 <template>
   <div class="mx-auto max-w-2xl rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
     <h2 class="mb-4 text-2xl font-bold text-gray-800 dark:text-white">
-      {{ t('web.domains.domain-verification-steps') }}
+      {{ t('web.domains.domain_verification_steps') }}
     </h2>
     <p class="mb-6 text-lg text-gray-600 dark:text-gray-300">
-      {{ t('web.domains.follow-these-steps-to-verify-domain-ownership-an') }}
+      {{ t('web.domains.follow_these_steps_to_verify_domain_ownership_an') }}
     </p>
 
     <BasicFormAlerts
@@ -93,10 +93,10 @@ const verify = async () => {
     <ol class="mb-8 space-y-6">
       <li class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          {{ t('web.domains.1-create-a-txt-record') }}
+          {{ t('web.domains.1_create_a_txt_record') }}
         </h3>
         <p class="mb-2 text-gray-600 dark:text-gray-300">
-          {{ t('web.domains.add-this-hostname-to-your-dns-configuration') }}
+          {{ t('web.domains.add_this_hostname_to_your_dns_configuration') }}
         </p>
 
         <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
@@ -116,7 +116,7 @@ const verify = async () => {
         v-if="domain?.is_apex"
         class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          {{ t('web.domains.2-create-the-a-record') }}
+          {{ t('web.domains.2_create_the_a_record') }}
         </h3>
 
         <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
@@ -136,7 +136,7 @@ const verify = async () => {
         v-else
         class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          {{ t('web.domains.2-create-the-cname-record') }}
+          {{ t('web.domains.2_create_the_cname_record') }}
         </h3>
 
         <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
@@ -164,10 +164,10 @@ const verify = async () => {
       </li>
       <li class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          {{ t('web.domains.3-wait-for-propagation') }}
+          {{ t('web.domains.3_wait_for_propagation') }}
         </h3>
         <p class="text-gray-600 dark:text-gray-300">
-          {{ t('web.domains.dns-changes-can-take-as-little-as-60-seconds-or-') }}
+          {{ t('web.domains.dns_changes_can_take_as_little_as_60_seconds_or_') }}
         </p>
       </li>
     </ol>
@@ -179,7 +179,7 @@ const verify = async () => {
         class="mr-2 mt-0.5 size-5 shrink-0 text-brandcomp-700"
         aria-hidden="true" />
       <p class="text-sm text-gray-500 dark:text-gray-400">
-        {{ t('web.domains.it-may-take-a-few-minutes-for-your-ssl-certifica') }}
+        {{ t('web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica') }}
       </p>
     </div>
   </div>

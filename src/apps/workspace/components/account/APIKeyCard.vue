@@ -53,7 +53,7 @@ const handleCopy = () => {
       </div>
     </div>
     <p class="mt-2 text-sm font-semibold text-white">
-      {{ t('web.account.keep-this-token-secure-it-provides-full-access-t') }}
+      {{ t('web.account.keep_this_token_secure_it_provides_full_access_t') }}
     </p>
   </div>
 </template>

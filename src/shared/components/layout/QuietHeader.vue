@@ -18,10 +18,10 @@
     displayNavigation: false,
   });
 
-  const headertext = computed(() => productIdentity.allowPublicHomepage ? t('web.homepage.create-a-secure-link') : t('web.homepage.secure-links'));
+  const headertext = computed(() => productIdentity.allowPublicHomepage ? t('web.homepage.create_a_secure_link') : t('web.homepage.secure_links'));
   const subtext = computed(() => productIdentity.allowPublicHomepage
-      ? t('web.homepage.send-sensitive-information-that-can-only-be-viewed-once')
-      : t('web.homepage.a-trusted-way-to-share-sensitive-information-etc'));
+      ? t('web.homepage.send_sensitive_information_that_can_only_be_viewed_once')
+      : t('web.homepage.a_trusted_way_to_share_sensitive_information_etc'));
 </script>
 
 <template>

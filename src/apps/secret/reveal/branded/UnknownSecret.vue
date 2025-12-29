@@ -54,7 +54,7 @@ const { t } = useI18n();
             :class="brandSettings?.font_family
               ? fontFamilyClasses[brandSettings.font_family as FontFamily]
               : ''">
-            {{ t('web.COMMON.not-found') }}
+            {{ t('web.COMMON.not_found') }}
           </h2>
         </div>
       </div>
@@ -67,7 +67,7 @@ const { t } = useI18n();
           {{ brandSettings?.instructions_post_reveal }}
         </span>
         <span v-else>
-          {{ t('web.homepage.information-shared-through-this-service-can-only') }}
+          {{ t('web.homepage.information_shared_through_this_service_can_only') }}
         </span>
       </p>
     </template>
@@ -85,7 +85,7 @@ const { t } = useI18n();
           backgroundColor: brandSettings?.primary_color ?? '#dc4a22',
           color: brandSettings?.button_text_light ?? true ? '#ffffff' : '#222222',
         }">
-        {{ t('web.layout.return-to-home') }}
+        {{ t('web.layout.return_to_home') }}
       </router-link>
     </template>
   </BaseUnknownSecret>

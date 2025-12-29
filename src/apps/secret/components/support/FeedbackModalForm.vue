@@ -41,7 +41,7 @@ import { computed, onMounted, ref } from 'vue';
 
   const { isSubmitting, error, success, submitForm } = useFormSubmission({
     url: '/api/v2/feedback',
-    successMessage: t('web.LABELS.feedback-received'),
+    successMessage: t('web.LABELS.feedback_received'),
     onSuccess: (data: unknown) => {
       console.debug('Feedback sent:', data);
       emit('feedback-sent');
@@ -66,7 +66,7 @@ import { computed, onMounted, ref } from 'vue';
   /**
    * Computed property to determine the submit key combination text based on the platform
    */
-  const submitWithText = computed(() => navigator.platform.includes(t('web.COMMON.mac')) ? t('web.COMMON.enter-0') : t('web.COMMON.ctrl-enter'));
+  const submitWithText = computed(() => navigator.platform.includes(t('web.COMMON.mac')) ? t('web.COMMON.enter_0') : t('web.COMMON.ctrl_enter'));
 
   /**
    * State to track if the device is a desktop using useMediaQuery
@@ -80,7 +80,7 @@ import { computed, onMounted, ref } from 'vue';
   };
 
   const buttonText = computed(() =>
-    isSubmitting.value ? t('web.LABELS.sending-ellipses') : t('web.COMMON.button_send_feedback')
+    isSubmitting.value ? t('web.LABELS.sending_ellipses') : t('web.COMMON.button_send_feedback')
   );
 </script>
 
@@ -103,7 +103,7 @@ import { computed, onMounted, ref } from 'vue';
         <label
           for="feedback-message"
           class="sr-only">
-          {{ t('web.feedback.your-feedback') }}
+          {{ t('web.feedback.your_feedback') }}
         </label>
         <!-- prettier-ignore-attribute class -->
         <textarea
@@ -118,7 +118,7 @@ import { computed, onMounted, ref } from 'vue';
           required
           @keydown="handleKeydown"
           :placeholder="t('web.COMMON.feedback_text')"
-          :aria-label="t('web.feedback.enter-your-feedback')"></textarea>
+          :aria-label="t('web.feedback.enter_your_feedback')"></textarea>
         <div class="mt-2 flex justify-end text-gray-500 dark:text-gray-400">
           <span v-if="isDesktop">{{ submitWithText }}</span>
         </div>
@@ -140,7 +140,7 @@ import { computed, onMounted, ref } from 'vue';
           text-white transition-colors hover:bg-red-700
           focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-50
           disabled:cursor-not-allowed disabled:opacity-50 dark:focus:ring-offset-gray-800"
-        :aria-label="t('web.feedback.send-feedback')">
+        :aria-label="t('web.feedback.send_feedback')">
         {{ buttonText }}
       </button>
     </form>
@@ -160,17 +160,17 @@ import { computed, onMounted, ref } from 'vue';
 
     <div class="mt-6 text-sm text-gray-500 dark:text-gray-400">
       <h3 class="mb-2 text-lg font-medium text-gray-500">
-        {{ t('web.feedback.when-you-submit-feedback-well-see') }}
+        {{ t('web.feedback.when_you_submit_feedback_well_see') }}
       </h3>
       <ul class="space-y-1">
         <li v-if="cust && cust.identifier != 'anon'">
-          • {{ t('web.account.customer-id') }}: {{ cust.email }}
+          • {{ t('web.account.customer_id') }}: {{ cust.email }}
         </li>
         <li>
           • {{ t('web.account.timezone') }}: {{ userTimezone }}
         </li>
         <li>
-          • {{ t('web.site.website-version') }}: {{ ot_version_long }}
+          • {{ t('web.site.website_version') }}: {{ ot_version_long }}
         </li>
       </ul>
     </div>

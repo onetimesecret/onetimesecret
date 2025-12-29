@@ -71,7 +71,7 @@ const { t } = useI18n();
             {{ t('web.domains.domains') }}
           </h1>
           <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.domains.manage-and-configure-your-verified-custom-domains') }}
+            {{ t('web.domains.manage_and_configure_your_verified_custom_domains') }}
           </p>
         </div>
         <router-link
@@ -81,7 +81,7 @@ const { t } = useI18n();
             name="plus-20-solid"
             collection="heroicons"
             class="mr-2 size-5" />
-          {{ t('web.domains.add-domain') }}
+          {{ t('web.domains.add_domain') }}
         </router-link>
       </div>
 
@@ -99,7 +99,7 @@ const { t } = useI18n();
                 scope="col"
                 class="px-6 py-3 text-center text-xs font-medium tracking-wider text-gray-500 dark:text-gray-400">
                 <div class="flex items-center justify-center">
-                  <span class="uppercase">{{ t('web.domains.homepage-access') }}</span>
+                  <span class="uppercase">{{ t('web.domains.homepage_access') }}</span>
                   <div class="group relative ml-2">
                     <OIcon
                       collection="heroicons"
@@ -107,7 +107,7 @@ const { t } = useI18n();
                       class="size-4 text-gray-400 transition-colors duration-200 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300" />
                     <div
                       class="invisible absolute z-10 -ml-24 mt-2 w-48 rounded-md bg-white p-2 text-xs text-gray-900 shadow-lg ring-1 ring-black/5 transition-opacity duration-200 group-hover:visible dark:bg-gray-800 dark:text-gray-100 dark:shadow-gray-900/50 dark:ring-white/10">
-                      {{ t('web.domains.control-whether-users-can-create-secret-links') }}
+                      {{ t('web.domains.control_whether_users_can_create_secret_links') }}
                     </div>
                   </div>
                 </div>
@@ -158,8 +158,8 @@ const { t } = useI18n();
       v-if="isRevealed"
       @confirm="confirm"
       @cancel="cancel"
-      :title="t('web.domains.remove-domain')"
-      :message="t('web.domains.are-you-sure-you-want-to-remove-this-domain')"
+      :title="t('web.domains.remove_domain')"
+      :message="t('web.domains.are_you_sure_you_want_to_remove_this_domain')"
       type="danger" />
   </div>
 </template>

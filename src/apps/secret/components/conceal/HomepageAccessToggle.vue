@@ -32,7 +32,7 @@ const emit = defineEmits<{
     :aria-checked="!!modelValue"
     @click="emit('update:modelValue', !modelValue)">
     <span class="sr-only">
-      {{ modelValue ? t('web.LABELS.disable') : t('web.LABELS.enable') }} {{ t('web.domains.homepage-access') }}
+      {{ modelValue ? t('web.LABELS.disable') : t('web.LABELS.enable') }} {{ t('web.domains.homepage_access') }}
     </span>
     <span
       :class="[

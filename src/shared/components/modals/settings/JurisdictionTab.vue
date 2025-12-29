@@ -29,7 +29,7 @@ const customerId = computed(() => cust?.extid);
       <h3
         id="data-region-heading"
         class="text-lg font-semibold text-gray-900 dark:text-white">
-        {{ t('web.regions.data-region') }}
+        {{ t('web.regions.data_region') }}
       </h3>
       <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800 sm:p-6">
         <div class="flex flex-col items-center gap-4 sm:flex-row sm:gap-6">
@@ -46,7 +46,7 @@ const customerId = computed(() => cust?.extid);
               {{ currentJurisdiction?.display_name }}
             </div>
             <div class="text-sm text-gray-500 dark:text-gray-400">
-              {{ t('web.regions.data-center-location-currentjurisdiction-identif', [currentJurisdiction?.identifier]) }}
+              {{ t('web.regions.data_center_location_currentjurisdiction_identif', [currentJurisdiction?.identifier]) }}
             </div>
           </div>
         </div>
@@ -66,7 +66,7 @@ const customerId = computed(() => cust?.extid);
         <p
           v-if="customerId"
           class="text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.account.account-id-customerid') }}: {{ customerId }}
+          {{ t('web.account.account_id_customerid') }}: {{ customerId }}
         </p>
       </header>
 
@@ -82,7 +82,7 @@ const customerId = computed(() => cust?.extid);
       <!-- Jurisdiction List -->
       <div class="space-y-3">
         <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
-          {{ t('web.regions.available-regions') }}
+          {{ t('web.regions.available_regions') }}
         </h4>
 
         <JurisdictionList

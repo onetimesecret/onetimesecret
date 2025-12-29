@@ -62,8 +62,8 @@ onMounted(async () => {
           <router-link
             to="/"
             class="text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            :aria-label="t('web.layout.return-to-home-page')">
-            {{ t('web.layout.return-home') }}
+            :aria-label="t('web.layout.return_to_home_page')">
+            {{ t('web.layout.return_home') }}
           </router-link>
         </div>
       </div>
@@ -104,8 +104,8 @@ onMounted(async () => {
                 <router-link
                   to="/"
                   class="text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                  :aria-label="t('web.layout.return-to-home-page')">
-                  {{ t('web.layout.return-home') }}
+                  :aria-label="t('web.layout.return_to_home_page')">
+                  {{ t('web.layout.return_home') }}
                 </router-link>
               </div>
             </div>

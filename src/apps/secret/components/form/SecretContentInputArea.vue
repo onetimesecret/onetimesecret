@@ -66,7 +66,7 @@ const { t } = useI18n();
       id="textarea-focus-announcement"
       aria-live="polite"
       class="sr-only">
-      {{ t('web.COMMON.focus-is-now-in-the-main-text-area') }}
+      {{ t('web.COMMON.focus_is_now_in_the_main_text_area') }}
     </div> -->
     <!-- prettier-ignore-attribute class -->
     <textarea
@@ -96,7 +96,7 @@ const { t } = useI18n();
         dark:disabled:bg-slate-900/50
       "
       :placeholder="t('web.COMMON.secret_placeholder')"
-      :aria-label="t('web.secrets.enter-the-secret-content-here')">
+      :aria-label="t('web.secrets.enter_the_secret_content_here')">
     </textarea>
 
     <!--

@@ -13,10 +13,10 @@ const { t } = useI18n();
 
 const strengthText = computed(() => {
   const strengthLabels: Record<number, string> = {
-    0: t('web.COMMON.not-great'),
+    0: t('web.COMMON.not_great'),
     1: t('web.COMMON.meh'),
     2: t('web.COMMON.fair'),
-    3: t('web.COMMON.pretty-good'),
+    3: t('web.COMMON.pretty_good'),
     4: t('web.COMMON.great')
   };
   return strengthLabels[strength.value];
@@ -67,13 +67,13 @@ onMounted(() => {
       :class="strengthClass"
       class="mb-4"
       aria-live="polite">
-      {{ t('web.COMMON.password-strength') }} <span class="font-bold">{{ strengthText }}</span>
+      {{ t('web.COMMON.password_strength') }} <span class="font-bold">{{ strengthText }}</span>
     </div>
     <div
       v-if="showMismatch && passwordMismatch"
       class="mb-4 text-red-500 dark:text-red-400"
       aria-live="polite">
-      {{ t('web.COMMON.passwords-do-not-match') }}
+      {{ t('web.COMMON.passwords_do_not_match') }}
     </div>
   </div>
 </template>

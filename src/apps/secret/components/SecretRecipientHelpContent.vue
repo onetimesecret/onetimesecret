@@ -23,10 +23,10 @@ const { t } = useI18n();
         class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200
           dark:bg-gray-800/50 dark:ring-gray-700">
         <h3 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
-          {{ t('web.secrets.what-is-this') }}
+          {{ t('web.secrets.what_is_this') }}
         </h3>
         <p>
-          {{ t('web.secrets.onetime-secret-is-a-secure-way-to-share-sensitiv') }}
+          {{ t('web.secrets.onetime_secret_is_a_secure_way_to_share_sensitiv') }}
         </p>
       </div>
 
@@ -34,10 +34,10 @@ const { t } = useI18n();
         class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200
           dark:bg-gray-800/50 dark:ring-gray-700">
         <h3 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
-          {{ t('web.secrets.is-it-secure') }}
+          {{ t('web.secrets.is_it_secure') }}
         </h3>
         <p>
-          {{ t('web.secrets.yes-after-viewing-the-secret-is-permanently-dele') }}
+          {{ t('web.secrets.yes_after_viewing_the_secret_is_permanently_dele') }}
         </p>
       </div>
 
@@ -45,10 +45,10 @@ const { t } = useI18n();
         class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200
           dark:bg-gray-800/50 dark:ring-gray-700">
         <h3 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
-          {{ t('web.secrets.what-happens-next') }}
+          {{ t('web.secrets.what_happens_next') }}
         </h3>
         <p>
-          {{ t('web.secrets.when-ready-click-the-view-secret-button-at-the-t') }}
+          {{ t('web.secrets.when_ready_click_the_view_secret_button_at_the_t') }}
         </p>
       </div>
     </div>

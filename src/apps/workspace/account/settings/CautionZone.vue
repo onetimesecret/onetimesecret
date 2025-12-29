@@ -36,7 +36,7 @@
             <div class="mb-4 flex items-start gap-3">
               <div>
                 <h3 class="font-semibold text-red-900 dark:text-red-300">
-                  {{ t('web.auth.close-account.title') }}
+                  {{ t('web.auth.close_account.title') }}
                 </h3>
                 <p class="mt-1 text-sm text-red-700 dark:text-red-400">
                   {{ t('web.settings.delete_account.permanently_delete_your_account') }}
@@ -46,13 +46,13 @@
 
             <div class="mb-6 space-y-2 text-sm text-red-700 dark:text-red-400">
               <p class="font-medium">
-                {{ t('web.settings.caution.deletion-warning-title') }}
+                {{ t('web.settings.caution.deletion_warning_title') }}
               </p>
               <ul class="list-inside list-disc space-y-1 pl-4">
-                <li>{{ t('web.settings.caution.deletion-warning-secrets') }}</li>
-                <li>{{ t('web.settings.caution.deletion-warning-metadata') }}</li>
-                <li>{{ t('web.settings.caution.deletion-warning-api-keys') }}</li>
-                <li>{{ t('web.settings.caution.deletion-warning-irreversible') }}</li>
+                <li>{{ t('web.settings.caution.deletion_warning_secrets') }}</li>
+                <li>{{ t('web.settings.caution.deletion_warning_metadata') }}</li>
+                <li>{{ t('web.settings.caution.deletion_warning_api_keys') }}</li>
+                <li>{{ t('web.settings.caution.deletion_warning_irreversible') }}</li>
               </ul>
             </div>
 

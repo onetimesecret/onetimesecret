@@ -85,7 +85,7 @@ const handleSubmit = async () => {
           <label
             class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300"
             for="email">
-            {{ t('web.COMMON.email-address') }}
+            {{ t('web.COMMON.email_address') }}
           </label>
           <input
             type="text"
@@ -100,7 +100,7 @@ const handleSubmit = async () => {
           <label
             class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300"
             for="passField">
-            {{ t('web.COMMON.new-password') }}
+            {{ t('web.COMMON.new_password') }}
           </label>
           <input
             type="password"
@@ -120,7 +120,7 @@ const handleSubmit = async () => {
           <label
             class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300"
             for="pass2Field">
-            {{ t('web.COMMON.confirm-password') }}
+            {{ t('web.COMMON.confirm_password') }}
           </label>
           <input
             type="password"

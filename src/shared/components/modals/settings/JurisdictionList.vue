@@ -36,7 +36,7 @@ const isCurrentJurisdiction = (jurisdiction: Jurisdiction) =>
           :class="{ 'font-medium': isCurrentJurisdiction(jurisdiction) }"
           class="grow text-sm text-gray-700 hover:text-brand-600 dark:text-gray-200 dark:hover:text-brand-400"
           :aria-current="isCurrentJurisdiction(jurisdiction) ? 'true' : undefined"
-          :aria-label="t('web.regions.jurisdiction-display_name-iscurrentjurisdiction-', [jurisdiction.display_name, isCurrentJurisdiction(jurisdiction) ? `(Current)` : ``])">
+          :aria-label="t('web.regions.jurisdiction_display_name_iscurrentjurisdiction_', [jurisdiction.display_name, isCurrentJurisdiction(jurisdiction) ? `(Current)` : ``])">
           {{ jurisdiction.display_name }}
         </a>
       </div>
