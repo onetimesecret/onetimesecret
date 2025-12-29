@@ -138,13 +138,13 @@
             :showAction="true"
             v-else
             action-route="/"
-            :action-text="t('web.secrets.create-a-secret')">
+            :action-text="t('web.secrets.create_a_secret')">
             <template #title>
               {{ t('web.dashboard.title_no_recent_secrets') }}
             </template>
             <template #description>
-              <div>{{ t('web.dashboard.get-started-by-creating-your-first-secret') }}</div>
-              <div>{{ t('web.secrets.theyll-appear-here-once-youve-shared-them') }}</div>
+              <div>{{ t('web.dashboard.get_started_by_creating_your_first_secret') }}</div>
+              <div>{{ t('web.secrets.theyll_appear_here_once_youve_shared_them') }}</div>
             </template>
           </EmptyState>
         </div>

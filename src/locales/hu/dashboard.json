@@ -4,7 +4,7 @@
       "title_received": "Megkapva",
       "title_not_received": "Nem kapott meg",
       "title_no_recent_secrets": "Nincsenek legutóbbi titkok",
-      "get-started-by-creating-your-first-secret": "Kezdje el első titka létrehozásával.",
+      "get_started_by_creating_your_first_secret": "Kezdje el első titka létrehozásával.",
       "fetch_error_title": "Nem sikerült betölteni a csapatokat",
       "fetch_error_description": "Probléma történt a csapatok betöltésekor. Kérjük, próbálja újra."
     }

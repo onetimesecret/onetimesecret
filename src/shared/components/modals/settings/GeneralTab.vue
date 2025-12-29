@@ -92,30 +92,30 @@ const handleThemeChange = async (isDark: boolean) => {
           :aria-busy="isLoading" />
         <div class="prose prose-sm prose-gray mt-4 max-w-none space-y-3 dark:prose-invert sm:mt-6 sm:space-y-4">
           <p class="text-sm leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base">
-            {{ t('web.translations.as-we-add-new-features-our-translations-graduall') }}
+            {{ t('web.translations.as_we_add_new_features_our_translations_graduall') }}
           </p>
 
           <p class="text-sm leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base">
-            {{ t('web.translations.were-grateful-to-the') }}
+            {{ t('web.translations.were_grateful_to_the') }}
             <router-link
               to="/translations"
               @click="$emit('close')"
               class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 focus-visible:ring-primary-500 -mx-2 inline-block px-2 py-1 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
-              {{ t('web.translations.25-contributors') }}
+              {{ t('web.translations.25_contributors') }}
             </router-link>
-            {{ t('web.translations.whove-helped-with-translations-as-we-continue-to') }}
+            {{ t('web.translations.whove_helped_with_translations_as_we_continue_to') }}
           </p>
 
           <p class="text-sm leading-relaxed text-gray-600 dark:text-gray-300 sm:text-base">
-            {{ t('web.translations.if-youre-interested-in-translation') }}
+            {{ t('web.translations.if_youre_interested_in_translation') }}
             <a
               href="https://github.com/onetimesecret/onetimesecret"
               target="_blank"
               rel="noopener noreferrer"
               class="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 focus-visible:ring-primary-500 -mx-2 inline-block px-2 py-1 font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2">
-              {{ t('web.translations.our-github-project') }}
+              {{ t('web.translations.our_github_project') }}
             </a>
-            {{ t('web.translations.welcomes-contributors-for-both-existing-and-new-') }}
+            {{ t('web.translations.welcomes_contributors_for_both_existing_and_new_') }}
           </p>
         </div>
       </div>

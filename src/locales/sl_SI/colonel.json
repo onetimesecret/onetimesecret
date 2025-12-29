@@ -1,13 +1,13 @@
 {
   "web": {
     "colonel": {
-      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
-      "customer-verified-verified-not-verified-0": "`+customer.verified ? `verified` : `not verified",
-      "customers-details-counts-recent_customer_count-o-0": "Stranke ({0} od {1})",
-      "user-feedback-total-details-counts-feedback_coun-0": "Povratne informacije uporabnikov (Skupaj: {0})",
-      "metadata-secrets-details-counts-metadata_count-d-0": "Metapodatki / Skrivnosti: {0}/{1} ({2}/{3}/{4} skupaj)",
-      "secrets-details-counts-secret_count-0": "Skrivnosti ({0})",
-      "active-in-the-past-5-minutes-0": "(aktivno v zadnjih 5 minutah)",
+      "customer_secrets_created_customer_secrets_shared_0": "{0}/{1}/{2} [{3}]",
+      "customer_verified_verified_not_verified_0": "`+customer.verified ? `verified` : `not verified",
+      "customers_details_counts_recent_customer_count_o_0": "Stranke ({0} od {1})",
+      "user_feedback_total_details_counts_feedback_coun_0": "Povratne informacije uporabnikov (Skupaj: {0})",
+      "metadata_secrets_details_counts_metadata_count_d_0": "Metapodatki / Skrivnosti: {0}/{1} ({2}/{3}/{4} skupaj)",
+      "secrets_details_counts_secret_count_0": "Skrivnosti ({0})",
+      "active_in_the_past_5_minutes_0": "(aktivno v zadnjih 5 minutah)",
       "configEditorTitle": "Nastavitve",
       "configEditorDescription": "Uredite sistemske konfiguracijske nastavitve. Spremembe se uveljavijo takoj po shranjevanju.",
       "invalidJson": "Neveljaven JSON v razdelku {section}",
@@ -75,9 +75,9 @@
       "test-error-triggered-via-feedback": "Testna napaka sprožena preko povratnih informacij"
     },
     "feedback": {
-      "when-you-submit-feedback-well-see": "Ko pošljete povratne informacije, bomo videli:",
-      "send-feedback": "Pošlji povratne informacije",
-      "sending-ellipses": "Pošiljam..."
+      "when_you_submit_feedback_well_see": "Ko pošljete povratne informacije, bomo videli:",
+      "send_feedback": "Pošlji povratne informacije",
+      "sending_ellipses": "Pošiljam..."
     }
   }
 }

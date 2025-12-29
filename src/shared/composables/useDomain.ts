@@ -75,7 +75,7 @@ export function useDomain(domainId?: string) {
     wrap(async () => {
       if (!domainId) return;
       await store.verifyDomain(domainId);
-      notifications.show(t('web.domains.domain-verification-initiated-successfully'), 'success');
+      notifications.show(t('web.domains.domain_verification_initiated_successfully'), 'success');
       await initialize();
     });
 
@@ -83,7 +83,7 @@ export function useDomain(domainId?: string) {
     wrap(async () => {
       if (!domainId) return;
       await store.deleteDomain(domainId);
-      notifications.show(t('web.domains.domain-removed-successfully'), 'success');
+      notifications.show(t('web.domains.domain_removed_successfully'), 'success');
       router.push({ name: 'Domains' });
     });
 

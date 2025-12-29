@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "Phản hồi của bạn",
-      "all-feedback-welcome": "Chào đón mọi phản hồi!",
-      "help-us-improve": "Giúp chúng tôi cải thiện",
-      "close-feedback-modal": "Đóng hộp thoại phản hồi",
-      "share-your-feedback": "Chia sẻ phản hồi của bạn",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "Phản hồi của bạn",
+      "all_feedback_welcome": "Chào đón mọi phản hồi!",
+      "help_us_improve": "Giúp chúng tôi cải thiện",
+      "close_feedback_modal": "Đóng hộp thoại phản hồi",
+      "share_your_feedback": "Chia sẻ phản hồi của bạn",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "Nội dung trợ giúp sẽ ở đây.",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "Cảm ơn vì đã giúp Onetime Secret cải thiện. Điều đó rất có ý nghĩa.",
-      "weve-built-this-tool-to-help-you-share-sensitive": "Chúng tôi đã xây dựng công cụ này để giúp bạn chia sẻ thông tin nhạy cảm một cách an toàn và trải nghiệm thực tế của bạn rất quan trọng để tập trung nỗ lực của chúng tôi. Nó giúp chúng tôi tìm ra những gì cần làm tiếp theo và cách làm cho dịch vụ tốt hơn cho mọi người.",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Xin chào, cảm ơn vì đã ghé thăm trang phản hồi của chúng tôi. Ý kiến của bạn không chỉ được chào đón - mà còn rất quan trọng.",
-      "a-note-from-delano-founder-of-onetime-secret": "Lời nhắn từ Delano, người sáng lập Onetime Secret",
-      "open-feedback-form": "Mở biểu mẫu phản hồi",
-      "enter-your-feedback": "Nhập phản hồi của bạn"
+      "help_content_goes_here": "Nội dung trợ giúp sẽ ở đây.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "Cảm ơn vì đã giúp Onetime Secret cải thiện. Điều đó rất có ý nghĩa.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "Chúng tôi đã xây dựng công cụ này để giúp bạn chia sẻ thông tin nhạy cảm một cách an toàn và trải nghiệm thực tế của bạn rất quan trọng để tập trung nỗ lực của chúng tôi. Nó giúp chúng tôi tìm ra những gì cần làm tiếp theo và cách làm cho dịch vụ tốt hơn cho mọi người.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "Xin chào, cảm ơn vì đã ghé thăm trang phản hồi của chúng tôi. Ý kiến của bạn không chỉ được chào đón - mà còn rất quan trọng.",
+      "a_note_from_delano_founder_of_onetime_secret": "Lời nhắn từ Delano, người sáng lập Onetime Secret",
+      "open_feedback_form": "Mở biểu mẫu phản hồi",
+      "enter_your_feedback": "Nhập phản hồi của bạn"
     }
   }
 }

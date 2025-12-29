@@ -48,14 +48,14 @@
   // Helper functions for logo configuration
   // Priority: props > custom domain logo > static config > default
   const getLogoUrl = () => props.logo?.url || windowProps.value.domain_logo || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
-  const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one-time-secret-literal');
+  const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal');
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
   // Custom domain logos are larger to emphasize brand identity
   const isCustomDomainLogo = computed(() => !!windowProps.value.domain_logo);
   const getLogoSize = () => props.logo?.size || (isCustomDomainLogo.value ? 80 : 64);
   // Hide site name when custom domain logo is displayed (unless explicitly configured)
   const getShowSiteName = () => props.logo?.showSiteName ?? (windowProps.value.domain_logo ? false : !!headerConfig.value?.branding?.site_name);
-  const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one-time-secret-literal');
+  const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal');
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
 
@@ -173,7 +173,7 @@
       <nav
         v-if="displayNavigation && navigationEnabled"
         role="navigation"
-        :aria-label="t('web.layout.main-navigation')"
+        :aria-label="t('web.layout.main_navigation')"
         class="flex flex-wrap items-center justify-end gap-4
           font-brand text-sm sm:text-base">
         <template v-if="isUserPresent">
@@ -191,7 +191,7 @@
             <router-link
               v-if="windowProps.authentication.signup"
               to="/signup"
-              :title="t('web.homepage.signup-individual-and-business-plans')"
+              :title="t('web.homepage.signup_individual_and_business_plans')"
               class="font-bold text-gray-600 transition-colors duration-200
                 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
               {{ t('web.COMMON.header_create_account') }}
@@ -207,7 +207,7 @@
             <router-link
               v-if="windowProps.authentication.signin"
               to="/signin"
-              :title="t('web.homepage.log-in-to-onetime-secret')"
+              :title="t('web.homepage.log_in_to_onetime_secret')"
               class="text-gray-600 transition-colors duration-200
                 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
               {{ t('web.COMMON.header_sign_in') }}

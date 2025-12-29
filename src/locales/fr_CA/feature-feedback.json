@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "Votre avis",
-      "all-feedback-welcome": "Tous les commentaires sont les bienvenus !",
-      "help-us-improve": "Aidez-nous à nous améliorer.",
-      "close-feedback-modal": "Fermer la modalité de retour d'information",
-      "share-your-feedback": "Faites-nous part de vos commentaires",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "Votre avis",
+      "all_feedback_welcome": "Tous les commentaires sont les bienvenus !",
+      "help_us_improve": "Aidez-nous à nous améliorer.",
+      "close_feedback_modal": "Fermer la modalité de retour d'information",
+      "share_your_feedback": "Faites-nous part de vos commentaires",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "Le contenu de l'aide se trouve ici.",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "Merci d'aider Onetime Secret à s'améliorer. Cela représente beaucoup.",
-      "weve-built-this-tool-to-help-you-share-sensitive": "Nous avons conçu cet outil pour vous aider à partager des informations sensibles en toute sécurité, et vos expériences concrètes sont essentielles pour concentrer nos efforts. Elles nous aident à déterminer sur quoi travailler ensuite et comment améliorer le service pour tout le monde.",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Bonjour, merci de vous être arrêté sur notre page de commentaires. Votre avis n'est pas seulement le bienvenu, il est essentiel.",
-      "a-note-from-delano-founder-of-onetime-secret": "Un mot de Delano, fondateur de Onetime Secret",
-      "open-feedback-form": "Formulaire de retour d'information ouvert",
-      "enter-your-feedback": "Saisissez votre avis"
+      "help_content_goes_here": "Le contenu de l'aide se trouve ici.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "Merci d'aider Onetime Secret à s'améliorer. Cela représente beaucoup.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "Nous avons conçu cet outil pour vous aider à partager des informations sensibles en toute sécurité, et vos expériences concrètes sont essentielles pour concentrer nos efforts. Elles nous aident à déterminer sur quoi travailler ensuite et comment améliorer le service pour tout le monde.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "Bonjour, merci de vous être arrêté sur notre page de commentaires. Votre avis n'est pas seulement le bienvenu, il est essentiel.",
+      "a_note_from_delano_founder_of_onetime_secret": "Un mot de Delano, fondateur de Onetime Secret",
+      "open_feedback_form": "Formulaire de retour d'information ouvert",
+      "enter_your_feedback": "Saisissez votre avis"
     }
   }
 }

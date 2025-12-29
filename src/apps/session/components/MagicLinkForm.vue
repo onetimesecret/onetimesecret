@@ -84,7 +84,7 @@ const handleTryAgain = () => {
     <div>
       <label
         for="magic-link-email"
-        class="sr-only">{{ t('web.COMMON.email-address') }}</label>
+        class="sr-only">{{ t('web.COMMON.email_address') }}</label>
       <input
         id="magic-link-email"
         name="email"

@@ -37,7 +37,7 @@
     bg-gray-100
     py-16 transition-all
     duration-300 dark:bg-gray-800"
-    :aria-label="t('web.layout.site-footer')">
+    :aria-label="t('web.layout.site_footer')">
     <div class="container mx-auto max-w-4xl px-4">
       <!-- Footer Links Section -->
       <FooterLinks v-if="displayFooterLinks" />
@@ -66,10 +66,10 @@
           text-xs text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
             v-if="displayVersion"
-            :title="`${t('web.homepage.onetime-secret-literal')} Version`">
+            :title="`${t('web.homepage.onetime_secret_literal')} Version`">
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${windowProps.ot_version}`"
-              :aria-label="t('web.layout.release-notes')">
+              :aria-label="t('web.layout.release_notes')">
               v{{ windowProps.ot_version }}
             </a>
           </span>
@@ -80,13 +80,13 @@
           </span>
           <span
             v-if="displayPoweredBy"
-            :title="`${t('web.homepage.onetime-secret-literal')} Version`">
+            :title="`${t('web.homepage.onetime_secret_literal')} Version`">
             <a
               :href="t('web.COMMON.website_url')"
               target="_blank"
               rel="noopener noreferrer">
               {{ t('web.COMMON.powered_by') }}
-              {{ t('web.homepage.onetime-secret-literal') }}
+              {{ t('web.homepage.onetime_secret_literal') }}
             </a>
           </span>
         </div>
@@ -102,7 +102,7 @@
           <ThemeToggle
             class="text-gray-500 transition-colors duration-200
               hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
-            :aria-label="t('web.layout.toggle-dark-mode')" />
+            :aria-label="t('web.layout.toggle_dark_mode')" />
 
           <LanguageToggle
             v-if="windowProps.i18n_enabled"
@@ -114,7 +114,7 @@
             v-if="displayFeedback && windowProps.authentication?.enabled"
             class="text-gray-500 transition-colors duration-200
               hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
-            :aria-label="t('web.layout.provide-feedback')" />
+            :aria-label="t('web.layout.provide_feedback')" />
         </div>
       </div>
     </div>

@@ -20,7 +20,7 @@
 
   // Handle individual session removal
   const handleRemoveSession = async (sessionId: string) => {
-    const confirmed = window.confirm(t('web.auth.sessions.confirm-remove'));
+    const confirmed = window.confirm(t('web.auth.sessions.confirm_remove'));
     if (!confirmed) return;
 
     await removeSession(sessionId);
@@ -94,7 +94,7 @@
               type="button"
               class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:bg-red-700 dark:hover:bg-red-800">
               <i class="fas fa-sign-out-alt mr-2"></i>
-              {{ t('web.auth.sessions.remove-all') }}
+              {{ t('web.auth.sessions.remove_all') }}
             </button>
           </div>
           <div class="space-y-3">
@@ -113,7 +113,7 @@
           class="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center dark:border-gray-700 dark:bg-gray-800">
           <i class="fas fa-check-circle mb-2 text-3xl text-green-500"></i>
           <p class="text-gray-600 dark:text-gray-400">
-            {{ t('web.auth.sessions.no-sessions') }}
+            {{ t('web.auth.sessions.no_sessions') }}
           </p>
         </div>
 
@@ -136,15 +136,15 @@
           class="mx-4 max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
           role="dialog"
           aria-modal="true"
-          :aria-labelledby="t('web.auth.sessions.remove-all')">
+          :aria-labelledby="t('web.auth.sessions.remove_all')">
           <div class="mb-4 flex items-center">
             <i class="fas fa-exclamation-triangle mr-3 text-2xl text-yellow-500"></i>
             <h3 class="text-lg font-semibold dark:text-white">
-              {{ t('web.auth.sessions.remove-all') }}
+              {{ t('web.auth.sessions.remove_all') }}
             </h3>
           </div>
           <p class="mb-6 text-gray-600 dark:text-gray-400">
-            {{ t('web.auth.sessions.confirm-remove-all') }}
+            {{ t('web.auth.sessions.confirm_remove_all') }}
           </p>
           <div class="flex justify-end gap-3">
             <button
@@ -157,7 +157,7 @@
               @click="handleRemoveAllSessions"
               type="button"
               class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-              {{ t('web.auth.sessions.remove-all') }}
+              {{ t('web.auth.sessions.remove_all') }}
             </button>
           </div>
         </div>

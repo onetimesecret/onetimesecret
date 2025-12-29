@@ -4,7 +4,7 @@
       "title_received": "受信済み",
       "title_not_received": "未受信",
       "title_no_recent_secrets": "最近のシークレットはありません",
-      "get-started-by-creating-your-first-secret": "最初のシークレットを作成して始めましょう。",
+      "get_started_by_creating_your_first_secret": "最初のシークレットを作成して始めましょう。",
       "fetch_error_title": "チームを読み込めませんでした",
       "fetch_error_description": "チームの読み込み中に問題が発生しました。もう一度お試しください。"
     }

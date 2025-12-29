@@ -1,18 +1,18 @@
 {
   "web": {
     "testimonials": {
-      "ai-generated-testimonial": "Pričevanje, generirano z AI",
-      "ai-generated-content-disclaimer": "Vsebina, generirana z AI, za prikaz. Ne izvira iz dejanske osebe ali podjetja.",
-      "randomtestimonial-stars-5": "{0}/5",
-      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
-      "randomtestimonial-quote": "\"{0}\"",
-      "t-ai-generated-testimonial": "{0}:",
-      "what-leading-ai-says-about-us": "Kaj vodilna AI pravi o nas",
-      "ai-generated-testimonials": "Pričevanja, generirana z AI",
-      "this-quote-was-generated-by": "Ta citat je generirala",
-      "it-was-based-on-the-content-of-the-page-and-does": "Temelji na vsebini strani in ne predstavlja dejanske osebe ali podjetja.",
-      "artificial-feedback": "Umetne povratne informacije",
-      "this-content-is-ai-generated-based-on-the-conten": "Ta vsebina je generirana z AI na podlagi vsebine te strani in ne predstavlja dejanske osebe ali podjetja."
+      "ai_generated_testimonial": "Pričevanje, generirano z AI",
+      "ai_generated_content_disclaimer": "Vsebina, generirana z AI, za prikaz. Ne izvira iz dejanske osebe ali podjetja.",
+      "randomtestimonial_stars_5": "{0}/5",
+      "randomtestimonial_name_randomtestimonial_company": "- {0}, {1}",
+      "randomtestimonial_quote": "\"{0}\"",
+      "t_ai_generated_testimonial": "{0}:",
+      "what_leading_ai_says_about_us": "Kaj vodilna AI pravi o nas",
+      "ai_generated_testimonials": "Pričevanja, generirana z AI",
+      "this_quote_was_generated_by": "Ta citat je generirala",
+      "it_was_based_on_the_content_of_the_page_and_does": "Temelji na vsebini strani in ne predstavlja dejanske osebe ali podjetja.",
+      "artificial_feedback": "Umetne povratne informacije",
+      "this_content_is_ai_generated_based_on_the_conten": "Ta vsebina je generirana z AI na podlagi vsebine te strani in ne predstavlja dejanske osebe ali podjetja."
     }
   }
 }

@@ -16,7 +16,7 @@ export function useDomainStatus(domain: CustomDomain) {
 
   const displayStatus = computed(() => {
     if (isActive.value) return t('web.STATUS.active');
-    if (isWarning.value) return t('web.STATUS.dns-incorrect');
+    if (isWarning.value) return t('web.STATUS.dns_incorrect');
     return t('web.STATUS.inactive');
   });
 

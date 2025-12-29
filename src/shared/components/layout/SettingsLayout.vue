@@ -39,7 +39,7 @@ const sections: NavigationItem[] = [
       {
         to: '/account/settings/profile/email',
         icon: { collection: 'heroicons', name: 'envelope' },
-        label: t('web.settings.profile.change-email'),
+        label: t('web.settings.profile.change_email'),
       },
       {
         to: '/account/settings/profile/notifications',
@@ -57,7 +57,7 @@ const sections: NavigationItem[] = [
       {
         to: '/account/settings/security/password',
         icon: { collection: 'heroicons', name: 'lock-closed-solid' },
-        label: t('web.auth.change-password.title'),
+        label: t('web.auth.change_password.title'),
       },
       {
         to: '/account/settings/security/mfa',
@@ -72,36 +72,36 @@ const sections: NavigationItem[] = [
       {
         to: '/account/settings/security/recovery-codes',
         icon: { collection: 'heroicons', name: 'document-text-solid' },
-        label: t('web.auth.recovery-codes.title'),
+        label: t('web.auth.recovery_codes.title'),
       },
     ],
   },
   {
     to: '/account/settings/api',
     icon: { collection: 'heroicons', name: 'code-bracket' },
-    label: t('web.account.api-key'),
+    label: t('web.account.api_key'),
     description: t('web.settings.api.manage_api_keys'),
   },
   {
     to: '/account/region',
     icon: { collection: 'heroicons', name: 'globe-alt-solid' },
     label: t('web.account.region'),
-    description: t('web.regions.data-sovereignty-title'),
+    description: t('web.regions.data_sovereignty_title'),
     children: [
       {
         to: '/account/region/current',
         icon: { collection: 'heroicons', name: 'map-pin' },
-        label: t('web.regions.your-region'),
+        label: t('web.regions.your_region'),
       },
       {
         to: '/account/region/available',
         icon: { collection: 'heroicons', name: 'globe-americas-solid' },
-        label: t('web.regions.available-regions'),
+        label: t('web.regions.available_regions'),
       },
       {
         to: '/account/region/why',
         icon: { collection: 'heroicons', name: 'shield-check-solid' },
-        label: t('web.regions.why-it-matters'),
+        label: t('web.regions.why_it_matters'),
       },
     ],
   },
@@ -133,7 +133,7 @@ const isParentActive = (item: NavigationItem): boolean => {
         <router-link
           to="/account"
           class="hover:text-gray-700 dark:hover:text-gray-200">
-          {{ t('web.account.your-account') }}
+          {{ t('web.account.your_account') }}
         </router-link>
         <OIcon
           collection="heroicons"

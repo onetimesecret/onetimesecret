@@ -28,7 +28,7 @@ const {
   submitForm: submitDeleteAccount
 } = useFormSubmission({
   url: '/api/v2/account/destroy',
-  successMessage: t('web.account.account-deleted-successfully'),
+  successMessage: t('web.account.account_deleted_successfully'),
   onSuccess: () => {
     emit('delete:account');
     showDeleteModal.value = false;
@@ -48,23 +48,23 @@ const closeDeleteModal = () => {
 
 <template>
   <p class="mb-4 dark:text-gray-300">
-    {{ t('web.account.please-be-advised') }}
+    {{ t('web.account.please_be_advised') }}
   </p>
   <ul class="mb-4 list-inside list-disc dark:text-gray-300">
-    <li><span class="font-bold">{{ t('web.account.secrets-will-remain-active-until-they-expire') }}</span></li>
+    <li><span class="font-bold">{{ t('web.account.secrets_will_remain_active_until_they_expire') }}</span></li>
     <li>
-      {{ t('web.account.any-secrets-you-wish-to-remove') }} <span
-        class="underline">{{ t('web.account.burn-them-before-continuing') }}</span>.
+      {{ t('web.account.any_secrets_you_wish_to_remove') }} <span
+        class="underline">{{ t('web.account.burn_them_before_continuing') }}</span>.
     </li>
-    <li>{{ t('web.account.deleting-your-account-is') }} <span class="italic">{{ t('web.account.permanent-and-non-reversible') }}</span></li>
+    <li>{{ t('web.account.deleting_your_account_is') }} <span class="italic">{{ t('web.account.permanent_and_non_reversible') }}</span></li>
   </ul>
   <button
     @click="openDeleteModal"
     class="flex w-full items-center justify-center rounded bg-red-600 px-4 py-2 font-bold text-white hover:bg-red-700">
-    <i class="fas fa-trash-alt mr-2"></i> {{ t('web.account.permanently-delete-account') }}
+    <i class="fas fa-trash-alt mr-2"></i> {{ t('web.account.permanently_delete_account') }}
   </button>
   <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-    {{ t('web.account.deleting-cust-custid', [cust?.extid]) }}
+    {{ t('web.account.deleting_cust_custid', [cust?.extid]) }}
   </p>
 
   <!-- Delete Account Confirmation Modal -->
@@ -81,10 +81,10 @@ const closeDeleteModal = () => {
 
       <div class="rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
         <h3 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">
-          {{ t('web.account.confirm-account-deletion') }}
+          {{ t('web.account.confirm_account_deletion') }}
         </h3>
         <p class="mb-4 text-gray-700 dark:text-gray-300">
-          {{ t('web.account.are-you-sure-you-want-to-permanently-delete-your') }}
+          {{ t('web.account.are_you_sure_you_want_to_permanently_delete_your') }}
         </p>
 
         <input
@@ -99,7 +99,7 @@ const closeDeleteModal = () => {
             type="password"
             class="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
             autocomplete="confirmation"
-            :placeholder="t('web.account.confirm-with-your-password')" />
+            :placeholder="t('web.account.confirm_with_your_password')" />
         </div>
 
         <p

@@ -21,7 +21,7 @@
               name="shield-check-solid"
               class="size-5 text-brand-600 dark:text-brand-400"
               aria-hidden="true" />
-            {{ t('web.regions.why-it-matters') }}
+            {{ t('web.regions.why_it_matters') }}
           </h2>
         </div>
 
@@ -35,10 +35,10 @@
                 aria-hidden="true" />
               <div>
                 <p class="font-medium text-gray-900 dark:text-white">
-                  {{ t('web.regions.trust-title') }}
+                  {{ t('web.regions.trust_title') }}
                 </p>
                 <p class="mt-1">
-                  {{ t('web.regions.trust-description') }}
+                  {{ t('web.regions.trust_description') }}
                 </p>
               </div>
             </li>
@@ -50,10 +50,10 @@
                 aria-hidden="true" />
               <div>
                 <p class="font-medium text-gray-900 dark:text-white">
-                  {{ t('web.regions.privacy-title') }}
+                  {{ t('web.regions.privacy_title') }}
                 </p>
                 <p class="mt-1">
-                  {{ t('web.regions.privacy-description') }}
+                  {{ t('web.regions.privacy_description') }}
                 </p>
               </div>
             </li>
@@ -65,10 +65,10 @@
                 aria-hidden="true" />
               <div>
                 <p class="font-medium text-gray-900 dark:text-white">
-                  {{ t('web.regions.compliance-title') }}
+                  {{ t('web.regions.compliance_title') }}
                 </p>
                 <p class="mt-1">
-                  {{ t('web.regions.compliance-description') }}
+                  {{ t('web.regions.compliance_description') }}
                 </p>
               </div>
             </li>
@@ -80,10 +80,10 @@
                 aria-hidden="true" />
               <div>
                 <p class="font-medium text-gray-900 dark:text-white">
-                  {{ t('web.regions.performance-title') }}
+                  {{ t('web.regions.performance_title') }}
                 </p>
                 <p class="mt-1">
-                  {{ t('web.regions.performance-description') }}
+                  {{ t('web.regions.performance_description') }}
                 </p>
               </div>
             </li>

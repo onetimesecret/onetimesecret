@@ -1,25 +1,25 @@
 {
   "web": {
     "errors": {
-      "why-is-this-secret-unavailable": "Hvorfor er denne hemmelighed ikke tilgængelig?",
-      "secrets-are-designed-to-be-viewed-only-once": "Hemmeligheder er designet til kun at blive set én gang. Dette link kan allerede være blevet brugt, være udløbet eller være blevet slettet manuelt af afsenderen.",
-      "what-should-i-do-now": "Hvad skal jeg gøre nu?",
-      "contact-the-person-who-sent-you-this-link": "Kontakt den person, der har sendt dig dette link, og bed vedkommende om at oprette en ny hemmelighed. Fortæl dem, at du ikke kunne få adgang til de oprindelige oplysninger.",
-      "warning-dismissed": "Advarsel afvist",
-      "dismiss-truncation-warning": "Afvis trunkeringsadvarsel",
-      "oops-the-page-you-are-looking-for-doesnt-exist-o": "Ups! Den side, du leder efter, findes ikke eller er blevet flyttet.",
-      "404-page-not-found-0": "404 - Siden blev ikke fundet",
-      "404-page-not-found": "404 - Side ikke fundet",
-      "dismiss-warning": "Advarsel om afskedigelse",
-      "dismiss-notification": "Afskedigelsesmeddelelse",
-      "if-youre-unsure-what-to-do-next-please-follow-up": "Hvis du er usikker på, hvad du skal gøre nu, så følg op med den person, der har sendt dig dette link, for at få flere oplysninger.",
-      "information-shared-through-our-service-can-only-": "Oplysninger, der deles via vores tjeneste, kan kun tilgås én gang. Når indholdet er set, slettes det permanent fra vores servere for at sikre fortrolighed. Denne tilgang hjælper med at beskytte dine følsomme data ved at begrænse deres eksponering og forhindre uautoriseret adgang.",
-      "were-sorry-but-an-unexpected-error-occurred-whil": "Vi beklager, men der opstod en uventet fejl under behandlingen af din anmodning. Vores team har fået besked, og vi arbejder på at løse det.",
-      "t-web-common-oops-something-went-wrong": "{0} Noget gik galt",
-      "go-share-a-secret": "Gå ind og del en hemmelighed!",
-      "the-page-youre-looking-for-doesnt-exist-or-has-b": "Den side, du leder efter, findes ikke eller er blevet flyttet. Bare rolig, det sker for de bedste af os!",
-      "t-web-common-oops-404": "{0} 404",
-      "unable-to-load-data-due-to-data-format-issues-pl": "Kan ikke indlæse data på grund af problemer med dataformatet. Prøv venligst igen senere."
+      "why_is_this_secret_unavailable": "Hvorfor er denne hemmelighed ikke tilgængelig?",
+      "secrets_are_designed_to_be_viewed_only_once": "Hemmeligheder er designet til kun at blive set én gang. Dette link kan allerede være blevet brugt, være udløbet eller være blevet slettet manuelt af afsenderen.",
+      "what_should_i_do_now": "Hvad skal jeg gøre nu?",
+      "contact_the_person_who_sent_you_this_link": "Kontakt den person, der har sendt dig dette link, og bed vedkommende om at oprette en ny hemmelighed. Fortæl dem, at du ikke kunne få adgang til de oprindelige oplysninger.",
+      "warning_dismissed": "Advarsel afvist",
+      "dismiss_truncation_warning": "Afvis trunkeringsadvarsel",
+      "oops_the_page_you_are_looking_for_doesnt_exist_o": "Ups! Den side, du leder efter, findes ikke eller er blevet flyttet.",
+      "404_page_not_found_0": "404 - Siden blev ikke fundet",
+      "404_page_not_found": "404 - Side ikke fundet",
+      "dismiss_warning": "Advarsel om afskedigelse",
+      "dismiss_notification": "Afskedigelsesmeddelelse",
+      "if_youre_unsure_what_to_do_next_please_follow_up": "Hvis du er usikker på, hvad du skal gøre nu, så følg op med den person, der har sendt dig dette link, for at få flere oplysninger.",
+      "information_shared_through_our_service_can_only_": "Oplysninger, der deles via vores tjeneste, kan kun tilgås én gang. Når indholdet er set, slettes det permanent fra vores servere for at sikre fortrolighed. Denne tilgang hjælper med at beskytte dine følsomme data ved at begrænse deres eksponering og forhindre uautoriseret adgang.",
+      "were_sorry_but_an_unexpected_error_occurred_whil": "Vi beklager, men der opstod en uventet fejl under behandlingen af din anmodning. Vores team har fået besked, og vi arbejder på at løse det.",
+      "t_web_common_oops_something_went_wrong": "{0} Noget gik galt",
+      "go_share_a_secret": "Gå ind og del en hemmelighed!",
+      "the_page_youre_looking_for_doesnt_exist_or_has_b": "Den side, du leder efter, findes ikke eller er blevet flyttet. Bare rolig, det sker for de bedste af os!",
+      "t_web_common_oops_404": "{0} 404",
+      "unable_to_load_data_due_to_data_format_issues_pl": "Kan ikke indlæse data på grund af problemer med dataformatet. Prøv venligst igen senere."
     }
   }
 }

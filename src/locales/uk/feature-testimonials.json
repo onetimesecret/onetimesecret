@@ -1,18 +1,18 @@
 {
   "web": {
     "testimonials": {
-      "ai-generated-testimonial": "Відгук, згенерований ШІ",
-      "ai-generated-content-disclaimer": "Зміст, що генерується AI, для демонстрації. \nНе від фактичної особи чи компанії.",
-      "randomtestimonial-stars-5": "{0}/5",
-      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
-      "randomtestimonial-quote": "\"{0}\"",
-      "t-ai-generated-testimonial": "{0}:",
-      "what-leading-ai-says-about-us": "Що провідний ШІ говорить про нас",
-      "ai-generated-testimonials": "Відгуки, згенеровані ШІ",
-      "this-quote-was-generated-by": "Цю цитату згенеровано",
-      "it-was-based-on-the-content-of-the-page-and-does": "Вона базується на вмісті сторінки і не представляє реальну особу чи компанію.",
-      "artificial-feedback": "Штучний відгук",
-      "this-content-is-ai-generated-based-on-the-conten": "Цей вміст згенеровано ШІ на основі вмісту цієї сторінки і не представляє реальну особу чи компанію."
+      "ai_generated_testimonial": "Відгук, згенерований ШІ",
+      "ai_generated_content_disclaimer": "Зміст, що генерується AI, для демонстрації. \nНе від фактичної особи чи компанії.",
+      "randomtestimonial_stars_5": "{0}/5",
+      "randomtestimonial_name_randomtestimonial_company": "- {0}, {1}",
+      "randomtestimonial_quote": "\"{0}\"",
+      "t_ai_generated_testimonial": "{0}:",
+      "what_leading_ai_says_about_us": "Що провідний ШІ говорить про нас",
+      "ai_generated_testimonials": "Відгуки, згенеровані ШІ",
+      "this_quote_was_generated_by": "Цю цитату згенеровано",
+      "it_was_based_on_the_content_of_the_page_and_does": "Вона базується на вмісті сторінки і не представляє реальну особу чи компанію.",
+      "artificial_feedback": "Штучний відгук",
+      "this_content_is_ai_generated_based_on_the_conten": "Цей вміст згенеровано ШІ на основі вмісту цієї сторінки і не представляє реальну особу чи компанію."
     }
   }
 }

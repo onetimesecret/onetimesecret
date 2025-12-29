@@ -4,7 +4,7 @@
       "title_received": "Odebrane",
       "title_not_received": "Nieodebrane",
       "title_no_recent_secrets": "Brak ostatnich wiadomości",
-      "get-started-by-creating-your-first-secret": "Zacznij od utworzenia swojej pierwszej wiadomości.",
+      "get_started_by_creating_your_first_secret": "Zacznij od utworzenia swojej pierwszej wiadomości.",
       "fetch_error_title": "Nie można załadować zespołów",
       "fetch_error_description": "Wystąpił problem podczas ładowania Twoich zespołów. Spróbuj ponownie."
     }

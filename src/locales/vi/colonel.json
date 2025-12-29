@@ -1,13 +1,13 @@
 {
   "web": {
     "colonel": {
-      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
-      "customer-verified-verified-not-verified-0": "`+customer.verified ? `verified` : `not verified",
-      "customers-details-counts-recent_customer_count-o-0": "Khách hàng ({0} trong {1})",
-      "user-feedback-total-details-counts-feedback_coun-0": "Phản hồi người dùng (Tổng: {0})",
-      "metadata-secrets-details-counts-metadata_count-d-0": "Metadata / Bí mật: {0}/{1} ({2}/{3}/{4} tổng)",
-      "secrets-details-counts-secret_count-0": "Bí mật ({0})",
-      "active-in-the-past-5-minutes-0": "(hoạt động trong 5 phút qua)",
+      "customer_secrets_created_customer_secrets_shared_0": "{0}/{1}/{2} [{3}]",
+      "customer_verified_verified_not_verified_0": "`+customer.verified ? `verified` : `not verified",
+      "customers_details_counts_recent_customer_count_o_0": "Khách hàng ({0} trong {1})",
+      "user_feedback_total_details_counts_feedback_coun_0": "Phản hồi người dùng (Tổng: {0})",
+      "metadata_secrets_details_counts_metadata_count_d_0": "Metadata / Bí mật: {0}/{1} ({2}/{3}/{4} tổng)",
+      "secrets_details_counts_secret_count_0": "Bí mật ({0})",
+      "active_in_the_past_5_minutes_0": "(hoạt động trong 5 phút qua)",
       "configEditorTitle": "Cài đặt",
       "configEditorDescription": "Chỉnh sửa cài đặt cấu hình hệ thống. Thay đổi sẽ có hiệu lực ngay sau khi lưu.",
       "invalidJson": "JSON không hợp lệ trong phần {section}",
@@ -75,9 +75,9 @@
       "test-error-triggered-via-feedback": "Lỗi thử nghiệm được kích hoạt qua phản hồi"
     },
     "feedback": {
-      "when-you-submit-feedback-well-see": "Khi bạn gửi phản hồi, chúng tôi sẽ thấy:",
-      "send-feedback": "Gửi phản hồi",
-      "sending-ellipses": "Đang gửi..."
+      "when_you_submit_feedback_well_see": "Khi bạn gửi phản hồi, chúng tôi sẽ thấy:",
+      "send_feedback": "Gửi phản hồi",
+      "sending_ellipses": "Đang gửi..."
     }
   }
 }

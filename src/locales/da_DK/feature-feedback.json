@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "Din feedback",
-      "all-feedback-welcome": "Al feedback er velkommen!",
-      "help-us-improve": "Hjælp os med at forbedre os",
-      "close-feedback-modal": "Luk feedback-modal",
-      "share-your-feedback": "Del din feedback",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "Din feedback",
+      "all_feedback_welcome": "Al feedback er velkommen!",
+      "help_us_improve": "Hjælp os med at forbedre os",
+      "close_feedback_modal": "Luk feedback-modal",
+      "share_your_feedback": "Del din feedback",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "Hjælpeindholdet kommer her.",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "Tak, fordi du hjalp Onetime Secret med at blive bedre. Det betyder meget.",
-      "weve-built-this-tool-to-help-you-share-sensitive": "Vi har bygget dette værktøj for at hjælpe dig med at dele følsomme oplysninger sikkert, og dine erfaringer fra den virkelige verden er afgørende for at fokusere vores indsats. Det hjælper os med at finde ud af, hvad vi skal arbejde videre med, og hvordan vi kan gøre tjenesten bedre for alle.",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Hejsa, tak fordi du kiggede forbi vores feedback-side. Dit input er ikke bare velkomment - det er afgørende.",
-      "a-note-from-delano-founder-of-onetime-secret": "En note fra Delano, grundlægger af Onetime Secret",
-      "open-feedback-form": "Åben feedback-formular",
-      "enter-your-feedback": "Indtast din feedback"
+      "help_content_goes_here": "Hjælpeindholdet kommer her.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "Tak, fordi du hjalp Onetime Secret med at blive bedre. Det betyder meget.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "Vi har bygget dette værktøj for at hjælpe dig med at dele følsomme oplysninger sikkert, og dine erfaringer fra den virkelige verden er afgørende for at fokusere vores indsats. Det hjælper os med at finde ud af, hvad vi skal arbejde videre med, og hvordan vi kan gøre tjenesten bedre for alle.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "Hejsa, tak fordi du kiggede forbi vores feedback-side. Dit input er ikke bare velkomment - det er afgørende.",
+      "a_note_from_delano_founder_of_onetime_secret": "En note fra Delano, grundlægger af Onetime Secret",
+      "open_feedback_form": "Åben feedback-formular",
+      "enter_your_feedback": "Indtast din feedback"
     }
   }
 }

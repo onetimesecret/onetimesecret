@@ -43,7 +43,7 @@
       v-if="mode === 'icon'"
       :to="`/domains/${domain?.extid}/verify`"
       class="tooltip inline-flex items-center gap-1.5"
-      :data-tooltip="t('web.domains.view-domain-verification-status')">
+      :data-tooltip="t('web.domains.view_domain_verification_status')">
       <OIcon
         collection="mdi"
         :name="statusIcon"
@@ -61,7 +61,7 @@
       v-else
       class="my-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
       <h2 class="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-        {{ t('web.domains.domain-status') }}
+        {{ t('web.domains.domain_status') }}
       </h2>
       <div class="flex flex-col">
         <div
@@ -87,7 +87,7 @@
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
-              t('web.domains.target-address')
+              t('web.domains.target_address')
             }}</span>
             <span class="text-base text-gray-900 dark:text-white">{{
               domain?.vhost?.target_address
@@ -96,7 +96,7 @@
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
-              t('web.domains.dns-record')
+              t('web.domains.dns_record')
             }}</span>
             <span class="text-base text-gray-900 dark:text-white">{{
               domain?.vhost?.dns_pointed_at
@@ -105,7 +105,7 @@
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
-              t('web.domains.ssl-renews')
+              t('web.domains.ssl_renews')
             }}</span>
             <span class="text-base text-gray-900 dark:text-white"><span v-if="domain?.vhost.ssl_active_until">{{
               domain?.vhost.ssl_active_until
@@ -114,7 +114,7 @@
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
-              t('web.domains.ssl-status')
+              t('web.domains.ssl_status')
             }}</span>
             <span
               class="text-base"
@@ -125,7 +125,7 @@
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
-              t('web.domains.last-monitored')
+              t('web.domains.last_monitored')
             }}</span>
             <span class="text-base text-gray-900 dark:text-white">{{
               domain?.vhost?.last_monitored_humanized

@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "您的反馈",
-      "all-feedback-welcome": "欢迎所有反馈",
-      "help-us-improve": "帮助我们改进",
-      "close-feedback-modal": "关闭反馈模态框",
-      "share-your-feedback": "分享您的反馈",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "您的反馈",
+      "all_feedback_welcome": "欢迎所有反馈",
+      "help_us_improve": "帮助我们改进",
+      "close_feedback_modal": "关闭反馈模态框",
+      "share_your_feedback": "分享您的反馈",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "帮助内容将显示在此处。",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "感谢您帮助 Onetime Secret 改进。这意义重大。",
-      "weve-built-this-tool-to-help-you-share-sensitive": "我们构建了这个工具来帮助您安全地分享敏感信息，您的实际使用体验对于我们集中精力至关重要。它帮助我们确定下一步要做什么以及如何为每个人改进服务。",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "嘿，感谢您访问我们的反馈页面。您的意见不仅受欢迎，而且至关重要。",
-      "a-note-from-delano-founder-of-onetime-secret": "来自 Onetime Secret 创始人 Delano 的一封信",
-      "open-feedback-form": "打开反馈表单",
-      "enter-your-feedback": "输入您的反馈"
+      "help_content_goes_here": "帮助内容将显示在此处。",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "感谢您帮助 Onetime Secret 改进。这意义重大。",
+      "weve_built_this_tool_to_help_you_share_sensitive": "我们构建了这个工具来帮助您安全地分享敏感信息，您的实际使用体验对于我们集中精力至关重要。它帮助我们确定下一步要做什么以及如何为每个人改进服务。",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "嘿，感谢您访问我们的反馈页面。您的意见不仅受欢迎，而且至关重要。",
+      "a_note_from_delano_founder_of_onetime_secret": "来自 Onetime Secret 创始人 Delano 的一封信",
+      "open_feedback_form": "打开反馈表单",
+      "enter_your_feedback": "输入您的反馈"
     }
   }
 }

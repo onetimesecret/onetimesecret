@@ -74,7 +74,7 @@
       <div class="bg-white shadow dark:bg-gray-800 sm:rounded-lg">
         <div class="px-4 py-5 sm:p-6">
           <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
-            {{ t('web.auth.change-password.title') }}
+            {{ t('web.auth.change_password.title') }}
           </h3>
           <div class="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
             <p>{{ t('web.COMMON.field_password') }} ({{ t('web.COMMON.minimum_8_characters') }})</p>
@@ -107,7 +107,7 @@
               <label
                 for="current-password"
                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ t('web.auth.change-password.current-password') }}
+                {{ t('web.auth.change_password.current_password') }}
               </label>
               <div class="relative mt-1">
                 <input
@@ -129,8 +129,8 @@
                   class="absolute inset-y-0 right-0 flex items-center pr-3 disabled:opacity-50"
                   :aria-label="
                     showCurrentPassword
-                      ? t('web.COMMON.hide-password')
-                      : t('web.COMMON.show-password')
+                      ? t('web.COMMON.hide_password')
+                      : t('web.COMMON.show_password')
                   ">
                   <svg
                     class="size-5 text-gray-400"
@@ -168,7 +168,7 @@
               <label
                 for="new-password"
                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ t('web.auth.change-password.new-password') }}
+                {{ t('web.auth.change_password.new_password') }}
               </label>
               <div class="relative mt-1">
                 <input
@@ -189,7 +189,7 @@
                   :disabled="isLoading"
                   class="absolute inset-y-0 right-0 flex items-center pr-3 disabled:opacity-50"
                   :aria-label="
-                    showNewPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')
+                    showNewPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')
                   ">
                   <svg
                     class="size-5 text-gray-400"
@@ -232,7 +232,7 @@
               <label
                 for="confirm-password"
                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ t('web.auth.change-password.confirm-password') }}
+                {{ t('web.auth.change_password.confirm_password') }}
               </label>
               <div class="relative mt-1">
                 <input
@@ -254,8 +254,8 @@
                   class="absolute inset-y-0 right-0 flex items-center pr-3 disabled:opacity-50"
                   :aria-label="
                     showConfirmPassword
-                      ? t('web.COMMON.hide-password')
-                      : t('web.COMMON.show-password')
+                      ? t('web.COMMON.hide_password')
+                      : t('web.COMMON.show_password')
                   ">
                   <svg
                     class="size-5 text-gray-400"
@@ -300,7 +300,7 @@
                 :disabled="!canSubmit"
                 class="inline-flex justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-700">
                 <span v-if="isLoading">{{ t('web.COMMON.processing') }}</span>
-                <span v-else>{{ t('web.auth.change-password.title') }}</span>
+                <span v-else>{{ t('web.auth.change_password.title') }}</span>
               </button>
             </div>
           </form>

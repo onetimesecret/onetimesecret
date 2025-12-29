@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "Els teus comentaris",
-      "all-feedback-welcome": "Tots els comentaris són benvinguts!",
-      "help-us-improve": "Ajuda'ns a millorar",
-      "close-feedback-modal": "Tanca el modal de comentaris",
-      "share-your-feedback": "Comparteix els teus comentaris",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "Els teus comentaris",
+      "all_feedback_welcome": "Tots els comentaris són benvinguts!",
+      "help_us_improve": "Ajuda'ns a millorar",
+      "close_feedback_modal": "Tanca el modal de comentaris",
+      "share_your_feedback": "Comparteix els teus comentaris",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "El contingut d'ajuda va aquí.",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "Gràcies per ajudar a millorar Onetime Secret. Significa molt.",
-      "weve-built-this-tool-to-help-you-share-sensitive": "Hem construït aquesta eina per ajudar-te a compartir informació sensible de manera segura, i les teves experiències del món real són crucials per centrar els nostres esforços. Ens ajuda a esbrinar en què treballar després i com fer que el servei sigui millor per a tothom.",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Hola, gràcies per visitar la nostra pàgina de comentaris. La teva aportació no només és benvinguda, és crucial.",
-      "a-note-from-delano-founder-of-onetime-secret": "Una nota de Delano, fundador d'Onetime Secret",
-      "open-feedback-form": "Obre el formulari de comentaris",
-      "enter-your-feedback": "Introdueix els teus comentaris"
+      "help_content_goes_here": "El contingut d'ajuda va aquí.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "Gràcies per ajudar a millorar Onetime Secret. Significa molt.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "Hem construït aquesta eina per ajudar-te a compartir informació sensible de manera segura, i les teves experiències del món real són crucials per centrar els nostres esforços. Ens ajuda a esbrinar en què treballar després i com fer que el servei sigui millor per a tothom.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "Hola, gràcies per visitar la nostra pàgina de comentaris. La teva aportació no només és benvinguda, és crucial.",
+      "a_note_from_delano_founder_of_onetime_secret": "Una nota de Delano, fundador d'Onetime Secret",
+      "open_feedback_form": "Obre el formulari de comentaris",
+      "enter_your_feedback": "Introdueix els teus comentaris"
     }
   }
 }

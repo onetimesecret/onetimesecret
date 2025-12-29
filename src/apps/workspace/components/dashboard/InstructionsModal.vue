@@ -202,8 +202,8 @@
             <!-- prettier-ignore-attribute class -->
             <div
               class="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-              <span>{{ t('web.branding.charactercount-500-characters', [characterCount(field.value)]) }}</span>
-              <span v-if="index === instructionFields.length - 1">{{ t('web.COMMON.press-esc-to-close') }}</span>
+              <span>{{ t('web.branding.charactercount_500_characters', [characterCount(field.value)]) }}</span>
+              <span v-if="index === instructionFields.length - 1">{{ t('web.COMMON.press_esc_to_close') }}</span>
             </div>
           </div>
         </div>

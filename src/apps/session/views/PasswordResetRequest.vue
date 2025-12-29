@@ -35,13 +35,13 @@ const handleSubmit = async () => {
 
 <template>
   <AuthView
-    :heading="t('web.auth.request-password-reset')"
+    :heading="t('web.auth.password_reset_request.title')"
     heading-id="password-reset-request-heading"
     :with-subheading="false"
     :hide-icon="true">
     <template #form>
       <p class="mb-6 text-gray-700 dark:text-gray-300">
-        {{ t('web.auth.enter-your-email-address-below-and-well-send-you') }}
+        {{ t('web.auth.password_reset_request.description') }}
       </p>
 
       <!-- Success message -->
@@ -72,7 +72,7 @@ const handleSubmit = async () => {
           <label
             class="mb-2 block text-sm font-bold text-gray-700 dark:text-gray-300"
             for="custidField">
-            {{ t('web.COMMON.email-address') }}
+            {{ t('web.COMMON.email_address') }}
           </label>
           <input
             type="email"
@@ -90,7 +90,7 @@ const handleSubmit = async () => {
             :disabled="isLoading"
             class="focus:shadow-outline rounded bg-brand-500 px-4 py-2 font-bold text-white transition duration-300 hover:bg-brand-700 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-600 dark:hover:bg-brand-800">
             <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
-            <span v-else>{{ t('web.auth.request-reset') }}</span>
+            <span v-else>{{ t('web.auth.password_reset_request.button') }}</span>
           </button>
         </div>
       </form>
@@ -99,7 +99,7 @@ const handleSubmit = async () => {
       <router-link
         to="/signin"
         class="text-gray-600 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-        {{ t('web.auth.back-to-sign-in') }}
+        {{ t('web.auth.magicLink.back_to_signin') }}
       </router-link>
     </template>
   </AuthView>

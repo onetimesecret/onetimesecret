@@ -4,7 +4,7 @@
       "title_received": "Received",
       "title_not_received": "Not Received",
       "title_no_recent_secrets": "No recent secrets",
-      "get-started-by-creating-your-first-secret": "Get started by creating your first secret.",
+      "get_started_by_creating_your_first_secret": "Get started by creating your first secret.",
       "fetch_error_title": "Unable to load data",
       "fetch_error_description": "There was a problem loading your data. Please try again."
     }

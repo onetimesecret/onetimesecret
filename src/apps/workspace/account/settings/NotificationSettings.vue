@@ -23,7 +23,7 @@
       await accountStore.updateNotificationPreference('notify_on_reveal', !notifyOnReveal.value);
     } catch (err) {
       console.error('Error updating notification preference:', err);
-      error.value = t('web.settings.notifications.error-updating');
+      error.value = t('web.settings.notifications.error_updating');
     } finally {
       isLoading.value = false;
     }
@@ -84,10 +84,10 @@
                   aria-hidden="true" />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">
-                    {{ t('web.settings.notifications.reveal-notifications.title') }}
+                    {{ t('web.settings.notifications.reveal_notifications.title') }}
                   </p>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ t('web.settings.notifications.reveal-notifications.description') }}
+                    {{ t('web.settings.notifications.reveal_notifications.description') }}
                   </p>
                 </div>
               </div>
@@ -117,7 +117,7 @@
 
             <!-- Help text -->
             <p class="mt-3 text-xs text-gray-500 dark:text-gray-500">
-              {{ t('web.settings.notifications.reveal-notifications.help') }}
+              {{ t('web.settings.notifications.reveal_notifications.help') }}
             </p>
           </div>
         </div>
@@ -133,7 +133,7 @@
             class="mt-0.5 size-5 shrink-0 text-blue-500 dark:text-blue-400"
             aria-hidden="true" />
           <div class="text-sm text-blue-700 dark:text-blue-300">
-            <p>{{ t('web.settings.notifications.privacy-note') }}</p>
+            <p>{{ t('web.settings.notifications.privacy_note') }}</p>
           </div>
         </div>
       </section>

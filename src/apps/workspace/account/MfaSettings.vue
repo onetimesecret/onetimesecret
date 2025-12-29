@@ -71,7 +71,7 @@
           {{ t('web.auth.mfa.title') }}
         </h1>
         <p class="mt-2 text-gray-600 dark:text-gray-400">
-          {{ t('web.auth.mfa.setup-description') }}
+          {{ t('web.auth.mfa.setup_description') }}
         </p>
       </div>
 
@@ -80,7 +80,7 @@
         v-if="isLoading && !mfaStatus"
         class="flex items-center justify-center py-12">
         <i class="fas fa-spinner fa-spin mr-2 text-2xl text-gray-400"></i>
-        <span class="text-gray-600 dark:text-gray-400">{{ t('web.auth.mfa.loading-status') }}</span>
+        <span class="text-gray-600 dark:text-gray-400">{{ t('web.auth.mfa.loading_status') }}</span>
       </div>
 
       <!-- Error state -->
@@ -133,7 +133,7 @@
                     {{ t('web.auth.mfa.enabled') }}
                   </h2>
                   <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    {{ t('web.auth.mfa.protected-description') }}
+                    {{ t('web.auth.mfa.protected_description') }}
                   </p>
                 </div>
               </div>
@@ -143,7 +143,7 @@
                 v-if="mfaStatus.last_used_at"
                 class="mt-4 text-sm text-gray-600 dark:text-gray-400">
                 {{
-                  t('web.auth.mfa.last-used', {
+                  t('web.auth.mfa.last_used', {
                     time: new Date(mfaStatus.last_used_at).toLocaleString(),
                   })
                 }}
@@ -151,7 +151,7 @@
               <div
                 v-else
                 class="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                {{ t('web.auth.mfa.never-used') }}
+                {{ t('web.auth.mfa.never_used') }}
               </div>
 
               <!-- Recovery codes status -->
@@ -161,7 +161,7 @@
                   class="text-sm text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
                   <i class="fas fa-key mr-1"></i>
                   {{
-                    t('web.auth.recovery-codes.remaining', {
+                    t('web.auth.recovery_codes.remaining', {
                       count: mfaStatus.recovery_codes_remaining,
                     })
                   }}
@@ -192,7 +192,7 @@
                     {{ t('web.auth.mfa.disabled') }}
                   </h2>
                   <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    {{ t('web.auth.mfa.enable-description') }}
+                    {{ t('web.auth.mfa.enable_description') }}
                   </p>
                 </div>
               </div>
@@ -201,15 +201,15 @@
               <ul class="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-400">
                 <li class="flex items-center">
                   <i class="fas fa-check mr-2 text-green-500"></i>
-                  {{ t('web.auth.mfa.benefit-unauthorized') }}
+                  {{ t('web.auth.mfa.benefit_unauthorized') }}
                 </li>
                 <li class="flex items-center">
                   <i class="fas fa-check mr-2 text-green-500"></i>
-                  {{ t('web.auth.mfa.benefit-apps') }}
+                  {{ t('web.auth.mfa.benefit_apps') }}
                 </li>
                 <li class="flex items-center">
                   <i class="fas fa-check mr-2 text-green-500"></i>
-                  {{ t('web.auth.mfa.benefit-recovery') }}
+                  {{ t('web.auth.mfa.benefit_recovery') }}
                 </li>
               </ul>
             </div>
@@ -228,7 +228,7 @@
         <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-800">
           <h3
             class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            {{ t('web.LABELS.related-settings') }}
+            {{ t('web.LABELS.related_settings') }}
           </h3>
           <div class="space-y-2">
             <router-link
@@ -239,7 +239,7 @@
                 name="key"
                 class="w-4"
                 aria-hidden="true" />
-              <span>{{ t('web.auth.recovery-codes.link-title') }}</span>
+              <span>{{ t('web.auth.recovery_codes.link_title') }}</span>
             </router-link>
             <router-link
               to="/account/settings/security/sessions"
@@ -249,7 +249,7 @@
                 name="computer-desktop-solid"
                 class="w-4"
                 aria-hidden="true" />
-              <span>{{ t('web.auth.sessions.link-title') }}</span>
+              <span>{{ t('web.auth.sessions.link_title') }}</span>
             </router-link>
           </div>
         </div>
@@ -275,7 +275,7 @@
           </div>
 
           <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-            {{ t('web.auth.mfa.require-password') }}
+            {{ t('web.auth.mfa.require_password') }}
           </p>
 
           <form @submit.prevent="handleDisableConfirm">
@@ -290,7 +290,7 @@
                 type="password"
                 autocomplete="current-password"
                 :disabled="isDisabling"
-                :placeholder="t('web.auth.mfa.password-placeholder')"
+                :placeholder="t('web.auth.mfa.password_placeholder')"
                 class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none focus:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
             </div>
 
@@ -318,7 +318,7 @@
                 :disabled="isDisabling || !disablePassword"
                 class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
                 <span v-if="isDisabling">{{ t('web.auth.mfa.disabling') }}</span>
-                <span v-else>{{ t('web.auth.mfa.disable-button') }}</span>
+                <span v-else>{{ t('web.auth.mfa.disable_button') }}</span>
               </button>
             </div>
           </form>

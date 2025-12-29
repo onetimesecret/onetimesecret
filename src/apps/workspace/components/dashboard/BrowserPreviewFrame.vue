@@ -40,7 +40,7 @@ defineEmits<{
           <button
             @click="$emit('toggle-browser')"
             class="size-3 rounded-full bg-[#FF5F57] transition-colors hover:bg-[#E04940]"
-            :aria-label="t('web.branding.switch-to-edge-browser-view')">
+            :aria-label="t('web.branding.switch_to_edge_browser_view')">
             <svg
               class="m-auto size-2 opacity-0 transition-opacity group-hover/controls:opacity-100"
               viewBox="0 0 8 8"
@@ -54,7 +54,7 @@ defineEmits<{
           <!-- Minimize button -->
           <button
             class="size-3 rounded-full bg-[#FFBD2E] transition-colors hover:bg-[#E0A323]"
-            :aria-label="t('web.branding.minimize-window')">
+            :aria-label="t('web.branding.minimize_window')">
             <svg
               class="m-auto size-2 opacity-0 transition-opacity group-hover/controls:opacity-100"
               viewBox="0 0 8 8"
@@ -68,7 +68,7 @@ defineEmits<{
           <!-- Maximize button -->
           <button
             class="size-3 rounded-full bg-[#28C840] transition-colors hover:bg-[#1FA833]"
-            :aria-label="t('web.branding.maximize-window')">
+            :aria-label="t('web.branding.maximize_window')">
             <svg
               class="m-auto size-2 opacity-0 transition-opacity group-hover/controls:opacity-100"
               viewBox="0 0 8 8"
@@ -149,7 +149,7 @@ defineEmits<{
                   d="M10.228 15.667a5 5 0 0 0 .303-.086l.082-.025a8.02 8.02 0 0 0 4.162-3.3a.25.25 0 0 0-.331-.35q-.322.168-.663.294a6.4 6.4 0 0 1-2.243.4c-2.957 0-5.532-2.031-5.532-4.644q.003-.203.046-.399a4.54 4.54 0 0 0-.46 5.898l.003.005c.315.441.707.821 1.158 1.121h.003l.144.09c.877.55 1.721 1.078 3.328.996" />
               </g>
             </svg>
-            <span class="text-xs text-gray-600 dark:text-gray-300">{{ t('web.branding.microsoft-edge') }}</span>
+            <span class="text-xs text-gray-600 dark:text-gray-300">{{ t('web.branding.microsoft_edge') }}</span>
           </div>
 
           <div class="flex space-x-4">
@@ -178,7 +178,7 @@ defineEmits<{
             <button
               @click="$emit('toggle-browser')"
               class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              :aria-label="t('web.branding.switch-to-safari-browser-view')">
+              :aria-label="t('web.branding.switch_to_safari_browser_view')">
               <svg
                 class="size-4"
                 fill="currentColor"
@@ -256,7 +256,7 @@ defineEmits<{
           collection="material-symbols-light"
           name="preview-outline"
           class="size-3" />
-        <p>{{ t('web.branding.preview-of-the-secret-link-page-for-recipients') }}</p>
+        <p>{{ t('web.branding.preview_of_the_secret_link_page_for_recipients') }}</p>
       </div>
     </div>
   </div>

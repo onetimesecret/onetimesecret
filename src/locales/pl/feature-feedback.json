@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "Twoja opinia",
-      "all-feedback-welcome": "Wszelkie opinie mile widziane!",
-      "help-us-improve": "Pomóż nam ulepszyć",
-      "close-feedback-modal": "Zamknij okno opinii",
-      "share-your-feedback": "Podziel się swoją opinią",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "Twoja opinia",
+      "all_feedback_welcome": "Wszelkie opinie mile widziane!",
+      "help_us_improve": "Pomóż nam ulepszyć",
+      "close_feedback_modal": "Zamknij okno opinii",
+      "share_your_feedback": "Podziel się swoją opinią",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "Treść pomocy pojawi się tutaj.",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "Dziękujemy za pomoc w ulepszaniu Onetime Secret. To wiele znaczy.",
-      "weve-built-this-tool-to-help-you-share-sensitive": "Stworzyliśmy to narzędzie, aby pomóc Ci bezpiecznie udostępniać poufne informacje, a Twoje doświadczenia z rzeczywistego świata są kluczowe dla ukierunkowania naszych wysiłków. Pomaga nam to zdecydować, nad czym pracować dalej i jak ulepszyć usługę dla wszystkich.",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Cześć, dziękujemy za odwiedzenie naszej strony z opiniami. Twój wkład jest nie tylko mile widziany - jest kluczowy.",
-      "a-note-from-delano-founder-of-onetime-secret": "Notatka od Delano, założyciela Onetime Secret",
-      "open-feedback-form": "Otwórz formularz opinii",
-      "enter-your-feedback": "Wprowadź swoją opinię"
+      "help_content_goes_here": "Treść pomocy pojawi się tutaj.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "Dziękujemy za pomoc w ulepszaniu Onetime Secret. To wiele znaczy.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "Stworzyliśmy to narzędzie, aby pomóc Ci bezpiecznie udostępniać poufne informacje, a Twoje doświadczenia z rzeczywistego świata są kluczowe dla ukierunkowania naszych wysiłków. Pomaga nam to zdecydować, nad czym pracować dalej i jak ulepszyć usługę dla wszystkich.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "Cześć, dziękujemy za odwiedzenie naszej strony z opiniami. Twój wkład jest nie tylko mile widziany - jest kluczowy.",
+      "a_note_from_delano_founder_of_onetime_secret": "Notatka od Delano, założyciela Onetime Secret",
+      "open_feedback_form": "Otwórz formularz opinii",
+      "enter_your_feedback": "Wprowadź swoją opinię"
     }
   }
 }

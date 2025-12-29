@@ -1,13 +1,13 @@
 {
   "web": {
     "colonel": {
-      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
-      "customer-verified-verified-not-verified-0": "`+customer.verified ? `ověřeno` : `neověřeno",
-      "customers-details-counts-recent_customer_count-o-0": "Zákazníci ({0} z {1})",
-      "user-feedback-total-details-counts-feedback_coun-0": "Zpětná vazba uživatelů (Celkem: {0})",
-      "metadata-secrets-details-counts-metadata_count-d-0": "Metadata / Tajemství: {0}/{1} ({2}/{3}/{4} celkem)",
-      "secrets-details-counts-secret_count-0": "Tajemství ({0})",
-      "active-in-the-past-5-minutes-0": "(aktivní za posledních 5 minut)",
+      "customer_secrets_created_customer_secrets_shared_0": "{0}/{1}/{2} [{3}]",
+      "customer_verified_verified_not_verified_0": "`+customer.verified ? `ověřeno` : `neověřeno",
+      "customers_details_counts_recent_customer_count_o_0": "Zákazníci ({0} z {1})",
+      "user_feedback_total_details_counts_feedback_coun_0": "Zpětná vazba uživatelů (Celkem: {0})",
+      "metadata_secrets_details_counts_metadata_count_d_0": "Metadata / Tajemství: {0}/{1} ({2}/{3}/{4} celkem)",
+      "secrets_details_counts_secret_count_0": "Tajemství ({0})",
+      "active_in_the_past_5_minutes_0": "(aktivní za posledních 5 minut)",
       "configEditorTitle": "Nastavení",
       "configEditorDescription": "Uprav nastavení systémové konfigurace. Změny se projeví okamžitě po uložení.",
       "invalidJson": "Neplatný JSON v sekci {section}",
@@ -75,9 +75,9 @@
       "test-error-triggered-via-feedback": "Testovací chyba spuštěná prostřednictvím zpětné vazby"
     },
     "feedback": {
-      "when-you-submit-feedback-well-see": "Když odešleš zpětnou vazbu, uvidíme:",
-      "send-feedback": "Odeslat zpětnou vazbu",
-      "sending-ellipses": "Odesílám..."
+      "when_you_submit_feedback_well_see": "Když odešleš zpětnou vazbu, uvidíme:",
+      "send_feedback": "Odeslat zpětnou vazbu",
+      "sending_ellipses": "Odesílám..."
     }
   }
 }

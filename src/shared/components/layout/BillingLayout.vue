@@ -77,7 +77,7 @@ const isParentActive = (item: NavigationItem): boolean => {
         <router-link
           to="/account"
           class="hover:text-gray-700 dark:hover:text-gray-200">
-          {{ t('web.account.your-account') }}
+          {{ t('web.account.your_account') }}
         </router-link>
         <OIcon
           collection="heroicons"

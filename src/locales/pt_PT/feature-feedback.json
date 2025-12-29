@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "O seu feedback",
-      "all-feedback-welcome": "Todo feedback é bem-vindo!",
-      "help-us-improve": "Ajude-nos a melhorar",
-      "close-feedback-modal": "Fechar modal de feedback",
-      "share-your-feedback": "Partilhe o seu feedback",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "O seu feedback",
+      "all_feedback_welcome": "Todo feedback é bem-vindo!",
+      "help_us_improve": "Ajude-nos a melhorar",
+      "close_feedback_modal": "Fechar modal de feedback",
+      "share_your_feedback": "Partilhe o seu feedback",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "Conteúdo de ajuda vai aqui.",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "Obrigado por ajudar o Onetime Secret a melhorar. Significa muito.",
-      "weve-built-this-tool-to-help-you-share-sensitive": "Construímos esta ferramenta para ajudá-lo a partilhar informações sensíveis com segurança, e as suas experiências do mundo real são cruciais para focar os nossos esforços. Isso ajuda-nos a descobrir no que trabalhar a seguir e como tornar o serviço melhor para todos.",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Olá, obrigado por visitar a nossa página de feedback. A sua opinião não é apenas bem-vinda - é crucial.",
-      "a-note-from-delano-founder-of-onetime-secret": "Uma nota de Delano, fundador do Onetime Secret",
-      "open-feedback-form": "Abrir formulário de feedback",
-      "enter-your-feedback": "Introduza o seu feedback"
+      "help_content_goes_here": "Conteúdo de ajuda vai aqui.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "Obrigado por ajudar o Onetime Secret a melhorar. Significa muito.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "Construímos esta ferramenta para ajudá-lo a partilhar informações sensíveis com segurança, e as suas experiências do mundo real são cruciais para focar os nossos esforços. Isso ajuda-nos a descobrir no que trabalhar a seguir e como tornar o serviço melhor para todos.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "Olá, obrigado por visitar a nossa página de feedback. A sua opinião não é apenas bem-vinda - é crucial.",
+      "a_note_from_delano_founder_of_onetime_secret": "Uma nota de Delano, fundador do Onetime Secret",
+      "open_feedback_form": "Abrir formulário de feedback",
+      "enter_your_feedback": "Introduza o seu feedback"
     }
   }
 }

@@ -4,7 +4,7 @@
       "title_received": "Přijato",
       "title_not_received": "Nepřijato",
       "title_no_recent_secrets": "Žádná nedávná tajemství",
-      "get-started-by-creating-your-first-secret": "Začni vytvořením svého prvního tajemství.",
+      "get_started_by_creating_your_first_secret": "Začni vytvořením svého prvního tajemství.",
       "fetch_error_title": "Nepodařilo se načíst týmy",
       "fetch_error_description": "Při načítání vašich týmů došlo k problému. Zkuste to prosím znovu."
     }

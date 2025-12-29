@@ -49,8 +49,8 @@
   const currentJurisdiction = computed(
     (): Jurisdiction =>
       getCurrentJurisdiction.value || {
-        identifier: t('web.regions.unknown-jurisdiction'),
-        display_name: t('web.regions.unknown-jurisdiction'),
+        identifier: t('web.regions.unknown_jurisdiction'),
+        display_name: t('web.regions.unknown_jurisdiction'),
         domain: '',
         icon: {
           collection: 'mdi',
@@ -131,7 +131,7 @@
           <span
             v-if="jurisdictionStore.enabled"
             class="mr-1">
-            {{ t('web.regions.serving-you-from-the') }}:
+            {{ t('web.regions.serving_you_from_the') }}:
             <span class="font-medium text-gray-700 dark:text-gray-300">{{ currentJurisdiction.display_name }}</span>
           </span>
         </p>
@@ -156,8 +156,8 @@
           <RouterLink
             to="/"
             class="inline-flex items-center text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-400"
-            :aria-label="t('web.layout.return-to-home-page')">
-            <span>{{ t('web.layout.return-home') }}</span>
+            :aria-label="t('web.layout.return_to_home_page')">
+            <span>{{ t('web.layout.return_home') }}</span>
           </RouterLink>
         </div>
       </div>

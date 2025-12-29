@@ -1,18 +1,18 @@
 {
   "web": {
     "testimonials": {
-      "ai-generated-testimonial": "Testimonio Generado por IA",
-      "ai-generated-content-disclaimer": "Contenido generado por IA para demostración. \nNo de una persona o empresa real.",
-      "randomtestimonial-stars-5": "{0}/5",
-      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
-      "randomtestimonial-quote": "\"{0}\"",
-      "t-ai-generated-testimonial": "{0}:",
-      "what-leading-ai-says-about-us": "Lo que la IA líder dice sobre nosotros",
-      "ai-generated-testimonials": "Testimonios Generados por IA",
-      "this-quote-was-generated-by": "Esta cita fue generada por",
-      "it-was-based-on-the-content-of-the-page-and-does": "Se basó en el contenido de la página y no representa a una persona o empresa real.",
-      "artificial-feedback": "Comentarios Artificiales",
-      "this-content-is-ai-generated-based-on-the-conten": "Este contenido es generado por IA basado en el contenido de esta página y no representa a una persona o empresa real."
+      "ai_generated_testimonial": "Testimonio Generado por IA",
+      "ai_generated_content_disclaimer": "Contenido generado por IA para demostración. \nNo de una persona o empresa real.",
+      "randomtestimonial_stars_5": "{0}/5",
+      "randomtestimonial_name_randomtestimonial_company": "- {0}, {1}",
+      "randomtestimonial_quote": "\"{0}\"",
+      "t_ai_generated_testimonial": "{0}:",
+      "what_leading_ai_says_about_us": "Lo que la IA líder dice sobre nosotros",
+      "ai_generated_testimonials": "Testimonios Generados por IA",
+      "this_quote_was_generated_by": "Esta cita fue generada por",
+      "it_was_based_on_the_content_of_the_page_and_does": "Se basó en el contenido de la página y no representa a una persona o empresa real.",
+      "artificial_feedback": "Comentarios Artificiales",
+      "this_content_is_ai_generated_based_on_the_conten": "Este contenido es generado por IA basado en el contenido de esta página y no representa a una persona o empresa real."
     }
   }
 }

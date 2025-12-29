@@ -33,7 +33,7 @@
               aria-hidden="true" />
             <div>
               <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                {{ t('web.account.api-key') }}
+                {{ t('web.account.api_key') }}
               </h2>
               <p class="text-sm text-gray-600 dark:text-gray-400">
                 {{ t('web.settings.api.manage_api_keys') }}
@@ -65,7 +65,7 @@
 
         <div class="p-6">
           <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-            {{ t('web.settings.api.documentation-description') }}
+            {{ t('web.settings.api.documentation_description') }}
           </p>
 
           <div class="space-y-3">
@@ -82,10 +82,10 @@
                   aria-hidden="true" />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">
-                    {{ t('web.settings.api.rest-api-reference') }}
+                    {{ t('web.settings.api.rest_api_reference') }}
                   </p>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ t('web.settings.api.complete-api-documentation') }}
+                    {{ t('web.settings.api.complete_api_documentation') }}
                   </p>
                 </div>
               </div>
@@ -109,10 +109,10 @@
                   aria-hidden="true" />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">
-                    {{ t('web.settings.api.code-examples') }}
+                    {{ t('web.settings.api.code_examples') }}
                   </p>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ t('web.settings.api.example-code-and-libraries') }}
+                    {{ t('web.settings.api.example_code_and_libraries') }}
                   </p>
                 </div>
               </div>
@@ -137,7 +137,7 @@
               class="size-5 text-gray-500 dark:text-gray-400"
               aria-hidden="true" />
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ t('web.settings.api.security-best-practices') }}
+              {{ t('web.settings.api.security_best_practices') }}
             </h2>
           </div>
         </div>
@@ -150,7 +150,7 @@
                 name="check-circle-solid"
                 class="size-5 shrink-0 text-green-600 dark:text-green-400"
                 aria-hidden="true" />
-              {{ t('web.settings.api.never-commit-api-keys') }}
+              {{ t('web.settings.api.never_commit_api_keys') }}
             </li>
             <li class="flex gap-3">
               <OIcon
@@ -158,7 +158,7 @@
                 name="check-circle-solid"
                 class="size-5 shrink-0 text-green-600 dark:text-green-400"
                 aria-hidden="true" />
-              {{ t('web.settings.api.use-environment-variables') }}
+              {{ t('web.settings.api.use_environment_variables') }}
             </li>
             <li class="flex gap-3">
               <OIcon
@@ -166,7 +166,7 @@
                 name="check-circle-solid"
                 class="size-5 shrink-0 text-green-600 dark:text-green-400"
                 aria-hidden="true" />
-              {{ t('web.settings.api.rotate-keys-regularly') }}
+              {{ t('web.settings.api.rotate_keys_regularly') }}
             </li>
             <li class="flex gap-3">
               <OIcon
@@ -174,7 +174,7 @@
                 name="check-circle-solid"
                 class="size-5 shrink-0 text-green-600 dark:text-green-400"
                 aria-hidden="true" />
-              {{ t('web.settings.api.use-https-only') }}
+              {{ t('web.settings.api.use_https_only') }}
             </li>
             <li class="flex gap-3">
               <OIcon
@@ -182,7 +182,7 @@
                 name="check-circle-solid"
                 class="size-5 shrink-0 text-green-600 dark:text-green-400"
                 aria-hidden="true" />
-              {{ t('web.settings.api.monitor-api-usage') }}
+              {{ t('web.settings.api.monitor_api_usage') }}
             </li>
           </ul>
         </div>
@@ -198,10 +198,10 @@
             aria-hidden="true" />
           <div class="text-sm text-yellow-800 dark:text-yellow-300">
             <p class="font-medium">
-              {{ t('web.settings.api.important-notice') }}
+              {{ t('web.settings.api.important_notice') }}
             </p>
             <p class="mt-1">
-              {{ t('web.settings.api.regenerating-key-warning') }}
+              {{ t('web.settings.api.regenerating_key_warning') }}
             </p>
           </div>
         </div>

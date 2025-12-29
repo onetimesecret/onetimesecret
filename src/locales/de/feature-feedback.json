@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "Dein Feedback",
-      "all-feedback-welcome": "Jedes Feedback ist willkommen!",
-      "help-us-improve": "Hilf uns, besser zu werden",
-      "close-feedback-modal": "Feedback-Modal schließen",
-      "share-your-feedback": "Teile dein Feedback",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "Dein Feedback",
+      "all_feedback_welcome": "Jedes Feedback ist willkommen!",
+      "help_us_improve": "Hilf uns, besser zu werden",
+      "close_feedback_modal": "Feedback-Modal schließen",
+      "share_your_feedback": "Teile dein Feedback",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "Hilfeinhalt kommt hier hin.",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "Danke, dass du hilfst, Onetime Secret zu verbessern. Das bedeutet uns viel.",
-      "weve-built-this-tool-to-help-you-share-sensitive": "Wir haben dieses Tool entwickelt, um dir zu helfen, sensible Informationen sicher zu teilen, und deine realen Erfahrungen sind entscheidend, um unsere Bemühungen zu fokussieren. Es hilft uns herauszufinden, woran wir als Nächstes arbeiten und wie wir den Dienst für alle verbessern können.",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Hallo, danke für deinen Besuch auf unserer Feedback-Seite. Dein Input ist nicht nur willkommen - er ist entscheidend.",
-      "a-note-from-delano-founder-of-onetime-secret": "Eine Anmerkung von Delano, Gründer von Onetime Secret",
-      "open-feedback-form": "Feedback-Formular öffnen",
-      "enter-your-feedback": "Gib dein Feedback ein"
+      "help_content_goes_here": "Hilfeinhalt kommt hier hin.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "Danke, dass du hilfst, Onetime Secret zu verbessern. Das bedeutet uns viel.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "Wir haben dieses Tool entwickelt, um dir zu helfen, sensible Informationen sicher zu teilen, und deine realen Erfahrungen sind entscheidend, um unsere Bemühungen zu fokussieren. Es hilft uns herauszufinden, woran wir als Nächstes arbeiten und wie wir den Dienst für alle verbessern können.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "Hallo, danke für deinen Besuch auf unserer Feedback-Seite. Dein Input ist nicht nur willkommen - er ist entscheidend.",
+      "a_note_from_delano_founder_of_onetime_secret": "Eine Anmerkung von Delano, Gründer von Onetime Secret",
+      "open_feedback_form": "Feedback-Formular öffnen",
+      "enter_your_feedback": "Gib dein Feedback ein"
     }
   }
 }

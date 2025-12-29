@@ -36,7 +36,7 @@
     ];
 
     if (windowProps.regions_enabled) {
-      tabsList.push({ id: 'data-region', label: t('web.regions.data-region') });
+      tabsList.push({ id: 'data-region', label: t('web.regions.data_region') });
     }
 
     return tabsList;
@@ -159,7 +159,7 @@
     <div
       id="settings-modal-description"
       class="sr-only">
-      {{ t('web.layout.customize-your-app-preferences-and-settings') }}
+      {{ t('web.layout.customize_your_app_preferences_and_settings') }}
     </div>
 
     <FocusTrap
@@ -179,7 +179,7 @@
             <button
               @click="closeModal"
               class="rounded-md p-2 text-gray-500 transition-colors duration-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:text-gray-300 dark:hover:bg-gray-600"
-              :aria-label="t('web.layout.close-settings')">
+              :aria-label="t('web.layout.close_settings')">
               <svg
                 class="size-5"
                 fill="none"
@@ -201,7 +201,7 @@
             role="tablist"
             aria-orientation="horizontal"
             @keydown="handleTabKeydown"
-            :aria-label="t('web.layout.settings-sections')">
+            :aria-label="t('web.layout.settings_sections')">
             <button
               v-for="tab in tabs"
               :key="tab.id"
@@ -254,7 +254,7 @@
                   <div
                     class="size-8 animate-spin rounded-full border-y-2 border-brand-600"
                     role="status">
-                    <span class="sr-only">{{ t('web.layout.loading-settings-content') }}</span>
+                    <span class="sr-only">{{ t('web.layout.loading_settings_content') }}</span>
                   </div>
                 </div>
               </template>

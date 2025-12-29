@@ -1,18 +1,18 @@
 {
   "web": {
     "testimonials": {
-      "ai-generated-testimonial": "شهادة من الذكاء الاصطناعي",
-      "ai-generated-content-disclaimer": "محتوى من الذكاء الاصطناعى من أجل العرض التوضيحي. \nليس من شخص أو شركة فعلية.",
-      "randomtestimonial-stars-5": "{0}/5",
-      "randomtestimonial-name-randomtestimonial-company": "- {0}، {1}",
-      "randomtestimonial-quote": "\"{0}\"",
-      "t-ai-generated-testimonial": "{0}:",
-      "what-leading-ai-says-about-us": "ما يقوله الذكاء الاصطناعي الرائد عنا",
-      "ai-generated-testimonials": "شهادات من الذكاء الاصطناعي",
-      "this-quote-was-generated-by": "تم إنشاء هذا الاقتباس بواسطة",
-      "it-was-based-on-the-content-of-the-page-and-does": "استند إلى محتوى الصفحة ولا يمثل شخصاً أو شركة فعلية.",
-      "artificial-feedback": "ملاحظات اصطناعية",
-      "this-content-is-ai-generated-based-on-the-conten": "هذا المحتوى من إنتاج الذكاء الاصطناعي بناءً على محتوى هذه الصفحة ولا يمثل شخصاً أو شركة فعلية."
+      "ai_generated_testimonial": "شهادة من الذكاء الاصطناعي",
+      "ai_generated_content_disclaimer": "محتوى من الذكاء الاصطناعى من أجل العرض التوضيحي. \nليس من شخص أو شركة فعلية.",
+      "randomtestimonial_stars_5": "{0}/5",
+      "randomtestimonial_name_randomtestimonial_company": "- {0}، {1}",
+      "randomtestimonial_quote": "\"{0}\"",
+      "t_ai_generated_testimonial": "{0}:",
+      "what_leading_ai_says_about_us": "ما يقوله الذكاء الاصطناعي الرائد عنا",
+      "ai_generated_testimonials": "شهادات من الذكاء الاصطناعي",
+      "this_quote_was_generated_by": "تم إنشاء هذا الاقتباس بواسطة",
+      "it_was_based_on_the_content_of_the_page_and_does": "استند إلى محتوى الصفحة ولا يمثل شخصاً أو شركة فعلية.",
+      "artificial_feedback": "ملاحظات اصطناعية",
+      "this_content_is_ai_generated_based_on_the_conten": "هذا المحتوى من إنتاج الذكاء الاصطناعي بناءً على محتوى هذه الصفحة ولا يمثل شخصاً أو شركة فعلية."
     }
   }
 }

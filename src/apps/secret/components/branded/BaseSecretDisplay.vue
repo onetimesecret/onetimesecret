@@ -127,7 +127,7 @@
               <slot
                 name="expand-button"
                 :is-expanded="isExpanded">
-                {{ isExpanded ? 'Show Less' : 'Show More' }}
+                {{ isExpanded ? displayComposer.t('web.LABELS.view_toggle.show_less') : displayComposer.t('web.LABELS.view_toggle.show_more') }}
               </slot>
             </button>
           </div>

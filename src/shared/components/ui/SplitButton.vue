@@ -70,7 +70,7 @@
   const buttonConfig = computed(() => {
     const configs = {
       'create-link': {
-        label: t('web.LABELS.create-link-short'),
+        label: t('web.LABELS.create_link_short'),
         emit: () => emit('create-link'),
       },
       'generate-password': {
@@ -271,7 +271,7 @@ ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
         </span>
-        <span class="font-medium">{{ t('web.LABELS.create-link-short') }}</span>
+        <span class="font-medium">{{ t('web.LABELS.create_link_short') }}</span>
       </button>
 
       <!-- prettier-ignore-attribute class -->

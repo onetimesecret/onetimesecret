@@ -1,18 +1,18 @@
 {
   "web": {
     "testimonials": {
-      "ai-generated-testimonial": "Отзыв, сгенерированный ИИ",
-      "ai-generated-content-disclaimer": "АИ-сгенерированный контент для демонстрации. \nНе от реального человека или компании.",
-      "randomtestimonial-stars-5": "{0}/5",
-      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
-      "randomtestimonial-quote": "«{0}»",
-      "t-ai-generated-testimonial": "{0}:",
-      "what-leading-ai-says-about-us": "Что говорят о нас ведущие ИИ",
-      "ai-generated-testimonials": "Отзывы, сгенерированные ИИ",
-      "this-quote-was-generated-by": "Эта цитата была создана",
-      "it-was-based-on-the-content-of-the-page-and-does": "Это было основано на содержании страницы и не представляет реального человека или компанию.",
-      "artificial-feedback": "Искусственная обратная связь",
-      "this-content-is-ai-generated-based-on-the-conten": "Это содержимое создано ИИ на основе содержимого этой страницы и не представляет реального человека или компанию."
+      "ai_generated_testimonial": "Отзыв, сгенерированный ИИ",
+      "ai_generated_content_disclaimer": "АИ-сгенерированный контент для демонстрации. \nНе от реального человека или компании.",
+      "randomtestimonial_stars_5": "{0}/5",
+      "randomtestimonial_name_randomtestimonial_company": "- {0}, {1}",
+      "randomtestimonial_quote": "«{0}»",
+      "t_ai_generated_testimonial": "{0}:",
+      "what_leading_ai_says_about_us": "Что говорят о нас ведущие ИИ",
+      "ai_generated_testimonials": "Отзывы, сгенерированные ИИ",
+      "this_quote_was_generated_by": "Эта цитата была создана",
+      "it_was_based_on_the_content_of_the_page_and_does": "Это было основано на содержании страницы и не представляет реального человека или компанию.",
+      "artificial_feedback": "Искусственная обратная связь",
+      "this_content_is_ai_generated_based_on_the_conten": "Это содержимое создано ИИ на основе содержимого этой страницы и не представляет реального человека или компанию."
     }
   }
 }

@@ -1,25 +1,25 @@
 {
   "web": {
     "errors": {
-      "why-is-this-secret-unavailable": "Por que esta mensagem secreta está indisponível?",
-      "secrets-are-designed-to-be-viewed-only-once": "As mensagens secretas são projetadas para serem visualizadas apenas uma vez. Este link pode já ter sido acedido, expirado ou eliminado manualmente pelo remetente.",
-      "what-should-i-do-now": "O que devo fazer agora?",
-      "contact-the-person-who-sent-you-this-link": "Entre em contacto com a pessoa que lhe enviou este link e peça para criar uma nova mensagem secreta. Informe que não conseguiu aceder à informação original.",
-      "warning-dismissed": "Aviso dispensado",
-      "dismiss-truncation-warning": "Dispensar aviso de truncamento",
-      "oops-the-page-you-are-looking-for-doesnt-exist-o": "Ops! A página que procura não existe ou foi movida.",
-      "404-page-not-found-0": "404 - Página Não Encontrada",
-      "404-page-not-found": "404 - Página Não Encontrada",
-      "dismiss-warning": "Dispensar aviso",
-      "dismiss-notification": "Dispensar notificação",
-      "if-youre-unsure-what-to-do-next-please-follow-up": "Se não tiver a certeza do que fazer a seguir, entre em contacto com a pessoa que lhe enviou este link para mais informações.",
-      "information-shared-through-our-service-can-only-": "As informações partilhadas através do nosso serviço só podem ser acedidas uma vez. Uma vez visualizado, o conteúdo é permanentemente eliminado dos nossos servidores para garantir a confidencialidade. Esta abordagem ajuda a proteger os seus dados sensíveis, limitando a sua exposição e prevenindo acesso não autorizado.",
-      "were-sorry-but-an-unexpected-error-occurred-whil": "Lamentamos, mas ocorreu um erro inesperado ao processar o seu pedido. A nossa equipa foi notificada e estamos a trabalhar para corrigi-lo.",
-      "t-web-common-oops-something-went-wrong": "{0} Algo correu mal",
-      "go-share-a-secret": "Vá partilhar uma mensagem secreta!",
-      "the-page-youre-looking-for-doesnt-exist-or-has-b": "A página que procura não existe ou foi movida. Não se preocupe, acontece aos melhores!",
-      "t-web-common-oops-404": "{0} 404",
-      "unable-to-load-data-due-to-data-format-issues-pl": "Não foi possível carregar os dados devido a problemas de formato. Por favor, tente novamente mais tarde."
+      "why_is_this_secret_unavailable": "Por que esta mensagem secreta está indisponível?",
+      "secrets_are_designed_to_be_viewed_only_once": "As mensagens secretas são projetadas para serem visualizadas apenas uma vez. Este link pode já ter sido acedido, expirado ou eliminado manualmente pelo remetente.",
+      "what_should_i_do_now": "O que devo fazer agora?",
+      "contact_the_person_who_sent_you_this_link": "Entre em contacto com a pessoa que lhe enviou este link e peça para criar uma nova mensagem secreta. Informe que não conseguiu aceder à informação original.",
+      "warning_dismissed": "Aviso dispensado",
+      "dismiss_truncation_warning": "Dispensar aviso de truncamento",
+      "oops_the_page_you_are_looking_for_doesnt_exist_o": "Ops! A página que procura não existe ou foi movida.",
+      "404_page_not_found_0": "404 - Página Não Encontrada",
+      "404_page_not_found": "404 - Página Não Encontrada",
+      "dismiss_warning": "Dispensar aviso",
+      "dismiss_notification": "Dispensar notificação",
+      "if_youre_unsure_what_to_do_next_please_follow_up": "Se não tiver a certeza do que fazer a seguir, entre em contacto com a pessoa que lhe enviou este link para mais informações.",
+      "information_shared_through_our_service_can_only_": "As informações partilhadas através do nosso serviço só podem ser acedidas uma vez. Uma vez visualizado, o conteúdo é permanentemente eliminado dos nossos servidores para garantir a confidencialidade. Esta abordagem ajuda a proteger os seus dados sensíveis, limitando a sua exposição e prevenindo acesso não autorizado.",
+      "were_sorry_but_an_unexpected_error_occurred_whil": "Lamentamos, mas ocorreu um erro inesperado ao processar o seu pedido. A nossa equipa foi notificada e estamos a trabalhar para corrigi-lo.",
+      "t_web_common_oops_something_went_wrong": "{0} Algo correu mal",
+      "go_share_a_secret": "Vá partilhar uma mensagem secreta!",
+      "the_page_youre_looking_for_doesnt_exist_or_has_b": "A página que procura não existe ou foi movida. Não se preocupe, acontece aos melhores!",
+      "t_web_common_oops_404": "{0} 404",
+      "unable_to_load_data_due_to_data_format_issues_pl": "Não foi possível carregar os dados devido a problemas de formato. Por favor, tente novamente mais tarde."
     }
   }
 }

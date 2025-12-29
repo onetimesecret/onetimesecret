@@ -25,14 +25,14 @@
           F.A.Q.
         </h3>
         <div class="rounded-md bg-blue-50 px-3 py-1 dark:bg-blue-900/20">
-          {{ t('web.private.expires-in-record-natural_expiration', [record.natural_expiration]) }}
+          {{ t('web.private.expires_in_record_natural_expiration', [record.natural_expiration]) }}
         </div>
       </div>
 
       <div class="space-y-4">
         <h4 class="font-semibold text-gray-900 dark:text-gray-100">
           {{
-            t('web.private.core-security-features')
+            t('web.private.core_security_features')
           }}
         </h4>
 
@@ -40,10 +40,10 @@
           class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
           <h5 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
             {{
-              t('web.private.one-time-access')
+              t('web.private.one_time_access')
             }}
           </h5>
-          <p>{{ t('web.private.each-secret-can-only-be-viewed-once-after-viewin') }}</p>
+          <p>{{ t('web.private.each_secret_can_only_be_viewed_once_after_viewin') }}</p>
         </div>
 
         <template v-if="details.has_passphrase">
@@ -51,13 +51,13 @@
             class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
             <h5 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
               {{
-                t('web.private.passphrase-protection')
+                t('web.private.passphrase_protection')
               }}
             </h5>
             <a
               href="https://en.wikipedia.org/wiki/Bcrypt"
               class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">bcrypt</a>
-            {{ t('web.private.and-never-stored-in-its-original-form-this-appro') }}
+            {{ t('web.private.and_never_stored_in_its_original_form_this_appro') }}
           </div>
         </template>
 
@@ -65,20 +65,20 @@
           class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
           <h5 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
             {{
-              t('web.private.what-happens-when-i-burn-a-secret')
+              t('web.private.what_happens_when_i_burn_a_secret')
             }}
           </h5>
-          <p>{{ t('web.private.burning-a-secret-permanently-deletes-it-before-a') }}</p>
+          <p>{{ t('web.private.burning_a_secret_permanently_deletes_it_before_a') }}</p>
         </div>
 
         <div
           class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
           <h5 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
             {{
-              t('web.private.why-can-i-only-see-the-secret-value-once')
+              t('web.private.why_can_i_only_see_the_secret_value_once')
             }}
           </h5>
-          <p>{{ t('web.private.we-display-the-value-for-you-so-that-you-can-ver') }}</p>
+          <p>{{ t('web.private.we_display_the_value_for_you_so_that_you_can_ver') }}</p>
         </div>
       </div>
     </div>
@@ -93,7 +93,7 @@
         </h3>
         <div class="rounded-md bg-blue-50 px-3 py-1 dark:bg-blue-900/20">
           {{
-            t('web.private.expires-in-record-natural_expiration-0', [record.natural_expiration])
+            t('web.private.expires_in_record_natural_expiration_0', [record.natural_expiration])
           }}
         </div>
       </div>
@@ -103,10 +103,10 @@
           class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
           <h5 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
             {{
-              t('web.private.lost-your-secret-link')
+              t('web.private.lost_your_secret_link')
             }}
           </h5>
-          <p>{{ t('web.private.for-security-reasons-we-cant-recover-lost-secret') }}</p>
+          <p>{{ t('web.private.for_security_reasons_we_cant_recover_lost_secret') }}</p>
         </div>
       </template>
 
@@ -114,12 +114,12 @@
         class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
         <h5 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
           {{
-            t('web.private.how-does-secret-expiration-work')
+            t('web.private.how_does_secret_expiration_work')
           }}
         </h5>
         <p>
           {{
-            t('web.private.your-secret-will-remain-available-for-record-nat', [
+            t('web.private.your_secret_will_remain_available_for_record_nat', [
               record.natural_expiration,
             ])
           }}
@@ -130,15 +130,15 @@
         class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200 dark:bg-gray-800/50 dark:ring-gray-700">
         <h5 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
           {{
-            t('web.private.whats-the-burn-feature')
+            t('web.private.whats_the_burn_feature')
           }}
         </h5>
-        <p>{{ t('web.private.the-burn-feature-lets-you-permanently-delete-a-s') }}</p>
+        <p>{{ t('web.private.the_burn_feature_lets_you_permanently_delete_a_s') }}</p>
       </div>
     </div>
     <div class="mt-6 text-xs">
       <p>
-        {{ t('web.private.have-more-questions-visit-our') }}
+        {{ t('web.private.have_more_questions_visit_our') }}
         <RouterLink
           to="/docs"
           class="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300">
@@ -148,7 +148,7 @@
         <RouterLink
           to="/feedback"
           class="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300">
-          {{ t('web.private.send-feedback') }}
+          {{ t('web.private.send_feedback') }}
         </RouterLink>.
       </p>
     </div>

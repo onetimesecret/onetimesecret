@@ -1,18 +1,18 @@
 {
   "web": {
     "testimonials": {
-      "ai-generated-testimonial": "Mesterséges intelligencia által generált vélemény",
-      "ai-generated-content-disclaimer": "Mesterséges intelligencia által generált tartalom bemutatási célra. Nem valós személytől vagy cégtől.",
-      "randomtestimonial-stars-5": "{0}/5",
-      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
-      "randomtestimonial-quote": "\"{0}\"",
-      "t-ai-generated-testimonial": "{0}:",
-      "what-leading-ai-says-about-us": "Mit mond rólunk a vezető MI",
-      "ai-generated-testimonials": "MI által generált vélemények",
-      "this-quote-was-generated-by": "Ezt az idézetet generálta",
-      "it-was-based-on-the-content-of-the-page-and-does": "Az oldal tartalma alapján készült, és nem valós személyt vagy céget képvisel.",
-      "artificial-feedback": "Mesterséges visszajelzés",
-      "this-content-is-ai-generated-based-on-the-conten": "Ez a tartalom MI által generált az oldal tartalma alapján, és nem valós személyt vagy céget képvisel."
+      "ai_generated_testimonial": "Mesterséges intelligencia által generált vélemény",
+      "ai_generated_content_disclaimer": "Mesterséges intelligencia által generált tartalom bemutatási célra. Nem valós személytől vagy cégtől.",
+      "randomtestimonial_stars_5": "{0}/5",
+      "randomtestimonial_name_randomtestimonial_company": "- {0}, {1}",
+      "randomtestimonial_quote": "\"{0}\"",
+      "t_ai_generated_testimonial": "{0}:",
+      "what_leading_ai_says_about_us": "Mit mond rólunk a vezető MI",
+      "ai_generated_testimonials": "MI által generált vélemények",
+      "this_quote_was_generated_by": "Ezt az idézetet generálta",
+      "it_was_based_on_the_content_of_the_page_and_does": "Az oldal tartalma alapján készült, és nem valós személyt vagy céget képvisel.",
+      "artificial_feedback": "Mesterséges visszajelzés",
+      "this_content_is_ai_generated_based_on_the_conten": "Ez a tartalom MI által generált az oldal tartalma alapján, és nem valós személyt vagy céget képvisel."
     }
   }
 }

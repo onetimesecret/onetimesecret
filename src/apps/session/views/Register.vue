@@ -18,8 +18,8 @@
   const currentJurisdiction = computed(
     () =>
       getCurrentJurisdiction.value || {
-        identifier: t('web.regions.unknown-jurisdiction'),
-        display_name: t('web.regions.unknown-jurisdiction'),
+        identifier: t('web.regions.unknown_jurisdiction'),
+        display_name: t('web.regions.unknown_jurisdiction'),
         domain: '',
         icon: {
           collection: 'mdi',
@@ -37,7 +37,7 @@
 
 <template>
   <AuthView
-    :heading="t('web.signup.create-your-account')"
+    :heading="t('web.signup.create_your_account')"
     heading-id="signup-heading"
     :with-heading="true"
     :with-subheading="true"

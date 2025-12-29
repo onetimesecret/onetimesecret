@@ -1,13 +1,13 @@
 {
   "web": {
     "colonel": {
-      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
-      "customer-verified-verified-not-verified-0": "`+customer.verified ? `verified` : `not verified",
-      "customers-details-counts-recent_customer_count-o-0": "Clients ({0} de {1})",
-      "user-feedback-total-details-counts-feedback_coun-0": "Commentaires des utilisateurs (Total : {0})",
-      "metadata-secrets-details-counts-metadata_count-d-0": "Métadonnées / Secrets : {0}/{1} ({2}/{3}/{4} au total)",
-      "secrets-details-counts-secret_count-0": "Secrets ({0})",
-      "active-in-the-past-5-minutes-0": "(actif dans les 5 dernières minutes)",
+      "customer_secrets_created_customer_secrets_shared_0": "{0}/{1}/{2} [{3}]",
+      "customer_verified_verified_not_verified_0": "`+customer.verified ? `verified` : `not verified",
+      "customers_details_counts_recent_customer_count_o_0": "Clients ({0} de {1})",
+      "user_feedback_total_details_counts_feedback_coun_0": "Commentaires des utilisateurs (Total : {0})",
+      "metadata_secrets_details_counts_metadata_count_d_0": "Métadonnées / Secrets : {0}/{1} ({2}/{3}/{4} au total)",
+      "secrets_details_counts_secret_count_0": "Secrets ({0})",
+      "active_in_the_past_5_minutes_0": "(actif dans les 5 dernières minutes)",
       "configEditorTitle": "Paramètres",
       "configEditorDescription": "Modifier les paramètres de configuration du système. Les modifications sont appliquées immédiatement après l'enregistrement.",
       "invalidJson": "JSON invalide dans la section {section}",
@@ -75,9 +75,9 @@
       "test-error-triggered-via-feedback": "Erreur de test déclenchée par retour d'information"
     },
     "feedback": {
-      "when-you-submit-feedback-well-see": "Lorsque vous soumettez un retour d'information, nous le voyons :",
-      "send-feedback": "Envoyer un retour d'information",
-      "sending-ellipses": "Envoi..."
+      "when_you_submit_feedback_well_see": "Lorsque vous soumettez un retour d'information, nous le voyons :",
+      "send_feedback": "Envoyer un retour d'information",
+      "sending_ellipses": "Envoi..."
     }
   }
 }

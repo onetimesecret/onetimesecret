@@ -1,13 +1,13 @@
 {
   "web": {
     "colonel": {
-      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
-      "customer-verified-verified-not-verified-0": "`+customer.verified ? `verified` : `not verified",
-      "customers-details-counts-recent_customer_count-o-0": "顧客 ({0} / {1})",
-      "user-feedback-total-details-counts-feedback_coun-0": "ユーザーフィードバック（合計: {0}）",
-      "metadata-secrets-details-counts-metadata_count-d-0": "メタデータ / シークレット: {0}/{1} ({2}/{3}/{4} 合計)",
-      "secrets-details-counts-secret_count-0": "シークレット ({0})",
-      "active-in-the-past-5-minutes-0": "(過去5分間アクティブ)",
+      "customer_secrets_created_customer_secrets_shared_0": "{0}/{1}/{2} [{3}]",
+      "customer_verified_verified_not_verified_0": "`+customer.verified ? `verified` : `not verified",
+      "customers_details_counts_recent_customer_count_o_0": "顧客 ({0} / {1})",
+      "user_feedback_total_details_counts_feedback_coun_0": "ユーザーフィードバック（合計: {0}）",
+      "metadata_secrets_details_counts_metadata_count_d_0": "メタデータ / シークレット: {0}/{1} ({2}/{3}/{4} 合計)",
+      "secrets_details_counts_secret_count_0": "シークレット ({0})",
+      "active_in_the_past_5_minutes_0": "(過去5分間アクティブ)",
       "configEditorTitle": "設定",
       "configEditorDescription": "システム設定を編集します。変更は保存後すぐに適用されます。",
       "invalidJson": "{section}セクションのJSONが無効です",
@@ -75,9 +75,9 @@
       "test-error-triggered-via-feedback": "フィードバックから発生したテストエラー"
     },
     "feedback": {
-      "when-you-submit-feedback-well-see": "フィードバックを送信すると、以下が表示されます:",
-      "send-feedback": "フィードバックを送信",
-      "sending-ellipses": "送信中..."
+      "when_you_submit_feedback_well_see": "フィードバックを送信すると、以下が表示されます:",
+      "send_feedback": "フィードバックを送信",
+      "sending_ellipses": "送信中..."
     }
   }
 }

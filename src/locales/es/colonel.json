@@ -1,13 +1,13 @@
 {
   "web": {
     "colonel": {
-      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
-      "customer-verified-verified-not-verified-0": "`+customer.verified ? `verificado` : `no verificado`",
-      "customers-details-counts-recent_customer_count-o-0": "Clientes ({0} de {1})",
-      "user-feedback-total-details-counts-feedback_coun-0": "Comentarios de Usuarios (Total: {0})",
-      "metadata-secrets-details-counts-metadata_count-d-0": "Metadatos / Secretos: {0}/{1} ({2}/{3}/{4} total)",
-      "secrets-details-counts-secret_count-0": "Secretos ({0})",
-      "active-in-the-past-5-minutes-0": "(activo en los últimos 5 minutos)",
+      "customer_secrets_created_customer_secrets_shared_0": "{0}/{1}/{2} [{3}]",
+      "customer_verified_verified_not_verified_0": "`+customer.verified ? `verificado` : `no verificado`",
+      "customers_details_counts_recent_customer_count_o_0": "Clientes ({0} de {1})",
+      "user_feedback_total_details_counts_feedback_coun_0": "Comentarios de Usuarios (Total: {0})",
+      "metadata_secrets_details_counts_metadata_count_d_0": "Metadatos / Secretos: {0}/{1} ({2}/{3}/{4} total)",
+      "secrets_details_counts_secret_count_0": "Secretos ({0})",
+      "active_in_the_past_5_minutes_0": "(activo en los últimos 5 minutos)",
       "configEditorTitle": "Configuración",
       "configEditorDescription": "Edita la configuración del sistema. Los cambios se aplican inmediatamente después de guardar.",
       "invalidJson": "JSON inválido en la sección {section}",
@@ -75,9 +75,9 @@
       "test-error-triggered-via-feedback": "Error de prueba activado a través de comentarios"
     },
     "feedback": {
-      "when-you-submit-feedback-well-see": "Cuando envíes comentarios, veremos:",
-      "send-feedback": "Enviar comentarios",
-      "sending-ellipses": "Enviando..."
+      "when_you_submit_feedback_well_see": "Cuando envíes comentarios, veremos:",
+      "send_feedback": "Enviar comentarios",
+      "sending_ellipses": "Enviando..."
     }
   }
 }

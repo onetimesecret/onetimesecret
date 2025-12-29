@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "Ваш отзыв",
-      "all-feedback-welcome": "Приветствуется любая обратная связь",
-      "help-us-improve": "Помогите нам улучшиться",
-      "close-feedback-modal": "Закрыть модальное окно обратной связи",
-      "share-your-feedback": "Поделитесь своим отзывом",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "Ваш отзыв",
+      "all_feedback_welcome": "Приветствуется любая обратная связь",
+      "help_us_improve": "Помогите нам улучшиться",
+      "close_feedback_modal": "Закрыть модальное окно обратной связи",
+      "share_your_feedback": "Поделитесь своим отзывом",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "Содержимое справки появится здесь.",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "Спасибо за помощь в улучшении Onetime Secret. Это очень важно.",
-      "weve-built-this-tool-to-help-you-share-sensitive": "Мы создали этот инструмент, чтобы помочь Вам безопасно делиться конфиденциальной информацией, и Ваш реальный опыт использования имеет решающее значение для того, чтобы мы сосредоточили наши усилия. Это помогает нам определить, что делать дальше и как улучшить сервис для всех.",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Привет, спасибо, что посетили нашу страницу обратной связи. Ваше мнение не только приветствуется, но и имеет решающее значение.",
-      "a-note-from-delano-founder-of-onetime-secret": "Заметка от Delano, основателя Onetime Secret",
-      "open-feedback-form": "Открыть форму обратной связи",
-      "enter-your-feedback": "Введите Ваш отзыв"
+      "help_content_goes_here": "Содержимое справки появится здесь.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "Спасибо за помощь в улучшении Onetime Secret. Это очень важно.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "Мы создали этот инструмент, чтобы помочь Вам безопасно делиться конфиденциальной информацией, и Ваш реальный опыт использования имеет решающее значение для того, чтобы мы сосредоточили наши усилия. Это помогает нам определить, что делать дальше и как улучшить сервис для всех.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "Привет, спасибо, что посетили нашу страницу обратной связи. Ваше мнение не только приветствуется, но и имеет решающее значение.",
+      "a_note_from_delano_founder_of_onetime_secret": "Заметка от Delano, основателя Onetime Secret",
+      "open_feedback_form": "Открыть форму обратной связи",
+      "enter_your_feedback": "Введите Ваш отзыв"
     }
   }
 }

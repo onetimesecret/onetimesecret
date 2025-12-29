@@ -4,7 +4,7 @@
       "title_received": "Получени",
       "title_not_received": "Неполучени",
       "title_no_recent_secrets": "Няма последни тайни",
-      "get-started-by-creating-your-first-secret": "Започнете, като създадете първата си тайна.",
+      "get_started_by_creating_your_first_secret": "Започнете, като създадете първата си тайна.",
       "fetch_error_title": "Неуспешно зареждане на екипите",
       "fetch_error_description": "Възникна проблем при зареждането на вашите екипи. Моля, опитайте отново."
     }

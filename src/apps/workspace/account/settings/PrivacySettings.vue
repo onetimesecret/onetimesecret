@@ -26,7 +26,7 @@
                 {{ t('web.settings.privacy.title') }}
               </h2>
               <p class="mt-1 text-sm leading-tight text-gray-600 dark:text-gray-400">
-                {{ t('web.settings.privacy.manage-privacy-settings') }}
+                {{ t('web.settings.privacy.manage_privacy_settings') }}
               </p>
             </div>
           </div>
@@ -39,15 +39,15 @@
               <div class="flex-1">
                 <div class="mb-2 flex items-center gap-2">
                   <p class="font-medium text-gray-900 dark:text-white">
-                    {{ t('web.settings.privacy.your-privacy') }}
+                    {{ t('web.settings.privacy.your_privacy') }}
                   </p>
                   <span
                     class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                    {{ t('web.settings.privacy.non-negotiable') }}
+                    {{ t('web.settings.privacy.non_negotiable') }}
                   </span>
                 </div>
                 <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {{ t('web.settings.privacy.no-analytics-statement') }}
+                  {{ t('web.settings.privacy.no_analytics_statement') }}
                 </p>
                 <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {{ t('web.settings.privacy.explanation') }}

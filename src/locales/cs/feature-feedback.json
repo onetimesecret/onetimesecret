@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "Tvá zpětná vazba",
-      "all-feedback-welcome": "Veškerá zpětná vazba je vítána!",
-      "help-us-improve": "Pomoz nám zlepšit se",
-      "close-feedback-modal": "Zavřít okno zpětné vazby",
-      "share-your-feedback": "Sdílej svou zpětnou vazbu",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "Tvá zpětná vazba",
+      "all_feedback_welcome": "Veškerá zpětná vazba je vítána!",
+      "help_us_improve": "Pomoz nám zlepšit se",
+      "close_feedback_modal": "Zavřít okno zpětné vazby",
+      "share_your_feedback": "Sdílej svou zpětnou vazbu",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "Obsah nápovědy se zobrazí zde.",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "Díky za pomoc se zlepšováním Onetime Secret. Znamená to hodně.",
-      "weve-built-this-tool-to-help-you-share-sensitive": "Vytvořili jsme tento nástroj, abychom ti pomohli bezpečně sdílet citlivé informace, a tvé zkušenosti z reálného světa jsou zásadní pro zaměření našeho úsilí. Pomáhá nám to zjistit, na čem pracovat dál a jak vylepšit službu pro všechny.",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Ahoj, díky, že jsi navštívil naši stránku zpětné vazby. Tvůj názor není jen vítán - je zásadní.",
-      "a-note-from-delano-founder-of-onetime-secret": "Poznámka od Delano, zakladatele Onetime Secret",
-      "open-feedback-form": "Otevřít formulář zpětné vazby",
-      "enter-your-feedback": "Zadej svou zpětnou vazbu"
+      "help_content_goes_here": "Obsah nápovědy se zobrazí zde.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "Díky za pomoc se zlepšováním Onetime Secret. Znamená to hodně.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "Vytvořili jsme tento nástroj, abychom ti pomohli bezpečně sdílet citlivé informace, a tvé zkušenosti z reálného světa jsou zásadní pro zaměření našeho úsilí. Pomáhá nám to zjistit, na čem pracovat dál a jak vylepšit službu pro všechny.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "Ahoj, díky, že jsi navštívil naši stránku zpětné vazby. Tvůj názor není jen vítán - je zásadní.",
+      "a_note_from_delano_founder_of_onetime_secret": "Poznámka od Delano, zakladatele Onetime Secret",
+      "open_feedback_form": "Otevřít formulář zpětné vazby",
+      "enter_your_feedback": "Zadej svou zpětnou vazbu"
     }
   }
 }

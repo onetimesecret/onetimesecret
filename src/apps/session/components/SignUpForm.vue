@@ -164,7 +164,7 @@ const handleSubmit = async () => {
             type="button"
             @click="togglePasswordVisibility"
             :disabled="isLoading"
-            :aria-label="showPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')"
+            :aria-label="showPassword ? t('web.COMMON.hide_password') : t('web.COMMON.show_password')"
             class="absolute inset-y-0 right-0 z-10 flex items-center pr-3 text-sm leading-5 disabled:opacity-50">
             <OIcon
               collection="heroicons"
@@ -176,7 +176,7 @@ const handleSubmit = async () => {
         </div>
         <!-- Password requirements (screen reader only) -->
         <span id="password-requirements" class="sr-only">
-          {{ t('web.COMMON.password-requirements') }}
+          {{ t('web.COMMON.password_requirements') }}
         </span>
       </div>
     </div>
@@ -201,19 +201,19 @@ const handleSubmit = async () => {
         <label
           for="terms-agreement"
           class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
-          {{ t('web.auth.i-agree-to-the') }}
+          {{ t('web.auth.terms.agree_prefix') }}
           <router-link
             to="/info/terms"
             class="font-medium text-brand-600 hover:text-brand-500
                      dark:text-brand-500 dark:hover:text-brand-400">
-            {{ t('web.layout.terms-of-service') }}
+            {{ t('web.layout.terms_of_service') }}
           </router-link>
           and
           <router-link
             to="/info/privacy"
             class="font-medium text-brand-600 hover:text-brand-500
                      dark:text-brand-500 dark:hover:text-brand-400">
-            {{ t('web.layout.privacy-policy') }}
+            {{ t('web.layout.privacy_policy') }}
           </router-link>
         </label>
       </div>
@@ -234,7 +234,7 @@ const handleSubmit = async () => {
                      disabled:cursor-not-allowed disabled:opacity-50
                      dark:bg-brand-600 dark:hover:bg-brand-700 dark:focus:ring-offset-gray-800">
         <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
-        <span v-else>{{ t('web.auth.create-account') }}</span>
+        <span v-else>{{ t('web.COMMON.button_create_account') }}</span>
       </button>
       <!-- Loading state announcement (screen reader only) -->
       <div
@@ -242,7 +242,7 @@ const handleSubmit = async () => {
         aria-live="polite"
         aria-atomic="true"
         class="sr-only">
-        {{ t('web.COMMON.form-processing') }}
+        {{ t('web.COMMON.form_processing') }}
       </div>
     </div>
   </form>

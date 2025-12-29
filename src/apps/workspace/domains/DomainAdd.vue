@@ -19,7 +19,7 @@ const {
 <template>
   <div class="">
     <h1 class="mb-6 text-3xl font-bold dark:text-white">
-      {{ t('web.domains.add-your-domain') }}
+      {{ t('web.domains.add_your_domain') }}
     </h1>
 
     <ErrorDisplay v-if="error" :error="error" />

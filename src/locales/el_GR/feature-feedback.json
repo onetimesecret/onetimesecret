@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "Τα σχόλιά σας",
-      "all-feedback-welcome": "Όλα τα σχόλια είναι ευπρόσδεκτα!",
-      "help-us-improve": "Βοηθήστε μας να βελτιωθούμε",
-      "close-feedback-modal": "Κλείσιμο παραθύρου σχολίων",
-      "share-your-feedback": "Μοιραστείτε τα σχόλιά σας",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "Τα σχόλιά σας",
+      "all_feedback_welcome": "Όλα τα σχόλια είναι ευπρόσδεκτα!",
+      "help_us_improve": "Βοηθήστε μας να βελτιωθούμε",
+      "close_feedback_modal": "Κλείσιμο παραθύρου σχολίων",
+      "share_your_feedback": "Μοιραστείτε τα σχόλιά σας",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "Το περιεχόμενο βοήθειας πηγαίνει εδώ.",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "Ευχαριστούμε που βοηθάτε το Onetime Secret να βελτιωθεί. Σημαίνει πολλά.",
-      "weve-built-this-tool-to-help-you-share-sensitive": "Έχουμε δημιουργήσει αυτό το εργαλείο για να σας βοηθήσουμε να μοιράζεστε ευαίσθητες πληροφορίες με ασφάλεια, και οι πραγματικές σας εμπειρίες είναι κρίσιμες για την εστίαση των προσπαθειών μας. Μας βοηθά να καταλάβουμε πάνω σε τι να δουλέψουμε στη συνέχεια και πώς να κάνουμε την υπηρεσία καλύτερη για όλους.",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Γεια σας, ευχαριστούμε που περάσατε από τη σελίδα σχολίων μας. Η συμβολή σας δεν είναι απλώς ευπρόσδεκτη - είναι κρίσιμη.",
-      "a-note-from-delano-founder-of-onetime-secret": "Μια σημείωση από τον Delano, ιδρυτή του Onetime Secret",
-      "open-feedback-form": "Άνοιγμα φόρμας σχολίων",
-      "enter-your-feedback": "Εισαγάγετε τα σχόλιά σας"
+      "help_content_goes_here": "Το περιεχόμενο βοήθειας πηγαίνει εδώ.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "Ευχαριστούμε που βοηθάτε το Onetime Secret να βελτιωθεί. Σημαίνει πολλά.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "Έχουμε δημιουργήσει αυτό το εργαλείο για να σας βοηθήσουμε να μοιράζεστε ευαίσθητες πληροφορίες με ασφάλεια, και οι πραγματικές σας εμπειρίες είναι κρίσιμες για την εστίαση των προσπαθειών μας. Μας βοηθά να καταλάβουμε πάνω σε τι να δουλέψουμε στη συνέχεια και πώς να κάνουμε την υπηρεσία καλύτερη για όλους.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "Γεια σας, ευχαριστούμε που περάσατε από τη σελίδα σχολίων μας. Η συμβολή σας δεν είναι απλώς ευπρόσδεκτη - είναι κρίσιμη.",
+      "a_note_from_delano_founder_of_onetime_secret": "Μια σημείωση από τον Delano, ιδρυτή του Onetime Secret",
+      "open_feedback_form": "Άνοιγμα φόρμας σχολίων",
+      "enter_your_feedback": "Εισαγάγετε τα σχόλιά σας"
     }
   }
 }

@@ -10,6 +10,7 @@
     "build:schemas:stats": "ruby -I ../rhales/lib -r rake -e \"load 'Rakefile'; Rake.application.run\" -- rhales:schema:stats TEMPLATES_DIR=./apps/web/core/templates",
     "build:schemas:validate": "ruby -I ../rhales/lib -r rake -e \"load 'Rakefile'; Rake.application.run\" -- rhales:schema:validate OUTPUT_DIR=./public/schemas",
     "clean": "rimraf public/web/dist",
+    "i18n:generate-types": "tsx src/scripts/locales/generate-i18n-types.ts",
     "openapi:generate": "tsx src/scripts/openapi/generate-all-specs.ts",
     "openapi:generate:all": "tsx src/scripts/openapi/generate-all-specs.ts",
     "openapi:generate:v3": "tsx src/scripts/openapi/generate-v3-spec.ts",

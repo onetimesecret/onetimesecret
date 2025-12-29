@@ -1,13 +1,13 @@
 {
   "web": {
     "colonel": {
-      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
-      "customer-verified-verified-not-verified-0": "`+customer.verified ? `zweryfikowany` : `niezweryfikowany`",
-      "customers-details-counts-recent_customer_count-o-0": "Klienci ({0} z {1})",
-      "user-feedback-total-details-counts-feedback_coun-0": "Opinie użytkowników (Łącznie: {0})",
-      "metadata-secrets-details-counts-metadata_count-d-0": "Metadane / Wiadomości: {0}/{1} (łącznie {2}/{3}/{4})",
-      "secrets-details-counts-secret_count-0": "Wiadomości ({0})",
-      "active-in-the-past-5-minutes-0": "(aktywny w ciągu ostatnich 5 minut)",
+      "customer_secrets_created_customer_secrets_shared_0": "{0}/{1}/{2} [{3}]",
+      "customer_verified_verified_not_verified_0": "`+customer.verified ? `zweryfikowany` : `niezweryfikowany`",
+      "customers_details_counts_recent_customer_count_o_0": "Klienci ({0} z {1})",
+      "user_feedback_total_details_counts_feedback_coun_0": "Opinie użytkowników (Łącznie: {0})",
+      "metadata_secrets_details_counts_metadata_count_d_0": "Metadane / Wiadomości: {0}/{1} (łącznie {2}/{3}/{4})",
+      "secrets_details_counts_secret_count_0": "Wiadomości ({0})",
+      "active_in_the_past_5_minutes_0": "(aktywny w ciągu ostatnich 5 minut)",
       "configEditorTitle": "Ustawienia",
       "configEditorDescription": "Edytuj ustawienia konfiguracji systemowej. Zmiany są stosowane natychmiast po zapisaniu.",
       "invalidJson": "Nieprawidłowy JSON w sekcji {section}",
@@ -75,9 +75,9 @@
       "test-error-triggered-via-feedback": "Błąd testowy wywołany przez opinię"
     },
     "feedback": {
-      "when-you-submit-feedback-well-see": "Gdy prześlesz opinię, zobaczymy:",
-      "send-feedback": "Wyślij opinię",
-      "sending-ellipses": "Wysyłanie..."
+      "when_you_submit_feedback_well_see": "Gdy prześlesz opinię, zobaczymy:",
+      "send_feedback": "Wyślij opinię",
+      "sending_ellipses": "Wysyłanie..."
     }
   }
 }

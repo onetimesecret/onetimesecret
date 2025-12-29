@@ -95,10 +95,11 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key: string) => {
       const translations: Record<string, string> = {
-        'domain-added-successfully': 'Domain added successfully',
-        'domain-removed-successfully': 'Domain removed successfully',
-        'failed-to-add-domain': 'Failed to add domain',
-        'domain-verification-initiated-successfully': 'Domain verification initiated successfully',
+        'web.domains.domain_added_successfully': 'Domain added successfully',
+        'web.domains.domain_claimed_successfully': 'Domain claimed successfully',
+        'web.domains.domain_removed_successfully': 'Domain removed successfully',
+        'web.domains.failed_to_add_domain': 'Failed to add domain',
+        'web.domains.domain_verification_initiated_successfully': 'Domain verification initiated successfully',
       };
       return translations[key] || key;
     },
@@ -208,7 +209,7 @@ describe('useDomainsManager', () => {
 
         expect(mockDependencies.domainsStore.deleteDomain).toHaveBeenCalledWith('domain-1');
         expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
-          'web.domains.domain-removed-successfully',
+          'Domain removed successfully',
           'success'
         );
       });
@@ -269,7 +270,7 @@ describe('useDomainsManager', () => {
       await handleAddDomain('test-domain.com');
 
       expect(error.value).toMatchObject({
-        message: 'web.domains.failed-to-add-domain',
+        message: 'Failed to add domain',
         type: 'human',
         severity: 'error',
       });

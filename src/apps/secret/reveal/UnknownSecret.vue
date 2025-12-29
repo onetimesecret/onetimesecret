@@ -28,7 +28,7 @@ const { t } = useI18n();
           <div class="flex flex-col items-center">
             <router-link
               to="/"
-              :aria-label="t('web.layout.return-to-home')">
+              :aria-label="t('web.layout.return_to_home')">
               <svg
                 class="mx-auto mb-4 size-20 text-brand-500"
                 width="60"
@@ -38,7 +38,7 @@ const { t } = useI18n();
                 xmlns="http://www.w3.org/2000/svg"
                 role="img"
                 aria-labelledby="secret-not-available-icon-title">
-                <title id="secret-not-available-icon-title">{{ t("web.secrets.that-information-is-no-longer-available") }}</title>
+                <title id="secret-not-available-icon-title">{{ t("web.secrets.that_information_is_no_longer_available") }}</title>
                 <path
                   d="M10 14L12 12M12 12L14 10M12 12L10 10M12 12L14 14M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
                   stroke="currentColor"
@@ -49,7 +49,7 @@ const { t } = useI18n();
             </router-link>
 
             <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
-              {{ t("web.secrets.that-information-is-no-longer-available") }}
+              {{ t("web.secrets.that_information_is_no_longer_available") }}
             </h1>
           </div>
 
@@ -99,8 +99,8 @@ const { t } = useI18n();
             color: 'var(--color-brand-500)',
             borderColor: 'var(--color-brand-500)',
           }"
-          :aria-label="t('web.layout.return-to-home-page')">
-          {{ t('web.layout.return-to-home') }}
+          :aria-label="t('web.layout.return_to_home_page')">
+          {{ t('web.layout.return_to_home') }}
         </router-link>
 
         <router-link
@@ -114,8 +114,8 @@ const { t } = useI18n();
             'px-6 py-3 font-brand text-lg hover:border-brand-600 dark:hover:border-brand-400',
             'w-full text-center sm:w-auto'
           ]"
-          :aria-label="t('web.secrets.create-a-secret')">
-          {{ t('web.secrets.create-a-secret') }}
+          :aria-label="t('web.secrets.create_a_secret')">
+          {{ t('web.secrets.create_a_secret') }}
         </router-link>
       </div>
     </template>
