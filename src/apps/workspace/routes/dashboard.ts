@@ -1,7 +1,7 @@
 // src/apps/workspace/routes/dashboard.ts
 
-import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
 import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
+import WorkspaceFooter from '@/apps/workspace/components/layout/WorkspaceFooter.vue';
 import ImprovedLayout from '@/shared/layouts/ManagementLayout.vue';
 import DashboardMain from '@/apps/workspace/dashboard/DashboardMain.vue';
 import DashboardRecent from '@/apps/workspace/dashboard/DashboardRecent.vue';
@@ -14,7 +14,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: DashboardMain,
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.dashboard',
@@ -37,7 +37,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: DashboardRecent,
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.recent',
@@ -59,7 +59,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/domains/DomainsList.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.domains',
@@ -78,7 +78,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/domains/DomainAdd.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.domain_add',
@@ -97,7 +97,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/domains/DomainVerify.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.domain_verify',
@@ -115,7 +115,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/domains/DomainBrand.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.domain_brand',

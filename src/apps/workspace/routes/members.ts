@@ -4,8 +4,8 @@
  * Routes for organization member management
  */
 
-import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
 import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
+import WorkspaceFooter from '@/apps/workspace/components/layout/WorkspaceFooter.vue';
 import ImprovedLayout from '@/shared/layouts/ManagementLayout.vue';
 import { RouteRecordRaw } from 'vue-router';
 
@@ -16,7 +16,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/members/MembersList.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.organizations.members.title',

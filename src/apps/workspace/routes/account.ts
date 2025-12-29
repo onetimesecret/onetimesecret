@@ -1,10 +1,10 @@
 // src/apps/workspace/routes/account.ts
 
 import {
-  ImprovedFooter,
   ImprovedHeader,
   ImprovedLayout,
   standardLayoutProps,
+  WorkspaceFooter,
 } from '@/router/layout.config';
 import { RouteRecordRaw } from 'vue-router';
 
@@ -15,7 +15,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/settings/ProfileSettings.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.account',
@@ -30,7 +30,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/DataRegion.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.data_region',
@@ -45,7 +45,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/region/CurrentRegion.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.current_region',
@@ -60,7 +60,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/region/AvailableRegions.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.available_regions',
@@ -75,7 +75,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/region/WhyItMatters.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.why_data_sovereignty',
@@ -98,7 +98,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/settings/ProfileSettings.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.preferences_settings',
@@ -113,7 +113,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/settings/PrivacySettings.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.privacy_settings',
@@ -128,7 +128,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/settings/NotificationSettings.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.notification_settings',
@@ -143,7 +143,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/settings/ChangeEmail.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.change_email',
@@ -158,7 +158,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/settings/SecurityOverview.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.security_overview',
@@ -173,7 +173,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/ChangePassword.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.change_password',
@@ -188,7 +188,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/MfaSettings.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.mfa_settings',
@@ -203,7 +203,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/ActiveSessions.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.active_sessions',
@@ -218,7 +218,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/RecoveryCodes.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.recovery_codes',
@@ -233,7 +233,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/settings/ApiSettings.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.api_settings',
@@ -248,7 +248,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/settings/CautionZone.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.advanced_settings',

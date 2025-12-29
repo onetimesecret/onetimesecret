@@ -5,6 +5,7 @@
 
 import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
 import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
+import WorkspaceFooter from '@/apps/workspace/components/layout/WorkspaceFooter.vue';
 import ImprovedLayout from '@/shared/layouts/ManagementLayout.vue';
 
 /**
@@ -15,7 +16,7 @@ export const standardLayoutProps = {
   displayMasthead: true,
   displayNavigation: true,
   displayFooterLinks: true,
-  displayFeedback: true,
+  displayFeedback: false,
   displayPoweredBy: false,
   displayVersion: true,
   showSidebar: false,
@@ -30,6 +31,15 @@ export const improvedLayoutComponents = {
 } as const;
 
 /**
+ * Workspace components configuration for authenticated workspace routes.
+ * Uses simplified WorkspaceFooter with standard SaaS links.
+ */
+export const workspaceLayoutComponents = {
+  header: ImprovedHeader,
+  footer: WorkspaceFooter,
+} as const;
+
+/**
  * Standard meta configuration for authenticated routes.
  */
 export const improvedLayoutMeta = {
@@ -37,4 +47,4 @@ export const improvedLayoutMeta = {
   layoutProps: standardLayoutProps,
 } as const;
 
-export { ImprovedFooter, ImprovedHeader, ImprovedLayout };
+export { ImprovedFooter, ImprovedHeader, ImprovedLayout, WorkspaceFooter };

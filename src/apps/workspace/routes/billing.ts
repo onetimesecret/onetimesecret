@@ -1,10 +1,10 @@
 // src/apps/workspace/routes/billing.ts
 
 import {
-  ImprovedFooter,
   ImprovedHeader,
   ImprovedLayout,
   standardLayoutProps,
+  WorkspaceFooter,
 } from '@/router/layout.config';
 import { WindowService } from '@/services/window.service';
 import { RouteRecordRaw } from 'vue-router';
@@ -36,7 +36,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/billing/BillingOverview.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.billing.overview.title',
@@ -52,7 +52,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/settings/OrganizationsSettings.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.organizations_settings',
@@ -68,7 +68,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/account/settings/OrganizationSettings.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.TITLES.organization_settings',
@@ -84,7 +84,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/billing/PlanSelector.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.billing.plans.title',
@@ -100,7 +100,7 @@ const routes: Array<RouteRecordRaw> = [
     components: {
       default: () => import('@/apps/workspace/billing/InvoiceList.vue'),
       header: ImprovedHeader,
-      footer: ImprovedFooter,
+      footer: WorkspaceFooter,
     },
     meta: {
       title: 'web.billing.invoices.title',
