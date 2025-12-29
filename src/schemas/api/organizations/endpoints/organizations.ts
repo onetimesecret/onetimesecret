@@ -47,7 +47,7 @@ export type DeleteResponse = z.infer<typeof deleteResponseSchema>;
 
 /**
  * Members list response
- * GET /api/v2/org/:extid/members
+ * GET /api/organizations/:extid/members
  */
 export const membersResponseSchema = z.object({
   records: z.array(organizationMemberSchema),
@@ -58,7 +58,7 @@ export type MembersResponse = z.infer<typeof membersResponseSchema>;
 
 /**
  * Single member response
- * PATCH /api/v2/org/:extid/members/:member_extid
+ * PATCH /api/organizations/:extid/members/:member_extid/role
  */
 export const memberResponseSchema = z.object({
   record: organizationMemberSchema,
@@ -68,7 +68,7 @@ export type MemberResponse = z.infer<typeof memberResponseSchema>;
 
 /**
  * Member delete response
- * DELETE /api/v2/org/:extid/members/:member_extid
+ * DELETE /api/organizations/:extid/members/:member_extid
  */
 export const memberDeleteResponseSchema = z.object({
   deleted: z.boolean(),

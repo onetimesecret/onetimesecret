@@ -72,7 +72,7 @@ export const useMembersStore = defineStore('members', () => {
     loading.value = true;
 
     try {
-      const response = await $api.get(`/api/v2/org/${orgExtid}/members`, {
+      const response = await $api.get(`/api/organizations/${orgExtid}/members`, {
         signal: abortController.value.signal,
       });
 
@@ -101,7 +101,7 @@ export const useMembersStore = defineStore('members', () => {
       const validated = updateMemberRolePayloadSchema.parse(payload);
 
       const response = await $api.patch(
-        `/api/v2/org/${orgExtid}/members/${memberExtid}`,
+        `/api/organizations/${orgExtid}/members/${memberExtid}/role`,
         validated
       );
 
@@ -127,7 +127,7 @@ export const useMembersStore = defineStore('members', () => {
 
     try {
       const response = await $api.delete(
-        `/api/v2/org/${orgExtid}/members/${memberExtid}`
+        `/api/organizations/${orgExtid}/members/${memberExtid}`
       );
 
       memberDeleteResponseSchema.parse(response.data);

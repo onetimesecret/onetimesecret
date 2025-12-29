@@ -298,5 +298,12 @@ last_response.status >= 400
 # =============================================================================
 
 # Cleanup test data
-@org.destroy! rescue nil
-[@owner, @admin, @member, @member2, @outsider].each { |c| c.destroy! rescue nil }
+begin
+  [@admin_invitation, @member_invitation, @member2_invitation].each do |invite|
+    invite&.destroy_with_index_cleanup! if invite&.respond_to?(:destroy_with_index_cleanup!)
+  end
+  @org&.destroy!
+  [@owner, @admin, @member, @member2, @outsider].each { |c| c&.destroy! }
+rescue => e
+  # Ignore cleanup errors in teardown
+end
