@@ -250,7 +250,9 @@ module Onetime
 
       # Remove from org's pending set before destroying
       organization&.pending_invitations&.remove(objid)
-      destroy!
+
+      # Use destroy_with_index_cleanup! to prevent orphaned Redis index entries
+      destroy_with_index_cleanup!
     end
 
     # Destroy the membership with proper index cleanup
@@ -378,19 +380,23 @@ module Onetime
 
       # Find active memberships for an organization
       #
-      # Iterates through organization members and loads their membership records.
-      # Uses find_by_org_customer for reliable lookups via the composite index.
+      # Uses batch lookup via HMGET on the org_customer_lookup index,
+      # then bulk loads all memberships with load_multi.
       #
       # @param org [Organization] the organization to query
       # @return [Array<OrganizationMembership>] active memberships
       def active_for_org(org)
-        customers = org.list_members
-        return [] if customers.empty?
+        customer_objids = org.members.to_a
+        return [] if customer_objids.empty?
 
-        # Use the reliable find_by_org_customer lookup for each member
-        customers.filter_map do |customer|
-          find_by_org_customer(org.objid, customer.objid)
-        end.select(&:active?)
+        # Build composite keys for batch lookup: "org_objid:customer_objid"
+        composite_keys = customer_objids.map { |cust_objid| "#{org.objid}:#{cust_objid}" }
+
+        # Batch lookup via HMGET (single Redis call instead of N)
+        membership_objids = org_customer_lookup.values_at(*composite_keys).compact
+
+        # Bulk load all memberships (single MGET instead of N HGETALL)
+        load_multi(membership_objids).compact.select(&:active?)
       end
     end
   end

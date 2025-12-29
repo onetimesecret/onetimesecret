@@ -22,7 +22,7 @@ module OrganizationAPI::Logic
     class UpdateMemberRole < OrganizationAPI::Logic::Base
       VALID_ROLES = %w[member admin].freeze
 
-      attr_reader :organization, :target_member, :target_membership, :new_role
+      attr_reader :organization, :target_member, :target_membership, :new_role, :old_role
 
       def process_params
         @extid = params['extid']
@@ -47,9 +47,10 @@ module OrganizationAPI::Logic
       end
 
       def process
-        old_role = @target_membership.role
+        # Capture old role BEFORE updating (for audit log and response)
+        @old_role = @target_membership.role
 
-        OT.ld "[UpdateMemberRole] Changing role for #{@target_member.extid} from #{old_role} to #{@new_role}"
+        OT.ld "[UpdateMemberRole] Changing role for #{@target_member.extid} from #{@old_role} to #{@new_role}"
 
         @target_membership.role = @new_role
         @target_membership.updated_at = Familia.now.to_f
@@ -57,7 +58,7 @@ module OrganizationAPI::Logic
 
         # Audit log for role changes
         OT.info "[AUDIT] action=role_change actor=#{cust.extid} target=#{@target_member.extid} " \
-                "old_role=#{old_role} new_role=#{@new_role} colonel_override=#{cust.role?(:colonel)} " \
+                "old_role=#{@old_role} new_role=#{@new_role} colonel_override=#{cust.role?(:colonel)} " \
                 "org=#{@organization.extid} timestamp=#{Time.now.utc.iso8601}"
 
         success_data
@@ -71,7 +72,7 @@ module OrganizationAPI::Logic
             id: @target_member.extid,
             email: @target_member.email,
             role: @target_membership.role,
-            previous_role: params['role'] == @target_membership.role ? nil : params['role'],
+            previous_role: @old_role,
           },
         }
       end
