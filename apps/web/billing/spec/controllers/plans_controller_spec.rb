@@ -297,7 +297,9 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
 
       get '/billing/portal'
 
-      expect(last_response.status).to eq(401)
+      # Web endpoints redirect to signin instead of returning 401
+      # (API endpoints return 401 for JSON clients)
+      expect(last_response.status).to eq(302)
     end
 
     it 'creates default organization if customer has none', :vcr do
