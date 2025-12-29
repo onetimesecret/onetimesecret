@@ -4,7 +4,7 @@
       "title_received": "Đã nhận",
       "title_not_received": "Chưa nhận",
       "title_no_recent_secrets": "Không có bí mật nào ở đây cả",
-      "get-started-by-creating-your-first-secret": "Bắt đầu bằng cách tạo bí mật đầu tiên của bạn.",
+      "get_started_by_creating_your_first_secret": "Bắt đầu bằng cách tạo bí mật đầu tiên của bạn.",
       "fetch_error_title": "Không thể tải các nhóm",
       "fetch_error_description": "Đã xảy ra sự cố khi tải các nhóm của bạn. Vui lòng thử lại."
     }

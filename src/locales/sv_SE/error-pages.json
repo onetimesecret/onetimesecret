@@ -1,25 +1,25 @@
 {
   "web": {
     "errors": {
-      "why-is-this-secret-unavailable": "Varför är denna hemlighet otillgänglig?",
-      "secrets-are-designed-to-be-viewed-only-once": "Hemligheter är utformade för att endast ses en gång. Denna länk kan redan ha använts, gått ut eller raderats manuellt av avsändaren.",
-      "what-should-i-do-now": "Vad ska jag göra nu?",
-      "contact-the-person-who-sent-you-this-link": "Kontakta personen som skickade dig denna länk och be dem skapa en ny hemlighet. Låt dem veta att du inte kunde komma åt den ursprungliga informationen.",
-      "warning-dismissed": "Varning avfärdad",
-      "dismiss-truncation-warning": "Avfärda trunkeringsvarning",
-      "oops-the-page-you-are-looking-for-doesnt-exist-o": "Hoppsan! Sidan du letar efter finns inte eller har flyttats.",
-      "404-page-not-found-0": "404 - Sidan hittades inte",
-      "404-page-not-found": "404 - Sidan hittades inte",
-      "dismiss-warning": "Avfärda varning",
-      "dismiss-notification": "Avfärda avisering",
-      "if-youre-unsure-what-to-do-next-please-follow-up": "Om du är osäker på vad du ska göra härnäst, vänligen följ upp med personen som skickade dig denna länk för mer information.",
-      "information-shared-through-our-service-can-only-": "Information som delas via vår tjänst kan endast nås en gång. När den har visats raderas innehållet permanent från våra servrar för att säkerställa konfidentialitet. Detta tillvägagångssätt hjälper till att skydda dina känsliga data genom att begränsa dess exponering och förhindra obehörig åtkomst.",
-      "were-sorry-but-an-unexpected-error-occurred-whil": "Vi beklagar, men ett oväntat fel inträffade när din begäran behandlades. Vårt team har meddelats och vi arbetar på att åtgärda det.",
-      "t-web-common-oops-something-went-wrong": "{0} Något gick fel",
-      "go-share-a-secret": "Gå och dela en hemlighet!",
-      "the-page-youre-looking-for-doesnt-exist-or-has-b": "Sidan du letar efter finns inte eller har flyttats. Oroa dig inte, det händer de bästa av oss!",
-      "t-web-common-oops-404": "{0} 404",
-      "unable-to-load-data-due-to-data-format-issues-pl": "Kunde inte ladda data på grund av dataformatproblem. Försök igen senare."
+      "why_is_this_secret_unavailable": "Varför är denna hemlighet otillgänglig?",
+      "secrets_are_designed_to_be_viewed_only_once": "Hemligheter är utformade för att endast ses en gång. Denna länk kan redan ha använts, gått ut eller raderats manuellt av avsändaren.",
+      "what_should_i_do_now": "Vad ska jag göra nu?",
+      "contact_the_person_who_sent_you_this_link": "Kontakta personen som skickade dig denna länk och be dem skapa en ny hemlighet. Låt dem veta att du inte kunde komma åt den ursprungliga informationen.",
+      "warning_dismissed": "Varning avfärdad",
+      "dismiss_truncation_warning": "Avfärda trunkeringsvarning",
+      "oops_the_page_you_are_looking_for_doesnt_exist_o": "Hoppsan! Sidan du letar efter finns inte eller har flyttats.",
+      "404_page_not_found_0": "404 - Sidan hittades inte",
+      "404_page_not_found": "404 - Sidan hittades inte",
+      "dismiss_warning": "Avfärda varning",
+      "dismiss_notification": "Avfärda avisering",
+      "if_youre_unsure_what_to_do_next_please_follow_up": "Om du är osäker på vad du ska göra härnäst, vänligen följ upp med personen som skickade dig denna länk för mer information.",
+      "information_shared_through_our_service_can_only_": "Information som delas via vår tjänst kan endast nås en gång. När den har visats raderas innehållet permanent från våra servrar för att säkerställa konfidentialitet. Detta tillvägagångssätt hjälper till att skydda dina känsliga data genom att begränsa dess exponering och förhindra obehörig åtkomst.",
+      "were_sorry_but_an_unexpected_error_occurred_whil": "Vi beklagar, men ett oväntat fel inträffade när din begäran behandlades. Vårt team har meddelats och vi arbetar på att åtgärda det.",
+      "t_web_common_oops_something_went_wrong": "{0} Något gick fel",
+      "go_share_a_secret": "Gå och dela en hemlighet!",
+      "the_page_youre_looking_for_doesnt_exist_or_has_b": "Sidan du letar efter finns inte eller har flyttats. Oroa dig inte, det händer de bästa av oss!",
+      "t_web_common_oops_404": "{0} 404",
+      "unable_to_load_data_due_to_data_format_issues_pl": "Kunde inte ladda data på grund av dataformatproblem. Försök igen senare."
     }
   }
 }

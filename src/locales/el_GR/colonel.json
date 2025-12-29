@@ -1,13 +1,13 @@
 {
   "web": {
     "colonel": {
-      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
-      "customer-verified-verified-not-verified-0": "`+customer.verified ? `επαληθευμένο` : `μη επαληθευμένο`",
-      "customers-details-counts-recent_customer_count-o-0": "Πελάτες ({0} από {1})",
-      "user-feedback-total-details-counts-feedback_coun-0": "Σχόλια Χρηστών (Σύνολο: {0})",
-      "metadata-secrets-details-counts-metadata_count-d-0": "Μεταδεδομένα / Μυστικά: {0}/{1} ({2}/{3}/{4} σύνολο)",
-      "secrets-details-counts-secret_count-0": "Μυστικά ({0})",
-      "active-in-the-past-5-minutes-0": "(ενεργό τα τελευταία 5 λεπτά)",
+      "customer_secrets_created_customer_secrets_shared_0": "{0}/{1}/{2} [{3}]",
+      "customer_verified_verified_not_verified_0": "`+customer.verified ? `επαληθευμένο` : `μη επαληθευμένο`",
+      "customers_details_counts_recent_customer_count_o_0": "Πελάτες ({0} από {1})",
+      "user_feedback_total_details_counts_feedback_coun_0": "Σχόλια Χρηστών (Σύνολο: {0})",
+      "metadata_secrets_details_counts_metadata_count_d_0": "Μεταδεδομένα / Μυστικά: {0}/{1} ({2}/{3}/{4} σύνολο)",
+      "secrets_details_counts_secret_count_0": "Μυστικά ({0})",
+      "active_in_the_past_5_minutes_0": "(ενεργό τα τελευταία 5 λεπτά)",
       "configEditorTitle": "",
       "configEditorDescription": "",
       "invalidJson": "",
@@ -75,9 +75,9 @@
       "test-error-triggered-via-feedback": "Δοκιμαστικό σφάλμα που προκλήθηκε μέσω σχολίων"
     },
     "feedback": {
-      "when-you-submit-feedback-well-see": "Όταν υποβάλλετε σχόλια, θα δούμε:",
-      "send-feedback": "Αποστολή σχολίων",
-      "sending-ellipses": "Αποστολή..."
+      "when_you_submit_feedback_well_see": "Όταν υποβάλλετε σχόλια, θα δούμε:",
+      "send_feedback": "Αποστολή σχολίων",
+      "sending_ellipses": "Αποστολή..."
     }
   }
 }

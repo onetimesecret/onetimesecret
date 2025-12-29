@@ -4,7 +4,7 @@
       "title_received": "已接收",
       "title_not_received": "未接收",
       "title_no_recent_secrets": "无最近内容",
-      "get-started-by-creating-your-first-secret": "创建您的第一个内容来开始使用。",
+      "get_started_by_creating_your_first_secret": "创建您的第一个内容来开始使用。",
       "fetch_error_title": "无法加载团队",
       "fetch_error_description": "加载您的团队时出现问题。请重试。"
     }

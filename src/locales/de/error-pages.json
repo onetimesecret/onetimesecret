@@ -1,25 +1,25 @@
 {
   "web": {
     "errors": {
-      "why-is-this-secret-unavailable": "Warum ist dieses Geheimnis nicht verfügbar?",
-      "secrets-are-designed-to-be-viewed-only-once": "Geheimnisse sind so konzipiert, dass sie nur einmal angesehen werden können. Dieser Link wurde möglicherweise bereits aufgerufen, ist abgelaufen oder wurde vom Absender manuell gelöscht.",
-      "what-should-i-do-now": "Was soll ich jetzt tun?",
-      "contact-the-person-who-sent-you-this-link": "Kontaktiere die Person, die dir diesen Link gesendet hat, und bitte sie, ein neues Geheimnis zu erstellen. Lass sie wissen, dass du auf die ursprünglichen Informationen nicht zugreifen konntest.",
-      "warning-dismissed": "Warnung ausgeblendet",
-      "dismiss-truncation-warning": "Kürzungswarnung ausblenden",
-      "oops-the-page-you-are-looking-for-doesnt-exist-o": "Ups! Die gesuchte Seite existiert nicht oder wurde verschoben.",
-      "404-page-not-found-0": "404 - Seite nicht gefunden",
-      "404-page-not-found": "404 - Seite nicht gefunden",
-      "dismiss-warning": "Warnung ausblenden",
-      "dismiss-notification": "Benachrichtigung ausblenden",
-      "if-youre-unsure-what-to-do-next-please-follow-up": "Wenn du unsicher bist, was als Nächstes zu tun ist, wende dich bitte an die Person, die dir diesen Link gesendet hat, um weitere Informationen zu erhalten.",
-      "information-shared-through-our-service-can-only-": "Informationen, die über unseren Dienst geteilt werden, können nur einmal abgerufen werden. Nach dem Ansehen wird der Inhalt dauerhaft von unseren Servern gelöscht, um die Vertraulichkeit zu gewährleisten. Dieser Ansatz hilft, deine sensiblen Daten zu schützen, indem ihre Exposition begrenzt und unbefugter Zugriff verhindert wird.",
-      "were-sorry-but-an-unexpected-error-occurred-whil": "Es tut uns leid, aber bei der Verarbeitung deiner Anfrage ist ein unerwarteter Fehler aufgetreten. Unser Team wurde benachrichtigt und wir arbeiten daran, ihn zu beheben.",
-      "t-web-common-oops-something-went-wrong": "{0} Etwas ist schiefgelaufen",
-      "go-share-a-secret": "Geh ein Geheimnis teilen!",
-      "the-page-youre-looking-for-doesnt-exist-or-has-b": "Die gesuchte Seite existiert nicht oder wurde verschoben. Keine Sorge, das passiert den Besten!",
-      "t-web-common-oops-404": "{0} 404",
-      "unable-to-load-data-due-to-data-format-issues-pl": "Daten konnten aufgrund von Datenformatproblemen nicht geladen werden. Bitte versuche es später erneut."
+      "why_is_this_secret_unavailable": "Warum ist dieses Geheimnis nicht verfügbar?",
+      "secrets_are_designed_to_be_viewed_only_once": "Geheimnisse sind so konzipiert, dass sie nur einmal angesehen werden können. Dieser Link wurde möglicherweise bereits aufgerufen, ist abgelaufen oder wurde vom Absender manuell gelöscht.",
+      "what_should_i_do_now": "Was soll ich jetzt tun?",
+      "contact_the_person_who_sent_you_this_link": "Kontaktiere die Person, die dir diesen Link gesendet hat, und bitte sie, ein neues Geheimnis zu erstellen. Lass sie wissen, dass du auf die ursprünglichen Informationen nicht zugreifen konntest.",
+      "warning_dismissed": "Warnung ausgeblendet",
+      "dismiss_truncation_warning": "Kürzungswarnung ausblenden",
+      "oops_the_page_you_are_looking_for_doesnt_exist_o": "Ups! Die gesuchte Seite existiert nicht oder wurde verschoben.",
+      "404_page_not_found_0": "404 - Seite nicht gefunden",
+      "404_page_not_found": "404 - Seite nicht gefunden",
+      "dismiss_warning": "Warnung ausblenden",
+      "dismiss_notification": "Benachrichtigung ausblenden",
+      "if_youre_unsure_what_to_do_next_please_follow_up": "Wenn du unsicher bist, was als Nächstes zu tun ist, wende dich bitte an die Person, die dir diesen Link gesendet hat, um weitere Informationen zu erhalten.",
+      "information_shared_through_our_service_can_only_": "Informationen, die über unseren Dienst geteilt werden, können nur einmal abgerufen werden. Nach dem Ansehen wird der Inhalt dauerhaft von unseren Servern gelöscht, um die Vertraulichkeit zu gewährleisten. Dieser Ansatz hilft, deine sensiblen Daten zu schützen, indem ihre Exposition begrenzt und unbefugter Zugriff verhindert wird.",
+      "were_sorry_but_an_unexpected_error_occurred_whil": "Es tut uns leid, aber bei der Verarbeitung deiner Anfrage ist ein unerwarteter Fehler aufgetreten. Unser Team wurde benachrichtigt und wir arbeiten daran, ihn zu beheben.",
+      "t_web_common_oops_something_went_wrong": "{0} Etwas ist schiefgelaufen",
+      "go_share_a_secret": "Geh ein Geheimnis teilen!",
+      "the_page_youre_looking_for_doesnt_exist_or_has_b": "Die gesuchte Seite existiert nicht oder wurde verschoben. Keine Sorge, das passiert den Besten!",
+      "t_web_common_oops_404": "{0} 404",
+      "unable_to_load_data_due_to_data_format_issues_pl": "Daten konnten aufgrund von Datenformatproblemen nicht geladen werden. Bitte versuche es später erneut."
     }
   }
 }

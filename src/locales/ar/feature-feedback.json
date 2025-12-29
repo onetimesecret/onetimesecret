@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "ملاحظاتك",
-      "all-feedback-welcome": "نرحب بجميع الملاحظات!",
-      "help-us-improve": "ساعدنا على التحسين",
-      "close-feedback-modal": "إغلاق نافذة الملاحظات",
-      "share-your-feedback": "شارك ملاحظاتك",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "ملاحظاتك",
+      "all_feedback_welcome": "نرحب بجميع الملاحظات!",
+      "help_us_improve": "ساعدنا على التحسين",
+      "close_feedback_modal": "إغلاق نافذة الملاحظات",
+      "share_your_feedback": "شارك ملاحظاتك",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "يظهر محتوى المساعدة هنا.",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "شكراً لمساعدتك في تحسين Onetime Secret. هذا يعني الكثير.",
-      "weve-built-this-tool-to-help-you-share-sensitive": "لقد بنينا هذه الأداة لمساعدتك في مشاركة المعلومات الحساسة بشكل آمن، وتجاربك الواقعية حاسمة لتركيز جهودنا. إنها تساعدنا في معرفة ما يجب العمل عليه لاحقاً وكيفية جعل الخدمة أفضل للجميع.",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "مرحباً، شكراً لزيارتك صفحة الملاحظات الخاصة بنا. مدخلاتك ليست مرحباً بها فحسب - إنها حاسمة.",
-      "a-note-from-delano-founder-of-onetime-secret": "ملاحظة من Delano، مؤسس Onetime Secret",
-      "open-feedback-form": "فتح نموذج الملاحظات",
-      "enter-your-feedback": "أدخل ملاحظاتك"
+      "help_content_goes_here": "يظهر محتوى المساعدة هنا.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "شكراً لمساعدتك في تحسين Onetime Secret. هذا يعني الكثير.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "لقد بنينا هذه الأداة لمساعدتك في مشاركة المعلومات الحساسة بشكل آمن، وتجاربك الواقعية حاسمة لتركيز جهودنا. إنها تساعدنا في معرفة ما يجب العمل عليه لاحقاً وكيفية جعل الخدمة أفضل للجميع.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "مرحباً، شكراً لزيارتك صفحة الملاحظات الخاصة بنا. مدخلاتك ليست مرحباً بها فحسب - إنها حاسمة.",
+      "a_note_from_delano_founder_of_onetime_secret": "ملاحظة من Delano، مؤسس Onetime Secret",
+      "open_feedback_form": "فتح نموذج الملاحظات",
+      "enter_your_feedback": "أدخل ملاحظاتك"
     }
   }
 }

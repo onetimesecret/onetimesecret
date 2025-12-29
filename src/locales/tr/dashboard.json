@@ -4,7 +4,7 @@
       "title_received": "Alınan",
       "title_not_received": "Alınmayan",
       "title_no_recent_secrets": "Yeni gizli mesaj yok",
-      "get-started-by-creating-your-first-secret": "İlk gizli mesajınızı oluşturarak başlayın.",
+      "get_started_by_creating_your_first_secret": "İlk gizli mesajınızı oluşturarak başlayın.",
       "fetch_error_title": "Ekipler yüklenemedi",
       "fetch_error_description": "Ekipleriniz yüklenirken bir sorun oluştu. Lütfen tekrar deneyin."
     }

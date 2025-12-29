@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "Uw feedback",
-      "all-feedback-welcome": "Alle feedback welkom!",
-      "help-us-improve": "Help ons verbeteren",
-      "close-feedback-modal": "Feedbackvenster sluiten",
-      "share-your-feedback": "Deel uw feedback",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "Uw feedback",
+      "all_feedback_welcome": "Alle feedback welkom!",
+      "help_us_improve": "Help ons verbeteren",
+      "close_feedback_modal": "Feedbackvenster sluiten",
+      "share_your_feedback": "Deel uw feedback",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "Hulpinhoud komt hier.",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "Bedankt voor uw hulp bij het verbeteren van Onetime Secret. Het betekent veel voor ons.",
-      "weve-built-this-tool-to-help-you-share-sensitive": "We hebben deze tool gebouwd om u te helpen gevoelige informatie veilig te delen, en uw praktijkervaringen zijn cruciaal voor het richten van onze inspanningen. Het helpt ons te bepalen waaraan we vervolgens moeten werken en hoe we de service beter kunnen maken voor iedereen.",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Hallo, bedankt voor uw bezoek aan onze feedbackpagina. Uw input is niet alleen welkom - het is cruciaal.",
-      "a-note-from-delano-founder-of-onetime-secret": "Een bericht van Delano, oprichter van Onetime Secret",
-      "open-feedback-form": "Open feedbackformulier",
-      "enter-your-feedback": "Voer uw feedback in"
+      "help_content_goes_here": "Hulpinhoud komt hier.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "Bedankt voor uw hulp bij het verbeteren van Onetime Secret. Het betekent veel voor ons.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "We hebben deze tool gebouwd om u te helpen gevoelige informatie veilig te delen, en uw praktijkervaringen zijn cruciaal voor het richten van onze inspanningen. Het helpt ons te bepalen waaraan we vervolgens moeten werken en hoe we de service beter kunnen maken voor iedereen.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "Hallo, bedankt voor uw bezoek aan onze feedbackpagina. Uw input is niet alleen welkom - het is cruciaal.",
+      "a_note_from_delano_founder_of_onetime_secret": "Een bericht van Delano, oprichter van Onetime Secret",
+      "open_feedback_form": "Open feedbackformulier",
+      "enter_your_feedback": "Voer uw feedback in"
     }
   }
 }

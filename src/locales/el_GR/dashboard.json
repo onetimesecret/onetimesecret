@@ -4,7 +4,7 @@
       "title_received": "Ληφθέντα",
       "title_not_received": "Μη Ληφθέντα",
       "title_no_recent_secrets": "Δεν υπάρχουν πρόσφατα μυστικά",
-      "get-started-by-creating-your-first-secret": "Ξεκινήστε δημιουργώντας το πρώτο σας μυστικό.",
+      "get_started_by_creating_your_first_secret": "Ξεκινήστε δημιουργώντας το πρώτο σας μυστικό.",
       "fetch_error_title": "Αδυναμία φόρτωσης ομάδων",
       "fetch_error_description": "Παρουσιάστηκε πρόβλημα κατά τη φόρτωση των ομάδων σας. Παρακαλώ δοκιμάστε ξανά."
     }

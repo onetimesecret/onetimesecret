@@ -1,18 +1,18 @@
 {
   "web": {
     "testimonials": {
-      "ai-generated-testimonial": "AI-genererat omdöme",
-      "ai-generated-content-disclaimer": "AI-genererat innehåll för demonstration. Inte från en verklig person eller företag.",
-      "randomtestimonial-stars-5": "{0}/5",
-      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
-      "randomtestimonial-quote": "\"{0}\"",
-      "t-ai-generated-testimonial": "{0}:",
-      "what-leading-ai-says-about-us": "Vad ledande AI säger om oss",
-      "ai-generated-testimonials": "AI-genererade omdömen",
-      "this-quote-was-generated-by": "Detta citat genererades av",
-      "it-was-based-on-the-content-of-the-page-and-does": "Det baserades på innehållet på sidan och representerar inte en verklig person eller företag.",
-      "artificial-feedback": "Artificiell feedback",
-      "this-content-is-ai-generated-based-on-the-conten": "Detta innehåll är AI-genererat baserat på innehållet på denna sida och representerar inte en verklig person eller företag."
+      "ai_generated_testimonial": "AI-genererat omdöme",
+      "ai_generated_content_disclaimer": "AI-genererat innehåll för demonstration. Inte från en verklig person eller företag.",
+      "randomtestimonial_stars_5": "{0}/5",
+      "randomtestimonial_name_randomtestimonial_company": "- {0}, {1}",
+      "randomtestimonial_quote": "\"{0}\"",
+      "t_ai_generated_testimonial": "{0}:",
+      "what_leading_ai_says_about_us": "Vad ledande AI säger om oss",
+      "ai_generated_testimonials": "AI-genererade omdömen",
+      "this_quote_was_generated_by": "Detta citat genererades av",
+      "it_was_based_on_the_content_of_the_page_and_does": "Det baserades på innehållet på sidan och representerar inte en verklig person eller företag.",
+      "artificial_feedback": "Artificiell feedback",
+      "this_content_is_ai_generated_based_on_the_conten": "Detta innehåll är AI-genererat baserat på innehållet på denna sida och representerar inte en verklig person eller företag."
     }
   }
 }

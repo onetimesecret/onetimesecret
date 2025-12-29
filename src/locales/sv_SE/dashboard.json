@@ -4,7 +4,7 @@
       "title_received": "Mottagen",
       "title_not_received": "Ej mottagen",
       "title_no_recent_secrets": "Du har inte haft några hemligheter nyligen",
-      "get-started-by-creating-your-first-secret": "Kom igång genom att skapa din första hemlighet.",
+      "get_started_by_creating_your_first_secret": "Kom igång genom att skapa din första hemlighet.",
       "fetch_error_title": "Kunde inte ladda team",
       "fetch_error_description": "Det uppstod ett problem vid laddning av dina team. Försök igen."
     }

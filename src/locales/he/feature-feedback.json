@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "המשוב שלכם",
-      "all-feedback-welcome": "כל משוב מתקבל בברכה!",
-      "help-us-improve": "עזרו לנו להשתפר",
-      "close-feedback-modal": "סגירת חלון משוב",
-      "share-your-feedback": "שתפו את המשוב שלכם",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "המשוב שלכם",
+      "all_feedback_welcome": "כל משוב מתקבל בברכה!",
+      "help_us_improve": "עזרו לנו להשתפר",
+      "close_feedback_modal": "סגירת חלון משוב",
+      "share_your_feedback": "שתפו את המשוב שלכם",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "תוכן עזרה נמצא כאן.",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "תודה על העזרה ב-Onetime Secret להשתפר. זה אומר הרבה.",
-      "weve-built-this-tool-to-help-you-share-sensitive": "בנינו כלי זה כדי לעזור לכם לשתף מידע רגיש בצורה מאובטחת, והניסיון שלכם בעולם האמיתי חיוני למיקוד המאמצים שלנו. זה עוזר לנו להבין על מה לעבוד בהמשך וכיצד להפוך את השירות לטוב יותר עבור כולם.",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "היי, תודה שעצרתם בעמוד המשוב שלנו. הקלט שלכם לא רק מתקבל בברכה - הוא קריטי.",
-      "a-note-from-delano-founder-of-onetime-secret": "הערה מ-Delano, מייסד Onetime Secret",
-      "open-feedback-form": "פתיחת טופס משוב",
-      "enter-your-feedback": "הזינו את המשוב שלכם"
+      "help_content_goes_here": "תוכן עזרה נמצא כאן.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "תודה על העזרה ב-Onetime Secret להשתפר. זה אומר הרבה.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "בנינו כלי זה כדי לעזור לכם לשתף מידע רגיש בצורה מאובטחת, והניסיון שלכם בעולם האמיתי חיוני למיקוד המאמצים שלנו. זה עוזר לנו להבין על מה לעבוד בהמשך וכיצד להפוך את השירות לטוב יותר עבור כולם.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "היי, תודה שעצרתם בעמוד המשוב שלנו. הקלט שלכם לא רק מתקבל בברכה - הוא קריטי.",
+      "a_note_from_delano_founder_of_onetime_secret": "הערה מ-Delano, מייסד Onetime Secret",
+      "open_feedback_form": "פתיחת טופס משוב",
+      "enter_your_feedback": "הזינו את המשוב שלכם"
     }
   }
 }

@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "Вашата обратна връзка",
-      "all-feedback-welcome": "Всяка обратна връзка е добре дошла!",
-      "help-us-improve": "Помогнете ни да се подобрим",
-      "close-feedback-modal": "Затвори модалния прозорец за обратна връзка",
-      "share-your-feedback": "Споделете вашата обратна връзка",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "Вашата обратна връзка",
+      "all_feedback_welcome": "Всяка обратна връзка е добре дошла!",
+      "help_us_improve": "Помогнете ни да се подобрим",
+      "close_feedback_modal": "Затвори модалния прозорец за обратна връзка",
+      "share_your_feedback": "Споделете вашата обратна връзка",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "Съдържанието за помощ се поставя тук.",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "Благодарим ви за помощта в усъвършенстването на Onetime Secret. Това е важно за нас.",
-      "weve-built-this-tool-to-help-you-share-sensitive": "Създадохме този инструмент, за да ви помогнем да споделяте чувствителна информация сигурно, и вашите реални преживявания са важни за фокусирането на нашите усилия. Помага ни да определим по какво да работим по-нататък и как да усъвършенстваме услугата за всички.",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Здравейте, благодарим ви, че посетихте страницата ни за обратна връзка. Вашите мнения са не просто добре дошли, а са от съществено значение.",
-      "a-note-from-delano-founder-of-onetime-secret": "Бележка от Делано, основателят на Onetime Secret",
-      "open-feedback-form": "Отворете форма за обратна връзка",
-      "enter-your-feedback": "Въведете вашата обратна връзка"
+      "help_content_goes_here": "Съдържанието за помощ се поставя тук.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "Благодарим ви за помощта в усъвършенстването на Onetime Secret. Това е важно за нас.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "Създадохме този инструмент, за да ви помогнем да споделяте чувствителна информация сигурно, и вашите реални преживявания са важни за фокусирането на нашите усилия. Помага ни да определим по какво да работим по-нататък и как да усъвършенстваме услугата за всички.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "Здравейте, благодарим ви, че посетихте страницата ни за обратна връзка. Вашите мнения са не просто добре дошли, а са от съществено значение.",
+      "a_note_from_delano_founder_of_onetime_secret": "Бележка от Делано, основателят на Onetime Secret",
+      "open_feedback_form": "Отворете форма за обратна връзка",
+      "enter_your_feedback": "Въведете вашата обратна връзка"
     }
   }
 }

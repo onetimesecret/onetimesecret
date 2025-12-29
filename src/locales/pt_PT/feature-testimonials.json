@@ -1,18 +1,18 @@
 {
   "web": {
     "testimonials": {
-      "ai-generated-testimonial": "Testemunho Gerado por IA",
-      "ai-generated-content-disclaimer": "Conteúdo gerado por IA para demonstração. Não é de uma pessoa ou empresa real.",
-      "randomtestimonial-stars-5": "{0}/5",
-      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
-      "randomtestimonial-quote": "\"{0}\"",
-      "t-ai-generated-testimonial": "{0}:",
-      "what-leading-ai-says-about-us": "O que a IA líder diz sobre nós",
-      "ai-generated-testimonials": "Testemunhos Gerados por IA",
-      "this-quote-was-generated-by": "Esta citação foi gerada por",
-      "it-was-based-on-the-content-of-the-page-and-does": "Foi baseada no conteúdo da página e não representa uma pessoa ou empresa real.",
-      "artificial-feedback": "Feedback Artificial",
-      "this-content-is-ai-generated-based-on-the-conten": "Este conteúdo é gerado por IA com base no conteúdo desta página e não representa uma pessoa ou empresa real."
+      "ai_generated_testimonial": "Testemunho Gerado por IA",
+      "ai_generated_content_disclaimer": "Conteúdo gerado por IA para demonstração. Não é de uma pessoa ou empresa real.",
+      "randomtestimonial_stars_5": "{0}/5",
+      "randomtestimonial_name_randomtestimonial_company": "- {0}, {1}",
+      "randomtestimonial_quote": "\"{0}\"",
+      "t_ai_generated_testimonial": "{0}:",
+      "what_leading_ai_says_about_us": "O que a IA líder diz sobre nós",
+      "ai_generated_testimonials": "Testemunhos Gerados por IA",
+      "this_quote_was_generated_by": "Esta citação foi gerada por",
+      "it_was_based_on_the_content_of_the_page_and_does": "Foi baseada no conteúdo da página e não representa uma pessoa ou empresa real.",
+      "artificial_feedback": "Feedback Artificial",
+      "this_content_is_ai_generated_based_on_the_conten": "Este conteúdo é gerado por IA com base no conteúdo desta página e não representa uma pessoa ou empresa real."
     }
   }
 }

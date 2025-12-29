@@ -1,20 +1,20 @@
 {
   "web": {
     "feedback": {
-      "your-feedback": "Geri bildiriminiz",
-      "all-feedback-welcome": "Tüm geri bildirimlere açığız!",
-      "help-us-improve": "Geliştirmemize yardımcı olun",
-      "close-feedback-modal": "Geri bildirim penceresini kapat",
-      "share-your-feedback": "Geri bildiriminizi paylaşın",
-      "delano-mandelbaum": "Delano Mandelbaum",
+      "your_feedback": "Geri bildiriminiz",
+      "all_feedback_welcome": "Tüm geri bildirimlere açığız!",
+      "help_us_improve": "Geliştirmemize yardımcı olun",
+      "close_feedback_modal": "Geri bildirim penceresini kapat",
+      "share_your_feedback": "Geri bildiriminizi paylaşın",
+      "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
-      "help-content-goes-here": "Yardım içeriği buraya gelir.",
-      "thanks-for-helping-onetime-secret-improve-it-mea": "Onetime Secret'ı geliştirmeye yardımcı olduğunuz için teşekkürler. Bu çok şey ifade ediyor.",
-      "weve-built-this-tool-to-help-you-share-sensitive": "Hassas bilgileri güvenli bir şekilde paylaşmanıza yardımcı olmak için bu aracı oluşturduk ve gerçek dünya deneyimleriniz çabalarımızı odaklamak için çok önemlidir. Sırada ne üzerinde çalışacağımızı ve hizmeti herkes için nasıl daha iyi hale getireceğimizi anlamamıza yardımcı olur.",
-      "hey-there-thanks-for-stopping-by-our-feedback-pa": "Merhaba, geri bildirim sayfamıza uğradığınız için teşekkürler. Girdileriniz sadece hoş karşılanmakla kalmaz, aynı zamanda çok önemlidir.",
-      "a-note-from-delano-founder-of-onetime-secret": "Onetime Secret'ın kurucusu Delano'dan bir not",
-      "open-feedback-form": "Geri bildirim formunu aç",
-      "enter-your-feedback": "Geri bildiriminizi girin"
+      "help_content_goes_here": "Yardım içeriği buraya gelir.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "Onetime Secret'ı geliştirmeye yardımcı olduğunuz için teşekkürler. Bu çok şey ifade ediyor.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "Hassas bilgileri güvenli bir şekilde paylaşmanıza yardımcı olmak için bu aracı oluşturduk ve gerçek dünya deneyimleriniz çabalarımızı odaklamak için çok önemlidir. Sırada ne üzerinde çalışacağımızı ve hizmeti herkes için nasıl daha iyi hale getireceğimizi anlamamıza yardımcı olur.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "Merhaba, geri bildirim sayfamıza uğradığınız için teşekkürler. Girdileriniz sadece hoş karşılanmakla kalmaz, aynı zamanda çok önemlidir.",
+      "a_note_from_delano_founder_of_onetime_secret": "Onetime Secret'ın kurucusu Delano'dan bir not",
+      "open_feedback_form": "Geri bildirim formunu aç",
+      "enter_your_feedback": "Geri bildiriminizi girin"
     }
   }
 }

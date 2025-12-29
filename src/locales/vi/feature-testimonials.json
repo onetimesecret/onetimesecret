@@ -1,18 +1,18 @@
 {
   "web": {
     "testimonials": {
-      "ai-generated-testimonial": "Đánh giá do AI tạo",
-      "ai-generated-content-disclaimer": "Nội dung do AI tạo ra để trình diễn. \nKhông phải từ một người hoặc công ty thực tế.",
-      "randomtestimonial-stars-5": "{0}/5",
-      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
-      "randomtestimonial-quote": "\"{0}\"",
-      "t-ai-generated-testimonial": "{0}:",
-      "what-leading-ai-says-about-us": "AI hàng đầu nói gì về chúng tôi",
-      "ai-generated-testimonials": "Đánh giá do AI tạo",
-      "this-quote-was-generated-by": "Trích dẫn này được tạo bởi",
-      "it-was-based-on-the-content-of-the-page-and-does": "Nó dựa trên nội dung của trang và không đại diện cho một người hoặc công ty thực tế.",
-      "artificial-feedback": "Phản hồi nhân tạo",
-      "this-content-is-ai-generated-based-on-the-conten": "Nội dung này do AI tạo dựa trên nội dung của trang này và không đại diện cho một người hoặc công ty thực tế."
+      "ai_generated_testimonial": "Đánh giá do AI tạo",
+      "ai_generated_content_disclaimer": "Nội dung do AI tạo ra để trình diễn. \nKhông phải từ một người hoặc công ty thực tế.",
+      "randomtestimonial_stars_5": "{0}/5",
+      "randomtestimonial_name_randomtestimonial_company": "- {0}, {1}",
+      "randomtestimonial_quote": "\"{0}\"",
+      "t_ai_generated_testimonial": "{0}:",
+      "what_leading_ai_says_about_us": "AI hàng đầu nói gì về chúng tôi",
+      "ai_generated_testimonials": "Đánh giá do AI tạo",
+      "this_quote_was_generated_by": "Trích dẫn này được tạo bởi",
+      "it_was_based_on_the_content_of_the_page_and_does": "Nó dựa trên nội dung của trang và không đại diện cho một người hoặc công ty thực tế.",
+      "artificial_feedback": "Phản hồi nhân tạo",
+      "this_content_is_ai_generated_based_on_the_conten": "Nội dung này do AI tạo dựa trên nội dung của trang này và không đại diện cho một người hoặc công ty thực tế."
     }
   }
 }

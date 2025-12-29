@@ -1,18 +1,18 @@
 {
   "web": {
     "testimonials": {
-      "ai-generated-testimonial": "Testimonianza generata dall'intelligenza artificiale",
-      "ai-generated-content-disclaimer": "Contenuto generato dall'intelligenza artificiale a scopo dimostrativo. Non di una persona o di un'azienda reale",
-      "randomtestimonial-stars-5": "{0}/5",
-      "randomtestimonial-name-randomtestimonial-company": "- {0}, {1}",
-      "randomtestimonial-quote": "\"{0}\"",
-      "t-ai-generated-testimonial": "{0}:",
-      "what-leading-ai-says-about-us": "Cosa dice di noi l'IA leader",
-      "ai-generated-testimonials": "Testimonianze generate dall'IA",
-      "this-quote-was-generated-by": "Questa citazione è stata generata da",
-      "it-was-based-on-the-content-of-the-page-and-does": "Si è basata sul contenuto della pagina e non rappresenta una persona o un'azienda reale",
-      "artificial-feedback": "Feedback artificiale",
-      "this-content-is-ai-generated-based-on-the-conten": "Questo contenuto è generato dall'IA in base al contenuto di questa pagina e non rappresenta una persona o un'azienda reale"
+      "ai_generated_testimonial": "Testimonianza generata dall'intelligenza artificiale",
+      "ai_generated_content_disclaimer": "Contenuto generato dall'intelligenza artificiale a scopo dimostrativo. Non di una persona o di un'azienda reale",
+      "randomtestimonial_stars_5": "{0}/5",
+      "randomtestimonial_name_randomtestimonial_company": "- {0}, {1}",
+      "randomtestimonial_quote": "\"{0}\"",
+      "t_ai_generated_testimonial": "{0}:",
+      "what_leading_ai_says_about_us": "Cosa dice di noi l'IA leader",
+      "ai_generated_testimonials": "Testimonianze generate dall'IA",
+      "this_quote_was_generated_by": "Questa citazione è stata generata da",
+      "it_was_based_on_the_content_of_the_page_and_does": "Si è basata sul contenuto della pagina e non rappresenta una persona o un'azienda reale",
+      "artificial_feedback": "Feedback artificiale",
+      "this_content_is_ai_generated_based_on_the_conten": "Questo contenuto è generato dall'IA in base al contenuto di questa pagina e non rappresenta una persona o un'azienda reale"
     }
   }
 }

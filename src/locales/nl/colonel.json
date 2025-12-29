@@ -1,13 +1,13 @@
 {
   "web": {
     "colonel": {
-      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
-      "customer-verified-verified-not-verified-0": "`+customer.verified ? `geverifieerd` : `niet geverifieerd",
-      "customers-details-counts-recent_customer_count-o-0": "Klanten ({0} van {1})",
-      "user-feedback-total-details-counts-feedback_coun-0": "Gebruikersfeedback (Totaal: {0})",
-      "metadata-secrets-details-counts-metadata_count-d-0": "Metadata / Berichten: {0}/{1} ({2}/{3}/{4} totaal)",
-      "secrets-details-counts-secret_count-0": "Berichten ({0})",
-      "active-in-the-past-5-minutes-0": "(actief in de afgelopen 5 minuten)",
+      "customer_secrets_created_customer_secrets_shared_0": "{0}/{1}/{2} [{3}]",
+      "customer_verified_verified_not_verified_0": "`+customer.verified ? `geverifieerd` : `niet geverifieerd",
+      "customers_details_counts_recent_customer_count_o_0": "Klanten ({0} van {1})",
+      "user_feedback_total_details_counts_feedback_coun_0": "Gebruikersfeedback (Totaal: {0})",
+      "metadata_secrets_details_counts_metadata_count_d_0": "Metadata / Berichten: {0}/{1} ({2}/{3}/{4} totaal)",
+      "secrets_details_counts_secret_count_0": "Berichten ({0})",
+      "active_in_the_past_5_minutes_0": "(actief in de afgelopen 5 minuten)",
       "configEditorTitle": "Instellingen",
       "configEditorDescription": "Bewerk systeemconfiguratie-instellingen. Wijzigingen worden direct toegepast na het opslaan.",
       "invalidJson": "Ongeldige JSON in sectie {section}",
@@ -75,9 +75,9 @@
       "test-error-triggered-via-feedback": "Testfout veroorzaakt via feedback"
     },
     "feedback": {
-      "when-you-submit-feedback-well-see": "Wanneer je feedback verstuurt, zien wij:",
-      "send-feedback": "Feedback versturen",
-      "sending-ellipses": "Versturen..."
+      "when_you_submit_feedback_well_see": "Wanneer je feedback verstuurt, zien wij:",
+      "send_feedback": "Feedback versturen",
+      "sending_ellipses": "Versturen..."
     }
   }
 }

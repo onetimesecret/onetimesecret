@@ -1,13 +1,13 @@
 {
   "web": {
     "colonel": {
-      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
-      "customer-verified-verified-not-verified-0": "+Kunde.verifiziert ? verifiziert\" : \"nicht verifiziert",
-      "customers-details-counts-recent_customer_count-o-0": "Kunden ({0} von {1})",
-      "user-feedback-total-details-counts-feedback_coun-0": "Benutzer-Rückmeldung (Insgesamt: {0})",
-      "metadata-secrets-details-counts-metadata_count-d-0": "Metadaten/Geheimnisse: {0}/{1} ({2}/{3}/{4} insgesamt)",
-      "secrets-details-counts-secret_count-0": "Geheimnisse ({0})",
-      "active-in-the-past-5-minutes-0": "(aktiv in den letzten 5 Minuten)",
+      "customer_secrets_created_customer_secrets_shared_0": "{0}/{1}/{2} [{3}]",
+      "customer_verified_verified_not_verified_0": "+Kunde.verifiziert ? verifiziert\" : \"nicht verifiziert",
+      "customers_details_counts_recent_customer_count_o_0": "Kunden ({0} von {1})",
+      "user_feedback_total_details_counts_feedback_coun_0": "Benutzer-Rückmeldung (Insgesamt: {0})",
+      "metadata_secrets_details_counts_metadata_count_d_0": "Metadaten/Geheimnisse: {0}/{1} ({2}/{3}/{4} insgesamt)",
+      "secrets_details_counts_secret_count_0": "Geheimnisse ({0})",
+      "active_in_the_past_5_minutes_0": "(aktiv in den letzten 5 Minuten)",
       "configEditorTitle": "Einstellungen",
       "configEditorDescription": "Systemkonfigurationseinstellungen bearbeiten. Änderungen werden sofort nach dem Speichern angewendet.",
       "invalidJson": "Ungültiges JSON im Abschnitt {section}",
@@ -75,9 +75,9 @@
       "test-error-triggered-via-feedback": "Testfehler ausgelöst durch Rückmeldung"
     },
     "feedback": {
-      "when-you-submit-feedback-well-see": "Wenn Sie ein Rückmeldung abgeben, werden wir es sehen:",
-      "send-feedback": "Rückmeldung senden",
-      "sending-ellipses": "Ich schicke..."
+      "when_you_submit_feedback_well_see": "Wenn Sie ein Rückmeldung abgeben, werden wir es sehen:",
+      "send_feedback": "Rückmeldung senden",
+      "sending_ellipses": "Ich schicke..."
     }
   }
 }

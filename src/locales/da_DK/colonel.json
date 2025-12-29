@@ -1,13 +1,13 @@
 {
   "web": {
     "colonel": {
-      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
-      "customer-verified-verified-not-verified-0": "`+kunde.verificeret ? `verificeret` : `ikke-verificeret",
-      "customers-details-counts-recent_customer_count-o-0": "Kunder ({0} af {1})",
-      "user-feedback-total-details-counts-feedback_coun-0": "Brugerfeedback (i alt: {0})",
-      "metadata-secrets-details-counts-metadata_count-d-0": "Metadata/hemmeligheder: {0}/{1} ({2}/{3}/{4} i alt)",
-      "secrets-details-counts-secret_count-0": "Hemmeligheder ({0})",
-      "active-in-the-past-5-minutes-0": "(aktiv i de sidste 5 minutter)",
+      "customer_secrets_created_customer_secrets_shared_0": "{0}/{1}/{2} [{3}]",
+      "customer_verified_verified_not_verified_0": "`+kunde.verificeret ? `verificeret` : `ikke-verificeret",
+      "customers_details_counts_recent_customer_count_o_0": "Kunder ({0} af {1})",
+      "user_feedback_total_details_counts_feedback_coun_0": "Brugerfeedback (i alt: {0})",
+      "metadata_secrets_details_counts_metadata_count_d_0": "Metadata/hemmeligheder: {0}/{1} ({2}/{3}/{4} i alt)",
+      "secrets_details_counts_secret_count_0": "Hemmeligheder ({0})",
+      "active_in_the_past_5_minutes_0": "(aktiv i de sidste 5 minutter)",
       "configEditorTitle": "",
       "configEditorDescription": "",
       "invalidJson": "",
@@ -75,9 +75,9 @@
       "test-error-triggered-via-feedback": "Testfejl udløst via feedback"
     },
     "feedback": {
-      "when-you-submit-feedback-well-see": "Når du sender feedback, vil vi se:",
-      "send-feedback": "Send feedback",
-      "sending-ellipses": "Sender ..."
+      "when_you_submit_feedback_well_see": "Når du sender feedback, vil vi se:",
+      "send_feedback": "Send feedback",
+      "sending_ellipses": "Sender ..."
     }
   }
 }

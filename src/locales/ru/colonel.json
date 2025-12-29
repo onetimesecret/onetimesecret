@@ -1,13 +1,13 @@
 {
   "web": {
     "colonel": {
-      "customer-secrets_created-customer-secrets_shared-0": "{0}/{1}/{2} [{3}]",
-      "customer-verified-verified-not-verified-0": "`+customer.verified ? `подтверждён` : `не подтверждён",
-      "customers-details-counts-recent_customer_count-o-0": "Пользователи ({0} из {1})",
-      "user-feedback-total-details-counts-feedback_coun-0": "Отзывы пользователей (всего: {0})",
-      "metadata-secrets-details-counts-metadata_count-d-0": "Метаданные / Секреты: {0}/{1} ({2}/{3}/{4} всего)",
-      "secrets-details-counts-secret_count-0": "Секреты ({0})",
-      "active-in-the-past-5-minutes-0": "(активны за последние 5 минут)",
+      "customer_secrets_created_customer_secrets_shared_0": "{0}/{1}/{2} [{3}]",
+      "customer_verified_verified_not_verified_0": "`+customer.verified ? `подтверждён` : `не подтверждён",
+      "customers_details_counts_recent_customer_count_o_0": "Пользователи ({0} из {1})",
+      "user_feedback_total_details_counts_feedback_coun_0": "Отзывы пользователей (всего: {0})",
+      "metadata_secrets_details_counts_metadata_count_d_0": "Метаданные / Секреты: {0}/{1} ({2}/{3}/{4} всего)",
+      "secrets_details_counts_secret_count_0": "Секреты ({0})",
+      "active_in_the_past_5_minutes_0": "(активны за последние 5 минут)",
       "configEditorTitle": "Настройки",
       "configEditorDescription": "Редактирование системных параметров. Изменения применяются сразу после сохранения.",
       "invalidJson": "Некорректный JSON в разделе {section}",
@@ -78,9 +78,9 @@
       "test-error-triggered-via-feedback": "Тестовая ошибка, вызванная через обратную связь"
     },
     "feedback": {
-      "when-you-submit-feedback-well-see": "Когда вы отправите отзыв, мы увидим:",
-      "send-feedback": "Отправить отзыв",
-      "sending-ellipses": "Отправка..."
+      "when_you_submit_feedback_well_see": "Когда вы отправите отзыв, мы увидим:",
+      "send_feedback": "Отправить отзыв",
+      "sending_ellipses": "Отправка..."
     }
   }
 }

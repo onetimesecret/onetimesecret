@@ -1,25 +1,25 @@
 {
   "web": {
     "errors": {
-      "why-is-this-secret-unavailable": "Why is this secret unavailable?",
-      "secrets-are-designed-to-be-viewed-only-once": "Secrets are designed to be viewed only once. This link may have already been accessed, expired, or been manually deleted by the sender.",
-      "what-should-i-do-now": "What should I do now?",
-      "contact-the-person-who-sent-you-this-link": "Contact the person who sent you this link and ask them to create a new secret. Let them know you weren't able to access the original information.",
-      "warning-dismissed": "Warning dismissed",
-      "dismiss-truncation-warning": "Dismiss truncation warning",
-      "oops-the-page-you-are-looking-for-doesnt-exist-o": "Oops! The page you are looking for doesn't exist or has been moved.",
-      "404-page-not-found-0": "404 - Page Not Found",
-      "404-page-not-found": "404 - Page Not Found",
-      "dismiss-warning": "Dismiss warning",
-      "dismiss-notification": "Dismiss notification",
-      "if-youre-unsure-what-to-do-next-please-follow-up": "If you're unsure what to do next, please follow up with the person who sent you this link for more information.",
-      "information-shared-through-our-service-can-only-": "Information shared through our service can only be accessed once. Once viewed, the content is permanently deleted from our servers to ensure confidentiality. This approach helps protect your sensitive data by limiting its exposure and preventing unauthorized access.",
-      "were-sorry-but-an-unexpected-error-occurred-whil": "We're sorry, but an unexpected error occurred while processing your request. Our team has been notified and we're working to fix it.",
-      "t-web-common-oops-something-went-wrong": "{0} Something went wrong",
-      "go-share-a-secret": "Go share a secret!",
-      "the-page-youre-looking-for-doesnt-exist-or-has-b": "The page you're looking for doesn't exist or has been moved. Don't worry, it happens to the best of us!",
-      "t-web-common-oops-404": "{0} 404",
-      "unable-to-load-data-due-to-data-format-issues-pl": "Unable to load data due to data format issues. Please try again later."
+      "why_is_this_secret_unavailable": "Why is this secret unavailable?",
+      "secrets_are_designed_to_be_viewed_only_once": "Secrets are designed to be viewed only once. This link may have already been accessed, expired, or been manually deleted by the sender.",
+      "what_should_i_do_now": "What should I do now?",
+      "contact_the_person_who_sent_you_this_link": "Contact the person who sent you this link and ask them to create a new secret. Let them know you weren't able to access the original information.",
+      "warning_dismissed": "Warning dismissed",
+      "dismiss_truncation_warning": "Dismiss truncation warning",
+      "oops_the_page_you_are_looking_for_doesnt_exist_o": "Oops! The page you are looking for doesn't exist or has been moved.",
+      "404_page_not_found_0": "404 - Page Not Found",
+      "404_page_not_found": "404 - Page Not Found",
+      "dismiss_warning": "Dismiss warning",
+      "dismiss_notification": "Dismiss notification",
+      "if_youre_unsure_what_to_do_next_please_follow_up": "If you're unsure what to do next, please follow up with the person who sent you this link for more information.",
+      "information_shared_through_our_service_can_only_": "Information shared through our service can only be accessed once. Once viewed, the content is permanently deleted from our servers to ensure confidentiality. This approach helps protect your sensitive data by limiting its exposure and preventing unauthorized access.",
+      "were_sorry_but_an_unexpected_error_occurred_whil": "We're sorry, but an unexpected error occurred while processing your request. Our team has been notified and we're working to fix it.",
+      "t_web_common_oops_something_went_wrong": "{0} Something went wrong",
+      "go_share_a_secret": "Go share a secret!",
+      "the_page_youre_looking_for_doesnt_exist_or_has_b": "The page you're looking for doesn't exist or has been moved. Don't worry, it happens to the best of us!",
+      "t_web_common_oops_404": "{0} 404",
+      "unable_to_load_data_due_to_data_format_issues_pl": "Unable to load data due to data format issues. Please try again later."
     }
   }
 }

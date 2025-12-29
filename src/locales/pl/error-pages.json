@@ -1,25 +1,25 @@
 {
   "web": {
     "errors": {
-      "why-is-this-secret-unavailable": "Dlaczego ta wiadomość jest niedostępna?",
-      "secrets-are-designed-to-be-viewed-only-once": "Wiadomości są zaprojektowane do jednorazowego wyświetlenia. Ten link mógł już zostać otwarty, wygasnąć lub zostać ręcznie usunięty przez nadawcę.",
-      "what-should-i-do-now": "Co powinienem teraz zrobić?",
-      "contact-the-person-who-sent-you-this-link": "Skontaktuj się z osobą, która wysłała Ci ten link i poproś o utworzenie nowej wiadomości. Poinformuj ją, że nie udało Ci się uzyskać dostępu do oryginalnej informacji.",
-      "warning-dismissed": "Ostrzeżenie odrzucone",
-      "dismiss-truncation-warning": "Odrzuć ostrzeżenie o obcięciu",
-      "oops-the-page-you-are-looking-for-doesnt-exist-o": "Ups! Strona, której szukasz, nie istnieje lub została przeniesiona.",
-      "404-page-not-found-0": "404 - Nie znaleziono strony",
-      "404-page-not-found": "404 - Nie znaleziono strony",
-      "dismiss-warning": "Odrzuć ostrzeżenie",
-      "dismiss-notification": "Odrzuć powiadomienie",
-      "if-youre-unsure-what-to-do-next-please-follow-up": "Jeśli nie jesteś pewien, co dalej zrobić, skontaktuj się z osobą, która wysłała Ci ten link, aby uzyskać więcej informacji.",
-      "information-shared-through-our-service-can-only-": "Informacje udostępniane za pośrednictwem naszej usługi można uzyskać tylko raz. Po wyświetleniu treść jest trwale usuwana z naszych serwerów w celu zapewnienia poufności. Takie podejście pomaga chronić Twoje wrażliwe dane, ograniczając ich ekspozycję i zapobiegając nieautoryzowanemu dostępowi.",
-      "were-sorry-but-an-unexpected-error-occurred-whil": "Przepraszamy, ale podczas przetwarzania Twojego żądania wystąpił nieoczekiwany błąd. Nasz zespół został powiadomiony i pracujemy nad jego naprawieniem.",
-      "t-web-common-oops-something-went-wrong": "{0} Coś poszło nie tak",
-      "go-share-a-secret": "Idź udostępnić wiadomość!",
-      "the-page-youre-looking-for-doesnt-exist-or-has-b": "Strona, której szukasz, nie istnieje lub została przeniesiona. Nie martw się, zdarza się najlepszym!",
-      "t-web-common-oops-404": "{0} 404",
-      "unable-to-load-data-due-to-data-format-issues-pl": "Nie można załadować danych z powodu problemów z formatem danych. Spróbuj ponownie później."
+      "why_is_this_secret_unavailable": "Dlaczego ta wiadomość jest niedostępna?",
+      "secrets_are_designed_to_be_viewed_only_once": "Wiadomości są zaprojektowane do jednorazowego wyświetlenia. Ten link mógł już zostać otwarty, wygasnąć lub zostać ręcznie usunięty przez nadawcę.",
+      "what_should_i_do_now": "Co powinienem teraz zrobić?",
+      "contact_the_person_who_sent_you_this_link": "Skontaktuj się z osobą, która wysłała Ci ten link i poproś o utworzenie nowej wiadomości. Poinformuj ją, że nie udało Ci się uzyskać dostępu do oryginalnej informacji.",
+      "warning_dismissed": "Ostrzeżenie odrzucone",
+      "dismiss_truncation_warning": "Odrzuć ostrzeżenie o obcięciu",
+      "oops_the_page_you_are_looking_for_doesnt_exist_o": "Ups! Strona, której szukasz, nie istnieje lub została przeniesiona.",
+      "404_page_not_found_0": "404 - Nie znaleziono strony",
+      "404_page_not_found": "404 - Nie znaleziono strony",
+      "dismiss_warning": "Odrzuć ostrzeżenie",
+      "dismiss_notification": "Odrzuć powiadomienie",
+      "if_youre_unsure_what_to_do_next_please_follow_up": "Jeśli nie jesteś pewien, co dalej zrobić, skontaktuj się z osobą, która wysłała Ci ten link, aby uzyskać więcej informacji.",
+      "information_shared_through_our_service_can_only_": "Informacje udostępniane za pośrednictwem naszej usługi można uzyskać tylko raz. Po wyświetleniu treść jest trwale usuwana z naszych serwerów w celu zapewnienia poufności. Takie podejście pomaga chronić Twoje wrażliwe dane, ograniczając ich ekspozycję i zapobiegając nieautoryzowanemu dostępowi.",
+      "were_sorry_but_an_unexpected_error_occurred_whil": "Przepraszamy, ale podczas przetwarzania Twojego żądania wystąpił nieoczekiwany błąd. Nasz zespół został powiadomiony i pracujemy nad jego naprawieniem.",
+      "t_web_common_oops_something_went_wrong": "{0} Coś poszło nie tak",
+      "go_share_a_secret": "Idź udostępnić wiadomość!",
+      "the_page_youre_looking_for_doesnt_exist_or_has_b": "Strona, której szukasz, nie istnieje lub została przeniesiona. Nie martw się, zdarza się najlepszym!",
+      "t_web_common_oops_404": "{0} 404",
+      "unable_to_load_data_due_to_data_format_issues_pl": "Nie można załadować danych z powodu problemów z formatem danych. Spróbuj ponownie później."
     }
   }
 }
