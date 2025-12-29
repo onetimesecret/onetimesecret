@@ -19,14 +19,14 @@ const { t } = useI18n();
     <nav
       v-if="showNav"
       class="flex flex-wrap justify-center gap-2 space-x-2"
-      :aria-label="t('footer-navigation')">
+      :aria-label="t('web.layout.footer-navigation')">
       <a
         :href="`https://${siteHost}`"
         class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
         rel="noopener noreferrer"
         target="_blank"
-        :aria-label="t('visit-onetime-secret-homepage')">
-        {{ t('powered-by-onetime-secret') }}
+        :aria-label="t('web.layout.visit-onetime-secret-homepage')">
+        {{ t('web.branding.powered-by-onetime-secret') }}
       </a>
 
       <template v-if="showTerms">
@@ -37,7 +37,7 @@ const { t } = useI18n();
         <router-link
           to="/info/terms"
           class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
-          :aria-label="t('view-terms-of-service')">
+          :aria-label="t('web.layout.view-terms-of-service')">
           {{ t('terms') }}
         </router-link>
         <span
@@ -47,7 +47,7 @@ const { t } = useI18n();
         <router-link
           to="/info/privacy"
           class="hover:underline focus:outline-none focus:ring-2 focus:ring-brand-500"
-          :aria-label="t('view-privacy-policy')">
+          :aria-label="t('web.layout.view-privacy-policy')">
           {{ t('privacy') }}
         </router-link>
       </template>
@@ -63,8 +63,8 @@ const { t } = useI18n();
           dark:text-gray-600 dark:hover:text-gray-500"
         rel="noopener noreferrer"
         target="_blank"
-        :aria-label="t('visit-onetime-secret-homepage')">
-        {{ t('powered-by-onetime-secret') }}
+        :aria-label="t('web.layout.visit-onetime-secret-homepage')">
+        {{ t('web.branding.powered-by-onetime-secret') }}
       </a>
     </div>
   </footer>

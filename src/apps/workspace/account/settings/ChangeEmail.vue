@@ -213,7 +213,7 @@
                   type="button"
                   @click="togglePasswordVisibility"
                   class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  :aria-label="showPassword ? t('hide-password') : t('show-password')">
+                  :aria-label="showPassword ? t('web.COMMON.hide-password') : t('web.COMMON.show-password')">
                   <OIcon
                     collection="heroicons"
                     :name="showPassword ? 'eye-slash-solid' : 'eye-solid'"

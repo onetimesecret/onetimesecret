@@ -39,7 +39,7 @@ const currentTestimonial = computed(() => testimonials[currentIndex.value]);
               stroke-width="2"
               d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
           </svg>
-          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('artificial-feedback') }}</span>
+          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ t('web.testimonials.artificial-feedback') }}</span>
         </div>
         <blockquote class="mb-4 text-lg font-medium italic text-gray-900 dark:text-white sm:text-xl">
           "{{ currentTestimonial.quote }}"
@@ -71,19 +71,19 @@ const currentTestimonial = computed(() => testimonials[currentIndex.value]);
       </div>
       <div class="bg-gray-100 px-6 py-3 dark:bg-gray-700">
         <p class="text-xs text-gray-500 dark:text-gray-400">
-          {{ t('note') }}: {{ t('this-content-is-ai-generated-based-on-the-conten') }}
+          {{ t('web.COMMON.note') }}: {{ t('web.testimonials.this-content-is-ai-generated-based-on-the-conten') }}
         </p>
       </div>
       <div class="flex justify-between px-6 py-3">
         <button
           @click="previousTestimonial"
           class="text-sm font-medium text-gray-500 dark:text-gray-400">
-          {{ t('previous') }}
+          {{ t('web.COMMON.previous') }}
         </button>
         <button
           @click="nextTestimonial"
           class="text-sm font-medium text-gray-500 dark:text-gray-400">
-          {{ t('next') }}
+          {{ t('web.COMMON.next') }}
         </button>
       </div>
     </div>

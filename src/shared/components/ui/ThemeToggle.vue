@@ -25,8 +25,8 @@
     liveRegion.setAttribute('aria-live', 'polite');
     liveRegion.className = 'sr-only';
     liveRegion.textContent = isDarkMode.value
-      ? t('blank-mode-enabled', ['dark'])
-      : t('blank-mode-enabled', ['light']);
+      ? t('web.layout.blank-mode-enabled', ['dark'])
+      : t('web.layout.blank-mode-enabled', ['light']);
 
     document.body.appendChild(liveRegion);
     setTimeout(() => document.body.removeChild(liveRegion), 1000);
@@ -39,7 +39,7 @@
 <template>
   <button
     @click="handleToggle"
-    :aria-label="t('toggle-dark-mode')"
+    :aria-label="t('web.layout.toggle-dark-mode')"
     :aria-pressed="isDarkMode"
     class="inline-flex size-10 items-center
           justify-center rounded-md bg-inherit p-1
@@ -49,7 +49,7 @@
           focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-white
           dark:text-gray-100 dark:ring-offset-gray-900 dark:hover:bg-gray-700
           dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900"
-    :title="isDarkMode ? t('switch-to-blank-mode', ['light']) : t('switch-to-blank-mode', ['dark'])"
+    :title="isDarkMode ? t('web.layout.switch-to-blank-mode', ['light']) : t('web.layout.switch-to-blank-mode', ['dark'])"
     @keydown.enter="handleToggle"
     @keydown.space.prevent="handleToggle">
     <!-- Moon icon -->

@@ -79,7 +79,7 @@ const sections: NavigationItem[] = [
   {
     to: '/account/settings/api',
     icon: { collection: 'heroicons', name: 'code-bracket' },
-    label: t('api-key'),
+    label: t('web.account.api-key'),
     description: t('web.settings.api.manage_api_keys'),
   },
   {
@@ -96,7 +96,7 @@ const sections: NavigationItem[] = [
       {
         to: '/account/region/available',
         icon: { collection: 'heroicons', name: 'globe-americas-solid' },
-        label: t('available-regions'),
+        label: t('web.regions.available-regions'),
       },
       {
         to: '/account/region/why',
@@ -133,7 +133,7 @@ const isParentActive = (item: NavigationItem): boolean => {
         <router-link
           to="/account"
           class="hover:text-gray-700 dark:hover:text-gray-200">
-          {{ t('your-account') }}
+          {{ t('web.account.your-account') }}
         </router-link>
         <OIcon
           collection="heroicons"

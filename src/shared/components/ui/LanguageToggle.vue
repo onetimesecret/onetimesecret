@@ -31,7 +31,7 @@
   const isMenuOpen = ref(false);
   const menuItems = ref<HTMLElement[]>([]);
 
-  const ariaLabel = computed(() => t('current-language-is-currentlocal', [currentLocaleName.value]));
+  const ariaLabel = computed(() => t('web.layout.current-language-is-currentlocal', [currentLocaleName.value]));
   const dropdownMode = computed(() => (props.compact ? 'icon' : 'dropdown'));
   const dropdownId = `lang-dropdown-${Math.random().toString(36).slice(2, 11)}`;
 
@@ -68,7 +68,7 @@
     liveRegion.className = 'sr-only';
     // Safely access the locale name for announcement
     const localeName = supportedLocalesWithNames?.[locale] || locale;
-    liveRegion.textContent = t('language-changed-to-newlocale', [localeName]);
+    liveRegion.textContent = t('web.layout.language-changed-to-newlocale', [localeName]);
     document.body.appendChild(liveRegion);
     setTimeout(() => {
       if (document.body.contains(liveRegion)) {

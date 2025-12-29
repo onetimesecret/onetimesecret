@@ -38,10 +38,10 @@
           @error="handleImageError" />
       </div>
       <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
-        {{ t('create-a-secure-link') }}
+        {{ t('web.homepage.create-a-secure-link') }}
       </h1>
       <p class="mt-2 text-gray-600 dark:text-gray-300">
-        {{ t('send-sensitive-information-that-can-only-be-viewed-once') }}
+        {{ t('web.homepage.send-sensitive-information-that-can-only-be-viewed-once') }}
       </p>
     </div>
 
@@ -94,7 +94,7 @@
           </div>
           <div>
             <p class="text-sm font-medium text-gray-900 dark:text-white/90">
-              {{ t('this-is-a-private-instance-only-authorized-team-') }}
+              {{ t('web.homepage.this-is-a-private-instance-only-authorized-team-') }}
             </p>
           </div>
         </div>
@@ -108,7 +108,7 @@
               name="lock-closed"
               class="size-4 text-gray-500 dark:text-white/60" />
             <span class="text-sm text-gray-600 dark:text-white/70">
-              {{ t('secure-encrypted-storage') }}
+              {{ t('web.secrets.secure-encrypted-storage') }}
             </span>
           </div>
           <div
@@ -118,7 +118,7 @@
               name="clock"
               class="size-4 text-gray-500 dark:text-white/60" />
             <span class="text-sm text-gray-600 dark:text-white/70">
-              {{ t('auto-expire-after-viewing') }}
+              {{ t('web.secrets.auto-expire-after-viewing') }}
             </span>
           </div>
         </div>

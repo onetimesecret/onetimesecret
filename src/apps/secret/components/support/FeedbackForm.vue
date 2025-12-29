@@ -81,7 +81,7 @@
             <div class="grow">
               <label
                 for="feedback-message"
-                class="sr-only">{{ t('your-feedback') }}</label>
+                class="sr-only">{{ t('web.feedback.your-feedback') }}</label>
               <textarea
                 id="feedback-message"
                 v-model="feedbackMessage"

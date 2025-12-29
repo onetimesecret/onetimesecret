@@ -31,7 +31,7 @@ const onInput = (event: Event) => {
     <label
       for="domain"
       class="sr-only bg-inherit text-xl font-medium leading-6 text-gray-900 dark:text-gray-100">
-      {{ t('domain-name') }}
+      {{ t('web.domains.domain-name') }}
     </label>
     <div class="relative mt-2 rounded-md shadow-sm">
       <input

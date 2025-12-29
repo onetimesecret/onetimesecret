@@ -33,7 +33,7 @@
               aria-hidden="true" />
             <div>
               <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                {{ t('api-key') }}
+                {{ t('web.account.api-key') }}
               </h2>
               <p class="text-sm text-gray-600 dark:text-gray-400">
                 {{ t('web.settings.api.manage_api_keys') }}

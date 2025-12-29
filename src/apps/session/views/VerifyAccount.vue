@@ -214,8 +214,8 @@ import { useRoute } from 'vue-router';
             <router-link
               to="/"
               class="text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-              :aria-label="t('return-to-home-page')">
-              {{ t('return-home') }}
+              :aria-label="t('web.layout.return-to-home-page')">
+              {{ t('web.layout.return-home') }}
             </router-link>
           </div>
         </div>
@@ -263,8 +263,8 @@ import { useRoute } from 'vue-router';
             <router-link
               to="/"
               class="text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-              :aria-label="t('return-to-home-page')">
-              {{ t('return-home') }}
+              :aria-label="t('web.layout.return-to-home-page')">
+              {{ t('web.layout.return-home') }}
             </router-link>
           </div>
         </div>

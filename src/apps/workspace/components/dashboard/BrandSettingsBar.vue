@@ -71,7 +71,7 @@
                 :model-value="modelValue.primary_color"
                 @update:model-value="(value) => updateBrandSetting('primary_color', value)"
                 name="brand[primary_color]"
-                :label="t('brand-color')"
+                :label="t('web.branding.brand-color')"
                 id="brand-color" />
             </div>
 
@@ -82,7 +82,7 @@
                 @update:model-value="(value) => updateBrandSetting('corner_style', value)"
                 :default-value="CornerStyle.ROUNDED"
                 :options="cornerStyleOptions"
-                :label="t('corner-style')"
+                :label="t('web.branding.corner-style')"
                 :display-map="cornerStyleDisplayMap"
                 :icon-map="cornerStyleIconMap" />
               <CycleButton
@@ -90,7 +90,7 @@
                 @update:model-value="(value) => updateBrandSetting('font_family', value)"
                 :default-value="FontFamily.SANS"
                 :options="fontOptions"
-                :label="t('font-family')"
+                :label="t('web.branding.font-family')"
                 :display-map="fontDisplayMap"
                 :icon-map="fontIconMap" />
             </div>

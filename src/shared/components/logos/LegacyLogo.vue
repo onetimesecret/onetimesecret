@@ -20,7 +20,7 @@ import { type LogoConfig } from '@/types/ui/layouts';
 
   const { t } = useI18n();
 
-  const ariaLabel = computed(() => props.ariaLabel || t('one-time-secret-literal'));
+  const ariaLabel = computed(() => props.ariaLabel || t('web.homepage.one-time-secret-literal'));
 
   const svgSize = computed(() =>
     typeof props.size === 'number' && props.size > 0 ? props.size : 64
@@ -46,7 +46,7 @@ import { type LogoConfig } from '@/types/ui/layouts';
       <OnetimeSecretIcon
         :size="svgSize"
         :aria-label="ariaLabel"
-        :title="t('default-logo-icon')"
+        :title="t('web.branding.default-logo-icon')"
         class="shrink-0 text-brand-500 dark:text-white" />
       <!-- Text Mark -->
       <!-- Company Name -->

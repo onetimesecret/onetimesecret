@@ -208,7 +208,7 @@ describe('useDomainsManager', () => {
 
         expect(mockDependencies.domainsStore.deleteDomain).toHaveBeenCalledWith('domain-1');
         expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
-          'Domain removed successfully',
+          'web.domains.domain-removed-successfully',
           'success'
         );
       });
@@ -269,7 +269,7 @@ describe('useDomainsManager', () => {
       await handleAddDomain('test-domain.com');
 
       expect(error.value).toMatchObject({
-        message: 'Failed to add domain',
+        message: 'web.domains.failed-to-add-domain',
         type: 'human',
         severity: 'error',
       });

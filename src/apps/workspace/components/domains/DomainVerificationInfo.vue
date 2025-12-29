@@ -61,7 +61,7 @@
       v-else
       class="my-8 rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
       <h2 class="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-        {{ t('domain-status') }}
+        {{ t('web.domains.domain-status') }}
       </h2>
       <div class="flex flex-col">
         <div
@@ -69,7 +69,7 @@
           class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
-              t('domain')
+              t('web.domains.domain')
             }}</span>
             <span class="text-base text-gray-900 dark:text-white">{{
               domain?.vhost?.incoming_address
@@ -78,7 +78,7 @@
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
-              t('status')
+              t('web.COMMON.status')
             }}</span>
             <span
               :class="statusColor"
@@ -87,7 +87,7 @@
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
-              t('target-address')
+              t('web.domains.target-address')
             }}</span>
             <span class="text-base text-gray-900 dark:text-white">{{
               domain?.vhost?.target_address
@@ -96,7 +96,7 @@
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
-              t('dns-record')
+              t('web.domains.dns-record')
             }}</span>
             <span class="text-base text-gray-900 dark:text-white">{{
               domain?.vhost?.dns_pointed_at
@@ -105,7 +105,7 @@
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
-              t('ssl-renews')
+              t('web.domains.ssl-renews')
             }}</span>
             <span class="text-base text-gray-900 dark:text-white"><span v-if="domain?.vhost.ssl_active_until">{{
               domain?.vhost.ssl_active_until
@@ -114,18 +114,18 @@
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
-              t('ssl-status')
+              t('web.domains.ssl-status')
             }}</span>
             <span
               class="text-base"
               :class="domain?.vhost?.has_ssl ? 'text-green-600' : 'text-red-600'">
-              {{ domain?.vhost?.has_ssl ? t('active') : t('inactive') }}
+              {{ domain?.vhost?.has_ssl ? t('web.COMMON.active') : t('web.COMMON.inactive') }}
             </span>
           </div>
 
           <div class="flex flex-col">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">{{
-              t('last-monitored')
+              t('web.domains.last-monitored')
             }}</span>
             <span class="text-base text-gray-900 dark:text-white">{{
               domain?.vhost?.last_monitored_humanized

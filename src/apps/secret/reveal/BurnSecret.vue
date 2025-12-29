@@ -50,13 +50,13 @@
           class="size-6 text-red-500 dark:text-red-400" />
         <p class="text-base font-medium text-red-800 dark:text-red-200">
           <template v-if="record?.is_received">
-            {{ t('viewed-on-record-received', [record?.received]) }}
+            {{ t('web.secrets.viewed-on-record-received', [record?.received]) }}
           </template>
           <template v-else-if="record?.is_burned">
-            {{ t('deleted-on-record-burned', [record?.burned]) }}
+            {{ t('web.secrets.deleted-on-record-burned', [record?.burned]) }}
           </template>
           <template v-else>
-            {{ t('permanently-deleted') }}
+            {{ t('web.secrets.permanently-deleted') }}
           </template>
         </p>
       </div>
@@ -73,8 +73,8 @@
             hover:bg-gray-200
             focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-gray-700
             dark:text-gray-200 dark:hover:bg-gray-600"
-          :aria-label="t('back-to-details')">
-          {{ t('back-to-details') }}
+          :aria-label="t('web.account.back-to-details')">
+          {{ t('web.account.back-to-details') }}
         </router-link>
         <!-- prettier-ignore-attribute class -->
         <router-link

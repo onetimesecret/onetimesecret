@@ -29,7 +29,7 @@ const { t } = useI18n();
           class="inline-flex items-center text-sm
             text-gray-600 transition-colors hover:text-gray-900
             dark:text-gray-400 dark:hover:text-gray-100"
-          :aria-label="t('return-to-domains-list')">
+          :aria-label="t('web.domains.return-to-domains-list')">
           <svg
             class="mr-2 size-5"
             fill="none"
@@ -42,7 +42,7 @@ const { t } = useI18n();
               stroke-width="2"
               d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          {{ t('back-to-domains') }}
+          {{ t('web.domains.back-to-domains') }}
         </RouterLink>
       </div>
 
@@ -66,7 +66,7 @@ const { t } = useI18n();
                 class="ml-1
                   text-gray-400 hover:text-gray-600
                   dark:text-gray-500 dark:hover:text-gray-300"
-                :title="t('open-domain-in-new-tab')">
+                :title="t('web.domains.open-domain-in-new-tab')">
                 <OIcon
                   collection="mdi"
                   name="open-in-new"

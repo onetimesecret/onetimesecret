@@ -22,10 +22,10 @@ const { t } = useI18n();
         class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200
           dark:bg-gray-800/50 dark:ring-gray-700">
         <h3 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
-          {{ t('why-is-this-secret-unavailable') }}
+          {{ t('web.errors.why-is-this-secret-unavailable') }}
         </h3>
         <p>
-          {{ t('secrets-are-designed-to-be-viewed-only-once') }}
+          {{ t('web.errors.secrets-are-designed-to-be-viewed-only-once') }}
         </p>
       </div>
 
@@ -33,10 +33,10 @@ const { t } = useI18n();
         class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200
           dark:bg-gray-800/50 dark:ring-gray-700">
         <h3 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
-          {{ t('what-should-i-do-now') }}
+          {{ t('web.errors.what-should-i-do-now') }}
         </h3>
         <p>
-          {{ t('contact-the-person-who-sent-you-this-link') }}
+          {{ t('web.errors.contact-the-person-who-sent-you-this-link') }}
         </p>
       </div>
 
@@ -44,10 +44,10 @@ const { t } = useI18n();
         class="rounded-lg bg-gray-50 p-4 ring-1 ring-gray-200
           dark:bg-gray-800/50 dark:ring-gray-700">
         <h3 class="mb-2 font-medium text-gray-900 dark:text-gray-100">
-          {{ t('is-it-secure') }}
+          {{ t('web.secrets.is-it-secure') }}
         </h3>
         <p>
-          {{ t('yes-after-viewing-the-secret-is-permanently-dele') }}
+          {{ t('web.secrets.yes-after-viewing-the-secret-is-permanently-dele') }}
         </p>
       </div>
     </div>

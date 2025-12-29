@@ -10,7 +10,7 @@
   <a
     href="https://github.com/onetimesecret/onetimesecret"
     class="github-corner"
-    :aria-label="t('view-source-on-github')">
+    :aria-label="t('web.layout.view-source-on-github')">
     <svg
       width="80"
       height="80"

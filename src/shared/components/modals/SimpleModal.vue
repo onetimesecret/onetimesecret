@@ -54,11 +54,11 @@ const open = ref(true)
                   <DialogTitle
                     as="h3"
                     class="text-base font-semibold leading-6 text-gray-900">
-                    {{ t('deactivate-account') }}
+                    {{ t('web.account.deactivate-account') }}
                   </DialogTitle>
                   <div class="mt-2">
                     <p class="text-sm text-gray-500">
-                      {{ t('are-you-sure-you-want-to-deactivate-your-account') }}
+                      {{ t('web.account.are-you-sure-you-want-to-deactivate-your-account') }}
                     </p>
                   </div>
                 </div>
@@ -68,7 +68,7 @@ const open = ref(true)
                   type="button"
                   class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
                   @click="open = false">
-                  {{ t('deactivate') }}
+                  {{ t('web.account.deactivate') }}
                 </button>
                 <button
                   type="button"

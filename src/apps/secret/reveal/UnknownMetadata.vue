@@ -22,8 +22,8 @@ const { t } = useI18n();
           aria-hidden="true" />
         <h1
           class="mb-6 text-center text-3xl font-bold text-gray-800 dark:text-white"
-          :aria-label="t('information-no-longer-available')">
-          {{ t('that-information-is-no-longer-available') }}
+          :aria-label="t('web.secrets.information-no-longer-available')">
+          {{ t('web.secrets.that-information-is-no-longer-available') }}
         </h1>
       </div>
     </template>
@@ -44,8 +44,8 @@ const { t } = useI18n();
             color: 'var(--color-brand-500)',
             borderColor: 'var(--color-brand-500)',
           }"
-          :aria-label="t('return-to-home-page')">
-          {{ t('return-to-home') }}
+          :aria-label="t('web.layout.return-to-home-page')">
+          {{ t('web.layout.return-to-home') }}
         </router-link>
       </div>
     </template>

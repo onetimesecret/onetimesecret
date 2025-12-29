@@ -18,8 +18,8 @@
   const currentJurisdiction = computed(
     () =>
       getCurrentJurisdiction.value || {
-        identifier: t('unknown-jurisdiction'),
-        display_name: t('unknown-jurisdiction'),
+        identifier: t('web.regions.unknown-jurisdiction'),
+        display_name: t('web.regions.unknown-jurisdiction'),
         domain: '',
         icon: {
           collection: 'mdi',
@@ -30,7 +30,7 @@
   );
 
   const alternateProviders = [
-    { name: t('google'), icon: 'mdi-google' },
+    { name: t('web.auth.google'), icon: 'mdi-google' },
     { name: 'GitHub', icon: 'mdi-github' },
   ];
 </script>

@@ -34,7 +34,7 @@
     submitForm: generateAPIKey,
   } = useFormSubmission({
     url: '/api/v2/account/apitoken',
-    successMessage: t('token-generated'),
+    successMessage: t('web.account.token-generated'),
     schema: responseSchemas.apiToken,
     onSuccess: async (data) => {
       // data is now properly typed as ApiTokenResponse

@@ -57,13 +57,13 @@ const { t } = useI18n();
             <h2
               id="feedback-modal-title"
               class="text-2xl font-semibold text-gray-900 dark:text-white">
-              {{ t('share-your-feedback') }}
+              {{ t('web.feedback.share-your-feedback') }}
             </h2>
             <button
               ref="closeButton"
               @click="close"
               class="text-gray-400 transition-colors hover:text-gray-500 dark:hover:text-white"
-              :aria-label="t('close-feedback-modal')">
+              :aria-label="t('web.feedback.close-feedback-modal')">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="size-6"
@@ -84,9 +84,9 @@ const { t } = useI18n();
             <RouterLink
               to="/feedback"
               class="underline">
-              {{ t('help-us-improve') }}
+              {{ t('web.feedback.help-us-improve') }}
             </RouterLink>.
-            {{ t('all-feedback-welcome') }}
+            {{ t('web.feedback.all-feedback-welcome') }}
           </p>
         </div>
       </FocusTrap>

@@ -28,7 +28,7 @@ const { t } = useI18n();
 <template>
   <footer
     class="w-full min-w-[320px] bg-gray-100 py-6 transition-colors duration-300 dark:bg-gray-800"
-    :aria-label="t('site-footer')">
+    :aria-label="t('web.layout.site-footer')">
     <div
       v-if="productIdentity.isCanonical"
       class="container mx-auto max-w-2xl px-4">
@@ -38,7 +38,7 @@ const { t } = useI18n();
           class="flex w-full flex-wrap items-center justify-center gap-4 text-center text-sm text-gray-500 dark:text-gray-400 md:w-auto md:justify-start md:text-left">
           <span
             v-if="displayVersion"
-            :title="`${t('onetime-secret-literal')} Version`">
+            :title="`${t('web.homepage.onetime-secret-literal')} Version`">
             <a :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${windowProps.ot_version}`">v{{ windowProps.ot_version }}</a>
           </span>
         </div>
@@ -50,7 +50,7 @@ const { t } = useI18n();
 
           <ThemeToggle
             class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
-            :aria-label="t('toggle-dark-mode')" />
+            :aria-label="t('web.layout.toggle-dark-mode')" />
           <LanguageToggle
             v-if="windowProps.i18n_enabled"
             :compact="true"
@@ -58,7 +58,7 @@ const { t } = useI18n();
           <FeedbackToggle
             v-if="displayFeedback && windowProps.authentication?.enabled"
             class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
-            :aria-label="t('provide-feedback')" />
+            :aria-label="t('web.layout.provide-feedback')" />
         </div>
       </div>
     </div>
@@ -72,7 +72,7 @@ const { t } = useI18n();
           class="flex w-full flex-nowrap items-center justify-center space-x-4 md:w-auto md:justify-end">
           <ThemeToggle
             class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
-            :aria-label="t('toggle-dark-mode')" />
+            :aria-label="t('web.layout.toggle-dark-mode')" />
           <LanguageToggle
             v-if="windowProps.i18n_enabled"
             :compact="true"

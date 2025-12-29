@@ -41,7 +41,7 @@ const { t } = useI18n();
                 : 'text-gray-700 dark:text-gray-200',
               'block px-4 py-2 text-sm transition-colors duration-200',
             ]">
-            {{ t('manage-brand') }}
+            {{ t('web.domains.manage-brand') }}
           </router-link>
         </MenuItem>
         <MenuItem v-slot="{ active }">
@@ -56,7 +56,7 @@ const { t } = useI18n();
                 : 'text-gray-700 dark:text-gray-200',
               'block px-4 py-2 text-sm transition-colors duration-200',
             ]">
-            {{ t('verify-domain') }}
+            {{ t('web.domains.verify-domain') }}
           </router-link>
         </MenuItem>
         <MenuItem v-slot="{ active }">
@@ -71,7 +71,7 @@ const { t } = useI18n();
               name="trash-20-solid"
               class="mr-2 size-4"
               aria-hidden="true" />
-            {{ t('remove') }}
+            {{ t('web.COMMON.remove') }}
           </button>
         </MenuItem>
       </div>

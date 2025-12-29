@@ -17,9 +17,9 @@ const props = defineProps<{
 <template>
   <div class="mx-auto max-w-2xl px-4 pb-12 pt-24 sm:px-6 lg:px-8">
     <h2 class="mb-8 text-left text-3xl font-bold text-gray-900 dark:text-white">
-      <span class="text-xl font-semibold text-gray-700 dark:text-gray-300">{{ t('ai-generated-testimonials') }}</span>
+      <span class="text-xl font-semibold text-gray-700 dark:text-gray-300">{{ t('web.testimonials.ai-generated-testimonials') }}</span>
       <br />
-      <span>{{ t('what-leading-ai-says-about-us') }}:</span>
+      <span>{{ t('web.testimonials.what-leading-ai-says-about-us') }}:</span>
     </h2>
 
     <div class="overflow-hidden rounded-lg bg-white shadow-lg dark:bg-gray-800">
@@ -55,11 +55,11 @@ const props = defineProps<{
 
       <div class="bg-gray-100 px-6 py-4 dark:bg-gray-700">
         <p class="text-sm italic text-gray-600 dark:text-gray-400">
-          {{ t('note') }}: <span class="">{{ t('this-quote-was-generated-by') }} <a
+          {{ t('web.COMMON.note') }}: <span class="">{{ t('web.testimonials.this-quote-was-generated-by') }} <a
             href="https://www.anthropic.com/news/claude-3-5-sonnet"
             class="underline"
             rel="noopener noreferrer"
-            target="_blank">Claude 3.5</a></span>. {{ t('it-was-based-on-the-content-of-the-page-and-does') }}
+            target="_blank">Claude 3.5</a></span>. {{ t('web.testimonials.it-was-based-on-the-content-of-the-page-and-does') }}
         </p>
       </div>
     </div>
