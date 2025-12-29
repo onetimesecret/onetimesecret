@@ -19,7 +19,14 @@ module ProcessWebhookEventHelpers
   end
 
   # Build a Stripe::Subscription for testing
-  def build_stripe_subscription(id:, customer:, status:, metadata: {}, current_period_end: nil)
+  #
+  # @param id [String] Subscription ID
+  # @param customer [String] Customer ID
+  # @param status [String] Subscription status
+  # @param metadata [Hash] Subscription-level metadata (e.g., custid, plan_id)
+  # @param price_metadata [Hash] Price-level metadata (fallback for plan_id)
+  # @param current_period_end [Integer] Unix timestamp
+  def build_stripe_subscription(id:, customer:, status:, metadata: {}, price_metadata: {}, current_period_end: nil)
     period_end = current_period_end || (Time.now + 30 * 24 * 60 * 60).to_i
     Stripe::Subscription.construct_from({
       id: id,
@@ -33,7 +40,7 @@ module ProcessWebhookEventHelpers
           price: {
             id: 'price_test',
             product: 'prod_test',
-            metadata: {},
+            metadata: price_metadata,
           },
           # current_period_end on items (Stripe API 2025-11-17 structure)
           current_period_end: period_end,

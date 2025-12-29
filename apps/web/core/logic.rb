@@ -4,4 +4,4 @@
 
 require_relative 'logic/authentication'
 require_relative 'logic/page'
-require_relative 'logic/welcome'
+# welcome.rb moved to apps/web/billing/logic/welcome.rb (Billing::Logic::Welcome)

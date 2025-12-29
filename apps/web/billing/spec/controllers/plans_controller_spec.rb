@@ -2,6 +2,18 @@
 #
 # frozen_string_literal: true
 
+# TESTING APPROACH NOTE:
+# This spec uses `with_stubbed_checkout` for Stripe Checkout Session API calls.
+# This is an intentional exception to our general rule of testing against the
+# real Stripe API (via VCR cassettes).
+#
+# Checkout session creation requires valid price IDs that must exist in the
+# Stripe test account and match spec/billing.test.yaml. The coordination
+# overhead of maintaining these makes real API testing impractical here.
+#
+# Other billing tests (portal, welcome, webhooks) continue using VCR with
+# real API calls where the setup is more manageable.
+
 require_relative '../support/billing_spec_helper'
 require 'rack/test'
 require 'stripe'
@@ -11,6 +23,8 @@ require_relative '../../application'
 
 RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api, :vcr do
   include Rack::Test::Methods
+  include_context 'with_test_plans'
+  include_context 'with_stubbed_checkout'
 
   # The Rack application for testing
   # Wrap with URLMap to match production mounting behavior
@@ -115,7 +129,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       session    = Stripe::Checkout::Session.retrieve(session_id)
 
       # Verify yearly plan was used (would need to check price ID matches yearly)
-      expect(session.subscription_data['metadata']).to include('tier' => tier)
+      expect(session.subscription_data['metadata']['tier']).to eq(tier)
     end
 
     it 'does not require authentication', :vcr do
@@ -138,7 +152,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       session_id = last_response.location.match(%r{/pay/([^?]+)})[1]
       session    = Stripe::Checkout::Session.retrieve(session_id)
 
-      expect(session.subscription_data['metadata']).to have_key('region')
+      expect(session.subscription_data['metadata']['region']).not_to be_nil
     end
   end
 
@@ -239,7 +253,9 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
 
   describe 'GET /billing/portal' do
     let(:organization) do
-      org = Onetime::Organization.create!('Test Org', customer, customer.email)
+      org            = Onetime::Organization.create!('Test Org', customer, customer.email)
+      org.is_default = true
+      org.save
       created_organizations << org
       org
     end
@@ -295,7 +311,9 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
 
       get '/billing/portal'
 
-      expect(last_response.status).to eq(401)
+      # Web endpoints redirect to signin instead of returning 401
+      # (API endpoints return 401 for JSON clients)
+      expect(last_response.status).to eq(302)
     end
 
     it 'creates default organization if customer has none', :vcr do

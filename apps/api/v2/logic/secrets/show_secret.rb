@@ -38,7 +38,9 @@ module V2::Logic
 
           if verification
             if cust.anonymous? || (cust.custid == owner.custid && !owner.verified?)
-              owner.verified! 'true'
+              owner.verified    = true
+              owner.verified_by = 'email'  # Track email verification method
+              owner.save
               sess.destroy!
               secret.received!
             else

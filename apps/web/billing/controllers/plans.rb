@@ -109,56 +109,24 @@ module Billing
       #
       # GET /billing/welcome?session_id={CHECKOUT_SESSION_ID}
       #
+      # @see Billing::Logic::Welcome::ProcessCheckoutSession
+      #
       def welcome
-        session_id = req.params['session_id']
+        logic = Billing::Logic::Welcome::ProcessCheckoutSession.new(strategy_result, req.params, locale)
+        logic.raise_concerns
+        logic.process
 
-        unless session_id
-          billing_logger.warn 'Welcome page accessed without session_id'
-          res.redirect '/account'
-          return
-        end
-
-        # Retrieve checkout session from Stripe
-        checkout_session = Stripe::Checkout::Session.retrieve({
-          id: session_id,
-          expand: %w[subscription customer],
-        },
-                                                             )
-
-        # Extract metadata
-        subscription = checkout_session.subscription
-        checkout_session.customer
-        metadata     = subscription.metadata
-
-        custid  = metadata['custid']
-        tier    = metadata['tier']
-        plan_id = metadata['plan_id']
-
-        billing_logger.info 'Processing welcome for checkout session', {
-          session_id: session_id,
-          custid: custid,
-          tier: tier,
-          subscription_id: subscription.id,
+        res.redirect '/account'
+      rescue Onetime::FormError => ex
+        billing_logger.warn 'Welcome page validation failed', {
+          error: ex.message,
+          session_id: req.params['session_id'],
         }
-
-        # Load or create organization for this customer
-        # For Phase 1 MVP, we create a default organization
-        org = find_or_create_default_organization(cust)
-
-        # Update organization with subscription details
-        org.update_from_stripe_subscription(subscription)
-
-        billing_logger.info 'Organization subscription activated', {
-          extid: org.objid,
-          subscription_id: subscription.id,
-          plan_id: plan_id,
-        }
-
         res.redirect '/account'
       rescue Stripe::StripeError => ex
         billing_logger.error 'Stripe session retrieval failed', {
           exception: ex,
-          session_id: session_id,
+          session_id: req.params['session_id'],
         }
         res.redirect '/account'
       end

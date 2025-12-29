@@ -21,6 +21,7 @@ module Onetime
     #   LOG_LEVEL        - Global default level (trace/debug/info/warn/error/fatal)
     #   ONETIME_DEBUG    - Sets global default to debug when truthy
     #   BACKTRACE_LEVEL  - Level at which backtraces are included (default: error)
+    #   BACKTRACE_LINES  - Max exception backtrace lines (default: 3 in prod, unlimited in dev)
     #   DEBUG_*          - Per-category debug flags (e.g., DEBUG_AUTH=1)
     #   DEBUG_LOGGERS    - Fine-grained control (e.g., "Auth:debug,Secret:trace")
     #
@@ -115,10 +116,58 @@ module Onetime
         # Skip if console appender already exists (prevents duplicates during test reruns)
         return if SemanticLogger.appenders.any?(SemanticLogger::Appender::IO)
 
+        formatter = build_formatter(config)
+
         SemanticLogger.add_appender(
           io: $stdout,
-          formatter: config['formatter']&.to_sym || :color,
+          formatter: formatter,
         )
+      end
+
+      # Build formatter with environment-aware exception handling
+      #
+      # In production, exception backtraces are truncated to reduce log noise.
+      # Full backtraces go to error tracking (Sentry), not application logs.
+      #
+      # Environment variables:
+      #   BACKTRACE_LINES - Max backtrace lines to include (default: 3 in prod, unlimited in dev)
+      #
+      def build_formatter(config)
+        base_formatter = config['formatter']&.to_sym || :color
+        max_lines      = backtrace_limit
+
+        # In development/test, use standard formatter with full backtraces
+        return base_formatter unless max_lines
+
+        # In production, wrap formatter to truncate exception backtraces
+        proc do |log, logger|
+          truncate_exception_backtrace(log, max_lines)
+          SemanticLogger::Formatters.factory(base_formatter).call(log, logger)
+        end
+      end
+
+      # Determine backtrace line limit based on environment
+      #
+      # @return [Integer, nil] Max lines, or nil for unlimited
+      def backtrace_limit
+        # Explicit override takes precedence
+        return ENV['BACKTRACE_LINES'].to_i if ENV['BACKTRACE_LINES']
+
+        # Production defaults to 3 lines, others unlimited
+        case Onetime.mode
+        when 'production' then 3
+        end
+      end
+
+      # Truncate exception backtrace in-place
+      def truncate_exception_backtrace(log, max_lines)
+        return unless log.exception&.backtrace
+
+        original_size = log.exception.backtrace.size
+        return if original_size <= max_lines
+
+        log.exception.backtrace.slice!(max_lines..-1)
+        log.exception.backtrace << "... (#{original_size - max_lines} more lines)"
       end
 
       # Create and cache logger instances with levels from config

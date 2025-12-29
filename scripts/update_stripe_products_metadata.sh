@@ -9,7 +9,7 @@
 #   ./scripts/update_stripe_products_metadata.sh
 #
 # Prerequisites:
-#   - .env file with STRIPE_KEY configured
+#   - .env file with STRIPE_API_KEY configured
 #   - stripe CLI installed (brew install stripe/stripe-cli/stripe)
 #
 
@@ -23,8 +23,8 @@ else
   exit 1
 fi
 
-if [ -z "$STRIPE_KEY" ]; then
-  echo "❌ Error: STRIPE_KEY not set in .env"
+if [ -z "$STRIPE_API_KEY" ]; then
+  echo "❌ Error: STRIPE_API_KEY not set in .env"
   exit 1
 fi
 

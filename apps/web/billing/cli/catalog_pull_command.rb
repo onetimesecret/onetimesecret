@@ -42,7 +42,7 @@ module Onetime
       rescue Stripe::StripeError => ex
         puts format_stripe_error('Pull failed', ex)
         puts "\nTroubleshooting:"
-        puts '  - Verify STRIPE_KEY is set correctly'
+        puts '  - Verify STRIPE_API_KEY is set correctly'
         puts '  - Check your internet connection'
         puts '  - Verify Stripe account has access to products'
       rescue StandardError => ex

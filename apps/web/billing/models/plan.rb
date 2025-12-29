@@ -232,7 +232,7 @@ module Billing
           end
 
           unless product.metadata[Metadata::FIELD_TIER]
-            OT.lw '[Plan.collect_stripe_plans] Skipping product (missing tier)', {
+            OT.ld '[Plan.collect_stripe_plans] Skipping product (missing tier)', {
               product_id: product.id,
               product_name: product.name,
             }
@@ -240,7 +240,7 @@ module Billing
           end
 
           unless product.metadata[Metadata::FIELD_REGION]
-            OT.lw '[Plan.collect_stripe_plans] Skipping product (missing region)', {
+            OT.ld '[Plan.collect_stripe_plans] Skipping product (missing region)', {
               product_id: product.id,
               product_name: product.name,
             }
@@ -533,7 +533,7 @@ module Billing
             # Create Plan instance
             plan = new(
               plan_id: plan_id,
-              stripe_price_id: nil,  # No Stripe ID for config-based plans
+              stripe_price_id: price.key?('price_id') ? price['price_id'] : nil,
               stripe_product_id: nil,
               name: plan_def['name'],
               tier: tier,

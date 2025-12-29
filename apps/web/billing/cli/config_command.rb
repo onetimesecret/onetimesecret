@@ -43,7 +43,7 @@ module Onetime
 
         # Environment Variables (first - most abstract)
         puts 'Environment Variables:'
-        display_env_status('STRIPE_KEY', ENV.fetch('STRIPE_KEY', nil))
+        display_env_status('STRIPE_API_KEY', ENV.fetch('STRIPE_API_KEY', nil))
         display_env_status('STRIPE_WEBHOOK_SIGNING_SECRET', ENV.fetch('STRIPE_WEBHOOK_SIGNING_SECRET', nil))
 
         puts

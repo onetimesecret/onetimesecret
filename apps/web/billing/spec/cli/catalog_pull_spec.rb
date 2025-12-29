@@ -94,7 +94,7 @@ RSpec.describe 'Billing Catalog Pull CLI', :billing_cli, :integration, :vcr do
 
         expect(output).to include('Pull failed')
         expect(output).to include('Troubleshooting')
-        expect(output).to include('STRIPE_KEY')
+        expect(output).to include('STRIPE_API_KEY')
       end
     end
 

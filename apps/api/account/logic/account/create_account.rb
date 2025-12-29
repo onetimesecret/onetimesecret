@@ -74,8 +74,9 @@ module AccountAPI::Logic
                              'customer'
                            end
 
-          cust.verified  = @autoverify
-          cust.role      = @customer_role
+          cust.verified    = @autoverify
+          cust.verified_by = 'autoverify' if @autoverify  # Track verification method
+          cust.role        = @customer_role
           cust.save
 
           session_id = @strategy_result.session[:id]

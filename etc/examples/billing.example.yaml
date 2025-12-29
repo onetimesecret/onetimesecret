@@ -14,7 +14,7 @@ app_identifier: "onetimesecret"  # Used in Stripe metadata['app'] matching
 # on. If the billing.yaml config file exists, we assume it is enabled. Ah, but what if
 # you want to turn off billing but not delete the file. That's what this flag is for.
 enabled: <%= ENV['BILLING_ENABLED'] != 'false' %>
-stripe_key: <%= ENV['STRIPE_KEY'] || 'nostripekey' %>
+stripe_key: <%= ENV['STRIPE_API_KEY'] || 'nostripekey' %>
 webhook_signing_secret: <%= ENV['STRIPE_WEBHOOK_SIGNING_SECRET'] || 'nosigningsecret' %>
 stripe_api_version: "2025-11-17.clover"
 

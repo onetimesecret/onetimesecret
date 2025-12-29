@@ -34,7 +34,6 @@ module Onetime
 
     # Stripe API key
     def stripe_key
-      # STRIPE_API_KEY takes precedence (for testing/VCR recording)
       ENV['STRIPE_API_KEY'] || config['stripe_key']
     end
 

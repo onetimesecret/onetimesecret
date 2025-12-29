@@ -12,11 +12,11 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_niNOgpdfcmMkiF","request_duration_ms":135}}'
+      - '{"last_request_metrics":{"request_id":"req_ePQNlXJiVWxqoJ","request_duration_ms":368}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
         Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
         2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
       Accept-Encoding:
@@ -31,7 +31,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Thu, 25 Dec 2025 12:07:31 GMT
+      - Mon, 29 Dec 2025 05:33:29 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -54,7 +54,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=kxyzdhcT78UvS-XEIy_WjyrLiXz5MpecHpq7-AD9TUv7LnxIrtvjHIDGVqmn1IGkR4_Y3jT2Hgej_e-g
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=eLnH8bxD221V-v9UiO6nGUH_DjBqDIVbeOAU88zQv6n-AFYgG7g3lVZOuKbnXqws1DXfRkS51-deQeCl
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -76,9 +76,9 @@ http_interactions:
             "doc_url": "https://stripe.com/docs/error-codes/resource-missing",
             "message": "No such customer: 'cus_nonexistent'",
             "param": "id",
-            "request_log_url": "https://dashboard.stripe.com/test/logs/req_seEM2jc61mZSWC?t=1766664451",
+            "request_log_url": "https://dashboard.stripe.com/test/logs/req_NDeMiZbb6VwQSD?t=1766986409",
             "type": "invalid_request_error"
           }
         }
-  recorded_at: Thu, 25 Dec 2025 12:07:31 GMT
+  recorded_at: Mon, 29 Dec 2025 05:33:29 GMT
 recorded_with: VCR 6.3.1

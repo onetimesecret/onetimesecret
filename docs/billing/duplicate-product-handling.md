@@ -246,7 +246,7 @@ bin/ots billing validate
 
 **Cause**: Stripe API error during duplicate check
 
-**Solution**: Check `.env` has valid `STRIPE_KEY`, or use `--force` to skip check
+**Solution**: Check `.env` has valid `STRIPE_API_KEY`, or use `--force` to skip check
 
 ### Product created but not in Redis cache
 
