@@ -93,7 +93,7 @@
           collection="heroicons"
           name="arrow-left"
           size="6" />
-        {{ t('back') }}
+        {{ t('web.COMMON.back') }}
       </button>
 
       <MetadataSkeleton v-if="isLoading" />

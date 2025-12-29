@@ -91,7 +91,7 @@ const handleSubmit = () => {
               stroke-width="2"
               d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          {{ t('back') }}
+          {{ t('web.COMMON.back') }}
         </button>
 
         <!-- Submit Button -->
@@ -131,7 +131,7 @@ const handleSubmit = () => {
             </svg>
             {{ t('web.COMMON.adding_ellipses') }}...
           </span>
-          <span v-else>{{ t('continue') }}</span>
+          <span v-else>{{ t('web.COMMON.continue') }}</span>
         </button>
       </div>
     </form>
