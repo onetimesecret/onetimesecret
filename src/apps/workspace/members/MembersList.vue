@@ -42,7 +42,7 @@ const loadMembers = async () => {
 
 const handleMemberUpdated = (member: OrganizationMember) => {
   // The store is already updated, but we could add additional handling here
-  console.debug('[MembersList] Member updated:', member.extid);
+  console.debug('[MembersList] Member updated:', member.id);
 };
 
 const handleMemberRemoved = (memberExtid: string) => {

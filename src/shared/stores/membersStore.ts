@@ -36,10 +36,10 @@ export const useMembersStore = defineStore('members', () => {
 
   const isInitialized = computed(() => _initialized.value);
 
-  const getMemberByExtid = computed(
+  const getMemberById = computed(
     () =>
-      (extid: string): OrganizationMember | undefined =>
-        members.value.find((m) => m.extid === extid)
+      (id: string): OrganizationMember | undefined =>
+        members.value.find((m) => m.id === id)
   );
 
   const getMembersByRole = computed(
@@ -108,7 +108,7 @@ export const useMembersStore = defineStore('members', () => {
       const memberData = memberResponseSchema.parse(response.data);
 
       // Update in members array
-      const index = members.value.findIndex((m) => m.extid === memberExtid);
+      const index = members.value.findIndex((m) => m.id === memberExtid);
       if (index !== -1) {
         members.value[index] = memberData.record;
       }
@@ -133,7 +133,7 @@ export const useMembersStore = defineStore('members', () => {
       memberDeleteResponseSchema.parse(response.data);
 
       // Remove from members array
-      members.value = members.value.filter((m) => m.extid !== memberExtid);
+      members.value = members.value.filter((m) => m.id !== memberExtid);
     } finally {
       loading.value = false;
     }
@@ -160,7 +160,7 @@ export const useMembersStore = defineStore('members', () => {
     // Getters
     memberCount,
     isInitialized,
-    getMemberByExtid,
+    getMemberById,
     getMembersByRole,
     owners,
     admins,

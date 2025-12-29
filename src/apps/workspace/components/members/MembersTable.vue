@@ -39,7 +39,7 @@ const memberToRemove = ref<OrganizationMember | null>(null);
 const handleRoleChange = async (member: OrganizationMember, newRole: OrganizationRole) => {
   if (newRole === member.role) return;
 
-  const result = await updateMemberRole(props.orgExtid, member.extid, newRole);
+  const result = await updateMemberRole(props.orgExtid, member.id, newRole);
   if (result) {
     emit('member-updated', result);
   }
@@ -50,20 +50,20 @@ const handleRemoveClick = async (member: OrganizationMember) => {
   const confirmed = await reveal();
 
   if (confirmed) {
-    const success = await removeMember(props.orgExtid, member.extid);
+    const success = await removeMember(props.orgExtid, member.id);
     if (success) {
-      emit('member-removed', member.extid);
+      emit('member-removed', member.id);
     }
   }
 
   memberToRemove.value = null;
 };
 
-const formatDate = (date: Date): string => new Intl.DateTimeFormat(undefined, {
+const formatDate = (timestamp: number): string => new Intl.DateTimeFormat(undefined, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
-  }).format(date);
+  }).format(new Date(timestamp * 1000));
 
 const getRoleBadgeClasses = (role: OrganizationRole): string => {
   const baseClasses =
@@ -131,7 +131,7 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             <tr
               v-for="member in members"
-              :key="member.extid"
+              :key="member.id"
               class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800">
               <!-- Member Info -->
               <td class="whitespace-nowrap px-6 py-4">
@@ -146,11 +146,6 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
                   </div>
                   <div class="ml-4">
                     <div class="font-medium text-gray-900 dark:text-white">
-                      {{ member.display_name || member.email }}
-                    </div>
-                    <div
-                      v-if="member.display_name"
-                      class="text-sm text-gray-500 dark:text-gray-400">
                       {{ member.email }}
                     </div>
                   </div>
@@ -207,7 +202,7 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
     <ConfirmDialog
       v-if="isRevealed && memberToRemove"
       :title="t('web.organizations.members.remove_member_title')"
-      :message="t('web.organizations.members.remove_member_confirm', { name: memberToRemove.display_name || memberToRemove.email })"
+      :message="t('web.organizations.members.remove_member_confirm', { name: memberToRemove.email })"
       type="danger"
       @confirm="confirm"
       @cancel="cancel" />

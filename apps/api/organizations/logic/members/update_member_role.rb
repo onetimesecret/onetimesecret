@@ -55,7 +55,10 @@ module OrganizationAPI::Logic
         @target_membership.updated_at = Familia.now.to_f
         @target_membership.save
 
-        OT.info "[UpdateMemberRole] Updated #{@target_member.extid} role: #{old_role} -> #{@new_role}"
+        # Audit log for role changes
+        OT.info "[AUDIT] action=role_change actor=#{cust.extid} target=#{@target_member.extid} " \
+                "old_role=#{old_role} new_role=#{@new_role} colonel_override=#{cust.role?(:colonel)} " \
+                "org=#{@organization.extid} timestamp=#{Time.now.utc.iso8601}"
 
         success_data
       end

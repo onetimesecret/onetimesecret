@@ -42,7 +42,7 @@ module OrganizationAPI::Logic
       def process
         OT.ld "[RemoveMember] Removing #{@target_member.extid} from org #{@organization.extid}"
 
-        email = @target_member.email
+        target_extid = @target_member.extid
 
         # Remove from organization's member sorted set
         @organization.remove_members_instance(@target_member)
@@ -50,7 +50,10 @@ module OrganizationAPI::Logic
         # Destroy the membership record (with index cleanup)
         @target_membership.destroy_with_index_cleanup!
 
-        OT.info "[RemoveMember] Removed #{OT::Utils.obscure_email(email)} from #{@organization.extid}"
+        # Audit log for member removal
+        OT.info "[AUDIT] action=member_removed actor=#{cust.extid} target=#{target_extid} " \
+                "colonel_override=#{cust.role?(:colonel)} org=#{@organization.extid} " \
+                "timestamp=#{Time.now.utc.iso8601}"
 
         success_data
       end
@@ -74,7 +77,11 @@ module OrganizationAPI::Logic
         )
 
         # Colonels bypass membership requirement
-        return nil if cust.role?(:colonel)
+        if cust.role?(:colonel) && membership.nil?
+          OT.info "[AUDIT] action=colonel_membership_bypass actor=#{cust.extid} " \
+                  "org=#{organization.extid} timestamp=#{Time.now.utc.iso8601}"
+          return nil
+        end
 
         raise_form_error(
           'You must be a member of this organization',

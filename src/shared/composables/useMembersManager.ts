@@ -130,7 +130,7 @@ export function useMembersManager() {
     newRole: OrganizationRole
   ) =>
     wrap(async () => {
-      const member = store.getMemberByExtid(memberExtid);
+      const member = store.getMemberById(memberExtid);
 
       if (!member) {
         throw new Error('Member not found');
@@ -169,7 +169,7 @@ export function useMembersManager() {
    */
   const removeMember = async (orgExtid: string, memberExtid: string) =>
     wrap(async () => {
-      const member = store.getMemberByExtid(memberExtid);
+      const member = store.getMemberById(memberExtid);
 
       if (!member) {
         throw new Error('Member not found');

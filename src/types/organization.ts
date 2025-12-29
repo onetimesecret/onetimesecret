@@ -191,32 +191,30 @@ export function getOrganizationLabel(org: Organization): string {
 
 /**
  * Organization member interface
+ *
+ * Matches backend response from apps/api/organizations/logic/members/list_members.rb
  */
 export interface OrganizationMember {
-  id: string;
-  extid: string;
-  user_id: string;
-  organization_id: string;
+  id: string;           // Member's external ID (extid)
   email: string;
-  display_name?: string;
   role: OrganizationRole;
-  joined_at: Date;
-  updated_at: Date;
+  joined_at: number;    // Unix timestamp
+  is_owner: boolean;
+  is_current_user: boolean;
 }
 
 /**
  * Organization member schema
+ *
+ * Validates response from GET /api/organizations/:extid/members
  */
 export const organizationMemberSchema = z.object({
   id: z.string(),
-  extid: z.string(),
-  user_id: z.string(),
-  organization_id: z.string(),
   email: z.string().email(),
-  display_name: z.string().optional(),
   role: z.enum(['owner', 'admin', 'member']),
-  joined_at: z.number().transform((val) => new Date(val * 1000)),
-  updated_at: z.number().transform((val) => new Date(val * 1000)),
+  joined_at: z.number(),
+  is_owner: z.boolean(),
+  is_current_user: z.boolean(),
 });
 
 /**
