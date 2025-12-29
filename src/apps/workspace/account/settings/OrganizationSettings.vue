@@ -4,7 +4,6 @@
   import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
@@ -293,7 +292,7 @@ watch(activeTab, async (newTab) => {
 </script>
 
 <template>
-  <BillingLayout>
+  <div class="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
     <div class="space-y-6">
       <!-- Breadcrumb -->
       <nav class="flex" aria-label="Breadcrumb">
@@ -845,5 +844,5 @@ watch(activeTab, async (newTab) => {
         </section>
       </div>
     </div>
-  </BillingLayout>
+  </div>
 </template>
