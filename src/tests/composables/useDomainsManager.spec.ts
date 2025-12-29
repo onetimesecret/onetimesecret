@@ -96,6 +96,7 @@ vi.mock('vue-i18n', () => ({
     t: (key: string) => {
       const translations: Record<string, string> = {
         'web.domains.domain_added_successfully': 'Domain added successfully',
+        'web.domains.domain_claimed_successfully': 'Domain claimed successfully',
         'web.domains.domain_removed_successfully': 'Domain removed successfully',
         'web.domains.failed_to_add_domain': 'Failed to add domain',
         'web.domains.domain_verification_initiated_successfully': 'Domain verification initiated successfully',
