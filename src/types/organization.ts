@@ -188,3 +188,42 @@ export type CreateInvitationPayload = z.infer<typeof createInvitationPayloadSche
 export function getOrganizationLabel(org: Organization): string {
   return org.display_name;
 }
+
+/**
+ * Organization member interface
+ */
+export interface OrganizationMember {
+  id: string;
+  extid: string;
+  user_id: string;
+  organization_id: string;
+  email: string;
+  display_name?: string;
+  role: OrganizationRole;
+  joined_at: Date;
+  updated_at: Date;
+}
+
+/**
+ * Organization member schema
+ */
+export const organizationMemberSchema = z.object({
+  id: z.string(),
+  extid: z.string(),
+  user_id: z.string(),
+  organization_id: z.string(),
+  email: z.string().email(),
+  display_name: z.string().optional(),
+  role: z.enum(['owner', 'admin', 'member']),
+  joined_at: z.number().transform((val) => new Date(val * 1000)),
+  updated_at: z.number().transform((val) => new Date(val * 1000)),
+});
+
+/**
+ * Update member role payload schema
+ */
+export const updateMemberRolePayloadSchema = z.object({
+  role: z.enum(['admin', 'member']),
+});
+
+export type UpdateMemberRolePayload = z.infer<typeof updateMemberRolePayloadSchema>;

@@ -58,6 +58,38 @@
       "delete_organization_confirm_title": "Delete Organization",
       "delete_organization_confirm_message": "Are you sure you want to delete {name}? This action cannot be undone.",
       "delete_error": "Failed to delete organization",
+      "members": {
+        "title": "Members",
+        "description": "Manage organization members and their roles",
+        "member": "Member",
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "joined": "Joined",
+        "actions": "Actions",
+        "no_members": "No members found",
+        "no_members_description": "This organization has no members yet.",
+        "role_updated": "Member role updated successfully",
+        "role_update_error": "Failed to update member role",
+        "member_removed": "Member removed from organization",
+        "member_remove_error": "Failed to remove member",
+        "remove_member_title": "Remove Member",
+        "remove_member_confirm": "Are you sure you want to remove {name} from this organization?",
+        "cannot_change_own_role": "You cannot change your own role",
+        "cannot_remove_self": "You cannot remove yourself from the organization",
+        "cannot_remove_owner": "You cannot remove the organization owner",
+        "insufficient_permissions": "You do not have permission to manage members",
+        "roles": {
+          "owner": "Owner",
+          "admin": "Admin",
+          "member": "Member"
+        },
+        "role_descriptions": {
+          "owner": "Full access to all organization settings and members",
+          "admin": "Can manage members and most organization settings",
+          "member": "Basic access to organization resources"
+        }
+      },
       "invitations": {
         "title": "Organization Invitations",
         "invite_member": "Invite Member",
