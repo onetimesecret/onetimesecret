@@ -117,6 +117,12 @@ module Billing
         logic.process
 
         res.redirect '/account'
+      rescue Onetime::FormError => ex
+        billing_logger.warn 'Welcome page validation failed', {
+          error: ex.message,
+          session_id: req.params['session_id'],
+        }
+        res.redirect '/account'
       rescue Stripe::StripeError => ex
         billing_logger.error 'Stripe session retrieval failed', {
           exception: ex,
