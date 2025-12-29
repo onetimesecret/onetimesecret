@@ -85,7 +85,7 @@
         "signingYouIn": "Connexion en cours...",
         "pleaseWait": "Veuillez patienter pendant que nous vérifions votre lien",
         "error": "Erreur d'authentification",
-        "backToSignin": "Retour à la connexion"
+        "back_to_signin": "Retour à la connexion"
       },
       "webauthn": {
         "signIn": "Connexion avec Face ID / Touch ID",

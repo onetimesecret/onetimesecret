@@ -85,7 +85,7 @@
         "signingYouIn": "正在登录",
         "pleaseWait": "请稍候，我们正在验证您的链接",
         "error": "认证错误",
-        "backToSignin": "返回登录"
+        "back_to_signin": "返回登录"
       },
       "webauthn": {
         "signIn": "使用 Face ID / Touch ID 登录",

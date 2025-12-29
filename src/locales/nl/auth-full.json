@@ -85,7 +85,7 @@
         "signingYouIn": "Je wordt ingelogd...",
         "pleaseWait": "Een moment geduld terwijl we je link verifiëren",
         "error": "Authenticatiefout",
-        "backToSignin": "Terug naar inloggen"
+        "back_to_signin": "Terug naar inloggen"
       },
       "webauthn": {
         "signIn": "Inloggen met Face ID / Touch ID",

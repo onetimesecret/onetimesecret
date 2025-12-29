@@ -85,7 +85,7 @@
         "signingYouIn": "",
         "pleaseWait": "",
         "error": "",
-        "backToSignin": ""
+        "back_to_signin": ""
       },
       "webauthn": {
         "signIn": "",

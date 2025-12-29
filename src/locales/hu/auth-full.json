@@ -85,7 +85,7 @@
         "signingYouIn": "Bejelentkeztetés folyamatban...",
         "pleaseWait": "Kérjük, várjon, amíg ellenőrizzük a hivatkozást",
         "error": "Hitelesítési hiba",
-        "backToSignin": "Vissza a bejelentkezéshez"
+        "back_to_signin": "Vissza a bejelentkezéshez"
       },
       "webauthn": {
         "signIn": "Bejelentkezés Face ID / Touch ID segítségével",

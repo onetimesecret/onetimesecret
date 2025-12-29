@@ -85,7 +85,7 @@
         "signingYouIn": "Влизане...",
         "pleaseWait": "Моля, изчакайте, докато потвърдим вашата връзка",
         "error": "Грешка при удостоверяване",
-        "backToSignin": "Обратно към влизане"
+        "back_to_signin": "Обратно към влизане"
       },
       "webauthn": {
         "signIn": "Влизане с Face ID / Touch ID",

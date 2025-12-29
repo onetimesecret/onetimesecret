@@ -85,7 +85,7 @@
         "signingYouIn": "Iniciando sesión...",
         "pleaseWait": "Por favor, espera mientras verificamos tu enlace",
         "error": "Error de Autenticación",
-        "backToSignin": "Volver a Iniciar Sesión"
+        "back_to_signin": "Volver a Iniciar Sesión"
       },
       "webauthn": {
         "signIn": "Iniciar sesión con Face ID / Touch ID",

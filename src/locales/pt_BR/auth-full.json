@@ -85,7 +85,7 @@
         "signingYouIn": "Entrando...",
         "pleaseWait": "Por favor, aguarde enquanto verificamos seu link",
         "error": "Erro de Autenticação",
-        "backToSignin": "Voltar para Login"
+        "back_to_signin": "Voltar para Login"
       },
       "webauthn": {
         "signIn": "Entrar com Face ID / Touch ID",

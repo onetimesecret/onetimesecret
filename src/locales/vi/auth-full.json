@@ -85,7 +85,7 @@
         "signingYouIn": "Đang đăng nhập...",
         "pleaseWait": "Vui lòng đợi trong khi chúng tôi xác minh liên kết của bạn",
         "error": "Lỗi xác thực",
-        "backToSignin": "Quay lại đăng nhập"
+        "back_to_signin": "Quay lại đăng nhập"
       },
       "webauthn": {
         "signIn": "Đăng nhập bằng Face ID / Touch ID",

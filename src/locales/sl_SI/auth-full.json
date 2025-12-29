@@ -85,7 +85,7 @@
         "signingYouIn": "Prijavljam vas...",
         "pleaseWait": "Počakajte, medtem ko preverjamo vašo povezavo",
         "error": "Napaka pri avtentikaciji",
-        "backToSignin": "Nazaj na prijavo"
+        "back_to_signin": "Nazaj na prijavo"
       },
       "webauthn": {
         "signIn": "Prijavite se s Face ID / Touch ID",

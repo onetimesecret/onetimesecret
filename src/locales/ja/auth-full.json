@@ -85,7 +85,7 @@
         "signingYouIn": "サインイン中...",
         "pleaseWait": "リンクを確認していますのでお待ちください",
         "error": "認証エラー",
-        "backToSignin": "サインインに戻る"
+        "back_to_signin": "サインインに戻る"
       },
       "webauthn": {
         "signIn": "Face ID / Touch IDでサインイン",

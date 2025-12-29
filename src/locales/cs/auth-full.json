@@ -85,7 +85,7 @@
         "signingYouIn": "Přihlašuji tě...",
         "pleaseWait": "Počkej prosím, ověřujeme tvůj odkaz",
         "error": "Chyba autentizace",
-        "backToSignin": "Zpět k přihlášení"
+        "back_to_signin": "Zpět k přihlášení"
       },
       "webauthn": {
         "signIn": "Přihlásit se pomocí Face ID / Touch ID",

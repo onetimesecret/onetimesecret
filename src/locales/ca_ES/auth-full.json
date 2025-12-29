@@ -85,7 +85,7 @@
         "signingYouIn": "Iniciant sessió...",
         "pleaseWait": "Espera mentre verifiquem el teu enllaç",
         "error": "Error d'autenticació",
-        "backToSignin": "Torna a l'inici de sessió"
+        "back_to_signin": "Torna a l'inici de sessió"
       },
       "webauthn": {
         "signIn": "Inicia sessió amb Face ID / Touch ID",

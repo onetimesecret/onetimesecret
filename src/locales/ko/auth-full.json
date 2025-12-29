@@ -85,7 +85,7 @@
         "signingYouIn": "로그인 중...",
         "pleaseWait": "링크를 확인하는 동안 기다려 주세요",
         "error": "인증 오류",
-        "backToSignin": "로그인으로 돌아가기"
+        "back_to_signin": "로그인으로 돌아가기"
       },
       "webauthn": {
         "signIn": "Face ID / Touch ID로 로그인",

@@ -85,7 +85,7 @@
         "signingYouIn": "Du wirst angemeldet...",
         "pleaseWait": "Bitte warte, während wir deinen Link verifizieren",
         "error": "Authentifizierungsfehler",
-        "backToSignin": "Zurück zur Anmeldung"
+        "back_to_signin": "Zurück zur Anmeldung"
       },
       "webauthn": {
         "signIn": "Mit Face ID / Touch ID anmelden",

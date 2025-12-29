@@ -85,7 +85,7 @@
         "signingYouIn": "מחבר אתכם...",
         "pleaseWait": "אנא המתינו בעוד אנו מאמתים את הקישור",
         "error": "שגיאת אימות",
-        "backToSignin": "חזרה להתחברות"
+        "back_to_signin": "חזרה להתחברות"
       },
       "webauthn": {
         "signIn": "התחברות עם Face ID / Touch ID",

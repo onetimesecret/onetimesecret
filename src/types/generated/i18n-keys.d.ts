@@ -486,7 +486,7 @@ export type I18nKey =
   | 'web.auth.lockout.locked_until'
   | 'web.auth.lockout.try_password_reset'
   | 'web.auth.magicLink._context'
-  | 'web.auth.magicLink.backToSignin'
+  | 'web.auth.magicLink.back_to_signin'
   | 'web.auth.magicLink.checkEmail'
   | 'web.auth.magicLink.description'
   | 'web.auth.magicLink.emailPlaceholder'
@@ -2058,7 +2058,7 @@ export interface LocaleMessageSchema {
       };
       magicLink: {
         _context: string;
-        backToSignin: string;
+        back_to_signin: string;
         checkEmail: string;
         description: string;
         emailPlaceholder: string;

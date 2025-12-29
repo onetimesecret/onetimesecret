@@ -85,7 +85,7 @@
         "signingYouIn": "Signing you in...",
         "pleaseWait": "Please wait while we verify your link",
         "error": "Authentication Error",
-        "backToSignin": "Back to Sign In"
+        "back_to_signin": "Back to Sign In"
       },
       "webauthn": {
         "signIn": "Sign in with Face ID / Touch ID",

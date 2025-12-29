@@ -97,7 +97,7 @@ onMounted(async () => {
                 <router-link
                   to="/signin"
                   class="text-sm font-medium text-red-700 hover:text-red-600 dark:text-red-300 dark:hover:text-red-200">
-                  {{ t('web.auth.magicLink.backToSignin') }}
+                  {{ t('web.auth.magicLink.back_to_signin') }}
                 </router-link>
               </div>
               <div>

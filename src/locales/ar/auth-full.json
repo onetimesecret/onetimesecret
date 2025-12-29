@@ -85,7 +85,7 @@
         "signingYouIn": "جارٍ تسجيل الدخول...",
         "pleaseWait": "يرجى الانتظار بينما نتحقق من رابطك",
         "error": "خطأ في المصادقة",
-        "backToSignin": "العودة إلى تسجيل الدخول"
+        "back_to_signin": "العودة إلى تسجيل الدخول"
       },
       "webauthn": {
         "signIn": "تسجيل الدخول باستخدام Face ID / Touch ID",

@@ -85,7 +85,7 @@
         "signingYouIn": "Kei te takiuru i a koe...",
         "pleaseWait": "Tēnā taihoa i a mātou e whakaū ana i tō hononga",
         "error": "Hapa Whakaūnga",
-        "backToSignin": "Hoki ki te Takiuru"
+        "back_to_signin": "Hoki ki te Takiuru"
       },
       "webauthn": {
         "signIn": "Takiuru mā te Face ID / Touch ID",
