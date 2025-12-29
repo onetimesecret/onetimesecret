@@ -12,6 +12,7 @@ require_relative '../../plan_helpers'
 
 RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandbox_api, :vcr do
   include Rack::Test::Methods
+  include_context 'with_test_plans'
 
   # The Rack application for testing
   # Wrap with URLMap to match production mounting behavior
@@ -69,10 +70,14 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
       expect(data['entitlements']).to have_key('infrastructure')
 
       # Verify plans summary structure
+      # Note: free_v1 has no prices so it's skipped by load_all_from_config
+      # identity_plus_v1 creates identity_plus_v1_monthly and identity_plus_v1_yearly
       expect(data['plans']).to be_a(Hash)
-      expect(data['plans']['free']).to have_key('name')
-      expect(data['plans']['free']).to have_key('entitlements')
-      expect(data['plans']['free']).to have_key('limits')
+      expect(data['plans']).not_to be_empty
+      first_plan = data['plans'].values.first
+      expect(first_plan).to have_key('name')
+      expect(first_plan).to have_key('entitlements')
+      expect(first_plan).to have_key('limits')
     end
 
     it 'returns entitlements organized by category', :vcr do
@@ -81,12 +86,11 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
       data         = JSON.parse(last_response.body)
       entitlements = data['entitlements']
 
-      # Verify each category contains entitlements
+      # Verify each category contains entitlements (test config has these categories)
       expect(entitlements['core']).to be_an(Array)
       expect(entitlements['collaboration']).to be_an(Array)
       expect(entitlements['infrastructure']).to be_an(Array)
-      expect(entitlements['support']).to be_an(Array)
-      expect(entitlements['advanced']).to be_an(Array)
+      expect(entitlements['branding']).to be_an(Array)
     end
 
     it 'converts infinity limits to nil in plan summaries', :vcr do
@@ -143,7 +147,7 @@ RSpec.describe 'Billing::Controllers::Entitlements', :integration, :stripe_sandb
       expect(data['planid']).to eq('identity_v1')
       expect(data['entitlements']).to be_an(Array)
       expect(data['limits']).to be_a(Hash)
-      expect(data['is_legacy']).to be_in([true, false])
+      expect([true, false]).to include(data['is_legacy'])
     end
 
     it 'converts infinity limits to nil', :vcr do

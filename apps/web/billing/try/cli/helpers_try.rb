@@ -81,7 +81,7 @@ helper.format_stripe_error('Failed', error)
 helper = @helper_class.new
 error  = Stripe::AuthenticationError.new('Invalid API key')
 helper.format_stripe_error('Failed', error)
-#=~ /Authentication failed.*STRIPE_KEY/
+#=~ /Authentication failed.*STRIPE_API_KEY/
 
 ## Test: format_stripe_error for RateLimitError
 helper = @helper_class.new
