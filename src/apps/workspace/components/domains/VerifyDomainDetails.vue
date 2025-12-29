@@ -34,7 +34,7 @@ const { t } = useI18n();
 const success = ref<string | undefined>(undefined);
 const buttonDisabledDelay = ref(false);
 const isButtonDisabled = computed(() => isLoading.value || buttonDisabledDelay.value);
-const buttonText = computed(() => isLoading.value ? t('web.COMMON.processing') : t('verify-domain'));
+const buttonText = computed(() => isLoading.value ? t('web.COMMON.processing') : t('web.domains.verify-domain'));
 
 const verify = async () => {
   console.info('Refreshing DNS verification details...');
@@ -42,7 +42,7 @@ const verify = async () => {
   try {
     const result = await verifyDomain(props.domain.display_domain);
     if (result) {
-      success.value = t('domain-verification-initiated-successfully')
+      success.value = t('web.domains.domain-verification-initiated-successfully')
       emit('domainVerify', result);
 
       buttonDisabledDelay.value = true;
@@ -60,10 +60,10 @@ const verify = async () => {
 <template>
   <div class="mx-auto max-w-2xl rounded-xl bg-white p-6 shadow-lg dark:bg-gray-800">
     <h2 class="mb-4 text-2xl font-bold text-gray-800 dark:text-white">
-      {{ t('domain-verification-steps') }}
+      {{ t('web.domains.domain-verification-steps') }}
     </h2>
     <p class="mb-6 text-lg text-gray-600 dark:text-gray-300">
-      {{ t('follow-these-steps-to-verify-domain-ownership-an') }}
+      {{ t('web.domains.follow-these-steps-to-verify-domain-ownership-an') }}
     </p>
 
     <BasicFormAlerts
@@ -93,22 +93,22 @@ const verify = async () => {
     <ol class="mb-8 space-y-6">
       <li class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          {{ t('1-create-a-txt-record') }}
+          {{ t('web.domains.1-create-a-txt-record') }}
         </h3>
         <p class="mb-2 text-gray-600 dark:text-gray-300">
-          {{ t('add-this-hostname-to-your-dns-configuration') }}
+          {{ t('web.domains.add-this-hostname-to-your-dns-configuration') }}
         </p>
 
         <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
           <DetailField
-            :label="t('type')"
+            :label="t('web.COMMON.type')"
             value="TXT" />
           <DetailField
-            :label="t('host')"
+            :label="t('web.COMMON.host')"
             :value="domain.txt_validation_host"
             :appendix="`.${domain.base_domain}`" />
           <DetailField
-            :label="t('value')"
+            :label="t('web.COMMON.value')"
             :value="domain.txt_validation_value" />
         </div>
       </li>
@@ -116,19 +116,19 @@ const verify = async () => {
         v-if="domain?.is_apex"
         class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          {{ t('2-create-the-a-record') }}
+          {{ t('web.domains.2-create-the-a-record') }}
         </h3>
 
         <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
           <DetailField
-            :label="t('type-0')"
+            :label="t('web.COMMON.type')"
             value="A" />
           <DetailField
-            :label="t('host')"
+            :label="t('web.COMMON.host')"
             :value="domain?.trd ? domain.trd : '@'"
             :appendix="domain?.base_domain" />
           <DetailField
-            :label="t('value')"
+            :label="t('web.COMMON.value')"
             :value="cluster?.cluster_ip ?? ''" />
         </div>
       </li>
@@ -136,38 +136,38 @@ const verify = async () => {
         v-else
         class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          {{ t('2-create-the-cname-record') }}
+          {{ t('web.domains.2-create-the-cname-record') }}
         </h3>
 
         <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white dark:divide-gray-700 dark:border-gray-700 dark:bg-gray-600">
           <DetailField
             v-if="domain?.is_apex"
-            :label="t('type')"
+            :label="t('web.COMMON.type')"
             value="A" />
           <DetailField
             v-else
-            :label="t('type')"
+            :label="t('web.COMMON.type')"
             value="CNAME" />
           <DetailField
-            :label="t('host')"
+            :label="t('web.COMMON.host')"
             :value="domain?.trd ? domain.trd : '@'"
             :appendix="`.${domain?.base_domain}`" />
           <DetailField
             v-if="domain?.is_apex"
-            :label="t('value')"
+            :label="t('web.COMMON.value')"
             :value="cluster?.cluster_ip ?? ''" />
           <DetailField
             v-else
-            :label="t('value')"
+            :label="t('web.COMMON.value')"
             :value="cluster?.cluster_host ?? ''" />
         </div>
       </li>
       <li class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700">
         <h3 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white">
-          {{ t('3-wait-for-propagation') }}
+          {{ t('web.domains.3-wait-for-propagation') }}
         </h3>
         <p class="text-gray-600 dark:text-gray-300">
-          {{ t('dns-changes-can-take-as-little-as-60-seconds-or-') }}
+          {{ t('web.domains.dns-changes-can-take-as-little-as-60-seconds-or-') }}
         </p>
       </li>
     </ol>
@@ -179,7 +179,7 @@ const verify = async () => {
         class="mr-2 mt-0.5 size-5 shrink-0 text-brandcomp-700"
         aria-hidden="true" />
       <p class="text-sm text-gray-500 dark:text-gray-400">
-        {{ t('it-may-take-a-few-minutes-for-your-ssl-certifica') }}
+        {{ t('web.domains.it-may-take-a-few-minutes-for-your-ssl-certifica') }}
       </p>
     </div>
   </div>

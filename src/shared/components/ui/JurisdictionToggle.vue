@@ -193,7 +193,7 @@ const { t } = useI18n();
         @keydown="handleKeyDown">
         <li
           class="px-3 py-2 font-brand text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-100">
-          {{ t('regions') }}
+          {{ t('web.regions.regions') }}
         </li>
 
         <li

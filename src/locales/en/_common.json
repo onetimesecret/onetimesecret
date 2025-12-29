@@ -108,6 +108,7 @@
       "saving": "Saving...",
       "adding_ellipses": "Adding",
       "e-g-example": "e.g.",
+      "example_placeholder": "e.g. {example}",
       "status": "Status",
       "escape": "Escape",
       "active": "Active",

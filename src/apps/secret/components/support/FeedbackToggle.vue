@@ -32,8 +32,8 @@
                  focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-white
                  dark:bg-gray-700 dark:text-gray-400
                  dark:ring-offset-gray-900 dark:hover:bg-gray-700 dark:hover:text-gray-300 dark:focus:ring-brand-400 dark:focus:ring-offset-gray-900 sm:space-x-2"
-      :aria-label="t('open-feedback-form')">
-      <span class="hidden sm:inline sm:pl-1">{{ t('feedback') }}</span>
+      :aria-label="t('web.feedback.open-feedback-form')">
+      <span class="hidden sm:inline sm:pl-1">{{ t('web.colonel.feedback') }}</span>
       <OIcon
         class="size-5 text-gray-500 transition-colors
              group-hover:text-brand-500 dark:text-gray-400

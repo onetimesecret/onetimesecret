@@ -107,6 +107,7 @@
       "saving": "保存中...",
       "adding_ellipses": "追加中",
       "e-g-example": "例",
+      "example_placeholder": "例: {example}",
       "status": "ステータス",
       "escape": "閉じる",
       "active": "アクティブ",

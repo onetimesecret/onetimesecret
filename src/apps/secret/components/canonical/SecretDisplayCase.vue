@@ -53,7 +53,7 @@
     const announcement = document.createElement('div');
     announcement.setAttribute('role', 'status');
     announcement.setAttribute('aria-live', 'polite');
-    announcement.textContent = t('secret-content-copied-to-clipboard');
+    announcement.textContent = t('web.secrets.secret-content-copied-to-clipboard');
     document.body.appendChild(announcement);
     setTimeout(() => announcement.remove(), 1000);
   };
@@ -135,7 +135,7 @@
         <label
           :for="secretContentId"
           class="sr-only">
-          {{ t('secret-content') }}
+          {{ t('web.secrets.secret-content') }}
         </label>
         <!-- prettier-ignore-attribute class -->
         <textarea
@@ -149,17 +149,17 @@
           :rows="details?.display_lines ?? 4"
           :value="record?.secret_value"
           aria-describedby="copy-instructions"
-          :aria-label="t('secret-content')"></textarea>
+          :aria-label="t('web.secrets.secret-content')"></textarea>
         <div
           v-else
           class="text-red-500 dark:text-red-400"
           role="alert">
-          {{ t('secret-value-not-available') }}
+          {{ t('web.secrets.secret-value-not-available') }}
         </div>
         <p
           id="copy-instructions"
           class="sr-only">
-          {{ t('press_copy_button_below') }}
+          {{ t('web.COMMON.press_copy_button_below') }}
         </p>
       </div>
     </template>
@@ -227,7 +227,7 @@
           v-if="!record?.verification"
           class="mt-24 text-center text-sm text-slate-500 dark:text-slate-400">
           <p>
-            {{ t('you-can-safely-close-this-tab') }}
+            {{ t('web.secrets.you-can-safely-close-this-tab') }}
           </p>
         </div>
         <div
@@ -236,7 +236,7 @@
           <a
             href="/signin"
             class="block w-full rounded-md border border-slate-500 bg-white px-4 py-2 text-center text-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 dark:border-slate-400 dark:bg-gray-800 dark:text-slate-400 dark:hover:bg-gray-700"
-            :aria-label="t('sign-in-to-your-account')">
+            :aria-label="t('web.auth.sign-in-to-your-account')">
             {{ t('web.COMMON.login_to_your_account') }}
           </a>
         </div>

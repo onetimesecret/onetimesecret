@@ -56,7 +56,7 @@ const backgroundIcon = computed(() => props.defaultIcon);
           <img
             v-if="logoPreview"
             :src="logoPreview"
-            :alt="t('heading-logo', [heading])"
+            :alt="t('web.branding.heading-logo', [heading])"
             class="max-h-full max-w-full rounded-md object-contain" />
           <OIcon
             v-else
@@ -96,7 +96,7 @@ const backgroundIcon = computed(() => props.defaultIcon);
           {{ heading }}
         </h1>
         <p class="text-lg text-gray-600 dark:text-gray-400">
-          {{ t('customize-your-domain-branding') }}
+          {{ t('web.domains.customize-your-domain-branding') }}
         </p>
       </div>
 

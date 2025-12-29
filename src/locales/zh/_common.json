@@ -107,6 +107,7 @@
       "saving": "保存中",
       "adding_ellipses": "添加中……",
       "e-g-example": "例如",
+      "example_placeholder": "例如：{example}",
       "status": "状态",
       "escape": "退出",
       "active": "活跃",

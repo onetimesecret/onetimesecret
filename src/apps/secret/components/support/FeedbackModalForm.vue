@@ -55,7 +55,7 @@ import { computed, onMounted, ref } from 'vue';
   const form = ref<HTMLFormElement | null>(null);
 
   const handleKeydown = (event: KeyboardEvent) => {
-    if (event.key === t('enter') && (event.metaKey || event.ctrlKey)) {
+    if (event.key === t('web.COMMON.enter') && (event.metaKey || event.ctrlKey)) {
       event.preventDefault();
       form.value?.requestSubmit(); // This triggers the form submission event
     }
@@ -66,7 +66,7 @@ import { computed, onMounted, ref } from 'vue';
   /**
    * Computed property to determine the submit key combination text based on the platform
    */
-  const submitWithText = computed(() => navigator.platform.includes(t('mac')) ? t('enter-0') : t('ctrl-enter'));
+  const submitWithText = computed(() => navigator.platform.includes(t('web.COMMON.mac')) ? t('web.COMMON.enter-0') : t('web.COMMON.ctrl-enter'));
 
   /**
    * State to track if the device is a desktop using useMediaQuery
@@ -103,7 +103,7 @@ import { computed, onMounted, ref } from 'vue';
         <label
           for="feedback-message"
           class="sr-only">
-          {{ t('your-feedback') }}
+          {{ t('web.feedback.your-feedback') }}
         </label>
         <!-- prettier-ignore-attribute class -->
         <textarea
@@ -118,7 +118,7 @@ import { computed, onMounted, ref } from 'vue';
           required
           @keydown="handleKeydown"
           :placeholder="t('web.COMMON.feedback_text')"
-          :aria-label="t('enter-your-feedback')"></textarea>
+          :aria-label="t('web.feedback.enter-your-feedback')"></textarea>
         <div class="mt-2 flex justify-end text-gray-500 dark:text-gray-400">
           <span v-if="isDesktop">{{ submitWithText }}</span>
         </div>

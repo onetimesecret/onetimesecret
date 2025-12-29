@@ -106,7 +106,7 @@
               hover:text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500
               dark:hover:text-amber-50"
             @click="closeWarning"
-            :aria-label="t('dismiss-warning')">
+            :aria-label="t('web.errors.dismiss-warning')">
             <span aria-hidden="true" class="text-lg">&times;</span>
           </button>
           <strong class="font-medium">{{ t('web.COMMON.warning') }}:</strong>
@@ -126,7 +126,7 @@
               hover:text-brand-900 focus:outline-none focus:ring-2 focus:ring-brand-500
               dark:hover:text-brand-50"
             @click="closeWarning"
-            :aria-label="t('dismiss-notification')">
+            :aria-label="t('web.errors.dismiss-notification')">
             <span aria-hidden="true" class="text-lg">&times;</span>
           </button>
           {{ t('web.shared.viewed_own_secret') }}

@@ -107,6 +107,7 @@
       "saving": "Speichert...",
       "adding_ellipses": "Wird hinzugefügt...",
       "e-g-example": "z.B.",
+      "example_placeholder": "z.B. {example}",
       "status": "Status",
       "escape": "Escape",
       "active": "Aktiv",

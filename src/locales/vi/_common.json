@@ -107,6 +107,7 @@
       "saving": "Đang lưu...",
       "adding_ellipses": "Đang thêm...",
       "e-g-example": "ví dụ:",
+      "example_placeholder": "ví dụ: {example}",
       "status": "Trạng thái",
       "escape": "Escape",
       "active": "Hoạt động",

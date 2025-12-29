@@ -107,6 +107,7 @@
       "saving": "Guardando...",
       "adding_ellipses": "Añadiendo...",
       "e-g-example": "ej.",
+      "example_placeholder": "ej. {example}",
       "status": "Estado",
       "escape": "Escape",
       "active": "Activo",

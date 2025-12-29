@@ -27,8 +27,8 @@
   const { t } = useI18n();
 
   // Core logo properties
-  const ariaLabel = computed(() => props.ariaLabel || t('one-time-secret-literal'));
-  const siteName = computed(() => props.siteName || t('one-time-secret-literal'));
+  const ariaLabel = computed(() => props.ariaLabel || t('web.homepage.one-time-secret-literal'));
+  const siteName = computed(() => props.siteName || t('web.homepage.one-time-secret-literal'));
   const showSiteName = computed(() => !props.isUserPresent && !!siteName.value);
   const svgSize = computed(() =>
     typeof props.size === 'number' && props.size > 0 ? props.size : 64
@@ -172,7 +172,7 @@
             <div
               class="px-3 py-2 font-brand text-xs uppercase
                   tracking-wider text-gray-700 dark:text-gray-200">
-              {{ t('regions') }}
+              {{ t('web.regions.regions') }}
             </div>
             <!-- prettier-ignore-attribute class -->
             <div
@@ -239,15 +239,15 @@
         <div
           class="text-xs text-gray-500 transition-colors dark:text-gray-400"
           aria-hidden="true">
-          {{ t('tagline-signed') }}.
-          <em>{{ t('tagline-sealed') }}. </em>
+          {{ t('web.homepage.tagline-signed') }}.
+          <em>{{ t('web.homepage.tagline-sealed') }}. </em>
           <span class="group/tooltip relative inline-block">
-            {{ t('tagline-delivered') }}.<sup
+            {{ t('web.homepage.tagline-delivered') }}.<sup
               class="text-[0.7em] text-gray-500 [animation:pulse_4s_ease-in-out_infinite] group-hover/tooltip:[animation:none] dark:text-gray-400">*</sup>
             <span
               class="absolute left-full top-0 ml-1 hidden w-max rounded bg-gray-200/90 px-2 py-1 text-xs text-gray-600 shadow-md group-hover/tooltip:block dark:bg-gray-700/90 dark:text-gray-300">
               <sup class="text-[0.7em] text-gray-500 dark:text-gray-400">*</sup>
-              {{ t('recipient-delivery-is-optional') }}
+              {{ t('web.secrets.recipient-delivery-is-optional') }}
             </span>
           </span>
         </div>

@@ -57,16 +57,16 @@
   const instructionFields = computed(() => [
     {
       key: 'instructions_pre_reveal',
-      label: t('pre-reveal-instructions'),
-      tooltipContent: t('these-instructions-will-be-shown-to-recipients-before'),
-      placeholderKey: t('example-pre-reveal-instructions'),
+      label: t('web.branding.pre-reveal-instructions'),
+      tooltipContent: t('web.branding.these-instructions-will-be-shown-to-recipients-before'),
+      placeholderKey: t('web.branding.example-pre-reveal-instructions'),
       value: brandSettings.value?.instructions_pre_reveal || ''
     },
     {
       key: 'instructions_post_reveal',
-      label: t('post-reveal-instructions'),
-      tooltipContent: t('these-instructions-will-be-shown-to-recipients-after'),
-      placeholderKey: t('example-post-reveal-instructions'),
+      label: t('web.branding.post-reveal-instructions'),
+      tooltipContent: t('web.branding.these-instructions-will-be-shown-to-recipients-after'),
+      placeholderKey: t('web.branding.example-post-reveal-instructions'),
       value: brandSettings.value?.instructions_post_reveal || ''
     }
   ]);
@@ -86,7 +86,7 @@
     () => isLoading.value,
     (loading) => {
       if (!loading && !brandSettings.value) {
-        error.value = createError(t('failed-to-load-brand-settings'), 'technical', 'error');
+        error.value = createError(t('web.branding.failed-to-load-brand-settings'), 'technical', 'error');
       }
     }
   );
@@ -98,7 +98,7 @@
 
   onBeforeRouteLeave((to, from, next) => {
     if (hasUnsavedChanges.value) {
-      const answer = window.confirm(t('you-have-unsaved-changes-are-you-sure'));
+      const answer = window.confirm(t('web.branding.you-have-unsaved-changes-are-you-sure'));
       if (answer) next();
       else next(false);
     } else {
@@ -149,14 +149,14 @@
           <h2
             id="previewHeading"
             class="mb-6 text-xl font-semibold text-gray-900 dark:text-gray-100">
-            {{ t('preview-and-customize') }}
+            {{ t('web.branding.preview-and-customize') }}
           </h2>
 
           <!-- Instructions for screen readers -->
           <div
             class="sr-only"
             role="note">
-            {{ t('this-is-an-interactive-preview-of-how-recipients') }}
+            {{ t('web.branding.this-is-an-interactive-preview-of-how-recipients') }}
           </div>
 
           <!-- Visual instructions -->
@@ -168,8 +168,8 @@
                 collection="mdi"
                 name="palette-outline"
                 class="size-5"
-                :aria-label="t('customization-icon')" />
-              {{ t('use-the-controls-above-to-customize-brand-details') }}
+                :aria-label="t('web.branding.customization-icon')" />
+              {{ t('web.branding.use-the-controls-above-to-customize-brand-details') }}
             </li>
 
             <li class="flex items-center gap-2">
@@ -177,8 +177,8 @@
                 collection="mdi"
                 name="image-outline"
                 class="size-5"
-                :aria-label="t('image-icon')" />
-              {{ t('click-the-preview-image-below-to-update-your-logo') }}
+                :aria-label="t('web.branding.image-icon')" />
+              {{ t('web.branding.click-the-preview-image-below-to-update-your-logo') }}
             </li>
 
             <li class="flex items-center gap-2">
@@ -186,8 +186,8 @@
                 collection="mdi"
                 name="eye-outline"
                 class="size-5"
-                :aria-label="t('eye-icon')" />
-              {{ t('preview-how-recipients-will-see-your-secrets') }}
+                :aria-label="t('web.branding.eye-icon')" />
+              {{ t('web.branding.preview-how-recipients-will-see-your-secrets') }}
             </li>
           </ul>
 
@@ -218,7 +218,7 @@
             v-if="isLoading"
             role="status"
             class="py-8 text-center">
-            <span class="sr-only">{{ t('loading-preview') }}</span>
+            <span class="sr-only">{{ t('web.branding.loading-preview') }}</span>
             <!-- Add isLoading spinner -->
           </div>
         </div>

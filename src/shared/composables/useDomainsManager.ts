@@ -87,7 +87,7 @@ export function useDomainsManager() {
   const verifyDomain = async (extid: string) =>
     wrap(async () => {
       const result = await store.verifyDomain(extid);
-      notifications.show(t('domain-verification-initiated-successfully'), 'success');
+      notifications.show(t('web.domains.domain-verification-initiated-successfully'), 'success');
       return result;
     });
 
@@ -115,7 +115,7 @@ export function useDomainsManager() {
       try {
         const result = await store.addDomain(domain);
         if (!result) {
-          error.value = createError(t('failed-to-add-domain'), 'human', 'error');
+          error.value = createError(t('web.domains.failed-to-add-domain'), 'human', 'error');
           return null;
         }
 
@@ -136,7 +136,7 @@ export function useDomainsManager() {
 
   const deleteDomain = async (domainId: string) => {
     await store.deleteDomain(domainId);
-    notifications.show(t('domain-removed-successfully'), 'success');
+    notifications.show(t('web.domains.domain-removed-successfully'), 'success');
   };
 
   return {

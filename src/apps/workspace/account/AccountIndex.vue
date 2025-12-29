@@ -123,7 +123,7 @@
               class="mr-2 size-5 animate-spin text-gray-400"
               aria-hidden="true" />
             <span class="text-sm text-gray-600 dark:text-gray-400">
-              {{ t('loading_ellipses') }}
+              {{ t('web.COMMON.loading_ellipses') }}
             </span>
           </div>
         </div>
@@ -157,7 +157,7 @@
                   aria-hidden="true" />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">
-                    {{ t('appearance') }}
+                    {{ t('web.COMMON.appearance') }}
                   </p>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
                     {{ t('web.settings.theme.choose_light_or_dark_theme') }}
@@ -184,7 +184,7 @@
                   aria-hidden="true" />
                 <div>
                   <p class="font-medium text-gray-900 dark:text-white">
-                    {{ t('language') }}
+                    {{ t('web.COMMON.language') }}
                   </p>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
                     {{ t('web.settings.language.select_your_preferred_language') }}
@@ -198,27 +198,27 @@
               <div class="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
                 <div class="prose prose-sm prose-blue max-w-none dark:prose-invert">
                   <p class="text-sm text-blue-700 dark:text-blue-300">
-                    {{ t('as-we-add-new-features-our-translations-graduall') }}
+                    {{ t('web.translations.as-we-add-new-features-our-translations-graduall') }}
                   </p>
                   <p class="text-sm text-blue-700 dark:text-blue-300">
-                    {{ t('were-grateful-to-the') }}
+                    {{ t('web.translations.were-grateful-to-the') }}
                     <router-link
                       to="/translations"
                       class="font-medium underline hover:no-underline">
-                      {{ t('25-contributors') }}
+                      {{ t('web.translations.25-contributors') }}
                     </router-link>
-                    {{ t('whove-helped-with-translations-as-we-continue-to') }}
+                    {{ t('web.translations.whove-helped-with-translations-as-we-continue-to') }}
                   </p>
                   <p class="text-sm text-blue-700 dark:text-blue-300">
-                    {{ t('if-youre-interested-in-translation') }}
+                    {{ t('web.translations.if-youre-interested-in-translation') }}
                     <a
                       href="https://github.com/onetimesecret/onetimesecret"
                       target="_blank"
                       rel="noopener noreferrer"
                       class="font-medium underline hover:no-underline">
-                      {{ t('our-github-project') }}
+                      {{ t('web.translations.our-github-project') }}
                     </a>
-                    {{ t('welcomes-contributors-for-both-existing-and-new-') }}
+                    {{ t('web.translations.welcomes-contributors-for-both-existing-and-new-') }}
                   </p>
                 </div>
               </div>

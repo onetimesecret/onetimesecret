@@ -29,7 +29,7 @@ const handleClick = async () => {
   // Copy email to clipboard
   try {
     await navigator.clipboard.writeText(deobfuscatedEmail);
-    alert(t('email-address-copied-to-clipboard'));
+    alert(t('web.COMMON.email-address-copied-to-clipboard'));
   } catch (err) {
     console.error('Failed to copy email: ', err);
   }

@@ -107,6 +107,7 @@
       "saving": "Enregistrement en cours...",
       "adding_ellipses": "Ajout en cours...",
       "e-g-example": "p. ex.",
+      "example_placeholder": "p. ex. {example}",
       "status": "État",
       "escape": "Quitter",
       "active": "Actif",

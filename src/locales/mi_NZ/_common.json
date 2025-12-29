@@ -107,6 +107,7 @@
       "saving": "Kei te tiaki...",
       "adding_ellipses": "Kei te tāpiri",
       "e-g-example": "hei tauira.",
+      "example_placeholder": "hei tauira: {example}",
       "status": "Tūnga",
       "escape": "Putanga",
       "active": "Hohe",

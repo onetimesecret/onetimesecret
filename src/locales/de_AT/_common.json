@@ -107,6 +107,7 @@
       "saving": "Wird gespeichert...",
       "adding_ellipses": "Hinzufügen von",
       "e-g-example": "z.B..",
+      "example_placeholder": "z.B. {example}",
       "status": "Zustand",
       "escape": "Flucht",
       "active": "Aktiv",

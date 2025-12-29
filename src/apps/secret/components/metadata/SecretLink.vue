@@ -104,7 +104,7 @@
               border-0 bg-slate-50 px-3 py-2.5 font-mono text-sm text-gray-900
               focus:ring-1 focus:ring-green-500
               dark:bg-slate-900 dark:text-gray-100 sm:text-base"
-            :aria-label="t('secret-link')"></textarea>
+            :aria-label="t('web.secrets.secret-link')"></textarea>
         </div>
 
         <div class="ml-4 shrink-0">

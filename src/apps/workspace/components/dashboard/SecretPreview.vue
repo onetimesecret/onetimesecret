@@ -37,12 +37,12 @@ const logoSrc = computed(() => {
 });
 
 const isRevealed = ref(false);
-const textareaPlaceholder = props.previewI18n.t('sample-secret-content-this-could-be-sensitive-data');
+const textareaPlaceholder = props.previewI18n.t('web.secrets.sample-secret-content-this-could-be-sensitive-data');
 
 const ariaLabelText = computed(() =>
   isRevealed.value
-    ? t('hide-secret-message')
-    : t('view-secret-message')
+    ? t('web.secrets.hide-secret-message')
+    : t('web.secrets.view-secret-message')
 )
 
 const handleLogoChange = (event: Event) => {
@@ -73,7 +73,7 @@ const fontFamilyClass = computed(() => {
 <template>
   <!-- Updated -->
   <BaseSecretDisplay
-    :default-title="previewI18n.t('you-have-a-message')"
+    :default-title="previewI18n.t('web.secrets.you-have-a-message')"
     :domain-branding="domainBranding"
     :preview-i18n="previewI18n"
     :is-revealed="isRevealed"
@@ -94,7 +94,7 @@ const fontFamilyClass = computed(() => {
             <img
               v-if="isValidLogo"
               :src="logoSrc"
-              :alt="logoImage?.filename || t('brand-logo')"
+              :alt="logoImage?.filename || t('web.layout.brand-logo')"
               class="size-16 object-contain"
               :class="{
                 [cornerClass]: true,
@@ -118,7 +118,7 @@ const fontFamilyClass = computed(() => {
         <div
           id="logoHelp"
           class="sr-only">
-          {{ t('click-to-upload-a-logo-with-recommendation') }}
+          {{ t('web.branding.click-to-upload-a-logo-with-recommendation') }}
         </div>
 
         <input
@@ -134,7 +134,7 @@ const fontFamilyClass = computed(() => {
           v-if="isValidLogo"
           class="absolute inset-0 flex items-center justify-center rounded-lg bg-black/70 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
           role="group"
-          :aria-label="t('logo-controls')">
+          :aria-label="t('web.branding.logo-controls')">
           <button
             @click.stop="onLogoRemove"
             class="rounded-md bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700 focus:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
@@ -143,7 +143,7 @@ const fontFamilyClass = computed(() => {
                 collection="mdi"
                 name="trash-can"
                 class="size-4" />
-              {{ t('remove') }}
+              {{ t('web.COMMON.remove') }}
             </span>
           </button>
         </div>
@@ -159,7 +159,7 @@ const fontFamilyClass = computed(() => {
             font-mono text-xs text-gray-700
             focus:ring-0 dark:text-gray-300 sm:text-base"
         rows="3"
-        :aria-label="t('sample-secret-content')"
+        :aria-label="t('web.secrets.sample-secret-content')"
         v-model="textareaPlaceholder"></textarea>
 
       <div
@@ -170,7 +170,7 @@ const fontFamilyClass = computed(() => {
           collection="mdi"
           name="eye-off"
           class="mr-2 size-5" />
-        <span class="text-sm">{{ previewI18n.t('content-hidden') }}</span>
+        <span class="text-sm">{{ previewI18n.t('web.secrets.content-hidden') }}</span>
       </div>
     </template>
 
@@ -187,7 +187,7 @@ const fontFamilyClass = computed(() => {
         :aria-expanded="isRevealed"
         aria-controls="secretContent"
         :aria-label="ariaLabelText">
-        {{ isRevealed ? t('hide-secret') : previewI18n.t('web.COMMON.click_to_continue') }}
+        {{ isRevealed ? t('web.secrets.hide-secret') : previewI18n.t('web.COMMON.click_to_continue') }}
       </button>
     </template>
   </BaseSecretDisplay>

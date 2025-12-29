@@ -24,8 +24,8 @@ defineEmits<{
           : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
       ]"
       @click="$emit('update:modelValue', 'safari')"
-      :aria-label="t('switch-to-safari-preview')">
-      {{ t('safari') }}
+      :aria-label="t('web.branding.switch-to-safari-preview')">
+      {{ t('web.branding.safari') }}
     </button>
 
     <button
@@ -36,8 +36,8 @@ defineEmits<{
           : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
       ]"
       @click="$emit('update:modelValue', 'edge')"
-      :aria-label="t('switch-to-edge-preview')">
-      {{ t('edge') }}
+      :aria-label="t('web.branding.switch-to-edge-preview')">
+      {{ t('web.branding.edge') }}
     </button>
   </div>
 </template>

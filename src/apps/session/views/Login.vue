@@ -13,7 +13,7 @@ const languageStore = useLanguageStore();
 
 <template>
   <AuthView
-    :heading="t('sign-in-to-your-account')"
+    :heading="t('web.auth.sign-in-to-your-account')"
     heading-id="signin-heading"
     :with-subheading="true"
     :hide-icon="true"

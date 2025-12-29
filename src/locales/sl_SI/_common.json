@@ -107,6 +107,7 @@
       "saving": "Shranjujem...",
       "adding_ellipses": "Dodajam",
       "e-g-example": "npr.",
+      "example_placeholder": "npr. {example}",
       "status": "Status",
       "escape": "Escape",
       "active": "Aktivno",

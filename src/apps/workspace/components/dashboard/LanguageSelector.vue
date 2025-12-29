@@ -78,7 +78,7 @@ watch(isOpen, (newValue) => {
 
 <template>
   <div class="group relative">
-    <HoverTooltip>{{ t('language') }}</HoverTooltip>
+    <HoverTooltip>{{ t('web.COMMON.language') }}</HoverTooltip>
     <!-- prettier-ignore-attribute class -->
     <button
       type="button"
@@ -92,7 +92,7 @@ watch(isOpen, (newValue) => {
              dark:ring-gray-700 dark:hover:bg-gray-700
              dark:focus:ring-brand-400 dark:focus:ring-offset-0"
       :aria-expanded="isOpen"
-      :aria-label="t('language')"
+      :aria-label="t('web.COMMON.language')"
       aria-haspopup="listbox">
       <OIcon
         collection="heroicons"

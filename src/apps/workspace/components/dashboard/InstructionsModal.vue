@@ -48,7 +48,7 @@
 
   const characterCount = (value: string) => value?.length ?? 0;
 
-  const getPlaceholderExample = (placeholderKey: string) => `${props.previewI18n.t('e-g-example')} ${placeholderKey}`;
+  const getPlaceholderExample = (placeholderKey: string) => props.previewI18n.t('web.COMMON.example_placeholder', { example: props.previewI18n.t(placeholderKey) });
 
   const updateValue = (key: string, event: Event) => {
     const target = event.target as HTMLTextAreaElement;
@@ -122,7 +122,7 @@
 
 <template>
   <div class="group relative">
-    <HoverTooltip>{{ t('instructions') }}</HoverTooltip>
+    <HoverTooltip>{{ t('web.branding.instructions') }}</HoverTooltip>
     <!-- prettier-ignore-attribute class -->
     <button
       type="button"
@@ -133,7 +133,7 @@
         focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
         dark:bg-gray-800 dark:ring-gray-700 dark:hover:bg-gray-700 dark:focus:ring-brand-400 dark:focus:ring-offset-0"
       :aria-expanded="isOpen"
-      :aria-label="t('instructions')"
+      :aria-label="t('web.branding.instructions')"
       aria-haspopup="true">
       <OIcon
         collection="mdi"
@@ -202,8 +202,8 @@
             <!-- prettier-ignore-attribute class -->
             <div
               class="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-              <span>{{ t('charactercount-500-characters', [characterCount(field.value)]) }}</span>
-              <span v-if="index === instructionFields.length - 1">{{ t('press-esc-to-close') }}</span>
+              <span>{{ t('web.branding.charactercount-500-characters', [characterCount(field.value)]) }}</span>
+              <span v-if="index === instructionFields.length - 1">{{ t('web.COMMON.press-esc-to-close') }}</span>
             </div>
           </div>
         </div>

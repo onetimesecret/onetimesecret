@@ -54,7 +54,7 @@
       <!-- Add a loading indicator here -->
       <div class="text-justify">
         <p class="text-gray-600 dark:text-gray-400">
-          {{ t('loading_ellipses') }}
+          {{ t('web.COMMON.loading_ellipses') }}
         </p>
       </div>
     </template>
@@ -224,7 +224,7 @@
               class="mb-3 size-10 text-gray-400 dark:text-gray-500"
               aria-hidden="true" />
             <p class="text-gray-600 dark:text-gray-400">
-              {{ t('go-on-then') }}
+              {{ t('web.COMMON.go-on-then') }}
               <router-link
                 to="/"
                 class="text-brand-500 hover:underline">
@@ -277,7 +277,7 @@
                     scope="col"
                     class="px-6 py-2.5 text-right text-xs font-medium uppercase tracking-wider
                       text-gray-700 dark:text-gray-400">
-                    {{ t('status') }}
+                    {{ t('web.COMMON.status') }}
                   </th>
                 </tr>
               </thead>

@@ -21,7 +21,7 @@
 <template>
   <nav
     class="flex items-center justify-between py-2"
-    :aria-label="t('main-navigation')">
+    :aria-label="t('web.layout.main-navigation')">
     <!-- Left side: Domain Scope Switcher (far left per mockup) -->
     <div class="flex items-center">
       <DomainScopeSwitcher />
