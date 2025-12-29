@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Zkopírovat tajemství do schránky",
       "secret_copied_to_clipboard": "Tajemství zkopírováno do schránky",
       "press_copy_button_below": "Stiskni tlačítko kopírovat níže.",
-      "Double check that passphrase": "Zkontroluj si tu přístupovou frázi"
+      "double_check_that_passphrase": "Zkontroluj si tu přístupovou frázi"
     },
     "LABELS": {
       "view_toggle": {

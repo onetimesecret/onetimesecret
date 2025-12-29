@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "비밀 메시지를 클립보드에 복사",
       "secret_copied_to_clipboard": "비밀 메시지가 클립보드에 복사되었습니다",
       "press_copy_button_below": "아래 복사 버튼을 누르세요.",
-      "Double check that passphrase": "접근 문구를 다시 확인하세요"
+      "double_check_that_passphrase": "접근 문구를 다시 확인하세요"
     },
     "LABELS": {
       "view_toggle": {

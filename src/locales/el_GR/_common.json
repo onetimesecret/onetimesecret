@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Αντιγραφή μυστικού στο πρόχειρο",
       "secret_copied_to_clipboard": "Το μυστικό αντιγράφηκε στο πρόχειρο",
       "press_copy_button_below": "Πατήστε το παρακάτω κουμπί αντιγραφής.",
-      "Double check that passphrase": "Ελέγξτε ξανά αυτή τη φράση πρόσβασης"
+      "double_check_that_passphrase": "Ελέγξτε ξανά αυτή τη φράση πρόσβασης"
     },
     "LABELS": {
       "view_toggle": {

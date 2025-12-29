@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Copier dans le presse-papiers",
       "secret_copied_to_clipboard": "Message copié",
       "press_copy_button_below": "Appuyez sur le bouton de copie ci-dessous.",
-      "Double check that passphrase": "Vérifiez votre phrase secrète"
+      "double_check_that_passphrase": "Vérifiez votre phrase secrète"
     },
     "LABELS": {
       "view_toggle": {

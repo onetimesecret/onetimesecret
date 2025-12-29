@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Tārua karere huna ki te papatopenga",
       "secret_copied_to_clipboard": "Kua tāruatia te karere huna ki te papatopenga",
       "press_copy_button_below": "Pēhia te pātene tārua i raro nei.",
-      "Double check that passphrase": "Matuatua anō i taua kupu karapa"
+      "double_check_that_passphrase": "Matuatua anō i taua kupu karapa"
     },
     "LABELS": {
       "view_toggle": {

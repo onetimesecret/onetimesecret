@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Geheimnis in die Zwischenablage kopieren",
       "secret_copied_to_clipboard": "Geheimnis in die Zwischenablage kopiert",
       "press_copy_button_below": "Drücke unten die Kopieren-Schaltfläche.",
-      "Double check that passphrase": "Überprüfe diese Passphrase nochmals"
+      "double_check_that_passphrase": "Überprüfe diese Passphrase nochmals"
     },
     "LABELS": {
       "view_toggle": {

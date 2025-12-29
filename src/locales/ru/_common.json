@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Скопировать секрет в буфер обмена",
       "secret_copied_to_clipboard": "Секрет скопирован в буфер обмена",
       "press_copy_button_below": "Нажмите кнопку копирования ниже.",
-      "Double check that passphrase": "Внимательно проверьте эту кодовую фразу"
+      "double_check_that_passphrase": "Внимательно проверьте эту кодовую фразу"
     },
     "LABELS": {
       "view_toggle": {

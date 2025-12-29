@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Copiar mensagem secreta para a área de transferência",
       "secret_copied_to_clipboard": "Mensagem secreta copiada para a área de transferência",
       "press_copy_button_below": "Pressione o botão de copiar abaixo.",
-      "Double check that passphrase": "Verifique novamente essa frase-passe"
+      "double_check_that_passphrase": "Verifique novamente essa frase-passe"
     },
     "LABELS": {
       "view_toggle": {

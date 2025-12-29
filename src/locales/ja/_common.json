@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "シークレットをクリップボードにコピー",
       "secret_copied_to_clipboard": "シークレットがクリップボードにコピーされました",
       "press_copy_button_below": "下のコピーボタンを押してください。",
-      "Double check that passphrase": "Double check that passphrase"
+      "double_check_that_passphrase": "パスフレーズを再度ご確認ください"
     },
     "LABELS": {
       "view_toggle": {

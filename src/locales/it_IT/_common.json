@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Copia il segreto negli appunti",
       "secret_copied_to_clipboard": "Segreto copiato negli appunti",
       "press_copy_button_below": "Premi il pulsante di copia qui sotto",
-      "Double check that passphrase": "Controlla due volte la passphrase"
+      "double_check_that_passphrase": "Controlla due volte la passphrase"
     },
     "LABELS": {
       "view_toggle": {

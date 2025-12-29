@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Mesajı panoya kopyala",
       "secret_copied_to_clipboard": "Mesaj panoya kopyalandı",
       "press_copy_button_below": "Aşağıdaki kopyala düğmesine basın.",
-      "Double check that passphrase": "Parolayı iki kez kontrol edin"
+      "double_check_that_passphrase": "Parolayı iki kez kontrol edin"
     },
     "LABELS": {
       "view_toggle": {

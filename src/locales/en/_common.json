@@ -161,7 +161,7 @@
       "an_error_occurred": "An error occurred",
       "copy_secret_to_clipboard": "Copy secret to clipboard",
       "secret_copied_to_clipboard": "Secret copied to clipboard",
-      "Double check that passphrase": "Double check that passphrase",
+      "double_check_that_passphrase": "Double check that passphrase",
       "press_copy_button_below": "Press the copy button below."
     },
     "LABELS": {

@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Bericht kopiëren naar klembord",
       "secret_copied_to_clipboard": "Bericht gekopieerd naar klembord",
       "press_copy_button_below": "Klik op de kopieerknop hieronder.",
-      "Double check that passphrase": "Controleer die wachtwoordzin nogmaals"
+      "double_check_that_passphrase": "Controleer die wachtwoordzin nogmaals"
     },
     "LABELS": {
       "view_toggle": {

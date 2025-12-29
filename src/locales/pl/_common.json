@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Kopiuj wiadomość do schowka",
       "secret_copied_to_clipboard": "Wiadomość skopiowana do schowka",
       "press_copy_button_below": "Naciśnij przycisk kopiowania poniżej.",
-      "Double check that passphrase": "Sprawdź dokładnie tę frazę dostępową"
+      "double_check_that_passphrase": "Sprawdź dokładnie tę frazę dostępową"
     },
     "LABELS": {
       "view_toggle": {

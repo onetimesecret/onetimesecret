@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Kopiera hemlighet till urklipp",
       "secret_copied_to_clipboard": "Hemlighet kopierad till urklipp",
       "press_copy_button_below": "Tryck på kopieringsknappen nedan.",
-      "Double check that passphrase": "Dubbelkolla den lösenfrasen"
+      "double_check_that_passphrase": "Dubbelkolla den lösenfrasen"
     },
     "LABELS": {
       "view_toggle": {

@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "نسخ السر إلى الحافظة",
       "secret_copied_to_clipboard": "تم نسخ السر إلى الحافظة",
       "press_copy_button_below": "اضغط على زر النسخ أدناه.",
-      "Double check that passphrase": "تحقق مرة أخرى من عبارة المرور"
+      "double_check_that_passphrase": "تحقق مرة أخرى من عبارة المرور"
     },
     "LABELS": {
       "view_toggle": {

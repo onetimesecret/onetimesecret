@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Копирай тайната в клипборда",
       "secret_copied_to_clipboard": "Тайната е копирана в клипборда",
       "press_copy_button_below": "Натиснете бутона за копиране по-долу.",
-      "Double check that passphrase": "Double check that passphrase"
+      "double_check_that_passphrase": "Моля, проверете отново въведената ключова фраза"
     },
     "LABELS": {
       "view_toggle": {

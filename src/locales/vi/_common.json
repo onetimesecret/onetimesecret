@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Sao chép bí mật vào clipboard",
       "secret_copied_to_clipboard": "Đã sao chép bí mật vào clipboard",
       "press_copy_button_below": "Nhấn nút sao chép bên dưới.",
-      "Double check that passphrase": "Kiểm tra lại cụm mật khẩu đó"
+      "double_check_that_passphrase": "Kiểm tra lại cụm mật khẩu đó"
     },
     "LABELS": {
       "view_toggle": {

@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "העתקת סוד ללוח",
       "secret_copied_to_clipboard": "הסוד הועתק ללוח",
       "press_copy_button_below": "לחצו על כפתור ההעתקה למטה.",
-      "Double check that passphrase": "בדקו שוב את ביטוי הסיסמה"
+      "double_check_that_passphrase": "בדקו שוב את ביטוי הסיסמה"
     },
     "LABELS": {
       "view_toggle": {

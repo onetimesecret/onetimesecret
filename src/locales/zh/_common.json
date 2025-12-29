@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "将内容复制到剪贴板",
       "secret_copied_to_clipboard": "内容已复制到剪贴板",
       "press_copy_button_below": "请按下方的复制按钮。",
-      "Double check that passphrase": "请仔细检查该口令"
+      "double_check_that_passphrase": "请仔细检查该口令"
     },
     "LABELS": {
       "view_toggle": {

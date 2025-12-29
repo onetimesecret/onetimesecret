@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Kopiraj skrivnost v odložišče",
       "secret_copied_to_clipboard": "Skrivnost kopirana v odložišče",
       "press_copy_button_below": "Pritisnite spodnji gumb za kopiranje.",
-      "Double check that passphrase": "Dvakrat preverite pristopno frazo"
+      "double_check_that_passphrase": "Dvakrat preverite pristopno frazo"
     },
     "LABELS": {
       "view_toggle": {

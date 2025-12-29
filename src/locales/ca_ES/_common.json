@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Copia el secret al porta-retalls",
       "secret_copied_to_clipboard": "Secret copiat al porta-retalls",
       "press_copy_button_below": "Prem el botó de copiar de sota.",
-      "Double check that passphrase": "Comprova doblement aquesta frase de contrasenya"
+      "double_check_that_passphrase": "Comprova doblement aquesta frase de contrasenya"
     },
     "LABELS": {
       "view_toggle": {

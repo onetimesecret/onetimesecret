@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Titok másolása vágólapra",
       "secret_copied_to_clipboard": "Titok vágólapra másolva",
       "press_copy_button_below": "Nyomja meg az alábbi másolás gombot.",
-      "Double check that passphrase": "Ellenőrizze újra a hozzáférési mondatot"
+      "double_check_that_passphrase": "Ellenőrizze újra a hozzáférési mondatot"
     },
     "LABELS": {
       "view_toggle": {

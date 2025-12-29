@@ -161,7 +161,7 @@
       "copy_secret_to_clipboard": "Kopier hemmelighed til udklipsholder",
       "secret_copied_to_clipboard": "Hemmelighed kopieret til udklipsholder",
       "press_copy_button_below": "Tryk på kopiknappen nedenfor.",
-      "Double check that passphrase": "Dobbelttjek den passphrase"
+      "double_check_that_passphrase": "Dobbelttjek den passphrase"
     },
     "LABELS": {
       "view_toggle": {
