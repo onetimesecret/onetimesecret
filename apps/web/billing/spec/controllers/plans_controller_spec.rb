@@ -11,6 +11,7 @@ require_relative '../../application'
 
 RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api, :vcr do
   include Rack::Test::Methods
+  include_context 'with_test_plans'
 
   # The Rack application for testing
   # Wrap with URLMap to match production mounting behavior
