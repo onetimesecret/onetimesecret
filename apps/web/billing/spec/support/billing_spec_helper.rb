@@ -166,8 +166,14 @@ RSpec.configure do |config|
 
   # VCR: Wrap ALL billing tests in cassettes automatically
   # No need to tag individual tests with :vcr
+  #
+  # IMPORTANT: Skip stripe_sandbox_api tests in CI when STRIPE_API_KEY is not set
+  # This must happen BEFORE VCR.use_cassette to avoid replaying stale cassettes
   %i[billing cli controller integration].each do |test_type|
     config.around(:each, type: test_type) do |example|
+      if BILLING_VCR_SKIP_IN_CI && example.metadata[:stripe_sandbox_api]
+        skip 'Skipping Stripe sandbox test in CI - re-record cassettes with STRIPE_API_KEY'
+      end
       VCR.use_cassette(vcr_cassette_name(example)) do
         example.run
       end
@@ -176,19 +182,16 @@ RSpec.configure do |config|
 
   # Symbol tag :integration also gets VCR wrapping
   config.around(:each, :integration) do |example|
+    if BILLING_VCR_SKIP_IN_CI && example.metadata[:stripe_sandbox_api]
+      skip 'Skipping Stripe sandbox test in CI - re-record cassettes with STRIPE_API_KEY'
+    end
     VCR.use_cassette(vcr_cassette_name(example)) do
       example.run
     end
   end
 
   # Billing tests use REAL Redis on port 2121 (not FakeRedis)
-  config.before(:each, type: :billing) do |example|
-    # Skip billing tests in CI if VCR cassettes may be invalid
-    # This is a failsafe - tests should pass with cassettes, but skip if they're stale
-    if BILLING_VCR_SKIP_IN_CI && example.metadata[:stripe_sandbox_api]
-      skip 'Skipping Stripe sandbox test in CI - re-record cassettes with STRIPE_API_KEY'
-    end
-
+  config.before(:each, type: :billing) do |_example|
     mock_billing_config!
     mock_sleep!
     Familia.dbclient.flushdb
@@ -210,12 +213,8 @@ RSpec.configure do |config|
 
   # Integration tests: both `type: :integration` and `:integration` symbol tag
   # get the same setup. Using a shared proc for consistency.
-  integration_setup = lambda do |example|
-    # Skip integration tests in CI if VCR cassettes may be invalid
-    if BILLING_VCR_SKIP_IN_CI && example.metadata[:stripe_sandbox_api]
-      skip 'Skipping Stripe sandbox test in CI - re-record cassettes with STRIPE_API_KEY'
-    end
-
+  # Note: stripe_sandbox_api skip logic is handled in the around hooks above
+  integration_setup = lambda do |_example|
     @sleep_delays = []
     mock_billing_config!
     Familia.dbclient.flushdb
