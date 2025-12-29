@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import SessionListItem from '@/apps/workspace/components/account/SessionListItem.vue';
-  import SettingsLayout from '@/shared/components/layout/SettingsLayout.vue';
+  import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useActiveSessions } from '@/shared/composables/useActiveSessions';
   import { computed, onMounted, ref } from 'vue';
 

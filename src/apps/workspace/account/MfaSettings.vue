@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import OtpSetupWizard from '@/apps/session/components/OtpSetupWizard.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import SettingsLayout from '@/shared/components/layout/SettingsLayout.vue';
+  import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useAccount } from '@/shared/composables/useAccount';
   import { useMfa } from '@/shared/composables/useMfa';
   import { onMounted, ref } from 'vue';
