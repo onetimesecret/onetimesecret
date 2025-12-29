@@ -25,8 +25,6 @@
     displayPoweredBy: true,
   });
 
-  const authEnabled = WindowService.get('authentication')?.enabled ?? false;
-
   const { t } = useI18n();
   const route = useRoute();
   const windowProps = WindowService.getMultiple(['ot_version']);
@@ -188,7 +186,7 @@ class="size-6" />
 
         <!-- Feedback Toggle -->
         <FeedbackToggle
-          v-if="props.displayFeedback && authEnabled"
+          v-if="props.displayFeedback"
           class="text-sm text-gray-600 transition-colors duration-200 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
           :aria-label="t('web.layout.provide_feedback')" />
       </div>
