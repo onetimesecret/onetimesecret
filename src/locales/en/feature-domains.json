@@ -29,7 +29,7 @@
       "notify_short": "Notifications",
       "scope_switch_label": "Switch domain scope",
       "scope_list_label": "Available domains",
-      "scope_header": "Domain Scope",
+      "scope_header": "Domains",
       "add_domain": "Add domain",
       "please_enter_a_domain_name": "Please enter a {0} domain name",
       "domain_name": "Domain name",
