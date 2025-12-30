@@ -239,6 +239,8 @@ export const useOrganizationStore = defineStore('organization', () => {
           entitlements: response.data.entitlements,
           limits: response.data.limits,
         };
+      } else {
+        console.debug('[OrganizationStore] Organization not in cache, skipping list update:', extid);
       }
 
       // Update current organization if it matches
