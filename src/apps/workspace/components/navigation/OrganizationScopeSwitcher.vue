@@ -100,9 +100,9 @@ const navigateToManageOrganization = (org: Organization, event: MouseEvent): voi
 };
 
 /**
- * Navigate to create organization page
+ * Navigate to manage organizations page
  */
-const navigateToCreateOrganization = (): void => {
+const navigateToManageOrganizations = (): void => {
   router.push('/org');
 };
 </script>
@@ -244,8 +244,8 @@ const navigateToCreateOrganization = (): void => {
           role="separator"
           aria-hidden="true" ></div>
 
-        <!-- Create Organization Link -->
-        <MenuItem v-slot="{ active }" @click="navigateToCreateOrganization">
+        <!-- Manage Organizations Link -->
+        <MenuItem v-slot="{ active }" @click="navigateToManageOrganizations">
           <button
             type="button"
             class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
@@ -253,11 +253,11 @@ const navigateToCreateOrganization = (): void => {
             <span class="flex items-center gap-2">
               <OIcon
                 collection="heroicons"
-                name="plus"
-                class="size-4 text-brand-500 dark:text-brand-400"
+                name="cog-6-tooth"
+                class="size-4 text-gray-500 dark:text-gray-400"
                 aria-hidden="true" />
-              <span class="text-sm text-brand-600 dark:text-brand-400">
-                {{ t('web.organizations.create_organization') }}
+              <span class="text-sm text-gray-700 dark:text-gray-300">
+                {{ t('web.organizations.manage_organizations') }}
               </span>
             </span>
           </button>
