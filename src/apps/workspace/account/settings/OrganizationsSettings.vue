@@ -143,10 +143,12 @@ const handleManageOrganization = (org: Organization) => {
 
           <!-- Organizations List -->
           <div v-else-if="hasOrganizations" class="space-y-4">
-            <div
+            <button
               v-for="org in visibleOrganizations"
               :key="org.id"
-              class="flex items-center justify-between rounded-lg border border-gray-200 p-4 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/50">
+              type="button"
+              @click="handleManageOrganization(org)"
+              class="flex w-full cursor-pointer items-center justify-between rounded-lg border border-gray-200 p-4 text-left transition-colors hover:border-brand-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-brand-600 dark:hover:bg-gray-700/50">
               <div class="flex-1">
                 <h3 class="text-base font-medium text-gray-900 dark:text-white">
                   {{ org.display_name }}
@@ -164,18 +166,13 @@ const handleManageOrganization = (org: Organization) => {
                   class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
                   {{ t('web.organizations.default') }}
                 </span>
-                <button
-                  @click="handleManageOrganization(org)"
-                  class="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-                  {{ t('web.COMMON.manage') }}
-                  <OIcon
-                    collection="heroicons"
-                    name="chevron-right"
-                    class="size-4"
-                    aria-hidden="true" />
-                </button>
+                <OIcon
+                  collection="heroicons"
+                  name="chevron-right"
+                  class="size-5 text-gray-400 dark:text-gray-500"
+                  aria-hidden="true" />
               </div>
-            </div>
+            </button>
           </div>
 
           <!-- Empty State -->
