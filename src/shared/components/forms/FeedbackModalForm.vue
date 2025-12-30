@@ -1,4 +1,4 @@
-<!-- src/apps/secret/components/support/FeedbackModalForm.vue -->
+<!-- src/shared/components/forms/FeedbackModalForm.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

@@ -13,7 +13,7 @@
 <script setup lang="ts">
   import ManagementFooter from '@/shared/components/layout/ManagementFooter.vue';
   import ManagementHeader from '@/shared/components/layout/ManagementHeader.vue';
-  import TestModeBanner from '@/apps/colonel/components/TestModeBanner.vue';
+  import TestModeBanner from '@/shared/components/ui/TestModeBanner.vue';
   import { WindowService } from '@/services/window.service';
   import { useDomainsStore, useMetadataListStore } from '@/shared/stores';
   import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';

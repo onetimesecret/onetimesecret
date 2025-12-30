@@ -11,7 +11,7 @@ import { RouteRecordRaw } from 'vue-router';
  *
  * Tests the admin (colonel) routes to verify:
  * - All routes require authentication
- * - All routes use AdminLayout
+ * - All routes use ColonelLayout
  * - All routes have colonel: true in layoutProps
  * - Routes are correctly defined with proper paths and components
  */
@@ -132,10 +132,10 @@ describe('Colonel Routes Configuration', () => {
   });
 
   describe('Layout Configuration', () => {
-    it('all routes use AdminLayout', () => {
+    it('all routes use ColonelLayout', () => {
       colonelRoutes.forEach((route: RouteRecordRaw) => {
         expect(route.meta?.layout).toBeDefined();
-        // AdminLayout is imported as ColonelLayout in the routes file
+        // ColonelLayout is the local layout for the colonel app
         // Check that a layout component is assigned
         expect(route.meta?.layout).toBeTruthy();
       });

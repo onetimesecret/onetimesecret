@@ -3,7 +3,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ref, nextTick } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
-import { useSecretContext } from '@/apps/secret/composables/useSecretContext';
+import { useSecretContext } from '@/shared/composables/useSecretContext';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
 import { setupTestPinia } from '../../../setup';

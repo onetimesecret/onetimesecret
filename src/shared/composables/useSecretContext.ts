@@ -1,4 +1,4 @@
-// src/apps/secret/composables/useSecretContext.ts
+// src/shared/composables/useSecretContext.ts
 
 import { computed, toValue, type MaybeRefOrGetter } from 'vue';
 import { useProductIdentity } from '@/shared/stores/identityStore';

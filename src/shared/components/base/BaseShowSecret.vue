@@ -19,7 +19,7 @@
 
   import SecretSkeleton from '@/shared/components/closet/SecretSkeleton.vue';
   import { useSecret } from '@/shared/composables/useSecret';
-  import { useSecretContext } from '@/apps/secret/composables/useSecretContext';
+  import { useSecretContext } from '@/shared/composables/useSecretContext';
   import { onMounted } from 'vue';
   import { onBeforeRouteUpdate } from 'vue-router';
 

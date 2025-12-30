@@ -32,7 +32,7 @@ import { useAuth } from '@/shared/composables/useAuth';
 import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
 import { Customer } from '@/schemas/models';
 import { WindowService } from '@/services/window.service';
-import PlanTestModal from '@/apps/colonel/components/PlanTestModal.vue';
+import PlanTestModal from '@/shared/components/modals/PlanTestModal.vue';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
