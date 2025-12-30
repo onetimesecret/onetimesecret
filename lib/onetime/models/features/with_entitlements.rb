@@ -75,6 +75,7 @@ module Onetime
 
         # FREE tier default limits when cache is unavailable
         FREE_TIER_LIMITS = {
+          'organizations.max' => 5,       # 1 organization (default workspace)
           'teams.max' => 0,
           'members_per_team.max' => 0,
           'secret_lifetime.max' => 604_800, # 7 days in seconds

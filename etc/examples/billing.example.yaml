@@ -141,6 +141,7 @@ plans:
 
     limits:
       teams: 0
+      organizations: 5
       members_per_team: 1
       custom_domains: 0
       secret_lifetime: 604800  # 7 days in seconds
@@ -167,6 +168,7 @@ plans:
 
     limits:
       teams: 0
+      organizations: 10
       members_per_team: 1
       custom_domains: 1
       secret_lifetime: 2592000  # 30 days in seconds

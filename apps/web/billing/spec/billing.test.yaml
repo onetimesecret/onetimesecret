@@ -13,12 +13,12 @@
 # This config is deliberately minimal - only plans needed for testing.
 # Real production catalog is in etc/billing.yaml.
 
-schema_version: "1.0"
-app_identifier: "onetimesecret"
+schema_version: '1.0'
+app_identifier: 'onetimesecret'
 enabled: true
-stripe_key: "sk_test_mock"
-webhook_signing_secret: "whsec_test_mock"
-stripe_api_version: "2025-11-17.clover"
+stripe_key: 'sk_test_mock'
+webhook_signing_secret: 'whsec_test_mock'
+stripe_api_version: '2025-11-17.clover'
 
 # Test entitlements (minimal set)
 entitlements:
@@ -60,16 +60,15 @@ entitlements:
 
 # Test plans
 plans:
-
   # Free tier for baseline tests
   free_v1:
-    name: "Free"
+    name: 'Free'
     tier: free
     tenancy: multi
     region: EU
     display_order: 0
     show_on_plans_page: true
-    description: "Test free tier"
+    description: 'Test free tier'
 
     entitlements:
       - create_secrets
@@ -78,22 +77,23 @@ plans:
 
     limits:
       teams: 0
+      organizations: 5
       members_per_team: 1
       custom_domains: 0
-      secret_lifetime: 604800  # 7 days
+      secret_lifetime: 604800 # 7 days
 
     prices: []
 
   # Single team tier for subscription tests
   # This matches the tier used in controller specs
   identity_plus_v1:
-    name: "Identity Plus"
+    name: 'Identity Plus'
     tier: single_team
     tenancy: multi
-    region: EU  # IMPORTANT: Must match mock_region! in tests
+    region: EU # IMPORTANT: Must match mock_region! in tests
     display_order: 10
     show_on_plans_page: true
-    description: "Test subscription tier"
+    description: 'Test subscription tier'
 
     entitlements:
       - create_secrets
@@ -106,17 +106,18 @@ plans:
 
     limits:
       teams: 0
+      organizations: 10
       members_per_team: 10
-      custom_domains: -1  # unlimited
-      secret_lifetime: 2592000  # 30 days
+      custom_domains: -1 # unlimited
+      secret_lifetime: 2592000 # 30 days
 
     prices:
       - price_id: price_test_monthly
         interval: month
-        amount: 1200  # $12.00 in cents
+        amount: 1200 # $12.00 in cents
         currency: usd
 
       - price_id: price_test_yearly
         interval: year
-        amount: 12000  # $120.00 in cents
+        amount: 12000 # $120.00 in cents
         currency: usd
