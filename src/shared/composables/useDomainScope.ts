@@ -89,15 +89,20 @@ export function useDomainScope() {
     { immediate: false }
   );
 
-  // Initialize on first use
+  // Initialize on first use - fetch domains before restoring saved selection
   if (!isInitialized.value) {
-    const savedDomain = localStorage.getItem('domainScope');
-    currentDomain.value =
-      savedDomain && availableDomains.value.includes(savedDomain)
-        ? savedDomain
-        : availableDomains.value[0] || canonicalDomain || '';
     isInitialized.value = true;
-    if (domainsEnabled) fetchDomainsForOrganization();
+    if (domainsEnabled) {
+      fetchDomainsForOrganization().then(() => {
+        const savedDomain = localStorage.getItem('domainScope');
+        currentDomain.value =
+          savedDomain && availableDomains.value.includes(savedDomain)
+            ? savedDomain
+            : availableDomains.value[0] || canonicalDomain || '';
+      });
+    } else {
+      currentDomain.value = canonicalDomain || '';
+    }
   }
 
   const currentScope = computed<DomainScope>(() => ({
