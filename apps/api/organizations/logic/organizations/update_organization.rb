@@ -60,6 +60,10 @@ module OrganizationAPI::Logic
           @organization.description = description
         end
 
+        unless contact_email.empty?
+          @organization.contact_email = contact_email
+        end
+
         # Update timestamp and save
         @organization.updated = Familia.now.to_i
         @organization.save
