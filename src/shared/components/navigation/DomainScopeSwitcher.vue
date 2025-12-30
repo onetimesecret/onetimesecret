@@ -63,7 +63,7 @@ const navigateToAddDomain = (): void => {
  */
 const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
   event.stopPropagation(); // Prevent row selection when clicking gear
-  router.push(`/domains/${encodeURIComponent(domain)}`);
+  router.push(`/domains/${encodeURIComponent(domain)}/brand`);
 };
 </script>
 
