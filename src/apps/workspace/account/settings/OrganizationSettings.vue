@@ -173,7 +173,6 @@ const handleSave = async () => {
     await organizationStore.updateOrganization(organization.value.id, {
       display_name: formData.value.display_name,
       description: formData.value.description,
-      contact_email: formData.value.contact_email,
     });
     success.value = t('web.organizations.update_success');
     await loadOrganization(); // Reload to get latest data
