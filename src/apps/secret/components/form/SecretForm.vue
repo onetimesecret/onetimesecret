@@ -424,7 +424,7 @@
                 v-if="isScopeActive"
                 class="order-1 flex items-center gap-2 text-sm sm:order-1">
                 <span class="text-gray-600 dark:text-gray-400">
-                  {{ t('web.LABELS.creating_in') }}
+                  {{ t('web.LABELS.creating_links_for') }}
                 </span>
                 <div
                   class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5

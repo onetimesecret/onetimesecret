@@ -217,7 +217,7 @@
       "create_request_short": "Create Request",
       "create_request": "Create Request Link",
       "related_settings": "Related Settings",
-      "creating_in": "Creating in",
+      "creating_links_for": "Creating links for",
       "scope_indicator": "Creating secrets in {domain}"
     },
     "STATUS": {

@@ -125,7 +125,7 @@ These keys belong in `auth.json` under appropriate namespaces:
 |-------------|---------------------|
 | `web.COMMON.custom_domains_title` | `web.domains.title` |
 | `web.COMMON.custom_domains_description` | `web.domains.description` |
-| `web.LABELS.creating_in` | `web.domains.creating_in` |
+| `web.LABELS.creating_links_for` | `web.domains.creating_links_for` |
 | `web.LABELS.scope_indicator` | `web.domains.scope_indicator` |
 | `web.TITLES.domains` | `web.domains.page_title` |
 | `web.TITLES.domain_add` | `web.domains.add.title` |

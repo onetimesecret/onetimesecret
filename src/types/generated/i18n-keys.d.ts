@@ -257,7 +257,7 @@ export type I18nKey =
   | 'web.LABELS.create_new_secret'
   | 'web.LABELS.create_request'
   | 'web.LABELS.create_request_short'
-  | 'web.LABELS.creating_in'
+  | 'web.LABELS.creating_links_for'
   | 'web.LABELS.details'
   | 'web.LABELS.disable'
   | 'web.LABELS.dismiss'
@@ -1798,7 +1798,7 @@ export interface LocaleMessageSchema {
       create_new_secret: string;
       create_request: string;
       create_request_short: string;
-      creating_in: string;
+      creating_links_for: string;
       details: string;
       disable: string;
       dismiss: string;
