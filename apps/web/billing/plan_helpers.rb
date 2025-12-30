@@ -28,7 +28,7 @@ module Billing
     #   # => "identity_plus_v1"
     def self.upgrade_path_for(entitlement, _current_plan = nil)
       # Query cached plans for those with the entitlement
-      plans_with_entitlement = ::Billing::Plan.list_plans.select do |plan|
+      plans_with_entitlement = ::Billing::Plan.list_plans.compact.select do |plan|
         plan.show_on_plans_page && plan.entitlements.member?(entitlement.to_s)
       end
 

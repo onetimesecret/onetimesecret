@@ -120,7 +120,7 @@ module AccountAPI::Logic
       #
       # @return [Array<Hash>] Array of plan hashes with entitlements
       def load_plans_from_stripe_cache
-        plans = ::Billing::Plan.list_plans
+        plans = ::Billing::Plan.list_plans.compact
 
         # Group by tier, preferring monthly plans over yearly
         plans_by_tier = {}
