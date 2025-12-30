@@ -100,7 +100,7 @@
     },
     {
       label: t('web.footer.plans'),
-      href: '/pricing',
+      href: '/billing/plans',
       external: false,
     },
   ]);
