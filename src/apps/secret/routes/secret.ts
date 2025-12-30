@@ -1,7 +1,8 @@
 // src/apps/secret/routes/secret.ts
 
+import SecretRevealLayout from '@/apps/secret/layouts/SecretRevealLayout.vue';
 import ShowSecretContainer from '@/apps/secret/reveal/ShowSecret.vue';
-import { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
+import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
 
 /**
  * Type guard that validates a metadata key.
@@ -43,6 +44,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.secret',
       requiresAuth: false,
+      layout: SecretRevealLayout,
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,
