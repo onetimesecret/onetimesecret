@@ -9,7 +9,7 @@ import { useRoute } from 'vue-router';
 
 const route = useRoute();
 const { t } = useI18n();
-const organizationStore = useOrganizationStore();
+const _organizationStore = useOrganizationStore();
 
 interface NavigationItem {
   to: string;
@@ -28,13 +28,13 @@ const sections: NavigationItem[] = [
     label: t('web.billing.overview.title'),
     description: t('web.billing.overview.description'),
   },
-  {
-    to: '/org',
-    icon: { collection: 'ph', name: 'building-office-bold' },
-    label: t('web.organizations.title'),
-    description: t('web.organizations.organizations_description'),
-    visible: () => organizationStore.hasNonDefaultOrganizations,
-  },
+  // {
+  //   to: '/org',
+  //   icon: { collection: 'ph', name: 'building-office-bold' },
+  //   label: t('web.organizations.title'),
+  //   description: t('web.organizations.organizations_description'),
+  //   visible: () => organizationStore.hasNonDefaultOrganizations,
+  // },
   {
     to: '/billing/plans',
     icon: { collection: 'tabler', name: 'square-letter-s' },
