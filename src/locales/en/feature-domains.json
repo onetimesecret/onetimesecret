@@ -31,6 +31,7 @@
       "scope_list_label": "Available domains",
       "scope_header": "Domains",
       "add_domain": "Add domain",
+      "domain_settings": "Domain settings",
       "please_enter_a_domain_name": "Please enter a {0} domain name",
       "domain_name": "Domain name",
       "control_whether_users_can_create_secret_links": "Control whether users can create secret links from your domain's homepage",

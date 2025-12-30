@@ -57,6 +57,14 @@ const shouldShow = computed(() => isScopeActive.value);
 const navigateToAddDomain = (): void => {
   router.push('/domains');
 };
+
+/**
+ * Navigate to edit a specific domain
+ */
+const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
+  event.stopPropagation(); // Prevent row selection when clicking gear
+  router.push(`/domains/${encodeURIComponent(domain)}`);
+};
 </script>
 
 <template>
@@ -113,7 +121,7 @@ const navigateToAddDomain = (): void => {
           @click="selectDomain(domain)">
           <button
             type="button"
-            class="relative w-full cursor-pointer select-none py-2 pl-3 pr-9 text-left text-gray-700 transition-colors duration-150 dark:text-gray-200"
+            class="group/row relative w-full cursor-pointer select-none py-2 pl-3 pr-9 text-left text-gray-700 transition-colors duration-150 dark:text-gray-200"
             :class="[
               active ? 'bg-gray-100 dark:bg-gray-700' : '',
               isCurrentScope(domain) ? 'bg-brand-50 dark:bg-brand-900/20' : '',
@@ -134,15 +142,28 @@ const navigateToAddDomain = (): void => {
               </span>
             </span>
 
-            <!-- Selected Checkmark -->
-            <span
-              v-if="isCurrentScope(domain)"
-              class="absolute inset-y-0 right-0 flex items-center pr-3">
+            <!-- Right action area: checkmark (active domain) / gear icon (on hover) -->
+            <span class="absolute inset-y-0 right-0 flex items-center pr-3">
+              <!-- Checkmark: visible for active domain, hidden on row hover -->
               <OIcon
+                v-if="isCurrentScope(domain)"
                 collection="heroicons"
                 name="check-20-solid"
-                class="size-5 text-brand-600 dark:text-brand-400"
+                class="size-5 text-brand-600 group-hover/row:hidden dark:text-brand-400"
                 aria-hidden="true" />
+
+              <!-- Gear icon: visible on row hover for all domains -->
+              <button
+                type="button"
+                class="hidden rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 group-hover/row:block dark:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300"
+                :aria-label="t('web.domains.domain_settings')"
+                @click="navigateToDomainSettings(domain, $event)">
+                <OIcon
+                  collection="heroicons"
+                  name="cog"
+                  class="size-4"
+                  aria-hidden="true" />
+              </button>
             </span>
           </button>
         </MenuItem>

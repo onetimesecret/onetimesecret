@@ -89,7 +89,8 @@ const selectOrganization = (org: Organization): void => {
 /**
  * Navigate to organization management page
  */
-const navigateToManageOrganization = (org: Organization): void => {
+const navigateToManageOrganization = (org: Organization, event: MouseEvent): void => {
+  event.stopPropagation(); // Prevent row selection when clicking gear
   router.push(`/org/${org.extid || org.id}`);
 };
 
@@ -170,7 +171,7 @@ const navigateToCreateOrganization = (): void => {
           @click="selectOrganization(org)">
           <button
             type="button"
-            class="relative w-full cursor-pointer select-none py-2 pl-3 pr-9 text-left text-gray-700 transition-colors duration-150 dark:text-gray-200"
+            class="group/row relative w-full cursor-pointer select-none py-2 pl-3 pr-9 text-left text-gray-700 transition-colors duration-150 dark:text-gray-200"
             :class="[
               active ? 'bg-gray-100 dark:bg-gray-700' : '',
               isCurrentOrganization(org) ? 'bg-brand-50 dark:bg-brand-900/20' : '',
@@ -203,15 +204,28 @@ const navigateToCreateOrganization = (): void => {
               </span>
             </span>
 
-            <!-- Selected Checkmark -->
-            <span
-              v-if="isCurrentOrganization(org)"
-              class="absolute inset-y-0 right-0 flex items-center pr-3">
+            <!-- Right action area: checkmark (active org) / gear icon (on hover) -->
+            <span class="absolute inset-y-0 right-0 flex items-center pr-3">
+              <!-- Checkmark: visible for active org, hidden on row hover -->
               <OIcon
+                v-if="isCurrentOrganization(org)"
                 collection="heroicons"
                 name="check-20-solid"
-                class="size-5 text-brand-600 dark:text-brand-400"
+                class="size-5 text-brand-600 group-hover/row:hidden dark:text-brand-400"
                 aria-hidden="true" />
+
+              <!-- Gear icon: visible on row hover for all orgs -->
+              <button
+                type="button"
+                class="hidden rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 group-hover/row:block dark:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300"
+                :aria-label="t('web.organizations.organization_settings')"
+                @click="navigateToManageOrganization(org, $event)">
+                <OIcon
+                  collection="heroicons"
+                  name="cog-6-tooth"
+                  class="size-4"
+                  aria-hidden="true" />
+              </button>
             </span>
           </button>
         </MenuItem>
@@ -221,26 +235,6 @@ const navigateToCreateOrganization = (): void => {
           class="my-1 border-t border-gray-200 dark:border-gray-700"
           role="separator"
           aria-hidden="true" ></div>
-
-        <!-- Manage Current Organization Link -->
-        <MenuItem
-          v-if="currentOrganization"
-          v-slot="{ active }"
-          @click="navigateToManageOrganization(currentOrganization)">
-          <button
-            type="button"
-            class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left text-gray-600 transition-colors duration-150 dark:text-gray-300"
-            :class="active ? 'bg-gray-100 dark:bg-gray-700' : ''">
-            <span class="flex items-center gap-2">
-              <OIcon
-                collection="heroicons"
-                name="cog-6-tooth"
-                class="size-4 text-gray-400 dark:text-gray-500"
-                aria-hidden="true" />
-              <span class="text-sm">{{ t('web.organizations.organization_settings') }}</span>
-            </span>
-          </button>
-        </MenuItem>
 
         <!-- Create Organization Link -->
         <MenuItem v-slot="{ active }" @click="navigateToCreateOrganization">
