@@ -299,7 +299,8 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
 
     context 'with normal display_name (>3 chars)' do
       it 'masks organization name showing only first 3 chars' do
-        expect(OT).to receive(:ld).with(/Creating organization 'My \.\.\.'/)
+        # Default params has display_name: 'Organization' which masks to 'Org...'
+        expect(OT).to receive(:ld).with(/Creating organization 'Org\.\.\.'/)
         logic.process
       end
     end
