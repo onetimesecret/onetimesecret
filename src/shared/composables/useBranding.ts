@@ -5,6 +5,7 @@ import { ApplicationError } from '@/schemas';
 import { ImageProps, type BrandSettings } from '@/schemas/models';
 import { useNotificationsStore } from '@/shared/stores';
 import { useBrandStore } from '@/shared/stores/brandStore';
+import { useDomainsStore } from '@/shared/stores/domainsStore';
 import { shouldUseLightText } from '@/utils';
 import { AxiosError } from 'axios';
 import { computed, ref, watch } from 'vue';
@@ -30,6 +31,7 @@ import { AsyncHandlerOptions, useAsyncHandler, createError } from './useAsyncHan
 /* eslint max-lines-per-function: off */
 export function useBranding(domainId?: string) {
   const store = useBrandStore();
+  const domainsStore = useDomainsStore();
   const notifications = useNotificationsStore();
   const router = useRouter(); // Must be called at setup time, not in callbacks
   const isLoading = ref(false);
@@ -40,6 +42,17 @@ export function useBranding(domainId?: string) {
   const brandSettings = ref<BrandSettings>(store.getSettings(domainId || ''));
   const originalSettings = ref<BrandSettings | null>(null);
   const logoImage = ref<ImageProps | null>(null);
+
+  /**
+   * Resolve extid from display_domain using domains store.
+   * API endpoints require extid (e.g., "cd1234abc") not display_domain (e.g., "custom.example.com").
+   * @param displayDomain - The display domain to look up
+   * @returns The extid for API calls, or undefined if not found
+   */
+  const resolveExtid = (displayDomain: string): string | undefined => {
+    const domain = domainsStore.domains?.find((d) => d.display_domain === displayDomain);
+    return domain?.extid;
+  };
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
     notify: (message, severity) => notifications.show(message, severity, 'top'),
@@ -63,7 +76,15 @@ export function useBranding(domainId?: string) {
   const initialize = () => {
     wrap(async () => {
       if (!domainId) return;
-      const settings = await store.fetchSettings(domainId);
+
+      // Resolve extid from display_domain for API calls
+      const extid = resolveExtid(domainId);
+      if (!extid) {
+        console.warn('[useBranding] Could not resolve extid for domain:', domainId);
+        return;
+      }
+
+      const settings = await store.fetchSettings(extid);
 
       if (!settings) {
         // Redirect to 404 if settings not found
@@ -78,7 +99,7 @@ export function useBranding(domainId?: string) {
 
       // Quietly handle 404 errors for logo fetch
       try {
-        const logo = await store.fetchLogo(domainId); // Assuming this is async
+        const logo = await store.fetchLogo(extid);
         logoImage.value = logo;
       } catch (err) {
         console.log(err);
@@ -124,16 +145,24 @@ export function useBranding(domainId?: string) {
   /**
    * Save branding updates for a domain.
    * @param updates - Partial brand settings to update
-   * @param targetDomainId - Optional domain ID override (for use when composable
-   *                         is called at setup time but needs to save to different domains)
+   * @param targetDomain - Optional display domain override (for use when composable
+   *                       is called at setup time but needs to save to different domains)
    */
-  const saveBranding = (updates: Partial<BrandSettings>, targetDomainId?: string) =>
+  const saveBranding = (updates: Partial<BrandSettings>, targetDomain?: string) =>
     wrap(async () => {
-      const effectiveDomainId = targetDomainId || domainId;
-      if (!effectiveDomainId) return;
-      const updated = await store.updateSettings(effectiveDomainId, updates);
+      const effectiveDomain = targetDomain || domainId;
+      if (!effectiveDomain) return;
+
+      // Resolve extid from display_domain for API calls
+      const extid = resolveExtid(effectiveDomain);
+      if (!extid) {
+        console.warn('[useBranding] Could not resolve extid for domain:', effectiveDomain);
+        return;
+      }
+
+      const updated = await store.updateSettings(extid, updates);
       // Only update local state if we're saving to the composable's domain
-      if (!targetDomainId || targetDomainId === domainId) {
+      if (!targetDomain || targetDomain === domainId) {
         brandSettings.value = updated;
         originalSettings.value = { ...brandSettings.value };
       }
@@ -142,16 +171,20 @@ export function useBranding(domainId?: string) {
 
   const handleLogoUpload = async (file: File) =>
     wrap(async () => {
-      if (!domainId) throw createError('Domain ID is required to upload logo', 'human', 'error');
-      const uploadedLogo = await store.uploadLogo(domainId, file);
+      if (!domainId) throw createError('Domain is required to upload logo', 'human', 'error');
+      const extid = resolveExtid(domainId);
+      if (!extid) throw createError('Could not resolve domain for logo upload', 'human', 'error');
+      const uploadedLogo = await store.uploadLogo(extid, file);
       // Update local state with new logo
       logoImage.value = uploadedLogo;
     });
 
   const removeLogo = async () =>
     wrap(async () => {
-      if (!domainId) throw createError('Domain ID is required to remove logo', 'human', 'error');
-      await store.removeLogo(domainId);
+      if (!domainId) throw createError('Domain is required to remove logo', 'human', 'error');
+      const extid = resolveExtid(domainId);
+      if (!extid) throw createError('Could not resolve domain for logo removal', 'human', 'error');
+      await store.removeLogo(extid);
       // Clear local logo state
       logoImage.value = null;
     });
