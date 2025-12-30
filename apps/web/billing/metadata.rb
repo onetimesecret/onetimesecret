@@ -23,6 +23,10 @@ module Billing
     FIELD_DISPLAY_ORDER      = 'display_order'
     FIELD_SHOW_ON_PLANS_PAGE = 'show_on_plans_page'
 
+    # Optional metadata fields
+    FIELD_PLAN_CODE          = 'ots_plan_code'     # Deduplication key (e.g., "identity_plus" for monthly+yearly)
+    FIELD_IS_POPULAR         = 'ots_is_popular'   # Boolean: show "Most Popular" badge
+
     # Limit fields (prefixed with 'limit_')
     FIELD_LIMIT_TEAMS            = 'limit_teams'
     FIELD_LIMIT_MEMBERS_PER_TEAM = 'limit_members_per_team'

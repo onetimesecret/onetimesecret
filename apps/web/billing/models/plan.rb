@@ -82,6 +82,8 @@ module Billing
     field :show_on_plans_page       # Boolean: whether to show on plans page
     field :description              # Plan description for display
     field :is_soft_deleted          # Boolean: soft-deleted in Stripe
+    field :plan_code                # Deduplication key (e.g., "identity_plus" for monthly+yearly variants)
+    field :is_popular               # Boolean: show "Most Popular" badge
 
     # Additional Stripe Price fields
     field :active                   # Boolean: whether price is available for new subscriptions
@@ -310,6 +312,13 @@ module Billing
         # Extract show_on_plans_page from product metadata (default to 'true')
         show_on_plans_page_value = product.metadata[Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'true'
         show_on_plans_page       = %w[true 1 yes].include?(show_on_plans_page_value.to_s.downcase)
+
+        # Extract plan_code from product metadata (used to group monthly/yearly variants)
+        plan_code = product.metadata[Metadata::FIELD_PLAN_CODE]
+
+        # Extract is_popular from product metadata (default to 'false')
+        is_popular_value = product.metadata[Metadata::FIELD_IS_POPULAR] || 'false'
+        is_popular       = %w[true 1 yes].include?(is_popular_value.to_s.downcase)
 
         # Build stripe snapshot for recovery
         stripe_snapshot = {

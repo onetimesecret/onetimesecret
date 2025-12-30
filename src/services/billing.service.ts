@@ -78,6 +78,12 @@ export interface Plan {
   features: string[];
   limits: Record<string, number>;
   entitlements: string[];
+  /** For grouping monthly/yearly variants of the same plan */
+  plan_code?: string;
+  /** Whether this plan should display "Most Popular" badge */
+  is_popular?: boolean;
+  /** For yearly plans: the monthly equivalent price for display */
+  monthly_equivalent_amount?: number;
 }
 
 /**
