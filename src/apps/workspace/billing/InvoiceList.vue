@@ -43,9 +43,29 @@ const handleOrgChange = async (orgId: string) => {
 };
 
 const loadInvoices = async (orgId: string) => {
+  // Guard: Wait for organizations to load if not yet available
+  if (organizations.value.length === 0) {
+    try {
+      await organizationStore.fetchOrganizations();
+    } catch (err) {
+      const classified = classifyError(err);
+      error.value = classified.message || t('web.billing.invoices.load_error');
+      console.error('[InvoiceList] Error loading organizations:', err);
+      return;
+    }
+  }
+
   const organization = organizations.value.find(org => org.id === orgId);
-  if (!organization?.extid) {
-    error.value = 'Organization not found';
+
+  // Distinguish between "org not found" vs "org has no extid"
+  if (!organization) {
+    error.value = t('web.billing.overview.no_organizations_title');
+    return;
+  }
+
+  if (!organization.extid) {
+    error.value = t('web.billing.invoices.load_error');
+    console.error('[InvoiceList] Organization missing extid:', organization.id);
     return;
   }
 

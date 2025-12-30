@@ -58,6 +58,11 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: standardLayoutProps,
     },
   },
+  // Redirect /org/domains to /domains to prevent it being caught by :extid
+  {
+    path: '/org/domains',
+    redirect: '/domains',
+  },
   {
     path: '/org/:extid',
     name: 'Organization Settings',
