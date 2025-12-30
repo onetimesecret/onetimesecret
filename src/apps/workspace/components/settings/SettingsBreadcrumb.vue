@@ -27,7 +27,7 @@ defineProps<{
     <router-link
       to="/account/settings"
       class="hover:text-gray-700 dark:hover:text-gray-200">
-      {{ t('web.account.settings') }}
+      {{ t('web.TITLES.account') }}
     </router-link>
     <template v-if="currentPage">
       <OIcon

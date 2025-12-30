@@ -23,7 +23,7 @@ defineSlots<{
     <div class="flex items-start justify-between">
       <div>
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-          {{ title ?? t('web.account.settings') }}
+          {{ title ?? t('web.TITLES.account') }}
         </h1>
         <p
           v-if="subtitle"
