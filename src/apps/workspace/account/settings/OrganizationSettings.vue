@@ -407,8 +407,8 @@ watch(activeTab, async (newTab) => {
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
               </div>
 
-              <!-- Description -->
-              <div>
+              <!-- Description (hidden for now) -->
+              <div v-if="false">
                 <label
                   for="description"
                   class="block text-sm font-medium text-gray-700 dark:text-gray-300">
