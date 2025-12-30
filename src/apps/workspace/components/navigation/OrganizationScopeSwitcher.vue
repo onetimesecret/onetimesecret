@@ -227,12 +227,20 @@ class="relative inline-flex">
       :aria-expanded="isOpen"
       aria-haspopup="listbox"
       :aria-label="t('web.organizations.select_organization')">
-      <!-- Organization Avatar (hidden for default org) -->
+      <!-- Organization Avatar -->
       <span
-        v-if="currentOrganization && !isCurrentOrgDefault"
-        class="flex size-5 items-center justify-center rounded bg-brand-600 text-xs font-bold text-white dark:bg-brand-500"
+        v-if="currentOrganization"
+        class="flex size-5 items-center justify-center rounded text-xs font-bold"
+        :class="isCurrentOrgDefault
+          ? 'bg-gray-200 dark:bg-gray-700'
+          : 'bg-brand-600 text-white dark:bg-brand-500'"
         aria-hidden="true">
-        {{ getOrganizationInitial(currentOrganization) }}
+        <OIcon
+          v-if="isCurrentOrgDefault"
+          collection="heroicons"
+          name="building-office"
+          class="size-3.5 text-gray-600 dark:text-gray-300" />
+        <template v-else>{{ getOrganizationInitial(currentOrganization) }}</template>
       </span>
 
       <!-- Current Organization Display -->
@@ -289,17 +297,23 @@ class="relative inline-flex">
           @keydown.enter.prevent="handleOptionActivation(org, index)"
           @keydown.space.prevent="handleOptionActivation(org, index)">
           <span class="flex items-center gap-2">
-            <!-- Organization Avatar (hidden for default org) -->
+            <!-- Organization Avatar -->
             <span
-              v-if="!isDefaultOrg(org)"
               class="flex size-5 items-center justify-center rounded text-xs font-bold"
-              :class="
-                isCurrentOrganization(org)
-                  ? 'bg-brand-600 text-white dark:bg-brand-500'
-                  : 'bg-gray-300 text-gray-700 dark:bg-gray-600 dark:text-gray-200'
-              "
+              :class="[
+                isDefaultOrg(org)
+                  ? 'bg-gray-200 dark:bg-gray-700'
+                  : isCurrentOrganization(org)
+                    ? 'bg-brand-600 text-white dark:bg-brand-500'
+                    : 'bg-gray-300 text-gray-700 dark:bg-gray-600 dark:text-gray-200'
+              ]"
               aria-hidden="true">
-              {{ getOrganizationInitial(org) }}
+              <OIcon
+                v-if="isDefaultOrg(org)"
+                collection="heroicons"
+                name="building-office"
+                class="size-3.5 text-gray-600 dark:text-gray-300" />
+              <template v-else>{{ getOrganizationInitial(org) }}</template>
             </span>
 
             <!-- Organization Name -->
@@ -329,7 +343,7 @@ class="relative inline-flex">
         <!-- Manage Current Organization Link -->
         <li
           v-if="currentOrganization"
-          class="cursor-pointer select-none px-3 py-2 text-gray-700 transition-colors duration-150 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+          class="mx-2 cursor-pointer select-none rounded-md px-2 py-2 text-gray-600 transition-colors duration-150 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
           role="option"
           tabindex="0"
           @click="navigateToManageOrganization(currentOrganization)"
@@ -339,15 +353,15 @@ class="relative inline-flex">
             <OIcon
               collection="heroicons"
               name="cog-6-tooth"
-              class="size-4 text-gray-500 dark:text-gray-400"
+              class="size-4 text-gray-400 dark:text-gray-500"
               aria-hidden="true" />
-            <span>{{ t('web.organizations.organization_settings') }}</span>
+            <span class="text-sm">{{ t('web.organizations.organization_settings') }}</span>
           </span>
         </li>
 
         <!-- Create Organization Link -->
         <li
-          class="cursor-pointer select-none px-3 py-2 text-gray-700 transition-colors duration-150 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+          class="mx-2 cursor-pointer select-none rounded-md px-2 py-2 transition-colors duration-150 hover:bg-gray-100 dark:hover:bg-gray-700"
           role="option"
           tabindex="0"
           @click="navigateToCreateOrganization"
@@ -359,7 +373,7 @@ class="relative inline-flex">
               name="plus"
               class="size-4 text-brand-500 dark:text-brand-400"
               aria-hidden="true" />
-            <span class="text-brand-600 dark:text-brand-400">
+            <span class="text-sm text-brand-600 dark:text-brand-400">
               {{ t('web.organizations.create_organization') }}
             </span>
           </span>
