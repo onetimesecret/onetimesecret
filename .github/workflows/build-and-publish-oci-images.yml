@@ -43,7 +43,7 @@ on:
         type: choice
         description: 'Target platforms'
         required: false
-        # default: 'linux/amd64,linux/arm6'
+        # default: 'linux/amd64,linux/arm64'
         default: 'linux/amd64'
         options:
           - ''

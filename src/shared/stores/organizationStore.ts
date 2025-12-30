@@ -189,14 +189,18 @@ export const useOrganizationStore = defineStore('organization', () => {
     loading.value = true;
 
     try {
+      // Find the org before deleting to get internal ID for cleanup
+      const orgToDelete = organizations.value.find((o) => o.extid === extid);
       await $api.delete(`/api/organizations/${extid}`);
 
-      // Remove from organizations array (filter by extid)
-      organizations.value = organizations.value.filter((o) => o.extid !== extid);
+      // Remove from organizations array using internal ID (always present)
+      if (orgToDelete) {
+        organizations.value = organizations.value.filter((o) => o.id !== orgToDelete.id);
 
-      // Clear currentOrganization if it's the deleted organization
-      if (currentOrganization.value?.extid === extid) {
-        currentOrganization.value = null;
+        // Clear currentOrganization if it's the deleted organization
+        if (currentOrganization.value?.id === orgToDelete.id) {
+          currentOrganization.value = null;
+        }
       }
     } finally {
       loading.value = false;

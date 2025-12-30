@@ -87,11 +87,16 @@ const selectOrganization = (org: Organization): void => {
 };
 
 /**
- * Navigate to organization management page
+ * Navigate to organization management page (requires extid)
  */
 const navigateToManageOrganization = (org: Organization, event: MouseEvent): void => {
   event.stopPropagation(); // Prevent row selection when clicking gear
-  router.push(`/org/${org.extid || org.id}`);
+  if (!org.extid) {
+    // Cannot navigate without extid - gear icon should be hidden for these orgs
+    console.warn('[OrganizationScopeSwitcher] Cannot navigate: org missing extid', org.id);
+    return;
+  }
+  router.push(`/org/${org.extid}`);
 };
 
 /**
@@ -206,16 +211,19 @@ const navigateToCreateOrganization = (): void => {
 
             <!-- Right action area: checkmark (active org) / gear icon (on hover) -->
             <span class="absolute inset-y-0 right-0 flex items-center pr-3">
-              <!-- Checkmark: visible for active org, hidden on row hover -->
+              <!-- Checkmark: visible for active org -->
+              <!-- Only hide on hover if gear icon will be shown (org has extid) -->
               <OIcon
                 v-if="isCurrentOrganization(org)"
                 collection="heroicons"
                 name="check-20-solid"
-                class="size-5 text-brand-600 group-hover/row:hidden dark:text-brand-400"
+                class="size-5 text-brand-600 dark:text-brand-400"
+                :class="{ 'group-hover/row:hidden': org.extid }"
                 aria-hidden="true" />
 
-              <!-- Gear icon: visible on row hover for all orgs -->
+              <!-- Gear icon: visible on row hover for orgs with extid -->
               <button
+                v-if="org.extid"
                 type="button"
                 class="hidden rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 group-hover/row:block dark:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300"
                 :aria-label="t('web.organizations.organization_settings')"
