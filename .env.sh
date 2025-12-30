@@ -10,8 +10,8 @@
 # 'export' keyword.
 set -a
 
-# Load the vars
-[ -f .env ] && . .env
+# Load the vars (use 'source' instead of '.' to handle symlinks in zsh)
+[ -f .env ] && source .env
 
 # Set +a restores default behavior where variables must be explicitly exported
 set +a
