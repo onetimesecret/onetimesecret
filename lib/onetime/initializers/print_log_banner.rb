@@ -80,6 +80,16 @@ module Onetime
         output << render_section('Authentication', 'Details', auth_rows)
       end
 
+      auth_config_rows = build_auth_config_section
+      unless auth_config_rows.empty?
+        output << render_section('Auth Config', 'Value', auth_config_rows)
+      end
+
+      billing_config_rows = build_billing_config_section
+      unless billing_config_rows.empty?
+        output << render_section('Billing Config', 'Value', billing_config_rows)
+      end
+
       customization_rows = build_customization_section(site_config)
       unless customization_rows.empty?
         output << render_section('Customization', 'Configuration', customization_rows)
@@ -200,6 +210,128 @@ module Onetime
         end
 
         auth_rows
+      end
+
+      # Builds Onetime.auth_config section rows
+      def build_auth_config_section
+        auth_config_rows = []
+
+        begin
+          return auth_config_rows unless defined?(OT.auth_config)
+
+          config = OT.auth_config
+
+          # Basic info
+          auth_config_rows << ['Mode', config.mode]
+
+          # Database URL (masked)
+          if config.database_url
+            masked_url = mask_sensitive_value(config.database_url, type: :url)
+            auth_config_rows << ['Database URL', masked_url]
+          end
+
+          # Migrations Database URL (masked)
+          if config.database_url_migrations
+            masked_url = mask_sensitive_value(config.database_url_migrations, type: :url)
+            auth_config_rows << ['Migrations URL', masked_url]
+          end
+
+          # Feature flags
+          auth_config_rows << ['Full Mode', config.full_enabled?]
+          auth_config_rows << ['Simple Mode', config.simple_enabled?]
+
+        rescue StandardError => ex
+          auth_config_rows << ['Error', "Error rendering auth config: #{ex.message}"]
+        end
+
+        auth_config_rows
+      end
+
+      # Builds Onetime.billing_config section rows
+      def build_billing_config_section
+        billing_config_rows = []
+
+        begin
+          return billing_config_rows unless defined?(OT.billing_config)
+
+          config = OT.billing_config
+
+          # Enabled status
+          billing_config_rows << ['Enabled', config.enabled?]
+
+          return billing_config_rows unless config.enabled?
+
+          # Stripe API key (masked)
+          if config.stripe_key
+            masked_key = mask_sensitive_value(config.stripe_key, type: :stripe_key)
+            mode = config.stripe_key.start_with?('sk_test_', 'rk_test_') ? 'Test' : 'Live'
+            billing_config_rows << ['Stripe Key', "#{masked_key} (#{mode})"]
+          end
+
+          # Webhook signing secret (masked)
+          if config.webhook_signing_secret
+            masked_secret = mask_sensitive_value(config.webhook_signing_secret, type: :webhook_secret)
+            billing_config_rows << ['Webhook Secret', masked_secret]
+          end
+
+          # API version
+          billing_config_rows << ['API Version', config.stripe_api_version] if config.stripe_api_version
+
+        rescue StandardError => ex
+          billing_config_rows << ['Error', "Error rendering billing config: #{ex.message}"]
+        end
+
+        billing_config_rows
+      end
+
+      # Masks sensitive values for display
+      # @param value [String] The sensitive value to mask
+      # @param type [Symbol] The type of value (:url, :stripe_key, :webhook_secret)
+      # @return [String] The masked value
+      def mask_sensitive_value(value, type:)
+        return '[not set]' if value.nil? || value.empty?
+
+        case type
+        when :url
+          # For database URLs, show the scheme and host but mask password
+          # Format: scheme://user:password@host:port/database
+          if value =~ %r{^([^:]+://[^:]+):([^@]+)(@.+)$}
+            "#{$1}:****#{$3}"
+          else
+            # Fallback: show first few and last few characters
+            show_chars(value, prefix: 8, suffix: 4)
+          end
+        when :stripe_key
+          # For Stripe keys, show the prefix and last 4 characters
+          # Format: sk_test_xxx or sk_live_xxx
+          if value =~ /^(sk_(?:test|live)_)(.+)$/
+            prefix = $1
+            rest = $2
+            "#{prefix}#{'*' * 8}#{rest[-4..]}"
+          else
+            show_chars(value, prefix: 8, suffix: 4)
+          end
+        when :webhook_secret
+          # For webhook secrets, show just the prefix
+          # Format: whsec_xxx
+          if value =~ /^(whsec_)(.+)$/
+            "#{$1}#{'*' * 12}"
+          else
+            show_chars(value, prefix: 6, suffix: 0)
+          end
+        else
+          # Generic masking
+          show_chars(value, prefix: 4, suffix: 4)
+        end
+      end
+
+      # Helper to show only prefix and suffix characters
+      def show_chars(value, prefix:, suffix:)
+        return '[empty]' if value.nil? || value.empty?
+        return value if value.length <= (prefix + suffix)
+
+        masked_length = [value.length - prefix - suffix, 4].max
+        "#{value[0...prefix]}#{'*' * masked_length}#{suffix > 0 ? value[-suffix..] : ''}"
       end
 
       # Builds customization section rows
