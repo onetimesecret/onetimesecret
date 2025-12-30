@@ -69,7 +69,7 @@ module Onetime
         # These match the free_v1 plan in billing.yaml.
         FREE_TIER_ENTITLEMENTS = %w[
           create_secrets
-          view_metadata
+          view_receipt
           api_access
         ].freeze
 

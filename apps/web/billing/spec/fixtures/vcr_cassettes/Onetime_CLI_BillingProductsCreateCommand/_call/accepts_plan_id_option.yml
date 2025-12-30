@@ -1649,7 +1649,7 @@ http_interactions:
               "metadata": {
                 "app": "onetimesecret",
                 "created": "2025-12-29T02:31:03Z",
-                "entitlements": "create_secrets,view_metadata,custom_domains,extended_default_expiration,custom_branding,branded_homepage",
+                "entitlements": "create_secrets,view_receipt,custom_domains,extended_default_expiration,custom_branding,branded_homepage",
                 "limit_custom_domains": "25",
                 "limit_members_per_team": "5",
                 "limit_secret_lifetime": "2592000",
@@ -1685,7 +1685,7 @@ http_interactions:
                 "app": "onetimesecret",
                 "created": "2025-12-29T02:31:02Z",
                 "display_order": "10",
-                "entitlements": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage",
+                "entitlements": "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage",
                 "limit_custom_domains": "-1",
                 "limit_members_per_team": "1",
                 "limit_secret_lifetime": "2592000",

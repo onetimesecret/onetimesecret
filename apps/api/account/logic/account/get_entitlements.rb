@@ -31,7 +31,7 @@ module AccountAPI::Logic
     #     {
     #       plan_id: "free_v1",
     #       name: "Free",
-    #       entitlements: ["create_secrets", "view_metadata", "api_access"]
+    #       entitlements: ["create_secrets", "view_receipt", "api_access"]
     #     },
     #     ...
     #   ],

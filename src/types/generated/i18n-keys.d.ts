@@ -713,7 +713,7 @@ export type I18nKey =
   | 'web.billing.overview.entitlements.priority_support'
   | 'web.billing.overview.entitlements.sla'
   | 'web.billing.overview.entitlements.sso'
-  | 'web.billing.overview.entitlements.view_metadata'
+  | 'web.billing.overview.entitlements.view_receipt'
   | 'web.billing.overview.entitlements_load_error'
   | 'web.billing.overview.manage_billing'
   | 'web.billing.overview.manage_billing_action'
@@ -1281,7 +1281,7 @@ export type I18nKey =
   | 'web.private.send_feedback'
   | 'web.private.the_burn_feature_lets_you_permanently_delete_a_s'
   | 'web.private.this_msg_is_encrypted'
-  | 'web.private.view_metadata'
+  | 'web.private.view_receipt'
   | 'web.private.viewed'
   | 'web.private.viewed_ago'
   | 'web.private.we_display_the_value_for_you_so_that_you_can_ver'
@@ -2338,7 +2338,7 @@ export interface LocaleMessageSchema {
           priority_support: string;
           sla: string;
           sso: string;
-          view_metadata: string;
+          view_receipt: string;
         };
         entitlements_load_error: string;
         manage_billing: string;
@@ -2972,7 +2972,7 @@ export interface LocaleMessageSchema {
       send_feedback: string;
       the_burn_feature_lets_you_permanently_delete_a_s: string;
       this_msg_is_encrypted: string;
-      view_metadata: string;
+      view_receipt: string;
       viewed: string;
       viewed_ago: string;
       we_display_the_value_for_you_so_that_you_can_ver: string;

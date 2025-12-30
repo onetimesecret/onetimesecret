@@ -116,7 +116,7 @@ module Billing
     # @example
     #   Billing::Config.entitlements_grouped_by_category
     #   # => {
-    #   #   "core" => ["create_secrets", "view_metadata"],
+    #   #   "core" => ["create_secrets", "view_receipt"],
     #   #   "collaboration" => ["manage_teams", "manage_members"],
     #   #   ...
     #   # }

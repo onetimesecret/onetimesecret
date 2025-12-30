@@ -34,10 +34,10 @@ entitlements:
     description: Can create basic secrets
     display_name: web.billing.overview.entitlements.create_secrets
 
-  view_metadata:
+  view_receipt:
     category: core
     description: Can view secret metadata
-    display_name: web.billing.overview.entitlements.view_metadata
+    display_name: web.billing.overview.entitlements.view_receipt
 
   api_access:
     category: infrastructure
@@ -136,7 +136,7 @@ plans:
 
     entitlements:
       - create_secrets
-      - view_metadata
+      - view_receipt
       - api_access
 
     limits:
@@ -160,7 +160,7 @@ plans:
 
     entitlements:
       - create_secrets
-      - view_metadata
+      - view_receipt
       - api_access
       - custom_domains
       - extended_default_expiration

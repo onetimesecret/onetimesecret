@@ -26,7 +26,7 @@ entitlements:
     category: core
     description: Can create basic secrets
 
-  view_metadata:
+  view_receipt:
     category: core
     description: Can view secret metadata
 
@@ -73,7 +73,7 @@ plans:
 
     entitlements:
       - create_secrets
-      - view_metadata
+      - view_receipt
       - api_access
 
     limits:
@@ -97,7 +97,7 @@ plans:
 
     entitlements:
       - create_secrets
-      - view_metadata
+      - view_receipt
       - api_access
       - custom_domains
       - extended_default_expiration
