@@ -63,22 +63,24 @@ export type OrganizationRole = (typeof ORGANIZATION_ROLES)[keyof typeof ORGANIZA
 
 /**
  * Organization interface
+ *
+ * Note: Fields use `| null` to match backend safe_dump which returns null for empty fields.
  */
 export interface Organization {
   id: string;
-  extid?: string;
+  extid?: string | null;
   display_name: string;
-  description?: string;
-  contact_email?: string;
-  is_default: boolean;
+  description?: string | null;
+  contact_email?: string | null;
+  is_default?: boolean | null;
   created_at: Date;
   updated_at: Date;
-  owner_id?: string;
-  member_count?: number;
-  current_user_role?: OrganizationRole;
-  planid?: string;
-  entitlements?: Entitlement[];
-  limits?: OrganizationLimits;
+  owner_id?: string | null;
+  member_count?: number | null;
+  current_user_role?: OrganizationRole | null;
+  planid?: string | null;
+  entitlements?: Entitlement[] | null;
+  limits?: OrganizationLimits | null;
 }
 
 /**
@@ -87,25 +89,25 @@ export interface Organization {
 
 export const organizationSchema = z.object({
   id: z.string(),
-  extid: z.string().optional(),
+  extid: z.string().nullish(),
   display_name: z.string().min(1).max(100),
-  description: z.string().max(500).optional(),
-  contact_email: z.string().email().optional(),
-  is_default: z.boolean(),
+  description: z.string().max(500).nullish(),
+  contact_email: z.string().email().nullish(),
+  is_default: z.boolean().nullish(),
   created_at: z.number().transform((val) => new Date(val * 1000)),
   updated_at: z.number().transform((val) => new Date(val * 1000)),
-  owner_id: z.string().optional(),
-  member_count: z.number().int().min(0).optional(),
-  current_user_role: z.enum(['owner', 'admin', 'member']).optional(),
-  planid: z.string().optional(),
-  entitlements: z.array(z.string() as z.ZodType<Entitlement>).optional(),
+  owner_id: z.string().nullish(),
+  member_count: z.number().int().min(0).nullish(),
+  current_user_role: z.enum(['owner', 'admin', 'member']).nullish(),
+  planid: z.string().nullish(),
+  entitlements: z.array(z.string() as z.ZodType<Entitlement>).nullish(),
   limits: z
     .object({
       teams: z.number().optional(),
       members_per_team: z.number().optional(),
       custom_domains: z.number().optional(),
     })
-    .optional(),
+    .nullish(),
 });
 
 /**
