@@ -93,23 +93,25 @@ export const useOrganizationStore = defineStore('organization', () => {
   }
 
   /**
-   * Fetch a single organization by ID
+   * Fetch a single organization by external ID (extid)
+   *
+   * @param extid - The external ID for API calls (e.g., "on1234abc")
    */
-  async function fetchOrganization(orgId: string): Promise<Organization> {
+  async function fetchOrganization(extid: string): Promise<Organization> {
     abort();
     abortController.value = new AbortController();
     loading.value = true;
 
     try {
-      const response = await $api.get(`/api/organizations/${orgId}`, {
+      const response = await $api.get(`/api/organizations/${extid}`, {
         signal: abortController.value.signal,
       });
 
       const validated = organizationResponseSchema.parse(response.data);
       currentOrganization.value = validated.record;
 
-      // Update in organizations array if exists
-      const index = organizations.value.findIndex((o) => o.id === orgId);
+      // Update in organizations array if exists (use returned id for matching)
+      const index = organizations.value.findIndex((o) => o.id === validated.record.id);
       if (index !== -1) {
         organizations.value[index] = validated.record;
       } else {
@@ -145,9 +147,11 @@ export const useOrganizationStore = defineStore('organization', () => {
 
   /**
    * Update an organization
+   *
+   * @param extid - The external ID for API calls
    */
   async function updateOrganization(
-    orgId: string,
+    extid: string,
     payload: UpdateOrganizationPayload
   ): Promise<Organization> {
     loading.value = true;
@@ -155,18 +159,18 @@ export const useOrganizationStore = defineStore('organization', () => {
     try {
       const validated = updateOrganizationPayloadSchema.parse(payload);
 
-      const response = await $api.put(`/api/organizations/${orgId}`, validated);
+      const response = await $api.put(`/api/organizations/${extid}`, validated);
 
       const orgData = organizationResponseSchema.parse(response.data);
 
-      // Update in organizations array
-      const index = organizations.value.findIndex((o) => o.id === orgId);
+      // Update in organizations array (use returned id for matching)
+      const index = organizations.value.findIndex((o) => o.id === orgData.record.id);
       if (index !== -1) {
         organizations.value[index] = orgData.record;
       }
 
       // Update currentOrganization if it's the same organization
-      if (currentOrganization.value?.id === orgId) {
+      if (currentOrganization.value?.id === orgData.record.id) {
         currentOrganization.value = orgData.record;
       }
 
@@ -178,18 +182,20 @@ export const useOrganizationStore = defineStore('organization', () => {
 
   /**
    * Delete an organization
+   *
+   * @param extid - The external ID for API calls
    */
-  async function deleteOrganization(orgId: string): Promise<void> {
+  async function deleteOrganization(extid: string): Promise<void> {
     loading.value = true;
 
     try {
-      await $api.delete(`/api/organizations/${orgId}`);
+      await $api.delete(`/api/organizations/${extid}`);
 
-      // Remove from organizations array
-      organizations.value = organizations.value.filter((o) => o.id !== orgId);
+      // Remove from organizations array (filter by extid)
+      organizations.value = organizations.value.filter((o) => o.extid !== extid);
 
       // Clear currentOrganization if it's the deleted organization
-      if (currentOrganization.value?.id === orgId) {
+      if (currentOrganization.value?.extid === extid) {
         currentOrganization.value = null;
       }
     } finally {
@@ -208,20 +214,20 @@ export const useOrganizationStore = defineStore('organization', () => {
    * Fetch entitlements for an organization
    * This method fetches the organization's billing entitlements and limits
    *
-   * @param orgId - The organization ID
+   * @param extid - The external ID for API calls
    * @param options.throwOnError - If true, throws on error instead of swallowing
    */
   async function fetchEntitlements(
-    orgId: string,
+    extid: string,
     options: { throwOnError?: boolean } = {}
   ): Promise<void> {
     entitlementsError.value = null;
 
     try {
-      const response = await $api.get(`/billing/api/entitlements/${orgId}`);
+      const response = await $api.get(`/billing/api/entitlements/${extid}`);
 
-      // Update the organization with entitlements
-      const index = organizations.value.findIndex((o) => o.id === orgId);
+      // Update the organization with entitlements (find by extid)
+      const index = organizations.value.findIndex((o) => o.extid === extid);
       if (index !== -1) {
         organizations.value[index] = {
           ...organizations.value[index],
@@ -232,7 +238,7 @@ export const useOrganizationStore = defineStore('organization', () => {
       }
 
       // Update current organization if it matches
-      if (currentOrganization.value?.id === orgId) {
+      if (currentOrganization.value?.extid === extid) {
         currentOrganization.value = {
           ...currentOrganization.value,
           planid: response.data.planid,
@@ -262,12 +268,14 @@ export const useOrganizationStore = defineStore('organization', () => {
 
   /**
    * Fetch pending invitations for an organization
+   *
+   * @param extid - The external ID for API calls
    */
-  async function fetchInvitations(orgId: string): Promise<OrganizationInvitation[]> {
+  async function fetchInvitations(extid: string): Promise<OrganizationInvitation[]> {
     loading.value = true;
 
     try {
-      const response = await $api.get(`/api/organizations/${orgId}/invitations`);
+      const response = await $api.get(`/api/organizations/${extid}/invitations`);
 
       const validated = response.data.records.map((inv: unknown) =>
         organizationInvitationSchema.parse(inv)
@@ -281,9 +289,11 @@ export const useOrganizationStore = defineStore('organization', () => {
 
   /**
    * Create an invitation for an organization
+   *
+   * @param extid - The external ID for API calls
    */
   async function createInvitation(
-    orgId: string,
+    extid: string,
     payload: CreateInvitationPayload
   ): Promise<OrganizationInvitation> {
     loading.value = true;
@@ -291,7 +301,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     try {
       const validated = createInvitationPayloadSchema.parse(payload);
 
-      const response = await $api.post(`/api/organizations/${orgId}/invitations`, validated);
+      const response = await $api.post(`/api/organizations/${extid}/invitations`, validated);
 
       const invitation = organizationInvitationSchema.parse(response.data.record);
       invitations.value.push(invitation);
@@ -304,15 +314,17 @@ export const useOrganizationStore = defineStore('organization', () => {
 
   /**
    * Resend an invitation
+   *
+   * @param extid - The external ID for API calls
    */
-  async function resendInvitation(orgId: string, token: string): Promise<void> {
+  async function resendInvitation(extid: string, token: string): Promise<void> {
     loading.value = true;
 
     try {
-      await $api.post(`/api/organizations/${orgId}/invitations/${token}/resend`);
+      await $api.post(`/api/organizations/${extid}/invitations/${token}/resend`);
 
       // Refresh invitations to get updated resend count
-      await fetchInvitations(orgId);
+      await fetchInvitations(extid);
     } finally {
       loading.value = false;
     }
@@ -320,12 +332,14 @@ export const useOrganizationStore = defineStore('organization', () => {
 
   /**
    * Revoke an invitation
+   *
+   * @param extid - The external ID for API calls
    */
-  async function revokeInvitation(orgId: string, token: string): Promise<void> {
+  async function revokeInvitation(extid: string, token: string): Promise<void> {
     loading.value = true;
 
     try {
-      await $api.delete(`/api/organizations/${orgId}/invitations/${token}`);
+      await $api.delete(`/api/organizations/${extid}/invitations/${token}`);
 
       // Remove from invitations array
       invitations.value = invitations.value.filter((inv) => inv.token !== token);
