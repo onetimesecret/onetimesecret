@@ -74,7 +74,11 @@
         "api_access": "API access",
         "priority_support": "Priority support",
         "select_plan": "Select Plan",
-        "contact_sales": "Contact Sales"
+        "contact_sales": "Contact Sales",
+        "custom_needs_title": "Have questions or need something custom?",
+        "custom_needs_description": "We'd love to hear from you. Let us know what you're looking for.",
+        "teams_limit": "{count} team | {count} teams",
+        "members_limit": "{count} member per team | {count} members per team"
       },
       "invoices": {
         "title": "Billing History",

@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import FeedbackToggle from '@/apps/secret/components/support/FeedbackToggle.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
@@ -45,10 +46,6 @@ const currentPlanId = computed(() => selectedOrg.value?.planid || 'free');
 
 // Filter plans by selected billing interval
 const filteredPlans = computed(() => plans.value.filter(plan => plan.interval === billingInterval.value));
-
-const yearlySavingsPercent = computed(() =>
-   17 // ~2 months free
-);
 
 /**
  * Get the display label for a feature/entitlement
@@ -224,29 +221,9 @@ onMounted(async () => {
         </button>
       </div>
 
-      <div v-if="billingInterval === 'year'" class="text-center">
-        <p class="text-sm font-medium text-green-600 dark:text-green-400">
-          {{ t('web.billing.plans.save_yearly', { percent: yearlySavingsPercent }) }}
-        </p>
-      </div>
 
-      <!-- Organization Selector -->
-      <div v-if="organizations.length > 1" class="mx-auto max-w-md">
-        <label for="org-select" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {{ t('web.billing.overview.organization_selector') }}
-        </label>
-        <select
-          id="org-select"
-          v-model="selectedOrgId"
-          class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm">
-          <option
-            v-for="org in organizations"
-            :key="org.id"
-            :value="org.id">
-            {{ org.display_name }}
-          </option>
-        </select>
-      </div>
+
+      <!-- Organization Selector (hidden - billing uses default org) -->
 
       <!-- Error Alerts -->
       <BasicFormAlerts v-if="error" :error="error" />
@@ -271,12 +248,6 @@ onMounted(async () => {
         <p class="text-gray-600 dark:text-gray-400">
           No {{ billingInterval === 'year' ? 'yearly' : 'monthly' }} plans available at this time.
         </p>
-        <button
-          v-if="billingInterval === 'year'"
-          @click="billingInterval = 'month'"
-          class="mt-4 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
-          View Monthly Plans
-        </button>
       </div>
 
       <!-- Plan Cards -->
@@ -393,19 +364,17 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Contact Sales -->
+      <!-- Custom Needs -->
       <div class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-900/50">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-          Need something custom?
+          {{ t('web.billing.plans.custom_needs_title') }}
         </h3>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Contact our sales team for enterprise plans with custom limits and features
+          {{ t('web.billing.plans.custom_needs_description') }}
         </p>
-        <button
-          type="button"
-          class="mt-4 inline-flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100">
-          {{ t('web.billing.plans.contact_sales') }}
-        </button>
+        <div class="mt-4 flex justify-center">
+          <FeedbackToggle />
+        </div>
       </div>
     </div>
   </div>
