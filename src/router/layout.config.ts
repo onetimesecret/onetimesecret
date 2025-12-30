@@ -4,8 +4,8 @@
 // Centralizes layout props to reduce duplication and ensure consistency.
 // Note: Workspace app has its own WorkspaceLayout in src/apps/workspace/layouts/
 
-import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
-import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
+import ManagementFooter from '@/shared/components/layout/ManagementFooter.vue';
+import ManagementHeader from '@/shared/components/layout/ManagementHeader.vue';
 import ManagementLayout from '@/shared/layouts/ManagementLayout.vue';
 
 /**
@@ -25,8 +25,8 @@ export const standardLayoutProps = {
  * Standard components configuration for routes using ManagementLayout.
  */
 export const improvedLayoutComponents = {
-  header: ImprovedHeader,
-  footer: ImprovedFooter,
+  header: ManagementHeader,
+  footer: ManagementFooter,
 } as const;
 
 /**
@@ -37,4 +37,4 @@ export const improvedLayoutMeta = {
   layoutProps: standardLayoutProps,
 } as const;
 
-export { ImprovedFooter, ImprovedHeader, ManagementLayout };
+export { ManagementFooter, ManagementHeader, ManagementLayout };

@@ -2,12 +2,12 @@
 
 <!--
   Secret Layout for conceal, metadata, and incoming flows.
-  Composes BaseLayout with DefaultHeader + DefaultFooter.
+  Composes BaseLayout with TransactionalHeader + TransactionalFooter.
 -->
 
 <script setup lang="ts">
-  import DefaultFooter from '@/shared/components/layout/DefaultFooter.vue';
-  import DefaultHeader from '@/shared/components/layout/DefaultHeader.vue';
+  import TransactionalFooter from '@/shared/components/layout/TransactionalFooter.vue';
+  import TransactionalHeader from '@/shared/components/layout/TransactionalHeader.vue';
   import BaseLayout from '@/shared/layouts/BaseLayout.vue';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed } from 'vue';
@@ -31,7 +31,7 @@
 <template>
   <BaseLayout v-bind="props">
     <template #header>
-      <DefaultHeader v-bind="props" />
+      <TransactionalHeader v-bind="props" />
     </template>
     <template #main>
       <main :class="mainClasses">
@@ -39,7 +39,7 @@
       </main>
     </template>
     <template #footer>
-      <DefaultFooter v-bind="props" />
+      <TransactionalFooter v-bind="props" />
     </template>
   </BaseLayout>
 </template>

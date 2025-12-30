@@ -1,7 +1,7 @@
 // src/router/public.routes.ts
 
-import DefaultFooter from '@/shared/components/layout/DefaultFooter.vue';
-import DefaultHeader from '@/shared/components/layout/DefaultHeader.vue';
+import TransactionalFooter from '@/shared/components/layout/TransactionalFooter.vue';
+import TransactionalHeader from '@/shared/components/layout/TransactionalHeader.vue';
 import DefaultLayout from '@/shared/layouts/TransactionalLayout.vue';
 import { WindowService } from '@/services/window.service';
 import HomepageContainer from '@/apps/secret/conceal/Homepage.vue';
@@ -93,8 +93,8 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Home',
     components: {
       default: HomepageContainer,
-      header: DefaultHeader,
-      footer: DefaultFooter,
+      header: TransactionalHeader,
+      footer: TransactionalFooter,
     },
     meta: {
       title: 'web.COMMON.title_home',

@@ -1,4 +1,4 @@
-<!-- src/shared/components/layout/ColonelAdminLayout.vue -->
+<!-- src/apps/colonel/components/layout/ColonelAdminLayout.vue -->
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';

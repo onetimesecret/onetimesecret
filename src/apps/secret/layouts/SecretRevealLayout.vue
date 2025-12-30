@@ -3,12 +3,12 @@
 <!--
   Secret Reveal Layout for the /secret/:secretIdentifier reveal page.
   Minimal chrome for focused secret viewing experience.
-  Composes BaseLayout with QuietHeader + QuietFooter.
+  Composes BaseLayout with BrandedHeader + BrandedFooter.
 -->
 
 <script setup lang="ts">
-  import QuietFooter from '@/shared/components/layout/QuietFooter.vue';
-  import QuietHeader from '@/shared/components/layout/QuietHeader.vue';
+  import BrandedFooter from '@/apps/secret/components/layout/BrandedFooter.vue';
+  import BrandedHeader from '@/apps/secret/components/layout/BrandedHeader.vue';
   import BaseLayout from '@/shared/layouts/BaseLayout.vue';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed } from 'vue';
@@ -32,7 +32,7 @@
 <template>
   <BaseLayout v-bind="props">
     <template #header>
-      <QuietHeader v-bind="props" />
+      <BrandedHeader v-bind="props" />
     </template>
     <template #main>
       <main :class="mainClasses">
@@ -40,7 +40,7 @@
       </main>
     </template>
     <template #footer>
-      <QuietFooter v-bind="props" />
+      <BrandedFooter v-bind="props" />
     </template>
   </BaseLayout>
 </template>

@@ -1,4 +1,4 @@
-<!-- src/shared/components/layout/QuietFooter.vue -->
+<!-- src/apps/secret/components/layout/BrandedFooter.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
