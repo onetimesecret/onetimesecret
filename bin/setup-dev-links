@@ -29,7 +29,7 @@ repair_env_sh() {
 set -a
 
 # Load the vars
-[ -f .env ] && . .env
+[ -f .env ] && source .env
 
 # Set +a restores default behavior where variables must be explicitly exported
 set +a
@@ -48,6 +48,7 @@ declare -A LINKS=(
     ["etc/billing.yaml"]="billing.yaml"
     ["etc/logging.yaml"]="logging.yaml"
     ["data"]="data"
+    ["Procfile.dev"]="Procfile.dev"
 )
 
 # Optional: .env if you have one
