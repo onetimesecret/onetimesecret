@@ -1,7 +1,17 @@
 // src/tests/composables/useDomainScope.spec.ts
 
-import { WindowService } from '@/services/window.service';
 import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest';
+import { nextTick } from 'vue';
+
+// Create mock stores before vi.mock calls
+const mockDomainsStoreState = {
+  domains: [] as Array<{ display_domain: string }>,
+  fetchList: vi.fn().mockResolvedValue(undefined),
+};
+
+const mockOrganizationStoreState = {
+  currentOrganization: null as { id: string } | null,
+};
 
 // Mock WindowService
 vi.mock('@/services/window.service', () => ({
@@ -9,6 +19,25 @@ vi.mock('@/services/window.service', () => ({
     getMultiple: vi.fn(),
   },
 }));
+
+// Mock stores
+vi.mock('@/shared/stores/domainsStore', () => ({
+  useDomainsStore: () => mockDomainsStoreState,
+}));
+
+vi.mock('@/shared/stores/organizationStore', () => ({
+  useOrganizationStore: () => mockOrganizationStoreState,
+}));
+
+// Import WindowService after mocks
+import { WindowService } from '@/services/window.service';
+
+/**
+ * Helper to set up domains store mock
+ */
+function setMockDomains(domains: string[]) {
+  mockDomainsStoreState.domains = domains.map((d) => ({ display_domain: d }));
+}
 
 describe('useDomainScope', () => {
   const mockLocalStorage = (() => {
@@ -36,6 +65,11 @@ describe('useDomainScope', () => {
       configurable: true,
     });
 
+    // Reset mock stores
+    mockDomainsStoreState.domains = [];
+    mockDomainsStoreState.fetchList.mockClear();
+    mockOrganizationStoreState.currentOrganization = null;
+
     // Reset all modules to clear the shared state
     vi.resetModules();
     vi.clearAllMocks();
@@ -50,16 +84,23 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: [],
+        display_domain: 'onetimesecret.com',
       });
+
+      // No custom domains in store
+      setMockDomains([]);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { currentScope, isScopeActive, hasMultipleScopes } = useDomainScope();
 
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
       expect(currentScope.value.domain).toBe('onetimesecret.com');
-      expect(currentScope.value.displayName).toBe('onetimesecret.com'); // Uses display_domain fallback
+      expect(currentScope.value.displayName).toBe('onetimesecret.com');
       expect(currentScope.value.isCanonical).toBe(true);
-      expect(isScopeActive.value).toBe(true); // domains_enabled=true shows switcher
+      expect(isScopeActive.value).toBe(true);
       expect(hasMultipleScopes.value).toBe(false);
     });
 
@@ -67,11 +108,18 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com', 'widgets.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      // Set custom domains in store
+      setMockDomains(['acme.example.com', 'widgets.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { currentScope, isScopeActive, hasMultipleScopes } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
 
       expect(currentScope.value.domain).toBe('acme.example.com');
       expect(currentScope.value.displayName).toBe('acme.example.com');
@@ -86,11 +134,17 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com', 'widgets.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com', 'widgets.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { currentScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
 
       expect(currentScope.value.domain).toBe('widgets.example.com');
       expect(currentScope.value.isCanonical).toBe(false);
@@ -102,11 +156,17 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { currentScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
 
       // Should fall back to first available domain
       expect(currentScope.value.domain).toBe('acme.example.com');
@@ -116,8 +176,10 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: false,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { isScopeActive } = useDomainScope();
@@ -129,14 +191,21 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: undefined,
+        display_domain: 'onetimesecret.com',
       });
+
+      // Empty domains
+      setMockDomains([]);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { currentScope, isScopeActive } = useDomainScope();
 
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
       expect(currentScope.value.domain).toBe('onetimesecret.com');
-      expect(isScopeActive.value).toBe(true); // domains_enabled=true shows switcher
+      expect(isScopeActive.value).toBe(true);
     });
   });
 
@@ -145,8 +214,10 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com', 'widgets.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com', 'widgets.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { availableDomains } = useDomainScope();
@@ -162,8 +233,10 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['onetimesecret.com', 'acme.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['onetimesecret.com', 'acme.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { availableDomains } = useDomainScope();
@@ -177,11 +250,17 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { currentScope, setScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
 
       // Start with custom domain
       expect(currentScope.value.isCanonical).toBe(false);
@@ -190,20 +269,25 @@ describe('useDomainScope', () => {
       // Switch to canonical
       setScope('onetimesecret.com');
       expect(currentScope.value.isCanonical).toBe(true);
-      expect(currentScope.value.displayName).toBe('onetimesecret.com'); // Uses display_domain fallback
+      expect(currentScope.value.displayName).toBe('onetimesecret.com');
     });
 
     it('sets displayName to domain name for canonical domain', async () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: [],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains([]);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { currentScope } = useDomainScope();
 
-      // Uses display_domain if available, falls back to site_host
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
       expect(currentScope.value.displayName).toBe('onetimesecret.com');
     });
 
@@ -211,11 +295,17 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { currentScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
 
       expect(currentScope.value.displayName).toBe('acme.example.com');
     });
@@ -226,11 +316,17 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com', 'widgets.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com', 'widgets.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { currentScope, setScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
 
       setScope('widgets.example.com');
 
@@ -241,11 +337,17 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { setScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
 
       setScope('acme.example.com');
 
@@ -256,11 +358,18 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { currentScope, setScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
       const initialDomain = currentScope.value.domain;
 
       setScope('invalid.example.com');
@@ -273,11 +382,17 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { currentScope, setScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
 
       setScope('onetimesecret.com');
 
@@ -291,11 +406,17 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { currentScope, setScope, resetScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
 
       // Start with custom domain
       setScope('acme.example.com');
@@ -311,11 +432,17 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { setScope, resetScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
 
       setScope('acme.example.com');
       expect(mockLocalStorage.getItem('domainScope')).toBe('acme.example.com');
@@ -330,8 +457,10 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: false,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { isScopeActive } = useDomainScope();
@@ -343,13 +472,14 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: [],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains([]);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { isScopeActive } = useDomainScope();
 
-      // Shows switcher so "Add domain" link is accessible
       expect(isScopeActive.value).toBe(true);
     });
 
@@ -357,13 +487,15 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: undefined,
+        display_domain: 'onetimesecret.com',
       });
+
+      // Set domains to empty (simulating undefined)
+      mockDomainsStoreState.domains = [];
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { isScopeActive } = useDomainScope();
 
-      // Shows switcher so "Add domain" link is accessible
       expect(isScopeActive.value).toBe(true);
     });
 
@@ -371,8 +503,10 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { isScopeActive } = useDomainScope();
@@ -386,8 +520,10 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: [],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains([]);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { hasMultipleScopes } = useDomainScope();
@@ -399,8 +535,10 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { hasMultipleScopes } = useDomainScope();
@@ -412,8 +550,10 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
-        custom_domains: ['acme.example.com', 'widgets.example.com'],
+        display_domain: 'onetimesecret.com',
       });
+
+      setMockDomains(['acme.example.com', 'widgets.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { hasMultipleScopes } = useDomainScope();
@@ -427,11 +567,17 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: true,
         site_host: '',
-        custom_domains: ['acme.example.com'],
+        display_domain: '',
       });
+
+      setMockDomains(['acme.example.com']);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { currentScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
 
       expect(currentScope.value.domain).toBe('acme.example.com');
     });
@@ -440,8 +586,10 @@ describe('useDomainScope', () => {
       vi.mocked(WindowService.getMultiple).mockReturnValue({
         domains_enabled: false,
         site_host: undefined,
-        custom_domains: undefined,
+        display_domain: undefined,
       });
+
+      setMockDomains([]);
 
       const { useDomainScope } = await import('@/shared/composables/useDomainScope');
       const { currentScope, isScopeActive } = useDomainScope();

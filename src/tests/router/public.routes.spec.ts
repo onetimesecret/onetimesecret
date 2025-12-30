@@ -3,11 +3,29 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { RouteRecordRaw } from 'vue-router';
 
-// Move the mock before the route import
+// Mock stores used by useDomainScope
+vi.mock('@/shared/stores/domainsStore', () => ({
+  useDomainsStore: () => ({
+    domains: [],
+    fetchList: vi.fn().mockResolvedValue(undefined),
+  }),
+}));
 
+vi.mock('@/shared/stores/organizationStore', () => ({
+  useOrganizationStore: () => ({
+    currentOrganization: null,
+  }),
+}));
+
+// Mock WindowService with all required methods
 vi.mock('@/services/window.service', () => ({
   WindowService: {
     get: vi.fn(),
+    getMultiple: vi.fn().mockReturnValue({
+      domains_enabled: false,
+      site_host: 'onetimesecret.com',
+      display_domain: 'onetimesecret.com',
+    }),
   },
 }));
 
