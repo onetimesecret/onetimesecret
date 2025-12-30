@@ -61,6 +61,7 @@ GET   /teams/*                                   Core::Controllers::Page#index a
 GET   /teams                                     Core::Controllers::Page#index auth=sessionauth
 GET   /orgs/*                                    Core::Controllers::Page#index auth=sessionauth
 GET   /orgs                                      Core::Controllers::Page#index auth=sessionauth
+GET   /org                                       Core::Controllers::Page#index auth=sessionauth
 
 # Billing
 GET   /plans/:tier                               Core::Controllers::Welcome#plan_redirect auth=noauth
