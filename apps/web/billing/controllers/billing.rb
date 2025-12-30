@@ -225,6 +225,7 @@ module Billing
             {
               id: plan.plan_id,
               plan_code: plan.plan_code,
+              plan_name_label: plan.plan_name_label.to_s.strip.empty? ? nil : plan.plan_name_label,
               name: plan.name,
               tier: plan.tier,
               interval: plan.interval,
@@ -281,6 +282,7 @@ module Billing
         {
           id: plan.plan_id,
           plan_code: plan.plan_code,
+          plan_name_label: plan.plan_name_label.to_s.strip.empty? ? nil : plan.plan_name_label,
           name: plan.name,
           tier: plan.tier,
           interval: plan.interval,
