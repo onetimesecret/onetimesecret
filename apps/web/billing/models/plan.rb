@@ -132,6 +132,26 @@ module Billing
       super
     end
 
+    # Check if plan should show "Most Popular" badge
+    #
+    # @return [Boolean] True if plan is marked as popular
+    def popular?
+      is_popular.to_s == 'true'
+    end
+
+    # Calculate monthly equivalent amount for display
+    #
+    # For yearly plans, divides the total amount by 12.
+    # For monthly plans, returns the amount unchanged.
+    #
+    # @return [Integer] Monthly equivalent price in cents
+    def monthly_equivalent_amount
+      amt = amount.to_i
+      return amt if interval != 'year'
+
+      (amt / 12.0).round
+    end
+
     # Parse cached Stripe data snapshot
     #
     # @return [Hash, nil] Parsed snapshot or nil if not available
@@ -354,6 +374,8 @@ module Billing
           display_order: display_order,
           show_on_plans_page: show_on_plans_page.to_s,
           description: product.description,
+          plan_code: plan_code,
+          is_popular: is_popular.to_s,
           active: price.active.to_s,
           billing_scheme: price.billing_scheme,
           usage_type: price.recurring&.usage_type || 'licensed',
@@ -397,6 +419,8 @@ module Billing
           plan.usage_type        = data[:usage_type]
           plan.trial_period_days = data[:trial_period_days]
           plan.nickname          = data[:nickname]
+          plan.plan_code         = data[:plan_code]
+          plan.is_popular        = data[:is_popular]
           plan.last_synced_at    = sync_timestamp
 
           # Add entitlements to set (unique values)
