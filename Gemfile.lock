@@ -45,7 +45,7 @@ GEM
   specs:
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
-    altcha (0.2.1)
+    altcha (1.0.0)
     ast (2.4.3)
     attic (1.0.1)
       rake (~> 13.0.6)
@@ -66,7 +66,7 @@ GEM
     base64 (0.2.0)
     bcrypt (3.1.20)
     benchmark (0.4.1)
-    bigdecimal (3.1.9)
+    bigdecimal (4.0.1)
     climate_control (1.2.0)
     concurrent-ruby (1.3.5)
     connection_pool (2.5.4)
@@ -105,7 +105,7 @@ GEM
       attic (~> 1.0)
       rake (~> 13.0)
     hashdiff (1.2.1)
-    httparty (0.23.2)
+    httparty (0.24.0)
       csv
       mini_mime (>= 1.0.0)
       multi_xml (>= 0.5.2)
@@ -132,8 +132,8 @@ GEM
     mini_mime (1.1.5)
     minitest (5.25.5)
     multi_json (1.15.0)
-    multi_xml (0.7.2)
-      bigdecimal (~> 3.1)
+    multi_xml (0.8.0)
+      bigdecimal (>= 3.1, < 5)
     mustache (1.1.1)
     net-imap (0.5.13)
       date
@@ -307,7 +307,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  altcha (~> 0.2.1)
+  altcha (~> 1.0.0)
   aws-sdk-sesv2 (~> 1.74)
   base64
   bcrypt (~> 3.1)
