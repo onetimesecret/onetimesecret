@@ -586,6 +586,8 @@ module Billing
             plan.usage_type        = 'licensed'
             plan.trial_period_days = nil
             plan.nickname          = nil
+            plan.plan_code         = plan_def['plan_code']
+            plan.is_popular        = (plan_def['is_popular'] == true).to_s
             plan.last_synced_at    = Time.now.to_i.to_s
 
             # Add entitlements to set
@@ -688,6 +690,8 @@ module Billing
           display_order: plan_def['display_order'].to_i,
           show_on_plans_page: plan_def['show_on_plans_page'] == true,
           description: plan_def['description'],
+          plan_code: plan_def['plan_code'],
+          is_popular: plan_def['is_popular'] == true,
           entitlements: plan_def['entitlements'] || [],
           limits: limits,
         }
