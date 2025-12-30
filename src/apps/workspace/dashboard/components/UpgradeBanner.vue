@@ -11,7 +11,10 @@ import { useEntitlements } from '@/shared/composables/useEntitlements';
 const { t } = useI18n();
 const organizationStore = useOrganizationStore();
 
-const dismissed = ref(false);
+const STORAGE_KEY = 'ots_upgrade_banner_dismissed';
+
+// Initialize from localStorage for persistence across sessions
+const dismissed = ref(localStorage.getItem(STORAGE_KEY) === 'true');
 
 // Get the first organization (default org for billing context)
 const currentOrg = computed(() => organizationStore.organizations[0] ?? null);
@@ -33,6 +36,7 @@ const showBanner = computed(() => billingEnabled.value && isFreePlan.value && !d
 
 const handleDismiss = () => {
   dismissed.value = true;
+  localStorage.setItem(STORAGE_KEY, 'true');
 };
 </script>
 
