@@ -40,16 +40,16 @@ const planName = computed(() => {
 
 const planStatus = computed(() => selectedOrg.value?.planid ? 'active' : 'free');
 
-const loadOrganizationData = async (orgId: string) => {
+const loadOrganizationData = async (extid: string) => {
   isLoading.value = true;
   error.value = '';
   try {
-    const org = await organizationStore.fetchOrganization(orgId);
+    const org = await organizationStore.fetchOrganization(extid);
     selectedOrg.value = org;
 
     // Fetch entitlements if not already loaded
-    if (!org.entitlements) {
-      await organizationStore.fetchEntitlements(orgId);
+    if (!org.entitlements && org.extid) {
+      await organizationStore.fetchEntitlements(org.extid);
     }
 
     // Load billing overview data from API
@@ -75,9 +75,13 @@ const loadOrganizationData = async (orgId: string) => {
   }
 };
 
-const handleOrgChange = (orgId: string) => {
-  selectedOrgId.value = orgId;
-  loadOrganizationData(orgId);
+const handleOrgChange = (extid: string) => {
+  // Find org to get internal id for local state
+  const org = organizations.value.find((o) => o.extid === extid);
+  if (org) {
+    selectedOrgId.value = org.id;
+    loadOrganizationData(extid);
+  }
 };
 
 const formatCardBrand = (brand: string): string => brand.charAt(0).toUpperCase() + brand.slice(1);
@@ -106,7 +110,9 @@ onMounted(async () => {
     if (organizations.value.length > 0) {
       const firstOrg = organizations.value[0];
       selectedOrgId.value = firstOrg.id;
-      await loadOrganizationData(firstOrg.id);
+      if (firstOrg.extid) {
+        await loadOrganizationData(firstOrg.extid);
+      }
     }
   } catch (err) {
     const classified = classifyError(err);
@@ -272,7 +278,9 @@ onMounted(async () => {
         </div>
 
         <!-- Payment Method & Next Billing -->
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div
+          v-if="false"
+          class="grid grid-cols-1 gap-6 md:grid-cols-2">
           <!-- Payment Method -->
           <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
@@ -342,7 +350,9 @@ onMounted(async () => {
         </div>
 
         <!-- Quick Actions -->
-        <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+        <div
+          v-if="false"
+          class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
             <h3 class="text-base font-semibold text-gray-900 dark:text-white">
               {{ t('web.billing.overview.quick_actions') }}
