@@ -84,6 +84,7 @@ module Billing
     field :is_soft_deleted          # Boolean: soft-deleted in Stripe
     field :plan_code                # Deduplication key (e.g., "identity_plus" for monthly+yearly variants)
     field :is_popular               # Boolean: show "Most Popular" badge
+    field :plan_name_label          # Display label next to plan name (e.g., "For Teams")
 
     # Additional Stripe Price fields
     field :active                   # Boolean: whether price is available for new subscriptions
@@ -210,6 +211,9 @@ module Billing
 
         # PHASE 2: Write all collected plans to Redis
         # This happens only after all Stripe API calls succeeded
+        # Clear stale cache entries first to remove plans no longer in Stripe
+        clear_cache
+
         items_count = persist_collected_plans(plan_data_list)
 
         OT.li "[Plan.refresh_from_stripe] Cached #{items_count} plans"
@@ -340,6 +344,10 @@ module Billing
         is_popular_value = product.metadata[Metadata::FIELD_IS_POPULAR] || 'false'
         is_popular       = %w[true 1 yes].include?(is_popular_value.to_s.downcase)
 
+        # Extract plan_name_label from product metadata (nil if not set or empty)
+        plan_name_label_raw = product.metadata[Metadata::FIELD_PLAN_NAME_LABEL]
+        plan_name_label     = plan_name_label_raw.to_s.strip.empty? ? nil : plan_name_label_raw
+
         # Build stripe snapshot for recovery
         stripe_snapshot = {
           product: {
@@ -376,6 +384,7 @@ module Billing
           description: product.description,
           plan_code: plan_code,
           is_popular: is_popular.to_s,
+          plan_name_label: plan_name_label,
           active: price.active.to_s,
           billing_scheme: price.billing_scheme,
           usage_type: price.recurring&.usage_type || 'licensed',
@@ -421,6 +430,7 @@ module Billing
           plan.nickname          = data[:nickname]
           plan.plan_code         = data[:plan_code]
           plan.is_popular        = data[:is_popular]
+          plan.plan_name_label   = data[:plan_name_label]
           plan.last_synced_at    = sync_timestamp
 
           # Add entitlements to set (unique values)
@@ -588,6 +598,7 @@ module Billing
             plan.nickname          = nil
             plan.plan_code         = plan_def['plan_code']
             plan.is_popular        = (plan_def['is_popular'] == true).to_s
+            plan.plan_name_label   = plan_def['plan_name_label']
             plan.last_synced_at    = Time.now.to_i.to_s
 
             # Add entitlements to set
@@ -692,6 +703,7 @@ module Billing
           description: plan_def['description'],
           plan_code: plan_def['plan_code'],
           is_popular: plan_def['is_popular'] == true,
+          plan_name_label: plan_def['plan_name_label'],
           entitlements: plan_def['entitlements'] || [],
           limits: limits,
         }
