@@ -15,6 +15,7 @@ describe('Organization Store', () => {
   // Raw API response format (Unix timestamps)
   const mockOrganizationRaw = {
     id: 'org-123',
+    extid: 'on123abc',
     display_name: 'Test Organization',
     description: 'A test organization',
     is_default: false,
@@ -25,6 +26,7 @@ describe('Organization Store', () => {
   // Transformed format (Date objects) for expectations
   const mockOrganization: Organization = {
     id: 'org-123',
+    extid: 'on123abc',
     display_name: 'Test Organization',
     description: 'A test organization',
     is_default: false,
@@ -91,11 +93,11 @@ describe('Organization Store', () => {
     });
 
     it('fetches a single organization by ID', async () => {
-      axiosMock?.onGet('/api/organizations/org-123').reply(200, {
+      axiosMock?.onGet('/api/organizations/on123abc').reply(200, {
         record: mockOrganizationRaw,
       });
 
-      const org = await store.fetchOrganization('org-123');
+      const org = await store.fetchOrganization('on123abc');
 
       expect(org).toEqual(mockOrganization);
       expect(store.currentOrganization).toEqual(mockOrganization);
@@ -134,11 +136,11 @@ describe('Organization Store', () => {
 
       const updatedOrgRaw = { ...mockOrganizationRaw, ...updates };
 
-      axiosMock?.onPut('/api/organizations/org-123').reply(200, {
+      axiosMock?.onPut('/api/organizations/on123abc').reply(200, {
         record: updatedOrgRaw,
       });
 
-      const result = await store.updateOrganization('org-123', updates);
+      const result = await store.updateOrganization('on123abc', updates);
 
       expect(result.display_name).toBe('Updated Organization Name');
       expect(store.organizations[0].display_name).toBe('Updated Organization Name');
@@ -153,9 +155,9 @@ describe('Organization Store', () => {
     });
 
     it('deletes an organization successfully', async () => {
-      axiosMock?.onDelete('/api/organizations/org-123').reply(200);
+      axiosMock?.onDelete('/api/organizations/on123abc').reply(200);
 
-      await store.deleteOrganization('org-123');
+      await store.deleteOrganization('on123abc');
 
       expect(store.organizations).toEqual([]);
       expect(store.currentOrganization).toBeNull();
@@ -173,6 +175,7 @@ describe('Organization Store', () => {
     it('finds organization by ID', () => {
       store.organizations = [mockOrganization];
 
+      // getOrganizationById uses internal id (objid), not extid
       const found = store.getOrganizationById('org-123');
       expect(found).toEqual(mockOrganization);
 
@@ -224,11 +227,11 @@ describe('Organization Store', () => {
 
     describe('fetchInvitations', () => {
       it('fetches invitations for an organization successfully', async () => {
-        axiosMock?.onGet('/api/organizations/org-123/invitations').reply(200, {
+        axiosMock?.onGet('/api/organizations/on123abc/invitations').reply(200, {
           records: [mockInvitationRaw, mockInvitationRaw2],
         });
 
-        const invitations = await store.fetchInvitations('org-123');
+        const invitations = await store.fetchInvitations('on123abc');
 
         expect(invitations).toHaveLength(2);
         expect(store.invitations).toHaveLength(2);
@@ -239,22 +242,22 @@ describe('Organization Store', () => {
       });
 
       it('handles empty invitations response', async () => {
-        axiosMock?.onGet('/api/organizations/org-123/invitations').reply(200, {
+        axiosMock?.onGet('/api/organizations/on123abc/invitations').reply(200, {
           records: [],
         });
 
-        const invitations = await store.fetchInvitations('org-123');
+        const invitations = await store.fetchInvitations('on123abc');
 
         expect(invitations).toEqual([]);
         expect(store.invitations).toEqual([]);
       });
 
       it('validates invitation data with schema', async () => {
-        axiosMock?.onGet('/api/organizations/org-123/invitations').reply(200, {
+        axiosMock?.onGet('/api/organizations/on123abc/invitations').reply(200, {
           records: [mockInvitationRaw],
         });
 
-        const invitations = await store.fetchInvitations('org-123');
+        const invitations = await store.fetchInvitations('on123abc');
 
         expect(invitations[0]).toMatchObject({
           id: 'inv-123',
@@ -274,12 +277,12 @@ describe('Organization Store', () => {
           resolveRequest = resolve;
         });
 
-        axiosMock?.onGet('/api/organizations/org-123/invitations').reply(async () => {
+        axiosMock?.onGet('/api/organizations/on123abc/invitations').reply(async () => {
           await requestPromise;
           return [200, { records: [mockInvitationRaw] }];
         });
 
-        const fetchPromise = store.fetchInvitations('org-123');
+        const fetchPromise = store.fetchInvitations('on123abc');
         expect(store.loading).toBe(true);
 
         resolveRequest!(undefined);
@@ -302,11 +305,11 @@ describe('Organization Store', () => {
           email: 'newmember@example.com',
         };
 
-        axiosMock?.onPost('/api/organizations/org-123/invitations').reply(200, {
+        axiosMock?.onPost('/api/organizations/on123abc/invitations').reply(200, {
           record: createdInvitationRaw,
         });
 
-        const invitation = await store.createInvitation('org-123', payload);
+        const invitation = await store.createInvitation('on123abc', payload);
 
         expect(invitation.email).toBe('newmember@example.com');
         expect(invitation.role).toBe('member');
@@ -328,11 +331,11 @@ describe('Organization Store', () => {
           role: 'admin' as const,
         };
 
-        axiosMock?.onPost('/api/organizations/org-123/invitations').reply(200, {
+        axiosMock?.onPost('/api/organizations/on123abc/invitations').reply(200, {
           record: createdInvitationRaw,
         });
 
-        const invitation = await store.createInvitation('org-123', payload);
+        const invitation = await store.createInvitation('on123abc', payload);
 
         expect(invitation.email).toBe('newadmin@example.com');
         expect(invitation.role).toBe('admin');
@@ -359,11 +362,11 @@ describe('Organization Store', () => {
           role: 'member' as const,
         };
 
-        axiosMock?.onPost('/api/organizations/org-123/invitations').reply(200, {
+        axiosMock?.onPost('/api/organizations/on123abc/invitations').reply(200, {
           record: { ...mockInvitationRaw, email: 'new@example.com' },
         });
 
-        await store.createInvitation('org-123', payload);
+        await store.createInvitation('on123abc', payload);
 
         expect(store.invitations).toHaveLength(2);
       });
@@ -374,7 +377,7 @@ describe('Organization Store', () => {
           role: 'member' as const,
         };
 
-        await expect(store.createInvitation('org-123', invalidPayload)).rejects.toThrow();
+        await expect(store.createInvitation('on123abc', invalidPayload)).rejects.toThrow();
       });
 
       it('sets loading state during creation', async () => {
@@ -388,12 +391,12 @@ describe('Organization Store', () => {
           resolveRequest = resolve;
         });
 
-        axiosMock?.onPost('/api/organizations/org-123/invitations').reply(async () => {
+        axiosMock?.onPost('/api/organizations/on123abc/invitations').reply(async () => {
           await requestPromise;
           return [200, { record: mockInvitationRaw }];
         });
 
-        const createPromise = store.createInvitation('org-123', payload);
+        const createPromise = store.createInvitation('on123abc', payload);
         expect(store.loading).toBe(true);
 
         resolveRequest!(undefined);
@@ -425,15 +428,15 @@ describe('Organization Store', () => {
       it('resends an invitation successfully', async () => {
         // Mock the resend endpoint
         axiosMock
-          ?.onPost('/api/organizations/org-123/invitations/secure-token-abc123/resend')
+          ?.onPost('/api/organizations/on123abc/invitations/secure-token-abc123/resend')
           .reply(200, {});
 
         // Mock the refresh fetch with updated resend count
-        axiosMock?.onGet('/api/organizations/org-123/invitations').reply(200, {
+        axiosMock?.onGet('/api/organizations/on123abc/invitations').reply(200, {
           records: [{ ...mockInvitationRaw, resend_count: 1 }],
         });
 
-        await store.resendInvitation('org-123', 'secure-token-abc123');
+        await store.resendInvitation('on123abc', 'secure-token-abc123');
 
         // Should have refreshed invitations
         expect(store.invitations[0].resend_count).toBe(1);
@@ -446,17 +449,17 @@ describe('Organization Store', () => {
         });
 
         axiosMock
-          ?.onPost('/api/organizations/org-123/invitations/secure-token-abc123/resend')
+          ?.onPost('/api/organizations/on123abc/invitations/secure-token-abc123/resend')
           .reply(async () => {
             await requestPromise;
             return [200, {}];
           });
 
-        axiosMock?.onGet('/api/organizations/org-123/invitations').reply(200, {
+        axiosMock?.onGet('/api/organizations/on123abc/invitations').reply(200, {
           records: [mockInvitationRaw],
         });
 
-        const resendPromise = store.resendInvitation('org-123', 'secure-token-abc123');
+        const resendPromise = store.resendInvitation('on123abc', 'secure-token-abc123');
         expect(store.loading).toBe(true);
 
         resolveRequest!(undefined);
@@ -499,10 +502,10 @@ describe('Organization Store', () => {
 
       it('revokes an invitation successfully', async () => {
         axiosMock
-          ?.onDelete('/api/organizations/org-123/invitations/token-to-revoke')
+          ?.onDelete('/api/organizations/on123abc/invitations/token-to-revoke')
           .reply(200, {});
 
-        await store.revokeInvitation('org-123', 'token-to-revoke');
+        await store.revokeInvitation('on123abc', 'token-to-revoke');
 
         expect(store.invitations).toHaveLength(1);
         expect(store.invitations[0].token).toBe('token-to-keep');
@@ -510,11 +513,11 @@ describe('Organization Store', () => {
 
       it('removes revoked invitation from store', async () => {
         axiosMock
-          ?.onDelete('/api/organizations/org-123/invitations/token-to-revoke')
+          ?.onDelete('/api/organizations/on123abc/invitations/token-to-revoke')
           .reply(200, {});
 
         const initialCount = store.invitations.length;
-        await store.revokeInvitation('org-123', 'token-to-revoke');
+        await store.revokeInvitation('on123abc', 'token-to-revoke');
 
         expect(store.invitations).toHaveLength(initialCount - 1);
         expect(
@@ -529,13 +532,13 @@ describe('Organization Store', () => {
         });
 
         axiosMock
-          ?.onDelete('/api/organizations/org-123/invitations/token-to-revoke')
+          ?.onDelete('/api/organizations/on123abc/invitations/token-to-revoke')
           .reply(async () => {
             await requestPromise;
             return [200, {}];
           });
 
-        const revokePromise = store.revokeInvitation('org-123', 'token-to-revoke');
+        const revokePromise = store.revokeInvitation('on123abc', 'token-to-revoke');
         expect(store.loading).toBe(true);
 
         resolveRequest!(undefined);
