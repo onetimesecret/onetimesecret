@@ -121,7 +121,11 @@ export const createOrganizationPayloadSchema = z.object({
 export const updateOrganizationPayloadSchema = z.object({
   display_name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),
-  contact_email: z.string().email().optional(),
+  // Allow empty string (transforms to undefined) or valid email
+  contact_email: z.preprocess(
+    (v) => (v === '' ? undefined : v),
+    z.string().email().optional()
+  ),
 });
 
 /**

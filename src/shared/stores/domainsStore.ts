@@ -93,10 +93,14 @@ export const useDomainsStore = defineStore('domains', () => {
   }
 
   /**
-   * Load all domains if not already _initialized
+   * Load all domains for an organization
+   *
+   * @param orgId - Optional organization ID. If provided, fetches domains for that org.
+   *                If not provided, uses the organization from session context.
    */
-  async function fetchList() {
-    const response = await $api.get('/api/domains');
+  async function fetchList(orgId?: string) {
+    const params = orgId ? { org_id: orgId } : {};
+    const response = await $api.get('/api/domains', { params });
     const validated = responseSchemas.customDomainList.parse(response.data);
     records.value = validated.records ?? [];
     details.value = validated.details ?? {};
