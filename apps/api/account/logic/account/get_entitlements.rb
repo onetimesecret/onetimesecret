@@ -56,7 +56,7 @@ module AccountAPI::Logic
     class GetEntitlements < AccountAPI::Logic::Base
       def raise_concerns
         # Basic auth check - requires logged in user
-        raise_not_authorized_error unless authenticated?
+        raise_form_error('Authentication required', field: :user_id, error_type: :unauthorized) if cust.anonymous?
       end
 
       def process

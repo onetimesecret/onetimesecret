@@ -6,11 +6,16 @@
  * across multiple custom domains. Domain scope is a session-level filter
  * that determines which domain context is active for the current workspace.
  *
+ * Domains are scoped to the currently active organization - when the user
+ * switches organizations, the available domains list updates accordingly.
+ *
  * @see docs/product/interaction-modes.md - Domain Scope concept
  */
 
 import { WindowService } from '@/services/window.service';
-import { computed, ref } from 'vue';
+import { useDomainsStore } from '@/shared/stores/domainsStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { computed, ref, watch } from 'vue';
 
 export interface DomainScope {
   /** The domain hostname (e.g., "acme.example.com" or "onetimesecret.com") */
@@ -24,93 +29,88 @@ export interface DomainScope {
 // Shared state for domain scope across components
 const currentDomain = ref('');
 const isInitialized = ref(false);
+const isLoadingDomains = ref(false);
+
+// Window service config (module-level for reuse)
+const windowConfig = WindowService.getMultiple(['domains_enabled', 'site_host', 'display_domain']);
+const domainsEnabled = windowConfig.domains_enabled;
+const canonicalDomain = windowConfig.site_host;
+const displayDomain = windowConfig.display_domain;
+
+/** Get display name for a given domain */
+function getDomainDisplayName(domain: string): string {
+  const isCanonical = domain === canonicalDomain;
+  const defaultDisplay = displayDomain || canonicalDomain || 'onetimesecret.com';
+  return isCanonical ? defaultDisplay : domain;
+}
+
+/** Build available domains list from store */
+function buildAvailableDomains(storeDomains: Array<{ display_domain: string }>): string[] {
+  const domainNames = storeDomains.map((d) => d.display_domain);
+  if (canonicalDomain && !domainNames.includes(canonicalDomain)) {
+    domainNames.push(canonicalDomain);
+  }
+  return domainNames;
+}
 
 /**
  * Composable for managing domain scope in the workspace.
- *
- * Domain scope elevates domain selection from a form field to a
- * workspace-level context that affects secret creation and management.
- *
- * @example
- * const { currentScope, isScopeActive, setScope } = useDomainScope();
- *
- * // Watch for scope changes
- * watch(() => currentScope.value.domain, (domain) => {
- *   operations.updateField('share_domain', domain);
- * });
+ * Domains are scoped to the current organization.
  */
 export function useDomainScope() {
-  const {
-    domains_enabled: domainsEnabled,
-    site_host: canonicalDomain,
-    custom_domains: customDomains = [],
-    display_domain: displayDomain,
-  } = WindowService.getMultiple([
-    'domains_enabled',
-    'site_host',
-    'custom_domains',
-    'display_domain',
-  ]);
+  const domainsStore = useDomainsStore();
+  const organizationStore = useOrganizationStore();
 
-  // Build available domains list
-  const availableDomains = computed<string[]>(() => {
-    const domains = [...(customDomains || [])];
-    if (canonicalDomain && !domains.includes(canonicalDomain)) {
-      domains.push(canonicalDomain);
+  const availableDomains = computed<string[]>(() => buildAvailableDomains(domainsStore.domains || []));
+
+  const fetchDomainsForOrganization = async () => {
+    if (!domainsEnabled) return;
+    isLoadingDomains.value = true;
+    try {
+      await domainsStore.fetchList(organizationStore.currentOrganization?.id);
+    } catch (error) {
+      console.warn('[useDomainScope] Failed to fetch domains:', error);
+    } finally {
+      isLoadingDomains.value = false;
     }
-    return domains;
-  });
-
-  // Initialize on first use
-  if (!isInitialized.value) {
-    const savedDomain = localStorage.getItem('domainScope');
-    if (savedDomain && availableDomains.value.includes(savedDomain)) {
-      currentDomain.value = savedDomain;
-    } else {
-      // Default to first custom domain, or canonical if none
-      currentDomain.value = availableDomains.value[0] || canonicalDomain || '';
-    }
-    isInitialized.value = true;
-  }
-
-  /**
-   * Get display name for a given domain
-   */
-  const getDomainDisplayName = (domain: string): string => {
-    const isCanonical = domain === canonicalDomain;
-    const defaultDisplay = displayDomain || canonicalDomain || 'onetimesecret.com';
-    return isCanonical ? defaultDisplay : domain;
   };
 
-  /**
-   * Current domain scope as a structured object
-   */
-  const currentScope = computed<DomainScope>(() => {
-    const domain = currentDomain.value || canonicalDomain || '';
-    const isCanonical = domain === canonicalDomain;
+  // Watch for organization changes and refresh domains
+  watch(
+    () => organizationStore.currentOrganization?.id,
+    async (newOrgId, oldOrgId) => {
+      if (newOrgId && newOrgId !== oldOrgId) {
+        await fetchDomainsForOrganization();
+        if (currentDomain.value && !availableDomains.value.includes(currentDomain.value)) {
+          currentDomain.value = availableDomains.value[0] || canonicalDomain || '';
+        }
+      }
+    },
+    { immediate: false }
+  );
 
-    return {
-      domain,
-      displayName: getDomainDisplayName(domain),
-      isCanonical,
-    };
-  });
+  // Initialize on first use - fetch domains before restoring saved selection
+  if (!isInitialized.value) {
+    isInitialized.value = true;
+    if (domainsEnabled) {
+      fetchDomainsForOrganization().then(() => {
+        const savedDomain = localStorage.getItem('domainScope');
+        currentDomain.value =
+          savedDomain && availableDomains.value.includes(savedDomain)
+            ? savedDomain
+            : availableDomains.value[0] || canonicalDomain || '';
+      });
+    } else {
+      currentDomain.value = canonicalDomain || '';
+    }
+  }
 
-  /**
-   * Whether domain scope feature is active (user has custom domains)
-   */
-  // const isScopeActive = computed<boolean>(() => domainsEnabled && customDomains && customDomains.length > 0);
-  const isScopeActive = computed<boolean>(() => domainsEnabled); // Always show when domains enabled
+  const currentScope = computed<DomainScope>(() => ({
+    domain: currentDomain.value || canonicalDomain || '',
+    displayName: getDomainDisplayName(currentDomain.value || canonicalDomain || ''),
+    isCanonical: (currentDomain.value || canonicalDomain || '') === canonicalDomain,
+  }));
 
-  /**
-   * Whether multiple scopes are available for switching
-   */
-  const hasMultipleScopes = computed<boolean>(() => availableDomains.value.length > 1);
-
-  /**
-   * Set the current domain scope
-   * @param domain - Domain to switch to
-   */
   const setScope = (domain: string) => {
     if (availableDomains.value.includes(domain)) {
       currentDomain.value = domain;
@@ -118,9 +118,6 @@ export function useDomainScope() {
     }
   };
 
-  /**
-   * Reset scope to canonical domain
-   */
   const resetScope = () => {
     currentDomain.value = canonicalDomain || '';
     localStorage.removeItem('domainScope');
@@ -128,11 +125,13 @@ export function useDomainScope() {
 
   return {
     currentScope,
-    isScopeActive,
-    hasMultipleScopes,
+    isScopeActive: computed<boolean>(() => domainsEnabled),
+    hasMultipleScopes: computed<boolean>(() => availableDomains.value.length > 1),
     availableDomains,
+    isLoadingDomains: computed(() => isLoadingDomains.value),
     setScope,
     resetScope,
+    refreshDomains: fetchDomainsForOrganization,
     getDomainDisplayName,
   };
 }

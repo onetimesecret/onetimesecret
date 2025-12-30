@@ -4,29 +4,23 @@
  * Routes for organization member management
  */
 
-import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
-import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
-import ImprovedLayout from '@/shared/layouts/ManagementLayout.vue';
+import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/org/:extid/members',
     name: 'OrganizationMembers',
-    components: {
-      default: () => import('@/apps/workspace/members/MembersList.vue'),
-      header: ImprovedHeader,
-      footer: ImprovedFooter,
-    },
+    component: () => import('@/apps/workspace/members/MembersList.vue'),
     meta: {
       title: 'web.organizations.members.title',
       requiresAuth: true,
-      layout: ImprovedLayout,
+      layout: WorkspaceLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
         displayFooterLinks: true,
-        displayFeedback: true,
+        displayFeedback: false,
         displayPoweredBy: false,
         displayVersion: true,
       },

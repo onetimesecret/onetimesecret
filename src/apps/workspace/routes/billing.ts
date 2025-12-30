@@ -1,13 +1,18 @@
 // src/apps/workspace/routes/billing.ts
 
-import {
-  ImprovedFooter,
-  ImprovedHeader,
-  ImprovedLayout,
-  standardLayoutProps,
-} from '@/router/layout.config';
+import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import { WindowService } from '@/services/window.service';
 import { RouteRecordRaw } from 'vue-router';
+
+const standardLayoutProps = {
+  displayMasthead: true,
+  displayNavigation: true,
+  displayFooterLinks: true,
+  displayFeedback: false,
+  displayPoweredBy: false,
+  displayVersion: true,
+  showSidebar: false,
+} as const;
 
 /**
  * Guard to check if billing is enabled before accessing billing routes
@@ -33,15 +38,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/billing/overview',
     name: 'Billing Overview',
     beforeEnter: checkBillingEnabled,
-    components: {
-      default: () => import('@/apps/workspace/billing/BillingOverview.vue'),
-      header: ImprovedHeader,
-      footer: ImprovedFooter,
-    },
+    component: () => import('@/apps/workspace/billing/BillingOverview.vue'),
     meta: {
       title: 'web.billing.overview.title',
       requiresAuth: true,
-      layout: ImprovedLayout,
+      layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
     },
   },
@@ -49,15 +50,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/org',
     name: 'Organizations',
     beforeEnter: checkBillingEnabled,
-    components: {
-      default: () => import('@/apps/workspace/account/settings/OrganizationsSettings.vue'),
-      header: ImprovedHeader,
-      footer: ImprovedFooter,
-    },
+    component: () => import('@/apps/workspace/account/settings/OrganizationsSettings.vue'),
     meta: {
       title: 'web.TITLES.organizations_settings',
       requiresAuth: true,
-      layout: ImprovedLayout,
+      layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
     },
   },
@@ -65,15 +62,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/org/:extid',
     name: 'Organization Settings',
     beforeEnter: checkBillingEnabled,
-    components: {
-      default: () => import('@/apps/workspace/account/settings/OrganizationSettings.vue'),
-      header: ImprovedHeader,
-      footer: ImprovedFooter,
-    },
+    component: () => import('@/apps/workspace/account/settings/OrganizationSettings.vue'),
     meta: {
       title: 'web.TITLES.organization_settings',
       requiresAuth: true,
-      layout: ImprovedLayout,
+      layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
     },
   },
@@ -81,15 +74,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/billing/plans',
     name: 'Billing Plans',
     beforeEnter: checkBillingEnabled,
-    components: {
-      default: () => import('@/apps/workspace/billing/PlanSelector.vue'),
-      header: ImprovedHeader,
-      footer: ImprovedFooter,
-    },
+    component: () => import('@/apps/workspace/billing/PlanSelector.vue'),
     meta: {
       title: 'web.billing.plans.title',
       requiresAuth: true,
-      layout: ImprovedLayout,
+      layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
     },
   },
@@ -97,15 +86,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/billing/invoices',
     name: 'Billing Invoices',
     beforeEnter: checkBillingEnabled,
-    components: {
-      default: () => import('@/apps/workspace/billing/InvoiceList.vue'),
-      header: ImprovedHeader,
-      footer: ImprovedFooter,
-    },
+    component: () => import('@/apps/workspace/billing/InvoiceList.vue'),
     meta: {
       title: 'web.billing.invoices.title',
       requiresAuth: true,
-      layout: ImprovedLayout,
+      layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
     },
   },

@@ -32,7 +32,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
 
   let(:params) do
     {
-      'display_name' => 'My Organization',
+      'display_name' => 'Organization',
       'description' => 'A test organization',
       'contact_email' => 'contact@example.com'
     }
@@ -48,7 +48,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
 
   describe '#process_params' do
     it 'extracts display_name from params' do
-      expect(logic.display_name).to eq('My Organization')
+      expect(logic.display_name).to eq('Organization')
     end
 
     it 'extracts description from params' do
@@ -232,7 +232,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
         Onetime::Organization,
         objid: 'org-new-123',
         extid: 'ext-org-new',
-        display_name: 'My Organization',
+        display_name: 'Organization',
         description: '',
         contact_email: 'contact@example.com',
         is_default: false,
@@ -254,7 +254,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
 
     it 'creates organization with display_name and customer' do
       expect(Onetime::Organization).to receive(:create!)
-        .with('My Organization', customer, 'contact@example.com')
+        .with('Organization', customer, 'contact@example.com')
         .and_return(new_organization)
       logic.process
     end
@@ -274,12 +274,12 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
 
     context 'when contact_email is empty' do
       let(:params) do
-        { 'display_name' => 'My Organization', 'description' => '', 'contact_email' => '' }
+        { 'display_name' => 'Organization', 'description' => '', 'contact_email' => '' }
       end
 
       it 'passes nil for contact_email' do
         expect(Onetime::Organization).to receive(:create!)
-          .with('My Organization', customer, nil)
+          .with('Organization', customer, nil)
           .and_return(new_organization)
         logic.process
       end
@@ -299,7 +299,8 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
 
     context 'with normal display_name (>3 chars)' do
       it 'masks organization name showing only first 3 chars' do
-        expect(OT).to receive(:ld).with(/Creating organization 'My \.\.\.'/)
+        # Default params has display_name: 'Organization' which masks to 'Org...'
+        expect(OT).to receive(:ld).with(/Creating organization 'Org\.\.\.'/)
         logic.process
       end
     end
@@ -308,7 +309,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
   describe '#form_fields' do
     it 'returns hash with form field values' do
       fields = logic.form_fields
-      expect(fields[:display_name]).to eq('My Organization')
+      expect(fields[:display_name]).to eq('Organization')
       expect(fields[:description]).to eq('A test organization')
       expect(fields[:contact_email]).to eq('contact@example.com')
     end
@@ -320,7 +321,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
         Onetime::Organization,
         objid: 'org-new-123',
         extid: 'ext-org-new',
-        display_name: 'My Organization',
+        display_name: 'Organization',
         description: '',
         contact_email: 'contact@example.com',
         is_default: false,

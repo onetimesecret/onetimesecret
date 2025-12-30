@@ -4,7 +4,6 @@
   import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
@@ -70,6 +69,12 @@ const {
  * Identity Plus has custom domains but not multi-team entitlements.
  */
 const isIdentityPlus = computed(() => can(ENTITLEMENTS.CUSTOM_DOMAINS));
+
+/**
+ * Determine if this is the user's default organization.
+ * Billing is managed through the default organization only.
+ */
+const isDefaultOrganization = computed(() => organization.value?.is_default ?? false);
 
 // Form data
 const formData = ref({
@@ -168,7 +173,6 @@ const handleSave = async () => {
     await organizationStore.updateOrganization(organization.value.id, {
       display_name: formData.value.display_name,
       description: formData.value.description,
-      contact_email: formData.value.contact_email,
     });
     success.value = t('web.organizations.update_success');
     await loadOrganization(); // Reload to get latest data
@@ -293,7 +297,7 @@ watch(activeTab, async (newTab) => {
 </script>
 
 <template>
-  <BillingLayout>
+  <div class="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
     <div class="space-y-6">
       <!-- Breadcrumb -->
       <nav class="flex" aria-label="Breadcrumb">
@@ -343,7 +347,9 @@ watch(activeTab, async (newTab) => {
             ]">
             {{ t('web.organizations.tabs.members') }}
           </button>
+          <!-- Billing tab only shown for default organization -->
           <button
+            v-if="isDefaultOrganization"
             @click="activeTab = 'billing'"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
@@ -408,8 +414,8 @@ watch(activeTab, async (newTab) => {
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
               </div>
 
-              <!-- Description -->
-              <div>
+              <!-- Description (hidden for now) -->
+              <div v-if="false">
                 <label
                   for="description"
                   class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -426,8 +432,8 @@ watch(activeTab, async (newTab) => {
                 </p>
               </div>
 
-              <!-- Contact Email -->
-              <div>
+              <!-- Contact Email (only for default organization) -->
+              <div v-if="isDefaultOrganization">
                 <label
                   for="contact-email"
                   class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -438,11 +444,30 @@ watch(activeTab, async (newTab) => {
                   id="contact-email"
                   v-model="formData.contact_email"
                   type="email"
-                  required
+                  readonly
+                  disabled
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {{ t('web.organizations.contact_email_help') }}
                 </p>
+              </div>
+
+              <!-- Billing info notice for non-default organizations -->
+              <div
+                v-else
+                class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+                <div class="flex">
+                  <OIcon
+                    collection="heroicons"
+                    name="information-circle"
+                    class="size-5 flex-shrink-0 text-blue-400 dark:text-blue-300"
+                    aria-hidden="true" />
+                  <div class="ml-3">
+                    <p class="text-sm text-blue-700 dark:text-blue-300">
+                      {{ t('web.organizations.billing_managed_by_default') }}
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <!-- Action Buttons -->
@@ -845,5 +870,5 @@ watch(activeTab, async (newTab) => {
         </section>
       </div>
     </div>
-  </BillingLayout>
+  </div>
 </template>

@@ -4,11 +4,16 @@
   import GlobalBroadcast from '@/shared/components/ui/GlobalBroadcast.vue';
   import { WindowService } from '@/services/window.service';
   import { useProductIdentity } from '@/shared/stores/identityStore';
+  import { useTheme } from '@/shared/composables/useTheme';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { isColorValue } from '@/utils/color-utils';
-  import { computed } from 'vue';
+  import { computed, onMounted } from 'vue';
 
   defineProps<LayoutProps>();
+
+  // Initialize theme early to avoid flash of wrong theme
+  const { initializeTheme } = useTheme();
+  onMounted(initializeTheme);
 
   const globalBanner = WindowService.get('global_banner') ?? null;
 

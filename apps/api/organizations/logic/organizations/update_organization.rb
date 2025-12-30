@@ -5,7 +5,7 @@
 module OrganizationAPI::Logic
   module Organizations
     class UpdateOrganization < OrganizationAPI::Logic::Base
-      attr_reader :organization, :display_name, :description, :contact_email
+      attr_reader :organization, :display_name, :description, :contact_email, :extid
 
       def process_params
         @extid         = params['extid']
@@ -39,23 +39,13 @@ module OrganizationAPI::Logic
         end
 
         # Validate description if provided
-        if !description.empty? && description.length > 500
+        if description.to_s.length > 500
           raise_form_error('Description must be less than 500 characters', field: :description, error_type: :invalid)
         end
 
-        # Validate contact_email if provided
-        unless contact_email.empty?
-          # Use unique_index finder for O(1) lookup (no iteration)
-          existing_org = Onetime::Organization.find_by_contact_email(contact_email)
-          if existing_org && existing_org.objid != @extid
-            raise_form_error('An organization with this contact email already exists', field: :contact_email, error_type: :exists)
-          end
-        end
-
-        # At least one field must be provided
-        if display_name.empty? && description.empty? && contact_email.empty?
-          raise_form_error('At least one field (display_name, description, or contact_email) must be provided', field: :display_name, error_type: :missing)
-        end
+        # Use unique_index finder for O(1) lookup (no iteration)
+        existing_org = Onetime::Organization.find_by_extid(extid)
+        @organization = existing_org if existing_org
       end
 
       def process

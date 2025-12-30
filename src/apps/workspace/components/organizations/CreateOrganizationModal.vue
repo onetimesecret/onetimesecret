@@ -176,8 +176,8 @@ const handleSubmit = async () => {
                     </p>
                   </div>
 
-                  <!-- Description -->
-                  <div>
+                  <!-- Description (hidden for now) -->
+                  <div v-if="false">
                     <label
                       for="organization-description"
                       class="block text-sm font-medium text-gray-700 dark:text-gray-300">

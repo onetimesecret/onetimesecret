@@ -5,7 +5,7 @@
   import AccountBillingSection from '@/apps/workspace/components/account/AccountBillingSection.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import LanguageToggle from '@/shared/components/ui/LanguageToggle.vue';
-  import SettingsLayout from '@/shared/components/layout/SettingsLayout.vue';
+  import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import ThemeToggle from '@/shared/components/ui/ThemeToggle.vue';
   import { useAccount } from '@/shared/composables/useAccount';
   import { WindowService } from '@/services/window.service';

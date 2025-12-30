@@ -12,9 +12,9 @@ describe('Account Routes', () => {
       );
       expect(route).toBeDefined();
       expect(route?.meta?.requiresAuth).toBe(true);
-      expect(route?.components?.default).toBeInstanceOf(Function);
-      expect(route?.components?.header).toBeDefined();
-      expect(route?.components?.footer).toBeDefined();
+      // Routes use single component, not named components
+      expect(route?.component).toBeInstanceOf(Function);
+      expect(route?.meta?.layout).toBeDefined();
     });
   });
 

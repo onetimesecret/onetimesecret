@@ -2,14 +2,14 @@
 
 // Shared layout configuration for route definitions.
 // Centralizes layout props to reduce duplication and ensure consistency.
+// Note: Workspace app has its own WorkspaceLayout in src/apps/workspace/layouts/
 
 import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
 import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
-import ImprovedLayout from '@/shared/layouts/ManagementLayout.vue';
+import ManagementLayout from '@/shared/layouts/ManagementLayout.vue';
 
 /**
  * Standard layout props for authenticated pages with full navigation.
- * Used across account, billing, and teams routes.
  */
 export const standardLayoutProps = {
   displayMasthead: true,
@@ -22,7 +22,7 @@ export const standardLayoutProps = {
 } as const;
 
 /**
- * Standard components configuration for routes using ImprovedLayout.
+ * Standard components configuration for routes using ManagementLayout.
  */
 export const improvedLayoutComponents = {
   header: ImprovedHeader,
@@ -33,8 +33,8 @@ export const improvedLayoutComponents = {
  * Standard meta configuration for authenticated routes.
  */
 export const improvedLayoutMeta = {
-  layout: ImprovedLayout,
+  layout: ManagementLayout,
   layoutProps: standardLayoutProps,
 } as const;
 
-export { ImprovedFooter, ImprovedHeader, ImprovedLayout };
+export { ImprovedFooter, ImprovedHeader, ManagementLayout };

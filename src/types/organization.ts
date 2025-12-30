@@ -121,7 +121,6 @@ export const createOrganizationPayloadSchema = z.object({
 export const updateOrganizationPayloadSchema = z.object({
   display_name: z.string().min(1).max(100).optional(),
   description: z.string().max(500).optional(),
-  contact_email: z.string().email().optional(),
 });
 
 /**

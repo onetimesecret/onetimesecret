@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import APIKeyForm from '@/apps/workspace/components/account/APIKeyForm.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import SettingsLayout from '@/shared/components/layout/SettingsLayout.vue';
+  import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useAccountStore } from '@/shared/stores/accountStore';
   import { storeToRefs } from 'pinia';
   import { onMounted } from 'vue';

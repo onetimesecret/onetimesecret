@@ -1,9 +1,12 @@
 <!-- src/shared/components/layout/ImprovedHeader.vue -->
 
 <!--
-  Changes from DefaultHeader:
+  Improved Header Component
+
+  Features:
   - Wider container (max-w-4xl instead of max-w-2xl)
-  - Better spacing and structure for navigation growth
+  - Default slot for custom content (e.g., context bars)
+  - Toggleable primary nav via displayPrimaryNav prop
   - Cleaner separation between brand and navigation
 -->
 
@@ -17,6 +20,7 @@
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
     displayNavigation: true,
+    displayPrimaryNav: true,
     colonel: false,
   });
 
@@ -32,8 +36,13 @@
       </div>
     </div>
 
+    <!-- Slot for custom content (e.g., OrganizationContextBar) -->
+    <slot ></slot>
+
     <!-- Primary Navigation Bar (for authenticated users) - Hidden on mobile -->
-    <div v-if="authenticated && displayNavigation" class="hidden bg-gray-100 dark:bg-gray-800 md:block">
+    <div
+      v-if="authenticated && displayNavigation && displayPrimaryNav"
+      class="hidden bg-gray-100 dark:bg-gray-800 md:block">
       <div class="container mx-auto min-w-[320px] max-w-4xl px-4">
         <ImprovedPrimaryNav />
       </div>

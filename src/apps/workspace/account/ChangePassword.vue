@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import SettingsLayout from '@/shared/components/layout/SettingsLayout.vue';
+  import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { useAuth } from '@/shared/composables/useAuth';
   import { computed, ref } from 'vue';
 

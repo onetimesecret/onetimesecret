@@ -4,7 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import AccountDeleteButtonWithModalForm from '@/apps/workspace/components/account/AccountDeleteButtonWithModalForm.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import SettingsLayout from '@/shared/components/layout/SettingsLayout.vue';
+  import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { WindowService } from '@/services/window.service';
 
   const { t } = useI18n();

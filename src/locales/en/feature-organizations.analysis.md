@@ -75,7 +75,7 @@ Company branding belongs with the branding feature:
         "description": "Manage your organizations"
       },
       "list": {
-        "title": "My Organizations",
+        "title": "Organizations",
         "empty": "No organizations yet",
         "empty_description": "Organizations provide unified billing...",
         "select": "Select an organization"

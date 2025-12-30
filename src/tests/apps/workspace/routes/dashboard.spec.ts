@@ -10,9 +10,9 @@ describe('Dashboard Routes', () => {
       const route = dashboardRoutes.find((route: RouteRecordRaw) => route.path === '/dashboard');
       expect(route).toBeDefined();
       expect(route?.meta?.requiresAuth).toBe(true);
-      expect(typeof route?.components?.default).toBe('object'); // Check for object type
-      expect(route?.components?.header).toBeDefined();
-      expect(route?.components?.footer).toBeDefined();
+      // Routes use single component (direct import), not named components
+      expect(route?.component).toBeDefined();
+      expect(route?.meta?.layout).toBeDefined();
     });
   });
 
@@ -21,9 +21,9 @@ describe('Dashboard Routes', () => {
       const route = dashboardRoutes.find((route: RouteRecordRaw) => route.path === '/recent');
       expect(route).toBeDefined();
       expect(route?.meta?.requiresAuth).toBe(true);
-      expect(typeof route?.components?.default).toBe('object'); // Check for object type
-      expect(route?.components?.header).toBeDefined();
-      expect(route?.components?.footer).toBeDefined();
+      // Routes use single component (direct import), not named components
+      expect(route?.component).toBeDefined();
+      expect(route?.meta?.layout).toBeDefined();
     });
   });
 });

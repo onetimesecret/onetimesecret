@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import SettingsLayout from '@/shared/components/layout/SettingsLayout.vue';
+  import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import JurisdictionList from '@/shared/components/modals/settings/JurisdictionList.vue';
   import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
   import { computed, onMounted } from 'vue';

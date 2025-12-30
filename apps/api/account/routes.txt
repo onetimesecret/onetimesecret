@@ -15,4 +15,4 @@ POST   /account/update-locale                     AccountAPI::Logic::Account::Up
 POST   /account/update-notification-preference   AccountAPI::Logic::Account::UpdateNotificationPreference response=json auth=sessionauth,basicauth
 POST   /account/apitoken                          AccountAPI::Logic::Account::GenerateAPIToken response=json auth=sessionauth,basicauth csrf=exempt
 GET    /account                                   AccountAPI::Logic::Account::GetAccount response=json auth=sessionauth,basicauth
-GET    /account/entitlements                      AccountAPI::Logic::Account::GetEntitlements response=json auth=sessionauth,basicauth
+GET    /entitlements                              AccountAPI::Logic::Account::GetEntitlements response=json auth=sessionauth,basicauth

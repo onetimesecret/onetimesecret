@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "API Docs",
+      "branding_guide": "Branding Guide",
+      "customize": "Customize",
+      "plans": "Plans",
       "security": "Security",
       "learn_about_our_security_measures": "Learn about our security measures",
       "view_our_terms_and_conditions": "View our Terms and Conditions",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Change language. Current language is {0}",
       "language_changed_to_newlocale": "Language changed to {0}",
       "switch_to_blank_mode": "Switch to {0} mode",
-      "blank_mode_enabled": "{0} mode enabled"
+      "blank_mode_enabled": "{0} mode enabled",
+      "workspace": "Workspace",
+      "workspace_context": "Workspace context"
     }
   }
 }
