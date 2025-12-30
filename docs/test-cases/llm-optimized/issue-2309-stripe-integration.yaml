@@ -1,0 +1,363 @@
+# LLM-Optimized Test Cases: Stripe Integration
+# Version: 1.0.0
+# Date: 2025-12-30
+# Environment: dev.onetime.dev
+
+suite:
+  id: stripe-billing-integration
+  name: Stripe Billing Integration - Plans & Upgrade Flows
+  feature: Stripe products/prices integration with billing UI
+  issue: https://github.com/onetimesecret/onetimesecret/issues/2309
+  tags: [stripe, billing, plans, upgrade, integration, blocker]
+
+# -----------------------------------------------------------------------------
+# SHARED DEFINITIONS
+# -----------------------------------------------------------------------------
+
+definitions:
+  users:
+    free_user:
+      description: Authenticated user on Free plan
+      auth: logged_in
+    paid_user:
+      description: User with active paid subscription
+      auth: logged_in
+
+  fixtures:
+    default_workspace:
+      type: organization
+      props:
+        name: Workspace
+        is_default: true
+
+# -----------------------------------------------------------------------------
+# TEST CASES
+# -----------------------------------------------------------------------------
+
+tests:
+  # ---------------------------------------------------------------------------
+  # CRITICAL: Plans Display
+  # ---------------------------------------------------------------------------
+
+  - id: STRIPE-001
+    intent: Monthly plans tab displays available subscription plans with pricing
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /billing/plans
+    action:
+      type: click
+      element: Monthly tab button
+    verify:
+      - Plan cards visible (not "No monthly plans available")
+      - At least one plan shows monthly price
+      - Each plan card has name, price, and feature list
+      - Select or Upgrade button on each paid plan
+    priority: critical
+    type: functional
+    covers: [/billing/api/plans, PlanSelector.vue]
+    notes: Currently returns {"plans":[]} from API
+
+  - id: STRIPE-002
+    intent: Yearly plans tab displays discounted annual pricing
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /billing/plans
+    action:
+      type: click
+      element: Yearly tab button
+    verify:
+      - Plan cards visible (not "No yearly plans available")
+      - Annual prices shown with savings indicator
+      - Price reflects 12-month billing cycle
+    priority: critical
+    type: functional
+    covers: [/billing/api/plans, billingCycle toggle]
+
+  - id: STRIPE-003
+    intent: Plans API returns Stripe products with pricing data
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /billing/plans
+    verify:
+      - Network request to /billing/api/plans returns 200
+      - Response contains non-empty plans array
+      - Each plan has stripe_price_id or equivalent
+      - Plans include identity_plus, team_plus, org_plus tiers
+    priority: critical
+    type: integration
+    covers: [Stripe API sync, billing backend]
+    notes: |
+      Current: {"plans":[]}
+      Expected: Array with Stripe price IDs
+
+  # ---------------------------------------------------------------------------
+  # HIGH: Upgrade Touchpoints
+  # ---------------------------------------------------------------------------
+
+  - id: STRIPE-004
+    intent: Free user sees plan status and upgrade prompt on dashboard
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /dashboard
+    verify:
+      - Current plan indicator visible (badge or text showing "Free")
+      - Upgrade CTA or View Plans link accessible
+    priority: high
+    type: ui
+    covers: [Dashboard.vue, plan status display]
+    notes: Currently no plan indicator or upgrade prompt visible
+
+  - id: STRIPE-005
+    intent: Account settings sidebar includes Billing navigation link
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /account
+    verify:
+      - Settings sidebar visible with navigation items
+      - Billing or Subscription link present in sidebar
+      - Clicking billing link navigates to billing area
+    priority: high
+    type: ui
+    covers: [AccountSettings.vue, SettingsSidebar.vue]
+    notes: Sidebar has Profile, Security, API Key, Region, Danger Zone but no Billing
+
+  - id: STRIPE-006
+    intent: Billing overview displays current plan features for free user
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /billing/overview
+    verify:
+      - Current Plan card shows "Free"
+      - Plan Features section lists included features
+      - Features include create_secrets, view_metadata, api_access
+      - Not showing "No features available"
+    priority: high
+    type: functional
+    covers: [BillingOverview.vue, entitlements display]
+    notes: Shows "No features available" due to 500 on org entitlements
+
+  - id: STRIPE-007
+    intent: Billing overview Upgrade Plan button leads to functional plans page
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /billing/overview
+    action:
+      type: click
+      element: Upgrade Plan button
+    verify:
+      - Navigates to /billing/plans
+      - Plans page shows available plans (not empty state)
+      - Can select a plan to begin checkout
+    priority: critical
+    type: functional
+    covers: [upgrade flow, plan selection]
+
+  # ---------------------------------------------------------------------------
+  # HIGH: API Errors
+  # ---------------------------------------------------------------------------
+
+  - id: STRIPE-008
+    intent: Organization entitlements API returns valid data
+    setup:
+      auth: logged_in
+      user_type: free_user
+      state: { organization_selected: true }
+    target: /billing/overview
+    verify:
+      - Network request to /billing/api/entitlements/{org_id} returns 200
+      - Response contains entitlements array
+      - No 500 error in console
+      - No "Failed to load entitlements" error
+    priority: high
+    type: integration
+    covers: [org entitlements endpoint, Stripe customer lookup]
+    notes: Returns 500 {"error":"Failed to load entitlements"}
+
+  - id: STRIPE-009
+    intent: Billing history page loads without organization error
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /billing/invoices
+    verify:
+      - Page loads without red error banner
+      - No "Organization not found" error
+      - Organization selector works correctly
+      - Shows "No invoices yet" for free users (expected)
+    priority: high
+    type: functional
+    covers: [BillingHistory.vue, org resolution]
+    notes: Shows "Organization not found" for all orgs
+
+  - id: STRIPE-010
+    intent: Switching organizations in billing history updates content
+    setup:
+      auth: logged_in
+      user_type: free_user
+      state: { organizations_count: 3 }
+    target: /billing/invoices
+    action:
+      type: select
+      element: Organization dropdown
+      data: { value: different_org }
+    verify:
+      - Organization switch succeeds without error
+      - Content updates to reflect selected organization
+    priority: medium
+    type: functional
+    covers: [org switcher, billing context]
+
+  # ---------------------------------------------------------------------------
+  # MEDIUM: Route & Navigation
+  # ---------------------------------------------------------------------------
+
+  - id: STRIPE-011
+    intent: Custom domains settings page loads correctly
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /org/domains
+    verify:
+      - Page loads without error
+      - No "Organization not found: domains" message
+      - Shows domain management UI or upgrade prompt
+    priority: medium
+    type: functional
+    covers: [route configuration, org domains]
+    notes: Route treats "domains" as org ID instead of subpath
+
+  - id: STRIPE-012
+    intent: Organization billing tab upgrade button works
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /org
+    action:
+      type: click
+      element: Manage button on default workspace
+    verify:
+      - Organization settings page loads
+      - Billing tab shows "Free" plan status
+      - Upgrade Plan button visible and clickable
+    priority: high
+    type: functional
+    covers: [OrgSettings.vue, billing tab]
+    postconditions:
+      - Clicking Upgrade navigates to plans with available plans
+
+  - id: STRIPE-013
+    intent: Footer Plans link leads to functional plans page
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /dashboard
+    action:
+      type: click
+      element: Plans link in footer
+    verify:
+      - Navigates to /billing/plans
+      - Plans are displayed (not empty)
+    priority: medium
+    type: ui
+    covers: [footer navigation, plans visibility]
+
+  - id: STRIPE-014
+    intent: User menu Billing option accessible and functional
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /dashboard
+    action:
+      type: click
+      element: User menu dropdown
+    verify:
+      - Billing option visible in dropdown menu
+      - Clicking Billing navigates to /billing/overview
+      - Billing overview loads without errors
+    priority: medium
+    type: ui
+    covers: [user menu, billing navigation]
+
+  # ---------------------------------------------------------------------------
+  # MEDIUM: API Health
+  # ---------------------------------------------------------------------------
+
+  - id: STRIPE-015
+    intent: Receipt recent API does not return 403 for authenticated users
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /dashboard
+    verify:
+      - Network request to /api/v3/receipt/recent returns 200 or 204
+      - No 403 Forbidden error
+      - No console errors related to receipt endpoint
+    priority: medium
+    type: integration
+    covers: [receipt API, auth middleware]
+    notes: Currently returns 403
+
+  - id: STRIPE-016
+    intent: Account entitlements API returns plan definitions
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /billing/overview
+    verify:
+      - /api/account/entitlements returns 200
+      - Response contains entitlements array with feature definitions
+      - Response contains plans array with tier definitions
+      - Plans include free_v1, identity_plus_v1, team_plus_v1
+    priority: high
+    type: integration
+    covers: [entitlements config, plan definitions]
+    notes: This endpoint works, source is "local_config"
+
+  # ---------------------------------------------------------------------------
+  # BLOCKED: Checkout Flow (depends on plans being available)
+  # ---------------------------------------------------------------------------
+
+  - id: STRIPE-017
+    intent: Selecting a paid plan initiates Stripe checkout
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /billing/plans
+    action:
+      type: click
+      element: Select button on Identity Plus plan
+    verify:
+      - Checkout modal or redirect initiated
+      - Stripe checkout session created
+      - User can enter payment details
+    priority: critical
+    type: functional
+    covers: [Stripe checkout, payment flow]
+    skip:
+      reason: Plans API returns empty array
+      when: STRIPE-003 fails
+
+  - id: STRIPE-018
+    intent: Plan comparison shows feature differences between tiers
+    setup:
+      auth: logged_in
+      user_type: free_user
+    target: /billing/plans
+    verify:
+      - Multiple plan tiers displayed
+      - Feature comparison visible
+      - Higher tiers show additional features
+      - Free tier shows current/included indicator
+    priority: medium
+    type: ui
+    covers: [plan comparison, feature matrix]
+    skip:
+      reason: Plans API returns empty array
+      when: STRIPE-003 fails
