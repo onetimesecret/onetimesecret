@@ -437,7 +437,8 @@ watch(activeTab, async (newTab) => {
                   id="contact-email"
                   v-model="formData.contact_email"
                   type="email"
-                  required
+                  readonly
+                  disabled
                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm" />
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {{ t('web.organizations.contact_email_help') }}

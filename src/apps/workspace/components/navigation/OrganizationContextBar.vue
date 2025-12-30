@@ -18,6 +18,7 @@ import OrganizationScopeSwitcher from '@/apps/workspace/components/navigation/Or
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import axios from 'axios';
 
 const { t } = useI18n();
 const organizationStore = useOrganizationStore();
@@ -30,7 +31,12 @@ onMounted(async () => {
     try {
       await organizationStore.fetchOrganizations();
     } catch (error) {
-      console.error('[OrganizationContextBar] Failed to fetch organizations:', error);
+      if (axios.isCancel(error)) {
+        // Expected when another component triggers a fetch - visible with DevTools "Verbose" level
+        console.debug('[OrganizationContextBar] Fetch canceled (expected):', error);
+      } else {
+        console.error('[OrganizationContextBar] Failed to fetch organizations:', error);
+      }
     }
   }
   isLoaded.value = true;

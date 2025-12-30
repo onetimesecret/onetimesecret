@@ -218,7 +218,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     entitlementsError.value = null;
 
     try {
-      const response = await $api.get(`/api/billing/entitlements/${orgId}`);
+      const response = await $api.get(`/billing/api/entitlements/${orgId}`);
 
       // Update the organization with entitlements
       const index = organizations.value.findIndex((o) => o.id === orgId);
