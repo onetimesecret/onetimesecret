@@ -11,8 +11,8 @@
 -->
 
 <script setup lang="ts">
-  import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
-  import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
+  import ManagementFooter from '@/shared/components/layout/ManagementFooter.vue';
+  import ManagementHeader from '@/shared/components/layout/ManagementHeader.vue';
   import TestModeBanner from '@/apps/colonel/components/TestModeBanner.vue';
   import { WindowService } from '@/services/window.service';
   import { useDomainsStore, useMetadataListStore } from '@/shared/stores';
@@ -61,7 +61,7 @@
 <template>
   <BaseLayout v-bind="layoutProps">
     <template #header>
-      <ImprovedHeader v-bind="layoutProps" />
+      <ManagementHeader v-bind="layoutProps" />
       <TestModeBanner v-if="isTestModeActive" />
     </template>
 
@@ -196,7 +196,7 @@
     </template>
 
     <template #footer>
-      <ImprovedFooter v-bind="layoutProps" />
+      <ManagementFooter v-bind="layoutProps" />
     </template>
   </BaseLayout>
 </template>

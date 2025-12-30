@@ -1,4 +1,4 @@
-<!-- src/shared/components/layout/DefaultFooter.vue -->
+<!-- src/shared/components/layout/TransactionalFooter.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';

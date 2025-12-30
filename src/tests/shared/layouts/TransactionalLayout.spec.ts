@@ -76,9 +76,9 @@ const i18n = createI18n({
  * TransactionalLayout Component Tests
  *
  * Tests the transactional layout that composes BaseLayout with:
- * - DefaultHeader in the header slot
+ * - TransactionalHeader in the header slot
  * - Main content area with container styling
- * - DefaultFooter in the footer slot
+ * - TransactionalFooter in the footer slot
  * - Props threading to child components
  */
 describe('TransactionalLayout', () => {
@@ -122,9 +122,9 @@ describe('TransactionalLayout', () => {
     },
   });
 
-  // Mock DefaultHeader that captures props
-  const MockDefaultHeader = defineComponent({
-    name: 'DefaultHeader',
+  // Mock TransactionalHeader that captures props
+  const MockTransactionalHeader = defineComponent({
+    name: 'TransactionalHeader',
     props: {
       displayMasthead: { type: Boolean, default: true },
       displayNavigation: { type: Boolean, default: true },
@@ -137,7 +137,7 @@ describe('TransactionalLayout', () => {
     setup(props) {
       return () =>
         h('header', {
-          class: 'mock-default-header',
+          class: 'mock-transactional-header',
           'data-display-masthead': props.displayMasthead,
           'data-display-navigation': props.displayNavigation,
           'data-colonel': props.colonel,
@@ -145,9 +145,9 @@ describe('TransactionalLayout', () => {
     },
   });
 
-  // Mock DefaultFooter that captures props
-  const MockDefaultFooter = defineComponent({
-    name: 'DefaultFooter',
+  // Mock TransactionalFooter that captures props
+  const MockTransactionalFooter = defineComponent({
+    name: 'TransactionalFooter',
     props: {
       displayFooterLinks: { type: Boolean, default: true },
       displayFeedback: { type: Boolean, default: true },
@@ -159,7 +159,7 @@ describe('TransactionalLayout', () => {
     setup(props) {
       return () =>
         h('footer', {
-          class: 'mock-default-footer',
+          class: 'mock-transactional-footer',
           'data-display-footer-links': props.displayFooterLinks,
           'data-display-feedback': props.displayFeedback,
           'data-display-version': props.displayVersion,
@@ -190,10 +190,10 @@ describe('TransactionalLayout', () => {
 
       return () =>
         h(MockBaseLayout, { ...props }, {
-          header: () => h(MockDefaultHeader, { ...props }),
+          header: () => h(MockTransactionalHeader, { ...props }),
           main: () =>
             h('main', { class: mainClasses, name: 'DefaultLayout' }, [slots.default?.()]),
-          footer: () => h(MockDefaultFooter, { ...props }),
+          footer: () => h(MockTransactionalFooter, { ...props }),
         });
     },
   });
@@ -248,56 +248,56 @@ describe('TransactionalLayout', () => {
     });
   });
 
-  describe('DefaultHeader Integration', () => {
-    it('renders DefaultHeader in header slot', () => {
+  describe('TransactionalHeader Integration', () => {
+    it('renders TransactionalHeader in header slot', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.find('.header-slot .mock-default-header').exists()).toBe(true);
+      expect(wrapper.find('.header-slot .mock-transactional-header').exists()).toBe(true);
     });
 
-    it('passes layoutProps to DefaultHeader', () => {
+    it('passes layoutProps to TransactionalHeader', () => {
       wrapper = mountComponent({
         displayMasthead: false,
         displayNavigation: false,
       });
 
-      const header = wrapper.find('.mock-default-header');
+      const header = wrapper.find('.mock-transactional-header');
       expect(header.attributes('data-display-masthead')).toBe('false');
       expect(header.attributes('data-display-navigation')).toBe('false');
     });
 
-    it('passes colonel prop to DefaultHeader', () => {
+    it('passes colonel prop to TransactionalHeader', () => {
       wrapper = mountComponent({ colonel: true });
 
-      const header = wrapper.find('.mock-default-header');
+      const header = wrapper.find('.mock-transactional-header');
       expect(header.attributes('data-colonel')).toBe('true');
     });
   });
 
-  describe('DefaultFooter Integration', () => {
-    it('renders DefaultFooter in footer slot', () => {
+  describe('TransactionalFooter Integration', () => {
+    it('renders TransactionalFooter in footer slot', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.find('.footer-slot .mock-default-footer').exists()).toBe(true);
+      expect(wrapper.find('.footer-slot .mock-transactional-footer').exists()).toBe(true);
     });
 
-    it('passes layoutProps to DefaultFooter', () => {
+    it('passes layoutProps to TransactionalFooter', () => {
       wrapper = mountComponent({
         displayFooterLinks: false,
         displayFeedback: false,
         displayVersion: false,
       });
 
-      const footer = wrapper.find('.mock-default-footer');
+      const footer = wrapper.find('.mock-transactional-footer');
       expect(footer.attributes('data-display-footer-links')).toBe('false');
       expect(footer.attributes('data-display-feedback')).toBe('false');
       expect(footer.attributes('data-display-version')).toBe('false');
     });
 
-    it('passes displayPoweredBy to DefaultFooter', () => {
+    it('passes displayPoweredBy to TransactionalFooter', () => {
       wrapper = mountComponent({ displayPoweredBy: false });
 
-      const footer = wrapper.find('.mock-default-footer');
+      const footer = wrapper.find('.mock-transactional-footer');
       expect(footer.attributes('data-display-powered-by')).toBe('false');
     });
   });
@@ -400,12 +400,12 @@ describe('TransactionalLayout', () => {
       expect(baseLayout.attributes('data-display-powered-by')).toBe('false');
 
       // Check Header received props
-      const header = wrapper.find('.mock-default-header');
+      const header = wrapper.find('.mock-transactional-header');
       expect(header.attributes('data-display-masthead')).toBe('false');
       expect(header.attributes('data-display-navigation')).toBe('false');
 
       // Check Footer received props
-      const footer = wrapper.find('.mock-default-footer');
+      const footer = wrapper.find('.mock-transactional-footer');
       expect(footer.attributes('data-display-footer-links')).toBe('false');
       expect(footer.attributes('data-display-feedback')).toBe('false');
     });
@@ -422,28 +422,28 @@ describe('TransactionalLayout', () => {
     it('defaults displayFooterLinks to true', () => {
       wrapper = mountComponent();
 
-      const footer = wrapper.find('.mock-default-footer');
+      const footer = wrapper.find('.mock-transactional-footer');
       expect(footer.attributes('data-display-footer-links')).toBe('true');
     });
 
     it('defaults displayMasthead to true', () => {
       wrapper = mountComponent();
 
-      const header = wrapper.find('.mock-default-header');
+      const header = wrapper.find('.mock-transactional-header');
       expect(header.attributes('data-display-masthead')).toBe('true');
     });
 
     it('defaults displayNavigation to true', () => {
       wrapper = mountComponent();
 
-      const header = wrapper.find('.mock-default-header');
+      const header = wrapper.find('.mock-transactional-header');
       expect(header.attributes('data-display-navigation')).toBe('true');
     });
 
     it('defaults displayVersion to true', () => {
       wrapper = mountComponent();
 
-      const footer = wrapper.find('.mock-default-footer');
+      const footer = wrapper.find('.mock-transactional-footer');
       expect(footer.attributes('data-display-version')).toBe('true');
     });
 
@@ -457,7 +457,7 @@ describe('TransactionalLayout', () => {
     it('defaults displayPoweredBy to true', () => {
       wrapper = mountComponent();
 
-      const footer = wrapper.find('.mock-default-footer');
+      const footer = wrapper.find('.mock-transactional-footer');
       expect(footer.attributes('data-display-powered-by')).toBe('true');
     });
   });
@@ -512,11 +512,11 @@ describe('TransactionalLayout', () => {
         displayToggles: true,
       });
 
-      const header = wrapper.find('.mock-default-header');
+      const header = wrapper.find('.mock-transactional-header');
       expect(header.attributes('data-display-masthead')).toBe('false');
       expect(header.attributes('data-display-navigation')).toBe('false');
 
-      const footer = wrapper.find('.mock-default-footer');
+      const footer = wrapper.find('.mock-transactional-footer');
       expect(footer.attributes('data-display-footer-links')).toBe('false');
       expect(footer.attributes('data-display-feedback')).toBe('false');
       expect(footer.attributes('data-display-version')).toBe('true');

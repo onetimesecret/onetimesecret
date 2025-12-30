@@ -1,4 +1,4 @@
-<!-- src/shared/components/layout/DefaultHeader.vue -->
+<!-- src/shared/components/layout/TransactionalHeader.vue -->
 
 <script setup lang="ts">
   import MastHead from '@/shared/components/layout/MastHead.vue';

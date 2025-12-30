@@ -1,10 +1,8 @@
-<!-- src/shared/components/layout/QuietHeader.vue -->
-
-<!-- TODO: Rename "quiet" layout components to "identity" (e.g. IdentityHeader) -->
+<!-- src/apps/secret/components/layout/BrandedHeader.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import BrandedMasthead from '@/shared/components/layout/BrandedMastHead.vue';
+  import BrandedMasthead from '@/apps/secret/components/layout/BrandedMastHead.vue';
   import MastHead from '@/shared/components/layout/MastHead.vue';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';

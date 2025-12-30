@@ -15,8 +15,8 @@
    */
 
   import BaseShowSecret from '@/shared/components/base/BaseShowSecret.vue';
-  import FooterAttribution from '@/shared/components/layout/SecretFooterAttribution.vue';
-  import FooterControls from '@/shared/components/layout/SecretFooterControls.vue';
+  import FooterAttribution from '@/apps/secret/components/layout/SecretFooterAttribution.vue';
+  import FooterControls from '@/apps/secret/components/layout/SecretFooterControls.vue';
   import SecretConfirmationForm from '@/apps/secret/components/branded/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/apps/secret/components/branded/SecretDisplayCase.vue';
   import { useProductIdentity } from '@/shared/stores/identityStore';

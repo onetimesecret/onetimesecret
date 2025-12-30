@@ -17,8 +17,8 @@
    * @see SecretDisplayCase - Simplified secret reveal display
    */
   import BaseShowSecret, { type Props } from '@/shared/components/base/BaseShowSecret.vue';
-  import FooterAttribution from '@/shared/components/layout/SecretFooterAttribution.vue';
-  import FooterControls from '@/shared/components/layout/SecretFooterControls.vue';
+  import FooterAttribution from '@/apps/secret/components/layout/SecretFooterAttribution.vue';
+  import FooterControls from '@/apps/secret/components/layout/SecretFooterControls.vue';
   import SecretConfirmationForm from '@/apps/secret/components/canonical/SecretConfirmationForm.vue';
   import SecretDisplayCase from '@/apps/secret/components/canonical/SecretDisplayCase.vue';
   import {  nextTick } from 'vue';

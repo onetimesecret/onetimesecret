@@ -2,7 +2,7 @@
 
 <!--
   Simplified footer for authenticated workspace users.
-  Based on ImprovedFooter with:
+  Based on ManagementFooter with:
   - Removed: Region selector, color mode toggle, language toggle
   - Added: Standard SaaS footer links (API Docs, Branding Guide, Plans)
   - Kept: FeedbackToggle for authenticated users

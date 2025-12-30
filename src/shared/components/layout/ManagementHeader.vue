@@ -1,7 +1,7 @@
-<!-- src/shared/components/layout/ImprovedHeader.vue -->
+<!-- src/shared/components/layout/ManagementHeader.vue -->
 
 <!--
-  Improved Header Component
+  Management Header Component
 
   Features:
   - Wider container (max-w-4xl instead of max-w-2xl)

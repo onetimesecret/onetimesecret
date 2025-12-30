@@ -1,9 +1,9 @@
 <!-- src/shared/layouts/AdminLayout.vue -->
 
 <script setup lang="ts">
-  import ColonelAdminLayout from '@/shared/components/layout/ColonelAdminLayout.vue';
-  import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
-  import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
+  import ColonelAdminLayout from '@/apps/colonel/components/layout/ColonelAdminLayout.vue';
+  import ManagementHeader from '@/shared/components/layout/ManagementHeader.vue';
+  import ManagementFooter from '@/shared/components/layout/ManagementFooter.vue';
   import type { LayoutProps } from '@/types/ui/layouts';
 
   import BaseLayout from './BaseLayout.vue';
@@ -22,7 +22,7 @@
 <template>
   <BaseLayout v-bind="props">
     <template #header>
-      <ImprovedHeader v-bind="props" />
+      <ManagementHeader v-bind="props" />
     </template>
 
     <template #main>
@@ -32,7 +32,7 @@
     </template>
 
     <template #footer>
-      <ImprovedFooter v-bind="props" />
+      <ManagementFooter v-bind="props" />
     </template>
   </BaseLayout>
 </template>

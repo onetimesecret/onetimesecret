@@ -1,7 +1,9 @@
-<!-- src/shared/components/layout/ImprovedFooter.vue -->
+<!-- src/shared/components/layout/ManagementFooter.vue -->
 
 <!--
-  Changes from DefaultFooter:
+  Management Footer Component
+
+  Changes from TransactionalFooter:
   - Wider, changing max-w-2xl to max-w-4xl
 -->
 <script setup lang="ts">

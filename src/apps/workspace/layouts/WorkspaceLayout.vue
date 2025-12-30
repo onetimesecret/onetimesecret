@@ -8,7 +8,7 @@
 <script setup lang="ts">
   import OrganizationContextBar from '@/apps/workspace/components/navigation/OrganizationContextBar.vue';
   import WorkspaceFooter from '@/apps/workspace/components/layout/WorkspaceFooter.vue';
-  import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
+  import ManagementHeader from '@/shared/components/layout/ManagementHeader.vue';
   import TestModeBanner from '@/apps/colonel/components/TestModeBanner.vue';
   import { WindowService } from '@/services/window.service';
   import { useDomainsStore, useMetadataListStore } from '@/shared/stores';
@@ -58,9 +58,9 @@
 <template>
   <BaseLayout v-bind="layoutProps">
     <template #header>
-      <ImprovedHeader v-bind="layoutProps">
+      <ManagementHeader v-bind="layoutProps">
         <OrganizationContextBar />
-      </ImprovedHeader>
+      </ManagementHeader>
       <TestModeBanner v-if="isTestModeActive" />
     </template>
 

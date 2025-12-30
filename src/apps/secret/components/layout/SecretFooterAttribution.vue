@@ -1,4 +1,4 @@
-<!-- src/shared/components/layout/SecretFooterAttribution.vue -->
+<!-- src/apps/secret/components/layout/SecretFooterAttribution.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
