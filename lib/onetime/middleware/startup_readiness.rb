@@ -113,7 +113,7 @@ module Onetime
           # when this middleware is running and returning 503 responses without
           # any indication of why in the logs. So we use $stdout.puts directly.
           state_info = Onetime.boot_state.to_s
-          if (error = Onetime.boot_error) && Onetime.boot_failed?
+          if (error  = Onetime.boot_error) && Onetime.boot_failed?
             state_info << " (#{error.class}: #{error.message})"
           end
           $stdout.puts "[StartupReadiness] Application not ready: #{state_info} #{@app.inspect}"

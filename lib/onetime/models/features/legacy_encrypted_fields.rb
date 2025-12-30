@@ -33,7 +33,7 @@ module Onetime
           # @deprecated Use {Onetime::Metadata.spawn_pair} with objid instead
           #
           def legacy_spawn_pair(custid)
-            OT.info "[DEPRECATED] legacy_spawn_pair called - use Metadata.spawn_pair with objid instead"
+            OT.info '[DEPRECATED] legacy_spawn_pair called - use Metadata.spawn_pair with objid instead'
 
             secret   = Onetime::Secret.create!
             metadata = Onetime::Metadata.create!(custid: custid)

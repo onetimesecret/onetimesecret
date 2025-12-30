@@ -128,7 +128,7 @@ module Core
         logic.raise_concerns
         logic.process
 
-        # Note: For new accounts, logic.process raises OT::Redirect to /signin
+        # NOTE: For new accounts, logic.process raises OT::Redirect to /signin
         # requiring email verification before login. Only authenticated users
         # completing checkout reach this redirect.
         res.redirect '/account'

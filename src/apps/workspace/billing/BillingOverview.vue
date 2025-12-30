@@ -85,15 +85,15 @@ const handleOrgChange = (orgId: string) => {
   }
 };
 
-const formatCardBrand = (brand: string): string => brand.charAt(0).toUpperCase() + brand.slice(1);
+const _formatCardBrand = (brand: string): string => brand.charAt(0).toUpperCase() + brand.slice(1);
 
-const formatNextBillingDate = (date: Date): string => new Intl.DateTimeFormat('en-US', {
+const _formatNextBillingDate = (date: Date): string => new Intl.DateTimeFormat('en-US', {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
   }).format(date);
 
-const daysUntilBilling = computed(() => {
+const _daysUntilBilling = computed(() => {
   if (!nextBillingDate.value) return null;
   const diff = nextBillingDate.value.getTime() - Date.now();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
@@ -275,148 +275,6 @@ onMounted(async () => {
                 {{ t('web.billing.overview.no_entitlements') }}
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Payment Method & Next Billing -->
-        <div
-          v-if="false"
-          class="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <!-- Payment Method -->
-          <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-              <h3 class="text-base font-semibold text-gray-900 dark:text-white">
-                {{ t('web.billing.overview.payment_method') }}
-              </h3>
-            </div>
-            <div class="p-6">
-              <div v-if="paymentMethod?.card">
-                <div class="flex items-center gap-3">
-                  <div class="flex size-12 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
-                    <OIcon
-                      collection="heroicons"
-                      name="credit-card"
-                      class="size-6 text-gray-600 dark:text-gray-400"
-                      aria-hidden="true" />
-                  </div>
-                  <div>
-                    <p class="text-sm font-medium text-gray-900 dark:text-white">
-                      {{ formatCardBrand(paymentMethod.card.brand) }} •••• {{ paymentMethod.card.last4 }}
-                    </p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                      Expires {{ paymentMethod.card.exp_month }}/{{ paymentMethod.card.exp_year }}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div v-else class="py-4 text-center">
-                <OIcon
-                  collection="heroicons"
-                  name="credit-card"
-                  class="mx-auto size-8 text-gray-400"
-                  aria-hidden="true" />
-                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                  {{ t('web.billing.overview.no_payment_method') }}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Next Billing Date -->
-          <div class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-              <h3 class="text-base font-semibold text-gray-900 dark:text-white">
-                {{ t('web.billing.overview.next_billing_date') }}
-              </h3>
-            </div>
-            <div class="p-6">
-              <div v-if="nextBillingDate" class="text-center">
-                <p class="text-2xl font-bold text-gray-900 dark:text-white">
-                  {{ daysUntilBilling }}
-                </p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  {{ t('web.billing.overview.days_remaining') }}
-                </p>
-                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                  {{ t('web.billing.overview.billing_on', { date: formatNextBillingDate(nextBillingDate) }) }}
-                </p>
-              </div>
-              <div v-else class="py-4 text-center">
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  {{ t('web.billing.overview.no_upcoming_billing') }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div
-          v-if="false"
-          class="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-            <h3 class="text-base font-semibold text-gray-900 dark:text-white">
-              {{ t('web.billing.overview.quick_actions') }}
-            </h3>
-          </div>
-          <div class="grid grid-cols-1 gap-4 p-6 sm:grid-cols-3">
-            <!-- View Plans -->
-            <router-link
-              :to="{ name: 'Billing Plans' }"
-              class="flex flex-col items-center rounded-lg border border-gray-200 p-4 text-center transition-colors hover:border-brand-500 hover:bg-brand-50 dark:border-gray-700 dark:hover:border-brand-400 dark:hover:bg-brand-900/10">
-              <div class="flex size-12 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
-                <OIcon
-                  collection="tabler"
-                  name="square-letter-s"
-                  class="size-6 text-brand-600 dark:text-brand-400"
-                  aria-hidden="true" />
-              </div>
-              <p class="mt-3 text-sm font-medium text-gray-900 dark:text-white">
-                {{ t('web.billing.overview.view_plans_action') }}
-              </p>
-              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                {{ t('web.billing.overview.view_plans_description') }}
-              </p>
-            </router-link>
-
-            <!-- View Invoices -->
-            <router-link
-              :to="{ name: 'Billing Invoices' }"
-              class="flex flex-col items-center rounded-lg border border-gray-200 p-4 text-center transition-colors hover:border-brand-500 hover:bg-brand-50 dark:border-gray-700 dark:hover:border-brand-400 dark:hover:bg-brand-900/10">
-              <div class="flex size-12 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
-                <OIcon
-                  collection="heroicons"
-                  name="document-text"
-                  class="size-6 text-brand-600 dark:text-brand-400"
-                  aria-hidden="true" />
-              </div>
-              <p class="mt-3 text-sm font-medium text-gray-900 dark:text-white">
-                {{ t('web.billing.overview.view_invoices_action') }}
-              </p>
-              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                {{ t('web.billing.overview.view_invoices_description') }}
-              </p>
-            </router-link>
-
-            <!-- Manage Billing -->
-            <button
-              type="button"
-              disabled
-              class="flex flex-col items-center rounded-lg border border-gray-200 p-4 text-center transition-colors hover:border-brand-500 hover:bg-brand-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:hover:border-brand-400 dark:hover:bg-brand-900/10">
-              <div class="flex size-12 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/30">
-                <OIcon
-                  collection="heroicons"
-                  name="cog-6-tooth-solid"
-                  class="size-6 text-brand-600 dark:text-brand-400"
-                  aria-hidden="true" />
-              </div>
-              <p class="mt-3 text-sm font-medium text-gray-900 dark:text-white">
-                {{ t('web.billing.overview.manage_billing_action') }}
-              </p>
-              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                {{ t('web.billing.overview.manage_billing_description') }}
-              </p>
-            </button>
           </div>
         </div>
       </div>

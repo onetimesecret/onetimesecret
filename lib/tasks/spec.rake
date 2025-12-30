@@ -101,7 +101,7 @@ namespace :spec do
     INTEGRATION_MODES.each do |mode|
       desc "Run integration specs for AUTHENTICATION_MODE=#{mode}"
       task mode do
-        env                      = {
+        env        = {
           'RACK_ENV' => 'test',
           'AUTHENTICATION_MODE' => mode,
         }
@@ -110,7 +110,7 @@ namespace :spec do
         tag_filter = ''
         if mode == 'full'
           env['AUTH_DATABASE_URL'] = ENV.fetch('AUTH_DATABASE_URL', 'sqlite::memory:')
-          tag_filter = '--tag ~postgres_database'
+          tag_filter               = '--tag ~postgres_database'
         end
 
         patterns = [

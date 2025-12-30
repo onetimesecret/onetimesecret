@@ -44,7 +44,7 @@ module OrganizationAPI::Logic
         end
 
         # Use unique_index finder for O(1) lookup (no iteration)
-        existing_org = Onetime::Organization.find_by_extid(extid)
+        existing_org  = Onetime::Organization.find_by_extid(extid)
         @organization = existing_org if existing_org
       end
 

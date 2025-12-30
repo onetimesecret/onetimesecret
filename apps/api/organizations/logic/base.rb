@@ -88,7 +88,7 @@ module OrganizationAPI
         record = organization.safe_dump
 
         # Add frontend-expected aliases
-        record[:id] = record[:objid]
+        record[:id]         = record[:objid]
         record[:created_at] = record[:created]
         record[:updated_at] = record[:updated]
 

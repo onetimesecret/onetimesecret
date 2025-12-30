@@ -143,7 +143,7 @@ module Onetime
             end
 
             # Final fallback: FREE tier to avoid "No features available"
-            OT.lw "[WithEntitlements] Plan cache miss, using FREE tier fallback", {
+            OT.lw '[WithEntitlements] Plan cache miss, using FREE tier fallback', {
               planid: planid,
             }
             WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
@@ -337,7 +337,7 @@ module Onetime
           # @return [Numeric] Parsed limit (0, integer, or Float::INFINITY)
           def parse_limit_value(val)
             return 0 if val.nil? || val.to_s.empty?
-            return Float::INFINITY if val.to_s == 'unlimited' || val.to_s == '-1'
+            return Float::INFINITY if ['unlimited', '-1'].include?(val.to_s)
 
             val.to_i
           end

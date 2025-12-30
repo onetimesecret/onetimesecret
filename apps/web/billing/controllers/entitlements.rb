@@ -236,7 +236,7 @@ module Billing
           next unless plan
 
           # Guard against nil entitlements
-          entitlements_array = plan.entitlements&.to_a || []
+          entitlements_array = plan.entitlements.to_a
           limits_hash        = plan.limits_hash || {}
 
           summary[plan.plan_id] = {

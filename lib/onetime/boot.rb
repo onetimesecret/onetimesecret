@@ -294,8 +294,8 @@ module Onetime
 
       reset_ready!
       Runtime.reset!
-      @conf = nil
-      @boot_registry = nil
+      @conf                                 = nil
+      @boot_registry                        = nil
       Thread.current[:initializer_registry] = nil
       nil
     end

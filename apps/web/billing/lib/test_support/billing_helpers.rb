@@ -32,10 +32,15 @@ module BillingTestHelpers
     def ensure_familia_configured!
       # Skip if already configured for test port OR if already connected
       return if Familia.uri.to_s.include?('2121')
-      return if Familia.redis.connected? rescue false
+
+      begin
+        return if Familia.redis.connected?
+      rescue StandardError
+        false
+      end
 
       # Use test Redis port from ENV (set by test_helpers.rb)
-      test_uri = ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:2121/0'
+      test_uri    = ENV['VALKEY_URL'] || ENV['REDIS_URL'] || 'redis://127.0.0.1:2121/0'
       Familia.uri = test_uri
     end
 
@@ -46,8 +51,8 @@ module BillingTestHelpers
 
       ensure_familia_configured!
       ::Billing::Plan.clear_cache
-    rescue StandardError => e
-      warn "[BillingTestHelpers] Failed to clear plan cache: #{e.message}"
+    rescue StandardError => ex
+      warn "[BillingTestHelpers] Failed to clear plan cache: #{ex.message}"
     end
 
     # Full billing state cleanup
@@ -70,7 +75,7 @@ module BillingTestHelpers
     def populate_test_plans(plans)
       ensure_familia_configured!
       plans.each do |plan_data|
-        plan = ::Billing::Plan.new(plan_data.slice(:plan_id, :name, :tier, :interval, :region))
+        plan                                                    = ::Billing::Plan.new(plan_data.slice(:plan_id, :name, :tier, :interval, :region))
         (plan_data[:entitlements] || []).each { |e| plan.entitlements.add(e) }
         (plan_data[:limits] || {}).each { |k, v| plan.limits[k] = v.to_s }
         plan.save

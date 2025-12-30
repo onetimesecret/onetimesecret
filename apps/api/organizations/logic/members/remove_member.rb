@@ -19,7 +19,7 @@ module OrganizationAPI::Logic
       attr_reader :organization, :target_member, :target_membership, :actor_membership
 
       def process_params
-        @extid = params['extid']
+        @extid        = params['extid']
         @member_extid = params['member_extid']
       end
 
@@ -32,7 +32,7 @@ module OrganizationAPI::Logic
         @actor_membership = load_actor_membership(@organization)
 
         # Load target member
-        @target_member = load_member(@member_extid)
+        @target_member     = load_member(@member_extid)
         @target_membership = load_membership(@organization, @target_member)
 
         # Validate removal is allowed
@@ -73,7 +73,7 @@ module OrganizationAPI::Logic
       def load_actor_membership(organization)
         membership = Onetime::OrganizationMembership.find_by_org_customer(
           organization.objid,
-          cust.objid
+          cust.objid,
         )
 
         # Colonels bypass membership requirement
@@ -83,10 +83,12 @@ module OrganizationAPI::Logic
           return nil
         end
 
-        raise_form_error(
-          'You must be a member of this organization',
-          error_type: :forbidden
-        ) if membership.nil?
+        if membership.nil?
+          raise_form_error(
+            'You must be a member of this organization',
+            error_type: :forbidden,
+          )
+        end
 
         membership
       end
@@ -102,7 +104,7 @@ module OrganizationAPI::Logic
       def load_membership(organization, member)
         membership = Onetime::OrganizationMembership.find_by_org_customer(
           organization.objid,
-          member.objid
+          member.objid,
         )
         raise_not_found('Member not found in this organization') if membership.nil?
         membership
@@ -114,7 +116,7 @@ module OrganizationAPI::Logic
         if @target_membership.owner?
           raise_form_error(
             'Cannot remove organization owner. Transfer ownership first.',
-            error_type: :forbidden
+            error_type: :forbidden,
           )
         end
 
@@ -122,7 +124,7 @@ module OrganizationAPI::Logic
         if @target_member.objid == cust.objid
           raise_form_error(
             'Cannot remove yourself. Use leave organization instead.',
-            error_type: :forbidden
+            error_type: :forbidden,
           )
         end
 
@@ -133,7 +135,7 @@ module OrganizationAPI::Logic
         # Note: @actor_membership is guaranteed non-nil here because:
         # 1. Colonels already returned at line 130
         # 2. Non-colonels without membership would have raised in load_actor_membership
-        actor_role = @actor_membership.role
+        actor_role  = @actor_membership.role
         target_role = @target_membership.role
 
         case actor_role
@@ -145,14 +147,14 @@ module OrganizationAPI::Logic
           if target_role == 'admin'
             raise_form_error(
               'Admins cannot remove other admins. Only owners can.',
-              error_type: :forbidden
+              error_type: :forbidden,
             )
           end
         else
           # Members cannot remove anyone
           raise_form_error(
             'You do not have permission to remove members',
-            error_type: :forbidden
+            error_type: :forbidden,
           )
         end
       end
