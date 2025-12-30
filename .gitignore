@@ -38,7 +38,7 @@ pnpm-debug.log*
 .rspec
 .rspec_status
 appendonlydir/
-data/
+data
 doc/
 node_modules/
 vendor/
