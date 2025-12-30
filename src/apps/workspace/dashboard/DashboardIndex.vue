@@ -4,6 +4,7 @@
   import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
   import RecentSecretsTable from '@/apps/secret/components/RecentSecretsTable.vue';
   import PrivacyDefaultsBar from '@/apps/workspace/components/domains/PrivacyDefaultsBar.vue';
+  import UpgradeBanner from '@/apps/workspace/dashboard/components/UpgradeBanner.vue';
   import { useDomainScope } from '@/shared/composables/useDomainScope';
   import { useBranding } from '@/shared/composables/useBranding';
   import { WindowService } from '@/services/window.service';
@@ -54,6 +55,9 @@
 
 <template>
   <div class="container mx-auto min-w-[320px] max-w-2xl">
+    <!-- Upgrade Banner (shown for free plan users when billing is enabled) -->
+    <UpgradeBanner />
+
     <!-- Privacy Defaults Bar (only shown when custom domain scope is active) -->
     <PrivacyDefaultsBar
       v-if="showPrivacyBar"
