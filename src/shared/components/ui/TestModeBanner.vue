@@ -1,4 +1,4 @@
-<!-- src/apps/colonel/components/TestModeBanner.vue -->
+<!-- src/shared/components/ui/TestModeBanner.vue -->
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';

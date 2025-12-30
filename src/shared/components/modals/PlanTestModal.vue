@@ -1,4 +1,4 @@
-<!-- src/apps/colonel/components/PlanTestModal.vue -->
+<!-- src/shared/components/modals/PlanTestModal.vue -->
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';

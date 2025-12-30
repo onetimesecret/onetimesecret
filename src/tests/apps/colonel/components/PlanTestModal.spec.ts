@@ -4,7 +4,7 @@ import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
 import { createPinia, setActivePinia } from 'pinia';
-import PlanTestModal from '@/apps/colonel/components/PlanTestModal.vue';
+import PlanTestModal from '@/shared/components/modals/PlanTestModal.vue';
 import { WindowService } from '@/services/window.service';
 import { nextTick } from 'vue';
 

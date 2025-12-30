@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import FeedbackModalForm from '@/apps/secret/components/support/FeedbackModalForm.vue';
+  import FeedbackModalForm from '@/shared/components/forms/FeedbackModalForm.vue';
   import { FocusTrap } from 'focus-trap-vue';
   import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue';
 

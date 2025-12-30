@@ -15,8 +15,8 @@
 # -----------------------------------------------------------------------------
 
 schema:
-  version: "1.0.0"
-  format: "llm-test-spec"
+  version: '1.0.0'
+  format: 'llm-test-spec'
 
 # -----------------------------------------------------------------------------
 # TEST SUITE METADATA
@@ -24,19 +24,19 @@ schema:
 
 suite:
   # Required: Unique suite identifier
-  id: string  # e.g., "secret-context-actor-roles"
+  id: string # e.g., "secret-context-actor-roles"
 
   # Required: Human-readable suite name
-  name: string  # e.g., "Secret Context - Actor Roles"
+  name: string # e.g., "Secret Context - Actor Roles"
 
   # Required: What feature/component is being tested
-  feature: string  # e.g., "useSecretContext() composable"
+  feature: string # e.g., "useSecretContext() composable"
 
   # Optional: Link to issue tracker
-  issue: string  # e.g., "https://github.com/org/repo/issues/2114"
+  issue: string # e.g., "https://github.com/org/repo/issues/2114"
 
   # Optional: Tags for categorization
-  tags: string[]  # e.g., ["vue", "composable", "auth"]
+  tags: string[] # e.g., ["vue", "composable", "auth"]
 
 # -----------------------------------------------------------------------------
 # TEST CASE STRUCTURE
@@ -44,63 +44,63 @@ suite:
 
 tests:
   - # Required: Unique case identifier (preserves Qase traceability)
-    id: string  # e.g., "OTS-2114-SC-001"
+    id: string # e.g., "OTS-2114-SC-001"
 
     # Required: What behavior we're verifying (agent's goal)
-    intent: string  # e.g., "Creator viewing their own secret sees ownership warning"
+    intent: string # e.g., "Creator viewing their own secret sees ownership warning"
 
     # Required: Declarative state before test begins
     # Agent determines HOW to achieve this state
     setup:
       # Authentication state
-      auth: enum  # "logged_in" | "logged_out" | "incognito"
+      auth: enum # "logged_in" | "logged_out" | "incognito"
 
       # Optional: Specific user type or account
-      user_type: string  # e.g., "creator", "recipient", "admin", "free_tier"
+      user_type: string # e.g., "creator", "recipient", "admin", "free_tier"
 
       # Optional: Preconditions as key-value pairs
       # Agent interprets these and achieves the state
       state:
-        key: value  # e.g., secrets_created: 1, teams_count: 0
+        key: value # e.g., secrets_created: 1, teams_count: 0
 
       # Optional: Data fixtures to create
       fixtures:
-        - type: string  # e.g., "secret", "team", "user"
-          props: object  # e.g., { passphrase: null, ttl: 3600 }
+        - type: string # e.g., "secret", "team", "user"
+          props: object # e.g., { passphrase: null, ttl: 3600 }
 
     # Required: Target URL or navigation goal
     # Can be absolute path or descriptive goal
-    target: string  # e.g., "/dashboard" or "secret confirmation page"
+    target: string # e.g., "/dashboard" or "secret confirmation page"
 
     # Optional: Action to perform (if not just observing)
     action:
-      type: enum  # "click" | "submit" | "navigate" | "wait" | "none"
-      element: string  # CSS selector, text content, or descriptive
-      data: object  # Form data or action parameters
+      type: enum # "click" | "submit" | "navigate" | "wait" | "none"
+      element: string # CSS selector, text content, or descriptive
+      data: object # Form data or action parameters
 
     # Required: Observable outcomes to verify
     # Each item is an assertion the agent must confirm
     verify:
       # Simple string assertions (agent interprets how to check)
-      - string  # e.g., "Yellow warning banner with 'You created this secret'"
+      - string # e.g., "Yellow warning banner with 'You created this secret'"
 
       # Or structured assertions with more precision
-      - selector: string  # CSS selector or accessibility query
-        assertion: enum  # "visible" | "hidden" | "contains" | "equals" | "exists"
-        value: string  # Expected value for contains/equals
+      - selector: string # CSS selector or accessibility query
+        assertion: enum # "visible" | "hidden" | "contains" | "equals" | "exists"
+        value: string # Expected value for contains/equals
 
     # Required: Classification metadata
-    priority: enum  # "critical" | "high" | "medium" | "low"
-    severity: enum  # "blocker" | "major" | "minor" | "trivial"
-    type: enum  # "functional" | "ui" | "error" | "integration" | "smoke" | "edge"
+    priority: enum # "critical" | "high" | "medium" | "low"
+    severity: enum # "blocker" | "major" | "minor" | "trivial"
+    type: enum # "functional" | "ui" | "error" | "integration" | "smoke" | "edge"
 
     # Optional: What code/features this test covers
     covers:
-      - string  # e.g., "useSecretContext", "actorRole === 'CREATOR'"
+      - string # e.g., "useSecretContext", "actorRole === 'CREATOR'"
 
     # Optional: Post-conditions to verify
     postconditions:
-      - string  # e.g., "Secret remains unviewed"
+      - string # e.g., "Secret remains unviewed"
 
     # Optional: Notes for human reviewers or agent context
     notes: string
@@ -108,7 +108,7 @@ tests:
     # Optional: Skip conditions
     skip:
       reason: string
-      when: string  # e.g., "CI", "standalone_mode"
+      when: string # e.g., "CI", "standalone_mode"
 
 # -----------------------------------------------------------------------------
 # SHARED DEFINITIONS (reusable across tests)
@@ -117,19 +117,19 @@ tests:
 definitions:
   users:
     creator:
-      description: "User who created the secret being tested"
+      description: 'User who created the secret being tested'
       auth: logged_in
     recipient_auth:
       description: "Logged-in user viewing someone else's secret"
       auth: logged_in
     recipient_anon:
-      description: "Anonymous visitor viewing a secret"
+      description: 'Anonymous visitor viewing a secret'
       auth: incognito
 
   fixtures:
     basic_secret:
       type: secret
       props:
-        content: "Test secret content"
+        content: 'Test secret content'
         passphrase: null
         ttl: 3600

@@ -1,6 +1,6 @@
 // src/router/colonel.routes.ts
 
-import ColonelLayout from '@/shared/layouts/AdminLayout.vue';
+import ColonelLayout from '@/apps/colonel/layouts/ColonelLayout.vue';
 import { RouteRecordRaw } from 'vue-router';
 
 const defaultMeta = {
