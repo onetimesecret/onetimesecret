@@ -37,7 +37,7 @@
         "no_organizations_description": "Create an organization to manage your billing and subscription",
         "entitlements": {
           "create_secrets": "Create Secrets",
-          "view_receipt": "View Metadata",
+          "view_receipt": "View Receipts",
           "api_access": "API Access",
           "custom_domains": "Custom Domains",
           "custom_privacy_defaults": "Custom Privacy Defaults",
@@ -69,6 +69,9 @@
         "free_plan": "Free",
         "single_team_plan": "Single Team",
         "multi_team_plan": "Multi Team",
+        "individual_account": "Individual Account",
+        "team_account": "Team Account",
+        "multi_team_account": "Organization Account",
         "features": "Features",
         "unlimited_secrets": "Unlimited secrets",
         "api_access": "API access",
