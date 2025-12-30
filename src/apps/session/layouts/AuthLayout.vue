@@ -29,7 +29,7 @@ const mainClasses = computed(() => {
       <TransactionalHeader v-bind="props" />
     </template>
     <template #main>
-      <main :class="mainClasses" name="AuthLayout">
+      <main :class="mainClasses" data-test-id="auth-layout-main">
         <slot></slot>
       </main>
     </template>

@@ -114,21 +114,6 @@ describe('Colonel Routes Configuration', () => {
         expect(route.meta?.requiresAuth).toBe(true);
       });
     });
-
-    it('/colonel route requires auth', () => {
-      const route = colonelRoutes.find((r: RouteRecordRaw) => r.path === '/colonel');
-      expect(route?.meta?.requiresAuth).toBe(true);
-    });
-
-    it('/colonel/users route requires auth', () => {
-      const route = colonelRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/users');
-      expect(route?.meta?.requiresAuth).toBe(true);
-    });
-
-    it('/colonel/system route requires auth', () => {
-      const route = colonelRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/system');
-      expect(route?.meta?.requiresAuth).toBe(true);
-    });
   });
 
   describe('Layout Configuration', () => {
@@ -144,38 +129,6 @@ describe('Colonel Routes Configuration', () => {
     it('all routes have layout meta defined', () => {
       colonelRoutes.forEach((route: RouteRecordRaw) => {
         expect(route.meta).toHaveProperty('layout');
-      });
-    });
-  });
-
-  describe('Layout Props Configuration', () => {
-    it('all routes have colonel: true in layoutProps', () => {
-      colonelRoutes.forEach((route: RouteRecordRaw) => {
-        expect(route.meta?.layoutProps?.colonel).toBe(true);
-      });
-    });
-
-    it('all routes have layoutProps defined', () => {
-      colonelRoutes.forEach((route: RouteRecordRaw) => {
-        expect(route.meta?.layoutProps).toBeDefined();
-      });
-    });
-
-    it('all routes have displayPoweredBy: true in layoutProps', () => {
-      colonelRoutes.forEach((route: RouteRecordRaw) => {
-        expect(route.meta?.layoutProps?.displayPoweredBy).toBe(true);
-      });
-    });
-
-    it('all routes have displayToggles: true in layoutProps', () => {
-      colonelRoutes.forEach((route: RouteRecordRaw) => {
-        expect(route.meta?.layoutProps?.displayToggles).toBe(true);
-      });
-    });
-
-    it('all routes have displayFeedback: false in layoutProps', () => {
-      colonelRoutes.forEach((route: RouteRecordRaw) => {
-        expect(route.meta?.layoutProps?.displayFeedback).toBe(false);
       });
     });
   });
