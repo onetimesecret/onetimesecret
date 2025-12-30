@@ -17,6 +17,7 @@ Unless otherwise specified, pull requests target `develop` branch.
 - **Testing**: Vitest (max 300 lines), mock Pinia stores
 - **Styling**: Tailwind classes, WCAG compliance
 - **Minimal Changes**: Preserve patterns, use existing utilities
+- **URL Paths**: ALWAYS use `extid` (not `id`/`objid`) for URL paths - entities have dual IDs
 
 ## Tech Stack
 **Backend**: Ruby 3.4, Rack 3, Redis 7

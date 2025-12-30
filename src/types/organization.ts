@@ -3,9 +3,14 @@
 /**
  * Organization management type definitions
  * Used across organization components, stores, and views
+ *
+ * NOTE: This module uses branded types for ID fields.
+ * See src/types/identifiers.ts for documentation.
  */
 
 import { z } from 'zod';
+
+import { type ExtId, type ObjId, lenientExtIdSchema, lenientObjIdSchema } from './identifiers';
 
 /**
  * Organization entitlement constants
@@ -65,10 +70,19 @@ export type OrganizationRole = (typeof ORGANIZATION_ROLES)[keyof typeof ORGANIZA
  * Organization interface
  *
  * Note: Fields use `| null` to match backend safe_dump which returns null for empty fields.
+ *
+ * ID Fields (Branded Types):
+ * - id: ObjId - Internal database identifier. Use for internal lookups and Redis operations.
+ * - extid: ExtId - External URL-safe identifier. Use in URLs, API paths, and client references.
+ * - owner_id: ObjId - Internal ID of the organization owner.
+ *
+ * @see src/types/identifiers.ts for branded type documentation
  */
 export interface Organization {
-  id: string;
-  extid: string;
+  /** Internal database ID. Never use in URLs. */
+  id: ObjId;
+  /** External URL-safe ID. Use this in routes and API calls. */
+  extid: ExtId;
   display_name: string;
   description?: string | null;
   contact_email?: string | null;
@@ -76,7 +90,8 @@ export interface Organization {
   is_default: boolean;
   created_at: Date;
   updated_at: Date;
-  owner_id?: string | null;
+  /** Internal ID of the owner. Use for internal lookups only. */
+  owner_id?: ObjId | null;
   member_count?: number | null;
   current_user_role?: OrganizationRole | null;
   planid?: string | null;

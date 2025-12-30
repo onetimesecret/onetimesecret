@@ -1,9 +1,10 @@
 <!-- src/apps/workspace/account/settings/OrganizationSettings.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
 import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
@@ -13,6 +14,7 @@ import type { ApplicationError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
 import { WindowService } from '@/services/window.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { useMembersStore } from '@/shared/stores/membersStore';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel } from '@/types/billing';
 import type { CreateInvitationPayload, Organization, OrganizationInvitation } from '@/types/organization';
@@ -23,6 +25,7 @@ import { z } from 'zod';
 const { t } = useI18n();
 const route = useRoute();
 const organizationStore = useOrganizationStore();
+const membersStore = useMembersStore();
 
 const orgId = computed(() => route.params.extid as string);
 const organization = ref<Organization | null>(null);
@@ -121,6 +124,14 @@ const loadInvitations = async () => {
     invitations.value = await organizationStore.fetchInvitations(orgId.value);
   } catch (err) {
     console.error('[OrganizationSettings] Error loading invitations:', err);
+  }
+};
+
+const loadMembers = async () => {
+  try {
+    await membersStore.fetchMembers(orgId.value);
+  } catch (err) {
+    console.error('[OrganizationSettings] Error loading members:', err);
   }
 };
 
@@ -276,21 +287,41 @@ const canManageMembers = computed(() => {
   return can(ENTITLEMENTS.MANAGE_MEMBERS);
 });
 
+// Member management event handlers
+const handleMemberUpdated = () => {
+  // Member was updated in the store, no additional action needed
+  success.value = t('web.organizations.members.role_updated');
+};
+
+const handleMemberRemoved = () => {
+  success.value = t('web.organizations.members.member_removed');
+};
+
 onMounted(async () => {
   // Initialize entitlement definitions for formatting
   await initDefinitions();
 
   await loadOrganization();
   if (activeTab.value === 'members') {
-    await loadInvitations();
+    await Promise.all([loadMembers(), loadInvitations()]);
   } else if (activeTab.value === 'billing') {
     await loadBilling();
   }
 });
 
 watch(activeTab, async (newTab) => {
-  if (newTab === 'members' && invitations.value.length === 0) {
-    await loadInvitations();
+  if (newTab === 'members') {
+    // Load members and invitations when switching to members tab
+    const promises: Promise<void>[] = [];
+    if (!membersStore.isInitialized || membersStore.currentOrgExtid !== orgId.value) {
+      promises.push(loadMembers());
+    }
+    if (invitations.value.length === 0) {
+      promises.push(loadInvitations());
+    }
+    if (promises.length > 0) {
+      await Promise.all(promises);
+    }
   } else if (newTab === 'billing' && !subscription.value && billingEnabled.value) {
     await loadBilling();
   }
@@ -338,7 +369,6 @@ watch(activeTab, async (newTab) => {
           </button>
           <!-- Members tab shown when user can manage members -->
           <button
-            v-if="canManageMembers"
             @click="activeTab = 'members'"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
@@ -494,36 +524,87 @@ watch(activeTab, async (newTab) => {
         </section>
 
         <!-- Members Tab -->
-        <section
+        <div
           v-if="activeTab === 'members'"
-          class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-          <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-            <div class="flex items-center justify-between">
-              <h3 class="text-base font-semibold text-gray-900 dark:text-white">
-                {{ t('web.organizations.invitations.pending_invitations') }}
-              </h3>
-              <button
-                v-if="canManageMembers"
-                type="button"
-                @click="showInviteForm = !showInviteForm"
-                class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+          class="space-y-6">
+
+          <!-- Current Members Section -->
+          <section class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                  {{ t('web.organizations.members.current_members') }}
+                </h3>
+                <span class="text-sm text-gray-500 dark:text-gray-400">
+                  {{ membersStore.memberCount }} {{ membersStore.memberCount === 1 ? t('web.organizations.members.member_singular') : t('web.organizations.members.member_plural') }}
+                </span>
+              </div>
+            </div>
+
+            <div class="p-6">
+              <BasicFormAlerts
+                v-if="error"
+                :error="error" />
+              <BasicFormAlerts
+                v-if="success"
+                :success="success" />
+
+              <!-- Members Table -->
+              <div v-if="membersStore.members.length > 0" class="mt-4">
+                <MembersTable
+                  :members="membersStore.members"
+                  :org-extid="orgId"
+                  :is-loading="membersStore.loading"
+                  @member-updated="handleMemberUpdated"
+                  @member-removed="handleMemberRemoved" />
+              </div>
+
+              <!-- Empty state for members -->
+              <div v-else-if="!membersStore.loading" class="py-8 text-center">
                 <OIcon
                   collection="heroicons"
-                  name="user-plus"
-                  class="-ml-0.5 mr-1.5 size-5"
+                  name="users"
+                  class="mx-auto size-12 text-gray-400"
                   aria-hidden="true" />
-                {{ t('web.organizations.invitations.invite_member') }}
-              </button>
-            </div>
-          </div>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                  {{ t('web.organizations.members.no_members') }}
+                </p>
+              </div>
 
-          <div class="p-6">
-            <BasicFormAlerts
-              v-if="error"
-              :error="error" />
-            <BasicFormAlerts
-              v-if="success"
-              :success="success" />
+              <!-- Loading state -->
+              <div v-else class="flex items-center justify-center py-8">
+                <OIcon
+                  collection="heroicons"
+                  name="arrow-path"
+                  class="size-6 animate-spin text-gray-400"
+                  aria-hidden="true" />
+              </div>
+            </div>
+          </section>
+
+          <!-- Pending Invitations Section -->
+          <section class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                  {{ t('web.organizations.invitations.pending_invitations') }}
+                </h3>
+                <button
+                  v-if="canManageMembers"
+                  type="button"
+                  @click="showInviteForm = !showInviteForm"
+                  class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+                  <OIcon
+                    collection="heroicons"
+                    name="user-plus"
+                    class="-ml-0.5 mr-1.5 size-5"
+                    aria-hidden="true" />
+                  {{ t('web.organizations.invitations.invite_member') }}
+                </button>
+              </div>
+            </div>
+
+            <div class="p-6">
 
             <!-- Entitlement Upgrade Prompt -->
             <EntitlementUpgradePrompt
@@ -676,8 +757,9 @@ watch(activeTab, async (newTab) => {
                 {{ t('web.organizations.invitations.no_pending_invitations') }}
               </p>
             </div>
-          </div>
-        </section>
+            </div>
+          </section>
+        </div>
 
         <!-- Billing Tab -->
         <section

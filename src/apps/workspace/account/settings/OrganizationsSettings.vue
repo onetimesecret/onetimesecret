@@ -1,9 +1,13 @@
 <!-- src/apps/workspace/account/settings/OrganizationsSettings.vue -->
 
+<!--
+  Organizations list page - workspace feature for managing organizations.
+  Uses WorkspaceLayout via route meta (not BillingLayout).
+-->
+
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import CreateOrganizationModal from '@/apps/workspace/components/organizations/CreateOrganizationModal.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -62,19 +66,30 @@ const handleCreateOrganization = () => {
   showCreateModal.value = true;
 };
 
-const handleOrganizationCreated = (orgId: string) => {
+const handleOrganizationCreated = (orgExtid: string) => {
   showCreateModal.value = false;
-  // Navigate to the new organization's settings
-  router.push(`/org/${orgId}`);
+  // Navigate to the new organization's settings (using extid for URL)
+  router.push(`/org/${orgExtid}`);
 };
 
 const handleManageOrganization = (org: Organization) => {
-  router.push(`/org/${org.id}`);
+  // IMPORTANT: Always use extid (not id) for URL paths
+  router.push(`/org/${org.extid}`);
 };
 </script>
 
 <template>
-  <BillingLayout>
+  <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+        {{ t('web.organizations.title') }}
+      </h1>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        {{ t('web.organizations.page_description') }}
+      </p>
+    </div>
+
     <div class="space-y-8">
       <!-- Organizations Section -->
       <section
@@ -259,5 +274,5 @@ const handleManageOrganization = (org: Organization) => {
       :open="showCreateModal"
       @close="showCreateModal = false"
       @created="handleOrganizationCreated" />
-  </BillingLayout>
+  </div>
 </template>

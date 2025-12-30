@@ -5,13 +5,13 @@ import type { RouteRecordRaw } from 'vue-router';
 import accountRoutes from './account';
 import billingRoutes from './billing';
 import dashboardRoutes from './dashboard';
-import membersRoutes from './members';
+import organizationsRoutes from './organizations';
 
 const routes: RouteRecordRaw[] = [
   ...dashboardRoutes,
   ...accountRoutes,
   ...billingRoutes,
-  ...membersRoutes,
+  ...organizationsRoutes,
 ];
 
 export default routes;
