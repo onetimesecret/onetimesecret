@@ -327,8 +327,8 @@ RSpec.describe 'BLOCKER 3: Receipt Recent API', :integration, :vcr do
   # Load the main API v3 app
   def app
     @app ||= begin
-      require 'apps/api/v3/application'
-      Rack::URLMap.new('/api/v3' => ::OT::App::API.new)
+      require 'v3/application'
+      Rack::URLMap.new('/api/v3' => ::V3::Application.new)
     end
   end
 
