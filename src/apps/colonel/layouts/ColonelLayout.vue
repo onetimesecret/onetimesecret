@@ -36,7 +36,7 @@
 
     <template #main>
       <ColonelAdminLayout>
-        <slot ></slot>
+        <slot></slot>
       </ColonelAdminLayout>
     </template>
 
