@@ -73,6 +73,24 @@ const filteredPlans = computed(() => plans.value.filter(plan => plan.interval ==
 const getFeatureLabel = (feature: string): string => formatEntitlement(feature);
 
 /**
+ * Get the teams limit for a plan, handling unlimited (-1)
+ * Note: Prefixed with _ as currently unused (template section commented out)
+ */
+const _getTeamsLimit = (plan: BillingPlan): number | string => {
+  const limit = plan.limits?.['teams.max'] ?? plan.limits?.teams ?? 1;
+  return limit === -1 ? '∞' : limit;
+};
+
+/**
+ * Get the members per team limit for a plan, handling unlimited (-1)
+ * Note: Prefixed with _ as currently unused (template section commented out)
+ */
+const _getMembersLimit = (plan: BillingPlan): number | string => {
+  const limit = plan.limits?.['members_per_team.max'] ?? plan.limits?.members_per_team ?? 1;
+  return limit === -1 ? '∞' : limit;
+};
+
+/**
  * Combined loading state for the component
  */
 const isLoadingContent = computed(() => isLoadingPlans.value || isLoadingDefinitions.value);
@@ -322,12 +340,16 @@ onMounted(async () => {
           <div class="flex-1 p-6">
             <!-- Plan Header -->
             <div class="mb-4">
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white">
-                {{ plan.name }}
-              </h3>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {{ plan.tier }} plan
-              </p>
+              <div class="flex items-center gap-2">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white" :data-plan-id="plan.id">
+                  {{ plan.name }}
+                </h3>
+                <span
+                  v-if="plan.plan_name_label"
+                  class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                  {{ t(plan.plan_name_label) }}
+                </span>
+              </div>
             </div>
 
             <!-- Price -->
@@ -340,20 +362,26 @@ onMounted(async () => {
                   /month
                 </span>
               </div>
-              <p v-if="plan.interval === 'year' && plan.amount > 0" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Billed {{ formatCurrency(plan.amount, plan.currency) }} yearly
+              <p v-if="plan.interval === 'year' && plan.amount > 0" class="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                {{ t('web.billing.plans.yearly') }}: {{ formatCurrency(plan.amount, plan.currency) }}
               </p>
             </div>
 
             <!-- Team & Member Limits -->
-            <div class="mb-6 space-y-2 text-sm">
+            <!-- <div class="mb-6 space-y-2 text-sm">
               <p class="text-gray-700 dark:text-gray-300">
-                {{ t('web.billing.plans.teams_limit', { count: plan.limits.teams || 1 }) }}
+                {{ typeof getTeamsLimit(plan) === 'string'
+                  ? t('web.billing.plans.unlimited_teams')
+                  : t('web.billing.plans.teams_limit', { count: getTeamsLimit(plan) })
+                }}
               </p>
               <p class="text-gray-700 dark:text-gray-300">
-                {{ t('web.billing.plans.members_limit', { count: plan.limits.members_per_team || 1 }) }}
+                {{ typeof getMembersLimit(plan) === 'string'
+                  ? t('web.billing.plans.unlimited_members')
+                  : t('web.billing.plans.members_limit', { count: getMembersLimit(plan) })
+                }}
               </p>
-            </div>
+            </div> -->
 
             <!-- Features -->
             <div class="space-y-3">

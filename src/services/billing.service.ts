@@ -84,6 +84,8 @@ export interface Plan {
   is_popular?: boolean;
   /** For yearly plans: the monthly equivalent price for display */
   monthly_equivalent_amount?: number;
+  /** Display label next to plan name (e.g., "For Teams"). Null/empty = hide label */
+  plan_name_label?: string | null;
 }
 
 /**
