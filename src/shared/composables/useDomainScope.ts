@@ -69,7 +69,7 @@ export function useDomainScope() {
     try {
       await domainsStore.fetchList(organizationStore.currentOrganization?.id);
     } catch (error) {
-      console.debug('[useDomainScope] Failed to fetch domains:', error);
+      console.warn('[useDomainScope] Failed to fetch domains:', error);
     } finally {
       isLoadingDomains.value = false;
     }
