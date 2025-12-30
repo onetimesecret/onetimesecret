@@ -63,20 +63,19 @@ function findExtidByDomain(
   return storeDomains.find((d) => d.display_domain === domain)?.extid;
 }
 
-/** Initialize domain scope on module load (runs once) */
-function initializeDomainScope(
+/** Initialize domain scope on module load (runs once). Returns promise for awaiting. */
+async function initializeDomainScope(
   fetchFn: () => Promise<void>,
   getAvailable: () => string[]
-): void {
+): Promise<void> {
   if (isInitialized.value) return;
   isInitialized.value = true;
   if (domainsEnabled) {
-    fetchFn().then(() => {
-      const saved = localStorage.getItem('domainScope');
-      const available = getAvailable();
-      currentDomain.value = (saved && available.includes(saved))
-        ? saved : available[0] || canonicalDomain || '';
-    });
+    await fetchFn();
+    const saved = localStorage.getItem('domainScope');
+    const available = getAvailable();
+    currentDomain.value = (saved && available.includes(saved))
+      ? saved : available[0] || canonicalDomain || '';
   } else {
     currentDomain.value = canonicalDomain || '';
   }
@@ -115,7 +114,8 @@ export function useDomainScope() {
     }
   }, { immediate: false });
 
-  initializeDomainScope(fetchDomainsForOrganization, () => availableDomains.value);
+  // Initialize async - returns promise for components that need to await
+  const initPromise = initializeDomainScope(fetchDomainsForOrganization, () => availableDomains.value);
 
   const currentScope = computed<DomainScope>(() => {
     const domain = currentDomain.value || canonicalDomain || '';
@@ -146,5 +146,7 @@ export function useDomainScope() {
     refreshDomains: fetchDomainsForOrganization,
     getDomainDisplayName,
     getExtidByDomain: (domain: string) => findExtidByDomain(domainsStore.domains || [], domain),
+    /** Promise that resolves when initial domain fetch completes */
+    initialized: initPromise,
   };
 }

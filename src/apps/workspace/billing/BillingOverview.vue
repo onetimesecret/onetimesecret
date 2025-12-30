@@ -75,12 +75,13 @@ const loadOrganizationData = async (extid: string) => {
   }
 };
 
-const handleOrgChange = (extid: string) => {
-  // Find org to get internal id for local state
-  const org = organizations.value.find((o) => o.extid === extid);
-  if (org) {
-    selectedOrgId.value = org.id;
-    loadOrganizationData(extid);
+const handleOrgChange = (orgId: string) => {
+  // Find org by internal ID to get extid for API call
+  const org = organizations.value.find((o) => o.id === orgId);
+  if (org?.extid) {
+    loadOrganizationData(org.extid);
+  } else {
+    console.warn('[BillingOverview] Organization not found in cache, cannot load:', orgId);
   }
 };
 
