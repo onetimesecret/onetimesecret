@@ -50,6 +50,7 @@ gem 'i18n', '~> 1.14'
 gem 'mail'
 gem 'mustache'
 gem 'public_suffix'
+gem 'sanitize'
 gem 'semantic_logger', '~> 4.17'
 gem 'tilt'
 

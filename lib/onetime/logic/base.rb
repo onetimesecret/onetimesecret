@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require 'sanitize'
 require 'timeout'
 
 require 'onetime/mail'
