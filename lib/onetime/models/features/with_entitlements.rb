@@ -62,6 +62,24 @@ module Onetime
           manage_orgs manage_teams manage_members audit_logs
         ].freeze
 
+        # Minimal FREE tier entitlements as fallback when billing is enabled
+        # but plan cache is empty. This prevents showing "No features available"
+        # and provides a safe degraded experience.
+        #
+        # These match the free_v1 plan in billing.yaml.
+        FREE_TIER_ENTITLEMENTS = %w[
+          create_secrets
+          view_metadata
+          api_access
+        ].freeze
+
+        # FREE tier default limits when cache is unavailable
+        FREE_TIER_LIMITS = {
+          'teams.max' => 0,
+          'members_per_team.max' => 0,
+          'secret_lifetime.max' => 604_800, # 7 days in seconds
+        }.freeze
+
         def self.included(base)
           OT.ld "[features] #{base}: #{name}"
           base.include InstanceMethods
@@ -84,11 +102,12 @@ module Onetime
           #
           # @return [Array<String>] List of entitlement strings
           #
-          # Falls back to full standalone entitlements if:
-          # - billing is disabled (standalone mode)
-          # - plan not found in cache
-          #
-          # This ensures full feature access in standalone mode.
+          # Fallback hierarchy:
+          # 1. If billing disabled (standalone mode) -> STANDALONE_ENTITLEMENTS (full access)
+          # 2. If no planid set -> FREE_TIER_ENTITLEMENTS
+          # 3. If plan found in cache -> plan.entitlements
+          # 4. If plan not in cache, try billing.yaml config fallback
+          # 5. Final fallback -> FREE_TIER_ENTITLEMENTS (prevents "No features" error)
           #
           # @example
           #   org.entitlements  # => ["api_access", "custom_domains", "manage_teams"]
@@ -105,13 +124,29 @@ module Onetime
               return WithEntitlements::STANDALONE_ENTITLEMENTS.dup
             end
 
-            # Fail-closed: billing enabled, enforce restrictions
-            return [] if planid.to_s.empty?
+            # Billing enabled: org with no plan gets FREE tier
+            if planid.to_s.empty?
+              return WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
+            end
 
+            # Try loading from Redis cache first
             plan = ::Billing::Plan.load(planid)
-            return [] unless plan  # No plan = no entitlements (fail-closed)
+            if plan
+              return plan.entitlements.to_a
+            end
 
-            plan.entitlements.to_a
+            # Plan not in cache - try billing.yaml config fallback
+            config_plan = ::Billing::Plan.load_from_config(planid)
+            if config_plan && config_plan[:entitlements]
+              OT.ld "[WithEntitlements] Using config fallback for plan: #{planid}"
+              return config_plan[:entitlements].dup
+            end
+
+            # Final fallback: FREE tier to avoid "No features available"
+            OT.lw "[WithEntitlements] Plan cache miss, using FREE tier fallback", {
+              planid: planid,
+            }
+            WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
           end
 
           # Get limit for a specific resource
@@ -119,7 +154,12 @@ module Onetime
           # @param resource [String, Symbol] Resource to check limit for
           # @return [Numeric] Limit value (Float::INFINITY for unlimited)
           #
-          # Falls back to unlimited for self-hosted installations.
+          # Fallback hierarchy:
+          # 1. If billing disabled (standalone mode) -> Float::INFINITY (unlimited)
+          # 2. If no planid set -> FREE_TIER_LIMITS
+          # 3. If plan found in cache -> plan.limits
+          # 4. If plan not in cache, try billing.yaml config fallback
+          # 5. Final fallback -> FREE_TIER_LIMITS (conservative defaults)
           #
           # @example
           #   org.limit_for('teams')            # => 1
@@ -136,21 +176,30 @@ module Onetime
             # Fail-open: self-hosted/standalone gets unlimited
             return Float::INFINITY unless billing_enabled?
 
-            # Fail-closed: billing enabled, enforce limits
-            return 0 if planid.to_s.empty?
-
-            plan = ::Billing::Plan.load(planid)
-            return 0 unless plan  # No plan = zero limit (fail-closed)
-
             # Flattened key: "teams" => "teams.max"
             key = resource.to_s.include?('.') ? resource.to_s : "#{resource}.max"
-            val = plan.limits[key]
 
-            # Convert "unlimited" to Float::INFINITY, strings to integers
-            return 0 if val.nil? || val.empty?
-            return Float::INFINITY if val == 'unlimited'
+            # Billing enabled: org with no plan gets FREE tier limits
+            if planid.to_s.empty?
+              return free_tier_limit_for(key)
+            end
 
-            val.to_i
+            # Try loading from Redis cache first
+            plan = ::Billing::Plan.load(planid)
+            if plan
+              val = plan.limits[key]
+              return parse_limit_value(val)
+            end
+
+            # Plan not in cache - try billing.yaml config fallback
+            config_plan = ::Billing::Plan.load_from_config(planid)
+            if config_plan && config_plan[:limits]
+              val = config_plan[:limits][key]
+              return parse_limit_value(val) unless val.nil?
+            end
+
+            # Final fallback: FREE tier limits
+            free_tier_limit_for(key)
           end
 
           # Check entitlement with detailed response for upgrade messaging
@@ -269,6 +318,28 @@ module Onetime
             Onetime::BillingConfig.instance.enabled?
           rescue StandardError
             false # If BillingConfig fails, assume billing disabled
+          end
+
+          # Get FREE tier limit for a resource key
+          #
+          # @param key [String] Flattened limit key (e.g., "teams.max")
+          # @return [Numeric] Limit value, defaults to 0 for unknown keys
+          def free_tier_limit_for(key)
+            val = WithEntitlements::FREE_TIER_LIMITS[key]
+            return 0 if val.nil?
+
+            val
+          end
+
+          # Parse a limit value from string/nil to numeric
+          #
+          # @param val [String, Integer, nil] Raw limit value
+          # @return [Numeric] Parsed limit (0, integer, or Float::INFINITY)
+          def parse_limit_value(val)
+            return 0 if val.nil? || val.to_s.empty?
+            return Float::INFINITY if val.to_s == 'unlimited' || val.to_s == '-1'
+
+            val.to_i
           end
         end
       end
