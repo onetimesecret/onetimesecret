@@ -224,12 +224,15 @@ module Billing
           .map do |plan|
             {
               id: plan.plan_id,
+              plan_code: plan.plan_code,
               name: plan.name,
               tier: plan.tier,
               interval: plan.interval,
-              amount: plan.amount,
+              amount: plan.amount.to_i,
+              monthly_equivalent_amount: plan.monthly_equivalent_amount,
               currency: plan.currency,
               region: plan.region,
+              is_popular: plan.popular?,
               features: plan.features.to_a,
               limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
               entitlements: plan.entitlements.to_a,
@@ -277,11 +280,14 @@ module Billing
 
         {
           id: plan.plan_id,
+          plan_code: plan.plan_code,
           name: plan.name,
           tier: plan.tier,
           interval: plan.interval,
-          amount: plan.amount,
+          amount: plan.amount.to_i,
+          monthly_equivalent_amount: plan.monthly_equivalent_amount,
           currency: plan.currency,
+          is_popular: plan.popular?,
           features: plan.features.to_a,
           limits: plan.limits_hash,
         }
