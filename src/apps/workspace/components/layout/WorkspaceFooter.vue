@@ -9,7 +9,7 @@
 -->
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import FeedbackToggle from '@/apps/secret/components/support/FeedbackToggle.vue';
+  import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { WindowService } from '@/services/window.service';
   import { useDomainsStore, useMetadataListStore } from '@/shared/stores';

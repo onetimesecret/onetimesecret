@@ -1,4 +1,4 @@
-<!-- src/apps/secret/components/support/FeedbackToggle.vue -->
+<!-- src/shared/components/ui/FeedbackToggle.vue -->
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
