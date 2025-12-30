@@ -20,6 +20,8 @@ import { computed, ref, watch } from 'vue';
 export interface DomainScope {
   /** The domain hostname (e.g., "acme.example.com" or "onetimesecret.com") */
   domain: string;
+  /** The external ID for API calls (e.g., "cd1234abcdef") - undefined for canonical domain */
+  extid: string | undefined;
   /** Display-friendly name for the scope */
   displayName: string;
   /** Whether this is the canonical (default) domain */
@@ -53,6 +55,15 @@ function buildAvailableDomains(storeDomains: Array<{ display_domain: string }>):
   return domainNames;
 }
 
+/** Find extid for a given display_domain from store domains */
+function findExtidByDomain(
+  storeDomains: Array<{ display_domain: string; extid: string }>,
+  domain: string
+): string | undefined {
+  const found = storeDomains.find((d) => d.display_domain === domain);
+  return found?.extid;
+}
+
 /**
  * Composable for managing domain scope in the workspace.
  * Domains are scoped to the current organization.
@@ -61,7 +72,9 @@ export function useDomainScope() {
   const domainsStore = useDomainsStore();
   const organizationStore = useOrganizationStore();
 
-  const availableDomains = computed<string[]>(() => buildAvailableDomains(domainsStore.domains || []));
+  const availableDomains = computed<string[]>(() =>
+    buildAvailableDomains(domainsStore.domains || [])
+  );
 
   const fetchDomainsForOrganization = async () => {
     if (!domainsEnabled) return;
@@ -105,11 +118,16 @@ export function useDomainScope() {
     }
   }
 
-  const currentScope = computed<DomainScope>(() => ({
-    domain: currentDomain.value || canonicalDomain || '',
-    displayName: getDomainDisplayName(currentDomain.value || canonicalDomain || ''),
-    isCanonical: (currentDomain.value || canonicalDomain || '') === canonicalDomain,
-  }));
+  const currentScope = computed<DomainScope>(() => {
+    const domain = currentDomain.value || canonicalDomain || '';
+    const isCanonical = domain === canonicalDomain;
+    return {
+      domain,
+      extid: isCanonical ? undefined : findExtidByDomain(domainsStore.domains || [], domain),
+      displayName: getDomainDisplayName(domain),
+      isCanonical,
+    };
+  });
 
   const setScope = (domain: string) => {
     if (availableDomains.value.includes(domain)) {
