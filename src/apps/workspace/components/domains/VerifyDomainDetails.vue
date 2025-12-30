@@ -40,7 +40,7 @@ const verify = async () => {
   console.info('Refreshing DNS verification details...');
 
   try {
-    const result = await verifyDomain(props.domain.display_domain);
+    const result = await verifyDomain(props.domain.extid);
     if (result) {
       success.value = t('web.domains.domain_verification_initiated_successfully')
       emit('domainVerify', result);

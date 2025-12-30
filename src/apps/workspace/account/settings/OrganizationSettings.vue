@@ -170,7 +170,8 @@ const handleSave = async () => {
   success.value = '';
 
   try {
-    await organizationStore.updateOrganization(organization.value.id, {
+    // Use extid from route params for API call
+    await organizationStore.updateOrganization(orgId.value, {
       display_name: formData.value.display_name,
       description: formData.value.description,
     });

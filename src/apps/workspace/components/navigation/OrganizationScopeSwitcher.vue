@@ -222,7 +222,7 @@ const navigateToCreateOrganization = (): void => {
                 @click="navigateToManageOrganization(org, $event)">
                 <OIcon
                   collection="heroicons"
-                  name="cog-6-tooth"
+                  name="cog"
                   class="size-4"
                   aria-hidden="true" />
               </button>

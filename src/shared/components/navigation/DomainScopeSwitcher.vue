@@ -32,6 +32,7 @@ const {
   isScopeActive,
   setScope,
   getDomainDisplayName,
+  getExtidByDomain,
 } = useDomainScope();
 
 /**
@@ -59,11 +60,15 @@ const navigateToAddDomain = (): void => {
 };
 
 /**
- * Navigate to edit a specific domain
+ * Navigate to edit a specific domain (uses extid for API routes)
  */
 const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
   event.stopPropagation(); // Prevent row selection when clicking gear
-  router.push(`/domains/${encodeURIComponent(domain)}/brand`);
+  const extid = getExtidByDomain(domain);
+  if (extid) {
+    router.push(`/domains/${extid}/brand`);
+  }
+  // Canonical domain has no extid and no settings page
 };
 </script>
 
@@ -144,16 +149,20 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
 
             <!-- Right action area: checkmark (active domain) / gear icon (on hover) -->
             <span class="absolute inset-y-0 right-0 flex items-center pr-3">
-              <!-- Checkmark: visible for active domain, hidden on row hover -->
+              <!-- Checkmark: visible for active domain -->
+              <!-- For custom domains: hidden on row hover to show gear -->
+              <!-- For canonical domain: always visible (no settings page) -->
               <OIcon
                 v-if="isCurrentScope(domain)"
                 collection="heroicons"
                 name="check-20-solid"
-                class="size-5 text-brand-600 group-hover/row:hidden dark:text-brand-400"
+                class="size-5 text-brand-600 dark:text-brand-400"
+                :class="{ 'group-hover/row:hidden': getExtidByDomain(domain) }"
                 aria-hidden="true" />
 
-              <!-- Gear icon: visible on row hover for all domains -->
+              <!-- Gear icon: visible on row hover for custom domains only (not canonical) -->
               <button
+                v-if="getExtidByDomain(domain)"
                 type="button"
                 class="hidden rounded p-0.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 group-hover/row:block dark:text-gray-500 dark:hover:bg-gray-600 dark:hover:text-gray-300"
                 :aria-label="t('web.domains.domain_settings')"
