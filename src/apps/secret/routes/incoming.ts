@@ -1,21 +1,17 @@
 // src/apps/secret/routes/incoming.ts
 
-import ImprovedFooter from '@/shared/components/layout/ImprovedFooter.vue';
-import ImprovedHeader from '@/shared/components/layout/ImprovedHeader.vue';
+import SecretLayout from '@/apps/secret/layouts/SecretLayout.vue';
 import type { RouteRecordRaw } from 'vue-router';
 
 const incomingRoutes: RouteRecordRaw[] = [
   {
     path: '/incoming',
     name: 'IncomingSecretForm',
-    components: {
-      default: () => import('@/apps/secret/conceal/IncomingForm.vue'),
-      header: ImprovedHeader,
-      footer: ImprovedFooter,
-    },
+    component: () => import('@/apps/secret/conceal/IncomingForm.vue'),
     meta: {
       requiresAuth: false,
       title: 'Send a Secret',
+      layout: SecretLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: false,
@@ -28,14 +24,11 @@ const incomingRoutes: RouteRecordRaw[] = [
   {
     path: '/incoming/:metadataKey',
     name: 'IncomingSuccess',
-    components: {
-      default: () => import('@/apps/secret/conceal/IncomingSuccess.vue'),
-      header: ImprovedHeader,
-      footer: ImprovedFooter,
-    },
+    component: () => import('@/apps/secret/conceal/IncomingSuccess.vue'),
     meta: {
       requiresAuth: false,
       title: 'Secret Sent Successfully',
+      layout: SecretLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: false,

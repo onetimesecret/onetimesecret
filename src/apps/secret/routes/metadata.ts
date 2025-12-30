@@ -1,12 +1,10 @@
 // src/apps/secret/routes/metadata.ts
 
-import QuietFooter from '@/shared/components/layout/QuietFooter.vue';
-import QuietHeader from '@/shared/components/layout/QuietHeader.vue';
-import DefaultLayout from '@/shared/layouts/TransactionalLayout.vue';
+import SecretLayout from '@/apps/secret/layouts/SecretLayout.vue';
 import { WindowService } from '@/services/window.service';
 import BurnSecret from '@/apps/secret/reveal/BurnSecret.vue';
 import ShowMetadata from '@/apps/secret/reveal/ShowMetadata.vue';
-import { RouteLocationNormalized, RouteRecordMultipleViews } from 'vue-router';
+import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
 
 /**
  * Type guard that validates a metadata key.
@@ -48,13 +46,9 @@ const withValidatedMetadataKey = {
       return { name: 'Not Found' };
     }
   },
-  props: {
-    default: (route: RouteLocationNormalized) => ({
-      metadataIdentifier: route.params.metadataIdentifier as string,
-    }),
-    header: false,
-    footer: false,
-  },
+  props: (route: RouteLocationNormalized) => ({
+    metadataIdentifier: route.params.metadataIdentifier as string,
+  }),
 } as const;
 
 /**
@@ -64,18 +58,15 @@ const withValidatedMetadataKey = {
  * - /private/:metadataIdentifier/burn - Permanently delete a secret
  * - /receipt/:metadataIdentifier/burn - Alternative path for permanently deleting a secret
  */
-const routes: Array<RouteRecordMultipleViews> = [
+const routes: Array<RouteRecordRaw> = [
   {
     path: '/private/:metadataIdentifier',
     name: 'Metadata link',
-    components: {
-      default: ShowMetadata,
-      header: QuietHeader,
-      footer: QuietFooter,
-    },
+    component: ShowMetadata,
     ...withValidatedMetadataKey,
     meta: {
       title: 'web.TITLES.metadata',
+      layout: SecretLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
@@ -90,14 +81,11 @@ const routes: Array<RouteRecordMultipleViews> = [
   {
     path: '/receipt/:metadataIdentifier',
     name: 'Receipt link',
-    components: {
-      default: ShowMetadata,
-      header: QuietHeader,
-      footer: QuietFooter,
-    },
+    component: ShowMetadata,
     ...withValidatedMetadataKey,
     meta: {
       title: 'web.TITLES.receipt',
+      layout: SecretLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
@@ -112,15 +100,11 @@ const routes: Array<RouteRecordMultipleViews> = [
   {
     path: '/private/:metadataIdentifier/burn',
     name: 'Burn secret',
-    components: {
-      default: BurnSecret,
-      header: QuietHeader,
-      footer: QuietFooter,
-    },
+    component: BurnSecret,
     ...withValidatedMetadataKey,
     meta: {
       title: 'web.TITLES.burn_secret',
-      layout: DefaultLayout,
+      layout: SecretLayout,
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,
@@ -134,15 +118,11 @@ const routes: Array<RouteRecordMultipleViews> = [
   {
     path: '/receipt/:metadataIdentifier/burn',
     name: 'Burn receipt',
-    components: {
-      default: BurnSecret,
-      header: QuietHeader,
-      footer: QuietFooter,
-    },
+    component: BurnSecret,
     ...withValidatedMetadataKey,
     meta: {
       title: 'web.TITLES.burn_secret',
-      layout: DefaultLayout,
+      layout: SecretLayout,
       layoutProps: {
         displayMasthead: false,
         displayNavigation: false,
