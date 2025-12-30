@@ -4,9 +4,11 @@
 
 #
 # Unit tests for Organization entitlements feature - FOCUSED TEST
-# Tests the critical SaaS free tier fix:
-# - When billing_enabled: true but plan cache is empty → return [] (fail-closed)
-# - When billing_enabled: false → return full entitlements (standalone mode)
+# Tests the entitlement fallback hierarchy:
+# - When billing_enabled: false → return STANDALONE_ENTITLEMENTS (full access)
+# - When billing_enabled: true but planid empty → return FREE_TIER_ENTITLEMENTS
+# - When billing_enabled: true and plan in cache → return plan entitlements
+# - When billing_enabled: true but plan cache miss → return FREE_TIER_ENTITLEMENTS (graceful degradation)
 
 require_relative '../../support/test_models'
 
@@ -47,37 +49,41 @@ OT.boot! :test
 @org.limit_for('teams')
 #=> Float::INFINITY
 
-## SAAS MODE TEST: billing enabled with empty planid returns empty array
+## SAAS MODE TEST: billing enabled with empty planid returns FREE tier entitlements
 # Switch to billing enabled mode
 @org.define_singleton_method(:billing_enabled?) { true }
 @org.planid = ""
-@org.entitlements
-#=> []
+@org.entitlements.sort
+#=> Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS.sort
 
-## SaaS empty planid: can? returns false
+## SaaS empty planid: can? returns true for FREE tier entitlements
 @org.can?('api_access')
+#=> true
+
+## SaaS empty planid: can? returns false for premium entitlements
+@org.can?('custom_domains')
 #=> false
 
-## SaaS empty planid: limit_for returns 0
+## SaaS empty planid: limit_for returns FREE tier limit (0 for teams)
 @org.limit_for('teams')
 #=> 0
 
-## SAAS PLAN CACHE MISS TEST: billing enabled but plan not in cache returns empty array (CRITICAL FIX)
+## SAAS PLAN CACHE MISS TEST: billing enabled but plan not in cache returns FREE tier (graceful degradation)
 @org.planid = "nonexistent_plan_#{@timestamp}"
-@org.entitlements
-#=> []
+@org.entitlements.sort
+#=> Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS.sort
 
-## SaaS plan cache miss: can? returns false (fail-closed behavior)
+## SaaS plan cache miss: can? returns true for FREE tier entitlements (api_access is in FREE tier)
 @org.can?('api_access')
-#=> false
+#=> true
 
-## SaaS plan cache miss: limit_for returns 0 (fail-closed behavior)
+## SaaS plan cache miss: limit_for returns FREE tier limit (0 for teams)
 @org.limit_for('teams')
 #=> 0
 
-## SaaS plan cache miss: can? returns false for all entitlements
+## SaaS plan cache miss: can? returns false for premium entitlements not in FREE tier
 [@org.can?('custom_domains'), @org.can?('api_access'), @org.can?('audit_logs')]
-#=> [false, false, false]
+#=> [false, true, false]
 
 # Teardown
 @org.destroy!

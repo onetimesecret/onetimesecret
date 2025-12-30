@@ -327,8 +327,11 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
     context 'organization without planid' do
       let(:no_plan_org) { test_class.new(nil) }
 
-      it 'returns empty array for actual plan' do
-        expect(no_plan_org.entitlements).to eq([])
+      it 'returns FREE tier entitlements for actual plan (graceful degradation)' do
+        # When billing enabled but no planid, fallback to FREE tier
+        expect(no_plan_org.entitlements).to eq(
+          Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS
+        )
       end
 
       it 'returns test plan entitlements when override set' do
@@ -341,8 +344,11 @@ RSpec.describe 'WithEntitlements Test Mode', billing: true do
     context 'organization with empty planid' do
       let(:empty_plan_org) { test_class.new('') }
 
-      it 'returns empty array for actual plan' do
-        expect(empty_plan_org.entitlements).to eq([])
+      it 'returns FREE tier entitlements for actual plan (graceful degradation)' do
+        # When billing enabled but empty planid, fallback to FREE tier
+        expect(empty_plan_org.entitlements).to eq(
+          Onetime::Models::Features::WithEntitlements::FREE_TIER_ENTITLEMENTS
+        )
       end
 
       it 'returns test plan entitlements when override set' do
