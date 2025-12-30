@@ -139,15 +139,15 @@
         :aria-label="item.label"
         :aria-current="isActiveRoute(item.path) ? 'page' : undefined">
         <!-- Icon -->
-        <OIcon collection="heroicons"
-:name="`${item.icon}`"
-class="size-6" />
+        <OIcon
+          collection="heroicons"
+          :name="`${item.icon}`"
+          class="size-6" />
 
         <!-- Count badge (if present) -->
         <span
           v-if="item.count !== undefined && item.count !== null && item.count > 0"
-          class="absolute -right-0.5 -top-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full
-                 bg-brand-500 px-1 text-[10px] font-semibold leading-none text-white shadow-sm"
+          class="bg-brand-500 absolute -top-0.5 -right-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] leading-none font-semibold text-white shadow-sm"
           :aria-label="t('web.layout.mobile_nav_item_count', { count: item.count })">
           {{ item.count > 99 ? '99+' : item.count }}
         </span>
@@ -169,8 +169,12 @@ class="size-6" />
     :aria-label="t('web.layout.site_footer')">
     <div class="container mx-auto max-w-4xl px-4">
       <!-- Footer Links and Feedback Section -->
-      <div v-if="displayFooterLinks" class="mb-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-        <template v-for="link in footerLinks" :key="link.href">
+      <div
+        v-if="displayFooterLinks"
+        class="mb-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+        <template
+          v-for="link in footerLinks"
+          :key="link.href">
           <a
             :href="link.href"
             :target="link.external ? '_blank' : '_self'"
@@ -180,7 +184,9 @@ class="size-6" />
             <span
               v-if="link.external"
               class="ml-0.5 text-xs opacity-60"
-              aria-hidden="true">↗</span>
+              aria-hidden="true"
+              >↗</span
+            >
           </a>
         </template>
 
@@ -201,7 +207,9 @@ class="size-6" />
         gap-2 text-center
         text-xs text-gray-500 dark:text-gray-400">
         <div class="flex items-center gap-x-3">
-          <span v-if="displayVersion" :title="`${t('web.homepage.onetime_secret_literal')} Version`">
+          <span
+            v-if="displayVersion"
+            :title="`${t('web.homepage.onetime_secret_literal')} Version`">
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${windowProps.ot_version}`"
               target="_blank"
@@ -216,7 +224,9 @@ class="size-6" />
             aria-hidden="true">
             •
           </span>
-          <span v-if="displayPoweredBy" :title="`${t('web.homepage.onetime_secret_literal')} Version`">
+          <span
+            v-if="displayPoweredBy"
+            :title="`${t('web.homepage.onetime_secret_literal')} Version`">
             <a
               :href="t('web.COMMON.website_url')"
               target="_blank"

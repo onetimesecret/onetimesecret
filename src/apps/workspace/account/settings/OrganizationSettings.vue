@@ -70,6 +70,12 @@ const {
  */
 const isIdentityPlus = computed(() => can(ENTITLEMENTS.CUSTOM_DOMAINS));
 
+/**
+ * Determine if this is the user's default organization.
+ * Billing is managed through the default organization only.
+ */
+const isDefaultOrganization = computed(() => organization.value?.is_default ?? false);
+
 // Form data
 const formData = ref({
   display_name: '',
@@ -342,7 +348,9 @@ watch(activeTab, async (newTab) => {
             ]">
             {{ t('web.organizations.tabs.members') }}
           </button>
+          <!-- Billing tab only shown for default organization -->
           <button
+            v-if="isDefaultOrganization"
             @click="activeTab = 'billing'"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
@@ -425,8 +433,8 @@ watch(activeTab, async (newTab) => {
                 </p>
               </div>
 
-              <!-- Contact Email -->
-              <div>
+              <!-- Contact Email (only for default organization) -->
+              <div v-if="isDefaultOrganization">
                 <label
                   for="contact-email"
                   class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -443,6 +451,24 @@ watch(activeTab, async (newTab) => {
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {{ t('web.organizations.contact_email_help') }}
                 </p>
+              </div>
+
+              <!-- Billing info notice for non-default organizations -->
+              <div
+                v-else
+                class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+                <div class="flex">
+                  <OIcon
+                    collection="heroicons"
+                    name="information-circle"
+                    class="size-5 flex-shrink-0 text-blue-400 dark:text-blue-300"
+                    aria-hidden="true" />
+                  <div class="ml-3">
+                    <p class="text-sm text-blue-700 dark:text-blue-300">
+                      {{ t('web.organizations.billing_managed_by_default') }}
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <!-- Action Buttons -->
