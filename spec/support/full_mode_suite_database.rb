@@ -40,13 +40,14 @@ module FullModeSuiteDatabase
       require 'auth/database'
       Sequel.extension :migration
 
-      # Use AUTH_DATABASE_URL if provided (e.g., file-based SQLite from CI),
-      # otherwise use in-memory SQLite for local development
+      # Use SQLite for non-PostgreSQL full auth mode tests.
+      # AUTH_DATABASE_URL is reserved for PostgreSQL tests (see postgres_mode_suite_database.rb).
+      # Only use AUTH_DATABASE_URL if it's explicitly a SQLite URL (for CI file-based SQLite).
       database_url = ENV.fetch('AUTH_DATABASE_URL', nil)
-      @database = if database_url && !database_url.empty?
+      @database = if database_url && database_url.start_with?('sqlite')
         Sequel.connect(database_url)
       else
-        Sequel.sqlite  # In-memory SQLite
+        Sequel.sqlite  # In-memory SQLite for local development
       end
 
       # Run Rodauth migrations

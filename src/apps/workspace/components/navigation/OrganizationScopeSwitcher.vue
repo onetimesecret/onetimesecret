@@ -101,11 +101,16 @@ const getOrganizationDisplayName = (org: Organization): string =>
 const isCurrentOrganization = (org: Organization): boolean =>
   currentOrganization.value?.id === org.id;
 
+const STORAGE_KEY = 'selectedOrganizationId';
+
 /**
  * Handle organization selection with optional navigation
  */
 const selectOrganization = (org: Organization): void => {
   organizationStore.setCurrentOrganization(org);
+
+  // Persist selection for session restoration
+  localStorage.setItem(STORAGE_KEY, org.id);
 
   // Handle route-aware navigation based on onOrgSwitch meta
   const switchTarget = onOrgSwitch.value;

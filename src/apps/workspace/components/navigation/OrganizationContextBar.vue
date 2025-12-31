@@ -32,6 +32,27 @@ const {
 
 const isLoaded = ref(false);
 
+const STORAGE_KEY = 'selectedOrganizationId';
+
+/**
+ * Determine which organization should be selected initially.
+ * Priority: localStorage saved org > default org > first org
+ */
+function getInitialOrganization() {
+  const orgs = organizationStore.organizations;
+  if (orgs.length === 0) return null;
+
+  // Try to restore from localStorage
+  const savedOrgId = localStorage.getItem(STORAGE_KEY);
+  if (savedOrgId) {
+    const savedOrg = orgs.find((o) => o.id === savedOrgId || o.extid === savedOrgId);
+    if (savedOrg) return savedOrg;
+  }
+
+  // Fall back to default org, then first org
+  return orgs.find((o) => o.is_default) ?? orgs[0];
+}
+
 // Fetch organizations on mount to determine visibility
 onMounted(async () => {
   if (!organizationStore.hasOrganizations) {
@@ -46,6 +67,15 @@ onMounted(async () => {
       }
     }
   }
+
+  // Initialize currentOrganization if not already set
+  if (!organizationStore.currentOrganization && organizationStore.hasOrganizations) {
+    const initialOrg = getInitialOrganization();
+    if (initialOrg) {
+      organizationStore.setCurrentOrganization(initialOrg);
+    }
+  }
+
   isLoaded.value = true;
 });
 

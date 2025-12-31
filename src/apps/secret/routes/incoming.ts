@@ -2,6 +2,7 @@
 
 import SecretLayout from '@/apps/secret/layouts/SecretLayout.vue';
 import type { RouteRecordRaw } from 'vue-router';
+import { SCOPE_PRESETS } from '@/types/router';
 
 const incomingRoutes: RouteRecordRaw[] = [
   {
@@ -19,6 +20,7 @@ const incomingRoutes: RouteRecordRaw[] = [
         displayVersion: false,
         displayToggles: true,
       },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -36,6 +38,7 @@ const incomingRoutes: RouteRecordRaw[] = [
         displayVersion: false,
         displayToggles: true,
       },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
 ];
