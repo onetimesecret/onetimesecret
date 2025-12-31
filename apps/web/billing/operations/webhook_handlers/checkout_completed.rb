@@ -46,23 +46,24 @@ module Billing
           subscription = Stripe::Subscription.retrieve(session.subscription)
           metadata     = subscription.metadata
 
-          custid = metadata['custid']
-          unless custid
-            billing_logger.warn 'No custid in subscription metadata', {
+          # Support both new (customer_extid) and legacy (custid) metadata formats
+          customer_extid = metadata['customer_extid'] || metadata['custid']
+          unless customer_extid
+            billing_logger.warn 'No customer_extid in subscription metadata', {
               subscription_id: subscription.id,
             }
             return :skipped
           end
 
-          unless valid_identifier?(custid)
-            billing_logger.warn 'Invalid custid format in subscription metadata', {
+          unless valid_identifier?(customer_extid)
+            billing_logger.warn 'Invalid customer_extid format in subscription metadata', {
               subscription_id: subscription.id,
-              custid: custid.to_s[0, 50], # Truncate for safety
+              customer_extid: customer_extid.to_s[0, 50], # Truncate for safety
             }
             return :skipped
           end
 
-          customer = load_customer(custid)
+          customer = load_customer(customer_extid)
           return :not_found unless customer
 
           # Find the specific org that initiated checkout (from subscription metadata)
@@ -84,7 +85,7 @@ module Billing
           billing_logger.info 'Checkout completed - organization subscription activated', {
             orgid: org.objid,
             subscription_id: subscription.id,
-            custid: custid,
+            customer_extid: customer_extid,
           }
 
           # Future: Send welcome notification unless skip_notifications?
@@ -99,10 +100,10 @@ module Billing
           value.match?(UUID_PATTERN) || value.match?(EXTID_PATTERN) || value.match?(EMAIL_PATTERN)
         end
 
-        def load_customer(custid)
-          customer = Onetime::Customer.load(custid)
+        def load_customer(customer_extid)
+          customer = Onetime::Customer.find_by_extid(customer_extid)
           unless customer
-            billing_logger.error 'Customer not found', { custid: custid }
+            billing_logger.error 'Customer not found', { customer_extid: customer_extid }
           end
           customer
         end

@@ -216,22 +216,23 @@ module Billing
         def process
           return success_data unless subscription
 
-          metadata = subscription.metadata
-          custid   = metadata['custid']
-          plan_id  = metadata['plan_id']
+          metadata        = subscription.metadata
+          # Support both new (customer_extid) and legacy (custid) metadata formats
+          customer_extid  = metadata['customer_extid'] || metadata['custid']
+          plan_id         = metadata['plan_id']
 
           OT.info '[ProcessCheckoutSession] Processing checkout', {
             session_id: session_id,
-            custid: custid,
+            customer_extid: customer_extid,
             plan_id: plan_id,
             subscription_id: subscription.id,
           }
 
           # Load the actual customer from metadata (session may be anonymous after Stripe redirect)
-          # The custid was embedded in subscription metadata when checkout was created
-          customer = Onetime::Customer.load(custid)
+          # The customer_extid was embedded in subscription metadata when checkout was created
+          customer = Onetime::Customer.find_by_extid(customer_extid)
           unless customer
-            OT.le "[ProcessCheckoutSession] Customer not found: #{custid}"
+            OT.le "[ProcessCheckoutSession] Customer not found: #{customer_extid}"
             raise_form_error 'Customer not found'
           end
 
