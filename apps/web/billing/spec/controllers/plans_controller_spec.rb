@@ -100,7 +100,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       session_id = last_response.location.match(%r{/pay/([^?]+)})[1]
       session    = Stripe::Checkout::Session.retrieve(session_id)
 
-      expect(session.subscription_data['metadata']['custid']).to eq(customer.custid)
+      expect(session.subscription_data['metadata']['customer_extid']).to eq(customer.extid)
     end
 
     it 'redirects to /signup when plan is not found', :vcr do
@@ -171,7 +171,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
         customer: stripe_customer.id,
         items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test') }],
         metadata: {
-          custid: customer.custid,
+          customer_extid: customer.extid,
           plan_id: 'identity_v1',
           tier: 'single_team',
         },
@@ -222,7 +222,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
         customer: stripe_customer.id,
         items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test') }],
         metadata: {
-          custid: new_customer.custid,
+          customer_extid: new_customer.extid,
           plan_id: 'identity_v1',
         },
       )

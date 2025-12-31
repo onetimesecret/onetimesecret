@@ -38,7 +38,7 @@ RSpec.describe 'ProcessWebhookEvent: customer.subscription.deleted', :integratio
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'canceled',
-        metadata: { 'custid' => customer.custid },
+        metadata: { 'customer_extid' => customer.extid },
       )
     end
 
@@ -72,7 +72,7 @@ RSpec.describe 'ProcessWebhookEvent: customer.subscription.deleted', :integratio
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'canceled',
-        metadata: { 'custid' => 'unknown_custid' },
+        metadata: { 'customer_extid' => 'unknown_extid' },
       )
     end
 

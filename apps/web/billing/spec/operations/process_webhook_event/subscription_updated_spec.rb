@@ -38,7 +38,7 @@ RSpec.describe 'ProcessWebhookEvent: customer.subscription.updated', :integratio
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'past_due',
-        metadata: { 'custid' => customer.custid },
+        metadata: { 'customer_extid' => customer.extid },
       )
     end
 
@@ -66,7 +66,7 @@ RSpec.describe 'ProcessWebhookEvent: customer.subscription.updated', :integratio
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'past_due',
-        metadata: { 'custid' => 'unknown_custid' },
+        metadata: { 'customer_extid' => 'unknown_extid' },
       )
     end
 

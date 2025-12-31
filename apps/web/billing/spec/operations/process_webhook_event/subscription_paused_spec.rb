@@ -38,7 +38,7 @@ RSpec.describe 'ProcessWebhookEvent: customer.subscription.paused', :integration
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'paused',
-        metadata: { 'custid' => customer.custid },
+        metadata: { 'customer_extid' => customer.extid },
       )
     end
 
@@ -72,7 +72,7 @@ RSpec.describe 'ProcessWebhookEvent: customer.subscription.paused', :integration
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'paused',
-        metadata: { 'custid' => 'unknown_custid' },
+        metadata: { 'customer_extid' => 'unknown_extid' },
       )
     end
 

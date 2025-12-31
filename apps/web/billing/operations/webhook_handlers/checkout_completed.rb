@@ -16,8 +16,10 @@ module Billing
         # UUID format: 8-4-4-4-12 hex chars (e.g., 019b1598-b0ec-760a-85ae-a1391283a1dc)
         UUID_PATTERN = /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
 
-        # External ID format: prefix + UUID (e.g., ur019b1598-b0ec-760a-85ae-a1391283a1dc)
-        EXTID_PATTERN = /\A[a-z]{2}[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i
+        # External ID format: 2-letter prefix + base36 (25 alphanumeric chars)
+        # Derived deterministically from objid via Familia's ExternalIdentifier feature
+        # e.g., urasakn4f2nl2ew0pq275ky8j3v
+        EXTID_PATTERN = /\A[a-z]{2}[a-z0-9]{25}\z/i
 
         # Basic email format (legacy custid format, pre-v0.22)
         EMAIL_PATTERN = /\A[^@\s]+@[^@\s]+\.[^@\s]+\z/

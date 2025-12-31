@@ -188,35 +188,35 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
     end
   end
 
-  context 'with missing custid in metadata' do
-    let(:subscription_no_custid) do
+  context 'with missing customer_extid in metadata' do
+    let(:subscription_no_customer_extid) do
       build_stripe_subscription(id: stripe_subscription_id, customer: stripe_customer_id, status: 'active', metadata: {})
     end
 
     before do
-      allow(Stripe::Subscription).to receive(:retrieve).and_return(subscription_no_custid)
+      allow(Stripe::Subscription).to receive(:retrieve).and_return(subscription_no_customer_extid)
     end
 
-    it 'returns :skipped when custid is missing' do
+    it 'returns :skipped when customer_extid is missing' do
       expect(operation.call).to eq(:skipped)
     end
   end
 
-  context 'with invalid custid format' do
-    let(:subscription_invalid_custid) do
+  context 'with invalid customer_extid format' do
+    let(:subscription_invalid_customer_extid) do
       build_stripe_subscription(
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'active',
-        metadata: { 'custid' => '../../../etc/passwd' }, # Malformed input
+        metadata: { 'customer_extid' => '../../../etc/passwd' }, # Malformed input
       )
     end
 
     before do
-      allow(Stripe::Subscription).to receive(:retrieve).and_return(subscription_invalid_custid)
+      allow(Stripe::Subscription).to receive(:retrieve).and_return(subscription_invalid_customer_extid)
     end
 
-    it 'returns :skipped when custid format is invalid' do
+    it 'returns :skipped when customer_extid format is invalid' do
       expect(operation.call).to eq(:skipped)
     end
 
@@ -232,7 +232,7 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'active',
-        metadata: { 'custid' => 'nonexistent@example.com' },
+        metadata: { 'customer_extid' => 'urnonexistent00000000000000' },
       )
     end
 

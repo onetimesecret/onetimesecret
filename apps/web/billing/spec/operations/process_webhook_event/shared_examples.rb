@@ -23,7 +23,7 @@ module ProcessWebhookEventHelpers
   # @param id [String] Subscription ID
   # @param customer [String] Customer ID
   # @param status [String] Subscription status
-  # @param metadata [Hash] Subscription-level metadata (e.g., custid, plan_id)
+  # @param metadata [Hash] Subscription-level metadata (e.g., customer_extid, plan_id)
   # @param price_metadata [Hash] Price-level metadata (fallback for plan_id)
   # @param current_period_end [Integer] Unix timestamp
   def build_stripe_subscription(id:, customer:, status:, metadata: {}, price_metadata: {}, current_period_end: nil)

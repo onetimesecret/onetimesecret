@@ -118,7 +118,7 @@ RSpec.describe 'Billing::Logic::Welcome::ProcessCheckoutSession', :billing do
           customer: stripe_customer_id,
           status: 'active',
           metadata: {
-            'custid' => customer.custid,
+            'customer_extid' => customer.extid,
             Billing::Metadata::FIELD_PLAN_ID => 'identity_plus_v1',
           },
         )

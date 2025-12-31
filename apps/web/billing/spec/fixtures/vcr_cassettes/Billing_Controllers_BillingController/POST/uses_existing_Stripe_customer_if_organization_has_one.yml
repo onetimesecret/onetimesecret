@@ -2687,7 +2687,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/checkout/sessions
     body:
       encoding: UTF-8
-      string: mode=subscription&line_items[0][price]=price_1SWv3WH54PcLeqtY0vDIgLta&line_items[0][quantity]=1&success_url=http%3A%2F%2Fdev.onetime.dev%2Fbilling%2Fwelcome%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D&cancel_url=http%3A%2F%2Fdev.onetime.dev%2Faccount&client_reference_id=019b5567-263e-7a6a-9f2a-db565ebb26e3&locale=en&subscription_data[metadata][orgid]=019b5567-263e-7a6a-9f2a-db565ebb26e3&subscription_data[metadata][plan_id]=team_plus_v1_monthly&subscription_data[metadata][tier]=single_team&subscription_data[metadata][region]=EU&subscription_data[metadata][custid]=019b5567-2629-7e06-a2ff-5059a8389503&customer=cus_TfYQRbcmg7Zkj7
+      string: mode=subscription&line_items[0][price]=price_1SWv3WH54PcLeqtY0vDIgLta&line_items[0][quantity]=1&success_url=http%3A%2F%2Fdev.onetime.dev%2Fbilling%2Fwelcome%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D&cancel_url=http%3A%2F%2Fdev.onetime.dev%2Faccount&client_reference_id=019b5567-263e-7a6a-9f2a-db565ebb26e3&locale=en&subscription_data[metadata][orgid]=019b5567-263e-7a6a-9f2a-db565ebb26e3&subscription_data[metadata][plan_id]=team_plus_v1_monthly&subscription_data[metadata][tier]=single_team&subscription_data[metadata][region]=EU&subscription_data[metadata][customer_extid]=019b5567-2629-7e06-a2ff-5059a8389503&customer=cus_TfYQRbcmg7Zkj7
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -10980,7 +10980,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/checkout/sessions
     body:
       encoding: UTF-8
-      string: mode=subscription&line_items[0][price]=price_1SWv3WH54PcLeqtY0vDIgLta&line_items[0][quantity]=1&success_url=http%3A%2F%2Fdev.onetime.dev%2Fbilling%2Fwelcome%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D&cancel_url=http%3A%2F%2Fdev.onetime.dev%2Faccount&client_reference_id=019b688a-fa4d-7e57-8b6b-2de0c9dfadf2&locale=en&subscription_data[metadata][orgid]=019b688a-fa4d-7e57-8b6b-2de0c9dfadf2&subscription_data[metadata][plan_id]=team_plus_v1_monthly&subscription_data[metadata][tier]=single_team&subscription_data[metadata][region]=EU&subscription_data[metadata][custid]=019b688a-fa3a-7654-ac1d-5495fdfb1ac7&customer=cus_TgwkdHudjVVsjC
+      string: mode=subscription&line_items[0][price]=price_1SWv3WH54PcLeqtY0vDIgLta&line_items[0][quantity]=1&success_url=http%3A%2F%2Fdev.onetime.dev%2Fbilling%2Fwelcome%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D&cancel_url=http%3A%2F%2Fdev.onetime.dev%2Faccount&client_reference_id=019b688a-fa4d-7e57-8b6b-2de0c9dfadf2&locale=en&subscription_data[metadata][orgid]=019b688a-fa4d-7e57-8b6b-2de0c9dfadf2&subscription_data[metadata][plan_id]=team_plus_v1_monthly&subscription_data[metadata][tier]=single_team&subscription_data[metadata][region]=EU&subscription_data[metadata][customer_extid]=019b688a-fa3a-7654-ac1d-5495fdfb1ac7&customer=cus_TgwkdHudjVVsjC
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -11336,7 +11336,7 @@ http_interactions:
     uri: https://api.stripe.com/v1/checkout/sessions
     body:
       encoding: UTF-8
-      string: mode=subscription&line_items[0][price]=price_1SWv3WH54PcLeqtY0vDIgLta&line_items[0][quantity]=1&success_url=https%3A%2F%2F127.0.0.1%3A3000%2Fbilling%2Fwelcome%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D&cancel_url=https%3A%2F%2F127.0.0.1%3A3000%2Faccount&client_reference_id=019b6892-7c4c-7de1-a086-258149346e5d&locale=en&subscription_data[metadata][orgid]=019b6892-7c4c-7de1-a086-258149346e5d&subscription_data[metadata][plan_id]=team_plus_v1_monthly&subscription_data[metadata][tier]=single_team&subscription_data[metadata][region]=EU&subscription_data[metadata][custid]=019b6892-7c43-77e8-bf74-3f11422e5814&customer=cus_TgwkdHudjVVsjC
+      string: mode=subscription&line_items[0][price]=price_1SWv3WH54PcLeqtY0vDIgLta&line_items[0][quantity]=1&success_url=https%3A%2F%2F127.0.0.1%3A3000%2Fbilling%2Fwelcome%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D&cancel_url=https%3A%2F%2F127.0.0.1%3A3000%2Faccount&client_reference_id=019b6892-7c4c-7de1-a086-258149346e5d&locale=en&subscription_data[metadata][orgid]=019b6892-7c4c-7de1-a086-258149346e5d&subscription_data[metadata][plan_id]=team_plus_v1_monthly&subscription_data[metadata][tier]=single_team&subscription_data[metadata][region]=EU&subscription_data[metadata][customer_extid]=019b6892-7c43-77e8-bf74-3f11422e5814&customer=cus_TgwkdHudjVVsjC
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
@@ -27486,4 +27486,1186 @@ http_interactions:
           "wallet_options": null
         }
   recorded_at: Wed, 31 Dec 2025 06:39:42 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/checkout/sessions
+    body:
+      encoding: UTF-8
+      string: mode=subscription&line_items[0][price]=price_1SWv3WH54PcLeqtY0vDIgLta&line_items[0][quantity]=1&success_url=http%3A%2F%2Fdev.onetime.dev%2Fbilling%2Fwelcome%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D&cancel_url=http%3A%2F%2Fdev.onetime.dev%2Faccount&client_reference_id=019b734e-06a3-7169-9814-c78146c6330e&locale=en&subscription_data[metadata][orgid]=019b734e-06a3-7169-9814-c78146c6330e&subscription_data[metadata][plan_id]=team_plus_v1_monthly&subscription_data[metadata][tier]=single_team&subscription_data[metadata][region]=EU&subscription_data[metadata][customer_extid]=ur3wfvnxq6yj06b204hvsq63zpe&customer=cus_ThhzsQaimxbCuY
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      Idempotency-Key:
+      - 3efca599cabd9b72299c634004f5bb2bc51f91cbbd8d4c7f4ce40a8bd1a144c2
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 31 Dec 2025 07:27:32 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '3076'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=ORKX26-B2s4NKDa8T9mZu59PLSl4dD6NAMFZ078a1zM7uujizWdM9OGBVG1mwPe3pdb63lIXbySWWKvj
+      Idempotency-Key:
+      - 3efca599cabd9b72299c634004f5bb2bc51f91cbbd8d4c7f4ce40a8bd1a144c2
+      Original-Request:
+      - req_0Ux1FmjhnSL7me
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "cs_test_a1Dc9aqXYANNgGhkrRuzugUBj3TETmLY4m0ad77Ohe0S0HN29aEWVyVdts",
+          "object": "checkout.session",
+          "adaptive_pricing": {
+            "enabled": false
+          },
+          "after_expiration": null,
+          "allow_promotion_codes": null,
+          "amount_subtotal": 9900,
+          "amount_total": 9900,
+          "automatic_tax": {
+            "enabled": false,
+            "liability": null,
+            "provider": null,
+            "status": null
+          },
+          "billing_address_collection": null,
+          "branding_settings": {
+            "background_color": "#749220",
+            "border_style": "rounded",
+            "button_color": "#d69d00",
+            "display_name": "Onetime.dev (automated tests)",
+            "font_family": "default",
+            "icon": null,
+            "logo": null
+          },
+          "cancel_url": "http://dev.onetime.dev/account",
+          "client_reference_id": "019b734e-06a3-7169-9814-c78146c6330e",
+          "client_secret": null,
+          "collected_information": null,
+          "consent": null,
+          "consent_collection": null,
+          "created": 1767166052,
+          "currency": "usd",
+          "currency_conversion": null,
+          "custom_fields": [],
+          "custom_text": {
+            "after_submit": null,
+            "shipping_address": null,
+            "submit": null,
+            "terms_of_service_acceptance": null
+          },
+          "customer": "cus_ThhzsQaimxbCuY",
+          "customer_account": null,
+          "customer_creation": null,
+          "customer_details": null,
+          "customer_email": null,
+          "discounts": [],
+          "expires_at": 1767252452,
+          "invoice": null,
+          "invoice_creation": null,
+          "livemode": false,
+          "locale": "en",
+          "metadata": {},
+          "mode": "subscription",
+          "origin_context": null,
+          "payment_intent": null,
+          "payment_link": null,
+          "payment_method_collection": "always",
+          "payment_method_configuration_details": {
+            "id": "pmc_1SRUXyH54PcLeqtYWyNOGMZj",
+            "parent": null
+          },
+          "payment_method_options": {
+            "card": {
+              "request_three_d_secure": "automatic"
+            }
+          },
+          "payment_method_types": [
+            "card",
+            "link"
+          ],
+          "payment_status": "unpaid",
+          "permissions": null,
+          "phone_number_collection": {
+            "enabled": false
+          },
+          "recovered_from": null,
+          "saved_payment_method_options": {
+            "allow_redisplay_filters": [
+              "always"
+            ],
+            "payment_method_remove": "disabled",
+            "payment_method_save": null
+          },
+          "setup_intent": null,
+          "shipping_address_collection": null,
+          "shipping_cost": null,
+          "shipping_options": [],
+          "status": "open",
+          "submit_type": null,
+          "subscription": null,
+          "success_url": "http://dev.onetime.dev/billing/welcome?session_id={CHECKOUT_SESSION_ID}",
+          "total_details": {
+            "amount_discount": 0,
+            "amount_shipping": 0,
+            "amount_tax": 0
+          },
+          "ui_mode": "hosted",
+          "url": "https://checkout.stripe.com/c/pay/cs_test_a1Dc9aqXYANNgGhkrRuzugUBj3TETmLY4m0ad77Ohe0S0HN29aEWVyVdts#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdpamZkaWAnPydgaycpJ3ZwZ3Zmd2x1cWxqa1BrbHRwYGtgdnZAa2RnaWBhJz9jZGl2YCknZHVsTmB8Jz8ndW5acWB2cVowNFZXUF1UTTAxVWZJYHRxXEY0ZkRjV1NgQ1FxTzM9V2pmcnFNb0diPTxsVz1pb2dyTDVLR2YyS392NWZRUkBTYHRgNlZPYkBCN11jQlVsYWpyN0EzbX1qbzU1UmxHXXFWcU8nKSdjd2poVmB3c2B3Jz9xd3BgKSdnZGZuYndqcGthRmppancnPycmMjE8Nzc1JyknaWR8anBxUXx1YCc%2FJ3Zsa2JpYFpscWBoJyknYGtkZ2lgVWlkZmBtamlhYHd2Jz9xd3BgeCUl",
+          "wallet_options": null
+        }
+  recorded_at: Wed, 31 Dec 2025 07:27:32 GMT
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/checkout/sessions/cs_test_a1Dc9aqXYANNgGhkrRuzugUBj3TETmLY4m0ad77Ohe0S0HN29aEWVyVdts
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_0Ux1FmjhnSL7me","request_duration_ms":571}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 31 Dec 2025 07:27:33 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '3076'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=ORKX26-B2s4NKDa8T9mZu59PLSl4dD6NAMFZ078a1zM7uujizWdM9OGBVG1mwPe3pdb63lIXbySWWKvj
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "cs_test_a1Dc9aqXYANNgGhkrRuzugUBj3TETmLY4m0ad77Ohe0S0HN29aEWVyVdts",
+          "object": "checkout.session",
+          "adaptive_pricing": {
+            "enabled": false
+          },
+          "after_expiration": null,
+          "allow_promotion_codes": null,
+          "amount_subtotal": 9900,
+          "amount_total": 9900,
+          "automatic_tax": {
+            "enabled": false,
+            "liability": null,
+            "provider": null,
+            "status": null
+          },
+          "billing_address_collection": null,
+          "branding_settings": {
+            "background_color": "#749220",
+            "border_style": "rounded",
+            "button_color": "#d69d00",
+            "display_name": "Onetime.dev (automated tests)",
+            "font_family": "default",
+            "icon": null,
+            "logo": null
+          },
+          "cancel_url": "http://dev.onetime.dev/account",
+          "client_reference_id": "019b734e-06a3-7169-9814-c78146c6330e",
+          "client_secret": null,
+          "collected_information": null,
+          "consent": null,
+          "consent_collection": null,
+          "created": 1767166052,
+          "currency": "usd",
+          "currency_conversion": null,
+          "custom_fields": [],
+          "custom_text": {
+            "after_submit": null,
+            "shipping_address": null,
+            "submit": null,
+            "terms_of_service_acceptance": null
+          },
+          "customer": "cus_ThhzsQaimxbCuY",
+          "customer_account": null,
+          "customer_creation": null,
+          "customer_details": null,
+          "customer_email": null,
+          "discounts": [],
+          "expires_at": 1767252452,
+          "invoice": null,
+          "invoice_creation": null,
+          "livemode": false,
+          "locale": "en",
+          "metadata": {},
+          "mode": "subscription",
+          "origin_context": null,
+          "payment_intent": null,
+          "payment_link": null,
+          "payment_method_collection": "always",
+          "payment_method_configuration_details": {
+            "id": "pmc_1SRUXyH54PcLeqtYWyNOGMZj",
+            "parent": null
+          },
+          "payment_method_options": {
+            "card": {
+              "request_three_d_secure": "automatic"
+            }
+          },
+          "payment_method_types": [
+            "card",
+            "link"
+          ],
+          "payment_status": "unpaid",
+          "permissions": null,
+          "phone_number_collection": {
+            "enabled": false
+          },
+          "recovered_from": null,
+          "saved_payment_method_options": {
+            "allow_redisplay_filters": [
+              "always"
+            ],
+            "payment_method_remove": "disabled",
+            "payment_method_save": null
+          },
+          "setup_intent": null,
+          "shipping_address_collection": null,
+          "shipping_cost": null,
+          "shipping_options": [],
+          "status": "open",
+          "submit_type": null,
+          "subscription": null,
+          "success_url": "http://dev.onetime.dev/billing/welcome?session_id={CHECKOUT_SESSION_ID}",
+          "total_details": {
+            "amount_discount": 0,
+            "amount_shipping": 0,
+            "amount_tax": 0
+          },
+          "ui_mode": "hosted",
+          "url": "https://checkout.stripe.com/c/pay/cs_test_a1Dc9aqXYANNgGhkrRuzugUBj3TETmLY4m0ad77Ohe0S0HN29aEWVyVdts#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdpamZkaWAnPydgaycpJ3ZwZ3Zmd2x1cWxqa1BrbHRwYGtgdnZAa2RnaWBhJz9jZGl2YCknZHVsTmB8Jz8ndW5acWB2cVowNFZXUF1UTTAxVWZJYHRxXEY0ZkRjV1NgQ1FxTzM9V2pmcnFNb0diPTxsVz1pb2dyTDVLR2YyS392NWZRUkBTYHRgNlZPYkBCN11jQlVsYWpyN0EzbX1qbzU1UmxHXXFWcU8nKSdjd2poVmB3c2B3Jz9xd3BgKSdnZGZuYndqcGthRmppancnPycmMjE8Nzc1JyknaWR8anBxUXx1YCc%2FJ3Zsa2JpYFpscWBoJyknYGtkZ2lgVWlkZmBtamlhYHd2Jz9xd3BgeCUl",
+          "wallet_options": null
+        }
+  recorded_at: Wed, 31 Dec 2025 07:27:33 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/checkout/sessions
+    body:
+      encoding: UTF-8
+      string: mode=subscription&line_items[0][price]=price_1SWv3WH54PcLeqtY0vDIgLta&line_items[0][quantity]=1&success_url=http%3A%2F%2Fdev.onetime.dev%2Fbilling%2Fwelcome%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D&cancel_url=http%3A%2F%2Fdev.onetime.dev%2Faccount&client_reference_id=019b7352-03d3-7761-aa4e-613253839334&locale=en&subscription_data[metadata][orgid]=019b7352-03d3-7761-aa4e-613253839334&subscription_data[metadata][plan_id]=team_plus_v1_monthly&subscription_data[metadata][tier]=single_team&subscription_data[metadata][region]=EU&subscription_data[metadata][customer_extid]=ur9e05pjdv2qh4j130r7p8pa145&customer=cus_ThhzsQaimxbCuY
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      Idempotency-Key:
+      - 1f3c9bfafb2bb698020a02883eb29e6a2fc19e6543c55cb29a012c29ddcf825d
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 31 Dec 2025 07:31:54 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '3076'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=qz_917kphH-FA9KIvqgqUJbRLmBIBLCWlCEoeIA061XMY7dsG77H5pr2m8QsIuc8Lye2Tlnoyb6iW_so
+      Idempotency-Key:
+      - 1f3c9bfafb2bb698020a02883eb29e6a2fc19e6543c55cb29a012c29ddcf825d
+      Original-Request:
+      - req_0i3wISwOCTI7vK
+      Stripe-Should-Retry:
+      - 'false'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "cs_test_a1kZHuups7ZOcI1qPcdlPeklUTNa1Wy3SptsZAErdNOchRkkvxAt8g3th5",
+          "object": "checkout.session",
+          "adaptive_pricing": {
+            "enabled": false
+          },
+          "after_expiration": null,
+          "allow_promotion_codes": null,
+          "amount_subtotal": 9900,
+          "amount_total": 9900,
+          "automatic_tax": {
+            "enabled": false,
+            "liability": null,
+            "provider": null,
+            "status": null
+          },
+          "billing_address_collection": null,
+          "branding_settings": {
+            "background_color": "#749220",
+            "border_style": "rounded",
+            "button_color": "#d69d00",
+            "display_name": "Onetime.dev (automated tests)",
+            "font_family": "default",
+            "icon": null,
+            "logo": null
+          },
+          "cancel_url": "http://dev.onetime.dev/account",
+          "client_reference_id": "019b7352-03d3-7761-aa4e-613253839334",
+          "client_secret": null,
+          "collected_information": null,
+          "consent": null,
+          "consent_collection": null,
+          "created": 1767166314,
+          "currency": "usd",
+          "currency_conversion": null,
+          "custom_fields": [],
+          "custom_text": {
+            "after_submit": null,
+            "shipping_address": null,
+            "submit": null,
+            "terms_of_service_acceptance": null
+          },
+          "customer": "cus_ThhzsQaimxbCuY",
+          "customer_account": null,
+          "customer_creation": null,
+          "customer_details": null,
+          "customer_email": null,
+          "discounts": [],
+          "expires_at": 1767252714,
+          "invoice": null,
+          "invoice_creation": null,
+          "livemode": false,
+          "locale": "en",
+          "metadata": {},
+          "mode": "subscription",
+          "origin_context": null,
+          "payment_intent": null,
+          "payment_link": null,
+          "payment_method_collection": "always",
+          "payment_method_configuration_details": {
+            "id": "pmc_1SRUXyH54PcLeqtYWyNOGMZj",
+            "parent": null
+          },
+          "payment_method_options": {
+            "card": {
+              "request_three_d_secure": "automatic"
+            }
+          },
+          "payment_method_types": [
+            "card",
+            "link"
+          ],
+          "payment_status": "unpaid",
+          "permissions": null,
+          "phone_number_collection": {
+            "enabled": false
+          },
+          "recovered_from": null,
+          "saved_payment_method_options": {
+            "allow_redisplay_filters": [
+              "always"
+            ],
+            "payment_method_remove": "disabled",
+            "payment_method_save": null
+          },
+          "setup_intent": null,
+          "shipping_address_collection": null,
+          "shipping_cost": null,
+          "shipping_options": [],
+          "status": "open",
+          "submit_type": null,
+          "subscription": null,
+          "success_url": "http://dev.onetime.dev/billing/welcome?session_id={CHECKOUT_SESSION_ID}",
+          "total_details": {
+            "amount_discount": 0,
+            "amount_shipping": 0,
+            "amount_tax": 0
+          },
+          "ui_mode": "hosted",
+          "url": "https://checkout.stripe.com/c/pay/cs_test_a1kZHuups7ZOcI1qPcdlPeklUTNa1Wy3SptsZAErdNOchRkkvxAt8g3th5#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdpamZkaWAnPydgaycpJ3ZwZ3Zmd2x1cWxqa1BrbHRwYGtgdnZAa2RnaWBhJz9jZGl2YCknZHVsTmB8Jz8ndW5acWB2cVowNFZXUF1UTTAxVWZJYHRxXEY0ZkRjV1NgQ1FxTzM9V2pmcnFNb0diPTxsVz1pb2dyTDVLR2YyS392NWZRUkBTYHRgNlZPYkBCN11jQlVsYWpyN0EzbX1qbzU1UmxHXXFWcU8nKSdjd2poVmB3c2B3Jz9xd3BgKSdnZGZuYndqcGthRmppancnPycmMjE8Nzc1JyknaWR8anBxUXx1YCc%2FJ3Zsa2JpYFpscWBoJyknYGtkZ2lgVWlkZmBtamlhYHd2Jz9xd3BgeCUl",
+          "wallet_options": null
+        }
+  recorded_at: Wed, 31 Dec 2025 07:31:54 GMT
+- request:
+    method: get
+    uri: https://api.stripe.com/v1/checkout/sessions/cs_test_a1kZHuups7ZOcI1qPcdlPeklUTNa1Wy3SptsZAErdNOchRkkvxAt8g3th5
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_0i3wISwOCTI7vK","request_duration_ms":491}}'
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 31 Dec 2025 07:31:54 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '3076'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=qz_917kphH-FA9KIvqgqUJbRLmBIBLCWlCEoeIA061XMY7dsG77H5pr2m8QsIuc8Lye2Tlnoyb6iW_so
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      Vary:
+      - Origin
+      X-Stripe-Priority-Routing-Enabled:
+      - 'true'
+      X-Stripe-Routing-Context-Priority-Tier:
+      - api-testmode
+      X-Wc:
+      - ABGHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+    body:
+      encoding: UTF-8
+      string: |-
+        {
+          "id": "cs_test_a1kZHuups7ZOcI1qPcdlPeklUTNa1Wy3SptsZAErdNOchRkkvxAt8g3th5",
+          "object": "checkout.session",
+          "adaptive_pricing": {
+            "enabled": false
+          },
+          "after_expiration": null,
+          "allow_promotion_codes": null,
+          "amount_subtotal": 9900,
+          "amount_total": 9900,
+          "automatic_tax": {
+            "enabled": false,
+            "liability": null,
+            "provider": null,
+            "status": null
+          },
+          "billing_address_collection": null,
+          "branding_settings": {
+            "background_color": "#749220",
+            "border_style": "rounded",
+            "button_color": "#d69d00",
+            "display_name": "Onetime.dev (automated tests)",
+            "font_family": "default",
+            "icon": null,
+            "logo": null
+          },
+          "cancel_url": "http://dev.onetime.dev/account",
+          "client_reference_id": "019b7352-03d3-7761-aa4e-613253839334",
+          "client_secret": null,
+          "collected_information": null,
+          "consent": null,
+          "consent_collection": null,
+          "created": 1767166314,
+          "currency": "usd",
+          "currency_conversion": null,
+          "custom_fields": [],
+          "custom_text": {
+            "after_submit": null,
+            "shipping_address": null,
+            "submit": null,
+            "terms_of_service_acceptance": null
+          },
+          "customer": "cus_ThhzsQaimxbCuY",
+          "customer_account": null,
+          "customer_creation": null,
+          "customer_details": null,
+          "customer_email": null,
+          "discounts": [],
+          "expires_at": 1767252714,
+          "invoice": null,
+          "invoice_creation": null,
+          "livemode": false,
+          "locale": "en",
+          "metadata": {},
+          "mode": "subscription",
+          "origin_context": null,
+          "payment_intent": null,
+          "payment_link": null,
+          "payment_method_collection": "always",
+          "payment_method_configuration_details": {
+            "id": "pmc_1SRUXyH54PcLeqtYWyNOGMZj",
+            "parent": null
+          },
+          "payment_method_options": {
+            "card": {
+              "request_three_d_secure": "automatic"
+            }
+          },
+          "payment_method_types": [
+            "card",
+            "link"
+          ],
+          "payment_status": "unpaid",
+          "permissions": null,
+          "phone_number_collection": {
+            "enabled": false
+          },
+          "recovered_from": null,
+          "saved_payment_method_options": {
+            "allow_redisplay_filters": [
+              "always"
+            ],
+            "payment_method_remove": "disabled",
+            "payment_method_save": null
+          },
+          "setup_intent": null,
+          "shipping_address_collection": null,
+          "shipping_cost": null,
+          "shipping_options": [],
+          "status": "open",
+          "submit_type": null,
+          "subscription": null,
+          "success_url": "http://dev.onetime.dev/billing/welcome?session_id={CHECKOUT_SESSION_ID}",
+          "total_details": {
+            "amount_discount": 0,
+            "amount_shipping": 0,
+            "amount_tax": 0
+          },
+          "ui_mode": "hosted",
+          "url": "https://checkout.stripe.com/c/pay/cs_test_a1kZHuups7ZOcI1qPcdlPeklUTNa1Wy3SptsZAErdNOchRkkvxAt8g3th5#fidnandhYHdWcXxpYCc%2FJ2FgY2RwaXEnKSdpamZkaWAnPydgaycpJ3ZwZ3Zmd2x1cWxqa1BrbHRwYGtgdnZAa2RnaWBhJz9jZGl2YCknZHVsTmB8Jz8ndW5acWB2cVowNFZXUF1UTTAxVWZJYHRxXEY0ZkRjV1NgQ1FxTzM9V2pmcnFNb0diPTxsVz1pb2dyTDVLR2YyS392NWZRUkBTYHRgNlZPYkBCN11jQlVsYWpyN0EzbX1qbzU1UmxHXXFWcU8nKSdjd2poVmB3c2B3Jz9xd3BgKSdnZGZuYndqcGthRmppancnPycmMjE8Nzc1JyknaWR8anBxUXx1YCc%2FJ3Zsa2JpYFpscWBoJyknYGtkZ2lgVWlkZmBtamlhYHd2Jz9xd3BgeCUl",
+          "wallet_options": null
+        }
+  recorded_at: Wed, 31 Dec 2025 07:31:54 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/checkout/sessions
+    body:
+      encoding: UTF-8
+      string: mode=subscription&line_items[0][price]=price_1SWv3WH54PcLeqtY0vDIgLta&line_items[0][quantity]=1&success_url=https%3A%2F%2F127.0.0.1%3A3000%2Fbilling%2Fwelcome%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D&cancel_url=https%3A%2F%2F127.0.0.1%3A3000%2Faccount&client_reference_id=019b7356-1c72-755c-be75-9864f18ec9ae&locale=en&subscription_data[metadata][orgid]=019b7356-1c72-755c-be75-9864f18ec9ae&subscription_data[metadata][plan_id]=team_plus_v1_monthly&subscription_data[metadata][tier]=single_team&subscription_data[metadata][region]=EU&subscription_data[metadata][customer_extid]=ur5ih1ptvf9lgvg4z919ufegmoh&customer=cus_ThhzsQaimxbCuY
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      Idempotency-Key:
+      - 596f54d193cae39249cceed29bf045111224585366aa37b9ef2632249741aadc
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 401
+      message: Unauthorized
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 31 Dec 2025 07:36:22 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '114'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=ORqCXMb69-N3bqa0O18U8x8j4v__XjOQaAG6E33XOXjJKtfXr9sdQqiTwzanC4McBGqXcCjFX86_mCl_
+      Vary:
+      - Origin
+      Www-Authenticate:
+      - Bearer realm="Stripe"
+      X-Robots-Tag:
+      - none
+      X-Wc:
+      - ABHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+    body:
+      encoding: UTF-8
+      string: |
+        {
+          "error": {
+            "message": "Invalid API Key provided: sk_test_mock",
+            "type": "invalid_request_error"
+          }
+        }
+  recorded_at: Wed, 31 Dec 2025 07:36:22 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/checkout/sessions
+    body:
+      encoding: UTF-8
+      string: mode=subscription&line_items[0][price]=price_1SWv3WH54PcLeqtY0vDIgLta&line_items[0][quantity]=1&success_url=https%3A%2F%2F127.0.0.1%3A3000%2Fbilling%2Fwelcome%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D&cancel_url=https%3A%2F%2F127.0.0.1%3A3000%2Faccount&client_reference_id=019b7357-74ec-76f2-b51e-3c5f532a0633&locale=en&subscription_data[metadata][orgid]=019b7357-74ec-76f2-b51e-3c5f532a0633&subscription_data[metadata][plan_id]=team_plus_v1_monthly&subscription_data[metadata][tier]=single_team&subscription_data[metadata][region]=EU&subscription_data[metadata][customer_extid]=ur6ir1k86b8wbpeor3bn3403yb6&customer=cus_ThhzsQaimxbCuY
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      Idempotency-Key:
+      - d333147fbd4bdd3381f96ce6bf4ef6951357bcd24bc79a93454643b31357bb34
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 401
+      message: Unauthorized
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 31 Dec 2025 07:37:50 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '114'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=YbA4EUNwNoikxo6CE65BP-50SsHf593ykQjIDfAKA1ioSFvxr3ieKzHobXq9gIFZHROH-YfrWWQwZBbM
+      Vary:
+      - Origin
+      Www-Authenticate:
+      - Bearer realm="Stripe"
+      X-Robots-Tag:
+      - none
+      X-Wc:
+      - ABHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+    body:
+      encoding: UTF-8
+      string: |
+        {
+          "error": {
+            "message": "Invalid API Key provided: sk_test_mock",
+            "type": "invalid_request_error"
+          }
+        }
+  recorded_at: Wed, 31 Dec 2025 07:37:50 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/checkout/sessions
+    body:
+      encoding: UTF-8
+      string: mode=subscription&line_items[0][price]=price_1SWv3WH54PcLeqtY0vDIgLta&line_items[0][quantity]=1&success_url=https%3A%2F%2F127.0.0.1%3A3000%2Fbilling%2Fwelcome%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D&cancel_url=https%3A%2F%2F127.0.0.1%3A3000%2Faccount&client_reference_id=019b7358-8d5d-7389-8dad-0d8ca4849973&locale=en&subscription_data[metadata][orgid]=019b7358-8d5d-7389-8dad-0d8ca4849973&subscription_data[metadata][plan_id]=team_plus_v1_monthly&subscription_data[metadata][tier]=single_team&subscription_data[metadata][region]=EU&subscription_data[metadata][customer_extid]=ur7utf1xdo5qmg9ut3dc2j1y4kn&customer=cus_ThhzsQaimxbCuY
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      Idempotency-Key:
+      - 664fa94e6ea1ff6e7017ebfe74b3fa05684f7af23f973be5879d6c285fdcf38c
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 401
+      message: Unauthorized
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 31 Dec 2025 07:39:02 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '114'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=-e4iw5Mb_5rqi-r7eHFh0FJ0qV2dCc7gAvU4eI7MI_N_ehlAEUEYJ2wKhPYMWRUMWBpHCchWA1UcDZ3q
+      Vary:
+      - Origin
+      Www-Authenticate:
+      - Bearer realm="Stripe"
+      X-Robots-Tag:
+      - none
+      X-Wc:
+      - ABHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+    body:
+      encoding: UTF-8
+      string: |
+        {
+          "error": {
+            "message": "Invalid API Key provided: sk_test_mock",
+            "type": "invalid_request_error"
+          }
+        }
+  recorded_at: Wed, 31 Dec 2025 07:39:02 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/checkout/sessions
+    body:
+      encoding: UTF-8
+      string: mode=subscription&line_items[0][price]=price_1SWv3WH54PcLeqtY0vDIgLta&line_items[0][quantity]=1&success_url=https%3A%2F%2F127.0.0.1%3A3000%2Fbilling%2Fwelcome%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D&cancel_url=https%3A%2F%2F127.0.0.1%3A3000%2Faccount&client_reference_id=019b735c-217a-7af9-848f-a45e758368da&locale=en&subscription_data[metadata][orgid]=019b735c-217a-7af9-848f-a45e758368da&subscription_data[metadata][plan_id]=team_plus_v1_monthly&subscription_data[metadata][tier]=single_team&subscription_data[metadata][region]=EU&subscription_data[metadata][customer_extid]=ur96ds40kpny7kqd4z83e4ogjyd&customer=cus_ThhzsQaimxbCuY
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      Idempotency-Key:
+      - 2d24476a96466541ce4f219f4392276b17037deb4d96922d367e7a101ecf3614
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 401
+      message: Unauthorized
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 31 Dec 2025 07:42:56 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '114'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=_Q6dsgc93WC4EOmW47Ho9ZmRJg6JLUNJwz22IuyoWIhDLH3pfQaJOyPBmQA-kkB_dz37JXcwillDk6za
+      Vary:
+      - Origin
+      Www-Authenticate:
+      - Bearer realm="Stripe"
+      X-Robots-Tag:
+      - none
+      X-Wc:
+      - ABHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+    body:
+      encoding: UTF-8
+      string: |
+        {
+          "error": {
+            "message": "Invalid API Key provided: sk_test_mock",
+            "type": "invalid_request_error"
+          }
+        }
+  recorded_at: Wed, 31 Dec 2025 07:42:56 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/checkout/sessions
+    body:
+      encoding: UTF-8
+      string: mode=subscription&line_items[0][price]=price_1SWv3WH54PcLeqtY0vDIgLta&line_items[0][quantity]=1&success_url=https%3A%2F%2F127.0.0.1%3A3000%2Fbilling%2Fwelcome%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D&cancel_url=https%3A%2F%2F127.0.0.1%3A3000%2Faccount&client_reference_id=019b735d-04a1-7d15-a115-8d9e43596505&locale=en&subscription_data[metadata][orgid]=019b735d-04a1-7d15-a115-8d9e43596505&subscription_data[metadata][plan_id]=team_plus_v1_monthly&subscription_data[metadata][tier]=single_team&subscription_data[metadata][region]=EU&subscription_data[metadata][customer_extid]=urbewpy8xt1lodic6zfcvy3hv93&customer=cus_ThhzsQaimxbCuY
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      Idempotency-Key:
+      - d4d723529e009b11345520dd49acda5412b2e6be5a6ad7f0e22071d8907319df
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 401
+      message: Unauthorized
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 31 Dec 2025 07:43:55 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '114'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=Hfm0keasjGit10PMZ9kPG9u_DrZuu7mRFQrtUYfHFP1UILo6kT7u4iXop5tiAnGCc_1Qse_T184mR-JD
+      Vary:
+      - Origin
+      Www-Authenticate:
+      - Bearer realm="Stripe"
+      X-Robots-Tag:
+      - none
+      X-Wc:
+      - ABHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+    body:
+      encoding: UTF-8
+      string: |
+        {
+          "error": {
+            "message": "Invalid API Key provided: sk_test_mock",
+            "type": "invalid_request_error"
+          }
+        }
+  recorded_at: Wed, 31 Dec 2025 07:43:55 GMT
+- request:
+    method: post
+    uri: https://api.stripe.com/v1/checkout/sessions
+    body:
+      encoding: UTF-8
+      string: mode=subscription&line_items[0][price]=price_1SWv3WH54PcLeqtY0vDIgLta&line_items[0][quantity]=1&success_url=https%3A%2F%2F127.0.0.1%3A3000%2Fbilling%2Fwelcome%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D&cancel_url=https%3A%2F%2F127.0.0.1%3A3000%2Faccount&client_reference_id=019b735d-f329-74da-8037-2ee511f5cd9e&locale=en&subscription_data[metadata][orgid]=019b735d-f329-74da-8037-2ee511f5cd9e&subscription_data[metadata][plan_id]=team_plus_v1_monthly&subscription_data[metadata][tier]=single_team&subscription_data[metadata][region]=EU&subscription_data[metadata][customer_extid]=uraweakcibui8zfjcqdzy6ilbyj&customer=cus_ThhzsQaimxbCuY
+    headers:
+      User-Agent:
+      - Stripe/v1 RubyBindings/17.2.0
+      Authorization:
+      - "<STRIPE_API_KEY>"
+      Idempotency-Key:
+      - cc8046f9bb2e918a915deca74db6120c4fc569076fbaae99c9b744743dc6a3b9
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
+        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
+        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 401
+      message: Unauthorized
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 31 Dec 2025 07:44:56 GMT
+      Content-Type:
+      - application/json
+      Content-Length:
+      - '114'
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Methods:
+      - GET, HEAD, PUT, PATCH, POST, DELETE
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Expose-Headers:
+      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
+        X-Stripe-Privileged-Session-Required
+      Access-Control-Max-Age:
+      - '300'
+      Cache-Control:
+      - no-cache, no-store
+      Content-Security-Policy:
+      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
+        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=LFTtv6OHBDTf4cK8ynRhWQtsMsuG7KJwx4zyoiWFK7wuYBdMU1326_jLB2x0nR1qmU9lP8LIfRFSJpO2
+      Vary:
+      - Origin
+      Www-Authenticate:
+      - Bearer realm="Stripe"
+      X-Robots-Tag:
+      - none
+      X-Wc:
+      - ABHIJ
+      Strict-Transport-Security:
+      - max-age=63072000; includeSubDomains; preload
+      Stripe-Version:
+      - "<STRIPE_VERSION>"
+    body:
+      encoding: UTF-8
+      string: |
+        {
+          "error": {
+            "message": "Invalid API Key provided: sk_test_mock",
+            "type": "invalid_request_error"
+          }
+        }
+  recorded_at: Wed, 31 Dec 2025 07:44:55 GMT
 recorded_with: VCR 6.3.1
