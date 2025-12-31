@@ -9,13 +9,13 @@
 require 'spec_helper'
 
 RSpec.describe 'Audit Logging Configuration', type: :integration do
-  # Auth::Config provides Rodauth configuration. It's loaded by FullModeSuiteDatabase.setup!
-  # which is triggered by the :full_auth_mode tag (derived from spec/integration/full/ path).
-  # Using allocate to get config without instantiation.
+  # Auth::Config provides Rodauth configuration. It doesn't need boot,
+  # just the class loaded. Using allocate to get config without instantiation.
   let(:config) { Auth::Config.allocate }
 
-  # NOTE: Do NOT require 'auth/config' here - it must be loaded AFTER the database
-  # stub is in place, which FullModeSuiteDatabase.setup! handles via prepare_application_registry.
+  before(:all) do
+    require 'auth/config'
+  end
 
   describe 'feature configuration' do
     it 'includes audit_logging feature' do

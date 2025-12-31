@@ -26,9 +26,9 @@ RSpec.describe 'Security Features Toggle', type: :integration do
     {}
   end
 
-  # NOTE: Do NOT require 'auth/config' here - it must be loaded AFTER the database
-  # stub is in place, which FullModeSuiteDatabase.setup! handles via prepare_application_registry.
-  # The :full_auth_mode tag (derived from spec/integration/full/ path) triggers this setup.
+  before(:all) do
+    require 'auth/config'
+  end
 
   describe 'default configuration (security enabled)' do
     it 'has security features enabled by default' do
