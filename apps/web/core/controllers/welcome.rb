@@ -47,8 +47,8 @@ module Core
       def plan_redirect
           # We take the tier and billing cycle from the URL path and try to
           # get the preconfigured Stripe payment links using those values.
-          tierid        = req.params[:tier] ||= 'free'
-          billing_cycle = req.params[:billing_cycle] ||= 'month' # year or month
+          tierid        = req.params['tier'] ||= 'free'
+          billing_cycle = req.params['billing_cycle'] ||= 'month' # year or month
 
           payment_links = OT.billing_config.payment_links
           payment_link  = payment_links.dig(tierid, billing_cycle)

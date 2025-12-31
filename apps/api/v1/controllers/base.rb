@@ -141,7 +141,7 @@ module V1
     end
 
     def secret_not_found_response
-      not_found_response "Unknown secret", :secret_key => req.params[:key]
+      not_found_response "Unknown secret", :secret_key => req.params['key']
     end
 
     def disabled_response path

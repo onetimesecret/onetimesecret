@@ -108,13 +108,13 @@ module V1
 
       def show_secret
         authorized(true) do
-          req.params[:continue] = 'true'
+          req.params['continue'] = 'true'
           logic = V1::Logic::Secrets::ShowSecret.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           if logic.show_secret
             json :value => logic.secret_value,
-                :secret_key => req.params[:key],
+                :secret_key => req.params['key'],
                 :share_domain => logic.share_domain
           else
             secret_not_found_response
@@ -125,7 +125,7 @@ module V1
       # curl -X POST -u 'EMAIL:APITOKEN' http://LOCALHOSTNAME:3000/api/v1/private/:key/burn
       def burn_secret
         authorized(true) do
-          req.params[:continue] = 'true'
+          req.params['continue'] = 'true'
           logic = V1::Logic::Secrets::BurnSecret.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
@@ -140,7 +140,7 @@ module V1
 
       def create
         authorized(true) do
-          req.params[:kind] = :share
+          req.params['kind'] = :share
           logic = V1::Logic::Secrets::ConcealSecret.new sess, cust, req.params, locale
           logic.token = ''.instance_of?(String).to_s  # lol a roundabout way to get to "true"
           logic.raise_concerns

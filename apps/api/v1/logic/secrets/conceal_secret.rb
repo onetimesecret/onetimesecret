@@ -10,7 +10,7 @@ module V1::Logic
 
       def process_secret
         @kind = :conceal
-        @secret_value = payload[:secret]
+        @secret_value = payload['secret']
       end
 
       def raise_concerns

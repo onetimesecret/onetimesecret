@@ -14,10 +14,10 @@ module DomainsAPI::Logic
         @extid = params['extid'].to_s.strip
 
         # Use BrandSettings.members as the single source of truth for valid keys
-        valid_keys = Onetime::CustomDomain::BrandSettings.members
+        valid_keys = Onetime::CustomDomain::BrandSettings.members.map(&:to_s)
 
-        # Filter out invalid keys and convert keys to symbols
-        @brand_settings = params[:brand]&.transform_keys(&:to_sym)&.slice(*valid_keys) || {}
+        # Filter to valid keys and normalize to strings (HTTP params have string keys)
+        @brand_settings = params['brand']&.transform_keys(&:to_s)&.slice(*valid_keys) || {}
       end
 
       # Validate the input parameters
@@ -56,10 +56,10 @@ module DomainsAPI::Logic
         brand_settings.each do |key, value|
           if value.nil?
             OT.ld "[UpdateDomainBrand] Removing brand setting: #{key}"
-            custom_domain.brand.remove(key.to_s)
+            custom_domain.brand.remove(key)
           else
             OT.ld "[UpdateDomainBrand] Updating brand setting: #{key} => #{value} (#{value.class})"
-            custom_domain.brand[key.to_s] = value
+            custom_domain.brand[key] = value
           end
         end
 
@@ -122,7 +122,7 @@ module DomainsAPI::Logic
       end
 
       def validate_color
-        color = @brand_settings[:primary_color]
+        color = @brand_settings['primary_color']
         return if color.nil?
 
         return if Onetime::CustomDomain::BrandSettings.valid_color?(color)
@@ -132,7 +132,7 @@ module DomainsAPI::Logic
       end
 
       def validate_font
-        font = @brand_settings[:font_family]
+        font = @brand_settings['font_family']
         return if font.nil?
 
         return if Onetime::CustomDomain::BrandSettings.valid_font?(font)
@@ -142,7 +142,7 @@ module DomainsAPI::Logic
       end
 
       def validate_corner_style
-        style = @brand_settings[:corner_style]
+        style = @brand_settings['corner_style']
         return if style.nil?
 
         return if Onetime::CustomDomain::BrandSettings.valid_corner_style?(style)
@@ -152,7 +152,7 @@ module DomainsAPI::Logic
       end
 
       def validate_default_ttl
-        ttl = @brand_settings[:default_ttl]
+        ttl = @brand_settings['default_ttl']
         return if ttl.nil?
 
         # Coerce to integer if string with strict validation
@@ -172,7 +172,7 @@ module DomainsAPI::Logic
         end
 
         # Update the brand_settings hash with the coerced value
-        @brand_settings[:default_ttl] = ttl_value
+        @brand_settings['default_ttl'] = ttl_value
       end
 
       # Validate extid format (lowercase alphanumeric only)

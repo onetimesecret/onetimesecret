@@ -79,8 +79,8 @@ module AccountAPI::Logic
           cust.role        = @customer_role
           cust.save
 
-          session_id = @strategy_result.session[:id]
-          ip_address = @strategy_result.metadata[:ip]
+          session_id = @strategy_result.session['id']
+          ip_address = @strategy_result.metadata['ip']
           OT.info "[new-customer] #{cust.objid} #{cust.role} #{ip_address} #{session_id}"
 
           # Send verification email for new accounts (unless autoverify is enabled)

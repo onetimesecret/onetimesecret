@@ -50,7 +50,7 @@ module ColonelAPI
         attr_reader :planid, :test_plan_config, :plan_source
 
         def process_params
-          @planid = params[:planid]&.to_s&.strip
+          @planid = params['planid']&.to_s&.strip
         end
 
         def raise_concerns

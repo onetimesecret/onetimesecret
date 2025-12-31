@@ -9,9 +9,9 @@ module OrganizationAPI::Logic
 
       def process_params
         @extid         = params['extid']
-        @display_name  = (params[:display_name] || params['display_name']).to_s.strip
-        @description   = (params[:description] || params['description']).to_s.strip
-        @contact_email = (params[:contact_email] || params['contact_email']).to_s.strip
+        @display_name  = params['display_name'].to_s.strip
+        @description   = params['description'].to_s.strip
+        @contact_email = params['contact_email'].to_s.strip
       end
 
       def raise_concerns
