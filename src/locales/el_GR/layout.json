@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "Τεκμηρίωση API",
+      "branding_guide": "Οδηγός Επωνυμίας",
+      "customize": "Προσαρμογή",
+      "plans": "Πλάνα",
       "security": "",
       "learn_about_our_security_measures": "",
       "view_our_terms_and_conditions": "",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Αλλαγή γλώσσας. Η τρέχουσα γλώσσα είναι {0}",
       "language_changed_to_newlocale": "Η γλώσσα άλλαξε σε {0}",
       "switch_to_blank_mode": "Εναλλαγή σε λειτουργία {0}",
-      "blank_mode_enabled": "Η λειτουργία {0} ενεργοποιήθηκε"
+      "blank_mode_enabled": "Η λειτουργία {0} ενεργοποιήθηκε",
+      "workspace": "Χώρος Εργασίας",
+      "workspace_context": "Πλαίσιο χώρου εργασίας"
     }
   }
 }

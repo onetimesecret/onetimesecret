@@ -69,6 +69,7 @@
       "word_confirm": "Επιβεβαίωση",
       "word_cancel": "Ακύρωση",
       "word_continue": "",
+      "word_done": "Ολοκληρώθηκε",
       "back": "Πίσω",
       "feedback_text": "Έχετε κάποια απορία ή θέλετε να σχολιάσετε;",
       "button_send_feedback": "Αποστολή",
@@ -160,16 +161,19 @@
       "an_error_occurred": "Παρουσιάστηκε σφάλμα",
       "copy_secret_to_clipboard": "Αντιγραφή μυστικού στο πρόχειρο",
       "secret_copied_to_clipboard": "Το μυστικό αντιγράφηκε στο πρόχειρο",
-      "press_copy_button_below": "Πατήστε το παρακάτω κουμπί αντιγραφής.",
-      "double_check_that_passphrase": "Ελέγξτε ξανά αυτή τη φράση πρόσβασης"
+      "double_check_that_passphrase": "Ελέγξτε ξανά αυτή τη φράση πρόσβασης",
+      "press_copy_button_below": "Πατήστε το παρακάτω κουμπί αντιγραφής."
     },
     "LABELS": {
       "view_toggle": {
         "show": "Εμφάνιση",
         "hide": "Απόκρυψη",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Εμφάνιση Περισσότερων",
+        "show_less": "Εμφάνιση Λιγότερων"
       },
+      "enable": "Ενεργοποίηση",
+      "disable": "Απενεργοποίηση",
+      "stats": "Στατιστικά",
       "timeline": "Χρονολόγιο",
       "lifespan": "Διάρκεια Ζωής",
       "expiration_time": "Χρόνος Λήξης",
@@ -213,9 +217,8 @@
       "create_request_short": "Δημιουργία Αιτήματος",
       "create_request": "Δημιουργία Συνδέσμου Αιτήματος",
       "related_settings": "",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "Δημιουργία συνδέσμων για",
+      "scope_indicator": "Δημιουργία μυστικών στο {domain}"
     },
     "STATUS": {
       "new": "Νέο",
@@ -290,6 +293,7 @@
       "verify_account": "",
       "mfa_verify": "",
       "email_login": "",
+      "accept_invitation": "Αποδοχή Πρόσκλησης",
       "secret": "",
       "metadata": "",
       "receipt": "",
@@ -308,6 +312,7 @@
       "profile_settings": "",
       "preferences_settings": "",
       "privacy_settings": "",
+      "notification_settings": "Ειδοποιήσεις",
       "change_email": "",
       "security_overview": "",
       "change_password": "",
@@ -318,7 +323,14 @@
       "advanced_settings": "",
       "colonel": "",
       "colonel_users": "",
+      "colonel_secrets": "Διαχείριση Μυστικών",
+      "colonel_domains": "Προσαρμοσμένα Domains",
+      "colonel_system": "Σύστημα",
       "system_settings": "",
+      "colonel_maindb": "Κύρια Βάση Δεδομένων",
+      "colonel_authdb": "Βάση Δεδομένων Ταυτοποίησης",
+      "colonel_banned_ips": "Αποκλεισμένες IP",
+      "colonel_usage": "Εξαγωγή Χρήσης",
       "colonel_info": "",
       "not_found": "",
       "organizations_settings": "",

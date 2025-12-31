@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "",
         "viewPlans": "",
+        "needTeams": "Η διαχείριση ομάδων απαιτεί Identity Plus ή ανώτερο",
         "needCustomDomains": "",
         "needApiAccess": "",
-        "needPrioritySupport": "",
         "needAuditLogs": ""
       },
       "manage_subscription_and_billing": "",
@@ -37,12 +37,25 @@
         "no_organizations_description": "",
         "entitlements": {
           "create_secrets": "",
-          "basic_sharing": "",
-          "custom_domains": "",
+          "view_metadata": "Προβολή Μεταδεδομένων",
           "api_access": "",
+          "custom_domains": "",
+          "custom_privacy_defaults": "Προσαρμοσμένες Προεπιλογές Απορρήτου",
+          "extended_default_expiration": "Εκτεταμένη Προεπιλεγμένη Λήξη",
+          "custom_mail_defaults": "Προσαρμοσμένες Προεπιλογές Email",
+          "custom_branding": "Προσαρμοσμένη Επωνυμία",
+          "branded_homepage": "Επωνυμασμένη Αρχική Σελίδα",
+          "incoming_secrets": "Εισερχόμενα Μυστικά",
+          "manage_orgs": "Διαχείριση Οργανισμών",
+          "manage_teams": "Διαχείριση Ομάδων",
+          "manage_members": "Διαχείριση Μελών",
+          "audit_logs": "",
+          "sso": "Ενιαία Σύνδεση",
           "priority_support": "",
-          "audit_logs": ""
-        }
+          "sla": "Συμφωνία Επιπέδου Υπηρεσιών"
+        },
+        "entitlements_load_error": "Δεν ήταν δυνατή η φόρτωση λεπτομερειών δυνατοτήτων",
+        "no_entitlements": "Δεν υπάρχουν διαθέσιμες δυνατότητες"
       },
       "plans": {
         "title": "",
@@ -61,7 +74,11 @@
         "api_access": "",
         "priority_support": "",
         "select_plan": "",
-        "contact_sales": ""
+        "contact_sales": "",
+        "custom_needs_title": "Έχετε ερωτήσεις ή χρειάζεστε κάτι προσαρμοσμένο;",
+        "custom_needs_description": "Θα χαρούμε να ακούσουμε από εσάς. Πείτε μας τι αναζητάτε.",
+        "teams_limit": "{count} ομάδα | {count} ομάδες",
+        "members_limit": "{count} μέλος ανά ομάδα | {count} μέλη ανά ομάδα"
       },
       "invoices": {
         "title": "",

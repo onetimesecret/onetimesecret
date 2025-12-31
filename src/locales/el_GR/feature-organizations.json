@@ -23,6 +23,7 @@
       "description_placeholder": "",
       "contact_email": "",
       "contact_email_help": "",
+      "billing_managed_by_default": "Η διαχείριση χρεώσεων και συνδρομών γίνεται μέσω του κύριου χώρου εργασίας σας. Επισκεφθείτε τις ρυθμίσεις του κύριου χώρου εργασίας σας για να διαχειριστείτε τρόπους πληρωμής και τιμολόγια.",
       "select_organization": "",
       "not_found": "",
       "load_error": "",
@@ -57,7 +58,86 @@
       "delete": "",
       "delete_organization_confirm_title": "",
       "delete_organization_confirm_message": "",
-      "delete_error": ""
+      "delete_error": "",
+      "members": {
+        "title": "Μέλη",
+        "description": "Διαχείριση μελών οργανισμού και των ρόλων τους",
+        "member": "Μέλος",
+        "name": "Όνομα",
+        "email": "Email",
+        "role": "Ρόλος",
+        "joined": "Εγγράφηκε",
+        "actions": "Ενέργειες",
+        "no_members": "Δεν βρέθηκαν μέλη",
+        "no_members_description": "Αυτός ο οργανισμός δεν έχει ακόμα μέλη.",
+        "role_updated": "Ο ρόλος του μέλους ενημερώθηκε με επιτυχία",
+        "role_update_error": "Αποτυχία ενημέρωσης ρόλου μέλους",
+        "member_removed": "Το μέλος αφαιρέθηκε από τον οργανισμό",
+        "member_remove_error": "Αποτυχία αφαίρεσης μέλους",
+        "remove_member_title": "Αφαίρεση Μέλους",
+        "remove_member_confirm": "Είστε σίγουροι ότι θέλετε να αφαιρέσετε τον/την {name} από αυτόν τον οργανισμό;",
+        "cannot_change_own_role": "Δεν μπορείτε να αλλάξετε τον δικό σας ρόλο",
+        "cannot_remove_self": "Δεν μπορείτε να αφαιρέσετε τον εαυτό σας από τον οργανισμό",
+        "cannot_remove_owner": "Δεν μπορείτε να αφαιρέσετε τον ιδιοκτήτη του οργανισμού",
+        "insufficient_permissions": "Δεν έχετε δικαίωμα διαχείρισης μελών",
+        "roles": {
+          "owner": "Ιδιοκτήτης",
+          "admin": "Διαχειριστής",
+          "member": "Μέλος"
+        },
+        "role_descriptions": {
+          "owner": "Πλήρης πρόσβαση σε όλες τις ρυθμίσεις οργανισμού και τα μέλη",
+          "admin": "Μπορεί να διαχειρίζεται μέλη και τις περισσότερες ρυθμίσεις οργανισμού",
+          "member": "Βασική πρόσβαση σε πόρους οργανισμού"
+        }
+      },
+      "invitations": {
+        "title": "Προσκλήσεις Οργανισμού",
+        "invite_member": "Πρόσκληση Μέλους",
+        "invite_new_member": "Πρόσκληση Νέου Μέλους",
+        "pending_invitations": "Εκκρεμείς Προσκλήσεις",
+        "no_pending_invitations": "Δεν υπάρχουν εκκρεμείς προσκλήσεις",
+        "email_address": "Διεύθυνση Email",
+        "email_placeholder": "melos@example.com",
+        "role": "Ρόλος",
+        "send_invite": "Αποστολή Πρόσκλησης",
+        "invite_sent": "Η πρόσκληση στάλθηκε με επιτυχία",
+        "invite_error": "Αποτυχία αποστολής πρόσκλησης",
+        "resend": "Επανάληψη",
+        "revoke": "Ανάκληση",
+        "resend_success": "Η πρόσκληση επαναστάλθηκε με επιτυχία",
+        "resend_error": "Αποτυχία επανάληψης πρόσκλησης",
+        "revoke_success": "Η πρόσκληση ανακλήθηκε με επιτυχία",
+        "revoke_error": "Αποτυχία ανάκλησης πρόσκλησης",
+        "invited_by": "Προσκλήθηκε από",
+        "invited_at": "Προσκλήθηκε",
+        "expires_at": "Λήγει",
+        "resent_count": "Επαναστάλθηκε {count} φορά",
+        "resent_count_plural": "Επαναστάλθηκε {count} φορές",
+        "status": {
+          "pending": "Εκκρεμεί",
+          "accepted": "Αποδεκτή",
+          "declined": "Απορρίφθηκε",
+          "expired": "Έληξε"
+        },
+        "roles": {
+          "member": "Μέλος",
+          "admin": "Διαχειριστής"
+        },
+        "accept_invitation": "Αποδοχή Πρόσκλησης",
+        "decline_invitation": "Απόρριψη Πρόσκλησης",
+        "invitation_details": "Λεπτομέρειες Πρόσκλησης",
+        "you_are_invited": "Έχετε προσκληθεί να συμμετάσχετε",
+        "invited_as": "Έχετε προσκληθεί ως",
+        "accept_success": "Η πρόσκληση έγινε αποδεκτή με επιτυχία",
+        "accept_error": "Αποτυχία αποδοχής πρόσκλησης",
+        "decline_success": "Η πρόσκληση απορρίφθηκε",
+        "decline_error": "Αποτυχία απόρριψης πρόσκλησης",
+        "expired_message": "Αυτή η πρόσκληση έχει λήξει",
+        "invalid_token": "Μη έγκυρη ή ληγμένη πρόσκληση",
+        "must_sign_in": "Παρακαλώ συνδεθείτε για να αποδεχτείτε αυτήν την πρόσκληση",
+        "loading_invitation": "Φόρτωση λεπτομερειών πρόσκλησης"
+      }
     }
   }
 }
