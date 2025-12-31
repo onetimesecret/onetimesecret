@@ -167,8 +167,8 @@
       "view_toggle": {
         "show": "Показать",
         "hide": "Скрыть",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Показать больше",
+        "show_less": "Показать меньше"
       },
       "timeline": "Временная шкала",
       "lifespan": "Срок действия",
@@ -213,9 +213,9 @@
       "create_request_short": "Создать запрос",
       "create_request": "Создать ссылку для запроса",
       "related_settings": "Связанные настройки",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "enable": "Включить",
+      "disable": "Отключить",
+      "stats": "Статистика"
     },
     "STATUS": {
       "new": "Новый",
