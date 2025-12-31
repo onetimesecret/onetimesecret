@@ -244,12 +244,18 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       )
     end
 
+    # Mock owner for serialize_organization's owner_extid lookup
+    let(:owner_customer) do
+      instance_double(Onetime::Customer, extid: 'urcust123')
+    end
+
     before do
       allow(Onetime::Organization).to receive(:contact_email_exists?).and_return(false)
       allow(Onetime::Organization).to receive(:create!)
         .and_return(new_organization)
       allow(new_organization).to receive(:description=)
       allow(new_organization).to receive(:owner?).with(customer).and_return(true)
+      allow(new_organization).to receive(:owner).and_return(owner_customer)
       allow(new_organization).to receive(:safe_dump).and_return({
         objid: 'org-new-123',
         extid: 'ext-org-new',
@@ -345,6 +351,11 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       )
     end
 
+    # Mock owner for serialize_organization's owner_extid lookup
+    let(:owner_customer) do
+      instance_double(Onetime::Customer, extid: 'urcust123')
+    end
+
     let(:lock) { instance_double(Familia::Lock) }
     let(:lock_token) { 'lock-token-abc123' }
 
@@ -354,6 +365,7 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       allow(Onetime::Organization).to receive(:create!).and_return(new_organization)
       allow(new_organization).to receive(:description=)
       allow(new_organization).to receive(:owner?).with(customer).and_return(true)
+      allow(new_organization).to receive(:owner).and_return(owner_customer)
       allow(new_organization).to receive(:safe_dump).and_return({
         objid: 'org-new-123',
         extid: 'ext-org-new',

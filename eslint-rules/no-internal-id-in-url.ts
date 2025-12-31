@@ -184,23 +184,23 @@ const rule: Rule.RuleModule = {
           return;
         }
 
-        // Check for any internal ID property in the template
-        for (const prop of INTERNAL_ID_PROPERTIES) {
-          // Regex to find patterns like `.id}` or `.id`
-          const idInUrlPattern = new RegExp(`\\.\\s*${prop}\\s*(\\}|\`)`);
-          if (idInUrlPattern.test(source)) {
-            // The MemberExpression handler should catch this,
-            // but we report as a fallback
-            context.report({
-              node,
-              messageId: 'internalIdInUrl',
-              data: {
-                property: prop,
-              },
-            });
-            // Report once per template literal to avoid duplicate errors
-            return;
-          }
+        // Check for any internal ID property in the template using single regex
+        // Matches patterns like `.id}`, `.objid}`, `.owner_id}` etc.
+        const internalIdPattern = new RegExp(
+          `\\.\\s*(${INTERNAL_ID_PROPERTIES.join('|')})\\s*[}\`]`
+        );
+        const match = source.match(internalIdPattern);
+
+        if (match) {
+          // The MemberExpression handler should catch most cases,
+          // but we report as a fallback
+          context.report({
+            node,
+            messageId: 'internalIdInUrl',
+            data: {
+              property: match[1], // The captured property name
+            },
+          });
         }
       },
     };

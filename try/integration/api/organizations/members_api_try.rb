@@ -129,7 +129,7 @@ resp = JSON.parse(last_response.body)
 records = resp['records']
 first_record = records.first
 [
-  first_record.key?('id'),
+  first_record.key?('extid'),  # Member response uses extid (Customer#extid)
   first_record.key?('email'),
   first_record.key?('role'),
   first_record.key?('joined_at'),

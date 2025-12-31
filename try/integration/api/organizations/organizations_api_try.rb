@@ -47,9 +47,9 @@ last_response.status
 
 ## Can parse create organization response
 resp = JSON.parse(last_response.body)
-@extid = resp['record']['id']
-[resp['record']['display_name'], resp['record']['owner_id']]
-#=> ['API Test Org', @cust.custid]
+@extid = resp['record']['extid']  # Use extid for URL paths, not id (objid)
+[resp['record']['display_name'], resp['record']['owner_extid']]
+#=> ['API Test Org', @cust.extid]
 
 ## Created organization response includes all expected fields
 resp = JSON.parse(last_response.body)
@@ -58,7 +58,7 @@ resp = JSON.parse(last_response.body)
   resp['record'].key?('display_name'),
   resp['record'].key?('description'),
   resp['record'].key?('contact_email'),
-  resp['record'].key?('owner_id'),
+  resp['record'].key?('owner_extid'),
   resp['record'].key?('member_count'),
   resp['record'].key?('created_at'),
   resp['record'].key?('updated_at')
@@ -80,8 +80,8 @@ resp = JSON.parse(last_response.body)
 
 ## Listed organizations include the created organization
 resp = JSON.parse(last_response.body)
-org_ids = resp['records'].map { |o| o['id'] }
-org_ids.include?(@extid)
+org_extids = resp['records'].map { |o| o['extid'] }
+org_extids.include?(@extid)
 #=> true
 
 ## Listed organizations have correct structure
@@ -99,7 +99,7 @@ get "/api/organizations/#{@extid}",
   {},
   { 'rack.session' => @session }
 resp = JSON.parse(last_response.body)
-[last_response.status, resp['record']['id'], resp['record']['display_name']]
+[last_response.status, resp['record']['extid'], resp['record']['display_name']]
 #=> [200, @extid, 'API Test Org']
 
 ## Organization details include description and contact email

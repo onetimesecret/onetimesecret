@@ -43,7 +43,7 @@ const memberToRemove = ref<OrganizationMember | null>(null);
 const handleRoleChange = async (member: OrganizationMember, newRole: OrganizationRole) => {
   if (newRole === member.role) return;
 
-  const result = await updateMemberRole(props.orgExtid, member.id, newRole);
+  const result = await updateMemberRole(props.orgExtid, member.extid, newRole);
   if (result) {
     emit('member-updated', result);
   }
@@ -54,9 +54,9 @@ const handleRemoveClick = async (member: OrganizationMember) => {
   const confirmed = await reveal();
 
   if (confirmed) {
-    const success = await removeMember(props.orgExtid, member.id);
+    const success = await removeMember(props.orgExtid, member.extid);
     if (success) {
-      emit('member-removed', member.id);
+      emit('member-removed', member.extid);
     }
   }
 
@@ -139,7 +139,7 @@ const getRoleBadgeClasses = (role: OrganizationRole): string => {
           <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             <tr
               v-for="member in members"
-              :key="member.id"
+              :key="member.extid"
               class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800">
               <!-- Member Info -->
               <td class="whitespace-nowrap px-6 py-4">

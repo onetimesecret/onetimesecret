@@ -38,8 +38,8 @@ export const useMembersStore = defineStore('members', () => {
 
   const getMemberById = computed(
     () =>
-      (id: string): OrganizationMember | undefined =>
-        members.value.find((m) => m.id === id)
+      (extid: string): OrganizationMember | undefined =>
+        members.value.find((m) => m.extid === extid)
   );
 
   const getMembersByRole = computed(
@@ -108,7 +108,7 @@ export const useMembersStore = defineStore('members', () => {
       const memberData = memberResponseSchema.parse(response.data);
 
       // Update in members array
-      const index = members.value.findIndex((m) => m.id === memberExtid);
+      const index = members.value.findIndex((m) => m.extid === memberExtid);
       if (index !== -1) {
         members.value[index] = memberData.record;
       }
@@ -133,7 +133,7 @@ export const useMembersStore = defineStore('members', () => {
       memberDeleteResponseSchema.parse(response.data);
 
       // Remove from members array
-      members.value = members.value.filter((m) => m.id !== memberExtid);
+      members.value = members.value.filter((m) => m.extid !== memberExtid);
     } finally {
       loading.value = false;
     }
