@@ -116,6 +116,17 @@ const i18n = createI18n({
           plans: {
             upgrade: 'Upgrade',
             downgrade: 'Downgrade',
+            upgrade_to: 'Upgrade to {plan}?',
+            downgrade_to: 'Downgrade to {plan}?',
+            confirm_upgrade: 'Confirm Upgrade',
+            confirm_downgrade: 'Confirm Downgrade',
+            change_immediate: 'Your plan will change immediately.',
+            current_plan_label: 'Current plan:',
+            new_plan_label: 'New plan:',
+            credit_label: 'Credit for unused time:',
+            next_invoice: 'Next invoice',
+            limits_update_notice: 'Your feature limits will update immediately after the plan change.',
+            change_failed: 'Plan change failed. Please try again.',
           },
         },
         COMMON: {
