@@ -23,6 +23,7 @@
       "description_placeholder": "למה נועד ארגון זה?",
       "contact_email": "דוא״ל לחיוב",
       "contact_email_help": "איש קשר ראשי להודעות חיוב וניהוליות",
+      "billing_managed_by_default": "ניהול החיוב והמנוי מתבצע דרך סביבת העבודה הראשית שלכם. בקרו בהגדרות סביבת העבודה הראשית לניהול אמצעי תשלום וחשבוניות.",
       "select_organization": "בחרו ארגון",
       "not_found": "הארגון לא נמצא",
       "load_error": "טעינת הארגון נכשלה",
@@ -57,7 +58,86 @@
       "delete": "מחיקה",
       "delete_organization_confirm_title": "מחיקת ארגון",
       "delete_organization_confirm_message": "האם אתם בטוחים שברצונכם למחוק את {name}? לא ניתן לבטל פעולה זו.",
-      "delete_error": "מחיקת הארגון נכשלה"
+      "delete_error": "מחיקת הארגון נכשלה",
+      "members": {
+        "title": "חברים",
+        "description": "ניהול חברי ארגון ותפקידיהם",
+        "member": "חבר",
+        "name": "שם",
+        "email": "דוא״ל",
+        "role": "תפקיד",
+        "joined": "הצטרף",
+        "actions": "פעולות",
+        "no_members": "לא נמצאו חברים",
+        "no_members_description": "לארגון זה אין עדיין חברים.",
+        "role_updated": "תפקיד החבר עודכן בהצלחה",
+        "role_update_error": "עדכון תפקיד החבר נכשל",
+        "member_removed": "החבר הוסר מהארגון",
+        "member_remove_error": "הסרת החבר נכשלה",
+        "remove_member_title": "הסרת חבר",
+        "remove_member_confirm": "האם אתם בטוחים שברצונכם להסיר את {name} מארגון זה?",
+        "cannot_change_own_role": "אינכם יכולים לשנות את התפקיד שלכם",
+        "cannot_remove_self": "אינכם יכולים להסיר את עצמכם מהארגון",
+        "cannot_remove_owner": "אינכם יכולים להסיר את בעל הארגון",
+        "insufficient_permissions": "אין לכם הרשאה לנהל חברים",
+        "roles": {
+          "owner": "בעלים",
+          "admin": "מנהל",
+          "member": "חבר"
+        },
+        "role_descriptions": {
+          "owner": "גישה מלאה לכל הגדרות הארגון והחברים",
+          "admin": "יכול לנהל חברים ורוב הגדרות הארגון",
+          "member": "גישה בסיסית למשאבי הארגון"
+        }
+      },
+      "invitations": {
+        "title": "הזמנות ארגון",
+        "invite_member": "הזמנת חבר",
+        "invite_new_member": "הזמנת חבר חדש",
+        "pending_invitations": "הזמנות ממתינות",
+        "no_pending_invitations": "אין הזמנות ממתינות",
+        "email_address": "כתובת דוא״ל",
+        "email_placeholder": "member@example.com",
+        "role": "תפקיד",
+        "send_invite": "שליחת הזמנה",
+        "invite_sent": "ההזמנה נשלחה בהצלחה",
+        "invite_error": "שליחת ההזמנה נכשלה",
+        "resend": "שליחה מחדש",
+        "revoke": "ביטול",
+        "resend_success": "ההזמנה נשלחה מחדש בהצלחה",
+        "resend_error": "שליחת ההזמנה מחדש נכשלה",
+        "revoke_success": "ההזמנה בוטלה בהצלחה",
+        "revoke_error": "ביטול ההזמנה נכשל",
+        "invited_by": "הוזמן על ידי",
+        "invited_at": "הוזמן",
+        "expires_at": "פג תוקף",
+        "resent_count": "נשלח מחדש פעם {count}",
+        "resent_count_plural": "נשלח מחדש {count} פעמים",
+        "status": {
+          "pending": "ממתין",
+          "accepted": "התקבל",
+          "declined": "נדחה",
+          "expired": "פג תוקף"
+        },
+        "roles": {
+          "member": "חבר",
+          "admin": "מנהל"
+        },
+        "accept_invitation": "קבלת הזמנה",
+        "decline_invitation": "דחיית הזמנה",
+        "invitation_details": "פרטי הזמנה",
+        "you_are_invited": "הוזמנתם להצטרף ל",
+        "invited_as": "הוזמנתם בתור",
+        "accept_success": "ההזמנה התקבלה בהצלחה",
+        "accept_error": "קבלת ההזמנה נכשלה",
+        "decline_success": "ההזמנה נדחתה",
+        "decline_error": "דחיית ההזמנה נכשלה",
+        "expired_message": "הזמנה זו פגה תוקפה",
+        "invalid_token": "הזמנה לא תקפה או שפג תוקפה",
+        "must_sign_in": "אנא התחברו כדי לקבל הזמנה זו",
+        "loading_invitation": "טוען פרטי הזמנה"
+      }
     }
   }
 }

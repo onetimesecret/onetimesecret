@@ -69,6 +69,7 @@
       "word_confirm": "אישור",
       "word_cancel": "ביטול",
       "word_continue": "המשך",
+      "word_done": "סיום",
       "back": "חזרה",
       "feedback_text": "שתפו את המחשבות, הרעיונות או החוויות שלכם...",
       "button_send_feedback": "שליחת משוב",
@@ -160,16 +161,19 @@
       "an_error_occurred": "אירעה שגיאה",
       "copy_secret_to_clipboard": "העתקת סוד ללוח",
       "secret_copied_to_clipboard": "הסוד הועתק ללוח",
-      "press_copy_button_below": "לחצו על כפתור ההעתקה למטה.",
-      "double_check_that_passphrase": "בדקו שוב את ביטוי הסיסמה"
+      "double_check_that_passphrase": "בדקו שוב את ביטוי הסיסמה",
+      "press_copy_button_below": "לחצו על כפתור ההעתקה למטה."
     },
     "LABELS": {
       "view_toggle": {
         "show": "הצגה",
         "hide": "הסתרה",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "הצגת עוד",
+        "show_less": "הצגת פחות"
       },
+      "enable": "הפעלה",
+      "disable": "השבתה",
+      "stats": "סטטיסטיקות",
       "timeline": "ציר זמן",
       "lifespan": "תוחלת חיים",
       "expiration_time": "זמן תפוגה",
@@ -213,9 +217,8 @@
       "create_request_short": "יצירת בקשה",
       "create_request": "יצירת קישור בקשה",
       "related_settings": "הגדרות קשורות",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "יוצר קישורים עבור",
+      "scope_indicator": "יוצר סודות ב-{domain}"
     },
     "STATUS": {
       "new": "חדש",
@@ -290,6 +293,7 @@
       "verify_account": "אימות חשבון",
       "mfa_verify": "אימות דו-שלבי",
       "email_login": "התחברות בדואר אלקטרוני",
+      "accept_invitation": "קבלת הזמנה",
       "secret": "סוד",
       "metadata": "פרטי הסוד",
       "receipt": "קבלה על סוד",
@@ -308,6 +312,7 @@
       "profile_settings": "הגדרות פרופיל",
       "preferences_settings": "העדפות",
       "privacy_settings": "פרטיות",
+      "notification_settings": "התראות",
       "change_email": "שינוי דואר אלקטרוני",
       "security_overview": "אבטחה",
       "change_password": "שינוי סיסמה",
@@ -318,7 +323,14 @@
       "advanced_settings": "הגדרות מתקדמות",
       "colonel": "ניהול מערכת",
       "colonel_users": "ניהול משתמשים",
+      "colonel_secrets": "ניהול סודות",
+      "colonel_domains": "דומיינים מותאמים אישית",
+      "colonel_system": "מערכת",
       "system_settings": "הגדרות מערכת",
+      "colonel_maindb": "בסיס נתונים ראשי",
+      "colonel_authdb": "בסיס נתוני אימות",
+      "colonel_banned_ips": "כתובות IP חסומות",
+      "colonel_usage": "ייצוא שימוש",
       "colonel_info": "מידע על המערכת",
       "not_found": "העמוד לא נמצא",
       "organizations_settings": "ארגונים",

@@ -15,6 +15,27 @@
       "please_verify": "אנא אמתו את החשבון שלכם:",
       "postscript1": "הודעה זו נשלחה אל",
       "postscript2": "אם לא ביצעתם בקשה זו, ניתן להתעלם בבטחה מהודעה זו."
+    },
+    "organization_invitation": {
+      "subject": "הוזמנתם להצטרף ל-%{organization_name}",
+      "title": "הוזמנתם להצטרף ל-%{organization_name}!",
+      "body": "%{inviter_email} הזמין/ה אתכם להצטרף ל-\"%{organization_name}\" בתור %{role_description}.",
+      "accept_button": "קבלת הזמנה",
+      "link_instruction": "או העתיקו והדביקו קישור זה:",
+      "expiry_notice": "הזמנה זו תפוג בעוד %{days} ימים.",
+      "decline_instruction": "אם אינכם מעוניינים להצטרף, ניתן פשוט להתעלם מהודעה זו או לדחות את ההזמנה.",
+      "signature": "Delano",
+      "postscript": "נ.ב. הודעה זו נשלחה אל %{invited_email}. אם לא ציפיתם להזמנה זו, ניתן להתעלם בבטחה מהודעה זו.",
+      "roles": {
+        "member": "חבר",
+        "admin": "מנהל"
+      }
+    },
+    "common": {
+      "greeting": "שלום,",
+      "thanks": "תודה,",
+      "unsubscribe": "ביטול הרשמה",
+      "view_in_browser": "צפייה בדפדפן"
     }
   }
 }
