@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Atualização Necessária",
         "viewPlans": "Ver Planos",
+        "needTeams": "Team management requires Identity Plus or higher",
         "needCustomDomains": "Domínios personalizados exigem Identity Plus ou superior",
         "needApiAccess": "Acesso à API exige plano Multi-Team ou superior",
-        "needPrioritySupport": "Suporte prioritário exige Identity Plus ou superior",
         "needAuditLogs": "Logs de auditoria exigem plano Multi-Team ou superior"
       },
       "manage_subscription_and_billing": "Gerencie sua assinatura, organizações e configurações de cobrança",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Crie uma organização para gerenciar sua cobrança e assinatura",
         "entitlements": {
           "create_secrets": "Criar Mensagens Confidenciais",
-          "basic_sharing": "Compartilhamento Básico",
-          "custom_domains": "Domínios Personalizados",
+          "view_metadata": "Visualizar Metadados",
           "api_access": "Acesso à API",
+          "custom_domains": "Domínios Personalizados",
+          "custom_privacy_defaults": "Custom Privacy Defaults",
+          "extended_default_expiration": "Extended Default Expiration",
+          "custom_mail_defaults": "Custom Mail Defaults",
+          "custom_branding": "Custom Branding",
+          "branded_homepage": "Branded Homepage",
+          "incoming_secrets": "Incoming Secrets",
+          "manage_orgs": "Manage Organizations",
+          "manage_teams": "Manage Teams",
+          "manage_members": "Manage Members",
+          "audit_logs": "Logs de Auditoria",
+          "sso": "Single Sign-On",
           "priority_support": "Suporte Prioritário",
-          "audit_logs": "Logs de Auditoria"
-        }
+          "sla": "Service Level Agreement"
+        },
+        "entitlements_load_error": "Could not load feature details",
+        "no_entitlements": "No features available"
       },
       "plans": {
         "title": "Selecione um Plano",
@@ -61,7 +74,11 @@
         "api_access": "Acesso à API",
         "priority_support": "Suporte prioritário",
         "select_plan": "Selecionar Plano",
-        "contact_sales": "Contatar Vendas"
+        "contact_sales": "Contatar Vendas",
+        "custom_needs_title": "Have questions or need something custom?",
+        "custom_needs_description": "We'd love to hear from you. Let us know what you're looking for.",
+        "teams_limit": "{count} team | {count} teams",
+        "members_limit": "{count} member per team | {count} members per team"
       },
       "invoices": {
         "title": "Histórico de Cobrança",

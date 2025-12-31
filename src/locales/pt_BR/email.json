@@ -15,6 +15,27 @@
       "please_verify": "Por favor, verifique sua conta:",
       "postscript1": "Este email foi enviado para",
       "postscript2": "Se você não criou esta conta, apague esta mensagem e nós não iremos lhe contatar novamente."
+    },
+    "organization_invitation": {
+      "subject": "You've been invited to join %{organization_name}",
+      "title": "You've been invited to join %{organization_name}!",
+      "body": "%{inviter_email} has invited you to join \"%{organization_name}\" as %{role_description}.",
+      "accept_button": "Accept Invitation",
+      "link_instruction": "Or copy and paste this link:",
+      "expiry_notice": "This invitation will expire in %{days} days.",
+      "decline_instruction": "If you don't want to join, you can simply ignore this email or decline the invitation.",
+      "signature": "Delano",
+      "postscript": "P.S. This email was sent to %{invited_email}. If you weren't expecting this invitation, you can safely ignore this message.",
+      "roles": {
+        "member": "a member",
+        "admin": "an administrator"
+      }
+    },
+    "common": {
+      "greeting": "Hello,",
+      "thanks": "Thanks,",
+      "unsubscribe": "Unsubscribe",
+      "view_in_browser": "View in browser"
     }
   }
 }
