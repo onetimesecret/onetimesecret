@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Potrebna nadgradnja",
         "viewPlans": "Prikaži pakete",
+        "needTeams": "Upravljanje ekip zahteva paket Identity Plus ali višji",
         "needCustomDomains": "Domene po meri zahtevajo paket Identity Plus ali višji",
         "needApiAccess": "Dostop do API zahteva paket Multi-Team ali višji",
-        "needPrioritySupport": "Prednostna podpora zahteva paket Identity Plus ali višji",
         "needAuditLogs": "Revizijski dnevniki zahtevajo paket Multi-Team ali višji"
       },
       "manage_subscription_and_billing": "Upravljajte svojo naročnino, organizacije in nastavitve plačil",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Ustvarite organizacijo za upravljanje plačil in naročnine",
         "entitlements": {
           "create_secrets": "Ustvari skrivnosti",
-          "basic_sharing": "Osnovno deljenje",
-          "custom_domains": "Domene po meri",
+          "view_metadata": "Prikaži metapodatke",
           "api_access": "Dostop do API",
+          "custom_domains": "Domene po meri",
+          "custom_privacy_defaults": "Privzete nastavitve zasebnosti",
+          "extended_default_expiration": "Podaljšan privzeti čas poteka",
+          "custom_mail_defaults": "Privzete nastavitve e-pošte",
+          "custom_branding": "Blagovna znamka po meri",
+          "branded_homepage": "Domača stran z blagovno znamko",
+          "incoming_secrets": "Dohodne skrivnosti",
+          "manage_orgs": "Upravljanje organizacij",
+          "manage_teams": "Upravljanje ekip",
+          "manage_members": "Upravljanje članov",
+          "audit_logs": "Revizijski dnevniki",
+          "sso": "Enotna prijava",
           "priority_support": "Prednostna podpora",
-          "audit_logs": "Revizijski dnevniki"
-        }
+          "sla": "Sporazum o ravni storitev"
+        },
+        "entitlements_load_error": "Podrobnosti funkcij ni bilo mogoče naložiti",
+        "no_entitlements": "Ni razpoložljivih funkcij"
       },
       "plans": {
         "title": "Izberite paket",
@@ -61,7 +74,11 @@
         "api_access": "Dostop do API",
         "priority_support": "Prednostna podpora",
         "select_plan": "Izberi paket",
-        "contact_sales": "Kontaktirajte prodajo"
+        "contact_sales": "Kontaktirajte prodajo",
+        "custom_needs_title": "Imate vprašanja ali potrebujete kaj posebnega?",
+        "custom_needs_description": "Radi bi slišali od vas. Povejte nam, kaj iščete.",
+        "teams_limit": "{count} ekipa | {count} ekip",
+        "members_limit": "{count} član na ekipo | {count} članov na ekipo"
       },
       "invoices": {
         "title": "Zgodovina plačil",
