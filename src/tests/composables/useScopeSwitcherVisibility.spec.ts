@@ -21,43 +21,36 @@ vi.mock('vue-router', () => ({
   useRoute: () => mockRoute,
 }));
 
+// Single top-level import - no need for dynamic imports since mock is hoisted
+import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
+
 describe('useScopeSwitcherVisibility', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     // Reset mock route to default state
     mockRoute.meta = {};
-    vi.resetModules();
     vi.clearAllMocks();
   });
 
   describe('default visibility', () => {
-    it('returns organization: "show" when no meta defined', async () => {
+    it('returns organization: "show" when no meta defined', () => {
       mockRoute.meta = {};
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { visibility } = useScopeSwitcherVisibility();
 
       expect(visibility.value.organization).toBe('show');
     });
 
-    it('returns domain: "hide" when no meta defined', async () => {
+    it('returns domain: "hide" when no meta defined', () => {
       mockRoute.meta = {};
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { visibility } = useScopeSwitcherVisibility();
 
       expect(visibility.value.domain).toBe('hide');
     });
 
-    it('returns defaults when scopesAvailable is empty object', async () => {
+    it('returns defaults when scopesAvailable is empty object', () => {
       mockRoute.meta = { scopesAvailable: {} };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { visibility } = useScopeSwitcherVisibility();
 
       expect(visibility.value.organization).toBe('show');
@@ -66,67 +59,49 @@ describe('useScopeSwitcherVisibility', () => {
   });
 
   describe('organization switcher', () => {
-    it('showOrgSwitcher is true when organization is "show"', async () => {
+    it('showOrgSwitcher is true when organization is "show"', () => {
       mockRoute.meta = { scopesAvailable: { organization: 'show' } };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { showOrgSwitcher } = useScopeSwitcherVisibility();
 
       expect(showOrgSwitcher.value).toBe(true);
     });
 
-    it('showOrgSwitcher is true when organization is "locked"', async () => {
+    it('showOrgSwitcher is true when organization is "locked"', () => {
       mockRoute.meta = { scopesAvailable: { organization: 'locked' } };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { showOrgSwitcher } = useScopeSwitcherVisibility();
 
       expect(showOrgSwitcher.value).toBe(true);
     });
 
-    it('showOrgSwitcher is false when organization is "hide"', async () => {
+    it('showOrgSwitcher is false when organization is "hide"', () => {
       mockRoute.meta = { scopesAvailable: { organization: 'hide' } };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { showOrgSwitcher } = useScopeSwitcherVisibility();
 
       expect(showOrgSwitcher.value).toBe(false);
     });
 
-    it('lockOrgSwitcher is true only when organization is "locked"', async () => {
+    it('lockOrgSwitcher is true only when organization is "locked"', () => {
       mockRoute.meta = { scopesAvailable: { organization: 'locked' } };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { lockOrgSwitcher } = useScopeSwitcherVisibility();
 
       expect(lockOrgSwitcher.value).toBe(true);
     });
 
-    it('lockOrgSwitcher is false when organization is "show"', async () => {
+    it('lockOrgSwitcher is false when organization is "show"', () => {
       mockRoute.meta = { scopesAvailable: { organization: 'show' } };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { lockOrgSwitcher } = useScopeSwitcherVisibility();
 
       expect(lockOrgSwitcher.value).toBe(false);
     });
 
-    it('lockOrgSwitcher is false when organization is "hide"', async () => {
+    it('lockOrgSwitcher is false when organization is "hide"', () => {
       mockRoute.meta = { scopesAvailable: { organization: 'hide' } };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { lockOrgSwitcher } = useScopeSwitcherVisibility();
 
       expect(lockOrgSwitcher.value).toBe(false);
@@ -134,78 +109,57 @@ describe('useScopeSwitcherVisibility', () => {
   });
 
   describe('domain switcher', () => {
-    it('showDomainSwitcher is true when domain is "show"', async () => {
+    it('showDomainSwitcher is true when domain is "show"', () => {
       mockRoute.meta = { scopesAvailable: { domain: 'show' } };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { showDomainSwitcher } = useScopeSwitcherVisibility();
 
       expect(showDomainSwitcher.value).toBe(true);
     });
 
-    it('showDomainSwitcher is true when domain is "locked"', async () => {
+    it('showDomainSwitcher is true when domain is "locked"', () => {
       mockRoute.meta = { scopesAvailable: { domain: 'locked' } };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { showDomainSwitcher } = useScopeSwitcherVisibility();
 
       expect(showDomainSwitcher.value).toBe(true);
     });
 
-    it('showDomainSwitcher is false when domain is "hide"', async () => {
+    it('showDomainSwitcher is false when domain is "hide"', () => {
       mockRoute.meta = { scopesAvailable: { domain: 'hide' } };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { showDomainSwitcher } = useScopeSwitcherVisibility();
 
       expect(showDomainSwitcher.value).toBe(false);
     });
 
-    it('showDomainSwitcher is false by default (domain defaults to "hide")', async () => {
+    it('showDomainSwitcher is false by default (domain defaults to "hide")', () => {
       mockRoute.meta = {};
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { showDomainSwitcher } = useScopeSwitcherVisibility();
 
       expect(showDomainSwitcher.value).toBe(false);
     });
 
-    it('lockDomainSwitcher is true only when domain is "locked"', async () => {
+    it('lockDomainSwitcher is true only when domain is "locked"', () => {
       mockRoute.meta = { scopesAvailable: { domain: 'locked' } };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { lockDomainSwitcher } = useScopeSwitcherVisibility();
 
       expect(lockDomainSwitcher.value).toBe(true);
     });
 
-    it('lockDomainSwitcher is false when domain is "show"', async () => {
+    it('lockDomainSwitcher is false when domain is "show"', () => {
       mockRoute.meta = { scopesAvailable: { domain: 'show' } };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { lockDomainSwitcher } = useScopeSwitcherVisibility();
 
       expect(lockDomainSwitcher.value).toBe(false);
     });
 
-    it('lockDomainSwitcher is false when domain is "hide"', async () => {
+    it('lockDomainSwitcher is false when domain is "hide"', () => {
       mockRoute.meta = { scopesAvailable: { domain: 'hide' } };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { lockDomainSwitcher } = useScopeSwitcherVisibility();
 
       expect(lockDomainSwitcher.value).toBe(false);
@@ -213,7 +167,7 @@ describe('useScopeSwitcherVisibility', () => {
   });
 
   describe('route meta reading', () => {
-    it('reads scopesAvailable from route.meta', async () => {
+    it('reads scopesAvailable from route.meta', () => {
       mockRoute.meta = {
         scopesAvailable: {
           organization: 'locked',
@@ -221,9 +175,6 @@ describe('useScopeSwitcherVisibility', () => {
         },
       };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { visibility } = useScopeSwitcherVisibility();
 
       expect(visibility.value.organization).toBe('locked');
@@ -233,9 +184,6 @@ describe('useScopeSwitcherVisibility', () => {
     it('updates when route changes', async () => {
       mockRoute.meta = { scopesAvailable: { organization: 'show' } };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { visibility, showOrgSwitcher } = useScopeSwitcherVisibility();
 
       expect(visibility.value.organization).toBe('show');
@@ -249,12 +197,9 @@ describe('useScopeSwitcherVisibility', () => {
       expect(showOrgSwitcher.value).toBe(false);
     });
 
-    it('handles partial scopesAvailable config', async () => {
+    it('handles partial scopesAvailable config', () => {
       mockRoute.meta = { scopesAvailable: { organization: 'locked' } };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { visibility } = useScopeSwitcherVisibility();
 
       expect(visibility.value.organization).toBe('locked');
@@ -263,7 +208,7 @@ describe('useScopeSwitcherVisibility', () => {
   });
 
   describe('visibility object', () => {
-    it('returns complete visibility state object', async () => {
+    it('returns complete visibility state object', () => {
       mockRoute.meta = {
         scopesAvailable: {
           organization: 'show',
@@ -271,9 +216,6 @@ describe('useScopeSwitcherVisibility', () => {
         },
       };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const {
         visibility,
         showOrgSwitcher,
@@ -295,10 +237,7 @@ describe('useScopeSwitcherVisibility', () => {
       expect(lockDomainSwitcher.value).toBe(true);
     });
 
-    it('returns all expected properties from composable', async () => {
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
+    it('returns all expected properties from composable', () => {
       const result = useScopeSwitcherVisibility();
 
       expect(result).toHaveProperty('visibility');
@@ -310,7 +249,7 @@ describe('useScopeSwitcherVisibility', () => {
   });
 
   describe('combined states', () => {
-    it('handles both switchers shown', async () => {
+    it('handles both switchers shown', () => {
       mockRoute.meta = {
         scopesAvailable: {
           organization: 'show',
@@ -318,9 +257,6 @@ describe('useScopeSwitcherVisibility', () => {
         },
       };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { showOrgSwitcher, showDomainSwitcher, lockOrgSwitcher, lockDomainSwitcher } =
         useScopeSwitcherVisibility();
 
@@ -330,7 +266,7 @@ describe('useScopeSwitcherVisibility', () => {
       expect(lockDomainSwitcher.value).toBe(false);
     });
 
-    it('handles both switchers hidden', async () => {
+    it('handles both switchers hidden', () => {
       mockRoute.meta = {
         scopesAvailable: {
           organization: 'hide',
@@ -338,16 +274,13 @@ describe('useScopeSwitcherVisibility', () => {
         },
       };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { showOrgSwitcher, showDomainSwitcher } = useScopeSwitcherVisibility();
 
       expect(showOrgSwitcher.value).toBe(false);
       expect(showDomainSwitcher.value).toBe(false);
     });
 
-    it('handles both switchers locked', async () => {
+    it('handles both switchers locked', () => {
       mockRoute.meta = {
         scopesAvailable: {
           organization: 'locked',
@@ -355,9 +288,6 @@ describe('useScopeSwitcherVisibility', () => {
         },
       };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { showOrgSwitcher, showDomainSwitcher, lockOrgSwitcher, lockDomainSwitcher } =
         useScopeSwitcherVisibility();
 
@@ -367,7 +297,7 @@ describe('useScopeSwitcherVisibility', () => {
       expect(lockDomainSwitcher.value).toBe(true);
     });
 
-    it('handles mixed states (org shown, domain locked)', async () => {
+    it('handles mixed states (org shown, domain locked)', () => {
       mockRoute.meta = {
         scopesAvailable: {
           organization: 'show',
@@ -375,9 +305,6 @@ describe('useScopeSwitcherVisibility', () => {
         },
       };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { showOrgSwitcher, showDomainSwitcher, lockOrgSwitcher, lockDomainSwitcher } =
         useScopeSwitcherVisibility();
 
@@ -387,7 +314,7 @@ describe('useScopeSwitcherVisibility', () => {
       expect(lockDomainSwitcher.value).toBe(true);
     });
 
-    it('handles mixed states (org locked, domain hidden)', async () => {
+    it('handles mixed states (org locked, domain hidden)', () => {
       mockRoute.meta = {
         scopesAvailable: {
           organization: 'locked',
@@ -395,9 +322,6 @@ describe('useScopeSwitcherVisibility', () => {
         },
       };
 
-      const { useScopeSwitcherVisibility } = await import(
-        '@/shared/composables/useScopeSwitcherVisibility'
-      );
       const { showOrgSwitcher, showDomainSwitcher, lockOrgSwitcher, lockDomainSwitcher } =
         useScopeSwitcherVisibility();
 

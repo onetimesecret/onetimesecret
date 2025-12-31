@@ -2,7 +2,7 @@
 
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import type { RouteRecordRaw } from 'vue-router';
-import type { ScopesAvailable } from '@/types/router';
+import { SCOPE_PRESETS } from '@/types/router';
 
 const standardLayoutProps = {
   displayMasthead: true,
@@ -14,8 +14,6 @@ const standardLayoutProps = {
   showSidebar: false,
 } as const;
 
-const scopesHideBoth: ScopesAvailable = { organization: 'hide', domain: 'hide' };
-
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/account',
@@ -26,7 +24,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -38,7 +36,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -50,7 +48,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -62,7 +60,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -74,7 +72,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -94,7 +92,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -106,7 +104,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -118,7 +116,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -130,7 +128,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -142,7 +140,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -154,7 +152,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -166,7 +164,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -178,7 +176,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -190,7 +188,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -202,7 +200,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -214,7 +212,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesHideBoth,
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   // Legacy route for backward compatibility

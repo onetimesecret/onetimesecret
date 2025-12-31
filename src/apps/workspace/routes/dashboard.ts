@@ -4,10 +4,7 @@ import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import DashboardMain from '@/apps/workspace/dashboard/DashboardMain.vue';
 import DashboardRecent from '@/apps/workspace/dashboard/DashboardRecent.vue';
 import type { RouteRecordRaw } from 'vue-router';
-import type { ScopesAvailable } from '@/types/router';
-
-const scopesShowBoth: ScopesAvailable = { organization: 'show', domain: 'show' };
-const scopesOrgShowDomainLocked: ScopesAvailable = { organization: 'show', domain: 'locked' };
+import { SCOPE_PRESETS } from '@/types/router';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -27,7 +24,7 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         showSidebar: false,
       },
-      scopesAvailable: scopesShowBoth,
+      scopesAvailable: SCOPE_PRESETS.showBoth,
     },
   },
   {
@@ -46,7 +43,7 @@ const routes: Array<RouteRecordRaw> = [
         displayPoweredBy: false,
         displayVersion: true,
       },
-      scopesAvailable: scopesShowBoth,
+      scopesAvailable: SCOPE_PRESETS.showBoth,
     },
   },
   {
@@ -61,7 +58,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: false,
         displayPoweredBy: false,
       },
-      scopesAvailable: scopesShowBoth,
+      scopesAvailable: SCOPE_PRESETS.showBoth,
     },
     props: true,
   },
@@ -77,7 +74,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: false,
         displayPoweredBy: false,
       },
-      scopesAvailable: scopesShowBoth,
+      scopesAvailable: SCOPE_PRESETS.showBoth,
     },
     props: true,
   },
@@ -92,7 +89,7 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayPoweredBy: false,
       },
-      scopesAvailable: scopesOrgShowDomainLocked,
+      scopesAvailable: SCOPE_PRESETS.orgShowDomainLocked,
     },
     props: true,
   },
@@ -107,7 +104,7 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayPoweredBy: false,
       },
-      scopesAvailable: scopesOrgShowDomainLocked,
+      scopesAvailable: SCOPE_PRESETS.orgShowDomainLocked,
     },
     props: true,
   },

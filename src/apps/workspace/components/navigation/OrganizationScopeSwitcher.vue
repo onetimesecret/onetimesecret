@@ -134,6 +134,7 @@ const navigateToManageOrganizations = (): void => {
           : 'hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white',
       ]"
       :disabled="props.locked"
+      :title="props.locked ? t('web.organizations.switcher_locked') : undefined"
       :aria-label="t('web.organizations.select_organization')">
       <!-- Organization Avatar -->
       <span

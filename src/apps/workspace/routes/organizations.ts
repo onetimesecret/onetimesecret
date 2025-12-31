@@ -9,7 +9,7 @@
 
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import type { RouteRecordRaw } from 'vue-router';
-import type { ScopesAvailable } from '@/types/router';
+import { SCOPE_PRESETS } from '@/types/router';
 
 const standardLayoutProps = {
   displayMasthead: true,
@@ -21,9 +21,6 @@ const standardLayoutProps = {
   showSidebar: false,
 } as const;
 
-const scopesOrgShowDomainHide: ScopesAvailable = { organization: 'show', domain: 'hide' };
-const scopesOrgLockedDomainHide: ScopesAvailable = { organization: 'locked', domain: 'hide' };
-
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/org',
@@ -34,7 +31,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesOrgShowDomainHide,
+      scopesAvailable: SCOPE_PRESETS.orgShowDomainHide,
     },
   },
   // Redirect /org/domains to /domains to prevent it being caught by :extid
@@ -51,7 +48,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesOrgLockedDomainHide,
+      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
     },
   },
   {
@@ -63,7 +60,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesOrgLockedDomainHide,
+      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
     },
     props: true,
   },

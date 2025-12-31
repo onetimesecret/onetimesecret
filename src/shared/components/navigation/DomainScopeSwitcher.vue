@@ -99,6 +99,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
           : 'hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white',
       ]"
       :disabled="props.locked"
+      :title="props.locked ? t('web.domains.switcher_locked') : undefined"
       :aria-label="t('web.domains.scope_switch_label')">
       <!-- Domain Icon -->
       <OIcon

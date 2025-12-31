@@ -3,7 +3,7 @@
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import { WindowService } from '@/services/window.service';
 import type { RouteRecordRaw } from 'vue-router';
-import type { ScopesAvailable } from '@/types/router';
+import { SCOPE_PRESETS } from '@/types/router';
 
 const standardLayoutProps = {
   displayMasthead: true,
@@ -14,8 +14,6 @@ const standardLayoutProps = {
   displayVersion: true,
   showSidebar: false,
 } as const;
-
-const scopesOrgLockedDomainHide: ScopesAvailable = { organization: 'locked', domain: 'hide' };
 
 /**
  * Guard to check if billing is enabled before accessing billing routes
@@ -47,7 +45,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesOrgLockedDomainHide,
+      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
     },
   },
   {
@@ -60,7 +58,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesOrgLockedDomainHide,
+      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
     },
   },
   {
@@ -73,7 +71,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: scopesOrgLockedDomainHide,
+      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
     },
   },
   // Legacy routes for backward compatibility

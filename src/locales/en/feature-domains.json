@@ -28,6 +28,7 @@
       "passphrase_short": "Passphrase",
       "notify_short": "Notifications",
       "scope_switch_label": "Switch domain scope",
+      "switcher_locked": "Domain switching not available on this page",
       "scope_list_label": "Available domains",
       "scope_header": "Domains",
       "add_domain": "Add domain",
