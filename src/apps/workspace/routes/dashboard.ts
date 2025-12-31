@@ -91,7 +91,7 @@ const routes: Array<RouteRecordRaw> = [
       },
       scopesAvailable: {
         organization: 'show',
-        domain: 'show',
+        domain: 'locked',
         onOrgSwitch: '/dashboard',
         onDomainSwitch: 'same',
       },
@@ -111,7 +111,7 @@ const routes: Array<RouteRecordRaw> = [
       },
       scopesAvailable: {
         organization: 'show',
-        domain: 'show',
+        domain: 'locked',
         onOrgSwitch: '/dashboard',
         onDomainSwitch: 'same',
       },

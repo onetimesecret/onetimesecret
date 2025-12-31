@@ -116,12 +116,21 @@ const routes: Array<RouteRecordRaw> = [
       const domainStrategy = WindowService.get('domain_strategy') as string;
       const componentMode = determineComponentMode();
       const layoutProps = getLayoutPropsForMode(componentMode, domainStrategy);
+      const hasSession = document.cookie.includes('ots-session');
 
       to.meta.componentMode = componentMode;
       to.meta.layoutProps = {
         ...to.meta.layoutProps,
         ...layoutProps,
       };
+
+      // Scope visibility: show on canonical site for authenticated users only
+      // Custom domains never show scopes (the domain itself IS the scope)
+      if (domainStrategy !== 'custom' && hasSession) {
+        to.meta.scopesAvailable = SCOPE_PRESETS.showBoth;
+      } else {
+        to.meta.scopesAvailable = SCOPE_PRESETS.hideBoth;
+      }
     },
   },
   {
