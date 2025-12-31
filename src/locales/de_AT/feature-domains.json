@@ -31,6 +31,7 @@
       "scope_list_label": "Verfügbare Bereiche",
       "scope_header": "Bereiche",
       "add_domain": "Bereich hinzufügen",
+      "domain_settings": "Domain-Einstellungen",
       "please_enter_a_domain_name": "Bitte geben Sie einen {0} Bereichnamen ein",
       "domain_name": "Domänenname",
       "control_whether_users_can_create_secret_links": "Kontrollieren Sie, ob Benutzer geheime Links von der Homepage Ihrer Bereich erstellen können",

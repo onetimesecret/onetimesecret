@@ -37,7 +37,7 @@
         "no_organizations_description": "Erstellen Sie eine Organisation, um Ihre Abrechnung und Ihr Abonnement zu verwalten",
         "entitlements": {
           "create_secrets": "Geheimnisse erstellen",
-          "view_metadata": "Metadaten anzeigen",
+          "view_receipt": "Belege anzeigen",
           "api_access": "API-Zugriff",
           "custom_domains": "Benutzerdefinierte Bereiche",
           "custom_privacy_defaults": "Benutzerdefinierte Datenschutzeinstellungen",
@@ -69,6 +69,9 @@
         "free_plan": "Kostenlos",
         "single_team_plan": "Einzelnes Team",
         "multi_team_plan": "Mehrere Teams",
+        "individual_account": "Einzelkonto",
+        "team_account": "Teamkonto",
+        "multi_team_account": "Organisationskonto",
         "features": "Funktionen",
         "unlimited_secrets": "Unbegrenzte Geheimnisse",
         "api_access": "API-Zugriff",
@@ -78,7 +81,9 @@
         "custom_needs_title": "Haben Sie Fragen oder benötigen Sie etwas Individuelles?",
         "custom_needs_description": "Wir freuen uns von Ihnen zu hören. Teilen Sie uns mit, wonach Sie suchen.",
         "teams_limit": "{count} Team | {count} Teams",
-        "members_limit": "{count} Mitglied pro Team | {count} Mitglieder pro Team"
+        "members_limit": "{count} Mitglied pro Team | {count} Mitglieder pro Team",
+        "unlimited_teams": "Unbegrenzte Teams",
+        "unlimited_members": "Unbegrenzte Mitglieder pro Team"
       },
       "invoices": {
         "title": "Abrechnungsverlauf",

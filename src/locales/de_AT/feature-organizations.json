@@ -6,6 +6,7 @@
       "organization_plural": "Organisationen",
       "organizations_description": "Verwalten Sie Ihre Organisationen",
       "my_organizations": "Meine Organisationen",
+      "manage_organizations": "Organisationen verwalten",
       "new_organization": "Neue Organisation",
       "no_organizations": "Noch keine Organisationen",
       "no_organizations_description": "Organisationen ermöglichen es Ihnen, mehrere Teams mit einheitlicher Abrechnung und Verwaltung zu verwalten. Beginnen Sie mit der Erstellung Ihrer ersten Organisation.",
@@ -47,9 +48,11 @@
       "single_user_info_description": "Aktualisieren Sie hier Ihren Firmennamen und Organisationsdetails. Diese Informationen helfen, Ihr Konto zu personalisieren und können in Zukunft für Branding-Funktionen verwendet werden.",
       "getting_started_title": "Erste Schritte mit Organisationen",
       "getting_started_description": "Erstellen Sie Ihre erste Organisation, um Ihre Firmeninformationen zu verwalten und sich auf zukünftige Team-Zusammenarbeit und Branding-Funktionen vorzubereiten.",
+      "page_description": "Verwalten Sie Ihre Organisationen und Teammitglieder",
       "tabs": {
         "general": "Allgemein",
         "company_branding": "Firmen-Branding",
+        "members": "Team",
         "billing": "Abrechnung"
       },
       "danger_zone": "Gefahrenbereich",
@@ -62,7 +65,10 @@
       "members": {
         "title": "Mitglieder",
         "description": "Organisationsmitglieder und deren Rollen verwalten",
+        "current_members": "Aktuelle Mitglieder",
         "member": "Mitglied",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Name",
         "email": "E-Mail",
         "role": "Rolle",
