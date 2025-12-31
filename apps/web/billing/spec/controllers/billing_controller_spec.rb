@@ -130,29 +130,45 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(data['usage']).to have_key('domains')
     end
 
-    it 'returns subscription data when organization has active subscription', :vcr do
-      # Requires STRIPE_TEST_PRICE_ID env var with a real price from your Stripe dashboard
-      # Run: STRIPE_TEST_PRICE_ID=price_xxx bundle exec rspec ...
-      test_price_id = ENV['STRIPE_TEST_PRICE_ID']
-      skip 'Set STRIPE_TEST_PRICE_ID env var with a real Stripe price ID' unless test_price_id
-
-      # Create Stripe customer with payment method
-      stripe_customer = Stripe::Customer.create(email: customer.email)
-      payment_method = Stripe::PaymentMethod.create(
-        type: 'card',
-        card: { token: 'tok_visa' }
-      )
-      Stripe::PaymentMethod.attach(payment_method.id, { customer: stripe_customer.id })
-      Stripe::Customer.update(stripe_customer.id, {
-        invoice_settings: { default_payment_method: payment_method.id }
-      })
-
-      subscription = Stripe::Subscription.create(
-        customer: stripe_customer.id,
-        items: [{ price: test_price_id }],
-      )
-
-      organization.update_from_stripe_subscription(subscription)
+    # =========================================================================
+    # TEST HISTORY & DESIGN NOTES
+    # =========================================================================
+    #
+    # This test was originally implemented using VCR to record real Stripe API
+    # interactions. That approach proved fragile because:
+    #
+    #   1. VCR cassettes become stale when Stripe's API responses change
+    #   2. Price IDs are specific to individual Stripe accounts
+    #   3. Tests weren't portable across development environments
+    #   4. Recording cassettes required manual intervention with real API keys
+    #
+    # We refactored to use Ruby-level mocking because this test's purpose is to
+    # verify that OUR controller correctly returns subscription data - not to
+    # verify that Stripe's API works correctly.
+    #
+    # ALTERNATIVE APPROACHES TO CONSIDER:
+    #
+    #   - stripe-mock (Official): Docker image from Stripe that implements their
+    #     API locally. Good for comprehensive integration testing.
+    #     https://github.com/stripe/stripe-mock
+    #
+    #   - stripe-ruby-mock gem: In-process mock server. Provides test helpers
+    #     for creating plans, customers, subscriptions without network calls.
+    #     https://github.com/stripe-ruby-mock/stripe-ruby-mock
+    #
+    #   - Contract testing: Validate request/response shapes against Stripe's
+    #     OpenAPI specification for API compatibility assurance.
+    #
+    # For now, mocking at the organization/model level is sufficient since we're
+    # testing controller behavior, not Stripe integration correctness.
+    # =========================================================================
+    it 'returns subscription data when organization has active subscription' do
+      # Set up organization with mocked subscription state
+      # (simulates what update_from_stripe_subscription would have done)
+      test_subscription_id = 'sub_test_mock_123'
+      organization.stripe_subscription_id = test_subscription_id
+      organization.subscription_status = 'active'
+      organization.subscription_period_end = Time.now.to_i + (30 * 24 * 60 * 60)
       organization.save
 
       get "/billing/api/org/#{organization.extid}"
@@ -161,8 +177,9 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       data = JSON.parse(last_response.body)
       expect(data['subscription']).not_to be_nil
-      expect(data['subscription']['id']).to eq(subscription.id)
-      expect(data['subscription']['status']).to match(/active|trialing/)
+      expect(data['subscription']['id']).to eq(test_subscription_id)
+      expect(data['subscription']['status']).to eq('active')
+      expect(data['subscription']['active']).to be true
     end
 
     it 'returns nil subscription when organization has no subscription', :vcr do
