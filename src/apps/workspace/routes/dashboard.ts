@@ -3,7 +3,11 @@
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import DashboardMain from '@/apps/workspace/dashboard/DashboardMain.vue';
 import DashboardRecent from '@/apps/workspace/dashboard/DashboardRecent.vue';
-import { RouteRecordRaw } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
+import type { ScopesAvailable } from '@/types/router';
+
+const scopesShowBoth: ScopesAvailable = { organization: 'show', domain: 'show' };
+const scopesOrgShowDomainLocked: ScopesAvailable = { organization: 'show', domain: 'locked' };
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -23,6 +27,7 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         showSidebar: false,
       },
+      scopesAvailable: scopesShowBoth,
     },
   },
   {
@@ -41,6 +46,7 @@ const routes: Array<RouteRecordRaw> = [
         displayPoweredBy: false,
         displayVersion: true,
       },
+      scopesAvailable: scopesShowBoth,
     },
   },
   {
@@ -55,6 +61,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: false,
         displayPoweredBy: false,
       },
+      scopesAvailable: scopesShowBoth,
     },
     props: true,
   },
@@ -70,6 +77,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: false,
         displayPoweredBy: false,
       },
+      scopesAvailable: scopesShowBoth,
     },
     props: true,
   },
@@ -84,6 +92,7 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayPoweredBy: false,
       },
+      scopesAvailable: scopesOrgShowDomainLocked,
     },
     props: true,
   },
@@ -98,6 +107,7 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayPoweredBy: false,
       },
+      scopesAvailable: scopesOrgShowDomainLocked,
     },
     props: true,
   },
