@@ -217,8 +217,8 @@
       "create_request_short": "Criar Solicitação",
       "create_request": "Criar Link de Solicitação",
       "related_settings": "Configurações Relacionadas",
-      "creating_links_for": "Creating links for",
-      "scope_indicator": "Creating secrets in {domain}"
+      "creating_links_for": "Criando links para",
+      "scope_indicator": "Criando segredos em {domain}"
     },
     "STATUS": {
       "new": "Novo",
