@@ -31,6 +31,7 @@
     "create_another": "Enviar outro segredo",
     "tagline1": "Partilhe informações sensíveis de forma segura",
     "tagline2": "Mantenha palavras-passe e dados privados fora de e-mails e registos de chat",
-    "end_of_experience_suggestion": "Guarde o seu <a href='{receiptUrl}'>recibo</a> para os seus registos."
+    "end_of_experience_suggestion": "Guarde o seu <a href='{receiptUrl}'>recibo</a> para os seus registos.",
+    "receipt_link_text": "recibo"
   }
 }

@@ -23,6 +23,7 @@
       "description_placeholder": "Para que serve esta organização?",
       "contact_email": "E-mail de Faturação",
       "contact_email_help": "Contacto principal para notificações de faturação e administrativas",
+      "billing_managed_by_default": "A faturação e gestão de subscrição são tratadas através do seu espaço de trabalho principal. Visite as definições do seu espaço de trabalho principal para gerir métodos de pagamento e faturas.",
       "select_organization": "Selecione uma organização",
       "not_found": "Organização não encontrada",
       "load_error": "Falha ao carregar organização",
@@ -57,7 +58,86 @@
       "delete": "Eliminar",
       "delete_organization_confirm_title": "Eliminar Organização",
       "delete_organization_confirm_message": "Tem a certeza de que deseja eliminar {name}? Esta ação não pode ser desfeita.",
-      "delete_error": "Falha ao eliminar organização"
+      "delete_error": "Falha ao eliminar organização",
+      "members": {
+        "title": "Membros",
+        "description": "Gerir membros da organização e as suas funções",
+        "member": "Membro",
+        "name": "Nome",
+        "email": "E-mail",
+        "role": "Função",
+        "joined": "Aderiu",
+        "actions": "Ações",
+        "no_members": "Nenhum membro encontrado",
+        "no_members_description": "Esta organização ainda não tem membros.",
+        "role_updated": "Função do membro atualizada com sucesso",
+        "role_update_error": "Falha ao atualizar função do membro",
+        "member_removed": "Membro removido da organização",
+        "member_remove_error": "Falha ao remover membro",
+        "remove_member_title": "Remover Membro",
+        "remove_member_confirm": "Tem a certeza de que deseja remover {name} desta organização?",
+        "cannot_change_own_role": "Não pode alterar a sua própria função",
+        "cannot_remove_self": "Não pode remover-se da organização",
+        "cannot_remove_owner": "Não pode remover o proprietário da organização",
+        "insufficient_permissions": "Não tem permissão para gerir membros",
+        "roles": {
+          "owner": "Proprietário",
+          "admin": "Admin",
+          "member": "Membro"
+        },
+        "role_descriptions": {
+          "owner": "Acesso total a todas as definições e membros da organização",
+          "admin": "Pode gerir membros e a maioria das definições da organização",
+          "member": "Acesso básico aos recursos da organização"
+        }
+      },
+      "invitations": {
+        "title": "Convites da Organização",
+        "invite_member": "Convidar Membro",
+        "invite_new_member": "Convidar Novo Membro",
+        "pending_invitations": "Convites Pendentes",
+        "no_pending_invitations": "Sem convites pendentes",
+        "email_address": "Endereço de E-mail",
+        "email_placeholder": "membro@exemplo.com",
+        "role": "Função",
+        "send_invite": "Enviar Convite",
+        "invite_sent": "Convite enviado com sucesso",
+        "invite_error": "Falha ao enviar convite",
+        "resend": "Reenviar",
+        "revoke": "Revogar",
+        "resend_success": "Convite reenviado com sucesso",
+        "resend_error": "Falha ao reenviar convite",
+        "revoke_success": "Convite revogado com sucesso",
+        "revoke_error": "Falha ao revogar convite",
+        "invited_by": "Convidado por",
+        "invited_at": "Convidado",
+        "expires_at": "Expira",
+        "resent_count": "Reenviado {count} vez",
+        "resent_count_plural": "Reenviado {count} vezes",
+        "status": {
+          "pending": "Pendente",
+          "accepted": "Aceite",
+          "declined": "Recusado",
+          "expired": "Expirado"
+        },
+        "roles": {
+          "member": "Membro",
+          "admin": "Admin"
+        },
+        "accept_invitation": "Aceitar Convite",
+        "decline_invitation": "Recusar Convite",
+        "invitation_details": "Detalhes do Convite",
+        "you_are_invited": "Foi convidado a aderir",
+        "invited_as": "Foi convidado como",
+        "accept_success": "Convite aceite com sucesso",
+        "accept_error": "Falha ao aceitar convite",
+        "decline_success": "Convite recusado",
+        "decline_error": "Falha ao recusar convite",
+        "expired_message": "Este convite expirou",
+        "invalid_token": "Convite inválido ou expirado",
+        "must_sign_in": "Por favor, inicie sessão para aceitar este convite",
+        "loading_invitation": "A carregar detalhes do convite"
+      }
     }
   }
 }
