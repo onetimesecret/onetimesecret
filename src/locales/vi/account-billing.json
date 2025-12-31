@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Yêu cầu nâng cấp",
         "viewPlans": "Xem gói",
+        "needTeams": "Quản lý nhóm yêu cầu Identity Plus hoặc cao hơn",
         "needCustomDomains": "Tên miền tùy chỉnh yêu cầu Identity Plus hoặc cao hơn",
         "needApiAccess": "Truy cập API yêu cầu gói Multi-Team hoặc cao hơn",
-        "needPrioritySupport": "Hỗ trợ ưu tiên yêu cầu Identity Plus hoặc cao hơn",
         "needAuditLogs": "Nhật ký kiểm toán yêu cầu gói Multi-Team hoặc cao hơn"
       },
       "manage_subscription_and_billing": "Quản lý đăng ký, tổ chức và cài đặt thanh toán của bạn",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Tạo tổ chức để quản lý thanh toán và đăng ký của bạn",
         "entitlements": {
           "create_secrets": "Tạo bí mật",
-          "basic_sharing": "Chia sẻ cơ bản",
-          "custom_domains": "Tên miền tùy chỉnh",
+          "view_metadata": "Xem siêu dữ liệu",
           "api_access": "Truy cập API",
+          "custom_domains": "Tên miền tùy chỉnh",
+          "custom_privacy_defaults": "Mặc định quyền riêng tư tùy chỉnh",
+          "extended_default_expiration": "Thời hạn mặc định mở rộng",
+          "custom_mail_defaults": "Mặc định email tùy chỉnh",
+          "custom_branding": "Thương hiệu tùy chỉnh",
+          "branded_homepage": "Trang chủ có thương hiệu",
+          "incoming_secrets": "Bí mật đến",
+          "manage_orgs": "Quản lý tổ chức",
+          "manage_teams": "Quản lý nhóm",
+          "manage_members": "Quản lý thành viên",
+          "audit_logs": "Nhật ký kiểm toán",
+          "sso": "Đăng nhập một lần",
           "priority_support": "Hỗ trợ ưu tiên",
-          "audit_logs": "Nhật ký kiểm toán"
-        }
+          "sla": "Thỏa thuận mức dịch vụ"
+        },
+        "entitlements_load_error": "Không thể tải chi tiết tính năng",
+        "no_entitlements": "Không có tính năng khả dụng"
       },
       "plans": {
         "title": "Chọn gói",
@@ -61,7 +74,11 @@
         "api_access": "Truy cập API",
         "priority_support": "Hỗ trợ ưu tiên",
         "select_plan": "Chọn gói",
-        "contact_sales": "Liên hệ bán hàng"
+        "contact_sales": "Liên hệ bán hàng",
+        "custom_needs_title": "Có câu hỏi hoặc cần giải pháp tùy chỉnh?",
+        "custom_needs_description": "Chúng tôi rất muốn nghe từ bạn. Hãy cho chúng tôi biết bạn đang tìm kiếm gì.",
+        "teams_limit": "{count} nhóm",
+        "members_limit": "{count} thành viên mỗi nhóm"
       },
       "invoices": {
         "title": "Lịch sử thanh toán",

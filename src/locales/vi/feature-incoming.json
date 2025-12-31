@@ -31,6 +31,7 @@
     "create_another": "Gửi bí mật khác",
     "tagline1": "Chia sẻ thông tin nhạy cảm một cách an toàn",
     "tagline2": "Giữ mật khẩu và dữ liệu cá nhân ra khỏi email và nhật ký trò chuyện",
-    "end_of_experience_suggestion": "Lưu <a href='{receiptUrl}'>biên lai</a> của bạn để lưu trữ."
+    "end_of_experience_suggestion": "Lưu <a href='{receiptUrl}'>biên lai</a> của bạn để lưu trữ.",
+    "receipt_link_text": "receipt"
   }
 }

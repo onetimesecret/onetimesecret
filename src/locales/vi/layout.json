@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "Tài liệu API",
+      "branding_guide": "Hướng dẫn thương hiệu",
+      "customize": "Tùy chỉnh",
+      "plans": "Gói dịch vụ",
       "security": "Bảo mật",
       "learn_about_our_security_measures": "Tìm hiểu về các biện pháp bảo mật của chúng tôi",
       "view_our_terms_and_conditions": "Xem Điều khoản và Điều kiện của chúng tôi",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Thay đổi ngôn ngữ. Ngôn ngữ hiện tại là {0}",
       "language_changed_to_newlocale": "Đã thay đổi ngôn ngữ sang {0}",
       "switch_to_blank_mode": "Chuyển sang chế độ {0}",
-      "blank_mode_enabled": "Đã bật chế độ {0}"
+      "blank_mode_enabled": "Đã bật chế độ {0}",
+      "workspace": "Không gian làm việc",
+      "workspace_context": "Ngữ cảnh không gian làm việc"
     }
   }
 }

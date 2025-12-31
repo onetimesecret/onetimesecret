@@ -23,6 +23,7 @@
       "description_placeholder": "Tổ chức này dành cho mục đích gì?",
       "contact_email": "Email thanh toán",
       "contact_email_help": "Liên hệ chính cho thông báo thanh toán và quản trị",
+      "billing_managed_by_default": "Quản lý thanh toán và đăng ký được xử lý thông qua không gian làm việc chính của bạn. Truy cập cài đặt không gian làm việc chính để quản lý phương thức thanh toán và hóa đơn.",
       "select_organization": "Chọn một tổ chức",
       "not_found": "Không tìm thấy tổ chức",
       "load_error": "Không thể tải tổ chức",
@@ -57,7 +58,86 @@
       "delete": "Xóa",
       "delete_organization_confirm_title": "Xóa tổ chức",
       "delete_organization_confirm_message": "Bạn có chắc chắn muốn xóa {name}? Hành động này không thể hoàn tác.",
-      "delete_error": "Không thể xóa tổ chức"
+      "delete_error": "Không thể xóa tổ chức",
+      "members": {
+        "title": "Thành viên",
+        "description": "Quản lý thành viên tổ chức và vai trò của họ",
+        "member": "Thành viên",
+        "name": "Tên",
+        "email": "Email",
+        "role": "Vai trò",
+        "joined": "Đã tham gia",
+        "actions": "Hành động",
+        "no_members": "Không tìm thấy thành viên",
+        "no_members_description": "Tổ chức này chưa có thành viên nào.",
+        "role_updated": "Đã cập nhật vai trò thành viên thành công",
+        "role_update_error": "Không thể cập nhật vai trò thành viên",
+        "member_removed": "Đã xóa thành viên khỏi tổ chức",
+        "member_remove_error": "Không thể xóa thành viên",
+        "remove_member_title": "Xóa thành viên",
+        "remove_member_confirm": "Bạn có chắc chắn muốn xóa {name} khỏi tổ chức này?",
+        "cannot_change_own_role": "Bạn không thể thay đổi vai trò của chính mình",
+        "cannot_remove_self": "Bạn không thể tự xóa mình khỏi tổ chức",
+        "cannot_remove_owner": "Bạn không thể xóa chủ sở hữu tổ chức",
+        "insufficient_permissions": "Bạn không có quyền quản lý thành viên",
+        "roles": {
+          "owner": "Chủ sở hữu",
+          "admin": "Quản trị viên",
+          "member": "Thành viên"
+        },
+        "role_descriptions": {
+          "owner": "Toàn quyền truy cập tất cả cài đặt tổ chức và thành viên",
+          "admin": "Có thể quản lý thành viên và hầu hết cài đặt tổ chức",
+          "member": "Quyền truy cập cơ bản vào tài nguyên tổ chức"
+        }
+      },
+      "invitations": {
+        "title": "Lời mời tổ chức",
+        "invite_member": "Mời thành viên",
+        "invite_new_member": "Mời thành viên mới",
+        "pending_invitations": "Lời mời đang chờ",
+        "no_pending_invitations": "Không có lời mời đang chờ",
+        "email_address": "Địa chỉ email",
+        "email_placeholder": "thanhvien@example.com",
+        "role": "Vai trò",
+        "send_invite": "Gửi lời mời",
+        "invite_sent": "Đã gửi lời mời thành công",
+        "invite_error": "Không thể gửi lời mời",
+        "resend": "Gửi lại",
+        "revoke": "Thu hồi",
+        "resend_success": "Đã gửi lại lời mời thành công",
+        "resend_error": "Không thể gửi lại lời mời",
+        "revoke_success": "Đã thu hồi lời mời thành công",
+        "revoke_error": "Không thể thu hồi lời mời",
+        "invited_by": "Được mời bởi",
+        "invited_at": "Đã mời",
+        "expires_at": "Hết hạn",
+        "resent_count": "Đã gửi lại {count} lần",
+        "resent_count_plural": "Đã gửi lại {count} lần",
+        "status": {
+          "pending": "Đang chờ",
+          "accepted": "Đã chấp nhận",
+          "declined": "Đã từ chối",
+          "expired": "Đã hết hạn"
+        },
+        "roles": {
+          "member": "Thành viên",
+          "admin": "Quản trị viên"
+        },
+        "accept_invitation": "Chấp nhận lời mời",
+        "decline_invitation": "Từ chối lời mời",
+        "invitation_details": "Chi tiết lời mời",
+        "you_are_invited": "Bạn đã được mời tham gia",
+        "invited_as": "Bạn đã được mời với vai trò",
+        "accept_success": "Đã chấp nhận lời mời thành công",
+        "accept_error": "Không thể chấp nhận lời mời",
+        "decline_success": "Đã từ chối lời mời",
+        "decline_error": "Không thể từ chối lời mời",
+        "expired_message": "Lời mời này đã hết hạn",
+        "invalid_token": "Lời mời không hợp lệ hoặc đã hết hạn",
+        "must_sign_in": "Vui lòng đăng nhập để chấp nhận lời mời này",
+        "loading_invitation": "Đang tải chi tiết lời mời"
+      }
     }
   }
 }
