@@ -40,6 +40,10 @@ module Onetime
   #
   #   # Accept invite (customer_objid nil -> filled, status -> active)
   #
+  # Opaque Identifier Pattern:
+  # API responses return organization.extid (not objid) to prevent enumeration.
+  # See safe_dump_fields for serialization details.
+  #
   class OrganizationMembership < Familia::Horreum
     using Familia::Refinements::TimeLiterals
 
