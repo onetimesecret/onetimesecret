@@ -37,7 +37,7 @@
         "no_organizations_description": "Tạo tổ chức để quản lý thanh toán và đăng ký của bạn",
         "entitlements": {
           "create_secrets": "Tạo bí mật",
-          "view_metadata": "Xem siêu dữ liệu",
+          "view_receipt": "Xem Hóa đơn",
           "api_access": "Truy cập API",
           "custom_domains": "Tên miền tùy chỉnh",
           "custom_privacy_defaults": "Mặc định quyền riêng tư tùy chỉnh",
@@ -69,6 +69,9 @@
         "free_plan": "Miễn phí",
         "single_team_plan": "Nhóm đơn",
         "multi_team_plan": "Nhiều nhóm",
+        "individual_account": "Tài khoản Cá nhân",
+        "team_account": "Tài khoản Nhóm",
+        "multi_team_account": "Tài khoản Tổ chức",
         "features": "Tính năng",
         "unlimited_secrets": "Bí mật không giới hạn",
         "api_access": "Truy cập API",
@@ -78,7 +81,9 @@
         "custom_needs_title": "Có câu hỏi hoặc cần giải pháp tùy chỉnh?",
         "custom_needs_description": "Chúng tôi rất muốn nghe từ bạn. Hãy cho chúng tôi biết bạn đang tìm kiếm gì.",
         "teams_limit": "{count} nhóm",
-        "members_limit": "{count} thành viên mỗi nhóm"
+        "members_limit": "{count} thành viên mỗi nhóm",
+        "unlimited_teams": "Số lượng nhóm không giới hạn",
+        "unlimited_members": "Số lượng thành viên mỗi nhóm không giới hạn"
       },
       "invoices": {
         "title": "Lịch sử thanh toán",

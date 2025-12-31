@@ -6,6 +6,7 @@
       "organization_plural": "Tổ chức",
       "organizations_description": "Quản lý tổ chức của bạn",
       "my_organizations": "Tổ chức của tôi",
+      "manage_organizations": "Quản lý Tổ chức",
       "new_organization": "Tổ chức mới",
       "no_organizations": "Chưa có tổ chức nào",
       "no_organizations_description": "Tổ chức cho phép bạn quản lý nhiều nhóm với thanh toán và quản trị thống nhất. Bắt đầu bằng cách tạo tổ chức đầu tiên của bạn.",
@@ -47,9 +48,11 @@
       "single_user_info_description": "Cập nhật tên công ty và thông tin tổ chức tại đây. Thông tin này giúp cá nhân hóa tài khoản của bạn và có thể được sử dụng cho các tính năng thương hiệu trong tương lai.",
       "getting_started_title": "Bắt đầu với tổ chức",
       "getting_started_description": "Tạo tổ chức đầu tiên của bạn để quản lý thông tin công ty và chuẩn bị cho các tính năng cộng tác nhóm và thương hiệu trong tương lai.",
+      "page_description": "Quản lý tổ chức và thành viên nhóm của bạn",
       "tabs": {
         "general": "Chung",
         "company_branding": "Thương hiệu công ty",
+        "members": "Nhóm",
         "billing": "Thanh toán"
       },
       "danger_zone": "Vùng nguy hiểm",
@@ -62,7 +65,10 @@
       "members": {
         "title": "Thành viên",
         "description": "Quản lý thành viên tổ chức và vai trò của họ",
+        "current_members": "Thành viên Hiện tại",
         "member": "Thành viên",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Tên",
         "email": "Email",
         "role": "Vai trò",

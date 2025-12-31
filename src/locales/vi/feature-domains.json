@@ -31,6 +31,7 @@
       "scope_list_label": "Tên miền khả dụng",
       "scope_header": "Tên miền",
       "add_domain": "Thêm tên miền",
+      "domain_settings": "Cài đặt tên miền",
       "please_enter_a_domain_name": "Vui lòng nhập tên miền {0}",
       "domain_name": "Tên miền",
       "control_whether_users_can_create_secret_links": "Kiểm soát việc người dùng có thể tạo liên kết bí mật từ trang chủ tên miền của bạn hay không",
