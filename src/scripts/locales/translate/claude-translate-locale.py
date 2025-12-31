@@ -17,7 +17,7 @@ import re
 import subprocess
 import sys
 import tempfile
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
@@ -45,6 +45,7 @@ def log_error(msg: str) -> None:
 class TranslationEntry:
     """A single string to translate."""
     file: str
+    line: int
     key: str
     english: str
     translated: str = ""
@@ -68,38 +69,56 @@ def get_available_locales(locales_dir: Path) -> list[str]:
 
 
 def extract_entries_from_diff(diff_output: str) -> list[TranslationEntry]:
-    """Extract translation entries from git diff.
+    """Extract translation entries from git diff with line numbers.
 
-    Parses added lines like: +  "key": "English value",
-    Returns list of TranslationEntry objects.
+    Parses diff hunks to track exact line numbers in the new file.
     """
     entries: list[TranslationEntry] = []
     current_file = None
+    current_line = 0
 
-    # Pattern: +  "key": "value"  or  +  "key": "value",
-    line_pattern = re.compile(r'^\+\s*"([^"]+)"\s*:\s*"([^"]*)"')
+    # Pattern for hunk header: @@ -old_start,old_count +new_start,new_count @@
+    hunk_pattern = re.compile(r'^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@')
+    # Pattern for JSON key-value: "key": "value"
+    kv_pattern = re.compile(r'^\+\s*"([^"]+)"\s*:\s*"([^"]*)"')
 
     for line in diff_output.splitlines():
-        # Track current file from diff header
+        # Track current file
         if line.startswith("diff --git"):
             match = re.search(r'b/src/locales/[^/]+/([^/]+\.json)', line)
             if match:
                 current_file = match.group(1)
+                current_line = 0
 
-        # Extract from added lines (skip +++ header)
+        # Track line numbers from hunk headers
+        elif line.startswith("@@"):
+            match = hunk_pattern.match(line)
+            if match:
+                current_line = int(match.group(1))
+
+        # Context line (in both old and new)
+        elif line.startswith(" "):
+            current_line += 1
+
+        # Removed line (only in old file, doesn't affect new line count)
+        elif line.startswith("-") and not line.startswith("---"):
+            pass  # Don't increment
+
+        # Added line (only in new file)
         elif line.startswith("+") and not line.startswith("+++"):
-            match = line_pattern.match(line)
+            match = kv_pattern.match(line)
             if match and current_file:
                 key = match.group(1)
                 value = match.group(2)
 
-                # Skip if not English (already translated)
                 if value and is_english(value):
                     entries.append(TranslationEntry(
                         file=current_file,
+                        line=current_line,
                         key=key,
                         english=value,
                     ))
+            current_line += 1
 
     return entries
 
@@ -108,20 +127,16 @@ def is_english(value: str) -> bool:
     """Check if string appears to be English (needs translation)."""
     if not value.strip():
         return False
-    # Skip URLs
     if value.startswith(("http://", "https://", "mailto:")):
         return False
-    # Skip pure placeholders
     if re.match(r'^[\{\}0-9a-z_@:\.]+$', value):
         return False
-    # Check if mostly ASCII (English)
     ascii_ratio = sum(1 for c in value if ord(c) < 128) / len(value)
     return ascii_ratio > 0.8
 
 
 def build_prompt(locale: str, entries: list[TranslationEntry], export_guide: Optional[str]) -> str:
     """Build prompt with JSON array of entries."""
-    # Convert entries to simple dicts for Claude
     items = [{"key": e.key, "english": e.english} for e in entries]
 
     prompt = f"""Translate these UI strings from English to {locale} for OneTime Secret.
@@ -152,15 +167,12 @@ Return ONLY the JSON array, no markdown, no explanation.
 
 def parse_response(claude_output: str) -> list[dict]:
     """Parse Claude's JSON array response."""
-    # Try to find JSON array in output
-    # Remove markdown code blocks if present
     text = claude_output.strip()
     if "```" in text:
         match = re.search(r'```(?:json)?\s*(\[.*?\])\s*```', text, re.DOTALL)
         if match:
             text = match.group(1)
 
-    # Find the array
     start = text.find("[")
     end = text.rfind("]") + 1
     if start >= 0 and end > start:
@@ -174,52 +186,57 @@ def parse_response(claude_output: str) -> list[dict]:
         return []
 
 
-def apply_translations(
+def apply_translations_with_sed(
     locale_dir: Path,
     entries: list[TranslationEntry],
     translations: list[dict],
     verbose: bool = False,
 ) -> int:
-    """Apply translations by replacing English strings in files."""
+    """Apply translations using sed for precise line-based replacement."""
     # Build lookup: english -> translated
     trans_map = {t["english"]: t.get("translated", "") for t in translations if t.get("translated")}
 
     if verbose:
         log_info(f"Translation map has {len(trans_map)} entries")
 
-    # Group entries by file
-    by_file: dict[str, list[TranslationEntry]] = {}
-    for entry in entries:
-        by_file.setdefault(entry.file, []).append(entry)
-
     total_replaced = 0
 
-    for filename, file_entries in by_file.items():
-        filepath = locale_dir / filename
+    for entry in entries:
+        if entry.english not in trans_map:
+            if verbose:
+                log_warn(f"No translation for: {entry.english}")
+            continue
+
+        translated = trans_map[entry.english]
+        filepath = locale_dir / entry.file
+
         if not filepath.exists():
             log_warn(f"File not found: {filepath}")
             continue
 
-        content = filepath.read_text(encoding="utf-8")
-        original = content
-        replaced = 0
+        # Escape special characters for sed
+        old_escaped = entry.english.replace("/", r"\/").replace("&", r"\&")
+        new_escaped = translated.replace("/", r"\/").replace("&", r"\&")
 
-        for entry in file_entries:
-            if entry.english in trans_map:
-                translated = trans_map[entry.english]
-                # Replace: "English text" -> "Translated text"
-                old = f'"{entry.english}"'
-                new = f'"{translated}"'
-                if old in content:
-                    content = content.replace(old, new, 1)  # Replace first occurrence
-                    replaced += 1
-                    if verbose:
-                        print(f"  {entry.key}: {entry.english} → {translated}")
+        # Use sed to replace on specific line: sed -i '' 'LINEs/old/new/' file (macOS)
+        sed_cmd = ["sed", "-i", "", f'{entry.line}s/"{old_escaped}"/"{new_escaped}"/', str(filepath)]
 
-        if content != original:
-            filepath.write_text(content, encoding="utf-8")
-            log_info(f"Updated {filename}: {replaced} translations")
-            total_replaced += replaced
+        try:
+            result = subprocess.run(sed_cmd, capture_output=True, text=True)
+            if result.returncode == 0:
+                total_replaced += 1
+                if verbose:
+                    print(f"  L{entry.line} [{entry.file}] {entry.key}: {entry.english} → {translated}")
+            else:
+                log_warn(f"sed failed for {entry.key}: {result.stderr}")
+        except Exception as e:
+            log_warn(f"sed error for {entry.key}: {e}")
+
+    # Group by file for summary
+    files_updated = set(e.file for e in entries if e.english in trans_map)
+    for f in files_updated:
+        count = sum(1 for e in entries if e.file == f and e.english in trans_map)
+        log_info(f"Updated {f}: {count} translations")
 
     return total_replaced
 
@@ -277,7 +294,7 @@ def main() -> int:
     else:
         log_info("[DRY-RUN] Would harmonize")
 
-    # Step 2: Extract from diff
+    # Step 2: Extract from diff with line numbers
     result = run_command(["git", "diff", f"src/locales/{args.locale}/"], cwd=project_root, check=False)
     if not result.stdout.strip():
         log_info("No changes - already up to date")
@@ -291,7 +308,7 @@ def main() -> int:
     log_info(f"Found {len(entries)} strings to translate")
     if args.verbose:
         for e in entries:
-            print(f"  [{e.file}] {e.key}: {e.english}")
+            print(f"  L{e.line} [{e.file}] {e.key}: {e.english}")
 
     # Step 3: Build prompt
     prompt = build_prompt(args.locale, entries, export_guide)
@@ -344,9 +361,9 @@ def main() -> int:
 
     log_info(f"Parsed {len(translations)} translations")
 
-    # Step 6: Apply
-    log_info("Step 3: Applying translations...")
-    replaced = apply_translations(locale_dir, entries, translations, args.verbose)
+    # Step 6: Apply with sed
+    log_info("Step 3: Applying translations with sed...")
+    replaced = apply_translations_with_sed(locale_dir, entries, translations, args.verbose)
 
     if replaced == 0:
         log_warn("No translations applied")
