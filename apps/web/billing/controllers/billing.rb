@@ -116,6 +116,10 @@ module Billing
           session_params.delete(:customer_email)
         end
 
+        if stripe_api_key_missing?('create_checkout_session')
+          return json_error('Billing service temporarily unavailable', status: 503)
+        end
+
         # Create Stripe Checkout Session with idempotency
         # Generate deterministic idempotency key to prevent duplicate sessions
         stripe_client = Billing::StripeClient.new
@@ -186,6 +190,10 @@ module Billing
 
         unless org.stripe_customer_id
           return json_response({ invoices: [] })
+        end
+
+        if stripe_api_key_missing?('list_invoices')
+          return json_error('Billing service temporarily unavailable', status: 503)
         end
 
         # Retrieve invoices from Stripe
@@ -283,6 +291,11 @@ module Billing
           })
         end
 
+        # Validate Stripe API key is configured before making API calls
+        if stripe_api_key_missing?('subscription_status')
+          return json_error('Billing service temporarily unavailable', status: 503)
+        end
+
         # Fetch current subscription from Stripe
         subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
         current_item = subscription.items.data.first
@@ -323,6 +336,10 @@ module Billing
         valid, error_response = validate_plan_change_request(org, new_price_id)
         return error_response unless valid
 
+        if stripe_api_key_missing?('preview_plan_change')
+          return json_error('Billing service temporarily unavailable', status: 503)
+        end
+
         # Fetch current subscription
         subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
         current_item = subscription.items.data.first
@@ -337,24 +354,38 @@ module Billing
         return error_response unless valid
 
         # Get preview of upcoming invoice with the plan change
-        preview = Stripe::Invoice.upcoming(
+        # Note: Stripe gem v10+ uses 'create_preview' with subscription at top level
+        # and item changes inside subscription_details
+        preview = Stripe::Invoice.create_preview(
           customer: org.stripe_customer_id,
           subscription: org.stripe_subscription_id,
-          subscription_items: [{
-            id: current_item.id,
-            price: new_price_id,
-          }],
-          subscription_proration_behavior: 'create_prorations',
+          subscription_details: {
+            items: [{
+              id: current_item.id,
+              price: new_price_id,
+            }],
+            proration_behavior: 'create_prorations',
+          },
         )
 
         # Calculate credit from proration items (negative amounts)
+        # Note: In Stripe API 2023+, proration is nested in parent details
         credit_applied = preview.lines.data
-          .select { |line| line.proration && line.amount.negative? }
+          .select { |line| line_is_proration?(line) && line.amount.negative? }
           .sum(&:amount)
           .abs
 
         # Get new plan details from preview line items (avoids extra API call)
-        new_price = preview.lines.data.map(&:price).find { |p| p.id == new_price_id }
+        # Note: In newer API, price can be a String ID or Price object
+        new_price = preview.lines.data
+          .map { |line| line.pricing&.price_details&.price || line.price }
+          .compact
+          .find do |p|
+            price_id = p.is_a?(String) ? p : p.id
+            price_id == new_price_id
+          end
+        # If we got a string, we need to fetch the full price object for details
+        new_price = Stripe::Price.retrieve(new_price_id) if new_price.is_a?(String) || new_price.nil?
 
         json_response({
           amount_due: preview.amount_due,
@@ -407,6 +438,10 @@ module Billing
         # Validate plan change request
         valid, error_response = validate_plan_change_request(org, new_price_id)
         return error_response unless valid
+
+        if stripe_api_key_missing?('change_plan')
+          return json_error('Billing service temporarily unavailable', status: 503)
+        end
 
         # Fetch current subscription
         subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
@@ -476,6 +511,23 @@ module Billing
       end
 
       private
+
+      # Check if invoice line item is a proration
+      #
+      # In Stripe API 2023+, proration status moved to parent details.
+      # Checks both invoice_item_details and subscription_item_details.
+      #
+      # @param line [Stripe::InvoiceLineItem] Invoice line item
+      # @return [Boolean] True if line is a proration
+      def line_is_proration?(line)
+        parent = line.parent
+        return false unless parent
+
+        # Check both possible parent types for proration flag
+        parent.invoice_item_details&.proration ||
+          parent.subscription_item_details&.proration ||
+          false
+      end
 
       # Validate plan change request parameters
       #

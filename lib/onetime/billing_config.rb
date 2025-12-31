@@ -33,8 +33,26 @@ module Onetime
     end
 
     # Stripe API key
+    #
+    # Checks ENV['STRIPE_API_KEY'] first, then falls back to config file.
+    # This allows environment-based configuration to override file config.
     def stripe_key
-      ENV['STRIPE_API_KEY'] || config['stripe_key']
+      env_key    = ENV['STRIPE_API_KEY']
+      config_key = config['stripe_key']
+      result     = env_key || config_key
+
+      # Debug logging on first access only (avoid log spam)
+      unless @stripe_key_logged
+        @stripe_key_logged = true
+        OT.ld '[BillingConfig.stripe_key] Key resolution', {
+          env_present: !env_key.to_s.strip.empty?,
+          config_present: !config_key.to_s.strip.empty?,
+          source: env_key ? 'ENV' : (config_key ? 'config' : 'none'),
+          result_prefix: result&.slice(0, 8),
+        }
+      end
+
+      result
     end
 
     # Stripe webhook signing secret

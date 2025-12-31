@@ -118,6 +118,26 @@ module Billing
         req.env['HTTP_ACCEPT']&.include?('application/json')
       end
 
+      # Validate Stripe API key is configured
+      #
+      # Returns error response if Stripe API key is not available.
+      # Logs detailed debug info to help diagnose configuration issues.
+      #
+      # @param context [String] Description of the operation for logging
+      # @return [Hash, nil] Error response if key not configured, nil otherwise
+      def stripe_api_key_missing?(context = 'Stripe operation')
+        return false if Stripe.api_key && !Stripe.api_key.to_s.strip.empty?
+
+        billing_logger.error 'Stripe API key not configured', {
+          context: context,
+          stripe_key_nil: Stripe.api_key.nil?,
+          billing_enabled: OT.billing_config.enabled?,
+          env_key_present: !ENV['STRIPE_API_KEY'].to_s.strip.empty?,
+          config_key_present: !OT.billing_config.billing['stripe_key'].to_s.strip.empty?,
+        }
+        true
+      end
+
       # Ensures customer has a default workspace (self-healing operation)
       #
       # This method is called automatically on billing overview access to ensure
