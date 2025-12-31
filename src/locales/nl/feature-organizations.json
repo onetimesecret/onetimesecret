@@ -23,6 +23,7 @@
       "description_placeholder": "Waarvoor is deze organisatie?",
       "contact_email": "Facturatie e-mail",
       "contact_email_help": "Primair contact voor facturering en administratieve meldingen",
+      "billing_managed_by_default": "Facturering en abonnementsbeheer worden via je primaire werkruimte afgehandeld. Bezoek je hoofdwerkruimte-instellingen om betaalmethoden en facturen te beheren.",
       "select_organization": "Selecteer een organisatie",
       "not_found": "Organisatie niet gevonden",
       "load_error": "Kon organisatie niet laden",
@@ -57,7 +58,86 @@
       "delete": "Verwijderen",
       "delete_organization_confirm_title": "Organisatie verwijderen",
       "delete_organization_confirm_message": "Weet je zeker dat je {name} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt",
-      "delete_error": "Kon organisatie niet verwijderen"
+      "delete_error": "Kon organisatie niet verwijderen",
+      "members": {
+        "title": "Leden",
+        "description": "Beheer organisatieleden en hun rollen",
+        "member": "Lid",
+        "name": "Naam",
+        "email": "E-mail",
+        "role": "Rol",
+        "joined": "Toegetreden",
+        "actions": "Acties",
+        "no_members": "Geen leden gevonden",
+        "no_members_description": "Deze organisatie heeft nog geen leden.",
+        "role_updated": "Rol van lid succesvol bijgewerkt",
+        "role_update_error": "Rol van lid bijwerken mislukt",
+        "member_removed": "Lid verwijderd uit organisatie",
+        "member_remove_error": "Lid verwijderen mislukt",
+        "remove_member_title": "Lid verwijderen",
+        "remove_member_confirm": "Weet je zeker dat je {name} uit deze organisatie wilt verwijderen?",
+        "cannot_change_own_role": "Je kunt je eigen rol niet wijzigen",
+        "cannot_remove_self": "Je kunt jezelf niet uit de organisatie verwijderen",
+        "cannot_remove_owner": "Je kunt de eigenaar van de organisatie niet verwijderen",
+        "insufficient_permissions": "Je hebt geen toestemming om leden te beheren",
+        "roles": {
+          "owner": "Eigenaar",
+          "admin": "Beheerder",
+          "member": "Lid"
+        },
+        "role_descriptions": {
+          "owner": "Volledige toegang tot alle organisatie-instellingen en leden",
+          "admin": "Kan leden en de meeste organisatie-instellingen beheren",
+          "member": "Basistoegang tot organisatiebronnen"
+        }
+      },
+      "invitations": {
+        "title": "Organisatie-uitnodigingen",
+        "invite_member": "Lid uitnodigen",
+        "invite_new_member": "Nieuw lid uitnodigen",
+        "pending_invitations": "Openstaande uitnodigingen",
+        "no_pending_invitations": "Geen openstaande uitnodigingen",
+        "email_address": "E-mailadres",
+        "email_placeholder": "lid@voorbeeld.com",
+        "role": "Rol",
+        "send_invite": "Uitnodiging versturen",
+        "invite_sent": "Uitnodiging succesvol verstuurd",
+        "invite_error": "Uitnodiging versturen mislukt",
+        "resend": "Opnieuw versturen",
+        "revoke": "Intrekken",
+        "resend_success": "Uitnodiging opnieuw verstuurd",
+        "resend_error": "Uitnodiging opnieuw versturen mislukt",
+        "revoke_success": "Uitnodiging succesvol ingetrokken",
+        "revoke_error": "Uitnodiging intrekken mislukt",
+        "invited_by": "Uitgenodigd door",
+        "invited_at": "Uitgenodigd",
+        "expires_at": "Verloopt",
+        "resent_count": "{count} keer opnieuw verstuurd",
+        "resent_count_plural": "{count} keer opnieuw verstuurd",
+        "status": {
+          "pending": "In behandeling",
+          "accepted": "Geaccepteerd",
+          "declined": "Afgewezen",
+          "expired": "Verlopen"
+        },
+        "roles": {
+          "member": "Lid",
+          "admin": "Beheerder"
+        },
+        "accept_invitation": "Uitnodiging accepteren",
+        "decline_invitation": "Uitnodiging afwijzen",
+        "invitation_details": "Uitnodigingsdetails",
+        "you_are_invited": "Je bent uitgenodigd om lid te worden van",
+        "invited_as": "Je bent uitgenodigd als",
+        "accept_success": "Uitnodiging succesvol geaccepteerd",
+        "accept_error": "Uitnodiging accepteren mislukt",
+        "decline_success": "Uitnodiging afgewezen",
+        "decline_error": "Uitnodiging afwijzen mislukt",
+        "expired_message": "Deze uitnodiging is verlopen",
+        "invalid_token": "Ongeldige of verlopen uitnodiging",
+        "must_sign_in": "Log in om deze uitnodiging te accepteren",
+        "loading_invitation": "Uitnodigingsdetails laden"
+      }
     }
   }
 }

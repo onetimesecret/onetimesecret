@@ -69,6 +69,7 @@
       "word_confirm": "Bevestigen",
       "word_cancel": "Annuleren",
       "word_continue": "Doorgaan",
+      "word_done": "Klaar",
       "back": "Terug",
       "feedback_text": "Heeft u een vraag of opmerking?",
       "button_send_feedback": "Feedback versturen",
@@ -160,16 +161,19 @@
       "an_error_occurred": "Er is een fout opgetreden",
       "copy_secret_to_clipboard": "Bericht kopiëren naar klembord",
       "secret_copied_to_clipboard": "Bericht gekopieerd naar klembord",
-      "press_copy_button_below": "Klik op de kopieerknop hieronder.",
-      "double_check_that_passphrase": "Controleer die wachtwoordzin nogmaals"
+      "double_check_that_passphrase": "Controleer die wachtwoordzin nogmaals",
+      "press_copy_button_below": "Klik op de kopieerknop hieronder."
     },
     "LABELS": {
       "view_toggle": {
         "show": "Tonen",
         "hide": "Verbergen",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Meer tonen",
+        "show_less": "Minder tonen"
       },
+      "enable": "Inschakelen",
+      "disable": "Uitschakelen",
+      "stats": "Statistieken",
       "timeline": "Tijdlijn",
       "lifespan": "Levensduur",
       "expiration_time": "Vervaltijd",
@@ -213,9 +217,8 @@
       "create_request_short": "Verzoek aanmaken",
       "create_request": "Verzoeklink aanmaken",
       "related_settings": "Gerelateerde instellingen",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "Links aanmaken voor",
+      "scope_indicator": "Berichten aanmaken in {domain}"
     },
     "STATUS": {
       "new": "Nieuw",
@@ -289,7 +292,8 @@
       "logout": "Uitloggen",
       "verify_account": "Account verifiëren",
       "mfa_verify": "Twee-factor authenticatie",
-      "email_login": "Email login",
+      "email_login": "E-mail inloggen",
+      "accept_invitation": "Uitnodiging accepteren",
       "secret": "Bericht",
       "metadata": "Berichtdetails",
       "receipt": "Berichtbevestiging",
@@ -308,6 +312,7 @@
       "profile_settings": "Profielinstellingen",
       "preferences_settings": "Voorkeuren",
       "privacy_settings": "Privacy",
+      "notification_settings": "Meldingen",
       "change_email": "E-mail wijzigen",
       "security_overview": "Beveiliging",
       "change_password": "Wachtwoord wijzigen",
@@ -318,7 +323,14 @@
       "advanced_settings": "Geavanceerde instellingen",
       "colonel": "Administratie",
       "colonel_users": "Gebruikersbeheer",
+      "colonel_secrets": "Berichtenbeheer",
+      "colonel_domains": "Aangepaste domeinen",
+      "colonel_system": "Systeem",
       "system_settings": "Systeeminstellingen",
+      "colonel_maindb": "Hoofddatabase",
+      "colonel_authdb": "Authenticatiedatabase",
+      "colonel_banned_ips": "Geblokkeerde IP's",
+      "colonel_usage": "Gebruiksexport",
       "colonel_info": "Systeeminformatie",
       "not_found": "Pagina niet gevonden",
       "organizations_settings": "Organisaties",
