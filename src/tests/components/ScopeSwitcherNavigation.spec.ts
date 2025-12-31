@@ -299,6 +299,115 @@ describe('ScopeSwitcher Navigation', () => {
     });
   });
 
+  describe('canonical domain disabled state', () => {
+    /**
+     * Helper to check if domain option should be disabled.
+     * Mirrors logic in DomainScopeSwitcher.vue isOptionDisabled()
+     */
+    function isOptionDisabled(domain: string, switchTarget?: string): boolean {
+      const extid = mockDomainScope.getExtidByDomain(domain);
+      if (!extid && switchTarget) {
+        return switchTarget === 'same' || switchTarget.includes(':extid');
+      }
+      return false;
+    }
+
+    /**
+     * Helper to simulate domain selection with disabled check.
+     * Mirrors logic in DomainScopeSwitcher.vue selectDomain()
+     */
+    function simulateDomainSwitchWithDisabledCheck(domain: string, switchTarget?: string) {
+      // Don't allow selection of disabled options
+      if (isOptionDisabled(domain, switchTarget)) {
+        return;
+      }
+
+      mockDomainScope.setScope(domain);
+
+      if (!switchTarget) {
+        return;
+      }
+
+      const extid = mockDomainScope.getExtidByDomain(domain);
+
+      if (switchTarget === 'same') {
+        if (!extid) {
+          return;
+        }
+        const matchedRoute = mockRoute.matched[mockRoute.matched.length - 1];
+        if (matchedRoute?.path) {
+          const newPath = matchedRoute.path.replace(':extid', extid);
+          mockPush(newPath);
+        }
+      } else if (switchTarget.includes(':extid')) {
+        if (!extid) {
+          return;
+        }
+        const newPath = switchTarget.replace(':extid', extid);
+        mockPush(newPath);
+      } else {
+        mockPush(switchTarget);
+      }
+    }
+
+    it('isOptionDisabled returns true for canonical domain when onDomainSwitch is "same"', () => {
+      // onetimesecret.com is canonical (no extid)
+      expect(isOptionDisabled('onetimesecret.com', 'same')).toBe(true);
+    });
+
+    it('isOptionDisabled returns true for canonical domain when onDomainSwitch contains :extid', () => {
+      // onetimesecret.com is canonical (no extid)
+      expect(isOptionDisabled('onetimesecret.com', '/domains/:extid/brand')).toBe(true);
+    });
+
+    it('isOptionDisabled returns false for canonical domain when onDomainSwitch is undefined', () => {
+      // When no onDomainSwitch configured, canonical should NOT be disabled
+      expect(isOptionDisabled('onetimesecret.com', undefined)).toBe(false);
+    });
+
+    it('isOptionDisabled returns false for canonical domain when onDomainSwitch is static path', () => {
+      // When onDomainSwitch is '/domains' (no :extid), canonical should NOT be disabled
+      expect(isOptionDisabled('onetimesecret.com', '/domains')).toBe(false);
+    });
+
+    it('isOptionDisabled returns false for custom domains with extid', () => {
+      // Custom domains (with extid) should never be disabled
+      expect(isOptionDisabled('test.example.com', 'same')).toBe(false);
+      expect(isOptionDisabled('test.example.com', '/domains/:extid/brand')).toBe(false);
+      expect(isOptionDisabled('test.example.com', '/domains')).toBe(false);
+      expect(isOptionDisabled('test.example.com', undefined)).toBe(false);
+    });
+
+    it('selectDomain does not navigate or update store when option is disabled', () => {
+      mockRoute.matched = [{ path: '/domains/:extid/brand' }];
+
+      // Attempt to select canonical domain when onDomainSwitch requires extid
+      simulateDomainSwitchWithDisabledCheck('onetimesecret.com', 'same');
+
+      // Neither setScope nor navigation should have been called
+      expect(mockDomainScope.setScope).not.toHaveBeenCalled();
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    it('selectDomain updates store and navigates when option is enabled', () => {
+      mockRoute.matched = [{ path: '/domains/:extid/brand' }];
+
+      // Select custom domain (has extid, should work)
+      simulateDomainSwitchWithDisabledCheck('test.example.com', 'same');
+
+      expect(mockDomainScope.setScope).toHaveBeenCalledWith('test.example.com');
+      expect(mockPush).toHaveBeenCalledWith('/domains/domain123/brand');
+    });
+
+    it('selectDomain allows canonical domain when navigation is static path', () => {
+      // Select canonical domain when onDomainSwitch is static (no :extid)
+      simulateDomainSwitchWithDisabledCheck('onetimesecret.com', '/domains');
+
+      expect(mockDomainScope.setScope).toHaveBeenCalledWith('onetimesecret.com');
+      expect(mockPush).toHaveBeenCalledWith('/domains');
+    });
+  });
+
   describe('real route configurations', () => {
     it('domain detail pages have correct scope config for domain switching', () => {
       // Simulating /domains/:extid/brand route config

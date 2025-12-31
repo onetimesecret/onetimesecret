@@ -63,9 +63,28 @@ const {
 const isCurrentScope = (domain: string): boolean => domain === currentScope.value.domain;
 
 /**
+ * Check if a domain option should be disabled.
+ * Canonical domain is disabled when onDomainSwitch requires navigation
+ * (since canonical has no extid and no settings page).
+ */
+const isOptionDisabled = (domain: string): boolean => {
+  const extid = getExtidByDomain(domain);
+  if (!extid && onDomainSwitch.value) {
+    // Canonical domain can't navigate when onDomainSwitch requires :extid
+    return onDomainSwitch.value === 'same' || onDomainSwitch.value.includes(':extid');
+  }
+  return false;
+};
+
+/**
  * Handle domain selection with optional navigation
  */
 const selectDomain = (domain: string): void => {
+  // Don't allow selection of disabled options
+  if (isOptionDisabled(domain)) {
+    return;
+  }
+
   setScope(domain);
 
   // Handle route-aware navigation based on onDomainSwitch meta
@@ -192,26 +211,43 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
           v-for="domain in availableDomains"
           :key="domain"
           v-slot="{ active }"
+          :disabled="isOptionDisabled(domain)"
           @click="selectDomain(domain)">
           <button
             type="button"
-            class="group/row relative w-full cursor-pointer select-none py-2 pl-3 pr-9 text-left text-gray-700 transition-colors duration-150 dark:text-gray-200"
+            class="group/row relative w-full select-none py-2 pl-3 pr-9 text-left transition-colors duration-150"
             :class="[
-              active ? 'bg-gray-100 dark:bg-gray-700' : '',
-              isCurrentScope(domain) ? 'bg-brand-50 dark:bg-brand-900/20' : '',
-            ]">
+              isOptionDisabled(domain)
+                ? 'cursor-not-allowed text-gray-400 opacity-60 dark:text-gray-600'
+                : 'cursor-pointer text-gray-700 dark:text-gray-200',
+              !isOptionDisabled(domain) && active ? 'bg-gray-100 dark:bg-gray-700' : '',
+              isCurrentScope(domain) && !isOptionDisabled(domain)
+                ? 'bg-brand-50 dark:bg-brand-900/20'
+                : '',
+            ]"
+            :title="
+              isOptionDisabled(domain)
+                ? t('web.domains.canonical_no_settings')
+                : undefined
+            "
+            :aria-disabled="isOptionDisabled(domain) ? 'true' : undefined">
             <span class="flex items-center gap-2">
               <!-- Domain-specific icon -->
               <OIcon
                 collection="heroicons"
                 :name="isCurrentScope(domain) && currentScope.isCanonical ? 'home' : 'globe-alt'"
-                class="size-4 text-gray-400 dark:text-gray-500"
+                class="size-4"
+                :class="
+                  isOptionDisabled(domain)
+                    ? 'text-gray-300 dark:text-gray-600'
+                    : 'text-gray-400 dark:text-gray-500'
+                "
                 aria-hidden="true" />
 
               <!-- Domain Name -->
               <span
                 class="block truncate"
-                :class="{ 'font-semibold': isCurrentScope(domain) }">
+                :class="{ 'font-semibold': isCurrentScope(domain) && !isOptionDisabled(domain) }">
                 {{ getDomainDisplayName(domain) }}
               </span>
             </span>
