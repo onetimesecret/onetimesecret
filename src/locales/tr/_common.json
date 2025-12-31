@@ -69,6 +69,7 @@
       "word_confirm": "Onayla",
       "word_cancel": "İptal",
       "word_continue": "",
+      "word_done": "Tamamlandı",
       "back": "Geri",
       "feedback_text": "Sorunuz veya yorumunuz mu var?",
       "button_send_feedback": "Geribildirim Yolla",
@@ -160,8 +161,8 @@
       "an_error_occurred": "Bir hata oluştu",
       "copy_secret_to_clipboard": "Mesajı panoya kopyala",
       "secret_copied_to_clipboard": "Mesaj panoya kopyalandı",
-      "press_copy_button_below": "Aşağıdaki kopyala düğmesine basın.",
-      "double_check_that_passphrase": "Parolayı iki kez kontrol edin"
+      "double_check_that_passphrase": "Parolayı iki kez kontrol edin",
+      "press_copy_button_below": "Aşağıdaki kopyala düğmesine basın."
     },
     "LABELS": {
       "view_toggle": {
@@ -170,6 +171,9 @@
         "show_more": "Daha Fazla Göster",
         "show_less": "Daha Az Göster"
       },
+      "enable": "Etkinleştir",
+      "disable": "Devre Dışı Bırak",
+      "stats": "İstatistikler",
       "timeline": "Zaman Çizelgesi",
       "lifespan": "Yaşam Süresi",
       "expiration_time": "Son Kullanma Tarihi",
@@ -213,9 +217,8 @@
       "create_request_short": "İstek Oluştur",
       "create_request": "İstek Bağlantısı Oluştur",
       "related_settings": "",
-      "enable": "Etkinleştir",
-      "disable": "Devre Dışı Bırak",
-      "stats": "İstatistikler"
+      "creating_links_for": "Şunun için bağlantılar oluşturuluyor",
+      "scope_indicator": "{domain} içinde sırlar oluşturuluyor"
     },
     "STATUS": {
       "new": "Yeni",
@@ -290,6 +293,7 @@
       "verify_account": "",
       "mfa_verify": "",
       "email_login": "",
+      "accept_invitation": "Daveti Kabul Et",
       "secret": "",
       "metadata": "",
       "receipt": "",
@@ -308,6 +312,7 @@
       "profile_settings": "",
       "preferences_settings": "",
       "privacy_settings": "",
+      "notification_settings": "Bildirimler",
       "change_email": "",
       "security_overview": "",
       "change_password": "",
@@ -318,7 +323,14 @@
       "advanced_settings": "",
       "colonel": "",
       "colonel_users": "",
+      "colonel_secrets": "Sır Yönetimi",
+      "colonel_domains": "Özel Alan Adları",
+      "colonel_system": "Sistem",
       "system_settings": "",
+      "colonel_maindb": "Ana Veritabanı",
+      "colonel_authdb": "Kimlik Doğrulama Veritabanı",
+      "colonel_banned_ips": "Yasaklı IP'ler",
+      "colonel_usage": "Kullanım Dışa Aktarımı",
       "colonel_info": "",
       "not_found": "",
       "organizations_settings": "",

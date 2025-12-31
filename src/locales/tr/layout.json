@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "API Belgeleri",
+      "branding_guide": "Marka Kılavuzu",
+      "customize": "Özelleştir",
+      "plans": "Planlar",
       "security": "",
       "learn_about_our_security_measures": "",
       "view_our_terms_and_conditions": "",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Dili değiştir. Mevcut dil {0}",
       "language_changed_to_newlocale": "Dil {0} olarak değiştirildi",
       "switch_to_blank_mode": "{0} moduna geç",
-      "blank_mode_enabled": "{0} modu etkinleştirildi"
+      "blank_mode_enabled": "{0} modu etkinleştirildi",
+      "workspace": "Çalışma Alanı",
+      "workspace_context": "Çalışma alanı bağlamı"
     }
   }
 }
