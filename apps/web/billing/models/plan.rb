@@ -231,6 +231,10 @@ module Billing
       # @return [Array<Hash>] Array of plan data hashes ready for persistence
       # @raise [Stripe::StripeError] If any Stripe API call fails
       def collect_stripe_plans(progress: nil)
+        # Ensure Stripe API key is configured (required for console/CLI usage
+        # where StripeSetup initializer may not have run)
+        ensure_stripe_configured!
+
         # Fetch all active products with onetimesecret metadata
         products = Stripe::Product.list({
           active: true,
@@ -530,6 +534,28 @@ module Billing
       end
 
       private
+
+      # Ensure Stripe API key is configured
+      #
+      # In web/app context, StripeSetup initializer handles this.
+      # In console/CLI context, this ensures Stripe is configured before API calls.
+      #
+      # @raise [Stripe::AuthenticationError] If no API key is available
+      def ensure_stripe_configured!
+        return if Stripe.api_key && !Stripe.api_key.to_s.strip.empty?
+
+        stripe_key = Onetime.billing_config.stripe_key
+        if stripe_key && !stripe_key.to_s.strip.empty?
+          Stripe.api_key = stripe_key
+          Stripe.api_version = Onetime.billing_config.stripe_api_version
+          OT.ld '[Plan.ensure_stripe_configured!] Configured Stripe API key', {
+            key_prefix: stripe_key[0..7],
+          }
+        else
+          OT.le '[Plan.ensure_stripe_configured!] No Stripe API key available'
+          raise Stripe::AuthenticationError, 'No Stripe API key available. Check billing configuration.'
+        end
+      end
 
       # Build price_id to plan hash from current plan list
       #
