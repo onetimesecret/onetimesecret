@@ -69,6 +69,7 @@
       "word_confirm": "Megerősítés",
       "word_cancel": "Mégse",
       "word_continue": "Folytatás",
+      "word_done": "Kész",
       "back": "Vissza",
       "feedback_text": "Ossza meg gondolatait, ötleteit vagy tapasztalatait...",
       "button_send_feedback": "Visszajelzés küldése",
@@ -160,16 +161,19 @@
       "an_error_occurred": "Hiba történt",
       "copy_secret_to_clipboard": "Titok másolása vágólapra",
       "secret_copied_to_clipboard": "Titok vágólapra másolva",
-      "press_copy_button_below": "Nyomja meg az alábbi másolás gombot.",
-      "double_check_that_passphrase": "Ellenőrizze újra a hozzáférési mondatot"
+      "double_check_that_passphrase": "Ellenőrizze újra a hozzáférési mondatot",
+      "press_copy_button_below": "Nyomja meg az alábbi másolás gombot."
     },
     "LABELS": {
       "view_toggle": {
         "show": "Megjelenítés",
         "hide": "Elrejtés",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Több megjelenítése",
+        "show_less": "Kevesebb megjelenítése"
       },
+      "enable": "Engedélyezés",
+      "disable": "Letiltás",
+      "stats": "Statisztikák",
       "timeline": "Idővonal",
       "lifespan": "Élettartam",
       "expiration_time": "Lejárati idő",
@@ -213,9 +217,8 @@
       "create_request_short": "Kérés létrehozása",
       "create_request": "Kérési hivatkozás létrehozása",
       "related_settings": "Kapcsolódó beállítások",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "Hivatkozások létrehozása ehhez:",
+      "scope_indicator": "Titkok létrehozása itt: {domain}"
     },
     "STATUS": {
       "new": "Új",
@@ -290,6 +293,7 @@
       "verify_account": "Fiók ellenőrzése",
       "mfa_verify": "Kétfaktoros hitelesítés",
       "email_login": "E-mail bejelentkezés",
+      "accept_invitation": "Meghívó elfogadása",
       "secret": "Titok",
       "metadata": "Titok részletei",
       "receipt": "Titok nyugta",
@@ -308,6 +312,7 @@
       "profile_settings": "Profilbeállítások",
       "preferences_settings": "Preferenciák",
       "privacy_settings": "Adatvédelem",
+      "notification_settings": "Értesítések",
       "change_email": "E-mail cím módosítása",
       "security_overview": "Biztonság",
       "change_password": "Jelszó módosítása",
@@ -318,7 +323,14 @@
       "advanced_settings": "Speciális beállítások",
       "colonel": "Adminisztráció",
       "colonel_users": "Felhasználó kezelés",
+      "colonel_secrets": "Titkok kezelése",
+      "colonel_domains": "Egyéni domének",
+      "colonel_system": "Rendszer",
       "system_settings": "Rendszerbeállítások",
+      "colonel_maindb": "Fő adatbázis",
+      "colonel_authdb": "Hitelesítési adatbázis",
+      "colonel_banned_ips": "Tiltott IP-k",
+      "colonel_usage": "Használati export",
       "colonel_info": "Rendszerinformációk",
       "not_found": "Az oldal nem található",
       "organizations_settings": "Szervezetek",

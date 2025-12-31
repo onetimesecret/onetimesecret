@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "API dokumentáció",
+      "branding_guide": "Márkajelzési útmutató",
+      "customize": "Testreszabás",
+      "plans": "Csomagok",
       "security": "Biztonság",
       "learn_about_our_security_measures": "Ismerje meg biztonsági intézkedéseinket",
       "view_our_terms_and_conditions": "Tekintse meg Feltételeinket",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Nyelv módosítása. Jelenlegi nyelv: {0}",
       "language_changed_to_newlocale": "Nyelv módosítva: {0}",
       "switch_to_blank_mode": "Váltás {0} módra",
-      "blank_mode_enabled": "{0} mód engedélyezve"
+      "blank_mode_enabled": "{0} mód engedélyezve",
+      "workspace": "Munkaterület",
+      "workspace_context": "Munkaterület kontextus"
     }
   }
 }
