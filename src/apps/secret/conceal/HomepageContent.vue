@@ -5,6 +5,8 @@
   import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
   import RecentSecretsTable from '@/apps/secret/components/RecentSecretsTable.vue';
   import { WindowService } from '@/services/window.service';
+  import { useConcealedMetadataStore } from '@/shared/stores/concealedMetadataStore';
+  import { computed } from 'vue';
 
   const windowProps = WindowService.getMultiple([
     'authenticated',
@@ -13,6 +15,8 @@
     'ui',
   ]);
 
+  const concealedMetadataStore = useConcealedMetadataStore();
+  const hasRecentSecrets = computed(() => concealedMetadataStore.hasMessages);
 </script>
 
 <template>
@@ -26,12 +30,13 @@
       class="mb-12"
       :with-recipient="false"
       :with-asterisk="true"
-      :with-generate="true" />
+      :with-generate="true"
+      :workspace-mode="concealedMetadataStore.workspaceMode" />
 
     <!-- Space divider -->
     <div class="mb-6 "></div>
 
     <RecentSecretsTable
-      v-if="false" />
+      v-if="hasRecentSecrets" />
   </div>
 </template>

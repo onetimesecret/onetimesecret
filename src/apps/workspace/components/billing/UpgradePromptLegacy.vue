@@ -37,7 +37,7 @@ const displayMessage = computed(() => {
   return entitlementMessages[props.entitlement] || t('web.billing.upgrade.required');
 });
 
-const upgradeUrl = computed(() => `/account/billing/plans?upgrade_to=${props.upgradePlan}`);
+const upgradeUrl = computed(() => `/billing/plans?upgrade_to=${props.upgradePlan}`);
 </script>
 
 <template>

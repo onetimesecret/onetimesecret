@@ -15,6 +15,7 @@ export type ConcealedMetadataStore = {
   // State
   _initialized: boolean;
   concealedMessages: ConcealedMessage[];
+  workspaceMode: boolean;
 
   // Getters
   isInitialized: boolean;
@@ -24,16 +25,18 @@ export type ConcealedMetadataStore = {
   init: (options?: StoreOptions) => { isInitialized: boolean };
   addMessage: (message: ConcealedMessage) => void;
   clearMessages: () => void;
+  setWorkspaceMode: (enabled: boolean) => void;
+  toggleWorkspaceMode: () => void;
   $reset: () => void;
 } & PiniaCustomProperties;
 
 // Local storage key for persisting concealed messages
 const STORAGE_KEY = 'oneTimeSecret_concealedMessages';
+const WORKSPACE_MODE_KEY = 'oneTimeSecret_workspaceMode';
 
 /**
  * Loads concealed messages from sessionStorage
  */
-
 function loadFromStorage(): ConcealedMessage[] {
   try {
     const stored = sessionStorage.getItem(STORAGE_KEY);
@@ -55,6 +58,20 @@ function loadFromStorage(): ConcealedMessage[] {
 }
 
 /**
+ * Loads workspace mode preference from localStorage
+ * Uses localStorage (not sessionStorage) so preference persists across sessions
+ */
+function loadWorkspaceModePreference(): boolean {
+  try {
+    const stored = localStorage.getItem(WORKSPACE_MODE_KEY);
+    return stored === 'true';
+  } catch (error) {
+    loggingService.error(new Error(`Failed to load workspace mode preference: ${error}`));
+  }
+  return false;
+}
+
+/**
  * Store for managing concealed metadata records during a user session.
  * This store persists links created during the current session so they
  * remain available when navigating between pages and browser refreshes.
@@ -63,6 +80,7 @@ export const useConcealedMetadataStore = defineStore('concealedMetadata', () => 
   // State
   const _initialized = ref(false);
   const concealedMessages = ref<ConcealedMessage[]>(loadFromStorage());
+  const workspaceMode = ref(loadWorkspaceModePreference());
 
   // Getters
   const isInitialized = computed(() => _initialized.value);
@@ -80,6 +98,15 @@ export const useConcealedMetadataStore = defineStore('concealedMetadata', () => 
     },
     { deep: true }
   );
+
+  // Watch for changes to workspaceMode and save to localStorage
+  watch(workspaceMode, (enabled) => {
+    try {
+      localStorage.setItem(WORKSPACE_MODE_KEY, String(enabled));
+    } catch (error) {
+      loggingService.error(new Error(`Failed to save workspace mode preference: ${error}`));
+    }
+  });
 
   /**
    * Initializes the concealed metadata store.
@@ -127,12 +154,30 @@ export const useConcealedMetadataStore = defineStore('concealedMetadata', () => 
   }
 
   /**
+   * Sets the workspace mode preference.
+   * When enabled, form stays on page after creation instead of navigating to receipt.
+   *
+   * @param enabled Whether workspace mode should be enabled
+   */
+  function setWorkspaceMode(enabled: boolean) {
+    workspaceMode.value = enabled;
+  }
+
+  /**
+   * Toggles the workspace mode preference.
+   */
+  function toggleWorkspaceMode() {
+    workspaceMode.value = !workspaceMode.value;
+  }
+
+  /**
    * Reset store state to initial values.
    * Implementation of $reset() for setup stores since it's not automatically available.
    * Also clears sessionStorage.
    */
   function $reset() {
     clearMessages();
+    workspaceMode.value = false;
     _initialized.value = false;
   }
 
@@ -140,6 +185,7 @@ export const useConcealedMetadataStore = defineStore('concealedMetadata', () => 
     // State
     _initialized,
     concealedMessages,
+    workspaceMode,
 
     // Getters
     isInitialized,
@@ -149,6 +195,8 @@ export const useConcealedMetadataStore = defineStore('concealedMetadata', () => 
     init,
     addMessage,
     clearMessages,
+    setWorkspaceMode,
+    toggleWorkspaceMode,
     $reset,
   };
 });

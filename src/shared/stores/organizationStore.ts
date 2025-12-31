@@ -1,5 +1,11 @@
 // src/shared/stores/organizationStore.ts
 
+/**
+ * localStorage key for persisting selected organization across sessions.
+ * Used by OrganizationContextBar (restore) and OrganizationScopeSwitcher (save).
+ */
+export const SELECTED_ORG_STORAGE_KEY = 'selectedOrganizationId';
+
 import {
   organizationResponseSchema,
   organizationsResponseSchema,

@@ -33,7 +33,7 @@ const displayMessage = computed(() => {
   return props.error.message || t('web.billing.upgrade.required');
 });
 
-const upgradeUrl = computed(() => '/account/billing/plans');
+const upgradeUrl = computed(() => '/billing/plans');
 
 const handleClose = () => {
   emit('close');

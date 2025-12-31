@@ -25,6 +25,16 @@ export interface SettingsNavigationItem {
   visible?: () => boolean;
 }
 
+/**
+ * Section group containing navigation items
+ */
+export interface SettingsNavigationSection {
+  id: string;
+  label: string;
+  items: SettingsNavigationItem[];
+  visible?: () => boolean;
+}
+
 /** Profile section navigation */
 function getProfileSection(t: ComposerTranslation): SettingsNavigationItem {
   return {
@@ -163,30 +173,60 @@ function getBillingSection(t: ComposerTranslation): SettingsNavigationItem {
 }
 
 /**
- * Generate settings navigation configuration
- * Extracted from SettingsLayout to allow for cleaner architecture
+ * Generate flat settings navigation configuration (legacy)
+ * @deprecated Use getSettingsNavigationSections for grouped navigation
  */
 export function getSettingsNavigation(t: ComposerTranslation): SettingsNavigationItem[] {
-  // Note: Billing section now has its own route/layout at /billing
-  const _billingSection = getBillingSection(t);
+  const sections = getSettingsNavigationSections(t);
+  return sections.flatMap((section) =>
+    section.visible === undefined || section.visible() ? section.items : []
+  );
+}
+
+/**
+ * Generate grouped settings navigation configuration
+ * Returns sections with their navigation items for sidebar rendering
+ */
+export function getSettingsNavigationSections(
+  t: ComposerTranslation
+): SettingsNavigationSection[] {
+  const billingSection = getBillingSection(t);
 
   return [
-    getProfileSection(t),
-    getSecuritySection(t),
     {
-      id: 'api',
-      to: '/account/settings/api',
-      icon: { collection: 'heroicons', name: 'code-bracket' },
-      label: t('web.account.api_key'),
-      description: t('web.settings.api.manage_api_keys'),
+      id: 'account',
+      label: t('web.settings.sections.account'),
+      items: [
+        getProfileSection(t),
+        getSecuritySection(t),
+        {
+          id: 'api',
+          to: '/account/settings/api',
+          icon: { collection: 'heroicons', name: 'code-bracket' },
+          label: t('web.account.api_key'),
+          description: t('web.settings.api.manage_api_keys'),
+        },
+      ],
     },
-    getRegionSection(t),
     {
-      id: 'caution',
-      to: '/account/settings/caution',
-      icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
-      label: t('web.settings.caution.title'),
-      description: t('web.settings.caution.description'),
+      id: 'billing',
+      label: t('web.settings.sections.billing'),
+      visible: () => WindowService.get('billing_enabled') === true,
+      items: [billingSection],
+    },
+    {
+      id: 'advanced',
+      label: t('web.settings.sections.advanced'),
+      items: [
+        getRegionSection(t),
+        {
+          id: 'caution',
+          to: '/account/settings/caution',
+          icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
+          label: t('web.settings.caution.title'),
+          description: t('web.settings.caution.description'),
+        },
+      ],
     },
   ];
 }

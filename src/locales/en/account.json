@@ -58,6 +58,12 @@
       "title": "Settings",
       "description": "Manage your account settings and preferences",
       "manage_your_account_settings_and_preferences": "Manage your account settings and preferences",
+      "back_to_dashboard": "Back to Dashboard",
+      "sections": {
+        "account": "Account",
+        "billing": "Billing",
+        "advanced": "Advanced"
+      },
       "general": "General",
       "preferences": "Preferences",
       "appearance": "Appearance",

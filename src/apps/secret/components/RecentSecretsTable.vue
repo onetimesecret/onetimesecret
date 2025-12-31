@@ -44,6 +44,23 @@ const dismissAllRecents = () => {
       </div>
 
       <div class="flex items-center gap-3">
+        <!-- Workspace mode toggle -->
+        <label
+          class="flex cursor-pointer items-center gap-2"
+          :title="t('web.secrets.workspace_mode_description')">
+          <input
+            type="checkbox"
+            :checked="concealedMetadataStore.workspaceMode"
+            @change="concealedMetadataStore.toggleWorkspaceMode()"
+            class="size-4 rounded border-gray-300 text-brand-600
+              focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700" />
+          <span class="text-sm text-gray-600 dark:text-gray-300">
+            {{ t('web.secrets.workspace_mode') }}
+          </span>
+        </label>
+
+        <span class="text-gray-300 dark:text-gray-600">|</span>
+
         <span
           v-if="concealedMetadataStore.hasMessages"
           class="text-sm text-gray-500 dark:text-gray-400">

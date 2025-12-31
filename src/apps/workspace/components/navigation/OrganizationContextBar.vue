@@ -15,7 +15,7 @@
 <script setup lang="ts">
 import DomainScopeSwitcher from '@/shared/components/navigation/DomainScopeSwitcher.vue';
 import OrganizationScopeSwitcher from '@/apps/workspace/components/navigation/OrganizationScopeSwitcher.vue';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { useOrganizationStore, SELECTED_ORG_STORAGE_KEY } from '@/shared/stores/organizationStore';
 import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -32,8 +32,6 @@ const {
 
 const isLoaded = ref(false);
 
-const STORAGE_KEY = 'selectedOrganizationId';
-
 /**
  * Determine which organization should be selected initially.
  * Priority: localStorage saved org > default org > first org
@@ -43,7 +41,7 @@ function getInitialOrganization() {
   if (orgs.length === 0) return null;
 
   // Try to restore from localStorage
-  const savedOrgId = localStorage.getItem(STORAGE_KEY);
+  const savedOrgId = localStorage.getItem(SELECTED_ORG_STORAGE_KEY);
   if (savedOrgId) {
     const savedOrg = orgs.find((o) => o.id === savedOrgId || o.extid === savedOrgId);
     if (savedOrg) return savedOrg;
