@@ -167,8 +167,8 @@
       "view_toggle": {
         "show": "Göster",
         "hide": "Gizle",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Daha Fazla Göster",
+        "show_less": "Daha Az Göster"
       },
       "timeline": "Zaman Çizelgesi",
       "lifespan": "Yaşam Süresi",
@@ -213,9 +213,9 @@
       "create_request_short": "İstek Oluştur",
       "create_request": "İstek Bağlantısı Oluştur",
       "related_settings": "",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "enable": "Etkinleştir",
+      "disable": "Devre Dışı Bırak",
+      "stats": "İstatistikler"
     },
     "STATUS": {
       "new": "Yeni",

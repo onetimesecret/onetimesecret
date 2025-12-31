@@ -37,7 +37,7 @@
       "privacy_and_security_should_be_accessible": "Gizlilik ve güvenlik, dil farkı gözetmeksizin herkes için erişilebilir olmalıdır. Kullanıcılarımızın ve mesaj alıcılarının güvenli mesajları ve bağlantıları nasıl güvenli bir şekilde kullanacaklarını ve erişeceklerini daha iyi anlamalarına yardımcı olmak için çeviriler ekliyoruz. Bu yeni bir özellik olduğundan, bazı çeviri hataları veya belirsiz talimatlarla karşılaşabilirsiniz. Çevirilerimizin netliğini ve doğruluğunu, özellikle güvenlikle ilgili kritik içeriklerde iyileştirmemize yardımcı olmak için, herhangi bir sorun fark ederseniz lütfen {send-feedback}"
     },
     "help": {
-      "learn_more": "Learn more",
+      "learn_more": "Daha fazla bilgi",
       "secret_view_faq": {
         "what_am_i_looking_at": {
           "title": "Neye bakıyorum?",
