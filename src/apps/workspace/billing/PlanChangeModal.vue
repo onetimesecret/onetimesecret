@@ -36,7 +36,16 @@ const isUpgrade = computed(() => {
   return tierOrder.indexOf(props.targetPlan.tier) > tierOrder.indexOf(props.currentPlan.tier);
 });
 
-const changeTypeLabel = computed(() => isUpgrade.value ? t('web.billing.plans.upgrade') : t('web.billing.plans.downgrade'));
+const dialogTitle = computed(() => {
+  const planName = props.targetPlan?.name ?? '';
+  return isUpgrade.value
+    ? t('web.billing.plans.upgrade_to', { plan: planName })
+    : t('web.billing.plans.downgrade_to', { plan: planName });
+});
+
+const confirmButtonLabel = computed(() =>
+  isUpgrade.value ? t('web.billing.plans.confirm_upgrade') : t('web.billing.plans.confirm_downgrade')
+);
 
 const formattedNextBillingDate = computed(() => {
   if (!preview.value?.next_billing_date) return null;
@@ -97,7 +106,7 @@ async function handleConfirm() {
     if (result.success) {
       emit('success', result.new_plan);
     } else {
-      error.value = 'Plan change failed. Please try again.';
+      error.value = t('web.billing.plans.change_failed');
     }
   } catch (err) {
     const classified = classifyError(err);
@@ -117,7 +126,9 @@ function handleClose() {
 
 <template>
   <TransitionRoot as="template" :show="open">
-    <Dialog class="relative z-50" @close="handleClose">
+    <Dialog class="relative z-50"
+aria-describedby="plan-change-description"
+@close="handleClose">
       <!-- Backdrop -->
       <TransitionChild
         as="template"
@@ -168,11 +179,11 @@ function handleClose() {
                   <DialogTitle
                     as="h3"
                     class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
-                    {{ changeTypeLabel }} to {{ targetPlan?.name }}?
+                    {{ dialogTitle }}
                   </DialogTitle>
                   <div class="mt-2">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      Your plan will change immediately.
+                    <p id="plan-change-description" class="text-sm text-gray-500 dark:text-gray-400">
+                      {{ t('web.billing.plans.change_immediate') }}
                     </p>
                   </div>
                 </div>
@@ -188,7 +199,10 @@ function handleClose() {
               </div>
 
               <!-- Error State -->
-              <div v-else-if="error" class="mt-6 rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+              <div v-else-if="error"
+class="mt-6 rounded-md bg-red-50 p-4 dark:bg-red-900/20"
+role="alert"
+aria-live="polite">
                 <div class="flex">
                   <OIcon
                     collection="heroicons"
@@ -207,13 +221,13 @@ function handleClose() {
                 <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/50">
                   <div class="space-y-3 text-sm">
                     <div class="flex justify-between">
-                      <span class="text-gray-600 dark:text-gray-400">Current plan:</span>
+                      <span class="text-gray-600 dark:text-gray-400">{{ t('web.billing.plans.current_plan_label') }}</span>
                       <span class="font-medium text-gray-900 dark:text-white">
                         {{ currentPlan?.name }} ({{ formatCurrency(preview.current_plan.amount, preview.currency) }}/{{ preview.current_plan.interval }})
                       </span>
                     </div>
                     <div class="flex justify-between">
-                      <span class="text-gray-600 dark:text-gray-400">New plan:</span>
+                      <span class="text-gray-600 dark:text-gray-400">{{ t('web.billing.plans.new_plan_label') }}</span>
                       <span class="font-medium text-gray-900 dark:text-white">
                         {{ targetPlan?.name }} ({{ formatCurrency(preview.new_plan.amount, preview.currency) }}/{{ preview.new_plan.interval }})
                       </span>
@@ -221,7 +235,7 @@ function handleClose() {
 
                     <!-- Credit/Charge Line -->
                     <div v-if="preview.credit_applied > 0" class="flex justify-between border-t border-gray-200 pt-3 dark:border-gray-700">
-                      <span class="text-gray-600 dark:text-gray-400">Credit for unused time:</span>
+                      <span class="text-gray-600 dark:text-gray-400">{{ t('web.billing.plans.credit_label') }}</span>
                       <span class="font-medium text-green-600 dark:text-green-400">
                         -{{ formatCurrency(preview.credit_applied, preview.currency) }}
                       </span>
@@ -233,7 +247,7 @@ function handleClose() {
                     <!-- Amount Due -->
                     <div class="flex justify-between">
                       <span class="font-medium text-gray-900 dark:text-white">
-                        Next invoice{{ formattedNextBillingDate ? ` (${formattedNextBillingDate})` : '' }}:
+                        {{ t('web.billing.plans.next_invoice') }}{{ formattedNextBillingDate ? ` (${formattedNextBillingDate})` : '' }}:
                       </span>
                       <span class="font-bold text-gray-900 dark:text-white">
                         {{ formatCurrency(preview.amount_due, preview.currency) }}
@@ -244,7 +258,7 @@ function handleClose() {
 
                 <!-- Feature Limits Notice -->
                 <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">
-                  Your feature limits will update immediately after the plan change.
+                  {{ t('web.billing.plans.limits_update_notice') }}
                 </p>
               </div>
 
@@ -267,7 +281,7 @@ function handleClose() {
                     name="arrow-path"
                     class="mr-2 size-4 animate-spin"
                     aria-hidden="true" />
-                  {{ isChangingPlan ? t('web.COMMON.processing') : `Confirm ${changeTypeLabel}` }}
+                  {{ isChangingPlan ? t('web.COMMON.processing') : confirmButtonLabel }}
                 </button>
                 <button
                   type="button"

@@ -311,14 +311,17 @@ onMounted(async () => {
           {{ t('web.billing.plans.title') }}
         </h1>
         <p class="mt-2 text-base text-gray-600 dark:text-gray-400">
-          Choose the perfect plan for your organization
+          {{ t('web.billing.plans.subtitle') }}
         </p>
       </div>
 
       <!-- Billing Interval Toggle -->
-      <div class="flex items-center justify-center gap-3">
+      <div class="flex items-center justify-center gap-3"
+role="group"
+aria-label="Billing interval">
         <button
           @click="billingInterval = 'month'"
+          :aria-pressed="billingInterval === 'month'"
           :class="[
             'rounded-md px-4 py-2 text-sm font-medium transition-colors',
             billingInterval === 'month'
@@ -329,6 +332,7 @@ onMounted(async () => {
         </button>
         <button
           @click="billingInterval = 'year'"
+          :aria-pressed="billingInterval === 'year'"
           :class="[
             'rounded-md px-4 py-2 text-sm font-medium transition-colors',
             billingInterval === 'year'
@@ -344,7 +348,10 @@ onMounted(async () => {
       <!-- Organization Selector (hidden - billing uses default org) -->
 
       <!-- Success Message -->
-      <div v-if="successMessage" class="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
+      <div v-if="successMessage"
+class="rounded-md bg-green-50 p-4 dark:bg-green-900/20"
+role="status"
+aria-live="polite">
         <div class="flex">
           <OIcon
             collection="heroicons"
@@ -378,7 +385,7 @@ onMounted(async () => {
       <!-- No Plans Message -->
       <div v-else-if="filteredPlans.length === 0" class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-900/50">
         <p class="text-gray-600 dark:text-gray-400">
-          No {{ billingInterval === 'year' ? 'yearly' : 'monthly' }} plans available at this time.
+          {{ t('web.billing.plans.no_plans_available', { interval: billingInterval === 'year' ? t('web.billing.plans.yearly').toLowerCase() : t('web.billing.plans.monthly').toLowerCase() }) }}
         </p>
       </div>
 
@@ -399,14 +406,21 @@ onMounted(async () => {
           <div
             v-if="isPlanRecommended(plan)"
             class="absolute -top-5 left-1/2 -translate-x-1/2 rounded-full bg-brand-600 px-3 py-1 text-xs font-semibold text-white dark:bg-brand-500">
-            Most Popular
+            {{ t('web.billing.plans.most_popular') }}
           </div>
 
           <!-- Suggested Badge -->
           <div
             v-if="suggestedPlanId === plan.id"
             class="absolute -top-5 right-4 rounded-full bg-yellow-500 px-3 py-1 text-xs font-semibold text-white">
-            Suggested
+            {{ t('web.billing.plans.suggested') }}
+          </div>
+
+          <!-- Current Badge -->
+          <div
+            v-if="isPlanCurrent(plan)"
+            class="absolute right-4 top-4 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
+            {{ t('web.billing.plans.current_badge') }}
           </div>
 
           <div class="flex-1 p-6">
@@ -431,7 +445,7 @@ onMounted(async () => {
                   {{ formatCurrency(getPlanPricePerMonth(plan), plan.currency) }}
                 </span>
                 <span class="text-sm text-gray-500 dark:text-gray-400">
-                  /month
+                  {{ t('web.billing.plans.per_month') }}
                 </span>
               </div>
               <p v-if="plan.interval === 'year' && plan.amount > 0" class="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -463,7 +477,7 @@ onMounted(async () => {
 
               <!-- Show base plan reference for higher tiers -->
               <p v-if="getBasePlan(plan)" class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                ✓ Everything in {{ getBasePlan(plan)?.name }}, plus:
+                ✓ {{ t('web.billing.plans.everything_in', { plan: getBasePlan(plan)?.name }) }}
               </p>
 
               <ul class="space-y-2">
