@@ -1,10 +1,10 @@
-Welcome to Onetime Secret!
+<%= t('email.welcome.title', product_name: product_name) %>
 
-Please verify your email address by clicking the link below:
+<%= t('email.welcome.verify_prompt') %>
 
 <%= baseuri %><%= verify_uri %>
 
-Delano
+<%= t('email.welcome.signature') %>
 <%= baseuri %>
 
-P.S. This email was sent to <%= email_address %>. If you did not create an account, you can safely ignore this message.
+<%= t('email.welcome.postscript', email_address: email_address) %>

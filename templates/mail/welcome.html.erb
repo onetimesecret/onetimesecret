@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Welcome to Onetime Secret</title>
+  <title><%= t('email.welcome.title', product_name: product_name) %></title>
   <style type="text/css">
     body { margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
     table { border-spacing: 0; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
@@ -33,34 +33,34 @@
 
               <!-- Title -->
               <div style="font-family: Helvetica, Arial, sans-serif; font-size: 24px; color: #374550; margin-bottom: 16px;">
-                <p style="margin: 0;">Welcome to Onetime Secret!</p>
+                <p style="margin: 0;"><%= t('email.welcome.title', product_name: product_name) %></p>
               </div>
 
               <!-- Body -->
               <div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #333333;">
-                <p>Please verify your email address by clicking the link below:</p>
+                <p><%= t('email.welcome.verify_prompt') %></p>
 
                 <div style="margin: 24px 0;">
                   <a href="<%= baseuri %><%= verify_uri %>" style="display: inline-block; padding: 12px 24px; background-color: #dc4a22; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;" rel="noopener noreferrer">
-                    Verify Email Address
+                    <%= t('email.welcome.verify_button') %>
                   </a>
                 </div>
 
                 <p style="color: #666666; font-size: 12px;">
-                  Or copy and paste this link:<br />
+                  <%= t('email.welcome.copy_link_prompt') %><br />
                   <a href="<%= baseuri %><%= verify_uri %>" style="color: #dc4a22; word-break: break-all;"><%= baseuri %><%= verify_uri %></a>
                 </p>
               </div>
 
               <!-- Signature -->
               <div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; color: #333333; margin-top: 32px; border-top: 1px solid #eeeeee; padding-top: 16px;">
-                <p style="margin: 0;">Delano<br />
+                <p style="margin: 0;"><%= t('email.welcome.signature') %><br />
                 <a href="<%= baseuri %>" style="color: #dc4a22;"><%= baseuri %></a></p>
               </div>
 
               <!-- Postscript -->
               <p style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #999999; margin-top: 24px;">
-                P.S. This email was sent to <%= h(email_address) %>. If you did not create an account, you can safely ignore this message.
+                <%= h(t('email.welcome.postscript', email_address: email_address)) %>
               </p>
             </td>
           </tr>

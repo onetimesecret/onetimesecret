@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="format-detection" content="date=no" />
   <meta name="format-detection" content="telephone=no" />
-  <title>Feedback - Onetime Secret</title>
+  <title><%= t('email.feedback_email.title') %></title>
   <style type="text/css">
     body { margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
     table { border-spacing: 0; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
@@ -40,14 +40,14 @@
 
               <!-- Title -->
               <div style="font-family: Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 600; color: #374550; margin-bottom: 16px;">
-                <p style="margin: 0;">User Feedback</p>
+                <p style="margin: 0;"><%= t('email.feedback_email.title') %></p>
               </div>
 
               <!-- Metadata -->
               <div style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #666666; margin-bottom: 24px; padding: 12px; background-color: #f5f5f5; border-radius: 4px;">
-                <p style="margin: 0 0 4px 0;"><strong>From:</strong> <%= h(email_address) %></p>
-                <p style="margin: 0 0 4px 0;"><strong>Domain:</strong> <%= h(display_domain) %></p>
-                <p style="margin: 0;"><strong>Strategy:</strong> <%= h(domain_strategy) %></p>
+                <p style="margin: 0 0 4px 0;"><strong><%= t('email.feedback_email.from_label') %></strong> <%= h(email_address) %></p>
+                <p style="margin: 0 0 4px 0;"><strong><%= t('email.feedback_email.domain_label') %></strong> <%= h(display_domain) %></p>
+                <p style="margin: 0;"><strong><%= t('email.feedback_email.strategy_label') %></strong> <%= h(domain_strategy) %></p>
               </div>
 
               <!-- Message -->
@@ -57,7 +57,7 @@
 
               <!-- Signature -->
               <p style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #999999; margin-top: 32px;">
-                Secret Support<br />
+                <%= t('email.feedback_email.signature') %><br />
                 <a href="<%= baseuri %>" style="color: #dc4a22;" rel="noopener noreferrer"><%= baseuri %></a>
               </p>
             </td>

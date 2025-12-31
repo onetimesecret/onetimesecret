@@ -40,24 +40,24 @@
 
               <!-- Title -->
               <div style="font-family: Helvetica, Arial, sans-serif; font-size: 18px; color: #374550; margin-bottom: 16px;">
-                <p style="margin: 0;">Your secret link will expire in <strong><%= h(time_remaining) %></strong></p>
+                <p style="margin: 0;"><%= h(t('email.expiration_warning.expires_in', time_remaining: time_remaining)) %></p>
               </div>
 
               <!-- Secret Link -->
               <div style="font-family: Helvetica, Arial, sans-serif; font-size: 20px; font-weight: bold; line-height: 28px; margin: 24px 0;">
                 <a href="<%= secret_uri %>" style="color: #dc4a22; text-decoration: none; word-break: break-all;" rel="noopener noreferrer">
-                  View your secret before it expires
+                  <%= t('email.expiration_warning.view_button') %>
                 </a>
               </div>
 
               <!-- Warning -->
               <p style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #666666; background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 24px 0;">
-                <strong>Reminder:</strong> After expiration, the secret will be permanently deleted and cannot be recovered.
+                <strong><%= t('email.expiration_warning.reminder_label') %></strong> <%= t('email.expiration_warning.after_expiration') %>
               </p>
 
               <!-- Signature -->
               <p style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; color: #999999; margin-top: 32px;">
-                <em>Sent via <a href="<%= baseuri %>" style="color: #dc4a22;" rel="noopener noreferrer">Onetime Secret</a></em>
+                <em><%= t('email.expiration_warning.sent_via') %> <a href="<%= baseuri %>" style="color: #dc4a22;" rel="noopener noreferrer"><%= t('email.common.onetime_secret') %></a></em>
               </p>
             </td>
           </tr>

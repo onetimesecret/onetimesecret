@@ -1,10 +1,10 @@
-Your secret link will expire in <%= time_remaining %>.
+<%= t('email.expiration_warning.expires_in', time_remaining: time_remaining) %>.
 
-View it before it's gone:
+<%= t('email.expiration_warning.view_before_gone') %>
 <%= secret_uri %>
 
-After expiration, the secret will be permanently deleted.
+<%= t('email.expiration_warning.after_expiration_short') %>
 
 --
-Onetime Secret
+<%= t('email.common.onetime_secret') %>
 <%= baseuri %>
