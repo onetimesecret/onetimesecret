@@ -23,6 +23,7 @@
       "description_placeholder": "Čemu je namenjena ta organizacija?",
       "contact_email": "E-pošta za plačila",
       "contact_email_help": "Glavni kontakt za obvestila o plačilih in administraciji",
+      "billing_managed_by_default": "Plačila in naročnina se upravljajo preko vašega primarnega delovnega prostora. Obiščite nastavitve glavnega delovnega prostora za upravljanje načinov plačila in računov.",
       "select_organization": "Izberite organizacijo",
       "not_found": "Organizacija ni bila najdena",
       "load_error": "Nalaganje organizacije ni uspelo",
@@ -57,7 +58,86 @@
       "delete": "Izbriši",
       "delete_organization_confirm_title": "Izbriši organizacijo",
       "delete_organization_confirm_message": "Ali ste prepričani, da želite izbrisati {name}? Tega dejanja ni mogoče razveljaviti.",
-      "delete_error": "Brisanje organizacije ni uspelo"
+      "delete_error": "Brisanje organizacije ni uspelo",
+      "members": {
+        "title": "Člani",
+        "description": "Upravljajte člane organizacije in njihove vloge",
+        "member": "Član",
+        "name": "Ime",
+        "email": "E-pošta",
+        "role": "Vloga",
+        "joined": "Pridružen",
+        "actions": "Dejanja",
+        "no_members": "Ni najdenih članov",
+        "no_members_description": "Ta organizacija še nima članov.",
+        "role_updated": "Vloga člana uspešno posodobljena",
+        "role_update_error": "Posodobitev vloge člana ni uspela",
+        "member_removed": "Član odstranjen iz organizacije",
+        "member_remove_error": "Odstranjevanje člana ni uspelo",
+        "remove_member_title": "Odstrani člana",
+        "remove_member_confirm": "Ali ste prepričani, da želite odstraniti {name} iz te organizacije?",
+        "cannot_change_own_role": "Ne morete spremeniti svoje lastne vloge",
+        "cannot_remove_self": "Ne morete odstraniti sebe iz organizacije",
+        "cannot_remove_owner": "Ne morete odstraniti lastnika organizacije",
+        "insufficient_permissions": "Nimate dovoljenja za upravljanje članov",
+        "roles": {
+          "owner": "Lastnik",
+          "admin": "Administrator",
+          "member": "Član"
+        },
+        "role_descriptions": {
+          "owner": "Poln dostop do vseh nastavitev organizacije in članov",
+          "admin": "Lahko upravlja člane in večino nastavitev organizacije",
+          "member": "Osnovni dostop do virov organizacije"
+        }
+      },
+      "invitations": {
+        "title": "Povabila organizacije",
+        "invite_member": "Povabi člana",
+        "invite_new_member": "Povabi novega člana",
+        "pending_invitations": "Čakajoča povabila",
+        "no_pending_invitations": "Ni čakajočih povabil",
+        "email_address": "E-poštni naslov",
+        "email_placeholder": "clan@primer.com",
+        "role": "Vloga",
+        "send_invite": "Pošlji povabilo",
+        "invite_sent": "Povabilo uspešno poslano",
+        "invite_error": "Pošiljanje povabila ni uspelo",
+        "resend": "Ponovno pošlji",
+        "revoke": "Prekliči",
+        "resend_success": "Povabilo ponovno poslano",
+        "resend_error": "Ponovno pošiljanje povabila ni uspelo",
+        "revoke_success": "Povabilo preklicano",
+        "revoke_error": "Preklic povabila ni uspel",
+        "invited_by": "Povabil/-a",
+        "invited_at": "Povabljen",
+        "expires_at": "Poteče",
+        "resent_count": "Ponovno poslano {count}-krat",
+        "resent_count_plural": "Ponovno poslano {count}-krat",
+        "status": {
+          "pending": "Čakanje",
+          "accepted": "Sprejeto",
+          "declined": "Zavrnjeno",
+          "expired": "Poteklo"
+        },
+        "roles": {
+          "member": "Član",
+          "admin": "Administrator"
+        },
+        "accept_invitation": "Sprejmi povabilo",
+        "decline_invitation": "Zavrni povabilo",
+        "invitation_details": "Podrobnosti povabila",
+        "you_are_invited": "Povabljeni ste k pridružitvi",
+        "invited_as": "Povabljeni ste kot",
+        "accept_success": "Povabilo uspešno sprejeto",
+        "accept_error": "Sprejem povabila ni uspel",
+        "decline_success": "Povabilo zavrnjeno",
+        "decline_error": "Zavrnitev povabila ni uspela",
+        "expired_message": "To povabilo je poteklo",
+        "invalid_token": "Neveljavno ali poteklo povabilo",
+        "must_sign_in": "Za sprejem povabila se prijavite",
+        "loading_invitation": "Nalaganje podrobnosti povabila"
+      }
     }
   }
 }

@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "API Belgeleri",
+      "branding_guide": "Marka Kılavuzu",
+      "customize": "Özelleştir",
+      "plans": "Planlar",
       "security": "",
       "learn_about_our_security_measures": "",
       "view_our_terms_and_conditions": "",
@@ -37,7 +41,7 @@
       "privacy_and_security_should_be_accessible": "Gizlilik ve güvenlik, dil farkı gözetmeksizin herkes için erişilebilir olmalıdır. Kullanıcılarımızın ve mesaj alıcılarının güvenli mesajları ve bağlantıları nasıl güvenli bir şekilde kullanacaklarını ve erişeceklerini daha iyi anlamalarına yardımcı olmak için çeviriler ekliyoruz. Bu yeni bir özellik olduğundan, bazı çeviri hataları veya belirsiz talimatlarla karşılaşabilirsiniz. Çevirilerimizin netliğini ve doğruluğunu, özellikle güvenlikle ilgili kritik içeriklerde iyileştirmemize yardımcı olmak için, herhangi bir sorun fark ederseniz lütfen {send-feedback}"
     },
     "help": {
-      "learn_more": "Learn more",
+      "learn_more": "Daha fazla bilgi",
       "secret_view_faq": {
         "what_am_i_looking_at": {
           "title": "Neye bakıyorum?",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Dili değiştir. Mevcut dil {0}",
       "language_changed_to_newlocale": "Dil {0} olarak değiştirildi",
       "switch_to_blank_mode": "{0} moduna geç",
-      "blank_mode_enabled": "{0} modu etkinleştirildi"
+      "blank_mode_enabled": "{0} modu etkinleştirildi",
+      "workspace": "Çalışma Alanı",
+      "workspace_context": "Çalışma alanı bağlamı"
     }
   }
 }

@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "API dokumentacija",
+      "branding_guide": "Vodnik za blagovno znamko",
+      "customize": "Prilagodi",
+      "plans": "Paketi",
       "security": "Varnost",
       "learn_about_our_security_measures": "Več o naših varnostnih ukrepih",
       "view_our_terms_and_conditions": "Oglejte si naše pogoje poslovanja",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Spremeni jezik. Trenutni jezik je {0}",
       "language_changed_to_newlocale": "Jezik spremenjen v {0}",
       "switch_to_blank_mode": "Preklopi v {0} način",
-      "blank_mode_enabled": "{0} način omogočen"
+      "blank_mode_enabled": "{0} način omogočen",
+      "workspace": "Delovni prostor",
+      "workspace_context": "Kontekst delovnega prostora"
     }
   }
 }

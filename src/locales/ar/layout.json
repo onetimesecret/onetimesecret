@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "توثيق API",
+      "branding_guide": "دليل العلامة التجارية",
+      "customize": "تخصيص",
+      "plans": "الخطط",
       "security": "الأمان",
       "learn_about_our_security_measures": "تعرف على تدابيرنا الأمنية",
       "view_our_terms_and_conditions": "عرض الشروط والأحكام",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "تغيير اللغة. اللغة الحالية هي {0}",
       "language_changed_to_newlocale": "تم تغيير اللغة إلى {0}",
       "switch_to_blank_mode": "التبديل إلى وضع {0}",
-      "blank_mode_enabled": "تم تمكين وضع {0}"
+      "blank_mode_enabled": "تم تمكين وضع {0}",
+      "workspace": "مساحة العمل",
+      "workspace_context": "سياق مساحة العمل"
     }
   }
 }

@@ -31,6 +31,7 @@
     "create_another": "Odeslat další tajemství",
     "tagline1": "Bezpečně sdílejte citlivé informace",
     "tagline2": "Udržujte hesla a soukromá data mimo e-maily a záznamy chatů",
-    "end_of_experience_suggestion": "Uložte si <a href='{receiptUrl}'>potvrzení</a> pro své záznamy."
+    "end_of_experience_suggestion": "Uložte si <a href='{receiptUrl}'>potvrzení</a> pro své záznamy.",
+    "receipt_link_text": "potvrzení"
   }
 }

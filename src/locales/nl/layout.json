@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "API-documentatie",
+      "branding_guide": "Merkrichtlijnen",
+      "customize": "Aanpassen",
+      "plans": "Abonnementen",
       "security": "Beveiliging",
       "learn_about_our_security_measures": "Leer meer over onze beveiligingsmaatregelen",
       "view_our_terms_and_conditions": "Bekijk onze voorwaarden",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Wijzig taal. Huidige taal is {0}",
       "language_changed_to_newlocale": "Taal gewijzigd naar {0}",
       "switch_to_blank_mode": "Schakel naar {0} modus",
-      "blank_mode_enabled": "{0} modus ingeschakeld"
+      "blank_mode_enabled": "{0} modus ingeschakeld",
+      "workspace": "Werkruimte",
+      "workspace_context": "Werkruimtecontext"
     }
   }
 }

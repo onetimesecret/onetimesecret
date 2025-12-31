@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "APIドキュメント",
+      "branding_guide": "ブランディングガイド",
+      "customize": "カスタマイズ",
+      "plans": "プラン",
       "security": "セキュリティ",
       "learn_about_our_security_measures": "セキュリティ対策について学ぶ",
       "view_our_terms_and_conditions": "利用規約を表示",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "言語を変更。現在の言語は{0}です",
       "language_changed_to_newlocale": "言語が{0}に変更されました",
       "switch_to_blank_mode": "{0}モードに切り替え",
-      "blank_mode_enabled": "{0}モードが有効になりました"
+      "blank_mode_enabled": "{0}モードが有効になりました",
+      "workspace": "ワークスペース",
+      "workspace_context": "ワークスペースコンテキスト"
     }
   }
 }

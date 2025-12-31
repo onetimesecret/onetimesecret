@@ -31,6 +31,7 @@
     "create_another": "Nog een geheim verzenden",
     "tagline1": "Deel gevoelige informatie veilig",
     "tagline2": "Houd wachtwoorden en privégegevens uit e-mails en chatlogboeken",
-    "end_of_experience_suggestion": "Bewaar uw <a href='{receiptUrl}'>ontvangstbewijs</a> voor uw administratie."
+    "end_of_experience_suggestion": "Bewaar uw <a href='{receiptUrl}'>ontvangstbewijs</a> voor uw administratie.",
+    "receipt_link_text": "ontvangstbewijs"
   }
 }

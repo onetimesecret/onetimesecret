@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """
-Atomic Kebab-Case to Snake_Case Key Migration for Locale Files
+Atomic camelCase to snake_case Key Migration for Locale Files
 
-This script performs atomic renaming of kebab-case keys to snake_case across
-all 29 locale directories. It handles nested JSON structures and ensures
+This script performs atomic renaming of camelCase keys to snake_case across
+all locale directories. It handles nested JSON structures and ensures
 consistency across all locales.
 
 Usage:
-    python src/scripts/locales/migrate-kebab-to-snake.py [--dry-run]
+    python src/scripts/locales/migrate/migrate-camel-to-snake.py [--dry-run]
 
 Options:
     --dry-run    Preview changes without modifying files
 
 Output:
-    - Creates backup at src/locales/.backup-kebab-to-snake/
-    - Generates report at src/scripts/locales/kebab-to-snake-report.json
+    - Creates backup at src/locales/.backup-camel-to-snake/
+    - Generates report at src/scripts/locales/migrate/camel-to-snake-report.json
 """
 
 import argparse
@@ -27,28 +27,46 @@ from pathlib import Path
 from typing import Any
 
 
-# Known duplicates to delete (kebab-case versions that duplicate snake_case)
-# These are keys where both kebab-case and snake_case versions exist.
-# The kebab-case version will be deleted, keeping the snake_case version.
-DUPLICATES_TO_DELETE = {
-    # _common.json
-    "passwords-do-not-match",  # Duplicate of passwords_do_not_match
-    "click-to-continue",       # Duplicate of click_to_continue
-    # feature-domains.json
-    "add-domain",              # Duplicate of add_domain
-}
+# Known duplicates to delete (camelCase versions that duplicate snake_case)
+# These are keys where both camelCase and snake_case versions exist.
+# The camelCase version will be deleted, keeping the snake_case version.
+DUPLICATES_TO_DELETE: set[str] = set()
 
 
-def is_kebab_case(key: str) -> bool:
-    """Check if a key is kebab-case (contains hyphens between lowercase letters/numbers)."""
-    # Match keys with hyphens that look like kebab-case
-    # Excludes keys that are purely hyphenated words or contain special patterns
-    return bool(re.search(r"[a-z0-9]-[a-z0-9]", key))
+def is_camel_case(key: str) -> bool:
+    """Check if a key is camelCase (lowercase start, contains uppercase letters).
+
+    Examples that match:
+        - firstName -> True
+        - lastName -> True
+        - myAPIKey -> True
+        - getUserData -> True
+
+    Examples that don't match:
+        - first_name -> False (snake_case)
+        - FirstName -> False (PascalCase)
+        - CONSTANT -> False (all uppercase)
+        - lowercase -> False (no uppercase)
+    """
+    # Must start with lowercase, contain at least one uppercase letter
+    # Exclude keys that are all lowercase or start with uppercase
+    return bool(re.match(r"^[a-z]", key) and re.search(r"[A-Z]", key))
 
 
-def kebab_to_snake(key: str) -> str:
-    """Convert a kebab-case key to snake_case."""
-    return key.replace("-", "_")
+def camel_to_snake(key: str) -> str:
+    """Convert a camelCase key to snake_case.
+
+    Examples:
+        - firstName -> first_name
+        - lastName -> last_name
+        - myAPIKey -> my_api_key
+        - getUserData -> get_user_data
+        - HTMLParser -> html_parser
+    """
+    # Insert underscore before uppercase letters and lowercase them
+    # Handle consecutive uppercase (like API, HTML) specially
+    s1 = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", key)
+    return re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", s1).lower()
 
 
 def get_full_key_path(path: list[str], key: str) -> str:
@@ -56,13 +74,13 @@ def get_full_key_path(path: list[str], key: str) -> str:
     return ".".join(path + [key])
 
 
-def find_kebab_keys(
+def find_camel_keys(
     obj: dict[str, Any],
     path: list[str] | None = None,
     results: list[dict] | None = None,
 ) -> list[dict]:
     """
-    Recursively find all kebab-case keys in a nested JSON structure.
+    Recursively find all camelCase keys in a nested JSON structure.
 
     Returns a list of dicts with:
         - full_path: dotted path to the key
@@ -78,8 +96,8 @@ def find_kebab_keys(
     for key, value in obj.items():
         full_path = get_full_key_path(path, key)
 
-        if is_kebab_case(key):
-            new_key = kebab_to_snake(key)
+        if is_camel_case(key):
+            new_key = camel_to_snake(key)
             results.append(
                 {
                     "full_path": full_path,
@@ -90,7 +108,7 @@ def find_kebab_keys(
             )
 
         if isinstance(value, dict):
-            find_kebab_keys(value, path + [key], results)
+            find_camel_keys(value, path + [key], results)
 
     return results
 
@@ -107,7 +125,7 @@ def transform_keys(
     Args:
         obj: The JSON object to transform
         key_mapping: Dict mapping old_key -> new_key
-        keys_to_delete: Set of kebab-case keys to delete (conflicts)
+        keys_to_delete: Set of camelCase keys to delete (conflicts)
     """
     if keys_to_delete is None:
         keys_to_delete = set()
@@ -119,10 +137,10 @@ def transform_keys(
         if key in keys_to_delete:
             continue
 
-        # Check if this is a kebab-case key that needs transformation
+        # Check if this is a camelCase key that needs transformation
         if key in key_mapping:
             new_key = key_mapping[key]
-            # If snake_case version already exists in the object, skip this kebab-case key
+            # If snake_case version already exists in the object, skip this camelCase key
             # (it's a duplicate and should be deleted)
             if new_key in obj:
                 continue
@@ -142,14 +160,14 @@ def transform_keys(
 
 
 def check_for_conflicts(
-    obj: dict[str, Any], kebab_keys: list[dict]
+    obj: dict[str, Any], camel_keys: list[dict]
 ) -> list[dict]:
     """
     Check if any snake_case target keys already exist (potential conflicts).
     """
     conflicts = []
 
-    for key_info in kebab_keys:
+    for key_info in camel_keys:
         # Navigate to parent
         parent = obj
         for p in key_info["parent_path"]:
@@ -170,12 +188,12 @@ def check_for_conflicts(
     return conflicts
 
 
-def build_key_mapping_from_analysis(kebab_keys: list[dict]) -> dict[str, str]:
+def build_key_mapping_from_analysis(camel_keys: list[dict]) -> dict[str, str]:
     """
     Build a simple key-to-key mapping from the analysis results.
     """
     mapping = {}
-    for key_info in kebab_keys:
+    for key_info in camel_keys:
         mapping[key_info["old_key"]] = key_info["new_key"]
     return mapping
 
@@ -194,15 +212,15 @@ def process_locale_file(
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    # Find all kebab-case keys in this file
-    kebab_keys = find_kebab_keys(data)
+    # Find all camelCase keys in this file
+    camel_keys = find_camel_keys(data)
 
-    # Check for conflicts (where both kebab-case and snake_case versions exist)
-    conflicts = check_for_conflicts(data, kebab_keys)
+    # Check for conflicts (where both camelCase and snake_case versions exist)
+    conflicts = check_for_conflicts(data, camel_keys)
 
     # Transform the data - this will automatically:
-    # 1. Rename kebab-case keys to snake_case
-    # 2. Skip (delete) kebab-case keys if snake_case version already exists
+    # 1. Rename camelCase keys to snake_case
+    # 2. Skip (delete) camelCase keys if snake_case version already exists
     # 3. Skip keys explicitly marked for deletion
     transformed = transform_keys(data, key_mapping, keys_to_delete)
 
@@ -210,7 +228,7 @@ def process_locale_file(
     changes = []
     conflicts_resolved = []
 
-    for key_info in kebab_keys:
+    for key_info in camel_keys:
         full_path = key_info["full_path"]
         old_key = key_info["old_key"]
         new_key = key_info["new_key"]
@@ -238,7 +256,7 @@ def process_locale_file(
                     "path": full_path,
                     "old_key": old_key,
                     "new_key": new_key,
-                    "action": "deleted kebab-case duplicate",
+                    "action": "deleted camelCase duplicate",
                 }
             )
         else:
@@ -257,7 +275,7 @@ def process_locale_file(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Migrate kebab-case keys to snake_case across all locale files"
+        description="Migrate camelCase keys to snake_case across all locale files"
     )
     parser.add_argument(
         "--dry-run",
@@ -268,22 +286,21 @@ def main():
 
     # Paths
     script_dir = Path(__file__).parent
-    project_root = script_dir.parent.parent.parent
+    project_root = script_dir.parent.parent.parent.parent
     locales_dir = project_root / "src" / "locales"
-    backup_dir = locales_dir / ".backup-kebab-to-snake"
-    report_path = script_dir / "kebab-to-snake-report.json"
+    backup_dir = locales_dir / ".backup-camel-to-snake"
+    report_path = script_dir / "camel-to-snake-report.json"
 
-    # Locale directories to process
-    locale_dirs = [
-        "ar", "bg", "ca_ES", "cs", "da_DK", "de", "de_AT", "el_GR", "en",
-        "es", "fr_CA", "fr_FR", "he", "hu", "it_IT", "ja", "ko", "mi_NZ",
-        "nl", "pl", "pt_BR", "pt_PT", "ru", "sl_SI", "sv_SE", "tr", "uk",
-        "vi", "zh",
-    ]
+    # Auto-discover locale directories (all subdirectories in locales_dir)
+    locale_dirs = sorted([
+        d.name for d in locales_dir.iterdir()
+        if d.is_dir() and not d.name.startswith(".")
+    ])
 
-    print(f"Locale files migration: kebab-case -> snake_case")
+    print("Locale files migration: camelCase -> snake_case")
     print(f"Mode: {'DRY RUN' if args.dry_run else 'LIVE'}")
     print(f"Locales directory: {locales_dir}")
+    print(f"Found {len(locale_dirs)} locale directories")
     print()
 
     # Step 1: Analyze English locale to build master key mapping
@@ -295,7 +312,7 @@ def main():
         sys.exit(1)
 
     master_mapping = {}
-    total_kebab_keys = 0
+    total_camel_keys = 0
 
     for json_file in en_dir.glob("*.json"):
         with open(json_file, "r", encoding="utf-8") as f:
@@ -305,15 +322,26 @@ def main():
                 print(f"  WARNING: Failed to parse {json_file.name}: {e}")
                 continue
 
-        kebab_keys = find_kebab_keys(data)
-        file_mapping = build_key_mapping_from_analysis(kebab_keys)
+        camel_keys = find_camel_keys(data)
+        file_mapping = build_key_mapping_from_analysis(camel_keys)
         master_mapping.update(file_mapping)
-        total_kebab_keys += len(kebab_keys)
-        if kebab_keys:
-            print(f"  {json_file.name}: {len(kebab_keys)} kebab-case keys")
+        total_camel_keys += len(camel_keys)
+        if camel_keys:
+            print(f"  {json_file.name}: {len(camel_keys)} camelCase keys")
 
-    print(f"\nTotal unique kebab-case keys found: {len(master_mapping)}")
-    print(f"Total kebab-case key occurrences: {total_kebab_keys}")
+    print(f"\nTotal unique camelCase keys found: {len(master_mapping)}")
+    print(f"Total camelCase key occurrences: {total_camel_keys}")
+
+    if not master_mapping:
+        print("\nNo camelCase keys found. Nothing to migrate.")
+        return 0
+
+    # Show sample mappings
+    print("\nSample key transformations:")
+    for i, (old, new) in enumerate(sorted(master_mapping.items())[:10]):
+        print(f"  {old} -> {new}")
+    if len(master_mapping) > 10:
+        print(f"  ... and {len(master_mapping) - 10} more")
 
     # Keys to delete (explicitly marked duplicates)
     keys_to_delete = set(DUPLICATES_TO_DELETE)
@@ -326,7 +354,7 @@ def main():
         print(f"\nStep 2: Creating backup at {backup_dir}...")
         if backup_dir.exists():
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            old_backup = backup_dir.with_name(f".backup-kebab-to-snake-{timestamp}")
+            old_backup = backup_dir.with_name(f".backup-camel-to-snake-{timestamp}")
             shutil.move(backup_dir, old_backup)
             print(f"  Moved existing backup to {old_backup.name}")
 
@@ -338,7 +366,7 @@ def main():
                 backup_locale_path = backup_dir / locale
                 shutil.copytree(locale_path, backup_locale_path)
 
-        print(f"  Backup created successfully")
+        print("  Backup created successfully")
     else:
         print("\nStep 2: Skipping backup (dry run)")
 
@@ -442,7 +470,7 @@ def main():
     print()
 
     if all_conflicts_resolved:
-        print("CONFLICTS RESOLVED (kebab-case duplicates deleted):")
+        print("CONFLICTS RESOLVED (camelCase duplicates deleted):")
         unique_conflicts = set()
         for conflict in all_conflicts_resolved:
             unique_conflicts.add(conflict['path'])

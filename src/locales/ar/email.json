@@ -15,6 +15,27 @@
       "please_verify": ":لطفاً قم بتفعيل حسابك",
       "postscript1": "هذا البريد قد تم ارساله الى",
       "postscript2": ".ان لم تقم انت بإنشاء هذا الحساب، احذف هذه الرسالة ولن نراسلك مرة اخرى"
+    },
+    "organization_invitation": {
+      "subject": "لقد تمت دعوتك للانضمام إلى %{organization_name}",
+      "title": "لقد تمت دعوتك للانضمام إلى %{organization_name}!",
+      "body": "%{inviter_email} دعاك للانضمام إلى \"%{organization_name}\" كـ %{role_description}.",
+      "accept_button": "قبول الدعوة",
+      "link_instruction": "أو انسخ والصق هذا الرابط:",
+      "expiry_notice": "ستنتهي صلاحية هذه الدعوة خلال %{days} أيام.",
+      "decline_instruction": "إذا كنت لا ترغب في الانضمام، يمكنك ببساطة تجاهل هذا البريد الإلكتروني أو رفض الدعوة.",
+      "signature": "Delano",
+      "postscript": "ملاحظة: تم إرسال هذا البريد الإلكتروني إلى %{invited_email}. إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذه الرسالة بأمان.",
+      "roles": {
+        "member": "عضو",
+        "admin": "مسؤول"
+      }
+    },
+    "common": {
+      "greeting": "مرحباً،",
+      "thanks": "شكراً،",
+      "unsubscribe": "إلغاء الاشتراك",
+      "view_in_browser": "عرض في المتصفح"
     }
   }
 }

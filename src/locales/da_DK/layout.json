@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "API-dokumentation",
+      "branding_guide": "Brandinggide",
+      "customize": "Tilpas",
+      "plans": "Planer",
       "security": "",
       "learn_about_our_security_measures": "",
       "view_our_terms_and_conditions": "",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Skift sprog. Nuværende sprog er {0}",
       "language_changed_to_newlocale": "Sprog ændret til {0}",
       "switch_to_blank_mode": "Skift til {0}-tilstand",
-      "blank_mode_enabled": "{0}-tilstand aktiveret"
+      "blank_mode_enabled": "{0}-tilstand aktiveret",
+      "workspace": "Arbejdsområde",
+      "workspace_context": "Arbejdsområdekontekst"
     }
   }
 }

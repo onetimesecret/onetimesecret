@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Cal actualitzar",
         "viewPlans": "Mostra els plans",
+        "needTeams": "La gestió d'equips requereix Identity Plus o superior",
         "needCustomDomains": "Els dominis personalitzats requereixen Identity Plus o superior",
         "needApiAccess": "L'accés a l'API requereix el pla Multi-Team o superior",
-        "needPrioritySupport": "L'assistència prioritària requereix Identity Plus o superior",
         "needAuditLogs": "Els registres d'auditoria requereixen el pla Multi-Team o superior"
       },
       "manage_subscription_and_billing": "Gestiona la teva subscripció, organitzacions i configuració de facturació",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Crea una organització per gestionar la teva facturació i subscripció",
         "entitlements": {
           "create_secrets": "Crea secrets",
-          "basic_sharing": "Compartició bàsica",
-          "custom_domains": "Dominis personalitzats",
+          "view_metadata": "Visualitza les metadades",
           "api_access": "Accés a l'API",
+          "custom_domains": "Dominis personalitzats",
+          "custom_privacy_defaults": "Valors predeterminats de privadesa personalitzats",
+          "extended_default_expiration": "Caducitat predeterminada ampliada",
+          "custom_mail_defaults": "Valors predeterminats de correu personalitzats",
+          "custom_branding": "Marca personalitzada",
+          "branded_homepage": "Pàgina inicial amb marca",
+          "incoming_secrets": "Secrets entrants",
+          "manage_orgs": "Gestiona les organitzacions",
+          "manage_teams": "Gestiona els equips",
+          "manage_members": "Gestiona els membres",
+          "audit_logs": "Registres d'auditoria",
+          "sso": "Single Sign-On",
           "priority_support": "Assistència prioritària",
-          "audit_logs": "Registres d'auditoria"
-        }
+          "sla": "Acord de nivell de servei"
+        },
+        "entitlements_load_error": "No s'han pogut carregar els detalls de les funcions",
+        "no_entitlements": "No hi ha funcions disponibles"
       },
       "plans": {
         "title": "Selecciona un pla",
@@ -61,7 +74,11 @@
         "api_access": "Accés a l'API",
         "priority_support": "Assistència prioritària",
         "select_plan": "Selecciona el pla",
-        "contact_sales": "Contacta amb vendes"
+        "contact_sales": "Contacta amb vendes",
+        "custom_needs_title": "Tens preguntes o necessites alguna cosa personalitzada?",
+        "custom_needs_description": "Ens encantaria saber de tu. Fes-nos saber què busques.",
+        "teams_limit": "{count} equip | {count} equips",
+        "members_limit": "{count} membre per equip | {count} membres per equip"
       },
       "invoices": {
         "title": "Historial de facturació",

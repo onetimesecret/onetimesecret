@@ -15,6 +15,27 @@
       "please_verify": "Bitte verifizieren Sie Ihr Konto:",
       "postscript1": "Diese E-Mail wurde gesendet an",
       "postscript2": "Wenn Sie diesen Antrag nicht gestellt haben, können Sie diese E-Mail getrost ignorieren."
+    },
+    "organization_invitation": {
+      "subject": "Sie wurden eingeladen, %{organization_name} beizutreten",
+      "title": "Sie wurden eingeladen, %{organization_name} beizutreten!",
+      "body": "%{inviter_email} hat Sie eingeladen, „%{organization_name}\" als %{role_description} beizutreten.",
+      "accept_button": "Einladung annehmen",
+      "link_instruction": "Oder kopieren Sie diesen Link:",
+      "expiry_notice": "Diese Einladung läuft in %{days} Tagen ab.",
+      "decline_instruction": "Wenn Sie nicht beitreten möchten, können Sie diese E-Mail einfach ignorieren oder die Einladung ablehnen.",
+      "signature": "Delano",
+      "postscript": "P.S. Diese E-Mail wurde an %{invited_email} gesendet. Wenn Sie diese Einladung nicht erwartet haben, können Sie diese Nachricht ignorieren.",
+      "roles": {
+        "member": "Mitglied",
+        "admin": "Administrator"
+      }
+    },
+    "common": {
+      "greeting": "Hallo,",
+      "thanks": "Danke,",
+      "unsubscribe": "Abmelden",
+      "view_in_browser": "Im Browser anzeigen"
     }
   }
 }

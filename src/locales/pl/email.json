@@ -15,6 +15,27 @@
       "please_verify": "Potwierdź proszę swoje konto:",
       "postscript1": "Twój e-mail został wysłany do",
       "postscript2": "Jeśli nie założyłeś tego konta, usuń tę wiadomość i nie skontaktujemy się z Tobą ponownie."
+    },
+    "organization_invitation": {
+      "subject": "Zaproszono Cię do dołączenia do %{organization_name}",
+      "title": "Zaproszono Cię do dołączenia do %{organization_name}!",
+      "body": "%{inviter_email} zaprosił(a) Cię do dołączenia do \"%{organization_name}\" jako %{role_description}.",
+      "accept_button": "Zaakceptuj zaproszenie",
+      "link_instruction": "Lub skopiuj i wklej ten link:",
+      "expiry_notice": "To zaproszenie wygaśnie za %{days} dni.",
+      "decline_instruction": "Jeśli nie chcesz dołączyć, możesz po prostu zignorować ten e-mail lub odrzucić zaproszenie.",
+      "signature": "Delano",
+      "postscript": "P.S. Ten e-mail został wysłany na adres %{invited_email}. Jeśli nie spodziewałeś się tego zaproszenia, możesz bezpiecznie zignorować tę wiadomość.",
+      "roles": {
+        "member": "członek",
+        "admin": "administrator"
+      }
+    },
+    "common": {
+      "greeting": "Cześć,",
+      "thanks": "Dziękujemy,",
+      "unsubscribe": "Wypisz się",
+      "view_in_browser": "Wyświetl w przeglądarce"
     }
   }
 }

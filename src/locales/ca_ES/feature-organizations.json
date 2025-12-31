@@ -23,6 +23,7 @@
       "description_placeholder": "Per a què és aquesta organització?",
       "contact_email": "Correu electrònic de facturació",
       "contact_email_help": "Contacte principal per a notificacions de facturació i administratives",
+      "billing_managed_by_default": "La gestió de facturació i subscripció es fa a través del teu espai de treball principal. Visita la configuració del teu espai de treball principal per gestionar els mètodes de pagament i les factures.",
       "select_organization": "Selecciona una organització",
       "not_found": "Organització no trobada",
       "load_error": "No s'ha pogut carregar l'organització",
@@ -57,7 +58,86 @@
       "delete": "Suprimeix",
       "delete_organization_confirm_title": "Suprimeix l'organització",
       "delete_organization_confirm_message": "Estàs segur que vols suprimir {name}? Aquesta acció no es pot desfer.",
-      "delete_error": "No s'ha pogut suprimir l'organització"
+      "delete_error": "No s'ha pogut suprimir l'organització",
+      "members": {
+        "title": "Membres",
+        "description": "Gestiona els membres de l'organització i els seus rols",
+        "member": "Membre",
+        "name": "Nom",
+        "email": "Correu electrònic",
+        "role": "Rol",
+        "joined": "S'ha unit",
+        "actions": "Accions",
+        "no_members": "No s'han trobat membres",
+        "no_members_description": "Aquesta organització encara no té membres.",
+        "role_updated": "Rol del membre actualitzat correctament",
+        "role_update_error": "No s'ha pogut actualitzar el rol del membre",
+        "member_removed": "Membre eliminat de l'organització",
+        "member_remove_error": "No s'ha pogut eliminar el membre",
+        "remove_member_title": "Elimina el membre",
+        "remove_member_confirm": "Estàs segur que vols eliminar {name} d'aquesta organització?",
+        "cannot_change_own_role": "No pots canviar el teu propi rol",
+        "cannot_remove_self": "No pots eliminar-te de l'organització",
+        "cannot_remove_owner": "No pots eliminar el propietari de l'organització",
+        "insufficient_permissions": "No tens permís per gestionar els membres",
+        "roles": {
+          "owner": "Propietari",
+          "admin": "Administrador",
+          "member": "Membre"
+        },
+        "role_descriptions": {
+          "owner": "Accés complet a tota la configuració de l'organització i als membres",
+          "admin": "Pot gestionar els membres i la majoria de la configuració de l'organització",
+          "member": "Accés bàsic als recursos de l'organització"
+        }
+      },
+      "invitations": {
+        "title": "Invitacions de l'organització",
+        "invite_member": "Convida un membre",
+        "invite_new_member": "Convida un membre nou",
+        "pending_invitations": "Invitacions pendents",
+        "no_pending_invitations": "No hi ha invitacions pendents",
+        "email_address": "Adreça de correu electrònic",
+        "email_placeholder": "membre@exemple.com",
+        "role": "Rol",
+        "send_invite": "Envia la invitació",
+        "invite_sent": "Invitació enviada correctament",
+        "invite_error": "No s'ha pogut enviar la invitació",
+        "resend": "Reenvia",
+        "revoke": "Revoca",
+        "resend_success": "Invitació reenviada correctament",
+        "resend_error": "No s'ha pogut reenviar la invitació",
+        "revoke_success": "Invitació revocada correctament",
+        "revoke_error": "No s'ha pogut revocar la invitació",
+        "invited_by": "Convidat per",
+        "invited_at": "Convidat",
+        "expires_at": "Caduca",
+        "resent_count": "Reenviat {count} vegada",
+        "resent_count_plural": "Reenviat {count} vegades",
+        "status": {
+          "pending": "Pendent",
+          "accepted": "Acceptada",
+          "declined": "Rebutjada",
+          "expired": "Caducada"
+        },
+        "roles": {
+          "member": "Membre",
+          "admin": "Administrador"
+        },
+        "accept_invitation": "Accepta la invitació",
+        "decline_invitation": "Rebutja la invitació",
+        "invitation_details": "Detalls de la invitació",
+        "you_are_invited": "Has estat convidat a unir-te a",
+        "invited_as": "Has estat convidat com a",
+        "accept_success": "Invitació acceptada correctament",
+        "accept_error": "No s'ha pogut acceptar la invitació",
+        "decline_success": "Invitació rebutjada",
+        "decline_error": "No s'ha pogut rebutjar la invitació",
+        "expired_message": "Aquesta invitació ha caducat",
+        "invalid_token": "Invitació no vàlida o caducada",
+        "must_sign_in": "Inicia sessió per acceptar aquesta invitació",
+        "loading_invitation": "Carregant els detalls de la invitació"
+      }
     }
   }
 }

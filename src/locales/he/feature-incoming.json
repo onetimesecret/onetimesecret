@@ -31,6 +31,7 @@
     "create_another": "שלח סוד נוסף",
     "tagline1": "שתף מידע רגיש בצורה מאובטחת",
     "tagline2": "שמור על סיסמאות ונתונים פרטיים מחוץ לאימיילים ויומני צ'אט",
-    "end_of_experience_suggestion": "שמור את <a href='{receiptUrl}'>האישור</a> שלך לרישומים שלך."
+    "end_of_experience_suggestion": "שמור את <a href='{receiptUrl}'>האישור</a> שלך לרישומים שלך.",
+    "receipt_link_text": "קבלה"
   }
 }

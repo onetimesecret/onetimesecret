@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Необходимо е надграждане",
         "viewPlans": "Вижте плановете",
+        "needTeams": "Управлението на екипи изисква план Identity Plus или по-висок",
         "needCustomDomains": "Персонализираните домейни изискват план Identity Plus или по-висок",
         "needApiAccess": "Достъпът до API изисква план Multi-Team или по-висок",
-        "needPrioritySupport": "Приоритетната поддръжка изисква план Identity Plus или по-висок",
         "needAuditLogs": "Одитните записи изискват план Multi-Team или по-висок"
       },
       "manage_subscription_and_billing": "Управлявайте вашия абонамент, организации и настройки за фактуриране",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Създайте организация за управление на вашето фактуриране и абонамент",
         "entitlements": {
           "create_secrets": "Създаване на тайни",
-          "basic_sharing": "Основно споделяне",
-          "custom_domains": "Персонализирани домейни",
+          "view_metadata": "Преглед на метаданни",
           "api_access": "Достъп до API",
+          "custom_domains": "Персонализирани домейни",
+          "custom_privacy_defaults": "Персонализирани настройки за поверителност",
+          "extended_default_expiration": "Удължено време на изтичане по подразбиране",
+          "custom_mail_defaults": "Персонализирани настройки за имейл",
+          "custom_branding": "Персонализирано брандиране",
+          "branded_homepage": "Брандирана начална страница",
+          "incoming_secrets": "Входящи тайни",
+          "manage_orgs": "Управление на организации",
+          "manage_teams": "Управление на екипи",
+          "manage_members": "Управление на членове",
+          "audit_logs": "Одитни записи",
+          "sso": "Единен вход (SSO)",
           "priority_support": "Приоритетна поддръжка",
-          "audit_logs": "Одитни записи"
-        }
+          "sla": "Споразумение за ниво на услугата (SLA)"
+        },
+        "entitlements_load_error": "Неуспешно зареждане на детайли за функции",
+        "no_entitlements": "Няма налични функции"
       },
       "plans": {
         "title": "Изберете план",
@@ -61,7 +74,11 @@
         "api_access": "Достъп до API",
         "priority_support": "Приоритетна поддръжка",
         "select_plan": "Изберете план",
-        "contact_sales": "Свържете се с отдел продажби"
+        "contact_sales": "Свържете се с отдел продажби",
+        "custom_needs_title": "Имате въпроси или се нуждаете от нещо персонализирано?",
+        "custom_needs_description": "Ще се радваме да чуем от вас. Кажете ни какво търсите.",
+        "teams_limit": "{count} екип | {count} екипа",
+        "members_limit": "{count} член на екип | {count} члена на екип"
       },
       "invoices": {
         "title": "История на фактурирането",

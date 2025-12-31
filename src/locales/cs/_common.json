@@ -69,6 +69,7 @@
       "word_confirm": "Potvrdit",
       "word_cancel": "Storno",
       "word_continue": "Pokračovat",
+      "word_done": "Hotovo",
       "back": "Zpět",
       "feedback_text": "Sdílej své myšlenky, nápady nebo zkušenosti...",
       "button_send_feedback": "Poslat odezvu",
@@ -160,16 +161,19 @@
       "an_error_occurred": "Došlo k chybě",
       "copy_secret_to_clipboard": "Zkopírovat tajemství do schránky",
       "secret_copied_to_clipboard": "Tajemství zkopírováno do schránky",
-      "press_copy_button_below": "Stiskni tlačítko kopírovat níže.",
-      "double_check_that_passphrase": "Zkontroluj si tu přístupovou frázi"
+      "double_check_that_passphrase": "Zkontroluj si tu přístupovou frázi",
+      "press_copy_button_below": "Stiskni tlačítko kopírovat níže."
     },
     "LABELS": {
       "view_toggle": {
         "show": "Zobrazit",
         "hide": "Skrýt",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Zobrazit více",
+        "show_less": "Zobrazit méně"
       },
+      "enable": "Povolit",
+      "disable": "Zakázat",
+      "stats": "Statistiky",
       "timeline": "Časová osa",
       "lifespan": "Životnost",
       "expiration_time": "Čas expirace",
@@ -213,9 +217,8 @@
       "create_request_short": "Vytvořit požadavek",
       "create_request": "Vytvořit odkaz na požadavek",
       "related_settings": "Související nastavení",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "Vytváření odkazů pro",
+      "scope_indicator": "Vytváření tajemství v {domain}"
     },
     "STATUS": {
       "new": "Nové",
@@ -290,6 +293,7 @@
       "verify_account": "Ověřit účet",
       "mfa_verify": "Dvoufaktorové ověření",
       "email_login": "Přihlášení e-mailem",
+      "accept_invitation": "Přijmout pozvánku",
       "secret": "Tajemství",
       "metadata": "Podrobnosti tajemství",
       "receipt": "Potvrzení tajemství",
@@ -308,6 +312,7 @@
       "profile_settings": "Nastavení profilu",
       "preferences_settings": "Předvolby",
       "privacy_settings": "Soukromí",
+      "notification_settings": "Oznámení",
       "change_email": "Změnit e-mail",
       "security_overview": "Zabezpečení",
       "change_password": "Změnit heslo",
@@ -318,7 +323,14 @@
       "advanced_settings": "Pokročilé nastavení",
       "colonel": "Administrace",
       "colonel_users": "Správa uživatelů",
+      "colonel_secrets": "Správa tajemství",
+      "colonel_domains": "Vlastní domény",
+      "colonel_system": "Systém",
       "system_settings": "Nastavení systému",
+      "colonel_maindb": "Hlavní databáze",
+      "colonel_authdb": "Autentizační databáze",
+      "colonel_banned_ips": "Blokované IP adresy",
+      "colonel_usage": "Export využití",
       "colonel_info": "Systémové informace",
       "not_found": "Stránka nenalezena",
       "organizations_settings": "Organizace",

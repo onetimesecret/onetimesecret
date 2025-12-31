@@ -31,6 +31,7 @@
     "create_another": "Weiteres Geheimnis senden",
     "tagline1": "Vertrauliche Informationen sicher teilen",
     "tagline2": "Halten Sie Passwörter und private Daten aus E-Mails und Chat-Protokollen fern",
-    "end_of_experience_suggestion": "Speichern Sie Ihre <a href='{receiptUrl}'>Quittung</a> für Ihre Unterlagen."
+    "end_of_experience_suggestion": "Speichern Sie Ihre <a href='{receiptUrl}'>Quittung</a> für Ihre Unterlagen.",
+    "receipt_link_text": "Quittung"
   }
 }

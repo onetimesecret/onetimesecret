@@ -69,6 +69,7 @@
       "word_confirm": "تأكيد",
       "word_cancel": "الغاء",
       "word_continue": "متابعة",
+      "word_done": "تم",
       "back": "رجوع",
       "feedback_text": "هل لديك استفسار او تعليق؟",
       "button_send_feedback": "ارسل",
@@ -160,16 +161,19 @@
       "an_error_occurred": "حدث خطأ",
       "copy_secret_to_clipboard": "نسخ السر إلى الحافظة",
       "secret_copied_to_clipboard": "تم نسخ السر إلى الحافظة",
-      "press_copy_button_below": "اضغط على زر النسخ أدناه.",
-      "double_check_that_passphrase": "تحقق مرة أخرى من عبارة المرور"
+      "double_check_that_passphrase": "تحقق مرة أخرى من عبارة المرور",
+      "press_copy_button_below": "اضغط على زر النسخ أدناه."
     },
     "LABELS": {
       "view_toggle": {
         "show": "إظهار",
         "hide": "إخفاء",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "إظهار المزيد",
+        "show_less": "إظهار أقل"
       },
+      "enable": "تفعيل",
+      "disable": "تعطيل",
+      "stats": "الإحصائيات",
       "timeline": "الجدول الزمني",
       "lifespan": "مدة الصلاحية",
       "expiration_time": "وقت انتهاء الصلاحية",
@@ -213,9 +217,8 @@
       "create_request_short": "إنشاء طلب",
       "create_request": "إنشاء رابط طلب",
       "related_settings": "الإعدادات ذات الصلة",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "إنشاء روابط لـ",
+      "scope_indicator": "إنشاء أسرار في {domain}"
     },
     "STATUS": {
       "new": "جديد",
@@ -290,6 +293,7 @@
       "verify_account": "التحقق من الحساب",
       "mfa_verify": "المصادقة الثنائية",
       "email_login": "تسجيل الدخول بالبريد الإلكتروني",
+      "accept_invitation": "قبول الدعوة",
       "secret": "السر",
       "metadata": "تفاصيل السر",
       "receipt": "إيصال السر",
@@ -308,6 +312,7 @@
       "profile_settings": "إعدادات الملف الشخصي",
       "preferences_settings": "التفضيلات",
       "privacy_settings": "الخصوصية",
+      "notification_settings": "الإشعارات",
       "change_email": "تغيير البريد الإلكتروني",
       "security_overview": "الأمان",
       "change_password": "تغيير كلمة المرور",
@@ -318,7 +323,14 @@
       "advanced_settings": "الإعدادات المتقدمة",
       "colonel": "الإدارة",
       "colonel_users": "إدارة المستخدمين",
+      "colonel_secrets": "إدارة الأسرار",
+      "colonel_domains": "النطاقات المخصصة",
+      "colonel_system": "النظام",
       "system_settings": "إعدادات النظام",
+      "colonel_maindb": "قاعدة البيانات الرئيسية",
+      "colonel_authdb": "قاعدة بيانات المصادقة",
+      "colonel_banned_ips": "عناوين IP المحظورة",
+      "colonel_usage": "تصدير الاستخدام",
       "colonel_info": "معلومات النظام",
       "not_found": "الصفحة غير موجودة",
       "organizations_settings": "المنظمات",

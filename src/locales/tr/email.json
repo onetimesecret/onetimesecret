@@ -15,6 +15,27 @@
       "please_verify": "Lütfen hesabınızı doğrulayın:",
       "postscript1": "Bu e-posta şu adrese yolandı",
       "postscript2": "Eğer bu hesabı siz oluşturmadıysanız, bu mesajı silin ve sizi bir daha rahatsız etmeyeceğiz."
+    },
+    "organization_invitation": {
+      "subject": "%{organization_name} organizasyonuna katılmaya davet edildiniz",
+      "title": "%{organization_name} organizasyonuna katılmaya davet edildiniz!",
+      "body": "%{inviter_email}, sizi \"%{organization_name}\" organizasyonuna %{role_description} olarak katılmaya davet etti.",
+      "accept_button": "Daveti Kabul Et",
+      "link_instruction": "Veya bu bağlantıyı kopyalayıp yapıştırın:",
+      "expiry_notice": "Bu davet %{days} gün içinde sona erecektir.",
+      "decline_instruction": "Katılmak istemiyorsanız, bu e-postayı yok sayabilir veya daveti reddedebilirsiniz.",
+      "signature": "Delano",
+      "postscript": "Not: Bu e-posta %{invited_email} adresine gönderildi. Bu daveti beklemiyorsanız, bu mesajı güvenle görmezden gelebilirsiniz.",
+      "roles": {
+        "member": "bir üye",
+        "admin": "bir yönetici"
+      }
+    },
+    "common": {
+      "greeting": "Merhaba,",
+      "thanks": "Teşekkürler,",
+      "unsubscribe": "Abonelikten çık",
+      "view_in_browser": "Tarayıcıda görüntüle"
     }
   }
 }

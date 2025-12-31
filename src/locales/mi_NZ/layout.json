@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "Ngā Tuhinga API",
+      "branding_guide": "Aratohu Waitohu",
+      "customize": "Whakariterite",
+      "plans": "Ngā Mahere",
       "security": "Haumaru",
       "learn_about_our_security_measures": "Ako mō ā mātou tikanga haumaru",
       "view_our_terms_and_conditions": "Tirohia ā mātou Tikanga me ngā Kaupapa Here",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Huri reo. Ko te reo o nāianei ko {0}",
       "language_changed_to_newlocale": "Kua hurihia te reo ki {0}",
       "switch_to_blank_mode": "Takahuri ki te aratau {0}",
-      "blank_mode_enabled": "Kua whakahohe te aratau {0}"
+      "blank_mode_enabled": "Kua whakahohe te aratau {0}",
+      "workspace": "Wāhi Mahi",
+      "workspace_context": "Horopaki wāhi mahi"
     }
   }
 }

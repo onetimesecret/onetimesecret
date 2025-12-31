@@ -15,6 +15,27 @@
       "please_verify": "Vui lòng xác nhận tài khoản:",
       "postscript1": "Email này đã được gởi tới",
       "postscript2": "Nếu bạn không tạo tài khoản này, vui lòng xóa tin nhắn này đi, chúng tôi sẽ không làm phiền bạn nữa."
+    },
+    "organization_invitation": {
+      "subject": "Bạn đã được mời tham gia %{organization_name}",
+      "title": "Bạn đã được mời tham gia %{organization_name}!",
+      "body": "%{inviter_email} đã mời bạn tham gia \"%{organization_name}\" với vai trò %{role_description}.",
+      "accept_button": "Chấp nhận lời mời",
+      "link_instruction": "Hoặc sao chép và dán liên kết này:",
+      "expiry_notice": "Lời mời này sẽ hết hạn sau %{days} ngày.",
+      "decline_instruction": "Nếu bạn không muốn tham gia, bạn có thể bỏ qua email này hoặc từ chối lời mời.",
+      "signature": "Delano",
+      "postscript": "Tái bút: Email này đã được gửi đến %{invited_email}. Nếu bạn không mong đợi lời mời này, bạn có thể bỏ qua tin nhắn này một cách an toàn.",
+      "roles": {
+        "member": "thành viên",
+        "admin": "quản trị viên"
+      }
+    },
+    "common": {
+      "greeting": "Xin chào,",
+      "thanks": "Cảm ơn,",
+      "unsubscribe": "Hủy đăng ký",
+      "view_in_browser": "Xem trong trình duyệt"
     }
   }
 }

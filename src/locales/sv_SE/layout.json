@@ -1,31 +1,35 @@
 {
   "web": {
     "footer": {
-      "security": "",
-      "learn_about_our_security_measures": "",
-      "view_our_terms_and_conditions": "",
-      "terms": "",
-      "privacy": "",
-      "contact": "",
-      "support": "",
-      "legals": "",
-      "read_our_privacy_policy": "",
-      "check_our_service_status": "",
-      "explore_our_api_documentation": "",
-      "docs": "",
-      "access_our_documentation": "",
-      "view_our_source_code_on_github": "",
-      "resources": "",
-      "blog": "",
-      "read_our_latest_blog_posts": "",
-      "view_our_subscription_pricing": "",
-      "learn_about_our_company": "",
-      "company": ""
+      "api_docs": "API-dokumentation",
+      "branding_guide": "Varumärkesguide",
+      "customize": "Anpassa",
+      "plans": "Planer",
+      "security": "Säkerhet",
+      "learn_about_our_security_measures": "Läs om våra säkerhetsåtgärder",
+      "view_our_terms_and_conditions": "Visa våra användarvillkor",
+      "terms": "Villkor",
+      "privacy": "Integritet",
+      "contact": "Kontakt",
+      "support": "Support",
+      "legals": "Juridiskt",
+      "read_our_privacy_policy": "Läs vår integritetspolicy",
+      "check_our_service_status": "Kontrollera vår tjänststatus",
+      "explore_our_api_documentation": "Utforska vår API-dokumentation",
+      "docs": "Dokumentation",
+      "access_our_documentation": "Få åtkomst till vår dokumentation",
+      "view_our_source_code_on_github": "Visa vår källkod på GitHub",
+      "resources": "Resurser",
+      "blog": "Blogg",
+      "read_our_latest_blog_posts": "Läs våra senaste blogginlägg",
+      "view_our_subscription_pricing": "Visa vår prenumerationsprissättning",
+      "learn_about_our_company": "Lär dig om vårt företag",
+      "company": "Företag"
     },
     "navigation": {
-      "billing": "",
-      "billingOverview": "",
-      "organizations": ""
+      "billing": "Fakturering",
+      "billingOverview": "Faktureringsöversikt",
+      "organizations": "Organisationer"
     },
     "site": {
       "website_version": "Webbplatsversion"
@@ -66,10 +70,10 @@
       "company_logo": "Företagslogotyp",
       "brand_logo": "Varumärkeslogotyp",
       "dashboard_navigation": "Instrumentpanelnavigering",
-      "mobile_navigation": "",
+      "mobile_navigation": "Mobilnavigering",
       "main_navigation": "Huvudnavigering",
-      "mobile_nav_item_count": "",
-      "release_notes": "",
+      "mobile_nav_item_count": "{count} menyalternativ",
+      "release_notes": "Versionsnoteringar",
       "loading_settings_content": "Laddar inställningsinnehåll...",
       "settings_sections_0": "Inställningssektioner",
       "close_settings": "Stäng inställningar",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Ändra språk. Nuvarande språk är {0}",
       "language_changed_to_newlocale": "Språk ändrat till {0}",
       "switch_to_blank_mode": "Byt till {0}-läge",
-      "blank_mode_enabled": "{0}-läge aktiverat"
+      "blank_mode_enabled": "{0}-läge aktiverat",
+      "workspace": "Arbetsyta",
+      "workspace_context": "Arbetsyteskontext"
     }
   }
 }

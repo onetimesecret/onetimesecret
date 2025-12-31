@@ -15,6 +15,27 @@
       "please_verify": "Por favor, verifique sua conta:",
       "postscript1": "Este email foi enviado para",
       "postscript2": "Se você não criou esta conta, apague esta mensagem e nós não iremos lhe contatar novamente."
+    },
+    "organization_invitation": {
+      "subject": "Você foi convidado para participar de %{organization_name}",
+      "title": "Você foi convidado para participar de %{organization_name}!",
+      "body": "%{inviter_email} convidou você para participar de \"%{organization_name}\" como %{role_description}.",
+      "accept_button": "Aceitar Convite",
+      "link_instruction": "Ou copie e cole este link:",
+      "expiry_notice": "Este convite expirará em %{days} dias.",
+      "decline_instruction": "Se você não deseja participar, simplesmente ignore este e-mail ou recuse o convite.",
+      "signature": "Delano",
+      "postscript": "P.S. Este e-mail foi enviado para %{invited_email}. Se você não estava esperando este convite, pode ignorar esta mensagem com segurança.",
+      "roles": {
+        "member": "membro",
+        "admin": "administrador"
+      }
+    },
+    "common": {
+      "greeting": "Olá,",
+      "thanks": "Obrigado,",
+      "unsubscribe": "Cancelar inscrição",
+      "view_in_browser": "Ver no navegador"
     }
   }
 }

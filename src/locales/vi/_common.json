@@ -69,6 +69,7 @@
       "word_confirm": "Xác nhận",
       "word_cancel": "Hủy",
       "word_continue": "Tiếp tục",
+      "word_done": "Xong",
       "back": "Quay lại",
       "feedback_text": "Chia sẻ suy nghĩ, ý tưởng hoặc trải nghiệm của bạn...",
       "button_send_feedback": "Gửi phản hồi",
@@ -160,16 +161,19 @@
       "an_error_occurred": "Đã xảy ra lỗi",
       "copy_secret_to_clipboard": "Sao chép bí mật vào clipboard",
       "secret_copied_to_clipboard": "Đã sao chép bí mật vào clipboard",
-      "press_copy_button_below": "Nhấn nút sao chép bên dưới.",
-      "double_check_that_passphrase": "Kiểm tra lại cụm mật khẩu đó"
+      "double_check_that_passphrase": "Kiểm tra lại cụm mật khẩu đó",
+      "press_copy_button_below": "Nhấn nút sao chép bên dưới."
     },
     "LABELS": {
       "view_toggle": {
         "show": "Hiển thị",
         "hide": "Ẩn",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Hiển thị thêm",
+        "show_less": "Ẩn bớt"
       },
+      "enable": "Bật",
+      "disable": "Tắt",
+      "stats": "Thống kê",
       "timeline": "Dòng thời gian",
       "lifespan": "Thời gian tồn tại",
       "expiration_time": "Thời gian hết hạn",
@@ -213,9 +217,8 @@
       "create_request_short": "Tạo yêu cầu",
       "create_request": "Tạo liên kết yêu cầu",
       "related_settings": "Cài đặt liên quan",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "Đang tạo liên kết cho",
+      "scope_indicator": "Đang tạo bí mật trong {domain}"
     },
     "STATUS": {
       "new": "Mới",
@@ -290,6 +293,7 @@
       "verify_account": "Xác minh tài khoản",
       "mfa_verify": "Xác thực hai yếu tố",
       "email_login": "Đăng nhập bằng email",
+      "accept_invitation": "Chấp nhận lời mời",
       "secret": "Bí mật",
       "metadata": "Chi tiết bí mật",
       "receipt": "Biên nhận bí mật",
@@ -308,6 +312,7 @@
       "profile_settings": "Cài đặt hồ sơ",
       "preferences_settings": "Tùy chọn",
       "privacy_settings": "Quyền riêng tư",
+      "notification_settings": "Thông báo",
       "change_email": "Thay đổi email",
       "security_overview": "Bảo mật",
       "change_password": "Thay đổi mật khẩu",
@@ -318,7 +323,14 @@
       "advanced_settings": "Cài đặt nâng cao",
       "colonel": "Quản trị",
       "colonel_users": "Quản lý người dùng",
+      "colonel_secrets": "Quản lý bí mật",
+      "colonel_domains": "Tên miền tùy chỉnh",
+      "colonel_system": "Hệ thống",
       "system_settings": "Cài đặt hệ thống",
+      "colonel_maindb": "Cơ sở dữ liệu chính",
+      "colonel_authdb": "Cơ sở dữ liệu xác thực",
+      "colonel_banned_ips": "IP bị cấm",
+      "colonel_usage": "Xuất dữ liệu sử dụng",
       "colonel_info": "Thông tin hệ thống",
       "not_found": "Không tìm thấy trang",
       "organizations_settings": "Tổ chức",

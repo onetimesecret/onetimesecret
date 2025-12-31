@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Atualização Necessária",
         "viewPlans": "Ver Planos",
+        "needTeams": "Gerenciamento de equipes requer Identity Plus ou superior",
         "needCustomDomains": "Domínios personalizados exigem Identity Plus ou superior",
         "needApiAccess": "Acesso à API exige plano Multi-Team ou superior",
-        "needPrioritySupport": "Suporte prioritário exige Identity Plus ou superior",
         "needAuditLogs": "Logs de auditoria exigem plano Multi-Team ou superior"
       },
       "manage_subscription_and_billing": "Gerencie sua assinatura, organizações e configurações de cobrança",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Crie uma organização para gerenciar sua cobrança e assinatura",
         "entitlements": {
           "create_secrets": "Criar Mensagens Confidenciais",
-          "basic_sharing": "Compartilhamento Básico",
-          "custom_domains": "Domínios Personalizados",
+          "view_metadata": "Visualizar Metadados",
           "api_access": "Acesso à API",
+          "custom_domains": "Domínios Personalizados",
+          "custom_privacy_defaults": "Padrões de Privacidade Personalizados",
+          "extended_default_expiration": "Expiração Padrão Estendida",
+          "custom_mail_defaults": "Padrões de E-mail Personalizados",
+          "custom_branding": "Marca Personalizada",
+          "branded_homepage": "Página Inicial com Marca",
+          "incoming_secrets": "Segredos Recebidos",
+          "manage_orgs": "Gerenciar Organizações",
+          "manage_teams": "Gerenciar Equipes",
+          "manage_members": "Gerenciar Membros",
+          "audit_logs": "Logs de Auditoria",
+          "sso": "Login Único (SSO)",
           "priority_support": "Suporte Prioritário",
-          "audit_logs": "Logs de Auditoria"
-        }
+          "sla": "Acordo de Nível de Serviço (SLA)"
+        },
+        "entitlements_load_error": "Não foi possível carregar os detalhes dos recursos",
+        "no_entitlements": "Nenhum recurso disponível"
       },
       "plans": {
         "title": "Selecione um Plano",
@@ -61,7 +74,11 @@
         "api_access": "Acesso à API",
         "priority_support": "Suporte prioritário",
         "select_plan": "Selecionar Plano",
-        "contact_sales": "Contatar Vendas"
+        "contact_sales": "Contatar Vendas",
+        "custom_needs_title": "Tem dúvidas ou precisa de algo personalizado?",
+        "custom_needs_description": "Adoraríamos ouvir você. Nos conte o que você está procurando.",
+        "teams_limit": "{count} equipe | {count} equipes",
+        "members_limit": "{count} membro por equipe | {count} membros por equipe"
       },
       "invoices": {
         "title": "Histórico de Cobrança",

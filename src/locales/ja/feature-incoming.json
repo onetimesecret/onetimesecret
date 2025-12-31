@@ -31,6 +31,7 @@
     "create_another": "別のシークレットを送信",
     "tagline1": "機密情報を安全に共有",
     "tagline2": "パスワードや個人データをメールやチャットログから守りましょう",
-    "end_of_experience_suggestion": "記録のために<a href='{receiptUrl}'>受領書</a>を保存してください。"
+    "end_of_experience_suggestion": "記録のために<a href='{receiptUrl}'>受領書</a>を保存してください。",
+    "receipt_link_text": "receipt"
   }
 }

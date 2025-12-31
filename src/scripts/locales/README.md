@@ -1,103 +1,99 @@
-# src/scripts/locales/README.md
----
 # Locale Scripts
 
 Organized tools for managing i18n locale files in the Onetime Secret project.
 
 ## Directory Structure
 
+### Root Scripts
+
+- **`generate-i18n-types.ts`** - Generates TypeScript types from locale JSON files for compile-time key validation
+
 ### `/harmonize`
 Synchronization and conflict resolution scripts for maintaining consistency across locale files.
-- Fix structural conflicts between locale files
-- Harmonize key structures with base English locale
-- CI/CD integration for automated maintenance
+- **`create-missing-locale-files.sh`** - Creates empty `{}` JSON files for locales missing files that exist in `en/`
+- **`harmonize-locale-file.py`** - Repairs locale files to match English key structure
+- **`harmonize-all-locale-files`** - Wrapper to harmonize all locales
+- **`validate-locale-json.py`** - Validates JSON structure
+- **`github-action-harmonize.sh`** - CI/CD integration
 
 ### `/validate`
-Validation tools for checking locale file integrity.
+Pre-commit validation tools for checking locale file integrity.
 - Verify JSON structure and key consistency
 - Identify missing or extra keys
-- Pre-commit validation checks
 
 ### `/debug`
 Diagnostic tools for troubleshooting locale file issues.
 - Analyze structural conflicts and type mismatches
 - Generate detailed reports of locale discrepancies
-- Debug harmonization failures
+
+### `/audit`
+Translation coverage analysis tools.
+- **`audit-translations.js`** - Identify missing translations across locales
+- **`extract-i18n-manifest.py`** - Extract i18n key manifest from codebase
+- **`analyze-by-file.js`** - Break down missing keys by file
+- **`analyze-common-missing.js`** - Find keys missing across many locales
 
 ### `/migrate`
-Migration tools for refactoring locale structures.
-- Migrate keys between different i18n versions
-- Apply bulk translations from external sources
-- Handle breaking changes in locale structure
+Migration tools for locale key transformations.
+- **`migrate-camel-to-snake.py`** - Migrates camelCase keys to snake_case (run with `--dry-run` first)
+- **`apply-translations.sh`** - Apply bulk translations from external sources
 
 ### `/utils`
 General utility scripts for locale maintenance.
-- Fix Unicode encoding issues
-- Search for i18n key usage in codebase
-- Generate translation templates
-
-### `/experiments`
-Experimental scripts for testing new approaches.
-- Prototype scripts not ready for production
-- Testing ground for new locale management strategies
+- **`fix-json-unicode.py`** - Fix Unicode encoding issues from translation tools
+- **`generate-translation-template.sh`** - Generate translation templates for contributors
 
 ## Common Workflows
 
-### 1. Fix and Harmonize All Locales
+### 1. Harmonize All Locales
 ```bash
-# Step 1: Fix structural conflicts
-./harmonize/fix-all-locale-conflicts -v
+# Harmonize all locale files with English structure
+./harmonize/harmonize-all-locale-files
 
-# Step 2: Harmonize with base locale
-./harmonize/harmonize-locale-files -v
-
-# Step 3: Validate results
+# Validate results
 ./validate/check-locale-files
 ```
 
-### 2. Debug Locale Issues
+### 2. Add New Locale File Type
 ```bash
-# Analyze specific locale
-./debug/debug-locale-structure.sh src/locales/fr_FR.json
+# After adding a new JSON file to src/locales/en/
+./harmonize/create-missing-locale-files.sh --dry-run  # Preview
+./harmonize/create-missing-locale-files.sh            # Create empty files
+```
+
+### 3. Migrate camelCase Keys
+```bash
+# Preview changes
+python3 ./migrate/migrate-camel-to-snake.py --dry-run
+
+# Apply migration (creates backup)
+python3 ./migrate/migrate-camel-to-snake.py
+```
+
+### 4. Debug Locale Issues
+```bash
+# Analyze specific locale directory
+./debug/debug-locale-structure.sh src/locales/fr_FR/
 
 # Check all locales
 ./debug/debug-all-locales -v
 ```
 
-### 3. Add New Translation
+### 5. Audit Translation Coverage
 ```bash
-# Generate template
-./utils/generate-translation-template.sh > new_locale.json
-
-# Fix conflicts after editing
-./harmonize/fix-locale-conflicts new_locale.json
-
-# Harmonize with base
-./harmonize/harmonize-locale-file new_locale.json
+node ./audit/audit-translations.js
 ```
 
 ## Script Options
 
 Most scripts support these common options:
 - `-q` : Quiet mode (suppress output)
-- `-f` : Filename-only output (for scripting)
 - `-v` : Verbose output (detailed information)
-- `-c` : Copy values from base file (where applicable)
-
-## Base Locale
-
-The default base locale is `en.json`. Override with:
-```bash
-BASELOCALE=en BASEPATH=src/locales/en.json ./script-name
-```
-
-## Exit Codes
-
-- `0` : Success / No issues found
-- `1` : Failure / Issues detected
+- `--dry-run` : Preview changes without modifying files
 
 ## Dependencies
 
-- `jq` : JSON processing (required)
-- `python3` : For Python migration scripts
-- `bash` : Shell scripts (v4+ recommended)
+- `jq` : JSON processing (required for bash scripts)
+- `python3` : For Python scripts
+- `node` : For JavaScript scripts
+- `tsx` : For TypeScript execution

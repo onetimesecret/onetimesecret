@@ -6,6 +6,7 @@
       "organization_plural": "",
       "organizations_description": "",
       "my_organizations": "",
+      "manage_organizations": "Administrer organisationer",
       "new_organization": "",
       "no_organizations": "",
       "no_organizations_description": "",
@@ -23,6 +24,7 @@
       "description_placeholder": "",
       "contact_email": "",
       "contact_email_help": "",
+      "billing_managed_by_default": "Fakturering og abonnementshåndtering håndteres via dit primære arbejdsområde. Besøg indstillingerne for dit primære arbejdsområde for at administrere betalingsmetoder og fakturaer.",
       "select_organization": "",
       "not_found": "",
       "load_error": "",
@@ -46,9 +48,11 @@
       "single_user_info_description": "",
       "getting_started_title": "",
       "getting_started_description": "",
+      "page_description": "Administrer dine organisationer og teammedlemmer",
       "tabs": {
         "general": "",
         "company_branding": "",
+        "members": "Team",
         "billing": ""
       },
       "danger_zone": "",
@@ -57,7 +61,89 @@
       "delete": "",
       "delete_organization_confirm_title": "",
       "delete_organization_confirm_message": "",
-      "delete_error": ""
+      "delete_error": "",
+      "members": {
+        "title": "Medlemmer",
+        "description": "Administrer organisationsmedlemmer og deres roller",
+        "current_members": "Nuværende medlemmer",
+        "member": "Medlem",
+        "member_singular": "member",
+        "member_plural": "members",
+        "name": "Navn",
+        "email": "E-mail",
+        "role": "Rolle",
+        "joined": "Tilmeldt",
+        "actions": "Handlinger",
+        "no_members": "Ingen medlemmer fundet",
+        "no_members_description": "Denne organisation har endnu ingen medlemmer.",
+        "role_updated": "Medlemsrolle opdateret",
+        "role_update_error": "Kunne ikke opdatere medlemsrolle",
+        "member_removed": "Medlem fjernet fra organisation",
+        "member_remove_error": "Kunne ikke fjerne medlem",
+        "remove_member_title": "Fjern medlem",
+        "remove_member_confirm": "Er du sikker på, at du vil fjerne {name} fra denne organisation?",
+        "cannot_change_own_role": "Du kan ikke ændre din egen rolle",
+        "cannot_remove_self": "Du kan ikke fjerne dig selv fra organisationen",
+        "cannot_remove_owner": "Du kan ikke fjerne organisationens ejer",
+        "insufficient_permissions": "Du har ikke tilladelse til at administrere medlemmer",
+        "roles": {
+          "owner": "Ejer",
+          "admin": "Administrator",
+          "member": "Medlem"
+        },
+        "role_descriptions": {
+          "owner": "Fuld adgang til alle organisationsindstillinger og medlemmer",
+          "admin": "Kan administrere medlemmer og de fleste organisationsindstillinger",
+          "member": "Grundlæggende adgang til organisationsressourcer"
+        }
+      },
+      "invitations": {
+        "title": "Organisationsinvitationer",
+        "invite_member": "Inviter medlem",
+        "invite_new_member": "Inviter nyt medlem",
+        "pending_invitations": "Afventende invitationer",
+        "no_pending_invitations": "Ingen afventende invitationer",
+        "email_address": "E-mail-adresse",
+        "email_placeholder": "medlem@eksempel.dk",
+        "role": "Rolle",
+        "send_invite": "Send invitation",
+        "invite_sent": "Invitation sendt",
+        "invite_error": "Kunne ikke sende invitation",
+        "resend": "Gensend",
+        "revoke": "Tilbagekald",
+        "resend_success": "Invitation gensendt",
+        "resend_error": "Kunne ikke gensende invitation",
+        "revoke_success": "Invitation tilbagekaldt",
+        "revoke_error": "Kunne ikke tilbagekalde invitation",
+        "invited_by": "Inviteret af",
+        "invited_at": "Inviteret",
+        "expires_at": "Udløber",
+        "resent_count": "Gensendt {count} gang",
+        "resent_count_plural": "Gensendt {count} gange",
+        "status": {
+          "pending": "Afventer",
+          "accepted": "Accepteret",
+          "declined": "Afvist",
+          "expired": "Udløbet"
+        },
+        "roles": {
+          "member": "Medlem",
+          "admin": "Administrator"
+        },
+        "accept_invitation": "Accepter invitation",
+        "decline_invitation": "Afvis invitation",
+        "invitation_details": "Invitationsdetaljer",
+        "you_are_invited": "Du er inviteret til at deltage i",
+        "invited_as": "Du er inviteret som",
+        "accept_success": "Invitation accepteret",
+        "accept_error": "Kunne ikke acceptere invitation",
+        "decline_success": "Invitation afvist",
+        "decline_error": "Kunne ikke afvise invitation",
+        "expired_message": "Denne invitation er udløbet",
+        "invalid_token": "Ugyldig eller udløbet invitation",
+        "must_sign_in": "Log venligst ind for at acceptere denne invitation",
+        "loading_invitation": "Indlæser invitationsdetaljer"
+      }
     }
   }
 }

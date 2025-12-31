@@ -15,6 +15,27 @@
       "please_verify": "Preverite svoj račun:",
       "postscript1": "Ta e-pošta je bila poslana na",
       "postscript2": "Če niste ustvarili tega računa, izbrišite to sporočilo in vas ne bomo več kontaktirali."
+    },
+    "organization_invitation": {
+      "subject": "Povabljeni ste k pridružitvi organizaciji %{organization_name}",
+      "title": "Povabljeni ste k pridružitvi organizaciji %{organization_name}!",
+      "body": "%{inviter_email} vas je povabil/-a, da se pridružite organizaciji \"%{organization_name}\" kot %{role_description}.",
+      "accept_button": "Sprejmi povabilo",
+      "link_instruction": "Ali kopirajte in prilepite to povezavo:",
+      "expiry_notice": "To povabilo bo poteklo čez %{days} dni.",
+      "decline_instruction": "Če se ne želite pridružiti, lahko preprosto prezrete to e-pošto ali zavrnete povabilo.",
+      "signature": "Delano",
+      "postscript": "P.S. Ta e-pošta je bila poslana na %{invited_email}. Če niste pričakovali tega povabila, lahko to sporočilo varno prezrete.",
+      "roles": {
+        "member": "član",
+        "admin": "administrator"
+      }
+    },
+    "common": {
+      "greeting": "Pozdravljeni,",
+      "thanks": "Hvala,",
+      "unsubscribe": "Odjava",
+      "view_in_browser": "Prikaži v brskalniku"
     }
   }
 }

@@ -69,6 +69,7 @@
       "word_confirm": "Conferma",
       "word_cancel": "Annulla",
       "word_continue": "Continua",
+      "word_done": "Fatto",
       "back": "Indietro",
       "feedback_text": "Hai una domanda o un commento?",
       "button_send_feedback": "Invia un feedback",
@@ -160,16 +161,19 @@
       "an_error_occurred": "Si è verificato un errore",
       "copy_secret_to_clipboard": "Copia il segreto negli appunti",
       "secret_copied_to_clipboard": "Segreto copiato negli appunti",
-      "press_copy_button_below": "Premi il pulsante di copia qui sotto",
-      "double_check_that_passphrase": "Controlla due volte la passphrase"
+      "double_check_that_passphrase": "Controlla due volte la passphrase",
+      "press_copy_button_below": "Premi il pulsante di copia qui sotto"
     },
     "LABELS": {
       "view_toggle": {
         "show": "Mostra",
         "hide": "Nascondi",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Mostra altro",
+        "show_less": "Mostra meno"
       },
+      "enable": "Abilita",
+      "disable": "Disabilita",
+      "stats": "Statistiche",
       "timeline": "Cronologia",
       "lifespan": "Durata della vita",
       "expiration_time": "Ora di scadenza",
@@ -213,9 +217,8 @@
       "create_request_short": "Crea richiesta",
       "create_request": "Crea link di richiesta",
       "related_settings": "Impostazioni correlate",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "Creazione link per",
+      "scope_indicator": "Creazione segreti in {domain}"
     },
     "STATUS": {
       "new": "Nuovo",
@@ -290,6 +293,7 @@
       "verify_account": "Verifica account",
       "mfa_verify": "Autenticazione a due fattori",
       "email_login": "Accesso tramite email",
+      "accept_invitation": "Accetta invito",
       "secret": "Segreto",
       "metadata": "Dettagli segreto",
       "receipt": "Ricevuta segreto",
@@ -308,6 +312,7 @@
       "profile_settings": "Impostazioni profilo",
       "preferences_settings": "Preferenze",
       "privacy_settings": "Privacy",
+      "notification_settings": "Notifications",
       "change_email": "Cambia email",
       "security_overview": "Sicurezza",
       "change_password": "Cambia password",
@@ -318,7 +323,14 @@
       "advanced_settings": "Impostazioni avanzate",
       "colonel": "Amministrazione",
       "colonel_users": "Gestione utenti",
+      "colonel_secrets": "Gestione segreti",
+      "colonel_domains": "Domini personalizzati",
+      "colonel_system": "Sistema",
       "system_settings": "Impostazioni di sistema",
+      "colonel_maindb": "Database principale",
+      "colonel_authdb": "Database autenticazione",
+      "colonel_banned_ips": "IP bloccati",
+      "colonel_usage": "Esporta utilizzo",
       "colonel_info": "Informazioni di sistema",
       "not_found": "Pagina non trovata",
       "organizations_settings": "Organizzazioni",

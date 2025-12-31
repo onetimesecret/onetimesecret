@@ -23,6 +23,7 @@
       "description_placeholder": "Mire való ez a szervezet?",
       "contact_email": "Számlázási e-mail",
       "contact_email_help": "Elsődleges kapcsolattartó a számlázási és adminisztratív értesítésekhez",
+      "billing_managed_by_default": "A számlázás és előfizetés kezelése az elsődleges munkaterületén keresztül történik. Látogasson el a fő munkaterület beállításaihoz a fizetési módok és számlák kezeléséhez.",
       "select_organization": "Szervezet kiválasztása",
       "not_found": "Szervezet nem található",
       "load_error": "Nem sikerült betölteni a szervezetet",
@@ -57,7 +58,86 @@
       "delete": "Törlés",
       "delete_organization_confirm_title": "Szervezet törlése",
       "delete_organization_confirm_message": "Biztosan törölni szeretné a(z) {name} szervezetet? Ez a művelet nem vonható vissza.",
-      "delete_error": "Nem sikerült törölni a szervezetet"
+      "delete_error": "Nem sikerült törölni a szervezetet",
+      "members": {
+        "title": "Tagok",
+        "description": "Szervezeti tagok és szerepkörök kezelése",
+        "member": "Tag",
+        "name": "Név",
+        "email": "E-mail",
+        "role": "Szerepkör",
+        "joined": "Csatlakozott",
+        "actions": "Műveletek",
+        "no_members": "Nem találhatók tagok",
+        "no_members_description": "Ennek a szervezetnek még nincsenek tagjai.",
+        "role_updated": "Tag szerepköre sikeresen frissítve",
+        "role_update_error": "Nem sikerült frissíteni a tag szerepkörét",
+        "member_removed": "Tag eltávolítva a szervezetből",
+        "member_remove_error": "Nem sikerült eltávolítani a tagot",
+        "remove_member_title": "Tag eltávolítása",
+        "remove_member_confirm": "Biztosan el szeretné távolítani {name} nevű tagot ebből a szervezetből?",
+        "cannot_change_own_role": "Nem módosíthatja saját szerepkörét",
+        "cannot_remove_self": "Nem távolíthatja el magát a szervezetből",
+        "cannot_remove_owner": "Nem távolíthatja el a szervezet tulajdonosát",
+        "insufficient_permissions": "Nincs jogosultsága tagok kezeléséhez",
+        "roles": {
+          "owner": "Tulajdonos",
+          "admin": "Adminisztrátor",
+          "member": "Tag"
+        },
+        "role_descriptions": {
+          "owner": "Teljes hozzáférés az összes szervezeti beállításhoz és taghoz",
+          "admin": "Kezelheti a tagokat és a legtöbb szervezeti beállítást",
+          "member": "Alapszintű hozzáférés a szervezeti erőforrásokhoz"
+        }
+      },
+      "invitations": {
+        "title": "Szervezeti meghívók",
+        "invite_member": "Tag meghívása",
+        "invite_new_member": "Új tag meghívása",
+        "pending_invitations": "Függő meghívók",
+        "no_pending_invitations": "Nincsenek függő meghívók",
+        "email_address": "E-mail cím",
+        "email_placeholder": "tag@pelda.hu",
+        "role": "Szerepkör",
+        "send_invite": "Meghívó küldése",
+        "invite_sent": "Meghívó sikeresen elküldve",
+        "invite_error": "Nem sikerült elküldeni a meghívót",
+        "resend": "Újraküldés",
+        "revoke": "Visszavonás",
+        "resend_success": "Meghívó sikeresen újraküldve",
+        "resend_error": "Nem sikerült újraküldeni a meghívót",
+        "revoke_success": "Meghívó sikeresen visszavonva",
+        "revoke_error": "Nem sikerült visszavonni a meghívót",
+        "invited_by": "Meghívta",
+        "invited_at": "Meghívás időpontja",
+        "expires_at": "Lejár",
+        "resent_count": "Újraküldve {count} alkalommal",
+        "resent_count_plural": "Újraküldve {count} alkalommal",
+        "status": {
+          "pending": "Függőben",
+          "accepted": "Elfogadva",
+          "declined": "Elutasítva",
+          "expired": "Lejárt"
+        },
+        "roles": {
+          "member": "Tag",
+          "admin": "Adminisztrátor"
+        },
+        "accept_invitation": "Meghívó elfogadása",
+        "decline_invitation": "Meghívó elutasítása",
+        "invitation_details": "Meghívó részletei",
+        "you_are_invited": "Meghívást kapott a csatlakozásra",
+        "invited_as": "Ön a következő szerepkörben lett meghívva:",
+        "accept_success": "Meghívó sikeresen elfogadva",
+        "accept_error": "Nem sikerült elfogadni a meghívót",
+        "decline_success": "Meghívó elutasítva",
+        "decline_error": "Nem sikerült elutasítani a meghívót",
+        "expired_message": "Ez a meghívó lejárt",
+        "invalid_token": "Érvénytelen vagy lejárt meghívó",
+        "must_sign_in": "Kérjük, jelentkezzen be a meghívó elfogadásához",
+        "loading_invitation": "Meghívó részleteinek betöltése"
+      }
     }
   }
 }

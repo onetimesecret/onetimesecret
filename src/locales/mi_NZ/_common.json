@@ -69,6 +69,7 @@
       "word_confirm": "Whakaū",
       "word_cancel": "Whakakore",
       "word_continue": "Haere tonu",
+      "word_done": "Kua Oti",
       "back": "Hoki",
       "feedback_text": "Tuari i ō whakaaro, ariā, wheako rānei...",
       "button_send_feedback": "Tuku Urupare",
@@ -160,16 +161,19 @@
       "an_error_occurred": "I puta he hapa",
       "copy_secret_to_clipboard": "Tārua karere huna ki te papatopenga",
       "secret_copied_to_clipboard": "Kua tāruatia te karere huna ki te papatopenga",
-      "press_copy_button_below": "Pēhia te pātene tārua i raro nei.",
-      "double_check_that_passphrase": "Matuatua anō i taua kupu karapa"
+      "double_check_that_passphrase": "Matuatua anō i taua kupu karapa",
+      "press_copy_button_below": "Pēhia te pātene tārua i raro nei."
     },
     "LABELS": {
       "view_toggle": {
         "show": "Whakaatu",
         "hide": "Huna",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Whakaatu Anō",
+        "show_less": "Whakaatu Iti Ake"
       },
+      "enable": "Whakahohe",
+      "disable": "Monoki",
+      "stats": "Ngā Tatauranga",
       "timeline": "Rārangi wā",
       "lifespan": "Wā ora",
       "expiration_time": "Wā Paunga",
@@ -213,9 +217,8 @@
       "create_request_short": "Waihanga Tono",
       "create_request": "Waihanga Hononga Tono",
       "related_settings": "Ngā Tautuhinga Hāngai",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "Kei te waihanga hononga mō",
+      "scope_indicator": "Kei te waihanga karere huna i {domain}"
     },
     "STATUS": {
       "new": "Hou",
@@ -290,6 +293,7 @@
       "verify_account": "Whakaū Pūkete",
       "mfa_verify": "Whakaūnga Pūāhua-Rua",
       "email_login": "Takiuru Īmēra",
+      "accept_invitation": "Whakaae ki te Pōwhiri",
       "secret": "Karere Huna | Ngā Karere Huna",
       "metadata": "Ngā Taipitopito Karere Huna",
       "receipt": "Rīhīti Karere Huna",
@@ -308,6 +312,7 @@
       "profile_settings": "Ngā Tautuhinga Kōtaha",
       "preferences_settings": "Ngā Manakohanga",
       "privacy_settings": "Matatapu",
+      "notification_settings": "Ngā Whakamōhio",
       "change_email": "Whakarerekē Īmēra",
       "security_overview": "Haumaru",
       "change_password": "Whakarerekē Kupuhipa",
@@ -318,7 +323,14 @@
       "advanced_settings": "Ngā Tautuhinga Arā Atu",
       "colonel": "Whakahaere",
       "colonel_users": "Whakahaere Kaiwhakamahi",
+      "colonel_secrets": "Whakahaere Karere Huna",
+      "colonel_domains": "Ngā Rohe Ritenga",
+      "colonel_system": "Pūnaha",
       "system_settings": "Ngā Tautuhinga Pūnaha",
+      "colonel_maindb": "Pātengi Raraunga Matua",
+      "colonel_authdb": "Pātengi Raraunga Whakaū",
+      "colonel_banned_ips": "Ngā IP Kua Aukati",
+      "colonel_usage": "Kaweake Whakamahinga",
       "colonel_info": "Mōhiohio Pūnaha",
       "not_found": "Kāore i Kitea te Whārangi",
       "organizations_settings": "Ngā Whakahaere",

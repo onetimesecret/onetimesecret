@@ -15,6 +15,27 @@
       "please_verify": "Kérjük, erősítse meg fiókját:",
       "postscript1": "Ez az e-mail a következő címre lett küldve:",
       "postscript2": "Ha nem ön tette ezt a kérelmet, biztonságosan figyelmen kívül hagyhatja ezt az e-mailt."
+    },
+    "organization_invitation": {
+      "subject": "Meghívást kapott a(z) %{organization_name} szervezethez",
+      "title": "Meghívást kapott a(z) %{organization_name} szervezethez!",
+      "body": "%{inviter_email} meghívta önt a(z) \"%{organization_name}\" szervezetbe %{role_description} szerepkörben.",
+      "accept_button": "Meghívó elfogadása",
+      "link_instruction": "Vagy másolja és illessze be ezt a hivatkozást:",
+      "expiry_notice": "Ez a meghívó %{days} nap múlva lejár.",
+      "decline_instruction": "Ha nem szeretne csatlakozni, egyszerűen hagyja figyelmen kívül ezt az e-mailt, vagy utasítsa el a meghívót.",
+      "signature": "Delano",
+      "postscript": "U.i. Ez az e-mail a következő címre lett küldve: %{invited_email}. Ha nem várta ezt a meghívót, biztonságosan figyelmen kívül hagyhatja ezt az üzenetet.",
+      "roles": {
+        "member": "tag",
+        "admin": "adminisztrátor"
+      }
+    },
+    "common": {
+      "greeting": "Üdvözöljük,",
+      "thanks": "Köszönjük,",
+      "unsubscribe": "Leiratkozás",
+      "view_in_browser": "Megtekintés böngészőben"
     }
   }
 }

@@ -69,6 +69,7 @@
       "word_confirm": "Підтвердити",
       "word_cancel": "Скасувати",
       "word_continue": "Продовжити",
+      "word_done": "Готово",
       "back": "Назад",
       "feedback_text": "Маєте питання чи коментар?",
       "button_send_feedback": "Надіслати відгук",
@@ -160,16 +161,19 @@
       "an_error_occurred": "Сталася помилка",
       "copy_secret_to_clipboard": "Копіювати секрет в буфер обміну",
       "secret_copied_to_clipboard": "Секрет скопійовано в буфер обміну",
-      "press_copy_button_below": "Натисніть кнопку копіювання нижче.",
-      "double_check_that_passphrase": "Перевірте ще раз цю парольну фразу"
+      "double_check_that_passphrase": "Перевірте ще раз цю парольну фразу",
+      "press_copy_button_below": "Натисніть кнопку копіювання нижче."
     },
     "LABELS": {
       "view_toggle": {
         "show": "Показати",
         "hide": "Сховати",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Показати більше",
+        "show_less": "Показати менше"
       },
+      "enable": "Увімкнути",
+      "disable": "Вимкнути",
+      "stats": "Статистика",
       "timeline": "Хронологія",
       "lifespan": "Термін життя",
       "expiration_time": "Час закінчення терміну дії",
@@ -213,9 +217,8 @@
       "create_request_short": "Створити запит",
       "create_request": "Створити посилання на запит",
       "related_settings": "Пов'язані налаштування",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "Створення посилань для",
+      "scope_indicator": "Створення таємниць у {domain}"
     },
     "STATUS": {
       "new": "Новий",
@@ -290,6 +293,7 @@
       "verify_account": "Підтвердити обліковий запис",
       "mfa_verify": "Двофакторна автентифікація",
       "email_login": "Вхід через електронну пошту",
+      "accept_invitation": "Прийняти запрошення",
       "secret": "Секрет",
       "metadata": "Деталі секрету",
       "receipt": "Квитанція секрету",
@@ -308,6 +312,7 @@
       "profile_settings": "Налаштування профілю",
       "preferences_settings": "Налаштування",
       "privacy_settings": "Конфіденційність",
+      "notification_settings": "Сповіщення",
       "change_email": "Змінити електронну пошту",
       "security_overview": "Безпека",
       "change_password": "Змінити пароль",
@@ -318,7 +323,14 @@
       "advanced_settings": "Розширені налаштування",
       "colonel": "Адміністрування",
       "colonel_users": "Керування користувачами",
+      "colonel_secrets": "Керування таємницями",
+      "colonel_domains": "Власні домени",
+      "colonel_system": "Система",
       "system_settings": "Системні налаштування",
+      "colonel_maindb": "Головна база даних",
+      "colonel_authdb": "База автентифікації",
+      "colonel_banned_ips": "Заблоковані IP",
+      "colonel_usage": "Експорт використання",
       "colonel_info": "Системна інформація",
       "not_found": "Сторінку не знайдено",
       "organizations_settings": "Організації",

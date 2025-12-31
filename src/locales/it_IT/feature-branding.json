@@ -1,12 +1,12 @@
 {
   "web": {
     "branding": {
-      "color_picker": "Color Picker",
+      "color_picker": "Selettore colore",
       "current_label_modelvalue_click_to_cycle_through_options": "Corrente {0}: {1}. Fare clic per scorrere le opzioni",
       "use_setting": "Usa impostazione",
       "font_family": "Famiglia di caratteri",
       "corner_style": "Stile angolo",
-      "brand_color": "Brand Color",
+      "brand_color": "Colore del marchio",
       "preview_of_the_secret_link_page_for_recipients": "Anteprima della vista del destinatario quando accede al vostro link sicuro",
       "preview_and_customize": "Anteprima e personalizzazione",
       "switch_to_safari_browser_view": "Passa alla visualizzazione del browser Safari",

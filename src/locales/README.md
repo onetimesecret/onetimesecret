@@ -14,7 +14,7 @@ This directory contains internationalization (i18n) files for all supported lang
 
 **Security-critical messages** in any `*.security.*` require special handling:
 
-- **Read first**: `SECURITY-TRANSLATION-GUIDE.md` in this directory
+- **Read first**: `SECURITY-TRANSLATION-GUIDE.md` and `UX-TRANSLATION-GUIDE.md` in this directory
 - **Follow OWASP/NIST guidelines**: Messages must remain generic to prevent information disclosure
 - **NO creative rewording**: Semantic meaning must be identical across languages
 - **Validation required**: Run `pnpm test:unit security-messages` to verify compliance

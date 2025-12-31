@@ -69,6 +69,7 @@
       "word_confirm": "Potrdi",
       "word_cancel": "Prekliči",
       "word_continue": "Nadaljuj",
+      "word_done": "Končano",
       "back": "Nazaj",
       "feedback_text": "Delite svoje misli, ideje ali izkušnje...",
       "button_send_feedback": "Pošlji povratne informacije",
@@ -160,16 +161,19 @@
       "an_error_occurred": "Prišlo je do napake",
       "copy_secret_to_clipboard": "Kopiraj skrivnost v odložišče",
       "secret_copied_to_clipboard": "Skrivnost kopirana v odložišče",
-      "press_copy_button_below": "Pritisnite spodnji gumb za kopiranje.",
-      "double_check_that_passphrase": "Dvakrat preverite pristopno frazo"
+      "double_check_that_passphrase": "Dvakrat preverite pristopno frazo",
+      "press_copy_button_below": "Pritisnite spodnji gumb za kopiranje."
     },
     "LABELS": {
       "view_toggle": {
         "show": "Prikaži",
         "hide": "Skrij",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Prikaži več",
+        "show_less": "Prikaži manj"
       },
+      "enable": "Omogoči",
+      "disable": "Onemogoči",
+      "stats": "Statistika",
       "timeline": "Časovnica",
       "lifespan": "Življenjska doba",
       "expiration_time": "Čas poteka",
@@ -213,9 +217,8 @@
       "create_request_short": "Ustvari zahtevo",
       "create_request": "Ustvari povezavo za zahtevo",
       "related_settings": "Povezane nastavitve",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "Ustvarjanje povezav za",
+      "scope_indicator": "Ustvarjanje skrivnosti v {domain}"
     },
     "STATUS": {
       "new": "Novo",
@@ -290,6 +293,7 @@
       "verify_account": "Preveri račun",
       "mfa_verify": "Dvofaktorska avtentikacija",
       "email_login": "Prijava z e-pošto",
+      "accept_invitation": "Sprejmi povabilo",
       "secret": "Skrivnost",
       "metadata": "Podrobnosti skrivnosti",
       "receipt": "Potrdilo o skrivnosti",
@@ -308,6 +312,7 @@
       "profile_settings": "Nastavitve profila",
       "preferences_settings": "Preference",
       "privacy_settings": "Zasebnost",
+      "notification_settings": "Obvestila",
       "change_email": "Spremeni e-pošto",
       "security_overview": "Varnost",
       "change_password": "Spremeni geslo",
@@ -318,7 +323,14 @@
       "advanced_settings": "Napredne nastavitve",
       "colonel": "Administracija",
       "colonel_users": "Upravljanje uporabnikov",
+      "colonel_secrets": "Upravljanje skrivnosti",
+      "colonel_domains": "Domene po meri",
+      "colonel_system": "Sistem",
       "system_settings": "Sistemske nastavitve",
+      "colonel_maindb": "Glavna baza podatkov",
+      "colonel_authdb": "Baza podatkov za avtentikacijo",
+      "colonel_banned_ips": "Blokirani IP-ji",
+      "colonel_usage": "Izvoz uporabe",
       "colonel_info": "Sistemske informacije",
       "not_found": "Stran ni bila najdena",
       "organizations_settings": "Organizacije",

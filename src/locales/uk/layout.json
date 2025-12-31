@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "Документація API",
+      "branding_guide": "Посібник з брендингу",
+      "customize": "Налаштувати",
+      "plans": "Плани",
       "security": "Безпека",
       "learn_about_our_security_measures": "Дізнайтеся про наші заходи безпеки",
       "view_our_terms_and_conditions": "Переглянути наші Умови надання послуг",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Змінити мову. Поточна мова: {0}",
       "language_changed_to_newlocale": "Мову змінено на {0}",
       "switch_to_blank_mode": "Перемкнути на режим {0}",
-      "blank_mode_enabled": "Режим {0} увімкнено"
+      "blank_mode_enabled": "Режим {0} увімкнено",
+      "workspace": "Робочий простір",
+      "workspace_context": "Контекст робочого простору"
     }
   }
 }

@@ -31,6 +31,7 @@
     "create_another": "Tukuna anō he mea huna",
     "tagline1": "Tohaina ngā kōrero ngaro haumaru",
     "tagline2": "Kia tawhiti atu ngā kupuhipa me ngā raraunga tūmataiti i te īmēra me ngā rārangi kōrerorero",
-    "end_of_experience_suggestion": "Tiakina tō <a href='{receiptUrl}'>rīhīti</a> mō ō rēkōtanga."
+    "end_of_experience_suggestion": "Tiakina tō <a href='{receiptUrl}'>rīhīti</a> mō ō rēkōtanga.",
+    "receipt_link_text": "rīhīti"
   }
 }

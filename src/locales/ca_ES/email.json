@@ -15,6 +15,27 @@
       "please_verify": "Verifica el teu compte:",
       "postscript1": "Aquest correu electrònic s'ha enviat a",
       "postscript2": "Si no has creat aquest compte, suprimeix aquest missatge i no et tornarem a escriure."
+    },
+    "organization_invitation": {
+      "subject": "Has estat convidat a unir-te a %{organization_name}",
+      "title": "Has estat convidat a unir-te a %{organization_name}!",
+      "body": "%{inviter_email} t'ha convidat a unir-te a \"%{organization_name}\" com a %{role_description}.",
+      "accept_button": "Accepta la invitació",
+      "link_instruction": "O copia i enganxa aquest enllaç:",
+      "expiry_notice": "Aquesta invitació caducarà en %{days} dies.",
+      "decline_instruction": "Si no vols unir-te, pots simplement ignorar aquest correu electrònic o rebutjar la invitació.",
+      "signature": "Delano",
+      "postscript": "P.D. Aquest correu electrònic s'ha enviat a %{invited_email}. Si no esperaves aquesta invitació, pots ignorar aquest missatge amb seguretat.",
+      "roles": {
+        "member": "un membre",
+        "admin": "un administrador"
+      }
+    },
+    "common": {
+      "greeting": "Hola,",
+      "thanks": "Gràcies,",
+      "unsubscribe": "Cancel·la la subscripció",
+      "view_in_browser": "Visualitza al navegador"
     }
   }
 }

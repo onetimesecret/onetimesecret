@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "",
         "viewPlans": "",
+        "needTeams": "Takım yönetimi Identity Plus veya üzeri gerektirir",
         "needCustomDomains": "",
         "needApiAccess": "",
-        "needPrioritySupport": "",
         "needAuditLogs": ""
       },
       "manage_subscription_and_billing": "",
@@ -37,12 +37,25 @@
         "no_organizations_description": "",
         "entitlements": {
           "create_secrets": "",
-          "basic_sharing": "",
-          "custom_domains": "",
+          "view_metadata": "Meta Verileri Görüntüle",
           "api_access": "",
+          "custom_domains": "",
+          "custom_privacy_defaults": "Özel Gizlilik Varsayılanları",
+          "extended_default_expiration": "Uzatılmış Varsayılan Süre Sonu",
+          "custom_mail_defaults": "Özel E-posta Varsayılanları",
+          "custom_branding": "Özel Marka",
+          "branded_homepage": "Markalı Ana Sayfa",
+          "incoming_secrets": "Gelen Sırlar",
+          "manage_orgs": "Organizasyonları Yönet",
+          "manage_teams": "Takımları Yönet",
+          "manage_members": "Üyeleri Yönet",
+          "audit_logs": "",
+          "sso": "Tek Oturum Açma",
           "priority_support": "",
-          "audit_logs": ""
-        }
+          "sla": "Hizmet Düzeyi Sözleşmesi"
+        },
+        "entitlements_load_error": "Özellik detayları yüklenemedi",
+        "no_entitlements": "Kullanılabilir özellik yok"
       },
       "plans": {
         "title": "",
@@ -61,7 +74,11 @@
         "api_access": "",
         "priority_support": "",
         "select_plan": "",
-        "contact_sales": ""
+        "contact_sales": "",
+        "custom_needs_title": "Sorularınız mı var veya özel bir şeye mi ihtiyacınız var?",
+        "custom_needs_description": "Sizden haber almak isteriz. Ne aradığınızı bize bildirin.",
+        "teams_limit": "{count} takım | {count} takım",
+        "members_limit": "Takım başına {count} üye | Takım başına {count} üye"
       },
       "invoices": {
         "title": "",

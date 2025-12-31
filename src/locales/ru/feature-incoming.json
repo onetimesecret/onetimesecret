@@ -31,6 +31,7 @@
     "create_another": "Отправить еще один секрет",
     "tagline1": "Безопасно делитесь конфиденциальной информацией",
     "tagline2": "Держите пароли и личные данные вне электронной почты и журналов чатов",
-    "end_of_experience_suggestion": "Сохраните <a href='{receiptUrl}'>квитанцию</a> для своих записей."
+    "end_of_experience_suggestion": "Сохраните <a href='{receiptUrl}'>квитанцию</a> для своих записей.",
+    "receipt_link_text": "квитанцию"
   }
 }

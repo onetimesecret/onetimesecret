@@ -69,6 +69,7 @@
       "word_confirm": "Потвърди",
       "word_cancel": "Отказ",
       "word_continue": "Продължи",
+      "word_done": "Готово",
       "back": "Назад",
       "feedback_text": "Имате въпрос или коментар?",
       "button_send_feedback": "Изпрати обратна връзка",
@@ -160,16 +161,19 @@
       "an_error_occurred": "Възникна грешка",
       "copy_secret_to_clipboard": "Копирай тайната в клипборда",
       "secret_copied_to_clipboard": "Тайната е копирана в клипборда",
-      "press_copy_button_below": "Натиснете бутона за копиране по-долу.",
-      "double_check_that_passphrase": "Моля, проверете отново въведената ключова фраза"
+      "double_check_that_passphrase": "Моля, проверете отново въведената ключова фраза",
+      "press_copy_button_below": "Натиснете бутона за копиране по-долу."
     },
     "LABELS": {
       "view_toggle": {
         "show": "Покажи",
         "hide": "Скрий",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Покажи още",
+        "show_less": "Покажи по-малко"
       },
+      "enable": "Активирай",
+      "disable": "Деактивирай",
+      "stats": "Статистика",
       "timeline": "Хронология",
       "lifespan": "Продължителност на живот",
       "expiration_time": "Време на изтичане",
@@ -213,9 +217,8 @@
       "create_request_short": "Създай заявка",
       "create_request": "Създай връзка за заявка",
       "related_settings": "Свързани настройки",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "Създаване на връзки за",
+      "scope_indicator": "Създаване на тайни в {domain}"
     },
     "STATUS": {
       "new": "Нова",
@@ -290,6 +293,7 @@
       "verify_account": "Потвърждение на акаунт",
       "mfa_verify": "Двуфакторна автентикация",
       "email_login": "Вход с имейл",
+      "accept_invitation": "Приемане на покана",
       "secret": "Тайна | Тайни",
       "metadata": "Детайли на тайната",
       "receipt": "Разписка за тайна",
@@ -308,6 +312,7 @@
       "profile_settings": "Настройки на профила",
       "preferences_settings": "Предпочитания",
       "privacy_settings": "Поверителност",
+      "notification_settings": "Известия",
       "change_email": "Промяна на имейл",
       "security_overview": "Сигурност",
       "change_password": "Промяна на парола",
@@ -318,7 +323,14 @@
       "advanced_settings": "Разширени настройки",
       "colonel": "Администрация",
       "colonel_users": "Управление на потребители",
+      "colonel_secrets": "Управление на тайни",
+      "colonel_domains": "Персонализирани домейни",
+      "colonel_system": "Система",
       "system_settings": "Системни настройки",
+      "colonel_maindb": "Основна база данни",
+      "colonel_authdb": "База данни за удостоверяване",
+      "colonel_banned_ips": "Забранени IP адреси",
+      "colonel_usage": "Експорт на използване",
       "colonel_info": "Системна информация",
       "not_found": "Страницата не е намерена",
       "organizations_settings": "Организации",

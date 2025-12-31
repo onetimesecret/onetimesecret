@@ -15,6 +15,27 @@
       "please_verify": "Por favor, verifique a sua conta:",
       "postscript1": "Este e-mail foi enviado para",
       "postscript2": "Se não fez este pedido, pode ignorar este e-mail com segurança."
+    },
+    "organization_invitation": {
+      "subject": "Foi convidado para se juntar a %{organization_name}",
+      "title": "Foi convidado para se juntar a %{organization_name}!",
+      "body": "%{inviter_email} convidou-o para se juntar a \"%{organization_name}\" como %{role_description}.",
+      "accept_button": "Aceitar Convite",
+      "link_instruction": "Ou copie e cole este link:",
+      "expiry_notice": "Este convite expira em %{days} dias.",
+      "decline_instruction": "Se não quiser aderir, pode simplesmente ignorar este e-mail ou recusar o convite.",
+      "signature": "Delano",
+      "postscript": "P.S. Este e-mail foi enviado para %{invited_email}. Se não estava à espera deste convite, pode ignorar esta mensagem com segurança.",
+      "roles": {
+        "member": "membro",
+        "admin": "administrador"
+      }
+    },
+    "common": {
+      "greeting": "Olá,",
+      "thanks": "Obrigado,",
+      "unsubscribe": "Cancelar subscrição",
+      "view_in_browser": "Ver no navegador"
     }
   }
 }

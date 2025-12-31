@@ -6,6 +6,7 @@
       "organization_plural": "Organisationen",
       "organizations_description": "Verwalten Sie Ihre Organisationen",
       "my_organizations": "Meine Organisationen",
+      "manage_organizations": "Organisationen verwalten",
       "new_organization": "Neue Organisation",
       "no_organizations": "Noch keine Organisationen",
       "no_organizations_description": "Organisationen ermöglichen es Ihnen, mehrere Teams mit einheitlicher Abrechnung und Verwaltung zu verwalten. Beginnen Sie mit der Erstellung Ihrer ersten Organisation.",
@@ -23,6 +24,7 @@
       "description_placeholder": "Wofür ist diese Organisation?",
       "contact_email": "Abrechnungs-E-Mail",
       "contact_email_help": "Hauptkontakt für Abrechnungs- und Verwaltungsbenachrichtigungen",
+      "billing_managed_by_default": "Abrechnung und Abonnementverwaltung erfolgen über Ihren primären Arbeitsbereich. Besuchen Sie Ihre Hauptarbeitsbereich-Einstellungen, um Zahlungsmethoden und Rechnungen zu verwalten.",
       "select_organization": "Organisation auswählen",
       "not_found": "Organisation nicht gefunden",
       "load_error": "Organisation konnte nicht geladen werden",
@@ -46,9 +48,11 @@
       "single_user_info_description": "Aktualisieren Sie hier Ihren Firmennamen und Organisationsdetails. Diese Informationen helfen, Ihr Konto zu personalisieren und können in Zukunft für Branding-Funktionen verwendet werden.",
       "getting_started_title": "Erste Schritte mit Organisationen",
       "getting_started_description": "Erstellen Sie Ihre erste Organisation, um Ihre Firmeninformationen zu verwalten und sich auf zukünftige Team-Zusammenarbeit und Branding-Funktionen vorzubereiten.",
+      "page_description": "Verwalten Sie Ihre Organisationen und Teammitglieder",
       "tabs": {
         "general": "Allgemein",
         "company_branding": "Firmen-Branding",
+        "members": "Team",
         "billing": "Abrechnung"
       },
       "danger_zone": "Gefahrenbereich",
@@ -57,7 +61,89 @@
       "delete": "Löschen",
       "delete_organization_confirm_title": "Organisation löschen",
       "delete_organization_confirm_message": "Sind Sie sicher, dass Sie {name} löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
-      "delete_error": "Organisation konnte nicht gelöscht werden"
+      "delete_error": "Organisation konnte nicht gelöscht werden",
+      "members": {
+        "title": "Mitglieder",
+        "description": "Organisationsmitglieder und deren Rollen verwalten",
+        "current_members": "Aktuelle Mitglieder",
+        "member": "Mitglied",
+        "member_singular": "member",
+        "member_plural": "members",
+        "name": "Name",
+        "email": "E-Mail",
+        "role": "Rolle",
+        "joined": "Beigetreten",
+        "actions": "Aktionen",
+        "no_members": "Keine Mitglieder gefunden",
+        "no_members_description": "Diese Organisation hat noch keine Mitglieder.",
+        "role_updated": "Mitgliedsrolle erfolgreich aktualisiert",
+        "role_update_error": "Mitgliedsrolle konnte nicht aktualisiert werden",
+        "member_removed": "Mitglied aus Organisation entfernt",
+        "member_remove_error": "Mitglied konnte nicht entfernt werden",
+        "remove_member_title": "Mitglied entfernen",
+        "remove_member_confirm": "Sind Sie sicher, dass Sie {name} aus dieser Organisation entfernen möchten?",
+        "cannot_change_own_role": "Sie können Ihre eigene Rolle nicht ändern",
+        "cannot_remove_self": "Sie können sich nicht selbst aus der Organisation entfernen",
+        "cannot_remove_owner": "Sie können den Organisationsinhaber nicht entfernen",
+        "insufficient_permissions": "Sie haben keine Berechtigung, Mitglieder zu verwalten",
+        "roles": {
+          "owner": "Inhaber",
+          "admin": "Admin",
+          "member": "Mitglied"
+        },
+        "role_descriptions": {
+          "owner": "Voller Zugriff auf alle Organisationseinstellungen und Mitglieder",
+          "admin": "Kann Mitglieder und die meisten Organisationseinstellungen verwalten",
+          "member": "Grundlegender Zugriff auf Organisationsressourcen"
+        }
+      },
+      "invitations": {
+        "title": "Organisations-Einladungen",
+        "invite_member": "Mitglied einladen",
+        "invite_new_member": "Neues Mitglied einladen",
+        "pending_invitations": "Ausstehende Einladungen",
+        "no_pending_invitations": "Keine ausstehenden Einladungen",
+        "email_address": "E-Mail-Adresse",
+        "email_placeholder": "mitglied@beispiel.com",
+        "role": "Rolle",
+        "send_invite": "Einladung senden",
+        "invite_sent": "Einladung erfolgreich gesendet",
+        "invite_error": "Einladung konnte nicht gesendet werden",
+        "resend": "Erneut senden",
+        "revoke": "Widerrufen",
+        "resend_success": "Einladung erfolgreich erneut gesendet",
+        "resend_error": "Einladung konnte nicht erneut gesendet werden",
+        "revoke_success": "Einladung erfolgreich widerrufen",
+        "revoke_error": "Einladung konnte nicht widerrufen werden",
+        "invited_by": "Eingeladen von",
+        "invited_at": "Eingeladen",
+        "expires_at": "Läuft ab",
+        "resent_count": "{count} Mal erneut gesendet",
+        "resent_count_plural": "{count} Mal erneut gesendet",
+        "status": {
+          "pending": "Ausstehend",
+          "accepted": "Angenommen",
+          "declined": "Abgelehnt",
+          "expired": "Abgelaufen"
+        },
+        "roles": {
+          "member": "Mitglied",
+          "admin": "Admin"
+        },
+        "accept_invitation": "Einladung annehmen",
+        "decline_invitation": "Einladung ablehnen",
+        "invitation_details": "Einladungsdetails",
+        "you_are_invited": "Sie wurden eingeladen beizutreten",
+        "invited_as": "Sie wurden eingeladen als",
+        "accept_success": "Einladung erfolgreich angenommen",
+        "accept_error": "Einladung konnte nicht angenommen werden",
+        "decline_success": "Einladung abgelehnt",
+        "decline_error": "Einladung konnte nicht abgelehnt werden",
+        "expired_message": "Diese Einladung ist abgelaufen",
+        "invalid_token": "Ungültige oder abgelaufene Einladung",
+        "must_sign_in": "Bitte melden Sie sich an, um diese Einladung anzunehmen",
+        "loading_invitation": "Einladungsdetails werden geladen"
+      }
     }
   }
 }

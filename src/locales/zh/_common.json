@@ -69,6 +69,7 @@
       "word_confirm": "确认",
       "word_cancel": "取消",
       "word_continue": "继续",
+      "word_done": "完成",
       "back": "返回",
       "feedback_text": "有疑问或建议？",
       "button_send_feedback": "发送反馈",
@@ -160,16 +161,19 @@
       "an_error_occurred": "发生错误",
       "copy_secret_to_clipboard": "将内容复制到剪贴板",
       "secret_copied_to_clipboard": "内容已复制到剪贴板",
-      "press_copy_button_below": "请按下方的复制按钮。",
-      "double_check_that_passphrase": "请仔细检查该口令"
+      "double_check_that_passphrase": "请仔细检查该口令",
+      "press_copy_button_below": "请按下方的复制按钮。"
     },
     "LABELS": {
       "view_toggle": {
         "show": "显示",
         "hide": "隐藏",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "显示更多",
+        "show_less": "收起"
       },
+      "enable": "启用",
+      "disable": "禁用",
+      "stats": "统计",
       "timeline": "时间线",
       "lifespan": "生命周期",
       "expiration_time": "过期时间",
@@ -213,9 +217,8 @@
       "create_request_short": "创建请求",
       "create_request": "创建请求链接",
       "related_settings": "相关设置",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "创建链接用于",
+      "scope_indicator": "在 {domain} 中创建内容"
     },
     "STATUS": {
       "new": "新建",
@@ -290,6 +293,7 @@
       "verify_account": "验证账户",
       "mfa_verify": "双因素认证",
       "email_login": "邮箱登录",
+      "accept_invitation": "接受邀请",
       "secret": "内容",
       "metadata": "内容详情",
       "receipt": "内容回执",
@@ -308,6 +312,7 @@
       "profile_settings": "个人资料设置",
       "preferences_settings": "偏好设置",
       "privacy_settings": "隐私",
+      "notification_settings": "通知",
       "change_email": "更改邮箱",
       "security_overview": "安全",
       "change_password": "更改密码",
@@ -318,7 +323,14 @@
       "advanced_settings": "高级设置",
       "colonel": "管理",
       "colonel_users": "用户管理",
+      "colonel_secrets": "内容管理",
+      "colonel_domains": "自定义域名",
+      "colonel_system": "系统",
       "system_settings": "系统设置",
+      "colonel_maindb": "主数据库",
+      "colonel_authdb": "认证数据库",
+      "colonel_banned_ips": "封禁 IP",
+      "colonel_usage": "使用量导出",
       "colonel_info": "系统信息",
       "not_found": "页面未找到",
       "organizations_settings": "组织",

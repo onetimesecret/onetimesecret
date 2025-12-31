@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Atualização Necessária",
         "viewPlans": "Ver Planos",
+        "needTeams": "Gestão de equipas requer Identity Plus ou superior",
         "needCustomDomains": "Domínios personalizados requerem Identity Plus ou superior",
         "needApiAccess": "Acesso à API requer plano Multi-Equipa ou superior",
-        "needPrioritySupport": "Suporte prioritário requer Identity Plus ou superior",
         "needAuditLogs": "Registos de auditoria requerem plano Multi-Equipa ou superior"
       },
       "manage_subscription_and_billing": "Gerir a sua subscrição, organizações e definições de faturação",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Crie uma organização para gerir a sua faturação e subscrição",
         "entitlements": {
           "create_secrets": "Criar Segredos",
-          "basic_sharing": "Partilha Básica",
-          "custom_domains": "Domínios Personalizados",
+          "view_metadata": "Ver Metadados",
           "api_access": "Acesso à API",
+          "custom_domains": "Domínios Personalizados",
+          "custom_privacy_defaults": "Predefinições de Privacidade Personalizadas",
+          "extended_default_expiration": "Expiração Predefinida Alargada",
+          "custom_mail_defaults": "Predefinições de E-mail Personalizadas",
+          "custom_branding": "Marca Personalizada",
+          "branded_homepage": "Página Inicial Personalizada",
+          "incoming_secrets": "Segredos Recebidos",
+          "manage_orgs": "Gerir Organizações",
+          "manage_teams": "Gerir Equipas",
+          "manage_members": "Gerir Membros",
+          "audit_logs": "Registos de Auditoria",
+          "sso": "Single Sign-On",
           "priority_support": "Suporte Prioritário",
-          "audit_logs": "Registos de Auditoria"
-        }
+          "sla": "Acordo de Nível de Serviço"
+        },
+        "entitlements_load_error": "Não foi possível carregar os detalhes das funcionalidades",
+        "no_entitlements": "Nenhuma funcionalidade disponível"
       },
       "plans": {
         "title": "Selecionar um Plano",
@@ -61,7 +74,11 @@
         "api_access": "Acesso à API",
         "priority_support": "Suporte prioritário",
         "select_plan": "Selecionar Plano",
-        "contact_sales": "Contactar Vendas"
+        "contact_sales": "Contactar Vendas",
+        "custom_needs_title": "Tem perguntas ou precisa de algo personalizado?",
+        "custom_needs_description": "Gostaríamos de ouvir de si. Diga-nos o que procura.",
+        "teams_limit": "{count} equipa | {count} equipas",
+        "members_limit": "{count} membro por equipa | {count} membros por equipa"
       },
       "invoices": {
         "title": "Histórico de Faturação",

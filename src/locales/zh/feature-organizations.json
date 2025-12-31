@@ -23,6 +23,7 @@
       "description_placeholder": "此组织用于什么？",
       "contact_email": "账单邮箱",
       "contact_email_help": "账单和管理通知的主要联系方式",
+      "billing_managed_by_default": "账单和订阅管理通过您的主要工作区处理。访问主要工作区设置来管理付款方式和发票。",
       "select_organization": "选择组织",
       "not_found": "未找到组织",
       "load_error": "加载组织失败",
@@ -57,7 +58,86 @@
       "delete": "删除",
       "delete_organization_confirm_title": "删除组织",
       "delete_organization_confirm_message": "您确定要删除 {name} 吗？此操作无法撤销。",
-      "delete_error": "删除组织失败"
+      "delete_error": "删除组织失败",
+      "members": {
+        "title": "成员",
+        "description": "管理组织成员及其角色",
+        "member": "成员",
+        "name": "姓名",
+        "email": "邮箱",
+        "role": "角色",
+        "joined": "加入时间",
+        "actions": "操作",
+        "no_members": "未找到成员",
+        "no_members_description": "此组织暂无成员。",
+        "role_updated": "成员角色更新成功",
+        "role_update_error": "更新成员角色失败",
+        "member_removed": "成员已从组织中移除",
+        "member_remove_error": "移除成员失败",
+        "remove_member_title": "移除成员",
+        "remove_member_confirm": "您确定要将 {name} 从此组织中移除吗？",
+        "cannot_change_own_role": "您不能更改自己的角色",
+        "cannot_remove_self": "您不能将自己从组织中移除",
+        "cannot_remove_owner": "您不能移除组织所有者",
+        "insufficient_permissions": "您没有管理成员的权限",
+        "roles": {
+          "owner": "所有者",
+          "admin": "管理员",
+          "member": "成员"
+        },
+        "role_descriptions": {
+          "owner": "完全访问所有组织设置和成员",
+          "admin": "可以管理成员和大部分组织设置",
+          "member": "基本访问组织资源"
+        }
+      },
+      "invitations": {
+        "title": "组织邀请",
+        "invite_member": "邀请成员",
+        "invite_new_member": "邀请新成员",
+        "pending_invitations": "待处理邀请",
+        "no_pending_invitations": "暂无待处理邀请",
+        "email_address": "邮箱地址",
+        "email_placeholder": "member@example.com",
+        "role": "角色",
+        "send_invite": "发送邀请",
+        "invite_sent": "邀请发送成功",
+        "invite_error": "发送邀请失败",
+        "resend": "重新发送",
+        "revoke": "撤销",
+        "resend_success": "邀请重新发送成功",
+        "resend_error": "重新发送邀请失败",
+        "revoke_success": "邀请撤销成功",
+        "revoke_error": "撤销邀请失败",
+        "invited_by": "邀请人",
+        "invited_at": "邀请时间",
+        "expires_at": "过期时间",
+        "resent_count": "已重发 {count} 次",
+        "resent_count_plural": "已重发 {count} 次",
+        "status": {
+          "pending": "待处理",
+          "accepted": "已接受",
+          "declined": "已拒绝",
+          "expired": "已过期"
+        },
+        "roles": {
+          "member": "成员",
+          "admin": "管理员"
+        },
+        "accept_invitation": "接受邀请",
+        "decline_invitation": "拒绝邀请",
+        "invitation_details": "邀请详情",
+        "you_are_invited": "您已被邀请加入",
+        "invited_as": "您被邀请担任",
+        "accept_success": "邀请接受成功",
+        "accept_error": "接受邀请失败",
+        "decline_success": "邀请已拒绝",
+        "decline_error": "拒绝邀请失败",
+        "expired_message": "此邀请已过期",
+        "invalid_token": "无效或已过期的邀请",
+        "must_sign_in": "请登录以接受此邀请",
+        "loading_invitation": "加载邀请详情中"
+      }
     }
   }
 }

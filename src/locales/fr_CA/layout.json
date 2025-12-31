@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "Documentation API",
+      "branding_guide": "Guide de marque",
+      "customize": "Personnaliser",
+      "plans": "Forfaits",
       "security": "Sécurité",
       "learn_about_our_security_measures": "En savoir plus sur nos mesures de sécurité",
       "view_our_terms_and_conditions": "Voir nos conditions générales",
@@ -68,8 +72,8 @@
       "dashboard_navigation": "Navigation dans le tableau de bord",
       "mobile_navigation": "Navigation mobile",
       "main_navigation": "Navigation principale",
-      "mobile_nav_item_count": "{count} items",
-      "release_notes": "Release Notes",
+      "mobile_nav_item_count": "{count} éléments",
+      "release_notes": "Notes de version",
       "loading_settings_content": "Chargement du contenu des paramètres...",
       "settings_sections_0": "Sections des paramètres",
       "close_settings": "Fermer les paramètres",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Changer de langue. La langue actuelle est {0}",
       "language_changed_to_newlocale": "La langue a été changée en {0}",
       "switch_to_blank_mode": "Passer au mode {0}",
-      "blank_mode_enabled": "{0} mode activé"
+      "blank_mode_enabled": "{0} mode activé",
+      "workspace": "Espace de travail",
+      "workspace_context": "Contexte de l'espace de travail"
     }
   }
 }

@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "נדרש שדרוג",
         "viewPlans": "צפייה בתוכניות",
+        "needTeams": "ניהול צוותים דורש Identity Plus או גבוה יותר",
         "needCustomDomains": "דומיינים מותאמים אישית דורשים Identity Plus או גבוהה יותר",
         "needApiAccess": "גישת API דורשת תוכנית Multi-Team או גבוהה יותר",
-        "needPrioritySupport": "תמיכה עדיפה דורשת Identity Plus או גבוהה יותר",
         "needAuditLogs": "לוגי ביקורת דורשים תוכנית Multi-Team או גבוהה יותר"
       },
       "manage_subscription_and_billing": "ניהול המנוי, הארגונים והגדרות החיוב שלכם",
@@ -37,12 +37,25 @@
         "no_organizations_description": "צרו ארגון כדי לנהל את החיוב והמנוי שלכם",
         "entitlements": {
           "create_secrets": "יצירת סודות",
-          "basic_sharing": "שיתוף בסיסי",
-          "custom_domains": "דומיינים מותאמים אישית",
+          "view_metadata": "צפייה במטא-דאטה",
           "api_access": "גישת API",
+          "custom_domains": "דומיינים מותאמים אישית",
+          "custom_privacy_defaults": "ברירות מחדל פרטיות מותאמות",
+          "extended_default_expiration": "תפוגה מוגדלת ברירת מחדל",
+          "custom_mail_defaults": "ברירות מחדל דואר מותאמות",
+          "custom_branding": "מיתוג מותאם אישית",
+          "branded_homepage": "דף בית ממותג",
+          "incoming_secrets": "סודות נכנסים",
+          "manage_orgs": "ניהול ארגונים",
+          "manage_teams": "ניהול צוותים",
+          "manage_members": "ניהול חברים",
+          "audit_logs": "לוגי ביקורת",
+          "sso": "התחברות יחידה (SSO)",
           "priority_support": "תמיכה עדיפה",
-          "audit_logs": "לוגי ביקורת"
-        }
+          "sla": "הסכם רמת שירות (SLA)"
+        },
+        "entitlements_load_error": "לא ניתן לטעון פרטי תכונות",
+        "no_entitlements": "אין תכונות זמינות"
       },
       "plans": {
         "title": "בחירת תוכנית",
@@ -61,7 +74,11 @@
         "api_access": "גישת API",
         "priority_support": "תמיכה עדיפה",
         "select_plan": "בחירת תוכנית",
-        "contact_sales": "יצירת קשר עם מכירות"
+        "contact_sales": "יצירת קשר עם מכירות",
+        "custom_needs_title": "יש לכם שאלות או צריכים משהו מותאם אישית?",
+        "custom_needs_description": "נשמח לשמוע מכם. ספרו לנו מה אתם מחפשים.",
+        "teams_limit": "צוות {count} | {count} צוותים",
+        "members_limit": "{count} חבר לצוות | {count} חברים לצוות"
       },
       "invoices": {
         "title": "היסטוריית חיוב",

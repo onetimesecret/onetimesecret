@@ -15,6 +15,27 @@
       "please_verify": "Vérifier votre compte, s'il vous plaît:",
       "postscript1": "Ce courriel a été envoyé à",
       "postscript2": "Si vous n’avez pas créé ce compte, supprimez ce message et nous ne vous contacterons plus."
+    },
+    "organization_invitation": {
+      "subject": "Vous avez été invité à rejoindre %{organization_name}",
+      "title": "Vous avez été invité à rejoindre %{organization_name} !",
+      "body": "%{inviter_email} vous a invité à rejoindre « %{organization_name} » en tant que %{role_description}.",
+      "accept_button": "Accepter l'invitation",
+      "link_instruction": "Ou copiez et collez ce lien :",
+      "expiry_notice": "Cette invitation expirera dans %{days} jours.",
+      "decline_instruction": "Si vous ne souhaitez pas rejoindre, vous pouvez simplement ignorer ce courriel ou refuser l'invitation.",
+      "signature": "Delano",
+      "postscript": "P.-S. Ce courriel a été envoyé à %{invited_email}. Si vous n'attendiez pas cette invitation, vous pouvez ignorer ce message en toute sécurité.",
+      "roles": {
+        "member": "un membre",
+        "admin": "un administrateur"
+      }
+    },
+    "common": {
+      "greeting": "Bonjour,",
+      "thanks": "Merci,",
+      "unsubscribe": "Se désabonner",
+      "view_in_browser": "Voir dans le navigateur"
     }
   }
 }

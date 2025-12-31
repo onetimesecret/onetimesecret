@@ -15,6 +15,27 @@
       "please_verify": "Por favor verifica tu cuenta:",
       "postscript1": "Este correo electrónico fue enviado a",
       "postscript2": "Si no creaste esta cuenta, elimina este mensaje y no te contactaremos de nuevo."
+    },
+    "organization_invitation": {
+      "subject": "Has sido invitado a unirte a %{organization_name}",
+      "title": "¡Has sido invitado a unirte a %{organization_name}!",
+      "body": "%{inviter_email} te ha invitado a unirte a \"%{organization_name}\" como %{role_description}.",
+      "accept_button": "Aceptar Invitación",
+      "link_instruction": "O copia y pega este enlace:",
+      "expiry_notice": "Esta invitación expirará en %{days} días.",
+      "decline_instruction": "Si no deseas unirte, puedes simplemente ignorar este correo o rechazar la invitación.",
+      "signature": "Delano",
+      "postscript": "P.D. Este correo fue enviado a %{invited_email}. Si no esperabas esta invitación, puedes ignorar este mensaje sin problema.",
+      "roles": {
+        "member": "miembro",
+        "admin": "administrador"
+      }
+    },
+    "common": {
+      "greeting": "Hola,",
+      "thanks": "Gracias,",
+      "unsubscribe": "Darse de baja",
+      "view_in_browser": "Ver en el navegador"
     }
   }
 }

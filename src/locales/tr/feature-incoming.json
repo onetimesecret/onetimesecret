@@ -31,6 +31,7 @@
     "create_another": "Başka bir sır gönder",
     "tagline1": "Hassas bilgileri güvenli bir şekilde paylaşın",
     "tagline2": "Şifreleri ve özel verileri e-posta ve sohbet kayıtlarından uzak tutun",
-    "end_of_experience_suggestion": "Kayıtlarınız için <a href='{receiptUrl}'>makbuzunuzu</a> saklayın."
+    "end_of_experience_suggestion": "Kayıtlarınız için <a href='{receiptUrl}'>makbuzunuzu</a> saklayın.",
+    "receipt_link_text": "makbuz"
   }
 }

@@ -69,6 +69,7 @@
       "word_confirm": "Confirmar",
       "word_cancel": "Cancelar",
       "word_continue": "Continuar",
+      "word_done": "Hecho",
       "back": "Atrás",
       "feedback_text": "¿Tiene alguna pregunta o comentario?",
       "button_send_feedback": "Envíanos tus comentarios!",
@@ -160,16 +161,19 @@
       "an_error_occurred": "Ocurrió un error",
       "copy_secret_to_clipboard": "Copiar secreto al portapapeles",
       "secret_copied_to_clipboard": "Secreto copiado al portapapeles",
-      "press_copy_button_below": "Presiona el botón de copiar a continuación.",
-      "double_check_that_passphrase": "Verifica bien esa frase de contraseña"
+      "double_check_that_passphrase": "Verifica bien esa frase de contraseña",
+      "press_copy_button_below": "Presiona el botón de copiar a continuación."
     },
     "LABELS": {
       "view_toggle": {
         "show": "Mostrar",
         "hide": "Ocultar",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Mostrar Más",
+        "show_less": "Mostrar Menos"
       },
+      "enable": "Habilitar",
+      "disable": "Deshabilitar",
+      "stats": "Estadísticas",
       "timeline": "Cronología",
       "lifespan": "Duración",
       "expiration_time": "Hora de Expiración",
@@ -213,9 +217,8 @@
       "create_request_short": "Crear Solicitud",
       "create_request": "Crear Enlace de Solicitud",
       "related_settings": "Configuración Relacionada",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "Creando enlaces para",
+      "scope_indicator": "Creando secretos en {domain}"
     },
     "STATUS": {
       "new": "Nuevo",
@@ -290,6 +293,7 @@
       "verify_account": "Verificar Cuenta",
       "mfa_verify": "Autenticación de Dos Factores",
       "email_login": "Inicio de Sesión por Correo",
+      "accept_invitation": "Aceptar Invitación",
       "secret": "Secreto",
       "metadata": "Detalles del Secreto",
       "receipt": "Recibo del Secreto",
@@ -308,6 +312,7 @@
       "profile_settings": "Configuración de Perfil",
       "preferences_settings": "Preferencias",
       "privacy_settings": "Privacidad",
+      "notification_settings": "Notificaciones",
       "change_email": "Cambiar Correo Electrónico",
       "security_overview": "Seguridad",
       "change_password": "Cambiar Contraseña",
@@ -318,7 +323,14 @@
       "advanced_settings": "Configuración Avanzada",
       "colonel": "Administración",
       "colonel_users": "Gestión de Usuarios",
+      "colonel_secrets": "Gestión de Secretos",
+      "colonel_domains": "Dominios Personalizados",
+      "colonel_system": "Sistema",
       "system_settings": "Configuración del Sistema",
+      "colonel_maindb": "Base de Datos Principal",
+      "colonel_authdb": "Base de Datos de Autenticación",
+      "colonel_banned_ips": "IPs Bloqueadas",
+      "colonel_usage": "Exportación de Uso",
       "colonel_info": "Información del Sistema",
       "not_found": "Página No Encontrada",
       "organizations_settings": "Organizaciones",

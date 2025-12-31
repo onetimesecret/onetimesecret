@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Wymagana aktualizacja",
         "viewPlans": "Zobacz plany",
+        "needTeams": "Zarządzanie zespołami wymaga planu Identity Plus lub wyższego",
         "needCustomDomains": "Domeny niestandardowe wymagają planu Identity Plus lub wyższego",
         "needApiAccess": "Dostęp do API wymaga planu Multi-Team lub wyższego",
-        "needPrioritySupport": "Wsparcie priorytetowe wymaga planu Identity Plus lub wyższego",
         "needAuditLogs": "Dzienniki audytu wymagają planu Multi-Team lub wyższego"
       },
       "manage_subscription_and_billing": "Zarządzaj subskrypcją, organizacjami i ustawieniami rozliczeniowymi",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Utwórz organizację, aby zarządzać rozliczeniami i subskrypcją",
         "entitlements": {
           "create_secrets": "Tworzenie sekretów",
-          "basic_sharing": "Podstawowe udostępnianie",
-          "custom_domains": "Domeny niestandardowe",
+          "view_metadata": "Podgląd metadanych",
           "api_access": "Dostęp do API",
+          "custom_domains": "Domeny niestandardowe",
+          "custom_privacy_defaults": "Niestandardowe ustawienia prywatności",
+          "extended_default_expiration": "Rozszerzony domyślny czas wygaśnięcia",
+          "custom_mail_defaults": "Niestandardowe ustawienia poczty",
+          "custom_branding": "Niestandardowy branding",
+          "branded_homepage": "Markowa strona główna",
+          "incoming_secrets": "Sekrety przychodzące",
+          "manage_orgs": "Zarządzaj organizacjami",
+          "manage_teams": "Zarządzaj zespołami",
+          "manage_members": "Zarządzaj członkami",
+          "audit_logs": "Dzienniki audytu",
+          "sso": "Jednokrotne logowanie",
           "priority_support": "Wsparcie priorytetowe",
-          "audit_logs": "Dzienniki audytu"
-        }
+          "sla": "Umowa poziomu usług"
+        },
+        "entitlements_load_error": "Nie udało się załadować szczegółów funkcji",
+        "no_entitlements": "Brak dostępnych funkcji"
       },
       "plans": {
         "title": "Wybierz plan",
@@ -61,7 +74,11 @@
         "api_access": "Dostęp do API",
         "priority_support": "Wsparcie priorytetowe",
         "select_plan": "Wybierz plan",
-        "contact_sales": "Skontaktuj się ze sprzedażą"
+        "contact_sales": "Skontaktuj się ze sprzedażą",
+        "custom_needs_title": "Masz pytania lub potrzebujesz czegoś niestandardowego?",
+        "custom_needs_description": "Chętnie od Ciebie usłyszymy. Powiedz nam, czego szukasz.",
+        "teams_limit": "{count} zespół | {count} zespoły | {count} zespołów",
+        "members_limit": "{count} członek na zespół | {count} członków na zespół | {count} członków na zespół"
       },
       "invoices": {
         "title": "Historia rozliczeń",
@@ -109,7 +126,7 @@
       "maybe_later": "Może później",
       "upgrade_account": "Uaktualnij konto",
       "upgrade_to_identity_plus": "Uaktualnij do Identity Plus",
-      "upgrade_for_teams": "Upgrade for Teams",
+      "upgrade_for_teams": "Uaktualnij dla zespołów",
       "benefits_of": "Korzyści z",
       "t_benefits_of_identity_plus": "{0}: Identity Plus",
       "upgrade_to": "Uaktualnij do",

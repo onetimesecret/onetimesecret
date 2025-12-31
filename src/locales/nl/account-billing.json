@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Upgrade vereist",
         "viewPlans": "Abonnementen bekijken",
+        "needTeams": "Teambeheer vereist Identity Plus of hoger",
         "needCustomDomains": "Aangepaste domeinen vereisen Identity Plus of hoger",
         "needApiAccess": "API-toegang vereist Multi-Team abonnement of hoger",
-        "needPrioritySupport": "Prioriteitsondersteuning vereist Identity Plus of hoger",
         "needAuditLogs": "Auditlogs vereisen Multi-Team abonnement of hoger"
       },
       "manage_subscription_and_billing": "Beheer je abonnement, organisaties en factureringsinstellingen",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Maak een organisatie aan om je facturering en abonnement te beheren",
         "entitlements": {
           "create_secrets": "Berichten aanmaken",
-          "basic_sharing": "Basis delen",
-          "custom_domains": "Aangepaste domeinen",
+          "view_metadata": "Metadata bekijken",
           "api_access": "API-toegang",
+          "custom_domains": "Aangepaste domeinen",
+          "custom_privacy_defaults": "Aangepaste privacy-standaarden",
+          "extended_default_expiration": "Verlengde standaard vervaltijd",
+          "custom_mail_defaults": "Aangepaste e-mail standaarden",
+          "custom_branding": "Aangepaste branding",
+          "branded_homepage": "Merkgerichte homepage",
+          "incoming_secrets": "Inkomende berichten",
+          "manage_orgs": "Organisaties beheren",
+          "manage_teams": "Teams beheren",
+          "manage_members": "Leden beheren",
+          "audit_logs": "Auditlogs",
+          "sso": "Single Sign-On",
           "priority_support": "Prioriteitsondersteuning",
-          "audit_logs": "Auditlogs"
-        }
+          "sla": "Service Level Agreement"
+        },
+        "entitlements_load_error": "Functiedetails konden niet worden geladen",
+        "no_entitlements": "Geen functies beschikbaar"
       },
       "plans": {
         "title": "Selecteer een abonnement",
@@ -61,7 +74,11 @@
         "api_access": "API-toegang",
         "priority_support": "Prioriteitsondersteuning",
         "select_plan": "Abonnement selecteren",
-        "contact_sales": "Contact opnemen met verkoop"
+        "contact_sales": "Contact opnemen met verkoop",
+        "custom_needs_title": "Vragen of iets op maat nodig?",
+        "custom_needs_description": "We horen graag van je. Laat ons weten wat je zoekt.",
+        "teams_limit": "{count} team | {count} teams",
+        "members_limit": "{count} lid per team | {count} leden per team"
       },
       "invoices": {
         "title": "Factureringsgeschiedenis",

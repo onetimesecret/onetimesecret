@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Actualización Requerida",
         "viewPlans": "Ver Planes",
+        "needTeams": "La gestión de equipos requiere Identity Plus o superior",
         "needCustomDomains": "Los dominios personalizados requieren Identity Plus o superior",
         "needApiAccess": "El acceso a la API requiere el plan Multi-Equipo o superior",
-        "needPrioritySupport": "El soporte prioritario requiere Identity Plus o superior",
         "needAuditLogs": "Los registros de auditoría requieren el plan Multi-Equipo o superior"
       },
       "manage_subscription_and_billing": "Gestiona tu suscripción, organizaciones y configuración de facturación",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Crea una organización para gestionar tu facturación y suscripción",
         "entitlements": {
           "create_secrets": "Crear Secretos",
-          "basic_sharing": "Compartición Básica",
-          "custom_domains": "Dominios Personalizados",
+          "view_metadata": "Ver Metadatos",
           "api_access": "Acceso a API",
+          "custom_domains": "Dominios Personalizados",
+          "custom_privacy_defaults": "Valores Predeterminados de Privacidad Personalizados",
+          "extended_default_expiration": "Expiración Predeterminada Extendida",
+          "custom_mail_defaults": "Valores Predeterminados de Correo Personalizados",
+          "custom_branding": "Marca Personalizada",
+          "branded_homepage": "Página de Inicio Personalizada",
+          "incoming_secrets": "Secretos Entrantes",
+          "manage_orgs": "Gestionar Organizaciones",
+          "manage_teams": "Gestionar Equipos",
+          "manage_members": "Gestionar Miembros",
+          "audit_logs": "Registros de Auditoría",
+          "sso": "Inicio de Sesión Único (SSO)",
           "priority_support": "Soporte Prioritario",
-          "audit_logs": "Registros de Auditoría"
-        }
+          "sla": "Acuerdo de Nivel de Servicio"
+        },
+        "entitlements_load_error": "No se pudieron cargar los detalles de las funciones",
+        "no_entitlements": "No hay funciones disponibles"
       },
       "plans": {
         "title": "Seleccionar un Plan",
@@ -61,7 +74,11 @@
         "api_access": "Acceso a API",
         "priority_support": "Soporte prioritario",
         "select_plan": "Seleccionar Plan",
-        "contact_sales": "Contactar Ventas"
+        "contact_sales": "Contactar Ventas",
+        "custom_needs_title": "¿Tienes preguntas o necesitas algo personalizado?",
+        "custom_needs_description": "Nos encantaría saber de ti. Cuéntanos lo que necesitas.",
+        "teams_limit": "{count} equipo | {count} equipos",
+        "members_limit": "{count} miembro por equipo | {count} miembros por equipo"
       },
       "invoices": {
         "title": "Historial de Facturación",
@@ -109,7 +126,7 @@
       "maybe_later": "Quizás más tarde",
       "upgrade_account": "Actualizar cuenta",
       "upgrade_to_identity_plus": "Actualizar a Identity Plus",
-      "upgrade_for_teams": "Upgrade for Teams",
+      "upgrade_for_teams": "Actualizar para Equipos",
       "benefits_of": "Beneficios de",
       "t_benefits_of_identity_plus": "{0}: Identity Plus",
       "upgrade_to": "Actualizar a",

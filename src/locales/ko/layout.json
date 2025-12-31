@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "API 문서",
+      "branding_guide": "브랜딩 가이드",
+      "customize": "맞춤설정",
+      "plans": "플랜",
       "security": "보안",
       "learn_about_our_security_measures": "보안 조치에 대해 알아보기",
       "view_our_terms_and_conditions": "이용약관 보기",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "언어 변경. 현재 언어는 {0}입니다",
       "language_changed_to_newlocale": "언어가 {0}(으)로 변경되었습니다",
       "switch_to_blank_mode": "{0} 모드로 전환",
-      "blank_mode_enabled": "{0} 모드 활성화됨"
+      "blank_mode_enabled": "{0} 모드 활성화됨",
+      "workspace": "워크스페이스",
+      "workspace_context": "워크스페이스 컨텍스트"
     }
   }
 }

@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "",
         "viewPlans": "",
+        "needTeams": "Teamadministration kræver Identity Plus eller højere",
         "needCustomDomains": "",
         "needApiAccess": "",
-        "needPrioritySupport": "",
         "needAuditLogs": ""
       },
       "manage_subscription_and_billing": "",
@@ -37,12 +37,25 @@
         "no_organizations_description": "",
         "entitlements": {
           "create_secrets": "",
-          "basic_sharing": "",
-          "custom_domains": "",
+          "view_receipt": "Vis kvitteringer",
           "api_access": "",
+          "custom_domains": "",
+          "custom_privacy_defaults": "Tilpassede privatlivsindstillinger",
+          "extended_default_expiration": "Udvidet standardudløb",
+          "custom_mail_defaults": "Tilpassede e-mail-standarder",
+          "custom_branding": "Tilpasset branding",
+          "branded_homepage": "Branded hjemmeside",
+          "incoming_secrets": "Indkommende beskeder",
+          "manage_orgs": "Administrer organisationer",
+          "manage_teams": "Administrer teams",
+          "manage_members": "Administrer medlemmer",
+          "audit_logs": "",
+          "sso": "Single Sign-On",
           "priority_support": "",
-          "audit_logs": ""
-        }
+          "sla": "Serviceniveauaftale"
+        },
+        "entitlements_load_error": "Kunne ikke indlæse funktionsdetaljer",
+        "no_entitlements": "Ingen funktioner tilgængelige"
       },
       "plans": {
         "title": "",
@@ -56,12 +69,21 @@
         "free_plan": "",
         "single_team_plan": "",
         "multi_team_plan": "",
+        "individual_account": "Individuel konto",
+        "team_account": "Teamkonto",
+        "multi_team_account": "Organisationskonto",
         "features": "",
         "unlimited_secrets": "",
         "api_access": "",
         "priority_support": "",
         "select_plan": "",
-        "contact_sales": ""
+        "contact_sales": "",
+        "custom_needs_title": "Har du spørgsmål eller brug for noget tilpasset?",
+        "custom_needs_description": "Vi vil gerne høre fra dig. Fortæl os, hvad du leder efter.",
+        "teams_limit": "{count} team | {count} teams",
+        "members_limit": "{count} medlem pr. team | {count} medlemmer pr. team",
+        "unlimited_teams": "Ubegrænsede teams",
+        "unlimited_members": "Ubegrænset antal medlemmer pr. team"
       },
       "invoices": {
         "title": "",

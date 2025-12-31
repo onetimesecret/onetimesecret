@@ -23,6 +23,7 @@
       "description_placeholder": "Mō te aha tēnei whakahaere?",
       "contact_email": "Īmēra Utu",
       "contact_email_help": "Whakapā matua mō te utu me ngā whakamōhio whakahaere",
+      "billing_managed_by_default": "Ka whakahaerehia te utu me te whakahaere ohaurunga mā tō wāhi mahi matua. Torohia ngā tautuhinga wāhi mahi matua hei whakahaere i ngā tikanga utu me ngā nama.",
       "select_organization": "Kōwhiri tētahi whakahaere",
       "not_found": "Kāore i kitea te whakahaere",
       "load_error": "I rahua te uta whakahaere",
@@ -57,7 +58,86 @@
       "delete": "Muku",
       "delete_organization_confirm_title": "Muku Whakahaere",
       "delete_organization_confirm_message": "E tino hiahia ana koe ki te muku i {name}? Kāore tēnei mahi e taea te whakakore.",
-      "delete_error": "I rahua te muku whakahaere"
+      "delete_error": "I rahua te muku whakahaere",
+      "members": {
+        "title": "Ngā Mema",
+        "description": "Whakahaere i ngā mema whakahaere me ō rātou tūranga",
+        "member": "Mema",
+        "name": "Ingoa",
+        "email": "Īmēra",
+        "role": "Tūranga",
+        "joined": "I Hono",
+        "actions": "Ngā Mahi",
+        "no_members": "Kāore he mema i kitea",
+        "no_members_description": "Kāore anō he mema o tēnei whakahaere.",
+        "role_updated": "Kua whakahoutia angituhia te tūranga mema",
+        "role_update_error": "I rahua te whakahou tūranga mema",
+        "member_removed": "Kua tangohia te mema mai i te whakahaere",
+        "member_remove_error": "I rahua te tango mema",
+        "remove_member_title": "Tango Mema",
+        "remove_member_confirm": "E tino hiahia ana koe ki te tango i a {name} mai i tēnei whakahaere?",
+        "cannot_change_own_role": "Kāore e taea e koe te huri i tō ake tūranga",
+        "cannot_remove_self": "Kāore e taea e koe te tango i a koe anō mai i te whakahaere",
+        "cannot_remove_owner": "Kāore e taea e koe te tango i te kaipupuri o te whakahaere",
+        "insufficient_permissions": "Kāore koe i te mana ki te whakahaere mema",
+        "roles": {
+          "owner": "Kaipupuri",
+          "admin": "Kaiwhakahaere",
+          "member": "Mema"
+        },
+        "role_descriptions": {
+          "owner": "Urunga katoa ki ngā tautuhinga me ngā mema whakahaere katoa",
+          "admin": "Ka taea te whakahaere i ngā mema me te nuinga o ngā tautuhinga whakahaere",
+          "member": "Urunga taketake ki ngā rauemi whakahaere"
+        }
+      },
+      "invitations": {
+        "title": "Ngā Pōwhiri Whakahaere",
+        "invite_member": "Pōwhiri Mema",
+        "invite_new_member": "Pōwhiri Mema Hou",
+        "pending_invitations": "Ngā Pōwhiri Kei te Tatari",
+        "no_pending_invitations": "Kāore he pōwhiri kei te tatari",
+        "email_address": "Wāhitau Īmēra",
+        "email_placeholder": "mema@tauira.com",
+        "role": "Tūranga",
+        "send_invite": "Tuku Pōwhiri",
+        "invite_sent": "Kua tukuna angituhia te pōwhiri",
+        "invite_error": "I rahua te tuku pōwhiri",
+        "resend": "Tuku Anō",
+        "revoke": "Whakakore",
+        "resend_success": "Kua tukuna anō angituhia te pōwhiri",
+        "resend_error": "I rahua te tuku anō pōwhiri",
+        "revoke_success": "Kua whakakōretia angituhia te pōwhiri",
+        "revoke_error": "I rahua te whakakore pōwhiri",
+        "invited_by": "Nā wai i pōwhiri",
+        "invited_at": "I Pōwhiritia",
+        "expires_at": "Ka Pau",
+        "resent_count": "I tukuna anō {count} wā",
+        "resent_count_plural": "I tukuna anō {count} ngā wā",
+        "status": {
+          "pending": "Kei te Tatari",
+          "accepted": "Kua Whakaae",
+          "declined": "Kua Whakakāhore",
+          "expired": "Kua Pau"
+        },
+        "roles": {
+          "member": "Mema",
+          "admin": "Kaiwhakahaere"
+        },
+        "accept_invitation": "Whakaae ki te Pōwhiri",
+        "decline_invitation": "Whakakāhore i te Pōwhiri",
+        "invitation_details": "Ngā Taipitopito Pōwhiri",
+        "you_are_invited": "Kua pōwhiritia koe ki te hono ki",
+        "invited_as": "Kua pōwhiritia koe hei",
+        "accept_success": "Kua whakaae angituhia ki te pōwhiri",
+        "accept_error": "I rahua te whakaae ki te pōwhiri",
+        "decline_success": "Kua whakakāhore te pōwhiri",
+        "decline_error": "I rahua te whakakāhore i te pōwhiri",
+        "expired_message": "Kua pau tēnei pōwhiri",
+        "invalid_token": "He muhu te pōwhiri, kua pau rānei",
+        "must_sign_in": "Tēnā takiuru ki te whakaae ki tēnei pōwhiri",
+        "loading_invitation": "Kei te uta ngā taipitopito pōwhiri"
+      }
     }
   }
 }

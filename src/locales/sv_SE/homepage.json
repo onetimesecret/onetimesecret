@@ -20,12 +20,12 @@
       "password_generation_description": " Klicka på \"Generera lösenord\" för att skapa ett säkert slumpmässigt lösenord som du kan dela.",
       "protip1": "Ditt meddelande kommer att självförstöras efter att det har visats. Länken kan endast nås en gång.",
       "authonly": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "Logga in för att dela känslig information säkert.",
+        "tagline1": "Säker delning för teammedlemmar."
       },
       "disabled": {
-        "tagline2": "",
-        "tagline1": ""
+        "tagline2": "Hemlighetsdelning är inaktiverat på denna instans.",
+        "tagline1": "Kontakta din administratör för hjälp."
       },
       "link_preview": "Länkförhandsgranskning",
       "meets_and_exceeds_compliance_standards": "Uppfyller och överträffar efterlevnadsstandarder",
@@ -41,7 +41,7 @@
       "tagline_delivered": "Levererad",
       "onetime_secret": "Onetime Secret",
       "onetime_secret_literal": "Onetime Secret",
-      "one_time_secret_literal": "",
+      "one_time_secret_literal": "Onetime Secret",
       "onetime_secret_homepage": "Onetime Secret Hemsida",
       "send_sensitive_information_that_can_only_be_viewed_once": "Skicka känslig information som bara kan ses en gång",
       "create_a_secure_link": "Skapa en säker länk",

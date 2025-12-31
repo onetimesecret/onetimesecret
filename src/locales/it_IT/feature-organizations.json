@@ -23,6 +23,7 @@
       "description_placeholder": "A cosa serve questa organizzazione?",
       "contact_email": "Email di fatturazione",
       "contact_email_help": "Contatto principale per notifiche di fatturazione e amministrative",
+      "billing_managed_by_default": "La gestione della fatturazione e degli abbonamenti avviene tramite il tuo spazio di lavoro principale. Visita le impostazioni del tuo spazio di lavoro principale per gestire i metodi di pagamento e le fatture.",
       "select_organization": "Seleziona un'organizzazione",
       "not_found": "Organizzazione non trovata",
       "load_error": "Caricamento organizzazione fallito",
@@ -57,7 +58,86 @@
       "delete": "Elimina",
       "delete_organization_confirm_title": "Elimina organizzazione",
       "delete_organization_confirm_message": "Sei sicuro di voler eliminare {name}? Questa azione non può essere annullata",
-      "delete_error": "Eliminazione organizzazione fallita"
+      "delete_error": "Eliminazione organizzazione fallita",
+      "members": {
+        "title": "Membri",
+        "description": "Gestisci i membri dell'organizzazione e i loro ruoli",
+        "member": "Membro",
+        "name": "Nome",
+        "email": "Email",
+        "role": "Ruolo",
+        "joined": "Iscritto",
+        "actions": "Azioni",
+        "no_members": "Nessun membro trovato",
+        "no_members_description": "Questa organizzazione non ha ancora membri.",
+        "role_updated": "Ruolo del membro aggiornato con successo",
+        "role_update_error": "Aggiornamento del ruolo del membro fallito",
+        "member_removed": "Membro rimosso dall'organizzazione",
+        "member_remove_error": "Rimozione del membro fallita",
+        "remove_member_title": "Rimuovi membro",
+        "remove_member_confirm": "Sei sicuro di voler rimuovere {name} da questa organizzazione?",
+        "cannot_change_own_role": "Non puoi modificare il tuo stesso ruolo",
+        "cannot_remove_self": "Non puoi rimuovere te stesso dall'organizzazione",
+        "cannot_remove_owner": "Non puoi rimuovere il proprietario dell'organizzazione",
+        "insufficient_permissions": "Non hai i permessi per gestire i membri",
+        "roles": {
+          "owner": "Proprietario",
+          "admin": "Amministratore",
+          "member": "Membro"
+        },
+        "role_descriptions": {
+          "owner": "Accesso completo a tutte le impostazioni dell'organizzazione e ai membri",
+          "admin": "Può gestire i membri e la maggior parte delle impostazioni dell'organizzazione",
+          "member": "Accesso base alle risorse dell'organizzazione"
+        }
+      },
+      "invitations": {
+        "title": "Inviti all'organizzazione",
+        "invite_member": "Invita membro",
+        "invite_new_member": "Invita nuovo membro",
+        "pending_invitations": "Inviti in attesa",
+        "no_pending_invitations": "Nessun invito in attesa",
+        "email_address": "Indirizzo email",
+        "email_placeholder": "membro@esempio.com",
+        "role": "Ruolo",
+        "send_invite": "Invia invito",
+        "invite_sent": "Invito inviato con successo",
+        "invite_error": "Invio dell'invito fallito",
+        "resend": "Reinvia",
+        "revoke": "Revoca",
+        "resend_success": "Invito reinviato con successo",
+        "resend_error": "Reinvio dell'invito fallito",
+        "revoke_success": "Invito revocato con successo",
+        "revoke_error": "Revoca dell'invito fallita",
+        "invited_by": "Invitato da",
+        "invited_at": "Invitato",
+        "expires_at": "Scade",
+        "resent_count": "Reinviato {count} volta",
+        "resent_count_plural": "Reinviato {count} volte",
+        "status": {
+          "pending": "In attesa",
+          "accepted": "Accettato",
+          "declined": "Rifiutato",
+          "expired": "Scaduto"
+        },
+        "roles": {
+          "member": "Membro",
+          "admin": "Amministratore"
+        },
+        "accept_invitation": "Accetta invito",
+        "decline_invitation": "Rifiuta invito",
+        "invitation_details": "Dettagli invito",
+        "you_are_invited": "Sei stato invitato a unirti",
+        "invited_as": "Sei stato invitato come",
+        "accept_success": "Invito accettato con successo",
+        "accept_error": "Accettazione dell'invito fallita",
+        "decline_success": "Invito rifiutato",
+        "decline_error": "Rifiuto dell'invito fallito",
+        "expired_message": "Questo invito è scaduto",
+        "invalid_token": "Invito non valido o scaduto",
+        "must_sign_in": "Accedi per accettare questo invito",
+        "loading_invitation": "Caricamento dettagli invito"
+      }
     }
   }
 }

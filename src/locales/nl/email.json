@@ -15,6 +15,27 @@
       "please_verify": "Bevestig uw account alstublieft:",
       "postscript1": "Deze e-mail is verstuurd naar",
       "postscript2": "Als u dit account niet heeft aangemaakt, negeer dit bericht, we zullen u niet meer lastig vallen."
+    },
+    "organization_invitation": {
+      "subject": "Je bent uitgenodigd om lid te worden van %{organization_name}",
+      "title": "Je bent uitgenodigd om lid te worden van %{organization_name}!",
+      "body": "%{inviter_email} heeft je uitgenodigd om lid te worden van \"%{organization_name}\" als %{role_description}.",
+      "accept_button": "Uitnodiging accepteren",
+      "link_instruction": "Of kopieer en plak deze link:",
+      "expiry_notice": "Deze uitnodiging verloopt over %{days} dagen.",
+      "decline_instruction": "Als je niet wilt toetreden, kun je deze e-mail gewoon negeren of de uitnodiging afwijzen.",
+      "signature": "Delano",
+      "postscript": "P.S. Deze e-mail is verstuurd naar %{invited_email}. Als je deze uitnodiging niet verwachtte, kun je dit bericht veilig negeren.",
+      "roles": {
+        "member": "een lid",
+        "admin": "een beheerder"
+      }
+    },
+    "common": {
+      "greeting": "Hallo,",
+      "thanks": "Bedankt,",
+      "unsubscribe": "Afmelden",
+      "view_in_browser": "Bekijken in browser"
     }
   }
 }
