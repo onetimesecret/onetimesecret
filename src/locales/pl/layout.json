@@ -1,10 +1,10 @@
 {
   "web": {
     "footer": {
-      "api_docs": "API Docs",
-      "branding_guide": "Branding Guide",
-      "customize": "Customize",
-      "plans": "Plans",
+      "api_docs": "Dokumentacja API",
+      "branding_guide": "Przewodnik brandingowy",
+      "customize": "Dostosuj",
+      "plans": "Plany",
       "security": "Bezpieczeństwo",
       "learn_about_our_security_measures": "Dowiedz się o naszych środkach bezpieczeństwa",
       "view_our_terms_and_conditions": "Zobacz nasze Warunki korzystania z usługi",
@@ -70,10 +70,10 @@
       "company_logo": "Logo firmy",
       "brand_logo": "Logo marki",
       "dashboard_navigation": "Nawigacja panelu",
-      "mobile_navigation": "Mobile Navigation",
+      "mobile_navigation": "Nawigacja mobilna",
       "main_navigation": "Nawigacja główna",
-      "mobile_nav_item_count": "{count} items",
-      "release_notes": "Release Notes",
+      "mobile_nav_item_count": "{count} elementów",
+      "release_notes": "Informacje o wersji",
       "loading_settings_content": "Ładowanie treści ustawień...",
       "settings_sections_0": "Sekcje ustawień",
       "close_settings": "Zamknij ustawienia",
@@ -100,8 +100,8 @@
       "language_changed_to_newlocale": "Zmieniono język na {0}",
       "switch_to_blank_mode": "Przełącz na tryb {0}",
       "blank_mode_enabled": "Włączono tryb {0}",
-      "workspace": "Workspace",
-      "workspace_context": "Workspace context"
+      "workspace": "Obszar roboczy",
+      "workspace_context": "Kontekst obszaru roboczego"
     }
   }
 }
