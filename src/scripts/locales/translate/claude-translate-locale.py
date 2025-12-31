@@ -2,15 +2,6 @@
 """
 Translate a single locale using Claude CLI.
 
-This script:
-1. Harmonizes a locale (copies English placeholders for missing keys)
-2. Extracts git diff of changed strings only
-3. Loads locale's export-guide.md for translation context
-4. Sends diff to Claude CLI for translation (isolated session)
-5. Parses Claude's JSON output and applies to locale files
-6. Validates JSON syntax
-7. Commits changes with [#I18N] prefix
-
 Usage:
     ./claude-translate-locale.py LOCALE [OPTIONS]
 
@@ -18,16 +9,6 @@ Examples:
     ./claude-translate-locale.py pt_PT
     ./claude-translate-locale.py ru --dry-run
     ./claude-translate-locale.py de_AT --no-commit
-    ./claude-translate-locale.py es --verbose
-
-Prerequisites:
-    - Claude CLI installed and authenticated (`claude --version`)
-    - Python 3 for harmonize script and JSON processing
-
-Notes:
-    - Each invocation is a fresh Claude session (no cross-locale contamination)
-    - Only translates strings in the diff, not the entire file
-    - Preserves all variables: {time}, {count}, {0}, {{var}}, etc.
 """
 
 import argparse
@@ -36,447 +17,362 @@ import re
 import subprocess
 import sys
 import tempfile
+from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 
-# ANSI color codes
 class Colors:
     RED = "\033[0;31m"
     GREEN = "\033[0;32m"
     YELLOW = "\033[1;33m"
-    NC = "\033[0m"  # No Color
+    NC = "\033[0m"
 
 
 def log_info(msg: str) -> None:
-    """Print info message in green."""
     print(f"{Colors.GREEN}[INFO]{Colors.NC} {msg}")
 
 
 def log_warn(msg: str) -> None:
-    """Print warning message in yellow."""
     print(f"{Colors.YELLOW}[WARN]{Colors.NC} {msg}")
 
 
 def log_error(msg: str) -> None:
-    """Print error message in red."""
     print(f"{Colors.RED}[ERROR]{Colors.NC} {msg}", file=sys.stderr)
+
+
+@dataclass
+class TranslationEntry:
+    """A single string to translate."""
+    file: str
+    key: str
+    english: str
+    translated: str = ""
 
 
 def run_command(
     cmd: list[str],
     cwd: Optional[Path] = None,
-    capture: bool = True,
     check: bool = True,
 ) -> subprocess.CompletedProcess:
-    """Run a shell command and return the result."""
-    return subprocess.run(
-        cmd,
-        cwd=cwd,
-        capture_output=capture,
-        text=True,
-        check=check,
-    )
+    return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, check=check)
 
 
 def get_available_locales(locales_dir: Path) -> list[str]:
-    """Get list of available locale directories."""
     if not locales_dir.is_dir():
         return []
     return sorted(
-        d.name
-        for d in locales_dir.iterdir()
+        d.name for d in locales_dir.iterdir()
         if d.is_dir() and not d.name.startswith(".") and d.name != "en"
     )
 
 
-def set_nested(obj: dict, key_path: str, value: Any) -> None:
-    """Set a nested value in a dict using dot notation.
+def extract_entries_from_diff(diff_output: str) -> list[TranslationEntry]:
+    """Extract translation entries from git diff.
 
-    Example: set_nested(d, "web.secrets.key", "value")
+    Parses added lines like: +  "key": "English value",
+    Returns list of TranslationEntry objects.
     """
-    keys = key_path.split(".")
-    for key in keys[:-1]:
-        obj = obj.setdefault(key, {})
-    obj[keys[-1]] = value
+    entries: list[TranslationEntry] = []
+    current_file = None
+
+    # Pattern: +  "key": "value"  or  +  "key": "value",
+    line_pattern = re.compile(r'^\+\s*"([^"]+)"\s*:\s*"([^"]*)"')
+
+    for line in diff_output.splitlines():
+        # Track current file from diff header
+        if line.startswith("diff --git"):
+            match = re.search(r'b/src/locales/[^/]+/([^/]+\.json)', line)
+            if match:
+                current_file = match.group(1)
+
+        # Extract from added lines (skip +++ header)
+        elif line.startswith("+") and not line.startswith("+++"):
+            match = line_pattern.match(line)
+            if match and current_file:
+                key = match.group(1)
+                value = match.group(2)
+
+                # Skip if not English (already translated)
+                if value and is_english(value):
+                    entries.append(TranslationEntry(
+                        file=current_file,
+                        key=key,
+                        english=value,
+                    ))
+
+    return entries
 
 
-def validate_json_file(file_path: Path) -> tuple[bool, str]:
-    """Validate a single JSON file.
+def is_english(value: str) -> bool:
+    """Check if string appears to be English (needs translation)."""
+    if not value.strip():
+        return False
+    # Skip URLs
+    if value.startswith(("http://", "https://", "mailto:")):
+        return False
+    # Skip pure placeholders
+    if re.match(r'^[\{\}0-9a-z_@:\.]+$', value):
+        return False
+    # Check if mostly ASCII (English)
+    ascii_ratio = sum(1 for c in value if ord(c) < 128) / len(value)
+    return ascii_ratio > 0.8
 
-    Returns: (is_valid, error_message)
-    """
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            json.load(f)
-        return True, ""
-    except json.JSONDecodeError as e:
-        return False, f"Line {e.lineno}, Col {e.colno}: {e.msg}"
-    except Exception as e:
-        return False, str(e)
 
+def build_prompt(locale: str, entries: list[TranslationEntry], export_guide: Optional[str]) -> str:
+    """Build prompt with JSON array of entries."""
+    # Convert entries to simple dicts for Claude
+    items = [{"key": e.key, "english": e.english} for e in entries]
 
-def build_prompt(
-    locale: str,
-    diff_output: str,
-    locales_readme: Optional[str],
-    export_guide: Optional[str],
-) -> str:
-    """Build the prompt to send to Claude."""
-    prompt_parts = []
+    prompt = f"""Translate these UI strings from English to {locale} for OneTime Secret.
 
-    # Header with instructions
-    prompt_parts.append("""You are translating locale files for OneTime Secret, a secure message sharing service.
-
-## Your Task
-Translate the English placeholder strings shown in the git diff below into the target language.
-Only translate strings that were added (lines starting with +).
-Preserve all variables exactly: {time}, {count}, {limit}, {0}, {1}, {{var}}, etc.
-
-## Critical Rules
-1. PRESERVE ALL VARIABLES EXACTLY - {time} must stay {time}, not {Zeit} or {tiempo}
-2. Keep HTML tags intact: <a>, <strong>, <br>, etc.
-3. Maintain the same JSON structure
-4. Use terminology from the export-guide.md if provided
-5. For "secret" - use the culturally appropriate term (not always literal translation)
-6. Distinguish: password (account login) vs passphrase (protects individual secrets)
-7. DO NOT translate keys starting with underscore (_README, _context, etc.) - keep in English
-8. Security messages must remain generic per OWASP guidelines
+## Rules
+1. PRESERVE variables exactly: {{time}}, {{count}}, {{0}}, {{1}}, etc.
+2. Keep HTML tags: <a>, <strong>, <br>
+3. "secret" = culturally appropriate term
+4. password (login) vs passphrase (protects secrets)
 
 ## Output Format
-For each file, output the corrected JSON content for ONLY the keys that need translation.
-Use this format:
+Return a JSON array with translations added. Example:
+[
+  {{"key": "example_key", "english": "Hello", "translated": "مرحبا"}},
+  ...
+]
 
-### FILE: path/to/file.json
-```json
-{
-  "key.path.here": "Translated value",
-  "another.key": "Another translation"
-}
-```
-""")
+Return ONLY the JSON array, no markdown, no explanation.
+"""
 
-    # Add locales README for general guidelines
-    if locales_readme:
-        prompt_parts.append("\n## Translation Guidelines (from README.md)")
-        prompt_parts.append("```markdown")
-        prompt_parts.append(locales_readme)
-        prompt_parts.append("```")
-
-    # Add export guide if available
     if export_guide:
-        prompt_parts.append(f"\n## Export Guide for {locale}")
-        prompt_parts.append("```markdown")
-        prompt_parts.append(export_guide)
-        prompt_parts.append("```")
+        prompt += f"\n## Translation Guide\n{export_guide[:2000]}\n"
 
-    # Add the diff
-    prompt_parts.append(f"""
-## Git Diff to Translate
-Target locale: {locale}
+    prompt += f"\n## Strings to Translate\n{json.dumps(items, indent=2, ensure_ascii=False)}"
 
-```diff
-{diff_output}
-```
-
-Now translate the added English strings (+ lines) into {locale}. Output ONLY the translations needed.""")
-
-    return "\n".join(prompt_parts)
+    return prompt
 
 
-def parse_claude_output(output: str, locale: str, locales_dir: Path, verbose: bool = False) -> int:
-    """Parse Claude's output and apply translations to locale files.
+def parse_response(claude_output: str) -> list[dict]:
+    """Parse Claude's JSON array response."""
+    # Try to find JSON array in output
+    # Remove markdown code blocks if present
+    text = claude_output.strip()
+    if "```" in text:
+        match = re.search(r'```(?:json)?\s*(\[.*?\])\s*```', text, re.DOTALL)
+        if match:
+            text = match.group(1)
 
-    Returns the number of translations applied.
-    """
-    # Pattern to match FILE markers and JSON blocks
-    pattern = r"### FILE:\s*(.+?\.json)\s*\n```json\s*\n(.*?)\n```"
-    matches = re.findall(pattern, output, re.DOTALL)
+    # Find the array
+    start = text.find("[")
+    end = text.rfind("]") + 1
+    if start >= 0 and end > start:
+        text = text[start:end]
 
-    if not matches:
-        log_error("No translation blocks found in Claude output")
-        if verbose:
-            log_warn("Raw output preview:")
-            print(output[:1000])
-        return 0
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as e:
+        log_error(f"Failed to parse JSON: {e}")
+        log_warn(f"Raw output:\n{claude_output[:500]}")
+        return []
 
-    total_updated = 0
 
-    for filepath, json_block in matches:
-        # Normalize filepath - remove src/locales/ prefix if present
-        if filepath.startswith("src/locales/"):
-            filepath = filepath.replace("src/locales/", "")
+def apply_translations(
+    locale_dir: Path,
+    entries: list[TranslationEntry],
+    translations: list[dict],
+    verbose: bool = False,
+) -> int:
+    """Apply translations by replacing English strings in files."""
+    # Build lookup: english -> translated
+    trans_map = {t["english"]: t.get("translated", "") for t in translations if t.get("translated")}
 
-        # Extract just the filename
-        filename = Path(filepath).name
-        target_file = locales_dir / locale / filename
+    if verbose:
+        log_info(f"Translation map has {len(trans_map)} entries")
 
-        if not target_file.exists():
-            log_warn(f"Target file not found: {target_file}")
+    # Group entries by file
+    by_file: dict[str, list[TranslationEntry]] = {}
+    for entry in entries:
+        by_file.setdefault(entry.file, []).append(entry)
+
+    total_replaced = 0
+
+    for filename, file_entries in by_file.items():
+        filepath = locale_dir / filename
+        if not filepath.exists():
+            log_warn(f"File not found: {filepath}")
             continue
 
+        content = filepath.read_text(encoding="utf-8")
+        original = content
+        replaced = 0
+
+        for entry in file_entries:
+            if entry.english in trans_map:
+                translated = trans_map[entry.english]
+                # Replace: "English text" -> "Translated text"
+                old = f'"{entry.english}"'
+                new = f'"{translated}"'
+                if old in content:
+                    content = content.replace(old, new, 1)  # Replace first occurrence
+                    replaced += 1
+                    if verbose:
+                        print(f"  {entry.key}: {entry.english} → {translated}")
+
+        if content != original:
+            filepath.write_text(content, encoding="utf-8")
+            log_info(f"Updated {filename}: {replaced} translations")
+            total_replaced += replaced
+
+    return total_replaced
+
+
+def validate_json_files(locale_dir: Path) -> bool:
+    """Validate all JSON files."""
+    valid = True
+    for f in locale_dir.glob("*.json"):
         try:
-            translations = json.loads(json_block)
+            json.loads(f.read_text(encoding="utf-8"))
         except json.JSONDecodeError as e:
-            log_warn(f"Invalid JSON for {filepath}: {e}")
-            continue
-
-        # Load existing file
-        with open(target_file, "r", encoding="utf-8") as f:
-            existing = json.load(f)
-
-        # Apply translations (handles nested keys like "web.secrets.key")
-        updated = 0
-        for key, value in translations.items():
-            try:
-                set_nested(existing, key, value)
-                updated += 1
-            except Exception as e:
-                log_warn(f"Could not set {key}: {e}")
-
-        # Write back
-        with open(target_file, "w", encoding="utf-8") as f:
-            json.dump(existing, f, ensure_ascii=False, indent=2)
-            f.write("\n")
-
-        if verbose or updated > 0:
-            log_info(f"Updated {target_file.name}: {updated} translations")
-
-        total_updated += updated
-
-    return total_updated
+            log_error(f"Invalid JSON in {f.name}: {e}")
+            valid = False
+    return valid
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Translate a single locale using Claude CLI",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-    %(prog)s pt_PT                    # Translate Portuguese (Portugal)
-    %(prog)s ru --dry-run             # Preview without changes
-    %(prog)s de_AT --no-commit        # Apply translations, skip commit
-    %(prog)s es -v                    # Verbose output
-        """,
-    )
-    parser.add_argument("locale", help="Locale code (e.g., pt_PT, ru, de_AT)")
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Preview changes without modifying files or calling Claude",
-    )
-    parser.add_argument(
-        "--no-commit",
-        action="store_true",
-        help="Apply translations but skip git commit",
-    )
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="Verbose output",
-    )
-    parser.add_argument(
-        "--base-locale",
-        default="en",
-        help="Base locale (default: en)",
-    )
-
+    parser = argparse.ArgumentParser(description="Translate locale using Claude CLI")
+    parser.add_argument("locale", help="Locale code (e.g., pt_PT, ru)")
+    parser.add_argument("--dry-run", action="store_true", help="Preview without changes")
+    parser.add_argument("--no-commit", action="store_true", help="Skip git commit")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     args = parser.parse_args()
 
-    # Determine directories
+    # Setup paths
     script_dir = Path(__file__).resolve().parent
-    project_root = script_dir.parents[3]  # translate -> locales -> scripts -> src -> root
+    project_root = script_dir.parents[3]
     locales_dir = project_root / "src" / "locales"
+    locale_dir = locales_dir / args.locale
     harmonize_script = script_dir.parent / "harmonize" / "harmonize-locale-file.py"
 
-    # Validate locale exists
-    locale_dir = locales_dir / args.locale
     if not locale_dir.is_dir():
-        log_error(f"Locale directory not found: {locale_dir}")
+        log_error(f"Locale not found: {locale_dir}")
         available = get_available_locales(locales_dir)
         if available:
-            print(f"Available locales: {', '.join(available)}")
+            print(f"Available: {', '.join(available)}")
         return 1
 
-    # Check for export-guide.md
-    export_guide_path = locale_dir / "export-guide.md"
-    export_guide: Optional[str] = None
-    if export_guide_path.is_file():
-        export_guide = export_guide_path.read_text(encoding="utf-8")
-    else:
-        log_warn(f"No export-guide.md found for {args.locale} - translations may be less accurate")
+    # Load export guide
+    export_guide = None
+    guide_path = locale_dir / "export-guide.md"
+    if guide_path.is_file():
+        export_guide = guide_path.read_text(encoding="utf-8")
 
-    # Check for locales README
-    locales_readme_path = locales_dir / "README.md"
-    locales_readme: Optional[str] = None
-    if locales_readme_path.is_file():
-        locales_readme = locales_readme_path.read_text(encoding="utf-8")
+    log_info(f"Starting translation for: {args.locale}")
 
-    log_info(f"Starting translation for locale: {args.locale}")
-
-    # Step 1: Harmonize locale (copy English for missing keys)
-    log_info("Step 1: Harmonizing locale files...")
+    # Step 1: Harmonize
+    log_info("Step 1: Harmonizing...")
     if not args.dry_run:
         try:
-            result = run_command(
-                ["python3", str(harmonize_script), "-c", args.locale],
-                cwd=project_root,
-            )
-            if args.verbose and result.stdout:
-                print(result.stdout)
+            run_command(["python3", str(harmonize_script), "-c", args.locale], cwd=project_root)
         except subprocess.CalledProcessError as e:
-            log_error(f"Harmonize script failed: {e}")
-            if e.stderr:
-                print(e.stderr, file=sys.stderr)
+            log_error(f"Harmonize failed: {e}")
             return 1
     else:
-        log_info(f"[DRY-RUN] Would run: harmonize-locale-file.py -c {args.locale}")
+        log_info("[DRY-RUN] Would harmonize")
 
-    # Step 2: Check if there are changes to translate
-    try:
-        result = run_command(
-            ["git", "diff", "--name-only", f"src/locales/{args.locale}/"],
-            cwd=project_root,
-            check=False,
-        )
-        changed_files = result.stdout.strip()
-    except Exception as e:
-        log_error(f"Git diff failed: {e}")
-        return 1
-
-    if not changed_files:
-        log_info(f"No changes detected for {args.locale} - already up to date")
+    # Step 2: Extract from diff
+    result = run_command(["git", "diff", f"src/locales/{args.locale}/"], cwd=project_root, check=False)
+    if not result.stdout.strip():
+        log_info("No changes - already up to date")
         return 0
 
-    log_info("Changed files:")
-    for f in changed_files.splitlines():
-        print(f"  {f}")
+    entries = extract_entries_from_diff(result.stdout)
+    if not entries:
+        log_info("No English strings found to translate")
+        return 0
 
-    # Step 3: Generate the diff for Claude
-    result = run_command(
-        ["git", "diff", f"src/locales/{args.locale}/"],
-        cwd=project_root,
-    )
-    diff_output = result.stdout
-    diff_lines = len(diff_output.splitlines())
-    log_info(f"Diff contains {diff_lines} lines of changes")
+    log_info(f"Found {len(entries)} strings to translate")
+    if args.verbose:
+        for e in entries:
+            print(f"  [{e.file}] {e.key}: {e.english}")
 
-    # Step 4: Build the Claude prompt
-    prompt = build_prompt(args.locale, diff_output, locales_readme, export_guide)
+    # Step 3: Build prompt
+    prompt = build_prompt(args.locale, entries, export_guide)
 
     if args.dry_run:
-        log_info("[DRY-RUN] Would send to Claude:")
+        log_info("[DRY-RUN] Prompt preview:")
         print("---")
-        # Show first 50 lines
-        prompt_lines = prompt.splitlines()
-        print("\n".join(prompt_lines[:50]))
-        if len(prompt_lines) > 50:
-            print(f"... (truncated, {diff_lines} lines of diff)")
+        print(prompt[:3000])
         print("---")
         return 0
 
-    # Step 5: Call Claude CLI
-    log_info("Step 2: Sending to Claude for translation...")
-
+    # Step 4: Call Claude
+    log_info("Step 2: Calling Claude...")
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
         f.write(prompt)
         prompt_file = Path(f.name)
 
     try:
-        # Call Claude CLI with the prompt
-        result = subprocess.run(
-            ["claude", "--print", "--dangerously-skip-permissions"],
-            stdin=open(prompt_file, "r"),
-            capture_output=True,
-            text=True,
-            cwd=project_root,
-        )
-
+        with open(prompt_file) as pf:
+            result = subprocess.run(
+                ["claude", "--print", "--dangerously-skip-permissions"],
+                stdin=pf,
+                capture_output=True,
+                text=True,
+                cwd=project_root,
+            )
         if result.returncode != 0:
-            log_error("Claude CLI failed")
-            if result.stderr:
-                print(result.stderr, file=sys.stderr)
-            if result.stdout:
-                print(result.stdout)
+            log_error(f"Claude failed: {result.stderr}")
             return 1
 
         claude_output = result.stdout
-        log_info(f"Claude response received ({len(claude_output.splitlines())} lines)")
+        log_info(f"Got response ({len(claude_output)} chars)")
+
+        if args.verbose:
+            print("--- Claude output ---")
+            print(claude_output[:1000])
+            print("---")
 
     except FileNotFoundError:
-        log_error("Claude CLI not found. Please install it with: npm install -g @anthropic-ai/claude-cli")
-        return 1
-    except Exception as e:
-        log_error(f"Claude CLI failed: {e}")
+        log_error("Claude CLI not found")
         return 1
     finally:
         prompt_file.unlink(missing_ok=True)
 
-    # Step 6: Apply translations
+    # Step 5: Parse response
+    translations = parse_response(claude_output)
+    if not translations:
+        log_error("Failed to parse translations")
+        return 1
+
+    log_info(f"Parsed {len(translations)} translations")
+
+    # Step 6: Apply
     log_info("Step 3: Applying translations...")
-    translations_applied = parse_claude_output(
-        claude_output, args.locale, locales_dir, args.verbose
-    )
+    replaced = apply_translations(locale_dir, entries, translations, args.verbose)
 
-    if translations_applied == 0:
-        log_warn("No translations were applied")
+    if replaced == 0:
+        log_warn("No translations applied")
         return 1
 
-    log_info(f"Applied {translations_applied} translations")
-
-    # Step 7: Validate JSON
+    # Step 7: Validate
     log_info("Step 4: Validating JSON...")
-    validation_failed = False
-    for json_file in locale_dir.glob("*.json"):
-        is_valid, error_msg = validate_json_file(json_file)
-        if not is_valid:
-            log_error(f"Invalid JSON: {json_file}")
-            if error_msg:
-                print(f"  {error_msg}", file=sys.stderr)
-            validation_failed = True
-
-    if validation_failed:
-        log_error("JSON validation failed - not committing")
+    if not validate_json_files(locale_dir):
+        log_error("JSON validation failed")
         return 1
-
-    log_info("All JSON files valid")
+    log_info("JSON valid")
 
     # Step 8: Commit
     if not args.no_commit:
-        log_info("Step 5: Committing changes...")
-        try:
-            # Stage changes
-            run_command(
-                ["git", "add", f"src/locales/{args.locale}/"],
-                cwd=project_root,
-            )
-
-            # Commit with heredoc-style message
-            commit_msg = f"""[#I18N] i18n({args.locale}): Translate harmonized locale files
-
-Automated translation of new/missing keys using Claude.
-"""
-            result = run_command(
-                ["git", "commit", "-m", commit_msg],
-                cwd=project_root,
-                check=False,
-            )
-
-            if result.returncode == 0:
-                log_info(f"Committed changes for {args.locale}")
-            else:
-                log_warn("Nothing to commit (no changes)")
-
-        except Exception as e:
-            log_warn(f"Commit failed: {e}")
+        log_info("Step 5: Committing...")
+        run_command(["git", "add", f"src/locales/{args.locale}/"], cwd=project_root)
+        msg = f"i18n({args.locale}): Translate harmonized locale files"
+        result = run_command(["git", "commit", "-m", msg], cwd=project_root, check=False)
+        if result.returncode == 0:
+            log_info("Committed")
+        else:
+            log_warn("Nothing to commit")
     else:
-        log_info("[NO-COMMIT] Skipping commit step")
+        log_info("[NO-COMMIT] Skipped commit")
 
-    log_info(f"Translation complete for {args.locale}")
-    print()
-    print(f"Review changes with: git diff HEAD~1 src/locales/{args.locale}/")
-
+    log_info(f"Done! Review: git diff HEAD~1 src/locales/{args.locale}/")
     return 0
 
 
