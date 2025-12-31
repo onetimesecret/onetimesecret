@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "API документация",
+      "branding_guide": "Ръководство за брандиране",
+      "customize": "Персонализирай",
+      "plans": "Планове",
       "security": "Сигурност",
       "learn_about_our_security_measures": "Научете повече за нашите мерки за сигурност",
       "view_our_terms_and_conditions": "Прегледайте нашите Общи условия",
@@ -69,7 +73,7 @@
       "mobile_navigation": "Мобилна навигация",
       "main_navigation": "Основна навигация",
       "mobile_nav_item_count": "{count} елемента",
-      "release_notes": "Release Notes",
+      "release_notes": "Бележки за версията",
       "loading_settings_content": "Зареждане на съдържанието на настройките...",
       "settings_sections_0": "Секции с настройки",
       "close_settings": "Затвори настройките",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Промени езика. Текущият език е {0}",
       "language_changed_to_newlocale": "Езикът е променен на {0}",
       "switch_to_blank_mode": "Превключете към {0} режим",
-      "blank_mode_enabled": "{0} режим е активиран"
+      "blank_mode_enabled": "{0} режим е активиран",
+      "workspace": "Работно пространство",
+      "workspace_context": "Контекст на работното пространство"
     }
   }
 }
