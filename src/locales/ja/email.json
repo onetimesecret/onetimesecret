@@ -15,6 +15,27 @@
       "please_verify": "アカウントを確認してください:",
       "postscript1": "このメールは次の宛先に送信されました",
       "postscript2": "このリクエストをしていない場合は、このメールを無視しても問題ありません。"
+    },
+    "organization_invitation": {
+      "subject": "%{organization_name}への招待が届いています",
+      "title": "%{organization_name}に招待されました！",
+      "body": "%{inviter_email}から「%{organization_name}」に%{role_description}として招待されています。",
+      "accept_button": "招待を承諾",
+      "link_instruction": "または、このリンクをコピーして貼り付けてください：",
+      "expiry_notice": "この招待は%{days}日で期限切れになります。",
+      "decline_instruction": "参加を希望されない場合は、このメールを無視するか、招待を辞退してください。",
+      "signature": "デラノ",
+      "postscript": "追伸：このメールは%{invited_email}宛に送信されました。この招待に心当たりがない場合は、このメッセージを無視しても問題ありません。",
+      "roles": {
+        "member": "メンバー",
+        "admin": "管理者"
+      }
+    },
+    "common": {
+      "greeting": "こんにちは、",
+      "thanks": "よろしくお願いいたします。",
+      "unsubscribe": "配信停止",
+      "view_in_browser": "ブラウザで表示"
     }
   }
 }

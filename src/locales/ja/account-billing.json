@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "アップグレードが必要です",
         "viewPlans": "プランを表示",
+        "needTeams": "チーム管理にはIdentity Plus以上が必要です",
         "needCustomDomains": "カスタムドメインにはIdentity Plus以上が必要です",
         "needApiAccess": "APIアクセスにはマルチチームプラン以上が必要です",
-        "needPrioritySupport": "優先サポートにはIdentity Plus以上が必要です",
         "needAuditLogs": "監査ログにはマルチチームプラン以上が必要です"
       },
       "manage_subscription_and_billing": "サブスクリプション、組織、請求設定を管理します",
@@ -37,12 +37,25 @@
         "no_organizations_description": "請求とサブスクリプションを管理するために組織を作成してください",
         "entitlements": {
           "create_secrets": "シークレットを作成",
-          "basic_sharing": "基本的な共有",
-          "custom_domains": "カスタムドメイン",
+          "view_metadata": "メタデータを表示",
           "api_access": "APIアクセス",
+          "custom_domains": "カスタムドメイン",
+          "custom_privacy_defaults": "カスタムプライバシーデフォルト",
+          "extended_default_expiration": "延長デフォルト有効期限",
+          "custom_mail_defaults": "カスタムメールデフォルト",
+          "custom_branding": "カスタムブランディング",
+          "branded_homepage": "ブランドホームページ",
+          "incoming_secrets": "受信シークレット",
+          "manage_orgs": "組織を管理",
+          "manage_teams": "チームを管理",
+          "manage_members": "メンバーを管理",
+          "audit_logs": "監査ログ",
+          "sso": "シングルサインオン",
           "priority_support": "優先サポート",
-          "audit_logs": "監査ログ"
-        }
+          "sla": "サービスレベル契約"
+        },
+        "entitlements_load_error": "機能の詳細を読み込めませんでした",
+        "no_entitlements": "利用可能な機能がありません"
       },
       "plans": {
         "title": "プランを選択",
@@ -61,7 +74,11 @@
         "api_access": "APIアクセス",
         "priority_support": "優先サポート",
         "select_plan": "プランを選択",
-        "contact_sales": "営業に問い合わせ"
+        "contact_sales": "営業に問い合わせ",
+        "custom_needs_title": "ご質問やカスタムのご要望がありますか？",
+        "custom_needs_description": "お気軽にお問い合わせください。ご要望をお聞かせください。",
+        "teams_limit": "{count}チーム | {count}チーム",
+        "members_limit": "チームごとに{count}メンバー | チームごとに{count}メンバー"
       },
       "invoices": {
         "title": "請求履歴",

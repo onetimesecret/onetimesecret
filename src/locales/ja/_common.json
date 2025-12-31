@@ -69,6 +69,7 @@
       "word_confirm": "確認",
       "word_cancel": "キャンセル",
       "word_continue": "続ける",
+      "word_done": "完了",
       "back": "戻る",
       "feedback_text": "あなたの考え、アイデア、または経験を共有してください...",
       "button_send_feedback": "フィードバックを送信",
@@ -160,16 +161,19 @@
       "an_error_occurred": "エラーが発生しました",
       "copy_secret_to_clipboard": "シークレットをクリップボードにコピー",
       "secret_copied_to_clipboard": "シークレットがクリップボードにコピーされました",
-      "press_copy_button_below": "下のコピーボタンを押してください。",
-      "double_check_that_passphrase": "パスフレーズを再度ご確認ください"
+      "double_check_that_passphrase": "パスフレーズを再度ご確認ください",
+      "press_copy_button_below": "下のコピーボタンを押してください。"
     },
     "LABELS": {
       "view_toggle": {
         "show": "表示",
         "hide": "非表示",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "もっと見る",
+        "show_less": "折りたたむ"
       },
+      "enable": "有効化",
+      "disable": "無効化",
+      "stats": "統計",
       "timeline": "タイムライン",
       "lifespan": "有効期間",
       "expiration_time": "有効期限",
@@ -213,9 +217,8 @@
       "create_request_short": "リクエストを作成",
       "create_request": "リクエストリンクを作成",
       "related_settings": "関連設定",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "リンク作成先",
+      "scope_indicator": "{domain}でシークレットを作成中"
     },
     "STATUS": {
       "new": "新規",
@@ -290,6 +293,7 @@
       "verify_account": "アカウント確認",
       "mfa_verify": "二要素認証",
       "email_login": "メールログイン",
+      "accept_invitation": "招待を承諾",
       "secret": "シークレット",
       "metadata": "シークレット詳細",
       "receipt": "シークレット受領証",
@@ -308,6 +312,7 @@
       "profile_settings": "プロフィール設定",
       "preferences_settings": "環境設定",
       "privacy_settings": "プライバシー",
+      "notification_settings": "通知",
       "change_email": "メールアドレス変更",
       "security_overview": "セキュリティ",
       "change_password": "パスワード変更",
@@ -318,7 +323,14 @@
       "advanced_settings": "詳細設定",
       "colonel": "管理",
       "colonel_users": "ユーザー管理",
+      "colonel_secrets": "シークレット管理",
+      "colonel_domains": "カスタムドメイン",
+      "colonel_system": "システム",
       "system_settings": "システム設定",
+      "colonel_maindb": "メインデータベース",
+      "colonel_authdb": "認証データベース",
+      "colonel_banned_ips": "禁止IPアドレス",
+      "colonel_usage": "使用状況エクスポート",
       "colonel_info": "システム情報",
       "not_found": "ページが見つかりません",
       "organizations_settings": "組織",

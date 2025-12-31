@@ -23,6 +23,7 @@
       "description_placeholder": "この組織の目的は何ですか？",
       "contact_email": "請求メール",
       "contact_email_help": "請求および管理通知の主要連絡先",
+      "billing_managed_by_default": "請求とサブスクリプション管理はプライマリワークスペースを通じて行われます。支払い方法と請求書を管理するには、メインのワークスペース設定にアクセスしてください。",
       "select_organization": "組織を選択",
       "not_found": "組織が見つかりません",
       "load_error": "組織の読み込みに失敗しました",
@@ -57,7 +58,86 @@
       "delete": "削除",
       "delete_organization_confirm_title": "組織を削除",
       "delete_organization_confirm_message": "{name}を削除してもよろしいですか？この操作は元に戻せません。",
-      "delete_error": "組織の削除に失敗しました"
+      "delete_error": "組織の削除に失敗しました",
+      "members": {
+        "title": "メンバー",
+        "description": "組織のメンバーと役割を管理します",
+        "member": "メンバー",
+        "name": "名前",
+        "email": "メール",
+        "role": "役割",
+        "joined": "参加日",
+        "actions": "アクション",
+        "no_members": "メンバーが見つかりません",
+        "no_members_description": "この組織にはまだメンバーがいません。",
+        "role_updated": "メンバーの役割が正常に更新されました",
+        "role_update_error": "メンバーの役割の更新に失敗しました",
+        "member_removed": "メンバーを組織から削除しました",
+        "member_remove_error": "メンバーの削除に失敗しました",
+        "remove_member_title": "メンバーを削除",
+        "remove_member_confirm": "{name}をこの組織から削除してもよろしいですか？",
+        "cannot_change_own_role": "自分自身の役割は変更できません",
+        "cannot_remove_self": "自分自身を組織から削除することはできません",
+        "cannot_remove_owner": "組織のオーナーを削除することはできません",
+        "insufficient_permissions": "メンバーを管理する権限がありません",
+        "roles": {
+          "owner": "オーナー",
+          "admin": "管理者",
+          "member": "メンバー"
+        },
+        "role_descriptions": {
+          "owner": "すべての組織設定とメンバーへの完全なアクセス権",
+          "admin": "メンバーとほとんどの組織設定を管理可能",
+          "member": "組織リソースへの基本的なアクセス権"
+        }
+      },
+      "invitations": {
+        "title": "組織への招待",
+        "invite_member": "メンバーを招待",
+        "invite_new_member": "新しいメンバーを招待",
+        "pending_invitations": "保留中の招待",
+        "no_pending_invitations": "保留中の招待はありません",
+        "email_address": "メールアドレス",
+        "email_placeholder": "member@example.com",
+        "role": "役割",
+        "send_invite": "招待を送信",
+        "invite_sent": "招待が正常に送信されました",
+        "invite_error": "招待の送信に失敗しました",
+        "resend": "再送信",
+        "revoke": "取り消し",
+        "resend_success": "招待が正常に再送信されました",
+        "resend_error": "招待の再送信に失敗しました",
+        "revoke_success": "招待が正常に取り消されました",
+        "revoke_error": "招待の取り消しに失敗しました",
+        "invited_by": "招待者",
+        "invited_at": "招待日",
+        "expires_at": "有効期限",
+        "resent_count": "{count}回再送信済み",
+        "resent_count_plural": "{count}回再送信済み",
+        "status": {
+          "pending": "保留中",
+          "accepted": "承諾済み",
+          "declined": "辞退済み",
+          "expired": "期限切れ"
+        },
+        "roles": {
+          "member": "メンバー",
+          "admin": "管理者"
+        },
+        "accept_invitation": "招待を承諾",
+        "decline_invitation": "招待を辞退",
+        "invitation_details": "招待の詳細",
+        "you_are_invited": "以下に招待されています",
+        "invited_as": "招待された役割",
+        "accept_success": "招待を承諾しました",
+        "accept_error": "招待の承諾に失敗しました",
+        "decline_success": "招待を辞退しました",
+        "decline_error": "招待の辞退に失敗しました",
+        "expired_message": "この招待は期限切れです",
+        "invalid_token": "無効または期限切れの招待です",
+        "must_sign_in": "この招待を承諾するにはサインインしてください",
+        "loading_invitation": "招待の詳細を読み込み中"
+      }
     }
   }
 }
