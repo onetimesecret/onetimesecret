@@ -23,6 +23,7 @@
       "description_placeholder": "Mō te aha tēnei whakahaere?",
       "contact_email": "Īmēra Utu",
       "contact_email_help": "Whakapā matua mō te utu me ngā whakamōhio whakahaere",
+      "billing_managed_by_default": "Billing and subscription management is handled through your primary workspace. Visit your main workspace settings to manage payment methods and invoices.",
       "select_organization": "Kōwhiri tētahi whakahaere",
       "not_found": "Kāore i kitea te whakahaere",
       "load_error": "I rahua te uta whakahaere",
@@ -57,7 +58,86 @@
       "delete": "Muku",
       "delete_organization_confirm_title": "Muku Whakahaere",
       "delete_organization_confirm_message": "E tino hiahia ana koe ki te muku i {name}? Kāore tēnei mahi e taea te whakakore.",
-      "delete_error": "I rahua te muku whakahaere"
+      "delete_error": "I rahua te muku whakahaere",
+      "members": {
+        "title": "Members",
+        "description": "Manage organization members and their roles",
+        "member": "Member",
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "joined": "Joined",
+        "actions": "Actions",
+        "no_members": "No members found",
+        "no_members_description": "This organization has no members yet.",
+        "role_updated": "Member role updated successfully",
+        "role_update_error": "Failed to update member role",
+        "member_removed": "Member removed from organization",
+        "member_remove_error": "Failed to remove member",
+        "remove_member_title": "Remove Member",
+        "remove_member_confirm": "Are you sure you want to remove {name} from this organization?",
+        "cannot_change_own_role": "You cannot change your own role",
+        "cannot_remove_self": "You cannot remove yourself from the organization",
+        "cannot_remove_owner": "You cannot remove the organization owner",
+        "insufficient_permissions": "You do not have permission to manage members",
+        "roles": {
+          "owner": "Owner",
+          "admin": "Admin",
+          "member": "Member"
+        },
+        "role_descriptions": {
+          "owner": "Full access to all organization settings and members",
+          "admin": "Can manage members and most organization settings",
+          "member": "Basic access to organization resources"
+        }
+      },
+      "invitations": {
+        "title": "Organization Invitations",
+        "invite_member": "Invite Member",
+        "invite_new_member": "Invite New Member",
+        "pending_invitations": "Pending Invitations",
+        "no_pending_invitations": "No pending invitations",
+        "email_address": "Email Address",
+        "email_placeholder": "member@example.com",
+        "role": "Role",
+        "send_invite": "Send Invitation",
+        "invite_sent": "Invitation sent successfully",
+        "invite_error": "Failed to send invitation",
+        "resend": "Resend",
+        "revoke": "Revoke",
+        "resend_success": "Invitation resent successfully",
+        "resend_error": "Failed to resend invitation",
+        "revoke_success": "Invitation revoked successfully",
+        "revoke_error": "Failed to revoke invitation",
+        "invited_by": "Invited by",
+        "invited_at": "Invited",
+        "expires_at": "Expires",
+        "resent_count": "Resent {count} time",
+        "resent_count_plural": "Resent {count} times",
+        "status": {
+          "pending": "Pending",
+          "accepted": "Accepted",
+          "declined": "Declined",
+          "expired": "Expired"
+        },
+        "roles": {
+          "member": "Member",
+          "admin": "Admin"
+        },
+        "accept_invitation": "Accept Invitation",
+        "decline_invitation": "Decline Invitation",
+        "invitation_details": "Invitation Details",
+        "you_are_invited": "You've been invited to join",
+        "invited_as": "You've been invited as a",
+        "accept_success": "Invitation accepted successfully",
+        "accept_error": "Failed to accept invitation",
+        "decline_success": "Invitation declined",
+        "decline_error": "Failed to decline invitation",
+        "expired_message": "This invitation has expired",
+        "invalid_token": "Invalid or expired invitation",
+        "must_sign_in": "Please sign in to accept this invitation",
+        "loading_invitation": "Loading invitation details"
+      }
     }
   }
 }

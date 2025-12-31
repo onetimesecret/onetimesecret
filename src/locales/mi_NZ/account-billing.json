@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "E Hiahiatia Ana te Whakapai Ake",
         "viewPlans": "Tirohia Ngā Mahere",
+        "needTeams": "Team management requires Identity Plus or higher",
         "needCustomDomains": "Ngā rohe ritenga e hiahiatia ana Identity Plus, neke atu rānei",
         "needApiAccess": "Urunga API e hiahiatia ana te mahere Multi-Team, neke atu rānei",
-        "needPrioritySupport": "Tautoko matua e hiahiatia ana Identity Plus, neke atu rānei",
         "needAuditLogs": "Ngā rārangi arotake e hiahiatia ana te mahere Multi-Team, neke atu rānei"
       },
       "manage_subscription_and_billing": "Whakahaere i tō ohaurunga, ngā whakahaere, me ngā tautuhinga utu",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Waihangahia tētahi whakahaere hei whakahaere i tō utu me te ohaurunga",
         "entitlements": {
           "create_secrets": "Waihanga Karere Huna",
-          "basic_sharing": "Tuari Taketake",
-          "custom_domains": "Ngā Rohe Ritenga",
+          "view_metadata": "View Metadata",
           "api_access": "Urunga API",
+          "custom_domains": "Ngā Rohe Ritenga",
+          "custom_privacy_defaults": "Custom Privacy Defaults",
+          "extended_default_expiration": "Extended Default Expiration",
+          "custom_mail_defaults": "Custom Mail Defaults",
+          "custom_branding": "Custom Branding",
+          "branded_homepage": "Branded Homepage",
+          "incoming_secrets": "Incoming Secrets",
+          "manage_orgs": "Manage Organizations",
+          "manage_teams": "Manage Teams",
+          "manage_members": "Manage Members",
+          "audit_logs": "Ngā Rārangi Arotake",
+          "sso": "Single Sign-On",
           "priority_support": "Tautoko Matua",
-          "audit_logs": "Ngā Rārangi Arotake"
-        }
+          "sla": "Service Level Agreement"
+        },
+        "entitlements_load_error": "Could not load feature details",
+        "no_entitlements": "No features available"
       },
       "plans": {
         "title": "Kōwhiri Mahere",
@@ -61,7 +74,11 @@
         "api_access": "Urunga API",
         "priority_support": "Tautoko matua",
         "select_plan": "Kōwhiri Mahere",
-        "contact_sales": "Whakapā atu ki Ngā Hokohoko"
+        "contact_sales": "Whakapā atu ki Ngā Hokohoko",
+        "custom_needs_title": "Have questions or need something custom?",
+        "custom_needs_description": "We'd love to hear from you. Let us know what you're looking for.",
+        "teams_limit": "{count} team | {count} teams",
+        "members_limit": "{count} member per team | {count} members per team"
       },
       "invoices": {
         "title": "Hītori Utu",
