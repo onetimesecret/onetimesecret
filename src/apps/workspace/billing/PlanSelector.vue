@@ -1,13 +1,14 @@
 <!-- src/apps/workspace/billing/PlanSelector.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import PlanChangeModal from './PlanChangeModal.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
-import { BillingService, type Plan as BillingPlan } from '@/services/billing.service';
+import { BillingService, type Plan as BillingPlan, type SubscriptionStatusResponse } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { BillingInterval } from '@/types/billing';
 import { formatCurrency } from '@/types/billing';
@@ -24,9 +25,24 @@ const isCreatingCheckout = ref(false);
 const isLoadingPlans = ref(false);
 const error = ref('');
 const suggestedPlanId = ref<string | null>(null);
+const successMessage = ref('');
 
 // Plans loaded from API
 const plans = ref<BillingPlan[]>([]);
+
+// Subscription status for plan switching
+const subscriptionStatus = ref<SubscriptionStatusResponse | null>(null);
+const hasActiveSubscription = computed(() => subscriptionStatus.value?.has_active_subscription ?? false);
+
+// Plan change modal state
+const showPlanChangeModal = ref(false);
+const targetPlan = ref<BillingPlan | null>(null);
+
+// Current plan for the modal (find from plans list based on subscription)
+const currentPlanForModal = computed(() => {
+  if (!subscriptionStatus.value?.current_price_id) return null;
+  return plans.value.find(p => p.stripe_price_id === subscriptionStatus.value?.current_price_id) ?? null;
+});
 
 const organizations = computed(() => organizationStore.organizations);
 const selectedOrg = computed(() =>
@@ -190,8 +206,19 @@ const handlePlanSelect = async (plan: BillingPlan) => {
     return;
   }
 
-  isCreatingCheckout.value = true;
+  // Clear any previous messages
   error.value = '';
+  successMessage.value = '';
+
+  // If user has active subscription, show plan change modal instead of checkout
+  if (hasActiveSubscription.value) {
+    targetPlan.value = plan;
+    showPlanChangeModal.value = true;
+    return;
+  }
+
+  // New subscriber flow: redirect to Stripe Checkout
+  isCreatingCheckout.value = true;
 
   try {
     const response = await BillingService.createCheckoutSession(
@@ -215,6 +242,35 @@ const handlePlanSelect = async (plan: BillingPlan) => {
   }
 };
 
+const handlePlanChangeClose = () => {
+  showPlanChangeModal.value = false;
+  targetPlan.value = null;
+};
+
+const handlePlanChangeSuccess = async (newPlan: string) => {
+  showPlanChangeModal.value = false;
+  targetPlan.value = null;
+  successMessage.value = `Successfully switched to ${newPlan}`;
+
+  // Refresh subscription status and organization data
+  const selectedOrganization = organizations.value.find(org => org.id === selectedOrgId.value);
+  if (selectedOrganization) {
+    await loadSubscriptionStatus(selectedOrganization);
+    await organizationStore.fetchOrganizations();
+  }
+};
+
+// Helper to load subscription status with error handling
+const loadSubscriptionStatus = async (org: { extid?: string }) => {
+  if (!org.extid) return;
+  try {
+    subscriptionStatus.value = await BillingService.getSubscriptionStatus(org.extid);
+  } catch (_err) {
+    // Non-fatal: user may not have a subscription yet
+    console.log('[PlanSelector] No active subscription found');
+  }
+};
+
 onMounted(async () => {
   try {
     // Load entitlement definitions and plans in parallel
@@ -229,6 +285,8 @@ onMounted(async () => {
 
     if (organizations.value.length > 0) {
       selectedOrgId.value = organizations.value[0].id;
+      // Load subscription status to determine checkout vs plan change flow
+      await loadSubscriptionStatus(organizations.value[0]);
     }
 
     // Check for upgrade_to query param
@@ -284,6 +342,20 @@ onMounted(async () => {
 
 
       <!-- Organization Selector (hidden - billing uses default org) -->
+
+      <!-- Success Message -->
+      <div v-if="successMessage" class="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
+        <div class="flex">
+          <OIcon
+            collection="heroicons"
+            name="check-circle"
+            class="size-5 text-green-400"
+            aria-hidden="true" />
+          <div class="ml-3">
+            <p class="text-sm font-medium text-green-800 dark:text-green-200">{{ successMessage }}</p>
+          </div>
+        </div>
+      </div>
 
       <!-- Error Alerts -->
       <BasicFormAlerts v-if="error" :error="error" />
@@ -447,5 +519,15 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+
+    <!-- Plan Change Modal (for existing subscribers) -->
+    <PlanChangeModal
+      :open="showPlanChangeModal"
+      :org-ext-id="selectedOrg?.extid ?? ''"
+      :current-plan="currentPlanForModal"
+      :target-plan="targetPlan"
+      @close="handlePlanChangeClose"
+      @success="handlePlanChangeSuccess"
+    />
   </div>
 </template>
