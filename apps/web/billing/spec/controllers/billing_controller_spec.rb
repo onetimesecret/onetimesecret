@@ -558,6 +558,53 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
         expect(last_response.status).to eq(400)
         expect(last_response.body).to include('Already on this plan')
       end
+
+      it 'returns 400 when target price ID is not in plan catalog' do
+        # Stub Stripe::Subscription.retrieve
+        mock_subscription = double('Stripe::Subscription')
+        mock_item = double('SubscriptionItem', price: double(id: current_price_id))
+        allow(mock_subscription).to receive_message_chain(:items, :data, :first).and_return(mock_item)
+        allow(Stripe::Subscription).to receive(:retrieve).and_return(mock_subscription)
+
+        # Stub price_id_to_plan_id to return nil (price not in catalog)
+        allow_any_instance_of(Billing::Controllers::BillingController)
+          .to receive(:price_id_to_plan_id)
+          .with('price_unknown_xyz')
+          .and_return(nil)
+
+        post "/billing/api/org/#{organization.extid}/preview-plan-change", {
+          new_price_id: 'price_unknown_xyz',
+        }.to_json, { 'CONTENT_TYPE' => 'application/json' }
+
+        expect(last_response.status).to eq(400)
+        expect(last_response.body).to include('Invalid price ID')
+      end
+
+      it 'returns 400 when target plan is a legacy plan' do
+        # Stub Stripe::Subscription.retrieve
+        mock_subscription = double('Stripe::Subscription')
+        mock_item = double('SubscriptionItem', price: double(id: current_price_id))
+        allow(mock_subscription).to receive_message_chain(:items, :data, :first).and_return(mock_item)
+        allow(Stripe::Subscription).to receive(:retrieve).and_return(mock_subscription)
+
+        # Stub price_id_to_plan_id to return a plan ID
+        allow_any_instance_of(Billing::Controllers::BillingController)
+          .to receive(:price_id_to_plan_id)
+          .with('price_legacy_plan')
+          .and_return('identity_v0')
+
+        # Stub legacy_plan? to return true for this plan
+        allow(Billing::PlanHelpers).to receive(:legacy_plan?)
+          .with('identity_v0')
+          .and_return(true)
+
+        post "/billing/api/org/#{organization.extid}/preview-plan-change", {
+          new_price_id: 'price_legacy_plan',
+        }.to_json, { 'CONTENT_TYPE' => 'application/json' }
+
+        expect(last_response.status).to eq(400)
+        expect(last_response.body).to include('This plan is not available')
+      end
     end
 
     # Integration tests requiring real Stripe API (VCR cassettes)
@@ -701,6 +748,53 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
         expect(last_response.status).to eq(400)
         expect(last_response.body).to include('Already on this plan')
+      end
+
+      it 'returns 400 when target price ID is not in plan catalog' do
+        # Stub Stripe::Subscription.retrieve
+        mock_subscription = double('Stripe::Subscription')
+        mock_item = double('SubscriptionItem', id: 'si_mock', price: double(id: current_price_id))
+        allow(mock_subscription).to receive_message_chain(:items, :data, :first).and_return(mock_item)
+        allow(Stripe::Subscription).to receive(:retrieve).and_return(mock_subscription)
+
+        # Stub price_id_to_plan_id to return nil (price not in catalog)
+        allow_any_instance_of(Billing::Controllers::BillingController)
+          .to receive(:price_id_to_plan_id)
+          .with('price_unknown_xyz')
+          .and_return(nil)
+
+        post "/billing/api/org/#{organization.extid}/change-plan", {
+          new_price_id: 'price_unknown_xyz',
+        }.to_json, { 'CONTENT_TYPE' => 'application/json' }
+
+        expect(last_response.status).to eq(400)
+        expect(last_response.body).to include('Invalid price ID')
+      end
+
+      it 'returns 400 when target plan is a legacy plan' do
+        # Stub Stripe::Subscription.retrieve
+        mock_subscription = double('Stripe::Subscription')
+        mock_item = double('SubscriptionItem', id: 'si_mock', price: double(id: current_price_id))
+        allow(mock_subscription).to receive_message_chain(:items, :data, :first).and_return(mock_item)
+        allow(Stripe::Subscription).to receive(:retrieve).and_return(mock_subscription)
+
+        # Stub price_id_to_plan_id to return a plan ID
+        allow_any_instance_of(Billing::Controllers::BillingController)
+          .to receive(:price_id_to_plan_id)
+          .with('price_legacy_plan')
+          .and_return('identity_v0')
+
+        # Stub legacy_plan? to return true for this plan
+        allow(Billing::PlanHelpers).to receive(:legacy_plan?)
+          .with('identity_v0')
+          .and_return(true)
+
+        post "/billing/api/org/#{organization.extid}/change-plan", {
+          new_price_id: 'price_legacy_plan',
+        }.to_json, { 'CONTENT_TYPE' => 'application/json' }
+
+        expect(last_response.status).to eq(400)
+        expect(last_response.body).to include('This plan is not available')
       end
 
       it 'requires owner permissions (not just member)' do
