@@ -15,6 +15,27 @@
       "please_verify": "Vänligen verifiera att det är du:",
       "postscript1": "Detta meddelande har skickats till dig",
       "postscript2": "Om du inte har gjort detta, vänligen radera meddelandet. Vi kommer inte att kontakta dig igen."
+    },
+    "organization_invitation": {
+      "subject": "Du har blivit inbjuden att gå med i %{organization_name}",
+      "title": "Du har blivit inbjuden att gå med i %{organization_name}!",
+      "body": "%{inviter_email} har bjudit in dig att gå med i \"%{organization_name}\" som %{role_description}.",
+      "accept_button": "Acceptera inbjudan",
+      "link_instruction": "Eller kopiera och klistra in denna länk:",
+      "expiry_notice": "Denna inbjudan upphör att gälla om %{days} dagar.",
+      "decline_instruction": "Om du inte vill gå med kan du helt enkelt ignorera detta e-postmeddelande eller avböja inbjudan.",
+      "signature": "Delano",
+      "postscript": "P.S. Detta e-postmeddelande skickades till %{invited_email}. Om du inte förväntade dig denna inbjudan kan du ignorera detta meddelande.",
+      "roles": {
+        "member": "en medlem",
+        "admin": "en administratör"
+      }
+    },
+    "common": {
+      "greeting": "Hej,",
+      "thanks": "Tack,",
+      "unsubscribe": "Avprenumerera",
+      "view_in_browser": "Visa i webbläsare"
     }
   }
 }

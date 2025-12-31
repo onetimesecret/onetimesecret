@@ -31,6 +31,7 @@
     "create_another": "Skicka en till hemlighet",
     "tagline1": "Dela känslig information säkert",
     "tagline2": "Håll lösenord och privata data utanför e-post och chattloggar",
-    "end_of_experience_suggestion": "Spara ditt <a href='{receiptUrl}'>kvitto</a> för dina register."
+    "end_of_experience_suggestion": "Spara ditt <a href='{receiptUrl}'>kvitto</a> för dina register.",
+    "receipt_link_text": "kvitto"
   }
 }

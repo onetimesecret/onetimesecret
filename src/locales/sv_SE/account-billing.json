@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Uppgradering krävs",
         "viewPlans": "Visa planer",
+        "needTeams": "Teamhantering kräver Identity Plus eller högre",
         "needCustomDomains": "Behöver du anpassade domäner?",
         "needApiAccess": "Behöver du API-åtkomst?",
-        "needPrioritySupport": "Behöver du prioriterad support?",
         "needAuditLogs": "Behöver du granskningsloggar?"
       },
       "manage_subscription_and_billing": "Hantera prenumeration och fakturering",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Du har inte skapat några organisationer ännu",
         "entitlements": {
           "create_secrets": "Skapa hemligheter",
-          "basic_sharing": "Grundläggande delning",
-          "custom_domains": "Anpassade domäner",
+          "view_metadata": "Visa metadata",
           "api_access": "API-åtkomst",
+          "custom_domains": "Anpassade domäner",
+          "custom_privacy_defaults": "Anpassade sekretessinställningar",
+          "extended_default_expiration": "Förlängd standardutgång",
+          "custom_mail_defaults": "Anpassade e-postinställningar",
+          "custom_branding": "Anpassat varumärke",
+          "branded_homepage": "Varumärkt hemsida",
+          "incoming_secrets": "Inkommande hemligheter",
+          "manage_orgs": "Hantera organisationer",
+          "manage_teams": "Hantera team",
+          "manage_members": "Hantera medlemmar",
+          "audit_logs": "Granskningsloggar",
+          "sso": "Single Sign-On",
           "priority_support": "Prioriterad support",
-          "audit_logs": "Granskningsloggar"
-        }
+          "sla": "Servicenivåavtal"
+        },
+        "entitlements_load_error": "Kunde inte ladda funktionsdetaljer",
+        "no_entitlements": "Inga funktioner tillgängliga"
       },
       "plans": {
         "title": "Planer",
@@ -61,7 +74,11 @@
         "api_access": "API-åtkomst",
         "priority_support": "Prioriterad support",
         "select_plan": "Välj plan",
-        "contact_sales": "Kontakta försäljning"
+        "contact_sales": "Kontakta försäljning",
+        "custom_needs_title": "Har du frågor eller behöver något anpassat?",
+        "custom_needs_description": "Vi vill gärna höra från dig. Berätta vad du letar efter.",
+        "teams_limit": "{count} team | {count} team",
+        "members_limit": "{count} medlem per team | {count} medlemmar per team"
       },
       "invoices": {
         "title": "Fakturor",

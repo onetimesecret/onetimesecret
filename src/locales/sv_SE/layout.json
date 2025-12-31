@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "API-dokumentation",
+      "branding_guide": "Varumärkesguide",
+      "customize": "Anpassa",
+      "plans": "Planer",
       "security": "Säkerhet",
       "learn_about_our_security_measures": "Läs om våra säkerhetsåtgärder",
       "view_our_terms_and_conditions": "Visa våra användarvillkor",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Ändra språk. Nuvarande språk är {0}",
       "language_changed_to_newlocale": "Språk ändrat till {0}",
       "switch_to_blank_mode": "Byt till {0}-läge",
-      "blank_mode_enabled": "{0}-läge aktiverat"
+      "blank_mode_enabled": "{0}-läge aktiverat",
+      "workspace": "Arbetsyta",
+      "workspace_context": "Arbetsyteskontext"
     }
   }
 }

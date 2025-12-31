@@ -69,6 +69,7 @@
       "word_confirm": "Bekräfta",
       "word_cancel": "Avbryt",
       "word_continue": "Fortsätt",
+      "word_done": "Klart",
       "back": "Tillbaka",
       "feedback_text": "Har du en fråga eller feedback?",
       "button_send_feedback": "Skicka feedback",
@@ -160,8 +161,8 @@
       "an_error_occurred": "Ett fel inträffade",
       "copy_secret_to_clipboard": "Kopiera hemlighet till urklipp",
       "secret_copied_to_clipboard": "Hemlighet kopierad till urklipp",
-      "press_copy_button_below": "Tryck på kopieringsknappen nedan.",
-      "double_check_that_passphrase": "Dubbelkolla den lösenfrasen"
+      "double_check_that_passphrase": "Dubbelkolla den lösenfrasen",
+      "press_copy_button_below": "Tryck på kopieringsknappen nedan."
     },
     "LABELS": {
       "view_toggle": {
@@ -170,6 +171,9 @@
         "show_more": "Visa mer",
         "show_less": "Visa mindre"
       },
+      "enable": "Aktivera",
+      "disable": "Inaktivera",
+      "stats": "Statistik",
       "timeline": "Tidslinje",
       "lifespan": "Livslängd",
       "expiration_time": "Giltighetstid",
@@ -213,9 +217,8 @@
       "create_request_short": "Skapa förfrågan",
       "create_request": "Skapa förfrågningslänk",
       "related_settings": "Relaterade inställningar",
-      "enable": "Aktivera",
-      "disable": "Inaktivera",
-      "stats": "Statistik"
+      "creating_links_for": "Skapar länkar för",
+      "scope_indicator": "Skapar hemligheter i {domain}"
     },
     "STATUS": {
       "new": "Ny",
@@ -290,6 +293,7 @@
       "verify_account": "Verifiera konto",
       "mfa_verify": "Verifiera tvåfaktorsautentisering",
       "email_login": "E-postinloggning",
+      "accept_invitation": "Acceptera inbjudan",
       "secret": "Hemlighet",
       "metadata": "Metadata",
       "receipt": "Kvitto",
@@ -308,6 +312,7 @@
       "profile_settings": "Profilinställningar",
       "preferences_settings": "Preferensinställningar",
       "privacy_settings": "Sekretessinställningar",
+      "notification_settings": "Aviseringar",
       "change_email": "Ändra e-post",
       "security_overview": "Säkerhetsöversikt",
       "change_password": "Ändra lösenord",
@@ -318,7 +323,14 @@
       "advanced_settings": "Avancerade inställningar",
       "colonel": "Colonel",
       "colonel_users": "Colonel-användare",
+      "colonel_secrets": "Hemlighetshantering",
+      "colonel_domains": "Anpassade domäner",
+      "colonel_system": "System",
       "system_settings": "Systeminställningar",
+      "colonel_maindb": "Huvuddatabas",
+      "colonel_authdb": "Autentiseringsdatabas",
+      "colonel_banned_ips": "Blockerade IP-adresser",
+      "colonel_usage": "Användningsexport",
       "colonel_info": "Colonel-information",
       "not_found": "Hittades inte",
       "organizations_settings": "Organisationsinställningar",
