@@ -44,7 +44,7 @@ RSpec.describe 'Billing::Logic::Welcome::ProcessCheckoutSession', :billing do
     )
   end
 
-  let(:params) { { session_id: session_id } }
+  let(:params) { { 'session_id' => session_id } }
   let(:locale) { 'en' }
 
   describe '#raise_concerns' do
