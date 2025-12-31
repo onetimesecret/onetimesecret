@@ -280,12 +280,12 @@ export type ZodLenientExtId = z.infer<typeof lenientExtIdSchema>;
  */
 export function assertExtId(value: string, context?: string): asserts value is ExtId {
   if (!looksLikeExtId(value)) {
-    const msg = context
-      ? `[${context}] Expected ExtId, got "${value}" which looks like an internal ID`
-      : `Expected ExtId, got "${value}"`;
-    console.warn(msg);
-    // In development mode, throw to surface the issue early
+    // Only log/throw in development to avoid exposing ID values in production logs
     if (import.meta.env.DEV) {
+      const msg = context
+        ? `[${context}] Expected ExtId, got "${value}" which looks like an internal ID`
+        : `Expected ExtId, got "${value}"`;
+      console.warn(msg);
       throw new Error(msg);
     }
   }
@@ -298,12 +298,12 @@ export function assertExtId(value: string, context?: string): asserts value is E
  */
 export function assertNotInUrl(value: string, urlPattern: string, context?: string): void {
   if (urlPattern.includes(value) && looksLikeObjId(value)) {
-    const msg = context
-      ? `[${context}] Internal ID "${value}" found in URL pattern - use ExtId instead`
-      : `Internal ID "${value}" found in URL pattern - use ExtId instead`;
-    console.error(msg);
-    // In development mode, throw to surface the issue early
+    // Only log/throw in development to avoid exposing ID values in production logs
     if (import.meta.env.DEV) {
+      const msg = context
+        ? `[${context}] Internal ID "${value}" found in URL pattern - use ExtId instead`
+        : `Internal ID "${value}" found in URL pattern - use ExtId instead`;
+      console.error(msg);
       throw new Error(msg);
     }
   }
