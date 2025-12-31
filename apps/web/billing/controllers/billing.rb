@@ -443,6 +443,13 @@ module Billing
           return json_error('This plan is not available', status: 400)
         end
 
+        # Generate idempotency key to prevent duplicate plan changes from
+        # network retries. Uses 5-minute windows (300 seconds) so repeated
+        # identical requests within the same window are deduplicated by Stripe.
+        idempotency_key = Digest::SHA256.hexdigest(
+          "plan_change:#{org.stripe_subscription_id}:#{new_price_id}:#{Time.now.to_i / 300}",
+        )
+
         # Execute the plan change
         updated_subscription = Stripe::Subscription.update(
           org.stripe_subscription_id,
@@ -453,6 +460,7 @@ module Billing
             }],
             proration_behavior: 'create_prorations',
           },
+          { idempotency_key: idempotency_key },
         )
 
         # Update local records immediately (webhook will also fire as backup)
@@ -463,6 +471,7 @@ module Billing
           old_price_id: current_item.price.id,
           new_price_id: new_price_id,
           new_plan: org.planid,
+          idempotency_key: idempotency_key[0..7], # Log prefix for debugging
         }
 
         json_response({
