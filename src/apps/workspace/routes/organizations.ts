@@ -8,7 +8,8 @@
  */
 
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
-import { RouteRecordRaw } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
+import type { ScopesAvailable } from '@/types/router';
 
 const standardLayoutProps = {
   displayMasthead: true,
@@ -20,6 +21,9 @@ const standardLayoutProps = {
   showSidebar: false,
 } as const;
 
+const scopesOrgShowDomainHide: ScopesAvailable = { organization: 'show', domain: 'hide' };
+const scopesOrgLockedDomainHide: ScopesAvailable = { organization: 'locked', domain: 'hide' };
+
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/org',
@@ -30,6 +34,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesOrgShowDomainHide,
     },
   },
   // Redirect /org/domains to /domains to prevent it being caught by :extid
@@ -46,6 +51,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesOrgLockedDomainHide,
     },
   },
   {
@@ -57,6 +63,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesOrgLockedDomainHide,
     },
     props: true,
   },

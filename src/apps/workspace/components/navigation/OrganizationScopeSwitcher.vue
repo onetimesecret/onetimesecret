@@ -25,6 +25,18 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
+/**
+ * Props for controlling switcher behavior from parent
+ */
+interface Props {
+  /** When true, switcher shows current org but dropdown is disabled */
+  locked?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  locked: false,
+});
+
 const { t } = useI18n();
 const router = useRouter();
 const organizationStore = useOrganizationStore();
@@ -115,7 +127,13 @@ const navigateToManageOrganizations = (): void => {
     v-slot="{ open }">
     <!-- Trigger Button -->
     <MenuButton
-      class="group inline-flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-offset-gray-900"
+      class="group inline-flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:focus:ring-offset-gray-900"
+      :class="[
+        props.locked
+          ? 'cursor-default opacity-75'
+          : 'hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white',
+      ]"
+      :disabled="props.locked"
       :aria-label="t('web.organizations.select_organization')">
       <!-- Organization Avatar -->
       <span
@@ -144,8 +162,15 @@ const navigateToManageOrganizations = (): void => {
         }}
       </span>
 
-      <!-- Chevron -->
+      <!-- Chevron or Lock icon -->
       <OIcon
+        v-if="props.locked"
+        collection="heroicons"
+        name="lock-closed"
+        class="size-4 text-gray-400"
+        aria-hidden="true" />
+      <OIcon
+        v-else
         collection="heroicons"
         :name="open ? 'chevron-up-solid' : 'chevron-down-solid'"
         class="size-4 text-gray-400 transition-transform"

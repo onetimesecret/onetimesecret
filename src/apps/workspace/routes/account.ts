@@ -1,7 +1,8 @@
 // src/apps/workspace/routes/account.ts
 
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
-import { RouteRecordRaw } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
+import type { ScopesAvailable } from '@/types/router';
 
 const standardLayoutProps = {
   displayMasthead: true,
@@ -13,6 +14,8 @@ const standardLayoutProps = {
   showSidebar: false,
 } as const;
 
+const scopesHideBoth: ScopesAvailable = { organization: 'hide', domain: 'hide' };
+
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/account',
@@ -23,6 +26,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   {
@@ -34,6 +38,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   {
@@ -45,6 +50,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   {
@@ -56,6 +62,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   {
@@ -67,6 +74,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   {
@@ -86,6 +94,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   {
@@ -97,6 +106,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   {
@@ -108,6 +118,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   {
@@ -119,6 +130,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   {
@@ -130,6 +142,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   {
@@ -141,6 +154,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   {
@@ -152,6 +166,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   {
@@ -163,6 +178,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   {
@@ -174,6 +190,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   {
@@ -185,6 +202,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   {
@@ -196,6 +214,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: scopesHideBoth,
     },
   },
   // Legacy route for backward compatibility
