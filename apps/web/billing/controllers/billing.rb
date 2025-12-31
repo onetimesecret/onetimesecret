@@ -336,8 +336,14 @@ module Billing
           return json_error('Already on this plan', status: 400)
         end
 
+        # Guard: unknown price ID (not in our plan catalog)
+        target_plan_id = price_id_to_plan_id(new_price_id)
+        if target_plan_id.nil?
+          return json_error('Invalid price ID', status: 400)
+        end
+
         # Guard: legacy plan
-        if Billing::PlanHelpers.legacy_plan?(price_id_to_plan_id(new_price_id))
+        if Billing::PlanHelpers.legacy_plan?(target_plan_id)
           return json_error('This plan is not available', status: 400)
         end
 
@@ -426,8 +432,14 @@ module Billing
           return json_error('Already on this plan', status: 400)
         end
 
+        # Guard: unknown price ID (not in our plan catalog)
+        target_plan_id = price_id_to_plan_id(new_price_id)
+        if target_plan_id.nil?
+          return json_error('Invalid price ID', status: 400)
+        end
+
         # Guard: legacy plan
-        if Billing::PlanHelpers.legacy_plan?(price_id_to_plan_id(new_price_id))
+        if Billing::PlanHelpers.legacy_plan?(target_plan_id)
           return json_error('This plan is not available', status: 400)
         end
 
