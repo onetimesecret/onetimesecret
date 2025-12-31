@@ -11,6 +11,8 @@ http_interactions:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics":{"request_id":"req_Aco6x4SedNkrr2","request_duration_ms":118}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -29,7 +31,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Mon, 29 Dec 2025 05:18:58 GMT
+      - Wed, 31 Dec 2025 06:07:59 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -52,7 +54,7 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=NIWXyzour6qPe6jdQ1pcJmyncrM5m3FYhM3cUlHV0PE8r5yiWwei8kTuRaCM_PjTzKkkBJnpqizhYAQI
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=bOyv7VW1juJWPN_KOK5YCerRwZ7PHZuVjHCyj32qEfTmfIl_Dnj5_9hNe6d6yVFn2PzK_jXZQFiaWgCT
       Stripe-Version:
       - "<STRIPE_VERSION>"
       Vary:
@@ -74,9 +76,9 @@ http_interactions:
             "doc_url": "https://stripe.com/docs/error-codes/resource-missing",
             "message": "No such customer: 'cus_invalid'",
             "param": "customer",
-            "request_log_url": "https://dashboard.stripe.com/test/logs/req_QFUT9HkWeCN2hX?t=1766985538",
+            "request_log_url": "https://dashboard.stripe.com/test/logs/req_UYfxR2fQbVZNc7?t=1767161279",
             "type": "invalid_request_error"
           }
         }
-  recorded_at: Mon, 29 Dec 2025 05:18:58 GMT
+  recorded_at: Wed, 31 Dec 2025 06:07:59 GMT
 recorded_with: VCR 6.3.1

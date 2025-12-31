@@ -131,6 +131,11 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     end
 
     it 'returns subscription data when organization has active subscription', :vcr do
+      # Requires STRIPE_TEST_PRICE_ID env var with a real price from your Stripe dashboard
+      # Run: STRIPE_TEST_PRICE_ID=price_xxx bundle exec rspec ...
+      test_price_id = ENV['STRIPE_TEST_PRICE_ID']
+      skip 'Set STRIPE_TEST_PRICE_ID env var with a real Stripe price ID' unless test_price_id
+
       # Create Stripe customer with payment method
       stripe_customer = Stripe::Customer.create(email: customer.email)
       payment_method = Stripe::PaymentMethod.create(
@@ -144,7 +149,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       subscription = Stripe::Subscription.create(
         customer: stripe_customer.id,
-        items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test') }],
+        items: [{ price: test_price_id }],
       )
 
       organization.update_from_stripe_subscription(subscription)
@@ -287,14 +292,17 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       expect(last_response.status).to eq(200)
 
-      data    = JSON.parse(last_response.body)
+      data = JSON.parse(last_response.body)
       session = Stripe::Checkout::Session.retrieve(data['session_id'])
 
-      expect(session.subscription_data['metadata']).to include(
-        'orgid' => organization.objid,
-        'tier' => tier,
-        'external_id' => customer.extid,
-      )
+      # Verify the session was created correctly
+      expect(session.mode).to eq('subscription')
+      expect(session.client_reference_id).to eq(organization.objid)
+
+      # Note: subscription_data.metadata is a write-only parameter passed to
+      # the subscription when created. It's not returned on session retrieval.
+      # The metadata will appear on the actual Subscription object after
+      # checkout completion, which is verified via webhook processing tests.
     end
 
     it 'uses idempotency key to prevent duplicates', :vcr do
@@ -359,16 +367,23 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
     end
 
     it 'returns list of invoices for organization', :vcr do
-      # Create Stripe customer and invoice
-      stripe_customer                 = Stripe::Customer.create(email: organization.billing_email)
+      # Create Stripe customer with email (required for invoices)
+      customer_email = organization.billing_email || "test-#{SecureRandom.hex(4)}@example.com"
+      stripe_customer = Stripe::Customer.create(email: customer_email)
       organization.stripe_customer_id = stripe_customer.id
       organization.save
 
-      # Create an invoice
+      # Create an invoice item first, then the invoice
+      Stripe::InvoiceItem.create(
+        customer: stripe_customer.id,
+        amount: 1000,
+        currency: 'usd',
+        description: 'Test invoice item'
+      )
+
       Stripe::Invoice.create(
         customer: stripe_customer.id,
-        collection_method: 'send_invoice',
-        days_until_due: 30,
+        auto_advance: false  # Don't finalize automatically
       )
 
       get "/billing/api/org/#{organization.extid}/invoices"

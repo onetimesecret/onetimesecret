@@ -5,450 +5,12 @@ http_interactions:
     uri: https://api.stripe.com/v1/customers
     body:
       encoding: UTF-8
-      string: email=billing-test-eecbcc1d%40example.com
-    headers:
-      User-Agent:
-      - Stripe/v1 RubyBindings/17.2.0
-      Authorization:
-      - "<STRIPE_API_KEY>"
-      X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_8LBq2ga3gkTAVr","request_duration_ms":166}}'
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-      X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
-        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
-        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
-      Content-Type:
-      - application/x-www-form-urlencoded
-      Accept-Encoding:
-      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
-      Accept:
-      - "*/*"
-  response:
-    status:
-      code: 200
-      message: OK
-    headers:
-      Server:
-      - nginx
-      Date:
-      - Thu, 25 Dec 2025 12:06:03 GMT
-      Content-Type:
-      - application/json
-      Content-Length:
-      - '673'
-      Connection:
-      - keep-alive
-      Access-Control-Allow-Credentials:
-      - 'true'
-      Access-Control-Allow-Methods:
-      - GET, HEAD, PUT, PATCH, POST, DELETE
-      Access-Control-Allow-Origin:
-      - "*"
-      Access-Control-Expose-Headers:
-      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
-        X-Stripe-Privileged-Session-Required
-      Access-Control-Max-Age:
-      - '300'
-      Cache-Control:
-      - no-cache, no-store
-      Content-Security-Policy:
-      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
-        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=Lr6JZfvemwl_-hzezkRfP5PAyE0TMPtQWpmOt2WEaX9Zh39P6IjBbbJOazeED_3G-_CdNRdzmBEE0nlO
-      Idempotency-Key:
-      - 8f7cca72-a4bb-47c2-ac40-113d97881c96
-      Original-Request:
-      - req_HZGVaGd89CYwI0
-      Stripe-Should-Retry:
-      - 'false'
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-      Vary:
-      - Origin
-      X-Stripe-Priority-Routing-Enabled:
-      - 'true'
-      X-Stripe-Routing-Context-Priority-Tier:
-      - api-testmode
-      X-Wc:
-      - ABGHIJ
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains; preload
-    body:
-      encoding: UTF-8
-      string: |-
-        {
-          "id": "cus_TfYP3eBZLfz73B",
-          "object": "customer",
-          "address": null,
-          "balance": 0,
-          "created": 1766664362,
-          "currency": null,
-          "customer_account": null,
-          "default_source": null,
-          "delinquent": false,
-          "description": null,
-          "discount": null,
-          "email": "billing-test-eecbcc1d@example.com",
-          "invoice_prefix": "DRSBMO85",
-          "invoice_settings": {
-            "custom_fields": null,
-            "default_payment_method": null,
-            "footer": null,
-            "rendering_options": null
-          },
-          "livemode": false,
-          "metadata": {},
-          "name": null,
-          "next_invoice_sequence": 1,
-          "phone": null,
-          "preferred_locales": [],
-          "shipping": null,
-          "tax_exempt": "none",
-          "test_clock": null
-        }
-  recorded_at: Thu, 25 Dec 2025 12:06:02 GMT
-- request:
-    method: post
-    uri: https://api.stripe.com/v1/payment_methods/pm_1SiDItH54PcLeqtY8atJf3W7/attach
-    body:
-      encoding: UTF-8
-      string: customer=cus_TfYP3eBZLfz73B
-    headers:
-      User-Agent:
-      - Stripe/v1 RubyBindings/17.2.0
-      Authorization:
-      - "<STRIPE_API_KEY>"
-      X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_723UAbcaPQKTLL","request_duration_ms":184}}'
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-      X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
-        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
-        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
-      Content-Type:
-      - application/x-www-form-urlencoded
-      Accept-Encoding:
-      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
-      Accept:
-      - "*/*"
-  response:
-    status:
-      code: 200
-      message: OK
-    headers:
-      Server:
-      - nginx
-      Date:
-      - Thu, 25 Dec 2025 12:06:03 GMT
-      Content-Type:
-      - application/json
-      Content-Length:
-      - '1094'
-      Connection:
-      - keep-alive
-      Access-Control-Allow-Credentials:
-      - 'true'
-      Access-Control-Allow-Methods:
-      - GET, HEAD, PUT, PATCH, POST, DELETE
-      Access-Control-Allow-Origin:
-      - "*"
-      Access-Control-Expose-Headers:
-      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
-        X-Stripe-Privileged-Session-Required
-      Access-Control-Max-Age:
-      - '300'
-      Cache-Control:
-      - no-cache, no-store
-      Content-Security-Policy:
-      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
-        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=Lr6JZfvemwl_-hzezkRfP5PAyE0TMPtQWpmOt2WEaX9Zh39P6IjBbbJOazeED_3G-_CdNRdzmBEE0nlO
-      Idempotency-Key:
-      - e8112473-380c-4c9d-b898-2f365490a441
-      Original-Request:
-      - req_cOAFMjdwz9QQRQ
-      Stripe-Should-Retry:
-      - 'false'
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-      Vary:
-      - Origin
-      X-Stripe-Priority-Routing-Enabled:
-      - 'true'
-      X-Stripe-Routing-Context-Priority-Tier:
-      - api-testmode
-      X-Wc:
-      - ABGHIJ
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains; preload
-    body:
-      encoding: UTF-8
-      string: |-
-        {
-          "id": "pm_1SiDItH54PcLeqtY8atJf3W7",
-          "object": "payment_method",
-          "allow_redisplay": "unspecified",
-          "billing_details": {
-            "address": {
-              "city": null,
-              "country": null,
-              "line1": null,
-              "line2": null,
-              "postal_code": null,
-              "state": null
-            },
-            "email": null,
-            "name": null,
-            "phone": null,
-            "tax_id": null
-          },
-          "card": {
-            "brand": "visa",
-            "checks": {
-              "address_line1_check": null,
-              "address_postal_code_check": null,
-              "cvc_check": "pass"
-            },
-            "country": "US",
-            "display_brand": "visa",
-            "exp_month": 12,
-            "exp_year": 2026,
-            "fingerprint": "NGrtdUhnYFr7yg93",
-            "funding": "credit",
-            "generated_from": null,
-            "last4": "4242",
-            "networks": {
-              "available": [
-                "visa"
-              ],
-              "preferred": null
-            },
-            "regulated_status": "unregulated",
-            "three_d_secure_usage": {
-              "supported": true
-            },
-            "wallet": null
-          },
-          "created": 1766664363,
-          "customer": "cus_TfYP3eBZLfz73B",
-          "customer_account": null,
-          "livemode": false,
-          "metadata": {},
-          "type": "card"
-        }
-  recorded_at: Thu, 25 Dec 2025 12:06:03 GMT
-- request:
-    method: post
-    uri: https://api.stripe.com/v1/customers/cus_TfYP3eBZLfz73B
-    body:
-      encoding: UTF-8
-      string: invoice_settings[default_payment_method]=pm_1SiDItH54PcLeqtY8atJf3W7
-    headers:
-      User-Agent:
-      - Stripe/v1 RubyBindings/17.2.0
-      Authorization:
-      - "<STRIPE_API_KEY>"
-      X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_cOAFMjdwz9QQRQ","request_duration_ms":445}}'
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-      X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
-        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
-        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
-      Content-Type:
-      - application/x-www-form-urlencoded
-      Accept-Encoding:
-      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
-      Accept:
-      - "*/*"
-  response:
-    status:
-      code: 200
-      message: OK
-    headers:
-      Server:
-      - nginx
-      Date:
-      - Thu, 25 Dec 2025 12:06:03 GMT
-      Content-Type:
-      - application/json
-      Content-Length:
-      - '698'
-      Connection:
-      - keep-alive
-      Access-Control-Allow-Credentials:
-      - 'true'
-      Access-Control-Allow-Methods:
-      - GET, HEAD, PUT, PATCH, POST, DELETE
-      Access-Control-Allow-Origin:
-      - "*"
-      Access-Control-Expose-Headers:
-      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
-        X-Stripe-Privileged-Session-Required
-      Access-Control-Max-Age:
-      - '300'
-      Cache-Control:
-      - no-cache, no-store
-      Content-Security-Policy:
-      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
-        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=Lr6JZfvemwl_-hzezkRfP5PAyE0TMPtQWpmOt2WEaX9Zh39P6IjBbbJOazeED_3G-_CdNRdzmBEE0nlO
-      Idempotency-Key:
-      - ef6867fb-20cd-4a6e-8ff9-69b453f8d452
-      Original-Request:
-      - req_lRCISlqrsefcTM
-      Stripe-Should-Retry:
-      - 'false'
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-      Vary:
-      - Origin
-      X-Stripe-Priority-Routing-Enabled:
-      - 'true'
-      X-Stripe-Routing-Context-Priority-Tier:
-      - api-testmode
-      X-Wc:
-      - ABGHIJ
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains; preload
-    body:
-      encoding: UTF-8
-      string: |-
-        {
-          "id": "cus_TfYP3eBZLfz73B",
-          "object": "customer",
-          "address": null,
-          "balance": 0,
-          "created": 1766664362,
-          "currency": null,
-          "customer_account": null,
-          "default_source": null,
-          "delinquent": false,
-          "description": null,
-          "discount": null,
-          "email": "billing-test-eecbcc1d@example.com",
-          "invoice_prefix": "DRSBMO85",
-          "invoice_settings": {
-            "custom_fields": null,
-            "default_payment_method": "pm_1SiDItH54PcLeqtY8atJf3W7",
-            "footer": null,
-            "rendering_options": null
-          },
-          "livemode": false,
-          "metadata": {},
-          "name": null,
-          "next_invoice_sequence": 1,
-          "phone": null,
-          "preferred_locales": [],
-          "shipping": null,
-          "tax_exempt": "none",
-          "test_clock": null
-        }
-  recorded_at: Thu, 25 Dec 2025 12:06:03 GMT
-- request:
-    method: post
-    uri: https://api.stripe.com/v1/subscriptions
-    body:
-      encoding: UTF-8
-      string: customer=cus_TfYP3eBZLfz73B&items[0][price]=price_test
-    headers:
-      User-Agent:
-      - Stripe/v1 RubyBindings/17.2.0
-      Authorization:
-      - "<STRIPE_API_KEY>"
-      X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_lRCISlqrsefcTM","request_duration_ms":226}}'
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-      X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.7 p58 (2025-10-08)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
-        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
-        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
-      Content-Type:
-      - application/x-www-form-urlencoded
-      Accept-Encoding:
-      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
-      Accept:
-      - "*/*"
-  response:
-    status:
-      code: 400
-      message: Bad Request
-    headers:
-      Server:
-      - nginx
-      Date:
-      - Thu, 25 Dec 2025 12:06:04 GMT
-      Content-Type:
-      - application/json
-      Content-Length:
-      - '335'
-      Connection:
-      - keep-alive
-      Access-Control-Allow-Credentials:
-      - 'true'
-      Access-Control-Allow-Methods:
-      - GET, HEAD, PUT, PATCH, POST, DELETE
-      Access-Control-Allow-Origin:
-      - "*"
-      Access-Control-Expose-Headers:
-      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
-        X-Stripe-Privileged-Session-Required
-      Access-Control-Max-Age:
-      - '300'
-      Cache-Control:
-      - no-cache, no-store
-      Content-Security-Policy:
-      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
-        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=Lr6JZfvemwl_-hzezkRfP5PAyE0TMPtQWpmOt2WEaX9Zh39P6IjBbbJOazeED_3G-_CdNRdzmBEE0nlO
-      Idempotency-Key:
-      - 92b56776-a838-4ad5-9c5c-a4961faea124
-      Original-Request:
-      - req_fYsD1WtXAzPiAJ
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-      Vary:
-      - Origin
-      X-Stripe-Priority-Routing-Enabled:
-      - 'true'
-      X-Stripe-Routing-Context-Priority-Tier:
-      - api-testmode
-      X-Wc:
-      - ABGHIJ
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains; preload
-    body:
-      encoding: UTF-8
-      string: |
-        {
-          "error": {
-            "code": "resource_missing",
-            "doc_url": "https://stripe.com/docs/error-codes/resource-missing",
-            "message": "No such price: 'price_test'",
-            "param": "items[0][price]",
-            "request_log_url": "https://dashboard.stripe.com/test/logs/req_fYsD1WtXAzPiAJ?t=1766664363",
-            "type": "invalid_request_error"
-          }
-        }
-  recorded_at: Thu, 25 Dec 2025 12:06:04 GMT
-- request:
-    method: post
-    uri: https://api.stripe.com/v1/customers
-    body:
-      encoding: UTF-8
       string: email=billing-test-8a7757ed%40example.com
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
-      X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_gc62WKZ5Po8RJZ","request_duration_ms":302}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -469,7 +31,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Mon, 29 Dec 2025 05:18:56 GMT
+      - Wed, 31 Dec 2025 06:29:40 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -492,11 +54,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=NIWXyzour6qPe6jdQ1pcJmyncrM5m3FYhM3cUlHV0PE8r5yiWwei8kTuRaCM_PjTzKkkBJnpqizhYAQI
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=ORqCXMb69-N3bqa0O18U8x8j4v__XjOQaAG6E33XOXjJKtfXr9sdQqiTwzanC4McBGqXcCjFX86_mCl_
       Idempotency-Key:
-      - 95dc2086-e325-4140-b2c3-a81e76b6cd46
+      - accce889-b217-4a19-ab85-e5fd1d398d79
       Original-Request:
-      - req_eIluv3eBboAAU1
+      - req_BXjbWPioDklpAk
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -515,11 +77,11 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TgwkXQdwGow1br",
+          "id": "cus_ThiLOamFhMBdFq",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766985535,
+          "created": 1767162580,
           "currency": null,
           "customer_account": null,
           "default_source": null,
@@ -527,7 +89,7 @@ http_interactions:
           "description": null,
           "discount": null,
           "email": "billing-test-8a7757ed@example.com",
-          "invoice_prefix": "SSDLJDWX",
+          "invoice_prefix": "QP2ZKBM4",
           "invoice_settings": {
             "custom_fields": null,
             "default_payment_method": null,
@@ -544,7 +106,7 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Mon, 29 Dec 2025 05:18:56 GMT
+  recorded_at: Wed, 31 Dec 2025 06:29:40 GMT
 - request:
     method: post
     uri: https://api.stripe.com/v1/payment_methods
@@ -557,7 +119,7 @@ http_interactions:
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_eIluv3eBboAAU1","request_duration_ms":422}}'
+      - '{"last_request_metrics":{"request_id":"req_BXjbWPioDklpAk","request_duration_ms":251}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -578,7 +140,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Mon, 29 Dec 2025 05:18:56 GMT
+      - Wed, 31 Dec 2025 06:29:41 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -601,11 +163,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=NIWXyzour6qPe6jdQ1pcJmyncrM5m3FYhM3cUlHV0PE8r5yiWwei8kTuRaCM_PjTzKkkBJnpqizhYAQI
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=ORqCXMb69-N3bqa0O18U8x8j4v__XjOQaAG6E33XOXjJKtfXr9sdQqiTwzanC4McBGqXcCjFX86_mCl_
       Idempotency-Key:
-      - 342d526e-e08c-4f8f-b415-cd98e3b4886b
+      - 3e5cb889-404e-4119-8f01-895ea9cb6773
       Original-Request:
-      - req_CKbqZW9zcyZEkg
+      - req_umU32kzARexuiu
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -624,7 +186,7 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "pm_1SjYr6H54PcLeqtYvO1KEzW4",
+          "id": "pm_1SkIueH54PcLeqtYk3f0lxj9",
           "object": "payment_method",
           "allow_redisplay": "unspecified",
           "billing_details": {
@@ -668,27 +230,27 @@ http_interactions:
             },
             "wallet": null
           },
-          "created": 1766985536,
+          "created": 1767162581,
           "customer": null,
           "customer_account": null,
           "livemode": false,
           "metadata": {},
           "type": "card"
         }
-  recorded_at: Mon, 29 Dec 2025 05:18:56 GMT
+  recorded_at: Wed, 31 Dec 2025 06:29:41 GMT
 - request:
     method: post
-    uri: https://api.stripe.com/v1/payment_methods/pm_1SjYr6H54PcLeqtYvO1KEzW4/attach
+    uri: https://api.stripe.com/v1/payment_methods/pm_1SkIueH54PcLeqtYk3f0lxj9/attach
     body:
       encoding: UTF-8
-      string: customer=cus_TgwkXQdwGow1br
+      string: customer=cus_ThiLOamFhMBdFq
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_CKbqZW9zcyZEkg","request_duration_ms":390}}'
+      - '{"last_request_metrics":{"request_id":"req_umU32kzARexuiu","request_duration_ms":177}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -709,7 +271,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Mon, 29 Dec 2025 05:18:57 GMT
+      - Wed, 31 Dec 2025 06:29:41 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -732,11 +294,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=NIWXyzour6qPe6jdQ1pcJmyncrM5m3FYhM3cUlHV0PE8r5yiWwei8kTuRaCM_PjTzKkkBJnpqizhYAQI
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=ORqCXMb69-N3bqa0O18U8x8j4v__XjOQaAG6E33XOXjJKtfXr9sdQqiTwzanC4McBGqXcCjFX86_mCl_
       Idempotency-Key:
-      - 524e6f3b-1d60-4778-82a5-fcb4f5299c75
+      - 0d8a1bae-7fd2-4bec-ba26-2f30e80953b1
       Original-Request:
-      - req_MvEpQJ3UI12jIf
+      - req_56B2Xpv21fDZwE
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -755,7 +317,7 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "pm_1SjYr6H54PcLeqtYvO1KEzW4",
+          "id": "pm_1SkIueH54PcLeqtYk3f0lxj9",
           "object": "payment_method",
           "allow_redisplay": "unspecified",
           "billing_details": {
@@ -799,27 +361,27 @@ http_interactions:
             },
             "wallet": null
           },
-          "created": 1766985536,
-          "customer": "cus_TgwkXQdwGow1br",
+          "created": 1767162581,
+          "customer": "cus_ThiLOamFhMBdFq",
           "customer_account": null,
           "livemode": false,
           "metadata": {},
           "type": "card"
         }
-  recorded_at: Mon, 29 Dec 2025 05:18:57 GMT
+  recorded_at: Wed, 31 Dec 2025 06:29:41 GMT
 - request:
     method: post
-    uri: https://api.stripe.com/v1/customers/cus_TgwkXQdwGow1br
+    uri: https://api.stripe.com/v1/customers/cus_ThiLOamFhMBdFq
     body:
       encoding: UTF-8
-      string: invoice_settings[default_payment_method]=pm_1SjYr6H54PcLeqtYvO1KEzW4
+      string: invoice_settings[default_payment_method]=pm_1SkIueH54PcLeqtYk3f0lxj9
     headers:
       User-Agent:
       - Stripe/v1 RubyBindings/17.2.0
       Authorization:
       - "<STRIPE_API_KEY>"
       X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_MvEpQJ3UI12jIf","request_duration_ms":639}}'
+      - '{"last_request_metrics":{"request_id":"req_56B2Xpv21fDZwE","request_duration_ms":466}}'
       Stripe-Version:
       - "<STRIPE_VERSION>"
       X-Stripe-Client-User-Agent:
@@ -840,7 +402,7 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Mon, 29 Dec 2025 05:18:57 GMT
+      - Wed, 31 Dec 2025 06:29:41 GMT
       Content-Type:
       - application/json
       Content-Length:
@@ -863,11 +425,11 @@ http_interactions:
       Content-Security-Policy:
       - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
         img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=NIWXyzour6qPe6jdQ1pcJmyncrM5m3FYhM3cUlHV0PE8r5yiWwei8kTuRaCM_PjTzKkkBJnpqizhYAQI
+        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=ORqCXMb69-N3bqa0O18U8x8j4v__XjOQaAG6E33XOXjJKtfXr9sdQqiTwzanC4McBGqXcCjFX86_mCl_
       Idempotency-Key:
-      - 41e5e81b-f117-4dc0-a086-107d209907d1
+      - b9e09103-29ed-48a4-8693-2ef434e7964d
       Original-Request:
-      - req_ttYeweiHYKWcMh
+      - req_P95BDrOyvyiClm
       Stripe-Should-Retry:
       - 'false'
       Stripe-Version:
@@ -886,11 +448,11 @@ http_interactions:
       encoding: UTF-8
       string: |-
         {
-          "id": "cus_TgwkXQdwGow1br",
+          "id": "cus_ThiLOamFhMBdFq",
           "object": "customer",
           "address": null,
           "balance": 0,
-          "created": 1766985535,
+          "created": 1767162580,
           "currency": null,
           "customer_account": null,
           "default_source": null,
@@ -898,10 +460,10 @@ http_interactions:
           "description": null,
           "discount": null,
           "email": "billing-test-8a7757ed@example.com",
-          "invoice_prefix": "SSDLJDWX",
+          "invoice_prefix": "QP2ZKBM4",
           "invoice_settings": {
             "custom_fields": null,
-            "default_payment_method": "pm_1SjYr6H54PcLeqtYvO1KEzW4",
+            "default_payment_method": "pm_1SkIueH54PcLeqtYk3f0lxj9",
             "footer": null,
             "rendering_options": null
           },
@@ -915,92 +477,5 @@ http_interactions:
           "tax_exempt": "none",
           "test_clock": null
         }
-  recorded_at: Mon, 29 Dec 2025 05:18:57 GMT
-- request:
-    method: post
-    uri: https://api.stripe.com/v1/subscriptions
-    body:
-      encoding: UTF-8
-      string: customer=cus_TgwkXQdwGow1br&items[0][price]=price_test
-    headers:
-      User-Agent:
-      - Stripe/v1 RubyBindings/17.2.0
-      Authorization:
-      - "<STRIPE_API_KEY>"
-      X-Stripe-Client-Telemetry:
-      - '{"last_request_metrics":{"request_id":"req_ttYeweiHYKWcMh","request_duration_ms":402}}'
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-      X-Stripe-Client-User-Agent:
-      - '{"bindings_version":"17.2.0","lang":"ruby","lang_version":"3.4.8 p72 (2025-12-17)","platform":"arm64-darwin25","engine":"ruby","publisher":"stripe","uname":"Darwin
-        Tundra.local 25.3.0 Darwin Kernel Version 25.3.0: Fri Dec  5 23:10:12 PST
-        2025; root:xnu-12377.80.260.0.1~42/RELEASE_ARM64_T6020 arm64","hostname":"Tundra.local"}'
-      Content-Type:
-      - application/x-www-form-urlencoded
-      Accept-Encoding:
-      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
-      Accept:
-      - "*/*"
-  response:
-    status:
-      code: 400
-      message: Bad Request
-    headers:
-      Server:
-      - nginx
-      Date:
-      - Mon, 29 Dec 2025 05:18:57 GMT
-      Content-Type:
-      - application/json
-      Content-Length:
-      - '335'
-      Connection:
-      - keep-alive
-      Access-Control-Allow-Credentials:
-      - 'true'
-      Access-Control-Allow-Methods:
-      - GET, HEAD, PUT, PATCH, POST, DELETE
-      Access-Control-Allow-Origin:
-      - "*"
-      Access-Control-Expose-Headers:
-      - Request-Id, Stripe-Manage-Version, Stripe-Should-Retry, X-Stripe-External-Auth-Required,
-        X-Stripe-Privileged-Session-Required
-      Access-Control-Max-Age:
-      - '300'
-      Cache-Control:
-      - no-cache, no-store
-      Content-Security-Policy:
-      - base-uri 'none'; default-src 'none'; form-action 'none'; frame-ancestors 'none';
-        img-src 'self'; script-src 'self' 'report-sample'; style-src 'self'; worker-src
-        'none'; upgrade-insecure-requests; report-uri https://q.stripe.com/csp-violation?q=NIWXyzour6qPe6jdQ1pcJmyncrM5m3FYhM3cUlHV0PE8r5yiWwei8kTuRaCM_PjTzKkkBJnpqizhYAQI
-      Idempotency-Key:
-      - f8e1b6a7-0632-4108-ad0b-94e564b9fa04
-      Original-Request:
-      - req_6ZV6uGyN5tNTkt
-      Stripe-Version:
-      - "<STRIPE_VERSION>"
-      Vary:
-      - Origin
-      X-Stripe-Priority-Routing-Enabled:
-      - 'true'
-      X-Stripe-Routing-Context-Priority-Tier:
-      - api-testmode
-      X-Wc:
-      - ABGHIJ
-      Strict-Transport-Security:
-      - max-age=63072000; includeSubDomains; preload
-    body:
-      encoding: UTF-8
-      string: |
-        {
-          "error": {
-            "code": "resource_missing",
-            "doc_url": "https://stripe.com/docs/error-codes/resource-missing",
-            "message": "No such price: 'price_test'",
-            "param": "items[0][price]",
-            "request_log_url": "https://dashboard.stripe.com/test/logs/req_6ZV6uGyN5tNTkt?t=1766985537",
-            "type": "invalid_request_error"
-          }
-        }
-  recorded_at: Mon, 29 Dec 2025 05:18:57 GMT
+  recorded_at: Wed, 31 Dec 2025 06:29:41 GMT
 recorded_with: VCR 6.3.1
