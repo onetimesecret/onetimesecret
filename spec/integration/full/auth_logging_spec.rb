@@ -9,7 +9,9 @@ require 'spec_helper'
 
 RSpec.describe 'Auth::Logging', type: :integration do
   before(:all) do
-    require_relative '../../../apps/web/auth/config'
+    # Only load the logging module - NOT auth/config which triggers Rodauth configuration
+    # with database validation. The database setup is handled by FullModeSuiteDatabase.
+    require_relative '../../../apps/web/auth/lib/logging'
   end
 
   # Helper to reference the module
