@@ -68,6 +68,8 @@ export interface InvoicesResponse {
  */
 export interface Plan {
   id: string;
+  /** Stripe price ID for plan switching operations */
+  stripe_price_id: string;
   name: string;
   tier: string;
   interval: string;
@@ -93,6 +95,49 @@ export interface Plan {
  */
 export interface PlansResponse {
   plans: Plan[];
+}
+
+/**
+ * Subscription status response
+ */
+export interface SubscriptionStatusResponse {
+  has_active_subscription: boolean;
+  current_plan: string | null;
+  current_price_id?: string;
+  subscription_item_id?: string;
+  subscription_status?: string;
+  current_period_end?: number;
+}
+
+/**
+ * Plan change preview response (proration details)
+ */
+export interface PlanChangePreviewResponse {
+  amount_due: number;
+  subtotal: number;
+  credit_applied: number;
+  next_billing_date: number | null;
+  currency: string;
+  current_plan: {
+    price_id: string;
+    amount: number;
+    interval: string;
+  };
+  new_plan: {
+    price_id: string;
+    amount: number;
+    interval: string;
+  };
+}
+
+/**
+ * Plan change result response
+ */
+export interface PlanChangeResponse {
+  success: boolean;
+  new_plan: string;
+  status: string;
+  current_period_end: number;
 }
 
 export const BillingService = {
@@ -145,6 +190,60 @@ export const BillingService = {
    */
   async listPlans(): Promise<PlansResponse> {
     const response = await $api.get('/billing/api/plans');
+    return response.data;
+  },
+
+  /**
+   * Get subscription status for an organization
+   *
+   * Determines whether the organization has an active subscription
+   * and returns current plan details if so.
+   *
+   * @param orgExtId - Organization external ID
+   * @returns Subscription status including current plan and price details
+   */
+  async getSubscriptionStatus(orgExtId: string): Promise<SubscriptionStatusResponse> {
+    const response = await $api.get(`/billing/api/org/${orgExtId}/subscription`);
+    return response.data;
+  },
+
+  /**
+   * Preview plan change proration
+   *
+   * Shows what the customer will be charged when switching plans,
+   * including credits and prorated amounts.
+   *
+   * @param orgExtId - Organization external ID
+   * @param newPriceId - Stripe price ID to switch to
+   * @returns Proration preview with amounts and billing details
+   */
+  async previewPlanChange(
+    orgExtId: string,
+    newPriceId: string
+  ): Promise<PlanChangePreviewResponse> {
+    const response = await $api.post(`/billing/api/org/${orgExtId}/preview-plan-change`, {
+      new_price_id: newPriceId,
+    });
+    return response.data;
+  },
+
+  /**
+   * Execute plan change
+   *
+   * Changes the organization's subscription to a new plan.
+   * Uses immediate proration (customer charged/credited on next invoice).
+   *
+   * @param orgExtId - Organization external ID
+   * @param newPriceId - Stripe price ID to switch to
+   * @returns Result of plan change with new plan details
+   */
+  async changePlan(
+    orgExtId: string,
+    newPriceId: string
+  ): Promise<PlanChangeResponse> {
+    const response = await $api.post(`/billing/api/org/${orgExtId}/change-plan`, {
+      new_price_id: newPriceId,
+    });
     return response.data;
   },
 };
