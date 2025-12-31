@@ -208,12 +208,3 @@ const rule: Rule.RuleModule = {
 };
 
 export default rule;
-
-/**
- * Plugin export for ESLint flat config
- */
-export const plugin = {
-  rules: {
-    'no-internal-id-in-url': rule,
-  },
-};

@@ -1,5 +1,7 @@
 // src/types/identifiers.ts
 
+/// <reference types="vite/client" />
+
 /**
  * Opaque Identifier Pattern - Branded Types for ID Safety
  *
@@ -276,7 +278,7 @@ export type ZodLenientExtId = z.infer<typeof lenientExtIdSchema>;
 /**
  * Assert that a value is an ExtId at runtime
  *
- * Throws in development or test mode, use for debugging ID misuse.
+ * Throws in development mode, use for debugging ID misuse.
  */
 export function assertExtId(value: string, context?: string): asserts value is ExtId {
   if (!looksLikeExtId(value)) {
@@ -284,12 +286,8 @@ export function assertExtId(value: string, context?: string): asserts value is E
       ? `[${context}] Expected ExtId, got "${value}" which looks like an internal ID`
       : `Expected ExtId, got "${value}"`;
     console.warn(msg);
-    // In development or test mode, throw to surface the issue early
-    // Uses typeof check to avoid issues in non-Vite environments
-    if (
-      typeof process !== 'undefined' &&
-      (process.env?.NODE_ENV === 'development' || process.env?.NODE_ENV === 'test')
-    ) {
+    // In development mode, throw to surface the issue early
+    if (import.meta.env.DEV) {
       throw new Error(msg);
     }
   }
@@ -298,7 +296,7 @@ export function assertExtId(value: string, context?: string): asserts value is E
 /**
  * Assert that a value is NOT being used in a URL context
  *
- * Use to catch potential security issues during development or testing.
+ * Use to catch potential security issues during development.
  */
 export function assertNotInUrl(value: string, urlPattern: string, context?: string): void {
   if (urlPattern.includes(value) && looksLikeObjId(value)) {
@@ -306,11 +304,8 @@ export function assertNotInUrl(value: string, urlPattern: string, context?: stri
       ? `[${context}] Internal ID "${value}" found in URL pattern - use ExtId instead`
       : `Internal ID "${value}" found in URL pattern - use ExtId instead`;
     console.error(msg);
-    // In development or test mode, throw to surface the issue early
-    if (
-      typeof process !== 'undefined' &&
-      (process.env?.NODE_ENV === 'development' || process.env?.NODE_ENV === 'test')
-    ) {
+    // In development mode, throw to surface the issue early
+    if (import.meta.env.DEV) {
       throw new Error(msg);
     }
   }

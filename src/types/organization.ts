@@ -219,9 +219,17 @@ export function getOrganizationLabel(org: Organization): string {
  *
  * ID Fields:
  * - id: ExtId - Member's external ID (extid) - use in URLs and display
+ *
+ * NOTE: The property name "id" is misleading since it contains an ExtId value.
+ * This matches the backend API response format. Phase 2 migration will rename
+ * this to "extid" for consistency with the opaque identifier pattern.
+ * Until then, the ESLint rule may flag this - it's a known false positive.
  */
 export interface OrganizationMember {
-  /** Member's external ID (extid) - use in URLs and display */
+  /**
+   * Member's external ID - use in URLs and display
+   * @migration Phase 2: Rename to "extid" for consistency
+   */
   id: ExtId;
   email: string;
   role: OrganizationRole;
