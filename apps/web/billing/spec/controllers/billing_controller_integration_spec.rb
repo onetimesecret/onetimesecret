@@ -6,6 +6,28 @@
 # These tests use VCR cassettes to record/replay Stripe API calls.
 #
 # For unit tests that use local config only, see billing_controller_unit_spec.rb
+#
+# =========================================================================
+# TEST DESIGN NOTES
+# =========================================================================
+#
+# Tests that require specific Stripe resources (subscriptions with price IDs,
+# invoices with line items) are implemented in billing_controller_spec.rb using
+# Ruby-level mocking. This avoids:
+#
+#   1. VCR cassettes becoming stale when Stripe's API responses change
+#   2. Price IDs being specific to individual Stripe accounts
+#   3. Tests not being portable across development environments
+#   4. Recording cassettes requiring manual intervention with real API keys
+#
+# This file focuses on integration tests that:
+#   - Test checkout session creation (uses plan catalog, no specific price ID)
+#   - Test error handling with Stripe API
+#   - Verify request/response flow through the full stack
+#
+# For subscription data and invoice tests, see billing_controller_spec.rb
+# which uses mocking to simulate organization state.
+# =========================================================================
 
 require_relative '../support/billing_spec_helper'
 require 'rack/test'
@@ -37,37 +59,20 @@ RSpec.describe 'Billing::Controllers::BillingController - Integration', :integra
     end
   end
 
-  describe 'GET /billing/api/org/:extid' do
-    it 'returns subscription data when organization has active subscription', :vcr do
-      # Create Stripe customer with payment method
-      stripe_customer = Stripe::Customer.create(email: customer.email)
-      payment_method = Stripe::PaymentMethod.create(
-        type: 'card',
-        card: { token: 'tok_visa' }
-      )
-      Stripe::PaymentMethod.attach(payment_method.id, { customer: stripe_customer.id })
-      Stripe::Customer.update(stripe_customer.id, {
-        invoice_settings: { default_payment_method: payment_method.id }
-      })
-
-      subscription = Stripe::Subscription.create(
-        customer: stripe_customer.id,
-        items: [{ price: ENV.fetch('STRIPE_TEST_PRICE_ID', 'price_test') }],
-      )
-
-      organization.update_from_stripe_subscription(subscription)
-      organization.save
-
-      get "/billing/api/org/#{organization.extid}"
-
-      expect(last_response.status).to eq(200)
-
-      data = JSON.parse(last_response.body)
-      expect(data['subscription']).not_to be_nil
-      expect(data['subscription']['id']).to eq(subscription.id)
-      expect(data['subscription']['status']).to match(/active|trialing/)
-    end
-  end
+  # =========================================================================
+  # NOTE: Subscription data tests moved to billing_controller_spec.rb
+  # =========================================================================
+  #
+  # The test "returns subscription data when organization has active subscription"
+  # required creating a real Stripe subscription with a specific price ID.
+  # This was fragile because:
+  #   - Price IDs are account-specific
+  #   - Required STRIPE_TEST_PRICE_ID env var
+  #   - VCR cassettes became stale
+  #
+  # The test now lives in billing_controller_spec.rb using Ruby-level mocking
+  # to simulate organization subscription state.
+  # =========================================================================
 
   describe 'POST /billing/api/org/:extid/checkout' do
     let(:tier) { 'single_team' }
@@ -112,23 +117,20 @@ RSpec.describe 'Billing::Controllers::BillingController - Integration', :integra
       expect(session.customer).to eq(stripe_customer.id)
     end
 
-    it 'includes metadata in subscription', :vcr do
-      post "/billing/api/org/#{organization.extid}/checkout", {
-        tier: tier,
-        billing_cycle: billing_cycle,
-      }.to_json, { 'CONTENT_TYPE' => 'application/json' }
-
-      expect(last_response.status).to eq(200)
-
-      data    = JSON.parse(last_response.body)
-      session = Stripe::Checkout::Session.retrieve(data['session_id'])
-
-      expect(session.subscription_data['metadata']).to include(
-        'orgid' => organization.objid,
-        'tier' => tier,
-        'external_id' => customer.extid,
-      )
-    end
+    # =========================================================================
+    # NOTE: Metadata verification removed
+    # =========================================================================
+    #
+    # The test "includes metadata in subscription" attempted to verify
+    # session.subscription_data['metadata'] after checkout session creation.
+    #
+    # This is NOT possible because subscription_data is a WRITE-ONLY parameter
+    # in Stripe's API - it's passed when creating the session but NOT returned
+    # on retrieval. The metadata appears on the actual Subscription object only
+    # after checkout completion (verified via webhook processing tests).
+    #
+    # See: apps/web/billing/spec/operations/process_webhook_event/checkout_completed_spec.rb
+    # =========================================================================
 
     it 'uses idempotency key to prevent duplicates', :vcr do
       # Make two identical requests
@@ -145,42 +147,21 @@ RSpec.describe 'Billing::Controllers::BillingController - Integration', :integra
     end
   end
 
+  # =========================================================================
+  # NOTE: Invoice list tests moved to billing_controller_spec.rb
+  # =========================================================================
+  #
+  # The test "returns list of invoices for organization" required creating
+  # real Stripe invoices, which:
+  #   - Requires customer with valid email
+  #   - Creates persistent test data in Stripe
+  #   - VCR cassettes become stale
+  #
+  # The test now lives in billing_controller_spec.rb using Ruby-level mocking
+  # to simulate the controller's invoice list response.
+  # =========================================================================
+
   describe 'GET /billing/api/org/:extid/invoices' do
-    it 'returns list of invoices for organization', :vcr do
-      # Create Stripe customer and invoice
-      stripe_customer                 = Stripe::Customer.create(email: organization.billing_email)
-      organization.stripe_customer_id = stripe_customer.id
-      organization.save
-
-      # Create an invoice
-      Stripe::Invoice.create(
-        customer: stripe_customer.id,
-        collection_method: 'send_invoice',
-        days_until_due: 30,
-      )
-
-      get "/billing/api/org/#{organization.extid}/invoices"
-
-      expect(last_response.status).to eq(200)
-
-      data = JSON.parse(last_response.body)
-      expect(data).to have_key('invoices')
-      expect(data).to have_key('has_more')
-      expect(data['invoices']).to be_an(Array)
-
-      unless data['invoices'].empty?
-        invoice_data = data['invoices'].first
-        expect(invoice_data).to have_key('id')
-        expect(invoice_data).to have_key('number')
-        expect(invoice_data).to have_key('amount')
-        expect(invoice_data).to have_key('currency')
-        expect(invoice_data).to have_key('status')
-        expect(invoice_data).to have_key('created')
-        expect(invoice_data).to have_key('invoice_pdf')
-        expect(invoice_data).to have_key('hosted_invoice_url')
-      end
-    end
-
     it 'handles Stripe errors gracefully', :vcr do
       organization.stripe_customer_id = 'cus_invalid'
       organization.save
