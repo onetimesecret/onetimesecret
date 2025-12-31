@@ -31,6 +31,7 @@
       "scope_list_label": "النطاقات المتاحة",
       "scope_header": "النطاقات",
       "add_domain": "إضافة نطاق",
+      "domain_settings": "إعدادات النطاق",
       "please_enter_a_domain_name": "يرجى إدخال اسم نطاق {0}",
       "domain_name": "اسم النطاق",
       "control_whether_users_can_create_secret_links": "التحكم في ما إذا كان يمكن للمستخدمين إنشاء روابط أسرار من الصفحة الرئيسية لنطاقك",

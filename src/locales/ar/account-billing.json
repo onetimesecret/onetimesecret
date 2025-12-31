@@ -37,7 +37,7 @@
         "no_organizations_description": "أنشئ منظمة لإدارة فوترتك واشتراكك",
         "entitlements": {
           "create_secrets": "إنشاء أسرار",
-          "view_metadata": "عرض البيانات الوصفية",
+          "view_receipt": "عرض الإيصالات",
           "api_access": "الوصول إلى API",
           "custom_domains": "نطاقات مخصصة",
           "custom_privacy_defaults": "إعدادات خصوصية مخصصة",
@@ -69,6 +69,9 @@
         "free_plan": "مجاني",
         "single_team_plan": "فريق واحد",
         "multi_team_plan": "فرق متعددة",
+        "individual_account": "حساب فردي",
+        "team_account": "حساب فريق",
+        "multi_team_account": "حساب المؤسسة",
         "features": "الميزات",
         "unlimited_secrets": "أسرار غير محدودة",
         "api_access": "الوصول إلى API",
@@ -78,7 +81,9 @@
         "custom_needs_title": "لديك أسئلة أو تحتاج شيئاً مخصصاً؟",
         "custom_needs_description": "يسعدنا سماع رأيك. أخبرنا بما تبحث عنه.",
         "teams_limit": "{count} فريق | {count} فرق",
-        "members_limit": "{count} عضو لكل فريق | {count} أعضاء لكل فريق"
+        "members_limit": "{count} عضو لكل فريق | {count} أعضاء لكل فريق",
+        "unlimited_teams": "فرق غير محدودة",
+        "unlimited_members": "أعضاء غير محدودين لكل فريق"
       },
       "invoices": {
         "title": "سجل الفوترة",

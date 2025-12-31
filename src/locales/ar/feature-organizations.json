@@ -6,6 +6,7 @@
       "organization_plural": "المنظمات",
       "organizations_description": "إدارة منظماتك",
       "my_organizations": "منظماتي",
+      "manage_organizations": "إدارة المؤسسات",
       "new_organization": "منظمة جديدة",
       "no_organizations": "لا توجد منظمات بعد",
       "no_organizations_description": "تتيح لك المنظمات إدارة فرق متعددة مع فوترة وإدارة موحدة. ابدأ بإنشاء منظمتك الأولى.",
@@ -47,9 +48,11 @@
       "single_user_info_description": "قم بتحديث اسم شركتك وتفاصيل منظمتك هنا. تساعد هذه المعلومات في تخصيص حسابك ويمكن استخدامها لميزات العلامة التجارية في المستقبل.",
       "getting_started_title": "البدء مع المنظمات",
       "getting_started_description": "أنشئ منظمتك الأولى لإدارة معلومات شركتك والاستعداد للتعاون الجماعي المستقبلي وميزات العلامة التجارية.",
+      "page_description": "إدارة مؤسساتك وأعضاء الفريق",
       "tabs": {
         "general": "عام",
         "company_branding": "العلامة التجارية للشركة",
+        "members": "الفريق",
         "billing": "الفوترة"
       },
       "danger_zone": "منطقة الخطر",
@@ -62,7 +65,10 @@
       "members": {
         "title": "الأعضاء",
         "description": "إدارة أعضاء المنظمة وأدوارهم",
+        "current_members": "الأعضاء الحاليون",
         "member": "عضو",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "الاسم",
         "email": "البريد الإلكتروني",
         "role": "الدور",
