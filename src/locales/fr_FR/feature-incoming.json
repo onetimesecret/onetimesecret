@@ -31,6 +31,7 @@
     "create_another": "Envoyer un autre secret",
     "tagline1": "Partagez des informations sensibles en toute sécurité",
     "tagline2": "Gardez les mots de passe et données privées hors des e-mails et journaux de discussion",
-    "end_of_experience_suggestion": "Conservez votre <a href='{receiptUrl}'>reçu</a> pour vos dossiers."
+    "end_of_experience_suggestion": "Conservez votre <a href='{receiptUrl}'>reçu</a> pour vos dossiers.",
+    "receipt_link_text": "reçu"
   }
 }
