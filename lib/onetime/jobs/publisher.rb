@@ -72,10 +72,14 @@ module Onetime
         end
 
         # Enqueue a Stripe webhook event for async processing
+        #
+        # Falls back to synchronous processing if jobs are disabled.
+        # This ensures billing webhooks work without RabbitMQ for dev/testing.
+        #
         # @param event [Stripe::Event] The validated Stripe event
         # @param payload [String] The raw JSON payload from Stripe
-        # @return [Boolean] true if published to queue, false if jobs disabled
-        # @raise [Onetime::Problem] If RabbitMQ unavailable (no fallback for billing)
+        # @return [Boolean] true if published to queue or processed synchronously
+        # @raise [Onetime::Problem] If RabbitMQ unavailable when jobs ARE enabled
         def enqueue_billing_event(event, payload)
           new.enqueue_billing_event(event, payload)
         end
@@ -150,17 +154,33 @@ module Onetime
 
       # Enqueue a Stripe webhook event for async processing
       #
-      # Unlike email, billing events have NO fallback - if RabbitMQ is unavailable,
-      # the webhook controller should return 500 so Stripe retries. This ensures
-      # no billing events are lost.
+      # Falls back to synchronous processing if jobs are disabled, enabling
+      # development/testing without RabbitMQ. If jobs ARE enabled but RabbitMQ
+      # is unavailable, raises so the controller returns 500 and Stripe retries.
       #
       # @param event [Stripe::Event] The validated Stripe event
       # @param payload [String] The raw JSON payload from Stripe
-      # @return [Boolean] true if published to queue
-      # @raise [Onetime::Problem] If jobs disabled or RabbitMQ unavailable
+      # @return [Boolean] true if published to queue or processed synchronously
+      # @raise [Onetime::Problem] If RabbitMQ unavailable when jobs ARE enabled
       def enqueue_billing_event(event, payload)
+        # Fallback to synchronous processing if jobs are disabled
+        # This ensures billing webhooks work without RabbitMQ for dev/testing
         unless jobs_enabled?
-          raise Onetime::Problem, 'Cannot enqueue billing event: jobs disabled'
+          logger.info 'Jobs disabled, processing billing event synchronously',
+            event_id: event.id,
+            event_type: event.type
+
+          require 'apps/web/billing/operations/process_webhook_event'
+          result = Billing::Operations::ProcessWebhookEvent.new(
+            event: event,
+            context: { source: :sync_fallback },
+          ).call
+
+          logger.info 'Billing event processed synchronously',
+            event_id: event.id,
+            event_type: event.type,
+            result: result
+          return true
         end
 
         message = {

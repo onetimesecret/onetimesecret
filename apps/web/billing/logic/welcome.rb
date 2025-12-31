@@ -227,8 +227,16 @@ module Billing
             subscription_id: subscription.id,
           }
 
+          # Load the actual customer from metadata (session may be anonymous after Stripe redirect)
+          # The custid was embedded in subscription metadata when checkout was created
+          customer = Onetime::Customer.load(custid)
+          unless customer
+            OT.le "[ProcessCheckoutSession] Customer not found: #{custid}"
+            raise_form_error 'Customer not found'
+          end
+
           # Find or create default organization for the customer
-          org = find_or_create_default_organization(cust)
+          org = find_or_create_default_organization(customer)
 
           # Update organization with subscription details (extracts planid, etc.)
           org.update_from_stripe_subscription(subscription)

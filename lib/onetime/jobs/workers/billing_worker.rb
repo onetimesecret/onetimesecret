@@ -8,6 +8,26 @@ require_relative '../queue_config'
 require_relative '../../../../apps/web/billing/operations/process_webhook_event'
 require_relative '../../../../apps/web/billing/models/stripe_webhook_event'
 
+# ==========================================================================
+# WORKER STRIPE INITIALIZATION
+# ==========================================================================
+# The worker runs in a separate process from the web app, so it needs to
+# configure Stripe independently. The web app's StripeSetup initializer
+# may not run in worker context depending on billing config state.
+#
+# This ensures Stripe API is always available for billing event processing.
+# ==========================================================================
+if Stripe.api_key.nil? || Stripe.api_key.to_s.strip.empty?
+  stripe_key = Onetime.billing_config&.stripe_key
+  if stripe_key && !stripe_key.to_s.strip.empty?
+    Stripe.api_key = stripe_key
+    Stripe.api_version = Onetime.billing_config&.stripe_api_version
+    Onetime.jobs_logger&.info '[BillingWorker] Stripe API configured for worker'
+  else
+    Onetime.jobs_logger&.warn '[BillingWorker] No Stripe API key found - billing events will fail'
+  end
+end
+
 #
 # Processes Stripe webhook events from the billing.event.process queue.
 #
