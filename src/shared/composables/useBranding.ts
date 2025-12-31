@@ -44,14 +44,24 @@ export function useBranding(domainId?: string) {
   const logoImage = ref<ImageProps | null>(null);
 
   /**
-   * Resolve extid from display_domain using domains store.
+   * Resolve extid from either an extid or display_domain.
    * API endpoints require extid (e.g., "cd1234abc") not display_domain (e.g., "custom.example.com").
-   * @param displayDomain - The display domain to look up
+   * This function handles both cases for flexibility.
+   * @param domainIdentifier - Either an extid or display_domain to look up
    * @returns The extid for API calls, or undefined if not found
    */
-  const resolveExtid = (displayDomain: string): string | undefined => {
-    const domain = domainsStore.domains?.find((d) => d.display_domain === displayDomain);
-    return domain?.extid;
+  const resolveExtid = (domainIdentifier: string): string | undefined => {
+    if (!domainIdentifier) return undefined;
+
+    // First, check if the identifier IS already an extid
+    const byExtid = domainsStore.domains?.find((d) => d.extid === domainIdentifier);
+    if (byExtid) {
+      return byExtid.extid;
+    }
+
+    // Fall back to looking up by display_domain
+    const byDisplayDomain = domainsStore.domains?.find((d) => d.display_domain === domainIdentifier);
+    return byDisplayDomain?.extid;
   };
 
   const defaultAsyncHandlerOptions: AsyncHandlerOptions = {
@@ -77,7 +87,12 @@ export function useBranding(domainId?: string) {
     wrap(async () => {
       if (!domainId) return;
 
-      // Resolve extid from display_domain for API calls
+      // Ensure domains are loaded before resolving
+      if (!domainsStore.domains?.length) {
+        await domainsStore.fetchList();
+      }
+
+      // Resolve extid from display_domain or extid for API calls
       const extid = resolveExtid(domainId);
       if (!extid) {
         console.warn('[useBranding] Could not resolve extid for domain:', domainId);
@@ -153,7 +168,12 @@ export function useBranding(domainId?: string) {
       const effectiveDomain = targetDomain || domainId;
       if (!effectiveDomain) return;
 
-      // Resolve extid from display_domain for API calls
+      // Ensure domains are loaded before resolving
+      if (!domainsStore.domains?.length) {
+        await domainsStore.fetchList();
+      }
+
+      // Resolve extid from display_domain or extid for API calls
       const extid = resolveExtid(effectiveDomain);
       if (!extid) {
         console.warn('[useBranding] Could not resolve extid for domain:', effectiveDomain);
@@ -172,6 +192,10 @@ export function useBranding(domainId?: string) {
   const handleLogoUpload = async (file: File) =>
     wrap(async () => {
       if (!domainId) throw createError('Domain is required to upload logo', 'human', 'error');
+      // Ensure domains are loaded before resolving
+      if (!domainsStore.domains?.length) {
+        await domainsStore.fetchList();
+      }
       const extid = resolveExtid(domainId);
       if (!extid) throw createError('Could not resolve domain for logo upload', 'human', 'error');
       const uploadedLogo = await store.uploadLogo(extid, file);
@@ -182,6 +206,10 @@ export function useBranding(domainId?: string) {
   const removeLogo = async () =>
     wrap(async () => {
       if (!domainId) throw createError('Domain is required to remove logo', 'human', 'error');
+      // Ensure domains are loaded before resolving
+      if (!domainsStore.domains?.length) {
+        await domainsStore.fetchList();
+      }
       const extid = resolveExtid(domainId);
       if (!extid) throw createError('Could not resolve domain for logo removal', 'human', 'error');
       await store.removeLogo(extid);

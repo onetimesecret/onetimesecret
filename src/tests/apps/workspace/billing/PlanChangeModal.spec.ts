@@ -201,8 +201,8 @@ describe('PlanChangeModal', () => {
     });
 
     it('shows downgrade label when downgrading', async () => {
-      // Lower display_order indicates a downgrade (target order < current order)
-      const downgradePlan = { ...mockTargetPlan, tier: 'free', display_order: 5 };
+      // Lower amount indicates a downgrade (component compares by price first)
+      const downgradePlan = { ...mockTargetPlan, tier: 'free', display_order: 5, amount: 1900 };
       mockPreviewPlanChange.mockResolvedValueOnce(mockPreviewResponse);
       wrapper = await mountComponent({ targetPlan: downgradePlan });
       expect(wrapper.text()).toContain('Downgrade');
@@ -339,7 +339,7 @@ describe('PlanChangeModal', () => {
       await nextTick();
 
       expect(wrapper.emitted('success')).toBeTruthy();
-      expect(wrapper.emitted('success')![0]).toEqual(['team_plus_v1_monthly']);
+      expect(wrapper.emitted('success')![0]).toEqual(['Team Plus']);
     });
   });
 

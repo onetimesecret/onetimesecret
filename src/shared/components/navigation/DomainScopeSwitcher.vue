@@ -18,13 +18,35 @@
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomainScope } from '@/shared/composables/useDomainScope';
+import type { ScopesAvailable } from '@/types/router';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+
+/**
+ * Props for controlling switcher behavior from parent
+ */
+interface Props {
+  /** When true, switcher shows current domain but dropdown is disabled */
+  locked?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  locked: false,
+});
 
 const { t } = useI18n();
+const route = useRoute();
 const router = useRouter();
+
+/**
+ * Get the onDomainSwitch navigation target from route meta
+ */
+const onDomainSwitch = computed<string | undefined>(() => {
+  const scopesAvailable = route.meta?.scopesAvailable as ScopesAvailable | undefined;
+  return scopesAvailable?.onDomainSwitch;
+});
 
 const {
   currentScope,
@@ -41,10 +63,62 @@ const {
 const isCurrentScope = (domain: string): boolean => domain === currentScope.value.domain;
 
 /**
- * Handle domain selection
+ * Check if a domain option should be disabled.
+ * Canonical domain is disabled when onDomainSwitch requires navigation
+ * (since canonical has no extid and no settings page).
+ */
+const isOptionDisabled = (domain: string): boolean => {
+  const extid = getExtidByDomain(domain);
+  if (!extid && onDomainSwitch.value) {
+    // Canonical domain can't navigate when onDomainSwitch requires :extid
+    return onDomainSwitch.value === 'same' || onDomainSwitch.value.includes(':extid');
+  }
+  return false;
+};
+
+/**
+ * Handle domain selection with optional navigation
  */
 const selectDomain = (domain: string): void => {
+  // Don't allow selection of disabled options
+  if (isOptionDisabled(domain)) {
+    return;
+  }
+
   setScope(domain);
+
+  // Handle route-aware navigation based on onDomainSwitch meta
+  const switchTarget = onDomainSwitch.value;
+  if (!switchTarget) {
+    // No navigation configured, just update store (current behavior)
+    return;
+  }
+
+  const extid = getExtidByDomain(domain);
+
+  if (switchTarget === 'same') {
+    // Stay on current route pattern, replace :extid with new domain's extid
+    if (!extid) {
+      console.warn('[DomainScopeSwitcher] Cannot navigate: domain missing extid', domain);
+      return;
+    }
+    const matchedRoute = route.matched[route.matched.length - 1];
+    if (matchedRoute?.path) {
+      const newPath = matchedRoute.path.replace(':extid', extid);
+      router.push(newPath);
+    }
+  } else if (switchTarget.includes(':extid')) {
+    // Path with :extid placeholder - replace and navigate
+    if (!extid) {
+      console.warn('[DomainScopeSwitcher] Cannot navigate: domain missing extid', domain);
+      return;
+    }
+    const newPath = switchTarget.replace(':extid', extid);
+    router.push(newPath);
+  } else {
+    // Path without :extid - navigate directly
+    router.push(switchTarget);
+  }
 };
 
 /**
@@ -80,7 +154,14 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
     v-slot="{ open }">
     <!-- Trigger Button -->
     <MenuButton
-      class="group inline-flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-offset-gray-900"
+      class="group inline-flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:bg-gray-800 dark:text-gray-300 dark:focus:ring-offset-gray-900"
+      :class="[
+        props.locked
+          ? 'cursor-default opacity-75'
+          : 'hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-700 dark:hover:text-white',
+      ]"
+      :disabled="props.locked"
+      :title="props.locked ? t('web.domains.switcher_locked') : undefined"
       :aria-label="t('web.domains.scope_switch_label')">
       <!-- Domain Icon -->
       <OIcon
@@ -94,8 +175,15 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
         {{ currentScope.displayName }}
       </span>
 
-      <!-- Chevron -->
+      <!-- Chevron or Lock icon -->
       <OIcon
+        v-if="props.locked"
+        collection="heroicons"
+        name="lock-closed"
+        class="size-4 text-gray-400"
+        aria-hidden="true" />
+      <OIcon
+        v-else
         collection="heroicons"
         :name="open ? 'chevron-up-solid' : 'chevron-down-solid'"
         class="size-4 text-gray-400 transition-transform"
@@ -123,26 +211,43 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
           v-for="domain in availableDomains"
           :key="domain"
           v-slot="{ active }"
+          :disabled="isOptionDisabled(domain)"
           @click="selectDomain(domain)">
           <button
             type="button"
-            class="group/row relative w-full cursor-pointer select-none py-2 pl-3 pr-9 text-left text-gray-700 transition-colors duration-150 dark:text-gray-200"
+            class="group/row relative w-full select-none py-2 pl-3 pr-9 text-left transition-colors duration-150"
             :class="[
-              active ? 'bg-gray-100 dark:bg-gray-700' : '',
-              isCurrentScope(domain) ? 'bg-brand-50 dark:bg-brand-900/20' : '',
-            ]">
+              isOptionDisabled(domain)
+                ? 'cursor-not-allowed text-gray-400 opacity-60 dark:text-gray-600'
+                : 'cursor-pointer text-gray-700 dark:text-gray-200',
+              !isOptionDisabled(domain) && active ? 'bg-gray-100 dark:bg-gray-700' : '',
+              isCurrentScope(domain) && !isOptionDisabled(domain)
+                ? 'bg-brand-50 dark:bg-brand-900/20'
+                : '',
+            ]"
+            :title="
+              isOptionDisabled(domain)
+                ? t('web.domains.canonical_no_settings')
+                : undefined
+            "
+            :aria-disabled="isOptionDisabled(domain) ? 'true' : undefined">
             <span class="flex items-center gap-2">
               <!-- Domain-specific icon -->
               <OIcon
                 collection="heroicons"
                 :name="isCurrentScope(domain) && currentScope.isCanonical ? 'home' : 'globe-alt'"
-                class="size-4 text-gray-400 dark:text-gray-500"
+                class="size-4"
+                :class="
+                  isOptionDisabled(domain)
+                    ? 'text-gray-300 dark:text-gray-600'
+                    : 'text-gray-400 dark:text-gray-500'
+                "
                 aria-hidden="true" />
 
               <!-- Domain Name -->
               <span
                 class="block truncate"
-                :class="{ 'font-semibold': isCurrentScope(domain) }">
+                :class="{ 'font-semibold': isCurrentScope(domain) && !isOptionDisabled(domain) }">
                 {{ getDomainDisplayName(domain) }}
               </span>
             </span>

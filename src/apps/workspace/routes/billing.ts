@@ -2,7 +2,8 @@
 
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import { WindowService } from '@/services/window.service';
-import { RouteRecordRaw } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
+import { SCOPE_PRESETS } from '@/types/router';
 
 const standardLayoutProps = {
   displayMasthead: true,
@@ -44,6 +45,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
     },
   },
   {
@@ -56,6 +58,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
     },
   },
   {
@@ -68,6 +71,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
+      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
     },
   },
   // Legacy routes for backward compatibility

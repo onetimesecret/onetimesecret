@@ -30,8 +30,21 @@ const preview = ref<PlanChangePreviewResponse | null>(null);
 const error = ref('');
 
 // Computed
+// Determine if this is an upgrade based on price (industry standard approach).
+// Higher price = upgrade, lower price = downgrade.
+// Falls back to display_order for same-price plans (e.g., interval changes).
 const isUpgrade = computed(() => {
   if (!props.currentPlan || !props.targetPlan) return false;
+
+  // Primary: Compare by amount (monthly-equivalent for fair comparison)
+  const currentAmount = props.currentPlan.monthly_equivalent_amount ?? props.currentPlan.amount;
+  const targetAmount = props.targetPlan.monthly_equivalent_amount ?? props.targetPlan.amount;
+
+  if (targetAmount !== currentAmount) {
+    return targetAmount > currentAmount;
+  }
+
+  // Fallback: Compare by display_order for same-price plans
   return props.targetPlan.display_order > props.currentPlan.display_order;
 });
 
@@ -103,7 +116,8 @@ async function handleConfirm() {
     );
 
     if (result.success) {
-      emit('success', result.new_plan);
+      // Emit the display name from props, not the API's plan ID
+      emit('success', props.targetPlan?.name ?? result.new_plan);
     } else {
       error.value = t('web.billing.plans.change_failed');
     }

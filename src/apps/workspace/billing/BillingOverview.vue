@@ -9,8 +9,8 @@ import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
-import type { PaymentMethod, PlanType } from '@/types/billing';
-import { getPlanLabel } from '@/types/billing';
+import type { PaymentMethod } from '@/types/billing';
+import { getPlanDisplayName } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { computed, onMounted, ref } from 'vue';
 
@@ -35,7 +35,7 @@ const {
 
 const planName = computed(() => {
   if (!selectedOrg.value?.planid) return t('web.billing.plans.free_plan');
-  return getPlanLabel(selectedOrg.value.planid as PlanType) || selectedOrg.value.planid;
+  return getPlanDisplayName(selectedOrg.value.planid);
 });
 
 const planStatus = computed(() => selectedOrg.value?.planid ? 'active' : 'free');
@@ -48,8 +48,13 @@ const loadOrganizationData = async (extid: string) => {
     selectedOrg.value = org;
 
     // Fetch entitlements if not already loaded
-    if (!org.entitlements && org.extid) {
+    if ((!org.entitlements || org.entitlements.length === 0) && org.extid) {
       await organizationStore.fetchEntitlements(org.extid);
+      // Re-fetch org from store since fetchEntitlements updates it there
+      const updatedOrg = organizations.value.find((o) => o.extid === org.extid);
+      if (updatedOrg) {
+        selectedOrg.value = updatedOrg;
+      }
     }
 
     // Load billing overview data from API

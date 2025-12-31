@@ -143,14 +143,17 @@ module Onetime
 
       # Automatically discover and load production initializers
       #
-      # Scans ObjectSpace for Initializer subclasses matching the production
-      # namespace (onetime.*) and loads them into the registry.
+      # Scans ObjectSpace for Initializer subclasses matching production
+      # namespaces (onetime.* and billing.*) and loads them into the registry.
       #
       # For tests requiring explicit control, use load(classes) instead.
       #
       # @return [void]
       def autodiscover
-        classes = self.class.discover { |k| k.initializer_name&.to_s&.start_with?('onetime.') }
+        classes = self.class.discover do |k|
+          name = k.initializer_name&.to_s
+          name&.start_with?('onetime.') || name&.start_with?('billing.')
+        end
         load_classes(classes)
       end
 

@@ -17,7 +17,7 @@
   } from '@/shared/stores/identityStore';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import { nanoid } from 'nanoid';
-  import { computed, onMounted, ref, watch } from 'vue';
+  import { computed, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
 
   const { t } = useI18n();
@@ -118,16 +118,19 @@
   const selectedAction = ref<'create-link' | 'generate-password'>('create-link');
 
   // Watch for domain scope changes and update form
-  watch(() => currentScope.value.domain, (domain) => {
-    operations.updateField('share_domain', domain);
-  });
+  // Use immediate: true to ensure the initial value is captured
+  watch(
+    () => currentScope.value.domain,
+    (domain) => {
+      if (domain) {
+        operations.updateField('share_domain', domain);
+      }
+    },
+    { immediate: true }
+  );
 
   // Focus management when switching between Create Link and Generate Password modes
   const generatePasswordSection = ref<HTMLElement | null>(null);
-
-  onMounted(() => {
-    operations.updateField('share_domain', currentScope.value.domain);
-  });
 </script>
 
 <template>

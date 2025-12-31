@@ -416,10 +416,10 @@ aria-live="polite">
             {{ t('web.billing.plans.suggested') }}
           </div>
 
-          <!-- Current Badge -->
+          <!-- Current Badge - positioned prominently like Most Popular -->
           <div
             v-if="isPlanCurrent(plan)"
-            class="absolute right-4 top-4 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-300">
+            class="absolute -top-3 right-4 z-10 rounded-full border-2 border-green-600 bg-green-600 px-3 py-1 text-xs font-semibold text-white shadow-md dark:border-green-500 dark:bg-green-500">
             {{ t('web.billing.plans.current_badge') }}
           </div>
 

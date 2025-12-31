@@ -62,6 +62,21 @@ module Billing
 
     def initialize(api_key: nil)
       @api_key = api_key || Onetime.billing_config.stripe_key
+
+      # Log key status for debugging (secure - only prefix, never full key)
+      if @api_key.nil? || @api_key.to_s.strip.empty?
+        billing_logger.error '[StripeClient] No API key available', {
+          api_key_param_nil: api_key.nil?,
+          billing_config_key_nil: Onetime.billing_config.stripe_key.nil?,
+          env_key_present: !ENV['STRIPE_API_KEY'].to_s.strip.empty?,
+        }
+      else
+        billing_logger.debug '[StripeClient] Initialized with API key', {
+          key_prefix: @api_key[0..7],
+          key_length: @api_key.length,
+        }
+      end
+
       configure_stripe
     end
 

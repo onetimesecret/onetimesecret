@@ -3,7 +3,8 @@
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import DashboardMain from '@/apps/workspace/dashboard/DashboardMain.vue';
 import DashboardRecent from '@/apps/workspace/dashboard/DashboardRecent.vue';
-import { RouteRecordRaw } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
+import { SCOPE_PRESETS } from '@/types/router';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -23,6 +24,7 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         showSidebar: false,
       },
+      scopesAvailable: SCOPE_PRESETS.showBoth,
     },
   },
   {
@@ -41,6 +43,7 @@ const routes: Array<RouteRecordRaw> = [
         displayPoweredBy: false,
         displayVersion: true,
       },
+      scopesAvailable: SCOPE_PRESETS.showBoth,
     },
   },
   {
@@ -55,6 +58,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: false,
         displayPoweredBy: false,
       },
+      scopesAvailable: SCOPE_PRESETS.showBoth,
     },
     props: true,
   },
@@ -70,6 +74,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFeedback: false,
         displayPoweredBy: false,
       },
+      scopesAvailable: SCOPE_PRESETS.showBoth,
     },
     props: true,
   },
@@ -84,6 +89,12 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayPoweredBy: false,
       },
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'show',
+        onOrgSwitch: '/dashboard',
+        onDomainSwitch: 'same',
+      },
     },
     props: true,
   },
@@ -97,6 +108,12 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: {
         displayPoweredBy: false,
+      },
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'show',
+        onOrgSwitch: '/dashboard',
+        onDomainSwitch: 'same',
       },
     },
     props: true,
