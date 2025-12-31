@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "Documentazione API",
+      "branding_guide": "Guida al branding",
+      "customize": "Personalizza",
+      "plans": "Piani",
       "security": "Sicurezza",
       "learn_about_our_security_measures": "Scopri le nostre misure di sicurezza",
       "view_our_terms_and_conditions": "Visualizza i nostri termini e condizioni",
@@ -83,19 +87,21 @@
       "visit_onetime_secret_homepage": "Visita la homepage di Onetime Secret",
       "footer_navigation": "Navigazione del piè di pagina",
       "terms_of_service": "Termini di servizio",
-      "privacy_policy": "Privacy Policy",
-      "icon_library": "Icon Library",
+      "privacy_policy": "Informativa sulla privacy",
+      "icon_library": "Libreria icone",
       "google_material": "Google Material",
       "material_design_icons": "Material Design Icons",
       "heroicons": "Heroicons",
       "carbon": "Carbon",
       "font_awesome_6": "Font Awesome 6",
-      "view_source_on_github": "Visualizza sorgente su GitHub",
+      "view_source_on_github": "Visualizza codice sorgente su GitHub",
       "website_version_v_ot_version": "Versione del sito web: v{0}",
       "current_language_is_currentlocal": "Cambia lingua. La lingua corrente è {0}",
       "language_changed_to_newlocale": "Lingua cambiata in {0}",
       "switch_to_blank_mode": "Passa alla modalità {0}",
-      "blank_mode_enabled": "Modalità {0} abilitata"
+      "blank_mode_enabled": "Modalità {0} abilitata",
+      "workspace": "Spazio di lavoro",
+      "workspace_context": "Contesto spazio di lavoro"
     }
   }
 }

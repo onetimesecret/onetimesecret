@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Aggiornamento richiesto",
         "viewPlans": "Visualizza piani",
+        "needTeams": "La gestione dei team richiede Identity Plus o superiore",
         "needCustomDomains": "I domini personalizzati richiedono Identity Plus o superiore",
         "needApiAccess": "L'accesso API richiede il piano Multi-Team o superiore",
-        "needPrioritySupport": "Il supporto prioritario richiede Identity Plus o superiore",
         "needAuditLogs": "I log di audit richiedono il piano Multi-Team o superiore"
       },
       "manage_subscription_and_billing": "Gestisci abbonamento, organizzazioni e impostazioni di fatturazione",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Crea un'organizzazione per gestire fatturazione e abbonamento",
         "entitlements": {
           "create_secrets": "Crea segreti",
-          "basic_sharing": "Condivisione base",
-          "custom_domains": "Domini personalizzati",
+          "view_metadata": "Visualizza metadati",
           "api_access": "Accesso API",
+          "custom_domains": "Domini personalizzati",
+          "custom_privacy_defaults": "Impostazioni privacy personalizzate",
+          "extended_default_expiration": "Scadenza predefinita estesa",
+          "custom_mail_defaults": "Impostazioni email personalizzate",
+          "custom_branding": "Branding personalizzato",
+          "branded_homepage": "Homepage con marchio",
+          "incoming_secrets": "Segreti in arrivo",
+          "manage_orgs": "Gestisci organizzazioni",
+          "manage_teams": "Gestisci team",
+          "manage_members": "Gestisci membri",
+          "audit_logs": "Log di audit",
+          "sso": "Accesso unificato (SSO)",
           "priority_support": "Supporto prioritario",
-          "audit_logs": "Log di audit"
-        }
+          "sla": "Accordo sui livelli di servizio (SLA)"
+        },
+        "entitlements_load_error": "Impossibile caricare i dettagli delle funzionalità",
+        "no_entitlements": "Nessuna funzionalità disponibile"
       },
       "plans": {
         "title": "Seleziona un piano",
@@ -55,13 +68,17 @@
         "save_yearly": "Risparmia il {percent}% con fatturazione annuale",
         "free_plan": "Gratuito",
         "single_team_plan": "Team singolo",
-        "multi_team_plan": "Multi Team",
+        "multi_team_plan": "Multi-team",
         "features": "Funzionalità",
         "unlimited_secrets": "Segreti illimitati",
         "api_access": "Accesso API",
         "priority_support": "Supporto prioritario",
         "select_plan": "Seleziona piano",
-        "contact_sales": "Contatta vendite"
+        "contact_sales": "Contatta vendite",
+        "custom_needs_title": "Hai domande o esigenze personalizzate?",
+        "custom_needs_description": "Ci piacerebbe sentirti. Facci sapere cosa stai cercando.",
+        "teams_limit": "{count} team | {count} team",
+        "members_limit": "{count} membro per team | {count} membri per team"
       },
       "invoices": {
         "title": "Cronologia fatturazione",
@@ -111,7 +128,7 @@
       "upgrade_to_identity_plus": "Aggiornamento a Identity Plus",
       "upgrade_for_teams": "Upgrade per team",
       "benefits_of": "Benefici di",
-      "t_benefits_of_identity_plus": "{0}: Identity Plus",
+      "t_benefits_of_identity_plus": "Vantaggi di {0}: Identity Plus",
       "upgrade_to": "Aggiornamento a",
       "upgrade_for_yourdomain": "Aggiornamento per secrets.yourdomain.com",
       "includes_all_features_and_unlimited_sharing_capa": "Tutti i piani includono funzionalità per la privacy e capacità di condivisione illimitata",
