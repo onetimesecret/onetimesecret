@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Потрібне оновлення",
         "viewPlans": "Переглянути плани",
+        "needTeams": "Керування командами потребує Identity Plus або вище",
         "needCustomDomains": "Власні домени потребують Identity Plus або вище",
         "needApiAccess": "Доступ до API потребує плану Multi-Team або вище",
-        "needPrioritySupport": "Пріоритетна підтримка потребує Identity Plus або вище",
         "needAuditLogs": "Журнали аудиту потребують плану Multi-Team або вище"
       },
       "manage_subscription_and_billing": "Керуйте вашою підпискою, організаціями та налаштуваннями виставлення рахунків",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Створіть організацію для керування виставленням рахунків та підпискою",
         "entitlements": {
           "create_secrets": "Створювати секрети",
-          "basic_sharing": "Базовий обмін",
-          "custom_domains": "Власні домени",
+          "view_metadata": "Переглянути метадані",
           "api_access": "Доступ до API",
+          "custom_domains": "Власні домени",
+          "custom_privacy_defaults": "Налаштування конфіденційності",
+          "extended_default_expiration": "Подовжений термін дії",
+          "custom_mail_defaults": "Налаштування пошти",
+          "custom_branding": "Власний брендинг",
+          "branded_homepage": "Брендована головна сторінка",
+          "incoming_secrets": "Вхідні таємниці",
+          "manage_orgs": "Керування організаціями",
+          "manage_teams": "Керування командами",
+          "manage_members": "Керування учасниками",
+          "audit_logs": "Журнали аудиту",
+          "sso": "Єдиний вхід (SSO)",
           "priority_support": "Пріоритетна підтримка",
-          "audit_logs": "Журнали аудиту"
-        }
+          "sla": "Угода про рівень обслуговування"
+        },
+        "entitlements_load_error": "Не вдалося завантажити деталі функцій",
+        "no_entitlements": "Функції недоступні"
       },
       "plans": {
         "title": "Виберіть план",
@@ -61,7 +74,11 @@
         "api_access": "Доступ до API",
         "priority_support": "Пріоритетна підтримка",
         "select_plan": "Вибрати план",
-        "contact_sales": "Зв'язатися з відділом продажів"
+        "contact_sales": "Зв'язатися з відділом продажів",
+        "custom_needs_title": "Маєте питання або потребуєте індивідуальне рішення?",
+        "custom_needs_description": "Ми будемо раді почути від вас. Розкажіть, що ви шукаєте.",
+        "teams_limit": "{count} команда | {count} команди | {count} команд",
+        "members_limit": "{count} учасник на команду | {count} учасники на команду | {count} учасників на команду"
       },
       "invoices": {
         "title": "Історія виставлення рахунків",
