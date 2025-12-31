@@ -15,7 +15,7 @@
 
 schema_version: '1.0'
 app_identifier: 'onetimesecret'
-enabled: true
+enabled: false
 stripe_key: 'sk_test_mock'
 webhook_signing_secret: 'whsec_test_mock'
 stripe_api_version: '2025-11-17.clover'
