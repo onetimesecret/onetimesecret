@@ -43,7 +43,7 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'active',
-        metadata: { 'custid' => customer.custid },
+        metadata: { 'customer_extid' => customer.extid },
       )
     end
 
@@ -85,7 +85,7 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
         customer: stripe_customer_id,
         status: 'active',
         metadata: {
-          'custid' => customer.custid,
+          'customer_extid' => customer.extid,
           Billing::Metadata::FIELD_PLAN_ID => 'identity_plus_v1',
         },
       )
@@ -112,7 +112,7 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'active',
-        metadata: { 'custid' => customer.custid },
+        metadata: { 'customer_extid' => customer.extid },
         price_metadata: { Billing::Metadata::FIELD_PLAN_ID => 'multi_team_v1' },
       )
     end
@@ -138,7 +138,7 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'active',
-        metadata: { 'custid' => customer.custid },
+        metadata: { 'customer_extid' => customer.extid },
         price_metadata: {},
       )
     end
