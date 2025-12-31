@@ -10,7 +10,12 @@ module Auth::Config::Base
     auth.enable :base, :json, :login, :logout, :table_guard, :external_identity
     auth.enable :hmac_secret_guard
 
-    auth.db Auth::Database.connection
+    # Block form defers evaluation until runtime, not class definition time.
+    # Critical for testing: allows stubs to be installed after `require 'auth/config'`
+    # but before first DB access. Without the block, `sqlite::memory:` connections
+    # created at config time would be separate from test-stubbed connections.
+    # See: http://rodauth.jeremyevans.net/rdoc/files/README_rdoc.html#label-Database
+    auth.db { Auth::Database.connection }
 
     auth.table_guard_mode :error
     auth.table_guard_sequel_mode :log  # Log missing tables; OTS migrations handle creation
