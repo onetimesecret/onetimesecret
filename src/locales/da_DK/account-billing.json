@@ -37,7 +37,7 @@
         "no_organizations_description": "",
         "entitlements": {
           "create_secrets": "",
-          "view_metadata": "Se metadata",
+          "view_receipt": "Vis kvitteringer",
           "api_access": "",
           "custom_domains": "",
           "custom_privacy_defaults": "Tilpassede privatlivsindstillinger",
@@ -69,6 +69,9 @@
         "free_plan": "",
         "single_team_plan": "",
         "multi_team_plan": "",
+        "individual_account": "Individuel konto",
+        "team_account": "Teamkonto",
+        "multi_team_account": "Organisationskonto",
         "features": "",
         "unlimited_secrets": "",
         "api_access": "",
@@ -78,7 +81,9 @@
         "custom_needs_title": "Har du spørgsmål eller brug for noget tilpasset?",
         "custom_needs_description": "Vi vil gerne høre fra dig. Fortæl os, hvad du leder efter.",
         "teams_limit": "{count} team | {count} teams",
-        "members_limit": "{count} medlem pr. team | {count} medlemmer pr. team"
+        "members_limit": "{count} medlem pr. team | {count} medlemmer pr. team",
+        "unlimited_teams": "Ubegrænsede teams",
+        "unlimited_members": "Ubegrænset antal medlemmer pr. team"
       },
       "invoices": {
         "title": "",

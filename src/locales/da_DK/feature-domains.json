@@ -31,6 +31,7 @@
       "scope_list_label": "Tilgængelige domæner",
       "scope_header": "Domæner",
       "add_domain": "Tilføj domæne",
+      "domain_settings": "Domæneindstillinger",
       "please_enter_a_domain_name": "Indtast venligst et {0} domænenavn",
       "domain_name": "Domænenavn",
       "control_whether_users_can_create_secret_links": "Kontroller, om brugerne kan oprette hemmelige links fra dit domænes hjemmeside",

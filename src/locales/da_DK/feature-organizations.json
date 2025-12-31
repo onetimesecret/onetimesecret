@@ -6,6 +6,7 @@
       "organization_plural": "",
       "organizations_description": "",
       "my_organizations": "",
+      "manage_organizations": "Administrer organisationer",
       "new_organization": "",
       "no_organizations": "",
       "no_organizations_description": "",
@@ -47,9 +48,11 @@
       "single_user_info_description": "",
       "getting_started_title": "",
       "getting_started_description": "",
+      "page_description": "Administrer dine organisationer og teammedlemmer",
       "tabs": {
         "general": "",
         "company_branding": "",
+        "members": "Team",
         "billing": ""
       },
       "danger_zone": "",
@@ -62,7 +65,10 @@
       "members": {
         "title": "Medlemmer",
         "description": "Administrer organisationsmedlemmer og deres roller",
+        "current_members": "Nuværende medlemmer",
         "member": "Medlem",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Navn",
         "email": "E-mail",
         "role": "Rolle",
