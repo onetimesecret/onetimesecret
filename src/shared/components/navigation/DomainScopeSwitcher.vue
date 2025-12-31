@@ -18,10 +18,11 @@
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomainScope } from '@/shared/composables/useDomainScope';
+import type { ScopesAvailable } from '@/types/router';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 /**
  * Props for controlling switcher behavior from parent
@@ -36,7 +37,16 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const { t } = useI18n();
+const route = useRoute();
 const router = useRouter();
+
+/**
+ * Get the onDomainSwitch navigation target from route meta
+ */
+const onDomainSwitch = computed<string | undefined>(() => {
+  const scopesAvailable = route.meta?.scopesAvailable as ScopesAvailable | undefined;
+  return scopesAvailable?.onDomainSwitch;
+});
 
 const {
   currentScope,
@@ -53,10 +63,43 @@ const {
 const isCurrentScope = (domain: string): boolean => domain === currentScope.value.domain;
 
 /**
- * Handle domain selection
+ * Handle domain selection with optional navigation
  */
 const selectDomain = (domain: string): void => {
   setScope(domain);
+
+  // Handle route-aware navigation based on onDomainSwitch meta
+  const switchTarget = onDomainSwitch.value;
+  if (!switchTarget) {
+    // No navigation configured, just update store (current behavior)
+    return;
+  }
+
+  const extid = getExtidByDomain(domain);
+
+  if (switchTarget === 'same') {
+    // Stay on current route pattern, replace :extid with new domain's extid
+    if (!extid) {
+      console.warn('[DomainScopeSwitcher] Cannot navigate: domain missing extid', domain);
+      return;
+    }
+    const matchedRoute = route.matched[route.matched.length - 1];
+    if (matchedRoute?.path) {
+      const newPath = matchedRoute.path.replace(':extid', extid);
+      router.push(newPath);
+    }
+  } else if (switchTarget.includes(':extid')) {
+    // Path with :extid placeholder - replace and navigate
+    if (!extid) {
+      console.warn('[DomainScopeSwitcher] Cannot navigate: domain missing extid', domain);
+      return;
+    }
+    const newPath = switchTarget.replace(':extid', extid);
+    router.push(newPath);
+  } else {
+    // Path without :extid - navigate directly
+    router.push(switchTarget);
+  }
 };
 
 /**

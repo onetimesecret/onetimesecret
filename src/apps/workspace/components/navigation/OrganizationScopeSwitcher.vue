@@ -20,10 +20,11 @@
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
+import type { ScopesAvailable } from '@/types/router';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 /**
  * Props for controlling switcher behavior from parent
@@ -38,8 +39,17 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const { t } = useI18n();
+const route = useRoute();
 const router = useRouter();
 const organizationStore = useOrganizationStore();
+
+/**
+ * Get the onOrgSwitch navigation target from route meta
+ */
+const onOrgSwitch = computed<string | undefined>(() => {
+  const scopesAvailable = route.meta?.scopesAvailable as ScopesAvailable | undefined;
+  return scopesAvailable?.onOrgSwitch;
+});
 
 // Note: Organizations are fetched by OrganizationContextBar parent component
 
@@ -92,10 +102,41 @@ const isCurrentOrganization = (org: Organization): boolean =>
   currentOrganization.value?.id === org.id;
 
 /**
- * Handle organization selection
+ * Handle organization selection with optional navigation
  */
 const selectOrganization = (org: Organization): void => {
   organizationStore.setCurrentOrganization(org);
+
+  // Handle route-aware navigation based on onOrgSwitch meta
+  const switchTarget = onOrgSwitch.value;
+  if (!switchTarget) {
+    // No navigation configured, just update store (current behavior)
+    return;
+  }
+
+  if (switchTarget === 'same') {
+    // Stay on current route pattern, replace :extid with new org's extid
+    if (!org.extid) {
+      console.warn('[OrganizationScopeSwitcher] Cannot navigate: org missing extid', org.id);
+      return;
+    }
+    const matchedRoute = route.matched[route.matched.length - 1];
+    if (matchedRoute?.path) {
+      const newPath = matchedRoute.path.replace(':extid', org.extid);
+      router.push(newPath);
+    }
+  } else if (switchTarget.includes(':extid')) {
+    // Path with :extid placeholder - replace and navigate
+    if (!org.extid) {
+      console.warn('[OrganizationScopeSwitcher] Cannot navigate: org missing extid', org.id);
+      return;
+    }
+    const newPath = switchTarget.replace(':extid', org.extid);
+    router.push(newPath);
+  } else {
+    // Path without :extid - navigate directly
+    router.push(switchTarget);
+  }
 };
 
 /**

@@ -89,7 +89,12 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayPoweredBy: false,
       },
-      scopesAvailable: SCOPE_PRESETS.orgShowDomainLocked,
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'show',
+        onOrgSwitch: '/dashboard',
+        onDomainSwitch: 'same',
+      },
     },
     props: true,
   },
@@ -104,7 +109,12 @@ const routes: Array<RouteRecordRaw> = [
       layoutProps: {
         displayPoweredBy: false,
       },
-      scopesAvailable: SCOPE_PRESETS.orgShowDomainLocked,
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'show',
+        onOrgSwitch: '/dashboard',
+        onDomainSwitch: 'same',
+      },
     },
     props: true,
   },

@@ -20,6 +20,22 @@ export type ScopeSwitcherState = 'show' | 'locked' | 'hide';
 export interface ScopesAvailable {
   organization?: ScopeSwitcherState;
   domain?: ScopeSwitcherState;
+  /**
+   * Navigation target when switching organization.
+   * - undefined: Just update store (current behavior)
+   * - 'same': Stay on current route pattern, replace :extid with new org's extid
+   * - Path with :extid (e.g., '/org/:extid'): Replace :extid and navigate
+   * - Path without :extid (e.g., '/dashboard'): Navigate directly
+   */
+  onOrgSwitch?: string;
+  /**
+   * Navigation target when switching domain.
+   * - undefined: Just update store (current behavior)
+   * - 'same': Stay on current route pattern, replace :extid with new domain's extid
+   * - Path with :extid (e.g., '/domains/:extid/brand'): Replace :extid and navigate
+   * - Path without :extid (e.g., '/domains'): Navigate directly
+   */
+  onDomainSwitch?: string;
 }
 
 /**

@@ -48,7 +48,11 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'hide',
+        onOrgSwitch: 'same',
+      },
     },
   },
   {
