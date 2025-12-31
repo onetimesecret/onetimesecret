@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Mise à niveau requise",
         "viewPlans": "Consulter les forfaits",
+        "needTeams": "La gestion d'équipe nécessite Identity Plus ou supérieur",
         "needCustomDomains": "Les domaines personnalisés nécessitent Identity Plus ou supérieur",
         "needApiAccess": "L'accès à l'API nécessite le forfait Multi-Équipe ou supérieur",
-        "needPrioritySupport": "Le support prioritaire nécessite Identity Plus ou supérieur",
         "needAuditLogs": "Les journaux d'audit nécessitent le forfait Multi-Équipe ou supérieur"
       },
       "manage_subscription_and_billing": "Gérer votre abonnement, vos organisations et vos paramètres de facturation",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Créer une organisation pour gérer votre facturation et votre abonnement",
         "entitlements": {
           "create_secrets": "Créer des secrets",
-          "basic_sharing": "Partage de base",
-          "custom_domains": "Domaines personnalisés",
+          "view_metadata": "Consulter les métadonnées",
           "api_access": "Accès à l'API",
+          "custom_domains": "Domaines personnalisés",
+          "custom_privacy_defaults": "Paramètres de confidentialité personnalisés",
+          "extended_default_expiration": "Expiration par défaut prolongée",
+          "custom_mail_defaults": "Paramètres de courriel personnalisés",
+          "custom_branding": "Image de marque personnalisée",
+          "branded_homepage": "Page d'accueil personnalisée",
+          "incoming_secrets": "Secrets entrants",
+          "manage_orgs": "Gérer les organisations",
+          "manage_teams": "Gérer les équipes",
+          "manage_members": "Gérer les membres",
+          "audit_logs": "Journaux d'audit",
+          "sso": "Authentification unique",
           "priority_support": "Support prioritaire",
-          "audit_logs": "Journaux d'audit"
-        }
+          "sla": "Accord de niveau de service"
+        },
+        "entitlements_load_error": "Impossible de charger les détails des fonctionnalités",
+        "no_entitlements": "Aucune fonctionnalité disponible"
       },
       "plans": {
         "title": "Sélectionner un forfait",
@@ -61,7 +74,11 @@
         "api_access": "Accès à l'API",
         "priority_support": "Support prioritaire",
         "select_plan": "Sélectionner le forfait",
-        "contact_sales": "Contacter les ventes"
+        "contact_sales": "Contacter les ventes",
+        "custom_needs_title": "Des questions ou des besoins particuliers ?",
+        "custom_needs_description": "Nous serions ravis de vous entendre. Faites-nous savoir ce que vous recherchez.",
+        "teams_limit": "{count} équipe | {count} équipes",
+        "members_limit": "{count} membre par équipe | {count} membres par équipe"
       },
       "invoices": {
         "title": "Historique de facturation",
