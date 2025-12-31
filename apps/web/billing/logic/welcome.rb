@@ -217,8 +217,7 @@ module Billing
           return success_data unless subscription
 
           metadata        = subscription.metadata
-          # Support both new (customer_extid) and legacy (custid) metadata formats
-          customer_extid  = metadata['customer_extid'] || metadata['custid']
+          customer_extid  = metadata['customer_extid']
           plan_id         = metadata['plan_id']
 
           OT.info '[ProcessCheckoutSession] Processing checkout', {

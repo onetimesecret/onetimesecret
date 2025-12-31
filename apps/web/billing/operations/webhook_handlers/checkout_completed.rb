@@ -46,8 +46,7 @@ module Billing
           subscription = Stripe::Subscription.retrieve(session.subscription)
           metadata     = subscription.metadata
 
-          # Support both new (customer_extid) and legacy (custid) metadata formats
-          customer_extid = metadata['customer_extid'] || metadata['custid']
+          customer_extid = metadata['customer_extid']
           unless customer_extid
             billing_logger.warn 'No customer_extid in subscription metadata', {
               subscription_id: subscription.id,
@@ -147,7 +146,7 @@ module Billing
           return org if org
 
           # 4. Create default org (shouldn't happen - checkout requires org)
-          billing_logger.warn 'Creating default org during checkout (unexpected)', { custid: customer.custid }
+          billing_logger.warn 'Creating default org during checkout (unexpected)', { customer_extid: customer.extid }
           org = Onetime::Organization.create!(
             "#{customer.email}'s Workspace",
             customer,

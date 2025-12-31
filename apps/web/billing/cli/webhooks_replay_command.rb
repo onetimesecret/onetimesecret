@@ -235,8 +235,8 @@ module Onetime
         return true if stripe_customer_id && data_obj['customer'] == stripe_customer_id
         return true if stripe_customer_id && data_obj['id'] == stripe_customer_id
 
-        # Check metadata against original customer input (which could be an extid/objid)
-        return true if original_customer_id && data_obj.dig('metadata', 'custid') == original_customer_id
+        # Check metadata against original customer input (extid)
+        return true if original_customer_id && data_obj.dig('metadata', 'customer_extid') == original_customer_id
 
         false
       end

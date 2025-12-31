@@ -211,8 +211,8 @@ module Billing
         org.save
 
         billing_logger.info 'Created default organization', {
-          extid: org.objid,
-          custid: customer.custid,
+          org_extid: org.extid,
+          customer_extid: customer.extid,
         }
 
         org
