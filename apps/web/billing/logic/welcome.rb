@@ -58,8 +58,24 @@ module Billing
 
             OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with authenticated user #{cust.obscure_email}"
 
-            # TODO: Handle case where the user is already a Stripe customer
-            cust.apply_fields(**update_customer_fields).commit_fields
+            # Handle case where the user already has a stripe_customer_id (deprecated Customer field).
+            # The authoritative billing relationship is now on Organization, but we preserve
+            # existing Customer.stripe_customer_id for data integrity during migration.
+            fields_to_update = update_customer_fields.dup
+            existing_stripe_customer_id = cust.stripe_customer_id.to_s
+            new_stripe_customer_id = fields_to_update[:stripe_customer_id].to_s
+
+            if existing_stripe_customer_id.present? && existing_stripe_customer_id != new_stripe_customer_id
+              OT.lw '[FromStripePaymentLink] User already has stripe_customer_id, keeping existing', {
+                existing: existing_stripe_customer_id,
+                new: new_stripe_customer_id,
+                customer: cust.obscure_email,
+              }
+              # Keep existing stripe_customer_id, don't overwrite with new one
+              fields_to_update.delete(:stripe_customer_id)
+            end
+
+            cust.apply_fields(**fields_to_update).commit_fields
 
             # Update organization billing from subscription (extracts planid, etc.)
             update_organization_billing(cust)
@@ -77,7 +93,21 @@ module Billing
 
               OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with existing user #{cust.obscure_email}"
 
-              cust.apply_fields(**update_customer_fields).commit_fields
+              # Same stripe_customer_id handling as authenticated flow above
+              fields_to_update = update_customer_fields.dup
+              existing_stripe_customer_id = cust.stripe_customer_id.to_s
+              new_stripe_customer_id = fields_to_update[:stripe_customer_id].to_s
+
+              if existing_stripe_customer_id.present? && existing_stripe_customer_id != new_stripe_customer_id
+                OT.lw '[FromStripePaymentLink] Existing user already has stripe_customer_id, keeping existing', {
+                  existing: existing_stripe_customer_id,
+                  new: new_stripe_customer_id,
+                  customer: cust.obscure_email,
+                }
+                fields_to_update.delete(:stripe_customer_id)
+              end
+
+              cust.apply_fields(**fields_to_update).commit_fields
 
               # Update organization billing from subscription (extracts planid, etc.)
               update_organization_billing(cust)
