@@ -18,8 +18,8 @@ importers:
         specifier: 6.1.2
         version: 6.1.2
       '@codemirror/state':
-        specifier: 6.5.2
-        version: 6.5.2
+        specifier: 6.5.3
+        version: 6.5.3
       '@codemirror/theme-one-dark':
         specifier: 6.1.3
         version: 6.1.3
@@ -106,7 +106,7 @@ importers:
         version: 3.5.26(typescript@5.8.3)
       vue-codemirror6:
         specifier: 1.3.22
-        version: 1.3.22(@codemirror/autocomplete@6.18.6)(@codemirror/commands@6.8.1)(@codemirror/language@6.11.0)(@codemirror/lint@6.8.5)(@codemirror/search@6.5.11)(@codemirror/state@6.5.2)(@codemirror/view@6.37.2)(codemirror@6.0.2)(style-mod@4.1.2)(vue@3.5.26(typescript@5.8.3))
+        version: 1.3.22(@codemirror/autocomplete@6.18.6)(@codemirror/commands@6.8.1)(@codemirror/language@6.11.0)(@codemirror/lint@6.8.5)(@codemirror/search@6.5.11)(@codemirror/state@6.5.3)(@codemirror/view@6.37.2)(codemirror@6.0.2)(style-mod@4.1.2)(vue@3.5.26(typescript@5.8.3))
       vue-i18n:
         specifier: 11.1.12
         version: 11.1.12(vue@3.5.26(typescript@5.8.3))
@@ -400,8 +400,8 @@ packages:
   '@codemirror/search@6.5.11':
     resolution: {integrity: sha512-KmWepDE6jUdL6n8cAAqIpRmLPBZ5ZKnicE8oGU/s3QrAVID+0VhLFrzUucVKHG5035/BSykhExDL/Xm7dHthiA==}
 
-  '@codemirror/state@6.5.2':
-    resolution: {integrity: sha512-FVqsPqtPWKVVL3dPSxy8wEF/ymIEuVzF1PK3VbUgrxXpJUSHQWWZz4JMToquRxnkw+36LTamCZG2iua2Ptq0fA==}
+  '@codemirror/state@6.5.3':
+    resolution: {integrity: sha512-MerMzJzlXogk2fxWFU1nKp36bY5orBG59HnPiz0G9nLRebWa0zXuv2siH6PLIHBvv5TH8CkQRqjBs0MlxCZu+A==}
 
   '@codemirror/theme-one-dark@6.1.3':
     resolution: {integrity: sha512-NzBdIvEJmx6fjeremiGp3t/okrLPYT0d9orIc7AFun8oZcRk58aejkqhv6spnz4MLAevrKNPMQYXEWMg4s+sKA==}
@@ -4371,14 +4371,14 @@ snapshots:
   '@codemirror/autocomplete@6.18.6':
     dependencies:
       '@codemirror/language': 6.11.0
-      '@codemirror/state': 6.5.2
+      '@codemirror/state': 6.5.3
       '@codemirror/view': 6.37.2
       '@lezer/common': 1.2.3
 
   '@codemirror/commands@6.8.1':
     dependencies:
       '@codemirror/language': 6.11.0
-      '@codemirror/state': 6.5.2
+      '@codemirror/state': 6.5.3
       '@codemirror/view': 6.37.2
       '@lezer/common': 1.2.3
 
@@ -4391,7 +4391,7 @@ snapshots:
     dependencies:
       '@codemirror/autocomplete': 6.18.6
       '@codemirror/language': 6.11.0
-      '@codemirror/state': 6.5.2
+      '@codemirror/state': 6.5.3
       '@lezer/common': 1.2.3
       '@lezer/highlight': 1.2.1
       '@lezer/lr': 1.4.2
@@ -4399,7 +4399,7 @@ snapshots:
 
   '@codemirror/language@6.11.0':
     dependencies:
-      '@codemirror/state': 6.5.2
+      '@codemirror/state': 6.5.3
       '@codemirror/view': 6.37.2
       '@lezer/common': 1.2.3
       '@lezer/highlight': 1.2.1
@@ -4408,30 +4408,30 @@ snapshots:
 
   '@codemirror/lint@6.8.5':
     dependencies:
-      '@codemirror/state': 6.5.2
+      '@codemirror/state': 6.5.3
       '@codemirror/view': 6.37.2
       crelt: 1.0.6
 
   '@codemirror/search@6.5.11':
     dependencies:
-      '@codemirror/state': 6.5.2
+      '@codemirror/state': 6.5.3
       '@codemirror/view': 6.37.2
       crelt: 1.0.6
 
-  '@codemirror/state@6.5.2':
+  '@codemirror/state@6.5.3':
     dependencies:
       '@marijn/find-cluster-break': 1.0.2
 
   '@codemirror/theme-one-dark@6.1.3':
     dependencies:
       '@codemirror/language': 6.11.0
-      '@codemirror/state': 6.5.2
+      '@codemirror/state': 6.5.3
       '@codemirror/view': 6.37.2
       '@lezer/highlight': 1.2.1
 
   '@codemirror/view@6.37.2':
     dependencies:
-      '@codemirror/state': 6.5.2
+      '@codemirror/state': 6.5.3
       crelt: 1.0.6
       style-mod: 4.1.2
       w3c-keyname: 2.2.8
@@ -5841,7 +5841,7 @@ snapshots:
       '@codemirror/language': 6.11.0
       '@codemirror/lint': 6.8.5
       '@codemirror/search': 6.5.11
-      '@codemirror/state': 6.5.2
+      '@codemirror/state': 6.5.3
       '@codemirror/view': 6.37.2
 
   color-convert@2.0.1:
@@ -8031,14 +8031,14 @@ snapshots:
 
   vscode-uri@3.1.0: {}
 
-  vue-codemirror6@1.3.22(@codemirror/autocomplete@6.18.6)(@codemirror/commands@6.8.1)(@codemirror/language@6.11.0)(@codemirror/lint@6.8.5)(@codemirror/search@6.5.11)(@codemirror/state@6.5.2)(@codemirror/view@6.37.2)(codemirror@6.0.2)(style-mod@4.1.2)(vue@3.5.26(typescript@5.8.3)):
+  vue-codemirror6@1.3.22(@codemirror/autocomplete@6.18.6)(@codemirror/commands@6.8.1)(@codemirror/language@6.11.0)(@codemirror/lint@6.8.5)(@codemirror/search@6.5.11)(@codemirror/state@6.5.3)(@codemirror/view@6.37.2)(codemirror@6.0.2)(style-mod@4.1.2)(vue@3.5.26(typescript@5.8.3)):
     dependencies:
       '@codemirror/autocomplete': 6.18.6
       '@codemirror/commands': 6.8.1
       '@codemirror/language': 6.11.0
       '@codemirror/lint': 6.8.5
       '@codemirror/search': 6.5.11
-      '@codemirror/state': 6.5.2
+      '@codemirror/state': 6.5.3
       '@codemirror/view': 6.37.2
       codemirror: 6.0.2
       style-mod: 4.1.2
