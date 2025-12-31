@@ -31,6 +31,7 @@
     "create_another": "다른 비밀 전송",
     "tagline1": "민감한 정보를 안전하게 공유하세요",
     "tagline2": "비밀번호와 개인 데이터를 이메일 및 채팅 기록에서 보호하세요",
-    "end_of_experience_suggestion": "기록을 위해 <a href='{receiptUrl}'>영수증</a>을 저장하세요."
+    "end_of_experience_suggestion": "기록을 위해 <a href='{receiptUrl}'>영수증</a>을 저장하세요.",
+    "receipt_link_text": "receipt"
   }
 }

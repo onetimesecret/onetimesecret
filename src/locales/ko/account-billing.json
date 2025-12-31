@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "업그레이드 필요",
         "viewPlans": "플랜 보기",
+        "needTeams": "Team management requires Identity Plus or higher",
         "needCustomDomains": "맞춤 도메인은 Identity Plus 이상이 필요합니다",
         "needApiAccess": "API 접근은 Multi-Team 플랜 이상이 필요합니다",
-        "needPrioritySupport": "우선 지원은 Identity Plus 이상이 필요합니다",
         "needAuditLogs": "감사 로그는 Multi-Team 플랜 이상이 필요합니다"
       },
       "manage_subscription_and_billing": "구독, 조직 및 결제 설정을 관리합니다",
@@ -37,12 +37,25 @@
         "no_organizations_description": "결제 및 구독을 관리할 조직을 생성하세요",
         "entitlements": {
           "create_secrets": "비밀 메시지 생성",
-          "basic_sharing": "기본 공유",
-          "custom_domains": "맞춤 도메인",
+          "view_metadata": "View Metadata",
           "api_access": "API 접근",
+          "custom_domains": "맞춤 도메인",
+          "custom_privacy_defaults": "Custom Privacy Defaults",
+          "extended_default_expiration": "Extended Default Expiration",
+          "custom_mail_defaults": "Custom Mail Defaults",
+          "custom_branding": "Custom Branding",
+          "branded_homepage": "Branded Homepage",
+          "incoming_secrets": "Incoming Secrets",
+          "manage_orgs": "Manage Organizations",
+          "manage_teams": "Manage Teams",
+          "manage_members": "Manage Members",
+          "audit_logs": "감사 로그",
+          "sso": "Single Sign-On",
           "priority_support": "우선 지원",
-          "audit_logs": "감사 로그"
-        }
+          "sla": "Service Level Agreement"
+        },
+        "entitlements_load_error": "Could not load feature details",
+        "no_entitlements": "No features available"
       },
       "plans": {
         "title": "플랜 선택",
@@ -61,7 +74,11 @@
         "api_access": "API 접근",
         "priority_support": "우선 지원",
         "select_plan": "플랜 선택",
-        "contact_sales": "영업팀 문의"
+        "contact_sales": "영업팀 문의",
+        "custom_needs_title": "Have questions or need something custom?",
+        "custom_needs_description": "We'd love to hear from you. Let us know what you're looking for.",
+        "teams_limit": "{count} team | {count} teams",
+        "members_limit": "{count} member per team | {count} members per team"
       },
       "invoices": {
         "title": "결제 기록",
