@@ -69,6 +69,7 @@
       "word_confirm": "Bestätigen Sie",
       "word_cancel": "Abbrechen",
       "word_continue": "Fortfahren",
+      "word_done": "Fertig",
       "back": "Zurück",
       "feedback_text": "Teilen Sie Ihre Gedanken, Ideen oder Erfahrungen mit...",
       "button_send_feedback": "Rückmeldung senden",
@@ -160,8 +161,8 @@
       "an_error_occurred": "Es ist ein Fehler aufgetreten",
       "copy_secret_to_clipboard": "Geheimnis in die Zwischenablage kopieren",
       "secret_copied_to_clipboard": "Geheimnis in die Zwischenablage kopiert",
-      "press_copy_button_below": "Klicken Sie unten auf die Schaltfläche zum Kopieren.",
-      "double_check_that_passphrase": "Überprüfen Sie die Sicherheitsphrase doppelt"
+      "double_check_that_passphrase": "Überprüfen Sie die Sicherheitsphrase doppelt",
+      "press_copy_button_below": "Klicken Sie unten auf die Schaltfläche zum Kopieren."
     },
     "LABELS": {
       "view_toggle": {
@@ -170,6 +171,9 @@
         "show_more": "Mehr anzeigen",
         "show_less": "Weniger anzeigen"
       },
+      "enable": "Aktivieren",
+      "disable": "Deaktivieren",
+      "stats": "Statistiken",
       "timeline": "Zeitleiste",
       "lifespan": "Lebensdauer",
       "expiration_time": "Ablaufzeit",
@@ -213,9 +217,8 @@
       "create_request_short": "Anfrage erstellen",
       "create_request": "Anfrage-Link erstellen",
       "related_settings": "Verwandte Einstellungen",
-      "enable": "Aktivieren",
-      "disable": "Deaktivieren",
-      "stats": "Statistiken"
+      "creating_links_for": "Links erstellen für",
+      "scope_indicator": "Geheimnisse erstellen in {domain}"
     },
     "STATUS": {
       "new": "Neu",
@@ -290,6 +293,7 @@
       "verify_account": "Konto verifizieren",
       "mfa_verify": "Zwei-Faktor-Authentifizierung",
       "email_login": "E-Mail-Anmeldung",
+      "accept_invitation": "Einladung annehmen",
       "secret": "Geheimnis",
       "metadata": "Geheimnis-Details",
       "receipt": "Geheimnis-Bestätigung",
@@ -308,6 +312,7 @@
       "profile_settings": "Profileinstellungen",
       "preferences_settings": "Einstellungen",
       "privacy_settings": "Datenschutz",
+      "notification_settings": "Benachrichtigungen",
       "change_email": "E-Mail ändern",
       "security_overview": "Sicherheit",
       "change_password": "Passwort ändern",
@@ -318,7 +323,14 @@
       "advanced_settings": "Erweiterte Einstellungen",
       "colonel": "Administration",
       "colonel_users": "Benutzerverwaltung",
+      "colonel_secrets": "Geheimnisverwaltung",
+      "colonel_domains": "Benutzerdefinierte Bereiche",
+      "colonel_system": "System",
       "system_settings": "Systemeinstellungen",
+      "colonel_maindb": "Hauptdatenbank",
+      "colonel_authdb": "Authentifizierungsdatenbank",
+      "colonel_banned_ips": "Gesperrte IPs",
+      "colonel_usage": "Nutzungsexport",
       "colonel_info": "Systeminformationen",
       "not_found": "Seite nicht gefunden",
       "organizations_settings": "Organisationen",

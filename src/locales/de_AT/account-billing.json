@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Upgrade erforderlich",
         "viewPlans": "Pläne anzeigen",
+        "needTeams": "Teamverwaltung erfordert Identity Plus oder höher",
         "needCustomDomains": "Benutzerdefinierte Bereiche erfordern Identity Plus oder höher",
         "needApiAccess": "API-Zugriff erfordert Multi-Team-Plan oder höher",
-        "needPrioritySupport": "Prioritäts-Support erfordert Identity Plus oder höher",
         "needAuditLogs": "Audit-Protokolle erfordern Multi-Team-Plan oder höher"
       },
       "manage_subscription_and_billing": "Verwalten Sie Ihr Abonnement, Ihre Organisationen und Abrechnungseinstellungen",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Erstellen Sie eine Organisation, um Ihre Abrechnung und Ihr Abonnement zu verwalten",
         "entitlements": {
           "create_secrets": "Geheimnisse erstellen",
-          "basic_sharing": "Basis-Teilen",
-          "custom_domains": "Benutzerdefinierte Bereiche",
+          "view_metadata": "Metadaten anzeigen",
           "api_access": "API-Zugriff",
+          "custom_domains": "Benutzerdefinierte Bereiche",
+          "custom_privacy_defaults": "Benutzerdefinierte Datenschutzeinstellungen",
+          "extended_default_expiration": "Erweiterte Standardablaufzeit",
+          "custom_mail_defaults": "Benutzerdefinierte E-Mail-Einstellungen",
+          "custom_branding": "Benutzerdefiniertes Branding",
+          "branded_homepage": "Marken-Homepage",
+          "incoming_secrets": "Eingehende Geheimnisse",
+          "manage_orgs": "Organisationen verwalten",
+          "manage_teams": "Teams verwalten",
+          "manage_members": "Mitglieder verwalten",
+          "audit_logs": "Audit-Protokolle",
+          "sso": "Single Sign-On",
           "priority_support": "Prioritäts-Support",
-          "audit_logs": "Audit-Protokolle"
-        }
+          "sla": "Service Level Agreement"
+        },
+        "entitlements_load_error": "Funktionsdetails konnten nicht geladen werden",
+        "no_entitlements": "Keine Funktionen verfügbar"
       },
       "plans": {
         "title": "Plan auswählen",
@@ -61,7 +74,11 @@
         "api_access": "API-Zugriff",
         "priority_support": "Prioritäts-Support",
         "select_plan": "Plan auswählen",
-        "contact_sales": "Vertrieb kontaktieren"
+        "contact_sales": "Vertrieb kontaktieren",
+        "custom_needs_title": "Haben Sie Fragen oder benötigen Sie etwas Individuelles?",
+        "custom_needs_description": "Wir freuen uns von Ihnen zu hören. Teilen Sie uns mit, wonach Sie suchen.",
+        "teams_limit": "{count} Team | {count} Teams",
+        "members_limit": "{count} Mitglied pro Team | {count} Mitglieder pro Team"
       },
       "invoices": {
         "title": "Abrechnungsverlauf",
