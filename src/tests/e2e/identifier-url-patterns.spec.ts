@@ -111,13 +111,9 @@ function containsUUID(url: string): boolean {
  * @internal Reserved for future use in more comprehensive ID detection
  */
 function _containsHexId(url: string): boolean {
-  // Exclude valid ExtId prefixes
-  const withoutExtIds = url
-    .replace(/\/on[a-zA-Z0-9]+/g, '')
-    .replace(/\/cd[a-zA-Z0-9]+/g, '')
-    .replace(/\/ur[a-zA-Z0-9]+/g, '')
-    .replace(/\/se[a-zA-Z0-9]+/g, '')
-    .replace(/\/md[a-zA-Z0-9]+/g, '');
+  // Exclude valid ExtId prefixes using single regex to avoid incomplete sanitization
+  // (CodeQL: chained .replace() calls can miss patterns created by earlier replacements)
+  const withoutExtIds = url.replace(/\/(on|cd|ur|se|md)[a-zA-Z0-9]+/g, '');
 
   return PATTERNS.hexId.test(withoutExtIds);
 }
