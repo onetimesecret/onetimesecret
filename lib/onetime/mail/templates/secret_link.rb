@@ -33,8 +33,11 @@ module Onetime
         public
 
         def subject
-          # TODO: I18n.t('email.secret_link.subject', sender: data[:sender_email])
-          "#{data[:sender_email]} sent you a secret"
+          EmailTranslations.translate(
+            'email.secret_link.subject',
+            locale: locale,
+            sender_email: data[:sender_email],
+          )
         end
 
         def recipient_email

@@ -33,7 +33,13 @@ module Onetime
         def subject
           stamp    = Time.now.utc.strftime('%b %d, %Y')
           strategy = data[:domain_strategy] || 'default'
-          "Feedback on #{stamp} via #{data[:display_domain]} (#{strategy})"
+          EmailTranslations.translate(
+            'email.feedback_email.subject',
+            locale: locale,
+            date: stamp,
+            display_domain: data[:display_domain],
+            strategy: strategy,
+          )
         end
 
         def recipient_email

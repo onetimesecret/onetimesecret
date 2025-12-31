@@ -28,8 +28,10 @@ module Onetime
         public
 
         def subject
-          # TODO: I18n.t('email.secret_revealed.subject')
-          'Your secret was viewed'
+          EmailTranslations.translate(
+            'email.secret_revealed.subject',
+            locale: locale,
+          )
         end
 
         def recipient_email

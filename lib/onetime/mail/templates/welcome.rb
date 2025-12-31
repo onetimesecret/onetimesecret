@@ -27,8 +27,21 @@ module Onetime
         public
 
         def subject
-          # TODO: I18n.t('email.welcome.subject')
-          'Welcome to Onetime Secret - Please verify your email'
+          EmailTranslations.translate(
+            'email.welcome.subject',
+            locale: locale,
+            product_name: product_name,
+          )
+        end
+
+        def product_name
+          data[:product_name] || site_product_name
+        end
+
+        def site_product_name
+          return 'Onetime Secret' unless defined?(OT) && OT.respond_to?(:conf)
+
+          OT.conf.dig('site', 'product_name') || 'Onetime Secret'
         end
 
         def recipient_email
@@ -73,6 +86,7 @@ module Onetime
             verify_uri: verify_uri,
             email_address: email_address,
             baseuri: baseuri,
+            product_name: product_name,
           )
           TemplateContext.new(computed_data, locale).get_binding
         end

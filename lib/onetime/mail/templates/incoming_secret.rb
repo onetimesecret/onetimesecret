@@ -30,8 +30,10 @@ module Onetime
 
         def subject
           # Security: Don't include memo in subject - visible in email list views
-          # TODO: I18n.t('email.incoming_secret.subject')
-          "You've received a secret message"
+          EmailTranslations.translate(
+            'email.incoming_secret.subject',
+            locale: locale,
+          )
         end
 
         def recipient_email

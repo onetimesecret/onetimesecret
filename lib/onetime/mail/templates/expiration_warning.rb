@@ -30,7 +30,10 @@ module Onetime
         public
 
         def subject
-          'Your secret link will expire soon'
+          EmailTranslations.translate(
+            'email.expiration_warning.subject',
+            locale: locale,
+          )
         end
 
         def recipient_email
