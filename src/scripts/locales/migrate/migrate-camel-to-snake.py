@@ -7,14 +7,14 @@ all locale directories. It handles nested JSON structures and ensures
 consistency across all locales.
 
 Usage:
-    python src/scripts/locales/migrate-camel-to-snake.py [--dry-run]
+    python src/scripts/locales/migrate/migrate-camel-to-snake.py [--dry-run]
 
 Options:
     --dry-run    Preview changes without modifying files
 
 Output:
     - Creates backup at src/locales/.backup-camel-to-snake/
-    - Generates report at src/scripts/locales/camel-to-snake-report.json
+    - Generates report at src/scripts/locales/migrate/camel-to-snake-report.json
 """
 
 import argparse
@@ -286,7 +286,7 @@ def main():
 
     # Paths
     script_dir = Path(__file__).parent
-    project_root = script_dir.parent.parent.parent
+    project_root = script_dir.parent.parent.parent.parent
     locales_dir = project_root / "src" / "locales"
     backup_dir = locales_dir / ".backup-camel-to-snake"
     report_path = script_dir / "camel-to-snake-report.json"

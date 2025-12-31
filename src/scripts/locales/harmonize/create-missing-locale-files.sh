@@ -2,7 +2,7 @@
 #
 # Script: create-missing-locale-files.sh
 # Purpose: Ensure all locale directories have the same JSON files as English locale
-# Usage: ./src/scripts/locales/create-missing-locale-files.sh [--dry-run]
+# Usage: ./src/scripts/locales/harmonize/create-missing-locale-files.sh [--dry-run]
 #
 # This script:
 # - Gets the list of expected JSON files from src/locales/en/*.json
@@ -14,7 +14,7 @@ set -euo pipefail
 
 # Determine project root relative to script location
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 LOCALES_DIR="${PROJECT_ROOT}/src/locales"
 EN_DIR="${LOCALES_DIR}/en"
 DRY_RUN=false
