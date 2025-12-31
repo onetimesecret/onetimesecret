@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Требуется повышение тарифа",
         "viewPlans": "Просмотреть тарифы",
+        "needTeams": "Управление командами требует тариф Identity Plus или выше",
         "needCustomDomains": "Пользовательские домены требуют тариф Identity Plus или выше",
         "needApiAccess": "Доступ к API требует тариф Multi-Team или выше",
-        "needPrioritySupport": "Приоритетная поддержка требует тариф Identity Plus или выше",
         "needAuditLogs": "Журналы аудита требуют тариф Multi-Team или выше"
       },
       "manage_subscription_and_billing": "Управляйте вашей подпиской, организациями и настройками выставления счетов",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Создайте организацию для управления вашими счётами и подпиской",
         "entitlements": {
           "create_secrets": "Создание секретов",
-          "basic_sharing": "Базовый обмен",
-          "custom_domains": "Пользовательские домены",
+          "view_metadata": "Просмотр метаданных",
           "api_access": "Доступ к API",
+          "custom_domains": "Пользовательские домены",
+          "custom_privacy_defaults": "Пользовательские настройки конфиденциальности",
+          "extended_default_expiration": "Расширенный срок действия по умолчанию",
+          "custom_mail_defaults": "Пользовательские настройки почты",
+          "custom_branding": "Пользовательский брендинг",
+          "branded_homepage": "Брендированная главная страница",
+          "incoming_secrets": "Входящие секреты",
+          "manage_orgs": "Управление организациями",
+          "manage_teams": "Управление командами",
+          "manage_members": "Управление участниками",
+          "audit_logs": "Журналы аудита",
+          "sso": "Single Sign-On",
           "priority_support": "Приоритетная поддержка",
-          "audit_logs": "Журналы аудита"
-        }
+          "sla": "Соглашение об уровне сервиса"
+        },
+        "entitlements_load_error": "Не удалось загрузить детали функций",
+        "no_entitlements": "Нет доступных функций"
       },
       "plans": {
         "title": "Выбрать тариф",
@@ -61,7 +74,11 @@
         "api_access": "Доступ к API",
         "priority_support": "Приоритетная поддержка",
         "select_plan": "Выбрать тариф",
-        "contact_sales": "Связаться с отделом продаж"
+        "contact_sales": "Связаться с отделом продаж",
+        "custom_needs_title": "Есть вопросы или нужно что-то индивидуальное?",
+        "custom_needs_description": "Мы будем рады услышать от вас. Сообщите нам, что вы ищете.",
+        "teams_limit": "{count} команда | {count} команды | {count} команд",
+        "members_limit": "{count} участник на команду | {count} участника на команду | {count} участников на команду"
       },
       "invoices": {
         "title": "История счётов",

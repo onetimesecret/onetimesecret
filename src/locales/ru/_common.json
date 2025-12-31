@@ -69,6 +69,7 @@
       "word_confirm": "Подтвердить",
       "word_cancel": "Отменить",
       "word_continue": "Продолжить",
+      "word_done": "Готово",
       "back": "Назад",
       "feedback_text": "Есть вопрос или комментарий?",
       "button_send_feedback": "Отправить отзыв",
@@ -160,8 +161,8 @@
       "an_error_occurred": "Произошла ошибка",
       "copy_secret_to_clipboard": "Скопировать секрет в буфер обмена",
       "secret_copied_to_clipboard": "Секрет скопирован в буфер обмена",
-      "press_copy_button_below": "Нажмите кнопку копирования ниже.",
-      "double_check_that_passphrase": "Внимательно проверьте эту кодовую фразу"
+      "double_check_that_passphrase": "Внимательно проверьте эту кодовую фразу",
+      "press_copy_button_below": "Нажмите кнопку копирования ниже."
     },
     "LABELS": {
       "view_toggle": {
@@ -170,6 +171,9 @@
         "show_more": "Показать больше",
         "show_less": "Показать меньше"
       },
+      "enable": "Включить",
+      "disable": "Отключить",
+      "stats": "Статистика",
       "timeline": "Временная шкала",
       "lifespan": "Срок действия",
       "expiration_time": "Время истечения",
@@ -213,9 +217,8 @@
       "create_request_short": "Создать запрос",
       "create_request": "Создать ссылку для запроса",
       "related_settings": "Связанные настройки",
-      "enable": "Включить",
-      "disable": "Отключить",
-      "stats": "Статистика"
+      "creating_links_for": "Создание ссылок для",
+      "scope_indicator": "Создание секретов в {domain}"
     },
     "STATUS": {
       "new": "Новый",
@@ -290,6 +293,7 @@
       "verify_account": "Подтвердить учётную запись",
       "mfa_verify": "Двухфакторная аутентификация",
       "email_login": "Вход через электронную почту",
+      "accept_invitation": "Принять приглашение",
       "secret": "Секрет",
       "metadata": "Детали секрета",
       "receipt": "Квитанция секрета",
@@ -308,6 +312,7 @@
       "profile_settings": "Настройки профиля",
       "preferences_settings": "Предпочтения",
       "privacy_settings": "Конфиденциальность",
+      "notification_settings": "Уведомления",
       "change_email": "Изменить электронную почту",
       "security_overview": "Безопасность",
       "change_password": "Изменить пароль",
@@ -318,7 +323,14 @@
       "advanced_settings": "Расширенные настройки",
       "colonel": "Администрирование",
       "colonel_users": "Управление пользователями",
+      "colonel_secrets": "Управление секретами",
+      "colonel_domains": "Пользовательские домены",
+      "colonel_system": "Система",
       "system_settings": "Системные настройки",
+      "colonel_maindb": "Основная база данных",
+      "colonel_authdb": "База данных аутентификации",
+      "colonel_banned_ips": "Заблокированные IP",
+      "colonel_usage": "Экспорт использования",
       "colonel_info": "Информация о системе",
       "not_found": "Страница не найдена",
       "organizations_settings": "Организации",

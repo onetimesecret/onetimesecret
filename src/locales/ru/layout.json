@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "Документация API",
+      "branding_guide": "Руководство по бренду",
+      "customize": "Настроить",
+      "plans": "Тарифы",
       "security": "Безопасность",
       "learn_about_our_security_measures": "Узнайте о наших мерах безопасности",
       "view_our_terms_and_conditions": "Просмотрите наши Условия использования",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Изменить язык. Текущий язык: {0}",
       "language_changed_to_newlocale": "Язык изменён на {0}",
       "switch_to_blank_mode": "Переключиться в режим {0}",
-      "blank_mode_enabled": "Режим {0} включён"
+      "blank_mode_enabled": "Режим {0} включён",
+      "workspace": "Рабочее пространство",
+      "workspace_context": "Контекст рабочего пространства"
     }
   }
 }
