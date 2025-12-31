@@ -49,7 +49,7 @@ const routes: Array<RouteRecordRaw> = [
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
       scopesAvailable: {
-        organization: 'locked',
+        organization: 'show',
         domain: 'hide',
         onOrgSwitch: 'same',
       },
