@@ -31,6 +31,7 @@
     "create_another": "Wyślij kolejny sekret",
     "tagline1": "Bezpiecznie udostępniaj poufne informacje",
     "tagline2": "Trzymaj hasła i dane prywatne z dala od e-maili i dzienników czatów",
-    "end_of_experience_suggestion": "Zapisz <a href='{receiptUrl}'>potwierdzenie</a> dla swoich zapisów."
+    "end_of_experience_suggestion": "Zapisz <a href='{receiptUrl}'>potwierdzenie</a> dla swoich zapisów.",
+    "receipt_link_text": "receipt"
   }
 }
