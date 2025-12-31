@@ -69,6 +69,7 @@
       "word_confirm": "Confirma",
       "word_cancel": "Cancel·la",
       "word_continue": "Continua",
+      "word_done": "Fet",
       "back": "Enrere",
       "feedback_text": "Tens cap demanda o comentari?",
       "button_send_feedback": "Envia un comentari",
@@ -160,16 +161,19 @@
       "an_error_occurred": "S'ha produït un error",
       "copy_secret_to_clipboard": "Copia el secret al porta-retalls",
       "secret_copied_to_clipboard": "Secret copiat al porta-retalls",
-      "press_copy_button_below": "Prem el botó de copiar de sota.",
-      "double_check_that_passphrase": "Comprova doblement aquesta frase de contrasenya"
+      "double_check_that_passphrase": "Comprova doblement aquesta frase de contrasenya",
+      "press_copy_button_below": "Prem el botó de copiar de sota."
     },
     "LABELS": {
       "view_toggle": {
         "show": "Mostra",
         "hide": "Amaga",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Mostra més",
+        "show_less": "Mostra menys"
       },
+      "enable": "Activa",
+      "disable": "Desactiva",
+      "stats": "Estadístiques",
       "timeline": "Línia de temps",
       "lifespan": "Durada de vida",
       "expiration_time": "Hora de caducitat",
@@ -213,9 +217,8 @@
       "create_request_short": "Crea una sol·licitud",
       "create_request": "Crea un enllaç de sol·licitud",
       "related_settings": "Configuració relacionada",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "creating_links_for": "Creant enllaços per a",
+      "scope_indicator": "Creant secrets a {domain}"
     },
     "STATUS": {
       "new": "Nou",
@@ -290,6 +293,7 @@
       "verify_account": "Verifica el compte",
       "mfa_verify": "Autenticació de dos factors",
       "email_login": "Inici de sessió per correu electrònic",
+      "accept_invitation": "Accepta la invitació",
       "secret": "Secret",
       "metadata": "Detalls del secret",
       "receipt": "Rebut del secret",
@@ -308,6 +312,7 @@
       "profile_settings": "Configuració del perfil",
       "preferences_settings": "Preferències",
       "privacy_settings": "Privadesa",
+      "notification_settings": "Notificacions",
       "change_email": "Canvia el correu electrònic",
       "security_overview": "Seguretat",
       "change_password": "Canvia la contrasenya",
@@ -318,7 +323,14 @@
       "advanced_settings": "Configuració avançada",
       "colonel": "Administració",
       "colonel_users": "Gestió d'usuaris",
+      "colonel_secrets": "Gestió de secrets",
+      "colonel_domains": "Dominis personalitzats",
+      "colonel_system": "Sistema",
       "system_settings": "Configuració del sistema",
+      "colonel_maindb": "Base de dades principal",
+      "colonel_authdb": "Base de dades d'autenticació",
+      "colonel_banned_ips": "IPs bloquejades",
+      "colonel_usage": "Exportació d'ús",
       "colonel_info": "Informació del sistema",
       "not_found": "Pàgina no trobada",
       "organizations_settings": "Organitzacions",

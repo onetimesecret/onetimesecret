@@ -31,6 +31,7 @@
     "create_another": "Enviar un altre secret",
     "tagline1": "Compartiu informació confidencial de manera segura",
     "tagline2": "Mantingueu contrasenyes i dades privades fora dels correus electrònics i registres de xat",
-    "end_of_experience_suggestion": "Deseu el vostre <a href='{receiptUrl}'>rebut</a> per als vostres registres."
+    "end_of_experience_suggestion": "Deseu el vostre <a href='{receiptUrl}'>rebut</a> per als vostres registres.",
+    "receipt_link_text": "receipt"
   }
 }
