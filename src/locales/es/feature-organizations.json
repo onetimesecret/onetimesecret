@@ -23,6 +23,7 @@
       "description_placeholder": "¿Para qué es esta organización?",
       "contact_email": "Correo de Facturación",
       "contact_email_help": "Contacto principal para notificaciones de facturación y administrativas",
+      "billing_managed_by_default": "La facturación y gestión de suscripciones se maneja a través de tu espacio de trabajo principal. Visita la configuración de tu espacio de trabajo principal para gestionar métodos de pago y facturas.",
       "select_organization": "Seleccionar una organización",
       "not_found": "Organización no encontrada",
       "load_error": "Error al cargar organización",
@@ -57,7 +58,86 @@
       "delete": "Eliminar",
       "delete_organization_confirm_title": "Eliminar Organización",
       "delete_organization_confirm_message": "¿Estás seguro de que quieres eliminar {name}? Esta acción no se puede deshacer.",
-      "delete_error": "Error al eliminar organización"
+      "delete_error": "Error al eliminar organización",
+      "members": {
+        "title": "Miembros",
+        "description": "Gestionar miembros de la organización y sus roles",
+        "member": "Miembro",
+        "name": "Nombre",
+        "email": "Correo Electrónico",
+        "role": "Rol",
+        "joined": "Se unió",
+        "actions": "Acciones",
+        "no_members": "No se encontraron miembros",
+        "no_members_description": "Esta organización aún no tiene miembros.",
+        "role_updated": "Rol del miembro actualizado con éxito",
+        "role_update_error": "Error al actualizar el rol del miembro",
+        "member_removed": "Miembro eliminado de la organización",
+        "member_remove_error": "Error al eliminar miembro",
+        "remove_member_title": "Eliminar Miembro",
+        "remove_member_confirm": "¿Estás seguro de que quieres eliminar a {name} de esta organización?",
+        "cannot_change_own_role": "No puedes cambiar tu propio rol",
+        "cannot_remove_self": "No puedes eliminarte a ti mismo de la organización",
+        "cannot_remove_owner": "No puedes eliminar al propietario de la organización",
+        "insufficient_permissions": "No tienes permiso para gestionar miembros",
+        "roles": {
+          "owner": "Propietario",
+          "admin": "Administrador",
+          "member": "Miembro"
+        },
+        "role_descriptions": {
+          "owner": "Acceso completo a toda la configuración y miembros de la organización",
+          "admin": "Puede gestionar miembros y la mayoría de la configuración de la organización",
+          "member": "Acceso básico a los recursos de la organización"
+        }
+      },
+      "invitations": {
+        "title": "Invitaciones de la Organización",
+        "invite_member": "Invitar Miembro",
+        "invite_new_member": "Invitar Nuevo Miembro",
+        "pending_invitations": "Invitaciones Pendientes",
+        "no_pending_invitations": "No hay invitaciones pendientes",
+        "email_address": "Dirección de Correo Electrónico",
+        "email_placeholder": "miembro@ejemplo.com",
+        "role": "Rol",
+        "send_invite": "Enviar Invitación",
+        "invite_sent": "Invitación enviada con éxito",
+        "invite_error": "Error al enviar invitación",
+        "resend": "Reenviar",
+        "revoke": "Revocar",
+        "resend_success": "Invitación reenviada con éxito",
+        "resend_error": "Error al reenviar invitación",
+        "revoke_success": "Invitación revocada con éxito",
+        "revoke_error": "Error al revocar invitación",
+        "invited_by": "Invitado por",
+        "invited_at": "Invitado",
+        "expires_at": "Expira",
+        "resent_count": "Reenviado {count} vez",
+        "resent_count_plural": "Reenviado {count} veces",
+        "status": {
+          "pending": "Pendiente",
+          "accepted": "Aceptado",
+          "declined": "Rechazado",
+          "expired": "Expirado"
+        },
+        "roles": {
+          "member": "Miembro",
+          "admin": "Administrador"
+        },
+        "accept_invitation": "Aceptar Invitación",
+        "decline_invitation": "Rechazar Invitación",
+        "invitation_details": "Detalles de la Invitación",
+        "you_are_invited": "Has sido invitado a unirte a",
+        "invited_as": "Has sido invitado como",
+        "accept_success": "Invitación aceptada con éxito",
+        "accept_error": "Error al aceptar invitación",
+        "decline_success": "Invitación rechazada",
+        "decline_error": "Error al rechazar invitación",
+        "expired_message": "Esta invitación ha expirado",
+        "invalid_token": "Invitación inválida o expirada",
+        "must_sign_in": "Por favor, inicia sesión para aceptar esta invitación",
+        "loading_invitation": "Cargando detalles de la invitación"
+      }
     }
   }
 }
