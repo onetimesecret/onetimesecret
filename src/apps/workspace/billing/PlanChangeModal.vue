@@ -32,8 +32,7 @@ const error = ref('');
 // Computed
 const isUpgrade = computed(() => {
   if (!props.currentPlan || !props.targetPlan) return false;
-  const tierOrder = ['free', 'single_team', 'multi_team'];
-  return tierOrder.indexOf(props.targetPlan.tier) > tierOrder.indexOf(props.currentPlan.tier);
+  return props.targetPlan.display_order > props.currentPlan.display_order;
 });
 
 const dialogTitle = computed(() => {

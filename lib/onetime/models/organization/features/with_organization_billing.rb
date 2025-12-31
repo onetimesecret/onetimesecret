@@ -2,6 +2,9 @@
 #
 # frozen_string_literal: true
 
+require_relative '../../../../../apps/web/billing/metadata'
+require_relative '../../../../../apps/web/billing/models/plan'
+
 module Onetime
   module Models
     module Features
@@ -165,9 +168,6 @@ module Onetime
           # @param subscription [Stripe::Subscription] Stripe subscription
           # @return [String, nil] Plan ID or nil if not found
           def extract_plan_id_from_subscription(subscription)
-            # Load Billing::Metadata for constants
-            require_relative '../../../../../apps/web/billing/metadata'
-
             # Try subscription-level metadata first
             if subscription.metadata && subscription.metadata[Billing::Metadata::FIELD_PLAN_ID]
               return subscription.metadata[Billing::Metadata::FIELD_PLAN_ID]
@@ -202,10 +202,7 @@ module Onetime
             price_id = subscription.items.data.first&.price&.id
             return nil unless price_id
 
-            # Load Billing::Plan for catalog lookup
-            require_relative '../../../../../apps/web/billing/models/plan'
-
-            plan = ::Billing::Plan.list_plans.find { |p| p&.stripe_price_id == price_id }
+            plan = ::Billing::Plan.find_by_stripe_price_id(price_id)
 
             if plan
               OT.info '[Organization.resolve_plan_from_price_id] Resolved plan from price_id (metadata fallback)', {

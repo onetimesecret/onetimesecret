@@ -319,33 +319,22 @@ module Billing
         org          = load_organization(req.params['extid'])
         new_price_id = req.params['new_price_id']
 
-        unless new_price_id
-          return json_error('Missing new_price_id', status: 400)
-        end
-
-        unless org.active_subscription?
-          return json_error('No active subscription to modify', status: 400)
-        end
+        # Validate plan change request
+        valid, error_response = validate_plan_change_request(org, new_price_id)
+        return error_response unless valid
 
         # Fetch current subscription
         subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
         current_item = subscription.items.data.first
 
-        # Guard: same plan
+        # Guard: same plan (requires current subscription data)
         if current_item.price.id == new_price_id
           return json_error('Already on this plan', status: 400)
         end
 
-        # Guard: unknown price ID (not in our plan catalog)
-        target_plan_id = price_id_to_plan_id(new_price_id)
-        if target_plan_id.nil?
-          return json_error('Invalid price ID', status: 400)
-        end
-
-        # Guard: legacy plan
-        if Billing::PlanHelpers.legacy_plan?(target_plan_id)
-          return json_error('This plan is not available', status: 400)
-        end
+        # Validate target plan is in catalog and not legacy
+        valid, error_response = validate_target_plan(new_price_id)
+        return error_response unless valid
 
         # Get preview of upcoming invoice with the plan change
         preview = Stripe::Invoice.upcoming(
@@ -364,8 +353,8 @@ module Billing
           .sum(&:amount)
           .abs
 
-        # Get new plan details
-        new_price = Stripe::Price.retrieve(new_price_id)
+        # Get new plan details from preview line items (avoids extra API call)
+        new_price = preview.lines.data.map(&:price).find { |p| p.id == new_price_id }
 
         json_response({
           amount_due: preview.amount_due,
@@ -380,8 +369,8 @@ module Billing
           },
           new_plan: {
             price_id: new_price_id,
-            amount: new_price.unit_amount,
-            interval: new_price.recurring&.interval,
+            amount: new_price&.unit_amount,
+            interval: new_price&.recurring&.interval,
           },
         })
       rescue OT::Problem => ex
@@ -415,33 +404,22 @@ module Billing
         org          = load_organization(req.params['extid'], require_owner: true)
         new_price_id = req.params['new_price_id']
 
-        unless new_price_id
-          return json_error('Missing new_price_id', status: 400)
-        end
-
-        unless org.active_subscription?
-          return json_error('No active subscription to modify', status: 400)
-        end
+        # Validate plan change request
+        valid, error_response = validate_plan_change_request(org, new_price_id)
+        return error_response unless valid
 
         # Fetch current subscription
         subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
         current_item = subscription.items.data.first
 
-        # Guard: same plan
+        # Guard: same plan (requires current subscription data)
         if current_item.price.id == new_price_id
           return json_error('Already on this plan', status: 400)
         end
 
-        # Guard: unknown price ID (not in our plan catalog)
-        target_plan_id = price_id_to_plan_id(new_price_id)
-        if target_plan_id.nil?
-          return json_error('Invalid price ID', status: 400)
-        end
-
-        # Guard: legacy plan
-        if Billing::PlanHelpers.legacy_plan?(target_plan_id)
-          return json_error('This plan is not available', status: 400)
-        end
+        # Validate target plan is in catalog and not legacy
+        valid, error_response = validate_target_plan(new_price_id)
+        return error_response unless valid
 
         # Generate idempotency key to prevent duplicate plan changes from
         # network retries. Uses 5-minute windows (300 seconds) so repeated
@@ -499,15 +477,57 @@ module Billing
 
       private
 
+      # Validate plan change request parameters
+      #
+      # Checks common validation rules for plan change operations.
+      # Returns [true, nil] if valid, [false, error_response] if invalid.
+      #
+      # @param org [Onetime::Organization] Organization instance
+      # @param new_price_id [String, nil] Stripe price ID to switch to
+      # @return [Array<(Boolean, Object)>] [valid?, error_response_or_nil]
+      def validate_plan_change_request(org, new_price_id)
+        # Guard: missing new_price_id
+        unless new_price_id
+          return [false, json_error('Missing new_price_id', status: 400)]
+        end
+
+        # Guard: no active subscription
+        unless org.active_subscription?
+          return [false, json_error('No active subscription to modify', status: 400)]
+        end
+
+        [true, nil]
+      end
+
+      # Validate target plan is valid (in catalog and not legacy)
+      #
+      # Called AFTER same-plan check to maintain proper error ordering.
+      #
+      # @param new_price_id [String] Stripe price ID to switch to
+      # @return [Array<(Boolean, Object)>] [valid?, error_response_or_nil]
+      def validate_target_plan(new_price_id)
+        # Guard: unknown price ID (not in our plan catalog)
+        target_plan_id = price_id_to_plan_id(new_price_id)
+        if target_plan_id.nil?
+          return [false, json_error('Invalid price ID', status: 400)]
+        end
+
+        # Guard: legacy plan
+        if Billing::PlanHelpers.legacy_plan?(target_plan_id)
+          return [false, json_error('This plan is not available', status: 400)]
+        end
+
+        [true, nil]
+      end
+
       # Convert Stripe price ID to plan ID
       #
-      # Looks up the plan associated with a Stripe price ID.
+      # Looks up the plan associated with a Stripe price ID using cached lookup.
       #
       # @param price_id [String] Stripe price ID
       # @return [String, nil] Plan ID or nil if not found
       def price_id_to_plan_id(price_id)
-        plan = ::Billing::Plan.list_plans.find { |p| p&.stripe_price_id == price_id }
-        plan&.plan_id
+        ::Billing::Plan.find_by_stripe_price_id(price_id)&.plan_id
       end
 
       # Build subscription data for response

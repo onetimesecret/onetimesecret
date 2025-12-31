@@ -201,7 +201,8 @@ describe('PlanChangeModal', () => {
     });
 
     it('shows downgrade label when downgrading', async () => {
-      const downgradePlan = { ...mockTargetPlan, tier: 'free' };
+      // Lower display_order indicates a downgrade (target order < current order)
+      const downgradePlan = { ...mockTargetPlan, tier: 'free', display_order: 5 };
       mockPreviewPlanChange.mockResolvedValueOnce(mockPreviewResponse);
       wrapper = await mountComponent({ targetPlan: downgradePlan });
       expect(wrapper.text()).toContain('Downgrade');

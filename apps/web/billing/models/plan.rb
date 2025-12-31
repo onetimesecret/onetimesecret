@@ -497,6 +497,53 @@ module Billing
         load_multi(instances.to_a)
       end
 
+      # Find plan by Stripe price ID
+      #
+      # Uses a cached hash lookup for O(1) performance instead of
+      # iterating through all plans on every call.
+      #
+      # @param price_id [String] Stripe price ID (e.g., "price_xxx")
+      # @return [Plan, nil] Plan instance or nil if not found
+      def find_by_stripe_price_id(price_id)
+        return nil if price_id.nil? || price_id.empty?
+
+        stripe_price_id_cache[price_id]
+      end
+
+      # Build and cache price_id to plan hash
+      #
+      # Lazily builds a hash mapping Stripe price IDs to Plan instances.
+      # Cache is invalidated when plans are refreshed.
+      #
+      # @return [Hash<String, Plan>] Price ID to Plan mapping
+      def stripe_price_id_cache
+        @stripe_price_id_cache ||= build_stripe_price_id_cache
+      end
+
+      # Rebuild the price ID cache
+      #
+      # Called after plan refresh to ensure cache is up to date.
+      #
+      # @return [Hash<String, Plan>] Rebuilt cache
+      def rebuild_stripe_price_id_cache
+        @stripe_price_id_cache = build_stripe_price_id_cache
+      end
+
+      private
+
+      # Build price_id to plan hash from current plan list
+      #
+      # @return [Hash<String, Plan>] Price ID to Plan mapping
+      def build_stripe_price_id_cache
+        list_plans.each_with_object({}) do |plan, hash|
+          next unless plan&.stripe_price_id
+
+          hash[plan.stripe_price_id] = plan
+        end
+      end
+
+      public
+
       # Load a plan from Stripe cache with fallback to billing.yaml config
       #
       # Use this method when you need to load a plan from either source.
@@ -524,6 +571,7 @@ module Billing
           plan&.destroy!
         end
         instances.clear
+        @stripe_price_id_cache = nil
       end
 
       # Load all plans from billing.yaml config into Redis cache
