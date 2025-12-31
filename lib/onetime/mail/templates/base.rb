@@ -205,11 +205,47 @@ module Onetime
             @data[:baseuri] || site_baseuri
           end
 
+          # Product name helper (organization name or default)
+          # @return [String]
+          def product_name
+            @data[:product_name] || site_product_name
+          end
+
+          # Display domain helper (custom domain or canonical)
+          # @return [String]
+          def display_domain
+            @data[:display_domain] || @data[:share_domain] || site_host
+          end
+
+          # Get product name from site config
+          def site_product_name
+            return @site_product_name if defined?(@site_product_name)
+
+            if defined?(OT) && OT.respond_to?(:conf) && OT.conf
+              site               = OT.conf['site'] || {}
+              @site_product_name = site['product_name'] || 'Onetime Secret'
+            else
+              @site_product_name = 'Onetime Secret'
+            end
+          end
+
+          # Get host from site config
+          def site_host
+            return @site_host if defined?(@site_host)
+
+            if defined?(OT) && OT.respond_to?(:conf) && OT.conf
+              site       = OT.conf['site'] || {}
+              @site_host = site['host'] || 'onetimesecret.com'
+            else
+              @site_host = 'onetimesecret.com'
+            end
+          end
+
           # Get base URI from site config
           def site_baseuri
             return @site_baseuri if defined?(@site_baseuri)
 
-            if defined?(OT) && OT.respond_to?(:conf)
+            if defined?(OT) && OT.respond_to?(:conf) && OT.conf
               site          = OT.conf['site'] || {}
               scheme        = site['ssl'] == false ? 'http://' : 'https://'
               host          = site['host'] || 'localhost'

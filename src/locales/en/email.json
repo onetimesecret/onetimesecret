@@ -4,17 +4,70 @@
       "subject": "[Ticket: %s]",
       "body1": "A customer has sent the following info"
     },
-    "secretlink": {
-      "subject": "%s sent you a secret",
-      "body1": "We have a secret for you from",
-      "body_tagline": "If you don't know the sender or believe it to be spam, send us the details here:"
+    "secret_link": {
+      "subject": "%{sender_email} sent you a secret",
+      "sent_you_secret": "sent you a secret:",
+      "important_label": "Important:",
+      "link_works_once": "This link will only work once. After viewing, the secret will be permanently deleted.",
+      "sent_via": "Sent via"
     },
     "welcome": {
-      "subject": "Verify your Onetime Secret account",
-      "body1": "Welcome to Onetime Secret. We have a secret for you!",
-      "please_verify": "Please verify your account:",
-      "postscript1": "This email was sent to",
-      "postscript2": "If you did not make this request, you can safely ignore this email."
+      "subject": "Welcome to %{product_name} - Please verify your email",
+      "title": "Welcome to %{product_name}!",
+      "verify_prompt": "Please verify your email address by clicking the link below:",
+      "verify_button": "Verify Email Address",
+      "copy_link_prompt": "Or copy and paste this link:",
+      "signature": "Delano",
+      "postscript": "P.S. This email was sent to %{email_address}. If you did not create an account, you can safely ignore this message."
+    },
+    "password_request": {
+      "subject": "Reset your password (%{display_domain})",
+      "title": "Reset Your Password",
+      "request_notice": "We received a request to reset your password for %{product_name}.",
+      "reset_button": "Reset Password",
+      "copy_link_prompt": "Or copy and paste this link:",
+      "ignore_notice": "If you did not request a password reset, you can safely ignore this email.",
+      "signature": "Delano",
+      "postscript": "P.S. This email was sent to %{email_address}."
+    },
+    "incoming_secret": {
+      "subject": "You've received a secret message",
+      "received_message": "You've received a secure message:",
+      "memo_label": "Memo:",
+      "someone_sent": "Someone has sent you a secure message through %{display_domain}.",
+      "view_instructions": "To view this secret, click the link below:",
+      "important_label": "Important:",
+      "link_works_once": "This link will only work once. After viewing, the secret will be permanently deleted.",
+      "sent_via": "Sent via"
+    },
+    "secret_revealed": {
+      "subject": "Your secret was viewed",
+      "title": "Your Secret Was Viewed",
+      "viewed_on": "Your secret was viewed on %{date}.",
+      "secret_id_label": "Secret ID:",
+      "automated_notice": "This is an automated notification. No action is required.",
+      "signature": "Delano",
+      "manage_preferences": "Manage notification preferences",
+      "manage_preferences_prompt": "To manage your notification preferences:"
+    },
+    "expiration_warning": {
+      "subject": "Your secret link will expire soon",
+      "expires_in": "Your secret link will expire in %{time_remaining}",
+      "view_button": "View your secret before it expires",
+      "reminder_label": "Reminder:",
+      "after_expiration": "After expiration, the secret will be permanently deleted and cannot be recovered.",
+      "sent_via": "Sent via",
+      "view_before_gone": "View it before it's gone:",
+      "after_expiration_short": "After expiration, the secret will be permanently deleted."
+    },
+    "feedback_email": {
+      "subject": "Feedback on %{date} via %{display_domain} (%{strategy})",
+      "title": "User Feedback",
+      "from_label": "From:",
+      "domain_label": "Domain:",
+      "strategy_label": "Strategy:",
+      "message_label": "Message:",
+      "signature": "Secret Support"
     },
     "organization_invitation": {
       "subject": "You've been invited to join %{organization_name}",
@@ -35,7 +88,8 @@
       "greeting": "Hello,",
       "thanks": "Thanks,",
       "unsubscribe": "Unsubscribe",
-      "view_in_browser": "View in browser"
+      "view_in_browser": "View in browser",
+      "onetime_secret": "Onetime Secret"
     }
   }
 }
