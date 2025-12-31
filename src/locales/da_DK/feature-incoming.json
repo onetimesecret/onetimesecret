@@ -31,6 +31,7 @@
     "create_another": "Send endnu en hemmelighed",
     "tagline1": "Del følsom information sikkert",
     "tagline2": "Hold adgangskoder og private data væk fra e-mails og chatlogger",
-    "end_of_experience_suggestion": "Gem din <a href='{receiptUrl}'>kvittering</a> til dine optegnelser."
+    "end_of_experience_suggestion": "Gem din <a href='{receiptUrl}'>kvittering</a> til dine optegnelser.",
+    "receipt_link_text": "receipt"
   }
 }

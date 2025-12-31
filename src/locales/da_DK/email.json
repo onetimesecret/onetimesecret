@@ -15,6 +15,27 @@
       "please_verify": "Bekræft venligst din konto:",
       "postscript1": "Denne e-mail blev sendt til",
       "postscript2": "Hvis du ikke har bedt om at oprettelse af denne konto, kan du roligt ignorere denne e-mail."
+    },
+    "organization_invitation": {
+      "subject": "Du er inviteret til at deltage i %{organization_name}",
+      "title": "Du er inviteret til at deltage i %{organization_name}!",
+      "body": "%{inviter_email} har inviteret dig til at deltage i \"%{organization_name}\" som %{role_description}.",
+      "accept_button": "Accepter invitation",
+      "link_instruction": "Eller kopier og indsæt dette link:",
+      "expiry_notice": "Denne invitation udløber om %{days} dage.",
+      "decline_instruction": "Hvis du ikke vil deltage, kan du blot ignorere denne e-mail eller afslå invitationen.",
+      "signature": "Delano",
+      "postscript": "P.S. Denne e-mail blev sendt til %{invited_email}. Hvis du ikke forventede denne invitation, kan du roligt ignorere denne besked.",
+      "roles": {
+        "member": "et medlem",
+        "admin": "en administrator"
+      }
+    },
+    "common": {
+      "greeting": "Hej,",
+      "thanks": "Tak,",
+      "unsubscribe": "Afmeld",
+      "view_in_browser": "Se i browser"
     }
   }
 }
