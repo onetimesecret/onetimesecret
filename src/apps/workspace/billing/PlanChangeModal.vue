@@ -103,7 +103,8 @@ async function handleConfirm() {
     );
 
     if (result.success) {
-      emit('success', result.new_plan);
+      // Emit the display name from props, not the API's plan ID
+      emit('success', props.targetPlan?.name ?? result.new_plan);
     } else {
       error.value = t('web.billing.plans.change_failed');
     }
