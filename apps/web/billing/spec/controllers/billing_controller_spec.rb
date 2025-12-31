@@ -225,6 +225,8 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
   end
 
   describe 'POST /billing/api/org/:extid/checkout' do
+    include_context 'with_test_plans'
+
     let(:tier) { 'single_team' }
     let(:billing_cycle) { 'monthly' }
 
@@ -232,14 +234,18 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       # Ensure customer is organization owner
       organization.save
 
-      # Mock region to match Stripe plan metadata (EU is our default test region)
-      mock_region!('EU')
-
-      # Sync plans from Stripe to Redis cache (needed for plan lookup)
-      ::Billing::Plan.refresh_from_stripe if ENV['STRIPE_API_KEY']
+      # Note: with_test_plans context loads plans from spec/billing.test.yaml
+      # and mocks region to 'EU'. No Stripe API calls needed.
     end
 
-    it 'creates Stripe checkout session', :vcr do
+    it 'creates Stripe checkout session' do
+      # Mock Stripe checkout session creation
+      mock_session = build_checkout_session(
+        'url' => 'https://checkout.stripe.com/c/pay/cs_test_mock',
+        'id' => 'cs_test_mock_checkout'
+      )
+      allow(Stripe::Checkout::Session).to receive(:create).and_return(mock_session)
+
       post "/billing/api/org/#{organization.extid}/checkout", {
         tier: tier,
         billing_cycle: billing_cycle,
@@ -252,9 +258,18 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(data).to have_key('checkout_url')
       expect(data).to have_key('session_id')
       expect(data['checkout_url']).to match(%r{\Ahttps://checkout\.stripe\.com/})
+
+      # Verify correct params passed to Stripe
+      expect(Stripe::Checkout::Session).to have_received(:create).with(
+        hash_including(
+          mode: 'subscription',
+          client_reference_id: organization.objid
+        ),
+        anything
+      )
     end
 
-    it 'returns 400 when tier is missing', :vcr do
+    it 'returns 400 when tier is missing' do
       post "/billing/api/org/#{organization.extid}/checkout", {
         billing_cycle: billing_cycle,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
@@ -263,7 +278,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(last_response.body).to include('Missing tier or billing_cycle')
     end
 
-    it 'returns 400 when billing_cycle is missing', :vcr do
+    it 'returns 400 when billing_cycle is missing' do
       post "/billing/api/org/#{organization.extid}/checkout", {
         tier: tier,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
@@ -272,7 +287,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(last_response.body).to include('Missing tier or billing_cycle')
     end
 
-    it 'returns 404 when plan is not found', :vcr do
+    it 'returns 404 when plan is not found' do
       post "/billing/api/org/#{organization.extid}/checkout", {
         tier: 'nonexistent_tier',
         billing_cycle: 'monthly',
@@ -282,12 +297,19 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(last_response.body).to include('Plan not found')
     end
 
-    it 'uses existing Stripe customer if organization has one', :vcr do
-      # Create Stripe customer and associate with organization
-      stripe_customer                 = Stripe::Customer.create(email: organization.billing_email)
-      organization.stripe_customer_id = stripe_customer.id
+    it 'uses existing Stripe customer if organization has one' do
+      # Set existing Stripe customer on organization
+      organization.stripe_customer_id = 'cus_existing_test_customer'
       organization.save
 
+      # Mock Stripe checkout session creation
+      mock_session = build_checkout_session(
+        'url' => 'https://checkout.stripe.com/c/pay/cs_test_existing',
+        'id' => 'cs_test_existing_customer',
+        'customer' => 'cus_existing_test_customer'
+      )
+      allow(Stripe::Checkout::Session).to receive(:create).and_return(mock_session)
+
       post "/billing/api/org/#{organization.extid}/checkout", {
         tier: tier,
         billing_cycle: billing_cycle,
@@ -295,13 +317,23 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       expect(last_response.status).to eq(200)
 
-      # Verify the checkout session used the existing customer
-      data    = JSON.parse(last_response.body)
-      session = Stripe::Checkout::Session.retrieve(data['session_id'])
-      expect(session.customer).to eq(stripe_customer.id)
+      # Verify the checkout session was created with the existing customer
+      expect(Stripe::Checkout::Session).to have_received(:create).with(
+        hash_including(customer: 'cus_existing_test_customer'),
+        anything
+      )
     end
 
-    it 'includes metadata in subscription', :vcr do
+    it 'includes metadata in subscription' do
+      # Mock Stripe checkout session creation
+      mock_session = build_checkout_session(
+        'url' => 'https://checkout.stripe.com/c/pay/cs_test_metadata',
+        'id' => 'cs_test_metadata',
+        'mode' => 'subscription',
+        'client_reference_id' => organization.objid
+      )
+      allow(Stripe::Checkout::Session).to receive(:create).and_return(mock_session)
+
       post "/billing/api/org/#{organization.extid}/checkout", {
         tier: tier,
         billing_cycle: billing_cycle,
@@ -309,20 +341,32 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
 
       expect(last_response.status).to eq(200)
 
-      data = JSON.parse(last_response.body)
-      session = Stripe::Checkout::Session.retrieve(data['session_id'])
-
-      # Verify the session was created correctly
-      expect(session.mode).to eq('subscription')
-      expect(session.client_reference_id).to eq(organization.objid)
-
-      # Note: subscription_data.metadata is a write-only parameter passed to
-      # the subscription when created. It's not returned on session retrieval.
-      # The metadata will appear on the actual Subscription object after
-      # checkout completion, which is verified via webhook processing tests.
+      # Verify subscription_data.metadata was passed correctly
+      # The metadata contains: orgid, plan_id, tier, region, customer_extid
+      expect(Stripe::Checkout::Session).to have_received(:create).with(
+        hash_including(
+          mode: 'subscription',
+          client_reference_id: organization.objid,
+          subscription_data: hash_including(
+            metadata: hash_including(
+              orgid: organization.objid,
+              tier: tier,
+              customer_extid: customer.extid
+            )
+          )
+        ),
+        anything
+      )
     end
 
-    it 'uses idempotency key to prevent duplicates', :vcr do
+    it 'uses idempotency key to prevent duplicates' do
+      # Mock Stripe checkout session creation
+      mock_session = build_checkout_session(
+        'url' => 'https://checkout.stripe.com/c/pay/cs_test_idempotent',
+        'id' => 'cs_test_idempotent'
+      )
+      allow(Stripe::Checkout::Session).to receive(:create).and_return(mock_session)
+
       # Make two identical requests
       2.times do
         post "/billing/api/org/#{organization.extid}/checkout", {
@@ -333,10 +377,15 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
         expect(last_response.status).to eq(200)
       end
 
-      # Both requests should succeed due to idempotency
+      # Verify idempotency key was used in both requests
+      # The key is a SHA256 hash (64 hex chars) of checkout:<org_id>:<plan_id>:<time>
+      expect(Stripe::Checkout::Session).to have_received(:create).twice.with(
+        anything,
+        hash_including(idempotency_key: a_string_matching(/^[a-f0-9]{64}$/))
+      )
     end
 
-    it 'returns 403 when customer is not organization owner', :vcr do
+    it 'returns 403 when customer is not organization owner' do
       # Create member (non-owner) customer
       member_customer = Onetime::Customer.create!(email: deterministic_email('member'))
       created_customers << member_customer
@@ -360,7 +409,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(last_response.body).to include('Owner access required')
     end
 
-    it 'requires authentication', :vcr do
+    it 'requires authentication' do
       env 'rack.session', {}
 
       post "/billing/api/org/#{organization.extid}/checkout", {
@@ -373,7 +422,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
   end
 
   describe 'GET /billing/api/org/:extid/invoices' do
-    it 'returns empty list when organization has no Stripe customer', :vcr do
+    it 'returns empty list when organization has no Stripe customer' do
       get "/billing/api/org/#{organization.extid}/invoices"
 
       expect(last_response.status).to eq(200)
@@ -383,25 +432,31 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(data['invoices']).to eq([])
     end
 
-    it 'returns list of invoices for organization', :vcr do
-      # Create Stripe customer with email (required for invoices)
-      customer_email = organization.billing_email || "test-#{SecureRandom.hex(4)}@example.com"
-      stripe_customer = Stripe::Customer.create(email: customer_email)
-      organization.stripe_customer_id = stripe_customer.id
+    it 'returns list of invoices for organization' do
+      # Set up organization with Stripe customer
+      organization.stripe_customer_id = 'cus_test_invoices'
       organization.save
 
-      # Create an invoice item first, then the invoice
-      Stripe::InvoiceItem.create(
-        customer: stripe_customer.id,
-        amount: 1000,
-        currency: 'usd',
-        description: 'Test invoice item'
-      )
-
-      Stripe::Invoice.create(
-        customer: stripe_customer.id,
-        auto_advance: false  # Don't finalize automatically
-      )
+      # Mock Stripe invoice list
+      mock_invoices = build_invoice_list([
+        build_invoice(
+          'id' => 'in_test_1',
+          'number' => 'INV-0001',
+          'amount_due' => 1900,
+          'currency' => 'cad',
+          'status' => 'paid',
+          'created' => 1704067200
+        ),
+        build_invoice(
+          'id' => 'in_test_2',
+          'number' => 'INV-0002',
+          'amount_due' => 2900,
+          'currency' => 'cad',
+          'status' => 'open',
+          'created' => 1706745600
+        )
+      ])
+      allow(Stripe::Invoice).to receive(:list).and_return(mock_invoices)
 
       get "/billing/api/org/#{organization.extid}/invoices"
 
@@ -411,21 +466,25 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(data).to have_key('invoices')
       expect(data).to have_key('has_more')
       expect(data['invoices']).to be_an(Array)
+      expect(data['invoices'].length).to eq(2)
 
-      unless data['invoices'].empty?
-        invoice_data = data['invoices'].first
-        expect(invoice_data).to have_key('id')
-        expect(invoice_data).to have_key('number')
-        expect(invoice_data).to have_key('amount')
-        expect(invoice_data).to have_key('currency')
-        expect(invoice_data).to have_key('status')
-        expect(invoice_data).to have_key('created')
-        expect(invoice_data).to have_key('invoice_pdf')
-        expect(invoice_data).to have_key('hosted_invoice_url')
-      end
+      invoice_data = data['invoices'].first
+      expect(invoice_data).to have_key('id')
+      expect(invoice_data).to have_key('number')
+      expect(invoice_data).to have_key('amount')
+      expect(invoice_data).to have_key('currency')
+      expect(invoice_data).to have_key('status')
+      expect(invoice_data).to have_key('created')
+      expect(invoice_data).to have_key('invoice_pdf')
+      expect(invoice_data).to have_key('hosted_invoice_url')
+
+      # Verify correct params passed to Stripe
+      expect(Stripe::Invoice).to have_received(:list).with(
+        hash_including(customer: 'cus_test_invoices')
+      )
     end
 
-    it 'limits invoices to 12', :vcr do
+    it 'limits invoices to 12' do
       skip 'Requires creating 13+ invoices which is time-intensive'
 
       # In a real integration test, you would:
@@ -435,7 +494,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       # 4. Verify has_more is true
     end
 
-    it 'returns 403 when customer is not organization member', :vcr do
+    it 'returns 403 when customer is not organization member' do
       other_customer = Onetime::Customer.create!(email: deterministic_email('other-invoice'))
       created_customers << other_customer
       other_customer.save
@@ -450,7 +509,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(last_response.status).to eq(403)
     end
 
-    it 'requires authentication', :vcr do
+    it 'requires authentication' do
       env 'rack.session', {}
 
       get "/billing/api/org/#{organization.extid}/invoices"
@@ -458,9 +517,14 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       expect(last_response.status).to eq(401)
     end
 
-    it 'handles Stripe errors gracefully', :vcr do
+    it 'handles Stripe errors gracefully' do
       organization.stripe_customer_id = 'cus_invalid'
       organization.save
+
+      # Mock Stripe raising an error
+      allow(Stripe::Invoice).to receive(:list).and_raise(
+        Stripe::InvalidRequestError.new('No such customer: cus_invalid', :customer)
+      )
 
       get "/billing/api/org/#{organization.extid}/invoices"
 
@@ -489,13 +553,18 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       organization.subscription_status = 'active'
       organization.save
 
-      # Stub Stripe::Subscription.retrieve to return mock data
-      mock_subscription = double('Stripe::Subscription', status: 'active')
-      mock_item = double('SubscriptionItem',
-                         id: 'si_mock',
-                         price: double(id: 'price_mock'),
-                         current_period_end: (Time.now + 30 * 24 * 60 * 60).to_i)
-      allow(mock_subscription).to receive_message_chain(:items, :data, :first).and_return(mock_item)
+      # Use StripeMockFactory to create a proper Stripe::Subscription object
+      # Note: The controller accesses current_item.current_period_end on the subscription item
+      period_end = (Time.now + 30 * 24 * 60 * 60).to_i
+      mock_subscription = build_subscription(
+        'status' => 'active',
+        'current_period_end' => period_end,
+        'items_data' => [{
+          'id' => 'si_mock',
+          'current_period_end' => period_end,
+          'price' => { 'id' => 'price_mock', 'unit_amount' => 1900, 'currency' => 'cad' }
+        }]
+      )
       allow(Stripe::Subscription).to receive(:retrieve).and_return(mock_subscription)
 
       get "/billing/api/org/#{organization.extid}/subscription"
@@ -577,10 +646,13 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       end
 
       it 'returns 400 when switching to same plan' do
-        # Stub Stripe::Subscription.retrieve to return current price
-        mock_subscription = double('Stripe::Subscription')
-        mock_item = double('SubscriptionItem', price: double(id: current_price_id))
-        allow(mock_subscription).to receive_message_chain(:items, :data, :first).and_return(mock_item)
+        # Use StripeMockFactory to create a proper Stripe::Subscription object
+        mock_subscription = build_subscription(
+          'items_data' => [{
+            'id' => 'si_mock',
+            'price' => { 'id' => current_price_id, 'unit_amount' => 1900, 'currency' => 'cad' }
+          }]
+        )
         allow(Stripe::Subscription).to receive(:retrieve).and_return(mock_subscription)
 
         post "/billing/api/org/#{organization.extid}/preview-plan-change", {
@@ -592,10 +664,13 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       end
 
       it 'returns 400 when target price ID is not in plan catalog' do
-        # Stub Stripe::Subscription.retrieve
-        mock_subscription = double('Stripe::Subscription')
-        mock_item = double('SubscriptionItem', price: double(id: current_price_id))
-        allow(mock_subscription).to receive_message_chain(:items, :data, :first).and_return(mock_item)
+        # Use StripeMockFactory to create a proper Stripe::Subscription object
+        mock_subscription = build_subscription(
+          'items_data' => [{
+            'id' => 'si_mock',
+            'price' => { 'id' => current_price_id, 'unit_amount' => 1900, 'currency' => 'cad' }
+          }]
+        )
         allow(Stripe::Subscription).to receive(:retrieve).and_return(mock_subscription)
 
         # Stub price_id_to_plan_id to return nil (price not in catalog)
@@ -613,10 +688,13 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       end
 
       it 'returns 400 when target plan is a legacy plan' do
-        # Stub Stripe::Subscription.retrieve
-        mock_subscription = double('Stripe::Subscription')
-        mock_item = double('SubscriptionItem', price: double(id: current_price_id))
-        allow(mock_subscription).to receive_message_chain(:items, :data, :first).and_return(mock_item)
+        # Use StripeMockFactory to create a proper Stripe::Subscription object
+        mock_subscription = build_subscription(
+          'items_data' => [{
+            'id' => 'si_mock',
+            'price' => { 'id' => current_price_id, 'unit_amount' => 1900, 'currency' => 'cad' }
+          }]
+        )
         allow(Stripe::Subscription).to receive(:retrieve).and_return(mock_subscription)
 
         # Stub price_id_to_plan_id to return a plan ID
@@ -768,10 +846,13 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       end
 
       it 'returns 400 when switching to same plan' do
-        # Stub Stripe::Subscription.retrieve to return current price
-        mock_subscription = double('Stripe::Subscription')
-        mock_item = double('SubscriptionItem', id: 'si_mock', price: double(id: current_price_id))
-        allow(mock_subscription).to receive_message_chain(:items, :data, :first).and_return(mock_item)
+        # Use StripeMockFactory to create a proper Stripe::Subscription object
+        mock_subscription = build_subscription(
+          'items_data' => [{
+            'id' => 'si_mock',
+            'price' => { 'id' => current_price_id, 'unit_amount' => 1900, 'currency' => 'cad' }
+          }]
+        )
         allow(Stripe::Subscription).to receive(:retrieve).and_return(mock_subscription)
 
         post "/billing/api/org/#{organization.extid}/change-plan", {
@@ -783,10 +864,13 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       end
 
       it 'returns 400 when target price ID is not in plan catalog' do
-        # Stub Stripe::Subscription.retrieve
-        mock_subscription = double('Stripe::Subscription')
-        mock_item = double('SubscriptionItem', id: 'si_mock', price: double(id: current_price_id))
-        allow(mock_subscription).to receive_message_chain(:items, :data, :first).and_return(mock_item)
+        # Use StripeMockFactory to create a proper Stripe::Subscription object
+        mock_subscription = build_subscription(
+          'items_data' => [{
+            'id' => 'si_mock',
+            'price' => { 'id' => current_price_id, 'unit_amount' => 1900, 'currency' => 'cad' }
+          }]
+        )
         allow(Stripe::Subscription).to receive(:retrieve).and_return(mock_subscription)
 
         # Stub price_id_to_plan_id to return nil (price not in catalog)
@@ -804,10 +888,13 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       end
 
       it 'returns 400 when target plan is a legacy plan' do
-        # Stub Stripe::Subscription.retrieve
-        mock_subscription = double('Stripe::Subscription')
-        mock_item = double('SubscriptionItem', id: 'si_mock', price: double(id: current_price_id))
-        allow(mock_subscription).to receive_message_chain(:items, :data, :first).and_return(mock_item)
+        # Use StripeMockFactory to create a proper Stripe::Subscription object
+        mock_subscription = build_subscription(
+          'items_data' => [{
+            'id' => 'si_mock',
+            'price' => { 'id' => current_price_id, 'unit_amount' => 1900, 'currency' => 'cad' }
+          }]
+        )
         allow(Stripe::Subscription).to receive(:retrieve).and_return(mock_subscription)
 
         # Stub price_id_to_plan_id to return a plan ID
