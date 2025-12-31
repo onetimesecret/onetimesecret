@@ -17,25 +17,25 @@
       "postscript2": "이 요청을 하지 않으셨다면, 이 이메일을 무시하셔도 됩니다."
     },
     "organization_invitation": {
-      "subject": "You've been invited to join %{organization_name}",
-      "title": "You've been invited to join %{organization_name}!",
-      "body": "%{inviter_email} has invited you to join \"%{organization_name}\" as %{role_description}.",
-      "accept_button": "Accept Invitation",
-      "link_instruction": "Or copy and paste this link:",
-      "expiry_notice": "This invitation will expire in %{days} days.",
-      "decline_instruction": "If you don't want to join, you can simply ignore this email or decline the invitation.",
+      "subject": "%{organization_name}에 초대되었습니다",
+      "title": "%{organization_name}에 초대되었습니다!",
+      "body": "%{inviter_email}님이 \"%{organization_name}\"에 %{role_description}(으)로 귀하를 초대했습니다.",
+      "accept_button": "초대 수락",
+      "link_instruction": "또는 이 링크를 복사하여 붙여넣으세요:",
+      "expiry_notice": "이 초대는 %{days}일 후에 만료됩니다.",
+      "decline_instruction": "참여를 원하지 않으시면 이 이메일을 무시하거나 초대를 거부하실 수 있습니다.",
       "signature": "Delano",
-      "postscript": "P.S. This email was sent to %{invited_email}. If you weren't expecting this invitation, you can safely ignore this message.",
+      "postscript": "추신: 이 이메일은 %{invited_email}로 전송되었습니다. 이 초대를 예상하지 못했다면 이 메시지를 무시하셔도 됩니다.",
       "roles": {
-        "member": "a member",
-        "admin": "an administrator"
+        "member": "구성원",
+        "admin": "관리자"
       }
     },
     "common": {
-      "greeting": "Hello,",
-      "thanks": "Thanks,",
-      "unsubscribe": "Unsubscribe",
-      "view_in_browser": "View in browser"
+      "greeting": "안녕하세요,",
+      "thanks": "감사합니다,",
+      "unsubscribe": "수신 거부",
+      "view_in_browser": "브라우저에서 보기"
     }
   }
 }

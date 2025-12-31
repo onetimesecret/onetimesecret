@@ -4,7 +4,7 @@
       "upgrade": {
         "required": "업그레이드 필요",
         "viewPlans": "플랜 보기",
-        "needTeams": "Team management requires Identity Plus or higher",
+        "needTeams": "팀 관리는 Identity Plus 이상이 필요합니다",
         "needCustomDomains": "맞춤 도메인은 Identity Plus 이상이 필요합니다",
         "needApiAccess": "API 접근은 Multi-Team 플랜 이상이 필요합니다",
         "needAuditLogs": "감사 로그는 Multi-Team 플랜 이상이 필요합니다"
@@ -37,25 +37,25 @@
         "no_organizations_description": "결제 및 구독을 관리할 조직을 생성하세요",
         "entitlements": {
           "create_secrets": "비밀 메시지 생성",
-          "view_metadata": "View Metadata",
+          "view_metadata": "메타데이터 보기",
           "api_access": "API 접근",
           "custom_domains": "맞춤 도메인",
-          "custom_privacy_defaults": "Custom Privacy Defaults",
-          "extended_default_expiration": "Extended Default Expiration",
-          "custom_mail_defaults": "Custom Mail Defaults",
-          "custom_branding": "Custom Branding",
-          "branded_homepage": "Branded Homepage",
-          "incoming_secrets": "Incoming Secrets",
-          "manage_orgs": "Manage Organizations",
-          "manage_teams": "Manage Teams",
-          "manage_members": "Manage Members",
+          "custom_privacy_defaults": "맞춤 개인정보 기본값",
+          "extended_default_expiration": "연장된 기본 만료 시간",
+          "custom_mail_defaults": "맞춤 이메일 기본값",
+          "custom_branding": "맞춤 브랜딩",
+          "branded_homepage": "브랜드 홈페이지",
+          "incoming_secrets": "수신 비밀 메시지",
+          "manage_orgs": "조직 관리",
+          "manage_teams": "팀 관리",
+          "manage_members": "구성원 관리",
           "audit_logs": "감사 로그",
-          "sso": "Single Sign-On",
+          "sso": "싱글 사인온",
           "priority_support": "우선 지원",
-          "sla": "Service Level Agreement"
+          "sla": "서비스 수준 협약"
         },
-        "entitlements_load_error": "Could not load feature details",
-        "no_entitlements": "No features available"
+        "entitlements_load_error": "기능 세부정보를 불러오지 못했습니다",
+        "no_entitlements": "사용 가능한 기능 없음"
       },
       "plans": {
         "title": "플랜 선택",
@@ -75,10 +75,10 @@
         "priority_support": "우선 지원",
         "select_plan": "플랜 선택",
         "contact_sales": "영업팀 문의",
-        "custom_needs_title": "Have questions or need something custom?",
-        "custom_needs_description": "We'd love to hear from you. Let us know what you're looking for.",
-        "teams_limit": "{count} team | {count} teams",
-        "members_limit": "{count} member per team | {count} members per team"
+        "custom_needs_title": "질문이 있거나 맞춤 솔루션이 필요하신가요?",
+        "custom_needs_description": "연락해 주시면 감사하겠습니다. 원하시는 내용을 알려주세요.",
+        "teams_limit": "{count}개 팀 | {count}개 팀",
+        "members_limit": "팀당 {count}명 | 팀당 {count}명"
       },
       "invoices": {
         "title": "결제 기록",
