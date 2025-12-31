@@ -246,24 +246,24 @@ describe('Opaque Identifier Pattern', () => {
       expect(() => assertExtId('cd4f2e1a')).not.toThrow();
     });
 
-    it('logs warning for invalid ExtIds', () => {
+    it('throws error for invalid ExtIds in test mode', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      // In non-DEV mode, it logs but doesn't throw
-      assertExtId('invalid-id');
-
+      // In test mode (NODE_ENV=test), it throws after logging
+      expect(() => assertExtId('invalid-id')).toThrow('Expected ExtId');
       expect(consoleSpy).toHaveBeenCalled();
+
       consoleSpy.mockRestore();
     });
 
-    it('includes context in warning message', () => {
+    it('includes context in error message', () => {
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-      assertExtId('bad-id', 'TestComponent');
-
+      expect(() => assertExtId('bad-id', 'TestComponent')).toThrow('[TestComponent]');
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('[TestComponent]')
       );
+
       consoleSpy.mockRestore();
     });
   });

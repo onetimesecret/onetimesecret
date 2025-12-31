@@ -179,23 +179,28 @@ const rule: Rule.RuleModule = {
         const sourceCode = context.sourceCode || context.getSourceCode();
         const source = sourceCode.getText(node);
 
-        // Quick check - does this look like a URL with .id?
+        // Quick check - does this look like a URL?
         if (!URL_PATTERNS.some((pattern) => pattern.test(source))) {
           return;
         }
 
-        // Check for .id patterns in the template
-        const idInUrlPattern = /\.\s*id\s*\}|\.id\s*`/;
-        if (idInUrlPattern.test(source)) {
-          // The MemberExpression handler should catch this,
-          // but we report as a fallback
-          context.report({
-            node,
-            messageId: 'internalIdInUrl',
-            data: {
-              property: 'id',
-            },
-          });
+        // Check for any internal ID property in the template
+        for (const prop of INTERNAL_ID_PROPERTIES) {
+          // Regex to find patterns like `.id}` or `.id`
+          const idInUrlPattern = new RegExp(`\\.\\s*${prop}\\s*(\\}|\`)`);
+          if (idInUrlPattern.test(source)) {
+            // The MemberExpression handler should catch this,
+            // but we report as a fallback
+            context.report({
+              node,
+              messageId: 'internalIdInUrl',
+              data: {
+                property: prop,
+              },
+            });
+            // Report once per template literal to avoid duplicate errors
+            return;
+          }
         }
       },
     };
