@@ -17,25 +17,25 @@
       "postscript2": "Se você não criou esta conta, apague esta mensagem e nós não iremos lhe contatar novamente."
     },
     "organization_invitation": {
-      "subject": "You've been invited to join %{organization_name}",
-      "title": "You've been invited to join %{organization_name}!",
-      "body": "%{inviter_email} has invited you to join \"%{organization_name}\" as %{role_description}.",
-      "accept_button": "Accept Invitation",
-      "link_instruction": "Or copy and paste this link:",
-      "expiry_notice": "This invitation will expire in %{days} days.",
-      "decline_instruction": "If you don't want to join, you can simply ignore this email or decline the invitation.",
+      "subject": "Você foi convidado para participar de %{organization_name}",
+      "title": "Você foi convidado para participar de %{organization_name}!",
+      "body": "%{inviter_email} convidou você para participar de \"%{organization_name}\" como %{role_description}.",
+      "accept_button": "Aceitar Convite",
+      "link_instruction": "Ou copie e cole este link:",
+      "expiry_notice": "Este convite expirará em %{days} dias.",
+      "decline_instruction": "Se você não deseja participar, simplesmente ignore este e-mail ou recuse o convite.",
       "signature": "Delano",
-      "postscript": "P.S. This email was sent to %{invited_email}. If you weren't expecting this invitation, you can safely ignore this message.",
+      "postscript": "P.S. Este e-mail foi enviado para %{invited_email}. Se você não estava esperando este convite, pode ignorar esta mensagem com segurança.",
       "roles": {
-        "member": "a member",
-        "admin": "an administrator"
+        "member": "membro",
+        "admin": "administrador"
       }
     },
     "common": {
-      "greeting": "Hello,",
-      "thanks": "Thanks,",
-      "unsubscribe": "Unsubscribe",
-      "view_in_browser": "View in browser"
+      "greeting": "Olá,",
+      "thanks": "Obrigado,",
+      "unsubscribe": "Cancelar inscrição",
+      "view_in_browser": "Ver no navegador"
     }
   }
 }
