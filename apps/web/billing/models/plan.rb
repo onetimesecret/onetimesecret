@@ -82,6 +82,9 @@ module Billing
     field :show_on_plans_page       # Boolean: whether to show on plans page
     field :description              # Plan description for display
     field :is_soft_deleted          # Boolean: soft-deleted in Stripe
+    field :plan_code                # Deduplication key (e.g., "identity_plus" for monthly+yearly variants)
+    field :is_popular               # Boolean: show "Most Popular" badge
+    field :plan_name_label          # Display label next to plan name (e.g., "For Teams")
 
     # Additional Stripe Price fields
     field :active                   # Boolean: whether price is available for new subscriptions
@@ -128,6 +131,26 @@ module Billing
     def reload
       @limits_hash = nil
       super
+    end
+
+    # Check if plan should show "Most Popular" badge
+    #
+    # @return [Boolean] True if plan is marked as popular
+    def popular?
+      is_popular.to_s == 'true'
+    end
+
+    # Calculate monthly equivalent amount for display
+    #
+    # For yearly plans, divides the total amount by 12.
+    # For monthly plans, returns the amount unchanged.
+    #
+    # @return [Integer] Monthly equivalent price in cents
+    def monthly_equivalent_amount
+      amt = amount.to_i
+      return amt if interval != 'year'
+
+      (amt / 12.0).round
     end
 
     # Parse cached Stripe data snapshot
@@ -188,6 +211,9 @@ module Billing
 
         # PHASE 2: Write all collected plans to Redis
         # This happens only after all Stripe API calls succeeded
+        # Clear stale cache entries first to remove plans no longer in Stripe
+        clear_cache
+
         items_count = persist_collected_plans(plan_data_list)
 
         OT.li "[Plan.refresh_from_stripe] Cached #{items_count} plans"
@@ -311,6 +337,17 @@ module Billing
         show_on_plans_page_value = product.metadata[Metadata::FIELD_SHOW_ON_PLANS_PAGE] || 'true'
         show_on_plans_page       = %w[true 1 yes].include?(show_on_plans_page_value.to_s.downcase)
 
+        # Extract plan_code from product metadata (used to group monthly/yearly variants)
+        plan_code = product.metadata[Metadata::FIELD_PLAN_CODE]
+
+        # Extract is_popular from product metadata (default to 'false')
+        is_popular_value = product.metadata[Metadata::FIELD_IS_POPULAR] || 'false'
+        is_popular       = %w[true 1 yes].include?(is_popular_value.to_s.downcase)
+
+        # Extract plan_name_label from product metadata (nil if not set or empty)
+        plan_name_label_raw = product.metadata[Metadata::FIELD_PLAN_NAME_LABEL]
+        plan_name_label     = plan_name_label_raw.to_s.strip.empty? ? nil : plan_name_label_raw
+
         # Build stripe snapshot for recovery
         stripe_snapshot = {
           product: {
@@ -345,6 +382,9 @@ module Billing
           display_order: display_order,
           show_on_plans_page: show_on_plans_page.to_s,
           description: product.description,
+          plan_code: plan_code,
+          is_popular: is_popular.to_s,
+          plan_name_label: plan_name_label,
           active: price.active.to_s,
           billing_scheme: price.billing_scheme,
           usage_type: price.recurring&.usage_type || 'licensed',
@@ -388,6 +428,9 @@ module Billing
           plan.usage_type        = data[:usage_type]
           plan.trial_period_days = data[:trial_period_days]
           plan.nickname          = data[:nickname]
+          plan.plan_code         = data[:plan_code]
+          plan.is_popular        = data[:is_popular]
+          plan.plan_name_label   = data[:plan_name_label]
           plan.last_synced_at    = sync_timestamp
 
           # Add entitlements to set (unique values)
@@ -553,6 +596,9 @@ module Billing
             plan.usage_type        = 'licensed'
             plan.trial_period_days = nil
             plan.nickname          = nil
+            plan.plan_code         = plan_def['plan_code']
+            plan.is_popular        = (plan_def['is_popular'] == true).to_s
+            plan.plan_name_label   = plan_def['plan_name_label']
             plan.last_synced_at    = Time.now.to_i.to_s
 
             # Add entitlements to set
@@ -655,6 +701,9 @@ module Billing
           display_order: plan_def['display_order'].to_i,
           show_on_plans_page: plan_def['show_on_plans_page'] == true,
           description: plan_def['description'],
+          plan_code: plan_def['plan_code'],
+          is_popular: plan_def['is_popular'] == true,
+          plan_name_label: plan_def['plan_name_label'],
           entitlements: plan_def['entitlements'] || [],
           limits: limits,
         }

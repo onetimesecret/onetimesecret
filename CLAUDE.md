@@ -17,6 +17,7 @@ Unless otherwise specified, pull requests target `develop` branch.
 - **Testing**: Vitest (max 300 lines), mock Pinia stores
 - **Styling**: Tailwind classes, WCAG compliance
 - **Minimal Changes**: Preserve patterns, use existing utilities
+- **URL Paths**: ALWAYS use `extid` (not `id`/`objid`) for URL paths - entities have dual IDs
 
 ## Tech Stack
 **Backend**: Ruby 3.4, Rack 3, Redis 7
@@ -85,6 +86,16 @@ pnpm run test:database:status
 bin/ots migrate SCRIPT --run
 bin/ots customers --list
 bin/ots domains --list
+```
+
+### Git Worktrees
+```bash
+# Create worktree for an issue (two-step to set correct upstream)
+git worktree add -b feature/1234-description ../onetimesecret-1234 origin/develop
+cd ../onetimesecret-1234 && git push -u origin feature/1234-description
+
+# Without the push -u, the branch tracks origin/develop (wrong!)
+# This causes pushes to go to develop instead of the feature branch
 ```
 
 ### Testing

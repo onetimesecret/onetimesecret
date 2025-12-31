@@ -110,7 +110,7 @@ update_product \
   "single_team" \
   "EU" \
   "multi" \
-  "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage" \
+  "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage" \
   "10" \
   "true" \
   "0" \
@@ -125,7 +125,7 @@ update_product \
   "multi_team" \
   "EU" \
   "multi" \
-  "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members" \
+  "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members" \
   "20" \
   "true" \
   "1" \
@@ -140,7 +140,7 @@ update_product \
   "multi_team" \
   "EU" \
   "multi" \
-  "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members,audit_logs,sso" \
+  "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members,audit_logs,sso" \
   "30" \
   "false" \
   "-1" \
@@ -155,7 +155,7 @@ update_product \
   "multi_team" \
   "EU" \
   "dedicated" \
-  "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members,audit_logs,sso,priority_support,sla" \
+  "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration,custom_branding,branded_homepage,manage_teams,manage_members,audit_logs,sso,priority_support,sla" \
   "40" \
   "false" \
   "-1" \

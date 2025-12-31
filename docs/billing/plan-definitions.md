@@ -21,7 +21,7 @@ Default without subscription, when billing enabled. When billing disabled, capab
 
 **Capabilities:**
 - `create_secrets` - Can create basic secrets
-- `view_metadata` - Can view secret metadata
+- `view_receipt` - Can view secret metadata
 - `api_access`
 
 **Limits:**
@@ -99,7 +99,7 @@ This plan is grandfathered in for all identity customers <= 2025-12-31.
 
 **Capabilities:**
 - `create_secrets`
-- `view_metadata`
+- `view_receipt`
 - `custom_domains`
 - `extended_default_expiration`
 - `custom_branding`
@@ -115,7 +115,7 @@ This plan is grandfathered in for all identity customers <= 2025-12-31.
 ## Capability Categories (work in progress)
 
 **Core:**
-- `create_secrets`, `view_metadata`, `extended_default_expiration`, `api_access`
+- `create_secrets`, `view_receipt`, `extended_default_expiration`, `api_access`
 
 **Collaboration:**
 - `create_team`, `create_organization`, `add_team_members`
@@ -142,7 +142,7 @@ Each Stripe product must include the following metadata fields to be recognized 
   "tier": "single_team",
   "region": "EU",
   "tenancy": "multi",
-  "capabilities": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration",
+  "capabilities": "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration",
   "created": "2025-11-23"
 }
 ```
@@ -183,7 +183,7 @@ Each Stripe product must include the following metadata fields to be recognized 
   "tier": "multi_team",
   "region": "EU",
   "tenancy": "multi",
-  "capabilities": "create_secrets,view_metadata,api_access,custom_domains,extended_default_expiration,manage_teams,manage_members",
+  "capabilities": "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration,manage_teams,manage_members",
   "created": "2025-11-23",
   "display_order": "20",
   "show_on_plans_page": "true",

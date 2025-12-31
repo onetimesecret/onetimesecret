@@ -70,7 +70,7 @@ module Billing
         # Pre-fill customer email if authenticated
         unless cust.anonymous?
           session_params[:customer_email]      = cust.email
-          session_params[:client_reference_id] = cust.custid
+          session_params[:client_reference_id] = cust.extid
         end
 
         # Add metadata for webhook processing
@@ -79,7 +79,7 @@ module Billing
             plan_id: plan.plan_id,
             tier: tier,
             region: region,
-            custid: cust.custid,
+            customer_extid: cust.extid,
           },
         }
 
@@ -145,8 +145,8 @@ module Billing
 
         unless org.stripe_customer_id
           billing_logger.warn 'No Stripe customer ID for organization', {
-            extid: org.objid,
-            custid: cust.custid,
+            org_extid: org.extid,
+            customer_extid: cust.extid,
           }
           res.redirect '/account'
           return
@@ -211,8 +211,8 @@ module Billing
         org.save
 
         billing_logger.info 'Created default organization', {
-          extid: org.objid,
-          custid: customer.custid,
+          org_extid: org.extid,
+          customer_extid: customer.extid,
         }
 
         org

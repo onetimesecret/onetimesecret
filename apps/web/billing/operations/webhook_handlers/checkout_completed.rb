@@ -46,32 +46,45 @@ module Billing
           subscription = Stripe::Subscription.retrieve(session.subscription)
           metadata     = subscription.metadata
 
-          custid = metadata['custid']
-          unless custid
-            billing_logger.warn 'No custid in subscription metadata', {
+          customer_extid = metadata['customer_extid']
+          unless customer_extid
+            billing_logger.warn 'No customer_extid in subscription metadata', {
               subscription_id: subscription.id,
             }
             return :skipped
           end
 
-          unless valid_identifier?(custid)
-            billing_logger.warn 'Invalid custid format in subscription metadata', {
+          unless valid_identifier?(customer_extid)
+            billing_logger.warn 'Invalid customer_extid format in subscription metadata', {
               subscription_id: subscription.id,
-              custid: custid.to_s[0, 50], # Truncate for safety
+              customer_extid: customer_extid.to_s[0, 50], # Truncate for safety
             }
             return :skipped
           end
 
-          customer = load_customer(custid)
+          customer = load_customer(customer_extid)
           return :not_found unless customer
 
-          org = find_or_create_organization(customer)
+          # Find the specific org that initiated checkout (from subscription metadata)
+          # Fall back to customer's default org for legacy/manual subscriptions
+          org = find_target_organization(customer, metadata)
+          return :not_found unless org
+
+          # Idempotency: Check if already processed (same org + same subscription)
+          if org.stripe_subscription_id == subscription.id
+            billing_logger.info 'Checkout already processed (idempotent replay)', {
+              orgid: org.objid,
+              subscription_id: subscription.id,
+            }
+            return :success
+          end
+
           org.update_from_stripe_subscription(subscription)
 
           billing_logger.info 'Checkout completed - organization subscription activated', {
             orgid: org.objid,
             subscription_id: subscription.id,
-            custid: custid,
+            customer_extid: customer_extid,
           }
 
           # Future: Send welcome notification unless skip_notifications?
@@ -86,28 +99,61 @@ module Billing
           value.match?(UUID_PATTERN) || value.match?(EXTID_PATTERN) || value.match?(EMAIL_PATTERN)
         end
 
-        def load_customer(custid)
-          customer = Onetime::Customer.load(custid)
+        def load_customer(customer_extid)
+          customer = Onetime::Customer.find_by_extid(customer_extid)
           unless customer
-            billing_logger.error 'Customer not found', { custid: custid }
+            billing_logger.error 'Customer not found', { customer_extid: customer_extid }
           end
           customer
         end
 
-        def find_or_create_organization(customer)
-          orgs = customer.organization_instances.to_a
-          org  = orgs.find { |o| o.is_default }
-
-          unless org
-            org            = Onetime::Organization.create!(
-              "#{customer.email}'s Workspace",
-              customer,
-              customer.email,
-            )
-            org.is_default = true
-            org.save
+        # Find the target organization for this checkout
+        #
+        # Priority:
+        # 1. orgid from subscription metadata (explicit org that initiated checkout)
+        # 2. Org already linked to this Stripe customer (idempotent replay)
+        # 3. Customer's default org (legacy/fallback)
+        # 4. Create new default org (shouldn't happen in normal flow)
+        #
+        # @param customer [Onetime::Customer] The customer
+        # @param metadata [Stripe::StripeObject] Subscription metadata
+        # @return [Onetime::Organization, nil] The target organization
+        def find_target_organization(customer, metadata)
+          # 1. Explicit org from metadata (most reliable)
+          orgid = metadata['orgid']
+          if orgid
+            org = Onetime::Organization.load(orgid)
+            if org
+              billing_logger.debug 'Found org from subscription metadata', { orgid: orgid }
+              return org
+            end
+            billing_logger.warn 'orgid in metadata not found', { orgid: orgid }
           end
 
+          # 2. Org already linked to Stripe customer (idempotent replay case)
+          stripe_customer_id = metadata.to_h.dig(:object, :customer) || @data_object&.customer
+          if stripe_customer_id
+            org = Onetime::Organization.find_by_stripe_customer_id(stripe_customer_id)
+            if org
+              billing_logger.debug 'Found org by stripe_customer_id', { stripe_customer_id: stripe_customer_id }
+              return org
+            end
+          end
+
+          # 3. Customer's default org
+          orgs = customer.organization_instances.to_a
+          org = orgs.find { |o| o.is_default }
+          return org if org
+
+          # 4. Create default org (shouldn't happen - checkout requires org)
+          billing_logger.warn 'Creating default org during checkout (unexpected)', { customer_extid: customer.extid }
+          org = Onetime::Organization.create!(
+            "#{customer.email}'s Workspace",
+            customer,
+            customer.email,
+          )
+          org.is_default = true
+          org.save
           org
         end
       end

@@ -54,7 +54,7 @@ module Onetime
 
             scheduler_logger.info '[PlanCacheRefreshJob] Starting plan cache refresh from Stripe'
 
-            start_time = Time.now
+            start_time  = Time.now
             plans_count = Billing::Plan.refresh_from_stripe
 
             duration_ms = ((Time.now - start_time) * 1000).round

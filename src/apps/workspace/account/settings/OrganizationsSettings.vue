@@ -1,9 +1,13 @@
 <!-- src/apps/workspace/account/settings/OrganizationsSettings.vue -->
 
+<!--
+  Organizations list page - workspace feature for managing organizations.
+  Uses WorkspaceLayout via route meta (not BillingLayout).
+-->
+
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import CreateOrganizationModal from '@/apps/workspace/components/organizations/CreateOrganizationModal.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -62,19 +66,30 @@ const handleCreateOrganization = () => {
   showCreateModal.value = true;
 };
 
-const handleOrganizationCreated = (orgId: string) => {
+const handleOrganizationCreated = (orgExtid: string) => {
   showCreateModal.value = false;
-  // Navigate to the new organization's settings
-  router.push(`/org/${orgId}`);
+  // Navigate to the new organization's settings (using extid for URL)
+  router.push(`/org/${orgExtid}`);
 };
 
 const handleManageOrganization = (org: Organization) => {
-  router.push(`/org/${org.id}`);
+  // IMPORTANT: Always use extid (not id) for URL paths
+  router.push(`/org/${org.extid}`);
 };
 </script>
 
 <template>
-  <BillingLayout>
+  <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+    <!-- Page Header -->
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+        {{ t('web.organizations.title') }}
+      </h1>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        {{ t('web.organizations.page_description') }}
+      </p>
+    </div>
+
     <div class="space-y-8">
       <!-- Organizations Section -->
       <section
@@ -128,10 +143,12 @@ const handleManageOrganization = (org: Organization) => {
 
           <!-- Organizations List -->
           <div v-else-if="hasOrganizations" class="space-y-4">
-            <div
+            <button
               v-for="org in visibleOrganizations"
               :key="org.id"
-              class="flex items-center justify-between rounded-lg border border-gray-200 p-4 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/50">
+              type="button"
+              @click="handleManageOrganization(org)"
+              class="flex w-full cursor-pointer items-center justify-between rounded-lg border border-gray-200 p-4 text-left transition-colors hover:border-brand-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-brand-600 dark:hover:bg-gray-700/50">
               <div class="flex-1">
                 <h3 class="text-base font-medium text-gray-900 dark:text-white">
                   {{ org.display_name }}
@@ -149,18 +166,13 @@ const handleManageOrganization = (org: Organization) => {
                   class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
                   {{ t('web.organizations.default') }}
                 </span>
-                <button
-                  @click="handleManageOrganization(org)"
-                  class="inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-                  {{ t('web.COMMON.manage') }}
-                  <OIcon
-                    collection="heroicons"
-                    name="chevron-right"
-                    class="size-4"
-                    aria-hidden="true" />
-                </button>
+                <OIcon
+                  collection="heroicons"
+                  name="chevron-right"
+                  class="size-5 text-gray-400 dark:text-gray-500"
+                  aria-hidden="true" />
               </div>
-            </div>
+            </button>
           </div>
 
           <!-- Empty State -->
@@ -259,5 +271,5 @@ const handleManageOrganization = (org: Organization) => {
       :open="showCreateModal"
       @close="showCreateModal = false"
       @created="handleOrganizationCreated" />
-  </BillingLayout>
+  </div>
 </template>

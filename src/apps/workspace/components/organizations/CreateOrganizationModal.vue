@@ -21,7 +21,8 @@ withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void;
-  (e: 'created', orgId: string): void;
+  // IMPORTANT: Emit extid (not id) for URL navigation
+  (e: 'created', orgExtid: string): void;
 }>();
 
 const organizationStore = useOrganizationStore();
@@ -67,8 +68,8 @@ const handleSubmit = async () => {
     // Create organization
     const org = await organizationStore.createOrganization(formData.value);
 
-    // Success - emit event and close
-    emit('created', org.id);
+    // Success - emit extid for URL navigation and close
+    emit('created', org.extid);
     closeModal();
   } catch (error) {
     if (error instanceof z.ZodError) {

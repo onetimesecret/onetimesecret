@@ -60,8 +60,25 @@ function findExtidByDomain(
   storeDomains: Array<{ display_domain: string; extid: string }>,
   domain: string
 ): string | undefined {
-  const found = storeDomains.find((d) => d.display_domain === domain);
-  return found?.extid;
+  return storeDomains.find((d) => d.display_domain === domain)?.extid;
+}
+
+/** Initialize domain scope on module load (runs once). Returns promise for awaiting. */
+async function initializeDomainScope(
+  fetchFn: () => Promise<void>,
+  getAvailable: () => string[]
+): Promise<void> {
+  if (isInitialized.value) return;
+  isInitialized.value = true;
+  if (domainsEnabled) {
+    await fetchFn();
+    const saved = localStorage.getItem('domainScope');
+    const available = getAvailable();
+    currentDomain.value = (saved && available.includes(saved))
+      ? saved : available[0] || canonicalDomain || '';
+  } else {
+    currentDomain.value = canonicalDomain || '';
+  }
 }
 
 /**
@@ -88,35 +105,17 @@ export function useDomainScope() {
     }
   };
 
-  // Watch for organization changes and refresh domains
-  watch(
-    () => organizationStore.currentOrganization?.id,
-    async (newOrgId, oldOrgId) => {
-      if (newOrgId && newOrgId !== oldOrgId) {
-        await fetchDomainsForOrganization();
-        if (currentDomain.value && !availableDomains.value.includes(currentDomain.value)) {
-          currentDomain.value = availableDomains.value[0] || canonicalDomain || '';
-        }
+  watch(() => organizationStore.currentOrganization?.id, async (newOrgId, oldOrgId) => {
+    if (newOrgId && newOrgId !== oldOrgId) {
+      await fetchDomainsForOrganization();
+      if (currentDomain.value && !availableDomains.value.includes(currentDomain.value)) {
+        currentDomain.value = availableDomains.value[0] || canonicalDomain || '';
       }
-    },
-    { immediate: false }
-  );
-
-  // Initialize on first use - fetch domains before restoring saved selection
-  if (!isInitialized.value) {
-    isInitialized.value = true;
-    if (domainsEnabled) {
-      fetchDomainsForOrganization().then(() => {
-        const savedDomain = localStorage.getItem('domainScope');
-        currentDomain.value =
-          savedDomain && availableDomains.value.includes(savedDomain)
-            ? savedDomain
-            : availableDomains.value[0] || canonicalDomain || '';
-      });
-    } else {
-      currentDomain.value = canonicalDomain || '';
     }
-  }
+  }, { immediate: false });
+
+  // Initialize async - returns promise for components that need to await
+  const initPromise = initializeDomainScope(fetchDomainsForOrganization, () => availableDomains.value);
 
   const currentScope = computed<DomainScope>(() => {
     const domain = currentDomain.value || canonicalDomain || '';
@@ -136,11 +135,6 @@ export function useDomainScope() {
     }
   };
 
-  const resetScope = () => {
-    currentDomain.value = canonicalDomain || '';
-    localStorage.removeItem('domainScope');
-  };
-
   return {
     currentScope,
     isScopeActive: computed<boolean>(() => domainsEnabled),
@@ -148,8 +142,11 @@ export function useDomainScope() {
     availableDomains,
     isLoadingDomains: computed(() => isLoadingDomains.value),
     setScope,
-    resetScope,
+    resetScope: () => { currentDomain.value = canonicalDomain || ''; localStorage.removeItem('domainScope'); },
     refreshDomains: fetchDomainsForOrganization,
     getDomainDisplayName,
+    getExtidByDomain: (domain: string) => findExtidByDomain(domainsStore.domains || [], domain),
+    /** Promise that resolves when initial domain fetch completes */
+    initialized: initPromise,
   };
 }

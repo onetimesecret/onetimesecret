@@ -108,7 +108,7 @@ const menuItems = computed<MenuItem[]>(() => [
   {
     id: 'account',
     to: '/account',
-    label: t('web.account.settings'),
+    label: t('web.TITLES.account'),
     icon: { collection: 'heroicons', name: 'cog-6-tooth-solid' },
     condition: () => !props.awaitingMfa,
   },

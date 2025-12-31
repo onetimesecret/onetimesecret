@@ -47,35 +47,6 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/org',
-    name: 'Organizations',
-    beforeEnter: checkBillingEnabled,
-    component: () => import('@/apps/workspace/account/settings/OrganizationsSettings.vue'),
-    meta: {
-      title: 'web.TITLES.organizations_settings',
-      requiresAuth: true,
-      layout: WorkspaceLayout,
-      layoutProps: standardLayoutProps,
-    },
-  },
-  // Redirect /org/domains to /domains to prevent it being caught by :extid
-  {
-    path: '/org/domains',
-    redirect: '/domains',
-  },
-  {
-    path: '/org/:extid',
-    name: 'Organization Settings',
-    beforeEnter: checkBillingEnabled,
-    component: () => import('@/apps/workspace/account/settings/OrganizationSettings.vue'),
-    meta: {
-      title: 'web.TITLES.organization_settings',
-      requiresAuth: true,
-      layout: WorkspaceLayout,
-      layoutProps: standardLayoutProps,
-    },
-  },
-  {
     path: '/billing/plans',
     name: 'Billing Plans',
     beforeEnter: checkBillingEnabled,
@@ -115,41 +86,27 @@ const routes: Array<RouteRecordRaw> = [
     redirect: '/billing/invoices',
     beforeEnter: checkBillingEnabled,
   },
-  {
-    path: '/account/settings/organizations',
-    redirect: '/org',
-    beforeEnter: checkBillingEnabled,
-  },
-  {
-    path: '/account/settings/organization/:extid',
-    redirect: (to) => ({
-      path: `/org/${to.params.extid}`,
-    }),
-    beforeEnter: checkBillingEnabled,
-  },
+  // Legacy billing redirects to /org moved to organizations.ts
+  // These billing-prefixed org redirects remain for backwards compatibility
   {
     path: '/billing/organizations',
     redirect: '/org',
-    beforeEnter: checkBillingEnabled,
   },
   {
     path: '/billing/organization/:extid',
     redirect: (to) => ({
       path: `/org/${to.params.extid}`,
     }),
-    beforeEnter: checkBillingEnabled,
   },
   {
     path: '/billing/orgs',
     redirect: '/org',
-    beforeEnter: checkBillingEnabled,
   },
   {
     path: '/billing/org/:extid',
     redirect: (to) => ({
       path: `/org/${to.params.extid}`,
     }),
-    beforeEnter: checkBillingEnabled,
   },
 ];
 

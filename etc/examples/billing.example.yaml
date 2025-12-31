@@ -34,10 +34,10 @@ entitlements:
     description: Can create basic secrets
     display_name: web.billing.overview.entitlements.create_secrets
 
-  view_metadata:
+  view_receipt:
     category: core
     description: Can view secret metadata
-    display_name: web.billing.overview.entitlements.view_metadata
+    display_name: web.billing.overview.entitlements.view_receipt
 
   api_access:
     category: infrastructure
@@ -136,11 +136,12 @@ plans:
 
     entitlements:
       - create_secrets
-      - view_metadata
+      - view_receipt
       - api_access
 
     limits:
       teams: 0
+      organizations: 5
       members_per_team: 1
       custom_domains: 0
       secret_lifetime: 604800  # 7 days in seconds
@@ -160,13 +161,14 @@ plans:
 
     entitlements:
       - create_secrets
-      - view_metadata
+      - view_receipt
       - api_access
       - custom_domains
       - extended_default_expiration
 
     limits:
       teams: 0
+      organizations: 10
       members_per_team: 1
       custom_domains: 1
       secret_lifetime: 2592000  # 30 days in seconds

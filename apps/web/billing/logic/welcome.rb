@@ -30,7 +30,8 @@ module Billing
           @checkout_session = Stripe::Checkout::Session.retrieve({
             id: checkout_session_id,
             expand: ['subscription'],
-          })
+          },
+                                                                )
           raise_form_error 'Invalid Stripe checkout session' unless checkout_session
 
           # The full subscription object is now available via expand
@@ -131,11 +132,11 @@ module Billing
 
           # Find or create default organization
           orgs = customer.organization_instances.to_a
-          org = orgs.find(&:is_default)
+          org  = orgs.find(&:is_default)
 
           unless org
             OT.info "[FromStripePaymentLink] No default organization found, creating one for customer #{customer.obscure_email}"
-            org = Onetime::Organization.create!(
+            org            = Onetime::Organization.create!(
               "#{customer.email}'s Workspace",
               customer,
               customer.email,
@@ -161,7 +162,7 @@ module Billing
         def send_verification_email_to(customer)
           msg = format(
             "Thanks for your purchase! Please verify your email to activate your account.\n\n\"%s\"",
-            OT::Utils.random_fortune
+            OT::Utils.random_fortune,
           )
 
           _metadata, secret = Onetime::Metadata.spawn_pair(customer.objid, 24.days, msg)
@@ -175,7 +176,8 @@ module Billing
           Onetime::Mail::Mailer.deliver(:welcome, {
             email_address: customer.email,
             secret: secret,
-          })
+          }
+          )
         rescue StandardError => ex
           OT.le "[FromStripePaymentLink] Error sending verification email: #{ex.message}"
         end
@@ -203,29 +205,38 @@ module Billing
           @checkout_session = Stripe::Checkout::Session.retrieve({
             id: session_id,
             expand: %w[subscription customer],
-          })
+          },
+                                                                )
           raise_form_error 'Invalid checkout session' unless checkout_session
 
           @subscription = checkout_session.subscription
-          # Note: subscription may be nil for one-time payments
+          # NOTE: subscription may be nil for one-time payments
         end
 
         def process
           return success_data unless subscription
 
-          metadata = subscription.metadata
-          custid   = metadata['custid']
-          plan_id  = metadata['plan_id']
+          metadata        = subscription.metadata
+          customer_extid  = metadata['customer_extid']
+          plan_id         = metadata['plan_id']
 
           OT.info '[ProcessCheckoutSession] Processing checkout', {
             session_id: session_id,
-            custid: custid,
+            customer_extid: customer_extid,
             plan_id: plan_id,
             subscription_id: subscription.id,
           }
 
+          # Load the actual customer from metadata (session may be anonymous after Stripe redirect)
+          # The customer_extid was embedded in subscription metadata when checkout was created
+          customer = Onetime::Customer.find_by_extid(customer_extid)
+          unless customer
+            OT.le "[ProcessCheckoutSession] Customer not found: #{customer_extid}"
+            raise_form_error 'Customer not found'
+          end
+
           # Find or create default organization for the customer
-          org = find_or_create_default_organization(cust)
+          org = find_or_create_default_organization(customer)
 
           # Update organization with subscription details (extracts planid, etc.)
           org.update_from_stripe_subscription(subscription)
@@ -251,7 +262,7 @@ module Billing
         # @return [Onetime::Organization] The default organization
         def find_or_create_default_organization(customer)
           orgs = customer.organization_instances.to_a
-          org = orgs.find { |o| o.is_default }
+          org  = orgs.find { |o| o.is_default }
 
           return org if org
 

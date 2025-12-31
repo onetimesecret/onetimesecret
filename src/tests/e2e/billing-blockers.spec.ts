@@ -324,7 +324,7 @@ test.describe('Stripe Integration Blockers - E2E', () => {
       expect(
         featureCount,
         'BLOCKER 6 FAILURE: No plan features displayed. Expected features like ' +
-          'create_secrets, view_metadata, api_access.'
+          'create_secrets, view_receipt, api_access.'
       ).toBeGreaterThan(0);
     });
 

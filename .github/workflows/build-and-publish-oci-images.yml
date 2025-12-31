@@ -43,11 +43,12 @@ on:
         type: choice
         description: 'Target platforms'
         required: false
-        default: 'linux/amd64,linux/arm64'
+        # default: 'linux/amd64,linux/arm64'
+        default: 'linux/amd64'
         options:
           - ''
-          - 'linux/amd64,linux/arm64'
           - 'linux/amd64'
+          - 'linux/amd64,linux/arm64'
           - 'linux/arm64'
 
 permissions:
@@ -69,7 +70,7 @@ jobs:
         with:
           image-suffix: ''
           dockerfile: 'Dockerfile'
-          platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
+          platforms: ${{ inputs.platforms || 'linux/amd64' }}
           push: ${{ github.event_name != 'pull_request' }}
           image-tags: |
             type=ref,event=branch
@@ -94,7 +95,7 @@ jobs:
         with:
           image-suffix: '-lite'
           dockerfile: 'docker/variants/lite.dockerfile'
-          platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
+          platforms: ${{ inputs.platforms || 'linux/amd64' }}
           push: ${{ github.event_name != 'pull_request' }}
           image-tags: |
             type=ref,event=branch
@@ -120,7 +121,7 @@ jobs:
           image-suffix: '-s6'
           dockerfile: 'Dockerfile'
           build-target: 'final-s6'
-          platforms: ${{ inputs.platforms || 'linux/amd64,linux/arm64' }}
+          platforms: ${{ inputs.platforms || 'linux/amd64' }}
           push: ${{ github.event_name != 'pull_request' }}
           image-tags: |
             type=ref,event=branch

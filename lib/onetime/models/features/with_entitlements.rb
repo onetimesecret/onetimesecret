@@ -69,12 +69,13 @@ module Onetime
         # These match the free_v1 plan in billing.yaml.
         FREE_TIER_ENTITLEMENTS = %w[
           create_secrets
-          view_metadata
+          view_receipt
           api_access
         ].freeze
 
         # FREE tier default limits when cache is unavailable
         FREE_TIER_LIMITS = {
+          'organizations.max' => 5,       # 1 organization (default workspace)
           'teams.max' => 0,
           'members_per_team.max' => 0,
           'secret_lifetime.max' => 604_800, # 7 days in seconds
@@ -143,7 +144,7 @@ module Onetime
             end
 
             # Final fallback: FREE tier to avoid "No features available"
-            OT.lw "[WithEntitlements] Plan cache miss, using FREE tier fallback", {
+            OT.lw '[WithEntitlements] Plan cache miss, using FREE tier fallback', {
               planid: planid,
             }
             WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
@@ -337,7 +338,7 @@ module Onetime
           # @return [Numeric] Parsed limit (0, integer, or Float::INFINITY)
           def parse_limit_value(val)
             return 0 if val.nil? || val.to_s.empty?
-            return Float::INFINITY if val.to_s == 'unlimited' || val.to_s == '-1'
+            return Float::INFINITY if ['unlimited', '-1'].include?(val.to_s)
 
             val.to_i
           end

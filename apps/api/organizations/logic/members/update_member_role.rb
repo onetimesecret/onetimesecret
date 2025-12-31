@@ -25,9 +25,9 @@ module OrganizationAPI::Logic
       attr_reader :organization, :target_member, :target_membership, :new_role, :old_role
 
       def process_params
-        @extid = params['extid']
+        @extid        = params['extid']
         @member_extid = params['member_extid']
-        @new_role = params['role'].to_s.strip.downcase
+        @new_role     = params['role'].to_s.strip.downcase
       end
 
       def raise_concerns
@@ -39,7 +39,7 @@ module OrganizationAPI::Logic
         verify_organization_owner(@organization)
 
         # Load target member
-        @target_member = load_member(@member_extid)
+        @target_member     = load_member(@member_extid)
         @target_membership = load_membership(@organization, @target_member)
 
         # Validate role
@@ -52,7 +52,7 @@ module OrganizationAPI::Logic
 
         OT.ld "[UpdateMemberRole] Changing role for #{@target_member.extid} from #{@old_role} to #{@new_role}"
 
-        @target_membership.role = @new_role
+        @target_membership.role       = @new_role
         @target_membership.updated_at = Familia.now.to_f
         @target_membership.save
 
@@ -94,7 +94,7 @@ module OrganizationAPI::Logic
       def load_membership(organization, member)
         membership = Onetime::OrganizationMembership.find_by_org_customer(
           organization.objid,
-          member.objid
+          member.objid,
         )
         raise_not_found('Member not found in this organization') if membership.nil?
         raise_form_error('Member is not active') unless membership.active?
@@ -107,7 +107,7 @@ module OrganizationAPI::Logic
         unless VALID_ROLES.include?(@new_role)
           raise_form_error(
             "Invalid role. Must be one of: #{VALID_ROLES.join(', ')}",
-            field: :role
+            field: :role,
           )
         end
 
@@ -115,7 +115,7 @@ module OrganizationAPI::Logic
         if @target_membership.owner?
           raise_form_error(
             'Cannot change owner role. Use ownership transfer instead.',
-            field: :role
+            field: :role,
           )
         end
 
@@ -123,17 +123,17 @@ module OrganizationAPI::Logic
         if @target_membership.role == @new_role
           raise_form_error(
             "Member already has role: #{@new_role}",
-            field: :role
+            field: :role,
           )
         end
 
         # Cannot set role to owner via this endpoint
-        if @new_role == 'owner'
-          raise_form_error(
-            'Cannot promote to owner. Use ownership transfer instead.',
-            field: :role
-          )
-        end
+        return unless @new_role == 'owner'
+
+        raise_form_error(
+          'Cannot promote to owner. Use ownership transfer instead.',
+          field: :role,
+        )
       end
     end
   end

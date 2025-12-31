@@ -167,8 +167,8 @@ function getBillingSection(t: ComposerTranslation): SettingsNavigationItem {
  * Extracted from SettingsLayout to allow for cleaner architecture
  */
 export function getSettingsNavigation(t: ComposerTranslation): SettingsNavigationItem[] {
-  const billingSection = getBillingSection(t);
-  const billingItems = billingSection.visible?.() ? [billingSection] : [];
+  // Note: Billing section now has its own route/layout at /billing
+  const _billingSection = getBillingSection(t);
 
   return [
     getProfileSection(t),
@@ -180,7 +180,6 @@ export function getSettingsNavigation(t: ComposerTranslation): SettingsNavigatio
       label: t('web.account.api_key'),
       description: t('web.settings.api.manage_api_keys'),
     },
-    ...billingItems,
     getRegionSection(t),
     {
       id: 'caution',

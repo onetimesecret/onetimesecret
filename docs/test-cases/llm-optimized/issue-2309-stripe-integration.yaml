@@ -135,7 +135,7 @@ tests:
     verify:
       - Current Plan card shows "Free"
       - Plan Features section lists included features
-      - Features include create_secrets, view_metadata, api_access
+      - Features include create_secrets, view_receipt, api_access
       - Not showing "No features available"
     priority: high
     type: functional

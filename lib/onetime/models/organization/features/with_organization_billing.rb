@@ -107,9 +107,25 @@ module Onetime
               }
             end
 
+            # ==========================================================================
+            # REPLAY-SAFE CUSTOMER ID HANDLING
+            # ==========================================================================
+            # The stripe_customer_id has a unique index. For idempotent replay:
+            # - If this org already has this customer ID → continue (same association)
+            # - If a different org has this customer ID → error (data integrity issue)
+            # - If no org has it yet → proceed with assignment
+            # ==========================================================================
+            new_customer_id = subscription.customer
+            if stripe_customer_id != new_customer_id
+              existing_org = Onetime::Organization.find_by_stripe_customer_id(new_customer_id)
+              if existing_org && existing_org.objid != objid
+                raise OT::Problem, "Stripe customer #{new_customer_id} already linked to org #{existing_org.extid}"
+              end
+            end
+
             # Update fields
             self.stripe_subscription_id  = subscription.id
-            self.stripe_customer_id      = subscription.customer
+            self.stripe_customer_id      = new_customer_id
             self.subscription_status     = subscription.status
             # current_period_end moved from subscription to subscription items in newer Stripe API
             period_end                   = subscription.items.data.first&.current_period_end

@@ -105,7 +105,7 @@ module Billing
               plan_id: plan.plan_id,
               tier: tier,
               region: region,
-              custid: cust.custid,
+              customer_extid: cust.extid,
             },
           },
         }
@@ -120,11 +120,29 @@ module Billing
         # Generate deterministic idempotency key to prevent duplicate sessions
         stripe_client = Billing::StripeClient.new
 
-        # Idempotency key format: checkout-{orgid}-{plan}-{date}
-        # This allows one checkout per org/plan/day, preventing duplicates
-        # SHA256 produces 64 hex chars, well within Stripe's 255 char limit
+        # ==========================================================================
+        # IDEMPOTENCY KEY - CRITICAL FOR PREVENTING DUPLICATE CHECKOUTS
+        # ==========================================================================
+        #
+        # Stripe caches checkout sessions by idempotency key. If you see
+        # "You're all done here" on the checkout page, it means Stripe returned
+        # a cached (already-completed) session instead of creating a new one.
+        #
+        # KEY BEHAVIOR DIFFERENCE:
+        #   - TEST MODE (sk_test_*): Minute granularity - allows rapid iteration
+        #   - LIVE MODE (sk_live_*): Daily granularity - prevents accidental duplicates
+        #
+        # If stuck in test mode: wait 1 minute, or try a different plan tier.
+        #
+        # SHA256 produces 64 hex chars, well within Stripe's 255 char limit.
+        # ==========================================================================
+        time_component = if Stripe.api_key&.start_with?('sk_test_')
+                           Time.now.strftime('%Y-%m-%dT%H:%M') # Minute granularity for test
+                         else
+                           Time.now.to_date.iso8601 # Daily for production
+                         end
         idempotency_key = Digest::SHA256.hexdigest(
-          "checkout:#{org.objid}:#{plan.plan_id}:#{Time.now.to_date.iso8601}",
+          "checkout:#{org.objid}:#{plan.plan_id}:#{time_component}",
         )
 
         checkout_session = stripe_client.create(

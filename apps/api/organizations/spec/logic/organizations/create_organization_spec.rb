@@ -250,6 +250,18 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
         .and_return(new_organization)
       allow(new_organization).to receive(:description=)
       allow(new_organization).to receive(:owner?).with(customer).and_return(true)
+      allow(new_organization).to receive(:safe_dump).and_return({
+        objid: 'org-new-123',
+        extid: 'ext-org-new',
+        display_name: 'Organization',
+        description: '',
+        contact_email: 'contact@example.com',
+        is_default: false,
+        created: Time.now.to_i,
+        updated: Time.now.to_i,
+        owner_id: 'cust-123',
+        member_count: 1,
+      })
     end
 
     it 'creates organization with display_name and customer' do
@@ -342,6 +354,18 @@ RSpec.describe OrganizationAPI::Logic::Organizations::CreateOrganization do
       allow(Onetime::Organization).to receive(:create!).and_return(new_organization)
       allow(new_organization).to receive(:description=)
       allow(new_organization).to receive(:owner?).with(customer).and_return(true)
+      allow(new_organization).to receive(:safe_dump).and_return({
+        objid: 'org-new-123',
+        extid: 'ext-org-new',
+        display_name: 'Organization',
+        description: '',
+        contact_email: 'contact@example.com',
+        is_default: false,
+        created: Time.now.to_i,
+        updated: Time.now.to_i,
+        owner_id: 'cust-123',
+        member_count: 1,
+      })
     end
 
     context 'when lock is successfully acquired' do

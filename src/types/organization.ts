@@ -63,22 +63,25 @@ export type OrganizationRole = (typeof ORGANIZATION_ROLES)[keyof typeof ORGANIZA
 
 /**
  * Organization interface
+ *
+ * Note: Fields use `| null` to match backend safe_dump which returns null for empty fields.
  */
 export interface Organization {
   id: string;
-  extid?: string;
+  extid: string;
   display_name: string;
-  description?: string;
-  contact_email?: string;
+  description?: string | null;
+  contact_email?: string | null;
+  /** Whether this is the user's default organization. Always boolean (defaults to false). */
   is_default: boolean;
   created_at: Date;
   updated_at: Date;
-  owner_id?: string;
-  member_count?: number;
-  current_user_role?: OrganizationRole;
-  planid?: string;
-  entitlements?: Entitlement[];
-  limits?: OrganizationLimits;
+  owner_id?: string | null;
+  member_count?: number | null;
+  current_user_role?: OrganizationRole | null;
+  planid?: string | null;
+  entitlements?: Entitlement[] | null;
+  limits?: OrganizationLimits | null;
 }
 
 /**
@@ -87,25 +90,25 @@ export interface Organization {
 
 export const organizationSchema = z.object({
   id: z.string(),
-  extid: z.string().optional(),
+  extid: z.string(),
   display_name: z.string().min(1).max(100),
-  description: z.string().max(500).optional(),
-  contact_email: z.string().email().optional(),
-  is_default: z.boolean(),
+  description: z.string().max(500).nullish(),
+  contact_email: z.email().nullish(),
+  is_default: z.preprocess((v) => v ?? false, z.boolean()),
   created_at: z.number().transform((val) => new Date(val * 1000)),
   updated_at: z.number().transform((val) => new Date(val * 1000)),
-  owner_id: z.string().optional(),
-  member_count: z.number().int().min(0).optional(),
-  current_user_role: z.enum(['owner', 'admin', 'member']).optional(),
-  planid: z.string().optional(),
-  entitlements: z.array(z.string() as z.ZodType<Entitlement>).optional(),
+  owner_id: z.string().nullish(),
+  member_count: z.number().int().min(0).nullish(),
+  current_user_role: z.enum(['owner', 'admin', 'member']).nullish(),
+  planid: z.string().nullish(),
+  entitlements: z.array(z.string() as z.ZodType<Entitlement>).nullish(),
   limits: z
     .object({
       teams: z.number().optional(),
       members_per_team: z.number().optional(),
       custom_domains: z.number().optional(),
     })
-    .optional(),
+    .nullish(),
 });
 
 /**
@@ -113,9 +116,12 @@ export const organizationSchema = z.object({
  */
 
 export const createOrganizationPayloadSchema = z.object({
-  display_name: z.string().min(1, 'Organization name is required').max(100, 'Organization name is too long'),
+  display_name: z
+    .string()
+    .min(1, 'Organization name is required')
+    .max(100, 'Organization name is too long'),
   description: z.string().max(500, 'Description is too long').optional(),
-  contact_email: z.string().email('Valid email required').optional(),
+  contact_email: z.email('Valid email required').optional(),
 });
 
 export const updateOrganizationPayloadSchema = z.object({
@@ -163,7 +169,7 @@ export interface OrganizationInvitation {
 export const organizationInvitationSchema = z.object({
   id: z.string(),
   organization_id: z.string(),
-  email: z.string().email(),
+  email: z.email(),
   role: z.enum(['member', 'admin']),
   status: z.enum(['pending', 'accepted', 'declined', 'expired']),
   invited_by: z.string(),
@@ -174,7 +180,7 @@ export const organizationInvitationSchema = z.object({
 });
 
 export const createInvitationPayloadSchema = z.object({
-  email: z.string().email('Valid email required'),
+  email: z.email('Valid email required'),
   role: z.enum(['member', 'admin']),
 });
 
@@ -194,10 +200,10 @@ export function getOrganizationLabel(org: Organization): string {
  * Matches backend response from apps/api/organizations/logic/members/list_members.rb
  */
 export interface OrganizationMember {
-  id: string;           // Member's external ID (extid)
+  id: string; // Member's external ID (extid)
   email: string;
   role: OrganizationRole;
-  joined_at: number;    // Unix timestamp
+  joined_at: number; // Unix timestamp
   is_owner: boolean;
   is_current_user: boolean;
 }
@@ -209,7 +215,7 @@ export interface OrganizationMember {
  */
 export const organizationMemberSchema = z.object({
   id: z.string(),
-  email: z.string().email(),
+  email: z.email(),
   role: z.enum(['owner', 'admin', 'member']),
   joined_at: z.number(),
   is_owner: z.boolean(),

@@ -42,7 +42,26 @@ const {
   definitionsError,
 } = useEntitlements(selectedOrgRef);
 
-const currentPlanId = computed(() => selectedOrg.value?.planid || 'free');
+/**
+ * Get the current organization's tier by finding the matching plan.
+ * The org has planid (e.g., 'identity_plus_v1_monthly') but we need
+ * the tier (e.g., 'single_team') for comparison with available plans.
+ */
+const currentTier = computed((): string => {
+  const planid = selectedOrg.value?.planid;
+  if (!planid) return 'free';
+
+  // Find the plan that matches the org's planid to get its tier
+  const matchingPlan = plans.value.find(p => p.id === planid);
+  if (matchingPlan) return matchingPlan.tier;
+
+  // Fallback: try to infer tier from planid naming convention
+  // e.g., 'identity_plus_v1_monthly' -> look for known tier patterns
+  if (planid.includes('multi_team') || planid.includes('team_plus')) return 'multi_team';
+  if (planid.includes('single_team') || planid.includes('identity_plus')) return 'single_team';
+
+  return 'free';
+});
 
 // Filter plans by selected billing interval
 const filteredPlans = computed(() => plans.value.filter(plan => plan.interval === billingInterval.value));
@@ -54,48 +73,89 @@ const filteredPlans = computed(() => plans.value.filter(plan => plan.interval ==
 const getFeatureLabel = (feature: string): string => formatEntitlement(feature);
 
 /**
+ * Get the teams limit for a plan, handling unlimited (-1)
+ * Note: Prefixed with _ as currently unused (template section commented out)
+ */
+const _getTeamsLimit = (plan: BillingPlan): number | string => {
+  const limit = plan.limits?.['teams.max'] ?? plan.limits?.teams ?? 1;
+  return limit === -1 ? '∞' : limit;
+};
+
+/**
+ * Get the members per team limit for a plan, handling unlimited (-1)
+ * Note: Prefixed with _ as currently unused (template section commented out)
+ */
+const _getMembersLimit = (plan: BillingPlan): number | string => {
+  const limit = plan.limits?.['members_per_team.max'] ?? plan.limits?.members_per_team ?? 1;
+  return limit === -1 ? '∞' : limit;
+};
+
+/**
  * Combined loading state for the component
  */
 const isLoadingContent = computed(() => isLoadingPlans.value || isLoadingDefinitions.value);
 
-// Get base plan for comparison (Identity Plus is always the base)
+/**
+ * Tier hierarchy for inheritance (lower index = lower tier).
+ * Higher tiers inherit from lower tiers, so:
+ * - free: shows all its features (no base)
+ * - single_team: shows "Everything in Free, plus:" + new features
+ * - multi_team: shows "Everything in Single Team, plus:" + new features
+ */
+const TIER_HIERARCHY = ['free', 'single_team', 'multi_team'] as const;
+
+/**
+ * Get the base plan for inheritance display.
+ * Higher tiers reference their immediate lower tier.
+ */
 const getBasePlan = (plan: BillingPlan): BillingPlan | undefined => {
-  if (plan.tier === 'single_team') return undefined; // Identity Plus has no base
-  // Find Identity Plus with same interval
-  return filteredPlans.value.find(p => p.tier === 'single_team' && p.interval === plan.interval);
+  const tierIndex = TIER_HIERARCHY.indexOf(plan.tier as (typeof TIER_HIERARCHY)[number]);
+  if (tierIndex <= 0) return undefined; // Lowest tier (free) has no base
+
+  const baseTier = TIER_HIERARCHY[tierIndex - 1];
+  return filteredPlans.value.find(p => p.tier === baseTier && p.interval === plan.interval);
 };
 
-// Get only NEW features for this plan (excluding base plan features)
+/**
+ * Get only NEW features for this plan (excluding base plan features).
+ * For lowest tier plans, shows all features.
+ */
 const getNewFeatures = (plan: BillingPlan): string[] => {
   const basePlan = getBasePlan(plan);
-  if (!basePlan) return plan.entitlements; // Show all for Identity Plus
+  if (!basePlan) return plan.entitlements; // Show all for lowest tier
 
   // Filter out features that exist in base plan
   return plan.entitlements.filter(ent => !basePlan.entitlements.includes(ent));
 };
 
+/**
+ * Get the monthly price for display.
+ * Uses API-provided monthly_equivalent_amount for yearly plans if available.
+ */
 const getPlanPricePerMonth = (plan: BillingPlan): number => {
-  // For yearly plans, show the monthly equivalent
   if (plan.interval === 'year') {
-    return Math.floor(plan.amount / 12);
+    return plan.monthly_equivalent_amount ?? Math.floor(plan.amount / 12);
   }
-  // For monthly plans, show the amount as-is
   return plan.amount;
 };
 
-const isPlanRecommended = (plan: BillingPlan): boolean => plan.tier === 'single_team';
+/**
+ * Check if plan should show "Most Popular" badge.
+ * Uses API-provided is_popular flag if available.
+ */
+const isPlanRecommended = (plan: BillingPlan): boolean => plan.is_popular ?? plan.tier === 'single_team';
 
-const isPlanCurrent = (plan: BillingPlan): boolean => plan.tier === currentPlanId.value;
+const isPlanCurrent = (plan: BillingPlan): boolean => plan.tier === currentTier.value;
 
 const canUpgrade = (plan: BillingPlan): boolean => {
-  if (currentPlanId.value === 'free') return plan.tier !== 'free';
-  if (currentPlanId.value === 'single_team') return plan.tier === 'multi_team';
+  if (currentTier.value === 'free') return plan.tier !== 'free';
+  if (currentTier.value === 'single_team') return plan.tier === 'multi_team';
   return false;
 };
 
 const canDowngrade = (plan: BillingPlan): boolean => {
-  if (currentPlanId.value === 'multi_team') return plan.tier !== 'multi_team';
-  if (currentPlanId.value === 'single_team') return plan.tier === 'free';
+  if (currentTier.value === 'multi_team') return plan.tier !== 'multi_team';
+  if (currentTier.value === 'single_team') return plan.tier === 'free';
   return false;
 };
 
@@ -280,12 +340,16 @@ onMounted(async () => {
           <div class="flex-1 p-6">
             <!-- Plan Header -->
             <div class="mb-4">
-              <h3 class="text-xl font-bold text-gray-900 dark:text-white">
-                {{ plan.name }}
-              </h3>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {{ plan.tier }} plan
-              </p>
+              <div class="flex items-center gap-2">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white" :data-plan-id="plan.id">
+                  {{ plan.name }}
+                </h3>
+                <span
+                  v-if="plan.plan_name_label"
+                  class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                  {{ t(plan.plan_name_label) }}
+                </span>
+              </div>
             </div>
 
             <!-- Price -->
@@ -298,20 +362,26 @@ onMounted(async () => {
                   /month
                 </span>
               </div>
-              <p v-if="plan.interval === 'year' && plan.amount > 0" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Billed {{ formatCurrency(plan.amount, plan.currency) }} yearly
+              <p v-if="plan.interval === 'year' && plan.amount > 0" class="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+                {{ t('web.billing.plans.yearly') }}: {{ formatCurrency(plan.amount, plan.currency) }}
               </p>
             </div>
 
             <!-- Team & Member Limits -->
-            <div class="mb-6 space-y-2 text-sm">
+            <!-- <div class="mb-6 space-y-2 text-sm">
               <p class="text-gray-700 dark:text-gray-300">
-                {{ t('web.billing.plans.teams_limit', { count: plan.limits.teams || 1 }) }}
+                {{ typeof getTeamsLimit(plan) === 'string'
+                  ? t('web.billing.plans.unlimited_teams')
+                  : t('web.billing.plans.teams_limit', { count: getTeamsLimit(plan) })
+                }}
               </p>
               <p class="text-gray-700 dark:text-gray-300">
-                {{ t('web.billing.plans.members_limit', { count: plan.limits.members_per_team || 1 }) }}
+                {{ typeof getMembersLimit(plan) === 'string'
+                  ? t('web.billing.plans.unlimited_members')
+                  : t('web.billing.plans.members_limit', { count: getMembersLimit(plan) })
+                }}
               </p>
-            </div>
+            </div> -->
 
             <!-- Features -->
             <div class="space-y-3">

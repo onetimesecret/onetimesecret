@@ -1,9 +1,10 @@
 <!-- src/apps/workspace/account/settings/OrganizationSettings.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
 import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
@@ -13,6 +14,7 @@ import type { ApplicationError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
 import { WindowService } from '@/services/window.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { useMembersStore } from '@/shared/stores/membersStore';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel } from '@/types/billing';
 import type { CreateInvitationPayload, Organization, OrganizationInvitation } from '@/types/organization';
@@ -23,6 +25,7 @@ import { z } from 'zod';
 const { t } = useI18n();
 const route = useRoute();
 const organizationStore = useOrganizationStore();
+const membersStore = useMembersStore();
 
 const orgId = computed(() => route.params.extid as string);
 const organization = ref<Organization | null>(null);
@@ -124,6 +127,14 @@ const loadInvitations = async () => {
   }
 };
 
+const loadMembers = async () => {
+  try {
+    await membersStore.fetchMembers(orgId.value);
+  } catch (err) {
+    console.error('[OrganizationSettings] Error loading members:', err);
+  }
+};
+
 const loadBilling = async () => {
   if (!billingEnabled.value) return;
 
@@ -170,7 +181,8 @@ const handleSave = async () => {
   success.value = '';
 
   try {
-    await organizationStore.updateOrganization(organization.value.id, {
+    // Use extid from route params for API call
+    await organizationStore.updateOrganization(orgId.value, {
       display_name: formData.value.display_name,
       description: formData.value.description,
     });
@@ -264,7 +276,7 @@ const handleRevokeInvitation = async (token: string) => {
   }
 };
 
-const formatDate = (timestamp: number): string => new Date(timestamp * 1000).toLocaleDateString(undefined, {
+const _formatDate = (timestamp: number): string => new Date(timestamp * 1000).toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -275,21 +287,41 @@ const canManageMembers = computed(() => {
   return can(ENTITLEMENTS.MANAGE_MEMBERS);
 });
 
+// Member management event handlers
+const handleMemberUpdated = () => {
+  // Member was updated in the store, no additional action needed
+  success.value = t('web.organizations.members.role_updated');
+};
+
+const handleMemberRemoved = () => {
+  success.value = t('web.organizations.members.member_removed');
+};
+
 onMounted(async () => {
   // Initialize entitlement definitions for formatting
   await initDefinitions();
 
   await loadOrganization();
   if (activeTab.value === 'members') {
-    await loadInvitations();
+    await Promise.all([loadMembers(), loadInvitations()]);
   } else if (activeTab.value === 'billing') {
     await loadBilling();
   }
 });
 
 watch(activeTab, async (newTab) => {
-  if (newTab === 'members' && invitations.value.length === 0) {
-    await loadInvitations();
+  if (newTab === 'members') {
+    // Load members and invitations when switching to members tab
+    const promises: Promise<void>[] = [];
+    if (!membersStore.isInitialized || membersStore.currentOrgExtid !== orgId.value) {
+      promises.push(loadMembers());
+    }
+    if (invitations.value.length === 0) {
+      promises.push(loadInvitations());
+    }
+    if (promises.length > 0) {
+      await Promise.all(promises);
+    }
   } else if (newTab === 'billing' && !subscription.value && billingEnabled.value) {
     await loadBilling();
   }
@@ -337,7 +369,6 @@ watch(activeTab, async (newTab) => {
           </button>
           <!-- Members tab shown when user can manage members -->
           <button
-            v-if="canManageMembers"
             @click="activeTab = 'members'"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
@@ -496,11 +527,18 @@ watch(activeTab, async (newTab) => {
         <section
           v-if="activeTab === 'members'"
           class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+          <!-- Header with Primary CTA -->
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
             <div class="flex items-center justify-between">
-              <h3 class="text-base font-semibold text-gray-900 dark:text-white">
-                {{ t('web.organizations.invitations.pending_invitations') }}
-              </h3>
+              <div>
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                  {{ t('web.organizations.tabs.members') }}
+                </h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {{ membersStore.memberCount }} {{ membersStore.memberCount === 1 ? t('web.organizations.members.member_singular') : t('web.organizations.members.member_plural') }}
+                </p>
+              </div>
+              <!-- Primary CTA: Invite Member (if entitled) or Upgrade (if not) -->
               <button
                 v-if="canManageMembers"
                 type="button"
@@ -513,6 +551,17 @@ watch(activeTab, async (newTab) => {
                   aria-hidden="true" />
                 {{ t('web.organizations.invitations.invite_member') }}
               </button>
+              <router-link
+                v-else
+                to="/billing/plans"
+                class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+                <OIcon
+                  collection="heroicons"
+                  name="arrow-up-circle"
+                  class="-ml-0.5 mr-1.5 size-5"
+                  aria-hidden="true" />
+                {{ t('web.billing.overview.upgrade_plan') }}
+              </router-link>
             </div>
           </div>
 
@@ -532,28 +581,23 @@ watch(activeTab, async (newTab) => {
               class="mb-4"
               @close="inviteUpgradeError = null" />
 
-            <!-- Invite Form -->
+            <!-- Invite Form (inline) -->
             <div
-              v-if="showInviteForm"
-              class="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-700/50">
-              <h4 class="text-lg font-medium text-gray-900 dark:text-white">
-                {{ t('web.organizations.invitations.invite_new_member') }}
-              </h4>
-
+              v-if="showInviteForm && canManageMembers"
+              class="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
               <form
                 @submit.prevent="handleInviteMember"
-                class="mt-4 space-y-4">
+                class="space-y-4">
                 <BasicFormAlerts
                   v-if="inviteGeneralError"
                   :error="inviteGeneralError" />
 
-                <div class="grid gap-4 sm:grid-cols-2">
-                  <div>
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-end">
+                  <div class="flex-1">
                     <label
                       for="invite-email"
                       class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       {{ t('web.organizations.invitations.email_address') }}
-                      <span class="text-red-500">*</span>
                     </label>
                     <input
                       id="invite-email"
@@ -569,14 +613,8 @@ watch(activeTab, async (newTab) => {
                           ? 'border-red-300 text-red-900 placeholder:text-red-300 focus:border-red-500 focus:ring-red-500'
                           : 'border-gray-300 dark:border-gray-600',
                       ]" />
-                    <p
-                      v-if="inviteErrors.email"
-                      class="mt-1 text-sm text-red-600 dark:text-red-400">
-                      {{ inviteErrors.email }}
-                    </p>
                   </div>
-
-                  <div>
+                  <div class="w-full sm:w-32">
                     <label
                       for="invite-role"
                       class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -586,94 +624,93 @@ watch(activeTab, async (newTab) => {
                       id="invite-role"
                       v-model="inviteFormData.role"
                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm">
-                      <option value="member">
-                        {{ t('web.organizations.invitations.roles.member') }}
-                      </option>
-                      <option value="admin">
-                        {{ t('web.organizations.invitations.roles.admin') }}
-                      </option>
+                      <option value="member">{{ t('web.organizations.invitations.roles.member') }}</option>
+                      <option value="admin">{{ t('web.organizations.invitations.roles.admin') }}</option>
                     </select>
                   </div>
-                </div>
-
-                <div class="flex justify-end gap-3">
-                  <button
-                    type="button"
-                    @click="showInviteForm = false"
-                    :disabled="isInviting"
-                    class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
-                    {{ t('web.COMMON.word_cancel') }}
-                  </button>
-                  <button
-                    type="submit"
-                    :disabled="isInviting || !inviteFormData.email"
-                    class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
-                    <span v-if="!isInviting">{{ t('web.organizations.invitations.send_invite') }}</span>
-                    <span v-else>{{ t('web.COMMON.processing') }}</span>
-                  </button>
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      @click="showInviteForm = false"
+                      :disabled="isInviting"
+                      class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+                      {{ t('web.COMMON.word_cancel') }}
+                    </button>
+                    <button
+                      type="submit"
+                      :disabled="isInviting || !inviteFormData.email"
+                      class="rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
+                      {{ isInviting ? t('web.COMMON.processing') : t('web.organizations.invitations.send_invite') }}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
 
-            <!-- Invitations List -->
-            <div v-if="invitations.length > 0" class="space-y-3">
-              <div
-                v-for="invitation in invitations"
-                :key="invitation.id"
-                class="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700">
-                <div class="flex-1">
-                  <div class="flex items-center gap-3">
-                    <p class="font-medium text-gray-900 dark:text-white">
-                      {{ invitation.email }}
-                    </p>
-                    <span
-                      :class="[
-                        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
-                        invitation.status === 'pending'
-                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-                          : invitation.status === 'accepted'
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                          : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400',
-                      ]">
-                      {{ t(`web.organizations.invitations.status.${invitation.status}`) }}
-                    </span>
-                  </div>
-                  <div class="mt-1 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                    <span>{{ t(`web.organizations.invitations.roles.${invitation.role}`) }}</span>
-                    <span>{{ t('web.organizations.invitations.invited_at') }}: {{ formatDate(invitation.invited_at) }}</span>
-                    <span>{{ t('web.organizations.invitations.expires_at') }}: {{ formatDate(invitation.expires_at) }}</span>
-                    <span v-if="invitation.resend_count > 0">
-                      {{ invitation.resend_count === 1 ? t('web.organizations.invitations.resent_count', { count: invitation.resend_count }) : t('web.organizations.invitations.resent_count_plural', { count: invitation.resend_count }) }}
-                    </span>
-                  </div>
-                </div>
-                <div
-                  v-if="invitation.status === 'pending' && invitation.token"
-                  class="flex gap-2">
-                  <button
-                    type="button"
-                    @click="handleResendInvitation(invitation.token!)"
-                    class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
-                    {{ t('web.organizations.invitations.resend') }}
-                  </button>
-                  <button
-                    type="button"
-                    @click="handleRevokeInvitation(invitation.token!)"
-                    class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 dark:bg-red-500 dark:hover:bg-red-400">
-                    {{ t('web.organizations.invitations.revoke') }}
-                  </button>
-                </div>
-              </div>
+            <!-- Members Table (compact mode) -->
+            <div v-if="membersStore.members.length > 0">
+              <MembersTable
+                :members="membersStore.members"
+                :org-extid="orgId"
+                :is-loading="membersStore.loading"
+                compact
+                @member-updated="handleMemberUpdated"
+                @member-removed="handleMemberRemoved" />
             </div>
-            <div v-else class="py-12 text-center">
+
+            <!-- Empty state for members -->
+            <div v-else-if="!membersStore.loading" class="py-8 text-center">
               <OIcon
                 collection="heroicons"
-                name="envelope"
+                name="users"
                 class="mx-auto size-12 text-gray-400"
                 aria-hidden="true" />
               <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                {{ t('web.organizations.invitations.no_pending_invitations') }}
+                {{ t('web.organizations.members.no_members') }}
               </p>
+            </div>
+
+            <!-- Loading state -->
+            <div v-else class="flex items-center justify-center py-8">
+              <OIcon
+                collection="heroicons"
+                name="arrow-path"
+                class="size-6 animate-spin text-gray-400"
+                aria-hidden="true" />
+            </div>
+
+            <!-- Pending Invitations (collapsed subsection) -->
+            <div v-if="invitations.length > 0" class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
+              <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {{ t('web.organizations.invitations.pending_invitations') }}
+              </h4>
+              <div class="mt-3 space-y-2">
+                <div
+                  v-for="invitation in invitations"
+                  :key="invitation.id"
+                  class="flex items-center justify-between rounded-md bg-gray-50 px-3 py-2 dark:bg-gray-700/50">
+                  <div class="flex items-center gap-3">
+                    <span class="text-sm text-gray-900 dark:text-white">{{ invitation.email }}</span>
+                    <span class="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                      {{ t('web.organizations.invitations.status.pending') }}
+                    </span>
+                  </div>
+                  <div v-if="invitation.token" class="flex gap-2">
+                    <button
+                      type="button"
+                      @click="handleResendInvitation(invitation.token!)"
+                      class="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                      {{ t('web.organizations.invitations.resend') }}
+                    </button>
+                    <button
+                      type="button"
+                      @click="handleRevokeInvitation(invitation.token!)"
+                      class="text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                      {{ t('web.organizations.invitations.revoke') }}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>

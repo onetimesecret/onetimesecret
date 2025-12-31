@@ -38,7 +38,7 @@ Owner/metadata view with mixed concerns:
 | **Status messages** | 7 | `burned`, `viewed`, `destroyed`, `created_success` |
 | **FAQ content** | 8 | `whats-the-burn-feature`, `how-does-secret-expiration-work` |
 | **Security features** | 5 | `one-time-access`, `passphrase-protection`, `core-security-features` |
-| **Actions** | 3 | `view_metadata`, `send-feedback` |
+| **Actions** | 3 | `view_receipt`, `send-feedback` |
 | **UI labels** | 11 | `pretext`, `requires_passphrase`, `expires-in-record-natural_expiration` |
 
 ### 3. `web.shared` (Lines 88-99)

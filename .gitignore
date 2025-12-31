@@ -67,6 +67,8 @@ bin/rubocop
 support/schemas/
 tsconfig.tsbuildinfo
 *.db
+Procfile.*
+!Procfile*.example
 
 # Auto-generated files
 src/auto-imports.d.ts

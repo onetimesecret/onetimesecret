@@ -4,22 +4,27 @@
 
 require 'yaml'
 require 'erb'
+require_relative '../../../lib/onetime/utils/config_resolver'
 
 module Billing
   # Billing configuration and catalog management
   module Config
     # Get path to billing configuration file
     #
-    # @return [String] Absolute path to billing.yaml
+    # Uses ConfigResolver to automatically load test config (spec/billing.test.yaml)
+    # when RACK_ENV=test, otherwise loads production config (etc/billing.yaml).
+    #
+    # @return [String, nil] Absolute path to billing config file, or nil if not found
     def self.config_path
-      File.join(Onetime::HOME, 'etc', 'billing.yaml')
+      Onetime::Utils::ConfigResolver.resolve('billing')
     end
 
     # Check if billing config file exists
     #
     # @return [Boolean]
     def self.config_exists?
-      File.exist?(config_path)
+      path = config_path
+      path && File.exist?(path)
     end
 
     # Safely load and parse billing YAML configuration
@@ -116,7 +121,7 @@ module Billing
     # @example
     #   Billing::Config.entitlements_grouped_by_category
     #   # => {
-    #   #   "core" => ["create_secrets", "view_metadata"],
+    #   #   "core" => ["create_secrets", "view_receipt"],
     #   #   "collaboration" => ["manage_teams", "manage_members"],
     #   #   ...
     #   # }

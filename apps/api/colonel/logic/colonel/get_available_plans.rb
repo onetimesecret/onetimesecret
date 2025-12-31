@@ -25,7 +25,7 @@ module ColonelAPI
       #       planid: "free_v1",
       #       name: "Free",
       #       tier: "free",
-      #       entitlements: ["create_secrets", "view_metadata"],
+      #       entitlements: ["create_secrets", "view_receipt"],
       #       limits: { "teams.max" => "0", "custom_domains.max" => "0" }
       #     },
       #     ...

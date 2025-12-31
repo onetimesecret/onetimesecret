@@ -75,33 +75,25 @@ module OrganizationAPI
 
       # Serialize organization to API response format
       #
-      # Provides consistent serialization across all organization endpoints:
-      # - Uses `id` (objid) internally.
-      # - Timestamps as `created_at`/`updated_at`
-      # - Includes `is_default`, `owner_id`, `member_count`
-      # - Omits `contact_email` when empty
-      # - Includes `current_user_role`
+      # Uses Organization#safe_dump as the base and adds:
+      # - `id` alias for `objid` (frontend convention)
+      # - `created_at`/`updated_at` aliases for `created`/`updated`
+      # - `current_user_role` (context-dependent, requires current user)
       #
       # @param organization [Onetime::Organization] Organization to serialize
       # @param current_user [Onetime::Customer] Current user for role calculation
       # @return [Hash] Serialized organization data
       def serialize_organization(organization, current_user = cust)
-        record = {
-          id: organization.extid,  # Use extid (external ID) for URLs, not objid (internal ID)
-          display_name: organization.display_name,
-          description: organization.description || '',
-          is_default: organization.is_default || false,
-          created_at: organization.created,
-          updated_at: organization.updated,
-          owner_id: organization.owner_id,
-          member_count: organization.member_count,
-          current_user_role: determine_user_role(organization, current_user),
-        }
+        # Start with safe_dump which includes all standard fields
+        record = organization.safe_dump
 
-        # Only include contact_email if present and valid
-        if organization.contact_email && !organization.contact_email.empty?
-          record[:contact_email] = organization.contact_email
-        end
+        # Add frontend-expected aliases
+        record[:id]         = record[:objid]
+        record[:created_at] = record[:created]
+        record[:updated_at] = record[:updated]
+
+        # Add context-dependent field
+        record[:current_user_role] = determine_user_role(organization, current_user)
 
         record
       end

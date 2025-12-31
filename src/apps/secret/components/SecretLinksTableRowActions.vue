@@ -46,7 +46,7 @@
                 name="document-text-solid"
                 class="mr-2 size-4 text-blue-500 dark:text-blue-400"
                 aria-hidden="true" />
-              {{ t('web.private.view_metadata') }}
+              {{ t('web.private.view_receipt') }}
             </router-link>
           </MenuItem>
           <MenuItem v-slot="{ active }">

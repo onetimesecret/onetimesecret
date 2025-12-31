@@ -101,7 +101,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
         tier: 1,
         interval: 'month',
         region: 'us',
-        entitlements: %w[create_secrets basic_sharing api_access view_metadata],
+        entitlements: %w[create_secrets basic_sharing api_access view_receipt],
         limits: { 'teams.max' => '0' },
       },
       {
@@ -162,7 +162,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
     end
 
     context 'when organization has api_access entitlement (free plan)' do
-      let(:org) { mock_organization(planid: 'free_v1', entitlements: %w[create_secrets api_access view_metadata]) }
+      let(:org) { mock_organization(planid: 'free_v1', entitlements: %w[create_secrets api_access view_receipt]) }
 
       it 'does not raise EntitlementRequired for free users with api_access' do
         _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
