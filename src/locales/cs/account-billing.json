@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "Vyžadován upgrade",
         "viewPlans": "Zobrazit tarify",
+        "needTeams": "Správa týmů vyžaduje Identity Plus nebo vyšší",
         "needCustomDomains": "Vlastní domény vyžadují Identity Plus nebo vyšší",
         "needApiAccess": "Přístup k API vyžaduje tarif Multi-Team nebo vyšší",
-        "needPrioritySupport": "Prioritní podpora vyžaduje Identity Plus nebo vyšší",
         "needAuditLogs": "Logy auditu vyžadují tarif Multi-Team nebo vyšší"
       },
       "manage_subscription_and_billing": "Spravuj své předplatné, organizace a nastavení fakturace",
@@ -37,12 +37,25 @@
         "no_organizations_description": "Vytvoř organizaci pro správu fakturace a předplatného",
         "entitlements": {
           "create_secrets": "Vytvářet tajemství",
-          "basic_sharing": "Základní sdílení",
-          "custom_domains": "Vlastní domény",
+          "view_metadata": "Zobrazit metadata",
           "api_access": "Přístup k API",
+          "custom_domains": "Vlastní domény",
+          "custom_privacy_defaults": "Vlastní výchozí nastavení soukromí",
+          "extended_default_expiration": "Prodloužená výchozí expirace",
+          "custom_mail_defaults": "Vlastní výchozí nastavení e-mailu",
+          "custom_branding": "Vlastní branding",
+          "branded_homepage": "Brandovaná domovská stránka",
+          "incoming_secrets": "Příchozí tajemství",
+          "manage_orgs": "Správa organizací",
+          "manage_teams": "Správa týmů",
+          "manage_members": "Správa členů",
+          "audit_logs": "Logy auditu",
+          "sso": "Jednotné přihlášení",
           "priority_support": "Prioritní podpora",
-          "audit_logs": "Logy auditu"
-        }
+          "sla": "Dohoda o úrovni služeb"
+        },
+        "entitlements_load_error": "Nepodařilo se načíst podrobnosti funkcí",
+        "no_entitlements": "Žádné dostupné funkce"
       },
       "plans": {
         "title": "Vyber tarif",
@@ -61,7 +74,11 @@
         "api_access": "Přístup k API",
         "priority_support": "Prioritní podpora",
         "select_plan": "Vybrat tarif",
-        "contact_sales": "Kontaktovat obchod"
+        "contact_sales": "Kontaktovat obchod",
+        "custom_needs_title": "Máš otázky nebo potřebuješ něco na míru?",
+        "custom_needs_description": "Rádi si tě vyslechneme. Dej nám vědět, co hledáš.",
+        "teams_limit": "{count} tým | {count} týmy | {count} týmů",
+        "members_limit": "{count} člen na tým | {count} členové na tým | {count} členů na tým"
       },
       "invoices": {
         "title": "Historie fakturace",

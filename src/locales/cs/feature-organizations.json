@@ -23,6 +23,7 @@
       "description_placeholder": "K čemu je tato organizace?",
       "contact_email": "Fakturační e-mail",
       "contact_email_help": "Primární kontakt pro fakturaci a administrativní oznámení",
+      "billing_managed_by_default": "Fakturace a správa předplatného je řízena přes tvůj primární pracovní prostor. Navštiv nastavení svého hlavního pracovního prostoru pro správu platebních metod a faktur.",
       "select_organization": "Vyber organizaci",
       "not_found": "Organizace nebyla nalezena",
       "load_error": "Načtení organizace se nezdařilo",
@@ -57,7 +58,86 @@
       "delete": "Smazat",
       "delete_organization_confirm_title": "Smazat organizaci",
       "delete_organization_confirm_message": "Opravdu chceš smazat {name}? Tuto akci nelze vrátit zpět.",
-      "delete_error": "Smazání organizace se nezdařilo"
+      "delete_error": "Smazání organizace se nezdařilo",
+      "members": {
+        "title": "Členové",
+        "description": "Spravuj členy organizace a jejich role",
+        "member": "Člen",
+        "name": "Jméno",
+        "email": "E-mail",
+        "role": "Role",
+        "joined": "Připojil se",
+        "actions": "Akce",
+        "no_members": "Nebyli nalezeni žádní členové",
+        "no_members_description": "Tato organizace zatím nemá žádné členy.",
+        "role_updated": "Role člena byla úspěšně aktualizována",
+        "role_update_error": "Nepodařilo se aktualizovat roli člena",
+        "member_removed": "Člen byl odebrán z organizace",
+        "member_remove_error": "Nepodařilo se odebrat člena",
+        "remove_member_title": "Odebrat člena",
+        "remove_member_confirm": "Opravdu chceš odebrat {name} z této organizace?",
+        "cannot_change_own_role": "Nemůžeš změnit svou vlastní roli",
+        "cannot_remove_self": "Nemůžeš se odebrat z organizace",
+        "cannot_remove_owner": "Nemůžeš odebrat vlastníka organizace",
+        "insufficient_permissions": "Nemáš oprávnění ke správě členů",
+        "roles": {
+          "owner": "Vlastník",
+          "admin": "Administrátor",
+          "member": "Člen"
+        },
+        "role_descriptions": {
+          "owner": "Plný přístup ke všem nastavením organizace a členům",
+          "admin": "Může spravovat členy a většinu nastavení organizace",
+          "member": "Základní přístup ke zdrojům organizace"
+        }
+      },
+      "invitations": {
+        "title": "Pozvánky do organizace",
+        "invite_member": "Pozvat člena",
+        "invite_new_member": "Pozvat nového člena",
+        "pending_invitations": "Čekající pozvánky",
+        "no_pending_invitations": "Žádné čekající pozvánky",
+        "email_address": "E-mailová adresa",
+        "email_placeholder": "clen@example.com",
+        "role": "Role",
+        "send_invite": "Odeslat pozvánku",
+        "invite_sent": "Pozvánka byla úspěšně odeslána",
+        "invite_error": "Nepodařilo se odeslat pozvánku",
+        "resend": "Poslat znovu",
+        "revoke": "Zrušit",
+        "resend_success": "Pozvánka byla znovu odeslána",
+        "resend_error": "Nepodařilo se znovu odeslat pozvánku",
+        "revoke_success": "Pozvánka byla zrušena",
+        "revoke_error": "Nepodařilo se zrušit pozvánku",
+        "invited_by": "Pozval",
+        "invited_at": "Pozváno",
+        "expires_at": "Vyprší",
+        "resent_count": "Odesláno znovu {count}krát",
+        "resent_count_plural": "Odesláno znovu {count}krát",
+        "status": {
+          "pending": "Čekající",
+          "accepted": "Přijato",
+          "declined": "Odmítnuto",
+          "expired": "Vypršelo"
+        },
+        "roles": {
+          "member": "Člen",
+          "admin": "Administrátor"
+        },
+        "accept_invitation": "Přijmout pozvánku",
+        "decline_invitation": "Odmítnout pozvánku",
+        "invitation_details": "Podrobnosti pozvánky",
+        "you_are_invited": "Byl jsi pozván do",
+        "invited_as": "Byl jsi pozván jako",
+        "accept_success": "Pozvánka byla úspěšně přijata",
+        "accept_error": "Nepodařilo se přijmout pozvánku",
+        "decline_success": "Pozvánka byla odmítnuta",
+        "decline_error": "Nepodařilo se odmítnout pozvánku",
+        "expired_message": "Platnost této pozvánky vypršela",
+        "invalid_token": "Neplatná nebo vypršelá pozvánka",
+        "must_sign_in": "Pro přijetí této pozvánky se prosím přihlas",
+        "loading_invitation": "Načítám podrobnosti pozvánky"
+      }
     }
   }
 }

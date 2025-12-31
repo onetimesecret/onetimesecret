@@ -15,6 +15,27 @@
       "please_verify": "Prosím ověř svůj účet:",
       "postscript1": "Tento e-mail byl odeslán na",
       "postscript2": "Pokud jsi tento požadavek neučinil, můžeš tento e-mail bezpečně ignorovat."
+    },
+    "organization_invitation": {
+      "subject": "Byl jsi pozván do %{organization_name}",
+      "title": "Byl jsi pozván do %{organization_name}!",
+      "body": "%{inviter_email} tě pozval do \"%{organization_name}\" jako %{role_description}.",
+      "accept_button": "Přijmout pozvánku",
+      "link_instruction": "Nebo zkopíruj a vlož tento odkaz:",
+      "expiry_notice": "Platnost této pozvánky vyprší za %{days} dní.",
+      "decline_instruction": "Pokud se nechceš připojit, můžeš tento e-mail jednoduše ignorovat nebo pozvánku odmítnout.",
+      "signature": "Delano",
+      "postscript": "P.S. Tento e-mail byl odeslán na %{invited_email}. Pokud jsi tuto pozvánku neočekával, můžeš tuto zprávu bezpečně ignorovat.",
+      "roles": {
+        "member": "člen",
+        "admin": "administrátor"
+      }
+    },
+    "common": {
+      "greeting": "Ahoj,",
+      "thanks": "Díky,",
+      "unsubscribe": "Odhlásit odběr",
+      "view_in_browser": "Zobrazit v prohlížeči"
     }
   }
 }

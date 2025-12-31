@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "Dokumentace API",
+      "branding_guide": "Průvodce brandingem",
+      "customize": "Přizpůsobit",
+      "plans": "Tarify",
       "security": "Zabezpečení",
       "learn_about_our_security_measures": "Nauč se o našich bezpečnostních opatřeních",
       "view_our_terms_and_conditions": "Zobraz naše podmínky používání",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "Změnit jazyk. Aktuální jazyk je {0}",
       "language_changed_to_newlocale": "Jazyk změněn na {0}",
       "switch_to_blank_mode": "Přepnout do režimu {0}",
-      "blank_mode_enabled": "Režim {0} aktivován"
+      "blank_mode_enabled": "Režim {0} aktivován",
+      "workspace": "Pracovní prostor",
+      "workspace_context": "Kontext pracovního prostoru"
     }
   }
 }
