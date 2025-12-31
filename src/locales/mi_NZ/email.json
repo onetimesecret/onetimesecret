@@ -17,25 +17,25 @@
       "postscript2": "Mēnā kāore koe i mahi i tēnei tono, ka taea e koe te karo haumaru i tēnei īmēra."
     },
     "organization_invitation": {
-      "subject": "You've been invited to join %{organization_name}",
-      "title": "You've been invited to join %{organization_name}!",
-      "body": "%{inviter_email} has invited you to join \"%{organization_name}\" as %{role_description}.",
-      "accept_button": "Accept Invitation",
-      "link_instruction": "Or copy and paste this link:",
-      "expiry_notice": "This invitation will expire in %{days} days.",
-      "decline_instruction": "If you don't want to join, you can simply ignore this email or decline the invitation.",
+      "subject": "Kua pōwhiritia koe ki te hono ki %{organization_name}",
+      "title": "Kua pōwhiritia koe ki te hono ki %{organization_name}!",
+      "body": "Kua pōwhiri a %{inviter_email} i a koe ki te hono ki \"%{organization_name}\" hei %{role_description}.",
+      "accept_button": "Whakaae ki te Pōwhiri",
+      "link_instruction": "Tārua rānei me te whakapiri i tēnei hononga:",
+      "expiry_notice": "Ka pau tēnei pōwhiri i roto i te %{days} rā.",
+      "decline_instruction": "Mēnā kāore koe e hiahia ki te hono, ka taea e koe te karo noa i tēnei īmēra, te whakakāhore rānei i te pōwhiri.",
       "signature": "Delano",
-      "postscript": "P.S. This email was sent to %{invited_email}. If you weren't expecting this invitation, you can safely ignore this message.",
+      "postscript": "P.S. I tukuna tēnei īmēra ki %{invited_email}. Mēnā kāore koe i te tūmanako i tēnei pōwhiri, ka taea e koe te karo haumaru i tēnei karere.",
       "roles": {
-        "member": "a member",
-        "admin": "an administrator"
+        "member": "he mema",
+        "admin": "he kaiwhakahaere"
       }
     },
     "common": {
-      "greeting": "Hello,",
-      "thanks": "Thanks,",
-      "unsubscribe": "Unsubscribe",
-      "view_in_browser": "View in browser"
+      "greeting": "Tēnā koe,",
+      "thanks": "Ngā mihi,",
+      "unsubscribe": "Whakakore ohaurunga",
+      "view_in_browser": "Tirohia i te pūtirotiro"
     }
   }
 }
