@@ -25,6 +25,7 @@
 #   1 - Error (source directory not found, no JSON files found, etc.)
 
 set -euo pipefail
+shopt -s nullglob
 
 # Determine project root relative to script location
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
