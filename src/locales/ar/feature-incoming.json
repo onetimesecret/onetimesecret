@@ -31,6 +31,7 @@
     "create_another": "إرسال سر آخر",
     "tagline1": "شارك المعلومات الحساسة بشكل آمن",
     "tagline2": "احتفظ بكلمات المرور والبيانات الخاصة بعيدًا عن البريد الإلكتروني وسجلات الدردشة",
-    "end_of_experience_suggestion": "احفظ <a href='{receiptUrl}'>إيصالك</a> لسجلاتك."
+    "end_of_experience_suggestion": "احفظ <a href='{receiptUrl}'>إيصالك</a> لسجلاتك.",
+    "receipt_link_text": "الإيصال"
   }
 }

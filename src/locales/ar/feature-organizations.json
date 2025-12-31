@@ -23,6 +23,7 @@
       "description_placeholder": "ما الغرض من هذه المنظمة؟",
       "contact_email": "البريد الإلكتروني للفوترة",
       "contact_email_help": "جهة الاتصال الأساسية للفوترة والإشعارات الإدارية",
+      "billing_managed_by_default": "يتم التعامل مع إدارة الفوترة والاشتراك من خلال مساحة العمل الرئيسية الخاصة بك. قم بزيارة إعدادات مساحة العمل الرئيسية لإدارة طرق الدفع والفواتير.",
       "select_organization": "اختر منظمة",
       "not_found": "المنظمة غير موجودة",
       "load_error": "فشل تحميل المنظمة",
@@ -57,7 +58,86 @@
       "delete": "حذف",
       "delete_organization_confirm_title": "حذف المنظمة",
       "delete_organization_confirm_message": "هل أنت متأكد من حذف {name}؟ لا يمكن التراجع عن هذا الإجراء.",
-      "delete_error": "فشل حذف المنظمة"
+      "delete_error": "فشل حذف المنظمة",
+      "members": {
+        "title": "الأعضاء",
+        "description": "إدارة أعضاء المنظمة وأدوارهم",
+        "member": "عضو",
+        "name": "الاسم",
+        "email": "البريد الإلكتروني",
+        "role": "الدور",
+        "joined": "تاريخ الانضمام",
+        "actions": "الإجراءات",
+        "no_members": "لم يتم العثور على أعضاء",
+        "no_members_description": "لا يوجد أعضاء في هذه المنظمة بعد.",
+        "role_updated": "تم تحديث دور العضو بنجاح",
+        "role_update_error": "فشل تحديث دور العضو",
+        "member_removed": "تمت إزالة العضو من المنظمة",
+        "member_remove_error": "فشل إزالة العضو",
+        "remove_member_title": "إزالة العضو",
+        "remove_member_confirm": "هل أنت متأكد من إزالة {name} من هذه المنظمة؟",
+        "cannot_change_own_role": "لا يمكنك تغيير دورك الخاص",
+        "cannot_remove_self": "لا يمكنك إزالة نفسك من المنظمة",
+        "cannot_remove_owner": "لا يمكنك إزالة مالك المنظمة",
+        "insufficient_permissions": "ليس لديك صلاحية لإدارة الأعضاء",
+        "roles": {
+          "owner": "المالك",
+          "admin": "المسؤول",
+          "member": "عضو"
+        },
+        "role_descriptions": {
+          "owner": "وصول كامل إلى جميع إعدادات المنظمة والأعضاء",
+          "admin": "يمكنه إدارة الأعضاء ومعظم إعدادات المنظمة",
+          "member": "وصول أساسي إلى موارد المنظمة"
+        }
+      },
+      "invitations": {
+        "title": "دعوات المنظمة",
+        "invite_member": "دعوة عضو",
+        "invite_new_member": "دعوة عضو جديد",
+        "pending_invitations": "الدعوات المعلقة",
+        "no_pending_invitations": "لا توجد دعوات معلقة",
+        "email_address": "عنوان البريد الإلكتروني",
+        "email_placeholder": "member@example.com",
+        "role": "الدور",
+        "send_invite": "إرسال الدعوة",
+        "invite_sent": "تم إرسال الدعوة بنجاح",
+        "invite_error": "فشل إرسال الدعوة",
+        "resend": "إعادة الإرسال",
+        "revoke": "إلغاء",
+        "resend_success": "تم إعادة إرسال الدعوة بنجاح",
+        "resend_error": "فشل إعادة إرسال الدعوة",
+        "revoke_success": "تم إلغاء الدعوة بنجاح",
+        "revoke_error": "فشل إلغاء الدعوة",
+        "invited_by": "دعوة من",
+        "invited_at": "تاريخ الدعوة",
+        "expires_at": "تنتهي في",
+        "resent_count": "أُعيد إرسالها {count} مرة",
+        "resent_count_plural": "أُعيد إرسالها {count} مرات",
+        "status": {
+          "pending": "معلقة",
+          "accepted": "مقبولة",
+          "declined": "مرفوضة",
+          "expired": "منتهية الصلاحية"
+        },
+        "roles": {
+          "member": "عضو",
+          "admin": "مسؤول"
+        },
+        "accept_invitation": "قبول الدعوة",
+        "decline_invitation": "رفض الدعوة",
+        "invitation_details": "تفاصيل الدعوة",
+        "you_are_invited": "لقد تمت دعوتك للانضمام إلى",
+        "invited_as": "لقد تمت دعوتك كـ",
+        "accept_success": "تم قبول الدعوة بنجاح",
+        "accept_error": "فشل قبول الدعوة",
+        "decline_success": "تم رفض الدعوة",
+        "decline_error": "فشل رفض الدعوة",
+        "expired_message": "انتهت صلاحية هذه الدعوة",
+        "invalid_token": "دعوة غير صالحة أو منتهية الصلاحية",
+        "must_sign_in": "يرجى تسجيل الدخول لقبول هذه الدعوة",
+        "loading_invitation": "جارٍ تحميل تفاصيل الدعوة"
+      }
     }
   }
 }

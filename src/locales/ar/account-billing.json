@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "الترقية مطلوبة",
         "viewPlans": "عرض الخطط",
+        "needTeams": "إدارة الفرق تتطلب Identity Plus أو أعلى",
         "needCustomDomains": "النطاقات المخصصة تتطلب Identity Plus أو أعلى",
         "needApiAccess": "الوصول إلى API يتطلب خطة Multi-Team أو أعلى",
-        "needPrioritySupport": "الدعم ذو الأولوية يتطلب Identity Plus أو أعلى",
         "needAuditLogs": "سجلات المراجعة تتطلب خطة Multi-Team أو أعلى"
       },
       "manage_subscription_and_billing": "إدارة اشتراكك ومنظماتك وإعدادات الفوترة",
@@ -37,12 +37,25 @@
         "no_organizations_description": "أنشئ منظمة لإدارة فوترتك واشتراكك",
         "entitlements": {
           "create_secrets": "إنشاء أسرار",
-          "basic_sharing": "المشاركة الأساسية",
-          "custom_domains": "نطاقات مخصصة",
+          "view_metadata": "عرض البيانات الوصفية",
           "api_access": "الوصول إلى API",
+          "custom_domains": "نطاقات مخصصة",
+          "custom_privacy_defaults": "إعدادات خصوصية مخصصة",
+          "extended_default_expiration": "انتهاء صلاحية افتراضي ممتد",
+          "custom_mail_defaults": "إعدادات بريد مخصصة",
+          "custom_branding": "علامة تجارية مخصصة",
+          "branded_homepage": "صفحة رئيسية بعلامة تجارية",
+          "incoming_secrets": "الأسرار الواردة",
+          "manage_orgs": "إدارة المنظمات",
+          "manage_teams": "إدارة الفرق",
+          "manage_members": "إدارة الأعضاء",
+          "audit_logs": "سجلات المراجعة",
+          "sso": "تسجيل الدخول الموحد",
           "priority_support": "دعم ذو أولوية",
-          "audit_logs": "سجلات المراجعة"
-        }
+          "sla": "اتفاقية مستوى الخدمة"
+        },
+        "entitlements_load_error": "تعذر تحميل تفاصيل الميزات",
+        "no_entitlements": "لا توجد ميزات متاحة"
       },
       "plans": {
         "title": "اختر خطة",
@@ -54,14 +67,18 @@
         "yearly": "سنوياً",
         "save_yearly": "وفّر {percent}% مع الفوترة السنوية",
         "free_plan": "مجاني",
-        "single_team_plan": "Single Team",
-        "multi_team_plan": "Multi Team",
+        "single_team_plan": "فريق واحد",
+        "multi_team_plan": "فرق متعددة",
         "features": "الميزات",
         "unlimited_secrets": "أسرار غير محدودة",
         "api_access": "الوصول إلى API",
         "priority_support": "دعم ذو أولوية",
         "select_plan": "اختر الخطة",
-        "contact_sales": "تواصل مع المبيعات"
+        "contact_sales": "تواصل مع المبيعات",
+        "custom_needs_title": "لديك أسئلة أو تحتاج شيئاً مخصصاً؟",
+        "custom_needs_description": "يسعدنا سماع رأيك. أخبرنا بما تبحث عنه.",
+        "teams_limit": "{count} فريق | {count} فرق",
+        "members_limit": "{count} عضو لكل فريق | {count} أعضاء لكل فريق"
       },
       "invoices": {
         "title": "سجل الفوترة",
