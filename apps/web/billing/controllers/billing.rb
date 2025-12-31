@@ -242,6 +242,7 @@ module Billing
           .map do |plan|
             {
               id: plan.plan_id,
+              stripe_price_id: plan.stripe_price_id,
               name: plan.name,
               tier: plan.tier,
               interval: plan.interval,
@@ -264,7 +265,270 @@ module Billing
         json_error('Failed to list plans', status: 500)
       end
 
+      # Get subscription status for organization
+      #
+      # Returns current subscription details including whether plan switching
+      # is available. Used by frontend to determine checkout vs plan change flow.
+      #
+      # GET /billing/api/org/:extid/subscription
+      #
+      # @return [Hash] Subscription status and current plan details
+      def subscription_status
+        org = load_organization(req.params['extid'])
+
+        unless org.active_subscription?
+          return json_response({
+            has_active_subscription: false,
+            current_plan: org.planid,
+          })
+        end
+
+        # Fetch current subscription from Stripe
+        subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
+        current_item = subscription.items.data.first
+
+        json_response({
+          has_active_subscription: true,
+          current_plan: org.planid,
+          current_price_id: current_item.price.id,
+          subscription_item_id: current_item.id,
+          subscription_status: subscription.status,
+          current_period_end: current_item.current_period_end,
+        })
+      rescue OT::Problem => ex
+        json_error(ex.message, status: 403)
+      rescue Stripe::StripeError => ex
+        billing_logger.error 'Failed to retrieve subscription status', {
+          exception: ex,
+          extid: req.params['extid'],
+        }
+        json_error('Failed to retrieve subscription status', status: 500)
+      end
+
+      # Preview plan change proration
+      #
+      # Shows what the customer will be charged when switching plans.
+      # Returns upcoming invoice preview with proration details.
+      #
+      # POST /billing/api/org/:extid/preview-plan-change
+      #
+      # @param [String] new_price_id Stripe price ID to switch to
+      #
+      # @return [Hash] Proration preview with amounts and dates
+      def preview_plan_change
+        org          = load_organization(req.params['extid'])
+        new_price_id = req.params['new_price_id']
+
+        # Validate plan change request
+        valid, error_response = validate_plan_change_request(org, new_price_id)
+        return error_response unless valid
+
+        # Fetch current subscription
+        subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
+        current_item = subscription.items.data.first
+
+        # Guard: same plan (requires current subscription data)
+        if current_item.price.id == new_price_id
+          return json_error('Already on this plan', status: 400)
+        end
+
+        # Validate target plan is in catalog and not legacy
+        valid, error_response = validate_target_plan(new_price_id)
+        return error_response unless valid
+
+        # Get preview of upcoming invoice with the plan change
+        preview = Stripe::Invoice.upcoming(
+          customer: org.stripe_customer_id,
+          subscription: org.stripe_subscription_id,
+          subscription_items: [{
+            id: current_item.id,
+            price: new_price_id,
+          }],
+          subscription_proration_behavior: 'create_prorations',
+        )
+
+        # Calculate credit from proration items (negative amounts)
+        credit_applied = preview.lines.data
+          .select { |line| line.proration && line.amount.negative? }
+          .sum(&:amount)
+          .abs
+
+        # Get new plan details from preview line items (avoids extra API call)
+        new_price = preview.lines.data.map(&:price).find { |p| p.id == new_price_id }
+
+        json_response({
+          amount_due: preview.amount_due,
+          subtotal: preview.subtotal,
+          credit_applied: credit_applied,
+          next_billing_date: preview.next_payment_attempt,
+          currency: preview.currency,
+          current_plan: {
+            price_id: current_item.price.id,
+            amount: current_item.price.unit_amount,
+            interval: current_item.price.recurring&.interval,
+          },
+          new_plan: {
+            price_id: new_price_id,
+            amount: new_price&.unit_amount,
+            interval: new_price&.recurring&.interval,
+          },
+        })
+      rescue OT::Problem => ex
+        json_error(ex.message, status: 403)
+      rescue Stripe::InvalidRequestError => ex
+        billing_logger.warn 'Invalid plan change preview request', {
+          exception: ex,
+          extid: req.params['extid'],
+          new_price_id: new_price_id,
+        }
+        json_error(ex.message, status: 400)
+      rescue Stripe::StripeError => ex
+        billing_logger.error 'Failed to preview plan change', {
+          exception: ex,
+          extid: req.params['extid'],
+        }
+        json_error('Failed to preview plan change', status: 500)
+      end
+
+      # Execute plan change
+      #
+      # Changes the organization's subscription to a new plan.
+      # Uses immediate proration (customer charged/credited on next invoice).
+      #
+      # POST /billing/api/org/:extid/change-plan
+      #
+      # @param [String] new_price_id Stripe price ID to switch to
+      #
+      # @return [Hash] Result of plan change with new plan details
+      def change_plan
+        org          = load_organization(req.params['extid'], require_owner: true)
+        new_price_id = req.params['new_price_id']
+
+        # Validate plan change request
+        valid, error_response = validate_plan_change_request(org, new_price_id)
+        return error_response unless valid
+
+        # Fetch current subscription
+        subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
+        current_item = subscription.items.data.first
+
+        # Guard: same plan (requires current subscription data)
+        if current_item.price.id == new_price_id
+          return json_error('Already on this plan', status: 400)
+        end
+
+        # Validate target plan is in catalog and not legacy
+        valid, error_response = validate_target_plan(new_price_id)
+        return error_response unless valid
+
+        # Generate idempotency key to prevent duplicate plan changes from
+        # network retries. Uses 5-minute windows (300 seconds) so repeated
+        # identical requests within the same window are deduplicated by Stripe.
+        idempotency_key = Digest::SHA256.hexdigest(
+          "plan_change:#{org.stripe_subscription_id}:#{new_price_id}:#{Time.now.to_i / 300}",
+        )
+
+        # Execute the plan change
+        updated_subscription = Stripe::Subscription.update(
+          org.stripe_subscription_id,
+          {
+            items: [{
+              id: current_item.id,
+              price: new_price_id,
+            }],
+            proration_behavior: 'create_prorations',
+          },
+          { idempotency_key: idempotency_key },
+        )
+
+        # Update local records immediately (webhook will also fire as backup)
+        org.update_from_stripe_subscription(updated_subscription)
+
+        billing_logger.info 'Plan changed successfully', {
+          extid: org.extid,
+          old_price_id: current_item.price.id,
+          new_price_id: new_price_id,
+          new_plan: org.planid,
+          idempotency_key: idempotency_key[0..7], # Log prefix for debugging
+        }
+
+        json_response({
+          success: true,
+          new_plan: org.planid,
+          status: updated_subscription.status,
+          current_period_end: updated_subscription.items.data.first.current_period_end,
+        })
+      rescue OT::Problem => ex
+        json_error(ex.message, status: 403)
+      rescue Stripe::InvalidRequestError => ex
+        billing_logger.warn 'Invalid plan change request', {
+          exception: ex,
+          extid: req.params['extid'],
+          new_price_id: new_price_id,
+        }
+        json_error(ex.message, status: 400)
+      rescue Stripe::StripeError => ex
+        billing_logger.error 'Failed to change plan', {
+          exception: ex,
+          extid: req.params['extid'],
+        }
+        json_error('Failed to change plan', status: 500)
+      end
+
       private
+
+      # Validate plan change request parameters
+      #
+      # Checks common validation rules for plan change operations.
+      # Returns [true, nil] if valid, [false, error_response] if invalid.
+      #
+      # @param org [Onetime::Organization] Organization instance
+      # @param new_price_id [String, nil] Stripe price ID to switch to
+      # @return [Array<(Boolean, Object)>] [valid?, error_response_or_nil]
+      def validate_plan_change_request(org, new_price_id)
+        # Guard: missing new_price_id
+        unless new_price_id
+          return [false, json_error('Missing new_price_id', status: 400)]
+        end
+
+        # Guard: no active subscription
+        unless org.active_subscription?
+          return [false, json_error('No active subscription to modify', status: 400)]
+        end
+
+        [true, nil]
+      end
+
+      # Validate target plan is valid (in catalog and not legacy)
+      #
+      # Called AFTER same-plan check to maintain proper error ordering.
+      #
+      # @param new_price_id [String] Stripe price ID to switch to
+      # @return [Array<(Boolean, Object)>] [valid?, error_response_or_nil]
+      def validate_target_plan(new_price_id)
+        # Guard: unknown price ID (not in our plan catalog)
+        target_plan_id = price_id_to_plan_id(new_price_id)
+        if target_plan_id.nil?
+          return [false, json_error('Invalid price ID', status: 400)]
+        end
+
+        # Guard: legacy plan
+        if Billing::PlanHelpers.legacy_plan?(target_plan_id)
+          return [false, json_error('This plan is not available', status: 400)]
+        end
+
+        [true, nil]
+      end
+
+      # Convert Stripe price ID to plan ID
+      #
+      # Looks up the plan associated with a Stripe price ID using cached lookup.
+      #
+      # @param price_id [String] Stripe price ID
+      # @return [String, nil] Plan ID or nil if not found
+      def price_id_to_plan_id(price_id)
+        ::Billing::Plan.find_by_stripe_price_id(price_id)&.plan_id
+      end
 
       # Build subscription data for response
       #

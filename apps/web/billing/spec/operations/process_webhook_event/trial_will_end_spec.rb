@@ -62,7 +62,7 @@ RSpec.describe 'ProcessWebhookEvent: customer.subscription.trial_will_end', :int
         customer: stripe_customer_id,
         status: 'trialing',
         trial_end: trial_end_timestamp,
-        metadata: { 'custid' => customer.custid },
+        metadata: { 'customer_extid' => customer.extid },
       )
     end
 
@@ -97,7 +97,7 @@ RSpec.describe 'ProcessWebhookEvent: customer.subscription.trial_will_end', :int
         customer: stripe_customer_id,
         status: 'trialing',
         trial_end: trial_end_timestamp,
-        metadata: { 'custid' => 'unknown_custid' },
+        metadata: { 'customer_extid' => 'unknown_extid' },
       )
     end
 

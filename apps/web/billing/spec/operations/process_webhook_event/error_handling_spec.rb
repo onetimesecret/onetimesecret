@@ -85,7 +85,7 @@ RSpec.describe 'ProcessWebhookEvent: error handling', :integration, :process_web
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'active',
-        metadata: {}, # No custid in metadata
+        metadata: {}, # No customer_extid in metadata
       )
     end
 
@@ -106,8 +106,8 @@ RSpec.describe 'ProcessWebhookEvent: error handling', :integration, :process_web
         .and_return(subscription)
     end
 
-    it 'returns :skipped (missing custid)' do
-      # Missing custid is logged as warning but doesn't fail
+    it 'returns :skipped (missing customer_extid)' do
+      # Missing customer_extid is logged as warning but doesn't fail
       expect(operation.call).to eq(:skipped)
     end
 
@@ -122,7 +122,7 @@ RSpec.describe 'ProcessWebhookEvent: error handling', :integration, :process_web
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'active',
-        metadata: { 'custid' => 'nonexistent@example.com' },
+        metadata: { 'customer_extid' => 'urnonexistent00000000000000' },
       )
     end
 
@@ -205,7 +205,7 @@ RSpec.describe 'ProcessWebhookEvent: error handling', :integration, :process_web
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'paused',
-        metadata: { 'custid' => customer.custid },
+        metadata: { 'customer_extid' => customer.extid },
       )
     end
 

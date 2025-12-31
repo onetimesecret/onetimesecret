@@ -2,10 +2,10 @@
 #
 # frozen_string_literal: true
 
-# Shared context for loading test plans from spec/billing.test.yaml
+# Shared context for loading test plans for billing specs
 #
 # Purpose: Enable unit testing of billing logic without Stripe API access.
-# Uses ConfigResolver to load test plans from spec/billing.test.yaml.
+# ConfigResolver finds apps/web/billing/spec/billing.test.yaml in test env.
 #
 # Usage:
 #   RSpec.describe 'BillingController' do
@@ -17,21 +17,16 @@
 #     end
 #   end
 #
-# Note: This context populates Redis cache using Plan.load_all_from_config
-# which loads plans from spec/billing.test.yaml into Redis for testing.
+# Note: The test config has enabled: false by default for test isolation.
+# This context explicitly enables billing for tests that need it.
 #
 RSpec.shared_context 'with_test_plans' do
-  # Ensure Billing::Config uses test config file
   before do
-    # ConfigResolver automatically uses spec/billing.test.yaml when RACK_ENV=test
-    # No mocking needed - just verify the file exists
-    test_config_path = File.join(Onetime::HOME, 'spec', 'billing.test.yaml')
-    unless File.exist?(test_config_path)
-      raise "Test config missing: #{test_config_path}"
-    end
+    # Enable billing for tests that need it
+    # The test config has enabled: false by default for isolation
+    allow(Onetime::BillingConfig.instance).to receive(:enabled?).and_return(true)
 
     # Load all plans from test config into Redis cache
-    # This populates the cache with plans from spec/billing.test.yaml
     Billing::Plan.load_all_from_config
 
     # Mock region to match test plans (EU)
@@ -41,6 +36,9 @@ RSpec.shared_context 'with_test_plans' do
   after do
     # Clean up Redis cache
     Billing::Plan.clear_cache
+
+    # Reset BillingConfig stubs
+    RSpec::Mocks.space.proxy_for(Onetime::BillingConfig.instance).reset
   end
 
   # Helper: Get test plan by tier

@@ -45,7 +45,7 @@ RSpec.describe 'ProcessWebhookEvent: customer.updated', :integration, :process_w
       build_stripe_customer(
         id: stripe_customer_id,
         email: test_email,
-        metadata: { 'custid' => customer.custid },
+        metadata: { 'customer_extid' => customer.extid },
       )
     end
 
@@ -69,7 +69,7 @@ RSpec.describe 'ProcessWebhookEvent: customer.updated', :integration, :process_w
         build_stripe_customer(
           id: stripe_customer_id,
           email: 'different-email@example.com',
-          metadata: { 'custid' => customer.custid },
+          metadata: { 'customer_extid' => customer.extid },
         )
       end
 

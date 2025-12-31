@@ -25,7 +25,7 @@ RSpec.describe Onetime::CLI::BillingWebhooksReplayCommand, type: :billing do
           id: 'sub_test123',
           object: 'subscription',
           customer: 'cus_test123',
-          metadata: { custid: 'cust_ot_123' }
+          metadata: { customer_extid: 'cust_ot_123' }
         }
       }
     }.to_json
@@ -178,7 +178,7 @@ RSpec.describe Onetime::CLI::BillingWebhooksReplayCommand, type: :billing do
         data: {
           object: {
             customer: 'cus_test123',
-            metadata: { custid: 'cust_ot_456' }
+            metadata: { customer_extid: 'cust_ot_456' }
           }
         }
       }.to_json
@@ -196,14 +196,14 @@ RSpec.describe Onetime::CLI::BillingWebhooksReplayCommand, type: :billing do
       expect(result).to be true
     end
 
-    it 'matches on custid in metadata using original_customer_id' do
+    it 'matches on customer_extid in metadata using original_customer_id' do
       event.data_object_id = 'sub_xxx'
       # When user provides extid like 'cust_ot_456', it should match metadata
       result = command.send(:matches_customer?, event, nil, original_customer_id: 'cust_ot_456')
       expect(result).to be true
     end
 
-    it 'does not match custid when only stripe_customer_id is provided' do
+    it 'does not match customer_extid when only stripe_customer_id is provided' do
       event.data_object_id = 'sub_xxx'
       # When stripe_customer_id doesn't match any Stripe fields and no original_customer_id
       result = command.send(:matches_customer?, event, 'cus_other')

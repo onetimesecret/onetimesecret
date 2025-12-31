@@ -53,7 +53,7 @@ RSpec.describe Billing::Operations::ProcessWebhookEvent, :integration, :process_
           id: stripe_subscription_id,
           customer: 'cus_ctx_123',
           status: 'active',
-          metadata: { 'custid' => customer.custid },
+          metadata: { 'customer_extid' => customer.extid },
         )
       end
 

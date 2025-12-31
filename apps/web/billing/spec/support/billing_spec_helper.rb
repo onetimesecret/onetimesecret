@@ -27,6 +27,9 @@ require 'stripe'
 # Load Stripe testing infrastructure (VCR for recording/replaying real API calls)
 require_relative 'vcr_setup'
 
+# Load StripeMockFactory for creating Stripe API mock objects
+require_relative 'stripe_mock_factory'
+
 # Load shared RSpec contexts for billing tests
 Dir[File.join(__dir__, 'shared_contexts', '*.rb')].sort.each { |f| require f }
 
@@ -141,6 +144,12 @@ RSpec.configure do |config|
   # Symbol tag matching (for RSpec.describe 'Name', :integration do)
   config.include BillingSpecHelper, integration: true
   config.include BillingSpecHelper, billing_cli: true
+
+  # Include StripeMockFactory for Stripe API mock objects
+  config.include StripeMockFactory, type: :billing
+  config.include StripeMockFactory, type: :controller
+  config.include StripeMockFactory, type: :integration
+  config.include StripeMockFactory, integration: true
 
   # Build VCR cassette name from example metadata
   # Returns hierarchical path: Class/_method/test_description

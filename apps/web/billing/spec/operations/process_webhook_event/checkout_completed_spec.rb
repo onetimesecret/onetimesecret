@@ -130,7 +130,7 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
     end
   end
 
-  context 'with no plan_id in any metadata' do
+  context 'with no plan_id in any metadata or catalog' do
     let!(:customer) { create_test_customer(email: test_email) }
 
     let(:subscription_no_planid) do
@@ -147,11 +147,17 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
       allow(Stripe::Subscription).to receive(:retrieve)
         .with(stripe_subscription_id)
         .and_return(subscription_no_planid)
+      # Empty catalog - price_id fallback also fails
+      allow(Billing::Plan).to receive(:list_plans).and_return([])
     end
 
-    it 'logs warning when no plan_id found' do
+    it 'logs warning when no plan_id found in metadata or catalog' do
       expect(OT).to receive(:lw).with(
-        '[Organization.extract_plan_id_from_subscription] No plan_id in metadata',
+        '[Organization.resolve_plan_from_price_id] No plan found for price_id',
+        hash_including(price_id: 'price_test', subscription_id: stripe_subscription_id)
+      )
+      expect(OT).to receive(:lw).with(
+        '[Organization.extract_plan_id_from_subscription] No plan_id in metadata or catalog',
         hash_including(subscription_id: stripe_subscription_id)
       )
       operation.call
@@ -182,35 +188,35 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
     end
   end
 
-  context 'with missing custid in metadata' do
-    let(:subscription_no_custid) do
+  context 'with missing customer_extid in metadata' do
+    let(:subscription_no_customer_extid) do
       build_stripe_subscription(id: stripe_subscription_id, customer: stripe_customer_id, status: 'active', metadata: {})
     end
 
     before do
-      allow(Stripe::Subscription).to receive(:retrieve).and_return(subscription_no_custid)
+      allow(Stripe::Subscription).to receive(:retrieve).and_return(subscription_no_customer_extid)
     end
 
-    it 'returns :skipped when custid is missing' do
+    it 'returns :skipped when customer_extid is missing' do
       expect(operation.call).to eq(:skipped)
     end
   end
 
-  context 'with invalid custid format' do
-    let(:subscription_invalid_custid) do
+  context 'with invalid customer_extid format' do
+    let(:subscription_invalid_customer_extid) do
       build_stripe_subscription(
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'active',
-        metadata: { 'custid' => '../../../etc/passwd' }, # Malformed input
+        metadata: { 'customer_extid' => '../../../etc/passwd' }, # Malformed input
       )
     end
 
     before do
-      allow(Stripe::Subscription).to receive(:retrieve).and_return(subscription_invalid_custid)
+      allow(Stripe::Subscription).to receive(:retrieve).and_return(subscription_invalid_customer_extid)
     end
 
-    it 'returns :skipped when custid format is invalid' do
+    it 'returns :skipped when customer_extid format is invalid' do
       expect(operation.call).to eq(:skipped)
     end
 
@@ -226,7 +232,7 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
         id: stripe_subscription_id,
         customer: stripe_customer_id,
         status: 'active',
-        metadata: { 'custid' => 'nonexistent@example.com' },
+        metadata: { 'customer_extid' => 'urnonexistent00000000000000' },
       )
     end
 

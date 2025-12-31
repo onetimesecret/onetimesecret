@@ -9,14 +9,21 @@ module Onetime
     # Ensures proper test isolation by automatically using test-specific
     # config files from spec/ when RACK_ENV=test.
     #
-    # Resolution:
-    #   - RACK_ENV=test: spec/{name}.test.yaml (falls back to etc/{name}.yaml)
-    #   - Otherwise: etc/{name}.yaml
+    # Resolution order (test environment):
+    #   1. spec/{name}.test.yaml
+    #   2. apps/**/spec/{name}.test.yaml (first match)
+    #   3. etc/{name}.yaml (fallback)
+    #
+    # Resolution (non-test):
+    #   - etc/{name}.yaml
     #
     # @example
     #   ConfigResolver.resolve('logging')
     #   # RACK_ENV=test  → spec/logging.test.yaml
     #   # RACK_ENV=dev   → etc/logging.yaml
+    #
+    #   ConfigResolver.resolve('billing')
+    #   # RACK_ENV=test  → apps/web/billing/spec/billing.test.yaml
     #
     module ConfigResolver
       class << self
@@ -28,12 +35,19 @@ module Onetime
         def resolve(name)
           base = home_directory
 
-          # Test environment: use spec/{name}.test.yaml
           if test_environment?
+            # 1. Check spec/{name}.test.yaml
             test_path = File.join(base, 'spec', "#{name}.test.yaml")
             if File.exist?(test_path)
               log_resolution(name, test_path, 'test')
               return test_path
+            end
+
+            # 2. Check apps/**/spec/{name}.test.yaml
+            app_test_paths = Dir.glob(File.join(base, 'apps', '**', 'spec', "#{name}.test.yaml"))
+            if app_test_paths.any?
+              log_resolution(name, app_test_paths.first, 'app-test')
+              return app_test_paths.first
             end
           end
 
