@@ -100,8 +100,8 @@
       "language_changed_to_newlocale": "Taal gewijzigd naar {0}",
       "switch_to_blank_mode": "Schakel naar {0} modus",
       "blank_mode_enabled": "{0} modus ingeschakeld",
-      "workspace": "Workspace",
-      "workspace_context": "Workspace context"
+      "workspace": "Werkruimte",
+      "workspace_context": "Werkruimtecontext"
     }
   }
 }
