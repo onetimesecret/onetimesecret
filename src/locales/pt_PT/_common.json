@@ -167,8 +167,8 @@
       "view_toggle": {
         "show": "Mostrar",
         "hide": "Ocultar",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Mostrar Mais",
+        "show_less": "Mostrar Menos"
       },
       "timeline": "Linha Temporal",
       "lifespan": "Duração",
@@ -213,9 +213,9 @@
       "create_request_short": "Criar Pedido",
       "create_request": "Criar Link de Pedido",
       "related_settings": "Definições Relacionadas",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "enable": "Ativar",
+      "disable": "Desativar",
+      "stats": "Estatísticas"
     },
     "STATUS": {
       "new": "Novo",
