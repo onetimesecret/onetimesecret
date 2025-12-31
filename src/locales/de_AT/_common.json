@@ -167,8 +167,8 @@
       "view_toggle": {
         "show": "Anzeigen",
         "hide": "Ausblenden",
-        "show_more": "Show More",
-        "show_less": "Show Less"
+        "show_more": "Mehr anzeigen",
+        "show_less": "Weniger anzeigen"
       },
       "timeline": "Zeitleiste",
       "lifespan": "Lebensdauer",
@@ -195,7 +195,7 @@
       "security_details": "Details zur Sicherheit",
       "items_count": "{count} Einträge",
       "recipients_count": "{count} Empfänger",
-      "view": "View",
+      "view": "Ansicht",
       "views": "Ansichten",
       "times_viewed": "mal angesehen",
       "view_progress": "Fortschritte anzeigen",
@@ -213,9 +213,9 @@
       "create_request_short": "Anfrage erstellen",
       "create_request": "Anfrage-Link erstellen",
       "related_settings": "Verwandte Einstellungen",
-      "enable": "Enable",
-      "disable": "Disable",
-      "stats": "Stats"
+      "enable": "Aktivieren",
+      "disable": "Deaktivieren",
+      "stats": "Statistiken"
     },
     "STATUS": {
       "new": "Neu",
@@ -325,7 +325,7 @@
       "organization_settings": "Organisationseinstellungen"
     },
     "ARIA": {
-      "focus_is_now_in_the_main_text_area": "Focus is now in the main text area"
+      "focus_is_now_in_the_main_text_area": "Der Fokus befindet sich jetzt im Haupttextbereich"
     },
     "INSTRUCTION": {
       "sharing_instructions": "Anweisungen zum Teilen",
