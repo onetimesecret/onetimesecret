@@ -64,6 +64,8 @@ import pluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
 import vueEslintParser from 'vue-eslint-parser';
 
+import otsRules from './eslint-rules';
+
 // Validate that required plugin configs are available
 if (!pluginVue.configs?.['flat/strongly-recommended']) {
   throw new Error('Vue ESLint plugin flat/strongly-recommended config not found');
@@ -164,8 +166,11 @@ export default [
     plugins: {
       '@typescript-eslint': tseslint,
       '@intlify/vue-i18n': pluginVueI18n,
+      ots: otsRules,
     },
     rules: {
+      // OWASP IDOR prevention - use .extid not .id in URLs
+      'ots/no-internal-id-in-url': 'warn',
       // ...tseslint.configs.recommended.rules,
       '@typescript-eslint/no-unused-vars': [
         'error',
@@ -300,8 +305,11 @@ export default [
       tailwindcss: pluginTailwindCSS,
       '@typescript-eslint': tseslint,
       '@intlify/vue-i18n': pluginVueI18n,
+      ots: otsRules,
     },
     rules: {
+      // OWASP IDOR prevention - use .extid not .id in URLs
+      'ots/no-internal-id-in-url': 'warn',
       'no-multiple-empty-lines': ['warn', { max: 1 }], // Limit empty lines to 1
 
       // Prefer camelCase over kebab-case

@@ -32,6 +32,9 @@ module Onetime
   # backwards compatibility, but business logic should use the explicit
   # factory methods above to avoid state inconsistencies.
   #
+  # Opaque Identifier Pattern (OWASP IDOR Prevention):
+  # Uses dual-ID system to prevent enumeration attacks in URLs/APIs.
+  #
   # Primary Keys & Identifiers:
   #   - objid - Primary key (UUID), internal
   #   - extid - External identifier (e.g., ur%<id>s), user-facing

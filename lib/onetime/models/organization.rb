@@ -7,6 +7,8 @@ require 'rack/utils'
 module Onetime
   # Organization Model
   #
+  # Opaque Identifier Pattern (OWASP IDOR Prevention):
+  # Uses dual-ID system to prevent enumeration attacks in URLs/APIs.
   #
   # Primary Keys & Identifiers:
   #   - objid - Primary key (UUID), internal
@@ -52,7 +54,7 @@ module Onetime
     # Core fields
     field :display_name
     field :description
-    field :owner_id       # custid of organization owner
+    field :owner_id       # custid of organization owner (internal objid of Customer)
     field :contact_email  # Primary billing/contact email
     field :is_default     # Boolean: true for auto-created workspace (prevents deletion)
 

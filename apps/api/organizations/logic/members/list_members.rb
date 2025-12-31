@@ -60,7 +60,7 @@ module OrganizationAPI::Logic
         return nil unless member
 
         {
-          id: member.extid,
+          extid: member.extid,
           email: member.email,
           role: membership.role,
           joined_at: membership.joined_at,

@@ -92,6 +92,14 @@ module OrganizationAPI
         record[:created_at] = record[:created]
         record[:updated_at] = record[:updated]
 
+        # Convert owner_id (custid) to owner_extid (Customer#extid) for opaque identifier pattern
+        # This prevents internal ID exposure in API responses
+        if record[:owner_id]
+          owner = organization.owner
+          record[:owner_extid] = owner&.extid
+        end
+        record.delete(:owner_id) # Remove internal ID from response
+
         # Add context-dependent field
         record[:current_user_role] = determine_user_role(organization, current_user)
 

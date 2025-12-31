@@ -7,6 +7,13 @@
 
 import { z } from 'zod';
 
+import {
+  ExtId,
+  ObjId,
+  lenientExtIdSchema,
+  lenientObjIdSchema,
+} from './identifiers';
+
 /**
  * Organization entitlement constants
  *
@@ -65,10 +72,15 @@ export type OrganizationRole = (typeof ORGANIZATION_ROLES)[keyof typeof ORGANIZA
  * Organization interface
  *
  * Note: Fields use `| null` to match backend safe_dump which returns null for empty fields.
+ *
+ * ID Fields:
+ * - id: ObjId - Internal database ID (use for Vue :key, store lookups)
+ * - extid: ExtId - External identifier (use for URLs, API paths)
+ * - owner_extid: ExtId - External ID of the organization owner (Customer#extid)
  */
 export interface Organization {
-  id: string;
-  extid: string;
+  id: ObjId;
+  extid: ExtId;
   display_name: string;
   description?: string | null;
   contact_email?: string | null;
@@ -76,7 +88,8 @@ export interface Organization {
   is_default: boolean;
   created_at: Date;
   updated_at: Date;
-  owner_id?: string | null;
+  /** External ID of organization owner (Customer#extid) - use for display, not lookups */
+  owner_extid?: ExtId | null;
   member_count?: number | null;
   current_user_role?: OrganizationRole | null;
   planid?: string | null;
@@ -89,15 +102,16 @@ export interface Organization {
  */
 
 export const organizationSchema = z.object({
-  id: z.string(),
-  extid: z.string(),
+  // Use lenient schemas during migration - accepts any string but brands the output
+  id: lenientObjIdSchema,
+  extid: lenientExtIdSchema,
   display_name: z.string().min(1).max(100),
   description: z.string().max(500).nullish(),
   contact_email: z.email().nullish(),
   is_default: z.preprocess((v) => v ?? false, z.boolean()),
   created_at: z.number().transform((val) => new Date(val * 1000)),
   updated_at: z.number().transform((val) => new Date(val * 1000)),
-  owner_id: z.string().nullish(),
+  owner_extid: lenientExtIdSchema.nullish(),
   member_count: z.number().int().min(0).nullish(),
   current_user_role: z.enum(['owner', 'admin', 'member']).nullish(),
   planid: z.string().nullish(),
@@ -149,14 +163,19 @@ export type InvitationStatus = (typeof INVITATION_STATUSES)[keyof typeof INVITAT
 
 /**
  * Organization invitation interface
+ *
+ * ID Fields:
+ * - id: ObjId - Internal invitation ID (for store lookups)
+ * - organization_id: ExtId - External org ID (backend returns org.extid)
+ * - invited_by: ObjId - Internal ID of the user who sent the invitation
  */
 export interface OrganizationInvitation {
-  id: string;
-  organization_id: string;
+  id: ObjId;
+  organization_id: ExtId;
   email: string;
   role: 'member' | 'admin';
   status: InvitationStatus;
-  invited_by: string;
+  invited_by: ObjId;
   invited_at: number;
   expires_at: number;
   resend_count: number;
@@ -167,12 +186,12 @@ export interface OrganizationInvitation {
  * Organization invitation schemas
  */
 export const organizationInvitationSchema = z.object({
-  id: z.string(),
-  organization_id: z.string(),
+  id: lenientObjIdSchema,
+  organization_id: lenientExtIdSchema, // Backend returns org.extid
   email: z.email(),
   role: z.enum(['member', 'admin']),
   status: z.enum(['pending', 'accepted', 'declined', 'expired']),
-  invited_by: z.string(),
+  invited_by: lenientObjIdSchema,
   invited_at: z.number(),
   expires_at: z.number(),
   resend_count: z.number().int().min(0),
@@ -200,7 +219,8 @@ export function getOrganizationLabel(org: Organization): string {
  * Matches backend response from apps/api/organizations/logic/members/list_members.rb
  */
 export interface OrganizationMember {
-  id: string; // Member's external ID (extid)
+  /** Member's external ID - use in URLs and API calls */
+  extid: ExtId;
   email: string;
   role: OrganizationRole;
   joined_at: number; // Unix timestamp
@@ -214,7 +234,7 @@ export interface OrganizationMember {
  * Validates response from GET /api/organizations/:extid/members
  */
 export const organizationMemberSchema = z.object({
-  id: z.string(),
+  extid: lenientExtIdSchema,
   email: z.email(),
   role: z.enum(['owner', 'admin', 'member']),
   joined_at: z.number(),

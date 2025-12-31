@@ -8,9 +8,10 @@ import { setupTestPinia } from '../setup';
 
 // Mock member data matching the organizationMemberSchema
 // Fields match backend response from apps/api/organizations/logic/members/list_members.rb
+// Note: Schema requires 'extid' (external identifier), not 'id'
 const mockMembers = [
   {
-    id: 'member-1',
+    extid: 'member-1',
     email: 'owner@example.com',
     role: 'owner' as const,
     joined_at: 1704067200, // Unix timestamp
@@ -18,7 +19,7 @@ const mockMembers = [
     is_current_user: true,
   },
   {
-    id: 'member-2',
+    extid: 'member-2',
     email: 'admin@example.com',
     role: 'admin' as const,
     joined_at: 1704153600,
@@ -26,7 +27,7 @@ const mockMembers = [
     is_current_user: false,
   },
   {
-    id: 'member-3',
+    extid: 'member-3',
     email: 'member@example.com',
     role: 'member' as const,
     joined_at: 1704240000,
