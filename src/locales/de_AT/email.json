@@ -19,7 +19,7 @@
     "organization_invitation": {
       "subject": "Sie wurden eingeladen, %{organization_name} beizutreten",
       "title": "Sie wurden eingeladen, %{organization_name} beizutreten!",
-      "body": "%{inviter_email} hat Sie eingeladen, „%{organization_name}" als %{role_description} beizutreten.",
+      "body": "%{inviter_email} hat Sie eingeladen, „%{organization_name}\" als %{role_description} beizutreten.",
       "accept_button": "Einladung annehmen",
       "link_instruction": "Oder kopieren Sie diesen Link:",
       "expiry_notice": "Diese Einladung läuft in %{days} Tagen ab.",
