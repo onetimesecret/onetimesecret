@@ -1,6 +1,10 @@
 {
   "web": {
     "footer": {
+      "api_docs": "API 文档",
+      "branding_guide": "品牌指南",
+      "customize": "自定义",
+      "plans": "套餐",
       "security": "安全",
       "learn_about_our_security_measures": "了解我们的安全措施",
       "view_our_terms_and_conditions": "查看我们的条款和条件",
@@ -95,7 +99,9 @@
       "current_language_is_currentlocal": "更改语言。当前语言是 {0}",
       "language_changed_to_newlocale": "语言已更改为 {0}",
       "switch_to_blank_mode": "切换到 {0} 模式",
-      "blank_mode_enabled": "{0} 模式已启用"
+      "blank_mode_enabled": "{0} 模式已启用",
+      "workspace": "工作区",
+      "workspace_context": "工作区上下文"
     }
   }
 }

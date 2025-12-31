@@ -31,6 +31,7 @@
     "create_another": "发送另一个机密",
     "tagline1": "安全地共享敏感信息",
     "tagline2": "将密码和私密数据远离电子邮件和聊天记录",
-    "end_of_experience_suggestion": "保存您的<a href='{receiptUrl}'>收据</a>以备记录。"
+    "end_of_experience_suggestion": "保存您的<a href='{receiptUrl}'>收据</a>以备记录。",
+    "receipt_link_text": "receipt"
   }
 }

@@ -4,9 +4,9 @@
       "upgrade": {
         "required": "需要升级",
         "viewPlans": "查看套餐",
+        "needTeams": "团队管理需要 Identity Plus 或更高版本",
         "needCustomDomains": "自定义域名需要 Identity Plus 或更高版本",
         "needApiAccess": "API 访问需要多团队套餐或更高版本",
-        "needPrioritySupport": "优先支持需要 Identity Plus 或更高版本",
         "needAuditLogs": "审计日志需要多团队套餐或更高版本"
       },
       "manage_subscription_and_billing": "管理您的订阅、组织和账单设置",
@@ -37,12 +37,25 @@
         "no_organizations_description": "创建组织以管理您的账单和订阅",
         "entitlements": {
           "create_secrets": "创建内容",
-          "basic_sharing": "基本分享",
-          "custom_domains": "自定义域名",
+          "view_metadata": "查看详情",
           "api_access": "API 访问",
+          "custom_domains": "自定义域名",
+          "custom_privacy_defaults": "自定义隐私默认设置",
+          "extended_default_expiration": "延长默认过期时间",
+          "custom_mail_defaults": "自定义邮件默认设置",
+          "custom_branding": "自定义品牌",
+          "branded_homepage": "品牌主页",
+          "incoming_secrets": "接收内容",
+          "manage_orgs": "管理组织",
+          "manage_teams": "管理团队",
+          "manage_members": "管理成员",
+          "audit_logs": "审计日志",
+          "sso": "单点登录",
           "priority_support": "优先支持",
-          "audit_logs": "审计日志"
-        }
+          "sla": "服务等级协议"
+        },
+        "entitlements_load_error": "无法加载功能详情",
+        "no_entitlements": "无可用功能"
       },
       "plans": {
         "title": "选择套餐",
@@ -61,7 +74,11 @@
         "api_access": "API 访问",
         "priority_support": "优先支持",
         "select_plan": "选择套餐",
-        "contact_sales": "联系销售"
+        "contact_sales": "联系销售",
+        "custom_needs_title": "有疑问或需要定制方案？",
+        "custom_needs_description": "我们很乐意听取您的意见。请告诉我们您的需求。",
+        "teams_limit": "{count} 个团队",
+        "members_limit": "每个团队 {count} 名成员"
       },
       "invoices": {
         "title": "账单历史",

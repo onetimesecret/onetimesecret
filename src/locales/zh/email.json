@@ -15,6 +15,27 @@
       "please_verify": "请验证您的帐户:",
       "postscript1": "这封电子邮件被送至",
       "postscript2": "如果您并未创建此帐户，请您删除此邮件。我们将不会再和您联系。"
+    },
+    "organization_invitation": {
+      "subject": "您已被邀请加入 %{organization_name}",
+      "title": "您已被邀请加入 %{organization_name}",
+      "body": "%{inviter_email} 邀请您以%{role_description}身份加入「%{organization_name}」。",
+      "accept_button": "接受邀请",
+      "link_instruction": "或复制并粘贴此链接：",
+      "expiry_notice": "此邀请将在 %{days} 天后过期。",
+      "decline_instruction": "如果您不想加入，可以忽略此邮件或拒绝邀请。",
+      "signature": "Delano",
+      "postscript": "附注：此邮件已发送至 %{invited_email}。如果您未预期收到此邀请，可以安全忽略此消息。",
+      "roles": {
+        "member": "成员",
+        "admin": "管理员"
+      }
+    },
+    "common": {
+      "greeting": "您好，",
+      "thanks": "谢谢，",
+      "unsubscribe": "退订",
+      "view_in_browser": "在浏览器中查看"
     }
   }
 }
