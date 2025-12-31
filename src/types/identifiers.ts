@@ -112,8 +112,6 @@ const EXTID_PREFIXES = {
   metadata: 'md',
 } as const;
 
-type _EntityType = keyof typeof EXTID_PREFIXES;
-
 /**
  * Check if a string looks like a valid ExtId
  *

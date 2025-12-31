@@ -17,20 +17,29 @@ import type { MemberExpression, TemplateLiteral, Literal, Node } from 'estree';
 
 /**
  * URL context patterns that should use ExtId, not internal IDs
+ *
+ * Note: Patterns are designed to minimize false positives while catching
+ * common URL construction patterns in Vue/TypeScript codebases.
  */
 const URL_PATTERNS = [
-  // Route paths
+  // Route paths (entity-specific)
   /\/org\//,
   /\/secret\//,
   /\/domain/,
   /\/customer/,
   /\/api\//,
-  // Template literal URL builders
-  /router\.push/,
-  /\$router\.push/,
-  /navigate/,
-  /href/,
-  /to=/,
+  // Vue Router navigation methods
+  /router\.push\s*\(/,
+  /\$router\.push\s*\(/,
+  /router\.replace\s*\(/,
+  /\$router\.replace\s*\(/,
+  // Navigation method calls (more specific than just "navigate")
+  /\.navigate\s*\(/,
+  /useRouter\(\).*\.push/,
+  // HTML/Vue template URL attributes (more specific patterns)
+  /\bhref\s*[:=]/,
+  /:to\s*=/,
+  /\bto\s*[:=]\s*["`']/,
 ];
 
 /**
