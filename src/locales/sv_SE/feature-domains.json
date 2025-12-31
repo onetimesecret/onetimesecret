@@ -3,9 +3,9 @@
     "domains": {
       "learn_more_dns": "Läs mer om DNS-konfiguration",
       "view_domain_verification_status": "Visa status för domänverifiering",
-      "domain_already_in_organization": "",
-      "domain_in_other_organization": "",
-      "domain_claimed_successfully": "",
+      "domain_already_in_organization": "Domänen finns redan i din organisation",
+      "domain_in_other_organization": "Domänen tillhör en annan organisation",
+      "domain_claimed_successfully": "Domänen har registrerats",
       "please_enter_a_domain_name": "Ange ett {0} domännamn",
       "domain_name": "Domännamn",
       "control_whether_users_can_create_secret_links": "Kontrollera om användare kan skapa hemliga länkar från din domäns hemsida",
