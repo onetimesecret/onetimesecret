@@ -5,69 +5,69 @@
       "body1": "Bir müşteri şu bilgileri gönderdi"
     },
     "secret_link": {
-      "subject": "%{sender_email} sent you a secret",
-      "sent_you_secret": "sent you a secret:",
-      "important_label": "Important:",
-      "link_works_once": "This link will only work once. After viewing, the secret will be permanently deleted.",
-      "sent_via": "Sent via"
+      "subject": "%{sender_email} size bir gizli mesaj gönderdi",
+      "sent_you_secret": "size bir gizli mesaj gönderdi:",
+      "important_label": "Önemli:",
+      "link_works_once": "Bu bağlantı yalnızca bir kez çalışır. Görüntülendikten sonra gizli mesaj kalıcı olarak silinecektir.",
+      "sent_via": "Gönderen"
     },
     "welcome": {
       "subject": "Onetime Secret hesabınızı doğrulayın",
       "title": "%{organization_name} organizasyonuna katılmaya davet edildiniz!",
-      "verify_prompt": "Please verify your email address by clicking the link below:",
-      "verify_button": "Verify Email Address",
-      "copy_link_prompt": "Or copy and paste this link:",
+      "verify_prompt": "Lütfen aşağıdaki bağlantıya tıklayarak e-posta adresinizi doğrulayın:",
+      "verify_button": "E-posta Adresini Doğrula",
+      "copy_link_prompt": "Veya bu bağlantıyı kopyalayıp yapıştırın:",
       "signature": "Delano",
       "postscript": "Not: Bu e-posta %{invited_email} adresine gönderildi. Bu daveti beklemiyorsanız, bu mesajı güvenle görmezden gelebilirsiniz."
     },
     "password_request": {
-      "subject": "Reset your password (%{display_domain})",
-      "title": "Reset Your Password",
-      "request_notice": "We received a request to reset your password for %{product_name}.",
-      "reset_button": "Reset Password",
-      "copy_link_prompt": "Or copy and paste this link:",
-      "ignore_notice": "If you did not request a password reset, you can safely ignore this email.",
+      "subject": "Parolanızı sıfırlayın (%{display_domain})",
+      "title": "Parolanızı Sıfırlayın",
+      "request_notice": "%{product_name} için parolanızı sıfırlama talebi aldık.",
+      "reset_button": "Parolayı Sıfırla",
+      "copy_link_prompt": "Veya bu bağlantıyı kopyalayıp yapıştırın:",
+      "ignore_notice": "Parola sıfırlama talebinde bulunmadıysanız, bu e-postayı güvenle görmezden gelebilirsiniz.",
       "signature": "Delano",
-      "postscript": "P.S. This email was sent to %{email_address}."
+      "postscript": "Not: Bu e-posta %{email_address} adresine gönderildi."
     },
     "incoming_secret": {
-      "subject": "You've received a secret message",
-      "received_message": "You've received a secure message:",
-      "memo_label": "Memo:",
-      "someone_sent": "Someone has sent you a secure message through %{display_domain}.",
-      "view_instructions": "To view this secret, click the link below:",
-      "important_label": "Important:",
-      "link_works_once": "This link will only work once. After viewing, the secret will be permanently deleted.",
-      "sent_via": "Sent via"
+      "subject": "Gizli bir mesaj aldınız",
+      "received_message": "Güvenli bir mesaj aldınız:",
+      "memo_label": "Not:",
+      "someone_sent": "Biri size %{display_domain} üzerinden güvenli bir mesaj gönderdi.",
+      "view_instructions": "Bu gizli mesajı görüntülemek için aşağıdaki bağlantıya tıklayın:",
+      "important_label": "Önemli:",
+      "link_works_once": "Bu bağlantı yalnızca bir kez çalışır. Görüntülendikten sonra gizli mesaj kalıcı olarak silinecektir.",
+      "sent_via": "Gönderen"
     },
     "secret_revealed": {
-      "subject": "Your secret was viewed",
-      "title": "Your Secret Was Viewed",
-      "viewed_on": "Your secret was viewed on %{date}.",
-      "secret_id_label": "Secret ID:",
-      "automated_notice": "This is an automated notification. No action is required.",
+      "subject": "Gizli mesajınız görüntülendi",
+      "title": "Gizli Mesajınız Görüntülendi",
+      "viewed_on": "Gizli mesajınız %{date} tarihinde görüntülendi.",
+      "secret_id_label": "Gizli Mesaj ID:",
+      "automated_notice": "Bu otomatik bir bildirimdir. Herhangi bir işlem yapmanız gerekmemektedir.",
       "signature": "Delano",
-      "manage_preferences": "Manage notification preferences",
-      "manage_preferences_prompt": "To manage your notification preferences:"
+      "manage_preferences": "Bildirim tercihlerini yönet",
+      "manage_preferences_prompt": "Bildirim tercihlerinizi yönetmek için:"
     },
     "expiration_warning": {
-      "subject": "Your secret link will expire soon",
-      "expires_in": "Your secret link will expire in %{time_remaining}",
-      "view_button": "View your secret before it expires",
-      "reminder_label": "Reminder:",
-      "after_expiration": "After expiration, the secret will be permanently deleted and cannot be recovered.",
-      "sent_via": "Sent via",
-      "view_before_gone": "View it before it's gone:",
-      "after_expiration_short": "After expiration, the secret will be permanently deleted."
+      "subject": "Gizli mesaj bağlantınızın süresi yakında dolacak",
+      "expires_in": "Gizli mesaj bağlantınızın süresi %{time_remaining} içinde dolacak",
+      "view_button": "Süresi dolmadan önce gizli mesajınızı görüntüleyin",
+      "reminder_label": "Hatırlatma:",
+      "after_expiration": "Süre dolduktan sonra gizli mesaj kalıcı olarak silinecek ve kurtarılamayacaktır.",
+      "sent_via": "Gönderen",
+      "view_before_gone": "Kaybetmeden önce görüntüleyin:",
+      "after_expiration_short": "Süre dolduktan sonra gizli mesaj kalıcı olarak silinecektir."
     },
     "feedback_email": {
-      "subject": "Feedback on %{date} via %{display_domain} (%{strategy})",
-      "title": "User Feedback",
-      "from_label": "From:",
-      "domain_label": "Domain:",
-      "strategy_label": "Strategy:",
-      "message_label": "Message:",
-      "signature": "Secret Support"
+      "subject": "%{date} tarihinde %{display_domain} üzerinden geri bildirim (%{strategy})",
+      "title": "Kullanıcı Geri Bildirimi",
+      "from_label": "Kimden:",
+      "domain_label": "Alan Adı:",
+      "strategy_label": "Strateji:",
+      "message_label": "Mesaj:",
+      "signature": "Secret Destek"
     },
     "organization_invitation": {
       "subject": "%{organization_name} organizasyonuna katılmaya davet edildiniz",
