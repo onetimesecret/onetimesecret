@@ -5,60 +5,60 @@
       "body1": "Клієнт надіслав наступну інформацію"
     },
     "secret_link": {
-      "subject": "%{sender_email} sent you a secret",
-      "sent_you_secret": "sent you a secret:",
+      "subject": "%{sender_email} надіслав вам таємницю",
+      "sent_you_secret": "надіслав вам таємницю:",
       "important_label": "Важливо:",
-      "link_works_once": "Це посилання спрацює лише один раз. Після перегляду секрет буде назавжди видалено.",
-      "sent_via": "Sent via"
+      "link_works_once": "Це посилання спрацює лише один раз. Після перегляду таємницю буде назавжди видалено.",
+      "sent_via": "Надіслано через"
     },
     "welcome": {
-      "subject": "Підтвердіть свій обліковий запис Onetime Secret",
-      "title": "Вас запрошено приєднатися до %{organization_name}!",
+      "subject": "Ласкаво просимо до %{product_name} - Будь ласка, підтвердьте вашу електронну пошту",
+      "title": "Ласкаво просимо до %{product_name}!",
       "verify_prompt": "Будь ласка, підтвердьте свою адресу електронної пошти, натиснувши на посилання нижче:",
       "verify_button": "Підтвердити адресу електронної пошти",
       "copy_link_prompt": "Або скопіюйте та вставте це посилання:",
       "signature": "Делано",
-      "postscript": "P.S. Цей лист було надіслано на %{invited_email}. Якщо ви не очікували цього запрошення, ви можете безпечно проігнорувати це повідомлення."
+      "postscript": "P.S. Цей лист було надіслано на %{email_address}. Якщо ви не створювали обліковий запис, ви можете безпечно проігнорувати це повідомлення."
     },
     "password_request": {
-      "subject": "Reset your password (%{display_domain})",
-      "title": "Reset Your Password",
-      "request_notice": "We received a request to reset your password for %{product_name}.",
-      "reset_button": "Reset Password",
-      "copy_link_prompt": "Or copy and paste this link:",
-      "ignore_notice": "If you did not request a password reset, you can safely ignore this email.",
-      "signature": "Delano",
-      "postscript": "P.S. This email was sent to %{email_address}."
+      "subject": "Скинути ваш пароль (%{display_domain})",
+      "title": "Скинути ваш пароль",
+      "request_notice": "Ми отримали запит на скидання вашого пароля для %{product_name}.",
+      "reset_button": "Скинути пароль",
+      "copy_link_prompt": "Або скопіюйте та вставте це посилання:",
+      "ignore_notice": "Якщо ви не запитували скидання пароля, ви можете безпечно проігнорувати цей лист.",
+      "signature": "Делано",
+      "postscript": "P.S. Цей лист було надіслано на %{email_address}."
     },
     "incoming_secret": {
-      "subject": "You've received a secret message",
-      "received_message": "You've received a secure message:",
-      "memo_label": "Memo:",
-      "someone_sent": "Someone has sent you a secure message through %{display_domain}.",
-      "view_instructions": "To view this secret, click the link below:",
+      "subject": "Ви отримали таємне повідомлення",
+      "received_message": "Ви отримали захищене повідомлення:",
+      "memo_label": "Нотатка:",
+      "someone_sent": "Хтось надіслав вам захищене повідомлення через %{display_domain}.",
+      "view_instructions": "Щоб переглянути цю таємницю, натисніть на посилання нижче:",
       "important_label": "Важливо:",
-      "link_works_once": "Це посилання спрацює лише один раз. Після перегляду секрет буде назавжди видалено.",
-      "sent_via": "Sent via"
+      "link_works_once": "Це посилання спрацює лише один раз. Після перегляду таємницю буде назавжди видалено.",
+      "sent_via": "Надіслано через"
     },
     "secret_revealed": {
-      "subject": "Ваш секрет було переглянуто",
-      "title": "Ваш секрет було переглянуто",
-      "viewed_on": "Your secret was viewed on %{date}.",
-      "secret_id_label": "Secret ID:",
-      "automated_notice": "This is an automated notification. No action is required.",
-      "signature": "Delano",
-      "manage_preferences": "Manage notification preferences",
-      "manage_preferences_prompt": "To manage your notification preferences:"
+      "subject": "Вашу таємницю було переглянуто",
+      "title": "Вашу таємницю було переглянуто",
+      "viewed_on": "Вашу таємницю було переглянуто %{date}.",
+      "secret_id_label": "ID таємниці:",
+      "automated_notice": "Це автоматичне сповіщення. Жодних дій не потрібно.",
+      "signature": "Делано",
+      "manage_preferences": "Керувати налаштуваннями сповіщень",
+      "manage_preferences_prompt": "Для керування налаштуваннями сповіщень:"
     },
     "expiration_warning": {
-      "subject": "Your secret link will expire soon",
-      "expires_in": "Your secret link will expire in %{time_remaining}",
-      "view_button": "View your secret before it expires",
-      "reminder_label": "Reminder:",
-      "after_expiration": "After expiration, the secret will be permanently deleted and cannot be recovered.",
-      "sent_via": "Sent via",
-      "view_before_gone": "View it before it's gone:",
-      "after_expiration_short": "After expiration, the secret will be permanently deleted."
+      "subject": "Ваше таємне посилання скоро закінчиться",
+      "expires_in": "Ваше таємне посилання закінчиться через %{time_remaining}",
+      "view_button": "Перегляньте вашу таємницю до закінчення терміну",
+      "reminder_label": "Нагадування:",
+      "after_expiration": "Після закінчення терміну таємницю буде назавжди видалено і не можна буде відновити.",
+      "sent_via": "Надіслано через",
+      "view_before_gone": "Перегляньте до того, як вона зникне:",
+      "after_expiration_short": "Після закінчення терміну таємницю буде назавжди видалено."
     },
     "feedback_email": {
       "subject": "Feedback on %{date} via %{display_domain} (%{strategy})",
