@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require_relative 'billing_template_helpers'
 
 module Onetime
   module Mail
@@ -21,14 +22,7 @@ module Onetime
       #   invoice_url:   Stripe hosted invoice link
       #
       class PaymentReceipt < Base
-        CURRENCY_SYMBOLS = {
-          'usd' => '$',
-          'eur' => '€',
-          'gbp' => '£',
-          'cad' => 'CA$',
-          'aud' => 'A$',
-          'jpy' => '¥',
-        }.freeze
+        include BillingTemplateHelpers
 
         protected
 
@@ -55,16 +49,6 @@ module Onetime
           data[:email_address]
         end
 
-        def formatted_amount
-          amount = data[:amount]
-          currency = data[:currency].to_s.downcase
-
-          display_amount = amount.is_a?(Integer) && amount > 100 ? amount / 100.0 : amount.to_f
-          symbol = CURRENCY_SYMBOLS.fetch(currency, "#{currency.upcase} ")
-
-          "#{symbol}#{'%.2f' % display_amount}"
-        end
-
         def paid_at_formatted
           format_timestamp(data[:paid_at])
         end
@@ -74,18 +58,6 @@ module Onetime
         end
 
         private
-
-        def format_timestamp(timestamp)
-          time = case timestamp
-                 when Time then timestamp
-                 when Integer then Time.at(timestamp)
-                 when String then Time.parse(timestamp)
-                 else timestamp
-                 end
-          time.strftime('%B %d, %Y')
-        rescue StandardError
-          timestamp.to_s
-        end
 
         def template_binding
           computed_data = data.merge(

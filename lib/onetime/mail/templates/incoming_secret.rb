@@ -71,23 +71,6 @@ module Onetime
 
         private
 
-        def site_baseuri
-          scheme = site_ssl? ? 'https://' : 'http://'
-          "#{scheme}#{site_host}"
-        end
-
-        def site_ssl?
-          return true unless defined?(OT) && OT.respond_to?(:conf)
-
-          OT.conf.dig('site', 'ssl') != false
-        end
-
-        def site_host
-          return 'onetimesecret.com' unless defined?(OT) && OT.respond_to?(:conf)
-
-          OT.conf.dig('site', 'host') || 'onetimesecret.com'
-        end
-
         def template_binding
           computed_data = data.merge(
             display_domain: display_domain,

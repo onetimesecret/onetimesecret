@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'base'
+require_relative 'billing_template_helpers'
 
 module Onetime
   module Mail
@@ -19,6 +20,8 @@ module Onetime
       #   is_upgrade: Boolean indicating upgrade vs downgrade
       #
       class SubscriptionChanged < Base
+        include BillingTemplateHelpers
+
         protected
 
         def validate_data!
@@ -71,18 +74,6 @@ module Onetime
         end
 
         private
-
-        def format_timestamp(timestamp)
-          time = case timestamp
-                 when Time then timestamp
-                 when Integer then Time.at(timestamp)
-                 when String then Time.parse(timestamp)
-                 else timestamp
-                 end
-          time.strftime('%B %d, %Y')
-        rescue StandardError
-          timestamp.to_s
-        end
 
         def template_binding
           computed_data = data.merge(

@@ -34,20 +34,6 @@ module Onetime
           )
         end
 
-        def product_name
-          data[:product_name] || site_product_name
-        end
-
-        def display_domain
-          data[:display_domain] || site_host
-        end
-
-        def site_product_name
-          return 'Onetime Secret' unless defined?(OT) && OT.respond_to?(:conf)
-
-          OT.conf.dig('site', 'product_name') || 'Onetime Secret'
-        end
-
         def recipient_email
           data[:email_address]
         end
@@ -67,23 +53,6 @@ module Onetime
         end
 
         private
-
-        def site_ssl?
-          return true unless defined?(OT) && OT.respond_to?(:conf)
-
-          OT.conf.dig('site', 'ssl') != false
-        end
-
-        def site_host
-          return 'onetimesecret.com' unless defined?(OT) && OT.respond_to?(:conf)
-
-          OT.conf.dig('site', 'host') || 'onetimesecret.com'
-        end
-
-        def site_baseuri
-          scheme = site_ssl? ? 'https://' : 'http://'
-          "#{scheme}#{site_host}"
-        end
 
         def template_binding
           computed_data = data.merge(
