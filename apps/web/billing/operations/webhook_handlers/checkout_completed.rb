@@ -144,12 +144,12 @@ module Billing
 
           # 3. Customer's default org
           orgs = customer.organization_instances.to_a
-          org = orgs.find { |o| o.is_default }
+          org  = orgs.find { |o| o.is_default }
           return org if org
 
           # 4. Create default org (shouldn't happen - checkout requires org)
           billing_logger.warn 'Creating default org during checkout (unexpected)', { customer_extid: customer.extid }
-          org = Onetime::Organization.create!(
+          org            = Onetime::Organization.create!(
             "#{customer.email}'s Workspace",
             customer,
             customer.email,

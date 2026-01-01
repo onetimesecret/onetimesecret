@@ -274,7 +274,7 @@ module Onetime
           def site_baseuri
             @site_baseuri ||= begin
               scheme = site_config['ssl'] == false ? 'http://' : 'https://'
-              host = site_config['host'] || 'localhost'
+              host   = site_config['host'] || 'localhost'
               "#{scheme}#{host}"
             end
           end

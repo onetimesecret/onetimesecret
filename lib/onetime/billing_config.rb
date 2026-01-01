@@ -37,7 +37,7 @@ module Onetime
     # Checks ENV['STRIPE_API_KEY'] first, then falls back to config file.
     # This allows environment-based configuration to override file config.
     def stripe_key
-      env_key    = ENV['STRIPE_API_KEY']
+      env_key    = ENV.fetch('STRIPE_API_KEY', nil)
       config_key = config['stripe_key']
       result     = env_key || config_key
 
@@ -47,7 +47,11 @@ module Onetime
         OT.ld '[BillingConfig.stripe_key] Key resolution', {
           env_present: !env_key.to_s.strip.empty?,
           config_present: !config_key.to_s.strip.empty?,
-          source: env_key ? 'ENV' : (config_key ? 'config' : 'none'),
+          source: if env_key
+'ENV'
+else
+(config_key ? 'config' : 'none')
+end,
           result_prefix: result&.slice(0, 8),
         }
       end

@@ -15,18 +15,17 @@ module Onetime
         }.freeze
 
         def formatted_amount
-          amount = data[:amount]
+          amount   = data[:amount]
           currency = data[:currency].to_s.downcase
 
           display_amount = amount.is_a?(Integer) && amount > 100 ? amount / 100.0 : amount.to_f
-          symbol = CURRENCY_SYMBOLS.fetch(currency, "#{currency.upcase} ")
+          symbol         = CURRENCY_SYMBOLS.fetch(currency, "#{currency.upcase} ")
 
-          "#{symbol}#{'%.2f' % display_amount}"
+          "#{symbol}#{format('%.2f', display_amount)}"
         end
 
         def format_timestamp(timestamp)
           time = case timestamp
-                 when Time then timestamp
                  when Integer then Time.at(timestamp)
                  when String then Time.parse(timestamp)
                  else timestamp

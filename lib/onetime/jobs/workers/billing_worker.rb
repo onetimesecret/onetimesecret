@@ -20,7 +20,7 @@ require_relative '../../../../apps/web/billing/models/stripe_webhook_event'
 if Stripe.api_key.nil? || Stripe.api_key.to_s.strip.empty?
   stripe_key = Onetime.billing_config&.stripe_key
   if stripe_key && !stripe_key.to_s.strip.empty?
-    Stripe.api_key = stripe_key
+    Stripe.api_key     = stripe_key
     Stripe.api_version = Onetime.billing_config&.stripe_api_version
     Onetime.jobs_logger&.info '[BillingWorker] Stripe API configured for worker'
   else

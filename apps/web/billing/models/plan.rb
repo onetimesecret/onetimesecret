@@ -546,7 +546,7 @@ module Billing
 
         stripe_key = Onetime.billing_config.stripe_key
         if stripe_key && !stripe_key.to_s.strip.empty?
-          Stripe.api_key = stripe_key
+          Stripe.api_key     = stripe_key
           Stripe.api_version = Onetime.billing_config.stripe_api_version
           OT.ld '[Plan.ensure_stripe_configured!] Configured Stripe API key', {
             key_prefix: stripe_key[0..7],

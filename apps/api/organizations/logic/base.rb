@@ -95,7 +95,7 @@ module OrganizationAPI
         # Convert owner_id (custid) to owner_extid (Customer#extid) for opaque identifier pattern
         # This prevents internal ID exposure in API responses
         if record[:owner_id]
-          owner = organization.owner
+          owner                = organization.owner
           record[:owner_extid] = owner&.extid
         end
         record.delete(:owner_id) # Remove internal ID from response
