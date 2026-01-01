@@ -111,13 +111,11 @@ module Onetime
         Onetime.bunny_logger.debug "[init] Setup RabbitMQ: channel pool created (size: #{pool_size})"
 
         # Declare dead letter infrastructure first (exchanges + queues)
+        # but let the worker declare the queues to prevent race conditions.
         declare_dead_letter_infrastructure
 
-        # Declare main queues (which reference DLX)
-        declare_queues
-
         # Verify connectivity
-        verify_connection
+        # verify_connection
 
         OT.log_box([
                      '✅ RABBITMQ: Connected to message broker',
