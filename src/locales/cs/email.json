@@ -4,17 +4,70 @@
       "subject": "[Ticket: %s]",
       "body1": "Zákazník odeslal následující informace"
     },
-    "secretlink": {
-      "subject": "%s ti poslal tajemství",
-      "body1": "Máme pro tebe tajemství od",
-      "body_tagline": "Pokud odesílatele neznáš nebo se domníváš, že jde o spam, pošli nám podrobnosti zde:"
+    "secret_link": {
+      "subject": "%{sender_email} vám poslal tajemství",
+      "sent_you_secret": "vám poslal tajemství:",
+      "important_label": "Důležité:",
+      "link_works_once": "Tento odkaz bude fungovat pouze jednou. Po zobrazení bude tajemství trvale smazáno.",
+      "sent_via": "Odesláno přes"
     },
     "welcome": {
       "subject": "Ověř svůj účet Onetime Secret",
-      "body1": "Vítej v Onetime Secret. Máme pro tebe tajemství!",
-      "please_verify": "Prosím ověř svůj účet:",
-      "postscript1": "Tento e-mail byl odeslán na",
-      "postscript2": "Pokud jsi tento požadavek neučinil, můžeš tento e-mail bezpečně ignorovat."
+      "title": "Byl jsi pozván do %{organization_name}!",
+      "verify_prompt": "Ověřte prosím svou e-mailovou adresu kliknutím na odkaz níže:",
+      "verify_button": "Ověřit e-mailovou adresu",
+      "copy_link_prompt": "Nebo zkopírujte a vložte tento odkaz:",
+      "signature": "Delano",
+      "postscript": "P.S. Tento e-mail byl odeslán na %{invited_email}. Pokud jsi tuto pozvánku neočekával, můžeš tuto zprávu bezpečně ignorovat."
+    },
+    "password_request": {
+      "subject": "Obnovit heslo (%{display_domain})",
+      "title": "Obnovit heslo",
+      "request_notice": "Obdrželi jsme žádost o obnovení vašeho hesla pro %{product_name}.",
+      "reset_button": "Obnovit heslo",
+      "copy_link_prompt": "Nebo zkopírujte a vložte tento odkaz:",
+      "ignore_notice": "Pokud jste o obnovení hesla nežádali, můžete tento e-mail bezpečně ignorovat.",
+      "signature": "Delano",
+      "postscript": "P.S. Tento e-mail byl odeslán na %{email_address}."
+    },
+    "incoming_secret": {
+      "subject": "Obdrželi jste tajnou zprávu",
+      "received_message": "Obdrželi jste bezpečnou zprávu:",
+      "memo_label": "Poznámka:",
+      "someone_sent": "Někdo vám poslal bezpečnou zprávu přes %{display_domain}.",
+      "view_instructions": "Pro zobrazení tohoto tajemství klikněte na odkaz níže:",
+      "important_label": "Důležité:",
+      "link_works_once": "Tento odkaz bude fungovat pouze jednou. Po zobrazení bude tajemství trvale smazáno.",
+      "sent_via": "Odesláno přes"
+    },
+    "secret_revealed": {
+      "subject": "Vaše tajemství bylo zobrazeno",
+      "title": "Vaše tajemství bylo zobrazeno",
+      "viewed_on": "Vaše tajemství bylo zobrazeno %{date}.",
+      "secret_id_label": "ID tajemství:",
+      "automated_notice": "Toto je automatické upozornění. Není vyžadována žádná akce.",
+      "signature": "Delano",
+      "manage_preferences": "Spravovat předvolby upozornění",
+      "manage_preferences_prompt": "Pro správu předvoleb upozornění:"
+    },
+    "expiration_warning": {
+      "subject": "Váš odkaz na tajemství brzy vyprší",
+      "expires_in": "Váš odkaz na tajemství vyprší za %{time_remaining}",
+      "view_button": "Zobrazit tajemství před vypršením",
+      "reminder_label": "Připomínka:",
+      "after_expiration": "Po vypršení bude tajemství trvale smazáno a nelze jej obnovit.",
+      "sent_via": "Odesláno přes",
+      "view_before_gone": "Zobrazit před vypršením:",
+      "after_expiration_short": "Po vypršení bude tajemství trvale smazáno."
+    },
+    "feedback_email": {
+      "subject": "Zpětná vazba z %{date} přes %{display_domain} (%{strategy})",
+      "title": "Zpětná vazba uživatele",
+      "from_label": "Od:",
+      "domain_label": "Doména:",
+      "strategy_label": "Strategie:",
+      "message_label": "Zpráva:",
+      "signature": "Podpora Secret"
     },
     "organization_invitation": {
       "subject": "Byl jsi pozván do %{organization_name}",
@@ -31,11 +84,108 @@
         "admin": "administrátor"
       }
     },
+    "password_changed": {
+      "subject": "Vaše heslo bylo změněno (%{display_domain})",
+      "title": "Vaše heslo bylo změněno",
+      "body": "Vaše heslo pro %{product_name} bylo změněno %{date} v %{time}.",
+      "security_notice": "Pokud jste tuto změnu neprovedli, zabezpečte prosím okamžitě svůj účet obnovením hesla a kontaktováním podpory.",
+      "signature": "Delano"
+    },
+    "email_changed": {
+      "subject": "Vaše e-mailová adresa byla změněna (%{display_domain})",
+      "title": "Vaše e-mailová adresa byla změněna",
+      "body": "E-mailová adresa vašeho účtu %{product_name} byla změněna na %{new_email_masked} dne %{date}.",
+      "security_notice": "Pokud jste tuto změnu neprovedli, kontaktujte prosím okamžitě podporu, protože váš účet může být kompromitován.",
+      "signature": "Delano"
+    },
+    "email_change_confirmation": {
+      "subject": "Ověřte svou novou e-mailovou adresu (%{display_domain})",
+      "title": "Ověřte svou novou e-mailovou adresu",
+      "body": "Ověřte prosím tuto e-mailovou adresu pro dokončení změny vašeho účtu %{product_name}.",
+      "verify_button": "Ověřit e-mailovou adresu",
+      "copy_link_prompt": "Nebo zkopírujte a vložte tento odkaz:",
+      "signature": "Delano"
+    },
+    "mfa_enabled": {
+      "subject": "Dvoufaktorové ověření povoleno (%{display_domain})",
+      "title": "Dvoufaktorové ověření povoleno",
+      "body": "Dvoufaktorové ověření bylo pro váš účet %{product_name} povoleno dne %{date}.",
+      "security_notice": "Váš účet je nyní bezpečnější. Při přihlašování budete muset zadat ověřovací kód z vaší autentizační aplikace.",
+      "signature": "Delano"
+    },
+    "mfa_disabled": {
+      "subject": "Dvoufaktorové ověření zakázáno (%{display_domain})",
+      "title": "Dvoufaktorové ověření zakázáno",
+      "body": "Dvoufaktorové ověření bylo pro váš účet %{product_name} zakázáno dne %{date}.",
+      "warning_notice": "Váš účet je nyní méně bezpečný. Pokud jste tuto změnu neprovedli, zabezpečte prosím okamžitě svůj účet.",
+      "signature": "Delano"
+    },
+    "new_login_alert": {
+      "subject": "Nové přihlášení k vašemu účtu (%{display_domain})",
+      "title": "Zjištěno nové přihlášení",
+      "body": "Nové přihlášení k vašemu účtu %{product_name} bylo zjištěno %{date} v %{time}.",
+      "device_label": "Zařízení:",
+      "location_label": "Umístění:",
+      "ip_address_label": "IP adresa:",
+      "not_you_notice": "Pokud jste to nebyli vy, váš účet může být kompromitován.",
+      "secure_account_button": "Zabezpečit účet",
+      "signature": "Delano"
+    },
+    "member_removed": {
+      "subject": "Byl jsi odebrán z %{organization_name}",
+      "title": "Byl jsi odebrán z %{organization_name}",
+      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "signature": "Delano"
+    },
+    "role_changed": {
+      "subject": "Vaše role byla změněna v %{organization_name}",
+      "title": "Vaše role byla změněna",
+      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "signature": "Delano"
+    },
+    "organization_deleted": {
+      "subject": "Organization \"%{organization_name}\" was deleted",
+      "title": "Organizace smazána",
+      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "signature": "Delano"
+    },
+    "payment_receipt": {
+      "subject": "Potvrzení o platbě pro %{product_name}",
+      "title": "Potvrzení o platbě",
+      "body": "Děkujeme za vaši platbu. Zde jsou podrobnosti o platbě:",
+      "amount_label": "Částka:",
+      "date_label": "Datum:",
+      "plan_label": "Plán:",
+      "invoice_link": "Zobrazit fakturu",
+      "signature": "Delano"
+    },
+    "payment_failed": {
+      "subject": "Platba pro %{product_name} selhala",
+      "title": "Platba selhala",
+      "body": "Nemohli jsme zpracovat vaši platbu pro %{product_name}. Aktualizujte prosím svou platební metodu, abyste se vyhnuli přerušení služby.",
+      "update_payment_button": "Aktualizovat platební metodu",
+      "signature": "Delano"
+    },
+    "trial_expiring": {
+      "subject": "Vaše zkušební verze %{product_name} vyprší za %{days_remaining} dní",
+      "title": "Vaše zkušební verze brzy skončí",
+      "body": "Vaše bezplatná zkušební verze %{product_name} vyprší za %{days_remaining} dní. Upgradujte nyní, abyste měli přístup ke všem funkcím.",
+      "upgrade_button": "Upgradovat nyní",
+      "signature": "Delano"
+    },
+    "subscription_changed": {
+      "subject": "Vaše předplatné %{product_name} bylo změněno",
+      "title": "Předplatné změněno",
+      "body": "Vaše předplatné %{product_name} bylo změněno z %{old_plan} na %{new_plan}.",
+      "effective_date": "Tato změna je účinná od %{date}.",
+      "signature": "Delano"
+    },
     "common": {
       "greeting": "Ahoj,",
       "thanks": "Díky,",
       "unsubscribe": "Odhlásit odběr",
-      "view_in_browser": "Zobrazit v prohlížeči"
+      "view_in_browser": "Zobrazit v prohlížeči",
+      "onetime_secret": "Onetime Secret"
     }
   }
 }
