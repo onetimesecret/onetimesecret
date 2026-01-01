@@ -84,6 +84,102 @@
         "admin": "an administrator"
       }
     },
+    "password_changed": {
+      "subject": "Your password was changed (%{display_domain})",
+      "title": "Your Password Was Changed",
+      "body": "Your password for %{product_name} was changed on %{date} at %{time}.",
+      "security_notice": "If you did not make this change, please secure your account immediately by resetting your password and contacting support.",
+      "signature": "Delano"
+    },
+    "email_changed": {
+      "subject": "Your email address was changed (%{display_domain})",
+      "title": "Your Email Address Was Changed",
+      "body": "The email address for your %{product_name} account was changed to %{new_email_masked} on %{date}.",
+      "security_notice": "If you did not make this change, please contact support immediately as your account may be compromised.",
+      "signature": "Delano"
+    },
+    "email_change_confirmation": {
+      "subject": "Verify your new email address (%{display_domain})",
+      "title": "Verify Your New Email Address",
+      "body": "Please verify this email address to complete the change for your %{product_name} account.",
+      "verify_button": "Verify Email Address",
+      "copy_link_prompt": "Or copy and paste this link:",
+      "signature": "Delano"
+    },
+    "mfa_enabled": {
+      "subject": "Two-factor authentication enabled (%{display_domain})",
+      "title": "Two-Factor Authentication Enabled",
+      "body": "Two-factor authentication was enabled for your %{product_name} account on %{date}.",
+      "security_notice": "Your account is now more secure. You will need to enter a verification code from your authenticator app when signing in.",
+      "signature": "Delano"
+    },
+    "mfa_disabled": {
+      "subject": "Two-factor authentication disabled (%{display_domain})",
+      "title": "Two-Factor Authentication Disabled",
+      "body": "Two-factor authentication was disabled for your %{product_name} account on %{date}.",
+      "warning_notice": "Your account is now less secure. If you did not make this change, please secure your account immediately.",
+      "signature": "Delano"
+    },
+    "new_login_alert": {
+      "subject": "New sign-in to your account (%{display_domain})",
+      "title": "New Sign-In Detected",
+      "body": "A new sign-in to your %{product_name} account was detected on %{date} at %{time}.",
+      "device_label": "Device:",
+      "location_label": "Location:",
+      "ip_address_label": "IP Address:",
+      "not_you_notice": "If this wasn't you, your account may be compromised.",
+      "secure_account_button": "Secure Your Account",
+      "signature": "Delano"
+    },
+    "member_removed": {
+      "subject": "You've been removed from %{organization_name}",
+      "title": "You've Been Removed from %{organization_name}",
+      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "signature": "Delano"
+    },
+    "role_changed": {
+      "subject": "Your role was changed in %{organization_name}",
+      "title": "Your Role Was Changed",
+      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "signature": "Delano"
+    },
+    "organization_deleted": {
+      "subject": "Organization \"%{organization_name}\" was deleted",
+      "title": "Organization Deleted",
+      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "signature": "Delano"
+    },
+    "payment_receipt": {
+      "subject": "Payment receipt for %{product_name}",
+      "title": "Payment Receipt",
+      "body": "Thank you for your payment. Here are your payment details:",
+      "amount_label": "Amount:",
+      "date_label": "Date:",
+      "plan_label": "Plan:",
+      "invoice_link": "View Invoice",
+      "signature": "Delano"
+    },
+    "payment_failed": {
+      "subject": "Payment failed for %{product_name}",
+      "title": "Payment Failed",
+      "body": "We were unable to process your payment for %{product_name}. Please update your payment method to avoid service interruption.",
+      "update_payment_button": "Update Payment Method",
+      "signature": "Delano"
+    },
+    "trial_expiring": {
+      "subject": "Your %{product_name} trial expires in %{days_remaining} days",
+      "title": "Your Trial Is Ending Soon",
+      "body": "Your free trial of %{product_name} will expire in %{days_remaining} days. Upgrade now to keep access to all features.",
+      "upgrade_button": "Upgrade Now",
+      "signature": "Delano"
+    },
+    "subscription_changed": {
+      "subject": "Your %{product_name} subscription was changed",
+      "title": "Subscription Changed",
+      "body": "Your %{product_name} subscription has been changed from %{old_plan} to %{new_plan}.",
+      "effective_date": "This change is effective %{date}.",
+      "signature": "Delano"
+    },
     "common": {
       "greeting": "Hello,",
       "thanks": "Thanks,",
