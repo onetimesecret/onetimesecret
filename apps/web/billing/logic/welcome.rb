@@ -20,7 +20,7 @@ module Billing
           :update_customer_fields, :stripe_subscription
 
         def process_params
-          @checkout_session_id = params[:checkout]
+          @checkout_session_id = params['checkout']
         end
 
         def raise_concerns
@@ -196,7 +196,7 @@ module Billing
         attr_reader :session_id, :checkout_session, :subscription
 
         def process_params
-          @session_id = params[:session_id]
+          @session_id = params['session_id']
         end
 
         def raise_concerns

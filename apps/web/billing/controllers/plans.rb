@@ -23,8 +23,8 @@ module Billing
       # @return [HTTP 302] Redirects to Stripe Checkout Session
       #
       def checkout_redirect
-        tier          = req.params[:tier] ||= 'single_team'
-        billing_cycle = req.params[:billing_cycle] ||= 'monthly'
+        tier          = req.params['tier'] ||= 'single_team'
+        billing_cycle = req.params['billing_cycle'] ||= 'monthly'
 
         # Detect region from request (future: use GeoIP)
         region = detect_region

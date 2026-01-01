@@ -12,10 +12,10 @@ module V1::Logic
       attr_reader :metadata, :secret, :correct_passphrase, :greenlighted
 
       def process_params
-        @key = params[:key].to_s
+        @key = params['key'].to_s
         @metadata = Onetime::Metadata.load key
-        @passphrase = params[:passphrase].to_s
-        @continue = [true, 'true'].include?(params[:continue])
+        @passphrase = params['passphrase'].to_s
+        @continue = [true, 'true'].include?(params['continue'])
       end
 
       def raise_concerns
@@ -31,7 +31,7 @@ module V1::Logic
 
           @correct_passphrase = !potential_secret.has_passphrase? || potential_secret.passphrase?(passphrase)
           viewable = potential_secret.viewable?
-          continue_result = params[:continue]
+          continue_result = params['continue']
           @greenlighted = viewable && correct_passphrase && continue_result
 
           if greenlighted

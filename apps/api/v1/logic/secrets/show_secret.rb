@@ -15,10 +15,10 @@ module V1::Logic
                   :secret_key, :share_domain
 
       def process_params
-        @key = params[:key].to_s
+        @key = params['key'].to_s
         @secret = Onetime::Secret.load key
-        @passphrase = params[:passphrase].to_s
-        @continue = params[:continue].to_s == 'true'
+        @passphrase = params['passphrase'].to_s
+        @continue = params['continue'].to_s == 'true'
       end
 
       def raise_concerns

@@ -151,7 +151,7 @@ module V1
     # @param locale [String, nil] The locale to be used, if specified.
     # @return [void]
     def check_locale!(locale = nil)
-      locale ||= req.params[:locale]
+      locale ||= req.params['locale']
       locale ||= cust.locale if cust&.locale
       locale ||= (req.env['rack.locale'] || []).first
 

@@ -93,7 +93,7 @@ module Billing
       # @return [Hash] Entitlement check result
       def check
         org         = load_organization(req.params['extid'])
-        entitlement = req.params[:entitlement]
+        entitlement = req.params['entitlement']
 
         if entitlement.to_s.empty?
           return json_error('Entitlement parameter required', status: 400)
@@ -115,7 +115,7 @@ module Billing
         billing_logger.error 'Failed entitlement check', {
           exception: ex,
           extid: req.params['extid'],
-          entitlement: req.params[:entitlement],
+          entitlement: req.params['entitlement'],
         }
         json_error('Failed to check entitlement', status: 500)
       end

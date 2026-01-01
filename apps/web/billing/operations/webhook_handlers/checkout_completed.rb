@@ -133,7 +133,7 @@ module Billing
           end
 
           # 2. Org already linked to Stripe customer (idempotent replay case)
-          stripe_customer_id = metadata.to_h.dig(:object, :customer) || @data_object&.customer
+          stripe_customer_id = @data_object&.customer
           if stripe_customer_id
             org = Onetime::Organization.find_by_stripe_customer_id(stripe_customer_id)
             if org

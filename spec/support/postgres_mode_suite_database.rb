@@ -136,9 +136,10 @@ module PostgresModeSuiteDatabase
       migrations_path = File.join(Onetime::HOME, 'apps', 'web', 'auth', 'migrations')
 
       # Check if we need elevated privileges for migrations
+      # Only check ENV var - OT.auth_config is not yet available during setup
       migration_url = ENV['AUTH_DATABASE_URL_MIGRATIONS']
 
-      if migration_url && migration_url != ENV['AUTH_DATABASE_URL']
+      if migration_url && !migration_url.to_s.empty? && migration_url != ENV['AUTH_DATABASE_URL']
         # Use separate elevated connection for migrations only
         migration_db = Sequel.connect(migration_url)
         begin

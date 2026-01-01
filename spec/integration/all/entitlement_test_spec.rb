@@ -58,8 +58,8 @@ RSpec.describe 'ColonelAPI::Logic::Colonel::SetEntitlementTest', type: :integrat
     customer ||= colonel_customer
     org ||= organization
 
-    # Build params hash from the planid
-    params_hash = { planid: planid }
+    # Build params hash from the planid (use string keys to match Rack params)
+    params_hash = { 'planid' => planid }
 
     # Mock session object
     session = double('Session')
