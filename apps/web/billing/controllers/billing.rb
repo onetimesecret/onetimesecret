@@ -140,7 +140,7 @@ module Billing
         #
         # SHA256 produces 64 hex chars, well within Stripe's 255 char limit.
         # ==========================================================================
-        time_component = if Stripe.api_key&.start_with?('sk_test_')
+        time_component  = if Stripe.api_key&.start_with?('sk_test_')
                            Time.now.strftime('%Y-%m-%dT%H:%M') # Minute granularity for test
                          else
                            Time.now.to_date.iso8601 # Daily for production
@@ -288,7 +288,8 @@ module Billing
           return json_response({
             has_active_subscription: false,
             current_plan: org.planid,
-          })
+          },
+                              )
         end
 
         # Validate Stripe API key is configured before making API calls
@@ -307,7 +308,8 @@ module Billing
           subscription_item_id: current_item.id,
           subscription_status: subscription.status,
           current_period_end: current_item.current_period_end,
-        })
+        },
+                     )
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue Stripe::StripeError => ex
@@ -403,7 +405,8 @@ module Billing
             amount: new_price&.unit_amount,
             interval: new_price&.recurring&.interval,
           },
-        })
+        },
+                     )
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
@@ -492,7 +495,8 @@ module Billing
           new_plan: org.planid,
           status: updated_subscription.status,
           current_period_end: updated_subscription.items.data.first.current_period_end,
-        })
+        },
+                     )
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex

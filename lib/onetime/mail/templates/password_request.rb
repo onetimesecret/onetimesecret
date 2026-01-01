@@ -27,8 +27,11 @@ module Onetime
         public
 
         def subject
-          # TODO: I18n.t('email.password_request.subject')
-          'Reset your password (OnetimeSecret.com)'
+          EmailTranslations.translate(
+            'email.password_request.subject',
+            locale: locale,
+            display_domain: display_domain,
+          )
         end
 
         def recipient_email
@@ -51,28 +54,13 @@ module Onetime
 
         private
 
-        def site_ssl?
-          return true unless defined?(OT) && OT.respond_to?(:conf)
-
-          OT.conf.dig('site', 'ssl') != false
-        end
-
-        def site_host
-          return 'onetimesecret.com' unless defined?(OT) && OT.respond_to?(:conf)
-
-          OT.conf.dig('site', 'host') || 'onetimesecret.com'
-        end
-
-        def site_baseuri
-          scheme = site_ssl? ? 'https://' : 'http://'
-          "#{scheme}#{site_host}"
-        end
-
         def template_binding
           computed_data = data.merge(
             forgot_path: forgot_path,
             email_address: email_address,
             baseuri: baseuri,
+            product_name: product_name,
+            display_domain: display_domain,
           )
           TemplateContext.new(computed_data, locale).get_binding
         end

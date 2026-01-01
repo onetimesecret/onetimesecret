@@ -248,7 +248,8 @@ module Onetime
         customer_id        = subscription.customer[0..21]
         status             = subscription.status[0..11]
         # NOTE: current_period_end is now at the subscription item level in Stripe API 2025-11-17.clover
-        period_end_ts      = subscription.items&.data&.first&.current_period_end
+        first_item         = subscription.items&.data&.first
+        period_end_ts      = first_item&.current_period_end
         current_period_end = period_end_ts ? Time.at(period_end_ts).strftime('%Y-%m-%d') : 'N/A'
 
         format('%-22s %-22s %-12s %-12s',

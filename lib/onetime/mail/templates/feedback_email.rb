@@ -33,7 +33,13 @@ module Onetime
         def subject
           stamp    = Time.now.utc.strftime('%b %d, %Y')
           strategy = data[:domain_strategy] || 'default'
-          "Feedback on #{stamp} via #{data[:display_domain]} (#{strategy})"
+          EmailTranslations.translate(
+            'email.feedback_email.subject',
+            locale: locale,
+            date: stamp,
+            display_domain: data[:display_domain],
+            strategy: strategy,
+          )
         end
 
         def recipient_email
@@ -57,23 +63,6 @@ module Onetime
         end
 
         private
-
-        def site_ssl?
-          return true unless defined?(OT) && OT.respond_to?(:conf)
-
-          OT.conf.dig('site', 'ssl') != false
-        end
-
-        def site_host
-          return 'onetimesecret.com' unless defined?(OT) && OT.respond_to?(:conf)
-
-          OT.conf.dig('site', 'host') || 'onetimesecret.com'
-        end
-
-        def site_baseuri
-          scheme = site_ssl? ? 'https://' : 'http://'
-          "#{scheme}#{site_host}"
-        end
 
         def template_binding
           computed_data = data.merge(

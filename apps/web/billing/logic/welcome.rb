@@ -195,7 +195,7 @@ module Billing
         # @return [Hash] The modified fields hash
         def preserve_existing_stripe_customer_id(customer, fields)
           existing_id = customer.stripe_customer_id.to_s
-          new_id = fields[:stripe_customer_id].to_s
+          new_id      = fields[:stripe_customer_id].to_s
 
           if existing_id.present? && existing_id != new_id
             OT.lw '[FromStripePaymentLink] Customer already has stripe_customer_id, keeping existing', {

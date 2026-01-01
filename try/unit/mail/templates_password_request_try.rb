@@ -54,10 +54,10 @@ template = Onetime::Mail::Templates::PasswordRequest.new(@valid_data)
 template.class
 #=> Onetime::Mail::Templates::PasswordRequest
 
-## PasswordRequest subject mentions password reset
+## PasswordRequest subject uses dynamic display_domain
 template = Onetime::Mail::Templates::PasswordRequest.new(@valid_data)
-template.subject
-#=> 'Reset your password (OnetimeSecret.com)'
+template.subject.start_with?('Reset your password')
+#=> true
 
 ## PasswordRequest recipient_email returns email_address from data
 template = Onetime::Mail::Templates::PasswordRequest.new(@valid_data)

@@ -132,6 +132,49 @@ module Onetime
           data[:recipient] || data[:email_address] || data[:to]
         end
 
+        # Site SSL configuration helper
+        # @return [Boolean]
+        def site_ssl?
+          return true unless defined?(OT) && OT.respond_to?(:conf)
+
+          OT.conf.dig('site', 'ssl') != false
+        end
+
+        # Site host configuration helper
+        # @return [String]
+        def site_host
+          return 'onetimesecret.com' unless defined?(OT) && OT.respond_to?(:conf)
+
+          OT.conf.dig('site', 'host') || 'onetimesecret.com'
+        end
+
+        # Site base URI configuration helper
+        # @return [String]
+        def site_baseuri
+          scheme = site_ssl? ? 'https://' : 'http://'
+          "#{scheme}#{site_host}"
+        end
+
+        # Site product name configuration helper
+        # @return [String]
+        def site_product_name
+          return 'Onetime Secret' unless defined?(OT) && OT.respond_to?(:conf)
+
+          OT.conf.dig('site', 'product_name') || 'Onetime Secret'
+        end
+
+        # Product name with fallback to site config
+        # @return [String]
+        def product_name
+          data[:product_name] || site_product_name
+        end
+
+        # Display domain with fallback to site host
+        # @return [String]
+        def display_domain
+          data[:display_domain] || site_host
+        end
+
         private
 
         def render_template(extension)
@@ -205,18 +248,45 @@ module Onetime
             @data[:baseuri] || site_baseuri
           end
 
+          # Product name helper (organization name or default)
+          # @return [String]
+          def product_name
+            @data[:product_name] || site_product_name
+          end
+
+          # Display domain helper (custom domain or canonical)
+          # @return [String]
+          def display_domain
+            @data[:display_domain] || @data[:share_domain] || site_host
+          end
+
+          # Get product name from site config
+          def site_product_name
+            @site_product_name ||= site_config['product_name'] || 'Onetime Secret'
+          end
+
+          # Get host from site config
+          def site_host
+            @site_host ||= site_config['host'] || 'onetimesecret.com'
+          end
+
           # Get base URI from site config
           def site_baseuri
-            return @site_baseuri if defined?(@site_baseuri)
-
-            if defined?(OT) && OT.respond_to?(:conf)
-              site          = OT.conf['site'] || {}
-              scheme        = site['ssl'] == false ? 'http://' : 'https://'
-              host          = site['host'] || 'localhost'
-              @site_baseuri = "#{scheme}#{host}"
-            else
-              @site_baseuri = 'https://onetimesecret.com'
+            @site_baseuri ||= begin
+              scheme = site_config['ssl'] == false ? 'http://' : 'https://'
+              host   = site_config['host'] || 'localhost'
+              "#{scheme}#{host}"
             end
+          end
+
+          private
+
+          def site_config
+            @site_config ||= if defined?(OT) && OT.respond_to?(:conf) && OT.conf
+                               OT.conf['site'] || {}
+                             else
+                               {}
+                             end
           end
         end
       end

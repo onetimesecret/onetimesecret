@@ -33,8 +33,11 @@ module Onetime
         public
 
         def subject
-          # TODO: I18n.t('email.secret_link.subject', sender: data[:sender_email])
-          "#{data[:sender_email]} sent you a secret"
+          EmailTranslations.translate(
+            'email.secret_link.subject',
+            locale: locale,
+            sender_email: data[:sender_email],
+          )
         end
 
         def recipient_email
@@ -65,23 +68,6 @@ module Onetime
         end
 
         private
-
-        def site_ssl?
-          return true unless defined?(OT) && OT.respond_to?(:conf)
-
-          OT.conf.dig('site', 'ssl') != false
-        end
-
-        def site_host
-          return 'onetimesecret.com' unless defined?(OT) && OT.respond_to?(:conf)
-
-          OT.conf.dig('site', 'host') || 'onetimesecret.com'
-        end
-
-        def site_baseuri
-          scheme = site_ssl? ? 'https://' : 'http://'
-          "#{scheme}#{site_host}"
-        end
 
         # Override to include computed values in template context
         def template_binding

@@ -239,7 +239,6 @@ module Onetime
           # Feature flags
           auth_config_rows << ['Full Mode', config.full_enabled?]
           auth_config_rows << ['Simple Mode', config.simple_enabled?]
-
         rescue StandardError => ex
           auth_config_rows << ['Error', "Error rendering auth config: #{ex.message}"]
         end
@@ -264,7 +263,7 @@ module Onetime
           # Stripe API key (masked)
           if config.stripe_key
             masked_key = mask_sensitive_value(config.stripe_key, type: :stripe_key)
-            mode = config.stripe_key.start_with?('sk_test_', 'rk_test_') ? 'Test' : 'Live'
+            mode       = config.stripe_key.start_with?('sk_test_', 'rk_test_') ? 'Test' : 'Live'
             billing_config_rows << ['Stripe Key', "#{masked_key} (#{mode})"]
           end
 
@@ -276,7 +275,6 @@ module Onetime
 
           # API version
           billing_config_rows << ['API Version', config.stripe_api_version] if config.stripe_api_version
-
         rescue StandardError => ex
           billing_config_rows << ['Error', "Error rendering billing config: #{ex.message}"]
         end
@@ -296,7 +294,7 @@ module Onetime
           # For database URLs, show the scheme and host but mask password
           # Format: scheme://user:password@host:port/database
           if value =~ %r{^([^:]+://[^:]+):([^@]+)(@.+)$}
-            "#{$1}:****#{$3}"
+            "#{::Regexp.last_match(1)}:****#{::Regexp.last_match(3)}"
           else
             # Fallback: show first few and last few characters
             show_chars(value, prefix: 8, suffix: 4)
@@ -305,8 +303,8 @@ module Onetime
           # For Stripe keys, show the prefix and last 4 characters
           # Format: sk_test_xxx or sk_live_xxx
           if value =~ /^(sk_(?:test|live)_)(.+)$/
-            prefix = $1
-            rest = $2
+            prefix = ::Regexp.last_match(1)
+            rest   = ::Regexp.last_match(2)
             "#{prefix}#{'*' * 8}#{rest[-4..]}"
           else
             show_chars(value, prefix: 8, suffix: 4)
@@ -315,7 +313,7 @@ module Onetime
           # For webhook secrets, show just the prefix
           # Format: whsec_xxx
           if value =~ /^(whsec_)(.+)$/
-            "#{$1}#{'*' * 12}"
+            "#{::Regexp.last_match(1)}#{'*' * 12}"
           else
             show_chars(value, prefix: 6, suffix: 0)
           end
@@ -331,7 +329,7 @@ module Onetime
         return value if value.length <= (prefix + suffix)
 
         masked_length = [value.length - prefix - suffix, 4].max
-        "#{value[0...prefix]}#{'*' * masked_length}#{suffix > 0 ? value[-suffix..] : ''}"
+        "#{value[0...prefix]}#{'*' * masked_length}#{value[-suffix..] if suffix > 0}"
       end
 
       # Builds customization section rows

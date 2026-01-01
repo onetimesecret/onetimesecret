@@ -37,7 +37,8 @@ module Onetime
 
         # Display operation summary
         # Note: current_period_end is now at the subscription item level in Stripe API 2025-11-17.clover
-        period_end = subscription.items&.data&.first&.current_period_end
+        first_item = subscription.items&.data&.first
+        period_end = first_item&.current_period_end
         display_operation_summary(
           'Cancel subscription',
           {
@@ -76,7 +77,8 @@ module Onetime
         details[:canceled_at] = format_timestamp(canceled.canceled_at) if canceled.canceled_at
         # NOTE: current_period_end is now at the subscription item level in Stripe API 2025-11-17.clover
         if canceled.cancel_at_period_end
-          item_period_end       = canceled.items&.data&.first&.current_period_end
+          canceled_first_item   = canceled.items&.data&.first
+          item_period_end       = canceled_first_item&.current_period_end
           details[:will_end_at] = format_timestamp(item_period_end) if item_period_end
         end
 

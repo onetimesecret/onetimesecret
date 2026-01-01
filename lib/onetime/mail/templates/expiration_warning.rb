@@ -30,7 +30,10 @@ module Onetime
         public
 
         def subject
-          'Your secret link will expire soon'
+          EmailTranslations.translate(
+            'email.expiration_warning.subject',
+            locale: locale,
+          )
         end
 
         def recipient_email
@@ -72,23 +75,6 @@ module Onetime
         end
 
         private
-
-        def site_ssl?
-          return true unless defined?(OT) && OT.respond_to?(:conf)
-
-          OT.conf.dig('site', 'ssl') != false
-        end
-
-        def site_host
-          return 'onetimesecret.com' unless defined?(OT) && OT.respond_to?(:conf)
-
-          OT.conf.dig('site', 'host') || 'onetimesecret.com'
-        end
-
-        def site_baseuri
-          scheme = site_ssl? ? 'https://' : 'http://'
-          "#{scheme}#{site_host}"
-        end
 
         # Override to include computed values in template context
         def template_binding
