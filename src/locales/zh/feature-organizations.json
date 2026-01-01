@@ -6,6 +6,7 @@
       "organization_plural": "组织",
       "organizations_description": "管理您的组织",
       "my_organizations": "我的组织",
+      "manage_organizations": "Manage Organizations",
       "new_organization": "新组织",
       "no_organizations": "暂无组织",
       "no_organizations_description": "组织允许您使用统一的账单和管理来管理多个团队。创建您的第一个组织来开始使用。",
@@ -25,6 +26,7 @@
       "contact_email_help": "账单和管理通知的主要联系方式",
       "billing_managed_by_default": "账单和订阅管理通过您的主要工作区处理。访问主要工作区设置来管理付款方式和发票。",
       "select_organization": "选择组织",
+      "switcher_locked": "Organization switching not available on this page",
       "not_found": "未找到组织",
       "load_error": "加载组织失败",
       "fetch_organization_error": "加载组织失败",
@@ -47,9 +49,11 @@
       "single_user_info_description": "在此更新您的公司名称和组织详情。此信息有助于个性化您的账户，并可用于未来的品牌功能。",
       "getting_started_title": "开始使用组织",
       "getting_started_description": "创建您的第一个组织以管理您的公司信息，并为未来的团队协作和品牌功能做准备。",
+      "page_description": "Manage your organizations and team members",
       "tabs": {
         "general": "常规",
         "company_branding": "公司品牌",
+        "members": "Team",
         "billing": "账单"
       },
       "danger_zone": "危险区域",
@@ -62,7 +66,10 @@
       "members": {
         "title": "成员",
         "description": "管理组织成员及其角色",
+        "current_members": "Current Members",
         "member": "成员",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "姓名",
         "email": "邮箱",
         "role": "角色",
