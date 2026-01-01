@@ -4,17 +4,70 @@
       "subject": "[Ticket: %s]",
       "body1": "Een klant heeft u de volgende informatie verstuurd."
     },
-    "secretlink": {
-      "subject": "%s heeft u een bericht verstuurd.",
-      "body1": "We hebben een bericht voor u van",
-      "body_tagline": "Als u de afzender niet kent of denkt dat het spam is, stuur ons de gegevens hier:"
+    "secret_link": {
+      "subject": "%{sender_email} sent you a secret",
+      "sent_you_secret": "sent you a secret:",
+      "important_label": "Important:",
+      "link_works_once": "This link will only work once. After viewing, the secret will be permanently deleted.",
+      "sent_via": "Sent via"
     },
     "welcome": {
       "subject": "Verifieer uw Onetime Secret account",
-      "body1": "Welkom bij Onetime Secret. We hebben een bericht voor u!",
-      "please_verify": "Bevestig uw account alstublieft:",
-      "postscript1": "Deze e-mail is verstuurd naar",
-      "postscript2": "Als u dit account niet heeft aangemaakt, negeer dit bericht, we zullen u niet meer lastig vallen."
+      "title": "Je bent uitgenodigd om lid te worden van %{organization_name}!",
+      "verify_prompt": "Please verify your email address by clicking the link below:",
+      "verify_button": "Verify Email Address",
+      "copy_link_prompt": "Or copy and paste this link:",
+      "signature": "Delano",
+      "postscript": "P.S. Deze e-mail is verstuurd naar %{invited_email}. Als je deze uitnodiging niet verwachtte, kun je dit bericht veilig negeren."
+    },
+    "password_request": {
+      "subject": "Reset your password (%{display_domain})",
+      "title": "Reset Your Password",
+      "request_notice": "We received a request to reset your password for %{product_name}.",
+      "reset_button": "Reset Password",
+      "copy_link_prompt": "Or copy and paste this link:",
+      "ignore_notice": "Als je geen wachtwoordherstel hebt aangevraagd, kun je deze e-mail veilig negeren.",
+      "signature": "Delano",
+      "postscript": "P.S. Deze e-mail is verstuurd naar %{email_address}."
+    },
+    "incoming_secret": {
+      "subject": "Je hebt een beveiligd bericht ontvangen",
+      "received_message": "Je hebt een beveiligd bericht ontvangen:",
+      "memo_label": "Memo:",
+      "someone_sent": "Iemand heeft je een beveiligd bericht gestuurd via %{display_domain}.",
+      "view_instructions": "Klik op de onderstaande link om dit bericht te bekijken:",
+      "important_label": "Belangrijk:",
+      "link_works_once": "Deze link werkt maar één keer. Na het bekijken wordt het bericht permanent verwijderd.",
+      "sent_via": "Verzonden via"
+    },
+    "secret_revealed": {
+      "subject": "Je bericht is bekeken",
+      "title": "Je bericht is bekeken",
+      "viewed_on": "Je bericht is bekeken op %{date}.",
+      "secret_id_label": "Bericht-ID:",
+      "automated_notice": "Dit is een geautomatiseerde melding. Er is geen actie vereist.",
+      "signature": "Delano",
+      "manage_preferences": "Meldingsvoorkeuren beheren",
+      "manage_preferences_prompt": "Om je meldingsvoorkeuren te beheren:"
+    },
+    "expiration_warning": {
+      "subject": "Je berichtlink verloopt binnenkort",
+      "expires_in": "Je berichtlink verloopt over %{time_remaining}",
+      "view_button": "Bekijk je bericht voordat het verloopt",
+      "reminder_label": "Herinnering:",
+      "after_expiration": "Na het verlopen wordt het bericht permanent verwijderd en kan niet worden hersteld.",
+      "sent_via": "Verzonden via",
+      "view_before_gone": "Bekijk het voordat het verdwijnt:",
+      "after_expiration_short": "Na het verlopen wordt het bericht permanent verwijderd."
+    },
+    "feedback_email": {
+      "subject": "Feedback op %{date} via %{display_domain} (%{strategy})",
+      "title": "Gebruikersfeedback",
+      "from_label": "Van:",
+      "domain_label": "Domein:",
+      "strategy_label": "Strategie:",
+      "message_label": "Bericht:",
+      "signature": "Secret Support"
     },
     "organization_invitation": {
       "subject": "Je bent uitgenodigd om lid te worden van %{organization_name}",
@@ -31,11 +84,108 @@
         "admin": "een beheerder"
       }
     },
+    "password_changed": {
+      "subject": "Je wachtwoord is gewijzigd (%{display_domain})",
+      "title": "Je wachtwoord is gewijzigd",
+      "body": "Je wachtwoord voor %{product_name} is gewijzigd op %{date} om %{time}.",
+      "security_notice": "Als je deze wijziging niet hebt doorgevoerd, beveilig dan direct je account door je wachtwoord opnieuw in te stellen en contact op te nemen met support.",
+      "signature": "Delano"
+    },
+    "email_changed": {
+      "subject": "Je e-mailadres is gewijzigd (%{display_domain})",
+      "title": "Je e-mailadres is gewijzigd",
+      "body": "Het e-mailadres voor je %{product_name}-account is gewijzigd naar %{new_email_masked} op %{date}.",
+      "security_notice": "Als je deze wijziging niet hebt doorgevoerd, neem dan direct contact op met support, want je account kan gecompromitteerd zijn.",
+      "signature": "Delano"
+    },
+    "email_change_confirmation": {
+      "subject": "Bevestig je nieuwe e-mailadres (%{display_domain})",
+      "title": "Bevestig je nieuwe e-mailadres",
+      "body": "Bevestig dit e-mailadres om de wijziging voor je %{product_name}-account te voltooien.",
+      "verify_button": "E-mailadres bevestigen",
+      "copy_link_prompt": "Of kopieer en plak deze link:",
+      "signature": "Delano"
+    },
+    "mfa_enabled": {
+      "subject": "Tweefactorauthenticatie ingeschakeld (%{display_domain})",
+      "title": "Tweefactorauthenticatie ingeschakeld",
+      "body": "Tweefactorauthenticatie is ingeschakeld voor je %{product_name}-account op %{date}.",
+      "security_notice": "Je account is nu beter beveiligd. Je moet een verificatiecode uit je authenticator-app invoeren bij het inloggen.",
+      "signature": "Delano"
+    },
+    "mfa_disabled": {
+      "subject": "Two-factor authentication disabled (%{display_domain})",
+      "title": "Two-Factor Authentication Disabled",
+      "body": "Two-factor authentication was disabled for your %{product_name} account on %{date}.",
+      "warning_notice": "Your account is now less secure. If you did not make this change, please secure your account immediately.",
+      "signature": "Delano"
+    },
+    "new_login_alert": {
+      "subject": "New sign-in to your account (%{display_domain})",
+      "title": "New Sign-In Detected",
+      "body": "A new sign-in to your %{product_name} account was detected on %{date} at %{time}.",
+      "device_label": "Device:",
+      "location_label": "Location:",
+      "ip_address_label": "IP Address:",
+      "not_you_notice": "If this wasn't you, your account may be compromised.",
+      "secure_account_button": "Secure Your Account",
+      "signature": "Delano"
+    },
+    "member_removed": {
+      "subject": "You've been removed from %{organization_name}",
+      "title": "You've Been Removed from %{organization_name}",
+      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "signature": "Delano"
+    },
+    "role_changed": {
+      "subject": "Your role was changed in %{organization_name}",
+      "title": "Your Role Was Changed",
+      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "signature": "Delano"
+    },
+    "organization_deleted": {
+      "subject": "Organization \"%{organization_name}\" was deleted",
+      "title": "Organization Deleted",
+      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "signature": "Delano"
+    },
+    "payment_receipt": {
+      "subject": "Payment receipt for %{product_name}",
+      "title": "Payment Receipt",
+      "body": "Thank you for your payment. Here are your payment details:",
+      "amount_label": "Amount:",
+      "date_label": "Date:",
+      "plan_label": "Plan:",
+      "invoice_link": "View Invoice",
+      "signature": "Delano"
+    },
+    "payment_failed": {
+      "subject": "Payment failed for %{product_name}",
+      "title": "Payment Failed",
+      "body": "We were unable to process your payment for %{product_name}. Please update your payment method to avoid service interruption.",
+      "update_payment_button": "Update Payment Method",
+      "signature": "Delano"
+    },
+    "trial_expiring": {
+      "subject": "Your %{product_name} trial expires in %{days_remaining} days",
+      "title": "Your Trial Is Ending Soon",
+      "body": "Your free trial of %{product_name} will expire in %{days_remaining} days. Upgrade now to keep access to all features.",
+      "upgrade_button": "Upgrade Now",
+      "signature": "Delano"
+    },
+    "subscription_changed": {
+      "subject": "Your %{product_name} subscription was changed",
+      "title": "Subscription Changed",
+      "body": "Your %{product_name} subscription has been changed from %{old_plan} to %{new_plan}.",
+      "effective_date": "This change is effective %{date}.",
+      "signature": "Delano"
+    },
     "common": {
       "greeting": "Hallo,",
       "thanks": "Bedankt,",
       "unsubscribe": "Afmelden",
-      "view_in_browser": "Bekijken in browser"
+      "view_in_browser": "Bekijken in browser",
+      "onetime_secret": "Onetime Secret"
     }
   }
 }
