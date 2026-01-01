@@ -130,7 +130,7 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
         skip 'No monthly plans' if monthly_plans.empty?
 
         monthly_plans.each do |plan|
-          expect(plan['amount']).to be > 0,
+          expect(plan['amount'].to_i).to be > 0,
             "Plan #{plan['id']} should have positive amount"
         end
       end
@@ -157,7 +157,7 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
         skip 'No yearly plans' if yearly_plans.empty?
 
         yearly_plans.each do |plan|
-          expect(plan['amount']).to be > 0,
+          expect(plan['amount'].to_i).to be > 0,
             "Plan #{plan['id']} should have positive annual amount"
         end
       end

@@ -95,9 +95,15 @@ export function useDomainScope() {
 
   const fetchDomainsForOrganization = async () => {
     if (!domainsEnabled) return;
+    // Guard: Only fetch if we have a valid organization ID
+    const orgId = organizationStore.currentOrganization?.id;
+    if (!orgId) {
+      console.debug('[useDomainScope] Skipping fetch: no currentOrganization set yet');
+      return;
+    }
     isLoadingDomains.value = true;
     try {
-      await domainsStore.fetchList(organizationStore.currentOrganization?.id);
+      await domainsStore.fetchList(orgId);
     } catch (error) {
       console.warn('[useDomainScope] Failed to fetch domains:', error);
     } finally {
@@ -105,6 +111,8 @@ export function useDomainScope() {
     }
   };
 
+  // Watch for organization changes (including initial load from null -> org)
+  // immediate: true ensures we catch the first org load from OrganizationContextBar
   watch(() => organizationStore.currentOrganization?.id, async (newOrgId, oldOrgId) => {
     if (newOrgId && newOrgId !== oldOrgId) {
       await fetchDomainsForOrganization();
@@ -112,9 +120,11 @@ export function useDomainScope() {
         currentDomain.value = availableDomains.value[0] || canonicalDomain || '';
       }
     }
-  }, { immediate: false });
+  }, { immediate: true });
 
   // Initialize async - returns promise for components that need to await
+  // Note: If currentOrganization is not yet set, initializeDomainScope will skip the fetch
+  // and the watcher above will handle fetching when the organization becomes available
   const initPromise = initializeDomainScope(fetchDomainsForOrganization, () => availableDomains.value);
 
   const currentScope = computed<DomainScope>(() => {
