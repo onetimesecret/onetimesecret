@@ -6,6 +6,7 @@
       "organization_plural": "Organizações",
       "organizations_description": "Gerenciar suas organizações",
       "my_organizations": "Minhas Organizações",
+      "manage_organizations": "Gerenciar Organizações",
       "new_organization": "Nova Organização",
       "no_organizations": "Ainda sem organizações",
       "no_organizations_description": "As organizações permitem gerenciar várias equipes com faturamento e administração unificados. Comece criando sua primeira organização.",
@@ -25,6 +26,7 @@
       "contact_email_help": "Contato principal para notificações administrativas e de faturamento",
       "billing_managed_by_default": "O gerenciamento de faturamento e assinatura é feito através do seu espaço de trabalho principal. Visite as configurações do seu espaço de trabalho principal para gerenciar métodos de pagamento e faturas.",
       "select_organization": "Selecione uma organização",
+      "switcher_locked": "Troca de organização não disponível nesta página",
       "not_found": "Organização não encontrada",
       "load_error": "Falha ao carregar organização",
       "fetch_organization_error": "Falha ao carregar organização",
@@ -47,9 +49,11 @@
       "single_user_info_description": "Atualize o nome da sua empresa e detalhes da organização aqui. Essas informações ajudam a personalizar sua conta e podem ser usadas para recursos de marca no futuro.",
       "getting_started_title": "Primeiros Passos com Organizações",
       "getting_started_description": "Crie sua primeira organização para gerenciar as informações da sua empresa e se preparar para futuros recursos de colaboração em equipe e marca.",
+      "page_description": "Gerencie suas organizações e membros da equipe",
       "tabs": {
         "general": "Geral",
         "company_branding": "Marca da Empresa",
+        "members": "Equipe",
         "billing": "Faturamento"
       },
       "danger_zone": "Zona de Perigo",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Membros",
         "description": "Gerenciar membros da organização e seus papéis",
+        "current_members": "Membros Atuais",
         "member": "Membro",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Nome",
         "email": "E-mail",
         "role": "Papel",
