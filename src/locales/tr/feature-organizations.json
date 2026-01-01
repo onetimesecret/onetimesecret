@@ -6,6 +6,7 @@
       "organization_plural": "",
       "organizations_description": "",
       "my_organizations": "",
+      "manage_organizations": "Manage Organizations",
       "new_organization": "",
       "no_organizations": "",
       "no_organizations_description": "",
@@ -25,6 +26,7 @@
       "contact_email_help": "",
       "billing_managed_by_default": "Faturalama ve abonelik yönetimi birincil çalışma alanınız üzerinden yapılır. Ödeme yöntemlerini ve faturaları yönetmek için ana çalışma alanı ayarlarınızı ziyaret edin.",
       "select_organization": "",
+      "switcher_locked": "Organization switching not available on this page",
       "not_found": "",
       "load_error": "",
       "fetch_organization_error": "",
@@ -47,9 +49,11 @@
       "single_user_info_description": "",
       "getting_started_title": "",
       "getting_started_description": "",
+      "page_description": "Manage your organizations and team members",
       "tabs": {
         "general": "",
         "company_branding": "",
+        "members": "Team",
         "billing": ""
       },
       "danger_zone": "",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Üyeler",
         "description": "Organizasyon üyelerini ve rollerini yönetin",
+        "current_members": "Current Members",
         "member": "Üye",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Ad",
         "email": "E-posta",
         "role": "Rol",
