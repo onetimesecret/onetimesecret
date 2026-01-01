@@ -69,15 +69,20 @@ async function initializeDomainScope(
   getAvailable: () => string[]
 ): Promise<void> {
   if (isInitialized.value) return;
-  isInitialized.value = true;
-  if (domainsEnabled) {
-    await fetchFn();
-    const saved = localStorage.getItem('domainScope');
-    const available = getAvailable();
-    currentDomain.value = (saved && available.includes(saved))
-      ? saved : available[0] || canonicalDomain || '';
-  } else {
-    currentDomain.value = canonicalDomain || '';
+
+  try {
+    if (domainsEnabled) {
+      await fetchFn();
+      const saved = localStorage.getItem('domainScope');
+      const available = getAvailable();
+      currentDomain.value = (saved && available.includes(saved))
+        ? saved : available[0] || canonicalDomain || '';
+    } else {
+      currentDomain.value = canonicalDomain || '';
+    }
+  } finally {
+    // Set initialized flag after completion to prevent race conditions
+    isInitialized.value = true;
   }
 }
 

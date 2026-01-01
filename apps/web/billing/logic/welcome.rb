@@ -232,6 +232,11 @@ module Billing
         def raise_concerns
           raise_form_error 'No session_id provided' unless session_id
 
+          # Validate checkout session ID format (Stripe uses cs_test_ or cs_live_ prefix)
+          unless session_id.match?(/\Acs_(test|live)_/)
+            raise_form_error 'Invalid checkout session ID format'
+          end
+
           @checkout_session = Stripe::Checkout::Session.retrieve({
             id: session_id,
             expand: %w[subscription customer],

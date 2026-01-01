@@ -29,7 +29,7 @@ module Billing
           Onetime.billing_logger.info 'Plan cache refreshed successfully'
         rescue StandardError => ex
           Onetime.billing_logger.warn 'Stripe sync failed, falling back to billing.yaml', {
-            exception: ex.class.name,
+            exception: ex,
             message: ex.message,
           }
 
