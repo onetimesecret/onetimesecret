@@ -95,7 +95,7 @@
       "subject": "이메일 주소가 변경되었습니다 (%{display_domain})",
       "title": "이메일 주소가 변경되었습니다",
       "body": "%{product_name} 계정의 이메일 주소가 %{date}에 %{new_email_masked}(으)로 변경되었습니다.",
-      "security_notice": "If you did not make this change, please contact support immediately as your account may be compromised.",
+      "security_notice": "이 변경을 하지 않으셨다면 계정이 침해되었을 수 있으므로 즉시 지원팀에 연락하세요.",
       "signature": "Delano"
     },
     "email_change_confirmation": {
@@ -134,19 +134,19 @@
     "member_removed": {
       "subject": "%{organization_name}에서 제거되었습니다",
       "title": "%{organization_name}에서 제거됨",
-      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "body": "%{product_name}의 조직 \"%{organization_name}\"에서 제거되었습니다.",
       "signature": "Delano"
     },
     "role_changed": {
       "subject": "%{organization_name}에서 역할이 변경되었습니다",
       "title": "역할이 변경되었습니다",
-      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "body": "\"%{organization_name}\"에서의 역할이 %{old_role}에서 %{new_role}(으)로 변경되었습니다.",
       "signature": "Delano"
     },
     "organization_deleted": {
-      "subject": "Organization \"%{organization_name}\" was deleted",
+      "subject": "조직 \"%{organization_name}\"이(가) 삭제되었습니다",
       "title": "조직 삭제됨",
-      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "body": "조직 \"%{organization_name}\"이(가) %{product_name}에서 삭제되었습니다. 모든 관련 데이터가 제거되었습니다.",
       "signature": "Delano"
     },
     "payment_receipt": {
