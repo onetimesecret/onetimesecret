@@ -4,17 +4,70 @@
       "subject": "[:تذكرة %s]",
       "body1": "العميل ارسل هذه البيانات"
     },
-    "secretlink": {
-      "subject": "%s ارسل لك سراً",
-      "body1": "لديك سر مُرسل من قِبل",
-      "body_tagline": ":ان لم تكن تعرف المُرسل او تعتقد انه سبام، راسلنا بالتفاصيل هنا"
+    "secret_link": {
+      "subject": "%{sender_email} أرسل لك سراً",
+      "sent_you_secret": "أرسل لك سراً:",
+      "important_label": "مهم:",
+      "link_works_once": "سيعمل هذا الرابط مرة واحدة فقط. بعد العرض، سيُحذف السر نهائياً.",
+      "sent_via": "أُرسل عبر"
     },
     "welcome": {
       "subject": "قم بتفعيل حسابك بالموقع",
-      "body1": "!مرحباً بك في موقع ' سر لمرة واحدة' لدينا سر من اجلك",
-      "please_verify": ":لطفاً قم بتفعيل حسابك",
-      "postscript1": "هذا البريد قد تم ارساله الى",
-      "postscript2": ".ان لم تقم انت بإنشاء هذا الحساب، احذف هذه الرسالة ولن نراسلك مرة اخرى"
+      "title": "لقد تمت دعوتك للانضمام إلى %{organization_name}!",
+      "verify_prompt": "يرجى التحقق من عنوان بريدك الإلكتروني بالنقر على الرابط أدناه:",
+      "verify_button": "التحقق من البريد الإلكتروني",
+      "copy_link_prompt": "أو انسخ والصق هذا الرابط:",
+      "signature": "ديلانو",
+      "postscript": "ملاحظة: تم إرسال هذا البريد الإلكتروني إلى %{invited_email}. إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذه الرسالة بأمان."
+    },
+    "password_request": {
+      "subject": "إعادة تعيين كلمة المرور (%{display_domain})",
+      "title": "إعادة تعيين كلمة المرور",
+      "request_notice": "تلقينا طلباً لإعادة تعيين كلمة المرور لـ %{product_name}.",
+      "reset_button": "إعادة تعيين كلمة المرور",
+      "copy_link_prompt": "أو انسخ والصق هذا الرابط:",
+      "ignore_notice": "إذا لم تطلب إعادة تعيين كلمة المرور، يمكنك تجاهل هذه الرسالة بأمان.",
+      "signature": "ديلانو",
+      "postscript": "ملاحظة: أُرسلت هذه الرسالة إلى %{email_address}."
+    },
+    "incoming_secret": {
+      "subject": "لقد تلقيت رسالة سرية",
+      "received_message": "لقد تلقيت رسالة آمنة:",
+      "memo_label": "ملاحظة:",
+      "someone_sent": "أرسل لك شخص ما رسالة آمنة عبر %{display_domain}.",
+      "view_instructions": "لعرض هذا السر، انقر على الرابط أدناه:",
+      "important_label": "مهم:",
+      "link_works_once": "سيعمل هذا الرابط مرة واحدة فقط. بعد العرض، سيُحذف السر نهائياً.",
+      "sent_via": "أُرسل عبر"
+    },
+    "secret_revealed": {
+      "subject": "تم عرض سرك",
+      "title": "تم عرض سرك",
+      "viewed_on": "تم عرض سرك في %{date}.",
+      "secret_id_label": "معرّف السر:",
+      "automated_notice": "هذا إشعار تلقائي. لا يُطلب اتخاذ أي إجراء.",
+      "signature": "ديلانو",
+      "manage_preferences": "إدارة تفضيلات الإشعارات",
+      "manage_preferences_prompt": "لإدارة تفضيلات الإشعارات:"
+    },
+    "expiration_warning": {
+      "subject": "سينتهي رابط سرك قريباً",
+      "expires_in": "سينتهي رابط سرك خلال %{time_remaining}",
+      "view_button": "اعرض سرك قبل انتهاء صلاحيته",
+      "reminder_label": "تذكير:",
+      "after_expiration": "بعد انتهاء الصلاحية، سيُحذف السر نهائياً ولن يمكن استرجاعه.",
+      "sent_via": "أُرسل عبر",
+      "view_before_gone": "اعرضه قبل أن يختفي:",
+      "after_expiration_short": "بعد انتهاء الصلاحية، سيُحذف السر نهائياً."
+    },
+    "feedback_email": {
+      "subject": "ملاحظات في %{date} عبر %{display_domain} (%{strategy})",
+      "title": "ملاحظات المستخدم",
+      "from_label": "من:",
+      "domain_label": "النطاق:",
+      "strategy_label": "الاستراتيجية:",
+      "message_label": "الرسالة:",
+      "signature": "دعم السر"
     },
     "organization_invitation": {
       "subject": "لقد تمت دعوتك للانضمام إلى %{organization_name}",
@@ -31,11 +84,108 @@
         "admin": "مسؤول"
       }
     },
+    "password_changed": {
+      "subject": "تم تغيير كلمة المرور (%{display_domain})",
+      "title": "تم تغيير كلمة المرور",
+      "body": "تم تغيير كلمة المرور لـ %{product_name} في %{date} الساعة %{time}.",
+      "security_notice": "إذا لم تقم بهذا التغيير، يرجى تأمين حسابك فوراً بإعادة تعيين كلمة المرور والاتصال بالدعم.",
+      "signature": "ديلانو"
+    },
+    "email_changed": {
+      "subject": "تم تغيير عنوان بريدك الإلكتروني (%{display_domain})",
+      "title": "تم تغيير عنوان بريدك الإلكتروني",
+      "body": "تم تغيير عنوان البريد الإلكتروني لحساب %{product_name} إلى %{new_email_masked} في %{date}.",
+      "security_notice": "إذا لم تقم بهذا التغيير، يرجى الاتصال بالدعم فوراً حيث قد يكون حسابك معرضاً للاختراق.",
+      "signature": "ديلانو"
+    },
+    "email_change_confirmation": {
+      "subject": "تحقق من عنوان بريدك الإلكتروني الجديد (%{display_domain})",
+      "title": "تحقق من عنوان بريدك الإلكتروني الجديد",
+      "body": "يرجى التحقق من عنوان البريد الإلكتروني هذا لإكمال التغيير لحساب %{product_name}.",
+      "verify_button": "التحقق من البريد الإلكتروني",
+      "copy_link_prompt": "أو انسخ والصق هذا الرابط:",
+      "signature": "ديلانو"
+    },
+    "mfa_enabled": {
+      "subject": "تم تفعيل المصادقة الثنائية (%{display_domain})",
+      "title": "تم تفعيل المصادقة الثنائية",
+      "body": "تم تفعيل المصادقة الثنائية لحساب %{product_name} في %{date}.",
+      "security_notice": "حسابك الآن أكثر أماناً. ستحتاج إلى إدخال رمز التحقق من تطبيق المصادقة عند تسجيل الدخول.",
+      "signature": "ديلانو"
+    },
+    "mfa_disabled": {
+      "subject": "تم تعطيل المصادقة الثنائية (%{display_domain})",
+      "title": "تم تعطيل المصادقة الثنائية",
+      "body": "تم تعطيل المصادقة الثنائية لحساب %{product_name} في %{date}.",
+      "warning_notice": "حسابك الآن أقل أماناً. إذا لم تقم بهذا التغيير، يرجى تأمين حسابك فوراً.",
+      "signature": "ديلانو"
+    },
+    "new_login_alert": {
+      "subject": "تسجيل دخول جديد لحسابك (%{display_domain})",
+      "title": "اكتُشف تسجيل دخول جديد",
+      "body": "اكتُشف تسجيل دخول جديد لحساب %{product_name} في %{date} الساعة %{time}.",
+      "device_label": "الجهاز:",
+      "location_label": "الموقع:",
+      "ip_address_label": "عنوان IP:",
+      "not_you_notice": "إذا لم تكن أنت، قد يكون حسابك معرضاً للاختراق.",
+      "secure_account_button": "تأمين حسابك",
+      "signature": "ديلانو"
+    },
+    "member_removed": {
+      "subject": "تمت إزالتك من %{organization_name}",
+      "title": "تمت إزالتك من %{organization_name}",
+      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "signature": "ديلانو"
+    },
+    "role_changed": {
+      "subject": "تم تغيير دورك في %{organization_name}",
+      "title": "تم تغيير دورك",
+      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "signature": "ديلانو"
+    },
+    "organization_deleted": {
+      "subject": "Organization \"%{organization_name}\" was deleted",
+      "title": "تم حذف المؤسسة",
+      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "signature": "ديلانو"
+    },
+    "payment_receipt": {
+      "subject": "إيصال الدفع لـ %{product_name}",
+      "title": "إيصال الدفع",
+      "body": "شكراً لدفعك. إليك تفاصيل الدفع:",
+      "amount_label": "المبلغ:",
+      "date_label": "التاريخ:",
+      "plan_label": "الخطة:",
+      "invoice_link": "عرض الفاتورة",
+      "signature": "ديلانو"
+    },
+    "payment_failed": {
+      "subject": "فشل الدفع لـ %{product_name}",
+      "title": "فشل الدفع",
+      "body": "لم نتمكن من معالجة دفعك لـ %{product_name}. يرجى تحديث طريقة الدفع لتجنب انقطاع الخدمة.",
+      "update_payment_button": "تحديث طريقة الدفع",
+      "signature": "ديلانو"
+    },
+    "trial_expiring": {
+      "subject": "تنتهي فترة تجربتك لـ %{product_name} خلال %{days_remaining} أيام",
+      "title": "فترة تجربتك تقترب من الانتهاء",
+      "body": "ستنتهي فترة التجربة المجانية لـ %{product_name} خلال %{days_remaining} أيام. قم بالترقية الآن للاحتفاظ بالوصول إلى جميع الميزات.",
+      "upgrade_button": "الترقية الآن",
+      "signature": "ديلانو"
+    },
+    "subscription_changed": {
+      "subject": "تم تغيير اشتراكك في %{product_name}",
+      "title": "تم تغيير الاشتراك",
+      "body": "تم تغيير اشتراكك في %{product_name} من %{old_plan} إلى %{new_plan}.",
+      "effective_date": "يسري هذا التغيير في %{date}.",
+      "signature": "ديلانو"
+    },
     "common": {
       "greeting": "مرحباً،",
       "thanks": "شكراً،",
       "unsubscribe": "إلغاء الاشتراك",
-      "view_in_browser": "عرض في المتصفح"
+      "view_in_browser": "عرض في المتصفح",
+      "onetime_secret": "سر مرة واحدة"
     }
   }
 }
