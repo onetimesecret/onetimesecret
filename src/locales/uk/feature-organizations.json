@@ -6,6 +6,7 @@
       "organization_plural": "Організації",
       "organizations_description": "Керуйте вашими організаціями",
       "my_organizations": "Мої організації",
+      "manage_organizations": "Manage Organizations",
       "new_organization": "Нова організація",
       "no_organizations": "Організацій ще немає",
       "no_organizations_description": "Організації дозволяють вам керувати декількома командами з єдиним виставленням рахунків та адмініструванням. Почніть зі створення вашої першої організації.",
@@ -25,6 +26,7 @@
       "contact_email_help": "Основний контакт для виставлення рахунків та адміністративних сповіщень",
       "billing_managed_by_default": "Керування виставленням рахунків та підпискою здійснюється через вашу основну робочу область. Відвідайте налаштування вашої основної робочої області для керування способами оплати та рахунками.",
       "select_organization": "Вибрати організацію",
+      "switcher_locked": "Organization switching not available on this page",
       "not_found": "Організацію не знайдено",
       "load_error": "Не вдалося завантажити організацію",
       "fetch_organization_error": "Не вдалося завантажити організацію",
@@ -47,9 +49,11 @@
       "single_user_info_description": "Оновіть назву вашої компанії та деталі організації тут. Ця інформація допомагає персоналізувати ваш обліковий запис та може бути використана для функцій брендингу в майбутньому.",
       "getting_started_title": "Початок роботи з організаціями",
       "getting_started_description": "Створіть вашу першу організацію для керування інформацією вашої компанії та підготовки до майбутньої співпраці команди та функцій брендингу.",
+      "page_description": "Manage your organizations and team members",
       "tabs": {
         "general": "Загальні",
         "company_branding": "Брендинг компанії",
+        "members": "Team",
         "billing": "Виставлення рахунків"
       },
       "danger_zone": "Небезпечна зона",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Учасники",
         "description": "Керування учасниками організації та їхніми ролями",
+        "current_members": "Current Members",
         "member": "Учасник",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Ім'я",
         "email": "Електронна пошта",
         "role": "Роль",
