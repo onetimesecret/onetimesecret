@@ -26,7 +26,7 @@
       "contact_email_help": "Liên hệ chính cho thông báo thanh toán và quản trị",
       "billing_managed_by_default": "Quản lý thanh toán và đăng ký được xử lý thông qua không gian làm việc chính của bạn. Truy cập cài đặt không gian làm việc chính để quản lý phương thức thanh toán và hóa đơn.",
       "select_organization": "Chọn một tổ chức",
-      "switcher_locked": "Organization switching not available on this page",
+      "switcher_locked": "Chuyển đổi tổ chức không khả dụng trên trang này",
       "not_found": "Không tìm thấy tổ chức",
       "load_error": "Không thể tải tổ chức",
       "fetch_organization_error": "Không thể tải tổ chức",

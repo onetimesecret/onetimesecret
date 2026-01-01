@@ -1,183 +1,183 @@
 {
   "email": {
     "incomingsupport": {
-      "subject": "[Ticket: %s]",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
       "body1": "Có một khách hàng đã gởi thông tin sau"
     },
     "secret_link": {
-      "subject": "%{sender_email} sent you a secret",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
       "sent_you_secret": "sent you a secret:",
-      "important_label": "Important:",
-      "link_works_once": "This link will only work once. After viewing, the secret will be permanently deleted.",
-      "sent_via": "Sent via"
+      "important_label": "Quan trọng:",
+      "link_works_once": "Liên kết này chỉ hoạt động một lần. Sau khi xem, bí mật sẽ bị xóa vĩnh viễn.",
+      "sent_via": "Đã gửi qua"
     },
     "welcome": {
-      "subject": "Xác thực tài khoản Onetime Secret",
-      "title": "Bạn đã được mời tham gia %{organization_name}!",
-      "verify_prompt": "Please verify your email address by clicking the link below:",
-      "verify_button": "Verify Email Address",
-      "copy_link_prompt": "Or copy and paste this link:",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
+      "verify_prompt": "Vui lòng xác minh địa chỉ email của bạn bằng cách nhấp vào liên kết bên dưới:",
+      "verify_button": "Xác minh địa chỉ email",
+      "copy_link_prompt": "Hoặc sao chép và dán liên kết này:",
       "signature": "Delano",
-      "postscript": "Tái bút: Email này đã được gửi đến %{invited_email}. Nếu bạn không mong đợi lời mời này, bạn có thể bỏ qua tin nhắn này một cách an toàn."
+      "postscript": "Tái bút: Email này đã được gửi đến %{email_address}."
     },
     "password_request": {
-      "subject": "Reset your password (%{display_domain})",
-      "title": "Reset Your Password",
-      "request_notice": "We received a request to reset your password for %{product_name}.",
-      "reset_button": "Reset Password",
-      "copy_link_prompt": "Or copy and paste this link:",
-      "ignore_notice": "If you did not request a password reset, you can safely ignore this email.",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
+      "request_notice": "Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu của bạn cho %{product_name}.",
+      "reset_button": "Đặt lại mật khẩu",
+      "copy_link_prompt": "Hoặc sao chép và dán liên kết này:",
+      "ignore_notice": "Nếu bạn không yêu cầu đặt lại mật khẩu, bạn có thể bỏ qua email này một cách an toàn.",
       "signature": "Delano",
-      "postscript": "P.S. This email was sent to %{email_address}."
+      "postscript": "Tái bút: Email này đã được gửi đến %{email_address}."
     },
     "incoming_secret": {
-      "subject": "You've received a secret message",
-      "received_message": "You've received a secure message:",
-      "memo_label": "Memo:",
-      "someone_sent": "Someone has sent you a secure message through %{display_domain}.",
-      "view_instructions": "To view this secret, click the link below:",
-      "important_label": "Important:",
-      "link_works_once": "This link will only work once. After viewing, the secret will be permanently deleted.",
-      "sent_via": "Sent via"
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "received_message": "Bạn đã nhận được một tin nhắn bảo mật:",
+      "memo_label": "Ghi chú:",
+      "someone_sent": "Ai đó đã gửi cho bạn một tin nhắn bảo mật qua %{display_domain}.",
+      "view_instructions": "Để xem bí mật này, hãy nhấp vào liên kết bên dưới:",
+      "important_label": "Quan trọng:",
+      "link_works_once": "Liên kết này chỉ hoạt động một lần. Sau khi xem, bí mật sẽ bị xóa vĩnh viễn.",
+      "sent_via": "Đã gửi qua"
     },
     "secret_revealed": {
-      "subject": "Your secret was viewed",
-      "title": "Your Secret Was Viewed",
-      "viewed_on": "Your secret was viewed on %{date}.",
-      "secret_id_label": "Secret ID:",
-      "automated_notice": "This is an automated notification. No action is required.",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
+      "viewed_on": "Bí mật của bạn đã được xem vào %{date}.",
+      "secret_id_label": "ID bí mật:",
+      "automated_notice": "Đây là thông báo tự động. Không cần thực hiện hành động nào.",
       "signature": "Delano",
-      "manage_preferences": "Manage notification preferences",
-      "manage_preferences_prompt": "To manage your notification preferences:"
+      "manage_preferences": "Quản lý tùy chọn thông báo",
+      "manage_preferences_prompt": "Để quản lý tùy chọn thông báo của bạn:"
     },
     "expiration_warning": {
-      "subject": "Your secret link will expire soon",
-      "expires_in": "Your secret link will expire in %{time_remaining}",
-      "view_button": "View your secret before it expires",
-      "reminder_label": "Reminder:",
-      "after_expiration": "After expiration, the secret will be permanently deleted and cannot be recovered.",
-      "sent_via": "Sent via",
-      "view_before_gone": "View it before it's gone:",
-      "after_expiration_short": "After expiration, the secret will be permanently deleted."
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "expires_in": "Liên kết bí mật của bạn sẽ hết hạn trong %{time_remaining}",
+      "view_button": "Xem bí mật của bạn trước khi hết hạn",
+      "reminder_label": "Nhắc nhở:",
+      "after_expiration": "Sau khi hết hạn, bí mật sẽ bị xóa vĩnh viễn và không thể khôi phục.",
+      "sent_via": "Đã gửi qua",
+      "view_before_gone": "Xem nó trước khi nó biến mất:",
+      "after_expiration_short": "Sau khi hết hạn, bí mật sẽ bị xóa vĩnh viễn."
     },
     "feedback_email": {
-      "subject": "Feedback on %{date} via %{display_domain} (%{strategy})",
-      "title": "User Feedback",
-      "from_label": "From:",
-      "domain_label": "Domain:",
-      "strategy_label": "Strategy:",
-      "message_label": "Message:",
-      "signature": "Secret Support"
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
+      "from_label": "Từ:",
+      "domain_label": "Tên miền:",
+      "strategy_label": "Chiến lược:",
+      "message_label": "Tin nhắn:",
+      "signature": "Delano"
     },
     "organization_invitation": {
-      "subject": "Bạn đã được mời tham gia %{organization_name}",
-      "title": "Bạn đã được mời tham gia %{organization_name}!",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
       "body": "%{inviter_email} đã mời bạn tham gia \"%{organization_name}\" với vai trò %{role_description}.",
       "accept_button": "Chấp nhận lời mời",
       "link_instruction": "Hoặc sao chép và dán liên kết này:",
       "expiry_notice": "Lời mời này sẽ hết hạn sau %{days} ngày.",
       "decline_instruction": "Nếu bạn không muốn tham gia, bạn có thể bỏ qua email này hoặc từ chối lời mời.",
       "signature": "Delano",
-      "postscript": "Tái bút: Email này đã được gửi đến %{invited_email}. Nếu bạn không mong đợi lời mời này, bạn có thể bỏ qua tin nhắn này một cách an toàn.",
+      "postscript": "Tái bút: Email này đã được gửi đến %{email_address}.",
       "roles": {
         "member": "thành viên",
         "admin": "quản trị viên"
       }
     },
     "password_changed": {
-      "subject": "Your password was changed (%{display_domain})",
-      "title": "Your Password Was Changed",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
       "body": "Your password for %{product_name} was changed on %{date} at %{time}.",
-      "security_notice": "If you did not make this change, please secure your account immediately by resetting your password and contacting support.",
+      "security_notice": "Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản của bạn ngay lập tức bằng cách đặt lại mật khẩu và liên hệ với bộ phận hỗ trợ.",
       "signature": "Delano"
     },
     "email_changed": {
-      "subject": "Your email address was changed (%{display_domain})",
-      "title": "Your Email Address Was Changed",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
       "body": "The email address for your %{product_name} account was changed to %{new_email_masked} on %{date}.",
-      "security_notice": "If you did not make this change, please contact support immediately as your account may be compromised.",
+      "security_notice": "Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản của bạn ngay lập tức bằng cách đặt lại mật khẩu và liên hệ với bộ phận hỗ trợ.",
       "signature": "Delano"
     },
     "email_change_confirmation": {
-      "subject": "Verify your new email address (%{display_domain})",
-      "title": "Verify Your New Email Address",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
       "body": "Please verify this email address to complete the change for your %{product_name} account.",
-      "verify_button": "Verify Email Address",
-      "copy_link_prompt": "Or copy and paste this link:",
+      "verify_button": "Xác minh địa chỉ email",
+      "copy_link_prompt": "Hoặc sao chép và dán liên kết này:",
       "signature": "Delano"
     },
     "mfa_enabled": {
-      "subject": "Two-factor authentication enabled (%{display_domain})",
-      "title": "Two-Factor Authentication Enabled",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
       "body": "Two-factor authentication was enabled for your %{product_name} account on %{date}.",
-      "security_notice": "Your account is now more secure. You will need to enter a verification code from your authenticator app when signing in.",
+      "security_notice": "Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản của bạn ngay lập tức bằng cách đặt lại mật khẩu và liên hệ với bộ phận hỗ trợ.",
       "signature": "Delano"
     },
     "mfa_disabled": {
-      "subject": "Two-factor authentication disabled (%{display_domain})",
-      "title": "Two-Factor Authentication Disabled",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
       "body": "Two-factor authentication was disabled for your %{product_name} account on %{date}.",
       "warning_notice": "Your account is now less secure. If you did not make this change, please secure your account immediately.",
       "signature": "Delano"
     },
     "new_login_alert": {
-      "subject": "New sign-in to your account (%{display_domain})",
-      "title": "New Sign-In Detected",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
       "body": "A new sign-in to your %{product_name} account was detected on %{date} at %{time}.",
-      "device_label": "Device:",
-      "location_label": "Location:",
-      "ip_address_label": "IP Address:",
-      "not_you_notice": "If this wasn't you, your account may be compromised.",
-      "secure_account_button": "Secure Your Account",
+      "device_label": "Thiết bị:",
+      "location_label": "Vị trí:",
+      "ip_address_label": "Địa chỉ IP:",
+      "not_you_notice": "Nếu không phải bạn, tài khoản của bạn có thể đã bị xâm phạm.",
+      "secure_account_button": "Bảo mật tài khoản của bạn",
       "signature": "Delano"
     },
     "member_removed": {
-      "subject": "You've been removed from %{organization_name}",
-      "title": "You've Been Removed from %{organization_name}",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
       "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
       "signature": "Delano"
     },
     "role_changed": {
-      "subject": "Your role was changed in %{organization_name}",
-      "title": "Your Role Was Changed",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
       "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
       "signature": "Delano"
     },
     "organization_deleted": {
-      "subject": "Organization \"%{organization_name}\" was deleted",
-      "title": "Organization Deleted",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
       "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
       "signature": "Delano"
     },
     "payment_receipt": {
-      "subject": "Payment receipt for %{product_name}",
-      "title": "Payment Receipt",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
       "body": "Thank you for your payment. Here are your payment details:",
-      "amount_label": "Amount:",
-      "date_label": "Date:",
-      "plan_label": "Plan:",
-      "invoice_link": "View Invoice",
+      "amount_label": "Số tiền:",
+      "date_label": "Ngày:",
+      "plan_label": "Gói:",
+      "invoice_link": "Xem hóa đơn",
       "signature": "Delano"
     },
     "payment_failed": {
-      "subject": "Payment failed for %{product_name}",
-      "title": "Payment Failed",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
       "body": "We were unable to process your payment for %{product_name}. Please update your payment method to avoid service interruption.",
-      "update_payment_button": "Update Payment Method",
+      "update_payment_button": "Cập nhật phương thức thanh toán",
       "signature": "Delano"
     },
     "trial_expiring": {
-      "subject": "Your %{product_name} trial expires in %{days_remaining} days",
-      "title": "Your Trial Is Ending Soon",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
       "body": "Your free trial of %{product_name} will expire in %{days_remaining} days. Upgrade now to keep access to all features.",
-      "upgrade_button": "Upgrade Now",
+      "upgrade_button": "Nâng cấp ngay",
       "signature": "Delano"
     },
     "subscription_changed": {
-      "subject": "Your %{product_name} subscription was changed",
-      "title": "Subscription Changed",
+      "subject": "Đặt lại mật khẩu của bạn (%{display_domain})",
+      "title": "Đặt lại mật khẩu của bạn",
       "body": "Your %{product_name} subscription has been changed from %{old_plan} to %{new_plan}.",
-      "effective_date": "This change is effective %{date}.",
+      "effective_date": "Thay đổi này có hiệu lực từ %{date}.",
       "signature": "Delano"
     },
     "common": {
