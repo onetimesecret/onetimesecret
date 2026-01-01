@@ -5,27 +5,27 @@
       "body1": "Een klant heeft u de volgende informatie verstuurd."
     },
     "secret_link": {
-      "subject": "%{sender_email} sent you a secret",
-      "sent_you_secret": "sent you a secret:",
-      "important_label": "Important:",
-      "link_works_once": "This link will only work once. After viewing, the secret will be permanently deleted.",
-      "sent_via": "Sent via"
+      "subject": "%{sender_email} heeft je een beveiligd bericht gestuurd",
+      "sent_you_secret": "heeft je een beveiligd bericht gestuurd:",
+      "important_label": "Belangrijk:",
+      "link_works_once": "Deze link werkt maar één keer. Na het bekijken wordt het bericht permanent verwijderd.",
+      "sent_via": "Verzonden via"
     },
     "welcome": {
-      "subject": "Verifieer uw Onetime Secret account",
-      "title": "Je bent uitgenodigd om lid te worden van %{organization_name}!",
-      "verify_prompt": "Please verify your email address by clicking the link below:",
-      "verify_button": "Verify Email Address",
-      "copy_link_prompt": "Or copy and paste this link:",
+      "subject": "Welkom bij %{product_name} - Bevestig je e-mailadres",
+      "title": "Welkom bij %{product_name}!",
+      "verify_prompt": "Bevestig je e-mailadres door op de onderstaande link te klikken:",
+      "verify_button": "E-mailadres bevestigen",
+      "copy_link_prompt": "Of kopieer en plak deze link:",
       "signature": "Delano",
-      "postscript": "P.S. Deze e-mail is verstuurd naar %{invited_email}. Als je deze uitnodiging niet verwachtte, kun je dit bericht veilig negeren."
+      "postscript": "P.S. Deze e-mail is verstuurd naar %{email_address}. Als je geen account hebt aangemaakt, kun je dit bericht veilig negeren."
     },
     "password_request": {
-      "subject": "Reset your password (%{display_domain})",
-      "title": "Reset Your Password",
-      "request_notice": "We received a request to reset your password for %{product_name}.",
-      "reset_button": "Reset Password",
-      "copy_link_prompt": "Or copy and paste this link:",
+      "subject": "Stel je wachtwoord opnieuw in (%{display_domain})",
+      "title": "Stel je wachtwoord opnieuw in",
+      "request_notice": "We hebben een verzoek ontvangen om je wachtwoord voor %{product_name} opnieuw in te stellen.",
+      "reset_button": "Wachtwoord opnieuw instellen",
+      "copy_link_prompt": "Of kopieer en plak deze link:",
       "ignore_notice": "Als je geen wachtwoordherstel hebt aangevraagd, kun je deze e-mail veilig negeren.",
       "signature": "Delano",
       "postscript": "P.S. Deze e-mail is verstuurd naar %{email_address}."
@@ -114,39 +114,39 @@
       "signature": "Delano"
     },
     "mfa_disabled": {
-      "subject": "Two-factor authentication disabled (%{display_domain})",
-      "title": "Two-Factor Authentication Disabled",
-      "body": "Two-factor authentication was disabled for your %{product_name} account on %{date}.",
-      "warning_notice": "Your account is now less secure. If you did not make this change, please secure your account immediately.",
+      "subject": "Tweefactorauthenticatie uitgeschakeld (%{display_domain})",
+      "title": "Tweefactorauthenticatie uitgeschakeld",
+      "body": "Tweefactorauthenticatie is uitgeschakeld voor je %{product_name}-account op %{date}.",
+      "warning_notice": "Je account is nu minder goed beveiligd. Als je deze wijziging niet hebt doorgevoerd, beveilig dan direct je account.",
       "signature": "Delano"
     },
     "new_login_alert": {
-      "subject": "New sign-in to your account (%{display_domain})",
-      "title": "New Sign-In Detected",
-      "body": "A new sign-in to your %{product_name} account was detected on %{date} at %{time}.",
-      "device_label": "Device:",
-      "location_label": "Location:",
-      "ip_address_label": "IP Address:",
-      "not_you_notice": "If this wasn't you, your account may be compromised.",
-      "secure_account_button": "Secure Your Account",
+      "subject": "Nieuwe aanmelding op je account (%{display_domain})",
+      "title": "Nieuwe aanmelding gedetecteerd",
+      "body": "Een nieuwe aanmelding op je %{product_name}-account is gedetecteerd op %{date} om %{time}.",
+      "device_label": "Apparaat:",
+      "location_label": "Locatie:",
+      "ip_address_label": "IP-adres:",
+      "not_you_notice": "Als jij dit niet was, is je account mogelijk gecompromitteerd.",
+      "secure_account_button": "Beveilig je account",
       "signature": "Delano"
     },
     "member_removed": {
-      "subject": "You've been removed from %{organization_name}",
-      "title": "You've Been Removed from %{organization_name}",
-      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "subject": "Je bent verwijderd uit %{organization_name}",
+      "title": "Je bent verwijderd uit %{organization_name}",
+      "body": "Je bent verwijderd uit de organisatie \"%{organization_name}\" op %{product_name}.",
       "signature": "Delano"
     },
     "role_changed": {
-      "subject": "Your role was changed in %{organization_name}",
-      "title": "Your Role Was Changed",
-      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "subject": "Je rol is gewijzigd in %{organization_name}",
+      "title": "Je rol is gewijzigd",
+      "body": "Je rol in \"%{organization_name}\" is gewijzigd van %{old_role} naar %{new_role}.",
       "signature": "Delano"
     },
     "organization_deleted": {
-      "subject": "Organization \"%{organization_name}\" was deleted",
-      "title": "Organization Deleted",
-      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "subject": "Organisatie \"%{organization_name}\" is verwijderd",
+      "title": "Organisatie verwijderd",
+      "body": "De organisatie \"%{organization_name}\" is verwijderd uit %{product_name}. Alle gekoppelde gegevens zijn verwijderd.",
       "signature": "Delano"
     },
     "payment_receipt": {
