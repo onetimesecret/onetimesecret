@@ -6,6 +6,7 @@
       "organization_plural": "組織",
       "organizations_description": "組織を管理します",
       "my_organizations": "マイ組織",
+      "manage_organizations": "組織を管理",
       "new_organization": "新しい組織",
       "no_organizations": "組織がまだありません",
       "no_organizations_description": "組織を使用すると、統一された請求と管理で複数のチームを管理できます。最初の組織を作成して始めましょう。",
@@ -25,6 +26,7 @@
       "contact_email_help": "請求および管理通知の主要連絡先",
       "billing_managed_by_default": "請求とサブスクリプション管理はプライマリワークスペースを通じて行われます。支払い方法と請求書を管理するには、メインのワークスペース設定にアクセスしてください。",
       "select_organization": "組織を選択",
+      "switcher_locked": "このページでは組織の切り替えができません",
       "not_found": "組織が見つかりません",
       "load_error": "組織の読み込みに失敗しました",
       "fetch_organization_error": "組織の読み込みに失敗しました",
@@ -47,9 +49,11 @@
       "single_user_info_description": "ここで会社名と組織の詳細を更新してください。この情報はアカウントをパーソナライズし、将来のブランディング機能に使用できます。",
       "getting_started_title": "組織を始める",
       "getting_started_description": "最初の組織を作成して会社情報を管理し、将来のチームコラボレーションとブランディング機能に備えましょう。",
+      "page_description": "組織とチームメンバーを管理",
       "tabs": {
         "general": "一般",
         "company_branding": "会社ブランディング",
+        "members": "チーム",
         "billing": "請求"
       },
       "danger_zone": "危険ゾーン",
@@ -62,7 +66,10 @@
       "members": {
         "title": "メンバー",
         "description": "組織のメンバーと役割を管理します",
+        "current_members": "現在のメンバー",
         "member": "メンバー",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "名前",
         "email": "メール",
         "role": "役割",
