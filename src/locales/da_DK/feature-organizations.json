@@ -26,6 +26,7 @@
       "contact_email_help": "",
       "billing_managed_by_default": "Fakturering og abonnementshåndtering håndteres via dit primære arbejdsområde. Besøg indstillingerne for dit primære arbejdsområde for at administrere betalingsmetoder og fakturaer.",
       "select_organization": "",
+      "switcher_locked": "Organisationsskift ikke tilgængeligt på denne side",
       "not_found": "",
       "load_error": "",
       "fetch_organization_error": "",
