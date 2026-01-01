@@ -6,6 +6,7 @@
       "organization_plural": "Ngā Whakahaere",
       "organizations_description": "Whakahaere i ō whakahaere",
       "my_organizations": "Ōku Whakahaere",
+      "manage_organizations": "Manage Organizations",
       "new_organization": "Whakahaere Hou",
       "no_organizations": "Kāore anō he whakahaere",
       "no_organizations_description": "Ka taea e ngā whakahaere te whakahaere i ngā rōpū maha me te utu me te whakahaere kotahi. Tīmata mā te waihanga i tō whakahaere tuatahi.",
@@ -25,6 +26,7 @@
       "contact_email_help": "Whakapā matua mō te utu me ngā whakamōhio whakahaere",
       "billing_managed_by_default": "Ka whakahaerehia te utu me te whakahaere ohaurunga mā tō wāhi mahi matua. Torohia ngā tautuhinga wāhi mahi matua hei whakahaere i ngā tikanga utu me ngā nama.",
       "select_organization": "Kōwhiri tētahi whakahaere",
+      "switcher_locked": "Organization switching not available on this page",
       "not_found": "Kāore i kitea te whakahaere",
       "load_error": "I rahua te uta whakahaere",
       "fetch_organization_error": "I rahua te uta whakahaere",
@@ -47,9 +49,11 @@
       "single_user_info_description": "Whakahou i tō ingoa kamupene me ngā taipitopito whakahaere ki konei. Ka āwhina ēnei mōhiohio ki te whakamana i tō pūkete, ka taea hoki te whakamahi mō ngā āhuatanga waitohu ā muri ake.",
       "getting_started_title": "Te Tīmata me ngā Whakahaere",
       "getting_started_description": "Waihanga i tō whakahaere tuatahi hei whakahaere i ngā mōhiohio kamupene me te whakareri mō ngā āhuatanga mahi tahi rōpū me te waitohu ā muri ake.",
+      "page_description": "Manage your organizations and team members",
       "tabs": {
         "general": "Whānui",
         "company_branding": "Waitohu Kamupene",
+        "members": "Team",
         "billing": "Utu"
       },
       "danger_zone": "Wāhi Mōrearea",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Ngā Mema",
         "description": "Whakahaere i ngā mema whakahaere me ō rātou tūranga",
+        "current_members": "Current Members",
         "member": "Mema",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Ingoa",
         "email": "Īmēra",
         "role": "Tūranga",
