@@ -262,31 +262,29 @@ module Onetime
 
           # Get product name from site config
           def site_product_name
-            @site_product_name ||= site_config['product_name'] || 'Onetime Secret'
+            @site_product_name ||= conf_dig('site', 'product_name') || 'Onetime Secret'
           end
 
           # Get host from site config
           def site_host
-            @site_host ||= site_config['host'] || 'onetimesecret.com'
+            @site_host ||= conf_dig('site', 'host') || 'onetimesecret.com'
           end
 
           # Get base URI from site config
           def site_baseuri
             @site_baseuri ||= begin
-              scheme = site_config['ssl'] == false ? 'http://' : 'https://'
-              host   = site_config['host'] || 'localhost'
+              scheme = conf_dig('site', 'ssl') == false ? 'http://' : 'https://'
+              host   = conf_dig('site', 'host') || 'localhost'
               "#{scheme}#{host}"
             end
           end
 
           private
 
-          def site_config
-            @site_config ||= if defined?(OT) && OT.respond_to?(:conf) && OT.conf
-                               OT.conf['site'] || {}
-                             else
-                               {}
-                             end
+          def conf_dig(*keys)
+            return nil unless defined?(OT) && OT.respond_to?(:conf) && OT.conf
+
+            OT.conf.dig(*keys)
           end
         end
       end
