@@ -1,15 +1,10 @@
 // src/shared/stores/organizationStore.ts
 
-/**
- * localStorage key for persisting selected organization across sessions.
- * Used by OrganizationContextBar (restore) and OrganizationScopeSwitcher (save).
- */
-export const SELECTED_ORG_STORAGE_KEY = 'selectedOrganizationId';
-
 import {
   organizationResponseSchema,
   organizationsResponseSchema,
 } from '@/schemas/api/organizations';
+import { loggingService } from '@/services/logging.service';
 import type {
   CreateInvitationPayload,
   CreateOrganizationPayload,
@@ -25,7 +20,40 @@ import {
 } from '@/types/organization';
 import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
-import { computed, inject, ref } from 'vue';
+import { computed, inject, ref, watch } from 'vue';
+
+/**
+ * localStorage key for persisting selected organization across sessions.
+ * Used internally by the store for persistence.
+ */
+export const SELECTED_ORG_STORAGE_KEY = 'selectedOrganizationId';
+
+/**
+ * Load persisted organization ID from localStorage with error handling.
+ */
+function loadPersistedOrgId(): string | null {
+  try {
+    return localStorage.getItem(SELECTED_ORG_STORAGE_KEY);
+  } catch (error) {
+    loggingService.error(new Error(`Failed to load persisted organization: ${error}`));
+    return null;
+  }
+}
+
+/**
+ * Persist organization ID to localStorage with error handling.
+ */
+function persistOrgId(orgId: string | null): void {
+  try {
+    if (orgId) {
+      localStorage.setItem(SELECTED_ORG_STORAGE_KEY, orgId);
+    } else {
+      localStorage.removeItem(SELECTED_ORG_STORAGE_KEY);
+    }
+  } catch (error) {
+    loggingService.error(new Error(`Failed to persist organization selection: ${error}`));
+  }
+}
 
 /* eslint-disable max-lines-per-function */
 export const useOrganizationStore = defineStore('organization', () => {
@@ -373,6 +401,34 @@ export const useOrganizationStore = defineStore('organization', () => {
     entitlementsError.value = null;
   }
 
+  /**
+   * Restore persisted organization selection from localStorage.
+   * Returns the restored organization or null if not found.
+   * Priority: localStorage saved org > default org > first org
+   */
+  function restorePersistedSelection(): Organization | null {
+    if (organizations.value.length === 0) return null;
+
+    const savedOrgId = loadPersistedOrgId();
+    if (savedOrgId) {
+      const savedOrg = organizations.value.find(
+        (o) => o.id === savedOrgId || o.extid === savedOrgId
+      );
+      if (savedOrg) return savedOrg;
+    }
+
+    // Fall back to default org, then first org
+    return organizations.value.find((o) => o.is_default) ?? organizations.value[0] ?? null;
+  }
+
+  // Watch currentOrganization and persist to localStorage
+  watch(
+    () => currentOrganization.value?.id,
+    (newOrgId) => {
+      persistOrgId(newOrgId ?? null);
+    }
+  );
+
   return {
     // State
     organizations,
@@ -396,6 +452,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     updateOrganization,
     deleteOrganization,
     setCurrentOrganization,
+    restorePersistedSelection,
     fetchEntitlements,
     clearEntitlementsError,
     fetchInvitations,

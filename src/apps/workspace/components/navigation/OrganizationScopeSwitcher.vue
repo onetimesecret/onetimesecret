@@ -18,7 +18,7 @@
 
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import { useOrganizationStore, SELECTED_ORG_STORAGE_KEY } from '@/shared/stores/organizationStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
 import type { ScopesAvailable } from '@/types/router';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
@@ -105,10 +105,8 @@ const isCurrentOrganization = (org: Organization): boolean =>
  * Handle organization selection with optional navigation
  */
 const selectOrganization = (org: Organization): void => {
+  // setCurrentOrganization triggers the store's watcher to persist to localStorage
   organizationStore.setCurrentOrganization(org);
-
-  // Persist selection for session restoration
-  localStorage.setItem(SELECTED_ORG_STORAGE_KEY, org.id);
 
   // Handle route-aware navigation based on onOrgSwitch meta
   const switchTarget = onOrgSwitch.value;

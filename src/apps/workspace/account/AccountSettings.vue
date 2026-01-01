@@ -36,10 +36,15 @@
 
   // Computed tabs list - inserts billing before 'close' when enabled
   const tabs = computed(() => {
-    if (billingEnabled.value) {
-      return [baseTabs[0], billingTab, baseTabs[1]];
+    if (!billingEnabled.value) {
+      return baseTabs;
     }
-    return baseTabs;
+
+    // Insert billing tab before 'close' (robust to baseTabs reordering)
+    const newTabs = [...baseTabs];
+    const closeIndex = newTabs.findIndex((tab) => tab.name === 'close');
+    newTabs.splice(closeIndex !== -1 ? closeIndex : newTabs.length, 0, billingTab);
+    return newTabs;
   });
 </script>
 

@@ -15,7 +15,7 @@
 <script setup lang="ts">
 import DomainScopeSwitcher from '@/shared/components/navigation/DomainScopeSwitcher.vue';
 import OrganizationScopeSwitcher from '@/apps/workspace/components/navigation/OrganizationScopeSwitcher.vue';
-import { useOrganizationStore, SELECTED_ORG_STORAGE_KEY } from '@/shared/stores/organizationStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -32,25 +32,6 @@ const {
 
 const isLoaded = ref(false);
 
-/**
- * Determine which organization should be selected initially.
- * Priority: localStorage saved org > default org > first org
- */
-function getInitialOrganization() {
-  const orgs = organizationStore.organizations;
-  if (orgs.length === 0) return null;
-
-  // Try to restore from localStorage
-  const savedOrgId = localStorage.getItem(SELECTED_ORG_STORAGE_KEY);
-  if (savedOrgId) {
-    const savedOrg = orgs.find((o) => o.id === savedOrgId || o.extid === savedOrgId);
-    if (savedOrg) return savedOrg;
-  }
-
-  // Fall back to default org, then first org
-  return orgs.find((o) => o.is_default) ?? orgs[0];
-}
-
 // Fetch organizations on mount to determine visibility
 onMounted(async () => {
   if (!organizationStore.hasOrganizations) {
@@ -66,9 +47,9 @@ onMounted(async () => {
     }
   }
 
-  // Initialize currentOrganization if not already set
+  // Initialize currentOrganization if not already set (restores from localStorage)
   if (!organizationStore.currentOrganization && organizationStore.hasOrganizations) {
-    const initialOrg = getInitialOrganization();
+    const initialOrg = organizationStore.restorePersistedSelection();
     if (initialOrg) {
       organizationStore.setCurrentOrganization(initialOrg);
     }
