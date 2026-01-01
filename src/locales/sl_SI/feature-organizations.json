@@ -6,6 +6,7 @@
       "organization_plural": "Organizacije",
       "organizations_description": "Upravljajte svoje organizacije",
       "my_organizations": "Moje organizacije",
+      "manage_organizations": "Manage Organizations",
       "new_organization": "Nova organizacija",
       "no_organizations": "Še ni organizacij",
       "no_organizations_description": "Organizacije vam omogočajo upravljanje več ekip z enotnimi plačili in administracijo. Začnite z ustvarjanjem svoje prve organizacije.",
@@ -25,6 +26,7 @@
       "contact_email_help": "Glavni kontakt za obvestila o plačilih in administraciji",
       "billing_managed_by_default": "Plačila in naročnina se upravljajo preko vašega primarnega delovnega prostora. Obiščite nastavitve glavnega delovnega prostora za upravljanje načinov plačila in računov.",
       "select_organization": "Izberite organizacijo",
+      "switcher_locked": "Organization switching not available on this page",
       "not_found": "Organizacija ni bila najdena",
       "load_error": "Nalaganje organizacije ni uspelo",
       "fetch_organization_error": "Nalaganje organizacije ni uspelo",
@@ -47,9 +49,11 @@
       "single_user_info_description": "Tukaj posodobite ime svojega podjetja in podrobnosti organizacije. Te informacije pomagajo personalizirati vaš račun in jih lahko uporabite za prihodnje funkcije blagovne znamke.",
       "getting_started_title": "Začnite z organizacijami",
       "getting_started_description": "Ustvarite svojo prvo organizacijo za upravljanje informacij o svojem podjetju in pripravo na prihodnje sodelovanje ekip ter funkcije blagovne znamke.",
+      "page_description": "Manage your organizations and team members",
       "tabs": {
         "general": "Splošno",
         "company_branding": "Blagovna znamka podjetja",
+        "members": "Team",
         "billing": "Plačila"
       },
       "danger_zone": "Nevarno območje",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Člani",
         "description": "Upravljajte člane organizacije in njihove vloge",
+        "current_members": "Current Members",
         "member": "Član",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Ime",
         "email": "E-pošta",
         "role": "Vloga",
