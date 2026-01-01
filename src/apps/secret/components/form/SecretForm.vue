@@ -33,6 +33,8 @@
     cornerClass?: string;
     primaryColor?: string;
     buttonTextLight?: boolean;
+    /** When true, form stays on page after creation instead of navigating to receipt */
+    workspaceMode?: boolean;
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -44,7 +46,13 @@
     cornerClass: DEFAULT_CORNER_CLASS,
     primaryColor: DEFAULT_PRIMARY_COLOR,
     buttonTextLight: DEFAULT_BUTTON_TEXT_LIGHT,
+    workspaceMode: false,
   });
+
+  const emit = defineEmits<{
+    /** Emitted after successful secret creation with the response data */
+    (e: 'created', response: ConcealedMessage): void;
+  }>();
 
   const router = useRouter();
   const concealedMetadataStore = useConcealedMetadataStore();
@@ -87,8 +95,13 @@
       operations.reset();
       secretContentInput.value?.clearTextarea(); // Clear textarea
 
-      // Navigate to the metadata view page
-      router.push(`/receipt/${response.record.metadata.identifier}`);
+      // Emit event for parent components
+      emit('created', newMessage);
+
+      // In workspace mode, stay on page; otherwise navigate to receipt
+      if (!props.workspaceMode) {
+        router.push(`/receipt/${response.record.metadata.identifier}`);
+      }
     },
   });
 

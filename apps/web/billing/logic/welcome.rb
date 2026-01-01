@@ -58,8 +58,8 @@ module Billing
 
             OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with authenticated user #{cust.obscure_email}"
 
-            # TODO: Handle case where the user is already a Stripe customer
-            cust.apply_fields(**update_customer_fields).commit_fields
+            fields_to_update = preserve_existing_stripe_customer_id(cust, update_customer_fields.dup)
+            cust.apply_fields(**fields_to_update).commit_fields
 
             # Update organization billing from subscription (extracts planid, etc.)
             update_organization_billing(cust)
@@ -77,7 +77,8 @@ module Billing
 
               OT.info "[FromStripePaymentLink] Associating checkout #{checkout_session_id} with existing user #{cust.obscure_email}"
 
-              cust.apply_fields(**update_customer_fields).commit_fields
+              fields_to_update = preserve_existing_stripe_customer_id(cust, update_customer_fields.dup)
+              cust.apply_fields(**fields_to_update).commit_fields
 
               # Update organization billing from subscription (extracts planid, etc.)
               update_organization_billing(cust)
@@ -181,6 +182,32 @@ module Billing
         rescue StandardError => ex
           OT.le "[FromStripePaymentLink] Error sending verification email: #{ex.message}"
         end
+
+        # Preserve existing stripe_customer_id during checkout association
+        #
+        # When a user already has a stripe_customer_id (from a previous checkout),
+        # we keep their existing ID rather than overwriting with the new one.
+        # The authoritative billing relationship is now on Organization, but we
+        # preserve Customer.stripe_customer_id for data integrity during migration.
+        #
+        # @param customer [Onetime::Customer] The customer to check
+        # @param fields [Hash] The update fields hash (will be modified in place)
+        # @return [Hash] The modified fields hash
+        def preserve_existing_stripe_customer_id(customer, fields)
+          existing_id = customer.stripe_customer_id.to_s
+          new_id = fields[:stripe_customer_id].to_s
+
+          if existing_id.present? && existing_id != new_id
+            OT.lw '[FromStripePaymentLink] Customer already has stripe_customer_id, keeping existing', {
+              existing: existing_id,
+              new: new_id,
+              customer: customer.obscure_email,
+            }
+            fields.delete(:stripe_customer_id)
+          end
+
+          fields
+        end
       end
 
       # Processes checkout session redirect from Stripe
@@ -201,6 +228,11 @@ module Billing
 
         def raise_concerns
           raise_form_error 'No session_id provided' unless session_id
+
+          # Validate checkout session ID format (Stripe uses cs_test_ or cs_live_ prefix)
+          unless session_id.match?(/\Acs_(test|live)_/)
+            raise_form_error 'Invalid checkout session ID format'
+          end
 
           @checkout_session = Stripe::Checkout::Session.retrieve({
             id: session_id,

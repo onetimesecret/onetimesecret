@@ -845,7 +845,7 @@ watch(activeTab, async (newTab) => {
                   <!-- Action Buttons -->
                   <div class="flex flex-wrap gap-3 pt-4">
                     <router-link
-                      to="/account/billing/plans"
+                      to="/billing/plans"
                       class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
                       <OIcon
                         collection="heroicons"
@@ -855,7 +855,7 @@ watch(activeTab, async (newTab) => {
                       {{ t('web.billing.overview.upgrade_plan') }}
                     </router-link>
                     <router-link
-                      to="/account/billing"
+                      to="/billing/overview"
                       class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
                       <OIcon
                         collection="heroicons"
@@ -865,7 +865,7 @@ watch(activeTab, async (newTab) => {
                       {{ t('web.billing.overview.manage_billing') }}
                     </router-link>
                     <router-link
-                      to="/account/billing/invoices"
+                      to="/billing/invoices"
                       class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600">
                       <OIcon
                         collection="heroicons"
@@ -891,7 +891,7 @@ watch(activeTab, async (newTab) => {
                     Upgrade to unlock more teams and features
                   </p>
                   <router-link
-                    to="/account/billing/plans"
+                    to="/billing/plans"
                     class="mt-4 inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
                     <OIcon
                       collection="heroicons"

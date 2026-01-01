@@ -10,22 +10,18 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import SettingsNavigation from '@/apps/workspace/components/settings/SettingsNavigation.vue';
-import SettingsBreadcrumb from '@/apps/workspace/components/settings/SettingsBreadcrumb.vue';
 import SettingsPageHeader from '@/apps/workspace/components/settings/SettingsPageHeader.vue';
-import { getSettingsNavigation } from '@/apps/workspace/config/settings-navigation';
+import { getSettingsNavigationSections } from '@/apps/workspace/config/settings-navigation';
 import { computed } from 'vue';
 
 const { t } = useI18n();
 
-// Navigation items from config
-const navigationItems = computed(() => getSettingsNavigation(t));
+// Navigation sections from config
+const navigationSections = computed(() => getSettingsNavigationSections(t));
 </script>
 
 <template>
   <div class="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
-    <!-- Breadcrumb -->
-    <SettingsBreadcrumb />
-
     <!-- Page Header -->
     <SettingsPageHeader />
 
@@ -33,7 +29,7 @@ const navigationItems = computed(() => getSettingsNavigation(t));
     <div class="flex flex-col gap-8 md:flex-row">
       <!-- Sidebar Navigation -->
       <aside class="w-full md:w-72 md:shrink-0">
-        <SettingsNavigation :items="navigationItems" />
+        <SettingsNavigation :sections="navigationSections" />
       </aside>
 
       <!-- Main Content Area -->

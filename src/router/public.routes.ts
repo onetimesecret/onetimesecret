@@ -6,6 +6,7 @@ import DefaultLayout from '@/shared/layouts/TransactionalLayout.vue';
 import { WindowService } from '@/services/window.service';
 import HomepageContainer from '@/apps/secret/conceal/Homepage.vue';
 import { RouteRecordRaw } from 'vue-router';
+import { SCOPE_PRESETS } from '@/types/router';
 
 // Extend RouteRecordRaw meta to include our custom componentMode
 declare module 'vue-router' {
@@ -109,17 +110,27 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         displayToggles: true,
       },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
     beforeEnter: async (to) => {
       const domainStrategy = WindowService.get('domain_strategy') as string;
       const componentMode = determineComponentMode();
       const layoutProps = getLayoutPropsForMode(componentMode, domainStrategy);
+      const hasSession = document.cookie.includes('ots-session');
 
       to.meta.componentMode = componentMode;
       to.meta.layoutProps = {
         ...to.meta.layoutProps,
         ...layoutProps,
       };
+
+      // Scope visibility: show on canonical site for authenticated users only
+      // Custom domains never show scopes (the domain itself IS the scope)
+      if (domainStrategy !== 'custom' && hasSession) {
+        to.meta.scopesAvailable = SCOPE_PRESETS.showBoth;
+      } else {
+        to.meta.scopesAvailable = SCOPE_PRESETS.hideBoth;
+      }
     },
   },
   {
@@ -135,6 +146,7 @@ const routes: Array<RouteRecordRaw> = [
         displayFooterLinks: true,
         displayFeedback: false,
       },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
 ];

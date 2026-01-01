@@ -3,6 +3,7 @@
 import SecretRevealLayout from '@/apps/secret/layouts/SecretRevealLayout.vue';
 import ShowSecretContainer from '@/apps/secret/reveal/ShowSecret.vue';
 import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
+import { SCOPE_PRESETS } from '@/types/router';
 
 /**
  * Type guard that validates a metadata key.
@@ -51,6 +52,7 @@ const routes: Array<RouteRecordRaw> = [
         displayPoweredBy: false,
         displayVersion: false,
       },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
     ...withValidatedSecretKey,
   },

@@ -46,6 +46,15 @@ onMounted(async () => {
       }
     }
   }
+
+  // Initialize currentOrganization if not already set (restores from localStorage)
+  if (!organizationStore.currentOrganization && organizationStore.hasOrganizations) {
+    const initialOrg = organizationStore.restorePersistedSelection();
+    if (initialOrg) {
+      organizationStore.setCurrentOrganization(initialOrg);
+    }
+  }
+
   isLoaded.value = true;
 });
 

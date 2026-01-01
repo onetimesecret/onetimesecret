@@ -130,7 +130,7 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
         skip 'No monthly plans' if monthly_plans.empty?
 
         monthly_plans.each do |plan|
-          expect(plan['amount']).to be > 0,
+          expect(plan['amount'].to_i).to be > 0,
             "Plan #{plan['id']} should have positive amount"
         end
       end
@@ -157,7 +157,7 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
         skip 'No yearly plans' if yearly_plans.empty?
 
         yearly_plans.each do |plan|
-          expect(plan['amount']).to be > 0,
+          expect(plan['amount'].to_i).to be > 0,
             "Plan #{plan['id']} should have positive annual amount"
         end
       end
@@ -301,10 +301,12 @@ RSpec.describe 'Stripe Integration Blockers', :integration, :stripe_sandbox_api,
         env 'rack.session', {}
       end
 
-      it 'plans endpoint requires authentication' do
+      it 'plans endpoint is publicly accessible (no auth required)' do
+        # Plans listing is intentionally public for pricing page display
+        # See routes.txt: GET /api/plans ... auth=noauth
         get '/billing/api/plans'
 
-        expect(last_response.status).to eq(401)
+        expect(last_response.status).to eq(200)
       end
 
       it 'entitlements endpoint requires authentication' do

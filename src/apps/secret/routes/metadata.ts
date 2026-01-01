@@ -5,6 +5,7 @@ import { WindowService } from '@/services/window.service';
 import BurnSecret from '@/apps/secret/reveal/BurnSecret.vue';
 import ShowMetadata from '@/apps/secret/reveal/ShowMetadata.vue';
 import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
+import { SCOPE_PRESETS } from '@/types/router';
 
 /**
  * Type guard that validates a metadata key.
@@ -76,6 +77,7 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         displayToggles: true,
       },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -95,6 +97,7 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         displayToggles: true,
       },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -113,6 +116,7 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         displayPoweredBy: true,
       },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
   {
@@ -131,6 +135,7 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         displayPoweredBy: true,
       },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
 ];

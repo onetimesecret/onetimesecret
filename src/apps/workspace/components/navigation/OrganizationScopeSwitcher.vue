@@ -105,6 +105,7 @@ const isCurrentOrganization = (org: Organization): boolean =>
  * Handle organization selection with optional navigation
  */
 const selectOrganization = (org: Organization): void => {
+  // setCurrentOrganization triggers the store's watcher to persist to localStorage
   organizationStore.setCurrentOrganization(org);
 
   // Handle route-aware navigation based on onOrgSwitch meta

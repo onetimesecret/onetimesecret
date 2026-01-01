@@ -3,13 +3,18 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
-  import { ref } from 'vue';
+  import { computed } from 'vue';
   import { useRoute } from 'vue-router';
+  import { WindowService } from '@/services/window.service';
 
   const { t } = useI18n();
   const route = useRoute();
 
-  const tabs = ref([
+  // Check if billing is enabled
+  const billingEnabled = computed(() => WindowService.get('billing_enabled') === true);
+
+  // Base tabs always shown
+  const baseTabs = [
     {
       name: 'password',
       label: 'web.auth.change-password.title',
@@ -20,7 +25,27 @@
       label: 'web.auth.close-account.title',
       path: '/account/settings/close',
     },
-  ]);
+  ];
+
+  // Billing tab only shown when enabled
+  const billingTab = {
+    name: 'billing',
+    label: 'web.nav.settings.billing',
+    path: '/billing/overview',
+  };
+
+  // Computed tabs list - inserts billing before 'close' when enabled
+  const tabs = computed(() => {
+    if (!billingEnabled.value) {
+      return baseTabs;
+    }
+
+    // Insert billing tab before 'close' (robust to baseTabs reordering)
+    const newTabs = [...baseTabs];
+    const closeIndex = newTabs.findIndex((tab) => tab.name === 'close');
+    newTabs.splice(closeIndex !== -1 ? closeIndex : newTabs.length, 0, billingTab);
+    return newTabs;
+  });
 </script>
 
 <template>
