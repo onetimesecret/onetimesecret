@@ -5,10 +5,10 @@
       "body1": "一位我们的客户发送了以下信息："
     },
     "secret_link": {
-      "subject": "%{sender_email}给您发送了一条密文",
-      "sent_you_secret": "给您发送了一条密文:",
+      "subject": "%{sender_email}给您发送了一条内容",
+      "sent_you_secret": "给您发送了一条内容:",
       "important_label": "重要提示:",
-      "link_works_once": "此链接仅可使用一次。查看后,密文将被永久删除。",
+      "link_works_once": "此链接仅可使用一次。查看后,内容将被永久删除。",
       "sent_via": "通过以下方式发送"
     },
     "welcome": {
@@ -31,34 +31,34 @@
       "postscript": "附言:此邮件已发送至%{email_address}。"
     },
     "incoming_secret": {
-      "subject": "您收到了一条密文消息",
+      "subject": "您收到了一条内容消息",
       "received_message": "您收到了一条安全消息:",
       "memo_label": "备忘录:",
       "someone_sent": "有人通过%{display_domain}向您发送了一条安全消息。",
-      "view_instructions": "要查看此密文,请点击下面的链接:",
+      "view_instructions": "要查看此内容,请点击下面的链接:",
       "important_label": "重要提示:",
-      "link_works_once": "此链接仅可使用一次。查看后,密文将被永久删除。",
+      "link_works_once": "此链接仅可使用一次。查看后,内容将被永久删除。",
       "sent_via": "通过以下方式发送"
     },
     "secret_revealed": {
-      "subject": "您的密文已被查看",
-      "title": "您的密文已被查看",
-      "viewed_on": "您的密文于%{date}被查看。",
-      "secret_id_label": "密文ID:",
+      "subject": "您的内容已被查看",
+      "title": "您的内容已被查看",
+      "viewed_on": "您的内容于%{date}被查看。",
+      "secret_id_label": "内容ID:",
       "automated_notice": "这是一条自动通知。无需任何操作。",
       "signature": "Delano",
       "manage_preferences": "管理通知偏好设置",
       "manage_preferences_prompt": "要管理您的通知偏好设置:"
     },
     "expiration_warning": {
-      "subject": "您的密文链接即将过期",
-      "expires_in": "您的密文链接将在%{time_remaining}后过期",
-      "view_button": "在密文过期前查看",
+      "subject": "您的内容链接即将过期",
+      "expires_in": "您的内容链接将在%{time_remaining}后过期",
+      "view_button": "在内容过期前查看",
       "reminder_label": "提醒:",
-      "after_expiration": "过期后,密文将被永久删除且无法恢复。",
+      "after_expiration": "过期后,内容将被永久删除且无法恢复。",
       "sent_via": "通过以下方式发送",
       "view_before_gone": "在消失之前查看:",
-      "after_expiration_short": "过期后,密文将被永久删除。"
+      "after_expiration_short": "过期后,内容将被永久删除。"
     },
     "feedback_email": {
       "subject": "反馈于%{date}通过%{display_domain} (%{strategy})",
@@ -134,19 +134,19 @@
     "member_removed": {
       "subject": "您已从%{organization_name}中移除",
       "title": "您已从%{organization_name}中移除",
-      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "body": "您已从%{product_name}上的组织「%{organization_name}」中移除。",
       "signature": "Delano"
     },
     "role_changed": {
       "subject": "您在%{organization_name}中的角色已更改",
       "title": "您的角色已更改",
-      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "body": "您在「%{organization_name}」中的角色已从%{old_role}更改为%{new_role}。",
       "signature": "Delano"
     },
     "organization_deleted": {
-      "subject": "Organization \"%{organization_name}\" was deleted",
+      "subject": "组织「%{organization_name}」已删除",
       "title": "组织已删除",
-      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "body": "组织「%{organization_name}」已从%{product_name}删除。所有相关数据已被移除。",
       "signature": "Delano"
     },
     "payment_receipt": {

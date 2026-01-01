@@ -61,13 +61,13 @@
       "after_expiration_short": "Після закінчення терміну таємницю буде назавжди видалено."
     },
     "feedback_email": {
-      "subject": "Feedback on %{date} via %{display_domain} (%{strategy})",
-      "title": "User Feedback",
-      "from_label": "From:",
-      "domain_label": "Domain:",
-      "strategy_label": "Strategy:",
-      "message_label": "Message:",
-      "signature": "Secret Support"
+      "subject": "Зворотний зв'язок %{date} через %{display_domain} (%{strategy})",
+      "title": "Зворотний зв'язок користувача",
+      "from_label": "Від:",
+      "domain_label": "Домен:",
+      "strategy_label": "Стратегія:",
+      "message_label": "Повідомлення:",
+      "signature": "Підтримка Secret"
     },
     "organization_invitation": {
       "subject": "Вас запрошено приєднатися до %{organization_name}",
@@ -85,100 +85,100 @@
       }
     },
     "password_changed": {
-      "subject": "Your password was changed (%{display_domain})",
-      "title": "Your Password Was Changed",
-      "body": "Your password for %{product_name} was changed on %{date} at %{time}.",
-      "security_notice": "If you did not make this change, please secure your account immediately by resetting your password and contacting support.",
-      "signature": "Delano"
+      "subject": "Ваш пароль було змінено (%{display_domain})",
+      "title": "Ваш пароль було змінено",
+      "body": "Ваш пароль для %{product_name} було змінено %{date} о %{time}.",
+      "security_notice": "Якщо ви не робили цю зміну, будь ласка, негайно захистіть ваш обліковий запис, скинувши пароль та зв'язавшись з підтримкою.",
+      "signature": "Делано"
     },
     "email_changed": {
-      "subject": "Your email address was changed (%{display_domain})",
-      "title": "Your Email Address Was Changed",
-      "body": "The email address for your %{product_name} account was changed to %{new_email_masked} on %{date}.",
-      "security_notice": "If you did not make this change, please contact support immediately as your account may be compromised.",
-      "signature": "Delano"
+      "subject": "Вашу адресу електронної пошти було змінено (%{display_domain})",
+      "title": "Вашу адресу електронної пошти було змінено",
+      "body": "Адресу електронної пошти для вашого облікового запису %{product_name} було змінено на %{new_email_masked} %{date}.",
+      "security_notice": "Якщо ви не робили цю зміну, будь ласка, негайно зв'яжіться з підтримкою, оскільки ваш обліковий запис може бути скомпрометовано.",
+      "signature": "Делано"
     },
     "email_change_confirmation": {
-      "subject": "Verify your new email address (%{display_domain})",
-      "title": "Verify Your New Email Address",
-      "body": "Please verify this email address to complete the change for your %{product_name} account.",
-      "verify_button": "Verify Email Address",
-      "copy_link_prompt": "Or copy and paste this link:",
-      "signature": "Delano"
+      "subject": "Підтвердьте вашу нову адресу електронної пошти (%{display_domain})",
+      "title": "Підтвердьте вашу нову адресу електронної пошти",
+      "body": "Будь ласка, підтвердьте цю адресу електронної пошти, щоб завершити зміну для вашого облікового запису %{product_name}.",
+      "verify_button": "Підтвердити адресу електронної пошти",
+      "copy_link_prompt": "Або скопіюйте та вставте це посилання:",
+      "signature": "Делано"
     },
     "mfa_enabled": {
-      "subject": "Two-factor authentication enabled (%{display_domain})",
-      "title": "Two-Factor Authentication Enabled",
-      "body": "Two-factor authentication was enabled for your %{product_name} account on %{date}.",
-      "security_notice": "Your account is now more secure. You will need to enter a verification code from your authenticator app when signing in.",
-      "signature": "Delano"
+      "subject": "Двофакторну автентифікацію увімкнено (%{display_domain})",
+      "title": "Двофакторну автентифікацію увімкнено",
+      "body": "Двофакторну автентифікацію було увімкнено для вашого облікового запису %{product_name} %{date}.",
+      "security_notice": "Ваш обліковий запис тепер більш захищений. Вам потрібно буде вводити код підтвердження з вашого додатка автентифікації при вході.",
+      "signature": "Делано"
     },
     "mfa_disabled": {
-      "subject": "Two-factor authentication disabled (%{display_domain})",
-      "title": "Two-Factor Authentication Disabled",
-      "body": "Two-factor authentication was disabled for your %{product_name} account on %{date}.",
-      "warning_notice": "Your account is now less secure. If you did not make this change, please secure your account immediately.",
-      "signature": "Delano"
+      "subject": "Двофакторну автентифікацію вимкнено (%{display_domain})",
+      "title": "Двофакторну автентифікацію вимкнено",
+      "body": "Двофакторну автентифікацію було вимкнено для вашого облікового запису %{product_name} %{date}.",
+      "warning_notice": "Ваш обліковий запис тепер менш захищений. Якщо ви не робили цю зміну, будь ласка, негайно захистіть ваш обліковий запис.",
+      "signature": "Делано"
     },
     "new_login_alert": {
-      "subject": "New sign-in to your account (%{display_domain})",
-      "title": "New Sign-In Detected",
-      "body": "A new sign-in to your %{product_name} account was detected on %{date} at %{time}.",
-      "device_label": "Device:",
-      "location_label": "Location:",
-      "ip_address_label": "IP Address:",
-      "not_you_notice": "If this wasn't you, your account may be compromised.",
-      "secure_account_button": "Secure Your Account",
-      "signature": "Delano"
+      "subject": "Новий вхід до вашого облікового запису (%{display_domain})",
+      "title": "Виявлено новий вхід",
+      "body": "Було виявлено новий вхід до вашого облікового запису %{product_name} %{date} о %{time}.",
+      "device_label": "Пристрій:",
+      "location_label": "Розташування:",
+      "ip_address_label": "IP-адреса:",
+      "not_you_notice": "Якщо це були не ви, ваш обліковий запис може бути скомпрометовано.",
+      "secure_account_button": "Захистити ваш обліковий запис",
+      "signature": "Делано"
     },
     "member_removed": {
-      "subject": "You've been removed from %{organization_name}",
-      "title": "You've Been Removed from %{organization_name}",
-      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
-      "signature": "Delano"
+      "subject": "Вас видалено з %{organization_name}",
+      "title": "Вас видалено з %{organization_name}",
+      "body": "Вас було видалено з організації \"%{organization_name}\" в %{product_name}.",
+      "signature": "Делано"
     },
     "role_changed": {
-      "subject": "Your role was changed in %{organization_name}",
-      "title": "Your Role Was Changed",
-      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
-      "signature": "Delano"
+      "subject": "Вашу роль було змінено в %{organization_name}",
+      "title": "Вашу роль було змінено",
+      "body": "Вашу роль в \"%{organization_name}\" було змінено з %{old_role} на %{new_role}.",
+      "signature": "Делано"
     },
     "organization_deleted": {
-      "subject": "Organization \"%{organization_name}\" was deleted",
-      "title": "Organization Deleted",
-      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
-      "signature": "Delano"
+      "subject": "Організацію \"%{organization_name}\" було видалено",
+      "title": "Організацію видалено",
+      "body": "Організацію \"%{organization_name}\" було видалено з %{product_name}. Всі пов'язані дані було видалено.",
+      "signature": "Делано"
     },
     "payment_receipt": {
-      "subject": "Payment receipt for %{product_name}",
-      "title": "Payment Receipt",
-      "body": "Thank you for your payment. Here are your payment details:",
-      "amount_label": "Amount:",
-      "date_label": "Date:",
-      "plan_label": "Plan:",
-      "invoice_link": "View Invoice",
-      "signature": "Delano"
+      "subject": "Квитанція про оплату для %{product_name}",
+      "title": "Квитанція про оплату",
+      "body": "Дякуємо за ваш платіж. Ось деталі вашого платежу:",
+      "amount_label": "Сума:",
+      "date_label": "Дата:",
+      "plan_label": "План:",
+      "invoice_link": "Переглянути рахунок",
+      "signature": "Делано"
     },
     "payment_failed": {
-      "subject": "Payment failed for %{product_name}",
-      "title": "Payment Failed",
-      "body": "We were unable to process your payment for %{product_name}. Please update your payment method to avoid service interruption.",
-      "update_payment_button": "Update Payment Method",
-      "signature": "Delano"
+      "subject": "Платіж не вдався для %{product_name}",
+      "title": "Платіж не вдався",
+      "body": "Ми не змогли обробити ваш платіж для %{product_name}. Будь ласка, оновіть ваш спосіб оплати, щоб уникнути переривання обслуговування.",
+      "update_payment_button": "Оновити спосіб оплати",
+      "signature": "Делано"
     },
     "trial_expiring": {
-      "subject": "Your %{product_name} trial expires in %{days_remaining} days",
-      "title": "Your Trial Is Ending Soon",
-      "body": "Your free trial of %{product_name} will expire in %{days_remaining} days. Upgrade now to keep access to all features.",
-      "upgrade_button": "Upgrade Now",
-      "signature": "Delano"
+      "subject": "Ваш пробний період %{product_name} закінчується через %{days_remaining} днів",
+      "title": "Ваш пробний період скоро закінчується",
+      "body": "Ваш безкоштовний пробний період %{product_name} закінчиться через %{days_remaining} днів. Оновіться зараз, щоб зберегти доступ до всіх функцій.",
+      "upgrade_button": "Оновити зараз",
+      "signature": "Делано"
     },
     "subscription_changed": {
-      "subject": "Your %{product_name} subscription was changed",
-      "title": "Subscription Changed",
-      "body": "Your %{product_name} subscription has been changed from %{old_plan} to %{new_plan}.",
-      "effective_date": "This change is effective %{date}.",
-      "signature": "Delano"
+      "subject": "Вашу підписку %{product_name} було змінено",
+      "title": "Підписку змінено",
+      "body": "Вашу підписку %{product_name} було змінено з %{old_plan} на %{new_plan}.",
+      "effective_date": "Ця зміна набуває чинності %{date}.",
+      "signature": "Делано"
     },
     "common": {
       "greeting": "Вітаю,",

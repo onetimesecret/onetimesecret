@@ -67,7 +67,7 @@
       "domain_label": "Domena:",
       "strategy_label": "Strategia:",
       "message_label": "Wiadomość:",
-      "signature": "Wsparcie Secret"
+      "signature": "Zespół wsparcia"
     },
     "organization_invitation": {
       "subject": "Zaproszono Cię do dołączenia do %{organization_name}",

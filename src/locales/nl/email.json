@@ -150,34 +150,34 @@
       "signature": "Delano"
     },
     "payment_receipt": {
-      "subject": "Payment receipt for %{product_name}",
-      "title": "Payment Receipt",
-      "body": "Thank you for your payment. Here are your payment details:",
-      "amount_label": "Amount:",
-      "date_label": "Date:",
+      "subject": "Betalingsbewijs voor %{product_name}",
+      "title": "Betalingsbewijs",
+      "body": "Bedankt voor je betaling. Hier zijn je betalingsgegevens:",
+      "amount_label": "Bedrag:",
+      "date_label": "Datum:",
       "plan_label": "Plan:",
-      "invoice_link": "View Invoice",
+      "invoice_link": "Factuur bekijken",
       "signature": "Delano"
     },
     "payment_failed": {
-      "subject": "Payment failed for %{product_name}",
-      "title": "Payment Failed",
-      "body": "We were unable to process your payment for %{product_name}. Please update your payment method to avoid service interruption.",
-      "update_payment_button": "Update Payment Method",
+      "subject": "Betaling mislukt voor %{product_name}",
+      "title": "Betaling mislukt",
+      "body": "We konden je betaling voor %{product_name} niet verwerken. Update je betaalmethode om onderbreking van de service te voorkomen.",
+      "update_payment_button": "Betaalmethode updaten",
       "signature": "Delano"
     },
     "trial_expiring": {
-      "subject": "Your %{product_name} trial expires in %{days_remaining} days",
-      "title": "Your Trial Is Ending Soon",
-      "body": "Your free trial of %{product_name} will expire in %{days_remaining} days. Upgrade now to keep access to all features.",
-      "upgrade_button": "Upgrade Now",
+      "subject": "Je %{product_name}-proefperiode verloopt over %{days_remaining} dagen",
+      "title": "Je proefperiode loopt bijna af",
+      "body": "Je gratis proefperiode van %{product_name} verloopt over %{days_remaining} dagen. Upgrade nu om toegang te behouden tot alle functies.",
+      "upgrade_button": "Nu upgraden",
       "signature": "Delano"
     },
     "subscription_changed": {
-      "subject": "Your %{product_name} subscription was changed",
-      "title": "Subscription Changed",
-      "body": "Your %{product_name} subscription has been changed from %{old_plan} to %{new_plan}.",
-      "effective_date": "This change is effective %{date}.",
+      "subject": "Je %{product_name}-abonnement is gewijzigd",
+      "title": "Abonnement gewijzigd",
+      "body": "Je %{product_name}-abonnement is gewijzigd van %{old_plan} naar %{new_plan}.",
+      "effective_date": "Deze wijziging gaat in op %{date}.",
       "signature": "Delano"
     },
     "common": {
