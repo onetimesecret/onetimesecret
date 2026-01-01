@@ -28,7 +28,7 @@
       "copy_link_prompt": "Oder kopieren Sie diesen Link:",
       "ignore_notice": "Wenn Sie keine Passwortzurücksetzung angefordert haben, können Sie diese E-Mail bedenkenlos ignorieren.",
       "signature": "Delano",
-      "postscript": "P.S. This email was sent to %{email_address}."
+      "postscript": "P.S. Diese E-Mail wurde an %{email_address} gesendet."
     },
     "incoming_secret": {
       "subject": "Sie haben eine geheime Nachricht erhalten",
