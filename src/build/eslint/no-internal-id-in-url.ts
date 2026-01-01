@@ -1,4 +1,4 @@
-// eslint-rules/no-internal-id-in-url.ts
+// src/build/eslint/no-internal-id-in-url.ts
 
 /**
  * ESLint Rule: no-internal-id-in-url
@@ -56,7 +56,7 @@ const EXTERNAL_ID_PROPERTIES = ['extid', 'external_id', 'ext_id'];
  * Check if a node is within a URL context
  */
 function isInUrlContext(node: Node, context: Rule.RuleContext): boolean {
-  const sourceCode = context.sourceCode || context.getSourceCode();
+  const sourceCode = context.sourceCode || context.getourceCode();
   const ancestors = sourceCode.getAncestors(node);
 
   for (const ancestor of ancestors) {

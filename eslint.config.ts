@@ -64,7 +64,7 @@ import pluginVue from 'eslint-plugin-vue';
 import globals from 'globals';
 import vueEslintParser from 'vue-eslint-parser';
 
-import otsRules from './eslint-rules';
+import otsRules from './src/build/eslint';
 
 // Validate that required plugin configs are available
 if (!pluginVue.configs?.['flat/strongly-recommended']) {

@@ -1,4 +1,4 @@
-// eslint-rules/index.ts
+// src/build/eslint/index.ts
 
 /**
  * Custom ESLint Rules for OneTime Secret
@@ -7,7 +7,7 @@
  *
  * Usage in eslint.config.ts:
  * ```typescript
- * import otsRules from './eslint-rules';
+ * import otsRules from './src/build/eslint';
  *
  * export default [
  *   {

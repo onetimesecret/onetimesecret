@@ -8,7 +8,7 @@ The Opaque Identifier Pattern requires using external IDs (`extid`) instead of i
 
 Related documentation:
 - `src/types/identifiers.ts` - Branded type definitions
-- `eslint-rules/no-internal-id-in-url.ts` - ESLint rule implementation
+- `src/build/eslint/no-internal-id-in-url.ts` - ESLint rule implementation
 - `docs/IDENTIFIER-REVIEW-CHECKLIST.md` - Manual review guidance
 
 ## ESLint Rule Integration
@@ -19,17 +19,13 @@ The rule is configured in `eslint.config.ts`:
 
 ```typescript
 // eslint.config.ts
-import noInternalIdInUrl from './eslint-rules/no-internal-id-in-url.js';
+import otsRules from './src/build/eslint';
 
 export default [
   // ... other config
   {
     plugins: {
-      ots: {
-        rules: {
-          'no-internal-id-in-url': noInternalIdInUrl,
-        },
-      },
+      ots: otsRules,
     },
     rules: {
       // Phase 1: Warning mode during migration
@@ -214,7 +210,7 @@ const org = store.getOrganizationById(org.id);
 ### Rule Not Running
 
 1. Verify the rule is registered in `eslint.config.ts`
-2. Check that `eslint-rules/no-internal-id-in-url.ts` is compiled to `.js`
+2. Check that `src/build/eslint/no-internal-id-in-url.ts` is correctly imported
 3. Run `pnpm lint --debug` to see rule loading
 
 ### Too Many Warnings
@@ -232,6 +228,6 @@ If the rule itself has type errors, ensure TypeScript is configured to compile E
 ```json
 // tsconfig.json
 {
-  "include": ["eslint-rules/**/*.ts"]
+  "include": ["src/build/eslint/**/*.ts"]
 }
 ```
