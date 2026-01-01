@@ -134,19 +134,19 @@
     "member_removed": {
       "subject": "Αφαιρεθήκατε από το %{organization_name}",
       "title": "Αφαιρεθήκατε από το %{organization_name}",
-      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "body": "Αφαιρεθήκατε από τον οργανισμό \"%{organization_name}\" στο %{product_name}.",
       "signature": "Delano"
     },
     "role_changed": {
       "subject": "Ο ρόλος σας άλλαξε στο %{organization_name}",
       "title": "Ο Ρόλος Σας Άλλαξε",
-      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "body": "Ο ρόλος σας στο \"%{organization_name}\" άλλαξε από %{old_role} σε %{new_role}.",
       "signature": "Delano"
     },
     "organization_deleted": {
-      "subject": "Organization \"%{organization_name}\" was deleted",
+      "subject": "Ο οργανισμός \"%{organization_name}\" διαγράφηκε",
       "title": "Ο Οργανισμός Διαγράφηκε",
-      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "body": "Ο οργανισμός \"%{organization_name}\" διαγράφηκε από το %{product_name}. Όλα τα σχετικά δεδομένα έχουν αφαιρεθεί.",
       "signature": "Delano"
     },
     "payment_receipt": {

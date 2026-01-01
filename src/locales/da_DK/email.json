@@ -134,19 +134,19 @@
     "member_removed": {
       "subject": "Du er blevet fjernet fra %{organization_name}",
       "title": "Du er blevet fjernet fra %{organization_name}",
-      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "body": "Du er blevet fjernet fra organisationen \"%{organization_name}\" på %{product_name}.",
       "signature": "Delano"
     },
     "role_changed": {
       "subject": "Din rolle blev ændret i %{organization_name}",
       "title": "Din rolle blev ændret",
-      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "body": "Din rolle i \"%{organization_name}\" er blevet ændret fra %{old_role} til %{new_role}.",
       "signature": "Delano"
     },
     "organization_deleted": {
-      "subject": "Organization \"%{organization_name}\" was deleted",
+      "subject": "Organisation \"%{organization_name}\" blev slettet",
       "title": "Organisation slettet",
-      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "body": "Organisationen \"%{organization_name}\" er blevet slettet fra %{product_name}. Alle tilknyttede data er blevet fjernet.",
       "signature": "Delano"
     },
     "payment_receipt": {

@@ -134,19 +134,19 @@
     "member_removed": {
       "subject": "Byl jsi odebrán z %{organization_name}",
       "title": "Byl jsi odebrán z %{organization_name}",
-      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "body": "Byl jsi odebrán z organizace \"%{organization_name}\" na %{product_name}.",
       "signature": "Delano"
     },
     "role_changed": {
       "subject": "Vaše role byla změněna v %{organization_name}",
       "title": "Vaše role byla změněna",
-      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "body": "Vaše role v \"%{organization_name}\" byla změněna z %{old_role} na %{new_role}.",
       "signature": "Delano"
     },
     "organization_deleted": {
-      "subject": "Organization \"%{organization_name}\" was deleted",
+      "subject": "Organizace \"%{organization_name}\" byla smazána",
       "title": "Organizace smazána",
-      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "body": "Organizace \"%{organization_name}\" byla smazána z %{product_name}. Všechna související data byla odstraněna.",
       "signature": "Delano"
     },
     "payment_receipt": {

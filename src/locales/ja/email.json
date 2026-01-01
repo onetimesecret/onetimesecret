@@ -134,19 +134,19 @@
     "member_removed": {
       "subject": "%{organization_name}から削除されました",
       "title": "%{organization_name}から削除されました",
-      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "body": "%{product_name}の組織「%{organization_name}」から削除されました。",
       "signature": "Delano"
     },
     "role_changed": {
       "subject": "%{organization_name}での役割が変更されました",
       "title": "役割が変更されました",
-      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "body": "「%{organization_name}」での役割が%{old_role}から%{new_role}に変更されました。",
       "signature": "Delano"
     },
     "organization_deleted": {
-      "subject": "Organization \"%{organization_name}\" was deleted",
+      "subject": "組織「%{organization_name}」が削除されました",
       "title": "組織が削除されました",
-      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "body": "組織「%{organization_name}」が%{product_name}から削除されました。関連するすべてのデータが削除されました。",
       "signature": "Delano"
     },
     "payment_receipt": {

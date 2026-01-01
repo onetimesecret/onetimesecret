@@ -134,19 +134,19 @@
     "member_removed": {
       "subject": "تمت إزالتك من %{organization_name}",
       "title": "تمت إزالتك من %{organization_name}",
-      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "body": "تمت إزالتك من المنظمة \"%{organization_name}\" على %{product_name}.",
       "signature": "ديلانو"
     },
     "role_changed": {
       "subject": "تم تغيير دورك في %{organization_name}",
       "title": "تم تغيير دورك",
-      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "body": "تم تغيير دورك في \"%{organization_name}\" من %{old_role} إلى %{new_role}.",
       "signature": "ديلانو"
     },
     "organization_deleted": {
-      "subject": "Organization \"%{organization_name}\" was deleted",
+      "subject": "تم حذف المنظمة \"%{organization_name}\"",
       "title": "تم حذف المؤسسة",
-      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "body": "تم حذف المنظمة \"%{organization_name}\" من %{product_name}. تمت إزالة جميع البيانات المرتبطة.",
       "signature": "ديلانو"
     },
     "payment_receipt": {

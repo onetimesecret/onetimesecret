@@ -134,19 +134,19 @@
     "member_removed": {
       "subject": "Sei stato rimosso da %{organization_name}",
       "title": "Sei stato rimosso da %{organization_name}",
-      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "body": "Sei stato rimosso dall'organizzazione \"%{organization_name}\" su %{product_name}.",
       "signature": "Delano"
     },
     "role_changed": {
       "subject": "Il tuo ruolo è stato modificato in %{organization_name}",
       "title": "Il tuo ruolo è stato modificato",
-      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "body": "Il tuo ruolo in \"%{organization_name}\" è stato modificato da %{old_role} a %{new_role}.",
       "signature": "Delano"
     },
     "organization_deleted": {
-      "subject": "Organization \"%{organization_name}\" was deleted",
+      "subject": "L'organizzazione \"%{organization_name}\" è stata eliminata",
       "title": "Organizzazione eliminata",
-      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "body": "L'organizzazione \"%{organization_name}\" è stata eliminata da %{product_name}. Tutti i dati associati sono stati rimossi.",
       "signature": "Delano"
     },
     "payment_receipt": {

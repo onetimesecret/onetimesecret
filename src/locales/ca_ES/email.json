@@ -134,19 +134,19 @@
     "member_removed": {
       "subject": "Heu estat eliminat de %{organization_name}",
       "title": "Heu estat eliminat de %{organization_name}",
-      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "body": "Heu estat eliminat de l'organització \"%{organization_name}\" a %{product_name}.",
       "signature": "Delano"
     },
     "role_changed": {
       "subject": "El vostre rol ha estat canviat a %{organization_name}",
       "title": "El vostre rol ha estat canviat",
-      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "body": "El vostre rol a \"%{organization_name}\" ha estat canviat de %{old_role} a %{new_role}.",
       "signature": "Delano"
     },
     "organization_deleted": {
-      "subject": "Organization \"%{organization_name}\" was deleted",
+      "subject": "L'organització \"%{organization_name}\" ha estat eliminada",
       "title": "Organització eliminada",
-      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "body": "L'organització \"%{organization_name}\" ha estat eliminada de %{product_name}. Totes les dades associades han estat eliminades.",
       "signature": "Delano"
     },
     "payment_receipt": {

@@ -134,19 +134,19 @@
     "member_removed": {
       "subject": "Вы удалены из организации %{organization_name}",
       "title": "Вы удалены из организации %{organization_name}",
-      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "body": "Вы были удалены из организации \"%{organization_name}\" в %{product_name}.",
       "signature": "Delano"
     },
     "role_changed": {
       "subject": "Ваша роль изменена в организации %{organization_name}",
       "title": "Ваша роль была изменена",
-      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "body": "Ваша роль в \"%{organization_name}\" была изменена с %{old_role} на %{new_role}.",
       "signature": "Delano"
     },
     "organization_deleted": {
-      "subject": "Organization \"%{organization_name}\" was deleted",
+      "subject": "Организация \"%{organization_name}\" была удалена",
       "title": "Организация удалена",
-      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "body": "Организация \"%{organization_name}\" была удалена из %{product_name}. Все связанные данные были удалены.",
       "signature": "Delano"
     },
     "payment_receipt": {
