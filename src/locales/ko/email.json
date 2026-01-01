@@ -4,17 +4,70 @@
       "subject": "[티켓: %s]",
       "body1": "고객이 다음 정보를 보냈습니다"
     },
-    "secretlink": {
-      "subject": "%s님이 비밀 메시지를 보냈습니다",
-      "body1": "다음 발신자로부터 비밀 메시지가 도착했습니다",
-      "body_tagline": "발신자를 모르거나 스팸으로 의심되는 경우, 다음 주소로 세부 정보를 보내주세요:"
+    "secret_link": {
+      "subject": "%{sender_email}님이 비밀 메시지를 보냈습니다",
+      "sent_you_secret": "님이 비밀 메시지를 보냈습니다:",
+      "important_label": "중요:",
+      "link_works_once": "이 링크는 한 번만 작동합니다. 확인 후 비밀 메시지는 영구적으로 삭제됩니다.",
+      "sent_via": "발신:"
     },
     "welcome": {
       "subject": "Onetime Secret 계정을 인증하세요",
-      "body1": "Onetime Secret에 오신 것을 환영합니다. 귀하를 위한 비밀 메시지가 있습니다!",
-      "please_verify": "계정을 인증해 주세요:",
-      "postscript1": "이 이메일은 다음 주소로 전송되었습니다",
-      "postscript2": "이 요청을 하지 않으셨다면, 이 이메일을 무시하셔도 됩니다."
+      "title": "%{organization_name}에 초대되었습니다!",
+      "verify_prompt": "아래 링크를 클릭하여 이메일 주소를 인증해 주세요:",
+      "verify_button": "이메일 주소 인증",
+      "copy_link_prompt": "또는 이 링크를 복사하여 붙여넣기:",
+      "signature": "Delano",
+      "postscript": "추신: 이 이메일은 %{invited_email}로 전송되었습니다. 이 초대를 예상하지 못했다면 이 메시지를 무시하셔도 됩니다."
+    },
+    "password_request": {
+      "subject": "비밀번호 재설정 (%{display_domain})",
+      "title": "비밀번호 재설정",
+      "request_notice": "%{product_name} 비밀번호 재설정 요청을 받았습니다.",
+      "reset_button": "비밀번호 재설정",
+      "copy_link_prompt": "또는 이 링크를 복사하여 붙여넣기:",
+      "ignore_notice": "비밀번호 재설정을 요청하지 않으셨다면 이 이메일을 무시하셔도 됩니다.",
+      "signature": "Delano",
+      "postscript": "P.S. 이 이메일은 %{email_address}로 발송되었습니다."
+    },
+    "incoming_secret": {
+      "subject": "비밀 메시지를 받으셨습니다",
+      "received_message": "안전한 메시지를 받으셨습니다:",
+      "memo_label": "메모:",
+      "someone_sent": "누군가 %{display_domain}을 통해 안전한 메시지를 보냈습니다.",
+      "view_instructions": "비밀 메시지를 보려면 아래 링크를 클릭하세요:",
+      "important_label": "중요:",
+      "link_works_once": "이 링크는 한 번만 작동합니다. 확인 후 비밀 메시지는 영구적으로 삭제됩니다.",
+      "sent_via": "발신:"
+    },
+    "secret_revealed": {
+      "subject": "비밀 메시지가 확인되었습니다",
+      "title": "비밀 메시지가 확인되었습니다",
+      "viewed_on": "비밀 메시지가 %{date}에 확인되었습니다.",
+      "secret_id_label": "비밀 메시지 ID:",
+      "automated_notice": "자동 알림입니다. 별도의 조치가 필요하지 않습니다.",
+      "signature": "Delano",
+      "manage_preferences": "알림 설정 관리",
+      "manage_preferences_prompt": "알림 설정을 관리하려면:"
+    },
+    "expiration_warning": {
+      "subject": "비밀 메시지 링크가 곧 만료됩니다",
+      "expires_in": "비밀 메시지 링크가 %{time_remaining} 후에 만료됩니다",
+      "view_button": "만료되기 전에 비밀 메시지 확인",
+      "reminder_label": "안내:",
+      "after_expiration": "만료 후 비밀 메시지는 영구적으로 삭제되며 복구할 수 없습니다.",
+      "sent_via": "발신:",
+      "view_before_gone": "삭제되기 전에 확인하세요:",
+      "after_expiration_short": "만료 후 비밀 메시지는 영구적으로 삭제됩니다."
+    },
+    "feedback_email": {
+      "subject": "%{display_domain}을 통한 %{date} 피드백 (%{strategy})",
+      "title": "사용자 피드백",
+      "from_label": "발신:",
+      "domain_label": "도메인:",
+      "strategy_label": "전략:",
+      "message_label": "메시지:",
+      "signature": "Secret Support"
     },
     "organization_invitation": {
       "subject": "%{organization_name}에 초대되었습니다",
@@ -31,11 +84,108 @@
         "admin": "관리자"
       }
     },
+    "password_changed": {
+      "subject": "비밀번호가 변경되었습니다 (%{display_domain})",
+      "title": "비밀번호가 변경되었습니다",
+      "body": "%{product_name} 비밀번호가 %{date} %{time}에 변경되었습니다.",
+      "security_notice": "이 변경을 하지 않으셨다면 비밀번호를 재설정하고 지원팀에 즉시 연락하여 계정을 보호하세요.",
+      "signature": "Delano"
+    },
+    "email_changed": {
+      "subject": "이메일 주소가 변경되었습니다 (%{display_domain})",
+      "title": "이메일 주소가 변경되었습니다",
+      "body": "%{product_name} 계정의 이메일 주소가 %{date}에 %{new_email_masked}(으)로 변경되었습니다.",
+      "security_notice": "If you did not make this change, please contact support immediately as your account may be compromised.",
+      "signature": "Delano"
+    },
+    "email_change_confirmation": {
+      "subject": "새 이메일 주소를 인증하세요 (%{display_domain})",
+      "title": "새 이메일 주소 인증",
+      "body": "%{product_name} 계정의 변경을 완료하려면 이 이메일 주소를 인증해 주세요.",
+      "verify_button": "이메일 주소 인증",
+      "copy_link_prompt": "또는 이 링크를 복사하여 붙여넣기:",
+      "signature": "Delano"
+    },
+    "mfa_enabled": {
+      "subject": "2단계 인증이 활성화되었습니다 (%{display_domain})",
+      "title": "2단계 인증 활성화됨",
+      "body": "%{product_name} 계정에 2단계 인증이 %{date}에 활성화되었습니다.",
+      "security_notice": "계정이 더욱 안전해졌습니다. 로그인 시 인증 앱에서 인증 코드를 입력해야 합니다.",
+      "signature": "Delano"
+    },
+    "mfa_disabled": {
+      "subject": "2단계 인증이 비활성화되었습니다 (%{display_domain})",
+      "title": "2단계 인증 비활성화됨",
+      "body": "%{product_name} 계정의 2단계 인증이 %{date}에 비활성화되었습니다.",
+      "warning_notice": "계정의 보안이 약화되었습니다. 이 변경을 하지 않으셨다면 즉시 계정을 보호하세요.",
+      "signature": "Delano"
+    },
+    "new_login_alert": {
+      "subject": "새로운 로그인이 감지되었습니다 (%{display_domain})",
+      "title": "새로운 로그인 감지됨",
+      "body": "%{product_name} 계정에 %{date} %{time}에 새로운 로그인이 감지되었습니다.",
+      "device_label": "기기:",
+      "location_label": "위치:",
+      "ip_address_label": "IP 주소:",
+      "not_you_notice": "본인이 아니라면 계정이 침해되었을 수 있습니다.",
+      "secure_account_button": "계정 보호하기",
+      "signature": "Delano"
+    },
+    "member_removed": {
+      "subject": "%{organization_name}에서 제거되었습니다",
+      "title": "%{organization_name}에서 제거됨",
+      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "signature": "Delano"
+    },
+    "role_changed": {
+      "subject": "%{organization_name}에서 역할이 변경되었습니다",
+      "title": "역할이 변경되었습니다",
+      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "signature": "Delano"
+    },
+    "organization_deleted": {
+      "subject": "Organization \"%{organization_name}\" was deleted",
+      "title": "조직 삭제됨",
+      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "signature": "Delano"
+    },
+    "payment_receipt": {
+      "subject": "%{product_name} 결제 영수증",
+      "title": "결제 영수증",
+      "body": "결제해 주셔서 감사합니다. 결제 내역은 다음과 같습니다:",
+      "amount_label": "금액:",
+      "date_label": "날짜:",
+      "plan_label": "플랜:",
+      "invoice_link": "청구서 보기",
+      "signature": "Delano"
+    },
+    "payment_failed": {
+      "subject": "%{product_name} 결제 실패",
+      "title": "결제 실패",
+      "body": "%{product_name} 결제를 처리할 수 없습니다. 서비스 중단을 방지하려면 결제 수단을 업데이트해 주세요.",
+      "update_payment_button": "결제 수단 업데이트",
+      "signature": "Delano"
+    },
+    "trial_expiring": {
+      "subject": "%{product_name} 체험판이 %{days_remaining}일 후 만료됩니다",
+      "title": "체험판이 곧 종료됩니다",
+      "body": "%{product_name} 무료 체험판이 %{days_remaining}일 후에 만료됩니다. 모든 기능에 계속 액세스하려면 지금 업그레이드하세요.",
+      "upgrade_button": "지금 업그레이드",
+      "signature": "Delano"
+    },
+    "subscription_changed": {
+      "subject": "%{product_name} 구독이 변경되었습니다",
+      "title": "구독 변경됨",
+      "body": "%{product_name} 구독이 %{old_plan}에서 %{new_plan}(으)로 변경되었습니다.",
+      "effective_date": "이 변경은 %{date}부터 적용됩니다.",
+      "signature": "Delano"
+    },
     "common": {
       "greeting": "안녕하세요,",
       "thanks": "감사합니다,",
       "unsubscribe": "수신 거부",
-      "view_in_browser": "브라우저에서 보기"
+      "view_in_browser": "브라우저에서 보기",
+      "onetime_secret": "Onetime Secret"
     }
   }
 }

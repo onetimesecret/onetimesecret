@@ -6,6 +6,7 @@
       "organization_plural": "조직",
       "organizations_description": "조직을 관리합니다",
       "my_organizations": "내 조직",
+      "manage_organizations": "조직 관리",
       "new_organization": "새 조직",
       "no_organizations": "아직 조직이 없습니다",
       "no_organizations_description": "조직을 사용하면 통합 결제 및 관리로 여러 팀을 관리할 수 있습니다. 첫 번째 조직을 생성하여 시작하세요.",
@@ -25,6 +26,7 @@
       "contact_email_help": "결제 및 관리 알림을 위한 기본 연락처",
       "billing_managed_by_default": "결제 및 구독 관리는 기본 워크스페이스를 통해 처리됩니다. 결제 수단 및 송장을 관리하려면 메인 워크스페이스 설정을 방문하세요.",
       "select_organization": "조직 선택",
+      "switcher_locked": "이 페이지에서는 조직 전환을 사용할 수 없습니다",
       "not_found": "조직을 찾을 수 없습니다",
       "load_error": "조직을 불러오지 못했습니다",
       "fetch_organization_error": "조직을 불러오지 못했습니다",
@@ -47,9 +49,11 @@
       "single_user_info_description": "여기에서 회사 이름 및 조직 세부정보를 업데이트합니다. 이 정보는 계정을 개인화하는 데 도움이 되며 향후 브랜딩 기능에 사용될 수 있습니다.",
       "getting_started_title": "조직 시작하기",
       "getting_started_description": "첫 번째 조직을 생성하여 회사 정보를 관리하고 향후 팀 협업 및 브랜딩 기능을 준비하세요.",
+      "page_description": "조직 및 팀 멤버 관리",
       "tabs": {
         "general": "일반",
         "company_branding": "회사 브랜딩",
+        "members": "팀",
         "billing": "결제"
       },
       "danger_zone": "위험 구역",
@@ -62,7 +66,10 @@
       "members": {
         "title": "구성원",
         "description": "조직 구성원 및 역할 관리",
+        "current_members": "현재 멤버",
         "member": "구성원",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "이름",
         "email": "이메일",
         "role": "역할",
