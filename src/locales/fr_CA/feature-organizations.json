@@ -6,6 +6,7 @@
       "organization_plural": "Organisations",
       "organizations_description": "Gérer vos organisations",
       "my_organizations": "Mes organisations",
+      "manage_organizations": "Gérer les organisations",
       "new_organization": "Nouvelle organisation",
       "no_organizations": "Aucune organisation pour le moment",
       "no_organizations_description": "Les organisations vous permettent de gérer plusieurs équipes avec une facturation et une administration unifiées. Commencez par créer votre première organisation.",
@@ -25,6 +26,7 @@
       "contact_email_help": "Contact principal pour les notifications de facturation et administratives",
       "billing_managed_by_default": "La gestion de la facturation et des abonnements se fait via votre espace de travail principal. Visitez les paramètres de votre espace de travail principal pour gérer les modes de paiement et les factures.",
       "select_organization": "Sélectionner une organisation",
+      "switcher_locked": "Le changement d'organisation n'est pas disponible sur cette page",
       "not_found": "Organisation introuvable",
       "load_error": "Échec du chargement de l'organisation",
       "fetch_organization_error": "Échec du chargement de l'organisation",
@@ -47,9 +49,11 @@
       "single_user_info_description": "Mettez à jour le nom de votre entreprise et les détails de votre organisation ici. Ces informations permettent de personnaliser votre compte et pourront être utilisées pour des fonctionnalités d'image de marque à l'avenir.",
       "getting_started_title": "Débuter avec les organisations",
       "getting_started_description": "Créez votre première organisation pour gérer les informations de votre entreprise et vous préparer pour de futures fonctionnalités de collaboration d'équipe et d'image de marque.",
+      "page_description": "Gérer vos organisations et membres d'équipe",
       "tabs": {
         "general": "Général",
         "company_branding": "Image de marque de l'entreprise",
+        "members": "Équipe",
         "billing": "Facturation"
       },
       "danger_zone": "Zone dangereuse",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Membres",
         "description": "Gérer les membres de l'organisation et leurs rôles",
+        "current_members": "Membres actuels",
         "member": "Membre",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Nom",
         "email": "Courriel",
         "role": "Rôle",
