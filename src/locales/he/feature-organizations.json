@@ -6,6 +6,7 @@
       "organization_plural": "ארגונים",
       "organizations_description": "נהלו את הארגונים שלכם",
       "my_organizations": "הארגונים שלי",
+      "manage_organizations": "ניהול ארגונים",
       "new_organization": "ארגון חדש",
       "no_organizations": "עדיין אין ארגונים",
       "no_organizations_description": "ארגונים מאפשרים לכם לנהל מספר צוותים עם חיוב וניהול מאוחדים. התחילו על ידי יצירת הארגון הראשון שלכם.",
@@ -25,6 +26,7 @@
       "contact_email_help": "איש קשר ראשי להודעות חיוב וניהוליות",
       "billing_managed_by_default": "ניהול החיוב והמנוי מתבצע דרך סביבת העבודה הראשית שלכם. בקרו בהגדרות סביבת העבודה הראשית לניהול אמצעי תשלום וחשבוניות.",
       "select_organization": "בחרו ארגון",
+      "switcher_locked": "החלפת ארגון אינה זמינה בעמוד זה",
       "not_found": "הארגון לא נמצא",
       "load_error": "טעינת הארגון נכשלה",
       "fetch_organization_error": "טעינת הארגון נכשלה",
@@ -47,9 +49,11 @@
       "single_user_info_description": "עדכנו את שם החברה ופרטי הארגון שלכם כאן. מידע זה עוזר להתאים אישית את החשבון שלכם וניתן להשתמש בו לתכונות מיתוג בעתיד.",
       "getting_started_title": "תחילת עבודה עם ארגונים",
       "getting_started_description": "צרו את הארגון הראשון שלכם כדי לנהל את מידע החברה שלכם ולהתכונן לשיתוף פעולה צוותי עתידי ותכונות מיתוג.",
+      "page_description": "ניהול הארגונים וחברי הצוות שלכם",
       "tabs": {
         "general": "כללי",
         "company_branding": "מיתוג חברה",
+        "members": "צוות",
         "billing": "חיוב"
       },
       "danger_zone": "אזור סכנה",
@@ -62,7 +66,10 @@
       "members": {
         "title": "חברים",
         "description": "ניהול חברי ארגון ותפקידיהם",
+        "current_members": "חברים נוכחיים",
         "member": "חבר",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "שם",
         "email": "דוא״ל",
         "role": "תפקיד",
