@@ -4,17 +4,70 @@
       "subject": "[Ärende: %s]",
       "body1": "En kund har skickat följande information"
     },
-    "secretlink": {
-      "subject": "%s skickade en hemlighet till dig",
-      "body1": "Vi har en hemlighet till dig från",
-      "body_tagline": "Om du inte känner avsändaren eller tror att det är skräppost, skicka oss detaljerna här:"
+    "secret_link": {
+      "subject": "%{sender_email} skickade en hemlighet till dig",
+      "sent_you_secret": "skickade en hemlighet till dig:",
+      "important_label": "Viktigt:",
+      "link_works_once": "Denna länk fungerar bara en gång. Efter visning raderas hemligheten permanent.",
+      "sent_via": "Skickat via"
     },
     "welcome": {
       "subject": "Verifiera ditt Onetime Secret-konto",
-      "body1": "Välkommen till Onetime Secret. Vi har en hemlighet till dig!",
-      "please_verify": "Vänligen verifiera att det är du:",
-      "postscript1": "Detta meddelande har skickats till dig",
-      "postscript2": "Om du inte har gjort detta, vänligen radera meddelandet. Vi kommer inte att kontakta dig igen."
+      "title": "Du har blivit inbjuden att gå med i %{organization_name}!",
+      "verify_prompt": "Vänligen verifiera din e-postadress genom att klicka på länken nedan:",
+      "verify_button": "Verifiera e-postadress",
+      "copy_link_prompt": "Eller kopiera och klistra in denna länk:",
+      "signature": "Delano",
+      "postscript": "P.S. Detta e-postmeddelande skickades till %{invited_email}. Om du inte förväntade dig denna inbjudan kan du ignorera detta meddelande."
+    },
+    "password_request": {
+      "subject": "Återställ ditt lösenord (%{display_domain})",
+      "title": "Återställ ditt lösenord",
+      "request_notice": "Vi har mottagit en begäran om att återställa ditt lösenord för %{product_name}.",
+      "reset_button": "Återställ lösenord",
+      "copy_link_prompt": "Eller kopiera och klistra in denna länk:",
+      "ignore_notice": "Om du inte begärde en lösenordsåterställning kan du ignorera detta e-postmeddelande.",
+      "signature": "Delano",
+      "postscript": "P.S. Detta e-postmeddelande skickades till %{email_address}."
+    },
+    "incoming_secret": {
+      "subject": "Du har fått ett hemligt meddelande",
+      "received_message": "Du har fått ett säkert meddelande:",
+      "memo_label": "Anteckning:",
+      "someone_sent": "Någon har skickat dig ett säkert meddelande via %{display_domain}.",
+      "view_instructions": "Klicka på länken nedan för att visa hemligheten:",
+      "important_label": "Viktigt:",
+      "link_works_once": "Denna länk fungerar bara en gång. Efter visning raderas hemligheten permanent.",
+      "sent_via": "Skickat via"
+    },
+    "secret_revealed": {
+      "subject": "Din hemlighet har visats",
+      "title": "Din hemlighet har visats",
+      "viewed_on": "Din hemlighet visades den %{date}.",
+      "secret_id_label": "Hemlighets-ID:",
+      "automated_notice": "Detta är en automatisk avisering. Ingen åtgärd krävs.",
+      "signature": "Delano",
+      "manage_preferences": "Hantera aviseringsinställningar",
+      "manage_preferences_prompt": "För att hantera dina aviseringsinställningar:"
+    },
+    "expiration_warning": {
+      "subject": "Din hemliga länk går snart ut",
+      "expires_in": "Din hemliga länk går ut om %{time_remaining}",
+      "view_button": "Visa din hemlighet innan den går ut",
+      "reminder_label": "Påminnelse:",
+      "after_expiration": "Efter utgångsdatumet raderas hemligheten permanent och kan inte återställas.",
+      "sent_via": "Skickat via",
+      "view_before_gone": "Visa den innan den försvinner:",
+      "after_expiration_short": "Efter utgångsdatumet raderas hemligheten permanent."
+    },
+    "feedback_email": {
+      "subject": "Feedback den %{date} via %{display_domain} (%{strategy})",
+      "title": "Användarfeedback",
+      "from_label": "Från:",
+      "domain_label": "Domän:",
+      "strategy_label": "Strategi:",
+      "message_label": "Meddelande:",
+      "signature": "Secret Support"
     },
     "organization_invitation": {
       "subject": "Du har blivit inbjuden att gå med i %{organization_name}",
@@ -31,11 +84,108 @@
         "admin": "en administratör"
       }
     },
+    "password_changed": {
+      "subject": "Ditt lösenord har ändrats (%{display_domain})",
+      "title": "Ditt lösenord har ändrats",
+      "body": "Ditt lösenord för %{product_name} ändrades den %{date} kl. %{time}.",
+      "security_notice": "Om du inte gjorde denna ändring, vänligen säkra ditt konto omedelbart genom att återställa ditt lösenord och kontakta supporten.",
+      "signature": "Delano"
+    },
+    "email_changed": {
+      "subject": "Din e-postadress har ändrats (%{display_domain})",
+      "title": "Din e-postadress har ändrats",
+      "body": "E-postadressen för ditt %{product_name}-konto ändrades till %{new_email_masked} den %{date}.",
+      "security_notice": "Om du inte gjorde denna ändring, vänligen kontakta supporten omedelbart eftersom ditt konto kan ha komprometterats.",
+      "signature": "Delano"
+    },
+    "email_change_confirmation": {
+      "subject": "Verifiera din nya e-postadress (%{display_domain})",
+      "title": "Verifiera din nya e-postadress",
+      "body": "Vänligen verifiera denna e-postadress för att slutföra ändringen av ditt %{product_name}-konto.",
+      "verify_button": "Verifiera e-postadress",
+      "copy_link_prompt": "Eller kopiera och klistra in denna länk:",
+      "signature": "Delano"
+    },
+    "mfa_enabled": {
+      "subject": "Tvåfaktorsautentisering aktiverad (%{display_domain})",
+      "title": "Tvåfaktorsautentisering aktiverad",
+      "body": "Tvåfaktorsautentisering aktiverades för ditt %{product_name}-konto den %{date}.",
+      "security_notice": "Ditt konto är nu säkrare. Du kommer att behöva ange en verifieringskod från din autentiseringsapp vid inloggning.",
+      "signature": "Delano"
+    },
+    "mfa_disabled": {
+      "subject": "Tvåfaktorsautentisering inaktiverad (%{display_domain})",
+      "title": "Tvåfaktorsautentisering inaktiverad",
+      "body": "Tvåfaktorsautentisering inaktiverades för ditt %{product_name}-konto den %{date}.",
+      "warning_notice": "Ditt konto är nu mindre säkert. Om du inte gjorde denna ändring, vänligen säkra ditt konto omedelbart.",
+      "signature": "Delano"
+    },
+    "new_login_alert": {
+      "subject": "Ny inloggning till ditt konto (%{display_domain})",
+      "title": "Ny inloggning upptäckt",
+      "body": "En ny inloggning till ditt %{product_name}-konto upptäcktes den %{date} kl. %{time}.",
+      "device_label": "Enhet:",
+      "location_label": "Plats:",
+      "ip_address_label": "IP-adress:",
+      "not_you_notice": "Om det inte var du kan ditt konto ha komprometterats.",
+      "secure_account_button": "Säkra ditt konto",
+      "signature": "Delano"
+    },
+    "member_removed": {
+      "subject": "Du har tagits bort från %{organization_name}",
+      "title": "Du har tagits bort från %{organization_name}",
+      "body": "Du har tagits bort från organisationen \"%{organization_name}\" på %{product_name}.",
+      "signature": "Delano"
+    },
+    "role_changed": {
+      "subject": "Din roll har ändrats i %{organization_name}",
+      "title": "Din roll har ändrats",
+      "body": "Din roll i \"%{organization_name}\" har ändrats från %{old_role} till %{new_role}.",
+      "signature": "Delano"
+    },
+    "organization_deleted": {
+      "subject": "Organisationen \"%{organization_name}\" har raderats",
+      "title": "Organisation raderad",
+      "body": "Organisationen \"%{organization_name}\" har raderats från %{product_name}. All tillhörande data har tagits bort.",
+      "signature": "Delano"
+    },
+    "payment_receipt": {
+      "subject": "Betalningskvitto för %{product_name}",
+      "title": "Betalningskvitto",
+      "body": "Tack för din betalning. Här är dina betalningsuppgifter:",
+      "amount_label": "Belopp:",
+      "date_label": "Datum:",
+      "plan_label": "Plan:",
+      "invoice_link": "Visa faktura",
+      "signature": "Delano"
+    },
+    "payment_failed": {
+      "subject": "Betalning misslyckades för %{product_name}",
+      "title": "Betalning misslyckades",
+      "body": "Vi kunde inte behandla din betalning för %{product_name}. Vänligen uppdatera din betalningsmetod för att undvika avbrott i tjänsten.",
+      "update_payment_button": "Uppdatera betalningsmetod",
+      "signature": "Delano"
+    },
+    "trial_expiring": {
+      "subject": "Din %{product_name}-provperiod går ut om %{days_remaining} dagar",
+      "title": "Din provperiod går snart ut",
+      "body": "Din kostnadsfria provperiod av %{product_name} går ut om %{days_remaining} dagar. Uppgradera nu för att behålla tillgång till alla funktioner.",
+      "upgrade_button": "Uppgradera nu",
+      "signature": "Delano"
+    },
+    "subscription_changed": {
+      "subject": "Din %{product_name}-prenumeration har ändrats",
+      "title": "Prenumeration ändrad",
+      "body": "Din %{product_name}-prenumeration har ändrats från %{old_plan} till %{new_plan}.",
+      "effective_date": "Denna ändring träder i kraft %{date}.",
+      "signature": "Delano"
+    },
     "common": {
       "greeting": "Hej,",
       "thanks": "Tack,",
       "unsubscribe": "Avprenumerera",
-      "view_in_browser": "Visa i webbläsare"
+      "view_in_browser": "Visa i webbläsare",
+      "onetime_secret": "Onetime Secret"
     }
   }
 }

@@ -6,6 +6,7 @@
       "organization_plural": "Organisationer",
       "organizations_description": "Hantera dina organisationer och teammedlemmar",
       "my_organizations": "Mina organisationer",
+      "manage_organizations": "Hantera organisationer",
       "new_organization": "Ny organisation",
       "no_organizations": "Inga organisationer",
       "no_organizations_description": "Du har inte skapat några organisationer ännu",
@@ -25,6 +26,7 @@
       "contact_email_help": "E-post för faktureringsaviseringar",
       "billing_managed_by_default": "Fakturering och prenumerationshantering hanteras via din primära arbetsyta. Besök inställningarna för din huvudarbetsyta för att hantera betalningsmetoder och fakturor.",
       "select_organization": "Välj organisation",
+      "switcher_locked": "Organisationsbyte är inte tillgängligt på denna sida",
       "not_found": "Organisation hittades inte",
       "load_error": "Kunde inte ladda organisation",
       "fetch_organization_error": "Kunde inte hämta organisation",
@@ -47,9 +49,11 @@
       "single_user_info_description": "Du kan skapa en organisation för att börja samarbeta med ditt team",
       "getting_started_title": "Kom igång",
       "getting_started_description": "Skapa din första organisation för att låsa upp teamfunktioner",
+      "page_description": "Hantera dina organisationer och teammedlemmar",
       "tabs": {
         "general": "Allmänt",
         "company_branding": "Företagsvarumärke",
+        "members": "Team",
         "billing": "Fakturering"
       },
       "danger_zone": "Farlig zon",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Medlemmar",
         "description": "Hantera organisationsmedlemmar och deras roller",
+        "current_members": "Nuvarande medlemmar",
         "member": "Medlem",
+        "member_singular": "medlem",
+        "member_plural": "medlemmar",
         "name": "Namn",
         "email": "E-post",
         "role": "Roll",
