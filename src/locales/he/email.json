@@ -95,7 +95,7 @@
       "subject": "כתובת הדוא״ל שלכם שונתה (%{display_domain})",
       "title": "כתובת הדוא״ל שלכם שונתה",
       "body": "כתובת הדוא״ל עבור חשבון %{product_name} שלכם שונתה ל-%{new_email_masked} בתאריך %{date}.",
-      "security_notice": "If you did not make this change, please contact support immediately as your account may be compromised.",
+      "security_notice": "אם לא ביצעתם שינוי זה, אנא צרו קשר עם התמיכה מיד מכיוון שהחשבון שלכם עשוי להיות מסוכן.",
       "signature": "דלאנו"
     },
     "email_change_confirmation": {
@@ -134,19 +134,19 @@
     "member_removed": {
       "subject": "הוסרתם מ-%{organization_name}",
       "title": "הוסרתם מ-%{organization_name}",
-      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "body": "הוסרתם מהארגון \"%{organization_name}\" ב-%{product_name}.",
       "signature": "דלאנו"
     },
     "role_changed": {
       "subject": "התפקיד שלכם שונה ב-%{organization_name}",
       "title": "התפקיד שלכם שונה",
-      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "body": "התפקיד שלכם ב-\"%{organization_name}\" שונה מ-%{old_role} ל-%{new_role}.",
       "signature": "דלאנו"
     },
     "organization_deleted": {
-      "subject": "Organization \"%{organization_name}\" was deleted",
+      "subject": "הארגון \"%{organization_name}\" נמחק",
       "title": "ארגון נמחק",
-      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "body": "הארגון \"%{organization_name}\" נמחק מ-%{product_name}. כל הנתונים הקשורים הוסרו.",
       "signature": "דלאנו"
     },
     "payment_receipt": {
