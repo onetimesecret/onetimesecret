@@ -7,16 +7,16 @@
     "secret_link": {
       "subject": "%{sender_email} sent you a secret",
       "sent_you_secret": "sent you a secret:",
-      "important_label": "Important:",
-      "link_works_once": "This link will only work once. After viewing, the secret will be permanently deleted.",
+      "important_label": "Важливо:",
+      "link_works_once": "Це посилання спрацює лише один раз. Після перегляду секрет буде назавжди видалено.",
       "sent_via": "Sent via"
     },
     "welcome": {
       "subject": "Підтвердіть свій обліковий запис Onetime Secret",
       "title": "Вас запрошено приєднатися до %{organization_name}!",
-      "verify_prompt": "Please verify your email address by clicking the link below:",
-      "verify_button": "Verify Email Address",
-      "copy_link_prompt": "Or copy and paste this link:",
+      "verify_prompt": "Будь ласка, підтвердьте свою адресу електронної пошти, натиснувши на посилання нижче:",
+      "verify_button": "Підтвердити адресу електронної пошти",
+      "copy_link_prompt": "Або скопіюйте та вставте це посилання:",
       "signature": "Делано",
       "postscript": "P.S. Цей лист було надіслано на %{invited_email}. Якщо ви не очікували цього запрошення, ви можете безпечно проігнорувати це повідомлення."
     },
@@ -36,13 +36,13 @@
       "memo_label": "Memo:",
       "someone_sent": "Someone has sent you a secure message through %{display_domain}.",
       "view_instructions": "To view this secret, click the link below:",
-      "important_label": "Important:",
-      "link_works_once": "This link will only work once. After viewing, the secret will be permanently deleted.",
+      "important_label": "Важливо:",
+      "link_works_once": "Це посилання спрацює лише один раз. Після перегляду секрет буде назавжди видалено.",
       "sent_via": "Sent via"
     },
     "secret_revealed": {
-      "subject": "Your secret was viewed",
-      "title": "Your Secret Was Viewed",
+      "subject": "Ваш секрет було переглянуто",
+      "title": "Ваш секрет було переглянуто",
       "viewed_on": "Your secret was viewed on %{date}.",
       "secret_id_label": "Secret ID:",
       "automated_notice": "This is an automated notification. No action is required.",
