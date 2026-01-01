@@ -6,6 +6,7 @@
       "organization_plural": "",
       "organizations_description": "",
       "my_organizations": "",
+      "manage_organizations": "Διαχείριση Οργανισμών",
       "new_organization": "",
       "no_organizations": "",
       "no_organizations_description": "",
@@ -25,6 +26,7 @@
       "contact_email_help": "",
       "billing_managed_by_default": "Η διαχείριση χρεώσεων και συνδρομών γίνεται μέσω του κύριου χώρου εργασίας σας. Επισκεφθείτε τις ρυθμίσεις του κύριου χώρου εργασίας σας για να διαχειριστείτε τρόπους πληρωμής και τιμολόγια.",
       "select_organization": "",
+      "switcher_locked": "Η εναλλαγή οργανισμού δεν είναι διαθέσιμη σε αυτή τη σελίδα",
       "not_found": "",
       "load_error": "",
       "fetch_organization_error": "",
@@ -47,9 +49,11 @@
       "single_user_info_description": "",
       "getting_started_title": "",
       "getting_started_description": "",
+      "page_description": "Διαχειριστείτε τους οργανισμούς και τα μέλη ομάδας σας",
       "tabs": {
         "general": "",
         "company_branding": "",
+        "members": "Ομάδα",
         "billing": ""
       },
       "danger_zone": "",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Μέλη",
         "description": "Διαχείριση μελών οργανισμού και των ρόλων τους",
+        "current_members": "Τρέχοντα Μέλη",
         "member": "Μέλος",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Όνομα",
         "email": "Email",
         "role": "Ρόλος",
