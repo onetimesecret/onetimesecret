@@ -4,17 +4,70 @@
       "subject": "[Tiquet:% s]",
       "body1": "Un client ha enviat la informació següent"
     },
-    "secretlink": {
-      "subject": "% s t'ha enviat un secret",
-      "body1": "Tenim un secret per a tu de part de",
-      "body_tagline": "Si no coneixes el remitent o creus que és correu brossa, envia'ns els detalls aquí:"
+    "secret_link": {
+      "subject": "%{sender_email} us ha enviat un secret",
+      "sent_you_secret": "us ha enviat un secret:",
+      "important_label": "Important:",
+      "link_works_once": "Aquest enllaç només funcionarà una vegada. Després de visualitzar-lo, el secret s'esborrarà permanentment.",
+      "sent_via": "Enviat via"
     },
     "welcome": {
       "subject": "Verifica el teu compte d'Onetime Secret",
-      "body1": "Benvingut a Onetime Secret. Tenim un secret per a tu!",
-      "please_verify": "Verifica el teu compte:",
-      "postscript1": "Aquest correu electrònic s'ha enviat a",
-      "postscript2": "Si no has creat aquest compte, suprimeix aquest missatge i no et tornarem a escriure."
+      "title": "Heu estat convidat a unir-vos a %{organization_name}!",
+      "verify_prompt": "Si us plau, verifiqueu la vostra adreça de correu electrònic fent clic a l'enllaç de sota:",
+      "verify_button": "Verificar adreça de correu electrònic",
+      "copy_link_prompt": "O copieu i enganxeu aquest enllaç:",
+      "signature": "Delano",
+      "postscript": "P.D. Aquest correu electrònic s'ha enviat a %{invited_email}. Si no esperàveu aquesta invitació, podeu ignorar aquest missatge amb seguretat."
+    },
+    "password_request": {
+      "subject": "Restabliu la vostra contrasenya (%{display_domain})",
+      "title": "Restablir la vostra contrasenya",
+      "request_notice": "Hem rebut una sol·licitud per restablir la vostra contrasenya de %{product_name}.",
+      "reset_button": "Restablir contrasenya",
+      "copy_link_prompt": "O copieu i enganxeu aquest enllaç:",
+      "ignore_notice": "Si no heu sol·licitat un restabliment de contrasenya, podeu ignorar aquest correu electrònic amb seguretat.",
+      "signature": "Delano",
+      "postscript": "P.D. Aquest correu electrònic s'ha enviat a %{email_address}."
+    },
+    "incoming_secret": {
+      "subject": "Heu rebut un missatge secret",
+      "received_message": "Heu rebut un missatge segur:",
+      "memo_label": "Nota:",
+      "someone_sent": "Algú us ha enviat un missatge segur a través de %{display_domain}.",
+      "view_instructions": "Per veure aquest secret, feu clic a l'enllaç de sota:",
+      "important_label": "Important:",
+      "link_works_once": "Aquest enllaç només funcionarà una vegada. Després de visualitzar-lo, el secret s'esborrarà permanentment.",
+      "sent_via": "Enviat via"
+    },
+    "secret_revealed": {
+      "subject": "El vostre secret ha estat visualitzat",
+      "title": "El vostre secret ha estat visualitzat",
+      "viewed_on": "El vostre secret va ser visualitzat el %{date}.",
+      "secret_id_label": "ID del secret:",
+      "automated_notice": "Aquesta és una notificació automàtica. No cal fer cap acció.",
+      "signature": "Delano",
+      "manage_preferences": "Gestionar preferències de notificació",
+      "manage_preferences_prompt": "Per gestionar les vostres preferències de notificació:"
+    },
+    "expiration_warning": {
+      "subject": "El vostre enllaç secret caducarà aviat",
+      "expires_in": "El vostre enllaç secret caducarà en %{time_remaining}",
+      "view_button": "Visualitzeu el vostre secret abans que caduqui",
+      "reminder_label": "Recordatori:",
+      "after_expiration": "Després de caducar, el secret s'esborrarà permanentment i no es podrà recuperar.",
+      "sent_via": "Enviat via",
+      "view_before_gone": "Visualitzeu-lo abans que desaparegui:",
+      "after_expiration_short": "Després de caducar, el secret s'esborrarà permanentment."
+    },
+    "feedback_email": {
+      "subject": "Comentari del %{date} via %{display_domain} (%{strategy})",
+      "title": "Comentari de l'usuari",
+      "from_label": "De:",
+      "domain_label": "Domini:",
+      "strategy_label": "Estratègia:",
+      "message_label": "Missatge:",
+      "signature": "Suport de Secret"
     },
     "organization_invitation": {
       "subject": "Has estat convidat a unir-te a %{organization_name}",
@@ -31,11 +84,108 @@
         "admin": "un administrador"
       }
     },
+    "password_changed": {
+      "subject": "La vostra contrasenya ha estat canviada (%{display_domain})",
+      "title": "La vostra contrasenya ha estat canviada",
+      "body": "La vostra contrasenya de %{product_name} va ser canviada el %{date} a les %{time}.",
+      "security_notice": "Si no heu fet aquest canvi, si us plau, protegiu el vostre compte immediatament restablint la vostra contrasenya i contactant amb el suport.",
+      "signature": "Delano"
+    },
+    "email_changed": {
+      "subject": "La vostra adreça de correu electrònic ha estat canviada (%{display_domain})",
+      "title": "La vostra adreça de correu electrònic ha estat canviada",
+      "body": "L'adreça de correu electrònic del vostre compte de %{product_name} va ser canviada a %{new_email_masked} el %{date}.",
+      "security_notice": "Si no heu fet aquest canvi, si us plau, contacteu amb el suport immediatament ja que el vostre compte pot estar compromès.",
+      "signature": "Delano"
+    },
+    "email_change_confirmation": {
+      "subject": "Verifiqueu la vostra nova adreça de correu electrònic (%{display_domain})",
+      "title": "Verificar la vostra nova adreça de correu electrònic",
+      "body": "Si us plau, verifiqueu aquesta adreça de correu electrònic per completar el canvi del vostre compte de %{product_name}.",
+      "verify_button": "Verificar adreça de correu electrònic",
+      "copy_link_prompt": "O copieu i enganxeu aquest enllaç:",
+      "signature": "Delano"
+    },
+    "mfa_enabled": {
+      "subject": "Autenticació de dos factors activada (%{display_domain})",
+      "title": "Autenticació de dos factors activada",
+      "body": "L'autenticació de dos factors va ser activada per al vostre compte de %{product_name} el %{date}.",
+      "security_notice": "El vostre compte ara és més segur. Haureu d'introduir un codi de verificació de la vostra aplicació d'autenticació quan inicieu sessió.",
+      "signature": "Delano"
+    },
+    "mfa_disabled": {
+      "subject": "Autenticació de dos factors desactivada (%{display_domain})",
+      "title": "Autenticació de dos factors desactivada",
+      "body": "L'autenticació de dos factors va ser desactivada per al vostre compte de %{product_name} el %{date}.",
+      "warning_notice": "El vostre compte ara és menys segur. Si no heu fet aquest canvi, si us plau, protegiu el vostre compte immediatament.",
+      "signature": "Delano"
+    },
+    "new_login_alert": {
+      "subject": "Nou inici de sessió al vostre compte (%{display_domain})",
+      "title": "Nou inici de sessió detectat",
+      "body": "S'ha detectat un nou inici de sessió al vostre compte de %{product_name} el %{date} a les %{time}.",
+      "device_label": "Dispositiu:",
+      "location_label": "Ubicació:",
+      "ip_address_label": "Adreça IP:",
+      "not_you_notice": "Si no heu estat vós, el vostre compte pot estar compromès.",
+      "secure_account_button": "Protegir el vostre compte",
+      "signature": "Delano"
+    },
+    "member_removed": {
+      "subject": "Heu estat eliminat de %{organization_name}",
+      "title": "Heu estat eliminat de %{organization_name}",
+      "body": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+      "signature": "Delano"
+    },
+    "role_changed": {
+      "subject": "El vostre rol ha estat canviat a %{organization_name}",
+      "title": "El vostre rol ha estat canviat",
+      "body": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+      "signature": "Delano"
+    },
+    "organization_deleted": {
+      "subject": "Organization \"%{organization_name}\" was deleted",
+      "title": "Organització eliminada",
+      "body": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+      "signature": "Delano"
+    },
+    "payment_receipt": {
+      "subject": "Rebut de pagament de %{product_name}",
+      "title": "Rebut de pagament",
+      "body": "Gràcies pel vostre pagament. Aquí teniu els detalls del vostre pagament:",
+      "amount_label": "Import:",
+      "date_label": "Data:",
+      "plan_label": "Pla:",
+      "invoice_link": "Veure factura",
+      "signature": "Delano"
+    },
+    "payment_failed": {
+      "subject": "El pagament de %{product_name} ha fallat",
+      "title": "El pagament ha fallat",
+      "body": "No hem pogut processar el vostre pagament de %{product_name}. Si us plau, actualitzeu el vostre mètode de pagament per evitar la interrupció del servei.",
+      "update_payment_button": "Actualitzar mètode de pagament",
+      "signature": "Delano"
+    },
+    "trial_expiring": {
+      "subject": "El vostre període de prova de %{product_name} caduca en %{days_remaining} dies",
+      "title": "El vostre període de prova finalitza aviat",
+      "body": "El vostre període de prova gratuït de %{product_name} caducarà en %{days_remaining} dies. Actualitzeu ara per mantenir l'accés a totes les funcions.",
+      "upgrade_button": "Actualitzar ara",
+      "signature": "Delano"
+    },
+    "subscription_changed": {
+      "subject": "La vostra subscripció de %{product_name} ha estat canviada",
+      "title": "Subscripció canviada",
+      "body": "La vostra subscripció de %{product_name} ha estat canviada de %{old_plan} a %{new_plan}.",
+      "effective_date": "Aquest canvi és efectiu el %{date}.",
+      "signature": "Delano"
+    },
     "common": {
       "greeting": "Hola,",
       "thanks": "Gràcies,",
       "unsubscribe": "Cancel·la la subscripció",
-      "view_in_browser": "Visualitza al navegador"
+      "view_in_browser": "Visualitza al navegador",
+      "onetime_secret": "Onetime Secret"
     }
   }
 }

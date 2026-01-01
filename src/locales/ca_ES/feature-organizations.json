@@ -6,6 +6,7 @@
       "organization_plural": "Organitzacions",
       "organizations_description": "Gestiona les teves organitzacions",
       "my_organizations": "Les meves organitzacions",
+      "manage_organizations": "Gestionar organitzacions",
       "new_organization": "Organització nova",
       "no_organizations": "Encara no hi ha organitzacions",
       "no_organizations_description": "Les organitzacions et permeten gestionar diversos equips amb facturació i administració unificades. Comença creant la teva primera organització.",
@@ -25,6 +26,7 @@
       "contact_email_help": "Contacte principal per a notificacions de facturació i administratives",
       "billing_managed_by_default": "La gestió de facturació i subscripció es fa a través del teu espai de treball principal. Visita la configuració del teu espai de treball principal per gestionar els mètodes de pagament i les factures.",
       "select_organization": "Selecciona una organització",
+      "switcher_locked": "El canvi d'organització no està disponible en aquesta pàgina",
       "not_found": "Organització no trobada",
       "load_error": "No s'ha pogut carregar l'organització",
       "fetch_organization_error": "No s'ha pogut carregar l'organització",
@@ -47,9 +49,11 @@
       "single_user_info_description": "Actualitza el nom de la teva empresa i els detalls de l'organització aquí. Aquesta informació ajuda a personalitzar el teu compte i es pot utilitzar per a funcions de marca en el futur.",
       "getting_started_title": "Com començar amb les organitzacions",
       "getting_started_description": "Crea la teva primera organització per gestionar la informació de la teva empresa i preparar-te per a futures funcions de col·laboració en equip i marca.",
+      "page_description": "Gestioneu les vostres organitzacions i membres de l'equip",
       "tabs": {
         "general": "General",
         "company_branding": "Marca de l'empresa",
+        "members": "Equip",
         "billing": "Facturació"
       },
       "danger_zone": "Zona de perill",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Membres",
         "description": "Gestiona els membres de l'organització i els seus rols",
+        "current_members": "Membres actuals",
         "member": "Membre",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Nom",
         "email": "Correu electrònic",
         "role": "Rol",
