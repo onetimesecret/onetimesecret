@@ -50,12 +50,12 @@ module Onetime
         end
 
         def removed_at
-          data[:removed_at] || Time.now.utc.iso8601
+          @removed_at ||= data[:removed_at] || Time.now.utc.iso8601
         end
 
         def removed_at_formatted
           time = Time.parse(removed_at.to_s)
-          time.strftime('%B %d, %Y at %H:%M UTC')
+          time.utc.strftime('%B %d, %Y at %H:%M UTC')
         rescue ArgumentError
           removed_at.to_s
         end
