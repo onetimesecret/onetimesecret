@@ -1,0 +1,209 @@
+#!/usr/bin/env ruby
+
+# bin/analyze-boot-trace
+#
+# frozen_string_literal: true
+
+# Analyzes boot ticker tape JSON output
+#
+# Usage:
+#   bin/analyze-boot-trace tmp/boot_ticker_tape_1234567890.json
+#   bin/analyze-boot-trace tmp/boot_ticker_tape_1234567890.json --rabbitmq
+#   bin/analyze-boot-trace tmp/boot_ticker_tape_1234567890.json --initializers
+
+require 'json'
+require 'optparse'
+
+class BootTraceAnalyzer
+  def initialize(file_path, options = {})
+    @file_path = file_path
+    @options   = options
+    @data      = JSON.parse(File.read(file_path))
+    @events    = @data['events']
+  end
+
+  def analyze
+    puts '=' * 80
+    puts 'Boot Ticker Tape Analysis'
+    puts '=' * 80
+    puts "Boot Instance: #{@data['boot_instance']}"
+    puts "Total Events:  #{@data['total_events']}"
+    puts "Duration:      #{@data['duration_ms'].round(2)}ms"
+    puts '=' * 80
+    puts
+
+    if @options[:rabbitmq]
+      analyze_rabbitmq
+    elsif @options[:initializers]
+      analyze_initializers
+    elsif @options[:timeline]
+      show_timeline
+    else
+      show_summary
+    end
+  end
+
+  private
+
+  def analyze_rabbitmq
+    puts 'RabbitMQ Setup Trace'
+    puts '-' * 80
+
+    rabbitmq_events = @events.select do |e|
+      e['path']&.include?('rabbitmq') ||
+        e['defined_class']&.include?('RabbitMQ') ||
+        e['defined_class']&.include?('Bunny') ||
+        e['method']&.to_s&.match?(/rabbitmq|bunny|queue|exchange|channel/)
+    end
+
+    if rabbitmq_events.empty?
+      puts 'No RabbitMQ events found'
+      return
+    end
+
+    rabbitmq_events.each do |event|
+      timestamp_ms = (event['timestamp'].to_f / 1000.0).round(2)
+      puts format(
+        '%8.2fms  %-10s  %s#%s @ %s:%d',
+        timestamp_ms,
+        event['event'],
+        event['defined_class'],
+        event['method'],
+        event['path'],
+        event['lineno'],
+      )
+    end
+
+    puts
+    puts "Total RabbitMQ events: #{rabbitmq_events.size}"
+  end
+
+  def analyze_initializers
+    puts 'Initializer Execution Trace'
+    puts '-' * 80
+
+    # Find all calls to initializer execute methods
+    init_events = @events.select do |e|
+      e['defined_class']&.include?('Initializer') &&
+        ([:execute, :run].include?(e['method']))
+    end
+
+    # Group by call/return pairs
+    executions = []
+    stack      = []
+
+    @events.each do |event|
+      next unless event['defined_class']&.include?('Initializer')
+
+      if event['event'] == 'call' && event['method'] == :execute
+        stack << event
+      elsif event['event'] == 'return' && event['method'] == :execute
+        if (call_event = stack.pop)
+          executions << {
+            class: call_event['defined_class'],
+            start: call_event['timestamp'],
+            end: event['timestamp'],
+            duration: (event['timestamp'] - call_event['timestamp']) / 1000.0,
+          }
+        end
+      end
+    end
+
+    executions.sort_by { |e| e[:start] }.each do |exec|
+      puts format(
+        '%8.2fms - %8.2fms (%6.2fms)  %s',
+        exec[:start] / 1000.0,
+        exec[:end] / 1000.0,
+        exec[:duration],
+        exec[:class],
+      )
+    end
+
+    puts
+    puts "Total initializers: #{executions.size}"
+    puts "Longest: #{executions.max_by { |e| e[:duration] }[:class]} (#{executions.max_by { |e| e[:duration] }[:duration].round(2)}ms)"
+  end
+
+  def show_timeline
+    puts 'Boot Timeline (first 100 events)'
+    puts '-' * 80
+
+    @events.first(100).each do |event|
+      timestamp_ms = (event['timestamp'].to_f / 1000.0).round(2)
+      puts format(
+        '%8.2fms  %-10s  %s#%s',
+        timestamp_ms,
+        event['event'],
+        event['defined_class'],
+        event['method'],
+      )
+    end
+  end
+
+  def show_summary
+    puts 'Event Summary'
+    puts '-' * 80
+
+    # Group by event type
+    by_type = @events.group_by { |e| e['event'] }
+    by_type.each do |type, events|
+      puts "#{type.ljust(15)} #{events.size}"
+    end
+
+    puts
+    puts 'Top 10 Most Called Methods'
+    puts '-' * 80
+
+    method_counts = @events
+      .group_by { |e| "#{e['defined_class']}##{e['method']}" }
+      .transform_values(&:size)
+      .sort_by { |_k, v| -v }
+      .first(10)
+
+    method_counts.each do |method, count|
+      puts "#{count.to_s.rjust(6)}  #{method}"
+    end
+
+    puts
+    puts 'Files Touched'
+    puts '-' * 80
+
+    files = @events.map { |e| e['path'] }.compact.uniq.sort
+    files.each { |f| puts "  #{f}" }
+    puts
+    puts "Total: #{files.size} files"
+  end
+end
+
+# Parse options
+options = {}
+OptionParser.new do |opts|
+  opts.banner = 'Usage: bin/analyze-boot-trace [file] [options]'
+
+  opts.on('--rabbitmq', 'Show RabbitMQ-specific events') do
+    options[:rabbitmq] = true
+  end
+
+  opts.on('--initializers', 'Show initializer execution timeline') do
+    options[:initializers] = true
+  end
+
+  opts.on('--timeline', 'Show full timeline') do
+    options[:timeline] = true
+  end
+
+  opts.on('-h', '--help', 'Show this message') do
+    puts opts
+    exit
+  end
+end.parse!
+
+file_path = ARGV[0]
+
+unless file_path && File.exist?(file_path)
+  puts 'Usage: bin/analyze-boot-trace <ticker_tape_file.json>'
+  puts 'Example: bin/analyze-boot-trace tmp/boot_ticker_tape_1234567890.json'
+  exit 1
+end
+
+BootTraceAnalyzer.new(file_path, options).analyze
