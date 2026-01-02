@@ -44,7 +44,7 @@ const withValidatedMetadataKey = {
 
     const isValid = validateMetadataKey(to.params.metadataIdentifier);
     if (!isValid) {
-      return { name: 'Not Found' };
+      return { name: 'NotFound' };
     }
   },
   props: (route: RouteLocationNormalized) => ({

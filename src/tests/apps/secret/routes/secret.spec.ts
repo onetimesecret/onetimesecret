@@ -41,7 +41,7 @@ describe('Secret Routes', () => {
         };
 
         const result = guard(mockRoute as any);
-        expect(result).toEqual({ name: 'Not Found' });
+        expect(result).toEqual({ name: 'NotFound' });
       });
     });
   });
