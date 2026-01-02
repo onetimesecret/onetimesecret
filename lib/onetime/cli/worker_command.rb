@@ -198,7 +198,10 @@ module Onetime
             ack: true,
             heartbeat: 30,
             prefetch: concurrency,
-            # Use Bunny logger from centralized logging config (setup_rabbitmq.rb pattern)
+            # Use Bunny logger from centralized logging config (setup_rabbitmq.rb pattern).
+            # Note: Sneakers logs "Working off: <msg>" at debug level with escaped JSON -
+            # this is Sneakers' internal logging, not our worker code. Set BUNNY_LOG_LEVEL
+            # higher to suppress these while keeping worker logs verbose.
             logger: Onetime.bunny_logger,
             # Hooks to configure logging in forked worker processes
             hooks: {

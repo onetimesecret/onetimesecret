@@ -113,6 +113,21 @@ module Onetime
             self.class.worker_name
           end
 
+          # Override Kicks' verbose log_msg to produce cleaner output
+          # Original includes Thread.current (ugly) and @queue.opts (verbose)
+          def log_msg(msg)
+            "[#{@id}][#{@queue.name}] #{msg}"
+          end
+
+          # Override Kicks' worker_trace to avoid escaped JSON from msg.inspect
+          # Shows first 200 chars of payload for debugging without the noise
+          def worker_trace(msg)
+            # Skip the verbose "Working off:" messages at debug level
+            return if msg.start_with?('Working off:') && !ENV['WORKER_TRACE_PAYLOAD']
+
+            logger.debug(log_msg(msg))
+          end
+
           # Retry logic with exponential backoff
           # @param max_retries [Integer] Maximum retry attempts
           # @param base_delay [Float] Base delay in seconds
