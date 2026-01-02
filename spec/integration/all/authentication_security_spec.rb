@@ -192,6 +192,7 @@ RSpec.describe 'Authentication Security Attack Vectors', type: :integration do
       logic = Core::Logic::Authentication::AuthenticateSession.new(strategy_result, params)
 
       expect(session).to receive(:clear)
+      expect(session).to receive(:replace!)
       logic.process
     end
   end

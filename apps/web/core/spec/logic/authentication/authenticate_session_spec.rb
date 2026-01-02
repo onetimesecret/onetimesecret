@@ -15,6 +15,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
     session = double('RackSession')
     allow(session).to receive(:id).and_return(double(public_id: 'sess_def456'))
     allow(session).to receive(:clear)
+    allow(session).to receive(:replace!)
     allow(session).to receive(:[]) { |key| session_data[key] }
     allow(session).to receive(:[]=) { |key, value| session_data[key] = value }
     session
@@ -261,8 +262,9 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
           expect(logic.greenlighted).to be true
         end
 
-        it 'clears the session' do
+        it 'regenerates the session' do
           expect(rack_session).to receive(:clear)
+          expect(rack_session).to receive(:replace!)
           logic.process
         end
 
