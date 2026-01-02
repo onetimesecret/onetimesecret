@@ -20,7 +20,7 @@
 #   - File.read() of source files
 #   - String pattern matching on config files
 #
-# WHY THIS IS LEGITIMATE:
+# WHY THIS IS USEFUL:
 #   - climate_control isolates ENV changes to each test block
 #   - create_rodauth_app builds real Roda/Rodauth instances
 #   - Tests execute the same conditional logic as config.rb
