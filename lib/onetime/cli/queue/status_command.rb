@@ -66,14 +66,16 @@ module Onetime
           status = {
             timestamp: Time.now.utc.iso8601,
             rabbitmq: check_rabbitmq_connection,
+            exchanges: {},
             queues: {},
             workers: check_workers,
             scheduler: check_scheduler,
           }
 
-          # Get queue depths if RabbitMQ is available
+          # Get exchange and queue info if RabbitMQ is available
           if status[:rabbitmq][:connected]
-            status[:queues] = check_queue_depths
+            status[:exchanges] = check_exchanges
+            status[:queues]    = check_queue_depths
           end
 
           status
@@ -100,25 +102,58 @@ module Onetime
         end
 
         def check_queue_depths
-          conn    = Bunny.new(ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'))
+          conn = Bunny.new(ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'))
           conn.start
-          channel = conn.create_channel
 
           queues = {}
 
           # Use actual queue names from QueueConfig
+          # Each queue check needs its own channel because Bunny::NotFound closes the channel
           Onetime::Jobs::QueueConfig::QUEUES.each_key do |queue_name|
-              queue              = channel.queue(queue_name, durable: true, passive: true)
+            begin
+              channel = conn.create_channel
+              queue   = channel.queue(queue_name, durable: true, passive: true)
               queues[queue_name] = {
                 messages: queue.message_count,
                 consumers: queue.consumer_count,
               }
-          rescue Bunny::NotFound
+              channel.close
+            rescue Bunny::NotFound
               queues[queue_name] = { error: 'Queue not found' }
+            rescue StandardError => ex
+              queues[queue_name] = { error: ex.message }
+            end
           end
 
           conn.close
           queues
+        rescue StandardError => ex
+          { error: ex.message }
+        end
+
+        def check_exchanges
+          conn = Bunny.new(ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'))
+          conn.start
+
+          exchanges = {}
+
+          # Check dead letter exchanges from QueueConfig
+          Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.each_key do |exchange_name|
+            begin
+              channel = conn.create_channel
+              # Use passive: true to check if exchange exists without creating it
+              channel.exchange(exchange_name, type: :fanout, durable: true, passive: true)
+              exchanges[exchange_name] = { exists: true, type: 'fanout', durable: true }
+              channel.close
+            rescue Bunny::NotFound
+              exchanges[exchange_name] = { exists: false, error: 'Exchange not found' }
+            rescue StandardError => ex
+              exchanges[exchange_name] = { exists: false, error: ex.message }
+            end
+          end
+
+          conn.close
+          exchanges
         rescue StandardError => ex
           { error: ex.message }
         end
@@ -177,6 +212,25 @@ module Onetime
           else
             puts format('  Status: Disconnected')
             puts format('  Error: %s', status[:rabbitmq][:error])
+          end
+          puts
+
+          # Exchanges
+          puts 'Exchanges:'
+          if status[:exchanges].empty?
+            puts '  No exchange information available'
+          elsif status[:exchanges][:error]
+            puts format('  Error: %s', status[:exchanges][:error])
+          else
+            status[:exchanges].each do |exchange_name, info|
+              if info.is_a?(Hash) && info[:exists]
+                puts format('  %s: %s, durable=%s', exchange_name, info[:type], info[:durable])
+              elsif info.is_a?(Hash) && info[:error]
+                puts format('  %s: %s', exchange_name, info[:error])
+              elsif info.is_a?(Hash)
+                puts format('  %s: not found', exchange_name)
+              end
+            end
           end
           puts
 

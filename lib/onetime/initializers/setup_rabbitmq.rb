@@ -131,12 +131,14 @@ module Onetime
         # Verify connectivity
         # verify_connection
 
-        OT.log_box([
-                     '✅ RABBITMQ: Connected to message broker',
-                     "   Pool size: #{pool_size} channels",
-                     "   Exchanges: #{Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.size} declared",
-                   ],
-                  )
+        OT.log_box(
+          [
+            '✅ RABBITMQ: Connected to message broker',
+            "   #{url}",
+            "   Pool size: #{pool_size} channels",
+            "   Exchanges: #{Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.size} declared",
+          ],
+        )
 
         # Set runtime state (optional, for introspection)
         Onetime::Runtime.update_infrastructure(

@@ -78,6 +78,7 @@ require_relative 'cli/worker_command'
 require_relative 'cli/scheduler_command'
 
 # Load queue CLI commands
+require_relative 'cli/queue/init_command'
 require_relative 'cli/queue/status_command'
 require_relative 'cli/queue/reset_command'
 require_relative 'cli/queue/dlq_command'
