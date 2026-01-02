@@ -102,12 +102,6 @@ module Onetime
     # loading all or any of the models.
     #
     def boot!(mode = nil, connect_to_db = true)
-      ticker = nil
-      if ENV['BOOT_TICKER_TAPE']
-        require_relative 'boot/ticker_tape'
-        ticker = Boot::TickerTape.new.tap(&:start)
-      end
-
       OT.mode = mode unless mode.nil?
       OT.env  = ENV['RACK_ENV'] || 'production'
 
@@ -235,8 +229,6 @@ module Onetime
       failed!(ex)
       OT.le "Cannot connect to the database #{Familia.uri} (#{ex.class})"
       raise ex unless mode?(:cli)
-    ensure
-      ticker&.stop
     end
 
     # Replaces the global configuration instance with the provided data.

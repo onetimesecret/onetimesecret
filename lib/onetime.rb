@@ -3,6 +3,12 @@
 # frozen_string_literal: true
 
 require 'bundler/setup'
+
+if ENV['BOOT_TICKER_TAPE']
+  require_relative 'onetime/boot/ticker_tape'
+  $ticker = Onetime::Boot::TickerTape.new.tap(&:start)
+end
+
 require 'securerandom'
 
 require 'truemail'

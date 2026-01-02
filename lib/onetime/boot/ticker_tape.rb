@@ -111,6 +111,7 @@ module Onetime
       end
 
       def start
+        at_exit { stop }
         @trace = TracePoint.new(:call) do |tp| # Only trace calls
           # Prevent tracing our own tracing code
           next if @tracing_self
