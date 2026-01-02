@@ -205,16 +205,18 @@ module Onetime
           conn.start
           channel = conn.create_channel
 
-          # Declare exchanges
-          Onetime::Initializers::SetupRabbitMQ.declare_exchanges(channel)
-          puts '  Exchanges declared'
+          begin
+            # Declare exchanges
+            Onetime::Initializers::SetupRabbitMQ.declare_exchanges(channel)
+            puts '  Exchanges declared'
 
-          # Declare queues
-          Onetime::Initializers::SetupRabbitMQ.declare_queues(channel)
-          puts '  Queues declared'
-
-          channel.close
-          conn.close
+            # Declare queues
+            Onetime::Initializers::SetupRabbitMQ.declare_queues(channel)
+            puts '  Queues declared'
+          ensure
+            channel&.close
+            conn&.close
+          end
         rescue Bunny::TCPConnectionFailed => ex
           puts "  ERROR: Cannot connect to RabbitMQ: #{ex.message}"
           exit 1

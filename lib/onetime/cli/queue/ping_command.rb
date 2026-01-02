@@ -79,23 +79,25 @@ module Onetime
           conn.start
           channel = conn.create_channel
 
-          puts '═' * 60
-          puts 'Job Queue Ping Test'
-          puts '═' * 60
-          puts
-          puts "RabbitMQ: #{amqp_url.gsub(/:[^:@]+@/, ':***@')}"
-          puts "Wait time: #{wait_seconds}s"
-          puts
-
           results = {}
 
-          queue_names.each do |queue_name|
-            result              = ping_queue(channel, queue_name, wait_seconds)
-            results[queue_name] = result
-            display_result(queue_name, result)
-          end
+          begin
+            puts '═' * 60
+            puts 'Job Queue Ping Test'
+            puts '═' * 60
+            puts
+            puts "RabbitMQ: #{amqp_url.gsub(/:[^:@]+@/, ':***@')}"
+            puts "Wait time: #{wait_seconds}s"
+            puts
 
-          conn.close
+            queue_names.each do |queue_name|
+              result              = ping_queue(channel, queue_name, wait_seconds)
+              results[queue_name] = result
+              display_result(queue_name, result)
+            end
+          ensure
+            conn&.close
+          end
 
           puts
           puts '═' * 60
