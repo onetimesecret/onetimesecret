@@ -8,7 +8,28 @@ Variable patterns detected:
   - Legacy printf: %s, %d, %i, %f, %u, %x, %X, %o, %e, %E, %g, %G, %c, %p
 
 Usage:
-  audit-variables.py [--summary|--detailed|--json] [--locale XX] [--file FILE]
+  audit-variables.py [options]
+
+Options:
+  --summary          Count discrepancies by locale (default)
+  --detailed         Show all issues with key paths and strings
+  --json             Minimal JSON output for CI
+  --locale XX        Check only specific locale (e.g., es, fr_FR)
+  --file FILE        Check only specific file (e.g., email.json)
+  --filter PREFIX    Only include keys starting with PREFIX
+  --exclude PREFIX   Exclude keys starting with PREFIX
+
+Exit codes:
+  0                  No issues found
+  1-100              Number of issues (capped at 100)
+
+Examples:
+  audit-variables.py                           # Summary of all locales
+  audit-variables.py --detailed --locale es    # Detailed report for Spanish
+  audit-variables.py --json | jq .summary      # JSON summary for human
+  audit-variables.py --json                    # JSON summary for automation
+  audit-variables.py --filter email.welcome    # Only email.welcome.* keys
+  audit-variables.py --exclude web.COMMON      # Skip web.COMMON.* keys
 """
 
 import argparse
