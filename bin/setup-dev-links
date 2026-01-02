@@ -16,8 +16,15 @@ declare -A LINKS=(
     ["etc/logging.yaml"]="logging.yaml"
     ["data"]="data"
     ["Procfile.dev"]="Procfile.dev"
+    ["Procfile.volatile"]="Procfile.volatile"
+    [".env.test"]=".env.test"
     ["etc/puma.rb"]="puma.rb"
 )
+
+# Optional: .env if you have one
+if [[ -f "$OTS_DEV_CONFIG/.env" ]]; then
+    LINKS[".env"]=".env"
+fi
 
 # Repair .env.sh if it's a symlink (historical git issue)
 repair_env_sh() {
@@ -51,11 +58,6 @@ EOF
         echo "Created and marked executable: .env.sh"
     fi
 }
-
-# Optional: .env if you have one
-if [[ -f "$OTS_DEV_CONFIG/.env" ]]; then
-    LINKS[".env"]=".env"
-fi
 
 link_resource() {
     local local_path="$1"
