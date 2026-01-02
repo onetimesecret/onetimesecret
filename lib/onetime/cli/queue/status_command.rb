@@ -1,4 +1,4 @@
-# lib/onetime/cli/jobs/status_command.rb
+# lib/onetime/cli/queue/status_command.rb
 #
 # frozen_string_literal: true
 
@@ -6,7 +6,7 @@
 # CLI command for checking job system status
 #
 # Usage:
-#   ots jobs status [options]
+#   ots queue status [options]
 #
 # Options:
 #   -f, --format FORMAT    Output format: text or json (default: text)
@@ -19,7 +19,7 @@ require_relative '../../jobs/queue_config'
 
 module Onetime
   module CLI
-    module Jobs
+    module Queue
       class StatusCommand < Command
         desc 'Show job system status'
 
@@ -184,11 +184,14 @@ module Onetime
           puts 'Queue Depths:'
           if status[:queues].empty?
             puts '  No queue information available'
+          elsif status[:queues][:error]
+            # Top-level error from check_queue_depths
+            puts format('  Error: %s', status[:queues][:error])
           else
             status[:queues].each do |queue_name, info|
-              if info[:error]
+              if info.is_a?(Hash) && info[:error]
                 puts format('  %s: %s', queue_name, info[:error])
-              else
+              elsif info.is_a?(Hash)
                 puts format('  %s: %d messages, %d consumers',
                   queue_name, info[:messages], info[:consumers]
                 )
@@ -223,6 +226,7 @@ module Onetime
       end
     end
 
-    register 'jobs status', Jobs::StatusCommand
+    register 'queue status', Queue::StatusCommand
+    register 'queues status', Queue::StatusCommand  # Alias
   end
 end

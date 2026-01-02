@@ -18,7 +18,7 @@ EnvironmentFile=-/etc/onetime/environment
 EnvironmentFile=-/opt/onetime/.env
 
 # Start command
-ExecStart=/opt/onetime/bin/ots jobs scheduler --environment production
+ExecStart=/opt/onetime/bin/ots scheduler --environment production
 
 # Reload sends USR1 to log scheduled job status
 ExecReload=/bin/kill -USR1 $MAINPID

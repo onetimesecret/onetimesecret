@@ -22,11 +22,11 @@
 set -e
 
 # Start scheduler in background, capture PID
-bin/ots jobs scheduler &
+bin/ots scheduler &
 scheduler_pid=$!
 
 # Start worker in background, capture PID
-bin/ots jobs worker &
+bin/ots worker &
 worker_pid=$!
 
 # Forward termination signals to both child processes

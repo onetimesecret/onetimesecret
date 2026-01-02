@@ -1,4 +1,4 @@
-# lib/onetime/cli/jobs/scheduler_command.rb
+# lib/onetime/cli/scheduler_command.rb
 #
 # frozen_string_literal: true
 
@@ -6,7 +6,7 @@
 # CLI command for running the Rufus scheduler daemon
 #
 # Usage:
-#   ots jobs scheduler [options]
+#   ots scheduler [options]
 #
 # Options:
 #   -e, --environment ENV    Environment to run in (default: development)
@@ -15,12 +15,11 @@
 #
 
 require 'rufus-scheduler'
-require_relative '../../../onetime/jobs/scheduled_job'
+require_relative '../jobs/scheduled_job'
 
 module Onetime
   module CLI
-    module Jobs
-      class SchedulerCommand < Command
+    class SchedulerCommand < Command
         desc 'Start Rufus job scheduler'
 
         option :environment, type: :string, default: 'development', aliases: ['e'],
@@ -117,9 +116,8 @@ module Onetime
                                    )
           end
         end
-      end
     end
 
-    register 'jobs scheduler', Jobs::SchedulerCommand
+    register 'scheduler', SchedulerCommand
   end
 end

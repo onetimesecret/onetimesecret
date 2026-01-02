@@ -1,4 +1,4 @@
-# lib/onetime/cli/jobs/worker_command.rb
+# lib/onetime/cli/worker_command.rb
 #
 # frozen_string_literal: true
 
@@ -6,7 +6,7 @@
 # CLI command for running Kicks workers (RabbitMQ background processing)
 #
 # Usage:
-#   ots jobs worker [options]
+#   ots worker [options]
 #
 # Options:
 #   -q, --queues QUEUES          Comma-separated list of queues to process (default: all)
@@ -18,13 +18,12 @@
 
 require 'sneakers'
 require 'sneakers/runner'
-require_relative '../../jobs/queue_config'
+require_relative '../jobs/queue_config'
 
 module Onetime
   module CLI
-    module Jobs
-      class WorkerCommand < Command
-        desc 'Start Kicks job workers'
+    class WorkerCommand < Command
+        desc 'Start Sneakers job workers'
 
         option :queues, type: :string, aliases: ['q'],
           desc: 'Comma-separated list of queues to process (default: all)'
@@ -46,8 +45,8 @@ module Onetime
 
           boot_application!
 
-          # Configure Kicks (via Sneakers-compatible API)
-          configure_kicks(
+          # Configure Sneakers (via the rubygem named "kicks")
+          configure_sneakers(
             concurrency: concurrency,
             daemonize: daemonize,
             environment: environment,
@@ -151,7 +150,7 @@ module Onetime
           end
         end
 
-        def configure_kicks(concurrency:, daemonize:, environment:, log_level:)
+        def configure_sneakers(concurrency:, daemonize:, environment:, log_level:)
           # Exchange Configuration
           #
           # We use the default exchange (empty string) with direct routing.
@@ -240,9 +239,9 @@ module Onetime
 
           worker_classes
         end
-      end
     end
 
-    register 'jobs worker', Jobs::WorkerCommand
+    register 'worker', WorkerCommand
+    register 'workers', WorkerCommand  # Alias
   end
 end

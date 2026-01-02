@@ -1,4 +1,4 @@
-# lib/onetime/cli/jobs/ping_command.rb
+# lib/onetime/cli/queue/ping_command.rb
 #
 # frozen_string_literal: true
 
@@ -6,7 +6,7 @@
 # CLI command for testing job queue communication
 #
 # Usage:
-#   ots jobs ping [options]
+#   ots queue ping [options]
 #
 # Options:
 #   -q, --queue QUEUE    Test specific queue only (email, billing, notification, transient)
@@ -14,7 +14,7 @@
 #   -n, --dry-run        Show what would be published without sending
 #
 # This command publishes test messages to verify workers receive them correctly.
-# Run with a worker in another terminal: bin/ots jobs worker
+# Run with a worker in another terminal: bin/ots worker
 #
 
 require 'bunny'
@@ -23,7 +23,7 @@ require_relative '../../jobs/queue_config'
 
 module Onetime
   module CLI
-    module Jobs
+    module Queue
       class PingCommand < Command
         desc 'Test job queue communication by sending ping messages'
 
@@ -119,7 +119,7 @@ module Onetime
           begin
             channel.queue(queue_name, passive: true)
           rescue Bunny::NotFound
-            return { published: false, error: 'Queue not found - run: bin/ots jobs reset-queues' }
+            return { published: false, error: 'Queue not found - run: bin/ots queue reset' }
           end
 
           # Publish the test message
@@ -196,6 +196,7 @@ module Onetime
       end
     end
 
-    register 'jobs ping', Jobs::PingCommand
+    register 'queue ping', Queue::PingCommand
+    register 'queues ping', Queue::PingCommand  # Alias
   end
 end

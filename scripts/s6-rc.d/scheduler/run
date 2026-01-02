@@ -11,4 +11,4 @@ foreground { s6-echo "[scheduler] Starting job scheduler..." }
 # Set RUBY_UNBUFFERED for immediate output
 export RUBY_UNBUFFERED 1
 
-exec bin/ots jobs scheduler
+exec bin/ots scheduler

@@ -11,4 +11,4 @@ foreground { s6-echo "[worker] Starting job worker..." }
 # Set RUBY_UNBUFFERED for immediate output
 export RUBY_UNBUFFERED 1
 
-exec bin/ots jobs worker
+exec bin/ots worker

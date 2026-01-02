@@ -1,4 +1,4 @@
-# lib/onetime/cli/jobs/reset_queues_command.rb
+# lib/onetime/cli/queue/reset_command.rb
 #
 # frozen_string_literal: true
 
@@ -9,7 +9,7 @@
 # This deletes and recreates queues with correct configuration.
 #
 # Usage:
-#   ots jobs reset-queues [options]
+#   ots queue reset [options]
 #
 # Options:
 #   -q, --queue NAME       Reset specific queue only
@@ -22,8 +22,8 @@ require_relative '../../jobs/queue_config'
 
 module Onetime
   module CLI
-    module Jobs
-      class ResetQueuesCommand < Command
+    module Queue
+      class ResetCommand < Command
         desc 'Reset RabbitMQ queues (WARNING: destroys pending messages)'
 
         option :queue, type: :string, aliases: ['q'],
@@ -110,6 +110,7 @@ module Onetime
       end
     end
 
-    register 'jobs reset-queues', Jobs::ResetQueuesCommand
+    register 'queue reset', Queue::ResetCommand
+    register 'queues reset', Queue::ResetCommand  # Alias
   end
 end

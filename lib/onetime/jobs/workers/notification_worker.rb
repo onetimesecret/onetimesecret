@@ -55,7 +55,7 @@ module Onetime
           data = parse_message(msg)
           return unless data # parse_message handles reject on error
 
-          # Handle ping test messages (from: bin/ots jobs ping)
+          # Handle ping test messages (from: bin/ots queue ping)
           if data[:type] == 'ping.test'
             log_info 'Received ping test', type: data[:type], ping_id: data.dig(:data, :ping_id)
             return ack!

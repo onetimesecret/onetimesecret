@@ -5,4 +5,4 @@ backend: bundle exec bin/ots server -p ${PORT:-3000} etc/examples/puma.example.r
 
 frontend: pnpm run dev
 
-worker: bundle exec bin/ots jobs worker
+worker: bundle exec bin/ots worker

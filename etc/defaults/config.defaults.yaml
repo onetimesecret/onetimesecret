@@ -462,7 +462,13 @@ jobs:
 
   # RabbitMQ connection URL
   # Format: amqp://[user:password@]host[:port][/vhost]
-  rabbitmq_url: <%= ENV['RABBITMQ_URL'] || 'amqp://guest:guest@localhost:5672' %>
+  #
+  # The vhost dev doesn't exist in RabbitMQ. Either create it:
+  #
+  #  rabbitmqctl add_vhost dev
+  #  rabbitmqctl set_permissions -p dev guest ".*" ".*" ".*"
+  #
+  rabbitmq_url: <%= ENV['RABBITMQ_URL'] || 'amqp://guest:guest@localhost:5672/dev' %>
 
   # Publisher settings (Puma process)
   # Channel pool size for multi-threaded web server
