@@ -80,8 +80,9 @@ module Onetime::Metadata::Features
         # NOTE: Pass serializable data, not objects. The Secret object can't
         # be serialized to JSON for the message queue - it becomes "#<Secret:0x...>".
         # The template uses secret_key for the URL and share_domain for custom domains.
+        # Use secret.identifier (not deprecated secret.key which may be nil)
         Onetime::Jobs::Publisher.enqueue_email(:secret_link, {
-          secret_key: secret.key,
+          secret_key: secret.identifier,
           share_domain: secret.share_domain,
           recipient: email_address,
           sender_email: cust.email,

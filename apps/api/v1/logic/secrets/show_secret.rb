@@ -30,7 +30,7 @@ module V1::Logic
         @correct_passphrase = !secret.has_passphrase? || secret.passphrase?(passphrase)
         @show_secret = secret.viewable? && correct_passphrase && continue
         @verification = secret.verification.to_s == "true"
-        @secret_key = @secret.key
+        @secret_key = @secret.identifier # Use identifier, not deprecated .key field
 
         owner = secret.load_customer
 

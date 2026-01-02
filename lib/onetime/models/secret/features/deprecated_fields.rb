@@ -18,7 +18,6 @@ module Onetime::Secret::Features
         base.field :custid
         base.field :metadata_key
         base.field :truncated # boolean
-        base.field :key
         base.field :secret_key
       end
     end

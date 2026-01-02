@@ -40,7 +40,8 @@ module Onetime
 
         def forgot_path
           secret = data[:secret]
-          key    = secret.respond_to?(:key) ? secret.key : secret.to_s
+          # Use identifier (not deprecated .key field which may be nil)
+          key = secret.respond_to?(:identifier) ? secret.identifier : secret.to_s
           "/forgot/#{key}"
         end
 
