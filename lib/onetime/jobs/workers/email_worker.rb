@@ -119,7 +119,10 @@ module Onetime
             raise ArgumentError, 'Missing template in message payload'
           end
 
-          Onetime::Mail.deliver(template, email_data)
+          # Extract locale from payload, fall back to configured default locale
+          locale = email_data.delete(:locale) || email_data.delete('locale') || OT.default_locale
+
+          Onetime::Mail.deliver(template, email_data, locale: locale)
         end
 
         # Deliver raw email (non-templated)

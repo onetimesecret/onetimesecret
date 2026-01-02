@@ -73,6 +73,7 @@ module OrganizationAPI::Logic
         )
 
         # Queue invitation email via RabbitMQ
+        # Use inviter's locale since they initiated the action
         Onetime::Jobs::Publisher.enqueue_email(
           :organization_invitation,
           {
@@ -81,6 +82,7 @@ module OrganizationAPI::Logic
             inviter_email: cust.email,
             role: @role,
             invite_token: @membership.token,
+            locale: locale || cust.locale || OT.default_locale,
           },
           fallback: :sync,
         )

@@ -75,6 +75,7 @@ module V3
             recipient: owner.email,
             secret_shortid: secret.shortid,
             revealed_at: Time.now.utc.iso8601,
+            locale: owner.locale.to_s.empty? ? OT.default_locale : owner.locale,
           }
           )
         rescue StandardError => ex

@@ -76,6 +76,7 @@ module V3
             message: message,
             display_domain: display_domain,
             domain_strategy: domain_strategy,
+            locale: locale || OT.default_locale,
           }, fallback: :none
           )
         rescue StandardError => ex
