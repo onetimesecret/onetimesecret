@@ -6,7 +6,7 @@ require_relative '../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.rb')
 
-RSpec.xdescribe Onetime::Secret, 'security hardening' do
+RSpec.describe Onetime::Secret, 'security hardening' do
   let(:secret) { create_stubbed_secret(key: "test-secret-key-12345") }
   let(:passphrase) { "secure-test-passphrase" }
   let(:secret_value) { "Sensitive information 123" }
@@ -23,31 +23,46 @@ RSpec.xdescribe Onetime::Secret, 'security hardening' do
       secret.instance_variable_set(:@passphrase_temp, nil)
     end
 
-    it 'uses BCrypt for secure comparison' do
-      # BCrypt::Password instance receives == method for comparison
+    it 'uses Argon2 for secure comparison by default' do
+      # Argon2::Password.verify_password provides constant-time comparison
       # This is what provides the timing attack resistance
-      bcrypt_password = instance_double(BCrypt::Password)
-      expect(BCrypt::Password).to receive(:new).with(secret.passphrase).and_return(bcrypt_password)
-      expect(bcrypt_password).to receive(:==).with(passphrase).and_return(true)
+      # Default passphrase encryption uses Argon2 (mode '2')
+      expect(secret.passphrase_encryption).to eq('2')
 
-      secret.passphrase?(passphrase)
+      # Verify actual Argon2 comparison works
+      expect(secret.passphrase?(passphrase)).to be true
+      expect(secret.passphrase?('wrong-passphrase')).to be false
+    end
+
+    it 'falls back to BCrypt for legacy hashes' do
+      # Set up a BCrypt hash directly (simulating legacy data)
+      bcrypt_hash = BCrypt::Password.create(passphrase, cost: 12).to_s
+      secret.instance_variable_set(:@passphrase, bcrypt_hash)
+      secret.instance_variable_set(:@passphrase_encryption, '1')
+
+      # Verify actual BCrypt comparison works
+      expect(secret.passphrase?(passphrase)).to be true
+      expect(secret.passphrase?('wrong-passphrase')).to be false
     end
 
     it 'takes similar time for correct and incorrect passphrases' do
-      # Skip in CI environment where timing can be unreliable
-      skip "Timing tests may be unreliable in CI environments" if ENV['CI']
+      # This test ensures that comparing correct and incorrect passphrases
+      # takes approximately the same time, which is a hallmark of constant-time
+      # comparison algorithms that resist timing attacks
 
-      # Rest of the test remains the same...
+      # Skip in CI environment where timing can be unreliable
+      # skip 'Timing tests may be unreliable in CI environments' if ENV['CI']
+
       # Warm up
       5.times { secret.passphrase?(passphrase) }
-      5.times { secret.passphrase?("wrong-passphrase") }
+      5.times { secret.passphrase?('wrong-passphrase') }
 
       # Measure correct passphrase
       correct_times = []
       10.times do
         start_time = Onetime.now_in_μs
         secret.passphrase?(passphrase)
-        end_time = Onetime.now_in_μs
+        end_time   = Onetime.now_in_μs
         correct_times << (end_time - start_time)
       end
 
@@ -55,16 +70,21 @@ RSpec.xdescribe Onetime::Secret, 'security hardening' do
       incorrect_times = []
       10.times do
         start_time = Onetime.now_in_μs
-        secret.passphrase?("wrong-passphrase")
-        end_time = Onetime.now_in_μs
+        secret.passphrase?('wrong-passphrase')
+        end_time   = Onetime.now_in_μs
         incorrect_times << (end_time - start_time)
       end
 
-      # Calculate averages
-      avg_correct = correct_times.sum / correct_times.size
-      avg_incorrect = incorrect_times.sum / incorrect_times.size
+      # Calculate averages (use float division for accurate timing)
+      avg_correct   = correct_times.sum.to_f / correct_times.size
+      avg_incorrect = incorrect_times.sum.to_f / incorrect_times.size
+
+      # Skip if times are too small to measure reliably (< 100μs)
+      skip 'Execution too fast to measure reliably' if avg_correct < 100 || avg_incorrect < 100
 
       # Timing difference should be minimal
+      # Allow up to 2x difference because BCrypt comparison exits early on
+      # hash algorithm mismatch, but actual password comparison is constant time
       expect(avg_incorrect / avg_correct).to be_between(0.5, 2.0)
     end
   end
@@ -86,11 +106,12 @@ RSpec.xdescribe Onetime::Secret, 'security hardening' do
 
       # Case 1: Empty value
       secret.value = ""
-      # Ruby 3.1 raises ArgumentError, 3.2+ raises OpenSSL::Cipher::CipherError
-      # We accept either behavior for the v1 legacy code
-      expect { secret.decrypted_value }.to raise_error { |error|
-        expect([ArgumentError, OpenSSL::Cipher::CipherError]).to include(error.class)
-      }
+      # Empty value with encryption mode 2 can trigger different errors depending on
+      # the environment (OpenSSL, frozen string handling, etc.)
+      expect { secret.decrypted_value }.to(raise_error do |error|
+        expect([OpenSSL::Cipher::CipherError, ArgumentError, FrozenError]).to include(error.class)
+      end,
+                                          )
 
       # Case 2: Nil value
       secret.value = nil

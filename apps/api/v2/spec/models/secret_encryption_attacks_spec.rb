@@ -131,7 +131,7 @@ RSpec.describe Onetime::Secret, 'security hardening' do
           end
 
           it "is case-sensitive (#{algorithm_name})" do
-            skip 'No letters to test case sensitivity' unless test_phrase.match?(/[a-zA-Z]/)
+            # skip 'No letters to test case sensitivity' unless test_phrase.match?(/[a-zA-Z]/)
             expect(secret.passphrase?(test_phrase.swapcase)).to be false
           end
         end
