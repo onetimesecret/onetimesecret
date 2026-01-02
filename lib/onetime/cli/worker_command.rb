@@ -75,7 +75,7 @@ module Onetime
           runner.run
         end
 
-        private
+      private
 
         def declare_infrastructure
           amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
@@ -114,7 +114,7 @@ module Onetime
           start_time  = Time.now
           queue_names = worker_classes.map(&:queue_name).join(',')
 
-          t                    = Thread.new do
+          t                    = Thread.new do # rubocop:disable ThreadSafety/NewThread -- Heartbeat thread for worker monitoring
             loop do
               uptime_seconds = (Time.now - start_time).to_i
               uptime_str     = format_uptime(uptime_seconds)

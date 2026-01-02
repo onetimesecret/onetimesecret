@@ -7,6 +7,7 @@ module Auth::Config::Email
     def self.configure(auth)
       # Determine locale for current account/session
       # Priority: account preference > session > request param > default
+      # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
       auth.auth_class_eval do
         def determine_account_locale
           account[:locale] ||
@@ -42,6 +43,7 @@ module Auth::Config::Email
           mail
         end
       end
+      # rubocop:enable Lint/NestedMethodDefinition
     end
   end
 end

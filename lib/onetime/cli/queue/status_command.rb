@@ -109,19 +109,17 @@ module Onetime
           # Use actual queue names from QueueConfig
           # Each queue check needs its own channel because Bunny::NotFound closes the channel
           Onetime::Jobs::QueueConfig::QUEUES.each_key do |queue_name|
-            begin
-              channel = conn.create_channel
-              queue   = channel.queue(queue_name, durable: true, passive: true)
+              channel            = conn.create_channel
+              queue              = channel.queue(queue_name, durable: true, passive: true)
               queues[queue_name] = {
                 messages: queue.message_count,
                 consumers: queue.consumer_count,
               }
               channel.close
-            rescue Bunny::NotFound
+          rescue Bunny::NotFound
               queues[queue_name] = { error: 'Queue not found' }
-            rescue StandardError => ex
+          rescue StandardError => ex
               queues[queue_name] = { error: ex.message }
-            end
           end
 
           conn.close
@@ -138,17 +136,15 @@ module Onetime
 
           # Check dead letter exchanges from QueueConfig
           Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.each_key do |exchange_name|
-            begin
-              channel = conn.create_channel
+              channel                  = conn.create_channel
               # Use passive: true to check if exchange exists without creating it
               channel.exchange(exchange_name, type: :fanout, durable: true, passive: true)
               exchanges[exchange_name] = { exists: true, type: 'fanout', durable: true }
               channel.close
-            rescue Bunny::NotFound
+          rescue Bunny::NotFound
               exchanges[exchange_name] = { exists: false, error: 'Exchange not found' }
-            rescue StandardError => ex
+          rescue StandardError => ex
               exchanges[exchange_name] = { exists: false, error: ex.message }
-            end
           end
 
           conn.close
@@ -193,6 +189,7 @@ module Onetime
           { error: ex.message }
         end
 
+        # rubocop:disable Metrics/PerceivedComplexity -- Display method with inherent branching
         def display_text_status(status)
           puts '═' * 80
           puts 'Onetime Job System Status'
@@ -265,6 +262,7 @@ module Onetime
           puts
           puts '═' * 80
         end
+        # rubocop:enable Metrics/PerceivedComplexity
       end
     end
 

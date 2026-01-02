@@ -54,7 +54,7 @@ module Onetime
           scheduler.join
         end
 
-        private
+      private
 
         def daemonize_process
           # Fork and detach

@@ -75,7 +75,7 @@ module Onetime
           }
           bunny_config.merge!(Onetime::Jobs::QueueConfig.tls_options(amqp_url))
 
-          conn = Bunny.new(amqp_url, **bunny_config)
+          conn    = Bunny.new(amqp_url, **bunny_config)
           conn.start
           channel = conn.create_channel
 
@@ -90,7 +90,7 @@ module Onetime
           results = {}
 
           queue_names.each do |queue_name|
-            result = ping_queue(channel, queue_name, wait_seconds)
+            result              = ping_queue(channel, queue_name, wait_seconds)
             results[queue_name] = result
             display_result(queue_name, result)
           end
@@ -111,7 +111,7 @@ module Onetime
           puts 'Check worker logs to verify receipt.'
         end
 
-        def ping_queue(channel, queue_name, wait_seconds)
+        def ping_queue(channel, queue_name, _wait_seconds)
           ping_id = "test_ping_#{Time.now.to_i}_#{SecureRandom.hex(4)}"
           message = build_test_message(queue_name, ping_id)
 
@@ -184,11 +184,11 @@ module Onetime
         def display_result(queue_name, result)
           if result[:published]
             puts "#{queue_name}"
-            puts "  Status: Published"
+            puts '  Status: Published'
             puts "  Ping ID: #{result[:ping_id]}"
           else
             puts "#{queue_name}"
-            puts "  Status: FAILED"
+            puts '  Status: FAILED'
             puts "  Error: #{result[:error]}"
           end
           puts

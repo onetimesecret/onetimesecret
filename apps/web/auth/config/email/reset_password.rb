@@ -14,7 +14,8 @@ module Auth::Config::Email
           baseuri: request.base_url,
           product_name: OT.conf.dig('site', 'product_name'),
           display_domain: request.host,
-        }, locale: determine_account_locale)
+        }, locale: determine_account_locale
+                                                                )
 
         build_multipart_email(template)
       end

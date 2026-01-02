@@ -32,7 +32,8 @@ module Auth::Config::Email
           from: email.from,
           subject: email.subject,
           body: body_content,
-        }, fallback: :sync)
+        }, fallback: :sync
+                                                  )
       end
     end
   end

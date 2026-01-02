@@ -44,8 +44,8 @@ module Onetime
           amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
           parsed   = parse_amqp_url(amqp_url)
 
-          puts "RabbitMQ Initialization"
-          puts "=" * 60
+          puts 'RabbitMQ Initialization'
+          puts '=' * 60
           puts
           puts "AMQP URL: #{amqp_url.gsub(/:[^:@]+@/, ':***@')}"
           puts "VHost: #{parsed[:vhost]}"
@@ -53,18 +53,18 @@ module Onetime
           puts
 
           if dry_run
-            puts "[DRY RUN] Would perform the following:"
+            puts '[DRY RUN] Would perform the following:'
             puts "  1. Create vhost '#{parsed[:vhost]}' (if not exists)"
             puts "  2. Set permissions for user '#{parsed[:user]}' on vhost '#{parsed[:vhost]}'"
-            puts "  3. Declare exchanges and queues"
+            puts '  3. Declare exchanges and queues'
             return
           end
 
           unless force
-            print "Continue? [y/N] "
+            print 'Continue? [y/N] '
             response = $stdin.gets&.strip&.downcase
             unless response == 'y'
-              puts "Aborted."
+              puts 'Aborted.'
               return
             end
           end
@@ -79,7 +79,7 @@ module Onetime
           declare_infrastructure(amqp_url)
 
           puts
-          puts "Initialization complete."
+          puts 'Initialization complete.'
         end
 
         private
@@ -118,15 +118,15 @@ module Onetime
           uri      = URI.parse("#{management_url}/api/vhosts/#{URI.encode_www_form_component(vhost)}")
           user, pw = management_credentials
 
-          http             = Net::HTTP.new(uri.host, uri.port)
-          http.use_ssl     = uri.scheme == 'https'
+          http              = Net::HTTP.new(uri.host, uri.port)
+          http.use_ssl      = uri.scheme == 'https'
           http.open_timeout = 5
           http.read_timeout = 10
 
-          request                  = Net::HTTP::Put.new(uri.path)
+          request                 = Net::HTTP::Put.new(uri.path)
           request.basic_auth(user, pw)
           request['Content-Type'] = 'application/json'
-          request.body             = '{}'
+          request.body            = '{}'
 
           response = http.request(request)
 
@@ -142,10 +142,10 @@ module Onetime
           end
         rescue Errno::ECONNREFUSED
           puts "  ERROR: Cannot connect to RabbitMQ Management API at #{management_url}"
-          puts "  Ensure rabbitmq_management plugin is enabled:"
-          puts "    rabbitmq-plugins enable rabbitmq_management"
+          puts '  Ensure rabbitmq_management plugin is enabled:'
+          puts '    rabbitmq-plugins enable rabbitmq_management'
           puts
-          puts "  Or create vhost manually with rabbitmqctl:"
+          puts '  Or create vhost manually with rabbitmqctl:'
           puts "    rabbitmqctl add_vhost #{vhost}"
           puts "    rabbitmqctl set_permissions -p #{vhost} #{parsed[:user]} \".*\" \".*\" \".*\""
           exit 1
@@ -163,19 +163,20 @@ module Onetime
           uri          = URI.parse("#{management_url}/api/permissions/#{URI.encode_www_form_component(vhost)}/#{URI.encode_www_form_component(user)}")
           admin, pw    = management_credentials
 
-          http             = Net::HTTP.new(uri.host, uri.port)
-          http.use_ssl     = uri.scheme == 'https'
+          http              = Net::HTTP.new(uri.host, uri.port)
+          http.use_ssl      = uri.scheme == 'https'
           http.open_timeout = 5
           http.read_timeout = 10
 
-          request                  = Net::HTTP::Put.new(uri.path)
+          request                 = Net::HTTP::Put.new(uri.path)
           request.basic_auth(admin, pw)
           request['Content-Type'] = 'application/json'
-          request.body             = JSON.generate({
+          request.body            = JSON.generate({
             configure: '.*',
             write: '.*',
             read: '.*',
-          })
+          },
+                                                 )
 
           response = http.request(request)
 
@@ -193,24 +194,24 @@ module Onetime
         end
 
         def declare_infrastructure(amqp_url)
-          puts "Declaring exchanges and queues..."
+          puts 'Declaring exchanges and queues...'
 
           bunny_config = {
             logger: Onetime.get_logger('Bunny'),
           }
           bunny_config.merge!(Onetime::Jobs::QueueConfig.tls_options(amqp_url))
 
-          conn = Bunny.new(amqp_url, **bunny_config)
+          conn    = Bunny.new(amqp_url, **bunny_config)
           conn.start
           channel = conn.create_channel
 
           # Declare exchanges
           Onetime::Initializers::SetupRabbitMQ.declare_exchanges(channel)
-          puts "  Exchanges declared"
+          puts '  Exchanges declared'
 
           # Declare queues
           Onetime::Initializers::SetupRabbitMQ.declare_queues(channel)
-          puts "  Queues declared"
+          puts '  Queues declared'
 
           channel.close
           conn.close
