@@ -127,6 +127,7 @@ end
 group :development do
   # Debugging tools
   gem 'debug', require: false
+  gem 'htmlbeautifier', require: false
   gem 'rackup'
   gem 'rerun', '~> 0.14'
 
