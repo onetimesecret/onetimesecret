@@ -6,7 +6,7 @@ require_relative '../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.rb')
 
-RSpec.xdescribe Onetime::Secret do
+RSpec.describe Onetime::Secret do
   describe 'encryption functionality' do
     let(:secret_value) { "This is a secret message" }
     let(:secret) { create_stubbed_secret(key: "test-secret-key-12345") }
@@ -29,13 +29,12 @@ RSpec.xdescribe Onetime::Secret do
         long_value = "A" * 100
         size_limit = 10
 
-        # Mock SecureRandom.rand to return a consistent value for tests
-        allow(SecureRandom).to receive(:rand).and_return(0)
-
         secret.encrypt_value(long_value, size: size_limit)
 
         decrypted = secret.decrypted_value
-        expect(decrypted.length).to eq(size_limit)
+        # Account for the randomized fuzzy truncation (0-20% extra)
+        expect(decrypted.length).to be >= size_limit
+        expect(decrypted.length).to be <= (size_limit * 1.2).to_i
         expect(secret.truncated?).to be true
       end
 
@@ -124,8 +123,16 @@ RSpec.xdescribe Onetime::Secret do
     let(:passphrase) { "secure-test-passphrase" }
 
     describe '#update_passphrase!' do
-      it 'stores a BCrypt hash of the passphrase' do
+      it 'stores an Argon2 hash of the passphrase by default' do
         secret.update_passphrase!(passphrase)
+
+        expect(secret.passphrase).not_to eq(passphrase)
+        expect(secret.passphrase).to start_with("$argon2id$")
+        expect(secret.passphrase_encryption).to eq("2")
+      end
+
+      it 'stores a BCrypt hash when using legacy algorithm' do
+        secret.update_passphrase!(passphrase, algorithm: :bcrypt)
 
         expect(secret.passphrase).not_to eq(passphrase)
         expect(secret.passphrase).to start_with("$2a$")
@@ -278,17 +285,11 @@ RSpec.xdescribe Onetime::Secret do
   describe 'security and edge cases' do
     let(:secret) { create_stubbed_secret }
 
-    it 'handles empty content appropriately' do
-      # Ruby 3.1 raises ArgumentError, 3.2+ allows empty string
-      # We accept either behavior for the v1 legacy code
-      begin
-        secret.encrypt_value("")
-        # If we get here, we're on Ruby 3.2+ which allows empty strings
-        expect(secret.value).not_to be_nil
-      rescue ArgumentError => e
-        # If we get here, we're on Ruby 3.1 which rejects empty strings
-        expect(e.message).to eq("data must not be empty")
-      end
+    it 'handles empty content' do
+      secret.encrypt_value("")
+
+      expect(secret.value_encryption).to eq(-1) # Special flag for empty content
+      expect(secret.decrypted_value).to eq("")
     end
 
     it 'prevents decryption when no value exists' do

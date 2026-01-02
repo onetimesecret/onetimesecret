@@ -6,7 +6,7 @@ require_relative '../../application'
 require_relative File.join(Onetime::HOME, 'spec', 'spec_helper')
 require_relative File.join(Onetime::HOME, 'spec', 'support', 'model_test_helper.rb')
 
-RSpec.xdescribe Onetime::Secret do
+RSpec.describe Onetime::Secret do
   let(:customer_id) { 'test-customer-123' }
   let(:token) { nil }
   let(:secret_value) { "This is a test secret" }
@@ -105,10 +105,19 @@ RSpec.xdescribe Onetime::Secret do
       expect(passphrase_secret.passphrase?("wrong-passphrase")).to be false
     end
 
-    it 'uses BCrypt for secure hashing' do
+    it 'uses Argon2 for secure hashing by default' do
       passphrase_secret.update_passphrase(passphrase)
 
-      expect(passphrase_secret.passphrase).to start_with("$2a$") # BCrypt hash format
+      expect(passphrase_secret.passphrase).to start_with("$argon2id$")
+      expect(passphrase_secret.passphrase_encryption).to eq("2")
+    end
+
+    it 'supports BCrypt for legacy compatibility' do
+      passphrase_secret.update_passphrase(passphrase, algorithm: :bcrypt)
+
+      expect(passphrase_secret.passphrase).to start_with("$2a$")
+      expect(passphrase_secret.passphrase_encryption).to eq("1")
+      expect(passphrase_secret.passphrase?(passphrase)).to be true
     end
   end
 
@@ -116,8 +125,8 @@ RSpec.xdescribe Onetime::Secret do
     let(:lifecycle_secret) { secret_pair[1] }
     let(:lifecycle_metadata) { secret_pair[0] }
 
-    # Fix: Create a proper time mock
-    let(:mock_time) { instance_double(Time, to_i: 1000) }
+    # Fix: Create a proper time mock that responds to both to_i and to_f
+    let(:mock_time) { instance_double(Time, to_i: 1000, to_f: 1000.0) }
 
     before do
       lifecycle_secret.encrypt_value(secret_value)
