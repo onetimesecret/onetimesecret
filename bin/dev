@@ -40,6 +40,7 @@ ARGS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --volatile)
+      echo "Starting in volatile mode (no persistent data)..."
       PROCFILE="Procfile.volatile"
       shift
       ;;

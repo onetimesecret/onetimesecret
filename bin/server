@@ -2,4 +2,4 @@
 
 source .env.sh
 
-bundle exec bin/ots server
+bundle exec bin/ots server $@

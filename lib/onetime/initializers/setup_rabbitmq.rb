@@ -212,19 +212,15 @@ module Onetime
             Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared and bound DLQ '#{config[:queue]}'"
           end
 
-          # 2. Declare and bind the primary queues with DLX arguments
+          # 2. Declare primary queues using config from QueueConfig
           Onetime::Jobs::QueueConfig::QUEUES.each do |queue_name, config|
-            dlx_name = config[:dead_letter_exchange]
             channel.queue(
               queue_name,
-              durable: true,
-              arguments: {
-                'x-dead-letter-exchange' => dlx_name,
-                'x-dead-letter-routing-key' => Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.dig(dlx_name, :queue),
-              },
+              durable: config[:durable],
+              arguments: config[:arguments] || {},
             )
 
-            Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared primary queue '#{queue_name}' with DLX '#{dlx_name}'"
+            Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared primary queue '#{queue_name}'"
           end
         end
       end

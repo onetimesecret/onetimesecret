@@ -45,6 +45,7 @@ module Onetime
         'Secret' => 'DEBUG_SECRET',
         'Sequel' => 'DEBUG_SEQUEL',
         'Session' => 'DEBUG_SESSION',
+        'Workers' => 'DEBUG_WORKERS',
       }.freeze
 
       class << self

@@ -1,0 +1,5 @@
+# bin/worker
+
+source .env.sh
+
+bundle exec bin/ots worker $@

@@ -200,6 +200,16 @@ module Onetime
             prefetch: concurrency,
             # Use Bunny logger from centralized logging config (setup_rabbitmq.rb pattern)
             logger: Onetime.bunny_logger,
+            # Hooks to configure logging in forked worker processes
+            hooks: {
+              after_fork: -> {
+                # Clear and re-add stdout appender in forked worker so SemanticLogger outputs are visible
+                # Parent process appenders don't work after fork, so we must reconfigure
+                SemanticLogger.appenders.each(&:close)
+                SemanticLogger.clear_appenders!
+                SemanticLogger.add_appender(io: $stdout, formatter: :color)
+              },
+            },
           }
 
           # Override vhost only if explicitly set via env var.
