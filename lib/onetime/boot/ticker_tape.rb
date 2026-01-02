@@ -54,7 +54,7 @@ module Onetime
         'Monitor',
         'Queue',
         'ConditionVariable',
-        'Onetime::Utils'
+        'Onetime::Utils',
       ].freeze
 
       # Namespaces to exclude from tracing (stdlib/gems that create noise)
@@ -135,7 +135,7 @@ module Onetime
             # Deduplicate consecutive calls - increment reps instead of new line
             if @events.last && @events.last[:sig] == sig
               @events.last[:reps] += 1
-              @events.last[:dur] = elapsed_μs - @events.last[:ts]
+              @events.last[:dur]   = elapsed_μs - @events.last[:ts]
             else
               event = {
                 ts: elapsed_μs,
@@ -147,7 +147,7 @@ module Onetime
 
               # Only add binding if enabled and present
               if @capture_bindings
-                locals = extract_locals(tp.binding)
+                locals       = extract_locals(tp.binding)
                 event[:bind] = locals unless locals.empty?
               end
 
@@ -203,7 +203,7 @@ module Onetime
       # Class#instance_method or Module.module_method
       def method_signature(tp)
         klass_str = safe_class_name(tp.defined_class)
-        method = tp.method_id
+        method    = tp.method_id
 
         # Detect singleton class (class methods)
         # Singleton classes appear as "#<Class:ClassName>"
@@ -215,7 +215,7 @@ module Onetime
           # Instance method
           "#{klass_str}##{method}"
         end
-      rescue
+      rescue StandardError
         "#{klass_str}##{method}" # fallback to instance method notation
       end
 
@@ -303,7 +303,8 @@ module Onetime
             duration_ms: elapsed_μs / 1000.0,
             bindings: @capture_bindings,
             ts: Time.now.iso8601,
-          })
+          },
+                              )
 
           # Event lines (compact format)
           @events.each do |event|
@@ -314,7 +315,7 @@ module Onetime
         puts "\n📼 Boot ticker tape written to: #{output_file}"
         puts "   Total events: #{@events.size}"
         puts "   Duration: #{(elapsed_μs / 1000.0).round(2)}ms"
-        puts "   Format: JSONL (compact)"
+        puts '   Format: JSONL (compact)'
       rescue StandardError => ex
         warn "[TickerTape] Failed to write ticker tape: #{ex.message}"
       end

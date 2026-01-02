@@ -80,14 +80,14 @@ module Onetime
 
         def declare_infrastructure
           amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
-          Onetime.bunny_logger.info "[Worker] Initializing RabbitMQ infrastructure..."
+          Onetime.bunny_logger.info '[Worker] Initializing RabbitMQ infrastructure...'
 
           bunny_config = {
             logger: Onetime.get_logger('Bunny'),
           }
           bunny_config.merge!(Onetime::Jobs::QueueConfig.tls_options(amqp_url))
 
-          conn = Bunny.new(amqp_url, **bunny_config)
+          conn    = Bunny.new(amqp_url, **bunny_config)
           conn.start
           channel = conn.create_channel
 

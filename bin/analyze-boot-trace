@@ -24,7 +24,7 @@ class BootTraceAnalyzer
     @options   = options
 
     # Parse JSONL format (one JSON object per line)
-    @data = nil
+    @data   = nil
     @events = []
 
     File.foreach(file_path) do |line|
@@ -80,9 +80,9 @@ class BootTraceAnalyzer
     total_calls = 0
     rabbitmq_events.each do |event|
       timestamp_ms = (event['ts'].to_f / 1000.0).round(2)
-      reps = event['reps'] || 1
+      reps         = event['reps'] || 1
       total_calls += reps
-      location = "#{event['path']}:#{event['line']}"
+      location     = "#{event['path']}:#{event['line']}"
 
       if reps > 1
         puts format(
@@ -112,7 +112,7 @@ class BootTraceAnalyzer
 
     # Find all initializer#execute calls
     init_calls = @events.select do |e|
-      e['sig']&.include?('Initializer') && e['sig']&.include?('#execute')
+      e['sig']&.include?('Initializer') && e['sig'].include?('#execute')
     end
 
     if init_calls.empty?
@@ -122,7 +122,7 @@ class BootTraceAnalyzer
 
     init_calls.each do |event|
       timestamp_ms = (event['ts'].to_f / 1000.0).round(2)
-      reps = event['reps'] || 1
+      reps         = event['reps'] || 1
 
       if reps > 1
         puts format(
@@ -150,7 +150,7 @@ class BootTraceAnalyzer
 
     @events.first(100).each do |event|
       timestamp_ms = (event['ts'].to_f / 1000.0).round(2)
-      reps = event['reps'] || 1
+      reps         = event['reps'] || 1
 
       if reps > 1
         puts format(
@@ -173,7 +173,7 @@ class BootTraceAnalyzer
     puts 'Boot Call Summary (Top Methods)'
     puts '-' * 80
 
-    total_calls = @events.sum { |e| e['reps'] || 1 }
+    total_calls  = @events.sum { |e| e['reps'] || 1 }
     unique_calls = @events.size
 
     puts "Total calls: #{total_calls} (#{unique_calls} unique)"
@@ -198,7 +198,7 @@ class BootTraceAnalyzer
 
     namespace_counts = @events
       .each_with_object(Hash.new(0)) do |e, h|
-        namespace = e['sig']&.split(/[#.]/)&.first || 'Unknown'
+        namespace     = e['sig']&.split(/[#.]/)&.first || 'Unknown'
         h[namespace] += (e['reps'] || 1)
       end
       .sort_by { |_k, v| -v }
@@ -216,14 +216,14 @@ class BootTraceAnalyzer
     puts '=' * 140
 
     # Track first appearances
-    seen_namespaces = {}
+    seen_namespaces  = {}
     seen_directories = {}
-    seen_signatures = {}
+    seen_signatures  = {}
 
     @events.each do |event|
-      ts = event['ts']
-      sig = event['sig']
-      path = event['path'] || ''
+      ts        = event['ts']
+      sig       = event['sig']
+      path      = event['path'] || ''
       namespace = sig&.split(/[#.]/)&.first || 'Unknown'
       directory = File.dirname(path)
 
@@ -239,7 +239,7 @@ class BootTraceAnalyzer
         path: path,
         line: event['line'],
         namespace: namespace,
-        directory: directory
+        directory: directory,
       }
     end
 
@@ -249,7 +249,7 @@ class BootTraceAnalyzer
     puts format(
       '%-70s  %-68s',
       'SIGNATURE (--> = new namespace)',
-      'FILE PATH (--> = new directory)'
+      'FILE PATH (--> = new directory)',
     )
     puts '-' * 140
 
@@ -258,22 +258,22 @@ class BootTraceAnalyzer
 
       # Check if this is the first appearance of the namespace
       is_first_namespace = seen_namespaces[info[:namespace]] == info[:ts]
-      ns_marker = is_first_namespace ? '--> ' : '    '
+      ns_marker          = is_first_namespace ? '--> ' : '    '
 
       # Check if this is the first appearance of the directory
       is_first_directory = seen_directories[info[:directory]] == info[:ts]
-      dir_marker = is_first_directory ? '--> ' : '    '
+      dir_marker         = is_first_directory ? '--> ' : '    '
 
       # Truncate signature if needed (leave room for marker prefix)
       max_sig_len = 53
       display_sig = sig.length > max_sig_len ? "#{sig[0, max_sig_len - 3]}..." : sig
 
       # Format file path with line number
-      file_path = "#{info[:path]}:#{info[:line]}"
+      file_path    = "#{info[:path]}:#{info[:line]}"
       max_path_len = 53
       display_path = file_path.length > max_path_len ? "...#{file_path[-(max_path_len - 3)..]}" : file_path
 
-      left_col = format('%8.2fms  %s%-53s', timestamp_ms, ns_marker, display_sig)
+      left_col  = format('%8.2fms  %s%-53s', timestamp_ms, ns_marker, display_sig)
       right_col = format('%s%-53s', dir_marker, display_path)
 
       puts "#{left_col}  #{right_col}"
