@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+# bundle exec rake spec:all
+
 # Integration Test Architecture
 # =============================
 #

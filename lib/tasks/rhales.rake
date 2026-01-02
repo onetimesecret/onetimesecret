@@ -1,8 +1,8 @@
+# lib/tasks/rhales.rake
+#
 # frozen_string_literal: true
 
-# lib/tasks/rhales.rake
-
-# Load Rhales rake tasks
+# bundle exec rake rhales:schema:generate
 
 require 'rhales'
 
