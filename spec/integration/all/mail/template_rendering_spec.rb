@@ -629,9 +629,9 @@ RSpec.describe 'Email Template Rendering', type: :integration do
         .to raise_error(ArgumentError, /Email address required/)
     end
 
-    it 'PasswordRequest requires secret' do
+    it 'PasswordRequest requires reset_password_path or secret' do
       expect { Onetime::Mail::Templates::PasswordRequest.new({ email_address: 'a@b.com' }) }
-        .to raise_error(ArgumentError, /Secret required/)
+        .to raise_error(ArgumentError, /Reset password path or secret required/)
     end
 
     it 'IncomingSecret requires secret' do

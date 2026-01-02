@@ -300,7 +300,8 @@ export function useAuth() {
         });
       }
 
-      // Success - navigate to signin
+      // Success - show notification and navigate to signin
+      notificationsStore.show(validated.success, 'success', 'top');
       await router.push('/signin');
       return true;
     });
