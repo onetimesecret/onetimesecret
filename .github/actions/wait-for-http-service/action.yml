@@ -1,0 +1,176 @@
+# .github/actions/wait-for-http-service/action.yml
+---
+# ==============================================================================
+# Wait for HTTP Service - Composite Action
+# ==============================================================================
+# Version: 1.0.0
+# Repository: onetimesecret/onetimesecret
+#
+# Polls an HTTP endpoint until it returns a successful response or times out.
+# Useful for waiting on containers, services, or external dependencies to
+# become ready before running tests.
+#
+# Usage:
+#   - uses: ./.github/actions/wait-for-http-service
+#     with:
+#       service-url: 'http://localhost:3000'
+#       max-attempts: 30
+#       interval-seconds: 2
+#
+#   - uses: ./.github/actions/wait-for-http-service
+#     with:
+#       service-url: 'http://localhost:8080'
+#       health-path: '/health'
+#       expected-status: '200'
+#
+# Changelog:
+#   1.0.0 - Initial release with configurable polling and status checks
+# ==============================================================================
+
+name: Wait for HTTP Service
+description: |
+  Polls an HTTP endpoint until it returns a successful response.
+  Configurable timeout, interval, and expected status code.
+
+inputs:
+  service-url:
+    description: 'Base URL of the service to poll (e.g., http://localhost:3000)'
+    required: true
+  health-path:
+    description: 'Path to health check endpoint (appended to service-url)'
+    required: false
+    default: '/'
+  max-attempts:
+    description: 'Maximum number of polling attempts before failure'
+    required: false
+    default: '30'
+  interval-seconds:
+    description: 'Seconds to wait between polling attempts'
+    required: false
+    default: '2'
+  expected-status:
+    description: 'Expected HTTP status code (default accepts 2xx)'
+    required: false
+    default: ''
+  timeout-seconds:
+    description: 'Curl timeout for each request'
+    required: false
+    default: '5'
+
+outputs:
+  success:
+    description: 'Whether the service became ready (true/false)'
+    value: ${{ steps.poll.outputs.success }}
+  attempts:
+    description: 'Number of attempts made before success or failure'
+    value: ${{ steps.poll.outputs.attempts }}
+  final-status:
+    description: 'HTTP status code from the final attempt'
+    value: ${{ steps.poll.outputs.final_status }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate inputs
+      id: validate
+      shell: bash
+      run: |
+        SERVICE_URL="${{ inputs.service-url }}"
+        MAX_ATTEMPTS="${{ inputs.max-attempts }}"
+        INTERVAL="${{ inputs.interval-seconds }}"
+
+        # Validate service URL
+        if [ -z "$SERVICE_URL" ]; then
+          echo "::error::service-url is required"
+          exit 1
+        fi
+
+        # Validate numeric inputs
+        if ! [[ "$MAX_ATTEMPTS" =~ ^[0-9]+$ ]] || [ "$MAX_ATTEMPTS" -lt 1 ]; then
+          echo "::error::max-attempts must be a positive integer (got: $MAX_ATTEMPTS)"
+          exit 1
+        fi
+
+        if ! [[ "$INTERVAL" =~ ^[0-9]+$ ]] || [ "$INTERVAL" -lt 1 ]; then
+          echo "::error::interval-seconds must be a positive integer (got: $INTERVAL)"
+          exit 1
+        fi
+
+        # Calculate total timeout for logging
+        TOTAL_TIMEOUT=$((MAX_ATTEMPTS * INTERVAL))
+        echo "::notice::Will poll $SERVICE_URL for up to ${TOTAL_TIMEOUT}s (${MAX_ATTEMPTS} attempts, ${INTERVAL}s interval)"
+
+    - name: Poll service until ready
+      id: poll
+      shell: bash
+      run: |
+        SERVICE_URL="${{ inputs.service-url }}"
+        HEALTH_PATH="${{ inputs.health-path }}"
+        MAX_ATTEMPTS="${{ inputs.max-attempts }}"
+        INTERVAL="${{ inputs.interval-seconds }}"
+        EXPECTED_STATUS="${{ inputs.expected-status }}"
+        CURL_TIMEOUT="${{ inputs.timeout-seconds }}"
+
+        # Construct full URL (handle trailing/leading slashes)
+        SERVICE_URL="${SERVICE_URL%/}"
+        HEALTH_PATH="${HEALTH_PATH#/}"
+        FULL_URL="${SERVICE_URL}/${HEALTH_PATH}"
+
+        echo "::group::Polling $FULL_URL"
+
+        attempt=0
+        final_status=""
+
+        while [ $attempt -lt $MAX_ATTEMPTS ]; do
+          attempt=$((attempt + 1))
+
+          # Make request and capture status code
+          http_status=$(curl -s -o /dev/null -w "%{http_code}" \
+            --connect-timeout "$CURL_TIMEOUT" \
+            --max-time "$CURL_TIMEOUT" \
+            "$FULL_URL" 2>/dev/null) || http_status="000"
+
+          final_status="$http_status"
+
+          # Check if status matches expectation
+          if [ -n "$EXPECTED_STATUS" ]; then
+            # Exact status match required
+            if [ "$http_status" = "$EXPECTED_STATUS" ]; then
+              echo "::notice::Service ready after $attempt attempt(s) (HTTP $http_status)"
+              echo "success=true" >> $GITHUB_OUTPUT
+              echo "attempts=$attempt" >> $GITHUB_OUTPUT
+              echo "final_status=$final_status" >> $GITHUB_OUTPUT
+              echo "::endgroup::"
+              exit 0
+            fi
+          else
+            # Accept any 2xx status
+            if [[ "$http_status" =~ ^2[0-9][0-9]$ ]]; then
+              echo "::notice::Service ready after $attempt attempt(s) (HTTP $http_status)"
+              echo "success=true" >> $GITHUB_OUTPUT
+              echo "attempts=$attempt" >> $GITHUB_OUTPUT
+              echo "final_status=$final_status" >> $GITHUB_OUTPUT
+              echo "::endgroup::"
+              exit 0
+            fi
+          fi
+
+          # Log progress every 5 attempts or on specific statuses
+          if [ $((attempt % 5)) -eq 0 ] || [ "$http_status" != "000" ]; then
+            echo "Attempt $attempt/$MAX_ATTEMPTS: HTTP $http_status"
+          fi
+
+          sleep "$INTERVAL"
+        done
+
+        echo "::endgroup::"
+
+        # Service did not become ready
+        echo "::error::Service at $FULL_URL failed to respond after $MAX_ATTEMPTS attempts"
+        echo "::error::Last HTTP status: $final_status"
+
+        echo "success=false" >> $GITHUB_OUTPUT
+        echo "attempts=$attempt" >> $GITHUB_OUTPUT
+        echo "final_status=$final_status" >> $GITHUB_OUTPUT
+
+        exit 1

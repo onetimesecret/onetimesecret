@@ -1,0 +1,283 @@
+# .github/actions/test-docker-container/action.yml
+---
+# ==============================================================================
+# Test Docker Container - Composite Action
+# ==============================================================================
+# Version: 1.0.0
+# Repository: onetimesecret/onetimesecret
+#
+# Runs a Docker container, waits for it to become healthy, tests an endpoint,
+# and cleans up. Provides consistent container testing across CI jobs.
+#
+# Usage:
+#   - uses: ./.github/actions/test-docker-container
+#     with:
+#       image-name: 'my-app:latest'
+#       container-name: 'my-app-test'
+#       port: '3000'
+#       test-endpoints: |
+#         /
+#         /health
+#       environment-vars: |
+#         REDIS_URL=redis://host.docker.internal:6379/0
+#         NODE_ENV=production
+#
+# Changelog:
+#   1.0.0 - Initial release with health check and endpoint testing
+# ==============================================================================
+
+name: Test Docker Container
+description: |
+  Runs a Docker container, waits for health, tests endpoints, and cleans up.
+  Handles all container lifecycle management with proper error handling.
+
+inputs:
+  image-name:
+    description: 'Docker image name to run'
+    required: true
+  container-name:
+    description: 'Name for the running container'
+    required: true
+  port:
+    description: 'Port to expose (maps to same host port)'
+    required: false
+    default: '3000'
+  environment-vars:
+    description: 'Environment variables (one per line, KEY=value format)'
+    required: false
+    default: ''
+  test-endpoints:
+    description: 'Endpoints to test after container is ready (one per line)'
+    required: false
+    default: '/'
+  redis-url:
+    description: 'Redis URL to inject (convenience for common case)'
+    required: false
+    default: ''
+  health-path:
+    description: 'Health check endpoint path'
+    required: false
+    default: '/'
+  max-wait-attempts:
+    description: 'Maximum attempts to wait for container readiness'
+    required: false
+    default: '30'
+  wait-interval:
+    description: 'Seconds between health check attempts'
+    required: false
+    default: '2'
+  docker-network:
+    description: 'Docker network to connect container to'
+    required: false
+    default: ''
+  extra-docker-args:
+    description: 'Additional docker run arguments'
+    required: false
+    default: ''
+
+outputs:
+  container-id:
+    description: 'ID of the started container'
+    value: ${{ steps.start.outputs.container_id }}
+  service-ready:
+    description: 'Whether the service became ready'
+    value: ${{ steps.wait.outputs.success }}
+  tests-passed:
+    description: 'Whether all endpoint tests passed'
+    value: ${{ steps.test.outputs.passed }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate inputs
+      id: validate
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.image-name }}" ]; then
+          echo "::error::image-name is required"
+          exit 1
+        fi
+        if [ -z "${{ inputs.container-name }}" ]; then
+          echo "::error::container-name is required"
+          exit 1
+        fi
+
+        # Verify image exists
+        if ! docker image inspect "${{ inputs.image-name }}" >/dev/null 2>&1; then
+          echo "::error::Docker image '${{ inputs.image-name }}' not found. Build it first."
+          exit 1
+        fi
+
+        echo "::notice::Will test container '${{ inputs.container-name }}' from image '${{ inputs.image-name }}'"
+
+    - name: Clean up any existing container
+      shell: bash
+      run: |
+        if docker ps -a --format '{{.Names}}' | grep -q "^${{ inputs.container-name }}$"; then
+          echo "::notice::Removing existing container '${{ inputs.container-name }}'"
+          docker stop "${{ inputs.container-name }}" 2>/dev/null || true
+          docker rm "${{ inputs.container-name }}" 2>/dev/null || true
+        fi
+
+    - name: Start container
+      id: start
+      shell: bash
+      run: |
+        # Build docker run command
+        DOCKER_CMD="docker run -d"
+        DOCKER_CMD="$DOCKER_CMD --name ${{ inputs.container-name }}"
+        DOCKER_CMD="$DOCKER_CMD -p ${{ inputs.port }}:${{ inputs.port }}"
+
+        # Add host gateway for accessing host services
+        DOCKER_CMD="$DOCKER_CMD --add-host=host.docker.internal:host-gateway"
+
+        # Add network if specified
+        if [ -n "${{ inputs.docker-network }}" ]; then
+          DOCKER_CMD="$DOCKER_CMD --network ${{ inputs.docker-network }}"
+        fi
+
+        # Add Redis URL if provided
+        if [ -n "${{ inputs.redis-url }}" ]; then
+          DOCKER_CMD="$DOCKER_CMD -e REDIS_URL='${{ inputs.redis-url }}'"
+        fi
+
+        # Add environment variables from multiline input
+        ENV_VARS="${{ inputs.environment-vars }}"
+        if [ -n "$ENV_VARS" ]; then
+          while IFS= read -r line; do
+            # Skip empty lines and comments
+            if [ -n "$line" ] && [[ ! "$line" =~ ^# ]]; then
+              DOCKER_CMD="$DOCKER_CMD -e '$line'"
+            fi
+          done <<< "$ENV_VARS"
+        fi
+
+        # Add extra docker args
+        if [ -n "${{ inputs.extra-docker-args }}" ]; then
+          DOCKER_CMD="$DOCKER_CMD ${{ inputs.extra-docker-args }}"
+        fi
+
+        # Add image name
+        DOCKER_CMD="$DOCKER_CMD ${{ inputs.image-name }}"
+
+        echo "::group::Starting container"
+        echo "Command: $DOCKER_CMD"
+
+        # Execute and capture container ID
+        CONTAINER_ID=$(eval $DOCKER_CMD)
+
+        if [ -z "$CONTAINER_ID" ]; then
+          echo "::error::Failed to start container"
+          echo "::endgroup::"
+          exit 1
+        fi
+
+        echo "Container started: $CONTAINER_ID"
+        echo "container_id=$CONTAINER_ID" >> $GITHUB_OUTPUT
+        echo "::endgroup::"
+
+    - name: Wait for service to be ready
+      id: wait
+      uses: ./.github/actions/wait-for-http-service
+      with:
+        service-url: 'http://localhost:${{ inputs.port }}'
+        health-path: ${{ inputs.health-path }}
+        max-attempts: ${{ inputs.max-wait-attempts }}
+        interval-seconds: ${{ inputs.wait-interval }}
+
+    - name: Capture container logs on wait failure
+      if: failure() && steps.wait.outputs.success == 'false'
+      shell: bash
+      run: |
+        echo "::group::Container logs (failure diagnostics)"
+        docker logs "${{ inputs.container-name }}" 2>&1 || echo "Failed to retrieve logs"
+        echo "::endgroup::"
+
+        echo "::group::Container inspect"
+        docker inspect "${{ inputs.container-name }}" 2>&1 || echo "Failed to inspect container"
+        echo "::endgroup::"
+
+    - name: Test endpoints
+      id: test
+      if: steps.wait.outputs.success == 'true'
+      shell: bash
+      run: |
+        BASE_URL="http://localhost:${{ inputs.port }}"
+        ENDPOINTS="${{ inputs.test-endpoints }}"
+        PASSED=true
+        TESTED=0
+        FAILED=0
+
+        echo "::group::Testing endpoints"
+
+        while IFS= read -r endpoint; do
+          # Skip empty lines and comments
+          if [ -z "$endpoint" ] || [[ "$endpoint" =~ ^# ]]; then
+            continue
+          fi
+
+          # Normalize endpoint path
+          endpoint="${endpoint#/}"
+          FULL_URL="${BASE_URL}/${endpoint}"
+
+          TESTED=$((TESTED + 1))
+          echo "Testing: $FULL_URL"
+
+          # Make request and capture status
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            --connect-timeout 5 \
+            --max-time 10 \
+            "$FULL_URL" 2>/dev/null) || HTTP_STATUS="000"
+
+          if [[ "$HTTP_STATUS" =~ ^2[0-9][0-9]$ ]]; then
+            echo "  ✓ HTTP $HTTP_STATUS"
+          else
+            echo "  ✗ HTTP $HTTP_STATUS"
+            PASSED=false
+            FAILED=$((FAILED + 1))
+          fi
+        done <<< "$ENDPOINTS"
+
+        echo "::endgroup::"
+
+        echo "passed=$PASSED" >> $GITHUB_OUTPUT
+        echo "tested=$TESTED" >> $GITHUB_OUTPUT
+        echo "failed=$FAILED" >> $GITHUB_OUTPUT
+
+        if [ "$PASSED" = "true" ]; then
+          echo "::notice::All $TESTED endpoint(s) passed"
+        else
+          echo "::error::$FAILED of $TESTED endpoint(s) failed"
+          exit 1
+        fi
+
+    - name: Generate job summary
+      if: always()
+      shell: bash
+      run: |
+        echo "## Container Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Image | \`${{ inputs.image-name }}\` |" >> $GITHUB_STEP_SUMMARY
+        echo "| Container | \`${{ inputs.container-name }}\` |" >> $GITHUB_STEP_SUMMARY
+        echo "| Port | ${{ inputs.port }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Service Ready | ${{ steps.wait.outputs.success || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Wait Attempts | ${{ steps.wait.outputs.attempts || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Tests Passed | ${{ steps.test.outputs.passed || 'N/A' }} |" >> $GITHUB_STEP_SUMMARY
+
+    - name: Cleanup container
+      if: always()
+      shell: bash
+      run: |
+        echo "::group::Cleaning up container"
+        if docker ps -a --format '{{.Names}}' | grep -q "^${{ inputs.container-name }}$"; then
+          echo "Stopping container..."
+          docker stop "${{ inputs.container-name }}" 2>/dev/null || true
+          echo "Removing container..."
+          docker rm "${{ inputs.container-name }}" 2>/dev/null || true
+          echo "Container cleaned up"
+        else
+          echo "Container not found (already removed or never started)"
+        fi
+        echo "::endgroup::"
