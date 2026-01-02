@@ -1,0 +1,5 @@
+# bin/server
+
+source .env.sh
+
+bundle exec bin/ots server
