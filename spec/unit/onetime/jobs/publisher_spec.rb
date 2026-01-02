@@ -145,4 +145,277 @@ RSpec.describe Onetime::Jobs::Publisher do
       end
     end
   end
+
+  # ==========================================================================
+  # Chaos/Failure Injection Tests
+  # ==========================================================================
+  # These tests verify behavior during mid-operation failures such as
+  # connection drops, pool exhaustion, and network errors.
+  # ==========================================================================
+
+  describe 'chaos/failure scenarios' do
+    subject(:publisher) { described_class.new }
+
+    describe 'channel pool exhaustion' do
+      let(:mock_pool) { instance_double(ConnectionPool) }
+
+      before do
+        $rmq_channel_pool = mock_pool
+      end
+
+      after do
+        $rmq_channel_pool = nil
+      end
+
+      context 'when ConnectionPool::TimeoutError occurs' do
+        before do
+          allow(mock_pool).to receive(:with).and_raise(ConnectionPool::TimeoutError.new('Timed out waiting for connection'))
+        end
+
+        it 'triggers fallback for enqueue_email with default strategy' do
+          allow(Onetime::Mail).to receive(:deliver)
+
+          result = publisher.enqueue_email(:welcome, { email: 'test@example.com' })
+
+          # Fallback returns false, but spawns thread for delivery
+          expect(result).to be false
+          sleep 0.1
+          expect(Onetime::Mail).to have_received(:deliver)
+        end
+
+        it 'raises with fallback: :raise' do
+          expect {
+            publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :raise)
+          }.to raise_error(Onetime::Mail::DeliveryError, /RabbitMQ unavailable/)
+        end
+
+        it 'delivers synchronously with fallback: :sync' do
+          allow(Onetime::Mail).to receive(:deliver)
+
+          result = publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :sync)
+
+          expect(result).to be false
+          expect(Onetime::Mail).to have_received(:deliver)
+        end
+      end
+    end
+
+    describe 'connection closed mid-publish' do
+      let(:mock_pool) { instance_double(ConnectionPool) }
+      let(:mock_channel) { double('channel') }
+
+      before do
+        $rmq_channel_pool = mock_pool
+      end
+
+      after do
+        $rmq_channel_pool = nil
+      end
+
+      context 'when Bunny::ConnectionClosedError occurs during publish' do
+        before do
+          allow(mock_pool).to receive(:with).and_yield(mock_channel)
+          allow(mock_channel).to receive(:default_exchange).and_raise(Bunny::ConnectionClosedError.new(nil))
+        end
+
+        it 'triggers fallback with default strategy' do
+          allow(Onetime::Mail).to receive(:deliver)
+
+          result = publisher.enqueue_email(:welcome, { email: 'test@example.com' })
+
+          expect(result).to be false
+          sleep 0.1
+          expect(Onetime::Mail).to have_received(:deliver)
+        end
+
+        it 'respects fallback: :none by not delivering' do
+          allow(Onetime::Mail).to receive(:deliver)
+
+          result = publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :none)
+
+          expect(result).to be false
+          expect(Onetime::Mail).not_to have_received(:deliver)
+        end
+      end
+
+      context 'when Bunny::NetworkFailure occurs during publish' do
+        before do
+          mock_exchange = double('default_exchange')
+          allow(mock_pool).to receive(:with).and_yield(mock_channel)
+          allow(mock_channel).to receive(:default_exchange).and_return(mock_exchange)
+          # NetworkFailure requires (message, cause)
+          allow(mock_exchange).to receive(:publish).and_raise(Bunny::NetworkFailure.new('Network unreachable', nil))
+        end
+
+        it 'triggers fallback' do
+          allow(Onetime::Mail).to receive(:deliver)
+
+          result = publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :sync)
+
+          expect(result).to be false
+          expect(Onetime::Mail).to have_received(:deliver)
+        end
+      end
+    end
+
+    describe 'unexpected errors during publish' do
+      let(:mock_pool) { instance_double(ConnectionPool) }
+      let(:mock_channel) { double('channel') }
+      let(:mock_exchange) { double('default_exchange') }
+
+      before do
+        $rmq_channel_pool = mock_pool
+        allow(mock_pool).to receive(:with).and_yield(mock_channel)
+        allow(mock_channel).to receive(:default_exchange).and_return(mock_exchange)
+      end
+
+      after do
+        $rmq_channel_pool = nil
+      end
+
+      context 'when an unexpected StandardError occurs' do
+        before do
+          allow(mock_exchange).to receive(:publish).and_raise(StandardError.new('Unexpected error'))
+        end
+
+        it 'still triggers fallback (caught by rescue StandardError)' do
+          allow(Onetime::Mail).to receive(:deliver)
+
+          result = publisher.enqueue_email(:welcome, { email: 'test@example.com' }, fallback: :sync)
+
+          expect(result).to be false
+          expect(Onetime::Mail).to have_received(:deliver)
+        end
+      end
+    end
+
+    describe '#publish without pool' do
+      before do
+        $rmq_channel_pool = nil
+      end
+
+      it 'raises Onetime::Problem with descriptive message' do
+        expect {
+          publisher.publish('some.queue', { data: 'test' })
+        }.to raise_error(Onetime::Problem, /RabbitMQ channel pool not initialized/)
+      end
+    end
+
+    describe 'fallback thread error handling' do
+      let(:mock_pool) { instance_double(ConnectionPool) }
+
+      before do
+        $rmq_channel_pool = mock_pool
+        allow(mock_pool).to receive(:with).and_raise(Bunny::ConnectionClosedError.new(nil))
+      end
+
+      after do
+        $rmq_channel_pool = nil
+      end
+
+      context 'when async_thread fallback delivery itself fails' do
+        before do
+          allow(Onetime::Mail).to receive(:deliver).and_raise(StandardError.new('SMTP connection failed'))
+        end
+
+        it 'does not raise to caller (fire-and-forget)' do
+          # The fallback spawns a thread that may fail, but the caller should not see it
+          expect {
+            publisher.enqueue_email(:welcome, { email: 'test@example.com' })
+          }.not_to raise_error
+
+          # Give thread time to execute and fail silently
+          sleep 0.2
+        end
+      end
+    end
+  end
+
+  # ==========================================================================
+  # Billing Event Fallback Tests
+  # ==========================================================================
+  # These tests verify billing event publishing behavior when jobs are
+  # disabled or RabbitMQ is unavailable.
+  # ==========================================================================
+
+  describe '#enqueue_billing_event' do
+    subject(:publisher) { described_class.new }
+
+    let(:mock_event) do
+      double('Stripe::Event',
+        id: 'evt_123',
+        type: 'invoice.paid'
+      )
+    end
+    let(:payload) { '{"id":"evt_123","type":"invoice.paid"}' }
+
+    # Note: The 'jobs disabled' synchronous fallback test is skipped because
+    # Billing::Operations::ProcessWebhookEvent is loaded dynamically and
+    # defining stub modules in unit tests is fragile. This path is covered
+    # by integration tests.
+    #
+    # See: spec/integration/all/jobs/rabbitmq_publishing_spec.rb for full coverage
+
+    context 'when RabbitMQ is available' do
+      let(:mock_pool) { instance_double(ConnectionPool) }
+      let(:mock_channel) { double('channel') }
+      let(:mock_exchange) { double('default_exchange') }
+
+      before do
+        $rmq_channel_pool = mock_pool
+        allow(mock_pool).to receive(:with).and_yield(mock_channel)
+        allow(mock_channel).to receive(:default_exchange).and_return(mock_exchange)
+        allow(mock_exchange).to receive(:publish)
+      end
+
+      after do
+        $rmq_channel_pool = nil
+      end
+
+      it 'publishes to billing.event.process queue' do
+        result = publisher.enqueue_billing_event(mock_event, payload)
+
+        expect(result).to be true
+        expect(mock_exchange).to have_received(:publish) do |message_json, options|
+          message = JSON.parse(message_json, symbolize_names: true)
+          expect(message[:event_id]).to eq('evt_123')
+          expect(message[:event_type]).to eq('invoice.paid')
+          expect(message[:payload]).to eq(payload)
+          expect(options[:routing_key]).to eq('billing.event.process')
+        end
+      end
+
+      it 'includes received_at timestamp in message' do
+        Timecop.freeze(Time.utc(2025, 1, 15, 12, 0, 0)) do
+          publisher.enqueue_billing_event(mock_event, payload)
+
+          expect(mock_exchange).to have_received(:publish) do |message_json, _options|
+            message = JSON.parse(message_json, symbolize_names: true)
+            expect(message[:received_at]).to eq('2025-01-15T12:00:00Z')
+          end
+        end
+      end
+    end
+
+    context 'when RabbitMQ connection fails mid-publish' do
+      let(:mock_pool) { instance_double(ConnectionPool) }
+
+      before do
+        $rmq_channel_pool = mock_pool
+        allow(mock_pool).to receive(:with).and_raise(Bunny::ConnectionClosedError.new(nil))
+      end
+
+      after do
+        $rmq_channel_pool = nil
+      end
+
+      it 'raises error (billing events do not use fallback)' do
+        # Unlike email, billing events raise on RabbitMQ failure when jobs are enabled
+        # This ensures Stripe retries the webhook
+        expect {
+          publisher.enqueue_billing_event(mock_event, payload)
+        }.to raise_error(Bunny::ConnectionClosedError)
+      end
+    end
+  end
 end

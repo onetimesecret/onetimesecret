@@ -421,4 +421,311 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
     end
   end
 
+  # ==========================================================================
+  # Environment Variable Tests
+  # ==========================================================================
+  # These tests verify environment variable handling for worker mode and
+  # connection configuration.
+  # ==========================================================================
+
+  describe 'SKIP_RABBITMQ_SETUP environment variable' do
+    around do |example|
+      original = ENV['SKIP_RABBITMQ_SETUP']
+      example.run
+    ensure
+      if original.nil?
+        ENV.delete('SKIP_RABBITMQ_SETUP')
+      else
+        ENV['SKIP_RABBITMQ_SETUP'] = original
+      end
+    end
+
+    context 'when SKIP_RABBITMQ_SETUP=1' do
+      before do
+        ENV['SKIP_RABBITMQ_SETUP'] = '1'
+        allow(OT).to receive(:conf).and_return({ 'jobs' => { 'enabled' => true } })
+      end
+
+      it 'skips connection setup entirely' do
+        expect(Bunny).not_to receive(:new)
+        instance.execute(nil)
+      end
+
+      it 'does not set global connection state' do
+        $rmq_conn = nil
+        $rmq_channel_pool = nil
+
+        instance.execute(nil)
+
+        expect($rmq_conn).to be_nil
+        expect($rmq_channel_pool).to be_nil
+      end
+    end
+
+    context 'when SKIP_RABBITMQ_SETUP is not set' do
+      before do
+        ENV.delete('SKIP_RABBITMQ_SETUP')
+        allow(OT).to receive(:conf).and_return({
+          'jobs' => {
+            'enabled' => true,
+            'rabbitmq_url' => 'amqp://localhost',
+            'channel_pool_size' => 2
+          }
+        })
+      end
+
+      it 'attempts RabbitMQ connection' do
+        mock_conn = instance_double(Bunny::Session, start: true, open?: true)
+        mock_channel = instance_double(Bunny::Channel)
+        mock_pool = instance_double(ConnectionPool)
+
+        allow(Bunny).to receive(:new).and_return(mock_conn)
+        allow(ConnectionPool).to receive(:new).and_return(mock_pool)
+        allow(mock_pool).to receive(:with).and_yield(mock_channel)
+        allow(mock_channel).to receive(:fanout)
+        allow(mock_channel).to receive(:queue).and_return(instance_double(Bunny::Queue, bind: true))
+
+        expect(Bunny).to receive(:new)
+        instance.execute(nil)
+      end
+    end
+  end
+
+  describe 'RABBITMQ_CHANNEL_POOL_SIZE environment variable' do
+    around do |example|
+      original_pool_size = ENV['RABBITMQ_CHANNEL_POOL_SIZE']
+      original_skip = ENV['SKIP_RABBITMQ_SETUP']
+      example.run
+    ensure
+      if original_pool_size.nil?
+        ENV.delete('RABBITMQ_CHANNEL_POOL_SIZE')
+      else
+        ENV['RABBITMQ_CHANNEL_POOL_SIZE'] = original_pool_size
+      end
+      if original_skip.nil?
+        ENV.delete('SKIP_RABBITMQ_SETUP')
+      else
+        ENV['SKIP_RABBITMQ_SETUP'] = original_skip
+      end
+    end
+
+    context 'when RABBITMQ_CHANNEL_POOL_SIZE is set' do
+      before do
+        ENV['RABBITMQ_CHANNEL_POOL_SIZE'] = '10'
+        ENV.delete('SKIP_RABBITMQ_SETUP')
+        allow(OT).to receive(:conf).and_return({
+          'jobs' => {
+            'enabled' => true,
+            'rabbitmq_url' => 'amqp://localhost'
+            # Note: no channel_pool_size in config - should use env var
+          }
+        })
+      end
+
+      it 'uses the environment variable value for pool size' do
+        mock_conn = instance_double(Bunny::Session, start: true, open?: true)
+        mock_channel = instance_double(Bunny::Channel)
+        mock_pool = instance_double(ConnectionPool)
+
+        allow(Bunny).to receive(:new).and_return(mock_conn)
+        allow(mock_pool).to receive(:with).and_yield(mock_channel)
+        allow(mock_channel).to receive(:fanout)
+        allow(mock_channel).to receive(:queue).and_return(instance_double(Bunny::Queue, bind: true))
+
+        expect(ConnectionPool).to receive(:new).with(hash_including(size: 10)).and_return(mock_pool)
+        instance.execute(nil)
+      end
+    end
+  end
+
+  # ==========================================================================
+  # URL Sanitization Tests
+  # ==========================================================================
+  # These tests verify credential masking in log output.
+  # ==========================================================================
+
+  describe '#sanitize_url' do
+    it 'masks user:pass@host credentials' do
+      result = instance.send(:sanitize_url, 'amqp://user:secretpass@host:5672')
+      expect(result).to eq('amqp://user:***@host:5672')
+    end
+
+    it 'masks alphanumeric passwords' do
+      # Standard password without special characters
+      result = instance.send(:sanitize_url, 'amqps://admin:password123@broker.example.com:5671/vhost')
+      expect(result).to eq('amqps://admin:***@broker.example.com:5671/vhost')
+    end
+
+    it 'masks key@host credentials (Northflank style without colon)' do
+      result = instance.send(:sanitize_url, 'amqps://4ef062f27f30f2ec@rabbit.northflank.com:5671')
+      expect(result).to eq('amqps://***@rabbit.northflank.com:5671')
+    end
+
+    it 'preserves URL without credentials' do
+      result = instance.send(:sanitize_url, 'amqp://localhost:5672')
+      expect(result).to eq('amqp://localhost:5672')
+    end
+
+    it 'handles URL with vhost path' do
+      result = instance.send(:sanitize_url, 'amqps://user:pass@host:5671/production')
+      expect(result).to eq('amqps://user:***@host:5671/production')
+    end
+
+    it 'handles managed service URLs with hex identifiers' do
+      # CloudAMQP/Northflank style URLs
+      result = instance.send(:sanitize_url, 'amqps://abc123def:secretkey456@rabbit.service.com:5671/abc123def')
+      expect(result).to eq('amqps://abc123def:***@rabbit.service.com:5671/abc123def')
+    end
+  end
+
+  # ==========================================================================
+  # Chaos/Failure Injection Tests
+  # ==========================================================================
+  # These tests verify graceful degradation during connection failures,
+  # mid-operation errors, and infrastructure instability.
+  # ==========================================================================
+
+  describe 'chaos/failure scenarios' do
+    let(:mock_conn) { instance_double(Bunny::Session) }
+    let(:mock_channel) { instance_double(Bunny::Channel) }
+    let(:mock_pool) { instance_double(ConnectionPool) }
+
+    before do
+      allow(OT).to receive(:conf).and_return({
+        'jobs' => {
+          'enabled' => true,
+          'rabbitmq_url' => 'amqp://localhost',
+          'channel_pool_size' => 2
+        }
+      })
+    end
+
+    after do
+      # Clean up global state
+      $rmq_conn = nil
+      $rmq_channel_pool = nil
+    end
+
+    describe 'connection establishment failures' do
+      context 'when Bunny::TCPConnectionFailed during Bunny.new' do
+        before do
+          allow(Bunny).to receive(:new).and_raise(Bunny::TCPConnectionFailed.new('Connection refused'))
+        end
+
+        it 'does not raise and allows app to start with degraded functionality' do
+          expect { instance.execute(nil) }.not_to raise_error
+        end
+      end
+
+      context 'when Bunny::ConnectionTimeout during Bunny.new' do
+        before do
+          allow(Bunny).to receive(:new).and_raise(Bunny::ConnectionTimeout.new('Timeout'))
+        end
+
+        it 'does not raise and allows app to start with degraded functionality' do
+          expect { instance.execute(nil) }.not_to raise_error
+        end
+      end
+
+      context 'when Bunny::PreconditionFailed during conn.start' do
+        before do
+          allow(Bunny).to receive(:new).and_return(mock_conn)
+          # PreconditionFailed requires (message, channel, code)
+          allow(mock_conn).to receive(:start).and_raise(Bunny::PreconditionFailed.new('Queue property mismatch', nil, 406))
+        end
+
+        it 'does not raise (graceful degradation)' do
+          expect { instance.execute(nil) }.not_to raise_error
+        end
+      end
+    end
+
+    describe 'mid-operation failures during exchange declaration' do
+      # Note: The current implementation only declares DLX exchanges, not queues.
+      # Queue declaration is deferred to workers to avoid race conditions.
+
+      before do
+        allow(Bunny).to receive(:new).and_return(mock_conn)
+        allow(mock_conn).to receive(:start)
+        allow(ConnectionPool).to receive(:new).and_return(mock_pool)
+      end
+
+      context 'when channel.fanout raises Bunny::ChannelLevelException on first call' do
+        before do
+          allow(mock_pool).to receive(:with).and_yield(mock_channel)
+          # Fail on first fanout call
+          allow(mock_channel).to receive(:fanout).and_raise(
+            Bunny::ChannelLevelException.new('Channel error', mock_channel, 406)
+          )
+        end
+
+        it 'propagates the error (unexpected errors should surface for debugging)' do
+          # Bunny::ChannelLevelException inherits from StandardError, so it's re-raised
+          expect { instance.execute(nil) }.to raise_error(Bunny::ChannelLevelException)
+        end
+      end
+
+      context 'when channel.fanout raises Bunny::ChannelLevelException on second call' do
+        before do
+          call_count = 0
+          allow(mock_pool).to receive(:with).and_yield(mock_channel)
+          allow(mock_channel).to receive(:fanout) do |_name, _opts|
+            call_count += 1
+            if call_count == 2
+              raise Bunny::ChannelLevelException.new('Channel error on second exchange', mock_channel, 406)
+            end
+            instance_double(Bunny::Exchange)
+          end
+        end
+
+        it 'propagates the error (partial declaration failure)' do
+          expect { instance.execute(nil) }.to raise_error(Bunny::ChannelLevelException)
+        end
+      end
+    end
+
+    describe 'connection start failures' do
+      before do
+        allow(Bunny).to receive(:new).and_return(mock_conn)
+      end
+
+      context 'when conn.start raises Bunny::TCPConnectionFailed' do
+        before do
+          allow(mock_conn).to receive(:start).and_raise(Bunny::TCPConnectionFailed.new('Connection lost'))
+        end
+
+        it 'handles gracefully (caught by explicit rescue)' do
+          expect { instance.execute(nil) }.not_to raise_error
+        end
+      end
+
+      context 'when conn.start raises Bunny::ConnectionTimeout' do
+        before do
+          allow(mock_conn).to receive(:start).and_raise(Bunny::ConnectionTimeout.new('Timeout during start'))
+        end
+
+        it 'handles gracefully (caught by explicit rescue)' do
+          expect { instance.execute(nil) }.not_to raise_error
+        end
+      end
+    end
+
+    describe 'global state after failures' do
+      context 'after Bunny::TCPConnectionFailed' do
+        before do
+          allow(Bunny).to receive(:new).and_raise(Bunny::TCPConnectionFailed.new('Connection refused'))
+          instance.execute(nil)
+        end
+
+        it 'leaves $rmq_conn nil' do
+          expect($rmq_conn).to be_nil
+        end
+
+        it 'leaves $rmq_channel_pool nil' do
+          expect($rmq_channel_pool).to be_nil
+        end
+      end
+    end
+  end
+
 end
