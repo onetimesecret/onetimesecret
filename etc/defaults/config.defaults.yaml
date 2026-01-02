@@ -93,7 +93,7 @@ site:
       # Footer link configuration
       # These links appear in the footer of each page
       footer_links:
-        # Master switch to enable/disable all footer links
+        # Global toggle to enable/disable all footer links
         enabled: <%= ENV['FOOTER_LINKS'] == 'true' || false %>
         # Organized groups of links
         groups:
@@ -457,7 +457,7 @@ mail:
 # Async processing for emails, notifications, webhooks, and scheduled tasks.
 # When disabled, email delivery falls back to synchronous mode.
 jobs:
-  # Master switch for background job system
+  # Global toggle for background job system
   enabled: <%= ENV['JOBS_ENABLED'] == 'true' || false %>
 
   # RabbitMQ connection URL

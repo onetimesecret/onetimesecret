@@ -101,6 +101,14 @@ redis:
     metadata: 0
     secret: 0
     feedback: 0
+
+# When disabled, email delivery falls back to synchronous mode.
+jobs:
+  enabled: false
+  rabbitmq_url: "<%= ENV['RABBITMQ_URL'] || 'amqp://guest:guest@localhost:5672/testing' %>"
+  channel_pool_size: 1
+  fallback_to_sync: true
+
 emailer:
   mode: 'logger'
   from: 'secure@onetime.dev'
@@ -114,6 +122,7 @@ emailer:
   pass: ~
   auth: ~
   tls: ~
+
 mail:
   truemail:
     # Available validation types: :regex, :mx, :mx_blacklist, :smtp
@@ -185,6 +194,7 @@ mail:
       tracking_event: :unrecognized_error
       stdout: true
       # log_absolute_path: '/home/app/log/truemail.log'
+
 internationalization:
   enabled: true
   default_locale: en
@@ -205,6 +215,7 @@ internationalization:
     - fr_FR
   incomplete:
     - bogus
+
 diagnostics:
   # If this is false, the rest of the settings are ignored
   enabled: true
@@ -237,10 +248,12 @@ diagnostics:
     frontend:
       dsn: <%= nil %>
       trackComponents: true
+
 development:
   enabled: false
   debug: false
   frontend_host: 'http://localhost:5173'
+
 experimental:
   allow_nil_global_secret: false
   # When set to true, the Rack::Builder#freeze_app freezes the middleware stack
