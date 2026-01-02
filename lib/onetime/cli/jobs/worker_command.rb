@@ -57,6 +57,9 @@ module Onetime
           # Determine which worker classes to run
           worker_classes = determine_workers(queues)
 
+          # Declare exchanges and queues
+          declare_infrastructure
+
           if worker_classes.empty?
             Onetime.jobs_logger.error('No worker classes found')
             exit 1
@@ -74,6 +77,31 @@ module Onetime
         end
 
         private
+
+        def declare_infrastructure
+          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+          Onetime.bunny_logger.info "[Worker] Initializing RabbitMQ infrastructure..."
+
+          bunny_config = {
+            logger: Onetime.get_logger('Bunny'),
+          }
+          bunny_config.merge!(Onetime::Jobs::QueueConfig.tls_options(amqp_url))
+
+          conn = Bunny.new(amqp_url, **bunny_config)
+          conn.start
+          channel = conn.create_channel
+
+          # 1. Declare exchanges
+          Onetime::Initializers::SetupRabbitMQ.declare_exchanges(channel)
+
+          # 2. Declare and bind queues (including DLQs)
+          Onetime::Initializers::SetupRabbitMQ.declare_queues(channel)
+
+          channel.close
+          conn.close
+        rescue StandardError => ex
+          Onetime.bunny_logger.error "[Worker] Failed to initialize infrastructure: #{ex.message}"
+        end
 
         # Periodic heartbeat logging for observability
         # Logs worker status every N minutes so operators can verify the process is alive

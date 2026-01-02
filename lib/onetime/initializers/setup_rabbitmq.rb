@@ -110,9 +110,10 @@ module Onetime
 
         Onetime.bunny_logger.debug "[init] Setup RabbitMQ: channel pool created (size: #{pool_size})"
 
-        # Declare dead letter infrastructure first (exchanges + queues)
-        # but let the worker declare the queues to prevent race conditions.
-        declare_dead_letter_infrastructure
+        # Declare exchanges only. This is an idempotent and safe operation
+        # for multiple processes to perform. Queues (including DLQs) should
+        # be declared by the worker process to prevent race conditions.
+        declare_exchanges
 
         # Verify connectivity
         # verify_connection
@@ -120,7 +121,7 @@ module Onetime
         OT.log_box([
                      '✅ RABBITMQ: Connected to message broker',
                      "   Pool size: #{pool_size} channels",
-                     "   Queues: #{Onetime::Jobs::QueueConfig::QUEUES.size} declared",
+                     "   Exchanges: #{Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.size} declared",
                    ],
                   )
 
@@ -141,31 +142,42 @@ module Onetime
         raise
       end
 
-      def declare_dead_letter_infrastructure
-        require_relative '../jobs/queue_config'
-
+      def declare_exchanges
         $rmq_channel_pool.with do |channel|
-          Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.each do |exchange_name, config|
-            # Declare fanout exchange for dead letters
-            channel.fanout(exchange_name, durable: true)
-            Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared DLX '#{exchange_name}'"
-
-            # Declare and bind the dead letter queue
-            queue = channel.queue(config[:queue], durable: true)
-            queue.bind(exchange_name)
-            Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared and bound DLQ '#{config[:queue]}'"
-          end
+          self.class.declare_exchanges(channel)
         end
       end
 
       def declare_queues
+        $rmq_channel_pool.with do |channel|
+          self.class.declare_queues(channel)
+        end
+      end
+
+      def self.declare_exchanges(channel)
         require_relative '../jobs/queue_config'
 
-        $rmq_channel_pool.with do |channel|
-          Onetime::Jobs::QueueConfig::QUEUES.each do |queue_name, config|
-            channel.queue(queue_name, **config)
-            Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared queue '#{queue_name}'"
-          end
+        Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.each_key do |exchange_name|
+          # Declare fanout exchange for dead letters
+          channel.fanout(exchange_name, durable: true)
+          Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared DLX '#{exchange_name}'"
+        end
+      end
+
+      def self.declare_queues(channel)
+        require_relative '../jobs/queue_config'
+
+        # 1. Declare and bind the dead letter queues
+        Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.each do |exchange_name, config|
+          queue = channel.queue(config[:queue], durable: true)
+          queue.bind(exchange_name)
+          Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared and bound DLQ '#{config[:queue]}'"
+        end
+
+        # 2. Declare main queues (which reference DLX)
+        Onetime::Jobs::QueueConfig::QUEUES.each do |queue_name, config|
+          channel.queue(queue_name, **config)
+          Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared queue '#{queue_name}'"
         end
       end
 
