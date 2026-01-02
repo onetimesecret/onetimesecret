@@ -193,7 +193,7 @@ RSpec.describe Onetime::Initializers::SetupDiagnostics do
       expect(mock_config.dsn).to eq("https://example-dsn@sentry.io/12345")
       expect(mock_config.environment).to include("test.example.com")
       expect(mock_config.environment).to include(OT.env.to_s)
-      expect(mock_config.release).to eq(OT::VERSION.inspect)
+      expect(mock_config.release).to eq(OT::VERSION.details)
       expect(mock_config.breadcrumbs_logger).to eq([:sentry_logger])
       expect(mock_config.traces_sample_rate).to eq(0.1)
       expect(mock_config.profiles_sample_rate).to eq(0.1)

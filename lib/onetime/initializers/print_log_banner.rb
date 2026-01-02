@@ -50,7 +50,7 @@ module Onetime
       colonels     = site_config.dig('authentication', 'colonels') || []
 
       # Header banner
-      OT.boot_logger.info "---  ONETIME #{OT.mode} v#{OT::VERSION.inspect}  #{'---' * 3}"
+      OT.boot_logger.info "---  ONETIME #{OT.mode} v#{OT::VERSION.details}  #{'---' * 3}"
 
       # Create a buffer to collect all output
       output = []
