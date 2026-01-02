@@ -68,7 +68,6 @@ module Onetime
             rabbitmq: check_rabbitmq_connection,
             exchanges: {},
             queues: {},
-            workers: check_workers,
             scheduler: check_scheduler,
           }
 
@@ -251,17 +250,6 @@ module Onetime
                 )
               end
             end
-          end
-          puts
-
-          # Workers
-          puts 'Workers:'
-          if status[:workers][:running]
-            puts format('  Status: Running (PID %d)', status[:workers][:pid])
-          elsif status[:workers][:stale_pid]
-            puts format('  Status: Stopped (stale PID %d)', status[:workers][:stale_pid])
-          else
-            puts '  Status: Stopped'
           end
           puts
 
