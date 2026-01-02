@@ -352,16 +352,16 @@ RSpec.describe 'Email template i18n integration' do
         expect { described_class.new(data) }.to raise_error(ArgumentError, 'Email address required')
       end
 
-      it 'raises ArgumentError when secret is missing' do
+      it 'raises ArgumentError when verification_path and secret are both missing' do
         data = template_data.except(:secret)
-        expect { described_class.new(data) }.to raise_error(ArgumentError, 'Secret required')
+        expect { described_class.new(data) }.to raise_error(ArgumentError, 'Verification path or secret required')
       end
     end
   end
 
   describe Onetime::Mail::Templates::PasswordRequest do
     let(:mock_secret) do
-      double('Secret', key: 'reset456token')
+      double('Secret', identifier: 'reset456token')
     end
     let(:template_data) do
       {

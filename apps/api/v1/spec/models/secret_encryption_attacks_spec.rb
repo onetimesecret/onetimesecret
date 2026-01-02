@@ -160,12 +160,12 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       # Original key
       orig_key = secret.encryption_key_v2
 
-      # Change secret key
-      allow(secret).to receive(:key).and_return("test-secret-key-12346") # Changed last digit
+      # Change secret identifier
+      allow(secret).to receive(:identifier).and_return("test-secret-identifier-12346") # Changed last digit
       modified_key1 = secret.encryption_key_v2
 
       # Change global secret slightly
-      allow(secret).to receive(:key).and_return("test-secret-key-12345") # Original
+      allow(secret).to receive(:identifier).and_return("test-secret-identifier-12345") # Original
       allow(OT).to receive(:global_secret).and_return("global-test-secret-")
       modified_key2 = secret.encryption_key_v2
 
