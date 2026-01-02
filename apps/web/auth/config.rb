@@ -26,6 +26,7 @@ module Auth
     require_relative 'config/email'
     require_relative 'config/features'
     require_relative 'config/hooks'
+    require_relative 'config/rodauth_overrides'
 
     configure do
       # =====================================================================
@@ -59,6 +60,7 @@ module Auth
       Hooks::Logout.configure(self)
       Hooks::Password.configure(self)
       Hooks::ErrorHandling.configure(self)
+      RodauthOverrides.configure(self)
 
       # Security features: lockout, active sessions, remember me
       if ENV['ENABLE_SECURITY_FEATURES'] != 'false'
