@@ -20,31 +20,30 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-
 # Date stamp for error IDs (MMDD format)
-DATE_STAMP = datetime.now().strftime('%m%d')
+DATE_STAMP = datetime.now().strftime("%m%d")
 
 
 # Variable patterns
 # Vue i18n: {variable} - use negative lookbehind to exclude ERB %{variable}
-VUE_VAR_PATTERN = re.compile(r'(?<!%)(?<!\{)\{([a-zA-Z0-9_]+)\}')
-ERB_VAR_PATTERN = re.compile(r'%\{([a-zA-Z0-9_]+)\}')
-PRINTF_PATTERN = re.compile(r'%[sdifuxXoeEgGcp]')
+VUE_VAR_PATTERN = re.compile(r"(?<!%)(?<!\{)\{([a-zA-Z0-9_]+)\}")
+ERB_VAR_PATTERN = re.compile(r"%\{([a-zA-Z0-9_]+)\}")
+PRINTF_PATTERN = re.compile(r"%[sdifuxXoeEgGcp]")
 
 
 def extract_variables(text: str) -> dict[str, set[str]]:
     """Extract all variable patterns from a string."""
     if not isinstance(text, str):
-        return {'vue': set(), 'erb': set(), 'printf': set()}
+        return {"vue": set(), "erb": set(), "printf": set()}
 
     return {
-        'vue': set(VUE_VAR_PATTERN.findall(text)),
-        'erb': set(ERB_VAR_PATTERN.findall(text)),
-        'printf': set(PRINTF_PATTERN.findall(text)),
+        "vue": set(VUE_VAR_PATTERN.findall(text)),
+        "erb": set(ERB_VAR_PATTERN.findall(text)),
+        "printf": set(PRINTF_PATTERN.findall(text)),
     }
 
 
-def flatten_json(obj: dict[str, Any], prefix: str = '') -> dict[str, str]:
+def flatten_json(obj: dict[str, Any], prefix: str = "") -> dict[str, str]:
     """Flatten nested JSON into dot-notation key paths."""
     result = {}
     for key, value in obj.items():
@@ -59,12 +58,12 @@ def flatten_json(obj: dict[str, Any], prefix: str = '') -> dict[str, str]:
 def should_skip_key(
     key: str,
     filter_prefix: str | None = None,
-    exclude_prefix: str | None = None
+    exclude_prefix: str | None = None,
 ) -> bool:
     """Check if a key should be skipped (metadata keys or filtered out)."""
-    parts = key.split('.')
+    parts = key.split(".")
     # Skip metadata keys (prefixed with _)
-    if any(part.startswith('_') for part in parts):
+    if any(part.startswith("_") for part in parts):
         return True
     # Apply filter (only include keys starting with prefix)
     if filter_prefix and not key.startswith(filter_prefix):
@@ -76,48 +75,53 @@ def should_skip_key(
 
 
 def compare_variables(
-    en_text: str, locale_text: str
+    source_text: str, locale_text: str
 ) -> dict[str, dict[str, set[str]]]:
     """Compare variables between English and translated text."""
-    en_vars = extract_variables(en_text)
+    en_vars = extract_variables(source_text)
     locale_vars = extract_variables(locale_text)
 
     discrepancies = {}
 
-    for var_type in ['vue', 'erb', 'printf']:
+    for var_type in ["vue", "erb", "printf"]:
         missing = en_vars[var_type] - locale_vars[var_type]
         extra = locale_vars[var_type] - en_vars[var_type]
 
         if missing or extra:
-            discrepancies[var_type] = {'missing': missing, 'extra': extra}
+            discrepancies[var_type] = {"missing": missing, "extra": extra}
 
     return discrepancies
 
 
-def check_empty_with_vars(en_text: str, locale_text: str) -> bool:
+def check_empty_with_vars(source_text: str, locale_text: str) -> bool:
     """Check if translation is empty but English had variables."""
-    if locale_text.strip() == '' and en_text.strip() != '':
-        en_vars = extract_variables(en_text)
+    if locale_text.strip() == "" and source_text.strip() != "":
+        en_vars = extract_variables(source_text)
         return any(vars for vars in en_vars.values())
     return False
 
 
 def audit_locale(
-    en_dir: Path, locale_dir: Path, target_file: str | None = None,
+    en_dir: Path,
+    locale_dir: Path,
+    target_file: str | None = None,
     warned_missing_file: set | None = None,
     filter_prefix: str | None = None,
-    exclude_prefix: str | None = None
+    exclude_prefix: str | None = None,
 ) -> dict[str, list[dict]]:
     """Audit a single locale against English baseline."""
     issues = defaultdict(list)
     if warned_missing_file is None:
         warned_missing_file = set()
 
-    json_files = list(en_dir.glob('*.json'))
+    json_files = list(en_dir.glob("*.json"))
     if target_file:
         json_files = [f for f in json_files if f.name == target_file]
         if not json_files and target_file not in warned_missing_file:
-            print(f'Warning: No file named "{target_file}" in English locale', file=sys.stderr)
+            print(
+                f'Warning: No file named "{target_file}" in English locale',
+                file=sys.stderr,
+            )
             warned_missing_file.add(target_file)
 
     for en_file in json_files:
@@ -127,44 +131,48 @@ def audit_locale(
             continue
 
         try:
-            with open(en_file, 'r', encoding='utf-8') as f:
+            with open(en_file, "r", encoding="utf-8") as f:
                 en_data = flatten_json(json.load(f))
-            with open(locale_file, 'r', encoding='utf-8') as f:
+            with open(locale_file, "r", encoding="utf-8") as f:
                 locale_data = flatten_json(json.load(f))
         except (json.JSONDecodeError, IOError) as e:
-            issues[en_file.name].append({
-                'key': '_file_error',
-                'error': str(e),
-            })
+            issues[en_file.name].append(
+                {
+                    "key": "_file_error",
+                    "error": str(e),
+                }
+            )
             continue
 
-        for key, en_text in en_data.items():
+        for key, source_text in en_data.items():
             if should_skip_key(key, filter_prefix, exclude_prefix):
                 continue
 
-            locale_text = locale_data.get(key, '')
+            locale_text = locale_data.get(key, "")
 
             # Check for empty translation with variables in English
-            if check_empty_with_vars(en_text, locale_text):
-                en_vars = extract_variables(en_text)
+            if check_empty_with_vars(source_text, locale_text):
+                en_vars = extract_variables(source_text)
                 all_vars = []
                 for var_type, vars in en_vars.items():
                     for v in vars:
-                        if var_type == 'printf':
+                        if var_type == "printf":
                             all_vars.append(v)
-                        elif var_type == 'erb':
-                            all_vars.append(f'%{{{v}}}')
+                        elif var_type == "erb":
+                            all_vars.append(f"%{{{v}}}")
                         else:
-                            all_vars.append(f'{{{v}}}')
+                            all_vars.append(f"{{{v}}}")
 
-                issues[en_file.name].append({
-                    'key': key,
-                    'en_text': en_text,
-                    'locale_text': '[EMPTY]',
-                    'missing': all_vars,
-                    'extra': [],
-                    'empty_with_vars': True,
-                })
+                issues[en_file.name].append(
+                    {
+                        "key": key,
+                        "source_text": source_text,
+                        "locale_text": "[EMPTY]",
+                        "missing": all_vars,
+                        "extra": [],
+                        "empty_with_vars": True,
+                    }
+                )
                 continue
 
             # Skip if translation doesn't exist
@@ -172,36 +180,38 @@ def audit_locale(
                 continue
 
             # Compare variables
-            discrepancies = compare_variables(en_text, locale_text)
+            discrepancies = compare_variables(source_text, locale_text)
 
             if discrepancies:
                 all_missing = []
                 all_extra = []
 
                 for var_type, diffs in discrepancies.items():
-                    for v in diffs['missing']:
-                        if var_type == 'printf':
+                    for v in diffs["missing"]:
+                        if var_type == "printf":
                             all_missing.append(v)
-                        elif var_type == 'erb':
-                            all_missing.append(f'%{{{v}}}')
+                        elif var_type == "erb":
+                            all_missing.append(f"%{{{v}}}")
                         else:
-                            all_missing.append(f'{{{v}}}')
+                            all_missing.append(f"{{{v}}}")
 
-                    for v in diffs['extra']:
-                        if var_type == 'printf':
+                    for v in diffs["extra"]:
+                        if var_type == "printf":
                             all_extra.append(v)
-                        elif var_type == 'erb':
-                            all_extra.append(f'%{{{v}}}')
+                        elif var_type == "erb":
+                            all_extra.append(f"%{{{v}}}")
                         else:
-                            all_extra.append(f'{{{v}}}')
+                            all_extra.append(f"{{{v}}}")
 
-                issues[en_file.name].append({
-                    'key': key,
-                    'en_text': en_text,
-                    'locale_text': locale_text,
-                    'missing': all_missing,
-                    'extra': all_extra,
-                })
+                issues[en_file.name].append(
+                    {
+                        "key": key,
+                        "source_text": source_text,
+                        "locale_text": locale_text,
+                        "missing": all_missing,
+                        "extra": all_extra,
+                    }
+                )
 
     return dict(issues)
 
@@ -215,16 +225,16 @@ def print_summary(results: dict[str, dict[str, list[dict]]]) -> None:
             totals.append((locale, count))
 
     if not totals:
-        print('0 issues')
+        print(f"{'total':<10} {0:>4}")
         return
 
     totals.sort(key=lambda x: -x[1])
 
     for locale, count in totals:
-        print(f'{locale}\t{count}')
+        print(f"{locale:<10} {count:>4}")
 
     grand_total = sum(c for _, c in totals)
-    print(f'total\t{grand_total}')
+    print(f"{'total':<10} {grand_total:>4}")
 
 
 def print_detailed(results: dict[str, dict[str, list[dict]]]) -> None:
@@ -234,9 +244,9 @@ def print_detailed(results: dict[str, dict[str, list[dict]]]) -> None:
             continue
 
         print()
-        print('=' * 60)
-        print(f'=== Locale: {locale} ===')
-        print('=' * 60)
+        print("=" * 60)
+        print(f"=== Locale: {locale} ===")
+        print("=" * 60)
 
         # Count errors for this locale to generate error IDs
         error_index = 0
@@ -245,66 +255,67 @@ def print_detailed(results: dict[str, dict[str, list[dict]]]) -> None:
             if not issues:
                 continue
 
-            print(f'\nfile: {filename}')
+            print(f"\nfile: {filename}")
 
             for issue in issues:
-                if 'error' in issue:
-                    print(f'  ERROR: {issue["error"]}')
+                if "error" in issue:
+                    print(f"  ERROR: {issue['error']}")
                     continue
 
                 error_index += 1
-                error_id = f'{locale}-{DATE_STAMP}-error-{error_index}'
+                error_id = f"{locale}-{DATE_STAMP}-error-{error_index}"
 
-                print(f'  key: {issue["key"]}')
-                print(f'    en: "{issue["en_text"]}"')
-                print(f'    {locale}: "{issue["locale_text"]}"')
-
-                if issue.get('missing'):
-                    print(f'    missing: {", ".join(issue["missing"])}')
-                if issue.get('extra'):
-                    print(f'    comment: {", ".join(issue["extra"])}')
-                print(f'    errorid: {error_id}')
+                print(f"  key:      {issue['key']}")
+                print(f'  en:       "{issue["source_text"]}"')
+                print(f"  {locale}:".ljust(12) + f'"{issue["locale_text"]}"')
+                if issue.get("missing"):
+                    print(f"  missing:  {', '.join(issue['missing'])}")
+                if issue.get("extra"):
+                    print(f"  comment:  {', '.join(issue['extra'])}")
+                print(f"  errorid:  {error_id}")
                 print()
 
 
 def print_json(results: dict[str, dict[str, list[dict]]]) -> None:
     """Print machine-readable JSON output."""
     output = {
-        'date': DATE_STAMP,
-        'summary': {},
-        'details': {},
+        "date": DATE_STAMP,
+        "summary": {},
+        "details": {},
     }
 
     for locale, files in results.items():
         count = sum(len(issues) for issues in files.values())
         if count > 0:
-            output['summary'][locale] = count
+            output["summary"][locale] = count
 
         if files:
-            output['details'][locale] = {}
+            output["details"][locale] = {}
             error_index = 0
             for filename, issues in sorted(files.items()):
                 if issues:
                     enriched_issues = []
                     for issue in issues:
-                        if 'error' not in issue:
+                        if "error" not in issue:
                             error_index += 1
                             issue_copy = issue.copy()
-                            issue_copy['errorid'] = f'{locale}-{DATE_STAMP}-error-{error_index}'
+                            issue_copy["errorid"] = (
+                                f"{locale}-{DATE_STAMP}-error-{error_index}"
+                            )
                             # Rename 'extra' to 'comment' for consistency
-                            if 'extra' in issue_copy:
-                                issue_copy['comment'] = issue_copy.pop('extra')
+                            if "extra" in issue_copy:
+                                issue_copy["comment"] = issue_copy.pop("extra")
                             enriched_issues.append(issue_copy)
                         else:
                             enriched_issues.append(issue)
-                    output['details'][locale][filename] = enriched_issues
+                    output["details"][locale][filename] = enriched_issues
 
-    print(json.dumps(output, indent=2, ensure_ascii=False))
+    print(json.dumps(output, separators=(",", ":"), ensure_ascii=False))
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description='Detect variable discrepancies in i18n locale files.',
+        description="Detect variable discrepancies in i18n locale files.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Variable patterns detected:
@@ -323,41 +334,41 @@ Examples:
 
     output_group = parser.add_mutually_exclusive_group()
     output_group.add_argument(
-        '--summary',
-        action='store_true',
+        "--summary",
+        action="store_true",
         default=True,
-        help='Count discrepancies by locale (default)',
+        help="Count discrepancies by locale (default)",
     )
     output_group.add_argument(
-        '--detailed',
-        action='store_true',
-        help='Show all issues with key paths and strings',
+        "--detailed",
+        action="store_true",
+        help="Show all issues with key paths and strings",
     )
     output_group.add_argument(
-        '--json',
-        action='store_true',
-        help='Machine-readable JSON output for CI',
+        "--json",
+        action="store_true",
+        help="Machine-readable JSON output for CI",
     )
 
     parser.add_argument(
-        '--locale',
-        metavar='XX',
-        help='Check only specific locale (e.g., es, fr_FR)',
+        "--locale",
+        metavar="XX",
+        help="Check only specific locale (e.g., es, fr_FR)",
     )
     parser.add_argument(
-        '--file',
-        metavar='FILE',
-        help='Check only specific file (e.g., email.json)',
+        "--file",
+        metavar="FILE",
+        help="Check only specific file (e.g., email.json)",
     )
     parser.add_argument(
-        '--filter',
-        metavar='PREFIX',
-        help='Only include keys starting with PREFIX (e.g., email.welcome)',
+        "--filter",
+        metavar="PREFIX",
+        help="Only include keys starting with PREFIX (e.g., email.welcome)",
     )
     parser.add_argument(
-        '--exclude',
-        metavar='PREFIX',
-        help='Exclude keys starting with PREFIX (e.g., web.COMMON)',
+        "--exclude",
+        metavar="PREFIX",
+        help="Exclude keys starting with PREFIX (e.g., web.COMMON)",
     )
 
     args = parser.parse_args()
@@ -365,27 +376,31 @@ Examples:
     # Determine locales directory
     script_dir = Path(__file__).resolve().parent
     # Navigate from src/scripts/locales/audit to src/locales
-    locales_dir = script_dir.parent.parent.parent / 'locales'
+    locales_dir = script_dir.parent.parent.parent / "locales"
 
     if not locales_dir.exists():
-        print(f'Error: Locales directory not found: {locales_dir}', file=sys.stderr)
+        print(
+            f"Error: Locales directory not found: {locales_dir}",
+            file=sys.stderr,
+        )
         return 1
 
-    en_dir = locales_dir / 'en'
+    en_dir = locales_dir / "en"
     if not en_dir.exists():
-        print(f'Error: English locale not found: {en_dir}', file=sys.stderr)
+        print(f"Error: English locale not found: {en_dir}", file=sys.stderr)
         return 1
 
     # Get list of locales to check
     if args.locale:
         locale_dirs = [locales_dir / args.locale]
         if not locale_dirs[0].exists():
-            print(f'Error: Locale not found: {args.locale}', file=sys.stderr)
+            print(f"Error: Locale not found: {args.locale}", file=sys.stderr)
             return 1
     else:
         locale_dirs = [
-            d for d in locales_dir.iterdir()
-            if d.is_dir() and d.name != 'en' and not d.name.startswith('.')
+            d
+            for d in locales_dir.iterdir()
+            if d.is_dir() and d.name != "en" and not d.name.startswith(".")
         ]
 
     # Audit each locale
@@ -394,8 +409,12 @@ Examples:
     for locale_dir in sorted(locale_dirs):
         locale_name = locale_dir.name
         issues = audit_locale(
-            en_dir, locale_dir, args.file, warned_missing_file,
-            args.filter, args.exclude
+            en_dir,
+            locale_dir,
+            args.file,
+            warned_missing_file,
+            args.filter,
+            args.exclude,
         )
         if any(issues.values()):
             results[locale_name] = issues
@@ -416,5 +435,5 @@ Examples:
     return min(total_issues, 100)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())
