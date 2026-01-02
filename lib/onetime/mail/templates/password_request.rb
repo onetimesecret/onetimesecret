@@ -52,18 +52,14 @@ module Onetime
             ''
           else
             secret = data[:secret]
-            key = secret.respond_to?(:identifier) ? secret.identifier : secret.to_s
+            key    = secret.respond_to?(:identifier) ? secret.identifier : secret.to_s
             "/forgot/#{key}"
           end
         end
 
         def reset_password_url
           # Full URL for password reset - used directly in templates
-          if data[:reset_password_path]
-            data[:reset_password_path]
-          else
-            "#{baseuri}#{forgot_path}"
-          end
+          data[:reset_password_path] || "#{baseuri}#{forgot_path}"
         end
 
         def email_address

@@ -59,11 +59,7 @@ module Onetime
 
         def verification_url
           # Full URL for verification - used directly in templates
-          if data[:verification_path]
-            data[:verification_path]
-          else
-            "#{baseuri}#{verify_uri}"
-          end
+          data[:verification_path] || "#{baseuri}#{verify_uri}"
         end
 
         def email_address

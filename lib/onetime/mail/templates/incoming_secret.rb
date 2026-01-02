@@ -50,7 +50,7 @@ module Onetime
         def uri_path
           secret = data[:secret]
           # Use identifier (not deprecated .key field which may be nil)
-          key = secret.respond_to?(:identifier) ? secret.identifier : secret.to_s
+          key    = secret.respond_to?(:identifier) ? secret.identifier : secret.to_s
           "/secret/#{key}"
         end
 
