@@ -94,6 +94,12 @@ module Onetime
           data = parse_message(msg)
           return unless data # parse_message handles reject on error
 
+          # Handle ping test messages (from: bin/ots jobs ping)
+          if data[:event_type] == 'ping.test'
+            log_info 'Received ping test', event_type: data[:event_type], event_id: data[:event_id]
+            return ack!
+          end
+
           # Atomic idempotency claim: only one worker can claim a message
           unless claim_for_processing(message_id)
             log_info "Skipping duplicate message: #{message_id}"

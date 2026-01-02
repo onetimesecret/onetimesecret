@@ -60,6 +60,12 @@ module Onetime
           data = parse_message(msg)
           return unless data # parse_message handles reject on error
 
+          # Handle ping test messages (from: bin/ots jobs ping)
+          if ping_test?(data)
+            log_info 'Received ping test', template: data[:template], ping_id: data.dig(:data, :ping_id)
+            return ack!
+          end
+
           # Atomic idempotency claim: only one worker can claim a message
           unless claim_for_processing(message_id)
             log_info "Skipping duplicate message: #{message_id}"
@@ -80,6 +86,11 @@ module Onetime
         end
 
         private
+
+        # Check if this is a ping test message
+        def ping_test?(data)
+          data[:template]&.to_sym == :ping_test || data.dig(:data, :test) == true
+        end
 
         # Deliver email via Onetime::Mail
         # Handles both templated and raw email formats
