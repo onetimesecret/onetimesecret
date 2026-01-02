@@ -26,10 +26,12 @@ RSpec.describe 'Server Command', type: :cli do
       run_cli_command_quietly('server')
     end
 
-    it 'uses development environment by default' do
+    it 'uses RACK_ENV environment by default' do
+      # Default is ENV['RACK_ENV'] (test in specs) or 'development' if unset
+      expected_env = ENV.fetch('RACK_ENV', 'development')
       expect(puma_handler).to receive(:run).with(
         rack_app,
-        hash_including(environment: 'development')
+        hash_including(environment: expected_env)
       )
 
       run_cli_command_quietly('server')

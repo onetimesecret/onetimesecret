@@ -13,7 +13,7 @@
 # Options:
 #   -s, --server TYPE       Server type: puma or thin (default: puma)
 #   -p, --port PORT         Port to bind to (default: 7143)
-#   -e, --environment ENV   Environment to run in (default: development)
+#   -e, --environment ENV   Environment to run in (default: $RACK_ENV or development)
 #   -t, --threads MIN:MAX   Thread pool size for Puma (default: 2:4)
 #   -w, --workers COUNT     Number of workers for Puma (default: 0)
 #   -b, --bind ADDRESS      Bind address (default: 127.0.0.1)
@@ -25,6 +25,8 @@
 module Onetime
   module CLI
     class ServerCommand < DelayBootCommand
+      CURRENT_ENVIRONMENT = ENV.fetch('RACK_ENV', 'production')
+
       desc 'Start the web server (Puma or Thin)'
 
       argument :config_file, type: :string, required: false, desc: 'Path to server config file'
@@ -33,8 +35,8 @@ module Onetime
         desc: 'Server type: puma or thin'
       option :port, type: :integer, default: 7143, aliases: ['p'],
         desc: 'Port to bind to'
-      option :environment, type: :string, default: 'development', aliases: ['e'],
-        desc: 'Environment to run in'
+      option :environment, type: :string, default: CURRENT_ENVIRONMENT, aliases: ['e'],
+        desc: 'Environment to run in (default: $RACK_ENV or production)'
       option :threads, type: :string, default: '2:4', aliases: ['t'],
         desc: 'Thread pool size for Puma'
       option :workers, type: :integer, default: 0, aliases: ['w'],
@@ -42,7 +44,8 @@ module Onetime
       option :bind, type: :string, default: '127.0.0.1', aliases: ['b'],
         desc: 'Bind address'
 
-      def call(config_file: nil, server: 'puma', port: 7143, environment: 'development',
+      def call(config_file: nil, server: 'puma', port: 7143,
+               environment: CURRENT_ENVIRONMENT,
                threads: '2:4', workers: 0, bind: '127.0.0.1', **)
         # Lazy require - rackup is in development group, not available in production containers
         require 'rackup'
