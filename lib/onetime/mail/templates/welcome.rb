@@ -11,7 +11,10 @@ module Onetime
       #
       # Required data:
       #   email_address: User's email address
-      #   secret:        Secret object containing verification token
+      #
+      # One of the following is required:
+      #   verification_path: Full verification URL (full mode - from Rodauth)
+      #   secret:            Secret object for verification (simple mode)
       #
       # Optional data:
       #   baseuri: Override site base URI
@@ -21,7 +24,10 @@ module Onetime
 
         def validate_data!
           raise ArgumentError, 'Email address required' unless data[:email_address]
-          raise ArgumentError, 'Secret required' unless data[:secret]
+          # Either verification_path (full mode) or secret (simple mode) is required
+          unless data[:verification_path] || data[:secret]
+            raise ArgumentError, 'Verification path or secret required'
+          end
         end
 
         public
@@ -39,9 +45,25 @@ module Onetime
         end
 
         def verify_uri
-          secret = data[:secret]
-          key    = secret.respond_to?(:identifier) ? secret.identifier : secret.to_s
-          "/secret/#{key}"
+          # Full mode: verification_path is a full URL from Rodauth
+          # Simple mode: generate secret-based path (/secret/...)
+          if data[:verification_path]
+            # Rodauth provides full URL, return empty so baseuri+verify_uri works
+            ''
+          else
+            secret = data[:secret]
+            key    = secret.respond_to?(:identifier) ? secret.identifier : secret.to_s
+            "/secret/#{key}"
+          end
+        end
+
+        def verification_url
+          # Full URL for verification - used directly in templates
+          if data[:verification_path]
+            data[:verification_path]
+          else
+            "#{baseuri}#{verify_uri}"
+          end
         end
 
         def email_address
@@ -57,6 +79,7 @@ module Onetime
         def template_binding
           computed_data = data.merge(
             verify_uri: verify_uri,
+            verification_url: verification_url,
             email_address: email_address,
             baseuri: baseuri,
             product_name: product_name,

@@ -41,14 +41,14 @@
                   <p><%= t('email.welcome.verify_prompt') %></p>
 
                   <div style="margin: 24px 0;">
-                    <a href="<%= baseuri %><%= verify_uri %>" style="display: inline-block; padding: 12px 24px; background-color: #dc4a22; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;" rel="noopener noreferrer">
+                    <a href="<%= verification_url %>" style="display: inline-block; padding: 12px 24px; background-color: #dc4a22; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold;" rel="noopener noreferrer">
                       <%= t('email.welcome.verify_button') %>
                     </a>
                   </div>
 
                   <p style="color: #666666; font-size: 12px;">
                     <%= t('email.welcome.copy_link_prompt') %><br />
-                    <a href="<%= baseuri %><%= verify_uri %>" style="color: #dc4a22; word-break: break-all;"><%= baseuri %><%= verify_uri %></a>
+                    <a href="<%= verification_url %>" style="color: #dc4a22; word-break: break-all;"><%= verification_url %></a>
                   </p>
                 </div>
 

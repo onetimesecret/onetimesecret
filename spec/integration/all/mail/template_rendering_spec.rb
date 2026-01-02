@@ -619,9 +619,9 @@ RSpec.describe 'Email Template Rendering', type: :integration do
         .to raise_error(ArgumentError, /Email address required/)
     end
 
-    it 'Welcome requires secret' do
+    it 'Welcome requires verification_path or secret' do
       expect { Onetime::Mail::Templates::Welcome.new({ email_address: 'a@b.com' }) }
-        .to raise_error(ArgumentError, /Secret required/)
+        .to raise_error(ArgumentError, /Verification path or secret required/)
     end
 
     it 'PasswordRequest requires email_address' do

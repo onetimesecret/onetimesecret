@@ -47,7 +47,7 @@ begin
 rescue ArgumentError => e
   e.message
 end
-#=> 'Secret required'
+#=> 'Verification path or secret required'
 
 ## Welcome accepts valid data without error
 template = Onetime::Mail::Templates::Welcome.new(@valid_data)
@@ -90,3 +90,23 @@ template = Onetime::Mail::Templates::Welcome.new(@valid_data)
 email = template.to_email(from: 'noreply@example.com')
 [email[:to], email[:subject].include?('verify')]
 #=> ['newuser@example.com', true]
+
+## Welcome accepts verification_path for full mode (no secret required)
+full_mode_data = {
+  email_address: 'fullmode@example.com',
+  verification_path: 'https://example.com/verify-account?key=abc123',
+  baseuri: 'https://example.com'
+}
+template = Onetime::Mail::Templates::Welcome.new(full_mode_data)
+template.verification_url
+#=> 'https://example.com/verify-account?key=abc123'
+
+## Welcome render_text uses verification_path in full mode
+full_mode_data = {
+  email_address: 'fullmode@example.com',
+  verification_path: 'https://example.com/verify-account?key=xyz789',
+  baseuri: 'https://example.com'
+}
+template = Onetime::Mail::Templates::Welcome.new(full_mode_data)
+template.render_text.include?('verify-account?key=xyz789')
+#=> true
