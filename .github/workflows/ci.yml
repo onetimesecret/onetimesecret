@@ -241,6 +241,33 @@ jobs:
       - name: Run linting
         run: pnpm lint
 
+  i18n-validate:
+    name: T1 · i18n Validation
+    timeout-minutes: 2
+    runs-on: *runs-on
+    needs: [changes]
+    if: needs.changes.outputs.typescript == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run variable audit
+        run: |
+          echo "## i18n Variable Audit" >> $GITHUB_STEP_SUMMARY
+          python3 src/scripts/locales/audit/audit-variables.py --summary | tee -a $GITHUB_STEP_SUMMARY
+          ISSUES=$?
+          if [ $ISSUES -gt 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ Found $ISSUES variable discrepancies across locales" >> $GITHUB_STEP_SUMMARY
+          fi
+          # Don't fail build - report only (remove 'exit 0' to enforce)
+          exit 0
+
   build-assets:
     name: T1 · Build Frontend Assets
     timeout-minutes: 10
@@ -561,6 +588,7 @@ jobs:
       - changes
       - ruby-lint
       - typescript-lint
+      - i18n-validate
       - build-assets
       - ruby-unit
       - typescript-unit
@@ -704,6 +732,7 @@ jobs:
           echo "| Detect Changes | ${{ needs.changes.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Lint | ${{ needs.ruby-lint.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| TypeScript Lint | ${{ needs.typescript-lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| i18n Validation | ${{ needs.i18n-validate.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Build Assets | ${{ needs.build-assets.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Ruby Unit | ${{ needs.ruby-unit.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| TypeScript Unit | ${{ needs.typescript-unit.result }} |" >> $GITHUB_STEP_SUMMARY
