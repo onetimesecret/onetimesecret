@@ -511,19 +511,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-build
-          path: public/web/dist/
-
-      - name: Verify downloaded assets
-        run: |
-          if [ ! -d "public/web/dist" ] || [ -z "$(ls -A public/web/dist)" ]; then
-            echo "::error::Frontend assets not found or empty!"
-            exit 1
-          fi
-          echo "::notice::Frontend assets verified"
+      - name: Download frontend assets
+        uses: ./.github/actions/download-frontend-assets
 
       - name: Build Container image
         run: docker build -t onetime-test .
@@ -531,49 +520,21 @@ jobs:
       - name: Generate random secrets for container
         uses: ./.github/actions/generate-test-secrets
 
-      - name: Start container
-        run: |
-          docker run -d \
-            --name onetime-test-container \
-            -p 3000:3000 \
-            -e REDIS_URL=redis://host.docker.internal:2121/0 \
-            -e SESSION_SECRET="${SESSION_SECRET}" \
-            -e HMAC_SECRET="${HMAC_SECRET}" \
-            -e SECRET="${SECRET}" \
-            --add-host=host.docker.internal:host-gateway \
-            onetime-test
-
-      - name: Wait for service to be ready
-        run: |
-          max_attempts=30
-          attempt=0
-          while [ $attempt -lt $max_attempts ]; do
-            attempt=$((attempt + 1))
-            if curl -f -s -o /dev/null http://localhost:3000/; then
-              echo "::notice::Service is ready!"
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "::error::Service failed to start"
-          docker logs onetime-test-container
-          exit 1
-
-      - name: Test homepage loads
-        run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/)
-          if [ "$response" != "200" ]; then
-            echo "::error::Homepage failed to load. HTTP status: $response"
-            docker logs onetime-test-container
-            exit 1
-          fi
-          echo "::notice::Homepage loaded successfully"
-
-      - name: Cleanup
-        if: always()
-        run: |
-          docker stop onetime-test-container || true
-          docker rm onetime-test-container || true
+      - name: Test container
+        uses: ./.github/actions/test-docker-container
+        with:
+          image-name: 'onetime-test'
+          container-name: 'onetime-test-container'
+          port: '3000'
+          redis-url: 'redis://host.docker.internal:2121/0'
+          environment-vars: |
+            SESSION_SECRET=${{ env.SESSION_SECRET }}
+            HMAC_SECRET=${{ env.HMAC_SECRET }}
+            SECRET=${{ env.SECRET }}
+          test-endpoints: |
+            /
+          max-wait-attempts: '30'
+          wait-interval: '2'
 
   # ============================================================================
   # TIER 5: CI METRICS VALIDATION (runs last)
