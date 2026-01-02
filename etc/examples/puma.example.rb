@@ -1,8 +1,7 @@
-# etc/defaults/puma.defaults.rb
+# etc/puma.rb
 #
 # frozen_string_literal: true
 
-#
 # Puma configuration for Onetime Secret
 # Copy to etc/puma.rb to customize (done automatically in Docker)
 #
@@ -22,24 +21,24 @@
 #   PUMA_CONTROL_TOKEN   - Auth token for control app (production)
 #   MAX_WORKER_REQUESTS  - Restart workers after N requests (production)
 
-_rack_env = ENV.fetch('RACK_ENV', 'production').downcase
-_port     = ENV.fetch('PORT', 3000)
+rack_env = ENV.fetch('RACK_ENV', 'production').downcase
+port     = ENV.fetch('PORT', 3000)
 
 # Worker count defaults: 2 for production (cluster mode), 0 for development (single-process)
 # PUMA_WORKERS takes precedence over WEB_CONCURRENCY for Docker compatibility
-_default_workers   = _rack_env == 'production' ? 2 : 0
-_worker_count      = ENV.fetch('PUMA_WORKERS') { ENV.fetch('WEB_CONCURRENCY', _default_workers) }.to_i
+default_workers   = rack_env == 'production' ? 2 : 0
+worker_count      = ENV.fetch('PUMA_WORKERS') { ENV.fetch('WEB_CONCURRENCY', default_workers) }.to_i
 
 # Thread settings: PUMA_*_THREADS take precedence over MIN_THREADS/MAX_THREADS
-_default_min       = _rack_env == 'production' ? 1 : 0
-_threads_count_min = ENV.fetch('PUMA_MIN_THREADS') { ENV.fetch('MIN_THREADS', _default_min) }.to_i
-_threads_count_max = ENV.fetch('PUMA_MAX_THREADS') { ENV.fetch('MAX_THREADS', 16) }.to_i
+default_min       = rack_env == 'production' ? 1 : 0
+threads_count_min = ENV.fetch('PUMA_MIN_THREADS') { ENV.fetch('MIN_THREADS', default_min) }.to_i
+threads_count_max = ENV.fetch('PUMA_MAX_THREADS') { ENV.fetch('MAX_THREADS', 16) }.to_i
 
-threads _threads_count_min, _threads_count_max
-bind "tcp://0.0.0.0:#{_port}"
-environment _rack_env
+threads threads_count_min, threads_count_max
+bind "tcp://0.0.0.0:#{port}"
+environment rack_env
 
-if _worker_count.positive?
+if worker_count.positive?
   # Connection management for preload_app! (required for fork-sensitive resources)
   # NOTE: These blocks only run in cluster mode (workers > 0).
   # In development with workers=0, Puma runs in single-process mode.
@@ -68,10 +67,10 @@ if _worker_count.positive?
 end
 
 # Environment-specific configuration
-case _rack_env
+case rack_env
 when 'production'
   # Cluster mode: multiple worker processes for production
-  workers _worker_count
+  workers worker_count
   preload_app!
   # nakayoshi_fork was removed in Puma 6.0 - use fork_worker instead if needed
 
@@ -91,8 +90,8 @@ when 'production'
 when 'development'
   # Single-process mode by default (workers=0) for easier debugging
   # Set WEB_CONCURRENCY > 0 to test cluster mode in development
-  workers _worker_count if _worker_count > 0
-  preload_app! if _worker_count > 0
+  workers worker_count if worker_count > 0
+  preload_app! if worker_count > 0
 
   plugin :tmp_restart
   quiet true
@@ -101,5 +100,5 @@ when 'development'
   worker_boot_timeout 30
 
 else
-  raise "Unknown RACK_ENV: #{_rack_env}"
+  raise "Unknown RACK_ENV: #{rack_env}"
 end

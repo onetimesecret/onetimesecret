@@ -1,4 +1,4 @@
-# spec/onetime/models/custom_domain/brand_settings_spec.rb
+# spec/unit/onetime/models/custom_domain/brand_settings_spec.rb
 #
 # frozen_string_literal: true
 

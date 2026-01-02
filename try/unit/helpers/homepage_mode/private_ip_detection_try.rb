@@ -1,8 +1,5 @@
 # try/unit/helpers/homepage_mode/private_ip_detection_try.rb
 #
-# Tests for private_ip? method
-# in Onetime::Helpers::HomepageModeHelpers
-#
 # frozen_string_literal: true
 
 require_relative '../../../support/test_helpers'

@@ -1,4 +1,4 @@
-# spec/integration/authentication/full_mode/postgres_infrastructure_spec.rb
+# spec/integration/full/postgres_infrastructure_spec.rb
 #
 # frozen_string_literal: true
 

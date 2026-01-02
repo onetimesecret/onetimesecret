@@ -1,10 +1,10 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 WRITE SHORT RESPONSES. BE CONCISE. Focus on what's important NOW.
 
-Unless otherwise specified, pull requests target `develop` branch.
+DO NOT WRITE MARKDOWN DOCUMENTS unless requested.
+
+Pull requests target `develop` branch, unless otherwise specified.
 
 ## Critical Workflow
 1. **Research First**: Read files, understand patterns, plan before coding

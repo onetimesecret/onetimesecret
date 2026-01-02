@@ -1,7 +1,7 @@
 # try/support/test_helpers.rb
 #
 # frozen_string_literal: true
-#
+
 # Common test helpers for Tryouts tests.
 #
 # IMPORTANT: This file must be required BEFORE loading config.ru in integration

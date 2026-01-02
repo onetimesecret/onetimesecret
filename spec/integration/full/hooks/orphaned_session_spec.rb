@@ -1,4 +1,4 @@
-# apps/web/auth/spec/hooks/orphaned_session_spec.rb
+# spec/integration/full/hooks/orphaned_session_spec.rb
 #
 # frozen_string_literal: true
 

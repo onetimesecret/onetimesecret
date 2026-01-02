@@ -1,0 +1,327 @@
+#!/usr/bin/env ruby
+
+# bin/analyze-boot-trace
+#
+# frozen_string_literal: true
+
+# Analyzes boot ticker tape JSONL output
+#
+# Default view: First appearance timeline (dependency order)
+#
+# Usage:
+#   bin/analyze-boot-trace tmp/boot_ticker_tape_1234567890.jsonl                # Dependencies (default)
+#   bin/analyze-boot-trace tmp/boot_ticker_tape_1234567890.jsonl --rabbitmq     # RabbitMQ trace
+#   bin/analyze-boot-trace tmp/boot_ticker_tape_1234567890.jsonl --initializers # Initializer timeline
+#   bin/analyze-boot-trace tmp/boot_ticker_tape_1234567890.jsonl --timeline     # First 100 calls
+#   bin/analyze-boot-trace tmp/boot_ticker_tape_1234567890.jsonl --top          # Top methods by count
+
+require 'json'
+require 'optparse'
+
+class BootTraceAnalyzer
+  def initialize(file_path, options = {})
+    @file_path = file_path
+    @options   = options
+
+    # Parse JSONL format (one JSON object per line)
+    @data   = nil
+    @events = []
+
+    File.foreach(file_path) do |line|
+      obj = JSON.parse(line.strip)
+
+      if obj['meta']
+        @data = obj
+      else
+        @events << obj
+      end
+    end
+  end
+
+  def analyze
+    puts '=' * 80
+    puts 'Boot Ticker Tape Analysis'
+    puts '=' * 80
+    puts "Boot Instance: #{@data['instance']}"
+    puts "Total Events:  #{@data['events'] || @events.size}"
+    puts "Duration:      #{(@data['duration_ms'] || 0).round(2)}ms"
+    puts "Bindings:      #{@data['bindings'] ? 'captured' : 'skipped'}"
+    puts '=' * 80
+    puts
+
+    if @options[:rabbitmq]
+      analyze_rabbitmq
+    elsif @options[:initializers]
+      analyze_initializers
+    elsif @options[:timeline]
+      show_timeline
+    elsif @options[:top]
+      show_top
+    else
+      show_dependencies  # Default view
+    end
+  end
+
+  private
+
+  def analyze_rabbitmq
+    puts 'RabbitMQ Setup Trace'
+    puts '-' * 80
+
+    rabbitmq_events = @events.select do |e|
+      e['sig']&.match?(/RabbitMQ|Bunny|rabbitmq|bunny|queue|exchange|channel/i)
+    end
+
+    if rabbitmq_events.empty?
+      puts 'No RabbitMQ events found'
+      return
+    end
+
+    total_calls = 0
+    rabbitmq_events.each do |event|
+      timestamp_ms = (event['ts'].to_f / 1000.0).round(2)
+      reps         = event['reps'] || 1
+      total_calls += reps
+      location     = "#{event['path']}:#{event['line']}"
+
+      if reps > 1
+        puts format(
+          '%8.2fms  %-50s (×%d)  %s',
+          timestamp_ms,
+          event['sig'],
+          reps,
+          location,
+        )
+      else
+        puts format(
+          '%8.2fms  %-50s  %s',
+          timestamp_ms,
+          event['sig'],
+          location,
+        )
+      end
+    end
+
+    puts
+    puts "Total RabbitMQ calls: #{total_calls} (#{rabbitmq_events.size} unique)"
+  end
+
+  def analyze_initializers
+    puts 'Initializer Execution Timeline'
+    puts '-' * 80
+
+    # Find all initializer#execute calls
+    init_calls = @events.select do |e|
+      e['sig']&.include?('Initializer') && e['sig'].include?('#execute')
+    end
+
+    if init_calls.empty?
+      puts 'No initializer calls found'
+      return
+    end
+
+    init_calls.each do |event|
+      timestamp_ms = (event['ts'].to_f / 1000.0).round(2)
+      reps         = event['reps'] || 1
+
+      if reps > 1
+        puts format(
+          '%8.2fms  %s  (×%d)',
+          timestamp_ms,
+          event['sig'],
+          reps,
+        )
+      else
+        puts format(
+          '%8.2fms  %s',
+          timestamp_ms,
+          event['sig'],
+        )
+      end
+    end
+
+    puts
+    puts "Total initializers: #{init_calls.size}"
+  end
+
+  def show_timeline
+    puts 'Boot Timeline (first 100 unique calls)'
+    puts '-' * 80
+
+    @events.first(100).each do |event|
+      timestamp_ms = (event['ts'].to_f / 1000.0).round(2)
+      reps         = event['reps'] || 1
+
+      if reps > 1
+        puts format(
+          '%8.2fms  %s  (×%d)',
+          timestamp_ms,
+          event['sig'],
+          reps,
+        )
+      else
+        puts format(
+          '%8.2fms  %s',
+          timestamp_ms,
+          event['sig'],
+        )
+      end
+    end
+  end
+
+  def show_top
+    puts 'Boot Call Summary (Top Methods)'
+    puts '-' * 80
+
+    total_calls  = @events.sum { |e| e['reps'] || 1 }
+    unique_calls = @events.size
+
+    puts "Total calls: #{total_calls} (#{unique_calls} unique)"
+
+    puts
+    puts 'Top 20 Most Called Methods'
+    puts '-' * 80
+
+    method_counts = @events
+      .each_with_object(Hash.new(0)) { |e, h| h[e['sig']] += (e['reps'] || 1) }
+      .sort_by { |_k, v| -v }
+      .first(20)
+
+    method_counts.each do |method, count|
+      puts "#{count.to_s.rjust(6)}  #{method}"
+    end
+
+    # Show call distribution by namespace
+    puts
+    puts 'Calls by Namespace'
+    puts '-' * 80
+
+    namespace_counts = @events
+      .each_with_object(Hash.new(0)) do |e, h|
+        namespace     = e['sig']&.split(/[#.]/)&.first || 'Unknown'
+        h[namespace] += (e['reps'] || 1)
+      end
+
+    namespace_counts = namespace_counts
+      .sort_by { |_k, v| -v }
+      .first(10)
+
+    namespace_counts.each do |namespace, count|
+      puts "#{count.to_s.rjust(6)}  #{namespace}"
+    end
+  end
+
+  # Shows first appearance of each signature with markers for new namespaces/directories
+  # Useful for understanding boot sequence and dependencies
+  def show_dependencies
+    puts 'First Appearance Timeline (Dependency Order)'
+    puts '=' * 140
+
+    # Track first appearances
+    seen_namespaces  = {}
+    seen_directories = {}
+    seen_signatures  = {}
+
+    @events.each do |event|
+      ts        = event['ts']
+      sig       = event['sig']
+      path      = event['path'] || ''
+      namespace = sig&.split(/[#.]/)&.first || 'Unknown'
+      directory = File.dirname(path)
+
+      # Record first appearance of namespace
+      seen_namespaces[namespace] ||= ts
+
+      # Record first appearance of directory
+      seen_directories[directory] ||= ts
+
+      # Record first appearance of signature with metadata
+      seen_signatures[sig] ||= {
+        ts: ts,
+        path: path,
+        line: event['line'],
+        namespace: namespace,
+        directory: directory,
+      }
+    end
+
+    # Sort signatures by timestamp
+    signatures = seen_signatures.sort_by { |_sig, info| info[:ts] }
+
+    # rubocop:disable Style/RedundantFormat
+    puts format('%-70s  %-68s',
+      'SIGNATURE (--> = new namespace)',
+      'FILE PATH (--> = new directory)',
+    )
+    # rubocop:enable Style/RedundantFormat
+    puts '-' * 140
+
+    signatures.each do |sig, info|
+      timestamp_ms = (info[:ts].to_f / 1000.0).round(2)
+
+      # Check if this is the first appearance of the namespace
+      is_first_namespace = seen_namespaces[info[:namespace]] == info[:ts]
+      ns_marker          = is_first_namespace ? '--> ' : '    '
+
+      # Check if this is the first appearance of the directory
+      is_first_directory = seen_directories[info[:directory]] == info[:ts]
+      dir_marker         = is_first_directory ? '--> ' : '    '
+
+      # Truncate signature if needed (leave room for marker prefix)
+      max_sig_len = 53
+      display_sig = sig.length > max_sig_len ? "#{sig[0, max_sig_len - 3]}..." : sig
+
+      # Format file path with line number
+      file_path    = "#{info[:path]}:#{info[:line]}"
+      max_path_len = 53
+      display_path = file_path.length > max_path_len ? "...#{file_path[-(max_path_len - 3)..]}" : file_path
+
+      left_col  = format('%8.2fms  %s%-53s', timestamp_ms, ns_marker, display_sig)
+      right_col = format('%s%-53s', dir_marker, display_path)
+
+      puts "#{left_col}  #{right_col}"
+    end
+
+    puts
+    puts "Total unique signatures: #{signatures.size}"
+    puts "Total unique namespaces: #{seen_namespaces.size}"
+    puts "Total unique directories: #{seen_directories.size}"
+  end
+end
+
+# Parse options
+options = {}
+OptionParser.new do |opts|
+  opts.banner = 'Usage: bin/analyze-boot-trace [file] [options]'
+
+  opts.on('--rabbitmq', 'Show RabbitMQ-specific events') do
+    options[:rabbitmq] = true
+  end
+
+  opts.on('--initializers', 'Show initializer execution timeline') do
+    options[:initializers] = true
+  end
+
+  opts.on('--timeline', 'Show full timeline') do
+    options[:timeline] = true
+  end
+
+  opts.on('--top', 'Show top methods and namespace call counts') do
+    options[:top] = true
+  end
+
+  opts.on('-h', '--help', 'Show this message') do
+    puts opts
+    exit
+  end
+end.parse!
+
+file_path = ARGV[0]
+
+unless file_path && File.exist?(file_path)
+  puts 'Usage: bin/analyze-boot-trace <ticker_tape_file.jsonl>'
+  puts 'Example: bin/analyze-boot-trace tmp/boot_ticker_tape_1234567890.jsonl'
+  exit 1
+end
+
+BootTraceAnalyzer.new(file_path, options).analyze

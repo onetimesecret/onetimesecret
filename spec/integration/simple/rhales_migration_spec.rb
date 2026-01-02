@@ -1,4 +1,4 @@
-# spec/integration/rhales_migration_spec.rb
+# spec/integration/simple/rhales_migration_spec.rb
 #
 # frozen_string_literal: true
 

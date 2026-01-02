@@ -1,4 +1,4 @@
-# spec/integration/puma_multi_process_spec.rb
+# spec/integration/all/puma_multi_process_spec.rb
 #
 # frozen_string_literal: true
 

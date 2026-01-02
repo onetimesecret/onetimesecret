@@ -6,6 +6,19 @@
 
 set -euo pipefail
 
+OTS_DEV_CONFIG="${OTS_DEV_CONFIG:-$HOME/.config/onetimesecret-dev}"
+
+# Files/dirs to symlink: local_path -> shared_path
+declare -A LINKS=(
+    ["etc/config.yaml"]="config.yaml"
+    ["etc/auth.yaml"]="auth.yaml"
+    ["etc/billing.yaml"]="billing.yaml"
+    ["etc/logging.yaml"]="logging.yaml"
+    ["data"]="data"
+    ["Procfile.dev"]="Procfile.dev"
+    ["etc/puma.rb"]="puma.rb"
+)
+
 # Repair .env.sh if it's a symlink (historical git issue)
 repair_env_sh() {
     if [[ -L ".env.sh" ]]; then
@@ -38,18 +51,6 @@ EOF
         echo "Created and marked executable: .env.sh"
     fi
 }
-
-OTS_DEV_CONFIG="${OTS_DEV_CONFIG:-$HOME/.config/onetimesecret-dev}"
-
-# Files/dirs to symlink: local_path -> shared_path
-declare -A LINKS=(
-    ["etc/config.yaml"]="config.yaml"
-    ["etc/auth.yaml"]="auth.yaml"
-    ["etc/billing.yaml"]="billing.yaml"
-    ["etc/logging.yaml"]="logging.yaml"
-    ["data"]="data"
-    ["Procfile.dev"]="Procfile.dev"
-)
 
 # Optional: .env if you have one
 if [[ -f "$OTS_DEV_CONFIG/.env" ]]; then

@@ -1,4 +1,4 @@
-# spec/integration/authentication/disabled_mode/public_access_spec.rb
+# spec/integration/disabled/public_access_spec.rb
 #
 # frozen_string_literal: true
 

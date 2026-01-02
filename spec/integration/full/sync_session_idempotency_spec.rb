@@ -1,4 +1,4 @@
-# spec/integration/authentication/sync_session_idempotency_spec.rb
+# spec/integration/full/sync_session_idempotency_spec.rb
 #
 # frozen_string_literal: true
 

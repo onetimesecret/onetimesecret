@@ -1,7 +1,7 @@
 # Procfile.dev
 
 # Use the port if set otherwise default to 3000
-backend: API_GUEST_RECEIPT=false bundle exec puma -p ${PORT:-3000} -t 2:4 -w 0 -e development
+backend: bundle exec bin/ots server -p ${PORT:-3000} etc/examples/puma.example.rb
 
 frontend: pnpm run dev
 

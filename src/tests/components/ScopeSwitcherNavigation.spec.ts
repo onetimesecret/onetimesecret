@@ -1,4 +1,5 @@
 // src/tests/components/ScopeSwitcherNavigation.spec.ts
+
 /**
  * Tests for scope switcher navigation behavior.
  *

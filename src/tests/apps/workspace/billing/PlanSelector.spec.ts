@@ -1,4 +1,5 @@
 // src/tests/apps/workspace/billing/PlanSelector.spec.ts
+
 //
 // Unit tests for PlanSelector.vue billing logic
 //

@@ -1,13 +1,12 @@
 # apps/web/auth/migrations/005_views.rb
 #
-# Run manually:
-#   # Up
+# frozen_string_literal: true
+
 #   $ sequel -m apps/web/auth/migrations -M 5 $AUTH_DATABASE_URL_MIGRATIONS
 #
 #   # Down
 #   $ sequel -m apps/web/auth/migrations -M 4 $AUTH_DATABASE_URL_MIGRATIONS
 #
-# frozen_string_literal: true
 
 MIGRATION_ROOT = __dir__ unless defined?(MIGRATION_ROOT)
 

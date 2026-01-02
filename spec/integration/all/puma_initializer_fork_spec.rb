@@ -1,4 +1,4 @@
-# spec/integration/puma_initializer_fork_spec.rb
+# spec/integration/all/puma_initializer_fork_spec.rb
 #
 # frozen_string_literal: true
 

@@ -137,6 +137,7 @@ group :development do
   gem 'rubocop-sequel', require: false
   gem 'rubocop-thread_safety', require: false
   gem 'ruby-lsp', require: false
+  gem 'solargraph', require: false # serena project index
   gem 'syntax_tree', require: false
 end
 

@@ -1,4 +1,4 @@
-# migrations/20250727-1523_02_reorganize_config_structure.rb
+# migrations/pending/20250727-1523_02_reorganize_config_structure.rb
 #
 # frozen_string_literal: true
 

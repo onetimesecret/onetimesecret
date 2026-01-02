@@ -1,4 +1,4 @@
-# spec/integration/advanced_auth_mode_spec.rb
+# spec/integration/full/advanced_auth_mode_spec.rb
 #
 # frozen_string_literal: true
 

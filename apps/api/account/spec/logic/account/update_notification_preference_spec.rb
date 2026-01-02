@@ -1,4 +1,4 @@
-# spec/api/account/logic/account/update_notification_preference_spec.rb
+# apps/api/account/spec/logic/account/update_notification_preference_spec.rb
 #
 # frozen_string_literal: true
 

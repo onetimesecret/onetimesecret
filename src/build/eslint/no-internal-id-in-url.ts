@@ -1,4 +1,4 @@
-// eslint-rules/no-internal-id-in-url.ts
+// src/build/eslint/no-internal-id-in-url.ts
 
 /**
  * ESLint Rule: no-internal-id-in-url
@@ -13,7 +13,7 @@
  */
 
 import type { Rule } from 'eslint';
-import type { MemberExpression, TemplateLiteral, Literal, Node } from 'estree';
+import type { MemberExpression, TemplateLiteral, Node } from 'estree';
 
 /**
  * URL context patterns that should use ExtId, not internal IDs
@@ -59,48 +59,35 @@ function isInUrlContext(node: Node, context: Rule.RuleContext): boolean {
   const sourceCode = context.sourceCode || context.getSourceCode();
   const ancestors = sourceCode.getAncestors(node);
 
-  for (const ancestor of ancestors) {
-    // Check template literals
-    if (ancestor.type === 'TemplateLiteral') {
-      const source = sourceCode.getText(ancestor);
-      if (URL_PATTERNS.some((pattern) => pattern.test(source))) {
-        return true;
-      }
+  return ancestors.some((ancestor) => {
+    const source = sourceCode.getText(ancestor);
+
+    // Template literals and string concatenation
+    if (
+      ancestor.type === 'TemplateLiteral' ||
+      (ancestor.type === 'BinaryExpression' && ancestor.operator === '+')
+    ) {
+      return URL_PATTERNS.some((pattern) => pattern.test(source));
     }
 
-    // Check string concatenation
-    if (ancestor.type === 'BinaryExpression' && ancestor.operator === '+') {
-      const source = sourceCode.getText(ancestor);
-      if (URL_PATTERNS.some((pattern) => pattern.test(source))) {
-        return true;
-      }
+    // Navigation method calls (router.push, etc)
+    if (
+      ancestor.type === 'CallExpression' &&
+      ancestor.callee.type === 'MemberExpression' &&
+      ancestor.callee.property.type === 'Identifier'
+    ) {
+      const methodName = ancestor.callee.property.name;
+      return ['push', 'replace', 'navigate', 'go'].includes(methodName);
     }
 
-    // Check function calls like router.push()
-    if (ancestor.type === 'CallExpression') {
-      if (ancestor.callee.type === 'MemberExpression') {
-        const callee = ancestor.callee as MemberExpression;
-        if (callee.property.type === 'Identifier') {
-          const methodName = callee.property.name;
-          if (['push', 'replace', 'navigate', 'go'].includes(methodName)) {
-            return true;
-          }
-        }
-      }
+    // Object properties (to, href, etc)
+    if (ancestor.type === 'Property' && ancestor.key.type === 'Identifier') {
+      const keyName = ancestor.key.name;
+      return ['to', 'href', 'path', 'url', 'route'].includes(keyName);
     }
 
-    // Check object properties like { to: `/path/${entity.id}` }
-    if (ancestor.type === 'Property') {
-      if (ancestor.key.type === 'Identifier') {
-        const keyName = ancestor.key.name;
-        if (['to', 'href', 'path', 'url', 'route'].includes(keyName)) {
-          return true;
-        }
-      }
-    }
-  }
-
-  return false;
+    return false;
+  });
 }
 
 const rule: Rule.RuleModule = {

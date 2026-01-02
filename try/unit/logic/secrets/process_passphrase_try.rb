@@ -1,7 +1,7 @@
 # try/unit/logic/secrets/process_passphrase_try.rb
 #
-# Tests for passphrase processing in secret creation.
-# Ensures empty/nil passphrases are normalized to nil to prevent
+# frozen_string_literal: true
+
 # hashing empty strings.
 #
 # frozen_string_literal: true

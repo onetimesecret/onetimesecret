@@ -17,7 +17,7 @@ module Core
         output = output_template
 
         output['ot_version']      = OT::VERSION.to_s
-        output['ot_version_long'] = OT::VERSION.inspect
+        output['ot_version_long'] = OT::VERSION.details
         output['ruby_version']    = RUBY_VERSION.to_s
 
         output['shrimp'] = view_vars['shrimp']

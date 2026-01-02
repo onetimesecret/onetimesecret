@@ -1,3 +1,5 @@
+// src/tests/e2e/integration.spec.ts
+
 import { test, expect } from '@playwright/test';
 
 /**

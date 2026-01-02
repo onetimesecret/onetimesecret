@@ -1,7 +1,7 @@
-# frozen_string_literal: true
-
 # spec/support/puma_integration/server_helper.rb
 #
+# frozen_string_literal: true
+
 # Helper module for managing Puma server lifecycle in integration tests.
 # Handles port allocation, startup with retry, and graceful shutdown.
 #

@@ -1,4 +1,4 @@
-# spec/onetime/migration/config_helpers_spec.rb
+# spec/unit/onetime/migration/config_helpers_spec.rb
 #
 # frozen_string_literal: true
 

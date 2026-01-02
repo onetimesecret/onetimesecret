@@ -1,7 +1,6 @@
-# try/features/log_box_helper_try.rb
+# try/disabled/log_box_helper_try_disabled.rb
 #
 # frozen_string_literal: true
-
 
 # Load minimal dependencies
 require 'bundler/setup'

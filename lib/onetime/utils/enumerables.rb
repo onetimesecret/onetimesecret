@@ -111,6 +111,30 @@ module Onetime
         _type_structure_recursive(obj, 0, max_depth)
       end
 
+      # Recursively normalizes hash keys to strings with depth limiting
+      #
+      # @param obj [Object] The object to normalize (Hash, Array, or scalar)
+      # @param depth [Integer] Current recursion depth (default: 0)
+      # @param max_depth [Integer] Maximum recursion depth (default: 25)
+      # @return [Object] The normalized object with string keys
+      # @raise [OT::Problem] When max depth is exceeded
+      def normalize_keys(obj, depth = 0, max_depth = DEFAULT_MAX_DEPTH)
+        _check_max_depth(depth, max_depth)
+
+        case obj
+        when Hash
+          normalized = {}
+          obj.each do |key, value|
+            normalized[key.to_s] = normalize_keys(value, depth + 1, max_depth)
+          end
+          normalized
+        when Array
+          obj.map { |item| normalize_keys(item, depth + 1, max_depth) }
+        else
+          obj
+        end
+      end
+
       private
 
         # Internal recursive implementation for deep_freeze with depth tracking
@@ -145,27 +169,6 @@ module Onetime
             'nil'
           else
             obj.class.name
-          end
-        end
-
-        # Recursively normalizes hash keys with depth limiting
-        #
-        # This method is already private, so adding depth parameters doesn't
-        # pollute the public API.
-        def normalize_keys(obj, depth = 0, max_depth = DEFAULT_MAX_DEPTH)
-          _check_max_depth(depth, max_depth)
-
-          case obj
-          when Hash
-            normalized = {}
-            obj.each do |key, value|
-              normalized[key.to_s] = normalize_keys(value, depth + 1, max_depth)
-            end
-            normalized
-          when Array
-            obj.map { |item| normalize_keys(item, depth + 1, max_depth) }
-          else
-            obj
           end
         end
 

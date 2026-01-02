@@ -1,4 +1,4 @@
-# scripts/archive/clean_database.rb
+# scripts/clean_database.rb
 #
 # frozen_string_literal: true
 

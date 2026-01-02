@@ -1,4 +1,5 @@
 // src/tests/e2e/billing-blockers.spec.ts
+
 //
 // E2E Tests for Stripe Integration Blockers (Issue #2309)
 //

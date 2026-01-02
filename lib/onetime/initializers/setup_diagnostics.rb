@@ -64,7 +64,7 @@ module Onetime
         Sentry.init do |config|
           config.dsn         = dsn
           config.environment = "#{site_host} (#{OT.env})"
-          config.release     = OT::VERSION.inspect
+          config.release     = OT::VERSION.details
 
           # Configure breadcrumbs logger for detailed error tracking.
           # Uses sentry_logger to capture progression of events leading

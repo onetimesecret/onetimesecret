@@ -4,106 +4,251 @@
 
 require 'spec_helper'
 
-RSpec.xdescribe Core::Logic::Authentication::AuthenticateSession do
-  skip 'Temporarily skipped - added by #1677, extracted from an orphan branch, but never passing yet'
-  subject { described_class.new(session, customer, params, locale) }
+RSpec.describe Core::Logic::Authentication::AuthenticateSession do
+  subject(:logic) { described_class.new(strategy_result, params, 'en') }
 
-  let(:session) { double('Session', short_identifier: 'def456', set_info_message: nil, replace!: nil, save: nil, 'custid=': nil, 'authenticated=': nil, 'default_expiration=': nil) }
-  let(:customer) { double('Customer', custid: 'test@example.com', anonymous?: false, passphrase?: true, pending?: false, role: :customer, role?: true, obscure_email: 'te***@example.com', save: nil) }
-  let(:anonymous_customer) { double('Customer', anonymous?: true) }
-  let(:params) { { login: 'test@example.com', password: 'password123' } }
-  let(:locale) { 'en' }
+  let(:test_email) { 'test@example.com' }
+  let(:test_password) { 'password123' }
+  let(:session_data) { {} }
+
+  let(:rack_session) do
+    session = double('RackSession')
+    allow(session).to receive(:id).and_return(double(public_id: 'sess_def456'))
+    allow(session).to receive(:clear)
+    allow(session).to receive(:replace!)
+    allow(session).to receive(:[]) { |key| session_data[key] }
+    allow(session).to receive(:[]=) { |key, value| session_data[key] = value }
+    session
+  end
+
+  let(:customer) do
+    cust = double('Customer')
+    allow(cust).to receive(:passphrase?).with(test_password).and_return(true)
+    allow(cust).to receive(:passphrase?).with('definitely-wrong').and_return(false)
+    allow(cust).to receive_messages(
+      objid: 'cust_test123',
+      custid: test_email,
+      email: test_email,
+      extid: 'ur_test123',
+      verified: 'true',
+      obscure_email: 'te***@example.com',
+      role: :customer,
+      anonymous?: false,
+      pending?: false,
+      argon2_hash?: true,
+      passphrase: '$argon2id$...'
+    )
+    allow(cust).to receive(:role=)
+    allow(cust).to receive(:save)
+    cust
+  end
+
+  let(:anonymous_customer) do
+    anon = double('AnonymousCustomer')
+    allow(anon).to receive_messages(
+      anonymous?: true,
+      obscure_email: 'anonymous',
+      objid: nil,
+      role: :anonymous
+    )
+    anon
+  end
+
+  let(:strategy_result) do
+    result = double('StrategyResult')
+    allow(result).to receive_messages(
+      session: rack_session,
+      user: anonymous_customer,
+      metadata: { ip: '127.0.0.1' },
+      authenticated?: false
+    )
+    result
+  end
+
+  let(:params) { { 'login' => test_email, 'password' => test_password } }
+
+  let(:mock_logger) { double('Logger', info: nil, warn: nil, error: nil, debug: nil) }
 
   before do
-    allow(Onetime::Customer).to receive_messages(load: customer, anonymous: anonymous_customer)
-    allow(OT).to receive(:info)
-    allow(OT).to receive(:li)
-    allow(OT).to receive(:ld)
-    allow(OT.conf).to receive(:dig).with('site', 'authentication', 'colonels').and_return([])
+    # I18n setup
+    I18n.available_locales = [:en] unless I18n.available_locales.include?(:en)
+    I18n.default_locale = :en
+
+    # Stub OT.conf
+    allow(OT).to receive_messages(
+      conf: {
+        'site' => {
+          'authentication' => {
+            'colonels' => [],
+            'autoverify' => nil,
+          },
+        },
+        'features' => {},
+      },
+      default_locale: 'en'
+    )
+
+    # Stub customer lookup - use a lambda so we can override in tests
+    allow(Onetime::Customer).to receive(:find_by_email).and_return(customer)
+    allow(Onetime::Customer).to receive(:anonymous).and_return(anonymous_customer)
+
+    # Stub logging on the class so it works before subject is created
+    allow_any_instance_of(described_class).to receive(:auth_logger).and_return(mock_logger)
   end
 
   describe '#process_params' do
-    it 'normalizes and stores the potential customer ID' do
-      subject.process_params
-      expect(subject.potential_custid).to eq('test@example.com')
+    it 'normalizes and stores the potential email address' do
+      logic.process_params
+      expect(logic.potential_email_address).to eq('test@example.com')
     end
 
-    it 'strips and downcases the customer ID' do
-      params[:u] = '  TEST@EXAMPLE.COM  '
-      subject.process_params
-      expect(subject.potential_custid).to eq('test@example.com')
+    it 'strips and downcases the email' do
+      params['login'] = '  TEST@EXAMPLE.COM  '
+      logic.process_params
+      expect(logic.potential_email_address).to eq('test@example.com')
     end
 
     it 'sets stay to true by default' do
-      subject.process_params
-      expect(subject.stay).to be true
+      logic.process_params
+      expect(logic.stay).to be true
     end
 
     it 'sets session TTL to 30 days when stay is true' do
-      subject.process_params
-      expect(subject.session_ttl).to eq(30.days.to_i)
+      logic.process_params
+      expect(logic.session_ttl).to eq(30 * 24 * 60 * 60) # 30 days in seconds
     end
 
-    it 'loads customer if they exist and passphrase matches' do
-      allow(customer).to receive(:passphrase?).with('password123').and_return(true)
-      subject.process_params
-      expect(subject.custid).to eq('test@example.com')
+    it 'sets objid when customer exists and passphrase matches' do
+      logic.process_params
+      expect(logic.objid).to eq('cust_test123')
     end
 
-    it 'does not set customer if passphrase does not match' do
-      allow(customer).to receive(:passphrase?).with('password123').and_return(false)
-      subject.process_params
-      expect(subject.custid).to be_nil
+    context 'when passphrase does not match' do
+      let(:customer) do
+        cust = double('Customer')
+        allow(cust).to receive(:passphrase?).and_return(false)
+        allow(cust).to receive_messages(
+          objid: 'cust_test123',
+          email: test_email,
+          argon2_hash?: true,
+          passphrase: '$argon2id$...'
+        )
+        cust
+      end
+
+      it 'does not set objid' do
+        logic.process_params
+        expect(logic.objid).to be_nil
+      end
     end
 
-    it 'does not set customer if customer does not exist' do
-      allow(Onetime::Customer).to receive(:load).and_return(nil)
-      subject.process_params
-      expect(subject.custid).to be_nil
+    context 'when customer does not exist' do
+      before do
+        allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
+      end
+
+      it 'does not set objid' do
+        logic.process_params
+        expect(logic.objid).to be_nil
+      end
     end
   end
 
   describe '#raise_concerns' do
-    context 'when customer is nil' do
-      it 'sets anonymous customer and raises form error' do
-        allow(subject).to receive(:cust).and_return(nil)
-        expect(subject).to receive(:raise_form_error).with('Try again')
-        subject.raise_concerns
+    # Note: The base class (Logic::Base) always ensures @cust is not nil by
+    # setting it to Onetime::Customer.anonymous if strategy_result.user is nil.
+    # Therefore, raise_concerns in this class is effectively a no-op since it
+    # only acts when @cust.nil?. The actual authentication error handling
+    # happens in #process via the success? check.
+
+    context 'when customer exists and authenticated' do
+      before do
+        logic.process_params
+      end
+
+      it 'does not raise any concerns' do
+        expect { logic.raise_concerns }.not_to raise_error
       end
     end
 
-    context 'when customer exists' do
-      it 'does not raise any concerns' do
-        allow(subject).to receive(:cust).and_return(customer)
-        expect { subject.raise_concerns }.not_to raise_error
+    context 'when authentication failed (password mismatch)' do
+      let(:customer) do
+        cust = double('Customer')
+        allow(cust).to receive(:passphrase?).and_return(false)
+        allow(cust).to receive_messages(
+          objid: 'cust_test123',
+          email: test_email,
+          argon2_hash?: true,
+          passphrase: '$argon2id$...'
+        )
+        cust
+      end
+
+      it 'does not raise (error handling is in #process)' do
+        # raise_concerns doesn't handle password failures - that's done in process
+        expect { logic.raise_concerns }.not_to raise_error
       end
     end
   end
 
   describe '#process' do
     before do
-      subject.process_params
-      allow(subject).to receive_messages(success?: true, cust: customer, sess: session)
+      logic.process_params
     end
 
     context 'when authentication is successful' do
       context 'and customer is pending' do
         before do
           allow(customer).to receive(:pending?).and_return(true)
-          allow(subject).to receive(:send_verification_email)
-          allow(subject).to receive(:i18n).and_return({ web: { COMMON: { verification_sent_to: 'Verification sent to' } } })
+          allow(logic).to receive(:send_verification_email)
+          allow(logic).to receive(:set_info_message)
         end
 
-        it 'sends verification email and sets info message' do
-          expect(subject).to receive(:send_verification_email).with(nil)
-          expect(session).to receive(:set_info_message).with('Verification sent to test@example.com.')
-          subject.process
+        context 'when autoverify is disabled' do
+          before do
+            allow(OT).to receive(:conf).and_return({
+              'site' => {
+                'authentication' => {
+                  'colonels' => [],
+                  'autoverify' => 'false',
+                },
+              },
+            })
+          end
+
+          it 'sends verification email' do
+            expect(logic).to receive(:send_verification_email).with(nil)
+            logic.process
+          end
+
+          it 'sets info message about verification' do
+            expect(logic).to receive(:set_info_message).with(a_string_matching(/cust_test123/))
+            logic.process
+          end
+
+          it 'logs pending customer login' do
+            expect(mock_logger).to receive(:info).with('Login pending customer verification', hash_including(:customer_id, :email))
+            expect(mock_logger).to receive(:info).with('Resending verification email (autoverify mode)', hash_including(:customer_id, :email))
+            logic.process
+          end
         end
 
-        it 'logs pending customer login' do
-          expect(OT).to receive(:info).with('[login-pending-customer] def456 test@example.com customer (pending)')
-          expect(OT).to receive(:li).with('[ResetPasswordRequest] Resending verification email to test@example.com')
-          subject.process
+        context 'when autoverify is enabled' do
+          before do
+            allow(OT).to receive(:conf).and_return({
+              'site' => {
+                'authentication' => {
+                  'colonels' => [],
+                  'autoverify' => 'true',
+                },
+              },
+            })
+          end
+
+          it 'does not send verification email' do
+            expect(logic).not_to receive(:send_verification_email)
+            logic.process
+          end
         end
       end
 
@@ -113,80 +258,112 @@ RSpec.xdescribe Core::Logic::Authentication::AuthenticateSession do
         end
 
         it 'sets greenlighted to true' do
-          subject.process
-          expect(subject.greenlighted).to be true
+          logic.process
+          expect(logic.greenlighted).to be true
         end
 
-        it 'replaces the session' do
-          expect(session).to receive(:replace!)
-          subject.process
+        it 'regenerates the session' do
+          expect(rack_session).to receive(:clear)
+          expect(rack_session).to receive(:replace!)
+          logic.process
         end
 
         it 'sets session authentication fields' do
-          expect(session).to receive(:custid=).with('test@example.com')
-          expect(session).to receive(:authenticated=).with('true')
-          expect(session).to receive(:default_expiration=).with(30.days.to_i)
-          subject.process
+          logic.process
+          expect(session_data['external_id']).to eq('ur_test123')
+          expect(session_data['authenticated']).to be true
+          expect(session_data['authenticated_at']).to be_a(Integer)
         end
 
-        it 'saves session and customer' do
-          expect(session).to receive(:save)
+        it 'saves customer' do
           expect(customer).to receive(:save)
-          subject.process
+          logic.process
         end
 
         it 'logs successful login' do
-          expect(OT).to receive(:info).with('[login-success] def456 te***@example.com customer (replacing sessid)')
-          expect(OT).to receive(:info).with('[login-success] def456 te***@example.com customer (new sessid)')
-          subject.process
+          expect(mock_logger).to receive(:info).with('Login successful', hash_including(:user_id, :email, :role))
+          logic.process
         end
 
-        it 'sets customer role based on colonel list' do
-          allow(OT.conf).to receive(:dig).with('site', 'authentication', 'colonels').and_return(['test@example.com'])
+        it 'sets customer role to colonel when in colonel list' do
+          allow(OT).to receive(:conf).and_return({
+            'site' => {
+              'authentication' => {
+                'colonels' => ['test@example.com'],
+                'autoverify' => nil,
+              },
+            },
+          })
           expect(customer).to receive(:role=).with(:colonel)
-          subject.process
+          logic.process
         end
 
         it 'sets default customer role when not a colonel' do
-          allow(customer).to receive(:role?).with(:customer).and_return(false)
           expect(customer).to receive(:role=).with(:customer)
-          subject.process
+          logic.process
         end
       end
     end
 
     context 'when authentication fails' do
       before do
-        allow(subject).to receive(:success?).and_return(false)
+        allow(customer).to receive(:passphrase?).with(test_password).and_return(false)
+        # Need to re-run process_params after changing the stub
+        logic.process_params
       end
 
       it 'logs failure and raises form error' do
-        expect(OT).to receive(:ld).with('[login-failure] def456 te***@example.com customer (failed)')
-        expect(subject).to receive(:raise_form_error).with('Try again')
-        subject.process
+        expect(mock_logger).to receive(:warn).with('Login failed', hash_including(:email, :reason))
+        expect { logic.process }.to raise_error(Onetime::FormError) do |error|
+          expect(error.message).to eq('Invalid email or password')
+        end
       end
     end
   end
 
   describe '#success?' do
-    before do
-      subject.process_params
-      allow(subject).to receive(:cust).and_return(customer)
+    context 'when customer is not anonymous and passphrase matches' do
+      before do
+        logic.process_params
+      end
+
+      it 'returns true' do
+        expect(logic.success?).to be true
+      end
     end
 
-    it 'returns true when customer is not anonymous and passphrase matches' do
-      allow(customer).to receive_messages(anonymous?: false, passphrase?: true)
-      expect(subject.success?).to be true
+    context 'when customer does not exist' do
+      before do
+        allow(Onetime::Customer).to receive(:find_by_email).and_return(nil)
+        logic.process_params
+      end
+
+      it 'returns false' do
+        expect(logic.success?).to be false
+      end
     end
 
-    it 'returns false when customer is anonymous' do
-      allow(customer).to receive(:anonymous?).and_return(true)
-      expect(subject.success?).to be false
-    end
+    context 'when passphrase does not match' do
+      let(:customer) do
+        cust = double('Customer')
+        allow(cust).to receive(:passphrase?).and_return(false)
+        allow(cust).to receive_messages(
+          objid: 'cust_test123',
+          email: test_email,
+          anonymous?: false,
+          argon2_hash?: true,
+          passphrase: '$argon2id$...'
+        )
+        cust
+      end
 
-    it 'returns false when passphrase does not match' do
-      allow(customer).to receive_messages(anonymous?: false, passphrase?: false)
-      expect(subject.success?).to be false
+      before do
+        logic.process_params
+      end
+
+      it 'returns false' do
+        expect(logic.success?).to be false
+      end
     end
   end
 
@@ -198,7 +375,7 @@ RSpec.xdescribe Core::Logic::Authentication::AuthenticateSession do
 
     it 'limits password length to max_length' do
       long_password = 'a' * 200
-      result        = described_class.normalize_password(long_password, 10)
+      result = described_class.normalize_password(long_password, 10)
       expect(result.length).to eq(10)
     end
 
@@ -208,31 +385,17 @@ RSpec.xdescribe Core::Logic::Authentication::AuthenticateSession do
     end
   end
 
-  describe 'V2 specific features' do
-    it 'uses updated string formatting in form errors' do
-      allow(subject).to receive(:cust).and_return(nil)
-      expect(subject).to receive(:raise_form_error).with('Try again')
-      subject.raise_concerns
-    end
-
-    it 'maintains consistent behavior with V1 but uses V2 models' do
-      expect(Onetime::Customer).to receive(:load).with('test@example.com')
-      subject.process_params
-    end
-  end
-
   describe 'security considerations' do
     it 'does not log the actual password' do
-      expect(OT).not_to receive(:info).with(a_string_matching(/password123/))
-      expect(OT).not_to receive(:ld).with(a_string_matching(/password123/))
-      subject.process_params
+      expect(mock_logger).not_to receive(:info).with(a_string_matching(/password123/))
+      expect(mock_logger).not_to receive(:warn).with(a_string_matching(/password123/))
+      logic.process_params
     end
 
-    it 'uses obscured email in logs' do
-      allow(subject).to receive(:success?).and_return(true)
-      allow(customer).to receive(:pending?).and_return(false)
-      expect(OT).to receive(:info).with(a_string_matching(/te\*\*\*@example\.com/))
-      subject.process
+    it 'uses obscured email in logs for successful login' do
+      logic.process_params
+      expect(mock_logger).to receive(:info).with('Login successful', hash_including(email: 'te***@example.com'))
+      logic.process
     end
   end
 end

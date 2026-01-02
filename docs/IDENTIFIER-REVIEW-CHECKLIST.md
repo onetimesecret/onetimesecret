@@ -201,4 +201,4 @@ buildEntityPath('org', org.id);  // Type error!
 
 - [OWASP IDOR Testing Guide](https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/05-Authorization_Testing/04-Testing_for_Insecure_Direct_Object_References)
 - `src/types/identifiers.ts` - Branded type definitions
-- `eslint-rules/no-internal-id-in-url.ts` - ESLint rule implementation
+- `src/build/eslint/no-internal-id-in-url.ts` - ESLint rule implementation

@@ -1,4 +1,4 @@
-# spec/unit/boot/initializer_registry_spec.rb
+# spec/unit/onetime/boot/initializer_registry_spec.rb
 #
 # frozen_string_literal: true
 

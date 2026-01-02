@@ -1,4 +1,4 @@
-# spec/integration/rodauth_hooks_spec.rb
+# spec/integration/full/rodauth_hooks_spec.rb
 #
 # frozen_string_literal: true
 

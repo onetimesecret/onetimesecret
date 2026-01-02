@@ -1,4 +1,5 @@
 // src/shared/composables/useTestPlanMode.ts
+
 //
 // Focused composable for colonel test plan mode.
 // Provides a clean API for checking and displaying test mode state.

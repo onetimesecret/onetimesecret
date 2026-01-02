@@ -1,4 +1,4 @@
-# spec/concurrency/fork_hooks_thread_safety_spec.rb
+# spec/unit/onetime/initializers/fork_hooks_thread_safety_spec.rb
 #
 # frozen_string_literal: true
 

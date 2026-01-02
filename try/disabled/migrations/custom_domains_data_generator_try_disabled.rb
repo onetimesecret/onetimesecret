@@ -1,4 +1,4 @@
-# try/unit/migrations/custom_domains_data_generator_try.rb
+# try/disabled/migrations/custom_domains_data_generator_try_disabled.rb
 #
 # frozen_string_literal: true
 

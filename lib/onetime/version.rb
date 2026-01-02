@@ -17,7 +17,7 @@ module Onetime
       version
     end
 
-    def self.inspect
+    def self.details
       load_config
       build = (@version || {}).fetch(:BUILD, nil).to_s
       build.empty? ? to_s : "#{self} (#{build})"

@@ -124,6 +124,7 @@ module Core::Logic
 
         # Clear old session data to prevent session fixation
         sess.clear
+        sess.replace! if sess.respond_to?(:replace!)
 
         # Set session authentication data
         sess['external_id']      = cust.extid

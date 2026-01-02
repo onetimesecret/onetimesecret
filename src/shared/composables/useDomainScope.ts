@@ -1,4 +1,5 @@
 // src/shared/composables/useDomainScope.ts
+
 /**
  * Domain Scope Composable
  *

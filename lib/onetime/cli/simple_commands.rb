@@ -9,7 +9,7 @@ module Onetime
       desc 'Display version information'
 
       def call(**)
-        puts format('Onetime %s', OT::VERSION.inspect)
+        puts format('Onetime %s', OT::VERSION.details)
       end
     end
 

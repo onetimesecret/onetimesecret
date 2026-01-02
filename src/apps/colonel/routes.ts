@@ -1,4 +1,4 @@
-// src/router/colonel.routes.ts
+// src/apps/colonel/routes.ts
 
 import ColonelLayout from '@/apps/colonel/layouts/ColonelLayout.vue';
 import { RouteRecordRaw } from 'vue-router';

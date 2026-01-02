@@ -1,4 +1,4 @@
-# apps/web/auth/spec/routes/availability_spec.rb
+# spec/integration/full/routes/availability_spec.rb
 #
 # frozen_string_literal: true
 

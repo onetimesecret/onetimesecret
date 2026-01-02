@@ -1,8 +1,5 @@
 # try/unit/helpers/homepage_mode/cidr_compilation_try.rb
 #
-# Tests for compile_homepage_cidrs and validate_cidr_privacy methods
-# in Onetime::Helpers::HomepageModeHelpers
-#
 # frozen_string_literal: true
 
 require_relative '../../../support/test_helpers'

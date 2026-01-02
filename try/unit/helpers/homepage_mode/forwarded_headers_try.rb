@@ -1,8 +1,5 @@
 # try/unit/helpers/homepage_mode/forwarded_headers_try.rb
 #
-# Tests for extract_forwarded_ips, extract_x_forwarded_for, and
-# extract_rfc7239_forwarded methods in Onetime::Helpers::HomepageModeHelpers
-#
 # frozen_string_literal: true
 
 require_relative '../../../support/test_helpers'

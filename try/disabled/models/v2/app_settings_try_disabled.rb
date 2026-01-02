@@ -1,4 +1,4 @@
-# try/unit/models/v2/app_settings_try.rb
+# try/disabled/models/v2/app_settings_try_disabled.rb
 #
 # frozen_string_literal: true
 

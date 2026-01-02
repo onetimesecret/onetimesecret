@@ -1,4 +1,4 @@
-# spec/lib/onetime/initializers/setup_loggers_spec.rb
+# spec/unit/onetime/initializers/setup_loggers_spec.rb
 #
 # frozen_string_literal: true
 

@@ -105,24 +105,7 @@ module Onetime
       OT.mode = mode unless mode.nil?
       OT.env  = ENV['RACK_ENV'] || 'production'
 
-      # Kubernetes-style state guard with pattern matching (Ruby 3.0+)
-      # Handles all four states explicitly to prevent ambiguity
-      case [boot_state, OT.testing?]
-      in [BOOT_STARTED, true]
-        return  # Idempotent in test mode
-      in [BOOT_STARTED, false]
-        raise OT::Problem, 'Boot already completed'
-      in [BOOT_STARTING, _]
-        raise OT::Problem, 'Boot already in progress'
-      in [BOOT_FAILED, true]
-        reset_ready!  # Allow retry in test mode
-      in [BOOT_FAILED, false]
-        raise OT::Problem, "Boot previously failed: #{boot_error&.message}"
-      in [BOOT_NOT_STARTED, _]
-        # Proceed normally - this is the expected initial state
-      else
-        raise OT::Problem, "Unknown boot state: #{boot_state}"
-      end
+      boot_guard!
 
       starting!
 
@@ -319,6 +302,27 @@ module Onetime
     end
 
     private
+
+    def boot_guard!
+      # Kubernetes-style state guard with pattern matching (Ruby 3.0+)
+      # Handles all four states explicitly to prevent ambiguity
+      case [boot_state, OT.testing?]
+      in [BOOT_STARTED, true]
+        # Idempotent in test mode
+      in [BOOT_STARTED, false]
+        raise OT::Problem, 'Boot already completed'
+      in [BOOT_STARTING, _]
+        raise OT::Problem, 'Boot already in progress'
+      in [BOOT_FAILED, true]
+        reset_ready!  # Allow retry in test mode
+      in [BOOT_FAILED, false]
+        raise OT::Problem, "Boot previously failed: #{boot_error&.message}"
+      in [BOOT_NOT_STARTED, _]
+        # Proceed normally - this is the expected initial state
+      else
+        raise OT::Problem, "Unknown boot state: #{boot_state}"
+      end
+    end
 
     def ssl_enabled?
       conf&.dig('site', 'ssl') || env == 'production'

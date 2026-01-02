@@ -1,4 +1,4 @@
-# spec/integration/api/colonel/entitlement_test_spec.rb
+# spec/integration/all/entitlement_test_spec.rb
 #
 # frozen_string_literal: true
 

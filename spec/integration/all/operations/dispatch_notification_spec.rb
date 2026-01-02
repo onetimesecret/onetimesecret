@@ -1,4 +1,4 @@
-# spec/onetime/operations/dispatch_notification_spec.rb
+# spec/integration/all/operations/dispatch_notification_spec.rb
 #
 # frozen_string_literal: true
 
