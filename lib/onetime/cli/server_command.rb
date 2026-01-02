@@ -25,7 +25,7 @@
 module Onetime
   module CLI
     class ServerCommand < DelayBootCommand
-      CURRENT_ENVIRONMENT = ENV.fetch('RACK_ENV', 'production')
+      CURRENT_ENVIRONMENT = ENV.fetch('RACK_ENV', 'development')
 
       desc 'Start the web server (Puma or Thin)'
 
@@ -36,7 +36,7 @@ module Onetime
       option :port, type: :integer, default: 7143, aliases: ['p'],
         desc: 'Port to bind to'
       option :environment, type: :string, default: CURRENT_ENVIRONMENT, aliases: ['e'],
-        desc: 'Environment to run in (default: $RACK_ENV or production)'
+        desc: 'Environment to run in (default: $RACK_ENV or development)'
       option :threads, type: :string, default: '2:4', aliases: ['t'],
         desc: 'Thread pool size for Puma'
       option :workers, type: :integer, default: 0, aliases: ['w'],
