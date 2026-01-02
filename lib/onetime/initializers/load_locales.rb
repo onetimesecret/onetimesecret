@@ -165,7 +165,7 @@ module Onetime
 
       def load_split_locale(loc, locale_dir)
         # Glob all JSON files in deterministic order (alphabetical)
-        json_files = Dir.glob(File.join(locale_dir, '*.json')).sort
+        json_files = Dir.glob(File.join(locale_dir, '*.json'))
 
         if json_files.empty?
           OT.le "[i18n] No JSON files found in locale directory: #{locale_dir}"
@@ -239,7 +239,7 @@ module Onetime
           locale_file = File.join(LOCALES_ROOT, "#{loc}.json")
 
           if Dir.exist?(locale_dir)
-            all_files += Dir.glob(File.join(locale_dir, '*.json')).sort
+            all_files += Dir.glob(File.join(locale_dir, '*.json'))
           elsif File.exist?(locale_file)
             all_files << locale_file
           end

@@ -21,14 +21,7 @@ module Onetime
 
         customer = Stripe::Customer.retrieve(customer_id)
 
-        puts 'Customer Details:'
-        puts "  ID: #{customer.id}"
-        puts "  Email: #{customer.email}"
-        puts "  Name: #{customer.name}" if customer.name
-        puts "  Created: #{format_timestamp(customer.created)}"
-        puts "  Currency: #{customer.currency}" if customer.currency
-        puts "  Balance: #{format_amount(customer.balance, customer.currency || 'usd')}"
-        puts
+        print_customer_summary(customer)
 
         # Payment methods
         payment_methods = Stripe::PaymentMethod.list({
@@ -80,6 +73,19 @@ module Onetime
         end
       rescue Stripe::StripeError => ex
         puts "Error retrieving customer: #{ex.message}"
+      end
+
+      private
+
+      def print_customer_summary(customer)
+        puts 'Customer Details:'
+        puts "  ID: #{customer.id}"
+        puts "  Email: #{customer.email}"
+        puts "  Name: #{customer.name}" if customer.name
+        puts "  Created: #{format_timestamp(customer.created)}"
+        puts "  Currency: #{customer.currency}" if customer.currency
+        puts "  Balance: #{format_amount(customer.balance, customer.currency || 'usd')}"
+        puts
       end
     end
   end

@@ -169,7 +169,7 @@ module Billing
       nil
     end
 
-    class << self
+    module ClassMethods
       # Refresh plan cache from Stripe API
       #
       # Fetches all active products and prices from Stripe, filters by app metadata,
@@ -783,5 +783,7 @@ module Billing
         }
       end
     end
+
+    extend ClassMethods
   end
 end

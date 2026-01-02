@@ -514,129 +514,133 @@ module Billing
         json_error('Failed to change plan', status: 500)
       end
 
-      private
+      module PrivateMethods
+        private
 
-      # Check if invoice line item is a proration
-      #
-      # In Stripe API 2023+, proration status moved to parent details.
-      # Checks both invoice_item_details and subscription_item_details.
-      #
-      # @param line [Stripe::InvoiceLineItem] Invoice line item
-      # @return [Boolean] True if line is a proration
-      def line_is_proration?(line)
-        parent = line.parent
-        return false unless parent
+        # Check if invoice line item is a proration
+        #
+        # In Stripe API 2023+, proration status moved to parent details.
+        # Checks both invoice_item_details and subscription_item_details.
+        #
+        # @param line [Stripe::InvoiceLineItem] Invoice line item
+        # @return [Boolean] True if line is a proration
+        def line_is_proration?(line)
+          parent = line.parent
+          return false unless parent
 
-        # Check both possible parent types for proration flag
-        parent.invoice_item_details&.proration ||
-          parent.subscription_item_details&.proration ||
-          false
-      end
-
-      # Validate plan change request parameters
-      #
-      # Checks common validation rules for plan change operations.
-      # Returns [true, nil] if valid, [false, error_response] if invalid.
-      #
-      # @param org [Onetime::Organization] Organization instance
-      # @param new_price_id [String, nil] Stripe price ID to switch to
-      # @return [Array<(Boolean, Object)>] [valid?, error_response_or_nil]
-      def validate_plan_change_request(org, new_price_id)
-        # Guard: missing new_price_id
-        unless new_price_id
-          return [false, json_error('Missing new_price_id', status: 400)]
+          # Check both possible parent types for proration flag
+          parent.invoice_item_details&.proration ||
+            parent.subscription_item_details&.proration ||
+            false
         end
 
-        # Guard: no active subscription
-        unless org.active_subscription?
-          return [false, json_error('No active subscription to modify', status: 400)]
+        # Validate plan change request parameters
+        #
+        # Checks common validation rules for plan change operations.
+        # Returns [true, nil] if valid, [false, error_response] if invalid.
+        #
+        # @param org [Onetime::Organization] Organization instance
+        # @param new_price_id [String, nil] Stripe price ID to switch to
+        # @return [Array<(Boolean, Object)>] [valid?, error_response_or_nil]
+        def validate_plan_change_request(org, new_price_id)
+          # Guard: missing new_price_id
+          unless new_price_id
+            return [false, json_error('Missing new_price_id', status: 400)]
+          end
+
+          # Guard: no active subscription
+          unless org.active_subscription?
+            return [false, json_error('No active subscription to modify', status: 400)]
+          end
+
+          [true, nil]
         end
 
-        [true, nil]
-      end
+        # Validate target plan is valid (in catalog and not legacy)
+        #
+        # Called AFTER same-plan check to maintain proper error ordering.
+        #
+        # @param new_price_id [String] Stripe price ID to switch to
+        # @return [Array<(Boolean, Object)>] [valid?, error_response_or_nil]
+        def validate_target_plan(new_price_id)
+          # Guard: unknown price ID (not in our plan catalog)
+          target_plan_id = price_id_to_plan_id(new_price_id)
+          if target_plan_id.nil?
+            return [false, json_error('Invalid price ID', status: 400)]
+          end
 
-      # Validate target plan is valid (in catalog and not legacy)
-      #
-      # Called AFTER same-plan check to maintain proper error ordering.
-      #
-      # @param new_price_id [String] Stripe price ID to switch to
-      # @return [Array<(Boolean, Object)>] [valid?, error_response_or_nil]
-      def validate_target_plan(new_price_id)
-        # Guard: unknown price ID (not in our plan catalog)
-        target_plan_id = price_id_to_plan_id(new_price_id)
-        if target_plan_id.nil?
-          return [false, json_error('Invalid price ID', status: 400)]
+          # Guard: legacy plan
+          if Billing::PlanHelpers.legacy_plan?(target_plan_id)
+            return [false, json_error('This plan is not available', status: 400)]
+          end
+
+          [true, nil]
         end
 
-        # Guard: legacy plan
-        if Billing::PlanHelpers.legacy_plan?(target_plan_id)
-          return [false, json_error('This plan is not available', status: 400)]
+        # Convert Stripe price ID to plan ID
+        #
+        # Looks up the plan associated with a Stripe price ID using cached lookup.
+        #
+        # @param price_id [String] Stripe price ID
+        # @return [String, nil] Plan ID or nil if not found
+        def price_id_to_plan_id(price_id)
+          ::Billing::Plan.find_by_stripe_price_id(price_id)&.plan_id
         end
 
-        [true, nil]
+        # Build subscription data for response
+        #
+        # @param org [Onetime::Organization] Organization instance
+        # @return [Hash] Subscription data
+        def build_subscription_data(org)
+          return nil unless org.stripe_subscription_id
+
+          {
+            id: org.stripe_subscription_id,
+            status: org.subscription_status,
+            period_end: org.subscription_period_end,
+            active: org.active_subscription?,
+            past_due: org.past_due?,
+            canceled: org.canceled?,
+          }
+        end
+
+        # Build plan data for response
+        #
+        # @param org [Onetime::Organization] Organization instance
+        # @return [Hash, nil] Plan data or nil if no plan
+        def build_plan_data(org)
+          return nil unless org.planid
+
+          plan = ::Billing::Plan.load(org.planid)
+          return nil unless plan
+
+          {
+            id: plan.plan_id,
+            name: plan.name,
+            tier: plan.tier,
+            interval: plan.interval,
+            amount: plan.amount,
+            currency: plan.currency,
+            features: plan.features.to_a,
+            limits: plan.limits_hash,
+          }
+        end
+
+        # Build usage data for response
+        #
+        # @param org [Onetime::Organization] Organization instance
+        # @return [Hash] Usage data
+        def build_usage_data(org)
+          # Basic member counts (teams removed from data schema)
+          # Future: Add secret counts, API usage, etc.
+          {
+            members: org.member_count,
+            domains: org.domain_count,
+          }
+        end
       end
 
-      # Convert Stripe price ID to plan ID
-      #
-      # Looks up the plan associated with a Stripe price ID using cached lookup.
-      #
-      # @param price_id [String] Stripe price ID
-      # @return [String, nil] Plan ID or nil if not found
-      def price_id_to_plan_id(price_id)
-        ::Billing::Plan.find_by_stripe_price_id(price_id)&.plan_id
-      end
-
-      # Build subscription data for response
-      #
-      # @param org [Onetime::Organization] Organization instance
-      # @return [Hash] Subscription data
-      def build_subscription_data(org)
-        return nil unless org.stripe_subscription_id
-
-        {
-          id: org.stripe_subscription_id,
-          status: org.subscription_status,
-          period_end: org.subscription_period_end,
-          active: org.active_subscription?,
-          past_due: org.past_due?,
-          canceled: org.canceled?,
-        }
-      end
-
-      # Build plan data for response
-      #
-      # @param org [Onetime::Organization] Organization instance
-      # @return [Hash, nil] Plan data or nil if no plan
-      def build_plan_data(org)
-        return nil unless org.planid
-
-        plan = ::Billing::Plan.load(org.planid)
-        return nil unless plan
-
-        {
-          id: plan.plan_id,
-          name: plan.name,
-          tier: plan.tier,
-          interval: plan.interval,
-          amount: plan.amount,
-          currency: plan.currency,
-          features: plan.features.to_a,
-          limits: plan.limits_hash,
-        }
-      end
-
-      # Build usage data for response
-      #
-      # @param org [Onetime::Organization] Organization instance
-      # @return [Hash] Usage data
-      def build_usage_data(org)
-        # Basic member counts (teams removed from data schema)
-        # Future: Add secret counts, API usage, etc.
-        {
-          members: org.member_count,
-          domains: org.domain_count,
-        }
-      end
+      include PrivateMethods
     end
   end
 end
