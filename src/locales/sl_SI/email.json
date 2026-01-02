@@ -13,7 +13,7 @@
     },
     "welcome": {
       "subject": "Preverite svoj račun Onetime Secret",
-      "title": "Povabljeni ste k pridružitvi organizaciji %{organization_name}!",
+      "title": "Povabljeni ste k pridružitvi organizaciji %{product_name}!",
       "verify_prompt": "Prosimo, potrdite svoj e-poštni naslov s klikom na spodnjo povezavo:",
       "verify_button": "Potrdi e-poštni naslov",
       "copy_link_prompt": "Ali kopirajte in prilepite to povezavo:",

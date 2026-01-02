@@ -13,12 +13,12 @@
     },
     "welcome": {
       "subject": "Überprüfen Sie Ihr Onetime Secret-Konto",
-      "title": "Sie wurden eingeladen, %{organization_name} beizutreten!",
+      "title": "Sie wurden eingeladen, %{product_name} beizutreten!",
       "verify_prompt": "Bitte bestätigen Sie Ihre E-Mail-Adresse, indem Sie auf den untenstehenden Link klicken:",
       "verify_button": "E-Mail-Adresse bestätigen",
       "copy_link_prompt": "Oder kopieren Sie diesen Link:",
       "signature": "Delano",
-      "postscript": "P.S. Diese E-Mail wurde an %{invited_email} gesendet. Wenn Sie diese Einladung nicht erwartet haben, können Sie diese Nachricht ignorieren."
+      "postscript": "P.S. Diese E-Mail wurde an %{email_address} gesendet. Wenn Sie diese Einladung nicht erwartet haben, können Sie diese Nachricht ignorieren."
     },
     "password_request": {
       "subject": "Passwort zurücksetzen (%{display_domain})",

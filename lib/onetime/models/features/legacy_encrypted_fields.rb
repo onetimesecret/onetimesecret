@@ -180,16 +180,16 @@ module Onetime
           end
 
           def encryption_key_v1 *_ignored
-            Onetime::Secret.encryption_key key, passphrase_temp
+            Onetime::Secret.encryption_key identifier, passphrase_temp
           end
 
           def encryption_key_v2 *_ignored
-            Onetime::Secret.encryption_key OT.global_secret, key, passphrase_temp
+            Onetime::Secret.encryption_key OT.global_secret, identifier, passphrase_temp
           end
 
           # Used as a failover key when experimental.allow_nil_global_secret is true.
           def encryption_key_v2_with_nil
-            Onetime::Secret.encryption_key nil, key, passphrase_temp
+            Onetime::Secret.encryption_key nil, identifier, passphrase_temp
           end
 
           def update_passphrase!(val, algorithm: :argon2)

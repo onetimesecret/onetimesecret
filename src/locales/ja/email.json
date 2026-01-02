@@ -13,12 +13,12 @@
     },
     "welcome": {
       "subject": "Onetime Secretアカウントを確認してください",
-      "title": "%{organization_name}に招待されました！",
+      "title": "%{product_name}に招待されました！",
       "verify_prompt": "以下のリンクをクリックしてメールアドレスを確認してください：",
       "verify_button": "メールアドレスを確認",
       "copy_link_prompt": "または、このリンクをコピーしてください：",
       "signature": "デラノ",
-      "postscript": "追伸：このメールは%{invited_email}宛に送信されました。この招待に心当たりがない場合は、このメッセージを無視しても問題ありません。"
+      "postscript": "追伸：このメールは%{email_address}宛に送信されました。この招待に心当たりがない場合は、このメッセージを無視しても問題ありません。"
     },
     "password_request": {
       "subject": "パスワードをリセット（%{display_domain}）",

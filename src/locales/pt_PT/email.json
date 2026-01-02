@@ -13,12 +13,12 @@
     },
     "welcome": {
       "subject": "Verifique a sua conta Onetime Secret",
-      "title": "Foi convidado para se juntar a %{organization_name}!",
+      "title": "Foi convidado para se juntar a %{product_name}!",
       "verify_prompt": "Por favor, verifique o seu endereço de email clicando no link abaixo:",
       "verify_button": "Verificar Endereço de Email",
       "copy_link_prompt": "Ou copie e cole este link:",
       "signature": "Delano",
-      "postscript": "P.S. Este e-mail foi enviado para %{invited_email}. Se não estava à espera deste convite, pode ignorar esta mensagem com segurança."
+      "postscript": "P.S. Este e-mail foi enviado para %{email_address}. Se não estava à espera deste convite, pode ignorar esta mensagem com segurança."
     },
     "password_request": {
       "subject": "Redefinir a sua senha (%{display_domain})",

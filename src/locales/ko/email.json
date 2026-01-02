@@ -13,12 +13,12 @@
     },
     "welcome": {
       "subject": "Onetime Secret 계정을 인증하세요",
-      "title": "%{organization_name}에 초대되었습니다!",
+      "title": "%{product_name}에 초대되었습니다!",
       "verify_prompt": "아래 링크를 클릭하여 이메일 주소를 인증해 주세요:",
       "verify_button": "이메일 주소 인증",
       "copy_link_prompt": "또는 이 링크를 복사하여 붙여넣기:",
       "signature": "Delano",
-      "postscript": "추신: 이 이메일은 %{invited_email}로 전송되었습니다. 이 초대를 예상하지 못했다면 이 메시지를 무시하셔도 됩니다."
+      "postscript": "추신: 이 이메일은 %{email_address}로 전송되었습니다. 이 초대를 예상하지 못했다면 이 메시지를 무시하셔도 됩니다."
     },
     "password_request": {
       "subject": "비밀번호 재설정 (%{display_domain})",

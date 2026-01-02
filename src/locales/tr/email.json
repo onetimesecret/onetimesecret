@@ -13,12 +13,12 @@
     },
     "welcome": {
       "subject": "Onetime Secret hesabınızı doğrulayın",
-      "title": "%{organization_name} organizasyonuna katılmaya davet edildiniz!",
+      "title": "%{product_name} organizasyonuna katılmaya davet edildiniz!",
       "verify_prompt": "Lütfen aşağıdaki bağlantıya tıklayarak e-posta adresinizi doğrulayın:",
       "verify_button": "E-posta Adresini Doğrula",
       "copy_link_prompt": "Veya bu bağlantıyı kopyalayıp yapıştırın:",
       "signature": "Delano",
-      "postscript": "Not: Bu e-posta %{invited_email} adresine gönderildi. Bu daveti beklemiyorsanız, bu mesajı güvenle görmezden gelebilirsiniz."
+      "postscript": "Not: Bu e-posta %{email_address} adresine gönderildi. Bu daveti beklemiyorsanız, bu mesajı güvenle görmezden gelebilirsiniz."
     },
     "password_request": {
       "subject": "Parolanızı sıfırlayın (%{display_domain})",

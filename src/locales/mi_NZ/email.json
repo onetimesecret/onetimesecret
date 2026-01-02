@@ -13,12 +13,12 @@
     },
     "welcome": {
       "subject": "Whakaūngia tō pūkete Onetime Secret",
-      "title": "Kua pōwhiritia koe ki te hono ki %{organization_name}!",
+      "title": "Kua pōwhiritia koe ki te hono ki %{product_name}!",
       "verify_prompt": "Tēnā manatokohia tō wāhitau īmēra mā te pāwhiri i te hononga i raro:",
       "verify_button": "Manatoko Wāhitau Īmēra",
       "copy_link_prompt": "Tārua, whakapiri rānei i tēnei hononga:",
       "signature": "Delano",
-      "postscript": "P.S. I tukuna tēnei īmēra ki %{invited_email}. Mēnā kāore koe i te tūmanako i tēnei pōwhiri, ka taea e koe te karo haumaru i tēnei karere."
+      "postscript": "P.S. I tukuna tēnei īmēra ki %{email_address}. Mēnā kāore koe i te tūmanako i tēnei pōwhiri, ka taea e koe te karo haumaru i tēnei karere."
     },
     "password_request": {
       "subject": "Tautuhi anō tō kupuhipa (%{display_domain})",
