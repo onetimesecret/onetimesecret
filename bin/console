@@ -1,5 +1,8 @@
+#!/usr/bin/env bash
 # bin/console
 
-source .env.sh
+if [ -f .env.sh ]; then
+  source .env.sh
+fi
 
 bundle exec bin/ots console
