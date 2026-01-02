@@ -76,7 +76,8 @@ jobs:
       oci: ${{ steps.compute.outputs.oci }}
       ga_workflow_files: ${{ steps.compute.outputs.ga_workflow_files }}
     steps:
-      - name: Checkout code
+      - &checkout-step
+        name: Checkout code
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
 
       - name: Check for CI flags
@@ -198,8 +199,7 @@ jobs:
     needs: [changes]
     if: needs.changes.outputs.ruby == 'true'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - *checkout-step
 
       - uses: ruby/setup-ruby@ab177d40ee5483edb974554986f56b33477e21d0
         with:
@@ -229,8 +229,7 @@ jobs:
     needs: [changes]
     if: needs.changes.outputs.typescript == 'true'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - *checkout-step
 
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
@@ -248,8 +247,7 @@ jobs:
     needs: [changes]
     if: needs.changes.outputs.typescript == 'true'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - *checkout-step
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -275,8 +273,7 @@ jobs:
     needs: [changes]
     if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.ruby == 'true'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - *checkout-step
 
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
@@ -320,8 +317,7 @@ jobs:
           - 2121:6379
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - *checkout-step
 
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
@@ -344,8 +340,7 @@ jobs:
       needs.changes.outputs.typescript == 'true' &&
       (needs.typescript-lint.result == 'success' || needs.typescript-lint.result == 'skipped')
     steps:
-      - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - *checkout-step
 
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node-env
@@ -376,8 +371,7 @@ jobs:
       redis: *valkey-service
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - *checkout-step
 
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
@@ -400,8 +394,7 @@ jobs:
       redis: *valkey-service
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - *checkout-step
 
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
@@ -438,8 +431,7 @@ jobs:
           - 5432:5432
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - *checkout-step
 
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
@@ -464,8 +456,7 @@ jobs:
       redis: *valkey-service
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - *checkout-step
 
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
@@ -508,8 +499,7 @@ jobs:
       redis: *valkey-service
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - *checkout-step
 
       - name: Download frontend assets
         uses: ./.github/actions/download-frontend-assets
@@ -537,8 +527,161 @@ jobs:
           wait-interval: '2'
 
   # ============================================================================
-  # TIER 5: CI METRICS VALIDATION (runs last)
+  # TIER 5: TEST AGGREGATION & CI METRICS (runs last)
   # ============================================================================
+
+  aggregate-test-results:
+    name: T5 · Aggregate Test Results
+    runs-on: *runs-on
+    timeout-minutes: 5
+    needs:
+      - ruby-unit
+      - ruby-integration-simple
+      - ruby-integration-full-sqlite
+      - ruby-integration-full-postgres
+      - ruby-integration-disabled
+      - typescript-unit
+    if: always()
+
+    steps:
+      - name: Download all test result artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          pattern: '*-results'
+          path: test-results/
+          merge-multiple: true
+        continue-on-error: true
+
+      - name: List downloaded artifacts
+        run: |
+          echo "::group::Downloaded test results"
+          if [ -d "test-results" ]; then
+            find test-results -type f -name "*.json" | head -20
+          else
+            echo "No test-results directory found"
+          fi
+          echo "::endgroup::"
+
+      - name: Generate unified test report
+        id: aggregate
+        run: |
+          mkdir -p test-results
+
+          # Find all RSpec JSON result files
+          RSPEC_FILES=$(find test-results -name "rspec_*.json" -o -name "*_results.json" 2>/dev/null || true)
+
+          if [ -z "$RSPEC_FILES" ]; then
+            echo "::notice::No RSpec result files found to aggregate"
+            echo '{"aggregated": false, "reason": "no_files_found", "timestamp": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}' > test-results/unified-report.json
+            echo "has_results=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "Found result files:"
+          echo "$RSPEC_FILES"
+
+          # Aggregate all RSpec JSON files into unified report
+          # Structure: { summary: {...}, files: [...], timestamp: "..." }
+          jq -s '
+            {
+              aggregated: true,
+              timestamp: (now | strftime("%Y-%m-%dT%H:%M:%SZ")),
+              summary: {
+                total_examples: (map(.summary.example_count // 0) | add),
+                total_failures: (map(.summary.failure_count // 0) | add),
+                total_pending: (map(.summary.pending_count // 0) | add),
+                total_errors: (map(.summary.errors_outside_of_examples_count // 0) | add),
+                total_duration: (map(.summary.duration // 0) | add),
+                file_count: length
+              },
+              files: [.[] | {
+                file: (.summary.seed // "unknown"),
+                examples: (.summary.example_count // 0),
+                failures: (.summary.failure_count // 0),
+                pending: (.summary.pending_count // 0),
+                duration: (.summary.duration // 0)
+              }],
+              failures: [.[] | .examples[]? | select(.status == "failed") | {
+                id: .id,
+                description: .full_description,
+                file: .file_path,
+                line: .line_number,
+                message: .exception.message?
+              }]
+            }
+          ' $RSPEC_FILES > test-results/unified-report.json
+
+          # Extract summary for outputs
+          TOTAL=$(jq '.summary.total_examples' test-results/unified-report.json)
+          FAILURES=$(jq '.summary.total_failures' test-results/unified-report.json)
+          PENDING=$(jq '.summary.total_pending' test-results/unified-report.json)
+
+          echo "has_results=true" >> $GITHUB_OUTPUT
+          echo "total_examples=$TOTAL" >> $GITHUB_OUTPUT
+          echo "total_failures=$FAILURES" >> $GITHUB_OUTPUT
+          echo "total_pending=$PENDING" >> $GITHUB_OUTPUT
+
+          echo "::notice::Aggregated $TOTAL examples ($FAILURES failures, $PENDING pending)"
+
+      - name: Generate job summary
+        if: always()
+        run: |
+          echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "test-results/unified-report.json" ]; then
+            AGGREGATED=$(jq -r '.aggregated' test-results/unified-report.json)
+
+            if [ "$AGGREGATED" = "true" ]; then
+              TOTAL=$(jq '.summary.total_examples' test-results/unified-report.json)
+              FAILURES=$(jq '.summary.total_failures' test-results/unified-report.json)
+              PENDING=$(jq '.summary.total_pending' test-results/unified-report.json)
+              DURATION=$(jq '.summary.total_duration' test-results/unified-report.json)
+              FILE_COUNT=$(jq '.summary.file_count' test-results/unified-report.json)
+
+              # Status icon
+              if [ "$FAILURES" -eq 0 ]; then
+                STATUS_ICON=":white_check_mark:"
+              else
+                STATUS_ICON=":x:"
+              fi
+
+              echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+              echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+              echo "| Status | $STATUS_ICON |" >> $GITHUB_STEP_SUMMARY
+              echo "| Total Examples | $TOTAL |" >> $GITHUB_STEP_SUMMARY
+              echo "| Failures | $FAILURES |" >> $GITHUB_STEP_SUMMARY
+              echo "| Pending | $PENDING |" >> $GITHUB_STEP_SUMMARY
+              echo "| Duration | ${DURATION}s |" >> $GITHUB_STEP_SUMMARY
+              echo "| Result Files | $FILE_COUNT |" >> $GITHUB_STEP_SUMMARY
+
+              # Show failures if any
+              if [ "$FAILURES" -gt 0 ]; then
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "### Failed Tests" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                jq -r '.failures[:10][] | "- **\(.description)**\n  - File: `\(.file):\(.line)`\n  - Message: \(.message // "N/A" | split("\n")[0])"' test-results/unified-report.json >> $GITHUB_STEP_SUMMARY
+                if [ "$FAILURES" -gt 10 ]; then
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "_... and $((FAILURES - 10)) more failures (see unified-report.json artifact)_" >> $GITHUB_STEP_SUMMARY
+                fi
+              fi
+            else
+              REASON=$(jq -r '.reason' test-results/unified-report.json)
+              echo "> :grey_question: No test results to aggregate ($REASON)" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "> :warning: unified-report.json not generated" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload unified test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unified-test-report
+          path: test-results/unified-report.json
+          retention-days: 30
+          if-no-files-found: warn
 
   ci-metrics:
     name: T5 · CI Metrics
@@ -558,6 +701,7 @@ jobs:
       - ruby-integration-full-postgres
       - ruby-integration-disabled
       - check-oci-image
+      - aggregate-test-results
     # always() ensures this runs even if some jobs failed/skipped
     if: always()
     # Permissions for posting PR comments
@@ -566,8 +710,7 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+      - *checkout-step
 
       - name: Fetch tier completion times from GitHub API
         id: timing
@@ -606,6 +749,7 @@ jobs:
             "T3 · Ruby Integration (Full Mode - PostgreSQL)"
             "T3 · Ruby Integration (Disabled Mode)"
             "T4 · Container Validation"
+            "T5 · Aggregate Test Results"
           )
           ACTUAL_JOBS=$(echo "$JOBS_JSON" | jq -r '.[].name')
           for job in "${EXPECTED_JOBS[@]}"; do
