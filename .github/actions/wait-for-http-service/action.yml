@@ -45,7 +45,7 @@ inputs:
     required: false
     default: '30'
   interval-seconds:
-    description: 'Seconds to wait between polling attempts'
+    description: 'Seconds to wait between polling attempts (supports decimals, e.g., 0.5)'
     required: false
     default: '2'
   expected-status:
@@ -91,13 +91,13 @@ runs:
           exit 1
         fi
 
-        if ! [[ "$INTERVAL" =~ ^[0-9]+$ ]] || [ "$INTERVAL" -lt 1 ]; then
-          echo "::error::interval-seconds must be a positive integer (got: $INTERVAL)"
+        if ! [[ "$INTERVAL" =~ ^[0-9]+(\.[0-9]+)?$ ]] || (( $(echo "$INTERVAL <= 0" | bc -l) )); then
+          echo "::error::interval-seconds must be a positive number (got: $INTERVAL)"
           exit 1
         fi
 
-        # Calculate total timeout for logging
-        TOTAL_TIMEOUT=$((MAX_ATTEMPTS * INTERVAL))
+        # Calculate total timeout for logging (use bc for floating-point math)
+        TOTAL_TIMEOUT=$(echo "$MAX_ATTEMPTS * $INTERVAL" | bc -l | xargs printf "%.1f")
         echo "::notice::Will poll $SERVICE_URL for up to ${TOTAL_TIMEOUT}s (${MAX_ATTEMPTS} attempts, ${INTERVAL}s interval)"
 
     - name: Poll service until ready

@@ -123,48 +123,48 @@ runs:
       id: start
       shell: bash
       run: |
-        # Build docker run command
-        DOCKER_CMD="docker run -d"
-        DOCKER_CMD="$DOCKER_CMD --name ${{ inputs.container-name }}"
-        DOCKER_CMD="$DOCKER_CMD -p ${{ inputs.port }}:${{ inputs.port }}"
-
-        # Add host gateway for accessing host services
-        DOCKER_CMD="$DOCKER_CMD --add-host=host.docker.internal:host-gateway"
+        # Build docker run command in an array for safety
+        docker_args=(
+          "run" "-d"
+          "--name" "${{ inputs.container-name }}"
+          "-p" "${{ inputs.port }}:${{ inputs.port }}"
+          "--add-host=host.docker.internal:host-gateway"
+        )
 
         # Add network if specified
         if [ -n "${{ inputs.docker-network }}" ]; then
-          DOCKER_CMD="$DOCKER_CMD --network ${{ inputs.docker-network }}"
+          docker_args+=("--network" "${{ inputs.docker-network }}")
         fi
 
         # Add Redis URL if provided
         if [ -n "${{ inputs.redis-url }}" ]; then
-          DOCKER_CMD="$DOCKER_CMD -e REDIS_URL='${{ inputs.redis-url }}'"
+          docker_args+=("-e" "REDIS_URL=${{ inputs.redis-url }}")
         fi
 
         # Add environment variables from multiline input
-        ENV_VARS="${{ inputs.environment-vars }}"
-        if [ -n "$ENV_VARS" ]; then
+        if [ -n "${{ inputs.environment-vars }}" ]; then
           while IFS= read -r line; do
             # Skip empty lines and comments
             if [ -n "$line" ] && [[ ! "$line" =~ ^# ]]; then
-              DOCKER_CMD="$DOCKER_CMD -e '$line'"
+              docker_args+=("-e" "$line")
             fi
-          done <<< "$ENV_VARS"
+          done <<< "${{ inputs.environment-vars }}"
         fi
 
-        # Add extra docker args
+        # Add extra docker args (split by space)
         if [ -n "${{ inputs.extra-docker-args }}" ]; then
-          DOCKER_CMD="$DOCKER_CMD ${{ inputs.extra-docker-args }}"
+          read -ra extra_args <<< "${{ inputs.extra-docker-args }}"
+          docker_args+=("${extra_args[@]}")
         fi
 
         # Add image name
-        DOCKER_CMD="$DOCKER_CMD ${{ inputs.image-name }}"
+        docker_args+=("${{ inputs.image-name }}")
 
         echo "::group::Starting container"
-        echo "Command: $DOCKER_CMD"
+        echo "Executing: docker ${docker_args[*]}"
 
         # Execute and capture container ID
-        CONTAINER_ID=$(eval $DOCKER_CMD)
+        CONTAINER_ID=$(docker "${docker_args[@]}")
 
         if [ -z "$CONTAINER_ID" ]; then
           echo "::error::Failed to start container"
