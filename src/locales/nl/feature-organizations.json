@@ -6,6 +6,7 @@
       "organization_plural": "Organisaties",
       "organizations_description": "Beheer je organisaties",
       "my_organizations": "Mijn organisaties",
+      "manage_organizations": "Manage Organizations",
       "new_organization": "Nieuwe organisatie",
       "no_organizations": "Nog geen organisaties",
       "no_organizations_description": "Organisaties stellen je in staat om meerdere teams te beheren met uniforme facturering en administratie. Begin met het aanmaken van je eerste organisatie",
@@ -25,6 +26,7 @@
       "contact_email_help": "Primair contact voor facturering en administratieve meldingen",
       "billing_managed_by_default": "Facturering en abonnementsbeheer worden via je primaire werkruimte afgehandeld. Bezoek je hoofdwerkruimte-instellingen om betaalmethoden en facturen te beheren.",
       "select_organization": "Selecteer een organisatie",
+      "switcher_locked": "Organization switching not available on this page",
       "not_found": "Organisatie niet gevonden",
       "load_error": "Kon organisatie niet laden",
       "fetch_organization_error": "Kon organisatie niet laden",
@@ -47,9 +49,11 @@
       "single_user_info_description": "Werk hier je bedrijfsnaam en organisatiegegevens bij. Deze informatie helpt je account te personaliseren en kan in de toekomst worden gebruikt voor branding-functies",
       "getting_started_title": "Aan de slag met organisaties",
       "getting_started_description": "Maak je eerste organisatie aan om je bedrijfsinformatie te beheren en je voor te bereiden op toekomstige teamsamenwerkings- en branding-functies",
+      "page_description": "Manage your organizations and team members",
       "tabs": {
         "general": "Algemeen",
         "company_branding": "Bedrijfsbranding",
+        "members": "Team",
         "billing": "Facturering"
       },
       "danger_zone": "Gevaarlijke zone",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Leden",
         "description": "Beheer organisatieleden en hun rollen",
+        "current_members": "Current Members",
         "member": "Lid",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Naam",
         "email": "E-mail",
         "role": "Rol",

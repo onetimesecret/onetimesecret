@@ -2,19 +2,72 @@
   "email": {
     "incomingsupport": {
       "subject": "[Ticket: %s]",
-      "body1": "Ein Kunde hat folgende Informationen gesendet (Deutscher Benutzer)"
+      "body1": "Ein Kunde hat folgende Informationen gesendet"
     },
-    "secretlink": {
-      "subject": "%s hat dir ein Geheimnis gesendet",
-      "body1": "Wir haben ein Geheimnis für dich von",
-      "body_tagline": "Wenn du den Absender nicht kennst oder denkst, dass dies Spam ist, sende uns die Details hier:"
+    "secret_link": {
+      "subject": "%{sender_email} hat Ihnen ein Geheimnis gesendet",
+      "sent_you_secret": "hat Ihnen ein Geheimnis gesendet:",
+      "important_label": "Wichtig:",
+      "link_works_once": "Dieser Link funktioniert nur einmal. Nach dem Ansehen wird das Geheimnis dauerhaft gelöscht.",
+      "sent_via": "Gesendet über"
     },
     "welcome": {
       "subject": "Bestätige dein Onetime-Secret-Konto",
-      "body1": "Willkommen bei Onetime-Secret. Wir haben ein Geheimnis für dich!",
-      "please_verify": "Bitte bestätige dein Konto:",
-      "postscript1": "Diese E-Mail wurde gesendet an:",
-      "postscript2": "Wenn du dieses Konto nicht erstellt hast, ignoriere diese Nachricht und wir werden dich nicht erneut kontaktieren."
+      "title": "Sie wurden eingeladen, %{organization_name} beizutreten!",
+      "verify_prompt": "Bitte bestätigen Sie Ihre E-Mail-Adresse, indem Sie auf den unten stehenden Link klicken:",
+      "verify_button": "E-Mail-Adresse bestätigen",
+      "copy_link_prompt": "Oder kopieren Sie diesen Link:",
+      "signature": "Delano",
+      "postscript": "P.S. Diese E-Mail wurde an %{invited_email} gesendet. Wenn Sie diese Einladung nicht erwartet haben, können Sie diese Nachricht bedenkenlos ignorieren."
+    },
+    "password_request": {
+      "subject": "Passwort zurücksetzen (%{display_domain})",
+      "title": "Passwort zurücksetzen",
+      "request_notice": "Wir haben eine Anfrage zum Zurücksetzen Ihres Passworts für %{product_name} erhalten.",
+      "reset_button": "Passwort zurücksetzen",
+      "copy_link_prompt": "Oder kopieren Sie diesen Link:",
+      "ignore_notice": "Wenn Sie keine Passwortzurücksetzung angefordert haben, können Sie diese E-Mail bedenkenlos ignorieren.",
+      "signature": "Delano",
+      "postscript": "P.S. Diese E-Mail wurde an %{email_address} gesendet."
+    },
+    "incoming_secret": {
+      "subject": "Sie haben eine geheime Nachricht erhalten",
+      "received_message": "Sie haben eine sichere Nachricht erhalten:",
+      "memo_label": "Notiz:",
+      "someone_sent": "Jemand hat Ihnen über %{display_domain} eine sichere Nachricht gesendet.",
+      "view_instructions": "Um dieses Geheimnis anzusehen, klicken Sie auf den unten stehenden Link:",
+      "important_label": "Wichtig:",
+      "link_works_once": "Dieser Link funktioniert nur einmal. Nach dem Ansehen wird das Geheimnis dauerhaft gelöscht.",
+      "sent_via": "Gesendet über"
+    },
+    "secret_revealed": {
+      "subject": "Ihr Geheimnis wurde angesehen",
+      "title": "Ihr Geheimnis wurde angesehen",
+      "viewed_on": "Ihr Geheimnis wurde am %{date} angesehen.",
+      "secret_id_label": "Geheimnis-ID:",
+      "automated_notice": "Dies ist eine automatische Benachrichtigung. Es ist keine Aktion erforderlich.",
+      "signature": "Delano",
+      "manage_preferences": "Benachrichtigungseinstellungen verwalten",
+      "manage_preferences_prompt": "Um Ihre Benachrichtigungseinstellungen zu verwalten:"
+    },
+    "expiration_warning": {
+      "subject": "Ihr Geheimnis-Link läuft bald ab",
+      "expires_in": "Ihr Geheimnis-Link läuft in %{time_remaining} ab",
+      "view_button": "Sehen Sie sich Ihr Geheimnis an, bevor es abläuft",
+      "reminder_label": "Erinnerung:",
+      "after_expiration": "Nach Ablauf wird das Geheimnis dauerhaft gelöscht und kann nicht wiederhergestellt werden.",
+      "sent_via": "Gesendet über",
+      "view_before_gone": "Sehen Sie es sich an, bevor es verschwindet:",
+      "after_expiration_short": "Nach Ablauf wird das Geheimnis dauerhaft gelöscht."
+    },
+    "feedback_email": {
+      "subject": "Feedback vom %{date} über %{display_domain} (%{strategy})",
+      "title": "Benutzer-Feedback",
+      "from_label": "Von:",
+      "domain_label": "Domain:",
+      "strategy_label": "Strategie:",
+      "message_label": "Nachricht:",
+      "signature": "Secret Support"
     },
     "organization_invitation": {
       "subject": "Du wurdest eingeladen, %{organization_name} beizutreten",
@@ -31,11 +84,108 @@
         "admin": "Administrator"
       }
     },
+    "password_changed": {
+      "subject": "Ihr Passwort wurde geändert (%{display_domain})",
+      "title": "Ihr Passwort wurde geändert",
+      "body": "Ihr Passwort für %{product_name} wurde am %{date} um %{time} Uhr geändert.",
+      "security_notice": "Wenn Sie diese Änderung nicht vorgenommen haben, sichern Sie bitte sofort Ihr Konto, indem Sie Ihr Passwort zurücksetzen und den Support kontaktieren.",
+      "signature": "Delano"
+    },
+    "email_changed": {
+      "subject": "Ihre E-Mail-Adresse wurde geändert (%{display_domain})",
+      "title": "Ihre E-Mail-Adresse wurde geändert",
+      "body": "Die E-Mail-Adresse für Ihr %{product_name}-Konto wurde am %{date} in %{new_email_masked} geändert.",
+      "security_notice": "Wenn Sie diese Änderung nicht vorgenommen haben, kontaktieren Sie bitte sofort den Support, da Ihr Konto möglicherweise kompromittiert ist.",
+      "signature": "Delano"
+    },
+    "email_change_confirmation": {
+      "subject": "Bestätigen Sie Ihre neue E-Mail-Adresse (%{display_domain})",
+      "title": "Bestätigen Sie Ihre neue E-Mail-Adresse",
+      "body": "Bitte bestätigen Sie diese E-Mail-Adresse, um die Änderung für Ihr %{product_name}-Konto abzuschließen.",
+      "verify_button": "E-Mail-Adresse bestätigen",
+      "copy_link_prompt": "Oder kopieren Sie diesen Link:",
+      "signature": "Delano"
+    },
+    "mfa_enabled": {
+      "subject": "Zwei-Faktor-Authentifizierung aktiviert (%{display_domain})",
+      "title": "Zwei-Faktor-Authentifizierung aktiviert",
+      "body": "Die Zwei-Faktor-Authentifizierung wurde am %{date} für Ihr %{product_name}-Konto aktiviert.",
+      "security_notice": "Ihr Konto ist jetzt sicherer. Sie müssen bei der Anmeldung einen Bestätigungscode aus Ihrer Authentifizierungs-App eingeben.",
+      "signature": "Delano"
+    },
+    "mfa_disabled": {
+      "subject": "Zwei-Faktor-Authentifizierung deaktiviert (%{display_domain})",
+      "title": "Zwei-Faktor-Authentifizierung deaktiviert",
+      "body": "Die Zwei-Faktor-Authentifizierung wurde am %{date} für Ihr %{product_name}-Konto deaktiviert.",
+      "warning_notice": "Ihr Konto ist jetzt weniger sicher. Wenn Sie diese Änderung nicht vorgenommen haben, sichern Sie bitte sofort Ihr Konto.",
+      "signature": "Delano"
+    },
+    "new_login_alert": {
+      "subject": "Neue Anmeldung bei Ihrem Konto (%{display_domain})",
+      "title": "Neue Anmeldung erkannt",
+      "body": "Eine neue Anmeldung bei Ihrem %{product_name}-Konto wurde am %{date} um %{time} Uhr erkannt.",
+      "device_label": "Gerät:",
+      "location_label": "Standort:",
+      "ip_address_label": "IP-Adresse:",
+      "not_you_notice": "Wenn Sie das nicht waren, könnte Ihr Konto kompromittiert sein.",
+      "secure_account_button": "Konto sichern",
+      "signature": "Delano"
+    },
+    "member_removed": {
+      "subject": "Sie wurden aus %{organization_name} entfernt",
+      "title": "Sie wurden aus %{organization_name} entfernt",
+      "body": "Sie wurden aus der Organisation \"%{organization_name}\" bei %{product_name} entfernt.",
+      "signature": "Delano"
+    },
+    "role_changed": {
+      "subject": "Ihre Rolle wurde in %{organization_name} geändert",
+      "title": "Ihre Rolle wurde geändert",
+      "body": "Ihre Rolle in \"%{organization_name}\" wurde von %{old_role} zu %{new_role} geändert.",
+      "signature": "Delano"
+    },
+    "organization_deleted": {
+      "subject": "Organisation \"%{organization_name}\" wurde gelöscht",
+      "title": "Organisation gelöscht",
+      "body": "Die Organisation \"%{organization_name}\" wurde von %{product_name} gelöscht. Alle zugehörigen Daten wurden entfernt.",
+      "signature": "Delano"
+    },
+    "payment_receipt": {
+      "subject": "Zahlungsbeleg für %{product_name}",
+      "title": "Zahlungsbeleg",
+      "body": "Vielen Dank für Ihre Zahlung. Hier sind Ihre Zahlungsdetails:",
+      "amount_label": "Betrag:",
+      "date_label": "Datum:",
+      "plan_label": "Plan:",
+      "invoice_link": "Rechnung ansehen",
+      "signature": "Delano"
+    },
+    "payment_failed": {
+      "subject": "Zahlung für %{product_name} fehlgeschlagen",
+      "title": "Zahlung fehlgeschlagen",
+      "body": "Wir konnten Ihre Zahlung für %{product_name} nicht verarbeiten. Bitte aktualisieren Sie Ihre Zahlungsmethode, um eine Unterbrechung des Services zu vermeiden.",
+      "update_payment_button": "Zahlungsmethode aktualisieren",
+      "signature": "Delano"
+    },
+    "trial_expiring": {
+      "subject": "Ihre %{product_name}-Testversion läuft in %{days_remaining} Tagen ab",
+      "title": "Ihre Testversion endet bald",
+      "body": "Ihre kostenlose Testversion von %{product_name} läuft in %{days_remaining} Tagen ab. Führen Sie jetzt ein Upgrade durch, um Zugang zu allen Funktionen zu behalten.",
+      "upgrade_button": "Jetzt upgraden",
+      "signature": "Delano"
+    },
+    "subscription_changed": {
+      "subject": "Ihr %{product_name}-Abonnement wurde geändert",
+      "title": "Abonnement geändert",
+      "body": "Ihr %{product_name}-Abonnement wurde von %{old_plan} auf %{new_plan} geändert.",
+      "effective_date": "Diese Änderung tritt am %{date} in Kraft.",
+      "signature": "Delano"
+    },
     "common": {
       "greeting": "Hallo,",
       "thanks": "Danke,",
       "unsubscribe": "Abmelden",
-      "view_in_browser": "Im Browser ansehen"
+      "view_in_browser": "Im Browser ansehen",
+      "onetime_secret": "Onetime Secret"
     }
   }
 }

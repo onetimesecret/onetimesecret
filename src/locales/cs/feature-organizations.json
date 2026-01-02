@@ -6,6 +6,7 @@
       "organization_plural": "Organizace",
       "organizations_description": "Spravuj své organizace",
       "my_organizations": "Moje organizace",
+      "manage_organizations": "Spravovat organizace",
       "new_organization": "Nová organizace",
       "no_organizations": "Zatím žádné organizace",
       "no_organizations_description": "Organizace ti umožňují spravovat více týmů s jednotnou fakturací a administrací. Začni vytvořením své první organizace.",
@@ -25,6 +26,7 @@
       "contact_email_help": "Primární kontakt pro fakturaci a administrativní oznámení",
       "billing_managed_by_default": "Fakturace a správa předplatného je řízena přes tvůj primární pracovní prostor. Navštiv nastavení svého hlavního pracovního prostoru pro správu platebních metod a faktur.",
       "select_organization": "Vyber organizaci",
+      "switcher_locked": "Přepínání organizací není na této stránce dostupné",
       "not_found": "Organizace nebyla nalezena",
       "load_error": "Načtení organizace se nezdařilo",
       "fetch_organization_error": "Načtení organizace se nezdařilo",
@@ -47,9 +49,11 @@
       "single_user_info_description": "Zde aktualizuj název své společnosti a podrobnosti o organizaci. Tyto informace pomáhají personalizovat tvůj účet a mohou být v budoucnu použity pro brandingové funkce.",
       "getting_started_title": "Začínáme s organizacemi",
       "getting_started_description": "Vytvoř svou první organizaci pro správu informací o společnosti a přípravu na budoucí týmovou spolupráci a brandingové funkce.",
+      "page_description": "Spravovat vaše organizace a členy týmu",
       "tabs": {
         "general": "Obecné",
         "company_branding": "Firemní branding",
+        "members": "Tým",
         "billing": "Fakturace"
       },
       "danger_zone": "Nebezpečná zóna",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Členové",
         "description": "Spravuj členy organizace a jejich role",
+        "current_members": "Aktuální členové",
         "member": "Člen",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Jméno",
         "email": "E-mail",
         "role": "Role",

@@ -6,6 +6,7 @@
       "organization_plural": "Organizações",
       "organizations_description": "Gerir as suas organizações",
       "my_organizations": "As Minhas Organizações",
+      "manage_organizations": "Gerir Organizações",
       "new_organization": "Nova Organização",
       "no_organizations": "Ainda sem organizações",
       "no_organizations_description": "As organizações permitem-lhe gerir várias equipas com faturação e administração unificadas. Comece por criar a sua primeira organização.",
@@ -25,6 +26,7 @@
       "contact_email_help": "Contacto principal para notificações de faturação e administrativas",
       "billing_managed_by_default": "A faturação e gestão de subscrição são tratadas através do seu espaço de trabalho principal. Visite as definições do seu espaço de trabalho principal para gerir métodos de pagamento e faturas.",
       "select_organization": "Selecione uma organização",
+      "switcher_locked": "Mudança de organização não disponível nesta página",
       "not_found": "Organização não encontrada",
       "load_error": "Falha ao carregar organização",
       "fetch_organization_error": "Falha ao carregar organização",
@@ -47,9 +49,11 @@
       "single_user_info_description": "Atualize o nome da sua empresa e detalhes da organização aqui. Esta informação ajuda a personalizar a sua conta e pode ser usada para funcionalidades de marca no futuro.",
       "getting_started_title": "Começar com Organizações",
       "getting_started_description": "Crie a sua primeira organização para gerir a informação da sua empresa e preparar futuras funcionalidades de colaboração em equipa e marca.",
+      "page_description": "Gerir as suas organizações e membros da equipa",
       "tabs": {
         "general": "Geral",
         "company_branding": "Marca da Empresa",
+        "members": "Equipa",
         "billing": "Faturação"
       },
       "danger_zone": "Zona de Perigo",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Membros",
         "description": "Gerir membros da organização e as suas funções",
+        "current_members": "Membros Atuais",
         "member": "Membro",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Nome",
         "email": "E-mail",
         "role": "Função",

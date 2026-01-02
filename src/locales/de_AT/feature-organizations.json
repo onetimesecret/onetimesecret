@@ -26,6 +26,7 @@
       "contact_email_help": "Hauptkontakt für Abrechnungs- und Verwaltungsbenachrichtigungen",
       "billing_managed_by_default": "Abrechnung und Abonnementverwaltung erfolgen über Ihren primären Arbeitsbereich. Besuchen Sie Ihre Hauptarbeitsbereich-Einstellungen, um Zahlungsmethoden und Rechnungen zu verwalten.",
       "select_organization": "Organisation auswählen",
+      "switcher_locked": "Organisationswechsel auf dieser Seite nicht verfügbar",
       "not_found": "Organisation nicht gefunden",
       "load_error": "Organisation konnte nicht geladen werden",
       "fetch_organization_error": "Organisation konnte nicht geladen werden",

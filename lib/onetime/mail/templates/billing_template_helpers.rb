@@ -20,7 +20,7 @@ module Onetime
           amount   = data[:amount]
           currency = data[:currency].to_s.downcase
 
-          display_amount = amount.is_a?(Integer) && amount > 100 ? amount / 100.0 : amount.to_f
+          display_amount = amount.is_a?(Integer) ? amount / 100.0 : amount.to_f
           symbol         = CURRENCY_SYMBOLS.fetch(currency, "#{currency.upcase} ")
 
           "#{symbol}#{format('%.2f', display_amount)}"

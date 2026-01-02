@@ -6,6 +6,7 @@
       "organization_plural": "Organizaciones",
       "organizations_description": "Gestiona tus organizaciones",
       "my_organizations": "Mis Organizaciones",
+      "manage_organizations": "Gestionar organizaciones",
       "new_organization": "Nueva Organización",
       "no_organizations": "Sin organizaciones aún",
       "no_organizations_description": "Las organizaciones te permiten gestionar múltiples equipos con facturación y administración unificadas. Comienza creando tu primera organización.",
@@ -25,6 +26,7 @@
       "contact_email_help": "Contacto principal para notificaciones de facturación y administrativas",
       "billing_managed_by_default": "La facturación y gestión de suscripciones se maneja a través de tu espacio de trabajo principal. Visita la configuración de tu espacio de trabajo principal para gestionar métodos de pago y facturas.",
       "select_organization": "Seleccionar una organización",
+      "switcher_locked": "El cambio de organización no está disponible en esta página",
       "not_found": "Organización no encontrada",
       "load_error": "Error al cargar organización",
       "fetch_organization_error": "Error al cargar organización",
@@ -47,9 +49,11 @@
       "single_user_info_description": "Actualiza el nombre de tu empresa y los detalles de la organización aquí. Esta información ayuda a personalizar tu cuenta y puede usarse para funciones de marca en el futuro.",
       "getting_started_title": "Comenzando con las Organizaciones",
       "getting_started_description": "Crea tu primera organización para gestionar la información de tu empresa y prepararte para futuras funciones de colaboración en equipo y marca.",
+      "page_description": "Gestiona tus organizaciones y miembros del equipo",
       "tabs": {
         "general": "General",
         "company_branding": "Marca de la Empresa",
+        "members": "Equipo",
         "billing": "Facturación"
       },
       "danger_zone": "Zona de Peligro",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Miembros",
         "description": "Gestionar miembros de la organización y sus roles",
+        "current_members": "Miembros actuales",
         "member": "Miembro",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Nombre",
         "email": "Correo Electrónico",
         "role": "Rol",

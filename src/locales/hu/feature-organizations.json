@@ -6,6 +6,7 @@
       "organization_plural": "Szervezetek",
       "organizations_description": "Szervezetek kezelése",
       "my_organizations": "Szervezeteim",
+      "manage_organizations": "Szervezetek kezelése",
       "new_organization": "Új szervezet",
       "no_organizations": "Még nincsenek szervezetek",
       "no_organizations_description": "A szervezetek lehetővé teszik több csapat kezelését egységes számlázással és adminisztrációval. Kezdje el első szervezete létrehozásával.",
@@ -25,6 +26,7 @@
       "contact_email_help": "Elsődleges kapcsolattartó a számlázási és adminisztratív értesítésekhez",
       "billing_managed_by_default": "A számlázás és előfizetés kezelése az elsődleges munkaterületén keresztül történik. Látogasson el a fő munkaterület beállításaihoz a fizetési módok és számlák kezeléséhez.",
       "select_organization": "Szervezet kiválasztása",
+      "switcher_locked": "Szervezetváltás nem elérhető ezen az oldalon",
       "not_found": "Szervezet nem található",
       "load_error": "Nem sikerült betölteni a szervezetet",
       "fetch_organization_error": "Nem sikerült betölteni a szervezetet",
@@ -47,9 +49,11 @@
       "single_user_info_description": "Frissítse cége nevét és szervezeti részleteit itt. Ez az információ segít személyre szabni fiókját és használható lesz jövőbeli márkajelzési funkciókhoz.",
       "getting_started_title": "Kezdő lépések a szervezetekkel",
       "getting_started_description": "Hozza létre első szervezetét cégének információinak kezeléséhez és készüljön fel a jövőbeli csapatmunkára és márkajelzési funkciókra.",
+      "page_description": "Szervezetek és csapattagok kezelése",
       "tabs": {
         "general": "Általános",
         "company_branding": "Céges márkajelzés",
+        "members": "Csapat",
         "billing": "Számlázás"
       },
       "danger_zone": "Veszélyzóna",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Tagok",
         "description": "Szervezeti tagok és szerepkörök kezelése",
+        "current_members": "Jelenlegi tagok",
         "member": "Tag",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Név",
         "email": "E-mail",
         "role": "Szerepkör",

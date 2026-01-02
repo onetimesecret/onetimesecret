@@ -74,7 +74,7 @@ module Onetime
 
         def changed_at_formatted
           time = Time.parse(changed_at.to_s)
-          time.strftime('%B %d, %Y at %H:%M UTC')
+          time.utc.strftime('%B %d, %Y at %H:%M UTC')
         rescue ArgumentError
           changed_at.to_s
         end

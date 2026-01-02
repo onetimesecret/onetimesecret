@@ -4,17 +4,70 @@
       "subject": "[工单号: %s]",
       "body1": "一位我们的客户发送了以下信息："
     },
-    "secretlink": {
-      "subject": "%s 给您发送了一条加密消息",
-      "body1": "我们有一条给您的加密消息，来自",
-      "body_tagline": "如果您不认识发送者，或者认为这可能是垃圾信息，在这里告诉我们详细信息："
+    "secret_link": {
+      "subject": "%{sender_email}给您发送了一条内容",
+      "sent_you_secret": "给您发送了一条内容:",
+      "important_label": "重要提示:",
+      "link_works_once": "此链接仅可使用一次。查看后,内容将被永久删除。",
+      "sent_via": "通过以下方式发送"
     },
     "welcome": {
       "subject": "验证您的 Onetime Secret 帐户",
-      "body1": "欢迎使用 Onetime Secret，这里有一条我们发送给您的加密消息。",
-      "please_verify": "请验证您的帐户:",
-      "postscript1": "这封电子邮件被送至",
-      "postscript2": "如果您并未创建此帐户，请您删除此邮件。我们将不会再和您联系。"
+      "title": "您已被邀请加入 %{organization_name}",
+      "verify_prompt": "请点击下面的链接验证您的邮箱地址:",
+      "verify_button": "验证邮箱地址",
+      "copy_link_prompt": "或复制并粘贴此链接:",
+      "signature": "Delano",
+      "postscript": "附注：此邮件已发送至 %{invited_email}。如果您未预期收到此邀请，可以安全忽略此消息。"
+    },
+    "password_request": {
+      "subject": "重置您的密码 (%{display_domain})",
+      "title": "重置您的密码",
+      "request_notice": "我们收到了为%{product_name}重置密码的请求。",
+      "reset_button": "重置密码",
+      "copy_link_prompt": "或复制并粘贴此链接:",
+      "ignore_notice": "如果您没有请求重置密码,可以安全地忽略此邮件。",
+      "signature": "Delano",
+      "postscript": "附言:此邮件已发送至%{email_address}。"
+    },
+    "incoming_secret": {
+      "subject": "您收到了一条内容消息",
+      "received_message": "您收到了一条安全消息:",
+      "memo_label": "备忘录:",
+      "someone_sent": "有人通过%{display_domain}向您发送了一条安全消息。",
+      "view_instructions": "要查看此内容,请点击下面的链接:",
+      "important_label": "重要提示:",
+      "link_works_once": "此链接仅可使用一次。查看后,内容将被永久删除。",
+      "sent_via": "通过以下方式发送"
+    },
+    "secret_revealed": {
+      "subject": "您的内容已被查看",
+      "title": "您的内容已被查看",
+      "viewed_on": "您的内容于%{date}被查看。",
+      "secret_id_label": "内容ID:",
+      "automated_notice": "这是一条自动通知。无需任何操作。",
+      "signature": "Delano",
+      "manage_preferences": "管理通知偏好设置",
+      "manage_preferences_prompt": "要管理您的通知偏好设置:"
+    },
+    "expiration_warning": {
+      "subject": "您的内容链接即将过期",
+      "expires_in": "您的内容链接将在%{time_remaining}后过期",
+      "view_button": "在内容过期前查看",
+      "reminder_label": "提醒:",
+      "after_expiration": "过期后,内容将被永久删除且无法恢复。",
+      "sent_via": "通过以下方式发送",
+      "view_before_gone": "在消失之前查看:",
+      "after_expiration_short": "过期后,内容将被永久删除。"
+    },
+    "feedback_email": {
+      "subject": "反馈于%{date}通过%{display_domain} (%{strategy})",
+      "title": "用户反馈",
+      "from_label": "发件人:",
+      "domain_label": "域名:",
+      "strategy_label": "策略:",
+      "message_label": "消息:",
+      "signature": "Secret 支持"
     },
     "organization_invitation": {
       "subject": "您已被邀请加入 %{organization_name}",
@@ -31,11 +84,108 @@
         "admin": "管理员"
       }
     },
+    "password_changed": {
+      "subject": "您的密码已更改 (%{display_domain})",
+      "title": "您的密码已更改",
+      "body": "您的%{product_name}密码已于%{date} %{time}更改。",
+      "security_notice": "如果您没有进行此更改,请立即通过重置密码并联系支持团队来保护您的账户。",
+      "signature": "Delano"
+    },
+    "email_changed": {
+      "subject": "您的邮箱地址已更改 (%{display_domain})",
+      "title": "您的邮箱地址已更改",
+      "body": "您的%{product_name}账户的邮箱地址已于%{date}更改为%{new_email_masked}。",
+      "security_notice": "如果您没有进行此更改,请立即联系支持团队,因为您的账户可能已被入侵。",
+      "signature": "Delano"
+    },
+    "email_change_confirmation": {
+      "subject": "验证您的新邮箱地址 (%{display_domain})",
+      "title": "验证您的新邮箱地址",
+      "body": "请验证此邮箱地址以完成您的%{product_name}账户的更改。",
+      "verify_button": "验证邮箱地址",
+      "copy_link_prompt": "或复制并粘贴此链接:",
+      "signature": "Delano"
+    },
+    "mfa_enabled": {
+      "subject": "双因素认证已启用 (%{display_domain})",
+      "title": "双因素认证已启用",
+      "body": "您的%{product_name}账户的双因素认证已于%{date}启用。",
+      "security_notice": "您的账户现在更加安全。登录时,您需要输入来自验证器应用的验证码。",
+      "signature": "Delano"
+    },
+    "mfa_disabled": {
+      "subject": "双因素认证已禁用 (%{display_domain})",
+      "title": "双因素认证已禁用",
+      "body": "您的%{product_name}账户的双因素认证已于%{date}禁用。",
+      "warning_notice": "您的账户安全性降低。如果您没有进行此更改,请立即保护您的账户。",
+      "signature": "Delano"
+    },
+    "new_login_alert": {
+      "subject": "您的账户有新登录 (%{display_domain})",
+      "title": "检测到新登录",
+      "body": "检测到您的%{product_name}账户于%{date} %{time}有新登录。",
+      "device_label": "设备:",
+      "location_label": "位置:",
+      "ip_address_label": "IP地址:",
+      "not_you_notice": "如果这不是您的操作,您的账户可能已被入侵。",
+      "secure_account_button": "保护您的账户",
+      "signature": "Delano"
+    },
+    "member_removed": {
+      "subject": "您已从%{organization_name}中移除",
+      "title": "您已从%{organization_name}中移除",
+      "body": "您已从%{product_name}上的组织「%{organization_name}」中移除。",
+      "signature": "Delano"
+    },
+    "role_changed": {
+      "subject": "您在%{organization_name}中的角色已更改",
+      "title": "您的角色已更改",
+      "body": "您在「%{organization_name}」中的角色已从%{old_role}更改为%{new_role}。",
+      "signature": "Delano"
+    },
+    "organization_deleted": {
+      "subject": "组织「%{organization_name}」已删除",
+      "title": "组织已删除",
+      "body": "组织「%{organization_name}」已从%{product_name}删除。所有相关数据已被移除。",
+      "signature": "Delano"
+    },
+    "payment_receipt": {
+      "subject": "%{product_name}的付款收据",
+      "title": "付款收据",
+      "body": "感谢您的付款。以下是您的付款详情:",
+      "amount_label": "金额:",
+      "date_label": "日期:",
+      "plan_label": "套餐:",
+      "invoice_link": "查看账单",
+      "signature": "Delano"
+    },
+    "payment_failed": {
+      "subject": "%{product_name}的付款失败",
+      "title": "付款失败",
+      "body": "我们无法处理您对%{product_name}的付款。请更新您的付款方式以避免服务中断。",
+      "update_payment_button": "更新付款方式",
+      "signature": "Delano"
+    },
+    "trial_expiring": {
+      "subject": "您的%{product_name}试用将在%{days_remaining}天后到期",
+      "title": "您的试用即将结束",
+      "body": "您的%{product_name}免费试用将在%{days_remaining}天后到期。立即升级以继续访问所有功能。",
+      "upgrade_button": "立即升级",
+      "signature": "Delano"
+    },
+    "subscription_changed": {
+      "subject": "您的%{product_name}订阅已更改",
+      "title": "订阅已更改",
+      "body": "您的%{product_name}订阅已从%{old_plan}更改为%{new_plan}。",
+      "effective_date": "此更改于%{date}生效。",
+      "signature": "Delano"
+    },
     "common": {
       "greeting": "您好，",
       "thanks": "谢谢，",
       "unsubscribe": "退订",
-      "view_in_browser": "在浏览器中查看"
+      "view_in_browser": "在浏览器中查看",
+      "onetime_secret": "Onetime Secret"
     }
   }
 }

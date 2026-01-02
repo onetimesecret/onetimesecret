@@ -4,17 +4,70 @@
       "subject": "[קריאה: %s]",
       "body1": "לקוח שלח את הפרטים הבאים"
     },
-    "secretlink": {
-      "subject": "%s שלח לך סוד",
-      "body1": "יש לנו סוד בשבילך מ",
-      "body_tagline": "אם אתם לא מכירים את השולח או מאמינים שזה ספאם, שלחו לנו את הפרטים כאן:"
+    "secret_link": {
+      "subject": "%{sender_email} שלח לך סוד",
+      "sent_you_secret": "שלח לך סוד:",
+      "important_label": "חשוב:",
+      "link_works_once": "קישור זה יפעל רק פעם אחת. לאחר הצפייה, הסוד יימחק לצמיתות.",
+      "sent_via": "נשלח דרך"
     },
     "welcome": {
       "subject": "אמתו את חשבון Onetime Secret שלכם",
-      "body1": "ברוכים הבאים ל-Onetime Secret. יש לנו סוד בשבילכם!",
-      "please_verify": "אנא אמתו את החשבון שלכם:",
-      "postscript1": "הודעה זו נשלחה אל",
-      "postscript2": "אם לא ביצעתם בקשה זו, ניתן להתעלם בבטחה מהודעה זו."
+      "title": "הוזמנתם להצטרף ל-%{organization_name}!",
+      "verify_prompt": "אנא אמתו את כתובת הדוא״ל שלכם על ידי לחיצה על הקישור למטה:",
+      "verify_button": "אימות כתובת דוא״ל",
+      "copy_link_prompt": "או העתיקו והדביקו את הקישור הזה:",
+      "signature": "דלאנו",
+      "postscript": "נ.ב. הודעה זו נשלחה אל %{invited_email}. אם לא ציפיתם להזמנה זו, ניתן להתעלם בבטחה מהודעה זו."
+    },
+    "password_request": {
+      "subject": "איפוס הסיסמה שלכם (%{display_domain})",
+      "title": "איפוס הסיסמה שלכם",
+      "request_notice": "קיבלנו בקשה לאפס את הסיסמה שלכם עבור %{product_name}.",
+      "reset_button": "איפוס סיסמה",
+      "copy_link_prompt": "או העתיקו והדביקו את הקישור הזה:",
+      "ignore_notice": "אם לא ביקשתם איפוס סיסמה, תוכלו להתעלם מדוא״ל זה.",
+      "signature": "דלאנו",
+      "postscript": "נ.ב. דוא״ל זה נשלח אל %{email_address}."
+    },
+    "incoming_secret": {
+      "subject": "קיבלתם הודעה סודית",
+      "received_message": "קיבלתם הודעה מאובטחת:",
+      "memo_label": "הערה:",
+      "someone_sent": "מישהו שלח לכם הודעה מאובטחת דרך %{display_domain}.",
+      "view_instructions": "לצפייה בסוד זה, לחצו על הקישור למטה:",
+      "important_label": "חשוב:",
+      "link_works_once": "קישור זה יפעל רק פעם אחת. לאחר הצפייה, הסוד יימחק לצמיתות.",
+      "sent_via": "נשלח דרך"
+    },
+    "secret_revealed": {
+      "subject": "הסוד שלכם נצפה",
+      "title": "הסוד שלכם נצפה",
+      "viewed_on": "הסוד שלכם נצפה ב-%{date}.",
+      "secret_id_label": "מזהה סוד:",
+      "automated_notice": "זוהי התראה אוטומטית. אין צורך בפעולה.",
+      "signature": "דלאנו",
+      "manage_preferences": "ניהול העדפות התראה",
+      "manage_preferences_prompt": "לניהול העדפות ההתראה שלכם:"
+    },
+    "expiration_warning": {
+      "subject": "קישור הסוד שלכם יפוג בקרוב",
+      "expires_in": "קישור הסוד שלכם יפוג בעוד %{time_remaining}",
+      "view_button": "צפו בסוד שלכם לפני שיפוג",
+      "reminder_label": "תזכורת:",
+      "after_expiration": "לאחר התפוגה, הסוד יימחק לצמיתות ולא ניתן יהיה לשחזרו.",
+      "sent_via": "נשלח דרך",
+      "view_before_gone": "צפו בו לפני שהוא נעלם:",
+      "after_expiration_short": "לאחר התפוגה, הסוד יימחק לצמיתות."
+    },
+    "feedback_email": {
+      "subject": "משוב מתאריך %{date} דרך %{display_domain} (%{strategy})",
+      "title": "משוב משתמש",
+      "from_label": "מאת:",
+      "domain_label": "דומיין:",
+      "strategy_label": "אסטרטגיה:",
+      "message_label": "הודעה:",
+      "signature": "Secret Support"
     },
     "organization_invitation": {
       "subject": "הוזמנתם להצטרף ל-%{organization_name}",
@@ -31,11 +84,108 @@
         "admin": "מנהל"
       }
     },
+    "password_changed": {
+      "subject": "הסיסמה שלכם שונתה (%{display_domain})",
+      "title": "הסיסמה שלכם שונתה",
+      "body": "הסיסמה שלכם עבור %{product_name} שונתה בתאריך %{date} בשעה %{time}.",
+      "security_notice": "אם לא ביצעתם שינוי זה, אנא אבטחו את החשבון שלכם מיד על ידי איפוס הסיסמה ויצירת קשר עם התמיכה.",
+      "signature": "דלאנו"
+    },
+    "email_changed": {
+      "subject": "כתובת הדוא״ל שלכם שונתה (%{display_domain})",
+      "title": "כתובת הדוא״ל שלכם שונתה",
+      "body": "כתובת הדוא״ל עבור חשבון %{product_name} שלכם שונתה ל-%{new_email_masked} בתאריך %{date}.",
+      "security_notice": "אם לא ביצעתם שינוי זה, אנא צרו קשר עם התמיכה מיד מכיוון שהחשבון שלכם עשוי להיות מסוכן.",
+      "signature": "דלאנו"
+    },
+    "email_change_confirmation": {
+      "subject": "אימות כתובת הדוא״ל החדשה שלכם (%{display_domain})",
+      "title": "אימות כתובת הדוא״ל החדשה שלכם",
+      "body": "אנא אמתו את כתובת דוא״ל זו להשלמת השינוי עבור חשבון %{product_name} שלכם.",
+      "verify_button": "אימות כתובת דוא״ל",
+      "copy_link_prompt": "או העתיקו והדביקו את הקישור הזה:",
+      "signature": "דלאנו"
+    },
+    "mfa_enabled": {
+      "subject": "אימות דו-שלבי הופעל (%{display_domain})",
+      "title": "אימות דו-שלבי הופעל",
+      "body": "אימות דו-שלבי הופעל עבור חשבון %{product_name} שלכם בתאריך %{date}.",
+      "security_notice": "החשבון שלכם כעת מאובטח יותר. תצטרכו להזין קוד אימות מאפליקציית האימות שלכם בעת ההתחברות.",
+      "signature": "דלאנו"
+    },
+    "mfa_disabled": {
+      "subject": "אימות דו-שלבי הושבת (%{display_domain})",
+      "title": "אימות דו-שלבי הושבת",
+      "body": "אימות דו-שלבי הושבת עבור חשבון %{product_name} שלכם בתאריך %{date}.",
+      "warning_notice": "החשבון שלכם כעת פחות מאובטח. אם לא ביצעתם שינוי זה, אנא אבטחו את החשבון שלכם מיד.",
+      "signature": "דלאנו"
+    },
+    "new_login_alert": {
+      "subject": "התחברות חדשה לחשבון שלכם (%{display_domain})",
+      "title": "זוהתה התחברות חדשה",
+      "body": "זוהתה התחברות חדשה לחשבון %{product_name} שלכם בתאריך %{date} בשעה %{time}.",
+      "device_label": "מכשיר:",
+      "location_label": "מיקום:",
+      "ip_address_label": "כתובת IP:",
+      "not_you_notice": "אם זה לא הייתם אתם, ייתכן שהחשבון שלכם נפרץ.",
+      "secure_account_button": "אבטחת החשבון שלכם",
+      "signature": "דלאנו"
+    },
+    "member_removed": {
+      "subject": "הוסרתם מ-%{organization_name}",
+      "title": "הוסרתם מ-%{organization_name}",
+      "body": "הוסרתם מהארגון \"%{organization_name}\" ב-%{product_name}.",
+      "signature": "דלאנו"
+    },
+    "role_changed": {
+      "subject": "התפקיד שלכם שונה ב-%{organization_name}",
+      "title": "התפקיד שלכם שונה",
+      "body": "התפקיד שלכם ב-\"%{organization_name}\" שונה מ-%{old_role} ל-%{new_role}.",
+      "signature": "דלאנו"
+    },
+    "organization_deleted": {
+      "subject": "הארגון \"%{organization_name}\" נמחק",
+      "title": "ארגון נמחק",
+      "body": "הארגון \"%{organization_name}\" נמחק מ-%{product_name}. כל הנתונים הקשורים הוסרו.",
+      "signature": "דלאנו"
+    },
+    "payment_receipt": {
+      "subject": "קבלת תשלום עבור %{product_name}",
+      "title": "קבלת תשלום",
+      "body": "תודה על התשלום שלכם. הנה פרטי התשלום שלכם:",
+      "amount_label": "סכום:",
+      "date_label": "תאריך:",
+      "plan_label": "תוכנית:",
+      "invoice_link": "הצגת חשבונית",
+      "signature": "דלאנו"
+    },
+    "payment_failed": {
+      "subject": "התשלום נכשל עבור %{product_name}",
+      "title": "התשלום נכשל",
+      "body": "לא הצלחנו לעבד את התשלום שלכם עבור %{product_name}. אנא עדכנו את אמצעי התשלום שלכם כדי למנוע הפרעה בשירות.",
+      "update_payment_button": "עדכון אמצעי תשלום",
+      "signature": "דלאנו"
+    },
+    "trial_expiring": {
+      "subject": "תקופת הניסיון של %{product_name} תפוג בעוד %{days_remaining} ימים",
+      "title": "תקופת הניסיון שלכם מסתיימת בקרוב",
+      "body": "תקופת הניסיון החינמית של %{product_name} תפוג בעוד %{days_remaining} ימים. שדרגו עכשיו כדי לשמור על גישה לכל התכונות.",
+      "upgrade_button": "שדרוג עכשיו",
+      "signature": "דלאנו"
+    },
+    "subscription_changed": {
+      "subject": "המנוי שלכם ל-%{product_name} שונה",
+      "title": "המנוי שונה",
+      "body": "המנוי שלכם ל-%{product_name} שונה מ-%{old_plan} ל-%{new_plan}.",
+      "effective_date": "שינוי זה תקף החל מ-%{date}.",
+      "signature": "דלאנו"
+    },
     "common": {
       "greeting": "שלום,",
       "thanks": "תודה,",
       "unsubscribe": "ביטול הרשמה",
-      "view_in_browser": "צפייה בדפדפן"
+      "view_in_browser": "צפייה בדפדפן",
+      "onetime_secret": "Onetime Secret"
     }
   }
 }

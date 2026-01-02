@@ -6,6 +6,7 @@
       "organization_plural": "Organizacje",
       "organizations_description": "Zarządzaj swoimi organizacjami",
       "my_organizations": "Moje organizacje",
+      "manage_organizations": "Zarządzaj organizacjami",
       "new_organization": "Nowa organizacja",
       "no_organizations": "Brak organizacji",
       "no_organizations_description": "Organizacje pozwalają zarządzać wieloma zespołami z ujednoliconym rozliczaniem i administracją. Zacznij od utworzenia pierwszej organizacji.",
@@ -25,6 +26,7 @@
       "contact_email_help": "Główny kontakt dla powiadomień rozliczeniowych i administracyjnych",
       "billing_managed_by_default": "Rozliczenia i zarządzanie subskrypcją są obsługiwane przez główny obszar roboczy. Odwiedź ustawienia głównego obszaru roboczego, aby zarządzać metodami płatności i fakturami.",
       "select_organization": "Wybierz organizację",
+      "switcher_locked": "Przełączanie organizacji niedostępne na tej stronie",
       "not_found": "Nie znaleziono organizacji",
       "load_error": "Nie udało się załadować organizacji",
       "fetch_organization_error": "Nie udało się załadować organizacji",
@@ -47,9 +49,11 @@
       "single_user_info_description": "Zaktualizuj nazwę firmy i szczegóły organizacji tutaj. Te informacje pomagają spersonalizować konto i mogą być używane do funkcji brandingowych w przyszłości.",
       "getting_started_title": "Rozpoczynanie pracy z organizacjami",
       "getting_started_description": "Utwórz pierwszą organizację, aby zarządzać informacjami o firmie i przygotować się na przyszłą współpracę zespołową i funkcje brandingowe.",
+      "page_description": "Zarządzaj swoimi organizacjami i członkami zespołu",
       "tabs": {
         "general": "Ogólne",
         "company_branding": "Branding firmy",
+        "members": "Zespół",
         "billing": "Rozliczenia"
       },
       "danger_zone": "Strefa niebezpieczeństwa",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Członkowie",
         "description": "Zarządzaj członkami organizacji i ich rolami",
+        "current_members": "Obecni członkowie",
         "member": "Członek",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Nazwa",
         "email": "E-mail",
         "role": "Rola",

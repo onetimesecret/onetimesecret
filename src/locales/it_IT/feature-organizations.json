@@ -6,6 +6,7 @@
       "organization_plural": "Organizzazioni",
       "organizations_description": "Gestisci le tue organizzazioni",
       "my_organizations": "Le mie organizzazioni",
+      "manage_organizations": "Gestisci organizzazioni",
       "new_organization": "Nuova organizzazione",
       "no_organizations": "Ancora nessuna organizzazione",
       "no_organizations_description": "Le organizzazioni ti permettono di gestire team multipli con fatturazione e amministrazione unificate. Inizia creando la tua prima organizzazione",
@@ -25,6 +26,7 @@
       "contact_email_help": "Contatto principale per notifiche di fatturazione e amministrative",
       "billing_managed_by_default": "La gestione della fatturazione e degli abbonamenti avviene tramite il tuo spazio di lavoro principale. Visita le impostazioni del tuo spazio di lavoro principale per gestire i metodi di pagamento e le fatture.",
       "select_organization": "Seleziona un'organizzazione",
+      "switcher_locked": "Cambio organizzazione non disponibile in questa pagina",
       "not_found": "Organizzazione non trovata",
       "load_error": "Caricamento organizzazione fallito",
       "fetch_organization_error": "Caricamento organizzazione fallito",
@@ -47,9 +49,11 @@
       "single_user_info_description": "Aggiorna il nome della tua azienda e i dettagli dell'organizzazione qui. Queste informazioni aiutano a personalizzare il tuo account e possono essere utilizzate per funzionalità di branding in futuro",
       "getting_started_title": "Iniziare con le organizzazioni",
       "getting_started_description": "Crea la tua prima organizzazione per gestire le informazioni della tua azienda e prepararti per future funzionalità di collaborazione in team e branding",
+      "page_description": "Gestisci le tue organizzazioni e i membri del team",
       "tabs": {
         "general": "Generale",
         "company_branding": "Branding aziendale",
+        "members": "Team",
         "billing": "Fatturazione"
       },
       "danger_zone": "Zona pericolosa",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Membri",
         "description": "Gestisci i membri dell'organizzazione e i loro ruoli",
+        "current_members": "Membri attuali",
         "member": "Membro",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Nome",
         "email": "Email",
         "role": "Ruolo",

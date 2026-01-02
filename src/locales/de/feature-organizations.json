@@ -6,6 +6,7 @@
       "organization_plural": "Organisationen",
       "organizations_description": "Verwalte deine Organisationen",
       "my_organizations": "Meine Organisationen",
+      "manage_organizations": "Organisationen verwalten",
       "new_organization": "Neue Organisation",
       "no_organizations": "Noch keine Organisationen",
       "no_organizations_description": "Organisationen ermöglichen es dir, mehrere Teams mit einheitlicher Abrechnung und Verwaltung zu verwalten. Lege los, indem du deine erste Organisation erstellst.",
@@ -25,6 +26,7 @@
       "contact_email_help": "Hauptkontakt für Abrechnungs- und Verwaltungsbenachrichtigungen",
       "billing_managed_by_default": "Die Abrechnung und Abonnementverwaltung erfolgt über deinen primären Arbeitsbereich. Besuche deine Hauptarbeitsbereich-Einstellungen, um Zahlungsmethoden und Rechnungen zu verwalten.",
       "select_organization": "Wähle eine Organisation",
+      "switcher_locked": "Organisationswechsel auf dieser Seite nicht verfügbar",
       "not_found": "Organisation nicht gefunden",
       "load_error": "Organisation konnte nicht geladen werden",
       "fetch_organization_error": "Organisation konnte nicht geladen werden",
@@ -47,9 +49,11 @@
       "single_user_info_description": "Aktualisiere hier deinen Firmennamen und Organisationsdetails. Diese Informationen helfen, dein Konto zu personalisieren und können in Zukunft für Branding-Funktionen verwendet werden.",
       "getting_started_title": "Erste Schritte mit Organisationen",
       "getting_started_description": "Erstelle deine erste Organisation, um deine Unternehmensinformationen zu verwalten und dich auf zukünftige Team-Zusammenarbeit und Branding-Funktionen vorzubereiten.",
+      "page_description": "Verwalten Sie Ihre Organisationen und Teammitglieder",
       "tabs": {
         "general": "Allgemein",
         "company_branding": "Unternehmensbranding",
+        "members": "Team",
         "billing": "Abrechnung"
       },
       "danger_zone": "Gefahrenzone",
@@ -62,7 +66,10 @@
       "members": {
         "title": "Mitglieder",
         "description": "Organisationsmitglieder und deren Rollen verwalten",
+        "current_members": "Aktuelle Mitglieder",
         "member": "Mitglied",
+        "member_singular": "member",
+        "member_plural": "members",
         "name": "Name",
         "email": "E-Mail",
         "role": "Rolle",
