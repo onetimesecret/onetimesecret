@@ -6,6 +6,9 @@
 #
 # TracePoint-based execution trace for boot debugging.
 #
+# Captures only method calls (no returns/ends) in JSONL format with
+# run-length encoding for consecutive duplicates.
+#
 # ## Usage
 #
 # ```bash
@@ -14,20 +17,18 @@
 # BOOT_TICKER_TAPE=1 bundle exec bin/ots jobs worker
 #
 # # Analyze output
-# bin/analyze-boot-trace tmp/boot_ticker_tape_*.json
-# bin/analyze-boot-trace tmp/boot_ticker_tape_*.json --rabbitmq
-# bin/analyze-boot-trace tmp/boot_ticker_tape_*.json --initializers
+# bin/analyze-boot-trace tmp/boot_ticker_tape_*.jsonl
+# bin/analyze-boot-trace tmp/boot_ticker_tape_*.jsonl --rabbitmq
+# bin/analyze-boot-trace tmp/boot_ticker_tape_*.jsonl --initializers
 # ```
 #
-# Output: `tmp/boot_ticker_tape_<timestamp>.json`
+# Output: `tmp/boot_ticker_tape_<timestamp>.jsonl`
 #
-# ## Example
+# ## Filtering
 #
-# ```bash
-# # Find missing queue declaration
-# BOOT_TICKER_TAPE=1 bundle exec bin/ots jobs worker
-# bin/analyze-boot-trace tmp/boot_ticker_tape_*.json --rabbitmq | grep -i declare
-# ```
+# Customize in constants below:
+# - `FILTERED_NAMESPACES` - Exclude entire namespaces (JSON, YAML, etc.)
+# - `FILTERED_SIGNATURES` - Exclude specific methods (*#initialize, Hash#*, etc.)
 #
 # ## Options
 #
@@ -35,13 +36,13 @@
 #
 # ## See
 #
-# - `lib/onetime/boot/ticker_tape.rb`
-# - `bin/analyze-boot-trace`
+# - `lib/onetime/boot/TICKER-TAPE.md` - Full documentation
+# - `bin/analyze-boot-trace` - Analysis tool
 #
 module Onetime
   module Boot
     class TickerTape
-      EVENTS = [:call, :return, :class, :end, :raise].freeze
+      # Only trace method calls - returns/ends are just noise
 
       # Objects that are unsafe to inspect during tracing
       UNSAFE_CLASSES = [
@@ -53,7 +54,52 @@ module Onetime
         'Monitor',
         'Queue',
         'ConditionVariable',
+        'Onetime::Utils'
       ].freeze
+
+      # Namespaces to exclude from tracing (stdlib/gems that create noise)
+      FILTERED_NAMESPACES = [
+        'JSON',
+        'YAML',
+        'Psych',
+        'ERB',
+        'CGI',
+        'URI',
+        'Net',
+        'OpenSSL',
+        'Digest',
+        'Base64',
+        'StringIO',
+        'Tempfile',
+        'FileUtils',
+        'Logger',
+        'Monitor',
+        'Mutex',
+        'Onetime::Utils::Enumerable',
+      ].freeze
+
+      # Specific method signatures to exclude (pattern matching)
+      # Supports glob-style wildcards: * (any chars), ? (single char)
+      FILTERED_SIGNATURES = [
+        '*#initialize',           # All constructors
+        'Onetime::Boot::Initializer.initialize_name',           # Onetime::Boot::Initializer.initialize_name
+        'Onetime::Boot::Initializer#name',
+        '*#inspect',              # Inspection methods
+        '*#to_s',                 # String conversion
+        '*#to_str',               # String coercion
+        '*#hash',                 # Hash value calculation
+        '*#eql?',                 # Equality checks
+        '*#==',                   # Equality operators
+        'Hash#*',                 # All Hash methods (noisy)
+        'Array#*',                # All Array methods (noisy)
+        'String#*',               # All String methods (noisy)
+        'Kernel#*',               # All Kernel methods (noisy)
+        'BasicObject#*',          # All BasicObject methods
+        'Module#*',               # Module introspection
+        'Class#*',                # Class introspection
+      ].freeze
+
+      attr_reader :events, :output_file
 
       def initialize
         @events           = []
@@ -65,7 +111,7 @@ module Onetime
       end
 
       def start
-        @trace = TracePoint.new(*EVENTS) do |tp|
+        @trace = TracePoint.new(:call) do |tp| # Only trace calls
           # Prevent tracing our own tracing code
           next if @tracing_self
 
@@ -80,16 +126,32 @@ module Onetime
             next if tp.defined_class.to_s.include?('Mutex')
             next if tp.defined_class.to_s.include?('ConnectionPool')
 
-            record_event(
-              timestamp: elapsed_μs,
-              event: tp.event,
-              method: tp.method_id,
-              defined_class: safe_class_name(tp.defined_class),
-              path: safe_path(tp.path),
-              lineno: tp.lineno,
-              thread_id: Thread.current.object_id,
-              binding: @capture_bindings ? extract_locals(tp.binding) : nil,
-            )
+            sig = method_signature(tp)
+
+            # Skip filtered signatures
+            next if filtered_signature?(sig)
+
+            # Deduplicate consecutive calls - increment reps instead of new line
+            if @events.last && @events.last[:sig] == sig
+              @events.last[:reps] += 1
+              @events.last[:dur] = elapsed_μs - @events.last[:ts]
+            else
+              event = {
+                ts: elapsed_μs,
+                sig: sig,
+                path: safe_path(tp.path),
+                line: tp.lineno,
+                reps: 1,
+              }
+
+              # Only add binding if enabled and present
+              if @capture_bindings
+                locals = extract_locals(tp.binding)
+                event[:bind] = locals unless locals.empty?
+              end
+
+              record_event(event)
+            end
           rescue StandardError => ex
             # Silent failure - don't crash boot if tracing fails
             warn "[TickerTape] Trace error: #{ex.class}: #{ex.message}" if OT.debug?
@@ -113,9 +175,47 @@ module Onetime
         return false if path.include?('/ruby/')
         return false if path.include?('/bundler/')
 
+        # Check if class is in filtered namespaces
+        klass_name = tp.defined_class.to_s
+        return false if FILTERED_NAMESPACES.any? { |ns| klass_name.start_with?(ns) }
+
         # Only trace our code
         path.include?('/onetime/') ||
-          tp.defined_class.to_s.start_with?('Onetime', 'OT')
+          klass_name.start_with?('Onetime', 'OT')
+      end
+
+      # Check if signature matches any filtered pattern
+      # Supports glob-style wildcards: * (any chars), ? (single char)
+      def filtered_signature?(sig)
+        FILTERED_SIGNATURES.any? do |pattern|
+          # Convert glob pattern to regex
+          # Escape special regex chars except * and ?
+          regex_pattern = Regexp.escape(pattern)
+            .gsub('\*', '.*')   # * matches any chars
+            .gsub('\?', '.')    # ? matches single char
+
+          sig.match?(/\A#{regex_pattern}\z/)
+        end
+      end
+
+      # Format method signature as Ruby convention
+      # Class#instance_method or Module.module_method
+      def method_signature(tp)
+        klass_str = safe_class_name(tp.defined_class)
+        method = tp.method_id
+
+        # Detect singleton class (class methods)
+        # Singleton classes appear as "#<Class:ClassName>"
+        if klass_str.start_with?('#<Class:')
+          # Extract actual class name and use . for class method
+          klass_name = klass_str[8..-2] # Remove "#<Class:" and ">"
+          "#{klass_name}.#{method}"
+        else
+          # Instance method
+          "#{klass_str}##{method}"
+        end
+      rescue
+        "#{klass_str}##{method}" # fallback to instance method notation
       end
 
       def elapsed_μs
@@ -187,24 +287,33 @@ module Onetime
       end
 
       def write_ticker_tape
-        output_file = "tmp/boot_ticker_tape_#{Time.now.to_i}.json"
-
-        data = {
-          boot_instance: Onetime.instance,
-          total_events: @events.size,
-          duration_ms: elapsed_μs / 1000.0,
-          capture_bindings: @capture_bindings,
-          events: @events,
-        }
+        @output_file = "tmp/boot_ticker_tape_#{Time.now.to_i}.jsonl"
 
         # Ensure tmp directory exists
         FileUtils.mkdir_p('tmp')
 
-        File.write(output_file, JSON.pretty_generate(data))
+        # Write JSONL format (one JSON object per line)
+        File.open(output_file, 'w') do |f|
+          # Header line with metadata
+          f.puts JSON.generate({
+            meta: true,
+            instance: Onetime.instance,
+            events: @events.size,
+            duration_ms: elapsed_μs / 1000.0,
+            bindings: @capture_bindings,
+            ts: Time.now.iso8601,
+          })
+
+          # Event lines (compact format)
+          @events.each do |event|
+            f.puts JSON.generate(event)
+          end
+        end
 
         puts "\n📼 Boot ticker tape written to: #{output_file}"
         puts "   Total events: #{@events.size}"
         puts "   Duration: #{(elapsed_μs / 1000.0).round(2)}ms"
+        puts "   Format: JSONL (compact)"
       rescue StandardError => ex
         warn "[TickerTape] Failed to write ticker tape: #{ex.message}"
       end
