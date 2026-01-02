@@ -25,12 +25,12 @@ module Onetime
     class LoadLocales < Onetime::Boot::Initializer
       @provides = [:i18n]
 
-      LOCALES_ROOT = File.join(Onetime::HOME, 'src', 'locales')
+      LOCALES_ROOT       = File.join(Onetime::HOME, 'src', 'locales')
       CACHE_FILE_PATTERN = '.all-locales-*.cache'
 
       def self.cleanup_caches
         Dir.glob(File.join(LOCALES_ROOT, CACHE_FILE_PATTERN)).each do |cache_path|
-          OT.info "[i18n] Removing #{cache_path}"
+          warn "[i18n] Removing #{cache_path}"
           File.delete(cache_path)
         rescue StandardError => ex
           OT.le "[i18n] Error removing cache #{cache_path}: #{ex.message}"
@@ -38,25 +38,27 @@ module Onetime
       end
 
       def self.precompile
-        instance = new
-        i18n = OT.conf.fetch('internationalization', {})
-        locales_list = i18n.fetch('locales', nil) || OT.conf.fetch('locales', ['en']).map(&:to_s)
+        instance       = new
+        i18n           = OT.conf.fetch('internationalization', {})
+        locales_list   = i18n.fetch('locales', nil) || OT.conf.fetch('locales', ['en']).map(&:to_s)
         default_locale = i18n.fetch('default_locale', locales_list.first) || 'en'
 
-        OT.info "[i18n] Precompiling locales: #{locales_list.join(', ')}"
+        Onetime.log_box(['[i18n] Precompiling locales'])
+
+        OT.ld "[i18n] Locales list: #{locales_list}"
 
         # Use the same code path as runtime - this will create the cache
         instance.send(:load_locale_definitions, locales_list, default_locale)
 
-        OT.info "[i18n] Precompilation complete"
+        OT.info '[i18n] Precompilation complete'
       end
 
       def execute(_context)
-        start_time = OT.now_in_μs
+        start_time   = OT.now_in_μs
         i18n         = OT.conf.fetch('internationalization', {})
         i18n_enabled = i18n['enabled'] || false
 
-        OT.ld '[i18n] Parsing through i18n locales...'
+        OT.boot_logger.debug '[i18n] Parsing through i18n locales...'
 
         # Load the locales from the config in both the current and
         # legacy locations. If the locales are not set in the config,
@@ -114,7 +116,8 @@ module Onetime
         cache_file = compute_cache_path(supported_locales)
 
         if cache_file && File.exist?(cache_file)
-          OT.info "[i18n] Loading all locales from unified cache"
+          OT.log_box(['', '💱 [i18n] Cache hit for locales', ''])
+
           locales_defs = load_from_cache(cache_file)
           if locales_defs
             cleanup_stale_all_locales_caches(cache_file)
@@ -123,7 +126,7 @@ module Onetime
         end
 
         # Cache miss or error - load from source files
-        OT.info "[i18n] Cache miss, loading all locales from source files"
+        OT.log_box(['', '💱 [i18n] Cache miss for locales', ''])
         locales_defs = load_all_locales_from_source(supported_locales)
 
         # Apply fallback overlay
@@ -232,7 +235,7 @@ module Onetime
         all_files = []
 
         supported_locales.each do |loc|
-          locale_dir = File.join(LOCALES_ROOT, loc)
+          locale_dir  = File.join(LOCALES_ROOT, loc)
           locale_file = File.join(LOCALES_ROOT, "#{loc}.json")
 
           if Dir.exist?(locale_dir)
@@ -246,7 +249,7 @@ module Onetime
 
         # Create fingerprint based on all file paths and modification times
         fingerprint = all_files.map { |f| "#{f}:#{File.mtime(f).to_i}" }.join('|')
-        hash = Digest::SHA256.hexdigest(fingerprint)
+        hash        = Digest::SHA256.hexdigest(fingerprint)
         File.join(LOCALES_ROOT, ".all-locales-#{hash}.cache")
       end
 
