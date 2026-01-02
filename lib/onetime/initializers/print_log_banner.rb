@@ -98,7 +98,7 @@ module Onetime
       # Footer
 
       # Output everything with a single OT.li call
-      OT.boot_logger.debug output.join("\n")
+      OT.boot_logger.info output.join("\n")
       end
 
       # Builds system information section rows
@@ -189,9 +189,7 @@ module Onetime
 
       # Builds authentication section rows
       def build_auth_section(site_config, colonels)
-        auth_rows = [
-          ['Auth Mode', OT.auth_config.mode],
-        ]
+        auth_rows = []
 
         auth_rows << if colonels.empty?
           ['Colonels', 'No colonels configured ⚠️']
@@ -202,10 +200,10 @@ module Onetime
         if site_config.key?('authentication')
           auth_config = site_config['authentication']
           if is_feature_disabled?(auth_config)
-            auth_rows << ['Auth Settings', 'disabled']
+            auth_rows << ['Auth UI Settings', 'disabled']
           else
             auth_settings = auth_config.map { |k, v| "#{k}=#{v}" }.join(', ')
-            auth_rows << ['Auth Settings', auth_settings]
+            auth_rows << ['Auth UI Settings', auth_settings]
           end
         end
 
