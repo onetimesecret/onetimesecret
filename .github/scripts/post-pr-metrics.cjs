@@ -5,7 +5,7 @@
  * with the CI performance metrics summary.
  *
  * Usage (in GitHub Actions with actions/github-script@v7):
- *   const script = require('./.github/scripts/post-pr-metrics.js');
+ *   const script = require('./.github/scripts/post-pr-metrics.cjs');
  *   await script({ github, context, core, tierData });
  *
  * @param {Object} options

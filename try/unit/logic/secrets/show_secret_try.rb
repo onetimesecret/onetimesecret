@@ -138,7 +138,7 @@ this_logic.display_domain
 #=> nil
 
 ## Sets locale correctly via params
-logic = Logic::Secrets::ShowSecret.new(@strategy_result, { locale: 'es' })
+logic = Logic::Secrets::ShowSecret.new(@strategy_result, { 'locale' => 'es' })
 logic.locale
 #=> 'es'
 
