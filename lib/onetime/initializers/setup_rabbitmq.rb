@@ -21,6 +21,12 @@ module Onetime
     # - One TCP connection per process (singleton)
     # - Pool of channels from that connection (thread-safe)
     #
+    # Fork safety note:
+    # ConnectionPool (v2.5+) has automatic fork handling via Process._fork hook.
+    # We disable this (auto_reload_after_fork: false) because we manage fork
+    # cleanup explicitly via cleanup/reconnect methods called from Puma hooks.
+    # See: https://github.com/mperham/connection_pool (ForkTracker module)
+    #
     # rubocop:disable Style/GlobalVars
     class SetupRabbitMQ < Onetime::Boot::Initializer
       @depends_on = [:logging]
@@ -47,16 +53,20 @@ module Onetime
       # Always clears global state first - stale connection objects from parent
       # process are useless in forked children.
       #
+      # Note: conn.close closes all channels on that connection. This is why we
+      # disable ConnectionPool's auto_reload_after_fork - its after_fork handler
+      # would try to close already-closed channels, triggering bunny warnings.
+      #
       # @return [void]
       def cleanup
         conn              = $rmq_conn
         $rmq_conn         = nil
-        $rmq_channel_pool = nil
+        $rmq_channel_pool = nil # Clear reference; pool cleanup handled by conn.close
 
         return unless conn&.open?
 
         Onetime.bunny_logger.info '[SetupRabbitMQ] Closing RabbitMQ connection before fork'
-        conn.close
+        conn.close # Closes all channels on this connection
       rescue StandardError => ex
         Onetime.bunny_logger.warn "[SetupRabbitMQ] Error during cleanup (#{ex.class})"
         Onetime.bunny_logger.debug "[SetupRabbitMQ] Cleanup error details: #{ex.message}"
@@ -104,7 +114,10 @@ module Onetime
         Onetime.bunny_logger.debug '[init] Setup RabbitMQ: connection established'
 
         # Create channel pool for thread safety
-        $rmq_channel_pool = ConnectionPool.new(size: pool_size, timeout: 5) do
+        # Disable auto_reload_after_fork since we handle fork cleanup manually in cleanup/reconnect methods.
+        # Otherwise ConnectionPool's automatic after_fork handler will try to close channels
+        # that are already closed (from our cleanup), causing "cannot use a closed channel" warnings.
+        $rmq_channel_pool = ConnectionPool.new(size: pool_size, timeout: 5, auto_reload_after_fork: false) do
           $rmq_conn.create_channel
         end
 
