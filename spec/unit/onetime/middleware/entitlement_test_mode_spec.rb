@@ -1,4 +1,4 @@
-# spec/unit/middleware/entitlement_test_mode_spec.rb
+# spec/unit/onetime/middleware/entitlement_test_mode_spec.rb
 #
 # frozen_string_literal: true
 

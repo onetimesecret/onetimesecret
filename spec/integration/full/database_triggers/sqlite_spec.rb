@@ -1,4 +1,4 @@
-# spec/integration/authentication/full_mode/database_triggers_sqlite_spec.rb
+# spec/integration/full/database_triggers/sqlite_spec.rb
 #
 # frozen_string_literal: true
 

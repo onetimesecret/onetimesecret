@@ -1,3 +1,5 @@
+# lib/onetime/mail/templates/billing_template_helpers.rb
+#
 # frozen_string_literal: true
 
 module Onetime

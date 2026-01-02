@@ -1,4 +1,5 @@
 // src/tests/e2e/scope-switcher.spec.ts
+
 //
 // E2E Tests for Scope Switcher Components
 //

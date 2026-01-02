@@ -1,4 +1,4 @@
-# spec/onetime/config/after_load_spec.rb
+# spec/integration/all/config/after_load_spec.rb
 #
 # frozen_string_literal: true
 

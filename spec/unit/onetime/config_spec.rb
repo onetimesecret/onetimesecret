@@ -1,4 +1,4 @@
-# spec/onetime/config_spec.rb
+# spec/unit/onetime/config_spec.rb
 #
 # frozen_string_literal: true
 

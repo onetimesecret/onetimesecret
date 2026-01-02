@@ -1,8 +1,7 @@
-# .purgatory/migrations/core/20250728-1512_00_customer_objid.rb
+# migrations/20250728-1512_00_customer_objid.rb
 #
 # frozen_string_literal: true
 
-#
 # Customer Object ID (and External ID) Migration - Pipeline
 #
 # Purpose: Populates objid field for all existing Customer records. The extid

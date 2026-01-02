@@ -1,4 +1,4 @@
-# spec/integration/puma_semantic_logger_fork_spec.rb
+# spec/integration/all/puma_semantic_logger_fork_spec.rb
 #
 # frozen_string_literal: true
 

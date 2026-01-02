@@ -1,7 +1,7 @@
-# frozen_string_literal: true
-
 # spec/support/puma_integration/test_fork_initializers.rb
 #
+# frozen_string_literal: true
+
 # Test initializer classes for Puma fork workflow integration tests.
 # These simulate fork-sensitive initializers with cleanup/reconnect hooks.
 #

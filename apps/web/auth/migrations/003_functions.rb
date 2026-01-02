@@ -1,7 +1,7 @@
 # apps/web/auth/migrations/003_functions.rb
 #
-# Run manually:
-#   # Up
+# frozen_string_literal: true
+
 #   $ sequel -m apps/web/auth/migrations -M 3 $AUTH_DATABASE_URL_MIGRATIONS
 #
 #   # Down

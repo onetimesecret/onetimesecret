@@ -1,4 +1,4 @@
-# spec/onetime/jobs/publisher_spec.rb
+# spec/unit/onetime/jobs/publisher_spec.rb
 #
 # frozen_string_literal: true
 

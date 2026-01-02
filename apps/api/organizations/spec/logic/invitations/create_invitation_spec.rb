@@ -1,4 +1,4 @@
-# spec/api/organizations/logic/invitations/create_invitation_spec.rb
+# apps/api/organizations/spec/logic/invitations/create_invitation_spec.rb
 #
 # frozen_string_literal: true
 

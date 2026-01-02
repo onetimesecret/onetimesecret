@@ -1,3 +1,5 @@
+// src/tests/e2e/playwright.config.ts
+
 import { defineConfig, devices } from '@playwright/test';
 
 // Default local server URL (Ruby backend with built assets)

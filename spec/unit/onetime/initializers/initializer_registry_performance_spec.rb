@@ -1,4 +1,4 @@
-# spec/performance/initializer_registry_performance_spec.rb
+# spec/unit/onetime/initializers/initializer_registry_performance_spec.rb
 #
 # frozen_string_literal: true
 

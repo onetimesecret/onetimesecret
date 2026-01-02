@@ -1,4 +1,4 @@
-# spec/integration/authentication/simple_mode/adapter_spec.rb
+# spec/integration/simple/adapter_spec.rb
 #
 # frozen_string_literal: true
 

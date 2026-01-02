@@ -1,4 +1,4 @@
-# spec/onetime/jobs/scheduled_job_spec.rb
+# spec/unit/onetime/jobs/scheduled_job_spec.rb
 #
 # frozen_string_literal: true
 

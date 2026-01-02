@@ -1,4 +1,4 @@
-# spec/integration/admin_interface_spec.rb
+# spec/integration/full/admin_interface_spec.rb
 #
 # frozen_string_literal: true
 

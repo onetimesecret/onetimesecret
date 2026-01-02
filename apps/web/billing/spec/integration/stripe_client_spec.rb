@@ -1,4 +1,4 @@
-# apps/web/billing/spec/lib/stripe_client_spec.rb
+# apps/web/billing/spec/integration/stripe_client_spec.rb
 #
 # frozen_string_literal: true
 

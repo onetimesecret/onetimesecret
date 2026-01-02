@@ -1,8 +1,5 @@
 # try/integration/middleware/domain_strategy/domain_context_override_try.rb
 #
-# Tests for Domain Context Override feature (#2174)
-# Allows simulating custom domain experiences in development mode.
-#
 # frozen_string_literal: true
 
 require_relative '../../../support/test_helpers'

@@ -1,5 +1,6 @@
-# Generated rspec code for default_workspace_creation
-# Updated: 2024-12-22
+# spec/integration/all/default_workspace_creation_spec.rb
+#
+# frozen_string_literal: true
 
 require 'spec_helper'
 

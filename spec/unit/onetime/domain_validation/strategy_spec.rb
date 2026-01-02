@@ -1,4 +1,4 @@
-# spec/lib/onetime/domain_validation/strategy_spec.rb
+# spec/unit/onetime/domain_validation/strategy_spec.rb
 #
 # frozen_string_literal: true
 

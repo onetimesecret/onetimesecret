@@ -1,4 +1,4 @@
-# apps/web/billing/try/self_healing_workspace_try.rb
+# apps/web/billing/try/operations/self_healing_workspace_try.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,5 @@
 // src/tests/e2e/plan-switching.spec.ts
+
 //
 // E2E Tests for Plan Switching (Issue #2314)
 //

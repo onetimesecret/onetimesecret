@@ -1,7 +1,7 @@
-# frozen_string_literal: true
-
 # spec/support/puma_integration/fork_workflow_rack_app.rb
 #
+# frozen_string_literal: true
+
 # Minimal Rack application for testing Puma fork workflow.
 # Exposes workflow state and initializer info via JSON endpoints.
 #

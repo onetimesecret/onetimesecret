@@ -1,4 +1,4 @@
-# spec/integration/authentication/full_mode/audit_logging_config_spec.rb
+# spec/integration/full/audit_logging_config_spec.rb
 #
 # frozen_string_literal: true
 

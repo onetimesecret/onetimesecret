@@ -1,4 +1,4 @@
-# spec/integration/authentication/full_mode/active_sessions_spec.rb
+# spec/integration/full/active_sessions_spec.rb
 #
 # frozen_string_literal: true
 

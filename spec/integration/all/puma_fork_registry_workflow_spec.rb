@@ -1,7 +1,7 @@
-# frozen_string_literal: true
-
 # spec/integration/all/puma_fork_registry_workflow_spec.rb
 #
+# frozen_string_literal: true
+
 # Puma Fork Registry Workflow Integration Tests
 #
 # Usage: bundle exec rspec spec/integration/all/puma_fork_registry_workflow_spec.rb

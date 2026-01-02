@@ -1,8 +1,7 @@
-# etc/defaults/puma.defaults.rb
+# etc/examples/puma.example.rb
 #
 # frozen_string_literal: true
 
-#
 # Puma configuration for Onetime Secret
 # Copy to etc/puma.rb to customize (done automatically in Docker)
 #

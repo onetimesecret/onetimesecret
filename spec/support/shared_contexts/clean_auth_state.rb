@@ -1,7 +1,7 @@
+# spec/support/shared_contexts/clean_auth_state.rb
+#
 # frozen_string_literal: true
 
-# Shared context for cleaning authentication state between test contexts.
-#
 # This shared context tears down suite-level database setups and resets
 # Auth::Database connections to provide a fresh state.
 #

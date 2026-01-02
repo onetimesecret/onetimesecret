@@ -1,3 +1,5 @@
+# lib/onetime/mail/templates/payment_failed.rb
+#
 # frozen_string_literal: true
 
 require_relative 'base'

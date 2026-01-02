@@ -1,4 +1,5 @@
 // src/types/declarations/locales.d.ts
+
 //
 // This file provides type declarations for locale JSON imports.
 // For type-safe i18n keys, see: src/types/generated/i18n-keys.d.ts

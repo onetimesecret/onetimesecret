@@ -1,4 +1,4 @@
-# spec/integration/authentication/full_mode/database_triggers_postgres_spec.rb
+# spec/integration/full/database_triggers/postgres_spec.rb
 #
 # frozen_string_literal: true
 

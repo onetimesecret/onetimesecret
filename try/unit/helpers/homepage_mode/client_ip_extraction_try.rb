@@ -1,8 +1,5 @@
 # try/unit/helpers/homepage_mode/client_ip_extraction_try.rb
 #
-# Tests for extract_client_ip_for_homepage and extract_ip_from_header methods
-# in Onetime::Helpers::HomepageModeHelpers
-#
 # frozen_string_literal: true
 
 require_relative '../../../support/test_helpers'

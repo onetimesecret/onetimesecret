@@ -1,4 +1,4 @@
-# spec/integration/authentication/full_mode/infrastructure_spec.rb
+# spec/integration/full/infrastructure_spec.rb
 #
 # frozen_string_literal: true
 

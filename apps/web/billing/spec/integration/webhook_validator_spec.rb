@@ -1,4 +1,4 @@
-# apps/web/billing/spec/lib/webhook_validator_spec.rb
+# apps/web/billing/spec/integration/webhook_validator_spec.rb
 #
 # frozen_string_literal: true
 

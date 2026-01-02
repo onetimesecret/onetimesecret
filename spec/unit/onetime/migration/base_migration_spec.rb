@@ -1,4 +1,4 @@
-# spec/onetime/migration/base_migration_spec.rb
+# spec/unit/onetime/migration/base_migration_spec.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,4 @@
-# spec/api/organizations/logic/organizations/create_organization_spec.rb
+# apps/api/organizations/spec/logic/organizations/create_organization_spec.rb
 #
 # frozen_string_literal: true
 

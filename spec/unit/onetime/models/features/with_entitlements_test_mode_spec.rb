@@ -1,4 +1,4 @@
-# spec/unit/models/features/with_entitlements_test_mode_spec.rb
+# spec/unit/onetime/models/features/with_entitlements_test_mode_spec.rb
 #
 # frozen_string_literal: true
 

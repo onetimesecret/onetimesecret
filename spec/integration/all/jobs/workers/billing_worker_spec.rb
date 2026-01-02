@@ -1,4 +1,4 @@
-# spec/onetime/jobs/workers/billing_worker_spec.rb
+# spec/integration/all/jobs/workers/billing_worker_spec.rb
 #
 # frozen_string_literal: true
 

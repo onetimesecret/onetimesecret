@@ -1,8 +1,5 @@
 # try/unit/helpers/homepage_mode/header_matching_try.rb
 #
-# Tests for header_matches_mode? method
-# in Onetime::Helpers::HomepageModeHelpers
-#
 # frozen_string_literal: true
 
 require_relative '../../../support/test_helpers'

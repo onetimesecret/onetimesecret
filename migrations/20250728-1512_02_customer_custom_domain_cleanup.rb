@@ -1,8 +1,7 @@
-# .purgatory/migrations/core/20250728-1512_02_customer_custom_domain_cleanup.rb
+# migrations/20250728-1512_02_customer_custom_domain_cleanup.rb
 #
 # frozen_string_literal: true
 
-#
 # Custom Domain Cleanup - Remove test user domains
 #
 # Purpose: Removes custom domain records for test users:
