@@ -105,9 +105,9 @@ module Onetime
           log_error "Mail delivery error: #{ex.message}"
           raise # Trigger retry logic
         rescue ArgumentError => ex
-          # Bad message format - don't retry
+          # Bad message format - don't retry, send to DLQ
           log_error "Invalid message format: #{ex.message}"
-          reject!
+          raise # Re-raise to exit work_with_params and trigger reject!
         end
 
         # Deliver templated email
