@@ -17,7 +17,10 @@ OT.boot! :test, false
 require 'onetime/mail'
 
 # Data class for mocking secrets (immutable, Ruby 3.2+)
-MockIncomingSecret = Data.define(:key, :share_domain)
+# Template uses #identifier method (not #key which is deprecated)
+MockIncomingSecret = Data.define(:key, :share_domain) do
+  alias identifier key
+end
 
 # Setup mock secrets
 @mock_secret = MockIncomingSecret.new(key: 'incoming_key_abc', share_domain: nil)
