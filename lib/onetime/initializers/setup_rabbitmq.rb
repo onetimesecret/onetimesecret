@@ -154,33 +154,6 @@ module Onetime
         end
       end
 
-      def self.declare_exchanges(channel)
-        require_relative '../jobs/queue_config'
-
-        Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.each_key do |exchange_name|
-          # Declare fanout exchange for dead letters
-          channel.fanout(exchange_name, durable: true)
-          Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared DLX '#{exchange_name}'"
-        end
-      end
-
-      def self.declare_queues(channel)
-        require_relative '../jobs/queue_config'
-
-        # 1. Declare and bind the dead letter queues
-        Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.each do |exchange_name, config|
-          queue = channel.queue(config[:queue], durable: true)
-          queue.bind(exchange_name)
-          Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared and bound DLQ '#{config[:queue]}'"
-        end
-
-        # 2. Declare main queues (which reference DLX)
-        Onetime::Jobs::QueueConfig::QUEUES.each do |queue_name, config|
-          channel.queue(queue_name, **config)
-          Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared queue '#{queue_name}'"
-        end
-      end
-
       def verify_connection
         $rmq_channel_pool.with do |channel|
           # Verify channel is open and functional
@@ -201,6 +174,44 @@ module Onetime
         # Handles both user:pass@host and key@host formats
         url.gsub(%r{://([^:@]+):([^@]+)@}, '://\1:***@')  # user:pass@host
           .gsub(%r{://([^/:@]+)@}, '://***@')             # key@host (no colon)
+      end
+
+      class << self
+        def declare_exchanges(channel)
+          require_relative '../jobs/queue_config'
+
+          Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.each_key do |exchange_name|
+            # Declare fanout exchange for dead letters
+            channel.fanout(exchange_name, durable: true)
+            Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared DLX '#{exchange_name}'"
+          end
+        end
+
+        def declare_queues(channel)
+          require_relative '../jobs/queue_config'
+
+          # 1. Declare and bind the dead letter queues
+          Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.each do |exchange_name, config|
+            queue = channel.queue(config[:queue], durable: true)
+            queue.bind(exchange_name)
+            Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared and bound DLQ '#{config[:queue]}'"
+          end
+
+          # 2. Declare and bind the primary queues with DLX arguments
+          Onetime::Jobs::QueueConfig::QUEUES.each do |queue_name, config|
+            dlx_name = config[:dead_letter_exchange]
+            channel.queue(
+              queue_name,
+              durable: true,
+              arguments: {
+                'x-dead-letter-exchange' => dlx_name,
+                'x-dead-letter-routing-key' => Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.dig(dlx_name, :queue),
+              },
+            )
+
+            Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared primary queue '#{queue_name}' with DLX '#{dlx_name}'"
+          end
+        end
       end
     end
     # rubocop:enable Style/GlobalVars

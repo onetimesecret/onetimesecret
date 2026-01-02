@@ -6,7 +6,7 @@ require 'bundler/setup'
 
 if ENV['BOOT_TICKER_TAPE']
   require_relative 'onetime/boot/ticker_tape'
-  $ticker = Onetime::Boot::TickerTape.new.tap(&:start)
+  $ticker = Onetime::Boot::TickerTape.new.tap(&:start) # rubocop:disable Style/GlobalVars
 end
 
 require 'securerandom'

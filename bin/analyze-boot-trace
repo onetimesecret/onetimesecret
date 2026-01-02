@@ -201,6 +201,8 @@ class BootTraceAnalyzer
         namespace     = e['sig']&.split(/[#.]/)&.first || 'Unknown'
         h[namespace] += (e['reps'] || 1)
       end
+
+    namespace_counts = namespace_counts
       .sort_by { |_k, v| -v }
       .first(10)
 
@@ -246,11 +248,12 @@ class BootTraceAnalyzer
     # Sort signatures by timestamp
     signatures = seen_signatures.sort_by { |_sig, info| info[:ts] }
 
-    puts format(
-      '%-70s  %-68s',
+    # rubocop:disable Style/RedundantFormat
+    puts format('%-70s  %-68s',
       'SIGNATURE (--> = new namespace)',
       'FILE PATH (--> = new directory)',
     )
+    # rubocop:enable Style/RedundantFormat
     puts '-' * 140
 
     signatures.each do |sig, info|
