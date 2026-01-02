@@ -39,7 +39,7 @@ module Onetime
         # Extract session and user from StrategyResult
         @sess   = strategy_result.session
         @cust   = strategy_result.user
-        @locale = @params[:locale] || OT.default_locale
+        @locale = @params['locale'] || OT.default_locale
 
         # Extract organization and team context from StrategyResult metadata
         extract_organization_context(strategy_result)
@@ -182,7 +182,7 @@ module Onetime
           Onetime::Mail::Mailer.deliver(:welcome, {
             email_address: cust.email,
             secret: secret,
-          }
+          }, locale: locale || 'en'
           )
         rescue StandardError => ex
           errmsg = "Couldn't send the verification email. Let us know below."
