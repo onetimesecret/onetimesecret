@@ -7,6 +7,9 @@ Variable patterns detected:
   - Ruby ERB: %{variable}
   - Legacy printf: %s, %d, %i, %f, %u, %x, %X, %o, %e, %E, %g, %G, %c, %p
 
+Format validation:
+  - email.json must use Ruby ERB %{var} only (not Vue {var})
+
 Usage:
   audit-variables.py [options]
 
@@ -50,6 +53,10 @@ DATE_STAMP = datetime.now().strftime("%m%d")
 VUE_VAR_PATTERN = re.compile(r"(?<!%)(?<!\{)\{([a-zA-Z0-9_]+)\}")
 ERB_VAR_PATTERN = re.compile(r"%\{([a-zA-Z0-9_]+)\}")
 PRINTF_PATTERN = re.compile(r"%[sdifuxXoeEgGcp]")
+
+# Files that should ONLY use Ruby ERB format (%{var}), not Vue format ({var})
+# Email templates are rendered server-side by Ruby, not by Vue
+RUBY_ONLY_FILES = {"email.json"}
 
 
 def extract_variables(text: str) -> dict[str, set[str]]:
@@ -122,6 +129,20 @@ def check_empty_with_vars(source_text: str, locale_text: str) -> bool:
     return False
 
 
+def check_wrong_format(text: str, filename: str) -> list[str]:
+    """Check if text uses wrong variable format for the file type.
+
+    Email templates (Ruby-rendered) should use %{var}, not {var}.
+    Returns list of variables using wrong format.
+    """
+    if filename not in RUBY_ONLY_FILES:
+        return []
+
+    # In Ruby-only files, Vue-style {var} is wrong
+    vue_vars = VUE_VAR_PATTERN.findall(text)
+    return [f"{{{v}}}" for v in vue_vars]
+
+
 def audit_locale(
     en_dir: Path,
     locale_dir: Path,
@@ -170,6 +191,37 @@ def audit_locale(
                 continue
 
             locale_text = locale_data.get(key, "")
+
+            # Check for wrong variable format in Ruby-only files (e.g., email.json)
+            # English source should use %{var}, not {var}
+            wrong_format_en = check_wrong_format(source_text, en_file.name)
+            if wrong_format_en:
+                issues[en_file.name].append(
+                    {
+                        "key": key,
+                        "source_text": source_text,
+                        "locale_text": locale_text,
+                        "wrong_format": wrong_format_en,
+                        "wrong_format_source": "en",
+                        "hint": "Use %{var} instead of {var} for Ruby i18n",
+                    }
+                )
+                # Continue to also check for other issues
+
+            # Check wrong format in translation too
+            if locale_text and key in locale_data:
+                wrong_format_locale = check_wrong_format(locale_text, en_file.name)
+                if wrong_format_locale:
+                    issues[en_file.name].append(
+                        {
+                            "key": key,
+                            "source_text": source_text,
+                            "locale_text": locale_text,
+                            "wrong_format": wrong_format_locale,
+                            "wrong_format_source": "locale",
+                            "hint": "Use %{var} instead of {var} for Ruby i18n",
+                        }
+                    )
 
             # Check for empty translation with variables in English
             if check_empty_with_vars(source_text, locale_text):
@@ -289,6 +341,10 @@ def print_detailed(results: dict[str, dict[str, list[dict]]]) -> None:
                 print(f"  key:      {issue['key']}")
                 print(f'  en:       "{issue["source_text"]}"')
                 print(f"  {locale}:".ljust(12) + f'"{issue["locale_text"]}"')
+                if issue.get("wrong_format"):
+                    source = issue.get("wrong_format_source", "unknown")
+                    print(f"  wrong_fmt: {', '.join(issue['wrong_format'])} (in {source})")
+                    print(f"  hint:     {issue.get('hint', '')}")
                 if issue.get("missing"):
                     print(f"  missing:  {', '.join(issue['missing'])}")
                 if issue.get("extra"):
