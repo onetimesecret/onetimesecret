@@ -50,9 +50,9 @@ RSpec.describe Onetime::Jobs::Publisher do
     subject(:publisher) { described_class.new }
 
     it 'includes message_id in UUID format when publishing' do
-      mock_channel = double('channel')
-      mock_exchange = double('default_exchange')
-      mock_channel_pool = double('channel_pool')
+      mock_channel = instance_double(Bunny::Channel)
+      mock_exchange = instance_double(Bunny::Exchange)
+      mock_channel_pool = instance_double(ConnectionPool)
 
       allow(mock_channel_pool).to receive(:with).and_yield(mock_channel)
       allow(mock_channel).to receive(:default_exchange).and_return(mock_exchange)
@@ -87,13 +87,14 @@ RSpec.describe Onetime::Jobs::Publisher do
 
     context 'with fallback: :async_thread (default)' do
       it 'spawns a thread for email delivery' do
-        allow(Onetime::Mail).to receive(:deliver)
+        delivered = Concurrent::AtomicBoolean.new(false)
+        allow(Onetime::Mail).to receive(:deliver) { delivered.make_true }
 
         # Default fallback spawns a thread
         publisher.enqueue_email(:welcome, { email: 'test@example.com' })
 
-        # Give the thread time to execute
-        sleep 0.1
+        # Wait for thread to complete with timeout
+        Timeout.timeout(5) { sleep 0.05 until delivered.true? }
 
         expect(Onetime::Mail).to have_received(:deliver).with(:welcome, { email: 'test@example.com' })
       end
@@ -173,13 +174,14 @@ RSpec.describe Onetime::Jobs::Publisher do
         end
 
         it 'triggers fallback for enqueue_email with default strategy' do
-          allow(Onetime::Mail).to receive(:deliver)
+          delivered = Concurrent::AtomicBoolean.new(false)
+          allow(Onetime::Mail).to receive(:deliver) { delivered.make_true }
 
           result = publisher.enqueue_email(:welcome, { email: 'test@example.com' })
 
           # Fallback returns false, but spawns thread for delivery
           expect(result).to be false
-          sleep 0.1
+          Timeout.timeout(5) { sleep 0.05 until delivered.true? }
           expect(Onetime::Mail).to have_received(:deliver)
         end
 
@@ -202,7 +204,7 @@ RSpec.describe Onetime::Jobs::Publisher do
 
     describe 'connection closed mid-publish' do
       let(:mock_pool) { instance_double(ConnectionPool) }
-      let(:mock_channel) { double('channel') }
+      let(:mock_channel) { instance_double(Bunny::Channel) }
 
       before do
         $rmq_channel_pool = mock_pool
@@ -219,12 +221,13 @@ RSpec.describe Onetime::Jobs::Publisher do
         end
 
         it 'triggers fallback with default strategy' do
-          allow(Onetime::Mail).to receive(:deliver)
+          delivered = Concurrent::AtomicBoolean.new(false)
+          allow(Onetime::Mail).to receive(:deliver) { delivered.make_true }
 
           result = publisher.enqueue_email(:welcome, { email: 'test@example.com' })
 
           expect(result).to be false
-          sleep 0.1
+          Timeout.timeout(5) { sleep 0.05 until delivered.true? }
           expect(Onetime::Mail).to have_received(:deliver)
         end
 
@@ -240,7 +243,7 @@ RSpec.describe Onetime::Jobs::Publisher do
 
       context 'when Bunny::NetworkFailure occurs during publish' do
         before do
-          mock_exchange = double('default_exchange')
+          mock_exchange = instance_double(Bunny::Exchange)
           allow(mock_pool).to receive(:with).and_yield(mock_channel)
           allow(mock_channel).to receive(:default_exchange).and_return(mock_exchange)
           # NetworkFailure requires (message, cause)
@@ -260,8 +263,8 @@ RSpec.describe Onetime::Jobs::Publisher do
 
     describe 'unexpected errors during publish' do
       let(:mock_pool) { instance_double(ConnectionPool) }
-      let(:mock_channel) { double('channel') }
-      let(:mock_exchange) { double('default_exchange') }
+      let(:mock_channel) { instance_double(Bunny::Channel) }
+      let(:mock_exchange) { instance_double(Bunny::Exchange) }
 
       before do
         $rmq_channel_pool = mock_pool
@@ -314,18 +317,20 @@ RSpec.describe Onetime::Jobs::Publisher do
       end
 
       context 'when async_thread fallback delivery itself fails' do
-        before do
-          allow(Onetime::Mail).to receive(:deliver).and_raise(StandardError.new('SMTP connection failed'))
-        end
-
         it 'does not raise to caller (fire-and-forget)' do
+          attempted = Concurrent::AtomicBoolean.new(false)
+          allow(Onetime::Mail).to receive(:deliver) do
+            attempted.make_true
+            raise StandardError.new('SMTP connection failed')
+          end
+
           # The fallback spawns a thread that may fail, but the caller should not see it
           expect {
             publisher.enqueue_email(:welcome, { email: 'test@example.com' })
           }.not_to raise_error
 
-          # Give thread time to execute and fail silently
-          sleep 0.2
+          # Wait for thread to attempt delivery (will fail silently)
+          Timeout.timeout(5) { sleep 0.05 until attempted.true? }
         end
       end
     end
@@ -342,10 +347,7 @@ RSpec.describe Onetime::Jobs::Publisher do
     subject(:publisher) { described_class.new }
 
     let(:mock_event) do
-      double('Stripe::Event',
-        id: 'evt_123',
-        type: 'invoice.paid'
-      )
+      instance_double(Stripe::Event, id: 'evt_123', type: 'invoice.paid')
     end
     let(:payload) { '{"id":"evt_123","type":"invoice.paid"}' }
 
@@ -358,8 +360,8 @@ RSpec.describe Onetime::Jobs::Publisher do
 
     context 'when RabbitMQ is available' do
       let(:mock_pool) { instance_double(ConnectionPool) }
-      let(:mock_channel) { double('channel') }
-      let(:mock_exchange) { double('default_exchange') }
+      let(:mock_channel) { instance_double(Bunny::Channel) }
+      let(:mock_exchange) { instance_double(Bunny::Exchange) }
 
       before do
         $rmq_channel_pool = mock_pool

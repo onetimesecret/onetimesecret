@@ -35,13 +35,10 @@
 #
 
 require 'spec_helper'
+require 'support/amqp_stubs'
 require 'onetime/jobs/workers/base_worker'
 require 'onetime/jobs/queue_config'
 require 'sneakers'
-
-# Data classes for mocking AMQP envelope components (immutable, Ruby 3.2+)
-DeliveryInfoStub = Data.define(:delivery_tag, :routing_key, :redelivered?) unless defined?(DeliveryInfoStub)
-MetadataStub = Data.define(:message_id, :headers) unless defined?(MetadataStub)
 
 RSpec.describe Onetime::Jobs::Workers::BaseWorker, type: :integration do
   # Create a test worker class that includes both Sneakers::Worker and BaseWorker
