@@ -32,14 +32,15 @@ module Onetime
 
       attr_accessor :domain_strategy, :display_domain
 
-      def initialize(strategy_result, params, _locale = nil)
+      def initialize(strategy_result, params, locale = nil)
         @strategy_result = strategy_result
         @params          = params
 
         # Extract session and user from StrategyResult
         @sess   = strategy_result.session
         @cust   = strategy_result.user
-        @locale = @params['locale'] || OT.default_locale
+        # Use locale passed from controller (request context), fall back to params, then default
+        @locale = locale || @params['locale'] || OT.default_locale
 
         # Extract organization and team context from StrategyResult metadata
         extract_organization_context(strategy_result)
