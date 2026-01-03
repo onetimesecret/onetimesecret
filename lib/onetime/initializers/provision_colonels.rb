@@ -48,7 +48,7 @@ module Onetime
         end
 
         # Filter out placeholder/example values
-        colonels = colonels.reject { |email| email.to_s.include?('CHANGEME') || email.to_s.include?('example.com') }
+        colonels = colonels.reject { |email| placeholder_email?(email) }
 
         if colonels.empty?
           OT.ld '[init] No valid colonels after filtering placeholders'
@@ -288,6 +288,34 @@ module Onetime
         obscured = OT::Utils.obscure_email(email)
         OT.li "[init] 🔑 Colonel password for #{obscured}: #{password}"
         OT.li '[init] ⚠️  Save this password - it will not be displayed again'
+      end
+
+      # Check if email is a placeholder/example value
+      #
+      # Properly parses the email domain rather than using substring matching
+      # to avoid false positives (e.g., user@myexample.com) and security issues
+      # with substring sanitization.
+      #
+      # RFC 2606 reserved example domains: example.com, example.net, example.org
+      #
+      PLACEHOLDER_DOMAINS = %w[example.com example.net example.org example.edu].freeze
+
+      def placeholder_email?(email)
+        email_str = email.to_s
+
+        # Check for CHANGEME placeholder
+        return true if email_str.include?('CHANGEME')
+
+        # Extract domain from email (after the last @)
+        return false unless email_str.include?('@')
+
+        domain = email_str.split('@').last&.downcase
+        return false if domain.nil? || domain.empty?
+
+        # Check if domain exactly matches or is a subdomain of placeholder domains
+        PLACEHOLDER_DOMAINS.any? do |placeholder|
+          domain == placeholder || domain.end_with?(".#{placeholder}")
+        end
       end
     end
   end
