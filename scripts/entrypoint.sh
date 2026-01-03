@@ -87,7 +87,7 @@ if [ -f "etc/config.yaml" ] && [ -f "migrate/20250727-1523_standardize_config_sy
     cat >&2 <<EOF
 
 ===============================================================================
- MIGRATION REQUIRED - Onetime Secret v0.23.0
+ SETTINGS MIGRATION REQUIRED - Onetime Secret v0.23.0
 ===============================================================================
 
 Your custom config file (etc/config.yaml) needs to be updated for v0.23.0.
@@ -179,7 +179,7 @@ fi
 if [ $# -eq 0 ]; then
   PORT="${PORT:-3000}" # explicit default
 
-  >&2 echo "Starting Puma server on port $PORT with $PUMA_WORKERS workers ($PUMA_MIN_THREADS-$PUMA_MAX_THREADS threads)"
+  >&2 echo "Starting Puma on port $PORT with $PUMA_WORKERS workers ($PUMA_MIN_THREADS-$PUMA_MAX_THREADS threads) and etc/puma.rb config"
   # Enable real-time logging for Ruby applications
   # Uses etc/puma.rb for fork safety hooks (SemanticLogger, RabbitMQ)
   # Environment variables override config file settings where applicable
