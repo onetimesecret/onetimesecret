@@ -215,7 +215,8 @@ RUN set -eux && \
         libsqlite3-0 \
         libpq5 \
         curl \
-        xz-utils && \
+        xz-utils \
+        ca-certificates && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
@@ -331,7 +332,8 @@ RUN set -eux && \
     apt-get install -y --no-install-recommends \
         libsqlite3-0 \
         libpq5 \
-        curl && \
+        curl \
+        ca-certificates && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
