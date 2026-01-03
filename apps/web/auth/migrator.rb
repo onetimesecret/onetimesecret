@@ -31,11 +31,21 @@ module Auth
         end
 
         # Determine which connection to use for migrations
-        using_elevated_url = Onetime.auth_config.database_url_migrations != Onetime.auth_config.database_url
+        migrations_url = Onetime.auth_config.database_url_migrations
+        using_elevated_url = migrations_url && migrations_url != Onetime.auth_config.database_url
+
+        # Detect adapter mismatch between main and migrations URLs
+        if using_elevated_url && adapter_mismatch?(Onetime.auth_config.database_url, migrations_url)
+          sequel_logger.warn 'Adapter mismatch between database_url and database_url_migrations',
+            database_url: Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
+            migrations_url: migrations_url&.sub(/:[^:@]+@/, ':***@'),
+            action: 'using database_url for migrations'
+          using_elevated_url = false
+        end
 
         sequel_logger.info 'Auth migrations initializer running',
-          database_url: Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'), # Mask password
-          migrations_url: Onetime.auth_config.database_url_migrations&.sub(/:[^:@]+@/, ':***@'),
+          database_url: Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
+          migrations_url: using_elevated_url ? migrations_url&.sub(/:[^:@]+@/, ':***@') : nil,
           using_elevated_credentials: using_elevated_url
 
         Sequel.extension :migration
@@ -49,7 +59,7 @@ module Auth
           sequel_logger.error 'Failed to connect to auth database',
             error: ex.message,
             error_class: ex.class.name,
-            database_url: using_elevated_url ? Onetime.auth_config.database_url_migrations&.sub(/:[^:@]+@/, ':***@') : Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
+            database_url: using_elevated_url ? migrations_url&.sub(/:[^:@]+@/, ':***@') : Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
             using_elevated_url: using_elevated_url
           raise
         ensure
@@ -159,7 +169,7 @@ module Auth
         File.join(__dir__, 'migrations')
       end
 
-      # Create a dedicated connection for migrations using AUTH_DATABASE_URL_MIGRATIONS
+      # Create a dedicated connection for migrations using database_url_migrations config
       # This allows using a superuser/admin account for schema changes while the
       # application runs with restricted privileges
       def migration_connection
@@ -178,13 +188,17 @@ module Auth
       def run_migrations
         Sequel.extension :migration
 
-        # Use dedicated migration connection if AUTH_DATABASE_URL_MIGRATIONS is set
-        # Otherwise fall back to regular database connection
-        conn = if Onetime.auth_config.database_url_migrations == Onetime.auth_config.database_url
-          database_connection
-        else
-          migration_connection
-        end
+        migrations_url = Onetime.auth_config.database_url_migrations
+
+        # Use dedicated migration connection only if:
+        # 1. database_url_migrations is explicitly configured
+        # 2. It differs from the main database_url
+        # 3. Both URLs use the same adapter (no mismatch)
+        use_elevated = migrations_url &&
+                       migrations_url != Onetime.auth_config.database_url &&
+                       !adapter_mismatch?(Onetime.auth_config.database_url, migrations_url)
+
+        conn = use_elevated ? migration_connection : database_connection
 
         begin
           # Suppress confusing "no such table" errors during migration checks
@@ -217,6 +231,33 @@ module Auth
       ensure
         conn.loggers.clear
         original_loggers.each { |logger| conn.loggers << logger }
+      end
+
+      # Detect if two database URLs use different adapters (e.g., sqlite vs postgres)
+      # Returns true if there's a mismatch, false if they match or can't be determined
+      def adapter_mismatch?(url1, url2)
+        return false if url1.nil? || url2.nil?
+
+        adapter1 = extract_adapter(url1)
+        adapter2 = extract_adapter(url2)
+
+        return false if adapter1.nil? || adapter2.nil?
+
+        adapter1 != adapter2
+      end
+
+      # Extract adapter name from a database URL
+      # Examples: "sqlite::memory:" -> "sqlite", "postgresql://..." -> "postgresql"
+      def extract_adapter(url)
+        return nil if url.nil? || url.empty?
+
+        # Handle standard URL format: adapter://...
+        if url.include?('://')
+          url.split('://').first
+        # Handle SQLite memory format: sqlite::memory:
+        elsif url.start_with?('sqlite:')
+          'sqlite'
+        end
       end
     end
   end
