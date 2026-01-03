@@ -182,9 +182,22 @@ module Onetime
           # Link to existing SQL account
           authdb[:accounts].where(id: sql_account[:id]).update(external_id: customer.extid)
 
-          # Update SQL account password
-          password_hash = ::Argon2::Password.create(password)
-          authdb[:accounts].where(id: sql_account[:id]).update(password_hash: password_hash)
+          # Update SQL account password in account_password_hashes table
+          argon2_params = if ENV['RACK_ENV'] == 'test'
+            { t_cost: 1, m_cost: 5, p_cost: 1 }
+          else
+            { t_cost: 2, m_cost: 16, p_cost: 1 }
+          end
+          argon2 = ::Argon2::Password.new(**argon2_params)
+          password_hash = argon2.create(password)
+
+          # Delete old password hash and insert new one
+          authdb[:account_password_hashes].where(id: sql_account[:id]).delete
+          authdb[:account_password_hashes].insert(
+            id: sql_account[:id],
+            password_hash: password_hash,
+            created_at: Time.now,
+          )
 
           OT.li "[init] ✓ Provisioned colonel #{obscured} (created maindb customer)"
           log_password(email, password)
@@ -212,19 +225,56 @@ module Onetime
       end
 
       # Create Rodauth account in SQL database
+      #
+      # This creates an account record and password hash using the same structure
+      # as Rodauth's internal account creation, but skips hooks since we're doing
+      # manual provisioning. The Customer record must be created first to get the
+      # external_id for linking.
+      #
+      # Database structure:
+      # - accounts: Main account table with email, status_id, external_id
+      # - account_password_hashes: Separate 1:1 table for password storage (Rodauth convention)
+      #
       def create_rodauth_account(db, email, password, external_id)
-        password_hash = ::Argon2::Password.create(password)
+        # Use Argon2 with same params as Rodauth config
+        # Test env uses lower cost for speed: t_cost=1, m_cost=5, p_cost=1
+        # Production uses: t_cost=2, m_cost=16, p_cost=1
+        argon2_params = if ENV['RACK_ENV'] == 'test'
+          { t_cost: 1, m_cost: 5, p_cost: 1 }
+        else
+          { t_cost: 2, m_cost: 16, p_cost: 1 }
+        end
 
-        db[:accounts].insert(
+        argon2 = ::Argon2::Password.new(**argon2_params)
+        password_hash = argon2.create(password)
+
+        # Insert into accounts table first to get account_id
+        account_id = db[:accounts].insert(
           email: email,
-          password_hash: password_hash,
           status_id: 2, # Verified (status_id=1 is unverified, 2 is verified per Rodauth convention)
           external_id: external_id,
         )
+
+        # Insert password hash into separate table (Rodauth's password storage pattern)
+        db[:account_password_hashes].insert(
+          id: account_id,
+          password_hash: password_hash,
+          created_at: Time.now,
+        )
       rescue Sequel::UniqueConstraintViolation
-        # Account already exists, just link it
+        # Account already exists, just link it and update password
         account = db[:accounts].where(email: email).first
-        db[:accounts].where(id: account[:id]).update(external_id: external_id) if account
+        if account
+          db[:accounts].where(id: account[:id]).update(external_id: external_id)
+
+          # Update password hash (delete old, insert new)
+          db[:account_password_hashes].where(id: account[:id]).delete
+          db[:account_password_hashes].insert(
+            id: account[:id],
+            password_hash: password_hash,
+            created_at: Time.now,
+          )
+        end
       end
 
       # Generate cryptographically secure random password
