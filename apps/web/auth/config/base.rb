@@ -7,7 +7,7 @@ require_relative '../database'
 module Auth::Config::Base
   def self.configure(auth)
     # Core features required for all authentication flows
-    auth.enable :base, :json, :login, :logout, :table_guard, :external_identity
+    auth.enable :base, :json, :login, :logout, :external_identity
     auth.enable :hmac_secret_guard
 
     # Block form defers evaluation until runtime, not class definition time.
@@ -17,15 +17,18 @@ module Auth::Config::Base
     # See: http://rodauth.jeremyevans.net/rdoc/files/README_rdoc.html#label-Database
     auth.db { Auth::Database.connection }
 
-    # Table guard modes: strict in production, permissive in development
-    if Onetime.development?
-      auth.table_guard_mode :warn
-      auth.table_guard_sequel_mode :create
-    else
-      auth.table_guard_mode :raise
-      auth.table_guard_sequel_mode :log
-    end
-    auth.table_guard_logger Onetime.get_logger('Auth')
+    # Update 2026-01-02: Completely disable table_guard in lieu of sequel
+    # migrations.
+    #
+    # # Table guard modes: strict in production, permissive in development
+    # if Onetime.development?
+    #   auth.table_guard_mode :warn
+    #   auth.table_guard_sequel_mode :create
+    # else
+    #   auth.table_guard_mode :raise
+    #   auth.table_guard_sequel_mode :log
+    # end
+    # auth.table_guard_logger Onetime.get_logger('Auth')
 
     # Configure external_id column for Redis-SQL synchronization
     # This links Rodauth SQL accounts to Redis-based Customer records
