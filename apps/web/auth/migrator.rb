@@ -23,14 +23,44 @@ module Auth
       # Run migrations if needed (called during warmup in full mode)
       # Sequel::Migrator.run automatically skips already-run migrations
       def run_if_needed
-        return unless database_connection
+        unless database_connection
+          sequel_logger.debug 'Skipping migrations - no database connection',
+            full_mode_enabled: Onetime.auth_config&.full_enabled?,
+            database_url_present: !Onetime.auth_config&.database_url.nil?
+          return
+        end
+
+        # Determine which connection to use for migrations
+        using_elevated_url = Onetime.auth_config.database_url_migrations != Onetime.auth_config.database_url
+
+        sequel_logger.info 'Auth migrations initializer running',
+          database_url: Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'), # Mask password
+          migrations_url: Onetime.auth_config.database_url_migrations&.sub(/:[^:@]+@/, ':***@'),
+          using_elevated_credentials: using_elevated_url
 
         Sequel.extension :migration
+
+        # Test connection early using the URL we'll use for migrations
+        # This provides clearer error messages if connection fails
+        test_conn = using_elevated_url ? migration_connection : database_connection
+        adapter_scheme = begin
+          test_conn.adapter_scheme
+        rescue StandardError => ex
+          sequel_logger.error 'Failed to connect to auth database',
+            error: ex.message,
+            error_class: ex.class.name,
+            database_url: using_elevated_url ? Onetime.auth_config.database_url_migrations&.sub(/:[^:@]+@/, ':***@') : Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
+            using_elevated_url: using_elevated_url
+          raise
+        ensure
+          # Disconnect test connection if it was the migrations connection
+          test_conn.disconnect if using_elevated_url && test_conn != database_connection
+        end
 
         # Context for all log messages in this operation
         log_context = {
           migrations_dir: OT::Utils.pretty_path(migrations_dir).to_s,
-          db_adapter: database_connection.adapter_scheme,
+          db_adapter: adapter_scheme,
           rack_env: Onetime.env,
         }
 
