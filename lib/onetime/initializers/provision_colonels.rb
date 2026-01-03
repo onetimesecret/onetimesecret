@@ -67,6 +67,9 @@ module Onetime
         end
       end
 
+      # RFC 2606 reserved example domains for placeholder filtering
+      PLACEHOLDER_DOMAINS = %w[example.com example.net example.org example.edu].freeze
+
       private
 
       def provision_colonel(email, auth_mode)
@@ -296,10 +299,6 @@ module Onetime
       # to avoid false positives (e.g., user@myexample.com) and security issues
       # with substring sanitization.
       #
-      # RFC 2606 reserved example domains: example.com, example.net, example.org
-      #
-      PLACEHOLDER_DOMAINS = %w[example.com example.net example.org example.edu].freeze
-
       def placeholder_email?(email)
         email_str = email.to_s
 
