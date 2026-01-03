@@ -47,7 +47,7 @@ module Onetime
           puts 'RabbitMQ Initialization'
           puts '=' * 60
           puts
-          puts "AMQP URL: #{amqp_url.gsub(/:[^:@]+@/, ':***@')}"
+          puts "AMQP URL: #{mask_amqp_credentials(amqp_url)}"
           puts "VHost: #{parsed[:vhost]}"
           puts "User: #{parsed[:user]}"
           puts
@@ -83,6 +83,20 @@ module Onetime
         end
 
         private
+
+        # Mask credentials in AMQP URL using URI parsing for robustness
+        # Handles passwords containing special characters like : or @
+        def mask_amqp_credentials(url)
+          uri = URI.parse(url)
+          return url unless uri.userinfo
+
+          masked_uri          = uri.dup
+          masked_uri.userinfo = '***:***'
+          masked_uri.to_s
+        rescue URI::InvalidURIError
+          # Fallback for malformed URLs
+          url.gsub(%r{//[^@]*@}, '//***:***@')
+        end
 
         def parse_amqp_url(url)
           uri      = URI.parse(url)

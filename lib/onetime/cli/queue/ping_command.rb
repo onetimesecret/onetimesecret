@@ -86,7 +86,7 @@ module Onetime
             puts 'Job Queue Ping Test'
             puts '═' * 60
             puts
-            puts "RabbitMQ: #{amqp_url.gsub(/:[^:@]+@/, ':***@')}"
+            puts "RabbitMQ: #{mask_amqp_credentials(amqp_url)}"
             puts "Wait time: #{wait_seconds}s"
             puts
 
@@ -181,6 +181,20 @@ module Onetime
           else
             { ping_id: ping_id, timestamp: Time.now.utc.iso8601 }
           end
+        end
+
+        # Mask credentials in AMQP URL using URI parsing for robustness
+        # Handles passwords containing special characters like : or @
+        def mask_amqp_credentials(url)
+          uri = URI.parse(url)
+          return url unless uri.userinfo
+
+          masked_uri          = uri.dup
+          masked_uri.userinfo = '***:***'
+          masked_uri.to_s
+        rescue URI::InvalidURIError
+          # Fallback for malformed URLs
+          url.gsub(%r{//[^@]*@}, '//***:***@')
         end
 
         def display_result(queue_name, result)

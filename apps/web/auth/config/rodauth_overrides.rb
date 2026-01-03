@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'digest'
+
 module Auth::Config::RodauthOverrides
   # Placeholder for Rodauth overrides
   #
@@ -25,7 +27,7 @@ module Auth::Config::RodauthOverrides
         Auth::Logging.log_auth_event(
           :create_account_blocked,
           level: :warn,
-          email: param('login'),
+          email_hash: Digest::SHA256.hexdigest(param('login').to_s.downcase)[0..7],
           actual_error: actual_error,
           generic_error: 'Unable to create account',
         )
@@ -37,7 +39,7 @@ module Auth::Config::RodauthOverrides
         Auth::Logging.log_auth_event(
           :login_blocked_unverified,
           level: :warn,
-          email: param('login'),
+          email_hash: Digest::SHA256.hexdigest(param('login').to_s.downcase)[0..7],
           actual_error: actual_error,
           generic_error: 'Unable to create account',
         )

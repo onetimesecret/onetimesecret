@@ -81,23 +81,23 @@ module Onetime
         end
 
         def check_rabbitmq_connection
-          conn = Bunny.new(ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672'))
+          amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
+          conn     = Bunny.new(amqp_url)
           conn.start
 
-          info = {
+          {
             connected: true,
-            url: ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672').gsub(/:[^:@]+@/, ':***@'),
+            url: mask_amqp_credentials(amqp_url),
             vhost: conn.vhost,
             heartbeat: conn.heartbeat,
           }
-
-          conn.close
-          info
         rescue StandardError => ex
           {
             connected: false,
             error: ex.message,
           }
+        ensure
+          conn&.close
         end
 
         def check_queue_depths
@@ -122,10 +122,11 @@ module Onetime
               queues[queue_name] = { error: ex.message }
           end
 
-          conn.close
           queues
         rescue StandardError => ex
           { error: ex.message }
+        ensure
+          conn&.close
         end
 
         def check_exchanges
@@ -147,10 +148,11 @@ module Onetime
               exchanges[exchange_name] = { exists: false, error: ex.message }
           end
 
-          conn.close
           exchanges
         rescue StandardError => ex
           { error: ex.message }
+        ensure
+          conn&.close
         end
 
         def check_workers
@@ -187,6 +189,20 @@ module Onetime
           end
         rescue StandardError => ex
           { error: ex.message }
+        end
+
+        # Mask credentials in AMQP URL using URI parsing for robustness
+        # Handles passwords containing special characters like : or @
+        def mask_amqp_credentials(url)
+          uri = URI.parse(url)
+          return url unless uri.userinfo
+
+          masked_uri          = uri.dup
+          masked_uri.userinfo = '***:***'
+          masked_uri.to_s
+        rescue URI::InvalidURIError
+          # Fallback for malformed URLs
+          url.gsub(%r{//[^@]*@}, '//***:***@')
         end
 
         # rubocop:disable Metrics/PerceivedComplexity -- Display method with inherent branching
