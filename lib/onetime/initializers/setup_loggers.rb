@@ -71,8 +71,8 @@ module Onetime
       # Cleanup SemanticLogger before fork.
       # Called by InitializerRegistry.cleanup_before_fork from Puma's before_fork hook.
       #
-      # Flushes async appender to prevent lost log messages. The async appender
-      # queues messages in a background thread that won't survive fork.
+      # Flushes any buffered log messages before fork. With sync mode, this is
+      # mostly a no-op, but ensures consistent behavior if appenders change.
       #
       # @return [void]
       def cleanup
@@ -84,8 +84,8 @@ module Onetime
       # Reconnect SemanticLogger after fork.
       # Called by InitializerRegistry.reconnect_after_fork from Puma's before_worker_boot hook.
       #
-      # Re-opens appenders to create fresh async processing threads, replacing
-      # zombie thread references inherited from the master process.
+      # Re-opens appenders in worker processes. With sync stdout appender this is
+      # mostly a no-op, but handles file appenders or future async appenders.
       #
       # @return [void]
       def reconnect
@@ -119,9 +119,14 @@ module Onetime
 
         formatter = build_formatter(config)
 
+        # Use synchronous mode to avoid spawning a background thread during preload.
+        # Puma warns about threads started before fork; the async appender's thread
+        # survives in a zombie state until reopen. Since stdout is already buffered
+        # by the OS, async provides no meaningful benefit here.
         SemanticLogger.add_appender(
           io: $stdout,
           formatter: formatter,
+          async: false,
         )
       end
 
