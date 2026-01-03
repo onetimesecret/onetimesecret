@@ -343,7 +343,6 @@ redis:
   # you can separate data across different Redis logical databases (0-15)
   # by setting environment variables or modifying the values below.
   dbs:
-    session: <%= ENV['VALKEY_DBS_SESSION'] || ENV['REDIS_DBS_SESSION'] || 0 %>
     custom_domain: <%= ENV['VALKEY_DBS_CUSTOM_DOMAIN'] || ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 0 %>
     customdomain: <%= ENV['VALKEY_DBS_CUSTOM_DOMAIN'] || ENV['REDIS_DBS_CUSTOM_DOMAIN'] || 0 %>
     customer: <%= ENV['VALKEY_DBS_CUSTOMER'] || ENV['REDIS_DBS_CUSTOMER'] || 0 %>

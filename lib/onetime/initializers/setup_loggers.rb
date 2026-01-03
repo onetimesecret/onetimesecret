@@ -71,8 +71,8 @@ module Onetime
       # Cleanup SemanticLogger before fork.
       # Called by InitializerRegistry.cleanup_before_fork from Puma's before_fork hook.
       #
-      # Flushes any buffered log messages before fork. With sync mode, this is
-      # mostly a no-op, but ensures consistent behavior if appenders change.
+      # Flushes async appender to prevent lost log messages. The async appender
+      # queues messages in a background thread that won't survive fork.
       #
       # @return [void]
       def cleanup
@@ -84,16 +84,12 @@ module Onetime
       # Reconnect SemanticLogger after fork.
       # Called by InitializerRegistry.reconnect_after_fork from Puma's before_worker_boot hook.
       #
-      # For sync stdout appender, this is a no-op - stdout remains open and functional
-      # after fork. SemanticLogger.reopen would recreate the appender as async by default,
-      # defeating the purpose of async: false and creating unwanted threads.
-      #
-      # Only call reopen if you have file or async appenders that need reinitializing.
+      # Re-opens appenders to create fresh async processing threads, replacing
+      # zombie thread references inherited from the master process.
       #
       # @return [void]
       def reconnect
-        # Skip reopen for sync stdout appender - no thread to restart, stdout still valid
-        # SemanticLogger.reopen if defined?(SemanticLogger)
+        SemanticLogger.reopen if defined?(SemanticLogger)
       rescue StandardError => ex
         warn "[SetupLoggers] Error during reconnect: #{ex.message}"
       end
@@ -123,14 +119,11 @@ module Onetime
 
         formatter = build_formatter(config)
 
-        # Use synchronous mode to avoid spawning a background thread during preload.
-        # Puma warns about threads started before fork; the async appender's thread
-        # survives in a zombie state until reopen. Since stdout is already buffered
-        # by the OS, async provides no meaningful benefit here.
+        # Async appender handles logging in background thread. The reopen hook in
+        # reconnect method ensures fresh threads after fork, preventing zombie references.
         SemanticLogger.add_appender(
           io: $stdout,
           formatter: formatter,
-          async: false,
         )
       end
 
