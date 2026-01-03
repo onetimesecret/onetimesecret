@@ -38,13 +38,10 @@
 # Run with: pnpm run test:rspec spec/onetime/jobs/workers/email_worker_spec.rb
 
 require 'spec_helper'
+require 'support/amqp_stubs'
 require 'sneakers'
 require 'onetime/jobs/workers/email_worker'
 require 'onetime/jobs/queue_config'
-
-# Data classes for mocking AMQP envelope components (immutable, Ruby 3.2+)
-DeliveryInfoStub = Data.define(:delivery_tag, :routing_key, :redelivered?) unless defined?(DeliveryInfoStub)
-MetadataStub = Data.define(:message_id, :headers) unless defined?(MetadataStub)
 
 RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
   # Create test worker class with accessible delivery_info
@@ -126,7 +123,7 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
         )
       end
 
-      it 'calls Mail.deliver with template symbol and data hash' do
+      it 'calls Mail.deliver with template symbol, data hash, and locale' do
         worker.work_with_params(message, delivery_info, metadata)
 
         expect(Onetime::Mail).to have_received(:deliver).with(
@@ -136,7 +133,34 @@ RSpec.describe Onetime::Jobs::Workers::EmailWorker, type: :integration do
             share_domain: nil,
             recipient: 'user@example.com',
             sender_email: 'sender@example.com'
+          },
+          locale: 'en'
+        )
+      end
+
+      it 'uses locale from payload when provided' do
+        message_with_locale = JSON.generate(
+          template: 'secret_link',
+          data: {
+            secret_key: 'abc123',
+            share_domain: nil,
+            recipient: 'user@example.com',
+            sender_email: 'sender@example.com',
+            locale: 'fr'
           }
+        )
+
+        worker.work_with_params(message_with_locale, delivery_info, metadata)
+
+        expect(Onetime::Mail).to have_received(:deliver).with(
+          :secret_link,
+          {
+            secret_key: 'abc123',
+            share_domain: nil,
+            recipient: 'user@example.com',
+            sender_email: 'sender@example.com'
+          },
+          locale: 'fr'
         )
       end
 

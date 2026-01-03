@@ -63,6 +63,7 @@ module AccountAPI::Logic
           Onetime::Jobs::Publisher.enqueue_email(:password_request, {
             email_address: cust.email,
             secret: secret,
+            locale: locale || cust.locale || OT.default_locale,
           }, fallback: :sync
           )
         rescue StandardError => ex

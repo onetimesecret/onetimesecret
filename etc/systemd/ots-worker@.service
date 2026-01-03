@@ -22,7 +22,7 @@ EnvironmentFile=-/opt/onetime/.env
 Environment="WORKER_QUEUES=%i"
 
 # Start command
-ExecStart=/opt/onetime/bin/ots jobs worker --queues ${WORKER_QUEUES} --concurrency 10 --environment production
+ExecStart=/opt/onetime/bin/ots worker --queues ${WORKER_QUEUES} --concurrency 10 --environment production
 
 # Restart policy
 Restart=always

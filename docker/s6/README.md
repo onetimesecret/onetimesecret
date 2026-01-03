@@ -75,8 +75,8 @@ Run once at container startup before longrun services start.
 Continuous processes supervised by S6. Automatically restart on crash.
 
 - **web**: Puma or Thin web server (controlled by `SERVER_TYPE` env var)
-- **scheduler**: Job scheduler (`bin/ots jobs scheduler`)
-- **worker**: Job worker (`bin/ots jobs worker`)
+- **scheduler**: Job scheduler (`bin/ots scheduler`)
+- **worker**: Job worker (`bin/ots worker`)
 
 ### Bundle
 
@@ -257,9 +257,9 @@ S6 PID 1 (/init)
        │         ├─ puma worker 2
        │         └─ puma worker N
        ├─ s6-supervise scheduler
-       │    └─ bin/ots jobs scheduler
+       │    └─ bin/ots scheduler
        └─ s6-supervise worker
-            └─ bin/ots jobs worker
+            └─ bin/ots worker
 ```
 
 **Important**: S6 supervises the master process. Puma's fork hooks work unchanged - S6 doesn't interfere with worker forking.

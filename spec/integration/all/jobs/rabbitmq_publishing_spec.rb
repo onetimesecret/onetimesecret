@@ -251,7 +251,8 @@ RSpec.describe 'RabbitMQ Publishing', :rabbitmq, type: :integration do
       end
 
       it 'falls back to async_thread delivery by default' do
-        allow(Onetime::Mail).to receive(:deliver)
+        delivered = Concurrent::AtomicBoolean.new(false)
+        allow(Onetime::Mail).to receive(:deliver) { delivered.make_true }
 
         result = Onetime::Jobs::Publisher.enqueue_email(
           :test_template,
@@ -261,8 +262,8 @@ RSpec.describe 'RabbitMQ Publishing', :rabbitmq, type: :integration do
         # Fallback returns false (not queued), but spawns thread
         expect(result).to be false
 
-        # Give thread time to execute
-        sleep 0.2
+        # Wait for thread to complete with timeout
+        Timeout.timeout(5) { sleep 0.05 until delivered.true? }
 
         expect(Onetime::Mail).to have_received(:deliver)
       end

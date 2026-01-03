@@ -44,15 +44,25 @@ module Onetime
     end
 
     def self.get_build_info
-      # Get the commit hash from .commit_hash.txt
+      # Get the commit hash from .commit_hash.txt or git directly
       commit_hash_file = File.join(Onetime::HOME, '.commit_hash.txt')
-      commit_hash      = 'pristine'
+      commit_hash = nil
+
+      # Try reading from file first
       if File.exist?(commit_hash_file)
-        commit_hash = File.read(commit_hash_file).strip
-      else
-        warn "Warning: Commit hash file not found. Using default value '#{commit_hash}'."
+        file_content = File.read(commit_hash_file).strip
+        # Use file content only if it's a real commit hash (not a fallback value)
+        commit_hash = file_content unless %w[dev pristine].include?(file_content)
       end
-      commit_hash
+
+      # If no valid hash from file, try git directly (works in local development)
+      if commit_hash.nil? || commit_hash.empty?
+        commit_hash = `git rev-parse --short HEAD 2>/dev/null`.strip
+        commit_hash = nil if commit_hash.empty? || !$?.success?
+      end
+
+      # Final fallback for non-git environments (e.g., Docker without git)
+      commit_hash || 'dev'
     end
 
     # HTTP User-Agent string for outbound requests (webhooks, etc.)

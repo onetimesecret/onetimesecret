@@ -54,26 +54,16 @@ name: Check CI Metrics
 description: Validate CI job timing against tier-based performance targets
 
 inputs:
-  # Timing inputs (ISO 8601 format)
-  workflow-start-time:
-    description: 'Workflow start time (ISO 8601)'
+  # GitHub context inputs (required for API calls)
+  github-token:
+    description: 'GitHub token for API access'
     required: true
-  tier1-complete-time:
-    description: 'Time when Tier 1 (Lint & Build) completed (ISO 8601)'
-    required: false
-    default: ''
-  tier2-complete-time:
-    description: 'Time when Tier 2 (Unit Tests) completed (ISO 8601)'
-    required: false
-    default: ''
-  tier3-complete-time:
-    description: 'Time when Tier 3 (Integration Tests) completed (ISO 8601)'
-    required: false
-    default: ''
-  tier4-complete-time:
-    description: 'Time when Tier 4 (Container Validation) completed (ISO 8601)'
-    required: false
-    default: ''
+  repository:
+    description: 'Repository in owner/repo format'
+    required: true
+  run-id:
+    description: 'Workflow run ID'
+    required: true
 
   # Target thresholds (seconds, cumulative from workflow start)
   target-tier1:
@@ -123,6 +113,106 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Fetch tier completion times from GitHub API
+      id: timing
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        # gh CLI is pre-installed on GitHub-hosted runners
+        # GH_TOKEN provides authentication for API calls
+
+        REPOSITORY="${{ inputs.repository }}"
+        RUN_ID="${{ inputs.run-id }}"
+
+        # Fetch workflow run start time
+        WORKFLOW_START=$(gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}" --jq '.run_started_at' 2>/dev/null)
+        if [ -z "$WORKFLOW_START" ]; then
+          echo "::warning::Failed to fetch workflow start time from API"
+        fi
+        echo "workflow_start=$WORKFLOW_START" >> $GITHUB_OUTPUT
+
+        # Fetch job data for current workflow run
+        if ! JOBS_JSON=$(gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}/jobs" --jq '.jobs' 2>/dev/null); then
+          echo "::warning::Failed to fetch job data from API, metrics will show N/A"
+          echo "tier1=" >> $GITHUB_OUTPUT
+          echo "tier2=" >> $GITHUB_OUTPUT
+          echo "tier3=" >> $GITHUB_OUTPUT
+          echo "tier4=" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Validate expected job names exist (warns if job names change)
+        EXPECTED_JOBS=(
+          "T1 · Ruby Lint"
+          "T1 · TypeScript Lint"
+          "T1 · Build Frontend Assets"
+          "T2 · Ruby Unit Tests"
+          "T2 · TypeScript Unit Tests"
+          "T3 · Ruby Integration (Simple Mode)"
+          "T3 · Ruby Integration (Full Mode - SQLite)"
+          "T3 · Ruby Integration (Full Mode - PostgreSQL)"
+          "T3 · Ruby Integration (Disabled Mode)"
+          "T4 · Container Validation"
+          "T5 · Aggregate Test Results"
+        )
+        ACTUAL_JOBS=$(echo "$JOBS_JSON" | jq -r '.[].name')
+        for job in "${EXPECTED_JOBS[@]}"; do
+          if ! echo "$ACTUAL_JOBS" | grep -qF "$job"; then
+            echo "::debug::Expected job '$job' not found in workflow. Job names may have changed."
+          fi
+        done
+
+        # Tier 1: Lint & Build - latest completion of all Tier 1 jobs
+        TIER1_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
+          [.[] | select(
+              .name == "T1 · Ruby Lint" or
+              .name == "T1 · TypeScript Lint" or
+              .name == "T1 · Build Frontend Assets"
+            )
+            | select(.completed_at != null) | .completed_at]
+          | sort | last // empty
+        ')
+
+        # Tier 2: Unit Tests - latest completion of all Tier 2 jobs
+        TIER2_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
+          [.[] | select(
+              .name == "T2 · Ruby Unit Tests" or
+              .name == "T2 · TypeScript Unit Tests"
+            )
+            | select(.completed_at != null) | .completed_at]
+          | sort | last // empty
+        ')
+
+        # Tier 3: Integration Tests - latest completion of all Tier 3 jobs
+        TIER3_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
+          [.[] | select(
+              .name == "T3 · Ruby Integration (Simple Mode)" or
+              .name == "T3 · Ruby Integration (Full Mode - SQLite)" or
+              .name == "T3 · Ruby Integration (Full Mode - PostgreSQL)" or
+              .name == "T3 · Ruby Integration (Disabled Mode)"
+            )
+            | select(.completed_at != null) | .completed_at]
+          | sort | last // empty
+        ')
+
+        # Tier 4: Container Validation
+        TIER4_COMPLETE=$(echo "$JOBS_JSON" | jq -r '
+          [.[] | select(.name == "T4 · Container Validation")
+            | select(.completed_at != null) | .completed_at]
+          | first // empty
+        ')
+
+        echo "::debug::Tier 1 complete: $TIER1_COMPLETE"
+        echo "::debug::Tier 2 complete: $TIER2_COMPLETE"
+        echo "::debug::Tier 3 complete: $TIER3_COMPLETE"
+        echo "::debug::Tier 4 complete: $TIER4_COMPLETE"
+
+        echo "tier1=$TIER1_COMPLETE" >> $GITHUB_OUTPUT
+        echo "tier2=$TIER2_COMPLETE" >> $GITHUB_OUTPUT
+        echo "tier3=$TIER3_COMPLETE" >> $GITHUB_OUTPUT
+        echo "tier4=$TIER4_COMPLETE" >> $GITHUB_OUTPUT
+
     - name: Calculate timing metrics
       id: calculate
       shell: bash
@@ -144,11 +234,11 @@ runs:
           fi
         }
 
-        WORKFLOW_START="${{ inputs.workflow-start-time }}"
-        TIER1_COMPLETE="${{ inputs.tier1-complete-time }}"
-        TIER2_COMPLETE="${{ inputs.tier2-complete-time }}"
-        TIER3_COMPLETE="${{ inputs.tier3-complete-time }}"
-        TIER4_COMPLETE="${{ inputs.tier4-complete-time }}"
+        WORKFLOW_START="${{ steps.timing.outputs.workflow_start }}"
+        TIER1_COMPLETE="${{ steps.timing.outputs.tier1 }}"
+        TIER2_COMPLETE="${{ steps.timing.outputs.tier2 }}"
+        TIER3_COMPLETE="${{ steps.timing.outputs.tier3 }}"
+        TIER4_COMPLETE="${{ steps.timing.outputs.tier4 }}"
         NOW_EPOCH=$(date +%s)
 
         echo "::debug::Workflow start: $WORKFLOW_START"

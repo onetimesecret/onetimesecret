@@ -13,12 +13,12 @@
     },
     "welcome": {
       "subject": "验证您的 Onetime Secret 帐户",
-      "title": "您已被邀请加入 %{organization_name}",
+      "title": "您已被邀请加入 %{product_name}",
       "verify_prompt": "请点击下面的链接验证您的邮箱地址:",
       "verify_button": "验证邮箱地址",
       "copy_link_prompt": "或复制并粘贴此链接:",
       "signature": "Delano",
-      "postscript": "附注：此邮件已发送至 %{invited_email}。如果您未预期收到此邀请，可以安全忽略此消息。"
+      "postscript": "附注：此邮件已发送至 %{email_address}。如果您未预期收到此邀请，可以安全忽略此消息。"
     },
     "password_request": {
       "subject": "重置您的密码 (%{display_domain})",

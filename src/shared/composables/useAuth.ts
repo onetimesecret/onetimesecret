@@ -33,6 +33,7 @@ import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import type { LockoutStatus } from '@/types/auth';
 import type { AxiosInstance } from 'axios';
 import { inject, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 /**
@@ -56,6 +57,7 @@ import { useRouter } from 'vue-router';
 export function useAuth() {
   const $api = inject('api') as AxiosInstance;
   const router = useRouter();
+  const { locale } = useI18n();
   const authStore = useAuthStore();
   const csrfStore = useCsrfStore();
   const notificationsStore = useNotificationsStore();
@@ -124,6 +126,7 @@ export function useAuth() {
         password: password,
         shrimp: csrfStore.shrimp,
         'remember-me': rememberMe,
+        locale: locale.value,
       });
 
       const validated = loginResponseSchema.parse(response.data);
@@ -187,6 +190,7 @@ export function useAuth() {
         password: password,
         agree: termsAgreed,
         shrimp: csrfStore.shrimp,
+        locale: locale.value,
       });
 
       const validated = createAccountResponseSchema.parse(response.data);
@@ -252,6 +256,7 @@ export function useAuth() {
         {
           login: email,
           shrimp: csrfStore.shrimp,
+          locale: locale.value,
         }
       );
 
@@ -290,6 +295,7 @@ export function useAuth() {
         password: newPassword,
         'password-confirm': confirmPassword,
         shrimp: csrfStore.shrimp,
+        locale: locale.value,
       });
 
       const validated = resetPasswordResponseSchema.parse(response.data);
@@ -300,7 +306,8 @@ export function useAuth() {
         });
       }
 
-      // Success - navigate to signin
+      // Success - show notification and navigate to signin
+      notificationsStore.show(validated.success, 'success', 'top');
       await router.push('/signin');
       return true;
     });
@@ -321,6 +328,7 @@ export function useAuth() {
       const response = await $api.post<VerifyAccountResponse>('/auth/verify-account', {
         key,
         shrimp: csrfStore.shrimp,
+        locale: locale.value,
       });
 
       const validated = verifyAccountResponseSchema.parse(response.data);
@@ -358,6 +366,7 @@ export function useAuth() {
         password: currentPassword,
         'new-password': newPassword, // was newp
         'password-confirm': confirmPassword, // was newp2
+        locale: locale.value,
       });
 
       const validated = changePasswordResponseSchema.parse(response.data);
@@ -389,6 +398,7 @@ export function useAuth() {
       const response = await $api.post<CloseAccountResponse>('/auth/close-account', {
         password,
         shrimp: csrfStore.shrimp,
+        locale: locale.value,
       });
 
       const validated = closeAccountResponseSchema.parse(response.data);

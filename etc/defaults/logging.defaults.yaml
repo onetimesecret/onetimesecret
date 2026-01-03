@@ -3,16 +3,16 @@
 # Onetime Secret - Logging Configuration
 #
 # Strategic categories for debugging and operational instrumentation:
+#   App      - Default fallback for application-level logging
 #   Auth     - Authentication/authorization flows
-#   Session  - Session lifecycle management
-#   HTTP     - HTTP requests, responses, and middleware
 #   Bunny    - RabbitMQ AMQP client (connection, heartbeats)
 #   Familia  - Redis operations via Familia ORM
+#   HTTP     - HTTP requests, responses, and middleware
 #   Otto     - Otto framework operations
 #   Rhales   - Rhales template rendering (future)
-#   Sequel   - Database queries and operations
 #   Secret   - Core business value (create/view/burn)
-#   App      - Default fallback for application-level logging
+#   Sequel   - Database queries and operations
+#   Session  - Session lifecycle management
 #
 # Environment variable overrides:
 #   LOG_LEVEL=debug                       - Set global log level
@@ -51,15 +51,17 @@ loggers:
   Auth: info      # Authentication/authorization flows
   Billing: info   # Only used when billing.enabled=true
   Boot: info      # During initialization
-  Bunny: warn     # RabbitMQ client (heartbeats at debug level)
+  Bunny: info     # RabbitMQ client (heartbeats at debug level)
   CLI: info       # Command-line interface operations
-  Familia: warn   # Redis/Familia main database operations
-  HTTP: warn      # HTTP requests and middleware operations
-  Otto: warn      # Otto framework operations
+  Familia: info   # Redis/Familia main database operations
+  HTTP: info      # HTTP requests and middleware operations
+  Jobs: info
+  Otto: info      # Otto framework operations
   Rhales: error   # Rhales template rendering (suppress unescaped HTML warnings)
   Secret: info    # Secret lifecycle (create, view, burn)
-  Sequel: warn    # Database queries and operations (SQL logged at :trace level)
+  Sequel: info    # Database queries and operations (SQL logged at :trace level)
   Session: info   # Session lifecycle (create, update, destroy)
+  Workers: debug
 
 # HTTP request logging configuration
 http:

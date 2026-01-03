@@ -216,8 +216,8 @@ RSpec.describe Onetime::Secret do
 
         expect(metadata).to be_a(Onetime::Metadata)
         expect(secret).to be_a(Onetime::Secret)
-        expect(metadata.secret_key).to eq(secret.key)
-        expect(secret.metadata_key).to eq(metadata.key)
+        expect(metadata.secret_identifier).to eq(secret.identifier)
+        expect(secret.metadata_identifier).to eq(metadata.identifier)
         expect(metadata.custid).to eq(custid)
         expect(secret.custid).to eq(custid)
       end
@@ -226,13 +226,13 @@ RSpec.describe Onetime::Secret do
     describe 'state transitions' do
       let(:metadata) { create_stubbed_metadata(state: "new") }
       let(:secret) { create_stubbed_secret(
-        metadata_key: metadata.key,
+        metadata_identifier: metadata.identifier,
         state: "new"
       )}
 
       before do
         # Setup linked objects
-        metadata.secret_key = secret.key
+        metadata.secret_identifier = secret.identifier
 
         # Mock the load_metadata method
         allow(secret).to receive(:load_metadata).and_return(metadata)

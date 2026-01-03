@@ -107,12 +107,15 @@ runs:
         echo "Platform validation passed: $PLATFORMS"
         echo "::endgroup::"
 
-    # Generate .commit_hash.txt in the build context
+    # Generate .commit_hash.txt in the build context and export short hash
     - name: Generate commit hash
+      id: commit
       shell: bash
       run: |
-        echo "${GITHUB_SHA:0:7}" > .commit_hash.txt
-        echo "Commit hash recorded: $(cat .commit_hash.txt)"
+        SHORT_SHA="${GITHUB_SHA:0:7}"
+        echo "${SHORT_SHA}" > .commit_hash.txt
+        echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+        echo "Commit hash recorded: ${SHORT_SHA}"
 
     - name: Update package.json version from tag
       if: startsWith(github.ref, 'refs/tags/v')
@@ -187,7 +190,7 @@ runs:
         platforms: ${{ inputs.platforms }}
         build-args: |
           VERSION=${{ steps.package_version.outputs.version }}
-          GITHUB_SHA=${{ github.sha }}
+          COMMIT_HASH=${{ steps.commit.outputs.short_sha }}
 
     - name: Output image info
       shell: bash

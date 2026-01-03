@@ -12,7 +12,7 @@
 #   and broken module structure.
 #
 # MUST INCLUDE:
-#   - Minimal runtime verification (require/load succeeds)
+#   - Minimal runtime verification that require/load succeeds
 #   - Module existence checks
 #   - Interface validation (respond_to?)
 #
@@ -21,7 +21,7 @@
 #   - Full HTTP request/response testing
 #   - Database state verification
 #
-# WHY THIS IS LEGITIMATE:
+# WHY THIS IS USEFUL:
 #   - Actually requires/loads production code
 #   - Verifies module structure at runtime
 #   - Catches common deployment failures (missing requires, syntax errors)

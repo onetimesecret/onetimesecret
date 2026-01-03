@@ -21,6 +21,12 @@ module Onetime
     # - One TCP connection per process (singleton)
     # - Pool of channels from that connection (thread-safe)
     #
+    # Fork safety note:
+    # ConnectionPool (v2.5+) has automatic fork handling via Process._fork hook.
+    # We disable this (auto_reload_after_fork: false) because we manage fork
+    # cleanup explicitly via cleanup/reconnect methods called from Puma hooks.
+    # See: https://github.com/mperham/connection_pool (ForkTracker module)
+    #
     # rubocop:disable Style/GlobalVars
     class SetupRabbitMQ < Onetime::Boot::Initializer
       @depends_on = [:logging]
@@ -47,16 +53,20 @@ module Onetime
       # Always clears global state first - stale connection objects from parent
       # process are useless in forked children.
       #
+      # Note: conn.close closes all channels on that connection. This is why we
+      # disable ConnectionPool's auto_reload_after_fork - its after_fork handler
+      # would try to close already-closed channels, triggering bunny warnings.
+      #
       # @return [void]
       def cleanup
         conn              = $rmq_conn
         $rmq_conn         = nil
-        $rmq_channel_pool = nil
+        $rmq_channel_pool = nil # Clear reference; pool cleanup handled by conn.close
 
         return unless conn&.open?
 
         Onetime.bunny_logger.info '[SetupRabbitMQ] Closing RabbitMQ connection before fork'
-        conn.close
+        conn.close # Closes all channels on this connection
       rescue StandardError => ex
         Onetime.bunny_logger.warn "[SetupRabbitMQ] Error during cleanup (#{ex.class})"
         Onetime.bunny_logger.debug "[SetupRabbitMQ] Cleanup error details: #{ex.message}"
@@ -95,6 +105,11 @@ module Onetime
         }
 
         # TLS configuration for amqps:// connections (centralized in QueueConfig)
+        # Note: Bunny may warn about missing client certificates when using TLS.
+        # This is expected - most managed RabbitMQ services use username/password
+        # authentication over TLS, not mutual TLS (client certificates).
+        # To silence the warning if client certs are definitely not required:
+        #   bunny_config[:tls_cert] = nil
         bunny_config.merge!(Onetime::Jobs::QueueConfig.tls_options(url))
 
         # Create single connection per process
@@ -104,26 +119,34 @@ module Onetime
         Onetime.bunny_logger.debug '[init] Setup RabbitMQ: connection established'
 
         # Create channel pool for thread safety
-        $rmq_channel_pool = ConnectionPool.new(size: pool_size, timeout: 5) do
+        # Disable auto_reload_after_fork since we handle fork cleanup manually in cleanup/reconnect methods.
+        # Otherwise ConnectionPool's automatic after_fork handler will try to close channels
+        # that are already closed (from our cleanup), causing "cannot use a closed channel" warnings.
+        $rmq_channel_pool = ConnectionPool.new(size: pool_size, timeout: 5, auto_reload_after_fork: false) do
           $rmq_conn.create_channel
         end
 
         Onetime.bunny_logger.debug "[init] Setup RabbitMQ: channel pool created (size: #{pool_size})"
 
-        # Declare exchanges only. This is an idempotent and safe operation
-        # for multiple processes to perform. Queues (including DLQs) should
-        # be declared by the worker process to prevent race conditions.
+        # Declare exchanges and queues. Both operations are idempotent - multiple
+        # processes declaring the same resources with identical options is safe.
+        # We declare from both web and worker processes to handle deployment race
+        # conditions where either service may start first. QueueConfig is the
+        # single source of truth, preventing configuration drift.
         declare_exchanges
+        declare_queues
 
         # Verify connectivity
         # verify_connection
 
-        OT.log_box([
-                     '✅ RABBITMQ: Connected to message broker',
-                     "   Pool size: #{pool_size} channels",
-                     "   Exchanges: #{Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.size} declared",
-                   ],
-                  )
+        OT.log_box(
+          [
+            '✅ RABBITMQ: Connected to message broker',
+            "   #{url}",
+            "   Pool size: #{pool_size} channels",
+            "   Exchanges: #{Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.size} declared",
+          ],
+        )
 
         # Set runtime state (optional, for introspection)
         Onetime::Runtime.update_infrastructure(
@@ -197,19 +220,15 @@ module Onetime
             Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared and bound DLQ '#{config[:queue]}'"
           end
 
-          # 2. Declare and bind the primary queues with DLX arguments
+          # 2. Declare primary queues using config from QueueConfig
           Onetime::Jobs::QueueConfig::QUEUES.each do |queue_name, config|
-            dlx_name = config[:dead_letter_exchange]
             channel.queue(
               queue_name,
-              durable: true,
-              arguments: {
-                'x-dead-letter-exchange' => dlx_name,
-                'x-dead-letter-routing-key' => Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.dig(dlx_name, :queue),
-              },
+              durable: config[:durable],
+              arguments: config[:arguments] || {},
             )
 
-            Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared primary queue '#{queue_name}' with DLX '#{dlx_name}'"
+            Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared primary queue '#{queue_name}'"
           end
         end
       end

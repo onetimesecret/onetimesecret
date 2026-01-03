@@ -1,11 +1,11 @@
-# spec/cli/jobs/worker_command_spec.rb
+# spec/cli/worker_command_spec.rb
 #
 # frozen_string_literal: true
 
-require_relative '../cli_spec_helper'
-require 'onetime/cli/jobs/worker_command'
+require_relative 'cli_spec_helper'
+require 'onetime/cli/worker_command'
 
-RSpec.describe Onetime::CLI::Jobs::WorkerCommand, type: :cli do
+RSpec.describe Onetime::CLI::WorkerCommand, type: :cli do
   let(:command) { described_class.new }
 
   describe 'Sneakers vhost configuration' do
@@ -43,7 +43,7 @@ RSpec.describe Onetime::CLI::Jobs::WorkerCommand, type: :cli do
         ENV['RABBITMQ_URL'] = 'amqp://host/url-vhost'
         ENV['RABBITMQ_VHOST'] = 'override-vhost'
 
-        command.send(:configure_kicks,
+        command.send(:configure_sneakers,
           concurrency: 10,
           daemonize: false,
           environment: 'test',
@@ -57,7 +57,7 @@ RSpec.describe Onetime::CLI::Jobs::WorkerCommand, type: :cli do
         ENV['RABBITMQ_URL'] = 'amqps://user:pass@host:5671/production'
         ENV['RABBITMQ_VHOST'] = 'staging'
 
-        command.send(:configure_kicks,
+        command.send(:configure_sneakers,
           concurrency: 10,
           daemonize: false,
           environment: 'test',
@@ -74,7 +74,7 @@ RSpec.describe Onetime::CLI::Jobs::WorkerCommand, type: :cli do
         ENV['RABBITMQ_URL'] = 'amqp://host/url-vhost'
         ENV.delete('RABBITMQ_VHOST')
 
-        command.send(:configure_kicks,
+        command.send(:configure_sneakers,
           concurrency: 10,
           daemonize: false,
           environment: 'test',
@@ -89,7 +89,7 @@ RSpec.describe Onetime::CLI::Jobs::WorkerCommand, type: :cli do
         ENV['RABBITMQ_URL'] = 'amqps://4ef062f27f30f2ec:secret@rabbit.northflank.com:5671/4ef062f27f30f2ec'
         ENV.delete('RABBITMQ_VHOST')
 
-        command.send(:configure_kicks,
+        command.send(:configure_sneakers,
           concurrency: 10,
           daemonize: false,
           environment: 'test',
@@ -106,7 +106,7 @@ RSpec.describe Onetime::CLI::Jobs::WorkerCommand, type: :cli do
         ENV.delete('RABBITMQ_URL')
         ENV.delete('RABBITMQ_VHOST')
 
-        command.send(:configure_kicks,
+        command.send(:configure_sneakers,
           concurrency: 10,
           daemonize: false,
           environment: 'test',
@@ -122,7 +122,7 @@ RSpec.describe Onetime::CLI::Jobs::WorkerCommand, type: :cli do
         ENV['RABBITMQ_URL'] = 'amqp://host/vhost'
         ENV.delete('RABBITMQ_VHOST')
 
-        command.send(:configure_kicks,
+        command.send(:configure_sneakers,
           concurrency: 5,
           daemonize: true,
           environment: 'production',

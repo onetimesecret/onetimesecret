@@ -73,12 +73,16 @@ require_relative 'cli/change_email_command'
 require_relative 'cli/session_command'
 require_relative 'cli/totp_command'
 
-# Load jobs CLI commands
-require_relative 'cli/jobs/worker_command'
-require_relative 'cli/jobs/scheduler_command'
-require_relative 'cli/jobs/status_command'
-require_relative 'cli/jobs/reset_queues_command'
-require_relative 'cli/jobs/dlq_command'
+# Load worker and scheduler commands (top-level)
+require_relative 'cli/worker_command'
+require_relative 'cli/scheduler_command'
+
+# Load queue CLI commands
+require_relative 'cli/queue/init_command'
+require_relative 'cli/queue/status_command'
+require_relative 'cli/queue/reset_command'
+require_relative 'cli/queue/dlq_command'
+require_relative 'cli/queue/ping_command'
 
 # Auto-discover app CLI commands
 apps_root = File.join(ENV['ONETIME_HOME'] || Dir.pwd, 'apps')

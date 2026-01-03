@@ -152,7 +152,7 @@ module Onetime
       def autodiscover
         classes = self.class.discover do |k|
           name = k.initializer_name&.to_s
-          name&.start_with?('onetime.', 'billing.')
+          name&.start_with?('onetime.', 'billing.', 'auth.')
         end
         load_classes(classes)
       end

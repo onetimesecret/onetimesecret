@@ -13,12 +13,12 @@
     },
     "welcome": {
       "subject": "Verifiera ditt Onetime Secret-konto",
-      "title": "Du har blivit inbjuden att gå med i %{organization_name}!",
+      "title": "Du har blivit inbjuden att gå med i %{product_name}!",
       "verify_prompt": "Vänligen verifiera din e-postadress genom att klicka på länken nedan:",
       "verify_button": "Verifiera e-postadress",
       "copy_link_prompt": "Eller kopiera och klistra in denna länk:",
       "signature": "Delano",
-      "postscript": "P.S. Detta e-postmeddelande skickades till %{invited_email}. Om du inte förväntade dig denna inbjudan kan du ignorera detta meddelande."
+      "postscript": "P.S. Detta e-postmeddelande skickades till %{email_address}. Om du inte förväntade dig denna inbjudan kan du ignorera detta meddelande."
     },
     "password_request": {
       "subject": "Återställ ditt lösenord (%{display_domain})",

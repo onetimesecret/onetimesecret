@@ -29,15 +29,15 @@ RSpec.describe Onetime::Secret, allow_redis: false do
       expect(secret).to be_a(described_class)
       expect(metadata.custid).to eq(customer_id)
       expect(secret.custid).to eq(customer_id)
-      expect(metadata.secret_key).to eq(secret.key)
-      expect(secret.metadata_key).to eq(metadata.key)
+      expect(metadata.secret_identifier).to eq(secret.identifier)
+      expect(secret.metadata_identifier).to eq(metadata.identifier)
     end
 
     it 'generates unique identifiers for each pair' do
       metadata2, secret2 = create_stubbed_onetime_secret_pair(custid: customer_id)
 
-      expect(secret.key).not_to eq(secret2.key)
-      expect(metadata.key).not_to eq(metadata2.key)
+      expect(secret.identifier).not_to eq(secret2.identifier)
+      expect(metadata.identifier).not_to eq(metadata2.identifier)
     end
   end
 

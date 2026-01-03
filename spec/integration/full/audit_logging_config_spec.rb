@@ -4,7 +4,12 @@
 
 # Tests for Rodauth audit logging configuration.
 # These tests verify that Auth::Config has the correct audit logging
-# settings configured. No database or boot required - just config validation.
+# settings configured.
+#
+# Note: This spec is in spec/integration/full/ and automatically gets the
+# :full_auth_mode tag, which triggers FullModeSuiteDatabase.setup! before
+# running. This handles Auth::Config loading via the standard boot process.
+# Do NOT manually require 'auth/config' (see warning in that file).
 
 require 'spec_helper'
 
@@ -12,10 +17,6 @@ RSpec.describe 'Audit Logging Configuration', type: :integration do
   # Auth::Config provides Rodauth configuration. It doesn't need boot,
   # just the class loaded. Using allocate to get config without instantiation.
   let(:config) { Auth::Config.allocate }
-
-  before(:all) do
-    require 'auth/config'
-  end
 
   describe 'feature configuration' do
     it 'includes audit_logging feature' do

@@ -5,7 +5,7 @@
 # Tests for Onetime::Mail::Templates::PasswordRequest class.
 #
 # PasswordRequest is used for password reset emails.
-# Required data: email_address, secret
+# Required data: email_address, plus either reset_password_path (full mode) or secret (simple mode)
 # Optional: baseuri
 
 require_relative '../../support/test_helpers'
@@ -17,10 +17,11 @@ OT.boot! :test, false
 require 'onetime/mail'
 
 # Data class for mocking secrets (immutable, Ruby 3.2+)
-MockPasswordSecret = Data.define(:key)
+# Uses identifier (not deprecated .key field)
+MockPasswordSecret = Data.define(:identifier)
 
 # Setup mock secret
-@mock_secret = MockPasswordSecret.new(key: 'password_reset_key_789')
+@mock_secret = MockPasswordSecret.new(identifier: 'password_reset_key_789')
 
 @valid_data = {
   email_address: 'user@example.com',
@@ -39,7 +40,7 @@ rescue ArgumentError => e
 end
 #=> 'Email address required'
 
-## PasswordRequest validates presence of secret
+## PasswordRequest validates presence of reset_password_path or secret
 begin
   Onetime::Mail::Templates::PasswordRequest.new({
     email_address: 'test@example.com'
@@ -47,7 +48,7 @@ begin
 rescue ArgumentError => e
   e.message
 end
-#=> 'Secret required'
+#=> 'Reset password path or secret required'
 
 ## PasswordRequest accepts valid data without error
 template = Onetime::Mail::Templates::PasswordRequest.new(@valid_data)
@@ -90,3 +91,17 @@ template = Onetime::Mail::Templates::PasswordRequest.new(@valid_data)
 email = template.to_email(from: 'noreply@example.com')
 [email[:to], email[:subject].include?('password')]
 #=> ['user@example.com', true]
+
+## PasswordRequest accepts reset_password_path for full mode (Rodauth)
+@full_mode_data = {
+  email_address: 'user@example.com',
+  reset_password_path: 'https://example.com/auth/reset-password?key=abc123'
+}
+template = Onetime::Mail::Templates::PasswordRequest.new(@full_mode_data)
+template.reset_password_url
+#=> 'https://example.com/auth/reset-password?key=abc123'
+
+## PasswordRequest forgot_path is empty in full mode
+template = Onetime::Mail::Templates::PasswordRequest.new(@full_mode_data)
+template.forgot_path
+#=> ''

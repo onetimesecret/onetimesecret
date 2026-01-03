@@ -36,6 +36,7 @@
     'authentication',
     'i18n_enabled',
     'ot_version',
+    'ot_version_long',
     'ui',
   ]);
 
@@ -186,7 +187,7 @@
             <a
               :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${windowProps.ot_version}`"
               :aria-label="t('web.layout.release_notes')">
-              v{{ windowProps.ot_version }}
+              v{{ windowProps.ot_version_long }}
             </a>
           </span>
           <span

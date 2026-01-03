@@ -269,7 +269,7 @@ rescue OT::FormError => e
 end
 #=> [true, false, false, "Incorrect passphrase"]
 
-## Correctly handles a secret with an incorrect passphrase (bogus locale)
+## Correctly handles a secret with an incorrect passphrase (explicit locale)
 metadata = @create_metadata.call
 secret = metadata.load_secret
 secret.update_passphrase('correct_pass')
@@ -279,7 +279,7 @@ params = {
   'passphrase' => 'wrong_pass',
   'continue' => true
 }
-logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'BOGUS')
+logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 begin
   logic.process
 rescue OT::FormError => e

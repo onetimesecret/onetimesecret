@@ -15,8 +15,8 @@ module ModelTestHelper
     secret = Onetime::Secret.new
 
     # Apply default test attributes
+    # Note: Secret uses objid/identifier (auto-generated), not 'key'
     default_attrs = {
-      key: "test-secret-key-#{SecureRandom.hex(8)}",
       state: "new",
       value: nil,
       value_encryption: 2,
@@ -91,10 +91,11 @@ module ModelTestHelper
     metadata = Onetime::Metadata.new
 
     # Default attributes
+    # Note: Metadata uses objid/identifier (auto-generated), not 'key'
+    # secret_identifier is the current field (secret_key is deprecated)
     default_attrs = {
-      key: "test-metadata-key-#{SecureRandom.hex(8)}",
       state: "new",
-      secret_key: nil,
+      secret_identifier: nil,
       custid: "test-customer-id",
     }
 
@@ -110,7 +111,7 @@ module ModelTestHelper
     allow(metadata).to receive(:destroy!).and_return(true)
 
     # Stub field setters
-    allow(metadata).to receive(:secret_key!).and_return(true)
+    allow(metadata).to receive(:secret_identifier!).and_return(true)
     allow(metadata).to receive(:state!).and_return(true)
 
     metadata
@@ -118,9 +119,6 @@ module ModelTestHelper
 
   # Creates a linked pair of Onetime::Secret and Onetime::Metadata
   def create_stubbed_secret_pair(attributes = {})
-    secret_key = "test-secret-key-#{SecureRandom.hex(8)}"
-    metadata_key = "test-metadata-key-#{SecureRandom.hex(8)}"
-
     # Extract and separate metadata and secret attributes
     metadata_attrs = {}
     secret_attrs = {}
@@ -129,19 +127,13 @@ module ModelTestHelper
       secret_attrs[key] = value
     end
 
-    metadata = create_stubbed_metadata(
-      metadata_attrs.merge(
-        key: metadata_key,
-        secret_key: secret_key,
-      ),
-    )
+    # Create the objects first (identifiers are auto-generated)
+    metadata = create_stubbed_metadata(metadata_attrs)
+    secret = create_stubbed_secret(secret_attrs)
 
-    secret = create_stubbed_secret(
-      secret_attrs.merge(
-        key: secret_key,
-        metadata_key: metadata_key,
-      ),
-    )
+    # Now link them using their auto-generated identifiers
+    metadata.instance_variable_set(:@secret_identifier, secret.identifier)
+    secret.instance_variable_set(:@metadata_identifier, metadata.identifier)
 
     # Link them
     allow(secret).to receive(:load_metadata).and_return(metadata)
@@ -153,8 +145,8 @@ module ModelTestHelper
     secret = Onetime::Secret.new
 
     # Apply default test attributes
+    # Note: Secret uses objid/identifier (auto-generated), not 'key'
     default_attrs = {
-      key: "test-secret-key-#{SecureRandom.hex(8)}",
       state: "new",
       value: nil,
       value_encryption: 2,
@@ -233,10 +225,11 @@ module ModelTestHelper
     metadata = Onetime::Metadata.new
 
     # Default attributes
+    # Note: Metadata uses objid/identifier (auto-generated), not 'key'
+    # secret_identifier is the current field (secret_key is deprecated)
     default_attrs = {
-      key: "test-metadata-key-#{SecureRandom.hex(8)}",
       state: "new",
-      secret_key: nil,
+      secret_identifier: nil,
       custid: "test-customer-id",
     }
 
@@ -252,7 +245,7 @@ module ModelTestHelper
     allow(metadata).to receive(:destroy!).and_return(true)
 
     # Stub field setters
-    allow(metadata).to receive(:secret_key!).and_return(true)
+    allow(metadata).to receive(:secret_identifier!).and_return(true)
     allow(metadata).to receive(:state!).and_return(true)
     allow(metadata).to receive(:passphrase!).and_return(true)
 
@@ -266,9 +259,6 @@ module ModelTestHelper
 
   # Creates a linked pair of Onetime::Secret and Onetime::Metadata
   def create_stubbed_onetime_secret_pair(attributes = {})
-    secret_key = "test-secret-key-#{SecureRandom.hex(8)}"
-    metadata_key = "test-metadata-key-#{SecureRandom.hex(8)}"
-
     # Extract and separate metadata and secret attributes
     metadata_attrs = {}
     secret_attrs = {}
@@ -277,19 +267,13 @@ module ModelTestHelper
       secret_attrs[key] = value
     end
 
-    metadata = create_stubbed_onetime_metadata(
-      metadata_attrs.merge(
-        key: metadata_key,
-        secret_key: secret_key,
-      ),
-    )
+    # Create the objects first (identifiers are auto-generated)
+    metadata = create_stubbed_onetime_metadata(metadata_attrs)
+    secret = create_stubbed_onetime_secret(secret_attrs)
 
-    secret = create_stubbed_onetime_secret(
-      secret_attrs.merge(
-        key: secret_key,
-        metadata_key: metadata_key,
-      ),
-    )
+    # Now link them using their auto-generated identifiers
+    metadata.instance_variable_set(:@secret_identifier, secret.identifier)
+    secret.instance_variable_set(:@metadata_identifier, metadata.identifier)
 
     # Link them
     allow(secret).to receive(:load_metadata).and_return(metadata)

@@ -59,7 +59,7 @@ sudo systemctl status ots-scheduler.service
 sudo systemctl status ots-worker@email.service
 
 # Or use the CLI status command
-bin/ots jobs status
+bin/ots queue status
 ```
 
 ### View logs
@@ -147,7 +147,7 @@ Add:
 ```ini
 [Service]
 ExecStart=
-ExecStart=/opt/onetime/bin/ots jobs worker --queues email --concurrency 20 --environment production
+ExecStart=/opt/onetime/bin/ots worker --queues email --concurrency 20 --environment production
 ```
 
 ### Security
@@ -226,7 +226,7 @@ systemctl show ots-worker@email.service -p MemoryCurrent
 1. Check RabbitMQ connectivity:
 
 ```bash
-bin/ots jobs status
+bin/ots queue status
 ```
 
 2. Verify queue exists and has messages:

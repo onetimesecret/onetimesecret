@@ -156,6 +156,7 @@ RUN set -eux && \
 FROM dependencies AS build
 ARG APP_DIR
 ARG VERSION
+ARG COMMIT_HASH
 
 WORKDIR ${APP_DIR}
 
@@ -173,12 +174,14 @@ RUN set -eux && \
     npm uninstall -g pnpm
 
 # Generate build metadata
+# COMMIT_HASH is passed as a build arg from CI (GitHub Actions).
+# For local builds without the arg, falls back to "dev".
 RUN set -eux && \
     VERSION=$(node -p "require('./package.json').version") && \
     mkdir -p /tmp/build-meta && \
     echo "VERSION=${VERSION}" > /tmp/build-meta/version_env && \
     echo "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> /tmp/build-meta/version_env && \
-    date -u +%s > /tmp/build-meta/commit_hash.txt
+    echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt
 
 ##
 # FINAL-S6: Production image with S6 overlay for multi-process supervision
@@ -212,7 +215,8 @@ RUN set -eux && \
         libsqlite3-0 \
         libpq5 \
         curl \
-        xz-utils && \
+        xz-utils \
+        ca-certificates && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
@@ -252,6 +256,7 @@ COPY --chown=appuser:appuser bin ./bin
 COPY --chown=appuser:appuser apps ./apps
 COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
+COPY --chown=appuser:appuser templates ./templates
 COPY --chown=appuser:appuser scripts/entrypoint.sh ./bin/
 COPY --chown=appuser:appuser scripts/entrypoint-jobs.sh ./bin/
 COPY --chown=appuser:appuser scripts/update-version.sh ./bin/
@@ -327,7 +332,8 @@ RUN set -eux && \
     apt-get install -y --no-install-recommends \
         libsqlite3-0 \
         libpq5 \
-        curl && \
+        curl \
+        ca-certificates && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
@@ -353,6 +359,7 @@ COPY --chown=appuser:appuser bin ./bin
 COPY --chown=appuser:appuser apps ./apps
 COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
+COPY --chown=appuser:appuser templates ./templates
 COPY --chown=appuser:appuser scripts/entrypoint.sh ./bin/
 COPY --chown=appuser:appuser scripts/entrypoint-jobs.sh ./bin/
 COPY --chown=appuser:appuser scripts/update-version.sh ./bin/

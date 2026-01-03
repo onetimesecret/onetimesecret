@@ -231,6 +231,15 @@ module Onetime
       end
 
       def compute_cache_path(supported_locales)
+        # Check if caching is disabled via config
+        i18n          = OT.conf.fetch('internationalization', {})
+        cache_enabled = i18n.fetch('precompile_cache', true)
+
+        unless cache_enabled
+          OT.ld '[i18n] Cache disabled by precompile_cache config'
+          return nil
+        end
+
         # Collect all source files across all locales to create fingerprint
         all_files = []
 

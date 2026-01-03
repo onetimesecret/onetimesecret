@@ -7,10 +7,11 @@
 
 require 'spec_helper'
 
+# Only require the logging module - not the full auth/config chain
+# (see warning at top of apps/web/auth/config.rb)
+require_relative '../../../apps/web/auth/lib/logging'
+
 RSpec.describe 'Auth::Logging', type: :integration do
-  before(:all) do
-    require_relative '../../../apps/web/auth/config'
-  end
 
   # Helper to reference the module
   let(:logging_module) { Auth::Logging }

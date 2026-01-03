@@ -27,7 +27,7 @@
 
   const { t } = useI18n();
   const route = useRoute();
-  const windowProps = WindowService.getMultiple(['ot_version']);
+  const windowProps = WindowService.getMultiple(['ot_version', 'ot_version_long']);
 
   const domainsEnabled = WindowService.get('domains_enabled');
 
@@ -215,7 +215,7 @@
               target="_blank"
               rel="noopener noreferrer"
               :aria-label="t('web.layout.release_notes')">
-              v{{ windowProps.ot_version }}
+              v{{ windowProps.ot_version_long }}
             </a>
           </span>
           <span

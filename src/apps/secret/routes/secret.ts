@@ -26,7 +26,7 @@ const withValidatedSecretKey = {
     const isValid = validateSecretKey(to.params.secretIdentifier);
 
     if (!isValid) {
-      return { name: 'Not Found' };
+      return { name: 'NotFound' };
     }
   },
   props: (route: RouteLocationNormalized) => ({

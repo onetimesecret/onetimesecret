@@ -13,12 +13,12 @@
     },
     "welcome": {
       "subject": "אמתו את חשבון Onetime Secret שלכם",
-      "title": "הוזמנתם להצטרף ל-%{organization_name}!",
+      "title": "הוזמנתם להצטרף ל-%{product_name}!",
       "verify_prompt": "אנא אמתו את כתובת הדוא״ל שלכם על ידי לחיצה על הקישור למטה:",
       "verify_button": "אימות כתובת דוא״ל",
       "copy_link_prompt": "או העתיקו והדביקו את הקישור הזה:",
       "signature": "דלאנו",
-      "postscript": "נ.ב. הודעה זו נשלחה אל %{invited_email}. אם לא ציפיתם להזמנה זו, ניתן להתעלם בבטחה מהודעה זו."
+      "postscript": "נ.ב. הודעה זו נשלחה אל %{email_address}. אם לא ציפיתם להזמנה זו, ניתן להתעלם בבטחה מהודעה זו."
     },
     "password_request": {
       "subject": "איפוס הסיסמה שלכם (%{display_domain})",

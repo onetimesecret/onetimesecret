@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# bin/server
+
+if [ -f .env.sh ]; then
+  source .env.sh
+fi
+
+bundle exec bin/ots server "$@"

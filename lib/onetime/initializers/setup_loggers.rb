@@ -45,6 +45,7 @@ module Onetime
         'Secret' => 'DEBUG_SECRET',
         'Sequel' => 'DEBUG_SEQUEL',
         'Session' => 'DEBUG_SESSION',
+        'Workers' => 'DEBUG_WORKERS',
       }.freeze
 
       class << self
@@ -118,6 +119,8 @@ module Onetime
 
         formatter = build_formatter(config)
 
+        # Async appender handles logging in background thread. The reopen hook in
+        # reconnect method ensures fresh threads after fork, preventing zombie references.
         SemanticLogger.add_appender(
           io: $stdout,
           formatter: formatter,

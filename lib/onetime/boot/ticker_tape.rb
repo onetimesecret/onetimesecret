@@ -14,7 +14,7 @@
 # ```bash
 # # Trace boot
 # BOOT_TICKER_TAPE=1 bundle exec puma -p 3000
-# BOOT_TICKER_TAPE=1 bundle exec bin/ots jobs worker
+# BOOT_TICKER_TAPE=1 bundle exec bin/ots worker
 #
 # # Analyze output
 # bin/analyze-boot-trace tmp/boot_ticker_tape_*.jsonl

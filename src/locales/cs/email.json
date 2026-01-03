@@ -13,12 +13,12 @@
     },
     "welcome": {
       "subject": "Ověř svůj účet Onetime Secret",
-      "title": "Byl jsi pozván do %{organization_name}!",
+      "title": "Byl jsi pozván do %{product_name}!",
       "verify_prompt": "Ověřte prosím svou e-mailovou adresu kliknutím na odkaz níže:",
       "verify_button": "Ověřit e-mailovou adresu",
       "copy_link_prompt": "Nebo zkopírujte a vložte tento odkaz:",
       "signature": "Delano",
-      "postscript": "P.S. Tento e-mail byl odeslán na %{invited_email}. Pokud jsi tuto pozvánku neočekával, můžeš tuto zprávu bezpečně ignorovat."
+      "postscript": "P.S. Tento e-mail byl odeslán na %{email_address}. Pokud jsi tuto pozvánku neočekával, můžeš tuto zprávu bezpečně ignorovat."
     },
     "password_request": {
       "subject": "Obnovit heslo (%{display_domain})",

@@ -1,4 +1,4 @@
-# lib/onetime/cli/jobs/worker_command.rb
+# lib/onetime/cli/worker_command.rb
 #
 # frozen_string_literal: true
 
@@ -6,7 +6,7 @@
 # CLI command for running Kicks workers (RabbitMQ background processing)
 #
 # Usage:
-#   ots jobs worker [options]
+#   ots worker [options]
 #
 # Options:
 #   -q, --queues QUEUES          Comma-separated list of queues to process (default: all)
@@ -18,13 +18,12 @@
 
 require 'sneakers'
 require 'sneakers/runner'
-require_relative '../../jobs/queue_config'
+require_relative '../jobs/queue_config'
 
 module Onetime
   module CLI
-    module Jobs
-      class WorkerCommand < Command
-        desc 'Start Kicks job workers'
+    class WorkerCommand < Command
+        desc 'Start Sneakers job workers'
 
         option :queues, type: :string, aliases: ['q'],
           desc: 'Comma-separated list of queues to process (default: all)'
@@ -46,8 +45,8 @@ module Onetime
 
           boot_application!
 
-          # Configure Kicks (via Sneakers-compatible API)
-          configure_kicks(
+          # Configure Sneakers (via the rubygem named "kicks")
+          configure_sneakers(
             concurrency: concurrency,
             daemonize: daemonize,
             environment: environment,
@@ -76,7 +75,7 @@ module Onetime
           runner.run
         end
 
-        private
+      private
 
         def declare_infrastructure
           amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
@@ -115,7 +114,7 @@ module Onetime
           start_time  = Time.now
           queue_names = worker_classes.map(&:queue_name).join(',')
 
-          t                    = Thread.new do
+          t                    = Thread.new do # rubocop:disable ThreadSafety/NewThread -- Heartbeat thread for worker monitoring
             loop do
               uptime_seconds = (Time.now - start_time).to_i
               uptime_str     = format_uptime(uptime_seconds)
@@ -151,7 +150,7 @@ module Onetime
           end
         end
 
-        def configure_kicks(concurrency:, daemonize:, environment:, log_level:)
+        def configure_sneakers(concurrency:, daemonize:, environment:, log_level:)
           # Exchange Configuration
           #
           # We use the default exchange (empty string) with direct routing.
@@ -199,8 +198,21 @@ module Onetime
             ack: true,
             heartbeat: 30,
             prefetch: concurrency,
-            # Use Bunny logger from centralized logging config (setup_rabbitmq.rb pattern)
+            # Use Bunny logger from centralized logging config (setup_rabbitmq.rb pattern).
+            # Note: Sneakers logs "Working off: <msg>" at debug level with escaped JSON -
+            # this is Sneakers' internal logging, not our worker code. Set BUNNY_LOG_LEVEL
+            # higher to suppress these while keeping worker logs verbose.
             logger: Onetime.bunny_logger,
+            # Hooks to configure logging in forked worker processes
+            hooks: {
+              after_fork: -> {
+                # Clear and re-add stdout appender in forked worker so SemanticLogger outputs are visible
+                # Parent process appenders don't work after fork, so we must reconfigure
+                SemanticLogger.appenders.each(&:close)
+                SemanticLogger.clear_appenders!
+                SemanticLogger.add_appender(io: $stdout, formatter: :color)
+              },
+            },
           }
 
           # Override vhost only if explicitly set via env var.
@@ -240,9 +252,9 @@ module Onetime
 
           worker_classes
         end
-      end
     end
 
-    register 'jobs worker', Jobs::WorkerCommand
+    register 'worker', WorkerCommand
+    register 'workers', WorkerCommand  # Alias
   end
 end

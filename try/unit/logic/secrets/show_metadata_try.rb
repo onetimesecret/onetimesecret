@@ -143,7 +143,7 @@ params = {
 #=> [@this_logic.share_domain, true]
 
 ## Sets locale correctly via params
-logic = Logic::Secrets::ShowMetadata.new(@strategy_result, { locale: 'es' })
+logic = Logic::Secrets::ShowMetadata.new(@strategy_result, { 'locale' => 'es' })
 logic.locale
 #=> 'es'
 

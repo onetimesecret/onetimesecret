@@ -1,4 +1,4 @@
-# lib/onetime/cli/jobs/dlq_command.rb
+# lib/onetime/cli/queue/dlq_command.rb
 #
 # frozen_string_literal: true
 
@@ -6,10 +6,10 @@
 # CLI commands for managing Dead Letter Queues (DLQs)
 #
 # Usage:
-#   ots jobs dlq list [queue-name]     List DLQ messages
-#   ots jobs dlq show <queue> --id ID  Show specific message details
-#   ots jobs dlq replay <queue>        Replay messages back to original queue
-#   ots jobs dlq purge <queue>         Remove messages from DLQ
+#   ots queue dlq list [queue-name]     List DLQ messages
+#   ots queue dlq show <queue> --id ID  Show specific message details
+#   ots queue dlq replay <queue>        Replay messages back to original queue
+#   ots queue dlq purge <queue>         Remove messages from DLQ
 #
 
 require 'bunny'
@@ -18,7 +18,7 @@ require_relative '../../jobs/queue_config'
 
 module Onetime
   module CLI
-    module Jobs
+    module Queue
       # Base class with shared DLQ functionality
       class DlqBase < Command
         private
@@ -562,9 +562,15 @@ module Onetime
     end
 
     # Register all DLQ subcommands
-    register 'jobs dlq list', Jobs::DlqListCommand
-    register 'jobs dlq show', Jobs::DlqShowCommand
-    register 'jobs dlq replay', Jobs::DlqReplayCommand
-    register 'jobs dlq purge', Jobs::DlqPurgeCommand
+    register 'queue dlq list', Queue::DlqListCommand
+    register 'queue dlq show', Queue::DlqShowCommand
+    register 'queue dlq replay', Queue::DlqReplayCommand
+    register 'queue dlq purge', Queue::DlqPurgeCommand
+
+    # Aliases (queues → queue)
+    register 'queues dlq list', Queue::DlqListCommand
+    register 'queues dlq show', Queue::DlqShowCommand
+    register 'queues dlq replay', Queue::DlqReplayCommand
+    register 'queues dlq purge', Queue::DlqPurgeCommand
   end
 end

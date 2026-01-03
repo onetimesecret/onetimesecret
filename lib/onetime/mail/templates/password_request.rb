@@ -11,7 +11,10 @@ module Onetime
       #
       # Required data:
       #   email_address: User's email address
-      #   secret:        Secret object containing reset token
+      #
+      # One of the following is required:
+      #   reset_password_path: Full reset URL (full mode - from Rodauth)
+      #   secret:              Secret object for reset (simple mode)
       #
       # Optional data:
       #   baseuri: Override site base URI
@@ -21,7 +24,10 @@ module Onetime
 
         def validate_data!
           raise ArgumentError, 'Email address required' unless data[:email_address]
-          raise ArgumentError, 'Secret required' unless data[:secret]
+          # Either reset_password_path (full mode) or secret (simple mode) is required
+          unless data[:reset_password_path] || data[:secret]
+            raise ArgumentError, 'Reset password path or secret required'
+          end
         end
 
         public
@@ -39,9 +45,21 @@ module Onetime
         end
 
         def forgot_path
-          secret = data[:secret]
-          key    = secret.respond_to?(:key) ? secret.key : secret.to_s
-          "/forgot/#{key}"
+          # Full mode: reset_password_path is a full URL from Rodauth
+          # Simple mode: generate secret-based path (/forgot/...)
+          if data[:reset_password_path]
+            # Rodauth provides full URL, return empty so baseuri+forgot_path works
+            ''
+          else
+            secret = data[:secret]
+            key    = secret.respond_to?(:identifier) ? secret.identifier : secret.to_s
+            "/forgot/#{key}"
+          end
+        end
+
+        def reset_password_url
+          # Full URL for password reset - used directly in templates
+          data[:reset_password_path] || "#{baseuri}#{forgot_path}"
         end
 
         def email_address
@@ -57,6 +75,7 @@ module Onetime
         def template_binding
           computed_data = data.merge(
             forgot_path: forgot_path,
+            reset_password_url: reset_password_url,
             email_address: email_address,
             baseuri: baseuri,
             product_name: product_name,

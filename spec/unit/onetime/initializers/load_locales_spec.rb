@@ -241,6 +241,60 @@ RSpec.describe Onetime::Initializers::LoadLocales do
         expect(OT).to have_received(:le).with(/Missing locale: de/)
       end
     end
+
+    context 'when precompile_cache is disabled' do
+      let(:config) do
+        {
+          'internationalization' => {
+            'enabled' => true,
+            'locales' => ['en'],
+            'default_locale' => 'en',
+            'precompile_cache' => false
+          }
+        }
+      end
+
+      before do
+        allow(Dir).to receive(:exist?).with(include('locales/en')).and_return(false)
+        allow(File).to receive(:exist?).and_call_original
+        allow(File).to receive(:exist?).with(include('en.json')).and_return(true)
+        allow(File).to receive(:read).with(include('en.json')).and_return('{"web":{"test":"value"}}')
+      end
+
+      it 'loads from source without attempting cache operations' do
+        # Should NOT attempt to read or write cache files
+        expect(File).not_to receive(:exist?).with(include('.all-locales-'))
+        expect(File).not_to receive(:write).with(include('.all-locales-'), anything)
+        expect(File).not_to receive(:mtime)
+
+        instance.execute(context)
+        state = Onetime::Runtime.internationalization
+
+        expect(state.locales['en']).to eq({ 'web' => { 'test' => 'value' } })
+        expect(OT).to have_received(:ld).with('[i18n] Cache disabled by precompile_cache config')
+      end
+
+      it 'defaults to true when precompile_cache is not set' do
+        config_without_toggle = {
+          'internationalization' => {
+            'enabled' => true,
+            'locales' => ['en'],
+            'default_locale' => 'en'
+            # precompile_cache not set, should default to true
+          }
+        }
+        allow(OT).to receive(:conf).and_return(config_without_toggle)
+        allow(Dir).to receive(:glob).with(include('.all-locales-')).and_return([])
+        allow(File).to receive(:exist?).with(include('.all-locales-')).and_return(false)
+        allow(File).to receive(:mtime).and_return(Time.now)
+        allow(File).to receive(:write).and_return(true)
+
+        # Should attempt cache operations when not explicitly disabled
+        expect(File).to receive(:mtime).at_least(:once)
+
+        instance.execute(context)
+      end
+    end
   end
 
   describe '.precompile' do

@@ -44,15 +44,15 @@ module Onetime
     # NOTE: Session configuration has been moved to site config (site.session)
     # Use Onetime.session_config instead of Onetime.auth_config.session
 
-    # Full mode database URL
+    # Full mode database URL (from config only, env vars captured in auth.yaml)
     def database_url
-      ENV['AUTH_DATABASE_URL'] || full['database_url'] || 'sqlite://data/auth.db'
+      full['database_url'] || 'sqlite://data/auth.db'
     end
 
     # Full mode database URL for migrations (with elevated privileges)
-    # Falls back to database_url if not set
+    # Returns nil if not explicitly configured - caller must handle fallback
     def database_url_migrations
-      full['database_url_migrations'] || database_url
+      full['database_url_migrations']
     end
 
     # Whether full mode is enabled (Rodauth-based)

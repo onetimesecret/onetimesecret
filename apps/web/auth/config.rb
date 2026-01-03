@@ -19,16 +19,44 @@ require 'rodauth/tools'
 
 module Auth
   class Config < Rodauth::Auth
+    # Track configuration state to prevent duplicate configuration.
+    # In test environments, this file may be required multiple times
+    # (via specs and Application Registry discovery). Rodauth's configure
+    # block runs each time it's called, so we guard against re-entry.
+    @configured = false
+
+    class << self
+      attr_accessor :configured
+
+      # Reset configuration state (for testing only)
+      def reset_configuration!
+        @configured = false
+      end
+    end
+
     require_relative 'lib/logging'
     require_relative 'database'
-    # NOTE: mailer.rb is deprecated - using Onetime::Mail instead (see config/email.rb)
     require_relative 'operations'
     require_relative 'config/base'
     require_relative 'config/email'
     require_relative 'config/features'
     require_relative 'config/hooks'
+    require_relative 'config/rodauth_overrides'
 
     configure do
+      # =====================================================================
+      # CONFIGURATION GUARD
+      # =====================================================================
+      #
+      # Skip if already configured. This prevents errors when the configure
+      # block is called multiple times (e.g., in test environments).
+      # Use `next` not `return` because we're in an instance_exec context.
+      #
+      if Auth::Config.configured
+        OT.ld '[Auth::Config] Skipping duplicate configuration (already configured)'
+        next
+      end
+
       # =====================================================================
       # CONFIGURATION MODULES
       # =====================================================================
@@ -60,6 +88,7 @@ module Auth
       Hooks::Logout.configure(self)
       Hooks::Password.configure(self)
       Hooks::ErrorHandling.configure(self)
+      RodauthOverrides.configure(self)
 
       # Security features: lockout, active sessions, remember me
       if ENV['ENABLE_SECURITY_FEATURES'] != 'false'
@@ -83,6 +112,9 @@ module Auth
         Features::WebAuthn.configure(self)
         Hooks::WebAuthn.configure(self)
       end
+
+      # Mark configuration complete
+      Auth::Config.configured = true
     end
   end
 end

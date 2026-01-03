@@ -60,6 +60,12 @@ module Onetime
           data = parse_message(msg)
           return unless data # parse_message handles reject on error
 
+          # Handle ping test messages (from: bin/ots queue ping)
+          if ping_test?(data)
+            log_info 'Received ping test', template: data[:template], ping_id: data.dig(:data, :ping_id)
+            return ack!
+          end
+
           # Atomic idempotency claim: only one worker can claim a message
           unless claim_for_processing(message_id)
             log_info "Skipping duplicate message: #{message_id}"
@@ -81,6 +87,11 @@ module Onetime
 
         private
 
+        # Check if this is a ping test message
+        def ping_test?(data)
+          data[:template]&.to_sym == :ping_test || data.dig(:data, :test) == true
+        end
+
         # Deliver email via Onetime::Mail
         # Handles both templated and raw email formats
         def deliver_email(data)
@@ -94,9 +105,9 @@ module Onetime
           log_error "Mail delivery error: #{ex.message}"
           raise # Trigger retry logic
         rescue ArgumentError => ex
-          # Bad message format - don't retry
+          # Bad message format - don't retry, send to DLQ
           log_error "Invalid message format: #{ex.message}"
-          reject!
+          raise # Re-raise to exit work_with_params and trigger reject!
         end
 
         # Deliver templated email
@@ -108,7 +119,10 @@ module Onetime
             raise ArgumentError, 'Missing template in message payload'
           end
 
-          Onetime::Mail.deliver(template, email_data)
+          # Extract locale from payload, fall back to configured default locale
+          locale = email_data.delete(:locale) || email_data.delete('locale') || OT.default_locale
+
+          Onetime::Mail.deliver(template, email_data, locale: locale)
         end
 
         # Deliver raw email (non-templated)
