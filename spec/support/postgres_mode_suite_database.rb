@@ -77,6 +77,9 @@ module PostgresModeSuiteDatabase
         raise "Expected PostgreSQL connection, got: #{@database.database_type}"
       end
 
+      # Clean database before running migrations (handles stale state from previous runs)
+      clean_database_for_setup
+
       # Run migrations (may require elevated privileges)
       run_migrations
 
@@ -129,6 +132,21 @@ module PostgresModeSuiteDatabase
 
     def setup_complete?
       @setup_complete == true
+    end
+
+    # Clean database for initial setup by dropping and recreating the public schema
+    # This ensures a completely clean state, removing tables, functions, views, and extensions
+    def clean_database_for_setup
+      return unless @database
+
+      # Drop and recreate public schema (removes all objects)
+      @database.run 'DROP SCHEMA IF EXISTS public CASCADE'
+      @database.run 'CREATE SCHEMA public'
+      @database.run 'GRANT ALL ON SCHEMA public TO postgres'
+      @database.run 'GRANT ALL ON SCHEMA public TO public'
+    rescue Sequel::DatabaseError => e
+      warn "[PostgresModeSuiteDatabase] Failed to clean database: #{e.message}"
+      # Continue - migrations may still succeed if database is actually clean
     end
 
     # Run migrations using elevated connection if available
