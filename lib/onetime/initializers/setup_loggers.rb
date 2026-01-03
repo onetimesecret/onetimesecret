@@ -84,12 +84,16 @@ module Onetime
       # Reconnect SemanticLogger after fork.
       # Called by InitializerRegistry.reconnect_after_fork from Puma's before_worker_boot hook.
       #
-      # Re-opens appenders in worker processes. With sync stdout appender this is
-      # mostly a no-op, but handles file appenders or future async appenders.
+      # For sync stdout appender, this is a no-op - stdout remains open and functional
+      # after fork. SemanticLogger.reopen would recreate the appender as async by default,
+      # defeating the purpose of async: false and creating unwanted threads.
+      #
+      # Only call reopen if you have file or async appenders that need reinitializing.
       #
       # @return [void]
       def reconnect
-        SemanticLogger.reopen if defined?(SemanticLogger)
+        # Skip reopen for sync stdout appender - no thread to restart, stdout still valid
+        # SemanticLogger.reopen if defined?(SemanticLogger)
       rescue StandardError => ex
         warn "[SetupLoggers] Error during reconnect: #{ex.message}"
       end
