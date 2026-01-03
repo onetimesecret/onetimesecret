@@ -22,6 +22,7 @@ const { t } = useI18n();
     'authentication',
     'i18n_enabled',
     'ot_version',
+    'ot_version_long',
   ]);
 
 </script>
@@ -39,7 +40,7 @@ const { t } = useI18n();
           <span
             v-if="displayVersion"
             :title="`${t('web.homepage.onetime_secret_literal')} Version`">
-            <a :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${windowProps.ot_version}`">v{{ windowProps.ot_version }}</a>
+            <a :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${windowProps.ot_version}`">v{{ windowProps.ot_version_long }}</a>
           </span>
         </div>
 

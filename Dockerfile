@@ -156,6 +156,7 @@ RUN set -eux && \
 FROM dependencies AS build
 ARG APP_DIR
 ARG VERSION
+ARG COMMIT_HASH
 
 WORKDIR ${APP_DIR}
 
@@ -173,12 +174,14 @@ RUN set -eux && \
     npm uninstall -g pnpm
 
 # Generate build metadata
+# COMMIT_HASH is passed as a build arg from CI (GitHub Actions).
+# For local builds without the arg, falls back to "dev".
 RUN set -eux && \
     VERSION=$(node -p "require('./package.json').version") && \
     mkdir -p /tmp/build-meta && \
     echo "VERSION=${VERSION}" > /tmp/build-meta/version_env && \
     echo "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> /tmp/build-meta/version_env && \
-    date -u +%s > /tmp/build-meta/commit_hash.txt
+    echo "${COMMIT_HASH:-dev}" > /tmp/build-meta/commit_hash.txt
 
 ##
 # FINAL-S6: Production image with S6 overlay for multi-process supervision
