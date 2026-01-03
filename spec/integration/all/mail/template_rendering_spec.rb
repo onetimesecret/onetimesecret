@@ -224,7 +224,7 @@ RSpec.describe 'Email Template Rendering', type: :integration do
 
   describe Onetime::Mail::Templates::PasswordRequest do
     let(:mock_secret) do
-      double('Secret', key: 'reset456')
+      double('Secret', key: 'reset456', identifier: 'reset456')
     end
     let(:data) do
       {
@@ -301,7 +301,7 @@ RSpec.describe 'Email Template Rendering', type: :integration do
 
   describe Onetime::Mail::Templates::IncomingSecret do
     let(:mock_secret) do
-      double('Secret', key: 'incoming789', share_domain: nil)
+      double('Secret', key: 'incoming789', identifier: 'incoming789', share_domain: nil)
     end
     let(:data) do
       {
