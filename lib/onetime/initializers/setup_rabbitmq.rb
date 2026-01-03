@@ -105,6 +105,11 @@ module Onetime
         }
 
         # TLS configuration for amqps:// connections (centralized in QueueConfig)
+        # Note: Bunny may warn about missing client certificates when using TLS.
+        # This is expected - most managed RabbitMQ services use username/password
+        # authentication over TLS, not mutual TLS (client certificates).
+        # To silence the warning if client certs are definitely not required:
+        #   bunny_config[:tls_cert] = nil
         bunny_config.merge!(Onetime::Jobs::QueueConfig.tls_options(url))
 
         # Create single connection per process
