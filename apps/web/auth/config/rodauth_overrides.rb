@@ -5,7 +5,7 @@
 require 'digest'
 
 module Auth::Config::RodauthOverrides
-  # Placeholder for Rodauth overrides
+  # Rodauth method overrides for security and logging
   #
   def self.configure(auth)
     # SECURITY: Override verify_account's specific error messages with generic one
@@ -13,6 +13,9 @@ module Auth::Config::RodauthOverrides
     # These methods are only available when verify_account feature is enabled
     #
     # We wrap these to log the actual error for debugging while showing generic message
+    auth_class = auth.instance_variable_get(:@auth)
+    return unless auth_class&.features&.include?(:verify_account)
+
     # rubocop:disable Lint/NestedMethodDefinition -- Rodauth's auth_class_eval pattern
     auth.auth_class_eval do
       # Store original methods

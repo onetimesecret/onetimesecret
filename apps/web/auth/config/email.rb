@@ -21,7 +21,12 @@ module Auth::Config::Email
     Helpers.configure(auth)
 
     # 2. Email templates (use helper methods)
-    VerifyAccount.configure(auth)
+    # Only configure verify_account email if the feature is enabled
+    # (verify_account is disabled in test mode - see features/account_management.rb)
+    auth_class = auth.instance_variable_get(:@auth)
+    if auth_class&.features&.include?(:verify_account)
+      VerifyAccount.configure(auth)
+    end
     ResetPassword.configure(auth)
 
     # 3. Delivery mechanism (intercepts all email sending)

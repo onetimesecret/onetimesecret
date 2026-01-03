@@ -5,6 +5,11 @@
 # Tests for security features toggle via ENABLE_SECURITY_FEATURES env var.
 # When enabled (default), security features like lockout and active sessions
 # are available.
+#
+# Note: This spec is in spec/integration/full/ and automatically gets the
+# :full_auth_mode tag, which triggers FullModeSuiteDatabase.setup! before
+# running. This handles Auth::Config loading via the standard boot process.
+# Do NOT manually require 'auth/config' (see warning in that file).
 
 require 'spec_helper'
 require 'rack/test'
@@ -24,10 +29,6 @@ RSpec.describe 'Security Features Toggle', type: :integration do
     JSON.parse(last_response.body)
   rescue JSON::ParserError
     {}
-  end
-
-  before(:all) do
-    require 'auth/config'
   end
 
   describe 'default configuration (security enabled)' do

@@ -19,6 +19,21 @@ require 'rodauth/tools'
 
 module Auth
   class Config < Rodauth::Auth
+    # Track configuration state to prevent duplicate configuration.
+    # In test environments, this file may be required multiple times
+    # (via specs and Application Registry discovery). Rodauth's configure
+    # block runs each time it's called, so we guard against re-entry.
+    @configured = false
+
+    class << self
+      attr_accessor :configured
+
+      # Reset configuration state (for testing only)
+      def reset_configuration!
+        @configured = false
+      end
+    end
+
     require_relative 'lib/logging'
     require_relative 'database'
     require_relative 'operations'
@@ -29,6 +44,19 @@ module Auth
     require_relative 'config/rodauth_overrides'
 
     configure do
+      # =====================================================================
+      # CONFIGURATION GUARD
+      # =====================================================================
+      #
+      # Skip if already configured. This prevents errors when the configure
+      # block is called multiple times (e.g., in test environments).
+      # Use `next` not `return` because we're in an instance_exec context.
+      #
+      if Auth::Config.configured
+        OT.ld '[Auth::Config] Skipping duplicate configuration (already configured)'
+        next
+      end
+
       # =====================================================================
       # CONFIGURATION MODULES
       # =====================================================================
@@ -84,6 +112,9 @@ module Auth
         Features::WebAuthn.configure(self)
         Hooks::WebAuthn.configure(self)
       end
+
+      # Mark configuration complete
+      Auth::Config.configured = true
     end
   end
 end
