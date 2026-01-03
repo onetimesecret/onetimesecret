@@ -116,6 +116,25 @@ end
 # See: https://github.com/reidmorrison/semantic_logger/blob/master/lib/semantic_logger/sync.rb
 require 'semantic_logger/sync'
 
+# Configure test logging levels from spec/logging.test.yaml
+# This ensures consistent quiet logging for all tests, even those that don't call boot!
+# Integration tests that call boot! will have SetupLoggers re-apply this config.
+begin
+  require 'onetime/utils/config_resolver'
+  logging_path = Onetime::Utils::ConfigResolver.resolve('logging')
+  if logging_path && File.exist?(logging_path)
+    logging_config = YAML.load(ERB.new(File.read(logging_path)).result)
+    default_level = logging_config['default_level']&.to_sym || :warn
+    SemanticLogger.default_level = default_level
+  else
+    # Fallback to warn if no config found
+    SemanticLogger.default_level = :warn
+  end
+rescue StandardError => ex
+  warn "Failed to load test logging config: #{ex.message}"
+  SemanticLogger.default_level = :warn
+end
+
 # Load test utilities
 Dir[File.join(spec_root, 'support', '*.rb')].each { |f| require f }
 Dir[File.join(spec_root, 'support', 'shared_contexts', '*.rb')].each { |f| require f }
