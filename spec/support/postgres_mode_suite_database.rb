@@ -53,6 +53,30 @@ module PostgresModeSuiteDatabase
   class << self
     attr_reader :database
 
+    # Check if PostgreSQL is available for testing
+    # @return [Boolean] true if AUTH_DATABASE_URL is set to a PostgreSQL URL
+    def postgres_available?
+      return @postgres_available if defined?(@postgres_available)
+
+      database_url = ENV['AUTH_DATABASE_URL']
+      @postgres_available = database_url &&
+                            !database_url.empty? &&
+                            database_url.start_with?('postgresql://', 'postgres://')
+    end
+
+    # Reason why PostgreSQL is unavailable (for skip messages)
+    # @return [String, nil] message explaining why, or nil if available
+    def unavailable_reason
+      return nil if postgres_available?
+
+      database_url = ENV['AUTH_DATABASE_URL']
+      if database_url.nil? || database_url.empty?
+        'AUTH_DATABASE_URL environment variable not set'
+      else
+        "AUTH_DATABASE_URL must be a PostgreSQL URL (got: #{database_url[0..20]}...)"
+      end
+    end
+
     def setup!
       return if @setup_complete
 
@@ -60,14 +84,10 @@ module PostgresModeSuiteDatabase
       require 'auth/database'
       Sequel.extension :migration
 
-      # Ensure PostgreSQL connection is available
-      database_url = ENV.fetch('AUTH_DATABASE_URL') do
-        raise 'AUTH_DATABASE_URL must be set for PostgreSQL tests (e.g., postgresql://user:pass@localhost/onetime_auth_test)'
-      end
+      # Check if PostgreSQL is available - return early if not (specs will be skipped)
+      return unless postgres_available?
 
-      unless database_url.start_with?('postgresql://', 'postgres://')
-        raise "AUTH_DATABASE_URL must be a PostgreSQL URL (current URL format invalid)"
-      end
+      database_url = ENV['AUTH_DATABASE_URL']
 
       # Create PostgreSQL database connection
       @database = Sequel.connect(database_url)
@@ -224,6 +244,22 @@ end
 
 # RSpec configuration for PostgreSQL full auth mode tests
 RSpec.configure do |config|
+  # Exclude :postgres_database specs entirely when PostgreSQL is unavailable.
+  # This prevents errors during spec:fast (unit tests) which don't have PostgreSQL.
+  # The specs will be skipped with a clear message about why.
+  unless PostgresModeSuiteDatabase.postgres_available?
+    config.filter_run_excluding postgres_database: true
+
+    # Log once at suite start that PostgreSQL tests are being skipped
+    config.before(:suite) do
+      reason = PostgresModeSuiteDatabase.unavailable_reason
+      # Only warn if we actually have postgres_database specs (avoid noise in unrelated runs)
+      if RSpec.configuration.files_to_run.any? { |f| f.include?('postgres') }
+        warn "[PostgresModeSuiteDatabase] Skipping :postgres_database specs: #{reason}"
+      end
+    end
+  end
+
   # Lazy setup: first :postgres_database spec triggers database creation
   # Using before(:context) ensures it runs once per describe block,
   # but setup! is idempotent so it's safe if multiple blocks have the tag
