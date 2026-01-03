@@ -48,26 +48,48 @@ export DATABASE_URL='sqlite://data/auth.db'
 export DATABASE_URL='postgresql://user:pass@localhost/onetime_auth'
 ```
 
-### 2. Run Database Migrations
+### 2. Database Migrations (Automatic)
 
-Initialize the Rodauth database schema:
+**Migrations run automatically on first boot** when `AUTHENTICATION_MODE=full` is set. No manual intervention required.
+
+The application will:
+1. Detect missing schema on startup
+2. Run all Rodauth migrations automatically
+3. Create necessary tables, indexes, functions, and triggers
+4. Log migration progress to application logs
+
+**PostgreSQL-specific setup (one-time, before first boot):**
+
+For PostgreSQL, create the database and roles first:
 
 ```bash
-# For SQLite
-sqlite3 data/auth.db < apps/web/auth/migrations/schemas/sqlite/001_initial.sql
-
-# For PostgreSQL
-psql -U user -d onetime_auth -f apps/web/auth/migrations/schemas/postgres/001_initial.sql
+psql -U postgres -h localhost -f apps/web/auth/migrations/schemas/postgres/initialize_auth_db.sql
 ```
 
-Or use Sequel migrations:
+This creates:
+- Database `onetime_auth`
+- Role `onetime_migrator` (elevated privileges for migrations)
+- Role `onetime_user` (restricted privileges for runtime)
+
+Then configure environment variables:
 
 ```bash
-AUTHENTICATION_MODE=full bundle exec ruby -e "
-  require_relative 'apps/web/auth/migrator'
-  Auth::Migrator.run!
-"
+export AUTHENTICATION_MODE=full
+export AUTH_DATABASE_URL=postgresql://onetime_user:pass@localhost/onetime_auth
+export AUTH_DATABASE_URL_MIGRATIONS=postgresql://onetime_migrator:pass@localhost/onetime_auth
 ```
+
+**SQLite:** No pre-setup needed. Database file created automatically.
+
+**Manual migrations (optional):**
+
+If you prefer to run migrations manually before boot:
+
+```bash
+sequel -m apps/web/auth/migrations $AUTH_DATABASE_URL_MIGRATIONS
+```
+
+To disable automatic migrations: `export SKIP_AUTH_MIGRATIONS=true`
 
 ### 3. Sync Existing Customer Accounts
 

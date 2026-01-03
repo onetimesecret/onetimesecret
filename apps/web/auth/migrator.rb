@@ -165,6 +165,9 @@ module Auth
               conn,
               migrations_dir,
               use_transactions: true,
+              # PostgreSQL: Use advisory locks to prevent concurrent migration races
+              # SQLite: No advisory lock support (single-instance deployments only)
+              use_advisory_lock: conn.adapter_scheme == :postgres,
             )
           end
         ensure

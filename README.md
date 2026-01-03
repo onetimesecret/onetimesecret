@@ -75,10 +75,11 @@ cp -p ./etc/defaults/config.defaults.yaml ./etc/config.yaml
 ```
 
 Key configuration areas:
-- **Authentication**: Enable/disable login requirements
-- **Email**: SMTP or SendGrid setup
+- **Authentication**: Two modes available - Simple (Redis-only, default) or Full (SQL database with MFA, WebAuthn, etc.)
+- **Email**: SMTP, SES or SendGrid setup
 - **UI settings**: Customize user experience
-- **Billing** (optional): Stripe integration for paid plans — see [docs/billing/stripe-configuration.md](./docs/billing/stripe-configuration.md)
+
+> See [docs/authentication/switching-to-full-mode.md](./docs/authentication/switching-to-full-mode.md) for advanced authentication features
 
 ### Environment Variables
 

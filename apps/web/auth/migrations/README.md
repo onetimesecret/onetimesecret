@@ -35,21 +35,94 @@ export AUTH_DATABASE_URL_MIGRATIONS=postgresql://postgres@localhost/onetime_auth
 
 ## Running the Migrations
 
-### In Development
+### Automatic Migrations (Recommended)
 
-To get up and running, the database will be automatically created and the default simplified schema applied when you start the application. This is done by Rodauth::Tools which provides a clean starting point for development and testing. This does not include the advanced functionality provided by the Sequel and SQL migrations.
+**Migrations run automatically during application boot** when `AUTHENTICATION_MODE=full`. The application uses `Auth::Migrator.run_if_needed` during the initialization phase to:
 
-When working on existing features, create the complete database schema before the first boot as well. See In Production below.
+1. Check current schema version in `schema_info` table
+2. Run any pending migrations using `AUTH_DATABASE_URL_MIGRATIONS` (elevated privileges)
+3. Skip if schema is already current (idempotent)
 
-### In Production
+**No manual intervention needed** - just start the application with proper environment variables configured.
 
-Create the complete database schema with advanced functionality provided by the Sequel and SQL migrations, run the following immediately after running `initialize_auth_db.sql`:
+#### Concurrent Deployment Safety
+
+**PostgreSQL**: Uses advisory locks to prevent race conditions when multiple instances start simultaneously (e.g., Kubernetes horizontal scaling, CI/CD deployments).
+
+- First instance acquires `pg_advisory_lock` → runs migrations
+- Other instances wait on lock → see completed migrations → skip
+- All instances proceed safely once migrations complete
+
+**SQLite**: ⚠️ **Single-instance deployments only**
+
+- No advisory lock support (only file-level OS locking)
+- Concurrent writes can corrupt database
+- Use blue/green deployments: **stop old instance before starting new**
+- Rolling deployments are **NOT SAFE** with SQLite
+
+#### CI/CD Best Practices
+
+**For PostgreSQL (recommended for production):**
+```yaml
+# Safe for concurrent starts - advisory locks handle coordination
+deployment:
+  replicas: 3  # All can start simultaneously
+  strategy: RollingUpdate
+```
+
+**For SQLite (development/single-instance only):**
+```yaml
+# Requires sequential deployment
+deployment:
+  replicas: 1
+  strategy:
+    type: Recreate  # Stop old pod before starting new
+```
+
+### Manual Migrations (Optional)
+
+For environments where automatic migrations are not desired, you can run migrations manually before starting the application:
 
 ```bash
 sequel -m apps/web/auth/migrations $AUTH_DATABASE_URL_MIGRATIONS
 ```
 
-NOTE: you can rollback by seting the migration index to 0: `sequel -m apps/web/auth/migrations -M 0 $AUTH_DATABASE_URL_MIGRATIONS`
+To disable automatic migrations, set `SKIP_AUTH_MIGRATIONS=true` in environment.
+
+**Rollback**: Set migration index to 0:
+```bash
+sequel -m apps/web/auth/migrations -M 0 $AUTH_DATABASE_URL_MIGRATIONS
+```
+
+### Development Workflow
+
+**Quick start** (SQLite in-memory):
+```bash
+export AUTHENTICATION_MODE=full
+export AUTH_DATABASE_URL=sqlite::memory:
+bundle exec thin start
+# Migrations run automatically on boot
+```
+
+**With persistent database** (SQLite file):
+```bash
+export AUTHENTICATION_MODE=full
+export AUTH_DATABASE_URL=sqlite://data/auth.db
+bundle exec thin start
+# Database file created if missing, migrations applied automatically
+```
+
+**PostgreSQL development**:
+```bash
+# One-time setup
+psql -U postgres -f apps/web/auth/migrations/schemas/postgres/initialize_auth_db.sql
+
+# Normal startup (migrations run automatically)
+export AUTHENTICATION_MODE=full
+export AUTH_DATABASE_URL=postgresql://onetime_user:pass@localhost/onetime_auth
+export AUTH_DATABASE_URL_MIGRATIONS=postgresql://postgres:pass@localhost/onetime_auth
+bundle exec thin start
+```
 
 ## PostgreSQL Test Database Setup
 
