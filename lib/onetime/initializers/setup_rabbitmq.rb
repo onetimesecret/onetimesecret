@@ -123,10 +123,13 @@ module Onetime
 
         Onetime.bunny_logger.debug "[init] Setup RabbitMQ: channel pool created (size: #{pool_size})"
 
-        # Declare exchanges only. This is an idempotent and safe operation
-        # for multiple processes to perform. Queues (including DLQs) should
-        # be declared by the worker process to prevent race conditions.
+        # Declare exchanges and queues. Both operations are idempotent - multiple
+        # processes declaring the same resources with identical options is safe.
+        # We declare from both web and worker processes to handle deployment race
+        # conditions where either service may start first. QueueConfig is the
+        # single source of truth, preventing configuration drift.
         declare_exchanges
+        declare_queues
 
         # Verify connectivity
         # verify_connection
