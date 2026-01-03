@@ -49,7 +49,7 @@ RSpec.describe 'Auth::Config::Email modules' do
     before(:all) do
       next unless REFACTORED_MODULES_AVAILABLE
 
-      module Auth; class Config; module Email; end; end; end unless defined?(Auth::Config::Email)
+      module Auth; module Config; module Email; end; end; end unless defined?(Auth::Config::Email)
       require_relative '../../config/email/helpers'
     end
 
@@ -73,7 +73,7 @@ RSpec.describe 'Auth::Config::Email modules' do
     before(:all) do
       next unless REFACTORED_MODULES_AVAILABLE
 
-      module Auth; class Config; module Email; end; end; end unless defined?(Auth::Config::Email)
+      module Auth; module Config; module Email; end; end; end unless defined?(Auth::Config::Email)
       require_relative '../../config/email/verify_account'
     end
 
@@ -97,7 +97,7 @@ RSpec.describe 'Auth::Config::Email modules' do
     before(:all) do
       next unless REFACTORED_MODULES_AVAILABLE
 
-      module Auth; class Config; module Email; end; end; end unless defined?(Auth::Config::Email)
+      module Auth; module Config; module Email; end; end; end unless defined?(Auth::Config::Email)
       require_relative '../../config/email/reset_password'
     end
 
@@ -121,7 +121,7 @@ RSpec.describe 'Auth::Config::Email modules' do
     before(:all) do
       next unless REFACTORED_MODULES_AVAILABLE
 
-      module Auth; class Config; module Email; end; end; end unless defined?(Auth::Config::Email)
+      module Auth; module Config; module Email; end; end; end unless defined?(Auth::Config::Email)
       require_relative '../../config/email/delivery'
     end
 
@@ -532,7 +532,7 @@ RSpec.describe 'Auth::Config::Email modules' do
     it 'defines Auth::Config::Email constant after require' do
       # The module is defined when the file is loaded
       # We verify the constant exists (may be defined by earlier tests)
-      module Auth; class Config; end; end unless defined?(Auth::Config)
+      module Auth; module Config; end; end unless defined?(Auth::Config)
 
       # Load the email module if not already loaded
       require_relative '../../config/email'
