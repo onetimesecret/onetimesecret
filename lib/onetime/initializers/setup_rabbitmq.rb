@@ -225,6 +225,7 @@ module Onetime
             channel.queue(
               queue_name,
               durable: config[:durable],
+              auto_delete: config[:auto_delete] || false,
               arguments: config[:arguments] || {},
             )
 
