@@ -379,7 +379,8 @@ emailer:
   host: <%= ENV['SMTP_HOST'] || 'smtp.provider.com' %>
   port: <%= ENV['SMTP_PORT'] || 587 %>
   user: <%= ENV['SMTP_USERNAME'] %>
-  pass: <%= ENV['SMTP_PASSWORD'] %>
+  # The double quotes are important b/c credentials can have characters that break YAML parsing.
+  pass: "<%= ENV['SMTP_PASSWORD'] %>"
   auth: <%= ENV['SMTP_AUTH'] || nil %>
   tls: <%= ENV['SMTP_TLS'] %>
 mail:

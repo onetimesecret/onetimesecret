@@ -50,7 +50,12 @@ vendor
 Caddyfile
 fly.toml
 etc/config
+etc/config/*
 etc/config.yaml
+etc/auth.yaml
+etc/billing.yaml
+etc/logging.yaml
+etc/puma.rb
 !etc/defaults
 !etc/config.test.yaml
 !.env.empty
