@@ -71,7 +71,7 @@ jobs:
     # Make redis available for running the tryouts
     services:
       redis:
-        image: redis:7.4-bookworm@sha256:d665ad9dd15a25c100b77134516d4f9f46f06884983d86456f0a9c0434f3b49f
+        image: redis:7.4-bookworm@sha256:f6f58ac6355513c91d7b4d4f3b60b60cfead6ebb94c52643c0135ba5079a28f7
         # Set health checks to wait until redis has started
         options: >-
           --health-cmd "redis-cli ping"
