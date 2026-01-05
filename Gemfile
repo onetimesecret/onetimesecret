@@ -44,7 +44,7 @@ gem 'httparty'
 gem 'mail'
 gem 'multi_json'
 gem 'mustache'
-gem 'net-imap', '~> 0.5.7'
+gem 'net-imap', '~> 0.6.0'
 gem 'public_suffix'
 gem 'truemail'
 
