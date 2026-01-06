@@ -14,4 +14,4 @@ backtick -n REDIS_URL {
 # This just provides early feedback
 
 foreground { s6-echo "[redis-ready] ✓ Redis configuration detected" }
-exit 0
+/bin/true
