@@ -43,10 +43,16 @@ module Onetime
         QUEUE_NAME = 'email.message.send'
         QUEUE_OPTS = QueueConfig::QUEUES[QUEUE_NAME]
 
+        # Use explicit queue_options: hash to ensure all options reach RabbitMQ.
+        # Top-level durable/arguments are deprecated in Kicks and auto_delete
+        # is silently ignored if not in queue_options.
         from_queue QUEUE_NAME,
           ack: true,
-          durable: QUEUE_OPTS[:durable],
-          arguments: QUEUE_OPTS[:arguments] || {},
+          queue_options: {
+            durable: QUEUE_OPTS[:durable],
+            auto_delete: QUEUE_OPTS.fetch(:auto_delete, false),
+            arguments: QUEUE_OPTS[:arguments] || {},
+          },
           threads: ENV.fetch('EMAIL_WORKER_THREADS', 4).to_i,
           prefetch: ENV.fetch('EMAIL_WORKER_PREFETCH', 10).to_i
 

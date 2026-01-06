@@ -92,12 +92,14 @@ module Onetime
             end
 
             # Recreate with correct configuration
+            auto_delete = config.fetch(:auto_delete, false)
             channel.queue(
               queue_name,
               durable: config[:durable],
+              auto_delete: auto_delete,
               arguments: config[:arguments] || {},
             )
-            puts "Created: #{queue_name} (durable: #{config[:durable]}, arguments: #{config[:arguments] || {}})"
+            puts "Created: #{queue_name} (durable: #{config[:durable]}, auto_delete: #{auto_delete}, arguments: #{config[:arguments] || {}})"
           end
 
           conn.close

@@ -27,9 +27,11 @@ module Onetime
 
         from_queue QUEUE_NAME,
           ack: true,
-          durable: QUEUE_OPTS[:durable],
-          auto_delete: QUEUE_OPTS.fetch(:auto_delete, true),
-          arguments: QUEUE_OPTS[:arguments] || {},
+          queue_options: {
+            durable: QUEUE_OPTS[:durable],
+            auto_delete: QUEUE_OPTS.fetch(:auto_delete, true),
+            arguments: QUEUE_OPTS[:arguments] || {},
+          },
           threads: ENV.fetch('TRANSIENT_WORKER_THREADS', 2).to_i,
           prefetch: ENV.fetch('TRANSIENT_WORKER_PREFETCH', 5).to_i
 

@@ -21,16 +21,24 @@ module Onetime
     #
     # Each queue includes:
     # - durable: true/false - survives RabbitMQ restart
+    # - auto_delete: true/false - deleted when last consumer disconnects
     # - arguments: AMQP queue arguments like dead-letter exchanges and TTL
+    #
+    # IMPORTANT: All queue options MUST be explicit. Do not rely on defaults
+    # because different code paths (Puma, workers, CLI) may have different
+    # defaults. Kicks/Sneakers deprecated option mapping does NOT handle
+    # auto_delete, so workers MUST use queue_options: hash.
     #
     module QueueConfig
       QUEUES = {
         'email.message.send' => {
           durable: true,
+          auto_delete: false,
           arguments: { 'x-dead-letter-exchange' => 'dlx.email.message' },
         },
         'email.message.schedule' => {
           durable: true,
+          auto_delete: false,
           arguments: {
             'x-dead-letter-exchange' => 'dlx.email.message',
             'x-message-ttl' => 86_400_000, # 24 hours in milliseconds
@@ -38,14 +46,17 @@ module Onetime
         },
         'notifications.alert.push' => {
           durable: true,
+          auto_delete: false,
           arguments: { 'x-dead-letter-exchange' => 'dlx.notifications.alert' },
         },
         'webhooks.payload.deliver' => {
           durable: true,
+          auto_delete: false,
           arguments: { 'x-dead-letter-exchange' => 'dlx.webhooks.payload' },
         },
         'billing.event.process' => {
           durable: true,
+          auto_delete: false,
           arguments: { 'x-dead-letter-exchange' => 'dlx.billing.event' },
         },
         'system.transient' => {
