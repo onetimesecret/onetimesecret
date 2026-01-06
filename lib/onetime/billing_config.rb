@@ -117,7 +117,7 @@ end,
     private
 
     def load_config
-      unless File.exist?(@config_file)
+      unless @config_file && File.exist?(@config_file)
         @config = {}
         return
       end
