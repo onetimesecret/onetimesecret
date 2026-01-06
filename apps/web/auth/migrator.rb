@@ -93,10 +93,14 @@ module Auth
         end
 
         # Get current schema version before running migrations
+        # Use elevated connection if available (regular user may not have schema_info access)
+        schema_conn = using_elevated_url ? migration_connection : database_connection
         current_version = begin
-          database_connection[:schema_info].first&.fetch(:version, 0)
+          schema_conn[:schema_info].first&.fetch(:version, 0)
         rescue Sequel::DatabaseError
           0  # Table doesn't exist yet
+        ensure
+          schema_conn.disconnect if using_elevated_url && schema_conn != database_connection
         end
 
         sequel_logger.info 'Starting database migration check',
@@ -112,8 +116,13 @@ module Auth
 
         elapsed_μs = Onetime.now_in_μs - start_time
 
-        # Get new schema version
-        new_version        = database_connection[:schema_info].first&.fetch(:version, 0)
+        # Get new schema version (use elevated connection if available)
+        post_schema_conn = using_elevated_url ? migration_connection : database_connection
+        new_version = begin
+          post_schema_conn[:schema_info].first&.fetch(:version, 0)
+        ensure
+          post_schema_conn.disconnect if using_elevated_url && post_schema_conn != database_connection
+        end
         migrations_applied = new_version - current_version
 
         if migrations_applied > 0
