@@ -5,6 +5,7 @@
 require 'stripe'
 require_relative 'base_worker'
 require_relative '../queue_config'
+require_relative '../queue_declarator'
 require_relative '../../../../apps/web/billing/operations/process_webhook_event'
 require_relative '../../../../apps/web/billing/models/stripe_webhook_event'
 
@@ -73,20 +74,10 @@ module Onetime
         include Sneakers::Worker
         include BaseWorker
 
-        # Queue config from single source of truth (QueueConfig)
         QUEUE_NAME = 'billing.event.process'
-        QUEUE_OPTS = QueueConfig::QUEUES[QUEUE_NAME]
 
-        # Use explicit queue_options: hash to ensure all options reach RabbitMQ.
-        # Top-level durable/arguments are deprecated in Kicks and auto_delete
-        # is silently ignored if not in queue_options.
         from_queue QUEUE_NAME,
-          ack: true,
-          queue_options: {
-            durable: QUEUE_OPTS[:durable],
-            auto_delete: QUEUE_OPTS.fetch(:auto_delete, false),
-            arguments: QUEUE_OPTS[:arguments] || {},
-          },
+          **QueueDeclarator.sneakers_options_for(QUEUE_NAME),
           threads: ENV.fetch('BILLING_WORKER_THREADS', 2).to_i,
           prefetch: ENV.fetch('BILLING_WORKER_PREFETCH', 5).to_i
 

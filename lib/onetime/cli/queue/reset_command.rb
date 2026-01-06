@@ -19,6 +19,7 @@
 
 require 'bunny'
 require_relative '../../jobs/queue_config'
+require_relative '../../jobs/queue_declarator'
 
 module Onetime
   module CLI
@@ -36,14 +37,14 @@ module Onetime
         def call(queue: nil, force: false, dry_run: false, **)
           boot_application!
 
-          queues_to_reset = queue ? [queue] : Onetime::Jobs::QueueConfig::QUEUES.keys
+          queues_to_reset = queue ? [queue] : Onetime::Jobs::QueueDeclarator.queue_names
 
-          # Validate queue names
+          # Validate queue names via QueueDeclarator
           queues_to_reset.each do |q|
-            next if Onetime::Jobs::QueueConfig::QUEUES.key?(q)
+            next if Onetime::Jobs::QueueDeclarator.known_queue?(q)
 
             puts "Unknown queue: #{q}"
-            puts "Available queues: #{Onetime::Jobs::QueueConfig::QUEUES.keys.join(', ')}"
+            puts "Available queues: #{Onetime::Jobs::QueueDeclarator.queue_names.join(', ')}"
             exit 1
           end
 
@@ -77,8 +78,6 @@ module Onetime
           channel = conn.create_channel
 
           queue_names.each do |queue_name|
-            config = Onetime::Jobs::QueueConfig::QUEUES[queue_name]
-
             # Try to delete existing queue
             begin
               # Use passive: true to check if queue exists without declaring
@@ -91,20 +90,15 @@ module Onetime
               channel = conn.create_channel
             end
 
-            # Recreate with correct configuration
-            auto_delete = config.fetch(:auto_delete, false)
-            channel.queue(
-              queue_name,
-              durable: config[:durable],
-              auto_delete: auto_delete,
-              arguments: config[:arguments] || {},
-            )
-            puts "Created: #{queue_name} (durable: #{config[:durable]}, auto_delete: #{auto_delete}, arguments: #{config[:arguments] || {}})"
+            # Recreate with correct configuration via QueueDeclarator
+            opts = Onetime::Jobs::QueueDeclarator.queue_options_for(queue_name)
+            Onetime::Jobs::QueueDeclarator.declare_queue(channel, queue_name)
+            puts "Created: #{queue_name} (durable: #{opts[:durable]}, auto_delete: #{opts[:auto_delete]}, arguments: #{opts[:arguments]})"
           end
 
           conn.close
           puts
-          puts 'Done. Queues reset with configuration from QueueConfig.'
+          puts 'Done. Queues reset with configuration from QueueDeclarator.'
         rescue StandardError => ex
           puts "Error: #{ex.message}"
           exit 1
