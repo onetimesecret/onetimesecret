@@ -504,20 +504,39 @@ module Billing
 
         # Propagate to local storage: Stripe → Organization model (Redis)
         # This calls extract_plan_id_from_subscription which reads metadata.plan_id
-        # and sets org.planid = plan_id, then saves to Redis
-        org.update_from_stripe_subscription(updated_subscription)
+        # and sets org.planid = plan_id, then saves to Redis.
+        #
+        # STATE SYNC: Stripe is authoritative. If local update fails, the Stripe
+        # change already succeeded (billing is correct). We log the sync failure
+        # and return success; webhooks will reconcile state eventually.
+        local_sync_failed = false
+        begin
+          org.update_from_stripe_subscription(updated_subscription)
+        rescue StandardError => sync_ex
+          local_sync_failed = true
+          billing_logger.error 'Local state sync failed after Stripe update', {
+            extid: org.extid,
+            stripe_subscription_id: updated_subscription.id,
+            new_price_id: new_price_id,
+            error_class: sync_ex.class.name,
+            error_message: sync_ex.message,
+            idempotency_key: idempotency_key[0..7],
+            recovery: 'webhook_reconciliation',
+          }
+        end
 
         billing_logger.info 'Plan changed successfully', {
           extid: org.extid,
           old_price_id: current_item.price.id,
           new_price_id: new_price_id,
-          new_plan: org.planid,
+          new_plan: local_sync_failed ? new_plan&.plan_id : org.planid,
+          local_sync_failed: local_sync_failed,
           idempotency_key: idempotency_key[0..7], # Log prefix for debugging
         }
 
         json_response({
           success: true,
-          new_plan: org.planid,
+          new_plan: local_sync_failed ? new_plan&.plan_id : org.planid,
           status: updated_subscription.status,
           current_period_end: updated_subscription.items.data.first.current_period_end,
         },
