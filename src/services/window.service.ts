@@ -17,7 +17,7 @@ const reactiveState = reactive<Partial<OnetimeWindow>>({});
  */
 function initializeReactiveState(): void {
   if (typeof window !== 'undefined' && window[STATE_KEY]) {
-    const windowState = window[STATE_KEY] as Record<string, unknown>;
+    const windowState = window[STATE_KEY] as OnetimeWindow;
     console.debug('[WindowService.initializeReactiveState] Initializing from window state:', {
       authenticated: windowState.authenticated,
       had_valid_session: windowState.had_valid_session,

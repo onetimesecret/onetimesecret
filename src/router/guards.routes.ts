@@ -182,11 +182,11 @@ async function validateAuthentication(
   if (store.needsCheck) {
     loggingService.debug('[validateAuthentication] needsCheck=true, calling checkWindowStatus');
     const authStatus = await store.checkWindowStatus();
-    loggingService.debug('[validateAuthentication] checkWindowStatus returned:', authStatus);
+    loggingService.debug('[validateAuthentication] checkWindowStatus returned:', { authStatus });
     return authStatus ?? false;
   }
 
-  loggingService.debug('[validateAuthentication] Using cached auth state:', store.isAuthenticated);
+  loggingService.debug('[validateAuthentication] Using cached auth state:', { isAuthenticated: store.isAuthenticated });
   return store.isAuthenticated ?? false;
 }
 
