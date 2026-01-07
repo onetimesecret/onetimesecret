@@ -555,12 +555,22 @@ watch(activeTab, async (newTab) => {
                   {{ membersStore.memberCount }} {{ membersStore.memberCount === 1 ? t('web.organizations.members.member_singular') : t('web.organizations.members.member_plural') }}
                 </p>
               </div>
-              <!-- Primary CTA: Invite Member (if entitled) or Upgrade (if not) -->
+              <!--
+                UX: Always show "Invite Member" button for feature discoverability.
+                When user lacks entitlement, button is disabled with tooltip explaining upgrade path.
+                This is preferable to hiding the feature entirely or showing only "Upgrade Plan".
+              -->
               <button
-                v-if="canManageMembers"
                 type="button"
-                @click="showInviteForm = !showInviteForm"
-                class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+                @click="canManageMembers && (showInviteForm = !showInviteForm)"
+                :disabled="!canManageMembers"
+                :title="!canManageMembers ? t('web.organizations.invitations.upgrade_to_invite') : undefined"
+                :class="[
+                  'inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+                  canManageMembers
+                    ? 'bg-brand-600 text-white hover:bg-brand-500 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400'
+                    : 'cursor-not-allowed bg-gray-300 text-gray-500 dark:bg-gray-600 dark:text-gray-400',
+                ]">
                 <OIcon
                   collection="heroicons"
                   name="user-plus"
@@ -568,16 +578,28 @@ watch(activeTab, async (newTab) => {
                   aria-hidden="true" />
                 {{ t('web.organizations.invitations.invite_member') }}
               </button>
+            </div>
+            <!-- Upgrade prompt when user lacks team management entitlement -->
+            <div
+              v-if="!canManageMembers"
+              class="mt-4 flex items-center gap-3 rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
+              <OIcon
+                collection="heroicons"
+                name="information-circle"
+                class="size-5 flex-shrink-0 text-amber-500 dark:text-amber-400"
+                aria-hidden="true" />
+              <p class="flex-1 text-sm text-amber-700 dark:text-amber-300">
+                {{ t('web.organizations.invitations.upgrade_prompt') }}
+              </p>
               <router-link
-                v-else
                 to="/billing/plans"
-                class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+                class="inline-flex items-center gap-1 text-sm font-medium text-amber-700 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200">
+                {{ t('web.billing.overview.view_plans_action') }}
                 <OIcon
                   collection="heroicons"
-                  name="arrow-up-circle"
-                  class="-ml-0.5 mr-1.5 size-5"
+                  name="arrow-right"
+                  class="size-4"
                   aria-hidden="true" />
-                {{ t('web.billing.overview.upgrade_plan') }}
               </router-link>
             </div>
           </div>

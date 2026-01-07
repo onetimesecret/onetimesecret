@@ -143,7 +143,9 @@
         "expired_message": "This invitation has expired",
         "invalid_token": "Invalid or expired invitation",
         "must_sign_in": "Please sign in to accept this invitation",
-        "loading_invitation": "Loading invitation details"
+        "loading_invitation": "Loading invitation details",
+        "upgrade_to_invite": "Upgrade your plan to invite team members",
+        "upgrade_prompt": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization."
       }
     }
   }
