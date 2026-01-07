@@ -128,6 +128,10 @@ export interface PlanChangePreviewResponse {
     amount: number;
     interval: string;
   };
+  /** Amount charged today (proration). New field - may not be present in older API responses */
+  immediate_amount?: number;
+  /** Regular subscription amount for the next billing period. New field - may not be present in older API responses */
+  next_period_amount?: number;
 }
 
 /**

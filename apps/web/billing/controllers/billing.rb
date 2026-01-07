@@ -370,12 +370,24 @@ module Billing
           },
         )
 
-        # Calculate credit from proration items (negative amounts)
-        # Note: In Stripe API 2023+, proration is nested in parent details
-        credit_applied = preview.lines.data
-          .select { |line| line_is_proration?(line) && line.amount.negative? }
+        # Separate proration items from regular subscription items
+        # Proration items: charges/credits for the current billing period
+        # Regular items: the full subscription amount for the next billing cycle
+        proration_lines = preview.lines.data.select { |line| line_is_proration?(line) }
+        regular_lines = preview.lines.data.reject { |line| line_is_proration?(line) }
+
+        # Credit applied: sum of negative proration amounts (unused time on old plan)
+        credit_applied = proration_lines
+          .select { |line| line.amount.negative? }
           .sum(&:amount)
           .abs
+
+        # Immediate amount: net of proration charges minus credits (due now)
+        # This is the prorated upgrade cost after applying credit for unused time
+        immediate_amount = proration_lines.sum(&:amount)
+
+        # Next period amount: the regular subscription charge for next billing cycle
+        next_period_amount = regular_lines.sum(&:amount)
 
         # Get new plan details from preview line items (avoids extra API call)
         # Note: In newer API, price can be a String ID or Price object
@@ -391,6 +403,8 @@ module Billing
 
         json_response({
           amount_due: preview.amount_due,
+          immediate_amount: immediate_amount,
+          next_period_amount: next_period_amount,
           subtotal: preview.subtotal,
           credit_applied: credit_applied,
           next_billing_date: preview.next_payment_attempt,
@@ -405,8 +419,7 @@ module Billing
             amount: new_price&.unit_amount,
             interval: new_price&.recurring&.interval,
           },
-        },
-                     )
+        })
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
