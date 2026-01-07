@@ -58,6 +58,9 @@ const isLoadingBilling = ref(false);
 const error = ref('');
 const success = ref('');
 
+// Plan features from billing overview (fallback when org entitlements are empty)
+const planFeatures = ref<string[]>([]);
+
 // Invitation form state
 const showInviteForm = ref(false);
 const inviteFormData = ref<CreateInvitationPayload>({
@@ -81,8 +84,6 @@ const {
   can,
   formatEntitlement,
   initDefinitions,
-  isLoadingDefinitions,
-  definitionsError,
   ENTITLEMENTS,
 } = useEntitlements(organization);
 
@@ -179,8 +180,11 @@ const loadBilling = async () => {
           created_at: new Date(),
           updated_at: new Date(),
         };
+        // Store plan features for display
+        planFeatures.value = overview.plan.features || [];
       } else {
         subscription.value = null;
+        planFeatures.value = [];
       }
     } else {
       subscription.value = null;
@@ -818,8 +822,8 @@ watch(activeTab, async (newTab) => {
                     </span>
                   </div>
 
-                  <!-- Team Usage -->
-                  <div>
+                  <!-- Team Usage - only shown for plans with team features -->
+                  <div v-if="subscription.teams_limit > 0">
                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                       {{ t('web.billing.subscription.team_usage') }}
                     </p>
@@ -838,29 +842,28 @@ watch(activeTab, async (newTab) => {
                     </div>
                   </div>
 
-                  <!-- Current Entitlements -->
+                  <!-- Plan Features -->
                   <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
                     <p class="mb-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                       {{ t('web.billing.overview.plan_features') }}
                     </p>
 
-                    <!-- Loading skeleton for entitlements -->
-                    <div v-if="isLoadingDefinitions" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <!-- Features from billing overview (preferred) -->
+                    <div v-if="planFeatures.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <div
-                        v-for="i in 4"
-                        :key="i"
-                        class="flex animate-pulse items-center gap-2">
-                        <div class="size-5 rounded-full bg-gray-200 dark:bg-gray-700"></div>
-                        <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
+                        v-for="feature in planFeatures"
+                        :key="feature"
+                        class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <OIcon
+                          collection="heroicons"
+                          name="check-circle"
+                          class="size-5 text-green-500 dark:text-green-400"
+                          aria-hidden="true" />
+                        {{ feature }}
                       </div>
                     </div>
 
-                    <!-- Error state for entitlements -->
-                    <div v-else-if="definitionsError" class="text-sm text-amber-600 dark:text-amber-400">
-                      {{ t('web.billing.overview.entitlements_load_error') }}
-                    </div>
-
-                    <!-- Entitlements list -->
+                    <!-- Fallback to org entitlements if no plan features -->
                     <div v-else-if="entitlements.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <div
                         v-for="ent in entitlements"
@@ -875,7 +878,18 @@ watch(activeTab, async (newTab) => {
                       </div>
                     </div>
 
-                    <!-- No entitlements -->
+                    <!-- Loading skeleton -->
+                    <div v-else-if="isLoadingBilling" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <div
+                        v-for="i in 4"
+                        :key="i"
+                        class="flex animate-pulse items-center gap-2">
+                        <div class="size-5 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                        <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
+                      </div>
+                    </div>
+
+                    <!-- No features available -->
                     <div v-else class="text-sm text-gray-500 dark:text-gray-400">
                       {{ t('web.billing.overview.no_entitlements') }}
                     </div>

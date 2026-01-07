@@ -133,7 +133,9 @@
         "inactive": "Inactive",
         "past_due": "Past Due",
         "canceled": "Canceled",
-        "catalog_name": "Plan"
+        "catalog_name": "Plan",
+        "team_usage": "Team Usage",
+        "teams_used": "{used} of {limit} teams"
       },
       "portal": {
         "title": "Billing Portal",
