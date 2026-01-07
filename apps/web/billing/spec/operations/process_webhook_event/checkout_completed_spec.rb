@@ -76,7 +76,18 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
     end
   end
 
-  context 'with plan_id in subscription metadata' do
+  # ============================================================================
+  # Catalog-First Plan Resolution Tests
+  # ============================================================================
+  #
+  # With catalog-first design, plan_id is resolved from the Stripe price catalog
+  # (via Billing::PlanValidator.resolve_plan_id). Subscription metadata is used
+  # only for debugging and drift detection.
+  #
+  # @see Billing::PlanValidator.resolve_plan_id
+  # @see WithOrganizationBilling#extract_plan_id_from_subscription
+
+  context 'with plan_id in subscription metadata (drift scenario)' do
     let!(:customer) { create_test_customer(email: test_email) }
 
     let(:subscription_with_planid) do
@@ -97,14 +108,26 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
         .and_return(subscription_with_planid)
     end
 
-    it 'sets organization planid from subscription metadata' do
+    it 'sets organization planid from catalog (ignoring metadata)' do
       operation.call
       org = customer.organization_instances.to_a.first
-      expect(org.planid).to eq('identity_plus_v1')
+      # Catalog-first: plan_id comes from catalog, not metadata
+      expect(org.planid).to eq('test_plan_v1_monthly')
+    end
+
+    it 'logs drift warning when metadata differs from catalog' do
+      expect(OT).to receive(:lw).with(
+        a_string_including('Drift detected'),
+        hash_including(
+          catalog_plan_id: 'test_plan_v1_monthly',
+          metadata_plan_id: 'identity_plus_v1',
+        ),
+      )
+      operation.call
     end
   end
 
-  context 'with plan_id only in price metadata' do
+  context 'with plan_id only in price metadata (drift scenario)' do
     let!(:customer) { create_test_customer(email: test_email) }
 
     let(:subscription_with_price_planid) do
@@ -123,17 +146,18 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
         .and_return(subscription_with_price_planid)
     end
 
-    it 'sets organization planid from price metadata as fallback' do
+    it 'sets organization planid from catalog (ignoring price metadata)' do
       operation.call
       org = customer.organization_instances.to_a.first
-      expect(org.planid).to eq('multi_team_v1')
+      # Catalog-first: plan_id comes from catalog, not price metadata
+      expect(org.planid).to eq('test_plan_v1_monthly')
     end
   end
 
-  context 'with no plan_id in any metadata or catalog' do
+  context 'with price_id not in catalog (fail-closed)' do
     let!(:customer) { create_test_customer(email: test_email) }
 
-    let(:subscription_no_planid) do
+    let(:subscription_uncataloged) do
       build_stripe_subscription(
         id: stripe_subscription_id,
         customer: stripe_customer_id,
@@ -146,25 +170,16 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
     before do
       allow(Stripe::Subscription).to receive(:retrieve)
         .with(stripe_subscription_id)
-        .and_return(subscription_no_planid)
-      # Empty catalog - price_id fallback also fails
-      allow(Billing::Plan).to receive(:list_plans).and_return([])
+        .and_return(subscription_uncataloged)
+      # Override catalog stub to return nil for 'price_test' (the default price_id)
+      # This simulates a price that exists in Stripe but hasn't been cataloged locally
+      allow(Billing::Plan).to receive(:find_by_stripe_price_id)
+        .with('price_test')
+        .and_return(nil)
     end
 
-    it 'logs warning when no plan_id found in metadata or catalog' do
-      expect(OT).to receive(:lw).with(
-        a_string_including('Unable to resolve plan_id'),
-        hash_including(price_id: 'price_test', subscription_id: stripe_subscription_id)
-      )
-      operation.call
-    end
-
-    it 'organization keeps default planid' do
-      allow(OT).to receive(:lw) # Suppress warning output
-      operation.call
-      org = customer.organization_instances.to_a.first
-      # Organization has default planid of 'free' when no plan_id is extracted
-      expect(org.planid).to eq('free')
+    it 'raises CatalogMissError (fail-closed design)' do
+      expect { operation.call }.to raise_error(Billing::CatalogMissError)
     end
   end
 
