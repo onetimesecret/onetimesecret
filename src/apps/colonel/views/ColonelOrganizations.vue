@@ -252,16 +252,16 @@
       <!-- Header with status summary -->
       <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-          Billing Health Monitor
+          {{ t('web.colonel.organizations.pageTitle') }}
         </h1>
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          {{ totalOrganizations }} organizations
+          {{ t('web.colonel.organizations.organizationsCount', { count: totalOrganizations }) }}
           <template v-if="staleCount > 0 || unknownCount > 0">
             <span class="mx-1">-</span>
             <span
               v-if="staleCount > 0"
               class="font-medium text-yellow-600 dark:text-yellow-400">
-              {{ staleCount }} need attention
+              {{ t('web.colonel.organizations.needAttention', { count: staleCount }) }}
             </span>
             <span
               v-if="staleCount > 0 && unknownCount > 0"
@@ -269,7 +269,7 @@
             <span
               v-if="unknownCount > 0"
               class="text-gray-500 dark:text-gray-400">
-              {{ unknownCount }} unknown
+              {{ t('web.colonel.organizations.unknownCount', { count: unknownCount }) }}
             </span>
           </template>
         </p>
@@ -281,16 +281,16 @@
           <label
             for="sync-status-filter"
             class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Sync Status:
+            {{ t('web.colonel.organizations.filters.syncStatus') }}:
           </label>
           <select
             id="sync-status-filter"
             v-model="syncStatusFilter"
             class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-            <option value="">All</option>
-            <option value="potentially_stale">Potentially Stale</option>
-            <option value="unknown">Unknown</option>
-            <option value="synced">Synced</option>
+            <option value="">{{ t('web.colonel.organizations.filters.all') }}</option>
+            <option value="potentially_stale">{{ t('web.colonel.organizations.filters.potentiallyStale') }}</option>
+            <option value="unknown">{{ t('web.colonel.organizations.filters.unknown') }}</option>
+            <option value="synced">{{ t('web.colonel.organizations.filters.synced') }}</option>
           </select>
         </div>
 
@@ -298,17 +298,17 @@
           <label
             for="status-filter"
             class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Subscription:
+            {{ t('web.colonel.organizations.filters.subscription') }}:
           </label>
           <select
             id="status-filter"
             v-model="statusFilter"
             class="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-            <option value="">All</option>
-            <option value="active">Active</option>
-            <option value="trialing">Trialing</option>
-            <option value="past_due">Past Due</option>
-            <option value="canceled">Canceled</option>
+            <option value="">{{ t('web.colonel.organizations.filters.all') }}</option>
+            <option value="active">{{ t('web.colonel.organizations.filters.active') }}</option>
+            <option value="trialing">{{ t('web.colonel.organizations.filters.trialing') }}</option>
+            <option value="past_due">{{ t('web.colonel.organizations.filters.pastDue') }}</option>
+            <option value="canceled">{{ t('web.colonel.organizations.filters.canceled') }}</option>
           </select>
         </div>
 
@@ -333,7 +333,7 @@
         v-if="organizations.length === 0"
         class="rounded-lg border border-gray-200 bg-white p-12 text-center dark:border-gray-700 dark:bg-gray-800">
         <p class="text-gray-500 dark:text-gray-400">
-          No organizations found
+          {{ t('web.colonel.organizations.noOrganizations') }}
         </p>
       </div>
 
@@ -350,7 +350,7 @@
                 class="cursor-pointer px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 @click="handleSort('contact_email')">
                 <div class="flex items-center gap-1">
-                  Account
+                  {{ t('web.colonel.organizations.columns.account') }}
                   <svg
                     v-if="sortField === 'contact_email'"
                     class="size-3"
@@ -368,7 +368,7 @@
                 class="cursor-pointer px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 @click="handleSort('planid')">
                 <div class="flex items-center gap-1">
-                  Billing
+                  {{ t('web.colonel.organizations.columns.billing') }}
                   <svg
                     v-if="sortField === 'planid'"
                     class="size-3"
@@ -386,7 +386,7 @@
                 class="cursor-pointer px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 @click="handleSort('sync_status')">
                 <div class="flex items-center gap-1">
-                  Status
+                  {{ t('web.colonel.organizations.columns.status') }}
                   <svg
                     v-if="sortField === 'sync_status'"
                     class="size-3"
@@ -402,7 +402,7 @@
               <th
                 scope="col"
                 class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                Usage
+                {{ t('web.colonel.organizations.columns.usage') }}
               </th>
 
               <!-- Created -->
@@ -411,7 +411,7 @@
                 class="cursor-pointer px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 @click="handleSort('created')">
                 <div class="flex items-center gap-1">
-                  Created
+                  {{ t('web.colonel.organizations.columns.created') }}
                   <svg
                     v-if="sortField === 'created'"
                     class="size-3"
@@ -427,7 +427,7 @@
               <th
                 scope="col"
                 class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                <span class="sr-only">Details</span>
+                <span class="sr-only">{{ t('web.colonel.organizations.columns.details') }}</span>
               </th>
             </tr>
           </thead>
@@ -470,7 +470,7 @@
                     <span
                       v-else-if="org.subscription_status === 'active'"
                       class="text-xs text-gray-500 dark:text-gray-400">
-                      active
+                      {{ t('web.colonel.organizations.status.active') }}
                     </span>
                     <span
                       v-else
@@ -484,7 +484,7 @@
                 <td class="px-4 py-3">
                   <template v-if="org.sync_status === 'potentially_stale'">
                     <span class="inline-flex items-center rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200">
-                      Stale
+                      {{ t('web.colonel.organizations.status.stale') }}
                     </span>
                     <div
                       v-if="org.sync_status_reason"
@@ -494,7 +494,7 @@
                   </template>
                   <template v-else-if="org.sync_status === 'unknown'">
                     <span class="inline-flex items-center rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                      Unknown
+                      {{ t('web.colonel.organizations.status.unknown') }}
                     </span>
                   </template>
                   <template v-else>
@@ -504,9 +504,9 @@
 
                 <!-- Usage (members/domains) -->
                 <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
-                  <span :title="`${org.member_count} members`">{{ org.member_count }}m</span>
+                  <span :title="t('web.colonel.organizations.usage.members', { count: org.member_count })">{{ org.member_count }}m</span>
                   <span class="mx-1">/</span>
-                  <span :title="`${org.domain_count} domains`">{{ org.domain_count }}d</span>
+                  <span :title="t('web.colonel.organizations.usage.domains', { count: org.domain_count })">{{ org.domain_count }}d</span>
                 </td>
 
                 <!-- Created -->
@@ -552,7 +552,7 @@
                           stroke-width="2"
                           d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
-                      {{ investigatingOrgs.has(org.extid) ? 'Checking...' : 'Investigate' }}
+                      {{ investigatingOrgs.has(org.extid) ? t('web.colonel.organizations.actions.checking') : t('web.colonel.organizations.actions.investigate') }}
                     </button>
 
                     <!-- Expand/collapse button -->
@@ -589,19 +589,19 @@
                   <!-- Stripe IDs -->
                   <div class="mb-4 flex flex-wrap gap-6 text-xs">
                     <div v-if="org.stripe_customer_id">
-                      <span class="font-medium text-gray-500 dark:text-gray-400">Customer:</span>
+                      <span class="font-medium text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.expanded.customer') }}:</span>
                       <code class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                         {{ org.stripe_customer_id }}
                       </code>
                     </div>
                     <div v-if="org.stripe_subscription_id">
-                      <span class="font-medium text-gray-500 dark:text-gray-400">Subscription:</span>
+                      <span class="font-medium text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.expanded.subscription') }}:</span>
                       <code class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                         {{ org.stripe_subscription_id }}
                       </code>
                     </div>
                     <div>
-                      <span class="font-medium text-gray-500 dark:text-gray-400">Org ID:</span>
+                      <span class="font-medium text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.expanded.orgId') }}:</span>
                       <code class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                         {{ org.extid }}
                       </code>
@@ -612,7 +612,7 @@
                   <div
                     v-if="investigationErrors.get(org.extid)"
                     class="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
-                    Investigation failed: {{ investigationErrors.get(org.extid) }}
+                    {{ t('web.colonel.organizations.investigation.failed') }}: {{ investigationErrors.get(org.extid) }}
                   </div>
 
                   <!-- Investigation results -->
@@ -621,7 +621,7 @@
                     class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-600 dark:bg-gray-700">
                     <div class="mb-3 flex items-center justify-between">
                       <h4 class="text-sm font-medium text-gray-900 dark:text-white">
-                        Investigation Result
+                        {{ t('web.colonel.organizations.investigation.result') }}
                       </h4>
                       <div class="flex items-center gap-2">
                         <span
@@ -629,7 +629,7 @@
                             'inline-flex items-center rounded px-2 py-0.5 text-xs font-medium',
                             getVerdictBadgeClass(getInvestigationResult(org.extid)!.comparison.verdict)
                           ]">
-                          {{ getInvestigationResult(org.extid)!.comparison.verdict === 'synced' ? 'Verified Synced' : getInvestigationResult(org.extid)!.comparison.verdict === 'mismatch_detected' ? 'Mismatch Found' : 'Unable to Compare' }}
+                          {{ getInvestigationResult(org.extid)!.comparison.verdict === 'synced' ? t('web.colonel.organizations.investigation.verifiedSynced') : getInvestigationResult(org.extid)!.comparison.verdict === 'mismatch_detected' ? t('web.colonel.organizations.investigation.mismatchFound') : t('web.colonel.organizations.investigation.unableToCompare') }}
                         </span>
                         <span class="text-xs text-gray-500 dark:text-gray-400">
                           {{ getInvestigationResult(org.extid)!.investigated_at }}
@@ -664,11 +664,11 @@
                         </div>
                         <div class="mt-1 grid grid-cols-2 gap-4">
                           <div>
-                            <span class="text-gray-500 dark:text-gray-400">Local:</span>
+                            <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.local') }}:</span>
                             <code class="ml-1 text-gray-900 dark:text-white">{{ issue.local }}</code>
                           </div>
                           <div>
-                            <span class="text-gray-500 dark:text-gray-400">Stripe:</span>
+                            <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.stripe') }}:</span>
                             <code class="ml-1 text-gray-900 dark:text-white">{{ issue.stripe }}</code>
                           </div>
                         </div>
@@ -680,29 +680,29 @@
                       v-if="getInvestigationResult(org.extid)!.stripe.available && getInvestigationResult(org.extid)!.stripe.subscription"
                       class="mt-3 border-t border-gray-200 pt-3 dark:border-gray-600">
                       <h5 class="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
-                        Stripe Subscription Details
+                        {{ t('web.colonel.organizations.investigation.stripeDetails') }}
                       </h5>
                       <div class="grid grid-cols-2 gap-2 text-xs md:grid-cols-4">
                         <div>
-                          <span class="text-gray-500 dark:text-gray-400">Status:</span>
+                          <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.statusLabel') }}:</span>
                           <span class="ml-1 font-medium text-gray-900 dark:text-white">
                             {{ getInvestigationResult(org.extid)!.stripe.subscription!.status }}
                           </span>
                         </div>
                         <div>
-                          <span class="text-gray-500 dark:text-gray-400">Product:</span>
+                          <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.product') }}:</span>
                           <span class="ml-1 font-medium text-gray-900 dark:text-white">
                             {{ getInvestigationResult(org.extid)!.stripe.subscription!.product_name || 'N/A' }}
                           </span>
                         </div>
                         <div>
-                          <span class="text-gray-500 dark:text-gray-400">Resolved Plan:</span>
+                          <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.resolvedPlan') }}:</span>
                           <span class="ml-1 font-medium text-gray-900 dark:text-white">
                             {{ getInvestigationResult(org.extid)!.stripe.subscription!.resolved_plan_id || '(none)' }}
                           </span>
                         </div>
                         <div>
-                          <span class="text-gray-500 dark:text-gray-400">Price ID:</span>
+                          <span class="text-gray-500 dark:text-gray-400">{{ t('web.colonel.organizations.investigation.priceId') }}:</span>
                           <code class="ml-1 font-mono text-gray-700 dark:text-gray-300">
                             {{ getInvestigationResult(org.extid)!.stripe.subscription!.price_id || 'N/A' }}
                           </code>
