@@ -58,7 +58,8 @@ const isLoadingBilling = ref(false);
 const error = ref('');
 const success = ref('');
 
-// Plan features from billing overview (fallback when org entitlements are empty)
+// Plan data from billing overview
+const planName = ref<string>('');
 const planFeatures = ref<string[]>([]);
 
 // Invitation form state
@@ -180,10 +181,12 @@ const loadBilling = async () => {
           created_at: new Date(),
           updated_at: new Date(),
         };
-        // Store plan features for display
+        // Store plan name and features for display
+        planName.value = overview.plan.name || '';
         planFeatures.value = overview.plan.features || [];
       } else {
         subscription.value = null;
+        planName.value = '';
         planFeatures.value = [];
       }
     } else {
@@ -808,7 +811,7 @@ watch(activeTab, async (newTab) => {
                         {{ t('web.billing.subscription.catalog_name') }}
                       </p>
                       <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
-                        {{ getPlanLabel(subscription.plan_type) }}
+                        {{ planName || getPlanLabel(subscription.plan_type) }}
                       </p>
                     </div>
                     <span
