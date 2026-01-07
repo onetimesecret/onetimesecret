@@ -315,6 +315,11 @@ RSpec.describe 'Admin Interface', type: :integration do
     describe 'POST /api/colonel/users/:user_id/plan' do
       let!(:test_user) { regular_user }
 
+      before do
+        # Stub plan validation - catalog may be empty in test environment
+        allow(Billing::BillingService).to receive(:valid_plan_id?).and_return(true)
+      end
+
       it 'updates user plan' do
         post "/api/colonel/users/#{test_user.objid}/plan", planid: 'premium'
         expect(last_response.status).to eq(200)
@@ -493,7 +498,11 @@ RSpec.describe 'Admin Interface', type: :integration do
 
   # ACCEPTANCE TESTS
   describe 'Acceptance Tests' do
-    before { create_session_for(colonel_user) }
+    before do
+      create_session_for(colonel_user)
+      # Stub plan validation - catalog may be empty in test environment
+      allow(Billing::BillingService).to receive(:valid_plan_id?).and_return(true)
+    end
 
     it 'TEST 1: Create secret as user, view in admin panel' do
       # Create a secret as a regular user
