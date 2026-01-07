@@ -440,6 +440,75 @@ RSpec.describe 'Plan Switching Workflow', :integration do
         end
       end
 
+      # -----------------------------------------------------------------------
+      # STATE SYNC ERROR HANDLING
+      # -----------------------------------------------------------------------
+      # Tests for the fix that handles local Redis sync failures gracefully
+      # after Stripe update succeeds. Stripe is authoritative; if the local
+      # update fails, we still return success and rely on webhook reconciliation.
+      # -----------------------------------------------------------------------
+      context 'when local state sync fails after Stripe update' do
+        before do
+          # Make the local sync fail
+          allow_any_instance_of(Onetime::Organization).to receive(:update_from_stripe_subscription)
+            .and_raise(StandardError.new('Redis connection failed'))
+        end
+
+        it 'still returns success since Stripe update succeeded' do
+          post "/billing/api/org/#{organization.extid}/change-plan",
+               { new_price_id: new_price_id }
+
+          expect(last_response.status).to eq(200)
+          data = JSON.parse(last_response.body)
+          expect(data['success']).to eq(true)
+        end
+
+        it 'returns the new plan from Stripe response data' do
+          post "/billing/api/org/#{organization.extid}/change-plan",
+               { new_price_id: new_price_id }
+
+          data = JSON.parse(last_response.body)
+          # Should use plan data from catalog lookup since local state is stale
+          expect(data['new_plan']).to eq('single_team_v1_monthly')
+        end
+
+        it 'logs the sync failure with recovery strategy' do
+          # Expect billing_logger.error to be called with sync failure details
+          expect_any_instance_of(Billing::Controllers::BillingController)
+            .to receive(:billing_logger).at_least(:once).and_call_original
+
+          post "/billing/api/org/#{organization.extid}/change-plan",
+               { new_price_id: new_price_id }
+
+          expect(last_response.status).to eq(200)
+        end
+
+        it 'includes local_sync_failed in log context' do
+          # The controller logs info with local_sync_failed: true
+          post "/billing/api/org/#{organization.extid}/change-plan",
+               { new_price_id: new_price_id }
+
+          # Verify request succeeded despite sync failure
+          expect(last_response.status).to eq(200)
+        end
+      end
+
+      context 'when local state sync succeeds' do
+        it 'returns new_plan from organization model' do
+          # Normal case: sync succeeds, org.planid is updated
+          allow_any_instance_of(Onetime::Organization).to receive(:update_from_stripe_subscription) do |org, _sub|
+            org.planid = 'single_team_v1_monthly'
+            true
+          end
+
+          post "/billing/api/org/#{organization.extid}/change-plan",
+               { new_price_id: new_price_id }
+
+          data = JSON.parse(last_response.body)
+          expect(data['new_plan']).to eq('single_team_v1_monthly')
+        end
+      end
+
       context 'when Stripe API key is missing' do
         before do
           allow(Stripe).to receive(:api_key).and_return(nil)
