@@ -18,8 +18,7 @@ module ColonelAPI
       #   unknown - Cannot determine (no billing data yet)
       #
       class ListOrganizations < ColonelAPI::Logic::Base
-        attr_reader :organizations, :total_count, :page, :per_page, :total_pages
-        attr_reader :status_filter, :sync_status_filter
+        attr_reader :organizations, :total_count, :page, :per_page, :total_pages, :status_filter, :sync_status_filter
 
         FREE_PLAN_IDS = %w[free free_v1].freeze
 
@@ -54,8 +53,8 @@ module ColonelAPI
           org_data_list.sort_by! { |data| -(data[:created] || 0) }
 
           # Paginate
-          start_idx     = (@page - 1) * @per_page
-          end_idx       = start_idx + @per_page - 1
+          start_idx      = (@page - 1) * @per_page
+          end_idx        = start_idx + @per_page - 1
           @organizations = org_data_list[start_idx..end_idx] || []
 
           success_data
@@ -64,7 +63,7 @@ module ColonelAPI
         private
 
         def build_org_data(org)
-          owner = org.owner
+          owner      = org.owner
           created_ts = org.created.to_i
           updated_ts = org.updated.to_i if org.updated
 
@@ -159,7 +158,6 @@ module ColonelAPI
         # @return [String, nil] Reason for the sync status
         def compute_sync_status_reason(org)
           planid              = org.planid.to_s
-          subscription_id     = org.stripe_subscription_id.to_s
           subscription_status = org.subscription_status.to_s
 
           has_active_subscription = %w[active trialing].include?(subscription_status)

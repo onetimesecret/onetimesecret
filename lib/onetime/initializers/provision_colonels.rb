@@ -92,10 +92,10 @@ module Onetime
           customer = Onetime::Customer.find_by_email(email)
 
           # Verify role matches
-          if customer.role.to_s != 'colonel'
-            OT.lw "[init] Customer #{obscured} exists but role is '#{customer.role}' (expected 'colonel'). Manual fix needed."
-          else
+          if customer.role.to_s == 'colonel'
             OT.ld "[init] Colonel #{obscured} already provisioned"
+          else
+            OT.lw "[init] Customer #{obscured} exists but role is '#{customer.role}' (expected 'colonel'). Manual fix needed."
           end
 
           return
@@ -140,10 +140,10 @@ module Onetime
         if redis_exists && sql_account
           customer = Onetime::Customer.find_by_email(email)
 
-          if customer.role.to_s != 'colonel'
-            OT.lw "[init] Customer #{obscured} exists but role is '#{customer.role}' (expected 'colonel'). Manual fix needed."
-          else
+          if customer.role.to_s == 'colonel'
             OT.ld "[init] Colonel #{obscured} already provisioned in both systems"
+          else
+            OT.lw "[init] Customer #{obscured} exists but role is '#{customer.role}' (expected 'colonel'). Manual fix needed."
           end
 
           return
@@ -191,7 +191,7 @@ module Onetime
           else
             { t_cost: 2, m_cost: 16, p_cost: 1 }
           end
-          argon2 = ::Argon2::Password.new(**argon2_params)
+          argon2        = ::Argon2::Password.new(**argon2_params)
           password_hash = argon2.create(password)
 
           # Delete old password hash and insert new one
@@ -248,7 +248,7 @@ module Onetime
           { t_cost: 2, m_cost: 16, p_cost: 1 }
         end
 
-        argon2 = ::Argon2::Password.new(**argon2_params)
+        argon2        = ::Argon2::Password.new(**argon2_params)
         password_hash = argon2.create(password)
 
         # Insert into accounts table first to get account_id

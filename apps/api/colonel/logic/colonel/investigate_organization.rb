@@ -47,7 +47,7 @@ module ColonelAPI
         end
 
         def investigate_billing_state
-          local_state = build_local_state
+          local_state  = build_local_state
           stripe_state = fetch_stripe_state
 
           {
@@ -94,24 +94,24 @@ module ColonelAPI
               reason: nil,
               subscription: extract_subscription_data(subscription),
             }
-          rescue Stripe::InvalidRequestError => e
+          rescue Stripe::InvalidRequestError => ex
             {
               available: false,
-              reason: "Stripe error: #{e.message}",
+              reason: "Stripe error: #{ex.message}",
               subscription: nil,
             }
-          rescue Stripe::StripeError => e
+          rescue Stripe::StripeError => ex
             {
               available: false,
-              reason: "Stripe API error: #{e.message}",
+              reason: "Stripe API error: #{ex.message}",
               subscription: nil,
             }
           end
         end
 
         def extract_subscription_data(subscription)
-          item = subscription.items.data.first
-          price = item&.price
+          item    = subscription.items.data.first
+          price   = item&.price
           product = price&.product
 
           # Try to resolve plan_id from various sources
@@ -149,7 +149,7 @@ module ColonelAPI
           return false if local_planid.empty? || stripe_planid.empty?
 
           # Normalize both by stripping interval suffix only
-          local_base = normalize_plan_id(local_planid)
+          local_base  = normalize_plan_id(local_planid)
           stripe_base = normalize_plan_id(stripe_planid)
 
           return true if local_base == stripe_base
@@ -202,10 +202,10 @@ module ColonelAPI
             }
           end
 
-          sub = stripe[:subscription]
-          local_planid = local[:planid].to_s
+          sub           = stripe[:subscription]
+          local_planid  = local[:planid].to_s
           stripe_planid = sub[:resolved_plan_id].to_s
-          local_status = local[:subscription_status].to_s
+          local_status  = local[:subscription_status].to_s
           stripe_status = sub[:status].to_s
 
           issues = []

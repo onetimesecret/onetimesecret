@@ -193,7 +193,6 @@ module Onetime
         url.gsub(%r{://([^:@]+):([^@]+)@}, '://\1:***@')  # user:pass@host
           .gsub(%r{://([^/:@]+)@}, '://***@')             # key@host (no colon)
       end
-
     end
     # rubocop:enable Style/GlobalVars
   end

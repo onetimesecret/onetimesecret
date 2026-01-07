@@ -139,10 +139,10 @@ module Onetime
         #
         def validate_worker!(worker_class)
           queue_name = worker_class.queue_name
-          config = fetch_queue_config!(queue_name)
+          config     = fetch_queue_config!(queue_name)
 
           # Get the queue_opts from worker class
-          worker_opts = begin
+          worker_opts          = begin
             worker_class.queue_opts
           rescue StandardError
             {}
@@ -153,21 +153,21 @@ module Onetime
 
           # Check durable
           expected_durable = config.fetch(:durable)
-          actual_durable = worker_queue_options[:durable]
+          actual_durable   = worker_queue_options[:durable]
           if actual_durable != expected_durable
             errors << "durable: expected #{expected_durable}, got #{actual_durable}"
           end
 
           # Check auto_delete
           expected_auto_delete = config.fetch(:auto_delete)
-          actual_auto_delete = worker_queue_options[:auto_delete]
+          actual_auto_delete   = worker_queue_options[:auto_delete]
           if actual_auto_delete != expected_auto_delete
             errors << "auto_delete: expected #{expected_auto_delete}, got #{actual_auto_delete}"
           end
 
           # Check arguments (compare normalized)
           expected_args = normalize_arguments(config.fetch(:arguments, {}))
-          actual_args = normalize_arguments(worker_queue_options[:arguments] || {})
+          actual_args   = normalize_arguments(worker_queue_options[:arguments] || {})
           if actual_args != expected_args
             errors << "arguments: expected #{expected_args}, got #{actual_args}"
           end
