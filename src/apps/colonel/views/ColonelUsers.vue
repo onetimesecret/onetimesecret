@@ -16,14 +16,32 @@
 </script>
 
 <template>
-  <div class="p-6">
+  <div>
     <div
       v-if="isLoading"
-      class="text-center">
+      class="text-center py-12">
       {{ t('web.LABELS.loading') }}
     </div>
 
     <div v-else>
+      <!-- Back navigation -->
+      <div class="mb-4">
+        <router-link
+          to="/colonel"
+          class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+          <svg class="mr-1 size-4"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24">
+            <path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M15 19l-7-7 7-7" />
+          </svg>
+          {{ t('web.COMMON.back') }}
+        </router-link>
+      </div>
+
       <!-- Page header -->
       <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">

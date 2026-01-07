@@ -31,7 +31,7 @@
 </script>
 
 <template>
-  <div class="p-6">
+  <div >
     <div
       v-if="isLoading"
       class="text-center">
