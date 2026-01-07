@@ -48,6 +48,7 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
     defaults = {
       id: 'prod_test123',
       name: 'Identity Plus',
+      marketing_features: [],
       metadata: {
         'app' => 'onetimesecret',
         'plan_id' => 'identity_plus_v1',

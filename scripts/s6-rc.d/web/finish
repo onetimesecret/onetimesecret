@@ -5,4 +5,4 @@
 foreground { s6-echo "[web finish] Web server exited: code=${1} signal=${2}" }
 
 # Exit with same code (S6 decides restart policy)
-exit ${1}
+/bin/sh -c "exit $1" _ ${1}

@@ -153,13 +153,24 @@ export const paymentMethodSchema = z.object({
  * Display helpers
  */
 
-export function getPlanLabel(planType: PlanType): string {
-  const labels: Record<PlanType, string> = {
+export function getPlanLabel(planType: PlanType | string): string {
+  const labels: Record<string, string> = {
     free: 'Free',
     single_team: 'Single Team',
     multi_team: 'Multi Team',
+    identity_plus: 'Identity Plus',
+    team_plus: 'Team Plus',
   };
-  return labels[planType];
+
+  // Direct match
+  if (labels[planType]) {
+    return labels[planType];
+  }
+
+  // Fallback: convert snake_case to Title Case
+  return planType
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 /**

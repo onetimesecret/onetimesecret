@@ -713,8 +713,16 @@ RSpec.describe Onetime::Initializers::SetupRabbitMQ do
     describe 'global state after failures' do
       context 'after Bunny::TCPConnectionFailed' do
         before do
+          # Reset globals before test to prevent leak from other examples
+          $rmq_conn         = nil
+          $rmq_channel_pool = nil
           allow(Bunny).to receive(:new).and_raise(Bunny::TCPConnectionFailed.new('Connection refused'))
           instance.execute(nil)
+        end
+
+        after do
+          $rmq_conn         = nil
+          $rmq_channel_pool = nil
         end
 
         it 'leaves $rmq_conn nil' do

@@ -76,6 +76,16 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
+    path: '/colonel/organizations',
+    name: 'ColonelOrganizations',
+    component: () => import('@/apps/colonel/views/ColonelOrganizations.vue'),
+    meta: {
+      ...defaultMeta,
+      title: 'web.TITLES.colonel_organizations',
+    },
+    props: true,
+  },
+  {
     path: '/colonel/database/maindb',
     name: 'ColonelSystemMainDB',
     component: () => import('@/apps/colonel/views/ColonelSystemMainDB.vue'),

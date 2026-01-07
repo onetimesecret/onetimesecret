@@ -20,6 +20,7 @@ require 'onetime/jobs/queue_config'
 require 'onetime/jobs/workers/email_worker'
 require 'onetime/jobs/workers/notification_worker'
 require 'onetime/jobs/workers/billing_worker'
+require 'onetime/jobs/workers/transient_worker'
 
 RSpec.describe 'Sneakers Worker Configuration' do
   # All workers that should be tested - add new workers here
@@ -27,6 +28,7 @@ RSpec.describe 'Sneakers Worker Configuration' do
     Onetime::Jobs::Workers::EmailWorker,
     Onetime::Jobs::Workers::NotificationWorker,
     Onetime::Jobs::Workers::BillingWorker,
+    Onetime::Jobs::Workers::TransientWorker,
   ].freeze
 
   # Expected worker-to-queue mappings (contract specification)
@@ -34,6 +36,7 @@ RSpec.describe 'Sneakers Worker Configuration' do
     'EmailWorker' => 'email.message.send',
     'NotificationWorker' => 'notifications.alert.push',
     'BillingWorker' => 'billing.event.process',
+    'TransientWorker' => 'system.transient',
   }.freeze
 
   describe 'QueueConfig completeness' do
@@ -106,11 +109,16 @@ RSpec.describe 'Sneakers Worker Configuration' do
         end
 
         it 'matches QueueConfig durability setting' do
-          expect(queue_opts[:durable]).to eq(queue_config[:durable])
+          # Check queue_options: hash first (preferred), then top-level (deprecated)
+          # Use nil? check since durable can legitimately be false
+          nested_durable = queue_opts.dig(:queue_options, :durable)
+          worker_durable = nested_durable.nil? ? queue_opts[:durable] : nested_durable
+          expect(worker_durable).to eq(queue_config[:durable])
         end
 
         it 'matches QueueConfig arguments' do
-          worker_args = queue_opts[:arguments] || {}
+          # Check queue_options: hash first (preferred), then top-level (deprecated)
+          worker_args = queue_opts.dig(:queue_options, :arguments) || queue_opts[:arguments] || {}
           config_args = queue_config[:arguments] || {}
 
           config_args.each do |key, value|
@@ -200,11 +208,100 @@ RSpec.describe 'Sneakers Worker Configuration' do
       'NOTIFICATION_WORKER_PREFETCH' => Onetime::Jobs::Workers::NotificationWorker,
       'BILLING_WORKER_THREADS' => Onetime::Jobs::Workers::BillingWorker,
       'BILLING_WORKER_PREFETCH' => Onetime::Jobs::Workers::BillingWorker,
+      'TRANSIENT_WORKER_THREADS' => Onetime::Jobs::Workers::TransientWorker,
+      'TRANSIENT_WORKER_PREFETCH' => Onetime::Jobs::Workers::TransientWorker,
     }.each do |env_var, worker_class|
       it "#{worker_class.name} reads #{env_var}" do
         # The worker class body uses ENV.fetch, so the env var is read at class load time
         # We just verify the pattern exists in the expected workers
         expect(worker_class.queue_opts).to be_a(Hash)
+      end
+    end
+  end
+
+  # CRITICAL: These tests prevent the recurring auto_delete configuration issue.
+  # This bug has occurred 4 times because Kicks/Sneakers deprecated option mapping
+  # does NOT handle auto_delete - only durable and arguments are mapped.
+  describe 'queue_options pattern (REGRESSION PREVENTION)' do
+    WORKERS.each do |worker_class|
+      describe worker_class.name do
+        let(:queue_opts) { worker_class.queue_opts }
+        let(:queue_name) { worker_class.queue_name }
+        let(:queue_config) { Onetime::Jobs::QueueConfig::QUEUES[queue_name] }
+
+        it 'uses queue_options: hash (not deprecated top-level options)' do
+          # All workers MUST use queue_options: hash because Kicks deprecated
+          # top-level options only map durable and arguments, NOT auto_delete.
+          expect(queue_opts).to have_key(:queue_options),
+            "#{worker_class.name} MUST use queue_options: hash. " \
+            "Top-level options (durable:, auto_delete:) are deprecated in Kicks " \
+            "and auto_delete is silently ignored."
+        end
+
+        it 'queue_options[:durable] matches QueueConfig' do
+          worker_durable = queue_opts.dig(:queue_options, :durable)
+          config_durable = queue_config[:durable]
+
+          expect(worker_durable).to eq(config_durable),
+            "#{worker_class.name} durable mismatch: " \
+            "worker=#{worker_durable}, QueueConfig=#{config_durable}"
+        end
+
+        it 'queue_options[:auto_delete] matches QueueConfig' do
+          worker_auto_delete = queue_opts.dig(:queue_options, :auto_delete)
+          config_auto_delete = queue_config[:auto_delete]
+
+          expect(worker_auto_delete).to eq(config_auto_delete),
+            "#{worker_class.name} auto_delete mismatch: " \
+            "worker=#{worker_auto_delete}, QueueConfig=#{config_auto_delete}. " \
+            "This mismatch causes PRECONDITION_FAILED errors in RabbitMQ."
+        end
+
+        it 'queue_options[:arguments] matches QueueConfig' do
+          worker_args = queue_opts.dig(:queue_options, :arguments) || {}
+          config_args = queue_config[:arguments] || {}
+
+          config_args.each do |key, value|
+            expect(worker_args[key]).to eq(value),
+              "#{worker_class.name} argument '#{key}' mismatch: " \
+              "worker=#{worker_args[key]}, QueueConfig=#{value}"
+          end
+        end
+      end
+    end
+  end
+
+  describe 'QueueConfig explicit configuration' do
+    it 'every queue explicitly sets auto_delete' do
+      Onetime::Jobs::QueueConfig::QUEUES.each do |queue_name, config|
+        expect(config).to have_key(:auto_delete),
+          "Queue '#{queue_name}' must explicitly set :auto_delete to prevent " \
+          "configuration drift between code paths"
+      end
+    end
+
+    it 'every queue explicitly sets durable' do
+      Onetime::Jobs::QueueConfig::QUEUES.each do |queue_name, config|
+        expect(config).to have_key(:durable),
+          "Queue '#{queue_name}' must explicitly set :durable"
+      end
+    end
+
+    it 'only system.transient has auto_delete: true' do
+      auto_delete_queues = Onetime::Jobs::QueueConfig::QUEUES.select do |_, config|
+        config[:auto_delete] == true
+      end
+
+      expect(auto_delete_queues.keys).to eq(['system.transient']),
+        "Unexpected queues with auto_delete: true: #{auto_delete_queues.keys}"
+    end
+
+    it 'durable queues do not have auto_delete: true' do
+      Onetime::Jobs::QueueConfig::QUEUES.each do |queue_name, config|
+        next unless config[:durable]
+
+        expect(config[:auto_delete]).to be(false),
+          "Durable queue '#{queue_name}' should not have auto_delete: true"
       end
     end
   end

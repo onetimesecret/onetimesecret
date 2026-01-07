@@ -78,9 +78,9 @@ module Onetime
             require file
           end
 
-          # Find all scheduled job classes
+          # Find all scheduled job classes (must be subclasses of ScheduledJob)
           scheduled_classes = ObjectSpace.each_object(Class).select do |klass|
-            klass.respond_to?(:schedule) && klass != Onetime::Jobs::ScheduledJob
+            klass < Onetime::Jobs::ScheduledJob
           end
 
           # Register each job with the scheduler

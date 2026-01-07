@@ -4,6 +4,7 @@
 
 require_relative 'base_worker'
 require_relative '../queue_config'
+require_relative '../queue_declarator'
 
 module Onetime
   module Jobs
@@ -23,13 +24,9 @@ module Onetime
         include BaseWorker
 
         QUEUE_NAME = 'system.transient'
-        QUEUE_OPTS = QueueConfig::QUEUES[QUEUE_NAME]
 
         from_queue QUEUE_NAME,
-          ack: true,
-          durable: QUEUE_OPTS[:durable],
-          auto_delete: QUEUE_OPTS.fetch(:auto_delete, true),
-          arguments: QUEUE_OPTS[:arguments] || {},
+          **QueueDeclarator.sneakers_options_for(QUEUE_NAME),
           threads: ENV.fetch('TRANSIENT_WORKER_THREADS', 2).to_i,
           prefetch: ENV.fetch('TRANSIENT_WORKER_PREFETCH', 5).to_i
 

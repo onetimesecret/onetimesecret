@@ -19,6 +19,7 @@
 require 'sneakers'
 require 'sneakers/runner'
 require_relative '../jobs/queue_config'
+require_relative '../jobs/queue_declarator'
 
 module Onetime
   module CLI
@@ -79,7 +80,7 @@ module Onetime
 
         def declare_infrastructure
           amqp_url = ENV.fetch('RABBITMQ_URL', 'amqp://guest:guest@localhost:5672')
-          Onetime.bunny_logger.info '[Worker] Initializing RabbitMQ infrastructure...'
+          Onetime.bunny_logger.info '[Worker] Initializing RabbitMQ infrastructure via QueueDeclarator...'
 
           bunny_config = {
             logger: Onetime.get_logger('Bunny'),
@@ -90,11 +91,8 @@ module Onetime
           conn.start
           channel = conn.create_channel
 
-          # 1. Declare exchanges
-          Onetime::Initializers::SetupRabbitMQ.declare_exchanges(channel)
-
-          # 2. Declare and bind queues (including DLQs)
-          Onetime::Initializers::SetupRabbitMQ.declare_queues(channel)
+          # Declare all exchanges and queues via QueueDeclarator (single source of truth)
+          Onetime::Jobs::QueueDeclarator.declare_all(channel)
 
           channel.close
           conn.close
@@ -196,7 +194,7 @@ module Onetime
             env: environment,
             durable: true,
             ack: true,
-            heartbeat: 30,
+            heartbeat: 60, # Keeps connection alive; server closes after 2× interval of silence
             prefetch: concurrency,
             # Use Bunny logger from centralized logging config (setup_rabbitmq.rb pattern).
             # Note: Sneakers logs "Working off: <msg>" at debug level with escaped JSON -

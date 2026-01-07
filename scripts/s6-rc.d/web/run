@@ -23,7 +23,7 @@ backtick -n PORT {
 importas -u PORT PORT
 
 # Start appropriate server
-ifelse { s6-test "${SERVER_TYPE}" = "puma" } {
+ifelse { test "${SERVER_TYPE}" = "puma" } {
   foreground { s6-echo "[web] Starting Puma server on port ${PORT}" }
 
   # Enable YJIT and unbuffered output

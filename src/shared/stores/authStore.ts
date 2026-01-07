@@ -114,6 +114,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   function init(options?: StoreOptions) {
     if (_initialized.value) {
+      loggingService.debug('[AuthStore.init] Already initialized, skipping');
       return { needsCheck, isInitialized };
     }
 
@@ -122,6 +123,15 @@ export const useAuthStore = defineStore('auth', () => {
     const inputValue = WindowService.get('authenticated');
     const hadValidSession = WindowService.get('had_valid_session');
     const storedAuthState = sessionStorage.getItem('ots_auth_state');
+
+    // Debug logging for auth initialization flow
+    loggingService.debug('[AuthStore.init] Auth state from WindowService:', {
+      authenticated: inputValue,
+      authenticatedType: typeof inputValue,
+      hadValidSession,
+      storedAuthState,
+      windowStateExists: typeof window !== 'undefined' && !!window.__ONETIME_STATE__,
+    });
 
     // Detect if this might be an error page masquerading as unauthenticated:
     // - Window says authenticated = false
@@ -154,6 +164,15 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     _initialized.value = true;
+
+    // Debug logging for final auth state after init
+    loggingService.debug('[AuthStore.init] Initialization complete:', {
+      isAuthenticated: isAuthenticated.value,
+      lastCheckTime: lastCheckTime.value,
+      needsCheck: needsCheck.value,
+      initialized: _initialized.value,
+    });
+
     return { needsCheck, isInitialized };
   }
 
@@ -174,7 +193,23 @@ export const useAuthStore = defineStore('auth', () => {
    * @returns Current authentication state
    */
   async function checkWindowStatus() {
-    if (!isAuthenticated.value) return false;
+    // Only skip the check if we're CERTAIN the user is not authenticated (false).
+    // When isAuthenticated is null (uncertain/initial state), we should verify.
+    // This fixes the race condition on page refresh where init() might not have
+    // properly read the window state yet.
+    loggingService.debug('[AuthStore.checkWindowStatus] Called with state:', {
+      isAuthenticated: isAuthenticated.value,
+      isAuthenticatedType: typeof isAuthenticated.value,
+      willSkip: isAuthenticated.value === false,
+    });
+
+    if (isAuthenticated.value === false) {
+      loggingService.debug('[AuthStore.checkWindowStatus] Skipping check - user definitively not authenticated');
+      return false;
+    }
+
+    loggingService.debug('[AuthStore.checkWindowStatus] Making API call to /window');
+
     try {
       const response = await $api.get(AUTH_CHECK_CONFIG.ENDPOINT);
 
@@ -187,6 +222,11 @@ export const useAuthStore = defineStore('auth', () => {
       isAuthenticated.value = response.data.authenticated || false;
       failureCount.value = 0;
       lastCheckTime.value = Date.now();
+
+      loggingService.debug('[AuthStore.checkWindowStatus] API response:', {
+        authenticated: response.data.authenticated,
+        newIsAuthenticated: isAuthenticated.value,
+      });
 
       return isAuthenticated.value;
     } catch (error) {

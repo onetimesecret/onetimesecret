@@ -1,7 +1,7 @@
 {
   "web": {
     "organizations": {
-      "title": "Organization",
+      "title": "Organizations",
       "organization": "Organization",
       "organization_plural": "Organizations",
       "organizations_description": "Manage your organizations",
@@ -51,7 +51,7 @@
       "getting_started_description": "Create your first organization to manage your company information and prepare for future branding features.",
       "page_description": "Manage your organizations and team members",
       "tabs": {
-        "general": "General",
+        "general": "Settings",
         "company_branding": "Company Branding",
         "members": "Team",
         "billing": "Billing"
@@ -143,7 +143,9 @@
         "expired_message": "This invitation has expired",
         "invalid_token": "Invalid or expired invitation",
         "must_sign_in": "Please sign in to accept this invitation",
-        "loading_invitation": "Loading invitation details"
+        "loading_invitation": "Loading invitation details",
+        "upgrade_to_invite": "Upgrade your plan to invite team members",
+        "upgrade_prompt": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization."
       }
     }
   }

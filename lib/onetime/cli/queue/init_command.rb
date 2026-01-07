@@ -26,6 +26,7 @@ require 'net/http'
 require 'json'
 require 'uri'
 require_relative '../../jobs/queue_config'
+require_relative '../../jobs/queue_declarator'
 
 module Onetime
   module CLI
@@ -208,7 +209,7 @@ module Onetime
         end
 
         def declare_infrastructure(amqp_url)
-          puts 'Declaring exchanges and queues...'
+          puts 'Declaring exchanges and queues via QueueDeclarator...'
 
           bunny_config = {
             logger: Onetime.get_logger('Bunny'),
@@ -220,13 +221,9 @@ module Onetime
           channel = conn.create_channel
 
           begin
-            # Declare exchanges
-            Onetime::Initializers::SetupRabbitMQ.declare_exchanges(channel)
-            puts '  Exchanges declared'
-
-            # Declare queues
-            Onetime::Initializers::SetupRabbitMQ.declare_queues(channel)
-            puts '  Queues declared'
+            # Declare all exchanges and queues via QueueDeclarator (single source of truth)
+            Onetime::Jobs::QueueDeclarator.declare_all(channel)
+            puts '  Exchanges and queues declared'
           ensure
             channel&.close
             conn&.close

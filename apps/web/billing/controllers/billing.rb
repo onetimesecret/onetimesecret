@@ -370,29 +370,16 @@ module Billing
           },
         )
 
-        # Calculate credit from proration items (negative amounts)
-        # Note: In Stripe API 2023+, proration is nested in parent details
-        credit_applied = preview.lines.data
-          .select { |line| line_is_proration?(line) && line.amount.negative? }
-          .sum(&:amount)
-          .abs
-
-        # Get new plan details from preview line items (avoids extra API call)
-        # Note: In newer API, price can be a String ID or Price object
-        new_price = preview.lines.data
-          .map { |line| line.pricing&.price_details&.price || line.price }
-          .compact
-          .find do |p|
-            price_id = p.is_a?(String) ? p : p.id
-            price_id == new_price_id
-          end
-        # If we got a string, we need to fetch the full price object for details
-        new_price = Stripe::Price.retrieve(new_price_id) if new_price.is_a?(String) || new_price.nil?
+        # Calculate proration breakdown and find new price details
+        amounts   = calculate_proration_amounts(preview)
+        new_price = find_price_in_preview(preview, new_price_id)
 
         json_response({
           amount_due: preview.amount_due,
+          immediate_amount: amounts[:immediate_amount],
+          next_period_amount: amounts[:next_period_amount],
           subtotal: preview.subtotal,
-          credit_applied: credit_applied,
+          credit_applied: amounts[:credit_applied],
           next_billing_date: preview.next_payment_attempt,
           currency: preview.currency,
           current_plan: {
@@ -466,7 +453,37 @@ module Billing
           "plan_change:#{org.stripe_subscription_id}:#{new_price_id}:#{Time.now.to_i / 300}",
         )
 
-        # Execute the plan change
+        # ==========================================================================
+        # PLAN CHANGE DATA FLOW
+        # ==========================================================================
+        #
+        # When a plan change occurs, multiple systems need to stay in sync:
+        #
+        # 1. STRIPE SUBSCRIPTION
+        #    - items[].price.id → updated to new_price_id (e.g., 'price_team_plus_monthly')
+        #    - metadata.plan_id → updated to new plan_id (e.g., 'team_plus_v1_monthly')
+        #    - metadata.tier → updated to new tier (e.g., 'multi_team')
+        #
+        # 2. LOCAL ORGANIZATION RECORD (Redis via Familia)
+        #    - org.planid → updated from subscription.metadata.plan_id
+        #    - org.subscription_status → updated from subscription.status
+        #    - org.stripe_subscription_id → verified/updated
+        #
+        # 3. FRONTEND STATE (Pinia stores)
+        #    - organizationStore.planid → refreshed via fetchOrganizations()
+        #    - currentTier → computed from org.planid matching plans[].id
+        #
+        # CRITICAL: Subscription metadata MUST be updated alongside the price change.
+        # The extract_plan_id_from_subscription method prioritizes metadata over
+        # price lookups, so stale metadata = stale org.planid.
+        #
+        # ==========================================================================
+
+        # Get the new plan details for metadata update
+        # Plan lookup: new_price_id → Billing::Plan cache → plan.plan_id, plan.tier
+        new_plan = ::Billing::Plan.find_by_stripe_price_id(new_price_id)
+
+        # Execute the plan change with synchronized metadata
         updated_subscription = Stripe::Subscription.update(
           org.stripe_subscription_id,
           {
@@ -475,24 +492,51 @@ module Billing
               price: new_price_id,
             }],
             proration_behavior: 'create_prorations',
+            # Metadata sync ensures extract_plan_id_from_subscription returns
+            # the NEW plan_id when update_from_stripe_subscription is called
+            metadata: {
+              plan_id: new_plan&.plan_id,
+              tier: new_plan&.tier,
+            },
           },
           { idempotency_key: idempotency_key },
         )
 
-        # Update local records immediately (webhook will also fire as backup)
-        org.update_from_stripe_subscription(updated_subscription)
+        # Propagate to local storage: Stripe → Organization model (Redis)
+        # This calls extract_plan_id_from_subscription which reads metadata.plan_id
+        # and sets org.planid = plan_id, then saves to Redis.
+        #
+        # STATE SYNC: Stripe is authoritative. If local update fails, the Stripe
+        # change already succeeded (billing is correct). We log the sync failure
+        # and return success; webhooks will reconcile state eventually.
+        local_sync_failed = false
+        begin
+          org.update_from_stripe_subscription(updated_subscription)
+        rescue StandardError => sync_ex
+          local_sync_failed = true
+          billing_logger.error 'Local state sync failed after Stripe update', {
+            extid: org.extid,
+            stripe_subscription_id: updated_subscription.id,
+            new_price_id: new_price_id,
+            error_class: sync_ex.class.name,
+            error_message: sync_ex.message,
+            idempotency_key: idempotency_key[0..7],
+            recovery: 'webhook_reconciliation',
+          }
+        end
 
         billing_logger.info 'Plan changed successfully', {
           extid: org.extid,
           old_price_id: current_item.price.id,
           new_price_id: new_price_id,
-          new_plan: org.planid,
+          new_plan: local_sync_failed ? new_plan&.plan_id : org.planid,
+          local_sync_failed: local_sync_failed,
           idempotency_key: idempotency_key[0..7], # Log prefix for debugging
         }
 
         json_response({
           success: true,
-          new_plan: org.planid,
+          new_plan: local_sync_failed ? new_plan&.plan_id : org.planid,
           status: updated_subscription.status,
           current_period_end: updated_subscription.items.data.first.current_period_end,
         },
@@ -585,6 +629,36 @@ module Billing
         # @return [String, nil] Plan ID or nil if not found
         def price_id_to_plan_id(price_id)
           ::Billing::Plan.find_by_stripe_price_id(price_id)&.plan_id
+        end
+
+        # Calculate proration amounts from invoice preview
+        #
+        # @param preview [Stripe::Invoice] Invoice preview object
+        # @return [Hash] Proration breakdown with credit_applied, immediate_amount, next_period_amount
+        def calculate_proration_amounts(preview)
+          proration_lines = preview.lines.data.select { |line| line_is_proration?(line) }
+          regular_lines   = preview.lines.data.reject { |line| line_is_proration?(line) }
+
+          {
+            credit_applied: proration_lines.select { |l| l.amount.negative? }.sum(&:amount).abs,
+            immediate_amount: proration_lines.sum(&:amount),
+            next_period_amount: regular_lines.sum(&:amount),
+          }
+        end
+
+        # Find price object from invoice preview lines
+        #
+        # @param preview [Stripe::Invoice] Invoice preview object
+        # @param target_price_id [String] Price ID to find
+        # @return [Stripe::Price, nil] Price object or nil
+        def find_price_in_preview(preview, target_price_id)
+          price = preview.lines.data
+            .map { |line| line.pricing&.price_details&.price || line.price }
+            .compact
+            .find { |p| (p.is_a?(String) ? p : p.id) == target_price_id }
+
+          # Fetch full price object if we got a string or nothing
+          price.is_a?(String) || price.nil? ? Stripe::Price.retrieve(target_price_id) : price
         end
 
         # Build subscription data for response

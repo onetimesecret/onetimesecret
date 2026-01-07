@@ -31,13 +31,36 @@ const orgId = computed(() => route.params.extid as string);
 const organization = ref<Organization | null>(null);
 const subscription = ref<Subscription | null>(null);
 const invitations = ref<OrganizationInvitation[]>([]);
-const activeTab = ref<'general' | 'members' | 'billing'>('general');
+
+/**
+ * UX Principle: Optimize for frequency of use
+ *
+ * Tab order and default selection follow the principle that the most frequently
+ * performed actions should require the fewest clicks. When users navigate to an
+ * organization's detail page, their intent hierarchy is typically:
+ *
+ *   1. Team (members)  - Most frequent: invite members, manage roles, review team
+ *   2. Billing         - Occasional: check plan, view usage, upgrade
+ *   3. Settings        - Rare: change org name or billing email (set-and-forget)
+ *
+ * By defaulting to the Team tab, we eliminate one click for the most common
+ * workflow. Settings (formerly "General") is placed last since org name and
+ * billing email rarely change after initial setup.
+ *
+ * This aligns with Fitts's Law corollary: reduce interaction cost for frequent
+ * actions, accept higher cost for infrequent ones.
+ */
+const activeTab = ref<'general' | 'members' | 'billing'>('members');
 
 const isLoading = ref(false);
 const isSaving = ref(false);
 const isLoadingBilling = ref(false);
 const error = ref('');
 const success = ref('');
+
+// Plan data from billing overview
+const planName = ref<string>('');
+const planFeatures = ref<string[]>([]);
 
 // Invitation form state
 const showInviteForm = ref(false);
@@ -62,8 +85,6 @@ const {
   can,
   formatEntitlement,
   initDefinitions,
-  isLoadingDefinitions,
-  definitionsError,
   ENTITLEMENTS,
 } = useEntitlements(organization);
 
@@ -160,8 +181,13 @@ const loadBilling = async () => {
           created_at: new Date(),
           updated_at: new Date(),
         };
+        // Store plan name and features for display
+        planName.value = overview.plan.name || '';
+        planFeatures.value = overview.plan.features || [];
       } else {
         subscription.value = null;
+        planName.value = '';
+        planFeatures.value = [];
       }
     } else {
       subscription.value = null;
@@ -302,11 +328,8 @@ onMounted(async () => {
   await initDefinitions();
 
   await loadOrganization();
-  if (activeTab.value === 'members') {
-    await Promise.all([loadMembers(), loadInvitations()]);
-  } else if (activeTab.value === 'billing') {
-    await loadBilling();
-  }
+  // Default tab is 'members', so load members and invitations on mount
+  await Promise.all([loadMembers(), loadInvitations()]);
 });
 
 watch(activeTab, async (newTab) => {
@@ -354,20 +377,10 @@ watch(activeTab, async (newTab) => {
         </ol>
       </nav>
 
-      <!-- Tabs -->
+      <!-- Tabs: Team (primary), Billing (conditional), Settings (infrequent) -->
       <div class="border-b border-gray-200 dark:border-gray-700">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-          <button
-            @click="activeTab = 'general'"
-            :class="[
-              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
-              activeTab === 'general'
-                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
-            ]">
-            {{ isIdentityPlus ? t('web.organizations.tabs.company_branding') : t('web.organizations.tabs.general') }}
-          </button>
-          <!-- Members tab shown when user can manage members -->
+          <!-- Team tab - primary action, shown first -->
           <button
             @click="activeTab = 'members'"
             :class="[
@@ -378,7 +391,7 @@ watch(activeTab, async (newTab) => {
             ]">
             {{ t('web.organizations.tabs.members') }}
           </button>
-          <!-- Billing tab only shown for default organization -->
+          <!-- Billing tab - only shown for default organization -->
           <button
             v-if="isDefaultOrganization"
             @click="activeTab = 'billing'"
@@ -389,6 +402,17 @@ watch(activeTab, async (newTab) => {
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.billing') }}
+          </button>
+          <!-- Settings tab - infrequently changed fields -->
+          <button
+            @click="activeTab = 'general'"
+            :class="[
+              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              activeTab === 'general'
+                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+            ]">
+            {{ isIdentityPlus ? t('web.organizations.tabs.company_branding') : t('web.organizations.tabs.general') }}
           </button>
         </nav>
       </div>
@@ -538,12 +562,22 @@ watch(activeTab, async (newTab) => {
                   {{ membersStore.memberCount }} {{ membersStore.memberCount === 1 ? t('web.organizations.members.member_singular') : t('web.organizations.members.member_plural') }}
                 </p>
               </div>
-              <!-- Primary CTA: Invite Member (if entitled) or Upgrade (if not) -->
+              <!--
+                UX: Always show "Invite Member" button for feature discoverability.
+                When user lacks entitlement, button is disabled with tooltip explaining upgrade path.
+                This is preferable to hiding the feature entirely or showing only "Upgrade Plan".
+              -->
               <button
-                v-if="canManageMembers"
                 type="button"
-                @click="showInviteForm = !showInviteForm"
-                class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+                @click="canManageMembers && (showInviteForm = !showInviteForm)"
+                :disabled="!canManageMembers"
+                :title="!canManageMembers ? t('web.organizations.invitations.upgrade_to_invite') : undefined"
+                :class="[
+                  'inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+                  canManageMembers
+                    ? 'bg-brand-600 text-white hover:bg-brand-500 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400'
+                    : 'cursor-not-allowed bg-gray-300 text-gray-500 dark:bg-gray-600 dark:text-gray-400',
+                ]">
                 <OIcon
                   collection="heroicons"
                   name="user-plus"
@@ -551,16 +585,28 @@ watch(activeTab, async (newTab) => {
                   aria-hidden="true" />
                 {{ t('web.organizations.invitations.invite_member') }}
               </button>
+            </div>
+            <!-- Upgrade prompt when user lacks team management entitlement -->
+            <div
+              v-if="!canManageMembers"
+              class="mt-4 flex items-center gap-3 rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
+              <OIcon
+                collection="heroicons"
+                name="information-circle"
+                class="size-5 flex-shrink-0 text-amber-500 dark:text-amber-400"
+                aria-hidden="true" />
+              <p class="flex-1 text-sm text-amber-700 dark:text-amber-300">
+                {{ t('web.organizations.invitations.upgrade_prompt') }}
+              </p>
               <router-link
-                v-else
                 to="/billing/plans"
-                class="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+                class="inline-flex items-center gap-1 text-sm font-medium text-amber-700 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200">
+                {{ t('web.billing.overview.view_plans_action') }}
                 <OIcon
                   collection="heroicons"
-                  name="arrow-up-circle"
-                  class="-ml-0.5 mr-1.5 size-5"
+                  name="arrow-right"
+                  class="size-4"
                   aria-hidden="true" />
-                {{ t('web.billing.overview.upgrade_plan') }}
               </router-link>
             </div>
           </div>
@@ -765,7 +811,7 @@ watch(activeTab, async (newTab) => {
                         {{ t('web.billing.subscription.catalog_name') }}
                       </p>
                       <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
-                        {{ getPlanLabel(subscription.plan_type) }}
+                        {{ planName || getPlanLabel(subscription.plan_type) }}
                       </p>
                     </div>
                     <span
@@ -779,8 +825,8 @@ watch(activeTab, async (newTab) => {
                     </span>
                   </div>
 
-                  <!-- Team Usage -->
-                  <div>
+                  <!-- Team Usage - only shown for plans with team features -->
+                  <div v-if="subscription.teams_limit > 0">
                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                       {{ t('web.billing.subscription.team_usage') }}
                     </p>
@@ -799,29 +845,28 @@ watch(activeTab, async (newTab) => {
                     </div>
                   </div>
 
-                  <!-- Current Entitlements -->
+                  <!-- Plan Features -->
                   <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
                     <p class="mb-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                       {{ t('web.billing.overview.plan_features') }}
                     </p>
 
-                    <!-- Loading skeleton for entitlements -->
-                    <div v-if="isLoadingDefinitions" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <!-- Features from billing overview (i18n locale keys) -->
+                    <div v-if="planFeatures.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <div
-                        v-for="i in 4"
-                        :key="i"
-                        class="flex animate-pulse items-center gap-2">
-                        <div class="size-5 rounded-full bg-gray-200 dark:bg-gray-700"></div>
-                        <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
+                        v-for="feature in planFeatures"
+                        :key="feature"
+                        class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <OIcon
+                          collection="heroicons"
+                          name="check-circle"
+                          class="size-5 text-green-500 dark:text-green-400"
+                          aria-hidden="true" />
+                        {{ t(feature) }}
                       </div>
                     </div>
 
-                    <!-- Error state for entitlements -->
-                    <div v-else-if="definitionsError" class="text-sm text-amber-600 dark:text-amber-400">
-                      {{ t('web.billing.overview.entitlements_load_error') }}
-                    </div>
-
-                    <!-- Entitlements list -->
+                    <!-- Fallback to org entitlements if no plan features -->
                     <div v-else-if="entitlements.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <div
                         v-for="ent in entitlements"
@@ -836,7 +881,18 @@ watch(activeTab, async (newTab) => {
                       </div>
                     </div>
 
-                    <!-- No entitlements -->
+                    <!-- Loading skeleton -->
+                    <div v-else-if="isLoadingBilling" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <div
+                        v-for="i in 4"
+                        :key="i"
+                        class="flex animate-pulse items-center gap-2">
+                        <div class="size-5 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                        <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
+                      </div>
+                    </div>
+
+                    <!-- No features available -->
                     <div v-else class="text-sm text-gray-500 dark:text-gray-400">
                       {{ t('web.billing.overview.no_entitlements') }}
                     </div>

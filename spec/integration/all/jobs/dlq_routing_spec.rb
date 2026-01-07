@@ -57,7 +57,7 @@ RSpec.describe 'DLQ Routing', :rabbitmq, type: :integration do
   end
 
   after(:each) do
-    return unless @rabbitmq_available
+    next unless @rabbitmq_available
 
     # Clean up test resources
     begin

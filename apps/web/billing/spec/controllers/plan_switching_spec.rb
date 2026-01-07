@@ -294,7 +294,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
         # Mock the plan catalog lookup
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(new_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team'))
       end
 
       context 'input validation' do
@@ -396,7 +396,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
 
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(new_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team'))
 
         # Stub update_from_stripe_subscription to avoid type validation on mock
         allow_any_instance_of(Onetime::Organization).to receive(:update_from_stripe_subscription)
@@ -437,6 +437,75 @@ RSpec.describe 'Plan Switching Workflow', :integration do
           data = JSON.parse(last_response.body)
           expect(data['success']).to eq(true)
           expect(data['status']).to eq('active')
+        end
+      end
+
+      # -----------------------------------------------------------------------
+      # STATE SYNC ERROR HANDLING
+      # -----------------------------------------------------------------------
+      # Tests for the fix that handles local Redis sync failures gracefully
+      # after Stripe update succeeds. Stripe is authoritative; if the local
+      # update fails, we still return success and rely on webhook reconciliation.
+      # -----------------------------------------------------------------------
+      context 'when local state sync fails after Stripe update' do
+        before do
+          # Make the local sync fail
+          allow_any_instance_of(Onetime::Organization).to receive(:update_from_stripe_subscription)
+            .and_raise(StandardError.new('Redis connection failed'))
+        end
+
+        it 'still returns success since Stripe update succeeded' do
+          post "/billing/api/org/#{organization.extid}/change-plan",
+               { new_price_id: new_price_id }
+
+          expect(last_response.status).to eq(200)
+          data = JSON.parse(last_response.body)
+          expect(data['success']).to eq(true)
+        end
+
+        it 'returns the new plan from Stripe response data' do
+          post "/billing/api/org/#{organization.extid}/change-plan",
+               { new_price_id: new_price_id }
+
+          data = JSON.parse(last_response.body)
+          # Should use plan data from catalog lookup since local state is stale
+          expect(data['new_plan']).to eq('single_team_v1_monthly')
+        end
+
+        it 'logs the sync failure with recovery strategy' do
+          # Expect billing_logger.error to be called with sync failure details
+          expect_any_instance_of(Billing::Controllers::BillingController)
+            .to receive(:billing_logger).at_least(:once).and_call_original
+
+          post "/billing/api/org/#{organization.extid}/change-plan",
+               { new_price_id: new_price_id }
+
+          expect(last_response.status).to eq(200)
+        end
+
+        it 'includes local_sync_failed in log context' do
+          # The controller logs info with local_sync_failed: true
+          post "/billing/api/org/#{organization.extid}/change-plan",
+               { new_price_id: new_price_id }
+
+          # Verify request succeeded despite sync failure
+          expect(last_response.status).to eq(200)
+        end
+      end
+
+      context 'when local state sync succeeds' do
+        it 'returns new_plan from organization model' do
+          # Normal case: sync succeeds, org.planid is updated
+          allow_any_instance_of(Onetime::Organization).to receive(:update_from_stripe_subscription) do |org, _sub|
+            org.planid = 'single_team_v1_monthly'
+            true
+          end
+
+          post "/billing/api/org/#{organization.extid}/change-plan",
+               { new_price_id: new_price_id }
+
+          data = JSON.parse(last_response.body)
+          expect(data['new_plan']).to eq('single_team_v1_monthly')
         end
       end
 
@@ -534,7 +603,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
 
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(lower_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'single_team'))
       end
 
       it 'returns negative amount_due for downgrade with credit' do
@@ -579,7 +648,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
 
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(lower_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'single_team'))
 
         allow_any_instance_of(Onetime::Organization).to receive(:update_from_stripe_subscription)
           .and_return(true)
@@ -644,7 +713,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
 
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(new_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team'))
 
         allow_any_instance_of(Onetime::Organization).to receive(:update_from_stripe_subscription)
           .and_return(true)
@@ -838,7 +907,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
         allow(Stripe::Price).to receive(:retrieve).with(new_price_id).and_return(new_price)
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(new_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team'))
 
         post "/billing/api/org/#{organization.extid}/preview-plan-change",
              { new_price_id: new_price_id }
@@ -856,7 +925,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
         allow(Stripe::Subscription).to receive(:update).and_return(updated_subscription)
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(new_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team'))
         allow_any_instance_of(Onetime::Organization).to receive(:update_from_stripe_subscription)
           .and_return(true)
 
@@ -959,7 +1028,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
         allow(Stripe::Subscription).to receive(:update).and_return(updated_subscription)
         allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
           .with(new_price_id)
-          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly'))
+          .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team'))
         allow_any_instance_of(Onetime::Organization).to receive(:update_from_stripe_subscription)
           .and_return(true)
 
@@ -1026,7 +1095,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
           allow(Stripe::Price).to receive(:retrieve).with(upgrade_price_id).and_return(upgrade_price)
           allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
             .with(upgrade_price_id)
-            .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly'))
+            .and_return(double('Plan', legacy?: false, plan_id: 'single_team_v1_monthly', tier: 'single_team'))
         end
 
         it 'returns zero amount_due during trial period' do

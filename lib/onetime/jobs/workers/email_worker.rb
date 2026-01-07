@@ -5,6 +5,7 @@
 require 'sneakers'
 require_relative 'base_worker'
 require_relative '../queue_config'
+require_relative '../queue_declarator'
 require_relative '../../mail'
 
 module Onetime
@@ -38,15 +39,10 @@ module Onetime
         include Sneakers::Worker
         include BaseWorker
 
-        # Queue config from single source of truth (QueueConfig)
-        # Prevents PRECONDITION_FAILED errors from queue property mismatches
         QUEUE_NAME = 'email.message.send'
-        QUEUE_OPTS = QueueConfig::QUEUES[QUEUE_NAME]
 
         from_queue QUEUE_NAME,
-          ack: true,
-          durable: QUEUE_OPTS[:durable],
-          arguments: QUEUE_OPTS[:arguments] || {},
+          **QueueDeclarator.sneakers_options_for(QUEUE_NAME),
           threads: ENV.fetch('EMAIL_WORKER_THREADS', 4).to_i,
           prefetch: ENV.fetch('EMAIL_WORKER_PREFETCH', 10).to_i
 

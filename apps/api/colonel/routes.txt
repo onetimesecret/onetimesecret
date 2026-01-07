@@ -32,5 +32,9 @@ DELETE /banned-ips/:ip                    ColonelAPI::Logic::Colonel::UnbanIP re
 # Custom Domains
 GET    /domains                           ColonelAPI::Logic::Colonel::ListCustomDomains response=json auth=sessionauth
 
+# Organizations
+GET    /organizations                     ColonelAPI::Logic::Colonel::ListOrganizations response=json auth=sessionauth
+POST   /organizations/:org_id/investigate ColonelAPI::Logic::Colonel::InvestigateOrganization response=json auth=sessionauth
+
 # Usage Export
 GET    /usage/export                      ColonelAPI::Logic::Colonel::ExportUsage response=json auth=sessionauth

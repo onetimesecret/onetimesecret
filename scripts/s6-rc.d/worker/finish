@@ -4,4 +4,4 @@
 foreground { s6-echo "[worker finish] Worker exited: code=${1} signal=${2}" }
 
 # Exit with same code
-exit ${1}
+/bin/sh -c "exit $1" _ ${1}

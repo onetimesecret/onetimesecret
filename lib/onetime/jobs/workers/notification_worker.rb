@@ -4,6 +4,7 @@
 
 require_relative 'base_worker'
 require_relative '../queue_config'
+require_relative '../queue_declarator'
 require_relative '../../operations/dispatch_notification'
 
 #
@@ -34,14 +35,10 @@ module Onetime
         include Sneakers::Worker
         include BaseWorker
 
-        # Queue config from single source of truth (QueueConfig)
         QUEUE_NAME = 'notifications.alert.push'
-        QUEUE_OPTS = QueueConfig::QUEUES[QUEUE_NAME]
 
         from_queue QUEUE_NAME,
-          ack: true,
-          durable: QUEUE_OPTS[:durable],
-          arguments: QUEUE_OPTS[:arguments] || {},
+          **QueueDeclarator.sneakers_options_for(QUEUE_NAME),
           threads: ENV.fetch('NOTIFICATION_WORKER_THREADS', 2).to_i,
           prefetch: ENV.fetch('NOTIFICATION_WORKER_PREFETCH', 5).to_i
 

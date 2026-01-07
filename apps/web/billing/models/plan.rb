@@ -679,8 +679,10 @@ module Billing
             plan.entitlements.clear
             entitlements_list.each { |ent| plan.entitlements.add(ent) }
 
-            # Add features to set (empty for config-based plans)
+            # Add features to set (i18n locale keys for UI display)
+            features_list = plan_def['features'] || []
             plan.features.clear
+            features_list.each { |feat| plan.features.add(feat) }
 
             # Add limits to hashkey
             plan.limits.clear
@@ -779,6 +781,7 @@ module Billing
           is_popular: plan_def['is_popular'] == true,
           plan_name_label: plan_def['plan_name_label'],
           entitlements: plan_def['entitlements'] || [],
+          features: plan_def['features'] || [],
           limits: limits,
         }
       end

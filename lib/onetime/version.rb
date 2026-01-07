@@ -46,13 +46,13 @@ module Onetime
     def self.get_build_info
       # Get the commit hash from .commit_hash.txt or git directly
       commit_hash_file = File.join(Onetime::HOME, '.commit_hash.txt')
-      commit_hash = nil
+      commit_hash      = nil
 
       # Try reading from file first
       if File.exist?(commit_hash_file)
         file_content = File.read(commit_hash_file).strip
         # Use file content only if it's a real commit hash (not a fallback value)
-        commit_hash = file_content unless %w[dev pristine].include?(file_content)
+        commit_hash  = file_content unless %w[dev pristine].include?(file_content)
       end
 
       # If no valid hash from file, try git directly (works in local development)

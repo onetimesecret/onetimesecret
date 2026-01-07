@@ -66,29 +66,29 @@
         color: 'bg-blue-500',
       },
       {
-        name: 'Secrets',
-        description: 'View and manage all secrets',
+        name: t('web.colonel.secrets.title'),
+        description: t('web.colonel.secrets.description'),
         href: '/colonel/secrets',
         icon: { collection: 'heroicons', name: 'lock-closed' },
         color: 'bg-purple-500',
       },
       {
-        name: 'Banned IPs',
-        description: 'Manage IP ban list',
+        name: t('web.colonel.bannedIps.title'),
+        description: t('web.colonel.bannedIps.description'),
         href: '/colonel/banned-ips',
         icon: { collection: 'heroicons', name: 'shield-exclamation' },
         color: 'bg-red-500',
       },
       {
-        name: 'Usage Export',
-        description: 'Export usage data and statistics',
+        name: t('web.colonel.usageExport.title'),
+        description: t('web.colonel.usageExport.description'),
         href: '/colonel/usage',
         icon: { collection: 'heroicons', name: 'document-chart-bar' },
         color: 'bg-cyan-500',
       },
       {
-        name: 'System',
-        description: 'System settings, databases, and configuration',
+        name: t('web.colonel.systemSettings.title'),
+        description: t('web.colonel.systemSettings.description'),
         href: '/colonel/system',
         icon: { collection: 'material-symbols', name: 'settings-outline' },
         color: 'bg-orange-500',
@@ -98,13 +98,22 @@
     // Conditionally add Custom Domains if domains feature is enabled
     if (windowProps.domains_enabled) {
       actions.splice(2, 0, {
-        name: 'Custom Domains',
-        description: 'Manage custom domains and branding',
+        name: t('web.colonel.customDomains.title'),
+        description: t('web.colonel.customDomains.description'),
         href: '/colonel/domains',
         icon: { collection: 'heroicons', name: 'globe-alt' },
         color: 'bg-pink-500',
       });
     }
+
+    // Add Organizations billing admin
+    actions.splice(actions.length - 1, 0, {
+      name: t('web.colonel.organizations.title'),
+      description: t('web.colonel.organizations.description'),
+      href: '/colonel/organizations',
+      icon: { collection: 'heroicons', name: 'building-office-2' },
+      color: 'bg-indigo-500',
+    });
 
     return actions;
   });

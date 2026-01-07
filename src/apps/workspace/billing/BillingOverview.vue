@@ -21,6 +21,7 @@ const selectedOrgId = ref<string | null>(null);
 const selectedOrg = ref<Organization | null>(null);
 const paymentMethod = ref<PaymentMethod | null>(null);
 const nextBillingDate = ref<Date | null>(null);
+const planFeatures = ref<string[]>([]);
 const isLoading = ref(false);
 const error = ref('');
 
@@ -29,8 +30,6 @@ const {
   entitlements,
   formatEntitlement,
   initDefinitions,
-  isLoadingDefinitions,
-  definitionsError,
 } = useEntitlements(selectedOrg);
 
 const planName = computed(() => {
@@ -67,6 +66,9 @@ const loadOrganizationData = async (extid: string) => {
       } else {
         nextBillingDate.value = null;
       }
+
+      // Store plan features (i18n locale keys)
+      planFeatures.value = overview.plan?.features || [];
 
       // Payment method coming from backend in future update
       paymentMethod.value = overview.payment_method || null;
@@ -244,8 +246,8 @@ onMounted(async () => {
                 {{ t('web.billing.overview.plan_features') }}
               </p>
 
-              <!-- Loading skeleton for entitlements -->
-              <div v-if="isLoadingDefinitions" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <!-- Loading skeleton -->
+              <div v-if="isLoading" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div
                   v-for="i in 4"
                   :key="i"
@@ -255,12 +257,22 @@ onMounted(async () => {
                 </div>
               </div>
 
-              <!-- Error state for entitlements -->
-              <div v-else-if="definitionsError" class="text-sm text-amber-600 dark:text-amber-400">
-                {{ t('web.billing.overview.entitlements_load_error') }}
+              <!-- Features list (i18n locale keys) -->
+              <div v-else-if="planFeatures.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div
+                  v-for="feature in planFeatures"
+                  :key="feature"
+                  class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <OIcon
+                    collection="heroicons"
+                    name="check-circle"
+                    class="size-5 text-green-500 dark:text-green-400"
+                    aria-hidden="true" />
+                  {{ t(feature) }}
+                </div>
               </div>
 
-              <!-- Entitlements list -->
+              <!-- Fallback to entitlements if no features -->
               <div v-else-if="entitlements.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div
                   v-for="ent in entitlements"
@@ -275,7 +287,7 @@ onMounted(async () => {
                 </div>
               </div>
 
-              <!-- No entitlements -->
+              <!-- No features -->
               <div v-else class="text-sm text-gray-500 dark:text-gray-400">
                 {{ t('web.billing.overview.no_entitlements') }}
               </div>

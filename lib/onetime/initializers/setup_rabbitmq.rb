@@ -5,6 +5,7 @@
 require 'bunny'
 require 'connection_pool'
 require_relative '../jobs/queue_config'
+require_relative '../jobs/queue_declarator'
 
 module Onetime
   module Initializers
@@ -98,6 +99,7 @@ module Onetime
 
         # Build connection configuration
         bunny_config = {
+          heartbeat: 60, # Keeps connection alive; server closes after 2× interval of silence
           recover_from_connection_close: true,
           network_recovery_interval: 5,
           continuation_timeout: 15_000, # Prevent indefinite hangs if fork hooks misconfigured
@@ -128,13 +130,12 @@ module Onetime
 
         Onetime.bunny_logger.debug "[init] Setup RabbitMQ: channel pool created (size: #{pool_size})"
 
-        # Declare exchanges and queues. Both operations are idempotent - multiple
-        # processes declaring the same resources with identical options is safe.
-        # We declare from both web and worker processes to handle deployment race
-        # conditions where either service may start first. QueueConfig is the
-        # single source of truth, preventing configuration drift.
-        declare_exchanges
-        declare_queues
+        # Declare exchanges and queues via QueueDeclarator (single source of truth).
+        # Both operations are idempotent - multiple processes declaring the same
+        # resources with identical options is safe. We declare from both web and
+        # worker processes to handle deployment race conditions where either
+        # service may start first.
+        declare_exchanges_and_queues
 
         # Verify connectivity
         # verify_connection
@@ -165,15 +166,9 @@ module Onetime
         raise
       end
 
-      def declare_exchanges
+      def declare_exchanges_and_queues
         $rmq_channel_pool.with do |channel|
-          self.class.declare_exchanges(channel)
-        end
-      end
-
-      def declare_queues
-        $rmq_channel_pool.with do |channel|
-          self.class.declare_queues(channel)
+          Onetime::Jobs::QueueDeclarator.declare_all(channel)
         end
       end
 
@@ -197,40 +192,6 @@ module Onetime
         # Handles both user:pass@host and key@host formats
         url.gsub(%r{://([^:@]+):([^@]+)@}, '://\1:***@')  # user:pass@host
           .gsub(%r{://([^/:@]+)@}, '://***@')             # key@host (no colon)
-      end
-
-      class << self
-        def declare_exchanges(channel)
-          require_relative '../jobs/queue_config'
-
-          Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.each_key do |exchange_name|
-            # Declare fanout exchange for dead letters
-            channel.fanout(exchange_name, durable: true)
-            Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared DLX '#{exchange_name}'"
-          end
-        end
-
-        def declare_queues(channel)
-          require_relative '../jobs/queue_config'
-
-          # 1. Declare and bind the dead letter queues
-          Onetime::Jobs::QueueConfig::DEAD_LETTER_CONFIG.each do |exchange_name, config|
-            queue = channel.queue(config[:queue], durable: true)
-            queue.bind(exchange_name)
-            Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared and bound DLQ '#{config[:queue]}'"
-          end
-
-          # 2. Declare primary queues using config from QueueConfig
-          Onetime::Jobs::QueueConfig::QUEUES.each do |queue_name, config|
-            channel.queue(
-              queue_name,
-              durable: config[:durable],
-              arguments: config[:arguments] || {},
-            )
-
-            Onetime.bunny_logger.debug "[init] Setup RabbitMQ: Declared primary queue '#{queue_name}'"
-          end
-        end
       end
     end
     # rubocop:enable Style/GlobalVars

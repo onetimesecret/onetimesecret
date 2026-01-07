@@ -57,6 +57,19 @@
         "entitlements_load_error": "Could not load feature details",
         "no_entitlements": "No features available"
       },
+      "features": {
+        "create_secrets": "Create & Share Secrets",
+        "api_access": "API Access",
+        "custom_domains": "Custom Domains",
+        "custom_branding": "Custom Branding",
+        "branded_homepage": "Branded Homepage",
+        "manage_teams": "Team Management",
+        "manage_members": "Member Management",
+        "audit_logs": "Audit Logs",
+        "sso": "Single Sign-On (SSO)",
+        "priority_support": "Priority Support",
+        "sla": "Service Level Agreement"
+      },
       "plans": {
         "title": "Select a Plan",
         "choose_plan": "Choose the plan that fits your needs",
@@ -95,6 +108,8 @@
         "current_plan_label": "Current plan:",
         "new_plan_label": "New plan:",
         "credit_label": "Credit for unused time:",
+        "due_today": "Due today:",
+        "next_billing": "Next billing ({date}):",
         "next_invoice": "Next invoice",
         "limits_update_notice": "Your feature limits will update immediately after the plan change.",
         "change_failed": "Plan change failed. Please try again.",
@@ -131,7 +146,9 @@
         "inactive": "Inactive",
         "past_due": "Past Due",
         "canceled": "Canceled",
-        "catalog_name": "Plan"
+        "catalog_name": "Plan",
+        "team_usage": "Team Usage",
+        "teams_used": "{used} of {limit} teams"
       },
       "portal": {
         "title": "Billing Portal",

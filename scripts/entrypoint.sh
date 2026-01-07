@@ -79,18 +79,20 @@ fi
 # Leave nothing but footprints
 unset datestamp location basename
 
-# Check for v0.23.0 migration requirement
+# Check for migration requirements
 # This migration is required for users with custom etc/config.yaml files
 if [ -f "etc/config.yaml" ] && [ -f "migrate/20250727-1523_standardize_config_symbols_to_strings.rb" ]; then
   # Check if migration is needed by looking for symbol keys in config
   if grep -q "^[[:space:]]*:[a-zA-Z_][a-zA-Z0-9_]*:" etc/config.yaml 2>/dev/null; then
+    # Get version from package.json
+    VERSION=$(grep '"version":' package.json | head -1 | cut -d'"' -f4)
     cat >&2 <<EOF
 
 ===============================================================================
- SETTINGS MIGRATION REQUIRED - Onetime Secret v0.23.0
+ SETTINGS MIGRATION REQUIRED - Onetime Secret v${VERSION:-current}
 ===============================================================================
 
-Your custom config file (etc/config.yaml) needs to be updated for v0.23.0.
+Your custom config file (etc/config.yaml) needs to be updated for v${VERSION:-this version}.
 
 This migration converts YAML symbol keys (:key:) to string keys (key:).
 
@@ -103,7 +105,7 @@ TO RUN THE MIGRATION:
   3. Restart your container
 
 FOR MORE HELP:
-  - See the v0.23.0 release notes
+  - See the v${VERSION:-current} release notes
   - Run migration with --dry-run to preview changes
   - Backup your config file before running migration
 
@@ -134,6 +136,7 @@ fi
 
 # Test Redis connectivity early to fail fast
 if [ "$ONETIME_DEBUG" = "true" ] || [ "$ONETIME_DEBUG" = "1" ]; then
+  datestamp=`date -u`
   >&2 echo "[${datestamp}] DEBUG: Testing Redis connectivity..."
 
   # Extract host and port from REDIS_URL or VALKEY_URL

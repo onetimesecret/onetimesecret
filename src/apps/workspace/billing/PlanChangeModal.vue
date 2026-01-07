@@ -68,6 +68,12 @@ const formattedNextBillingDate = computed(() => {
   });
 });
 
+// Check if API returns the new breakdown fields
+const hasNewProrationFields = computed(() => {
+  if (!preview.value) return false;
+  return preview.value.immediate_amount !== undefined && preview.value.next_period_amount !== undefined;
+});
+
 // Load preview when modal opens with target plan
 watch(
   () => [props.open, props.targetPlan],
@@ -257,8 +263,30 @@ aria-live="polite">
                     <!-- Divider -->
                     <div class="border-t border-gray-300 dark:border-gray-600"></div>
 
-                    <!-- Amount Due -->
-                    <div class="flex justify-between">
+                    <!-- New proration breakdown (when API provides new fields) -->
+                    <template v-if="hasNewProrationFields">
+                      <!-- Due Today (only show if > 0) -->
+                      <div v-if="preview.immediate_amount && preview.immediate_amount > 0" class="flex justify-between">
+                        <span class="font-medium text-gray-900 dark:text-white">
+                          {{ t('web.billing.plans.due_today') }}
+                        </span>
+                        <span class="font-bold text-gray-900 dark:text-white">
+                          {{ formatCurrency(preview.immediate_amount, preview.currency) }}
+                        </span>
+                      </div>
+                      <!-- Next Billing -->
+                      <div class="flex justify-between">
+                        <span class="font-medium text-gray-900 dark:text-white">
+                          {{ t('web.billing.plans.next_billing', { date: formattedNextBillingDate ?? '' }) }}
+                        </span>
+                        <span class="font-bold text-gray-900 dark:text-white">
+                          {{ formatCurrency(preview.next_period_amount!, preview.currency) }}
+                        </span>
+                      </div>
+                    </template>
+
+                    <!-- Legacy fallback: Amount Due (when API doesn't provide new fields) -->
+                    <div v-else class="flex justify-between">
                       <span class="font-medium text-gray-900 dark:text-white">
                         {{ t('web.billing.plans.next_invoice') }}{{ formattedNextBillingDate ? ` (${formattedNextBillingDate})` : '' }}:
                       </span>

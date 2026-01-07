@@ -83,7 +83,7 @@ const handleManageOrganization = (org: Organization) => {
     <!-- Page Header -->
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-        {{ t('web.organizations.title') }}
+        {{ t('web.organizations.manage_organizations') }}
       </h1>
       <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.organizations.page_description') }}

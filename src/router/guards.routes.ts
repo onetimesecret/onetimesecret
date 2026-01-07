@@ -1,5 +1,6 @@
 // src/router/guards.routes.ts
 
+import { loggingService } from '@/services/logging.service';
 import { usePageTitle } from '@/shared/composables/usePageTitle';
 import { WindowService } from '@/services/window.service';
 import { useAuthStore } from '@/shared/stores/authStore';
@@ -16,35 +17,27 @@ export async function setupRouterGuards(router: Router): Promise<void> {
     const authStore = useAuthStore();
     const languageStore = useLanguageStore();
 
+    logNavigation(to, authStore);
     processQueryParams(to.query as Record<string, string>);
 
-    if (to.name === 'NotFound') {
-      return true;
-    }
+    if (to.name === 'NotFound') return true;
 
-    // Handle MFA requirement checks
     const mfaRedirect = handleMfaAccess(to, authStore.isAuthenticated);
-    if (mfaRedirect) {
-      return mfaRedirect;
-    }
+    if (mfaRedirect) return mfaRedirect;
 
-    // Handle root path redirect
-    if (to.path === '/') {
-      return authStore.isAuthenticated ? { name: 'Dashboard' } : true;
-    }
+    if (to.path === '/') return authStore.isAuthenticated ? { name: 'Dashboard' } : true;
 
-    // Redirect authenticated users away from auth routes
+    // Redirect authenticated users away from auth routes (respect redirect param)
     if (isAuthRoute(to) && authStore.isAuthenticated) {
-      return { name: 'Dashboard' };
+      const redirectParam = to.query.redirect as string | undefined;
+      const isValidRedirect = redirectParam?.startsWith('/') && !redirectParam.startsWith('//');
+      return isValidRedirect ? { path: redirectParam } : { name: 'Dashboard' };
     }
 
     // Validate authentication for protected routes
     if (requiresAuthentication(to)) {
       const isAuthenticated = await validateAuthentication(authStore, to);
-
-      if (!isAuthenticated) {
-        return redirectToSignIn(to);
-      }
+      if (!isAuthenticated) return redirectToSignIn(to);
 
       const userPreferences = await fetchCustomerPreferences();
       if (userPreferences.locale) {
@@ -115,6 +108,20 @@ function redirectToSignIn(from: RouteLocationNormalized) {
   };
 }
 
+/** Debug logging helper for navigation guard */
+function logNavigation(to: RouteLocationNormalized, authStore: AuthValidator) {
+  loggingService.debug('[RouterGuard] Navigation to:', {
+    path: to.path,
+    name: to.name,
+    requiresAuth: to.meta?.requiresAuth,
+    isAuthRoute: to.meta?.isAuthRoute,
+    authStoreState: {
+      isAuthenticated: authStore.isAuthenticated,
+      needsCheck: authStore.needsCheck,
+    },
+  });
+}
+
 /**
  * Interface Segregation Pattern for Auth Validation
  *
@@ -162,14 +169,24 @@ async function validateAuthentication(
   route: RouteLocationNormalized
 ): Promise<boolean> {
   if (!requiresAuthentication(route)) {
+    loggingService.debug('[validateAuthentication] Public route, skipping auth check');
     return true;
   }
 
+  loggingService.debug('[validateAuthentication] Checking auth for protected route:', {
+    path: route.path,
+    needsCheck: store.needsCheck,
+    isAuthenticated: store.isAuthenticated,
+  });
+
   if (store.needsCheck) {
+    loggingService.debug('[validateAuthentication] needsCheck=true, calling checkWindowStatus');
     const authStatus = await store.checkWindowStatus();
+    loggingService.debug('[validateAuthentication] checkWindowStatus returned:', { authStatus });
     return authStatus ?? false;
   }
 
+  loggingService.debug('[validateAuthentication] Using cached auth state:', { isAuthenticated: store.isAuthenticated });
   return store.isAuthenticated ?? false;
 }
 
