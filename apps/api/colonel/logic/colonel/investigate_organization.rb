@@ -155,7 +155,7 @@ module ColonelAPI
         # Resolve plan_id using catalog-first approach
         #
         # @see Billing::BillingService.resolve_plan_id_from_subscription
-        def resolve_plan_id(subscription, price, _product)
+        def resolve_plan_id(subscription, _price, _product)
           # Use the centralized resolver for catalog-first resolution
           Billing::BillingService.resolve_plan_id_from_subscription(subscription)
         end

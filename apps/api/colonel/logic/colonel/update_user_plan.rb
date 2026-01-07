@@ -33,12 +33,12 @@ module ColonelAPI
           raise_form_error('Cannot modify anonymous user', field: :user_id) if user.anonymous?
 
           # Validate plan_id exists in catalog
-          unless Billing::BillingService.valid_plan_id?(new_planid)
-            raise_form_error(
-              "Invalid plan ID '#{new_planid}'. Plan must exist in billing catalog or config.",
-              field: :planid,
-            )
-          end
+          return if Billing::BillingService.valid_plan_id?(new_planid)
+
+          raise_form_error(
+            "Invalid plan ID '#{new_planid}'. Plan must exist in billing catalog or config.",
+            field: :planid,
+          )
         end
 
         def process

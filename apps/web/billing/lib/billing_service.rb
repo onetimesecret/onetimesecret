@@ -23,7 +23,7 @@ module Billing
     # Plan IDs that represent free tier
     FREE_PLAN_IDS = %w[free free_v1].freeze
 
-    module_function
+    extend self
 
     # =========================================================================
     # Plan ID Resolution
@@ -39,7 +39,7 @@ module Billing
     # @param subscription [Stripe::Subscription] Stripe subscription object
     # @return [String, nil] Resolved plan ID or nil if unresolvable
     def resolve_plan_id_from_subscription(subscription)
-      price = subscription.items.data.first&.price
+      price    = subscription.items.data.first&.price
       price_id = price&.id
 
       # 1. Try catalog lookup first (most authoritative)
