@@ -479,7 +479,37 @@ module Billing
           "plan_change:#{org.stripe_subscription_id}:#{new_price_id}:#{Time.now.to_i / 300}",
         )
 
-        # Execute the plan change
+        # ==========================================================================
+        # PLAN CHANGE DATA FLOW
+        # ==========================================================================
+        #
+        # When a plan change occurs, multiple systems need to stay in sync:
+        #
+        # 1. STRIPE SUBSCRIPTION
+        #    - items[].price.id → updated to new_price_id (e.g., 'price_team_plus_monthly')
+        #    - metadata.plan_id → updated to new plan_id (e.g., 'team_plus_v1_monthly')
+        #    - metadata.tier → updated to new tier (e.g., 'multi_team')
+        #
+        # 2. LOCAL ORGANIZATION RECORD (Redis via Familia)
+        #    - org.planid → updated from subscription.metadata.plan_id
+        #    - org.subscription_status → updated from subscription.status
+        #    - org.stripe_subscription_id → verified/updated
+        #
+        # 3. FRONTEND STATE (Pinia stores)
+        #    - organizationStore.planid → refreshed via fetchOrganizations()
+        #    - currentTier → computed from org.planid matching plans[].id
+        #
+        # CRITICAL: Subscription metadata MUST be updated alongside the price change.
+        # The extract_plan_id_from_subscription method prioritizes metadata over
+        # price lookups, so stale metadata = stale org.planid.
+        #
+        # ==========================================================================
+
+        # Get the new plan details for metadata update
+        # Plan lookup: new_price_id → Billing::Plan cache → plan.plan_id, plan.tier
+        new_plan = ::Billing::Plan.find_by_stripe_price_id(new_price_id)
+
+        # Execute the plan change with synchronized metadata
         updated_subscription = Stripe::Subscription.update(
           org.stripe_subscription_id,
           {
@@ -488,11 +518,19 @@ module Billing
               price: new_price_id,
             }],
             proration_behavior: 'create_prorations',
+            # Metadata sync ensures extract_plan_id_from_subscription returns
+            # the NEW plan_id when update_from_stripe_subscription is called
+            metadata: {
+              plan_id: new_plan&.plan_id,
+              tier: new_plan&.tier,
+            },
           },
           { idempotency_key: idempotency_key },
         )
 
-        # Update local records immediately (webhook will also fire as backup)
+        # Propagate to local storage: Stripe → Organization model (Redis)
+        # This calls extract_plan_id_from_subscription which reads metadata.plan_id
+        # and sets org.planid = plan_id, then saves to Redis
         org.update_from_stripe_subscription(updated_subscription)
 
         billing_logger.info 'Plan changed successfully', {
