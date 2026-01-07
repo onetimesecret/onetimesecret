@@ -465,7 +465,7 @@ module Billing
         #    - metadata.tier → updated to new tier (e.g., 'multi_team')
         #
         # 2. LOCAL ORGANIZATION RECORD (Redis via Familia)
-        #    - org.planid → updated from subscription.metadata.plan_id
+        #    - org.planid → resolved from price_id via catalog lookup
         #    - org.subscription_status → updated from subscription.status
         #    - org.stripe_subscription_id → verified/updated
         #
@@ -473,9 +473,10 @@ module Billing
         #    - organizationStore.planid → refreshed via fetchOrganizations()
         #    - currentTier → computed from org.planid matching plans[].id
         #
-        # CRITICAL: Subscription metadata MUST be updated alongside the price change.
-        # The extract_plan_id_from_subscription method prioritizes metadata over
-        # price lookups, so stale metadata = stale org.planid.
+        # NOTE: With catalog-first design, the authoritative plan_id is resolved from
+        # price_id via Billing::PlanValidator.resolve_plan_id. Metadata is stored for
+        # debugging and drift detection only - stale metadata is logged but doesn't
+        # affect the resolved plan_id.
         #
         # ==========================================================================
 
@@ -492,8 +493,7 @@ module Billing
               price: new_price_id,
             }],
             proration_behavior: 'create_prorations',
-            # Metadata sync ensures extract_plan_id_from_subscription returns
-            # the NEW plan_id when update_from_stripe_subscription is called
+            # Metadata stored for debugging/drift detection (catalog is authoritative)
             metadata: {
               plan_id: new_plan&.plan_id,
               tier: new_plan&.tier,
@@ -503,8 +503,8 @@ module Billing
         )
 
         # Propagate to local storage: Stripe → Organization model (Redis)
-        # This calls extract_plan_id_from_subscription which reads metadata.plan_id
-        # and sets org.planid = plan_id, then saves to Redis.
+        # This calls extract_plan_id_from_subscription which resolves plan_id from
+        # price_id via catalog lookup, then sets org.planid and saves to Redis.
         #
         # STATE SYNC: Stripe is authoritative. If local update fails, the Stripe
         # change already succeeded (billing is correct). We log the sync failure
