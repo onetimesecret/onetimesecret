@@ -4,9 +4,11 @@
 
 # Unit tests for WithOrganizationBilling module.
 #
-# Tests the extract_plan_id_from_subscription method which extracts planid
-# from Stripe subscription metadata with fallback to price metadata and
-# finally plan catalog lookup by price_id.
+# Tests the extract_plan_id_from_subscription method which uses catalog-first
+# approach via BillingService:
+# 1. Catalog lookup by price_id (most authoritative)
+# 2. Price-level metadata['plan_id']
+# 3. Subscription-level metadata['plan_id'] (may be stale)
 #
 # Run: pnpm run test:rspec spec/unit/onetime/models/organization/with_organization_billing_spec.rb
 
@@ -59,23 +61,25 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
   end
 
   describe '#extract_plan_id_from_subscription' do
-    context 'when plan_id is in subscription metadata' do
+    context 'when plan_id is in subscription metadata (no catalog match)' do
       let(:subscription) do
         build_subscription(
           subscription_metadata: { Billing::Metadata::FIELD_PLAN_ID => 'identity_plus_v1' }
         )
       end
 
-      it 'extracts planid from subscription metadata' do
+      it 'extracts planid from subscription metadata as fallback' do
         expect(org.test_extract_plan_id(subscription)).to eq('identity_plus_v1')
       end
 
-      it 'prefers subscription metadata over price metadata' do
+      it 'prefers price metadata over subscription metadata (catalog-first order)' do
+        # With catalog-first approach, price metadata is preferred over subscription metadata
+        # because subscription metadata may be stale from checkout
         sub = build_subscription(
           subscription_metadata: { Billing::Metadata::FIELD_PLAN_ID => 'from_subscription' },
           price_metadata: { Billing::Metadata::FIELD_PLAN_ID => 'from_price' }
         )
-        expect(org.test_extract_plan_id(sub)).to eq('from_subscription')
+        expect(org.test_extract_plan_id(sub)).to eq('from_price')
       end
     end
 
@@ -114,14 +118,13 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
         expect(org.test_extract_plan_id(subscription)).to eq('identity_plus_v1_monthly')
       end
 
-      it 'logs an info message about the fallback resolution' do
+      it 'logs an info message about catalog resolution' do
         expect(OT).to receive(:info).with(
-          '[Organization.resolve_plan_from_price_id] Resolved plan from price_id (metadata fallback)',
+          '[BillingService.resolve_plan_id_from_subscription] Resolved via catalog',
           hash_including(
             plan_id: 'identity_plus_v1_monthly',
             price_id: 'price_test',
-            subscription_id: 'sub_test_123',
-            orgid: 'test-org-123'
+            subscription_id: 'sub_test_123'
           )
         )
         org.test_extract_plan_id(subscription)
@@ -145,18 +148,13 @@ RSpec.describe 'WithOrganizationBilling', billing: true do
         expect(org.test_extract_plan_id(subscription)).to be_nil
       end
 
-      it 'logs a warning about missing plan in catalog' do
+      it 'logs a warning about unresolvable plan' do
         expect(OT).to receive(:lw).with(
-          '[Organization.resolve_plan_from_price_id] No plan found for price_id',
+          '[BillingService.resolve_plan_id_from_subscription] Unable to resolve plan_id',
           hash_including(
             price_id: 'price_test',
-            subscription_id: 'sub_test_123',
-            orgid: 'test-org-123'
+            subscription_id: 'sub_test_123'
           )
-        )
-        expect(OT).to receive(:lw).with(
-          '[Organization.extract_plan_id_from_subscription] No plan_id in metadata or catalog',
-          hash_including(subscription_id: 'sub_test_123', orgid: 'test-org-123')
         )
         org.test_extract_plan_id(subscription)
       end

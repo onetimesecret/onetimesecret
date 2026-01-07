@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative '../../../../../apps/web/billing/lib/billing_service'
 
 module ColonelAPI
   module Logic
@@ -12,15 +13,10 @@ module ColonelAPI
       # Sync health helps identify organizations with potentially stale planid
       # after plan changes made via Stripe Dashboard/CLI (bypassing webhook flow).
       #
-      # Sync status values:
-      #   synced - Consistent state (active sub + paid plan, OR no sub + free plan)
-      #   potentially_stale - Inconsistent state requiring investigation
-      #   unknown - Cannot determine (no billing data yet)
+      # @see Billing::BillingService for sync status computation logic
       #
       class ListOrganizations < ColonelAPI::Logic::Base
         attr_reader :organizations, :total_count, :page, :per_page, :total_pages, :status_filter, :sync_status_filter
-
-        FREE_PLAN_IDS = %w[free free_v1].freeze
 
         def process_params
           @page               = (params['page'] || 1).to_i
@@ -104,75 +100,18 @@ module ColonelAPI
         #
         # @param org [Onetime::Organization] Organization to check
         # @return [String] 'synced', 'potentially_stale', or 'unknown'
+        # @see Billing::BillingService.compute_sync_status
         def compute_sync_status(org)
-          planid              = org.planid.to_s
-          subscription_id     = org.stripe_subscription_id.to_s
-          subscription_status = org.subscription_status.to_s
-
-          # No billing data yet -> unknown
-          if planid.empty? && subscription_id.empty?
-            return 'unknown'
-          end
-
-          has_active_subscription = %w[active trialing].include?(subscription_status)
-          has_paid_plan           = !planid.empty? && !FREE_PLAN_IDS.include?(planid)
-          has_free_plan           = planid.empty? || FREE_PLAN_IDS.include?(planid)
-
-          # Consistent states
-          if has_active_subscription && has_paid_plan
-            return 'synced'
-          end
-
-          if !has_active_subscription && has_free_plan && subscription_id.empty?
-            return 'synced'
-          end
-
-          # Canceled subscription + free plan is consistent
-          if subscription_status == 'canceled' && has_free_plan
-            return 'synced'
-          end
-
-          # Inconsistent states
-          if has_active_subscription && has_free_plan
-            # Active subscription but still on free plan -> likely missed webhook
-            return 'potentially_stale'
-          end
-
-          if !has_active_subscription && has_paid_plan && subscription_status != 'past_due'
-            # No active subscription but still showing paid plan -> stale
-            return 'potentially_stale'
-          end
-
-          # Past due with paid plan is expected (payment issue, not sync issue)
-          if subscription_status == 'past_due' && has_paid_plan
-            return 'synced'
-          end
-
-          # Default to unknown for edge cases
-          'unknown'
+          Billing::BillingService.compute_sync_status(org)
         end
 
         # Provide human-readable reason for sync status
         #
         # @param org [Onetime::Organization] Organization to check
         # @return [String, nil] Reason for the sync status
+        # @see Billing::BillingService.compute_sync_status_reason
         def compute_sync_status_reason(org)
-          planid              = org.planid.to_s
-          subscription_status = org.subscription_status.to_s
-
-          has_active_subscription = %w[active trialing].include?(subscription_status)
-          has_paid_plan           = !planid.empty? && !FREE_PLAN_IDS.include?(planid)
-          has_free_plan           = planid.empty? || FREE_PLAN_IDS.include?(planid)
-
-          if has_active_subscription && has_free_plan
-            return 'Active subscription but planid is free - possible missed webhook'
-          end
-
-          if !has_active_subscription && has_paid_plan && subscription_status != 'past_due'
-            return 'Paid plan but no active subscription - may need downgrade'
-          end
-
-          nil
+          Billing::BillingService.compute_sync_status_reason(org)
         end
 
         def apply_filters(org_data_list)
