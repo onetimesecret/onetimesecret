@@ -205,6 +205,13 @@ module Onetime
           updates[:name] = { from: existing.name, to: plan_def['name'] }
         end
 
+        # Check marketing_features (i18n locale keys for UI display)
+        existing_features = existing.marketing_features&.map(&:name) || []
+        config_features   = plan_def['features'] || []
+        if existing_features.sort != config_features.sort
+          updates[:marketing_features] = { from: existing_features, to: config_features }
+        end
+
         # Check metadata fields
         metadata_fields = {
           'tier' => plan_def['tier'],
@@ -336,10 +343,14 @@ module Onetime
       def create_product(plan_id, plan_def, app_identifier)
         metadata = build_metadata(plan_id, plan_def, app_identifier)
 
+        # Build marketing_features from config features (i18n locale keys)
+        marketing_features = (plan_def['features'] || []).map { |f| { name: f } }
+
         product = with_stripe_retry do
           Stripe::Product.create(
             name: plan_def['name'],
             metadata: metadata,
+            marketing_features: marketing_features,
           )
         end
 
@@ -356,6 +367,11 @@ module Onetime
 
         if updates[:name]
           params[:name] = updates[:name][:to]
+        end
+
+        # Update marketing_features (i18n locale keys for UI display)
+        if updates[:marketing_features]
+          params[:marketing_features] = updates[:marketing_features][:to].map { |f| { name: f } }
         end
 
         # Collect metadata updates
