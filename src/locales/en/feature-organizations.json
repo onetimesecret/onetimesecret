@@ -1,7 +1,7 @@
 {
   "web": {
     "organizations": {
-      "title": "Organization",
+      "title": "Organizations",
       "organization": "Organization",
       "organization_plural": "Organizations",
       "organizations_description": "Manage your organizations",
@@ -51,7 +51,7 @@
       "getting_started_description": "Create your first organization to manage your company information and prepare for future branding features.",
       "page_description": "Manage your organizations and team members",
       "tabs": {
-        "general": "General",
+        "general": "Settings",
         "company_branding": "Company Branding",
         "members": "Team",
         "billing": "Billing"

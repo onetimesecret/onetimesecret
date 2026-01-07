@@ -31,7 +31,26 @@ const orgId = computed(() => route.params.extid as string);
 const organization = ref<Organization | null>(null);
 const subscription = ref<Subscription | null>(null);
 const invitations = ref<OrganizationInvitation[]>([]);
-const activeTab = ref<'general' | 'members' | 'billing'>('general');
+
+/**
+ * UX Principle: Optimize for frequency of use
+ *
+ * Tab order and default selection follow the principle that the most frequently
+ * performed actions should require the fewest clicks. When users navigate to an
+ * organization's detail page, their intent hierarchy is typically:
+ *
+ *   1. Team (members)  - Most frequent: invite members, manage roles, review team
+ *   2. Billing         - Occasional: check plan, view usage, upgrade
+ *   3. Settings        - Rare: change org name or billing email (set-and-forget)
+ *
+ * By defaulting to the Team tab, we eliminate one click for the most common
+ * workflow. Settings (formerly "General") is placed last since org name and
+ * billing email rarely change after initial setup.
+ *
+ * This aligns with Fitts's Law corollary: reduce interaction cost for frequent
+ * actions, accept higher cost for infrequent ones.
+ */
+const activeTab = ref<'general' | 'members' | 'billing'>('members');
 
 const isLoading = ref(false);
 const isSaving = ref(false);
@@ -302,11 +321,8 @@ onMounted(async () => {
   await initDefinitions();
 
   await loadOrganization();
-  if (activeTab.value === 'members') {
-    await Promise.all([loadMembers(), loadInvitations()]);
-  } else if (activeTab.value === 'billing') {
-    await loadBilling();
-  }
+  // Default tab is 'members', so load members and invitations on mount
+  await Promise.all([loadMembers(), loadInvitations()]);
 });
 
 watch(activeTab, async (newTab) => {
@@ -354,20 +370,10 @@ watch(activeTab, async (newTab) => {
         </ol>
       </nav>
 
-      <!-- Tabs -->
+      <!-- Tabs: Team (primary), Billing (conditional), Settings (infrequent) -->
       <div class="border-b border-gray-200 dark:border-gray-700">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-          <button
-            @click="activeTab = 'general'"
-            :class="[
-              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
-              activeTab === 'general'
-                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
-            ]">
-            {{ isIdentityPlus ? t('web.organizations.tabs.company_branding') : t('web.organizations.tabs.general') }}
-          </button>
-          <!-- Members tab shown when user can manage members -->
+          <!-- Team tab - primary action, shown first -->
           <button
             @click="activeTab = 'members'"
             :class="[
@@ -378,7 +384,7 @@ watch(activeTab, async (newTab) => {
             ]">
             {{ t('web.organizations.tabs.members') }}
           </button>
-          <!-- Billing tab only shown for default organization -->
+          <!-- Billing tab - only shown for default organization -->
           <button
             v-if="isDefaultOrganization"
             @click="activeTab = 'billing'"
@@ -389,6 +395,17 @@ watch(activeTab, async (newTab) => {
                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
             ]">
             {{ t('web.organizations.tabs.billing') }}
+          </button>
+          <!-- Settings tab - infrequently changed fields -->
+          <button
+            @click="activeTab = 'general'"
+            :class="[
+              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              activeTab === 'general'
+                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+            ]">
+            {{ isIdentityPlus ? t('web.organizations.tabs.company_branding') : t('web.organizations.tabs.general') }}
           </button>
         </nav>
       </div>
