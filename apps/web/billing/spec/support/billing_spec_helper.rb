@@ -112,6 +112,41 @@ module BillingSpecHelper
     expect(sleep_delays).to eq(expected)
   end
 
+  # Stub catalog lookups for test price IDs
+  #
+  # With catalog-first design, Billing::PlanValidator.resolve_plan_id raises
+  # CatalogMissError when price_id isn't in the catalog. This helper stubs
+  # Billing::Plan.find_by_stripe_price_id to return mock plans for common
+  # test price IDs (price_test, price_test_mock, etc).
+  #
+  # Call this in before(:each) blocks for tests that process subscriptions.
+  #
+  def stub_test_plan_catalog!
+    # Create a mock plan that responds to plan_id
+    mock_plan = instance_double(
+      Billing::Plan,
+      plan_id: 'test_plan_v1_monthly',
+      stripe_price_id: 'price_test',
+      stripe_product_id: 'prod_test',
+      tier: 'single_team',
+      interval: 'month',
+      amount: '1900',
+      currency: 'cad',
+    )
+
+    # Stub find_by_stripe_price_id to return mock plan for test price IDs
+    allow(Billing::Plan).to receive(:find_by_stripe_price_id).and_call_original
+    allow(Billing::Plan).to receive(:find_by_stripe_price_id)
+      .with('price_test')
+      .and_return(mock_plan)
+    allow(Billing::Plan).to receive(:find_by_stripe_price_id)
+      .with('price_test_mock')
+      .and_return(mock_plan)
+    allow(Billing::Plan).to receive(:find_by_stripe_price_id)
+      .with(satisfy { |id| id&.start_with?('price_test_') })
+      .and_return(mock_plan)
+  end
+
   # Generate valid Stripe webhook signature
   #
   # Uses Stripe's official signature generation algorithm.
@@ -200,15 +235,20 @@ RSpec.configure do |config|
   end
 
   # Billing tests use REAL Redis on port 2121 (not FakeRedis)
-  config.before(:each, type: :billing) do |_example|
+  # Supports both `type: :billing` and `:billing` symbol tag patterns
+  billing_setup = lambda do |_example|
     mock_billing_config!
     mock_sleep!
+    stub_test_plan_catalog!
     Familia.dbclient.flushdb
   end
 
-  config.after(:each, type: :billing) do
-    Familia.dbclient.flushdb
-  end
+  billing_cleanup = ->(_example = nil) { Familia.dbclient.flushdb }
+
+  config.before(:each, type: :billing, &billing_setup)
+  config.before(:each, :billing, &billing_setup)
+  config.after(:each, type: :billing, &billing_cleanup)
+  config.after(:each, :billing, &billing_cleanup)
 
   config.before(:each, type: :cli) do
     mock_billing_config!
@@ -226,6 +266,7 @@ RSpec.configure do |config|
   integration_setup = lambda do |_example|
     @sleep_delays = []
     mock_billing_config!
+    stub_test_plan_catalog!
     Familia.dbclient.flushdb
   end
 

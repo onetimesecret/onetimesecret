@@ -73,12 +73,29 @@ module Billing
           session_params[:client_reference_id] = cust.extid
         end
 
-        # Add metadata for webhook processing
+        # Add metadata for debugging (NOT source of truth - catalog is authoritative)
+        #
+        # NOTE: plan_id is stored as debug_info only. The authoritative plan_id
+        # is resolved from price_id via catalog lookup in webhook processing.
+        # This metadata is useful for debugging subscription creation but should
+        # NOT be relied upon for billing decisions.
+        #
+        # JSON in metadata: Stripe explicitly supports storing structured data as
+        # JSON strings in metadata values (up to 500 chars). This approach reduces
+        # key usage (Stripe has a 50-key limit) and groups related debug info.
+        # @see https://docs.stripe.com/metadata/use-cases#store-structured-data
+        #
+        # @see Billing::PlanValidator.resolve_plan_id
+        # @see WithOrganizationBilling#extract_plan_id_from_subscription
+        #
         session_params[:subscription_data] = {
           metadata: {
-            plan_id: plan.plan_id,
-            tier: tier,
-            region: region,
+            debug_info: {
+              checkout_plan_id: plan.plan_id,
+              checkout_tier: tier,
+              checkout_region: region,
+              checkout_timestamp: Time.now.iso8601,
+            }.to_json,
             customer_extid: cust.extid,
           },
         }

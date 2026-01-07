@@ -110,6 +110,12 @@ VCR.configure do |config|
   # Allow connections to real Stripe API for VCR recording
   config.ignore_localhost = true
 
+  # Allow HTTP connections when no cassette is in use (for recording mode)
+  # This handles Stripe API calls that happen in before hooks before cassettes open
+  if REAL_STRIPE_KEY_SET && %w[all record].include?(ENV['VCR_MODE'])
+    config.allow_http_connections_when_no_cassette = true
+  end
+
   # Configure for different Stripe endpoints
   config.before_record do |interaction|
     # Normalize Stripe API version headers

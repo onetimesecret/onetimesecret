@@ -168,7 +168,8 @@ RSpec.describe 'Billing::Logic::Welcome::ProcessCheckoutSession', :billing do
         logic.process
 
         org.refresh!
-        expect(org.planid).to eq('identity_plus_v1')
+        # Catalog-first: plan_id resolved from catalog, not metadata
+        expect(org.planid).to eq('test_plan_v1_monthly')
         expect(org.stripe_subscription_id).to eq(stripe_subscription_id)
         expect(org.subscription_status).to eq('active')
       end
