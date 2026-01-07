@@ -106,6 +106,15 @@
       });
     }
 
+    // Add Organizations billing admin
+    actions.splice(actions.length - 1, 0, {
+      name: t('web.colonel.organizations.title'),
+      description: 'Monitor org billing sync health',
+      href: '/colonel/organizations',
+      icon: { collection: 'heroicons', name: 'building-office-2' },
+      color: 'bg-indigo-500',
+    });
+
     return actions;
   });
 </script>

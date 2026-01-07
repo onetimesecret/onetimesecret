@@ -14,6 +14,8 @@ import {
   type BannedIP,
   type UsageExportDetails,
   type ColonelCustomDomain,
+  type ColonelOrganization,
+  type ColonelOrganizationsFilters,
   type QueueMetrics,
 } from '@/schemas/api/account/endpoints/colonel';
 import { type SystemSettingsDetails } from '@/schemas/config';
@@ -81,6 +83,9 @@ export const useColonelInfoStore = defineStore('colonel', () => {
   const currentIP = ref<string | null>(null);
   const customDomains = ref<ColonelCustomDomain[]>([]);
   const customDomainsPagination = ref<Pagination | null>(null);
+  const organizations = ref<ColonelOrganization[]>([]);
+  const organizationsPagination = ref<Pagination | null>(null);
+  const organizationsFilters = ref<ColonelOrganizationsFilters | null>(null);
   const usageExport = ref<UsageExportDetails | null>(null);
   const queueMetrics = ref<QueueMetrics | null>(null);
   const _initialized = ref(false);
@@ -313,6 +318,46 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     }
   }
 
+  // Fetch organizations list with optional pagination and filters
+  async function fetchOrganizations(
+    page = 1,
+    perPage = 50,
+    statusFilter?: string,
+    syncStatusFilter?: string
+  ) {
+    isLoading.value = true;
+    try {
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('per_page', perPage.toString());
+      if (statusFilter) {
+        params.append('status', statusFilter);
+      }
+      if (syncStatusFilter) {
+        params.append('sync_status', syncStatusFilter);
+      }
+
+      const response = await $api.get(`/api/colonel/organizations?${params.toString()}`);
+      const validated = responseSchemas.colonelOrganizations.parse(response.data);
+
+      if (validated.details) {
+        organizations.value = validated.details.organizations;
+        organizationsPagination.value = validated.details.pagination;
+        organizationsFilters.value = validated.details.filters;
+      }
+
+      return validated.details!;
+    } catch (error) {
+      console.error('Failed to fetch organizations:', error);
+      organizations.value = [];
+      organizationsPagination.value = null;
+      organizationsFilters.value = null;
+      throw error;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   // Fetch usage export data
   async function fetchUsageExport(startDate?: number, endDate?: number) {
     isLoading.value = true;
@@ -375,6 +420,9 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     redisMetrics.value = null;
     bannedIPs.value = [];
     currentIP.value = null;
+    organizations.value = [];
+    organizationsPagination.value = null;
+    organizationsFilters.value = null;
     usageExport.value = null;
     queueMetrics.value = null;
   }
@@ -394,6 +442,9 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     redisMetrics.value = null;
     bannedIPs.value = [];
     currentIP.value = null;
+    organizations.value = [];
+    organizationsPagination.value = null;
+    organizationsFilters.value = null;
     usageExport.value = null;
     queueMetrics.value = null;
     _initialized.value = false;
@@ -415,6 +466,9 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     currentIP,
     customDomains,
     customDomainsPagination,
+    organizations,
+    organizationsPagination,
+    organizationsFilters,
     usageExport,
     queueMetrics,
     isLoading,
@@ -430,6 +484,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     banIP,
     unbanIP,
     fetchCustomDomains,
+    fetchOrganizations,
     fetchUsageExport,
     fetchQueueMetrics,
     dispose,

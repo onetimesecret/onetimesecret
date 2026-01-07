@@ -316,3 +316,54 @@ export const queueMetricsDetailsSchema = z.object({
 
 export type QueueMetric = z.infer<typeof queueMetricSchema>;
 export type QueueMetrics = z.infer<typeof queueMetricsDetailsSchema>;
+
+/**
+ * Organization schema for colonel/admin API
+ * Includes billing sync health detection for admin monitoring
+ */
+export const colonelOrganizationSchema = z.object({
+  org_id: z.string(),
+  extid: z.string(),
+  display_name: z.string().nullable(),
+  contact_email: z.string().nullable(),
+  owner_id: z.string().nullable(),
+  owner_email: z.string().nullable(),
+  member_count: z.number(),
+  domain_count: z.number(),
+  is_default: z.boolean(),
+  created: z.number(),
+  created_human: z.string(),
+  updated: z.number().nullable(),
+  updated_human: z.string(),
+  // Billing fields
+  planid: z.string().nullable(),
+  stripe_customer_id: z.string().nullable(),
+  stripe_subscription_id: z.string().nullable(),
+  subscription_status: z.string().nullable(),
+  subscription_period_end: z.string().nullable(),
+  billing_email: z.string().nullable(),
+  // Sync health detection
+  sync_status: z.enum(['synced', 'potentially_stale', 'unknown']),
+  sync_status_reason: z.string().nullable(),
+});
+
+/**
+ * Organizations filters schema
+ */
+export const colonelOrganizationsFiltersSchema = z.object({
+  status: z.string().nullable(),
+  sync_status: z.string().nullable(),
+});
+
+/**
+ * Organizations list response details
+ */
+export const colonelOrganizationsDetailsSchema = z.object({
+  organizations: z.array(colonelOrganizationSchema),
+  pagination: paginationSchema,
+  filters: colonelOrganizationsFiltersSchema,
+});
+
+export type ColonelOrganization = z.infer<typeof colonelOrganizationSchema>;
+export type ColonelOrganizationsDetails = z.infer<typeof colonelOrganizationsDetailsSchema>;
+export type ColonelOrganizationsFilters = z.infer<typeof colonelOrganizationsFiltersSchema>;
