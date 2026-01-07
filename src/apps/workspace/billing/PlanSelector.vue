@@ -49,10 +49,9 @@ const selectedOrg = computed(() =>
   organizations.value.find(org => org.id === selectedOrgId.value)
 );
 
-// Use entitlements composable for formatting
+// Use entitlements composable for definitions loading
 const selectedOrgRef = computed(() => selectedOrg.value ?? null);
 const {
-  formatEntitlement,
   initDefinitions,
   isLoadingDefinitions,
   definitionsError,
@@ -81,12 +80,6 @@ const currentTier = computed((): string => {
 
 // Filter plans by selected billing interval
 const filteredPlans = computed(() => plans.value.filter(plan => plan.interval === billingInterval.value));
-
-/**
- * Get the display label for a feature/entitlement
- * Uses API-driven i18n keys via useEntitlements
- */
-const getFeatureLabel = (feature: string): string => formatEntitlement(feature);
 
 /**
  * Get the teams limit for a plan, handling unlimited (-1)
@@ -135,13 +128,14 @@ const getBasePlan = (plan: BillingPlan): BillingPlan | undefined => {
 /**
  * Get only NEW features for this plan (excluding base plan features).
  * For lowest tier plans, shows all features.
+ * Features are i18n locale keys like 'web.billing.features.custom_domains'.
  */
 const getNewFeatures = (plan: BillingPlan): string[] => {
   const basePlan = getBasePlan(plan);
-  if (!basePlan) return plan.entitlements; // Show all for lowest tier
+  if (!basePlan) return plan.features; // Show all for lowest tier
 
   // Filter out features that exist in base plan
-  return plan.entitlements.filter(ent => !basePlan.entitlements.includes(ent));
+  return plan.features.filter(feat => !basePlan.features.includes(feat));
 };
 
 /**
@@ -482,15 +476,15 @@ aria-live="polite">
 
               <ul class="space-y-2">
                 <li
-                  v-for="entitlement in getNewFeatures(plan)"
-                  :key="entitlement"
+                  v-for="feature in getNewFeatures(plan)"
+                  :key="feature"
                   class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
                   <OIcon
                     collection="heroicons"
                     name="check"
                     class="mt-0.5 size-5 shrink-0 text-green-500 dark:text-green-400"
                     aria-hidden="true" />
-                  <span>{{ getFeatureLabel(entitlement) }}</span>
+                  <span>{{ t(feature) }}</span>
                 </li>
               </ul>
             </div>

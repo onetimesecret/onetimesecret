@@ -851,7 +851,7 @@ watch(activeTab, async (newTab) => {
                       {{ t('web.billing.overview.plan_features') }}
                     </p>
 
-                    <!-- Features from billing overview (preferred) -->
+                    <!-- Features from billing overview (i18n locale keys) -->
                     <div v-if="planFeatures.length > 0" class="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <div
                         v-for="feature in planFeatures"
@@ -862,7 +862,7 @@ watch(activeTab, async (newTab) => {
                           name="check-circle"
                           class="size-5 text-green-500 dark:text-green-400"
                           aria-hidden="true" />
-                        {{ feature }}
+                        {{ t(feature) }}
                       </div>
                     </div>
 

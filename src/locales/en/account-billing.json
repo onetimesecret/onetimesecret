@@ -57,6 +57,19 @@
         "entitlements_load_error": "Could not load feature details",
         "no_entitlements": "No features available"
       },
+      "features": {
+        "create_secrets": "Create & Share Secrets",
+        "api_access": "API Access",
+        "custom_domains": "Custom Domains",
+        "custom_branding": "Custom Branding",
+        "branded_homepage": "Branded Homepage",
+        "manage_teams": "Team Management",
+        "manage_members": "Member Management",
+        "audit_logs": "Audit Logs",
+        "sso": "Single Sign-On (SSO)",
+        "priority_support": "Priority Support",
+        "sla": "Service Level Agreement"
+      },
       "plans": {
         "title": "Select a Plan",
         "choose_plan": "Choose the plan that fits your needs",
