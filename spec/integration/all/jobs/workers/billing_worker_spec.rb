@@ -283,7 +283,12 @@ RSpec.describe Onetime::Jobs::Workers::BillingWorker, type: :integration do
     end
 
     it 'uses queue config from QueueConfig' do
-      expect(described_class::QUEUE_OPTS).to eq(Onetime::Jobs::QueueConfig::QUEUES['billing.event.process'])
+      # Workers use QueueDeclarator.sneakers_options_for which wraps config under :queue_options
+      expected_config = Onetime::Jobs::QueueConfig::QUEUES['billing.event.process']
+      queue_options = described_class.queue_opts[:queue_options] || {}
+
+      expect(queue_options[:durable]).to eq(expected_config[:durable])
+      expect(queue_options[:auto_delete]).to eq(expected_config[:auto_delete])
     end
   end
 
