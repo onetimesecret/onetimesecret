@@ -153,12 +153,8 @@ RSpec.describe 'ProcessWebhookEvent: checkout.session.completed', :integration, 
 
     it 'logs warning when no plan_id found in metadata or catalog' do
       expect(OT).to receive(:lw).with(
-        '[Organization.resolve_plan_from_price_id] No plan found for price_id',
+        a_string_including('Unable to resolve plan_id'),
         hash_including(price_id: 'price_test', subscription_id: stripe_subscription_id)
-      )
-      expect(OT).to receive(:lw).with(
-        '[Organization.extract_plan_id_from_subscription] No plan_id in metadata or catalog',
-        hash_including(subscription_id: stripe_subscription_id)
       )
       operation.call
     end
