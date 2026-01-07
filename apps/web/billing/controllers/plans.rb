@@ -80,6 +80,11 @@ module Billing
         # This metadata is useful for debugging subscription creation but should
         # NOT be relied upon for billing decisions.
         #
+        # JSON in metadata: Stripe explicitly supports storing structured data as
+        # JSON strings in metadata values (up to 500 chars). This approach reduces
+        # key usage (Stripe has a 50-key limit) and groups related debug info.
+        # @see https://docs.stripe.com/metadata/use-cases#store-structured-data
+        #
         # @see Billing::PlanValidator.resolve_plan_id
         # @see WithOrganizationBilling#extract_plan_id_from_subscription
         #
