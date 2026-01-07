@@ -72,6 +72,7 @@ module Billing
   #
   module PlanValidator
     extend self
+    include Onetime::LoggerMethods
 
     # Resolve plan_id from price_id via catalog lookup
     #
@@ -91,9 +92,8 @@ module Billing
       plan = Billing::Plan.find_by_stripe_price_id(price_id)
 
       unless plan
-        OT.le '[PlanValidator.resolve_plan_id] Price not in catalog', {
-          price_id: price_id,
-        }
+        billing_logger.error '[PlanValidator.resolve_plan_id] Price not in catalog',
+                             price_id: price_id
         raise CatalogMissError.new(price_id: price_id)
       end
 
@@ -115,7 +115,8 @@ module Billing
       # Check catalog first (Stripe plans via direct load)
       cached_plan = Billing::Plan.load(plan_id)
       if cached_plan&.exists?
-        OT.ld '[PlanValidator.valid_plan_id?] Found in catalog', { plan_id: plan_id }
+        billing_logger.debug '[PlanValidator.valid_plan_id?] Found in catalog',
+                             plan_id: plan_id
         return true
       end
 
@@ -124,9 +125,11 @@ module Billing
       found_in_config = static_plans.key?(plan_id)
 
       if found_in_config
-        OT.ld '[PlanValidator.valid_plan_id?] Found in static config', { plan_id: plan_id }
+        billing_logger.debug '[PlanValidator.valid_plan_id?] Found in static config',
+                             plan_id: plan_id
       else
-        OT.ld '[PlanValidator.valid_plan_id?] Plan not found', { plan_id: plan_id }
+        billing_logger.debug '[PlanValidator.valid_plan_id?] Plan not found',
+                             plan_id: plan_id
       end
 
       found_in_config
@@ -176,7 +179,8 @@ module Billing
         price_id: price_id,
       }
 
-      OT.lw '[PlanValidator] Drift detected: metadata differs from catalog', drift_info
+      billing_logger.warn '[PlanValidator] Drift detected: metadata differs from catalog',
+                          drift_info
 
       drift_info
     end

@@ -17,6 +17,7 @@ require 'spec_helper'
 require_relative '../../../apps/web/billing/metadata'
 require_relative '../../../apps/web/billing/models/plan'
 require_relative '../../../apps/web/billing/errors'
+require_relative '../../../apps/web/billing/lib/plan_validator'
 
 RSpec.describe 'Billing::PlanValidator', billing: true do
   # ============================================================================
@@ -69,7 +70,11 @@ RSpec.describe 'Billing::PlanValidator', billing: true do
       end
 
       it 'logs an error before raising' do
-        expect(OT).to receive(:le).with(
+        logger = instance_double(SemanticLogger::Logger)
+        allow(Onetime).to receive(:get_logger).with('Billing').and_return(logger)
+        allow(logger).to receive(:error)
+
+        expect(logger).to receive(:error).with(
           '[PlanValidator.resolve_plan_id] Price not in catalog',
           hash_including(price_id: 'price_UNKNOWN')
         )
@@ -261,6 +266,9 @@ end
 # These tests verify the NEW behavior of extract_plan_id_from_subscription
 # which uses catalog-first approach instead of metadata-first.
 #
+# These tests verify the catalog-first approach with fail-closed behavior.
+# extract_plan_id_from_subscription now uses PlanValidator.resolve_plan_id directly.
+#
 RSpec.describe 'WithOrganizationBilling#extract_plan_id_from_subscription (Catalog-First)', billing: true do
   let(:test_class) do
     Class.new do
@@ -364,14 +372,13 @@ RSpec.describe 'WithOrganizationBilling#extract_plan_id_from_subscription (Catal
       end
 
       it 'logs error before raising' do
-        expect(OT).to receive(:le).with(
-          '[PlanValidator.resolve_plan_id] Price not in catalog',
-          hash_including(
-            price_id: 'price_unknown_999'
-          )
-        )
-
-        expect { org.test_extract_plan_id(subscription) }.to raise_error(Billing::CatalogMissError)
+        # PlanValidator uses billing_logger.error (not OT.le) for structured logging
+        # We verify the error is raised with the correct price_id
+        expect { org.test_extract_plan_id(subscription) }
+          .to raise_error(Billing::CatalogMissError) { |error|
+            expect(error.price_id).to eq('price_unknown_999')
+            expect(error.message).to include('price_unknown_999')
+          }
       end
     end
   end

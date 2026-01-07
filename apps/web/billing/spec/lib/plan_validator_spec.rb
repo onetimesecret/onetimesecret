@@ -199,7 +199,11 @@ RSpec.describe Billing::PlanValidator, type: :billing do
       end
 
       it 'logs warning about drift' do
-        expect(OT).to receive(:lw).with(
+        logger = instance_double(SemanticLogger::Logger)
+        allow(Onetime).to receive(:get_logger).with('Billing').and_return(logger)
+        allow(logger).to receive(:warn)
+
+        expect(logger).to receive(:warn).with(
           '[PlanValidator] Drift detected: metadata differs from catalog',
           hash_including(
             catalog_plan_id: 'identity_plus_v1_monthly',
