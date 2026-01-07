@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative '../../../../../web/billing/lib/plan_validator'
 
 module ColonelAPI
   module Logic
@@ -25,6 +26,15 @@ module ColonelAPI
           raise_not_found('User not found') unless user&.exists?
 
           raise_form_error('Cannot modify anonymous user', field: :user_id) if user.anonymous?
+
+          # Validate plan_id against catalog and config
+          unless Billing::PlanValidator.valid_plan_id?(new_planid)
+            available_plans = Billing::PlanValidator.available_plan_ids.join(', ')
+            raise_form_error(
+              "Invalid plan_id '#{new_planid}'. Available plans: #{available_plans}",
+              field: :planid
+            )
+          end
         end
 
         def process
