@@ -249,8 +249,8 @@ describe('Colonel Routes Configuration', () => {
   });
 
   describe('Route Count', () => {
-    it('should have 11 colonel routes defined', () => {
-      expect(colonelRoutes).toHaveLength(11);
+    it('should have 12 colonel routes defined', () => {
+      expect(colonelRoutes).toHaveLength(12);
     });
 
     it('all routes start with /colonel', () => {

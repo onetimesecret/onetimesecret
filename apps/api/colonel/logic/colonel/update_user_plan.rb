@@ -3,11 +3,16 @@
 # frozen_string_literal: true
 
 require_relative '../base'
-require_relative '../../../../../web/billing/lib/plan_validator'
+require_relative '../../../../../apps/web/billing/lib/billing_service'
 
 module ColonelAPI
   module Logic
     module Colonel
+      # Updates a user's plan with catalog validation
+      #
+      # Validates that the requested plan_id exists in the billing catalog
+      # before allowing the update, preventing invalid plan assignments.
+      #
       class UpdateUserPlan < ColonelAPI::Logic::Base
         attr_reader :user_id, :user, :new_planid, :old_planid
 
@@ -27,14 +32,13 @@ module ColonelAPI
 
           raise_form_error('Cannot modify anonymous user', field: :user_id) if user.anonymous?
 
-          # Validate plan_id against catalog and config
-          unless Billing::PlanValidator.valid_plan_id?(new_planid)
-            available_plans = Billing::PlanValidator.available_plan_ids.join(', ')
-            raise_form_error(
-              "Invalid plan_id '#{new_planid}'. Available plans: #{available_plans}",
-              field: :planid
-            )
-          end
+          # Validate plan_id exists in catalog
+          return if Billing::BillingService.valid_plan_id?(new_planid)
+
+          raise_form_error(
+            "Invalid plan ID '#{new_planid}'. Plan must exist in billing catalog or config.",
+            field: :planid,
+          )
         end
 
         def process

@@ -4,7 +4,7 @@
 
 require_relative '../../../../../apps/web/billing/metadata'
 require_relative '../../../../../apps/web/billing/models/plan'
-require_relative '../../../../../apps/web/billing/lib/plan_validator'
+require_relative '../../../../../apps/web/billing/lib/billing_service'
 
 module Onetime
   module Models
@@ -154,98 +154,19 @@ module Onetime
 
           private
 
-          # Extract plan ID from subscription using catalog-first resolution
+          # Extract plan ID from subscription using catalog-first approach
           #
-          # CATALOG-FIRST: The plan catalog is the authoritative source of truth.
-          # Stripe prices are immutable; metadata can drift from manual changes
-          # or stale migrations. We resolve plan_id from price_id via catalog lookup.
-          #
-          # Fail-closed: Raises Billing::CatalogMissError if price_id is not found
-          # in catalog. Billing integrity is critical - we fail loudly rather than
-          # proceeding with potentially incorrect plan assignments.
-          #
-          # Auto-healing: Detects and logs drift when subscription metadata differs
-          # from catalog value. The correct value is used regardless of metadata state.
-          #
-          # @param subscription [Stripe::Subscription] Stripe subscription
-          # @return [String] Plan ID from catalog
-          # @raise [Billing::CatalogMissError] If price_id is not in catalog
-          # @raise [ArgumentError] If subscription has no price_id
-          #
-          def extract_plan_id_from_subscription(subscription)
-            price_id = subscription.items.data.first&.price&.id
-
-            unless price_id
-              OT.le '[Organization.extract_plan_id_from_subscription] No price_id in subscription', {
-                subscription_id: subscription.id,
-                orgid: objid,
-              }
-              raise ArgumentError, "Subscription #{subscription.id} has no price_id"
-            end
-
-            # Catalog lookup is authoritative - raises CatalogMissError on miss
-            plan_id = Billing::PlanValidator.resolve_plan_id(price_id)
-
-            # Detect drift: check if metadata differs from catalog (for logging)
-            metadata_plan_id = extract_metadata_plan_id(subscription)
-            if metadata_plan_id && metadata_plan_id != plan_id
-              OT.lw '[Organization.extract_plan_id_from_subscription] Drift detected - using catalog value', {
-                catalog_plan_id: plan_id,
-                metadata_plan_id: metadata_plan_id,
-                price_id: price_id,
-                subscription_id: subscription.id,
-                orgid: objid,
-              }
-            end
-
-            OT.info '[Organization.extract_plan_id_from_subscription] Resolved plan from catalog', {
-              plan_id: plan_id,
-              price_id: price_id,
-              subscription_id: subscription.id,
-              orgid: objid,
-            }
-
-            plan_id
-          end
-
-          # Extract plan_id from subscription metadata (for drift detection only)
-          #
-          # Checks subscription-level then price-level metadata.
-          # NOT used as source of truth - only for drift logging.
-          #
-          # @param subscription [Stripe::Subscription] Stripe subscription
-          # @return [String, nil] Metadata plan_id or nil if not found
-          #
-          def extract_metadata_plan_id(subscription)
-            # Try subscription-level metadata first
-            if subscription.metadata && subscription.metadata[Billing::Metadata::FIELD_PLAN_ID]
-              return subscription.metadata[Billing::Metadata::FIELD_PLAN_ID]
-            end
-
-            # Try price-level metadata
-            subscription.items.data.first&.price&.metadata&.[](Billing::Metadata::FIELD_PLAN_ID)
-          end
-
-          # Resolve plan_id from subscription's price_id via plan catalog
-          #
-          # @deprecated Use Billing::PlanValidator.resolve_plan_id instead
-          # Kept for backward compatibility during transition.
+          # Delegates to BillingService.resolve_plan_id_from_subscription which
+          # uses this priority order:
+          # 1. Catalog lookup by price_id (most authoritative - prices are immutable)
+          # 2. Price-level metadata['plan_id']
+          # 3. Subscription-level metadata['plan_id'] (may be stale)
           #
           # @param subscription [Stripe::Subscription] Stripe subscription
           # @return [String, nil] Plan ID or nil if not found
-          def resolve_plan_from_price_id(subscription)
-            price_id = subscription.items.data.first&.price&.id
-            return nil unless price_id
-
-            Billing::PlanValidator.resolve_plan_id(price_id)
-          rescue Billing::CatalogMissError => ex
-            OT.lw '[Organization.resolve_plan_from_price_id] Catalog miss', {
-              price_id: price_id,
-              subscription_id: subscription.id,
-              orgid: objid,
-              error: ex.message,
-            }
-            nil
+          # @see Billing::BillingService.resolve_plan_id_from_subscription
+          def extract_plan_id_from_subscription(subscription)
+            Billing::BillingService.resolve_plan_id_from_subscription(subscription)
           end
 
           # Robust Stripe customer retrieval with fallbacks

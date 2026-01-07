@@ -370,43 +370,16 @@ module Billing
           },
         )
 
-        # Separate proration items from regular subscription items
-        # Proration items: charges/credits for the current billing period
-        # Regular items: the full subscription amount for the next billing cycle
-        proration_lines = preview.lines.data.select { |line| line_is_proration?(line) }
-        regular_lines = preview.lines.data.reject { |line| line_is_proration?(line) }
-
-        # Credit applied: sum of negative proration amounts (unused time on old plan)
-        credit_applied = proration_lines
-          .select { |line| line.amount.negative? }
-          .sum(&:amount)
-          .abs
-
-        # Immediate amount: net of proration charges minus credits (due now)
-        # This is the prorated upgrade cost after applying credit for unused time
-        immediate_amount = proration_lines.sum(&:amount)
-
-        # Next period amount: the regular subscription charge for next billing cycle
-        next_period_amount = regular_lines.sum(&:amount)
-
-        # Get new plan details from preview line items (avoids extra API call)
-        # Note: In newer API, price can be a String ID or Price object
-        new_price = preview.lines.data
-          .map { |line| line.pricing&.price_details&.price || line.price }
-          .compact
-          .find do |p|
-            price_id = p.is_a?(String) ? p : p.id
-            price_id == new_price_id
-          end
-        # If we got a string, we need to fetch the full price object for details
-        new_price = Stripe::Price.retrieve(new_price_id) if new_price.is_a?(String) || new_price.nil?
+        # Calculate proration breakdown and find new price details
+        amounts   = calculate_proration_amounts(preview)
+        new_price = find_price_in_preview(preview, new_price_id)
 
         json_response({
           amount_due: preview.amount_due,
-          immediate_amount: immediate_amount,
-          next_period_amount: next_period_amount,
+          immediate_amount: amounts[:immediate_amount],
+          next_period_amount: amounts[:next_period_amount],
           subtotal: preview.subtotal,
-          credit_applied: credit_applied,
+          credit_applied: amounts[:credit_applied],
           next_billing_date: preview.next_payment_attempt,
           currency: preview.currency,
           current_plan: {
@@ -419,7 +392,8 @@ module Billing
             amount: new_price&.unit_amount,
             interval: new_price&.recurring&.interval,
           },
-        })
+        },
+                     )
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
@@ -530,20 +504,39 @@ module Billing
 
         # Propagate to local storage: Stripe → Organization model (Redis)
         # This calls extract_plan_id_from_subscription which reads metadata.plan_id
-        # and sets org.planid = plan_id, then saves to Redis
-        org.update_from_stripe_subscription(updated_subscription)
+        # and sets org.planid = plan_id, then saves to Redis.
+        #
+        # STATE SYNC: Stripe is authoritative. If local update fails, the Stripe
+        # change already succeeded (billing is correct). We log the sync failure
+        # and return success; webhooks will reconcile state eventually.
+        local_sync_failed = false
+        begin
+          org.update_from_stripe_subscription(updated_subscription)
+        rescue StandardError => sync_ex
+          local_sync_failed = true
+          billing_logger.error 'Local state sync failed after Stripe update', {
+            extid: org.extid,
+            stripe_subscription_id: updated_subscription.id,
+            new_price_id: new_price_id,
+            error_class: sync_ex.class.name,
+            error_message: sync_ex.message,
+            idempotency_key: idempotency_key[0..7],
+            recovery: 'webhook_reconciliation',
+          }
+        end
 
         billing_logger.info 'Plan changed successfully', {
           extid: org.extid,
           old_price_id: current_item.price.id,
           new_price_id: new_price_id,
-          new_plan: org.planid,
+          new_plan: local_sync_failed ? new_plan&.plan_id : org.planid,
+          local_sync_failed: local_sync_failed,
           idempotency_key: idempotency_key[0..7], # Log prefix for debugging
         }
 
         json_response({
           success: true,
-          new_plan: org.planid,
+          new_plan: local_sync_failed ? new_plan&.plan_id : org.planid,
           status: updated_subscription.status,
           current_period_end: updated_subscription.items.data.first.current_period_end,
         },
@@ -636,6 +629,36 @@ module Billing
         # @return [String, nil] Plan ID or nil if not found
         def price_id_to_plan_id(price_id)
           ::Billing::Plan.find_by_stripe_price_id(price_id)&.plan_id
+        end
+
+        # Calculate proration amounts from invoice preview
+        #
+        # @param preview [Stripe::Invoice] Invoice preview object
+        # @return [Hash] Proration breakdown with credit_applied, immediate_amount, next_period_amount
+        def calculate_proration_amounts(preview)
+          proration_lines = preview.lines.data.select { |line| line_is_proration?(line) }
+          regular_lines   = preview.lines.data.reject { |line| line_is_proration?(line) }
+
+          {
+            credit_applied: proration_lines.select { |l| l.amount.negative? }.sum(&:amount).abs,
+            immediate_amount: proration_lines.sum(&:amount),
+            next_period_amount: regular_lines.sum(&:amount),
+          }
+        end
+
+        # Find price object from invoice preview lines
+        #
+        # @param preview [Stripe::Invoice] Invoice preview object
+        # @param target_price_id [String] Price ID to find
+        # @return [Stripe::Price, nil] Price object or nil
+        def find_price_in_preview(preview, target_price_id)
+          price = preview.lines.data
+            .map { |line| line.pricing&.price_details&.price || line.price }
+            .compact
+            .find { |p| (p.is_a?(String) ? p : p.id) == target_price_id }
+
+          # Fetch full price object if we got a string or nothing
+          price.is_a?(String) || price.nil? ? Stripe::Price.retrieve(target_price_id) : price
         end
 
         # Build subscription data for response

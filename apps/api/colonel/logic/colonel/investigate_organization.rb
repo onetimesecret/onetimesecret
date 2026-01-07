@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative '../base'
+require_relative '../../../../../apps/web/billing/lib/billing_service'
 
 module ColonelAPI
   module Logic
@@ -47,7 +48,7 @@ module ColonelAPI
         end
 
         def investigate_billing_state
-          local_state = build_local_state
+          local_state  = build_local_state
           stripe_state = fetch_stripe_state
 
           {
@@ -94,24 +95,24 @@ module ColonelAPI
               reason: nil,
               subscription: extract_subscription_data(subscription),
             }
-          rescue Stripe::InvalidRequestError => e
+          rescue Stripe::InvalidRequestError => ex
             {
               available: false,
-              reason: "Stripe error: #{e.message}",
+              reason: "Stripe error: #{ex.message}",
               subscription: nil,
             }
-          rescue Stripe::StripeError => e
+          rescue Stripe::StripeError => ex
             {
               available: false,
-              reason: "Stripe API error: #{e.message}",
+              reason: "Stripe API error: #{ex.message}",
               subscription: nil,
             }
           end
         end
 
         def extract_subscription_data(subscription)
-          item = subscription.items.data.first
-          price = item&.price
+          item    = subscription.items.data.first
+          price   = item&.price
           product = price&.product
 
           # Try to resolve plan_id from various sources
@@ -132,121 +133,41 @@ module ColonelAPI
           }
         end
 
-        # Check if two plan IDs match, accounting for interval suffix only
-        #
-        # Plan IDs may differ only by billing interval suffix:
-        # - "identity_plus_v1" vs "identity_plus_v1_monthly"
-        #
-        # This method normalizes by stripping interval suffix and compares.
-        # Does NOT do prefix matching - "identity_plus" is NOT considered
-        # to match "identity_plus_v1" since they are different plans.
+        # Check if two plan IDs match, accounting for interval suffix
         #
         # @param local_planid [String] Plan ID stored locally on organization
         # @param stripe_planid [String] Plan ID resolved from Stripe subscription
         # @return [Boolean] True if plans match (same base identity)
+        # @see Billing::BillingService.plans_match?
         def plans_match?(local_planid, stripe_planid)
-          return true if local_planid == stripe_planid
-          return false if local_planid.empty? || stripe_planid.empty?
-
-          # Normalize both by stripping interval suffix only
-          local_base = normalize_plan_id(local_planid)
-          stripe_base = normalize_plan_id(stripe_planid)
-
-          return true if local_base == stripe_base
-
-          # Try looking up the plan_code from cache for accurate comparison
-          # plan_code groups monthly/yearly variants (e.g., plan_code="identity_plus" for identity_plus_v1_monthly)
-          stripe_plan = ::Billing::Plan.load(stripe_planid)
-          if stripe_plan&.plan_code
-            # Compare local with the Stripe plan's plan_code
-            return true if local_planid == stripe_plan.plan_code
-            return true if local_base == stripe_plan.plan_code
-          end
-
-          false
+          Billing::BillingService.plans_match?(local_planid, stripe_planid)
         end
 
         # Normalize a plan ID by stripping interval suffix
         #
         # @param planid [String] Plan ID to normalize
         # @return [String] Normalized plan ID without interval suffix
+        # @see Billing::BillingService.normalize_plan_id
         def normalize_plan_id(planid)
-          planid.to_s.sub(/_(month|year)ly$/, '')
+          Billing::BillingService.normalize_plan_id(planid)
         end
 
-        # Resolve plan_id using the same logic as the webhook handler
-        def resolve_plan_id(subscription, price, _product)
-          # 1. Try subscription-level metadata
-          plan_id = subscription.metadata&.[]('plan_id')
-          return plan_id if plan_id && !plan_id.empty?
-
-          # 2. Try price-level metadata
-          plan_id = price&.metadata&.[]('plan_id')
-          return plan_id if plan_id && !plan_id.empty?
-
-          # 3. Try plan catalog lookup by price_id
-          if price&.id
-            plan = ::Billing::Plan.find_by_stripe_price_id(price.id)
-            return plan.plan_id if plan
-          end
-
-          nil
+        # Resolve plan_id using catalog-first approach
+        #
+        # @see Billing::BillingService.resolve_plan_id_from_subscription
+        def resolve_plan_id(subscription, _price, _product)
+          # Use the centralized resolver for catalog-first resolution
+          Billing::BillingService.resolve_plan_id_from_subscription(subscription)
         end
 
+        # Compare local and Stripe billing states
+        #
+        # @param local [Hash] Local organization billing state
+        # @param stripe [Hash] Stripe subscription state
+        # @return [Hash] Comparison result
+        # @see Billing::BillingService.compare_billing_states
         def compare_states(local, stripe)
-          unless stripe[:available]
-            return {
-              match: nil,
-              verdict: 'unable_to_compare',
-              details: stripe[:reason],
-            }
-          end
-
-          sub = stripe[:subscription]
-          local_planid = local[:planid].to_s
-          stripe_planid = sub[:resolved_plan_id].to_s
-          local_status = local[:subscription_status].to_s
-          stripe_status = sub[:status].to_s
-
-          issues = []
-
-          # Check plan ID match using normalized comparison
-          # Plan IDs may differ by interval suffix (e.g., "identity_plus" vs "identity_plus_v1_monthly")
-          # We compare the base plan identity, not the billing interval
-          unless plans_match?(local_planid, stripe_planid)
-            issues << {
-              field: 'planid',
-              local: local_planid.empty? ? '(empty)' : local_planid,
-              stripe: stripe_planid.empty? ? '(unresolvable)' : stripe_planid,
-              severity: 'high',
-            }
-          end
-
-          # Check subscription status match
-          if local_status != stripe_status
-            issues << {
-              field: 'subscription_status',
-              local: local_status.empty? ? '(empty)' : local_status,
-              stripe: stripe_status,
-              severity: 'medium',
-            }
-          end
-
-          # Check subscription ID match (should always match, but verify)
-          if local[:stripe_subscription_id] != sub[:id]
-            issues << {
-              field: 'stripe_subscription_id',
-              local: local[:stripe_subscription_id],
-              stripe: sub[:id],
-              severity: 'critical',
-            }
-          end
-
-          {
-            match: issues.empty?,
-            verdict: issues.empty? ? 'synced' : 'mismatch_detected',
-            issues: issues,
-          }
+          Billing::BillingService.compare_billing_states(local, stripe)
         end
 
         def success_data

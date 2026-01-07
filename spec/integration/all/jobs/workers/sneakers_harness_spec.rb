@@ -94,7 +94,9 @@ RSpec.describe 'Sneakers Worker Harness', type: :integration do
           expect(expected_config).not_to be_nil, "Queue #{queue_name} not in QueueConfig::QUEUES"
 
           opts = worker_class.queue_opts
-          expect(opts[:durable]).to eq(expected_config[:durable])
+          # Sneakers stores queue options under :queue_options key (see QueueDeclarator.sneakers_options_for)
+          queue_options = opts[:queue_options] || {}
+          expect(queue_options[:durable]).to eq(expected_config[:durable])
         end
       end
     end

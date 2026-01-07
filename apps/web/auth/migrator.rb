@@ -23,85 +23,22 @@ module Auth
       # Run migrations if needed (called during warmup in full mode)
       # Sequel::Migrator.run automatically skips already-run migrations
       def run_if_needed
-        unless database_connection
-          sequel_logger.debug 'Skipping migrations - no database connection',
-            full_mode_enabled: Onetime.auth_config&.full_enabled?,
-            database_url_present: !Onetime.auth_config&.database_url.nil?
-          return
-        end
+        return unless database_connection
 
-        # Determine which connection to use for migrations
-        migrations_url = Onetime.auth_config.database_url_migrations
-        using_elevated_url = migrations_url && migrations_url != Onetime.auth_config.database_url
+        log_skip_reason unless database_connection
 
-        # Detect adapter mismatch between main and migrations URLs
-        if using_elevated_url && adapter_mismatch?(Onetime.auth_config.database_url, migrations_url)
-          sequel_logger.warn 'Adapter mismatch between database_url and database_url_migrations',
-            database_url: Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
-            migrations_url: migrations_url&.sub(/:[^:@]+@/, ':***@'),
-            action: 'using database_url for migrations'
-          using_elevated_url = false
-        end
-
-        sequel_logger.info 'Auth migrations initializer running',
-          database_url: Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
-          migrations_url: using_elevated_url ? migrations_url&.sub(/:[^:@]+@/, ':***@') : nil,
-          using_elevated_credentials: using_elevated_url
+        using_elevated_url, migrations_url = determine_migration_connection
+        log_migration_start(using_elevated_url, migrations_url)
 
         Sequel.extension :migration
 
-        # Test connection early using the URL we'll use for migrations
-        # This provides clearer error messages if connection fails
-        test_conn = using_elevated_url ? migration_connection : database_connection
-        adapter_scheme = begin
-          test_conn.adapter_scheme
-        rescue StandardError => ex
-          sequel_logger.error 'Failed to connect to auth database',
-            error: ex.message,
-            error_class: ex.class.name,
-            database_url: using_elevated_url ? migrations_url&.sub(/:[^:@]+@/, ':***@') : Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
-            using_elevated_url: using_elevated_url
-          raise
-        ensure
-          # Disconnect test connection if it was the migrations connection
-          test_conn.disconnect if using_elevated_url && test_conn != database_connection
-        end
+        adapter_scheme = test_database_connection(using_elevated_url, migrations_url)
+        log_context    = build_log_context(adapter_scheme)
 
-        # Context for all log messages in this operation
-        log_context = {
-          migrations_dir: OT::Utils.pretty_path(migrations_dir).to_s,
-          db_adapter: adapter_scheme,
-          rack_env: Onetime.env,
-        }
+        return unless migrations_available?(log_context)
 
-        # Don't error if migrations directory doesn't exist or is empty
-        unless Dir.exist?(migrations_dir)
-          sequel_logger.debug 'Migrations directory not found',
-            **log_context,
-            action: 'skip',
-            reason: 'directory_missing'
-          return
-        end
-
+        current_version = get_schema_version(using_elevated_url)
         migration_files = Dir.glob(File.join(migrations_dir, '*.rb'))
-        if migration_files.empty?
-          sequel_logger.debug 'No migration files present',
-            **log_context,
-            action: 'skip',
-            reason: 'no_files'
-          return
-        end
-
-        # Get current schema version before running migrations
-        # Use elevated connection if available (regular user may not have schema_info access)
-        schema_conn = using_elevated_url ? migration_connection : database_connection
-        current_version = begin
-          schema_conn[:schema_info].first&.fetch(:version, 0)
-        rescue Sequel::DatabaseError
-          0  # Table doesn't exist yet
-        ensure
-          schema_conn.disconnect if using_elevated_url && schema_conn != database_connection
-        end
 
         sequel_logger.info 'Starting database migration check',
           **log_context,
@@ -114,33 +51,10 @@ module Auth
         run_migrations
         Onetime.auth_logger.debug 'Database migrations have run'
 
-        elapsed_μs = Onetime.now_in_μs - start_time
+        elapsed_μs  = Onetime.now_in_μs - start_time
+        new_version = get_schema_version(using_elevated_url)
 
-        # Get new schema version (use elevated connection if available)
-        post_schema_conn = using_elevated_url ? migration_connection : database_connection
-        new_version = begin
-          post_schema_conn[:schema_info].first&.fetch(:version, 0)
-        ensure
-          post_schema_conn.disconnect if using_elevated_url && post_schema_conn != database_connection
-        end
-        migrations_applied = new_version - current_version
-
-        if migrations_applied > 0
-          sequel_logger.info 'Database migrations completed',
-            **log_context,
-            status: 'success',
-            migrations_applied: migrations_applied,
-            schema_version_before: current_version,
-            schema_version_after: new_version,
-            elapsed_μs: elapsed_μs
-        else
-          sequel_logger.info 'Database schema already current',
-            **log_context,
-            status: 'success',
-            migrations_applied: 0,
-            schema_version: current_version,
-            elapsed_μs: elapsed_μs
-        end
+        log_migration_result(log_context, current_version, new_version, elapsed_μs)
       rescue Sequel::Migrator::Error => ex
         elapsed_μs = Onetime.now_in_μs - start_time if start_time
 
@@ -149,11 +63,10 @@ module Auth
           status: 'error',
           error_class: ex.class.name,
           error_message: ex.message,
-          error_backtrace: ex.backtrace&.first(5),  # First 5 lines only
+          error_backtrace: ex.backtrace&.first(5),
           schema_version: current_version,
           elapsed_μs: elapsed_μs
 
-        # Re-raise to prevent app startup with broken schema
         raise
       end
 
@@ -176,6 +89,113 @@ module Auth
 
       def migrations_dir
         File.join(__dir__, 'migrations')
+      end
+
+      def log_skip_reason
+        sequel_logger.debug 'Skipping migrations - no database connection',
+          full_mode_enabled: Onetime.auth_config&.full_enabled?,
+          database_url_present: !Onetime.auth_config&.database_url.nil?
+      end
+
+      def determine_migration_connection
+        migrations_url     = Onetime.auth_config.database_url_migrations
+        using_elevated_url = migrations_url && migrations_url != Onetime.auth_config.database_url
+
+        if using_elevated_url && adapter_mismatch?(Onetime.auth_config.database_url, migrations_url)
+          sequel_logger.warn 'Adapter mismatch between database_url and database_url_migrations',
+            database_url: Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
+            migrations_url: migrations_url&.sub(/:[^:@]+@/, ':***@'),
+            action: 'using database_url for migrations'
+          using_elevated_url = false
+        end
+
+        [using_elevated_url, migrations_url]
+      end
+
+      def log_migration_start(using_elevated_url, migrations_url)
+        sequel_logger.info 'Auth migrations initializer running',
+          database_url: Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
+          migrations_url: using_elevated_url ? migrations_url&.sub(/:[^:@]+@/, ':***@') : nil,
+          using_elevated_credentials: using_elevated_url
+      end
+
+      def test_database_connection(using_elevated_url, migrations_url)
+        test_conn = using_elevated_url ? migration_connection : database_connection
+        test_conn.adapter_scheme
+      rescue StandardError => ex
+        sequel_logger.error 'Failed to connect to auth database',
+          error: ex.message,
+          error_class: ex.class.name,
+          database_url: using_elevated_url ? migrations_url&.sub(/:[^:@]+@/, ':***@') : Onetime.auth_config.database_url&.sub(/:[^:@]+@/, ':***@'),
+          using_elevated_url: using_elevated_url
+        raise
+      ensure
+        # Disconnect if we created a separate elevated connection. Previously
+        # checked `test_conn != database_connection` but object comparison is
+        # unreliable due to connection pooling; the flag is authoritative.
+        test_conn.disconnect if using_elevated_url
+      end
+
+      def build_log_context(adapter_scheme)
+        {
+          migrations_dir: OT::Utils.pretty_path(migrations_dir).to_s,
+          db_adapter: adapter_scheme,
+          rack_env: Onetime.env,
+        }
+      end
+
+      def migrations_available?(log_context)
+        unless Dir.exist?(migrations_dir)
+          sequel_logger.debug 'Migrations directory not found',
+            **log_context,
+            action: 'skip',
+            reason: 'directory_missing'
+          return false
+        end
+
+        migration_files = Dir.glob(File.join(migrations_dir, '*.rb'))
+        if migration_files.empty?
+          sequel_logger.debug 'No migration files present',
+            **log_context,
+            action: 'skip',
+            reason: 'no_files'
+          return false
+        end
+
+        true
+      end
+
+      def get_schema_version(using_elevated_url)
+        schema_conn = using_elevated_url ? migration_connection : database_connection
+        schema_conn[:schema_info].first&.fetch(:version, 0)
+      rescue Sequel::DatabaseError
+        0
+      ensure
+        # Disconnect if we created a separate elevated connection. Previously
+        # checked `schema_conn != database_connection` but object comparison is
+        # unreliable due to connection pooling; the flag is authoritative.
+        schema_conn.disconnect if using_elevated_url
+      end
+
+      def log_migration_result(log_context, current_version, new_version, elapsed_μs)
+        migrations_applied = new_version - current_version
+
+        if migrations_applied > 0
+          sequel_logger.info 'Database migrations completed',
+            **log_context,
+            status: 'success',
+            migrations_applied: migrations_applied,
+            schema_version_before: current_version,
+            schema_version_after: new_version,
+            elapsed_μs: elapsed_μs
+        else
+          sequel_logger.info 'Database schema already current',
+            **log_context,
+            status: 'success',
+            migrations_applied: 0,
+            schema_version: current_version,
+            elapsed_μs: elapsed_μs
+        end
       end
 
       # Create a dedicated connection for migrations using database_url_migrations config
@@ -224,10 +244,10 @@ module Auth
             )
           end
         ensure
-          # Only disconnect if we created a separate connection
-          if conn != database_connection
-            conn.disconnect
-          end
+          # Disconnect if we created a separate elevated connection. Previously
+          # checked `conn != database_connection` but object comparison is
+          # unreliable due to connection pooling; the flag is authoritative.
+          conn.disconnect if use_elevated
         end
       end
 

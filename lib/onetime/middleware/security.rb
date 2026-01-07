@@ -30,6 +30,8 @@ module Onetime
     # Each protection can be individually enabled/disabled via configuration.
     #
     class Security
+      include Onetime::LoggerMethods
+
       @middleware_components = {}
 
       # The wrapped Rack application
@@ -49,6 +51,7 @@ module Onetime
       # @param env [Hash] Rack environment hash containing request information
       # @return [Array] Standard Rack response array [status, headers, body]
       def call(env)
+        http_logger.info '[Security] Processing request through security middleware'
         @rack_app.call(env)
       end
 
@@ -73,7 +76,7 @@ module Onetime
           components.each do |name, config|
             next unless middleware_settings[config[:key]]
 
-            Onetime.ld "[Security] Enabling #{name} protection"
+            http_logger.info "[Security] Enabling #{name} protection"
             if config[:options]
               use config[:klass], config[:options]
             else
