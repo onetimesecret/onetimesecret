@@ -99,6 +99,7 @@ module Onetime
 
         # Build connection configuration
         bunny_config = {
+          heartbeat: 60, # Keeps connection alive; server closes after 2× interval of silence
           recover_from_connection_close: true,
           network_recovery_interval: 5,
           continuation_timeout: 15_000, # Prevent indefinite hangs if fork hooks misconfigured

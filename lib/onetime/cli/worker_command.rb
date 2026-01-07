@@ -194,7 +194,7 @@ module Onetime
             env: environment,
             durable: true,
             ack: true,
-            heartbeat: 30,
+            heartbeat: 60, # Keeps connection alive; server closes after 2× interval of silence
             prefetch: concurrency,
             # Use Bunny logger from centralized logging config (setup_rabbitmq.rb pattern).
             # Note: Sneakers logs "Working off: <msg>" at debug level with escaped JSON -
