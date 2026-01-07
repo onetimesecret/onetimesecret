@@ -16,6 +16,7 @@ import {
   type ColonelCustomDomain,
   type ColonelOrganization,
   type ColonelOrganizationsFilters,
+  type InvestigateOrganizationResult,
   type QueueMetrics,
 } from '@/schemas/api/account/endpoints/colonel';
 import { type SystemSettingsDetails } from '@/schemas/config';
@@ -50,7 +51,11 @@ export type ColonelInfoStore = {
   // Actions
   fetchInfo: () => Promise<ColonelInfoDetails>;
   fetchStats: () => Promise<ColonelStats>;
-  fetchUsers: (page?: number, perPage?: number, roleFilter?: string) => Promise<ColonelUsersDetails>;
+  fetchUsers: (
+    page?: number,
+    perPage?: number,
+    roleFilter?: string
+  ) => Promise<ColonelUsersDetails>;
   fetchSecrets: (page?: number, perPage?: number) => Promise<ColonelSecretsDetails>;
   fetchDatabaseMetrics: () => Promise<DatabaseMetricsDetails>;
   fetchRedisMetrics: () => Promise<RedisMetricsDetails>;
@@ -358,6 +363,18 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     }
   }
 
+  // Investigate organization billing state by comparing local data with Stripe
+  async function investigateOrganization(extId: string): Promise<InvestigateOrganizationResult> {
+    try {
+      const response = await $api.post(`/api/colonel/organizations/${extId}/investigate`);
+      const validated = responseSchemas.investigateOrganization.parse(response.data);
+      return validated.record;
+    } catch (error) {
+      console.error('Failed to investigate organization:', error);
+      throw error;
+    }
+  }
+
   // Fetch usage export data
   async function fetchUsageExport(startDate?: number, endDate?: number) {
     isLoading.value = true;
@@ -485,6 +502,7 @@ export const useColonelInfoStore = defineStore('colonel', () => {
     unbanIP,
     fetchCustomDomains,
     fetchOrganizations,
+    investigateOrganization,
     fetchUsageExport,
     fetchQueueMetrics,
     dispose,

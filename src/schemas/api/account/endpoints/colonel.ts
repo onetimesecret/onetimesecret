@@ -367,3 +367,78 @@ export const colonelOrganizationsDetailsSchema = z.object({
 export type ColonelOrganization = z.infer<typeof colonelOrganizationSchema>;
 export type ColonelOrganizationsDetails = z.infer<typeof colonelOrganizationsDetailsSchema>;
 export type ColonelOrganizationsFilters = z.infer<typeof colonelOrganizationsFiltersSchema>;
+
+/**
+ * Organization billing investigation - local state
+ */
+export const investigateLocalStateSchema = z.object({
+  planid: z.string().nullable(),
+  stripe_customer_id: z.string().nullable(),
+  stripe_subscription_id: z.string().nullable(),
+  subscription_status: z.string().nullable(),
+  subscription_period_end: z.string().nullable(),
+});
+
+/**
+ * Organization billing investigation - Stripe subscription data
+ */
+export const investigateStripeSubscriptionSchema = z.object({
+  id: z.string(),
+  status: z.string(),
+  current_period_end: z.number().nullable(),
+  price_id: z.string().nullable(),
+  price_nickname: z.string().nullable(),
+  product_id: z.string().nullable(),
+  product_name: z.string().nullable(),
+  subscription_metadata_plan_id: z.string().nullable(),
+  price_metadata_plan_id: z.string().nullable(),
+  resolved_plan_id: z.string().nullable(),
+});
+
+/**
+ * Organization billing investigation - Stripe state
+ */
+export const investigateStripeStateSchema = z.object({
+  available: z.boolean(),
+  reason: z.string().nullable(),
+  subscription: investigateStripeSubscriptionSchema.nullable(),
+});
+
+/**
+ * Organization billing investigation - comparison issue
+ */
+export const investigateIssueSchema = z.object({
+  field: z.string(),
+  local: z.string(),
+  stripe: z.string(),
+  severity: z.enum(['critical', 'high', 'medium', 'low']),
+});
+
+/**
+ * Organization billing investigation - comparison result
+ */
+export const investigateComparisonSchema = z.object({
+  match: z.boolean().nullable(),
+  verdict: z.enum(['synced', 'mismatch_detected', 'unable_to_compare']),
+  details: z.string().optional(),
+  issues: z.array(investigateIssueSchema).optional(),
+});
+
+/**
+ * Organization billing investigation result
+ */
+export const investigateOrganizationResultSchema = z.object({
+  org_id: z.string(),
+  extid: z.string(),
+  investigated_at: z.string(),
+  local: investigateLocalStateSchema,
+  stripe: investigateStripeStateSchema,
+  comparison: investigateComparisonSchema,
+});
+
+export type InvestigateLocalState = z.infer<typeof investigateLocalStateSchema>;
+export type InvestigateStripeSubscription = z.infer<typeof investigateStripeSubscriptionSchema>;
+export type InvestigateStripeState = z.infer<typeof investigateStripeStateSchema>;
+export type InvestigateIssue = z.infer<typeof investigateIssueSchema>;
+export type InvestigateComparison = z.infer<typeof investigateComparisonSchema>;
+export type InvestigateOrganizationResult = z.infer<typeof investigateOrganizationResultSchema>;

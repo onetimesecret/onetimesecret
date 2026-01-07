@@ -34,6 +34,7 @@ GET    /domains                           ColonelAPI::Logic::Colonel::ListCustom
 
 # Organizations
 GET    /organizations                     ColonelAPI::Logic::Colonel::ListOrganizations response=json auth=sessionauth
+POST   /organizations/:org_id/investigate ColonelAPI::Logic::Colonel::InvestigateOrganization response=json auth=sessionauth
 
 # Usage Export
 GET    /usage/export                      ColonelAPI::Logic::Colonel::ExportUsage response=json auth=sessionauth

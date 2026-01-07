@@ -11,7 +11,10 @@
 
 <script setup lang="ts">
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
-  import type { ColonelOrganization } from '@/schemas/api/account/endpoints/colonel';
+  import type {
+    ColonelOrganization,
+    InvestigateOrganizationResult,
+  } from '@/schemas/api/account/endpoints/colonel';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
@@ -20,7 +23,7 @@
 
   const store = useColonelInfoStore();
   const { organizations, organizationsPagination, isLoading } = storeToRefs(store);
-  const { fetchOrganizations } = store;
+  const { fetchOrganizations, investigateOrganization } = store;
 
   // Filter state
   const statusFilter = ref<string>('');
@@ -28,6 +31,11 @@
 
   // Expanded row state for Stripe IDs
   const expandedRows = ref<Set<string>>(new Set());
+
+  // Investigation state
+  const investigatingOrgs = ref<Set<string>>(new Set());
+  const investigationResults = ref<Map<string, InvestigateOrganizationResult>>(new Map());
+  const investigationErrors = ref<Map<string, string>>(new Map());
 
   // Sort state
   type SortField = 'contact_email' | 'planid' | 'subscription_status' | 'sync_status' | 'created';
@@ -55,11 +63,67 @@
   }
 
   // Toggle row expansion for Stripe IDs
-  function toggleRowExpansion(orgId: string): void {
-    if (expandedRows.value.has(orgId)) {
-      expandedRows.value.delete(orgId);
+  // Uses extid (external ID) for consistent URL-friendly identifiers
+  function toggleRowExpansion(extId: string): void {
+    if (expandedRows.value.has(extId)) {
+      expandedRows.value.delete(extId);
     } else {
-      expandedRows.value.add(orgId);
+      expandedRows.value.add(extId);
+    }
+  }
+
+  // Investigate an organization's billing state
+  // Uses extid (external ID) for API routes per project conventions
+  async function handleInvestigate(extId: string): Promise<void> {
+    investigatingOrgs.value.add(extId);
+    investigationErrors.value.delete(extId);
+
+    try {
+      const result = await investigateOrganization(extId);
+      investigationResults.value.set(extId, result);
+      // Auto-expand the row to show results
+      expandedRows.value.add(extId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Investigation failed';
+      investigationErrors.value.set(extId, message);
+    } finally {
+      investigatingOrgs.value.delete(extId);
+    }
+  }
+
+  // Check if org has investigation result
+  function hasInvestigationResult(extId: string): boolean {
+    return investigationResults.value.has(extId);
+  }
+
+  // Get investigation result for an org
+  function getInvestigationResult(extId: string): InvestigateOrganizationResult | undefined {
+    return investigationResults.value.get(extId);
+  }
+
+  // Get verdict badge class
+  function getVerdictBadgeClass(verdict: string): string {
+    switch (verdict) {
+      case 'synced':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200';
+      case 'mismatch_detected':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200';
+      default:
+        return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300';
+    }
+  }
+
+  // Get severity badge class for issues
+  function getSeverityBadgeClass(severity: string): string {
+    switch (severity) {
+      case 'critical':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200';
+      case 'high':
+        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-200';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200';
+      default:
+        return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300';
     }
   }
 
@@ -370,7 +434,7 @@
           <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
             <template
               v-for="org in sortedOrganizations"
-              :key="org.org_id">
+              :key="org.extid">
               <!-- Main row -->
               <tr
                 class="hover:bg-gray-50 dark:hover:bg-gray-700/50"
@@ -450,39 +514,80 @@
                   {{ org.created_human }}
                 </td>
 
-                <!-- Expand button -->
+                <!-- Actions -->
                 <td class="whitespace-nowrap px-4 py-3 text-right">
-                  <button
-                    v-if="org.stripe_customer_id || org.stripe_subscription_id"
-                    type="button"
-                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    :aria-expanded="expandedRows.has(org.org_id)"
-                    :aria-label="expandedRows.has(org.org_id) ? 'Collapse Stripe details' : 'Expand Stripe details'"
-                    @click="toggleRowExpansion(org.org_id)">
-                    <svg
-                      class="size-5 transition-transform"
-                      :class="{ 'rotate-180': expandedRows.has(org.org_id) }"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
+                  <div class="flex items-center justify-end gap-2">
+                    <!-- Investigate button -->
+                    <button
+                      type="button"
+                      class="inline-flex items-center rounded px-2 py-1 text-xs font-medium text-brand-600 hover:bg-brand-50 hover:text-brand-700 dark:text-brand-400 dark:hover:bg-brand-900/20 dark:hover:text-brand-300"
+                      :disabled="investigatingOrgs.has(org.extid)"
+                      @click="handleInvestigate(org.extid)">
+                      <svg
+                        v-if="investigatingOrgs.has(org.extid)"
+                        class="mr-1 size-3 animate-spin"
+                        fill="none"
+                        viewBox="0 0 24 24">
+                        <circle
+                          class="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          stroke-width="4" />
+                        <path
+                          class="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      <svg
+                        v-else
+                        class="mr-1 size-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      {{ investigatingOrgs.has(org.extid) ? 'Checking...' : 'Investigate' }}
+                    </button>
+
+                    <!-- Expand/collapse button -->
+                    <button
+                      type="button"
+                      class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      :aria-expanded="expandedRows.has(org.extid)"
+                      :aria-label="expandedRows.has(org.extid) ? 'Collapse details' : 'Expand details'"
+                      @click="toggleRowExpansion(org.extid)">
+                      <svg
+                        class="size-5 transition-transform"
+                        :class="{ 'rotate-180': expandedRows.has(org.extid) }"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </div>
                 </td>
               </tr>
 
-              <!-- Expanded row for Stripe IDs -->
+              <!-- Expanded row for details and investigation results -->
               <tr
-                v-if="expandedRows.has(org.org_id)"
+                v-if="expandedRows.has(org.extid)"
                 class="bg-gray-50 dark:bg-gray-800/50">
                 <td
                   colspan="6"
-                  class="px-4 py-3">
-                  <div class="flex flex-wrap gap-6 text-xs">
+                  class="px-4 py-4">
+                  <!-- Stripe IDs -->
+                  <div class="mb-4 flex flex-wrap gap-6 text-xs">
                     <div v-if="org.stripe_customer_id">
                       <span class="font-medium text-gray-500 dark:text-gray-400">Customer:</span>
                       <code class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-300">
@@ -500,6 +605,109 @@
                       <code class="ml-1 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                         {{ org.extid }}
                       </code>
+                    </div>
+                  </div>
+
+                  <!-- Investigation error -->
+                  <div
+                    v-if="investigationErrors.get(org.extid)"
+                    class="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
+                    Investigation failed: {{ investigationErrors.get(org.extid) }}
+                  </div>
+
+                  <!-- Investigation results -->
+                  <div
+                    v-if="hasInvestigationResult(org.extid)"
+                    class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-600 dark:bg-gray-700">
+                    <div class="mb-3 flex items-center justify-between">
+                      <h4 class="text-sm font-medium text-gray-900 dark:text-white">
+                        Investigation Result
+                      </h4>
+                      <div class="flex items-center gap-2">
+                        <span
+                          :class="[
+                            'inline-flex items-center rounded px-2 py-0.5 text-xs font-medium',
+                            getVerdictBadgeClass(getInvestigationResult(org.extid)!.comparison.verdict)
+                          ]">
+                          {{ getInvestigationResult(org.extid)!.comparison.verdict === 'synced' ? 'Verified Synced' : getInvestigationResult(org.extid)!.comparison.verdict === 'mismatch_detected' ? 'Mismatch Found' : 'Unable to Compare' }}
+                        </span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">
+                          {{ getInvestigationResult(org.extid)!.investigated_at }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Comparison details -->
+                    <div
+                      v-if="getInvestigationResult(org.extid)!.comparison.details"
+                      class="mb-3 text-sm text-gray-600 dark:text-gray-300">
+                      {{ getInvestigationResult(org.extid)!.comparison.details }}
+                    </div>
+
+                    <!-- Issues list -->
+                    <div
+                      v-if="getInvestigationResult(org.extid)!.comparison.issues?.length"
+                      class="space-y-2">
+                      <div
+                        v-for="(issue, idx) in getInvestigationResult(org.extid)!.comparison.issues"
+                        :key="idx"
+                        class="rounded border border-gray-200 bg-gray-50 p-2 text-xs dark:border-gray-600 dark:bg-gray-800">
+                        <div class="flex items-center gap-2">
+                          <span
+                            :class="[
+                              'inline-flex items-center rounded px-1.5 py-0.5 font-medium',
+                              getSeverityBadgeClass(issue.severity)
+                            ]">
+                            {{ issue.severity }}
+                          </span>
+                          <span class="font-medium text-gray-700 dark:text-gray-300">{{ issue.field }}</span>
+                        </div>
+                        <div class="mt-1 grid grid-cols-2 gap-4">
+                          <div>
+                            <span class="text-gray-500 dark:text-gray-400">Local:</span>
+                            <code class="ml-1 text-gray-900 dark:text-white">{{ issue.local }}</code>
+                          </div>
+                          <div>
+                            <span class="text-gray-500 dark:text-gray-400">Stripe:</span>
+                            <code class="ml-1 text-gray-900 dark:text-white">{{ issue.stripe }}</code>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Stripe data summary (when available) -->
+                    <div
+                      v-if="getInvestigationResult(org.extid)!.stripe.available && getInvestigationResult(org.extid)!.stripe.subscription"
+                      class="mt-3 border-t border-gray-200 pt-3 dark:border-gray-600">
+                      <h5 class="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+                        Stripe Subscription Details
+                      </h5>
+                      <div class="grid grid-cols-2 gap-2 text-xs md:grid-cols-4">
+                        <div>
+                          <span class="text-gray-500 dark:text-gray-400">Status:</span>
+                          <span class="ml-1 font-medium text-gray-900 dark:text-white">
+                            {{ getInvestigationResult(org.extid)!.stripe.subscription!.status }}
+                          </span>
+                        </div>
+                        <div>
+                          <span class="text-gray-500 dark:text-gray-400">Product:</span>
+                          <span class="ml-1 font-medium text-gray-900 dark:text-white">
+                            {{ getInvestigationResult(org.extid)!.stripe.subscription!.product_name || 'N/A' }}
+                          </span>
+                        </div>
+                        <div>
+                          <span class="text-gray-500 dark:text-gray-400">Resolved Plan:</span>
+                          <span class="ml-1 font-medium text-gray-900 dark:text-white">
+                            {{ getInvestigationResult(org.extid)!.stripe.subscription!.resolved_plan_id || '(none)' }}
+                          </span>
+                        </div>
+                        <div>
+                          <span class="text-gray-500 dark:text-gray-400">Price ID:</span>
+                          <code class="ml-1 font-mono text-gray-700 dark:text-gray-300">
+                            {{ getInvestigationResult(org.extid)!.stripe.subscription!.price_id || 'N/A' }}
+                          </code>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </td>
