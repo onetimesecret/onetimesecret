@@ -205,9 +205,12 @@ module Onetime
           def extract_metadata_plan_id(subscription)
             price = subscription.items.data.first&.price
 
-            # Check price-level metadata first
-            price_plan_id = price&.metadata&.[](Billing::Metadata::FIELD_PLAN_ID)
-            return price_plan_id if price_plan_id && !price_plan_id.empty?
+            # Check price-level metadata first (defensive: VCR cassettes may have
+            # Stripe::StripeObject without metadata method)
+            if price.respond_to?(:metadata) && price.metadata
+              price_plan_id = price.metadata[Billing::Metadata::FIELD_PLAN_ID]
+              return price_plan_id if price_plan_id && !price_plan_id.empty?
+            end
 
             # Fall back to subscription-level metadata
             subscription.metadata&.[](Billing::Metadata::FIELD_PLAN_ID)
