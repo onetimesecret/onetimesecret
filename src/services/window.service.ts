@@ -17,7 +17,18 @@ const reactiveState = reactive<Partial<OnetimeWindow>>({});
  */
 function initializeReactiveState(): void {
   if (typeof window !== 'undefined' && window[STATE_KEY]) {
+    const windowState = window[STATE_KEY] as Record<string, unknown>;
+    console.debug('[WindowService.initializeReactiveState] Initializing from window state:', {
+      authenticated: windowState.authenticated,
+      had_valid_session: windowState.had_valid_session,
+      keysCount: Object.keys(windowState).length,
+    });
     Object.assign(reactiveState, window[STATE_KEY]);
+  } else {
+    console.debug('[WindowService.initializeReactiveState] No window state available:', {
+      windowDefined: typeof window !== 'undefined',
+      stateKeyExists: typeof window !== 'undefined' && !!window[STATE_KEY],
+    });
   }
 }
 
@@ -56,9 +67,12 @@ export const WindowService = {
    * @returns The typed window property value
    */
   get<K extends keyof OnetimeWindow>(key: K): OnetimeWindow[K] {
+    const isAuthKey = key === 'authenticated' || key === 'had_valid_session';
+
     // Check reactive state first (for reactivity after update()/refresh())
     const reactiveValue = reactiveState[key];
     if (reactiveValue !== undefined) {
+      if (isAuthKey) console.debug(`[WindowService.get] ${key} from reactiveState:`, reactiveValue);
       return reactiveValue as OnetimeWindow[K];
     }
 
@@ -66,10 +80,12 @@ export const WindowService = {
     if (typeof window !== 'undefined' && window[STATE_KEY]) {
       const windowValue = (window[STATE_KEY] as OnetimeWindow)[key];
       if (windowValue !== undefined) {
+        if (isAuthKey) console.debug(`[WindowService.get] ${key} from window fallback:`, windowValue);
         return windowValue;
       }
     }
 
+    if (isAuthKey) console.debug(`[WindowService.get] ${key} is undefined`);
     return undefined as OnetimeWindow[K];
   },
 

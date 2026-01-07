@@ -25,7 +25,7 @@ GET    /portal                                   Billing::Controllers::Plans#cus
 
 # Plan listing (no authentication required for browsing)
 GET    /api/plans                                Billing::Controllers::BillingController#list_plans response=json auth=noauth
-GET    /plans                                    Billing::Controllers::Page#index
+GET    /plans                                    Billing::Controllers::Page#index auth=sessionauth
 
 # Organization billing endpoints (authenticated)
 GET    /api/org/:extid                           Billing::Controllers::BillingController#overview response=json auth=sessionauth
