@@ -130,7 +130,10 @@ module Auth
           using_elevated_url: using_elevated_url
         raise
       ensure
-        test_conn.disconnect if using_elevated_url && test_conn != database_connection
+        # Disconnect if we created a separate elevated connection. Previously
+        # checked `test_conn != database_connection` but object comparison is
+        # unreliable due to connection pooling; the flag is authoritative.
+        test_conn.disconnect if using_elevated_url
       end
 
       def build_log_context(adapter_scheme)
@@ -168,7 +171,10 @@ module Auth
       rescue Sequel::DatabaseError
         0
       ensure
-        schema_conn.disconnect if using_elevated_url && schema_conn != database_connection
+        # Disconnect if we created a separate elevated connection. Previously
+        # checked `schema_conn != database_connection` but object comparison is
+        # unreliable due to connection pooling; the flag is authoritative.
+        schema_conn.disconnect if using_elevated_url
       end
 
       def log_migration_result(log_context, current_version, new_version, elapsed_μs)
@@ -238,10 +244,10 @@ module Auth
             )
           end
         ensure
-          # Only disconnect if we created a separate connection
-          if conn != database_connection
-            conn.disconnect
-          end
+          # Disconnect if we created a separate elevated connection. Previously
+          # checked `conn != database_connection` but object comparison is
+          # unreliable due to connection pooling; the flag is authoritative.
+          conn.disconnect if use_elevated
         end
       end
 
