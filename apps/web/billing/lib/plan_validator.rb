@@ -114,11 +114,22 @@ module Billing
 
       # Check catalog first (Stripe plans via direct load)
       cached_plan = Billing::Plan.load(plan_id)
-      return true if cached_plan&.exists?
+      if cached_plan&.exists?
+        OT.ld '[PlanValidator.valid_plan_id?] Found in catalog', { plan_id: plan_id }
+        return true
+      end
 
       # Fall back to static config plans (from billing.yaml)
       static_plans = Billing::Config.load_plans || {}
-      static_plans.key?(plan_id)
+      found_in_config = static_plans.key?(plan_id)
+
+      if found_in_config
+        OT.ld '[PlanValidator.valid_plan_id?] Found in static config', { plan_id: plan_id }
+      else
+        OT.ld '[PlanValidator.valid_plan_id?] Plan not found', { plan_id: plan_id }
+      end
+
+      found_in_config
     end
 
     # Get all available plan_ids from catalog and static config
