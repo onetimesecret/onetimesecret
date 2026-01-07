@@ -148,14 +148,6 @@ module Billing
       (catalog_plan_ids + static_plan_ids).uniq.sort
     end
 
-    # Get plan_ids defined in application config (legacy fallback)
-    #
-    # @return [Array<String>] Plan IDs from config
-    #
-    def config_plan_ids
-      (Billing::Config.load_plans || {}).keys
-    end
-
     # Detect drift between subscription metadata and catalog
     #
     # Compares the plan_id in subscription metadata against what the
