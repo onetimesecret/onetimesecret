@@ -573,7 +573,9 @@ module Billing
           OT.ld "[Plan.prune_stale_plans] Cleaned orphan entry: #{plan_id}"
           pruned_count += 1
         rescue StandardError => ex
-          OT.le '[Plan.prune_stale_plans] Error processing stale plan', {
+          # Always clean up orphan entry on unexpected errors to prevent stale references
+          instances.remove(plan_id)
+          OT.le '[Plan.prune_stale_plans] Error processing stale plan (cleaned orphan)', {
             plan_id: plan_id,
             error: ex.message,
           }

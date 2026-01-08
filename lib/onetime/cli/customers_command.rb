@@ -144,8 +144,14 @@ module Onetime
         customer.update_passphrase(password, algorithm: :argon2)
         customer.save
 
-        # Create SQL account and link
-        create_rodauth_account(db, email, password, customer.extid, verified)
+        # Create SQL account and link - rollback Redis on failure
+        begin
+          create_rodauth_account(db, email, password, customer.extid, verified)
+        rescue StandardError => ex
+          # Clean up orphaned Redis record if SQL creation fails
+          customer.destroy!
+          raise ex
+        end
 
         customer
       end

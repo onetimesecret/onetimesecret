@@ -212,22 +212,25 @@ module Billing
 
       # Record API failure
       #
-      # Increments failure count and opens circuit if threshold reached.
+      # Increments failure count atomically and opens circuit if threshold reached.
+      # Uses Redis HINCRBY for atomic increment to prevent race conditions in
+      # distributed environments where multiple processes may record failures
+      # simultaneously.
       #
       # @param error [Exception] The error that occurred
       #
       def record_failure(error)
-        state_data = load_state
-        new_count = state_data[:failure_count] + 1
+        redis = Familia.dbclient
         now = Time.now.to_i
 
+        # Atomic increment - prevents race conditions between load/increment/save
+        new_count = redis.hincrby(redis_key, 'failure_count', 1)
+        redis.hset(redis_key, 'last_failure_at', now.to_s)
+        redis.expire(redis_key, 3600) # Auto-expire after 1 hour
+
         if new_count >= FAILURE_THRESHOLD
-          # Open circuit
-          save_state(
-            failure_count: new_count,
-            last_failure_at: now,
-            opened_at: now,
-          )
+          # Open circuit - use HSETNX to only set opened_at once (first to reach threshold wins)
+          redis.hsetnx(redis_key, 'opened_at', now.to_s)
           billing_logger.warn '[StripeCircuitBreaker] Circuit OPENED', {
             failure_count: new_count,
             threshold: FAILURE_THRESHOLD,
@@ -235,12 +238,6 @@ module Billing
             error_message: error.message,
           }
         else
-          # Increment failure count
-          save_state(
-            failure_count: new_count,
-            last_failure_at: now,
-            opened_at: state_data[:opened_at],
-          )
           billing_logger.warn '[StripeCircuitBreaker] Failure recorded', {
             failure_count: new_count,
             threshold: FAILURE_THRESHOLD,
