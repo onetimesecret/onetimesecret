@@ -71,7 +71,6 @@ module Onetime
             'signin' => false,
             'signup' => false,
             'autoverify' => false,
-            'colonels' => [],
             'allowed_signup_domains' => [],
           },
         },
@@ -210,18 +209,6 @@ module Onetime
         conf['site']['authentication'].each_key do |key|
           conf['site']['authentication'][key] = false
         end
-      end
-
-      # Combine colonels from root level and authentication section
-      # This handles the legacy config where colonels were at the root level
-      # while ensuring we don't lose any colonels from either location
-      root_colonels                              = conf.fetch('colonels', [])
-      auth_colonels                              = conf.dig('site', 'authentication', 'colonels') || []
-      conf['site']['authentication']['colonels'] = (auth_colonels + root_colonels).compact.uniq
-
-      # Clear colonels and set to false if authentication is disabled
-      unless conf.dig('site', 'authentication', 'enabled')
-        conf['site']['authentication']['colonels'] = false
       end
 
       ttl_options = conf.dig('site', 'secret_options', 'ttl_options')

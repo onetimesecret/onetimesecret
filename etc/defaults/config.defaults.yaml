@@ -207,16 +207,6 @@ site:
     # a more restrictive mode where only authenticated users can create
     # secrets while maintaining site navigation and branding.
     required: <%= ENV['AUTH_REQUIRED'] == 'true' %>
-    # Email addresses listed below will be granted automatic
-    # administrative privileges upon account creation. These
-    # accounts have access to a page that show basic system stats.
-    # The term "colonel" is used instead of "admin". "Colonel" (which
-    # is pronounced "kernel") references both the protected core of a
-    # Linux system and a military rank, symbolizing high-level access
-    # permissions. This naming helps avoid basic, automated attacks
-    # that target common admin URLs or role names.
-    colonels:
-      - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
     # Restrict account creation to specific email domains while allowing
     # secret-sharing with any email address. When set, only email addresses
     # from the listed domains can create accounts. This is useful for

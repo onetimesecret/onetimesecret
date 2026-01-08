@@ -26,21 +26,17 @@ module V3
         OT.ld [:receive_feedback, msg].inspect
 
         begin
-          configured_colonels = OT.conf.dig('site', 'authentication', 'colonels') || []
-          OT.ld "[ReceiveFeedback] Configured colonels #{configured_colonels.inspect}"
-
-          first_colonel = nil
-          configured_colonels.each do |colonel_email|
-            OT.ld "Colonel: #{colonel_email}"
-            first_colonel = Onetime::Customer.find colonel_email
-            next unless first_colonel
-
-            OT.ld "[receive_feedback] Sending feedback to colonel: #{colonel_email} #{first_colonel}"
+          # Find the first colonel in the database to send feedback notification
+          # Colonels are managed via CLI: bin/ots role promote email --role colonel
+          first_colonel = find_first_colonel
+          if first_colonel
+            OT.ld "[receive_feedback] Sending feedback to colonel: #{first_colonel.obscure_email}"
             send_feedback first_colonel, msg
-            break
+          else
+            OT.ld '[receive_feedback] No colonels found in database, skipping email notification'
           end
         rescue StandardError => ex
-          # We liberally rescue all StandError exceptions here because we don't
+          # We liberally rescue all StandardError exceptions here because we don't
           # want to fail the user's feedback submission if we can't send an email.
           OT.le "Error sending feedback email to first colonel: #{ex.message}", ex.backtrace
         end
@@ -85,6 +81,19 @@ module V3
           # saved in Redis and available via the colonel interface.
         end
       end
+
+      # Find the first colonel in the database
+      # Returns nil if no colonels exist
+      def find_first_colonel
+        Onetime::Customer.instances.all.each do |custid|
+          customer = Onetime::Customer.load(custid)
+          next if customer.nil?
+
+          return customer if customer.role.to_s == 'colonel'
+        end
+        nil
+      end
+      private :find_first_colonel
     end
   end
 end

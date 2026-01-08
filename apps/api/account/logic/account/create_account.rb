@@ -67,12 +67,9 @@ module AccountAPI::Logic
 
           cust.update_passphrase password
 
-          colonels       = OT.conf.dig('site', 'authentication', 'colonels')
-          @customer_role = if colonels&.member?(cust.custid)
-                             'colonel'
-                           else
-                             'customer'
-                           end
+          # All new accounts get 'customer' role by default.
+          # Use `bin/ots role promote` to grant elevated roles.
+          @customer_role = 'customer'
 
           cust.verified    = @autoverify
           cust.verified_by = 'autoverify' if @autoverify  # Track verification method
