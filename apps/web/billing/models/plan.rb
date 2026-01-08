@@ -97,7 +97,8 @@ module Billing
 
     # Class-level timestamp for O(1) catalog freshness checks
     # Key: billing_plan:catalog_synced_at (via Familia)
-    class_string :catalog_synced_at, default_expiration: Billing::Config::CATALOG_TTL
+    # Uses json_string to preserve Float type (Familia.now returns Float)
+    class_json_string :catalog_synced_at, default_expiration: Billing::Config::CATALOG_TTL
 
     set :entitlements
     set :features
@@ -138,9 +139,12 @@ module Billing
 
     # Check if plan should show "Most Popular" badge
     #
+    # Familia v2 deserializes fields to JSON primitives, so is_popular
+    # is already a boolean (not a string) but can still be nil.
+    #
     # @return [Boolean] True if plan is marked as popular
     def popular?
-      is_popular.to_s == 'true'
+      !!is_popular
     end
 
     # Calculate monthly equivalent amount for display
@@ -726,10 +730,10 @@ module Billing
       # Get the last successful catalog sync timestamp
       #
       # Returns the Unix timestamp of the last successful Stripe sync,
-      # or nil if no sync has occurred. Uses class_string for O(1) lookup
-      # instead of loading all plans.
+      # or nil if no sync has occurred. Uses class_json_string for O(1)
+      # lookup instead of loading all plans.
       #
-      # @return [Integer, nil] Unix timestamp or nil
+      # @return [Integer, nil] Unix timestamp (truncated from Float) or nil
       def catalog_last_synced_at
         catalog_synced_at.to_i if catalog_synced_at.exists?
       end
@@ -737,7 +741,8 @@ module Billing
       # Update the global catalog sync timestamp
       #
       # Called after successful Stripe sync to record when the catalog
-      # was last refreshed. TTL set via class_string default_expiration.
+      # was last refreshed. Stores Familia.now (Float) with JSON serialization
+      # to preserve type. TTL set via default_expiration.
       #
       def update_catalog_sync_timestamp
         catalog_synced_at.value = Familia.now
