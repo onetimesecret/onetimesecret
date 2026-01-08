@@ -223,95 +223,8 @@ RSpec.describe Onetime::Config do
   end
 
   describe '#after_load' do
-    context 'colonels backwards compatibility' do
-      it 'moves colonels from root level to site.authentication when not present in site.authentication' do
-
-        # Config with colonels at root level only
-        raw_config = {
-          'colonels' => ['root@example.com', 'admin@example.com'],
-          'site' => {
-            'secret' => 'notnil',
-            'authentication' => {
-              'enabled' => true, # Set authentication as enabled
-            },
-          },
-          'development' => {},
-          'mail' => {
-            'truemail' => {},
-          },
-        }
-
-        processed_config = described_class.after_load(raw_config)
-        expect(processed_config['site']['authentication']['colonels']).to eq(['root@example.com', 'admin@example.com'])
-      end
-
-      it 'keeps colonels in site.authentication when present' do
-        # Config with colonels in site.authentication
-        raw_config = {
-          'site' => {
-             'secret' => 'notnil',
-            'authentication' => {
-              'enabled' => true, # Set authentication as enabled
-              'colonels' => ['site@example.com'],
-            },
-          },
-          'development' => {},
-          'mail' => {
-            'truemail' => {},
-          },
-        }
-
-        processed_config = described_class.after_load(raw_config)
-
-        expect(processed_config['site']['authentication']['colonels']).to eq(['site@example.com'])
-      end
-
-      it 'prioritizes site.authentication colonels when defined in both places' do
-        # Config with colonels in both places
-        raw_config = {
-          'colonels' => ['root@example.com', 'admin@example.com'],
-          'site' => {
-            'secret' => 'notnil',
-            'authentication' => {
-              'enabled' => true, # Set authentication as enabled
-              'colonels' => ['site@example.com', 'auth@example.com'],
-            },
-          },
-          'development' => {},
-          'mail' => {
-            'truemail' => {},
-          },
-        }
-
-        processed_config = described_class.after_load(raw_config)
-
-        # Should change the existing site.authentication.colonels by combining
-        # with the root colonel list coming afterwards.
-        expect(processed_config['site']['authentication']['colonels']).to eq(['site@example.com', 'auth@example.com', 'root@example.com', 'admin@example.com'])
-      end
-
-      it 'initializes empty colonels array when not defined anywhere' do
-        # Config with no colonels defined
-        raw_config = {
-          'site' => {
-            'secret' => 'notnil',
-            'authentication' => {
-              'enabled' => true, # Set authentication as enabled
-            },
-          },
-          'development' => {},
-          'mail' => {
-            'truemail' => {},
-          },
-        }
-
-        processed_config = described_class.after_load(raw_config)
-
-        expect(processed_config['site']['authentication']['colonels']).to eq([])
-      end
-
-      it 'uses default values when site is nil' do
-        # Config without site section
+    context 'site configuration validation' do
+      it 'uses default values when site has minimal config' do
         raw_config = {
           'site' => {
             'secret' => 'anyvaluewilldo',
@@ -327,10 +240,8 @@ RSpec.describe Onetime::Config do
       end
 
       it 'raises heck when site.secret is nil' do
-        # Config without site.authentication section
         config = {
-          'colonels' => ['root@example.com'],
-          'site' => {'secret' => nil},
+          'site' => { 'secret' => nil },
           'development' => {},
           'mail' => {
             'truemail' => {},
@@ -343,10 +254,8 @@ RSpec.describe Onetime::Config do
       end
 
       it 'raises heck when site.secret is CHANGEME (same behaviour as nil)' do
-        # Config without site.authentication section
         config = {
-          'colonels' => ['root@example.com'],
-          'site' => {'secret' => 'CHANGEME'},
+          'site' => { 'secret' => 'CHANGEME' },
           'development' => {},
           'mail' => {
             'truemail' => {},
@@ -359,9 +268,8 @@ RSpec.describe Onetime::Config do
       end
 
       it 'handles missing site.authentication section' do
-        # Config without site.authentication section
         config = {
-          'site' => {'secret' => '1234'},
+          'site' => { 'secret' => '1234' },
           'mail' => {
             'truemail' => {},
           },
@@ -370,28 +278,6 @@ RSpec.describe Onetime::Config do
         expect {
           described_class.after_load(config)
         }.not_to raise_error
-      end
-
-      it 'sets authentication colonels to false when authentication is disabled' do
-        # Config with authentication disabled
-        raw_config = {
-          'site' => {
-            'secret' => 'notnil',
-            'authentication' => {
-              'enabled' => false,
-              'colonels' => ['site@example.com'],
-            },
-          },
-          'development' => {},
-          'mail' => {
-            'truemail' => {},
-          },
-        }
-
-        processed_config = described_class.after_load(raw_config)
-
-        # When authentication is disabled, all authentication settings are set to false
-        expect(processed_config['site']['authentication']['colonels']).to eq(false)
       end
     end
   end
