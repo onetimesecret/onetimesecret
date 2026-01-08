@@ -170,6 +170,40 @@ module Billing
     end
 
     module ClassMethods
+      # Required metadata keys for OTS products (app check is separate)
+      # Note: 'interval' comes from the price object, not product metadata
+      REQUIRED_PRODUCT_METADATA = %w[tier region].freeze
+
+      # Validate product has all required metadata for plan creation
+      #
+      # @param product [Stripe::Product] The Stripe product
+      # @return [Array<String>] List of missing keys (empty if valid)
+      def validate_product_metadata(product)
+        metadata = product.metadata || {}
+        missing  = REQUIRED_PRODUCT_METADATA - metadata.keys.map(&:to_s)
+
+        if missing.any?
+          OT.lw '[Plan.validate_product_metadata] Product missing required metadata', {
+            product_id: product.id,
+            product_name: product.name,
+            missing_keys: missing.join(', '),
+          }
+        end
+
+        missing
+      end
+
+      # Check if product is a valid OTS product with all required metadata
+      #
+      # @param product [Stripe::Product] The Stripe product
+      # @return [Boolean] true if valid OTS product
+      def valid_ots_product?(product)
+        return false unless product.metadata&.dig(Metadata::FIELD_APP) == Metadata::APP_NAME
+
+        missing = validate_product_metadata(product)
+        missing.empty?
+      end
+
       # Refresh plan cache from Stripe API
       #
       # Fetches all active products and prices from Stripe, filters by app metadata,
@@ -262,28 +296,12 @@ module Billing
           products_processed += 1
           progress&.call("Processing product #{products_processed}: #{product.name[0..40]}...") if products_processed == 1 || products_processed % 5 == 0
 
-          # Skip products without required metadata
-          unless product.metadata[Metadata::FIELD_APP] == Metadata::APP_NAME
-            OT.ld '[Plan.collect_stripe_plans] Skipping product (not onetimesecret app)', {
+          # Skip products that aren't valid OTS products (wrong app or missing required metadata)
+          unless valid_ots_product?(product)
+            OT.ld '[Plan.collect_stripe_plans] Skipping invalid product', {
               product_id: product.id,
               product_name: product.name,
               app: product.metadata[Metadata::FIELD_APP],
-            }
-            next
-          end
-
-          unless product.metadata[Metadata::FIELD_TIER]
-            OT.ld '[Plan.collect_stripe_plans] Skipping product (missing tier)', {
-              product_id: product.id,
-              product_name: product.name,
-            }
-            next
-          end
-
-          unless product.metadata[Metadata::FIELD_REGION]
-            OT.ld '[Plan.collect_stripe_plans] Skipping product (missing region)', {
-              product_id: product.id,
-              product_name: product.name,
             }
             next
           end
@@ -301,6 +319,8 @@ module Billing
             next unless price.type == 'recurring'
 
             plan_data = extract_plan_data(product, price)
+            next if plan_data.nil? # Skip if metadata validation failed
+
             plan_data_list << plan_data
 
             OT.ld "[Plan.collect_stripe_plans] Collected plan: #{plan_data[:plan_id]}", {
@@ -320,8 +340,18 @@ module Billing
       #
       # @param product [Stripe::Product] Stripe product object
       # @param price [Stripe::Price] Stripe price object
-      # @return [Hash] Plan data ready for persistence
+      # @return [Hash, nil] Plan data ready for persistence, or nil if validation fails
       def extract_plan_data(product, price)
+        # Early return if missing required metadata
+        missing = validate_product_metadata(product)
+        if missing.any?
+          OT.le '[Plan.extract_plan_data] Cannot extract plan data - missing metadata', {
+            product_id: product.id,
+            missing_keys: missing,
+          }
+          return nil
+        end
+
         interval = price.recurring.interval # 'month' or 'year'
         tier     = product.metadata[Metadata::FIELD_TIER]
         region   = product.metadata[Metadata::FIELD_REGION]
@@ -389,6 +419,7 @@ module Billing
           plan_id: plan_id,
           stripe_price_id: price.id,
           stripe_product_id: product.id,
+          stripe_updated_at: product.updated.to_s, # Unix timestamp for stale update detection
           name: product.name,
           tier: tier,
           interval: interval,
@@ -505,6 +536,19 @@ module Billing
           nil
         end
 
+        # Check for stale update (out-of-order webhook delivery)
+        # Only skip if BOTH timestamps are valid (> 0)
+        if existing && plan_data[:stripe_updated_at]
+          incoming_updated = plan_data[:stripe_updated_at].to_i
+          existing_updated = existing.stripe_updated_at.to_i
+
+          if incoming_updated > 0 && existing_updated > 0 && incoming_updated <= existing_updated
+            OT.ld "[Plan.upsert_from_stripe_data] Skipping stale update for #{plan_id} " \
+                  "(incoming: #{incoming_updated}, existing: #{existing_updated})"
+            return existing
+          end
+        end
+
         plan = existing || new(plan_id: plan_id)
 
         # Apply scalar fields from plan_data
@@ -529,6 +573,9 @@ module Billing
         plan.trial_period_days  = plan_data[:trial_period_days]
         plan.nickname           = plan_data[:nickname]
         plan.last_synced_at     = Time.now.to_i.to_s
+
+        # Store stripe_updated_at for future stale update comparison
+        plan.stripe_updated_at  = plan_data[:stripe_updated_at] || Time.now.to_i.to_s
 
         # Clear and repopulate entitlements set
         plan.entitlements.clear

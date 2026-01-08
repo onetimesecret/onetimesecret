@@ -63,6 +63,34 @@ module Billing
 
         private
 
+        # Fetch from Stripe with exponential backoff on rate limits
+        #
+        # Implements retry logic with jitter to handle Stripe rate limiting
+        # gracefully. The delay doubles with each retry plus random jitter
+        # to prevent thundering herd.
+        #
+        # @param max_retries [Integer] Maximum retry attempts (default: 3)
+        # @yield Block containing Stripe API call
+        # @return Result of the block
+        # @raise [Stripe::RateLimitError] After max_retries exceeded
+        def fetch_with_retry(max_retries: 3)
+          retries = 0
+          begin
+            yield
+          rescue Stripe::RateLimitError
+            retries += 1
+            if retries <= max_retries
+              delay = (2**retries) + rand # Exponential backoff with jitter
+              billing_logger.warn '[CatalogUpdated] Rate limited, retry ' \
+                                  "#{retries}/#{max_retries} after #{delay.round(1)}s"
+              sleep(delay)
+              retry
+            end
+            billing_logger.error "[CatalogUpdated] Rate limit exceeded after #{max_retries} retries"
+            raise
+          end
+        end
+
         # Sync a single product and all its active prices
         #
         # Fetches fresh data from Stripe (webhook payload may be stale) and
@@ -74,13 +102,13 @@ module Billing
         # @param product_id [String] Stripe product ID
         def sync_single_product(product_id)
           # Fetch fresh from Stripe - webhook payload is a snapshot and may be stale
-          product = Stripe::Product.retrieve(product_id)
+          product = fetch_with_retry { Stripe::Product.retrieve(product_id) }
 
           # Only sync OTS products (filter by app metadata)
           return unless product.metadata['app'] == 'onetimesecret'
 
           # Get all active prices for this product
-          prices = Stripe::Price.list(product: product_id, active: true)
+          prices = fetch_with_retry { Stripe::Price.list(product: product_id, active: true) }
           synced_count = 0
 
           prices.auto_paging_each do |price|
@@ -109,8 +137,8 @@ module Billing
         # @param price_id [String] Stripe price ID
         def sync_single_price(price_id)
           # Fetch fresh price and its product
-          price = Stripe::Price.retrieve(price_id)
-          product = Stripe::Product.retrieve(price.product)
+          price = fetch_with_retry { Stripe::Price.retrieve(price_id) }
+          product = fetch_with_retry { Stripe::Product.retrieve(price.product) }
 
           # Only sync OTS products
           return unless product.metadata['app'] == 'onetimesecret'
