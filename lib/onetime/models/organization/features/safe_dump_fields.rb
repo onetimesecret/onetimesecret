@@ -27,6 +27,19 @@ module Onetime::Organization::Features
       base.safe_dump_field :domain_count, ->(org) { org.domain_count }
       base.safe_dump_field :updated
       base.safe_dump_field :created
+
+      # Entitlements and limits from plan (via WithEntitlements feature)
+      # These enable frontend feature gating and quota display
+      base.safe_dump_field :entitlements, ->(org) { org.entitlements }
+      base.safe_dump_field :limits, lambda { |org|
+        # Convert Float::INFINITY to -1 for JSON serialization (unlimited)
+        normalize = ->(val) { val == Float::INFINITY ? -1 : val.to_i }
+        {
+          teams: normalize.call(org.limit_for(:teams)),
+          members_per_team: normalize.call(org.limit_for(:members_per_team)),
+          custom_domains: normalize.call(org.limit_for(:custom_domains)),
+        }
+      }
     end
   end
 end

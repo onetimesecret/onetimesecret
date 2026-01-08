@@ -82,7 +82,6 @@ module Onetime
 
         # Generate password if not provided
         password ||= generate_secure_password
-        obscured = OT::Utils.obscure_email(email)
 
         auth_mode = Onetime.auth_config.mode
         puts "Creating customer in #{auth_mode} auth mode..."
@@ -98,7 +97,7 @@ module Onetime
         end
 
         puts
-        puts "Customer created: #{obscured}"
+        puts "Customer created: #{email}"
         puts "Role: #{role}"
         puts "Verified: #{verified}"
         puts
@@ -106,7 +105,8 @@ module Onetime
         puts
         puts 'Save this password - it will not be displayed again.'
 
-        OT.info "[customer-create] #{obscured} role=#{role} verified=#{verified} auth_mode=#{auth_mode}"
+        # Obscure email only in logs for privacy
+        OT.info "[customer-create] #{OT::Utils.obscure_email(email)} role=#{role} verified=#{verified} auth_mode=#{auth_mode}"
       end
 
       # Simple mode: Redis-only customer creation

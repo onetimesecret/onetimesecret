@@ -175,7 +175,9 @@ module Onetime
             level_str      = log_level.to_s.downcase
             allowed_levels = %w[trace debug info warn error fatal]
             if allowed_levels.include?(level_str)
-              Onetime.jobs_logger.level = level_str.to_sym
+              level_sym = level_str.to_sym
+              Onetime.jobs_logger.level  = level_sym
+              Onetime.bunny_logger.level = level_sym # Also controls Sneakers internal logging
             else
               Onetime.jobs_logger.warn(
                 "Ignoring invalid log level: #{log_level.inspect}. Allowed: #{allowed_levels.join(', ')}",
@@ -196,11 +198,10 @@ module Onetime
             ack: true,
             heartbeat: 60, # Keeps connection alive; server closes after 2× interval of silence
             prefetch: concurrency,
-            # Use Bunny logger from centralized logging config (setup_rabbitmq.rb pattern).
-            # Note: Sneakers logs "Working off: <msg>" at debug level with escaped JSON -
-            # this is Sneakers' internal logging, not our worker code. Set BUNNY_LOG_LEVEL
-            # higher to suppress these while keeping worker logs verbose.
-            logger: Onetime.bunny_logger,
+            # Pass SemanticLogger to Sneakers via :log - Sneakers checks if the value
+            # responds to :info/:debug/:error/:warn and uses it directly instead of
+            # creating a ServerEngine::DaemonLogger. This unifies all worker logging.
+            log: Onetime.bunny_logger,
             # Hooks to configure logging in forked worker processes
             hooks: {
               after_fork: -> {
