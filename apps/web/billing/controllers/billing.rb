@@ -374,6 +374,26 @@ module Billing
         amounts   = calculate_proration_amounts(preview)
         new_price = find_price_in_preview(preview, new_price_id)
 
+        # Calculate convenience fields for frontend credit display
+        #
+        # For downgrades: immediate_amount is negative (net credit from proration)
+        # This credit goes to customer balance and applies to future invoices
+        #
+        # Example: Downgrade from $99 to $35 mid-cycle
+        #   - credit_applied: $133.91 (unused time on old plan)
+        #   - immediate_amount: -$98.91 (net credit after new plan proration)
+        #   - next_period_amount: $35.00 (next full month on new plan)
+        #   - proration_credit_to_balance: $98.91
+        #   - actual_next_billing_due: max(0, $35 - $98.91) = $0
+        #   - remaining_credit: max(0, $98.91 - $35) = $63.91
+        #
+        proration_credit_to_balance = amounts[:immediate_amount].negative? ? amounts[:immediate_amount].abs : 0
+        actual_next_billing_due = [amounts[:next_period_amount] - proration_credit_to_balance, 0].max
+        remaining_credit = [proration_credit_to_balance - amounts[:next_period_amount], 0].max
+
+        # Also capture Stripe's ending_balance if available (may be nil for previews)
+        ending_balance = preview.ending_balance || 0
+
         json_response({
           amount_due: preview.amount_due,
           immediate_amount: amounts[:immediate_amount],
@@ -392,8 +412,12 @@ module Billing
             amount: new_price&.unit_amount,
             interval: new_price&.recurring&.interval,
           },
-        },
-                     )
+          # Credit breakdown fields for clearer frontend display
+          ending_balance: ending_balance,           # Negative = credit remaining after invoice
+          tax: extract_tax_amount(preview),         # Tax amount on this invoice (if available)
+          remaining_credit: remaining_credit,        # Absolute value of credit if ending_balance negative
+          actual_next_billing_due: actual_next_billing_due, # What they'll actually pay at next billing
+        })
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
@@ -644,6 +668,33 @@ module Billing
             immediate_amount: proration_lines.sum(&:amount),
             next_period_amount: regular_lines.sum(&:amount),
           }
+        end
+
+        # Extract tax amount from invoice preview
+        # Handles Stripe API version changes (total_tax_amounts → total_taxes in 2025-03-31)
+        #
+        # @param preview [Stripe::Invoice] Invoice preview object
+        # @return [Integer] Tax amount in cents, or 0 if not available
+        def extract_tax_amount(preview)
+          # New API (2025-03-31+): total_taxes
+          if preview.respond_to?(:total_taxes) && preview.total_taxes&.any?
+            return preview.total_taxes.sum { |t| t.amount }
+          end
+
+          # Legacy API: total_tax_amounts (deprecated but may still be present)
+          if preview.respond_to?(:total_tax_amounts) && preview.total_tax_amounts&.any?
+            return preview.total_tax_amounts.sum { |t| t.amount }
+          end
+
+          # Fallback: calculate from total - subtotal_excluding_tax (most reliable)
+          if preview.respond_to?(:total) && preview.respond_to?(:subtotal_excluding_tax)
+            subtotal_ex_tax = preview.subtotal_excluding_tax || preview.subtotal || 0
+            tax_diff = (preview.total || 0) - subtotal_ex_tax
+            return tax_diff if tax_diff.positive?
+          end
+
+          # No tax info available
+          0
         end
 
         # Find price object from invoice preview lines

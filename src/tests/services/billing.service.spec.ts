@@ -111,6 +111,118 @@ describe('BillingService', () => {
       expect(result.credit_applied).toBe(2900);
       expect(result.new_plan.amount).toBe(9900);
     });
+
+    it('returns new credit breakdown fields for downgrades', async () => {
+      const mockResponse = {
+        data: {
+          amount_due: 0,
+          subtotal: -4600,
+          credit_applied: 6400,
+          next_billing_date: 1704067200,
+          currency: 'usd',
+          current_plan: { price_id: 'price_high', amount: 9900, interval: 'month' },
+          new_plan: { price_id: 'price_low', amount: 3500, interval: 'month' },
+          // New fields for credit breakdown
+          immediate_amount: -4600,
+          next_period_amount: 3500,
+          ending_balance: -9900,  // Negative = credit remaining
+          tax: 0,
+          remaining_credit: 9900,  // Absolute value
+          actual_next_billing_due: 0,  // Covered by credit
+        },
+      };
+      mockPost.mockResolvedValueOnce(mockResponse);
+
+      const result = await BillingService.previewPlanChange('org_test', 'price_low');
+
+      expect(result.ending_balance).toBe(-9900);
+      expect(result.remaining_credit).toBe(9900);
+      expect(result.actual_next_billing_due).toBe(0);
+      expect(result.tax).toBe(0);
+      expect(result.immediate_amount).toBe(-4600);
+      expect(result.next_period_amount).toBe(3500);
+    });
+
+    it('returns positive values for upgrade scenario', async () => {
+      const mockResponse = {
+        data: {
+          amount_due: 5000,
+          subtotal: 5000,
+          credit_applied: 4950,
+          next_billing_date: 1704067200,
+          currency: 'usd',
+          current_plan: { price_id: 'price_low', amount: 9900, interval: 'month' },
+          new_plan: { price_id: 'price_high', amount: 19900, interval: 'month' },
+          immediate_amount: 5000,
+          next_period_amount: 19900,
+          ending_balance: 0,
+          tax: 0,
+          remaining_credit: 0,
+          actual_next_billing_due: 19900,
+        },
+      };
+      mockPost.mockResolvedValueOnce(mockResponse);
+
+      const result = await BillingService.previewPlanChange('org_test', 'price_high');
+
+      expect(result.ending_balance).toBe(0);
+      expect(result.remaining_credit).toBe(0);
+      expect(result.actual_next_billing_due).toBe(19900);
+      expect(result.immediate_amount).toBe(5000);
+    });
+
+    it('includes tax in preview response', async () => {
+      const mockResponse = {
+        data: {
+          amount_due: 1695,
+          subtotal: 1500,
+          credit_applied: 2000,
+          next_billing_date: 1704067200,
+          currency: 'usd',
+          current_plan: { price_id: 'price_a', amount: 4000, interval: 'month' },
+          new_plan: { price_id: 'price_b', amount: 3500, interval: 'month' },
+          immediate_amount: 1500,
+          next_period_amount: 3500,
+          ending_balance: 0,
+          tax: 195,  // 13% tax
+          remaining_credit: 0,
+          actual_next_billing_due: 3500,
+        },
+      };
+      mockPost.mockResolvedValueOnce(mockResponse);
+
+      const result = await BillingService.previewPlanChange('org_test', 'price_b');
+
+      expect(result.tax).toBe(195);
+      expect(result.amount_due).toBe(1695);  // Includes tax
+    });
+
+    it('handles credit exactly matching next billing', async () => {
+      const mockResponse = {
+        data: {
+          amount_due: 0,
+          subtotal: 0,
+          credit_applied: 3500,
+          next_billing_date: 1704067200,
+          currency: 'usd',
+          current_plan: { price_id: 'price_high', amount: 9900, interval: 'month' },
+          new_plan: { price_id: 'price_low', amount: 3500, interval: 'month' },
+          immediate_amount: 0,
+          next_period_amount: 3500,
+          ending_balance: 0,
+          tax: 0,
+          remaining_credit: 0,
+          actual_next_billing_due: 0,  // Exactly covered
+        },
+      };
+      mockPost.mockResolvedValueOnce(mockResponse);
+
+      const result = await BillingService.previewPlanChange('org_test', 'price_low');
+
+      expect(result.ending_balance).toBe(0);
+      expect(result.remaining_credit).toBe(0);
+      expect(result.actual_next_billing_due).toBe(0);
+    });
   });
 
   describe('changePlan', () => {

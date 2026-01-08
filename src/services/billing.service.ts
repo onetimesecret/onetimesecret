@@ -132,6 +132,14 @@ export interface PlanChangePreviewResponse {
   immediate_amount?: number;
   /** Regular subscription amount for the next billing period. New field - may not be present in older API responses */
   next_period_amount?: number;
+  /** Ending balance after invoice. Negative = credit remaining on account */
+  ending_balance?: number;
+  /** Tax amount on this invoice */
+  tax?: number;
+  /** Convenience field: absolute value of ending_balance when negative (credit remaining) */
+  remaining_credit?: number;
+  /** What customer will actually pay at next billing (after credits applied) */
+  actual_next_billing_due?: number;
 }
 
 /**
