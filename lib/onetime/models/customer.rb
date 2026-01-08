@@ -74,6 +74,7 @@ module Onetime
     feature :safe_dump_fields
     feature :with_custom_domains
     feature :status
+    feature :colonel_tracking
 
     feature :deprecated_fields
     feature :legacy_encrypted_fields

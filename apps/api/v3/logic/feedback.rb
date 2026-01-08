@@ -84,14 +84,10 @@ module V3
 
       # Find the first colonel in the database
       # Returns nil if no colonels exist
+      # Delegates to Customer.find_first_colonel which uses a class_sorted_set
+      # for O(1) lookup instead of O(n) scanning all customers.
       def find_first_colonel
-        Onetime::Customer.instances.all.each do |custid|
-          customer = Onetime::Customer.load(custid)
-          next if customer.nil?
-
-          return customer if customer.role.to_s == 'colonel'
-        end
-        nil
+        Onetime::Customer.find_first_colonel
       end
       private :find_first_colonel
     end
