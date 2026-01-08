@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'base_handler'
+require_relative '../../lib/stripe_circuit_breaker'
 
 module Billing
   module Operations
@@ -16,6 +17,13 @@ module Billing
       #
       # Deletion events mark plans as inactive (soft-delete) rather than
       # destroying them, preserving historical data and preventing lookup failures.
+      #
+      # ## Circuit Breaker Integration
+      #
+      # When the Stripe circuit breaker is open, instead of failing the webhook,
+      # this handler schedules the event for retry via the CatalogRetryJob.
+      # This ensures catalog updates are eventually processed after Stripe
+      # recovers, without losing webhook delivery acknowledgment.
       #
       # Errors are logged but not re-raised to avoid failing the webhook
       # for non-critical catalog sync operations.
@@ -50,6 +58,8 @@ module Billing
           end
 
           :success
+        rescue Billing::CircuitOpenError => ex
+          schedule_circuit_retry(ex)
         rescue StandardError => ex
           billing_logger.error '[CatalogUpdated] Sync failed', {
             error: ex.message,
@@ -63,8 +73,56 @@ module Billing
 
         private
 
-        # Fetch from Stripe with exponential backoff on rate limits
+        # Schedule event for retry when circuit breaker is open
         #
+        # Uses the webhook event record (if available in context) to schedule
+        # a retry via CatalogRetryJob. If no event record is available (e.g.,
+        # during CLI replay), logs and returns success.
+        #
+        # @param error [Billing::CircuitOpenError] The circuit open error
+        # @return [Symbol] :queued if scheduled, :success otherwise
+        def schedule_circuit_retry(error)
+          webhook_event = @context[:webhook_event]
+
+          # If no event record available, we can't schedule retry
+          # This happens during CLI replays or sync fallback processing
+          unless webhook_event
+            billing_logger.warn '[CatalogUpdated] Circuit breaker open, no event record for retry', {
+              event_type: @event.type,
+              object_id: @data_object.id,
+              retry_after: error.retry_after,
+            }
+            return :success
+          end
+
+          # Check if already at max retries
+          if webhook_event.circuit_retry_exhausted?
+            billing_logger.error '[CatalogUpdated] Circuit retry exhausted', {
+              event_type: @event.type,
+              object_id: @data_object.id,
+              retry_count: webhook_event.circuit_retry_count,
+            }
+            webhook_event.mark_failed!(error)
+            return :success
+          end
+
+          # Schedule retry with delay from circuit breaker or exponential backoff
+          delay = error.retry_after || 60
+          webhook_event.schedule_circuit_retry(delay_seconds: delay)
+
+          billing_logger.warn '[CatalogUpdated] Circuit breaker open, scheduled retry', {
+            event_type: @event.type,
+            object_id: @data_object.id,
+            retry_after: delay,
+            retry_count: webhook_event.circuit_retry_count,
+          }
+
+          :queued
+        end
+
+        # Fetch from Stripe with circuit breaker and exponential backoff
+        #
+        # Uses circuit breaker to prevent cascade failures during Stripe outages.
         # Implements retry logic with jitter to handle Stripe rate limiting
         # gracefully. The delay doubles with each retry plus random jitter
         # to prevent thundering herd.
@@ -73,21 +131,24 @@ module Billing
         # @yield Block containing Stripe API call
         # @return Result of the block
         # @raise [Stripe::RateLimitError] After max_retries exceeded
+        # @raise [Billing::CircuitOpenError] If circuit breaker is open
         def fetch_with_retry(max_retries: 3)
-          retries = 0
-          begin
-            yield
-          rescue Stripe::RateLimitError
-            retries += 1
-            if retries <= max_retries
-              delay = (2**retries) + rand # Exponential backoff with jitter
-              billing_logger.warn '[CatalogUpdated] Rate limited, retry ' \
-                                  "#{retries}/#{max_retries} after #{delay.round(1)}s"
-              sleep(delay)
-              retry
+          Billing::StripeCircuitBreaker.call do
+            retries = 0
+            begin
+              yield
+            rescue Stripe::RateLimitError
+              retries += 1
+              if retries <= max_retries
+                delay = (2**retries) + rand # Exponential backoff with jitter
+                billing_logger.warn '[CatalogUpdated] Rate limited, retry ' \
+                                    "#{retries}/#{max_retries} after #{delay.round(1)}s"
+                sleep(delay)
+                retry
+              end
+              billing_logger.error "[CatalogUpdated] Rate limit exceeded after #{max_retries} retries"
+              raise
             end
-            billing_logger.error "[CatalogUpdated] Rate limit exceeded after #{max_retries} retries"
-            raise
           end
         end
 

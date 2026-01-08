@@ -501,6 +501,14 @@ jobs:
   # Skips gracefully if no Stripe API key is configured (standalone mode).
   plan_cache_refresh_enabled: <%= ENV['JOBS_PLAN_CACHE_REFRESH_ENABLED'] == 'true' || false %>
 
+  # Catalog Retry Job
+  # Retries webhook events that were blocked by the Stripe circuit breaker.
+  # When Stripe API is unavailable, catalog update webhooks (product.updated,
+  # price.created, etc.) are queued for retry rather than failing. This job
+  # processes those queued events once the circuit breaker closes.
+  # Runs every 2 minutes when enabled; skips if circuit is still open.
+  catalog_retry_enabled: <%= ENV['JOBS_CATALOG_RETRY_ENABLED'] == 'true' || false %>
+
   # Expiration warning emails
   # Send email notifications before secrets expire to warn recipients
   expiration_warnings:

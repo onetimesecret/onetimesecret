@@ -110,14 +110,20 @@ module Onetime
           return reject! unless event
 
           # Delegate to operation with retry logic
+          result = nil
           with_retry(max_retries: 3, base_delay: 2.0) do
-            process_event(event, data)
+            result = process_event(event, data)
           end
 
-          # Mark event as successfully processed in tracking record
-          mark_event_success(data[:event_id])
+          # Handle circuit retry scheduling - don't mark as success if queued for retry
+          if result == :queued
+            log_info "Billing event queued for circuit retry: #{data[:event_type]}", event_id: data[:event_id]
+          else
+            # Mark event as successfully processed in tracking record
+            mark_event_success(data[:event_id])
+            log_info "Billing event processed: #{data[:event_type]}", event_id: data[:event_id]
+          end
 
-          log_info "Billing event processed: #{data[:event_type]}", event_id: data[:event_id]
           ack!
         rescue StandardError => ex
           log_error 'Unexpected error processing billing event', ex
@@ -155,12 +161,16 @@ module Onetime
         # @param event [Stripe::Event] The Stripe event
         # @param data [Hash] Original message data (for context)
         def process_event(event, data)
+          # Lookup the webhook event record for circuit retry scheduling
+          webhook_event = Billing::StripeWebhookEvent.find_by_identifier(event.id)
+
           operation = Billing::Operations::ProcessWebhookEvent.new(
             event: event,
             context: {
               source: :async_worker,
               source_message_id: message_id,
               received_at: data[:received_at],
+              webhook_event: webhook_event,
             },
           )
           operation.call

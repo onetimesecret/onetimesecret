@@ -2,6 +2,7 @@
 #
 # frozen_string_literal: true
 
+require_relative '../config'
 require_relative '../models/plan'
 
 module Billing
@@ -70,11 +71,10 @@ module Billing
         return false unless sample_plan&.last_synced_at
 
         # Calculate staleness (last_synced_at is stored as Unix timestamp string)
-        last_sync     = sample_plan.last_synced_at.to_i
-        staleness     = Time.now.to_i - last_sync
-        max_staleness = 12 * 60 * 60 # 12 hours in seconds
+        last_sync = sample_plan.last_synced_at.to_i
+        staleness = Time.now.to_i - last_sync
 
-        staleness < max_staleness
+        staleness < Billing::Config::CATALOG_TTL
       end
     end
   end

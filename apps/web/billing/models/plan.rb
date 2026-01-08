@@ -5,6 +5,7 @@
 require 'stripe'
 require_relative '../metadata'
 require_relative '../config'
+require_relative '../lib/stripe_circuit_breaker'
 
 module Billing
   unless defined?(RECORD_LIMIT)
@@ -55,14 +56,12 @@ module Billing
   # if parsing logic changes or bugs are fixed.
   #
   class Plan < Familia::Horreum
-    using Familia::Refinements::TimeLiterals
-
     prefix :billing_plan
 
     feature :safe_dump
     feature :expiration
 
-    default_expiration 12.hour      # Auto-expire after 12 hours
+    default_expiration Billing::Config::CATALOG_TTL  # Auto-expire after 12 hours
 
     identifier_field :plan_id    # Computed: tier_interval_region
 
@@ -99,7 +98,7 @@ module Billing
     set :entitlements
     set :features
     hashkey :limits
-    stringkey :stripe_data_snapshot, default_expiration: 12.hour  # Cached Stripe Product+Price JSON for recovery
+    stringkey :stripe_data_snapshot, default_expiration: Billing::Config::CATALOG_TTL  # Cached Stripe Product+Price JSON for recovery
 
     def init
       super
@@ -198,7 +197,7 @@ module Billing
       # @param product [Stripe::Product] The Stripe product
       # @return [Boolean] true if valid OTS product
       def valid_ots_product?(product)
-        return false unless product.metadata&.dig(Metadata::FIELD_APP) == Metadata::APP_NAME
+        return false unless product.metadata && product.metadata[Metadata::FIELD_APP] == Metadata::APP_NAME
 
         missing = validate_product_metadata(product)
         missing.empty?
@@ -224,6 +223,7 @@ module Billing
       # @param progress [Proc, nil] Optional progress callback (called with status messages)
       # @return [Integer] Number of plans synced
       # @raise [Stripe::StripeError] If Stripe API call fails during fetch phase
+      # @raise [Billing::CircuitOpenError] If circuit breaker is open
       def refresh_from_stripe(progress: nil)
         # Skip Stripe sync in CI/test environments without API key
         stripe_key = Onetime.billing_config.stripe_key
@@ -236,7 +236,10 @@ module Billing
 
         # PHASE 1: Fetch all data from Stripe into memory
         # No Redis writes occur during this phase
-        plan_data_list = collect_stripe_plans(progress: progress)
+        # Circuit breaker protects against cascade failures during Stripe outages
+        plan_data_list = Billing::StripeCircuitBreaker.call do
+          collect_stripe_plans(progress: progress)
+        end
 
         if plan_data_list.empty?
           OT.lw '[Plan.refresh_from_stripe] No valid plans fetched from Stripe'

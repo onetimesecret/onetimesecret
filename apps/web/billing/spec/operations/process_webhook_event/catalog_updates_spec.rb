@@ -10,6 +10,7 @@
 require_relative '../../support/billing_spec_helper'
 require_relative 'shared_examples'
 require_relative '../../../operations/process_webhook_event'
+require_relative '../../../models/stripe_webhook_event'
 
 RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_webhook_event do
   let(:created_customers) { [] }
@@ -390,6 +391,69 @@ RSpec.describe 'ProcessWebhookEvent: catalog updates', :integration, :process_we
 
       it 'does not propagate the error' do
         expect { operation.call }.not_to raise_error
+      end
+    end
+
+    context 'when circuit breaker is open' do
+      let(:webhook_event) do
+        instance_double(
+          Billing::StripeWebhookEvent,
+          circuit_retry_exhausted?: false,
+          circuit_retry_count: '0',
+          schedule_circuit_retry: true
+        )
+      end
+
+      let(:operation_with_context) do
+        Billing::Operations::ProcessWebhookEvent.new(
+          event: event,
+          context: { webhook_event: webhook_event }
+        )
+      end
+
+      before do
+        allow(Billing::StripeCircuitBreaker).to receive(:call)
+          .and_raise(Billing::CircuitOpenError.new('Circuit open', retry_after: 60))
+      end
+
+      it 'schedules circuit retry when webhook_event is available' do
+        result = operation_with_context.call
+        expect(result).to eq(:queued)
+        expect(webhook_event).to have_received(:schedule_circuit_retry).with(delay_seconds: 60)
+      end
+
+      it 'returns :success when no webhook_event in context' do
+        result = operation.call
+        expect(result).to eq(:success)
+      end
+    end
+
+    context 'when circuit retry is exhausted' do
+      let(:webhook_event) do
+        instance_double(
+          Billing::StripeWebhookEvent,
+          circuit_retry_exhausted?: true,
+          circuit_retry_count: '5',
+          mark_failed!: true
+        )
+      end
+
+      let(:operation_with_context) do
+        Billing::Operations::ProcessWebhookEvent.new(
+          event: event,
+          context: { webhook_event: webhook_event }
+        )
+      end
+
+      before do
+        allow(Billing::StripeCircuitBreaker).to receive(:call)
+          .and_raise(Billing::CircuitOpenError.new('Circuit open', retry_after: 60))
+      end
+
+      it 'marks event as failed when max retries reached' do
+        result = operation_with_context.call
+        expect(result).to eq(:success)
+        expect(webhook_event).to have_received(:mark_failed!)
       end
     end
   end

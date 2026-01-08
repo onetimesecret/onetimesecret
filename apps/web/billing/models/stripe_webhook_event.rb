@@ -87,6 +87,15 @@ module Billing
     field :pending_webhooks  # Number of pending webhooks for this event
 
     # ========================================
+    # Circuit Breaker Retry Scheduling
+    # ========================================
+    # When the Stripe circuit breaker is open, events are scheduled for retry
+    # rather than failing immediately. This allows recovery after the circuit
+    # transitions to half-open or closed state.
+    field :circuit_retry_at     # Unix timestamp when retry should be attempted
+    field :circuit_retry_count  # Number of circuit-open retries attempted (default: 0)
+
+    # ========================================
     # Debugging and Replay
     # ========================================
     field :event_payload     # Full JSON payload from Stripe
@@ -144,6 +153,94 @@ module Billing
     # @return [Boolean] True if attempt_count >= 3
     def max_attempts_reached?
       attempt_count.to_i >= 3
+    end
+
+    # ========================================
+    # Circuit Breaker Retry Methods
+    # ========================================
+
+    # Maximum number of circuit-open retries before giving up
+    CIRCUIT_RETRY_MAX = 5
+
+    # Check if event is scheduled for circuit retry
+    # @return [Boolean] True if circuit_retry_at is set
+    def circuit_retry_scheduled?
+      !circuit_retry_at.nil? && circuit_retry_at.to_i > 0
+    end
+
+    # Check if event is due for circuit retry
+    # @return [Boolean] True if retry time has passed and not at max retries
+    def circuit_retry_due?
+      return false unless circuit_retry_scheduled?
+      return false if circuit_retry_count.to_i >= CIRCUIT_RETRY_MAX
+
+      Time.now.to_i >= circuit_retry_at.to_i
+    end
+
+    # Check if circuit retry max attempts reached
+    # @return [Boolean] True if circuit_retry_count >= CIRCUIT_RETRY_MAX
+    def circuit_retry_exhausted?
+      circuit_retry_count.to_i >= CIRCUIT_RETRY_MAX
+    end
+
+    # Schedule event for circuit retry
+    #
+    # Called when the Stripe circuit breaker is open. Uses exponential
+    # backoff to avoid hammering Stripe during extended outages.
+    #
+    # @param delay_seconds [Integer] Seconds to wait before retry (default: based on retry count)
+    # @return [Boolean] True if save succeeded
+    def schedule_circuit_retry(delay_seconds: nil)
+      current_count = circuit_retry_count.to_i
+
+      # Calculate delay with exponential backoff if not specified
+      # Base: 60s, then 120s, 240s, 480s, 960s
+      delay = delay_seconds || (60 * (2**current_count))
+
+      self.circuit_retry_at = (Time.now.to_i + delay).to_s
+      self.circuit_retry_count = (current_count + 1).to_s
+      self.processing_status = 'retrying'
+      save
+    end
+
+    # Clear circuit retry scheduling (called after successful retry)
+    # @return [Boolean] True if save succeeded
+    def clear_circuit_retry
+      self.circuit_retry_at = nil
+      self.circuit_retry_count = '0'
+      save
+    end
+
+    # Find all events due for circuit retry
+    #
+    # Note: This scans all webhook events. For high-volume systems, consider
+    # a Redis sorted set index keyed by retry_at timestamp.
+    #
+    # @param limit [Integer] Maximum events to return
+    # @return [Array<StripeWebhookEvent>] Events ready for retry
+    def self.find_circuit_retry_due(limit: 100)
+      # This is a simple implementation. For production scale, consider:
+      # - A separate sorted set index: billing:webhook:circuit_retry_queue
+      # - Lua script for atomic claim and processing
+      now = Time.now.to_i
+      due_events = []
+
+      # Scan recent events (within last 5 days based on TTL)
+      # In practice, you'd want an index for this
+      Familia.dbclient.scan_each(match: 'stripe_webhook_event:*', count: 1000) do |key|
+        break if due_events.size >= limit
+
+        # Extract event ID from key (format: stripe_webhook_event:evt_xxx)
+        event_id = key.split(':').last
+        next if event_id.nil? || event_id.empty?
+
+        event = find_by_identifier(event_id)
+        next unless event&.circuit_retry_due?
+
+        due_events << event
+      end
+
+      due_events
     end
 
     # ========================================

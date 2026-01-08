@@ -77,8 +77,9 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       session_id = last_response.location.match(%r{/pay/([^?]+)})[1]
       session    = Stripe::Checkout::Session.retrieve(session_id)
 
-      # Verify plan metadata
-      expect(session.subscription_data['metadata']['tier']).to eq(tier)
+      # Verify plan metadata (tier is stored in debug_info JSON)
+      debug_info = JSON.parse(session.subscription_data['metadata']['debug_info'])
+      expect(debug_info['checkout_tier']).to eq(tier)
     end
 
     it 'pre-fills customer email for authenticated users', :vcr do
@@ -128,8 +129,9 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       session_id = last_response.location.match(%r{/pay/([^?]+)})[1]
       session    = Stripe::Checkout::Session.retrieve(session_id)
 
-      # Verify yearly plan was used (would need to check price ID matches yearly)
-      expect(session.subscription_data['metadata']['tier']).to eq(tier)
+      # Verify yearly plan was used (tier is stored in debug_info JSON)
+      debug_info = JSON.parse(session.subscription_data['metadata']['debug_info'])
+      expect(debug_info['checkout_tier']).to eq(tier)
     end
 
     it 'does not require authentication', :vcr do
@@ -152,7 +154,9 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       session_id = last_response.location.match(%r{/pay/([^?]+)})[1]
       session    = Stripe::Checkout::Session.retrieve(session_id)
 
-      expect(session.subscription_data['metadata']['region']).not_to be_nil
+      # Region is stored in debug_info JSON
+      debug_info = JSON.parse(session.subscription_data['metadata']['debug_info'])
+      expect(debug_info['checkout_region']).not_to be_nil
     end
   end
 
