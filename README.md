@@ -143,6 +143,18 @@ RACK_ENV=production bundle exec thin -R config.ru -p 3000 start
 
 > **For detailed installation instructions**, including system setup, troubleshooting, and advanced configuration, see [INSTALL.md](./INSTALL.md).
 
+### Admin Setup
+
+Create your first admin (colonel) user via CLI:
+```bash
+bin/ots customers --create admin@example.com --role colonel
+```
+
+Or promote an existing user:
+```bash
+bin/ots role promote user@example.com --role colonel
+```
+
 ## Development
 
 ### Frontend Development Mode
