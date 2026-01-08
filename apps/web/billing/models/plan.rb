@@ -448,76 +448,6 @@ module Billing
         }
       end
 
-      # Persists collected plan data to Redis
-      #
-      # @param plan_data_list [Array<Hash>] Array of plan data hashes
-      # @return [Integer] Number of plans successfully saved
-      def persist_collected_plans(plan_data_list)
-        sync_timestamp = Time.now.to_i.to_s
-        saved_count    = 0
-
-        plan_data_list.each do |data|
-          plan = new(
-            plan_id: data[:plan_id],
-            stripe_price_id: data[:stripe_price_id],
-            stripe_product_id: data[:stripe_product_id],
-            name: data[:name],
-            tier: data[:tier],
-            interval: data[:interval],
-            amount: data[:amount],
-            currency: data[:currency],
-            region: data[:region],
-            tenancy: data[:tenancy],
-            display_order: data[:display_order],
-            show_on_plans_page: data[:show_on_plans_page],
-            description: data[:description],
-          )
-
-          # Populate additional Stripe Price fields
-          plan.active            = data[:active]
-          plan.billing_scheme    = data[:billing_scheme]
-          plan.usage_type        = data[:usage_type]
-          plan.trial_period_days = data[:trial_period_days]
-          plan.nickname          = data[:nickname]
-          plan.plan_code         = data[:plan_code]
-          plan.is_popular        = data[:is_popular]
-          plan.plan_name_label   = data[:plan_name_label]
-          plan.last_synced_at    = sync_timestamp
-
-          # Add entitlements to set (unique values)
-          plan.entitlements.clear
-          data[:entitlements].each { |ent| plan.entitlements.add(ent) }
-
-          # Add features to set
-          plan.features.clear
-          data[:features].each { |feat| plan.features.add(feat) }
-
-          # Add limits to hashkey with flattened keys
-          plan.limits.clear
-          data[:limits].each do |resource, value|
-            key              = "#{resource}.max"
-            val              = value == -1 ? 'unlimited' : value.to_s
-            plan.limits[key] = val
-          end
-
-          # Store original Stripe data for recovery/debugging
-          plan.stripe_data_snapshot.value = data[:stripe_snapshot].to_json
-
-          plan.save
-
-          OT.ld "[Plan.persist_collected_plans] Cached plan: #{data[:plan_id]}"
-          saved_count += 1
-        rescue StandardError => ex
-          # Log but continue - don't let one plan failure stop others
-          OT.le '[Plan.persist_collected_plans] Failed to save plan', {
-            plan_id: data[:plan_id],
-            error: ex.message,
-          }
-        end
-
-        saved_count
-      end
-
       public
 
       # Upsert single plan from Stripe data
@@ -680,7 +610,8 @@ module Billing
       #
       # @return [Array<Plan>] All cached plans
       def list_plans
-        load_multi(instances.to_a)
+        # Filter out nil entries from expired plans (instances entry exists but hash expired)
+        load_multi(instances.to_a).compact
       end
 
       # Find plan by Stripe price ID

@@ -677,3 +677,213 @@ RSpec.describe 'Billing::Plan upsert field behaviors', type: :billing do
     it_behaves_like 'upsert collection field', :features
   end
 end
+
+# ==============================================================================
+# SECTION 5: TTL Expiration Scenarios (P0 Tests - Issue #2354)
+# ==============================================================================
+#
+# These tests verify correct behavior when Plan Redis keys expire via TTL
+# but the instances sorted set entries persist (the root cause of
+# Familia::NoIdentifier errors in the original clear+rebuild pattern).
+#
+# The upsert pattern handles this gracefully, but we need to verify that
+# lookup methods return appropriate values (nil/empty) rather than raising.
+
+RSpec.describe 'Expired catalog handling', type: :billing do
+  include PlanUpsertTestHelpers
+
+  before do
+    Billing::Plan.clear_cache
+    # Reset the price ID cache to ensure fresh lookups
+    Billing::Plan.instance_variable_set(:@stripe_price_id_cache, nil)
+  end
+
+  after do
+    Billing::Plan.clear_cache
+  end
+
+  # --------------------------------------------------------------------------
+  # find_by_stripe_price_id with expired plans
+  # --------------------------------------------------------------------------
+
+  describe 'find_by_stripe_price_id' do
+    context 'when plan hash has expired but instances entry persists' do
+      let(:price_id) { 'price_expired_test_123' }
+      let(:plan_id) { 'expired_plan_monthly' }
+
+      before do
+        # Simulate expired state: instances entry exists, but plan hash is gone
+        # This is the exact state that caused Familia::NoIdentifier errors
+        Billing::Plan.instances.add(plan_id)
+
+        # Rebuild cache to pick up the orphan entry
+        # The cache builder should handle missing plan data gracefully
+        Billing::Plan.rebuild_stripe_price_id_cache
+      end
+
+      it 'returns nil for expired plan' do
+        # The cache should not contain a mapping for a price_id
+        # that belonged to an expired plan
+        result = Billing::Plan.find_by_stripe_price_id(price_id)
+        expect(result).to be_nil
+      end
+
+      it 'does not raise Familia::NoIdentifier' do
+        expect {
+          Billing::Plan.find_by_stripe_price_id(price_id)
+        }.not_to raise_error
+      end
+    end
+
+    context 'when plan exists and is valid' do
+      let(:plan_data) { build_plan_data(stripe_price_id: 'price_valid_123') }
+
+      before do
+        create_test_plan(plan_data)
+        Billing::Plan.rebuild_stripe_price_id_cache
+      end
+
+      it 'returns the plan for valid price_id' do
+        result = Billing::Plan.find_by_stripe_price_id('price_valid_123')
+        expect(result).not_to be_nil
+        expect(result.stripe_price_id).to eq('price_valid_123')
+      end
+    end
+
+    context 'when cache is rebuilt after expiration' do
+      let(:plan_data) { build_plan_data(stripe_price_id: 'price_will_expire_456') }
+
+      before do
+        # Create valid plan and cache it
+        plan = create_test_plan(plan_data)
+        Billing::Plan.rebuild_stripe_price_id_cache
+
+        # Simulate expiration: delete plan hash but keep instances entry
+        # This mimics Redis TTL expiration of individual keys
+        plan.destroy!
+
+        # Force cache rebuild to test it handles missing plans
+        Billing::Plan.instance_variable_set(:@stripe_price_id_cache, nil)
+      end
+
+      it 'returns nil after plan expires and cache rebuilds' do
+        result = Billing::Plan.find_by_stripe_price_id('price_will_expire_456')
+        expect(result).to be_nil
+      end
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # list_plans with expired plans
+  # --------------------------------------------------------------------------
+
+  describe 'list_plans' do
+    context 'when all plan hashes have expired' do
+      before do
+        # Add orphan entries to instances (simulating TTL expiration)
+        Billing::Plan.instances.add('orphan_plan_1_monthly')
+        Billing::Plan.instances.add('orphan_plan_2_monthly')
+      end
+
+      it 'returns empty array when all plans expired' do
+        # load_multi should handle missing plans gracefully
+        result = Billing::Plan.list_plans
+        expect(result).to eq([])
+      end
+
+      it 'does not raise Familia::NoIdentifier' do
+        expect {
+          Billing::Plan.list_plans
+        }.not_to raise_error
+      end
+    end
+
+    context 'when some plans have expired' do
+      let(:valid_plan_data) { build_plan_data(plan_id: 'valid_plan_monthly') }
+
+      before do
+        # Create one valid plan
+        create_test_plan(valid_plan_data)
+
+        # Add orphan entry (simulating one expired plan)
+        Billing::Plan.instances.add('orphan_plan_monthly')
+      end
+
+      it 'returns only valid plans' do
+        result = Billing::Plan.list_plans
+        plan_ids = result.map(&:plan_id)
+
+        expect(plan_ids).to include('valid_plan_monthly')
+        expect(plan_ids).not_to include('orphan_plan_monthly')
+      end
+
+      it 'filters out expired plans without raising' do
+        expect {
+          result = Billing::Plan.list_plans
+          expect(result.size).to eq(1)
+        }.not_to raise_error
+      end
+    end
+
+    context 'when catalog is completely empty' do
+      it 'returns empty array' do
+        result = Billing::Plan.list_plans
+        expect(result).to eq([])
+      end
+    end
+  end
+
+  # --------------------------------------------------------------------------
+  # Catalog state after TTL expiration
+  # --------------------------------------------------------------------------
+
+  describe 'catalog state consistency' do
+    context 'after plan TTL expiration' do
+      let(:plan_data) do
+        build_plan_data(
+          plan_id: 'ttl_test_plan_monthly',
+          stripe_price_id: 'price_ttl_test_789'
+        )
+      end
+
+      before do
+        # Create plan and verify it's accessible
+        plan = create_test_plan(plan_data)
+        Billing::Plan.rebuild_stripe_price_id_cache
+
+        expect(Billing::Plan.find_by_stripe_price_id('price_ttl_test_789')).not_to be_nil
+        expect(Billing::Plan.list_plans.map(&:plan_id)).to include('ttl_test_plan_monthly')
+
+        # Simulate TTL expiration: destroy plan hash
+        plan.destroy!
+
+        # Reset cache to force rebuild
+        Billing::Plan.instance_variable_set(:@stripe_price_id_cache, nil)
+      end
+
+      it 'find_by_stripe_price_id returns nil' do
+        expect(Billing::Plan.find_by_stripe_price_id('price_ttl_test_789')).to be_nil
+      end
+
+      it 'list_plans excludes expired plan' do
+        expect(Billing::Plan.list_plans.map(&:plan_id)).not_to include('ttl_test_plan_monthly')
+      end
+
+      it 'upsert_from_stripe_data can recreate the plan' do
+        # The upsert pattern should handle re-creation gracefully
+        new_plan = Billing::Plan.upsert_from_stripe_data(plan_data)
+
+        expect(new_plan.plan_id).to eq('ttl_test_plan_monthly')
+        expect(new_plan.exists?).to be true
+      end
+
+      it 'after upsert, plan is accessible again' do
+        Billing::Plan.upsert_from_stripe_data(plan_data)
+        Billing::Plan.rebuild_stripe_price_id_cache
+
+        expect(Billing::Plan.find_by_stripe_price_id('price_ttl_test_789')).not_to be_nil
+        expect(Billing::Plan.list_plans.map(&:plan_id)).to include('ttl_test_plan_monthly')
+      end
+    end
+  end
+end
