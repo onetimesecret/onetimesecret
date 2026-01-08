@@ -23,6 +23,11 @@ module Billing
       end
 
       def execute(_context)
+        if catalog_valid?
+          Onetime.billing_logger.info 'Cache valid, skipping Stripe sync'
+          return
+        end
+
         Onetime.billing_logger.info 'Refreshing plan cache from Stripe'
         begin
           Billing::Plan.refresh_from_stripe
@@ -45,6 +50,31 @@ module Billing
             raise fallback_ex
           end
         end
+      end
+
+      private
+
+      # Check if catalog cache is valid (populated and not stale)
+      #
+      # A catalog is considered valid when:
+      # 1. The instances sorted set is not empty
+      # 2. At least one plan was synced within the staleness threshold
+      #
+      # @return [Boolean] true if cache is valid and sync can be skipped
+      def catalog_valid?
+        # Empty catalog = invalid
+        return false if Billing::Plan.instances.empty?
+
+        # Check if any plan was synced recently (within 12 hours)
+        sample_plan = Billing::Plan.list_plans.first
+        return false unless sample_plan&.last_synced_at
+
+        # Calculate staleness (last_synced_at is stored as Unix timestamp string)
+        last_sync     = sample_plan.last_synced_at.to_i
+        staleness     = Time.now.to_i - last_sync
+        max_staleness = 12 * 60 * 60 # 12 hours in seconds
+
+        staleness < max_staleness
       end
     end
   end

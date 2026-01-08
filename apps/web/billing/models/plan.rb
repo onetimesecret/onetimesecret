@@ -177,16 +177,18 @@ module Billing
       #
       # ## Consistency Guarantee
       #
-      # This method uses a "collect-then-write" pattern to minimize inconsistency:
+      # This method uses an upsert pattern to ensure catalog availability:
       # 1. **Fetch phase**: All Stripe data is fetched and validated in memory first
-      # 2. **Write phase**: Only after all data is collected, plans are saved to Redis
+      # 2. **Upsert phase**: Each plan is created or updated individually
+      # 3. **Prune phase**: Plans not in current Stripe catalog are soft-deleted
+      # 4. **Cache rebuild**: Price ID lookup cache is refreshed
       #
-      # If Stripe API fails during the fetch phase, no cache modifications occur.
-      # If a write fails mid-save, previously cached plans remain valid (12-hour TTL),
-      # and the next refresh attempt will overwrite them.
+      # The catalog is NEVER cleared during sync, eliminating the empty-window
+      # race condition that occurred with the previous clear-then-rebuild pattern.
+      # If Stripe API fails during fetch, no cache modifications occur.
       #
       # @param progress [Proc, nil] Optional progress callback (called with status messages)
-      # @return [Integer] Number of plans cached
+      # @return [Integer] Number of plans synced
       # @raise [Stripe::StripeError] If Stripe API call fails during fetch phase
       def refresh_from_stripe(progress: nil)
         # Skip Stripe sync in CI/test environments without API key
@@ -196,7 +198,7 @@ module Billing
           return 0
         end
 
-        OT.li '[Plan.refresh_from_stripe] Starting Stripe sync (collect-then-write)'
+        OT.li '[Plan.refresh_from_stripe] Starting Stripe sync (upsert pattern)'
 
         # PHASE 1: Fetch all data from Stripe into memory
         # No Redis writes occur during this phase
@@ -207,17 +209,26 @@ module Billing
           return 0
         end
 
-        progress&.call("Writing #{plan_data_list.size} plans to cache...")
+        progress&.call("Upserting #{plan_data_list.size} plans...")
 
-        # PHASE 2: Write all collected plans to Redis
-        # This happens only after all Stripe API calls succeeded
-        # Clear stale cache entries first to remove plans no longer in Stripe
-        clear_cache
+        # PHASE 2: Upsert all plans (NO clear_cache!)
+        # Each plan is created or updated individually, ensuring the catalog
+        # is never empty during sync
+        upserted_ids = []
+        plan_data_list.each do |plan_data|
+          plan = upsert_from_stripe_data(plan_data)
+          upserted_ids << plan.plan_id
+        end
 
-        items_count = persist_collected_plans(plan_data_list)
+        # PHASE 3: Prune stale plans not in current Stripe catalog
+        # Soft-deletes plans that are no longer active in Stripe
+        pruned_count = prune_stale_plans(upserted_ids)
 
-        OT.li "[Plan.refresh_from_stripe] Cached #{items_count} plans"
-        items_count
+        # PHASE 4: Rebuild lookup cache for O(1) price_id lookups
+        rebuild_stripe_price_id_cache
+
+        OT.li "[Plan.refresh_from_stripe] Synced #{upserted_ids.size} plans, pruned #{pruned_count}"
+        upserted_ids.size
       end
 
       private
@@ -302,6 +313,8 @@ module Billing
         OT.li "[Plan.collect_stripe_plans] Collected #{plan_data_list.size} plans from Stripe"
         plan_data_list
       end
+
+      public
 
       # Extracts plan data from Stripe product and price objects
       #
@@ -469,6 +482,125 @@ module Billing
         end
 
         saved_count
+      end
+
+      public
+
+      # Upsert single plan from Stripe data
+      #
+      # Creates a new plan if it doesn't exist, or updates an existing one.
+      # This pattern avoids the empty catalog window that occurs with clear+rebuild.
+      #
+      # @param plan_data [Hash] Plan data from extract_plan_data or webhook payload
+      # @return [Plan] The upserted plan instance
+      def upsert_from_stripe_data(plan_data)
+        plan_id = plan_data[:plan_id]
+
+        # Load existing or create new - handle expired entries gracefully
+        existing = begin
+          loaded = load(plan_id)
+          loaded if loaded&.exists?
+        rescue Familia::NoIdentifier
+          # Plan key expired but instances entry persisted - treat as new
+          nil
+        end
+
+        plan = existing || new(plan_id: plan_id)
+
+        # Apply scalar fields from plan_data
+        plan.stripe_price_id    = plan_data[:stripe_price_id]
+        plan.stripe_product_id  = plan_data[:stripe_product_id]
+        plan.name               = plan_data[:name]
+        plan.tier               = plan_data[:tier]
+        plan.interval           = plan_data[:interval]
+        plan.amount             = plan_data[:amount]
+        plan.currency           = plan_data[:currency]
+        plan.region             = plan_data[:region]
+        plan.tenancy            = plan_data[:tenancy]
+        plan.display_order      = plan_data[:display_order]
+        plan.show_on_plans_page = plan_data[:show_on_plans_page]
+        plan.description        = plan_data[:description]
+        plan.plan_code          = plan_data[:plan_code]
+        plan.is_popular         = plan_data[:is_popular]
+        plan.plan_name_label    = plan_data[:plan_name_label]
+        plan.active             = plan_data[:active]
+        plan.billing_scheme     = plan_data[:billing_scheme]
+        plan.usage_type         = plan_data[:usage_type]
+        plan.trial_period_days  = plan_data[:trial_period_days]
+        plan.nickname           = plan_data[:nickname]
+        plan.last_synced_at     = Time.now.to_i.to_s
+
+        # Clear and repopulate entitlements set
+        plan.entitlements.clear
+        plan_data[:entitlements]&.each { |ent| plan.entitlements.add(ent) }
+
+        # Clear and repopulate features set
+        plan.features.clear
+        plan_data[:features]&.each { |feat| plan.features.add(feat) }
+
+        # Clear and repopulate limits hashkey with flattened keys
+        plan.limits.clear
+        plan_data[:limits]&.each do |resource, value|
+          key              = "#{resource}.max"
+          val              = value == -1 ? 'unlimited' : value.to_s
+          plan.limits[key] = val
+        end
+
+        # Store Stripe data snapshot for recovery
+        if plan_data[:stripe_snapshot]
+          plan.stripe_data_snapshot.value = plan_data[:stripe_snapshot].to_json
+        end
+
+        plan.save
+
+        action = existing ? 'Updated' : 'Created'
+        OT.ld "[Plan.upsert_from_stripe_data] #{action} plan: #{plan_id}"
+
+        plan
+      end
+
+      # Remove plans not in current Stripe catalog
+      #
+      # Uses soft-delete pattern - marks plans as inactive rather than destroying.
+      # Handles expired entries gracefully by removing orphaned instances entries.
+      #
+      # @param current_plan_ids [Array<String>] Plan IDs currently in Stripe catalog
+      # @return [Integer] Number of plans marked stale or cleaned up
+      def prune_stale_plans(current_plan_ids)
+        all_cached_ids = instances.to_a
+        stale_ids      = all_cached_ids - current_plan_ids
+        pruned_count   = 0
+
+        stale_ids.each do |plan_id|
+          plan = load(plan_id)
+
+          if plan&.exists?
+            # Plan exists in Redis - soft-delete by marking inactive
+            plan.active         = 'false'
+            plan.last_synced_at = Time.now.to_i.to_s
+            plan.save
+            OT.li "[Plan.prune_stale_plans] Marked stale: #{plan_id}"
+            pruned_count += 1
+          else
+            # Plan key expired - just remove orphaned instances entry
+            instances.remove(plan_id)
+            OT.ld "[Plan.prune_stale_plans] Removed expired entry: #{plan_id}"
+            pruned_count += 1
+          end
+        rescue Familia::NoIdentifier => _ex
+          # Object expired but load returned something invalid - clean up instances
+          instances.remove(plan_id)
+          OT.ld "[Plan.prune_stale_plans] Cleaned orphan entry: #{plan_id}"
+          pruned_count += 1
+        rescue StandardError => ex
+          OT.le '[Plan.prune_stale_plans] Error processing stale plan', {
+            plan_id: plan_id,
+            error: ex.message,
+          }
+        end
+
+        OT.li "[Plan.prune_stale_plans] Pruned #{pruned_count} stale plans" if pruned_count.positive?
+        pruned_count
       end
 
       public
