@@ -61,12 +61,12 @@ module Onetime
           declare_infrastructure
 
           if worker_classes.empty?
-            Onetime.jobs_logger.error('No worker classes found')
+            Onetime.workers_logger.error('No worker classes found')
             exit 1
           end
 
-          Onetime.jobs_logger.info("Starting #{worker_classes.size} worker(s) with concurrency #{concurrency}")
-          Onetime.jobs_logger.info("Workers: #{worker_classes.map(&:name).join(', ')}")
+          Onetime.workers_logger.info("Starting #{worker_classes.size} worker(s) with concurrency #{concurrency}")
+          Onetime.workers_logger.info("Workers: #{worker_classes.map(&:name).join(', ')}")
 
           # Start heartbeat thread for liveness logging
           start_heartbeat_thread(worker_classes)
@@ -117,13 +117,13 @@ module Onetime
               uptime_seconds = (Time.now - start_time).to_i
               uptime_str     = format_uptime(uptime_seconds)
 
-              Onetime.jobs_logger.info(
+              Onetime.workers_logger.info(
                 "[Worker] Heartbeat | uptime=#{uptime_str} | queues=#{queue_names}",
               )
               sleep interval
             rescue StandardError => ex
               # Don't let heartbeat errors crash the thread
-              Onetime.jobs_logger.warn("[Worker] Heartbeat error: #{ex.message}\n#{ex.backtrace&.join("\n")}")
+              Onetime.workers_logger.warn("[Worker] Heartbeat error: #{ex.message}\n#{ex.backtrace&.join("\n")}")
               sleep interval
             end
           end
@@ -176,10 +176,10 @@ module Onetime
             allowed_levels = %w[trace debug info warn error fatal]
             if allowed_levels.include?(level_str)
               level_sym = level_str.to_sym
-              Onetime.jobs_logger.level  = level_sym
+              Onetime.workers_logger.level  = level_sym
               Onetime.bunny_logger.level = level_sym # Also controls Sneakers internal logging
             else
-              Onetime.jobs_logger.warn(
+              Onetime.workers_logger.warn(
                 "Ignoring invalid log level: #{log_level.inspect}. Allowed: #{allowed_levels.join(', ')}",
               )
             end

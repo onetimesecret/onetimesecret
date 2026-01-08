@@ -146,16 +146,16 @@ module Onetime
       Onetime.get_logger('HTTP')
     end
 
-    def jobs_logger
-      Onetime.get_logger('Jobs')
-    end
-
     def otto_logger
       Onetime.get_logger('Otto')
     end
 
     def rhales_logger
       Onetime.get_logger('Rhales')
+    end
+
+    def scheduler_logger
+      Onetime.get_logger('Scheduler')
     end
 
     def secret_logger
@@ -168,6 +168,10 @@ module Onetime
 
     def sequel_logger
       Onetime.get_logger('Sequel')
+    end
+
+    def workers_logger
+      Onetime.get_logger('Workers')
     end
 
     # Execute block with a specific log category via thread-local variable.

@@ -23,9 +23,9 @@ if Stripe.api_key.nil? || Stripe.api_key.to_s.strip.empty?
   if stripe_key && !stripe_key.to_s.strip.empty?
     Stripe.api_key     = stripe_key
     Stripe.api_version = Onetime.billing_config&.stripe_api_version
-    Onetime.jobs_logger&.info '[BillingWorker] Stripe API configured for worker'
+    Onetime.workers_logger&.info '[BillingWorker] Stripe API configured for worker'
   else
-    Onetime.jobs_logger&.warn '[BillingWorker] No Stripe API key found - billing events will fail'
+    Onetime.workers_logger&.warn '[BillingWorker] No Stripe API key found - billing events will fail'
   end
 end
 
