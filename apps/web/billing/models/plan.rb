@@ -95,6 +95,10 @@ module Billing
     # Cache management
     field :last_synced_at           # Timestamp of last Stripe sync
 
+    # Class-level timestamp for O(1) catalog freshness checks
+    # Key: billing_plan:catalog_synced_at (via Familia)
+    class_string :catalog_synced_at, default_expiration: Billing::Config::CATALOG_TTL
+
     set :entitlements
     set :features
     hashkey :limits
@@ -263,6 +267,9 @@ module Billing
 
         # PHASE 4: Rebuild lookup cache for O(1) price_id lookups
         rebuild_stripe_price_id_cache
+
+        # PHASE 5: Update global sync timestamp for O(1) freshness checks
+        update_catalog_sync_timestamp
 
         OT.li "[Plan.refresh_from_stripe] Synced #{upserted_ids.size} plans, pruned #{pruned_count}"
         upserted_ids.size
@@ -713,6 +720,27 @@ module Billing
         end
         instances.clear
         @stripe_price_id_cache = nil
+        catalog_synced_at.delete!
+      end
+
+      # Get the last successful catalog sync timestamp
+      #
+      # Returns the Unix timestamp of the last successful Stripe sync,
+      # or nil if no sync has occurred. Uses class_string for O(1) lookup
+      # instead of loading all plans.
+      #
+      # @return [Integer, nil] Unix timestamp or nil
+      def catalog_last_synced_at
+        catalog_synced_at.to_i if catalog_synced_at.exists?
+      end
+
+      # Update the global catalog sync timestamp
+      #
+      # Called after successful Stripe sync to record when the catalog
+      # was last refreshed. TTL set via class_string default_expiration.
+      #
+      def update_catalog_sync_timestamp
+        catalog_synced_at.value = Familia.now
       end
 
       # Load all plans from billing.yaml config into Redis cache

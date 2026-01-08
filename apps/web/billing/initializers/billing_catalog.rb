@@ -59,21 +59,22 @@ module Billing
       #
       # A catalog is considered valid when:
       # 1. The instances sorted set is not empty
-      # 2. At least one plan was synced within the staleness threshold
+      # 2. The catalog was synced within the staleness threshold
+      #
+      # Uses a dedicated Redis key for O(1) freshness check instead of
+      # loading all plans.
       #
       # @return [Boolean] true if cache is valid and sync can be skipped
       def catalog_valid?
         # Empty catalog = invalid
         return false if Billing::Plan.instances.empty?
 
-        # Check if any plan was synced recently (within 12 hours)
-        sample_plan = Billing::Plan.list_plans.first
-        return false unless sample_plan&.last_synced_at
+        # Check global sync timestamp (O(1) instead of loading all plans)
+        last_sync = Billing::Plan.catalog_last_synced_at
+        return false unless last_sync
 
-        # Calculate staleness (last_synced_at is stored as Unix timestamp string)
-        last_sync = sample_plan.last_synced_at.to_i
+        # Calculate staleness
         staleness = Time.now.to_i - last_sync
-
         staleness < Billing::Config::CATALOG_TTL
       end
     end

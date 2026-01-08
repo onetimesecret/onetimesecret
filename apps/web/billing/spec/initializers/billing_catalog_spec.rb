@@ -164,13 +164,11 @@ RSpec.describe Billing::Initializers::BillingCatalog do
       end
     end
 
-    context 'when instances is populated but plan has no last_synced_at' do
-      let(:sample_plan) { double('plan', last_synced_at: nil) }
-
+    context 'when instances is populated but no sync timestamp exists' do
       before do
         allow(Billing::Plan).to receive(:instances).and_return(instances_set)
         allow(instances_set).to receive(:empty?).and_return(false)
-        allow(Billing::Plan).to receive(:list_plans).and_return([sample_plan])
+        allow(Billing::Plan).to receive(:catalog_last_synced_at).and_return(nil)
       end
 
       it 'returns false' do
@@ -179,13 +177,12 @@ RSpec.describe Billing::Initializers::BillingCatalog do
     end
 
     context 'when cache is stale (older than 12 hours)' do
-      let(:stale_timestamp) { (Time.now.to_i - (13 * 60 * 60)).to_s }
-      let(:sample_plan) { double('plan', last_synced_at: stale_timestamp) }
+      let(:stale_timestamp) { Time.now.to_i - (13 * 60 * 60) }
 
       before do
         allow(Billing::Plan).to receive(:instances).and_return(instances_set)
         allow(instances_set).to receive(:empty?).and_return(false)
-        allow(Billing::Plan).to receive(:list_plans).and_return([sample_plan])
+        allow(Billing::Plan).to receive(:catalog_last_synced_at).and_return(stale_timestamp)
       end
 
       it 'returns false' do
@@ -194,13 +191,12 @@ RSpec.describe Billing::Initializers::BillingCatalog do
     end
 
     context 'when cache is fresh (within 12 hours)' do
-      let(:fresh_timestamp) { (Time.now.to_i - (6 * 60 * 60)).to_s }
-      let(:sample_plan) { double('plan', last_synced_at: fresh_timestamp) }
+      let(:fresh_timestamp) { Time.now.to_i - (6 * 60 * 60) }
 
       before do
         allow(Billing::Plan).to receive(:instances).and_return(instances_set)
         allow(instances_set).to receive(:empty?).and_return(false)
-        allow(Billing::Plan).to receive(:list_plans).and_return([sample_plan])
+        allow(Billing::Plan).to receive(:catalog_last_synced_at).and_return(fresh_timestamp)
       end
 
       it 'returns true' do
