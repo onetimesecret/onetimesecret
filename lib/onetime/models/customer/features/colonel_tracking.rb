@@ -45,7 +45,11 @@ module Onetime::Customer::Features
       def list_colonels
         # Use members to get decoded values
         colonel_ids = colonels.members
-        colonel_ids.filter_map { |id| load(id) rescue nil }
+        colonel_ids.filter_map do |id|
+                                        load(id)
+        rescue StandardError
+                                        nil
+        end
       end
 
       # Count colonels without loading them
@@ -65,7 +69,11 @@ module Onetime::Customer::Features
         current_colonels = Set.new
         instances.all.each do |custid|
           summary[:scanned] += 1
-          customer = load(custid) rescue nil
+          customer           = begin
+                       load(custid)
+          rescue StandardError
+                       nil
+          end
           next unless customer
 
           current_colonels.add(custid) if customer.role.to_s == 'colonel'
@@ -77,11 +85,11 @@ module Onetime::Customer::Features
         # Add missing colonels to catalog
         (current_colonels - catalog_colonels).each do |custid|
           summary[:added] += 1
-          unless dry_run
-            customer = load(custid)
-            score = customer.joined.to_i > 0 ? customer.joined.to_i : Familia.now.to_i
-            colonels.add(custid, score)
-          end
+          next if dry_run
+
+          customer         = load(custid)
+          score            = customer.joined.to_i > 0 ? customer.joined.to_i : Familia.now.to_i
+          colonels.add(custid, score)
         end
 
         # Remove stale entries from catalog
@@ -102,7 +110,7 @@ module Onetime::Customer::Features
         previous_role = nil
         if exists?
           # Redis stores values as JSON-encoded strings, need to parse
-          raw_role = dbclient.hget(dbkey, 'role')
+          raw_role      = dbclient.hget(dbkey, 'role')
           previous_role = raw_role ? JSON.parse(raw_role) : nil
         end
 
@@ -127,7 +135,7 @@ module Onetime::Customer::Features
       # Update colonel catalog based on role changes
       # Called automatically after save
       def update_colonel_catalog(previous_role)
-        current_is_colonel = role.to_s == 'colonel'
+        current_is_colonel   = role.to_s == 'colonel'
         previous_was_colonel = previous_role.to_s == 'colonel'
 
         if current_is_colonel && !previous_was_colonel

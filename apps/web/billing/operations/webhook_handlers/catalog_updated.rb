@@ -169,14 +169,14 @@ module Billing
           return unless product.metadata['app'] == 'onetimesecret'
 
           # Get all active prices for this product
-          prices = fetch_with_retry { Stripe::Price.list(product: product_id, active: true) }
+          prices       = fetch_with_retry { Stripe::Price.list(product: product_id, active: true) }
           synced_count = 0
 
           prices.auto_paging_each do |price|
             # Skip non-recurring prices (one-time payments, etc.)
             next unless price.type == 'recurring'
 
-            plan_data = Billing::Plan.extract_plan_data(product, price)
+            plan_data     = Billing::Plan.extract_plan_data(product, price)
             Billing::Plan.upsert_from_stripe_data(plan_data)
             synced_count += 1
           end
@@ -198,7 +198,7 @@ module Billing
         # @param price_id [String] Stripe price ID
         def sync_single_price(price_id)
           # Fetch fresh price and its product
-          price = fetch_with_retry { Stripe::Price.retrieve(price_id) }
+          price   = fetch_with_retry { Stripe::Price.retrieve(price_id) }
           product = fetch_with_retry { Stripe::Product.retrieve(price.product) }
 
           # Only sync OTS products
@@ -229,7 +229,7 @@ module Billing
           Billing::Plan.list_plans.each do |plan|
             next unless plan.stripe_product_id == product_id
 
-            plan.active = 'false'
+            plan.active         = 'false'
             plan.last_synced_at = Time.now.to_i.to_s
             plan.save
 
@@ -264,7 +264,7 @@ module Billing
             return
           end
 
-          plan.active = 'false'
+          plan.active         = 'false'
           plan.last_synced_at = Time.now.to_i.to_s
           plan.save
 

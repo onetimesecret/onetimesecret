@@ -459,8 +459,6 @@ module Billing
         }
       end
 
-      public
-
       # Upsert single plan from Stripe data
       #
       # Creates a new plan if it doesn't exist, or updates an existing one.
@@ -571,7 +569,7 @@ module Billing
             plan.last_synced_at = Time.now.to_i.to_s
             plan.save
             OT.li "[Plan.prune_stale_plans] Marked stale: #{plan_id}"
-            pruned_count += 1
+            pruned_count       += 1
           else
             # Plan key expired - just remove orphaned instances entry
             instances.remove(plan_id)
@@ -595,8 +593,6 @@ module Billing
         OT.li "[Plan.prune_stale_plans] Pruned #{pruned_count} stale plans" if pruned_count.positive?
         pruned_count
       end
-
-      public
 
       # Get plan by tier, interval, and region
       #

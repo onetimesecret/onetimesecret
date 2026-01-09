@@ -77,11 +77,11 @@ module Billing
       #     Stripe::Product.list(active: true, limit: 100)
       #   end
       #
-      def call(&block)
+      def call(&)
         raise ArgumentError, 'Block required' unless block_given?
 
         check_circuit!
-        execute_with_tracking(&block)
+        execute_with_tracking(&)
       end
 
       # Get current circuit breaker status
@@ -157,7 +157,7 @@ module Billing
       # @raise [Billing::CircuitOpenError] If circuit is open
       #
       def check_circuit!
-        state_data = load_state
+        state_data    = load_state
         current_state = determine_state(state_data)
 
         case current_state
@@ -188,8 +188,8 @@ module Billing
         result = yield
         record_success
         result
-      rescue *TRIPPABLE_ERRORS => e
-        record_failure(e)
+      rescue *TRIPPABLE_ERRORS => ex
+        record_failure(ex)
         raise
       end
 
@@ -199,15 +199,15 @@ module Billing
       #
       def record_success
         previous_state = load_state
-        was_half_open = determine_state(previous_state) == 'half-open'
+        was_half_open  = determine_state(previous_state) == 'half-open'
 
         clear_state
 
-        if was_half_open
-          billing_logger.info '[StripeCircuitBreaker] Recovery successful, circuit closed', {
-            previous_failures: previous_state[:failure_count],
-          }
-        end
+        return unless was_half_open
+
+        billing_logger.info '[StripeCircuitBreaker] Recovery successful, circuit closed', {
+          previous_failures: previous_state[:failure_count],
+        }
       end
 
       # Record API failure
@@ -221,7 +221,7 @@ module Billing
       #
       def record_failure(error)
         redis = Familia.dbclient
-        now = Time.now.to_i
+        now   = Time.now.to_i
 
         # Atomic increment - prevents race conditions between load/increment/save
         new_count = redis.hincrby(redis_key, 'failure_count', 1)
@@ -281,7 +281,7 @@ module Billing
       #
       def load_state
         redis = Familia.dbclient
-        data = redis.hgetall(redis_key)
+        data  = redis.hgetall(redis_key)
 
         {
           failure_count: data['failure_count'].to_i,
@@ -299,8 +299,8 @@ module Billing
       # @param opened_at [Integer, nil] Unix timestamp when circuit opened
       #
       def save_state(failure_count:, last_failure_at:, opened_at:)
-        redis = Familia.dbclient
-        data = {
+        redis             = Familia.dbclient
+        data              = {
           'failure_count' => failure_count.to_s,
           'last_failure_at' => last_failure_at.to_s,
         }

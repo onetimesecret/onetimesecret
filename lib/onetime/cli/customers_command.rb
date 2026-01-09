@@ -89,10 +89,8 @@ module Onetime
         case auth_mode
         when 'full'
           create_customer_full_mode(email, role, password, verified)
-        when 'simple'
-          create_customer_simple_mode(email, role, password, verified)
         else
-          # Disabled mode - still allow Redis-only creation
+          # Simple or disabled mode - Redis-only creation
           create_customer_simple_mode(email, role, password, verified)
         end
 
@@ -188,8 +186,8 @@ module Onetime
         )
 
         account_id
-      rescue Sequel::UniqueConstraintViolation => e
-        puts "Error: Account already exists in auth database: #{e.message}"
+      rescue Sequel::UniqueConstraintViolation => ex
+        puts "Error: Account already exists in auth database: #{ex.message}"
         exit 1
       end
 

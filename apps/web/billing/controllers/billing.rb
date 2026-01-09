@@ -388,8 +388,8 @@ module Billing
         #   - remaining_credit: max(0, $98.91 - $35) = $63.91
         #
         proration_credit_to_balance = amounts[:immediate_amount].negative? ? amounts[:immediate_amount].abs : 0
-        actual_next_billing_due = [amounts[:next_period_amount] - proration_credit_to_balance, 0].max
-        remaining_credit = [proration_credit_to_balance - amounts[:next_period_amount], 0].max
+        actual_next_billing_due     = [amounts[:next_period_amount] - proration_credit_to_balance, 0].max
+        remaining_credit            = [proration_credit_to_balance - amounts[:next_period_amount], 0].max
 
         # Also capture Stripe's ending_balance if available (may be nil for previews)
         ending_balance = preview.ending_balance || 0
@@ -417,7 +417,8 @@ module Billing
           tax: extract_tax_amount(preview),         # Tax amount on this invoice (if available)
           remaining_credit: remaining_credit,        # Absolute value of credit if ending_balance negative
           actual_next_billing_due: actual_next_billing_due, # What they'll actually pay at next billing
-        })
+        },
+                     )
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
@@ -536,14 +537,14 @@ module Billing
         local_sync_failed = false
         begin
           org.update_from_stripe_subscription(updated_subscription)
-        rescue StandardError => sync_ex
+        rescue StandardError => ex
           local_sync_failed = true
           billing_logger.error 'Local state sync failed after Stripe update', {
             extid: org.extid,
             stripe_subscription_id: updated_subscription.id,
             new_price_id: new_price_id,
-            error_class: sync_ex.class.name,
-            error_message: sync_ex.message,
+            error_class: ex.class.name,
+            error_message: ex.message,
             idempotency_key: idempotency_key[0..7],
             recovery: 'webhook_reconciliation',
           }
@@ -689,7 +690,7 @@ module Billing
           # Fallback: calculate from total - subtotal_excluding_tax (most reliable)
           if preview.respond_to?(:total) && preview.respond_to?(:subtotal_excluding_tax)
             subtotal_ex_tax = preview.subtotal_excluding_tax || preview.subtotal || 0
-            tax_diff = (preview.total || 0) - subtotal_ex_tax
+            tax_diff        = (preview.total || 0) - subtotal_ex_tax
             return tax_diff if tax_diff.positive?
           end
 

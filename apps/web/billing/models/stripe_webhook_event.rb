@@ -197,16 +197,16 @@ module Billing
       # Base: 60s, then 120s, 240s, 480s, 960s
       delay = delay_seconds || (60 * (2**current_count))
 
-      self.circuit_retry_at = (Time.now.to_i + delay).to_s
+      self.circuit_retry_at    = (Time.now.to_i + delay).to_s
       self.circuit_retry_count = (current_count + 1).to_s
-      self.processing_status = 'retrying'
+      self.processing_status   = 'retrying'
       save
     end
 
     # Clear circuit retry scheduling (called after successful retry)
     # @return [Boolean] True if save succeeded
     def clear_circuit_retry
-      self.circuit_retry_at = nil
+      self.circuit_retry_at    = nil
       self.circuit_retry_count = '0'
       save
     end
@@ -222,7 +222,6 @@ module Billing
       # This is a simple implementation. For production scale, consider:
       # - A separate sorted set index: billing:webhook:circuit_retry_queue
       # - Lua script for atomic claim and processing
-      now = Time.now.to_i
       due_events = []
 
       # Scan recent events (within last 5 days based on TTL)

@@ -93,7 +93,7 @@ module Billing
 
       unless plan
         billing_logger.error '[PlanValidator.resolve_plan_id] Price not in catalog',
-                             price_id: price_id
+          price_id: price_id
         raise CatalogMissError.new(price_id: price_id)
       end
 
@@ -116,20 +116,20 @@ module Billing
       cached_plan = Billing::Plan.load(plan_id)
       if cached_plan&.exists?
         billing_logger.debug '[PlanValidator.valid_plan_id?] Found in catalog',
-                             plan_id: plan_id
+          plan_id: plan_id
         return true
       end
 
       # Fall back to static config plans (from billing.yaml)
-      static_plans = Billing::Config.load_plans || {}
+      static_plans    = Billing::Config.load_plans || {}
       found_in_config = static_plans.key?(plan_id)
 
       if found_in_config
         billing_logger.debug '[PlanValidator.valid_plan_id?] Found in static config',
-                             plan_id: plan_id
+          plan_id: plan_id
       else
         billing_logger.debug '[PlanValidator.valid_plan_id?] Plan not found',
-                             plan_id: plan_id
+          plan_id: plan_id
       end
 
       found_in_config
@@ -144,7 +144,7 @@ module Billing
     #
     def available_plan_ids
       catalog_plan_ids = Billing::Plan.list_plans.map(&:plan_id)
-      static_plan_ids = (Billing::Config.load_plans || {}).keys
+      static_plan_ids  = (Billing::Config.load_plans || {}).keys
       (catalog_plan_ids + static_plan_ids).uniq.sort
     end
 
@@ -172,7 +172,7 @@ module Billing
       }
 
       billing_logger.warn '[PlanValidator] Drift detected: metadata differs from catalog',
-                          drift_info
+        drift_info
 
       drift_info
     end

@@ -175,9 +175,9 @@ module Onetime
             level_str      = log_level.to_s.downcase
             allowed_levels = %w[trace debug info warn error fatal]
             if allowed_levels.include?(level_str)
-              level_sym = level_str.to_sym
-              Onetime.workers_logger.level  = level_sym
-              Onetime.bunny_logger.level = level_sym # Also controls Sneakers internal logging
+              level_sym                    = level_str.to_sym
+              Onetime.workers_logger.level = level_sym
+              Onetime.bunny_logger.level   = level_sym # Also controls Sneakers internal logging
             else
               Onetime.workers_logger.warn(
                 "Ignoring invalid log level: #{log_level.inspect}. Allowed: #{allowed_levels.join(', ')}",

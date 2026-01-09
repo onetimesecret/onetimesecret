@@ -44,7 +44,7 @@ module Onetime
           list_customers_by_role(role)
         else
           puts "Unknown action: #{action}"
-          puts "Valid actions: promote, demote, list"
+          puts 'Valid actions: promote, demote, list'
           exit 1
         end
       end
@@ -120,7 +120,7 @@ module Onetime
           next if customer.nil?
           next unless customer.role.to_s == target_role
 
-          count += 1
+          count   += 1
           obscured = OT::Utils.obscure_email(customer.email)
           verified = customer.verified? ? 'verified' : 'unverified'
           puts format('  %s (%s)', obscured, verified)
