@@ -11,9 +11,9 @@ module V3
       attr_reader :msg, :greenlighted, :tz, :version
 
       def process_params
-        @msg     = params['msg'].to_s.slice(0, 999)
-        @tz      = params['tz'].to_s.slice(0, 64)
-        @version = params['version'].to_s.slice(0, 32)
+        @msg     = sanitize_plain_text(params['msg'], max_length: 999)
+        @tz      = sanitize_plain_text(params['tz'], max_length: 64)
+        @version = sanitize_plain_text(params['version'], max_length: 32)
       end
 
       def raise_concerns

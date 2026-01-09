@@ -11,7 +11,7 @@ module ColonelAPI
         attr_reader :ip_address, :unbanned
 
         def process_params
-          @ip_address = params['ip']
+          @ip_address = sanitize_ip_address(params['ip'])
           raise_form_error('IP address is required', field: :ip) if ip_address.to_s.empty?
         end
 

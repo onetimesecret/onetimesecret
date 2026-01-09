@@ -52,13 +52,26 @@ module Onetime
 
       # Sanitize email addresses
       #
-      # Strips HTML tags (defense-in-depth), lowercases, and trims whitespace.
+      # Strips HTML tags (defense-in-depth), lowercases, trims whitespace,
+      # and removes newlines to prevent email header injection attacks.
       # Validation (format checking) is handled separately by valid_email?
       #
       # @param value [String, nil] The email value to sanitize
       # @return [String] Sanitized email, lowercase and stripped
       def sanitize_email(value)
-        Sanitize.fragment(value.to_s).strip.downcase
+        Sanitize.fragment(value.to_s).gsub(/[\r\n]/, '').strip.downcase
+      end
+
+      # Sanitize IP addresses (IPv4 and IPv6)
+      #
+      # Uses allowlist to permit only valid IP address characters.
+      # Does NOT validate the IP format - that should be done separately.
+      # Allows: digits, dots (IPv4), colons (IPv6), and hex letters (IPv6)
+      #
+      # @param value [String, nil] The IP address value to sanitize
+      # @return [String] Sanitized IP address with only allowed characters
+      def sanitize_ip_address(value)
+        value.to_s.gsub(/[^0-9a-fA-F.:]/, '')
       end
     end
   end
