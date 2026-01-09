@@ -8,10 +8,10 @@ module OrganizationAPI::Logic
       attr_reader :organization, :display_name, :description, :contact_email, :extid
 
       def process_params
-        @extid         = Sanitize.fragment(params['extid'])
-        @display_name  = Sanitize.fragment(params['display_name']).to_s.strip
-        @description   = Sanitize.fragment(params['description']).to_s.strip
-        @contact_email = Sanitize.fragment(params['contact_email']).to_s.strip
+        @extid         = sanitize_identifier(params['extid'])
+        @display_name  = sanitize_plain_text(params['display_name'])
+        @description   = sanitize_plain_text(params['description'])
+        @contact_email = sanitize_email(params['contact_email'])
       end
 
       def raise_concerns

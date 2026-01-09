@@ -8,6 +8,7 @@ require 'timeout'
 require 'onetime/mail'
 require 'onetime/refinements/stripe_refinements'
 require 'onetime/logic/organization_context'
+require 'onetime/logic/input_sanitizers'
 
 module Onetime
   module Logic
@@ -21,12 +22,14 @@ module Onetime
     # - Settings processing (site, features, domains)
     # - Email validation
     # - Error handling (form errors, not found)
+    # - Input sanitization (identifiers, plain text, emails)
     # - Abstract method definitions for subclasses
     #
     # This class centralizes logic that was previously in V2::Logic::Base
     # to make it available across all API versions and applications.
     class Base
       include Onetime::Logic::OrganizationContext
+      include Onetime::Logic::InputSanitizers
 
       attr_reader :context, :sess, :cust, :params, :locale, :processed_params,
         :site, :features, :authentication, :domains_enabled, :strategy_result
