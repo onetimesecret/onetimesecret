@@ -84,7 +84,7 @@ module V3
 
       # Find the first colonel in the database
       # Returns nil if no colonels exist
-      # Delegates to Customer.find_first_colonel which uses a class_sorted_set
+      # Delegates to Customer.find_first_colonel which uses multi_index
       # for O(1) lookup instead of O(n) scanning all customers.
       def find_first_colonel
         Onetime::Customer.find_first_colonel

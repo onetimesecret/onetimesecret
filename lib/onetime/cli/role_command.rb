@@ -114,20 +114,17 @@ module Onetime
         puts "Customers with role '#{target_role}':"
         puts '-' * 40
 
-        count = 0
-        Onetime::Customer.instances.all.each do |custid|
-          customer = Onetime::Customer.load(custid)
-          next if customer.nil?
-          next unless customer.role.to_s == target_role
+        # Use multi_index for O(1) lookup instead of O(n) scanning
+        customers = Onetime::Customer.find_all_by_role(target_role)
 
-          count   += 1
+        customers.each do |customer|
           obscured = OT::Utils.obscure_email(customer.email)
           verified = customer.verified? ? 'verified' : 'unverified'
           puts format('  %s (%s)', obscured, verified)
         end
 
         puts '-' * 40
-        puts "Total: #{count}"
+        puts "Total: #{customers.size}"
       end
 
       def validate_email_provided!(email, action)
