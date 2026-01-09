@@ -66,7 +66,6 @@ site:
     signin: any()
     autoverify: any()
     required: any()
-    colonels: list(str(), required=True)
     allowed_signup_domains: list(str(), required=False)
   authenticity:
     type: any(str(), int())

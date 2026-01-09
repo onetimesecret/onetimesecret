@@ -47,7 +47,6 @@ module Onetime
       site_config  = OT.conf.fetch('site') # if site is missing we got real problems
       email_config = OT.conf.fetch('emailer', {})
       redis_info   = Familia.dbclient.info
-      colonels     = site_config.dig('authentication', 'colonels') || []
 
       # Header banner
       OT.boot_logger.info "---  ONETIME #{OT.mode} v#{OT::VERSION.details}  #{'---' * 3}"
@@ -75,7 +74,7 @@ module Onetime
         output << render_section('Mail Config', 'Value', mail_rows)
       end
 
-      auth_rows = build_auth_section(site_config, colonels)
+      auth_rows = build_auth_section(site_config)
       unless auth_rows.empty?
         output << render_section('Authentication', 'Details', auth_rows)
       end
@@ -188,14 +187,9 @@ module Onetime
       end
 
       # Builds authentication section rows
-      def build_auth_section(site_config, colonels)
+      # Note: Colonels are now managed via CLI (bin/ots role) rather than config
+      def build_auth_section(site_config)
         auth_rows = []
-
-        auth_rows << if colonels.empty?
-          ['Colonels', 'No colonels configured ⚠️']
-        else
-          ['Colonels', colonels.join(', ')]
-        end
 
         if site_config.key?('authentication')
           auth_config = site_config['authentication']

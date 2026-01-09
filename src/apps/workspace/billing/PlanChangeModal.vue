@@ -74,6 +74,65 @@ const hasNewProrationFields = computed(() => {
   return preview.value.immediate_amount !== undefined && preview.value.next_period_amount !== undefined;
 });
 
+// Determine if this is a downgrade with significant credit that exceeds or equals next bill
+const showCreditBreakdown = computed(() => {
+  if (!preview.value || isUpgrade.value) return false;
+
+  // Show breakdown when there's credit being applied
+  const credit = preview.value.credit_applied ?? 0;
+  const nextBill = preview.value.next_period_amount ?? preview.value.new_plan.amount;
+
+  return credit > 0 && credit >= nextBill;
+});
+
+// Calculate remaining credit after next bill is covered
+const remainingCreditAfterBill = computed(() => {
+  if (!preview.value) return 0;
+
+  // Use API-provided remaining_credit if available
+  if (preview.value.remaining_credit !== undefined) {
+    return preview.value.remaining_credit;
+  }
+
+  // Calculate from ending_balance (negative = credit)
+  if (preview.value.ending_balance !== undefined && preview.value.ending_balance < 0) {
+    return Math.abs(preview.value.ending_balance);
+  }
+
+  // Fallback calculation: credit - next bill amount
+  const credit = preview.value.credit_applied ?? 0;
+  const nextBill = preview.value.next_period_amount ?? preview.value.new_plan.amount;
+  const remaining = credit - nextBill;
+
+  return remaining > 0 ? remaining : 0;
+});
+
+// Credit amount applied to next bill (capped at bill amount)
+const creditAppliedToBill = computed(() => {
+  if (!preview.value) return 0;
+
+  const credit = preview.value.credit_applied ?? 0;
+  const nextBill = preview.value.next_period_amount ?? preview.value.new_plan.amount;
+
+  return Math.min(credit, nextBill);
+});
+
+// Amount actually due at next billing (after credit applied)
+const amountDueAtNextBilling = computed(() => {
+  if (!preview.value) return 0;
+
+  // Use API-provided value if available
+  if (preview.value.actual_next_billing_due !== undefined) {
+    return preview.value.actual_next_billing_due;
+  }
+
+  const credit = preview.value.credit_applied ?? 0;
+  const nextBill = preview.value.next_period_amount ?? preview.value.new_plan.amount;
+  const due = nextBill - credit;
+
+  return due > 0 ? due : 0;
+});
+
 // Load preview when modal opens with target plan
 watch(
   () => [props.open, props.targetPlan],
@@ -252,19 +311,80 @@ aria-live="polite">
                       </span>
                     </div>
 
-                    <!-- Credit/Charge Line -->
+                    <!-- Credit from unused time (shown for downgrades) -->
                     <div v-if="preview.credit_applied > 0" class="flex justify-between border-t border-gray-200 pt-3 dark:border-gray-700">
                       <span class="text-gray-600 dark:text-gray-400">{{ t('web.billing.plans.credit_label') }}</span>
                       <span class="font-medium text-green-600 dark:text-green-400">
-                        -{{ formatCurrency(preview.credit_applied, preview.currency) }}
+                        {{ formatCurrency(preview.credit_applied, preview.currency) }}
                       </span>
                     </div>
 
                     <!-- Divider -->
                     <div class="border-t border-gray-300 dark:border-gray-600"></div>
 
-                    <!-- New proration breakdown (when API provides new fields) -->
-                    <template v-if="hasNewProrationFields">
+                    <!-- Credit breakdown for downgrades with significant credit -->
+                    <template v-if="showCreditBreakdown">
+                      <!-- Section heading -->
+                      <h4 class="pt-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                        {{ t('web.billing.plans.credit_applies_heading') }}
+                      </h4>
+
+                      <!-- Breakdown list using semantic description list -->
+                      <dl class="space-y-2 border-l-2 border-gray-200 pl-3 dark:border-gray-600">
+                        <!-- Next bill amount -->
+                        <div class="flex justify-between">
+                          <dt class="text-gray-600 dark:text-gray-400">
+                            {{ t('web.billing.plans.next_bill_amount') }}
+                          </dt>
+                          <dd class="font-medium text-gray-900 dark:text-white">
+                            {{ formatCurrency(preview.next_period_amount ?? preview.new_plan.amount, preview.currency) }}
+                          </dd>
+                        </div>
+
+                        <!-- Credit applied -->
+                        <div class="flex justify-between">
+                          <dt class="text-gray-600 dark:text-gray-400">
+                            {{ t('web.billing.plans.credit_applied_to_bill') }}
+                          </dt>
+                          <dd class="font-medium text-green-600 dark:text-green-400">
+                            -{{ formatCurrency(creditAppliedToBill, preview.currency) }}
+                          </dd>
+                        </div>
+
+                        <!-- Amount due at next billing (emphasized when $0) -->
+                        <div class="flex justify-between">
+                          <dt class="font-medium text-gray-900 dark:text-white">
+                            {{ t('web.billing.plans.amount_due_next_billing') }}
+                          </dt>
+                          <dd :class="[
+                            'font-bold',
+                            amountDueAtNextBilling === 0
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-gray-900 dark:text-white'
+                          ]">
+                            {{ formatCurrency(amountDueAtNextBilling, preview.currency) }}
+                          </dd>
+                        </div>
+
+                        <!-- Remaining credit (if any) -->
+                        <div v-if="remainingCreditAfterBill > 0" class="flex justify-between border-t border-gray-200 pt-2 dark:border-gray-600">
+                          <dt class="text-gray-600 dark:text-gray-400">
+                            {{ t('web.billing.plans.remaining_account_credit') }}
+                          </dt>
+                          <dd class="font-medium text-green-600 dark:text-green-400">
+                            {{ formatCurrency(remainingCreditAfterBill, preview.currency) }}
+                          </dd>
+                        </div>
+                      </dl>
+
+                      <!-- Explanatory note for remaining credit -->
+                      <p v-if="remainingCreditAfterBill > 0" class="text-xs italic text-gray-500 dark:text-gray-400">
+                        {{ t('web.billing.plans.credit_future_note') }}
+                      </p>
+                    </template>
+
+                    <!-- Standard proration breakdown (upgrades or credit < next bill) -->
+                    <template v-else-if="hasNewProrationFields">
                       <!-- Due Today (only show if > 0) -->
                       <div v-if="preview.immediate_amount && preview.immediate_amount > 0" class="flex justify-between">
                         <span class="font-medium text-gray-900 dark:text-white">

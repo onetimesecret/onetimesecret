@@ -8,6 +8,15 @@
 # for the auth service when running in full mode. It checks
 # if migrations are needed and runs them transparently during
 # application startup.
+#
+# Concurrent Process Safety (PostgreSQL):
+#   When multiple processes boot simultaneously (e.g., backend + worker),
+#   PostgreSQL advisory locks prevent migration races. The first process
+#   to acquire the lock runs migrations; others receive AdvisoryLockError
+#   and continue booting without error (the lock holder completes migrations).
+#
+# SQLite Limitation:
+#   SQLite does not support advisory locks. Single-instance deployments only.
 
 require 'sequel'
 require 'logger'
@@ -21,7 +30,14 @@ module Auth
 
     class << self
       # Run migrations if needed (called during warmup in full mode)
-      # Sequel::Migrator.run automatically skips already-run migrations
+      #
+      # Sequel::Migrator.run automatically skips already-run migrations.
+      # For PostgreSQL, advisory locks ensure only one process runs migrations
+      # at a time. If another process holds the lock, this method logs an info
+      # message and returns successfully (no error raised).
+      #
+      # @return [void]
+      # @raise [Sequel::Migrator::Error] if migrations fail (not lock contention)
       def run_if_needed
         return unless database_connection
 
@@ -55,6 +71,15 @@ module Auth
         new_version = get_schema_version(using_elevated_url)
 
         log_migration_result(log_context, current_version, new_version, elapsed_μs)
+      rescue Sequel::AdvisoryLockError => ex
+        # Another process is already running migrations - this is expected
+        # when multiple processes boot simultaneously (e.g., backend + worker)
+        sequel_logger.info 'Migrations already in progress (advisory lock held by another process)',
+          **log_context,
+          status: 'skipped',
+          reason: 'advisory_lock_held',
+          lock_info: ex.message
+        # Don't raise - the other process will complete the migrations
       rescue Sequel::Migrator::Error => ex
         elapsed_μs = Onetime.now_in_μs - start_time if start_time
 
@@ -238,8 +263,10 @@ module Auth
               conn,
               migrations_dir,
               use_transactions: true,
-              # PostgreSQL: Use advisory locks to prevent concurrent migration races
-              # SQLite: No advisory lock support (single-instance deployments only)
+              # PostgreSQL: Use advisory locks to prevent concurrent migration races.
+              # When lock is held by another process, raises AdvisoryLockError
+              # which is caught gracefully in run_if_needed (see rescue block).
+              # SQLite: No advisory lock support (single-instance deployments only).
               use_advisory_lock: conn.adapter_scheme == :postgres,
             )
           end

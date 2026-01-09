@@ -130,14 +130,11 @@ module Core::Logic
         sess['external_id']      = cust.extid
         sess['authenticated']    = true
         sess['authenticated_at'] = Familia.now.to_i
-        cust.save
 
-        colonels  = OT.conf.dig('site', 'authentication', 'colonels') || []
-        cust.role = if colonels.member?(cust.email)
-          :colonel
-        else
-          :customer
-        end
+        # Role is stored on the customer record and managed via CLI:
+        # bin/ots role promote user@example.com --role colonel
+        sess['role'] = cust.role
+        cust.save
 
         auth_logger.info 'Login successful', {
           user_id: cust.objid,

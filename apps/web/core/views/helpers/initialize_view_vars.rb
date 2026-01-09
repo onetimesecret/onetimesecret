@@ -41,7 +41,7 @@ module Core
         # This prevents accidental exposure of sensitive information to the frontend.
         #
         # Sensitive data types being protected:
-        # - Secret keys and credentials (:secret, nested :cluster, :colonels)
+        # - Secret keys and credentials (:secret, nested :cluster)
         # - Authentication tokens (:authenticity)
         # - Internal infrastructure details
         #
@@ -202,7 +202,6 @@ module Core
 
         # Additional filtering for nested sensitive data
         if (safe_site['authentication']) && safe_site['authentication'].is_a?(Hash)
-          safe_site['authentication'].delete('colonels')
           # Add auth mode from auth config (separate from site config)
           safe_site['authentication']['mode'] = Onetime.auth_config.mode
         end

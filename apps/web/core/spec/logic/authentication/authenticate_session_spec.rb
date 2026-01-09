@@ -79,7 +79,6 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       conf: {
         'site' => {
           'authentication' => {
-            'colonels' => [],
             'autoverify' => nil,
           },
         },
@@ -209,7 +208,6 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
             allow(OT).to receive(:conf).and_return({
               'site' => {
                 'authentication' => {
-                  'colonels' => [],
                   'autoverify' => 'false',
                 },
               },
@@ -238,7 +236,6 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
             allow(OT).to receive(:conf).and_return({
               'site' => {
                 'authentication' => {
-                  'colonels' => [],
                   'autoverify' => 'true',
                 },
               },
@@ -285,22 +282,12 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
           logic.process
         end
 
-        it 'sets customer role to colonel when in colonel list' do
-          allow(OT).to receive(:conf).and_return({
-            'site' => {
-              'authentication' => {
-                'colonels' => ['test@example.com'],
-                'autoverify' => nil,
-              },
-            },
-          })
-          expect(customer).to receive(:role=).with(:colonel)
+        it 'stores customer role in session' do
+          # Role is managed via CLI (bin/ots role promote) and stored on customer record
+          # Authentication just reads the existing role and stores it in session
+          allow(customer).to receive(:role).and_return('colonel')
           logic.process
-        end
-
-        it 'sets default customer role when not a colonel' do
-          expect(customer).to receive(:role=).with(:customer)
-          logic.process
+          expect(session_data['role']).to eq('colonel')
         end
       end
     end

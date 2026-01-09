@@ -5,6 +5,7 @@
 require 'stripe'
 require_relative '../metadata'
 require_relative '../config'
+require_relative '../lib/stripe_circuit_breaker'
 
 module Billing
   unless defined?(RECORD_LIMIT)
@@ -55,14 +56,12 @@ module Billing
   # if parsing logic changes or bugs are fixed.
   #
   class Plan < Familia::Horreum
-    using Familia::Refinements::TimeLiterals
-
     prefix :billing_plan
 
     feature :safe_dump
     feature :expiration
 
-    default_expiration 12.hour      # Auto-expire after 12 hours
+    default_expiration Billing::Config::CATALOG_TTL  # Auto-expire after 12 hours
 
     identifier_field :plan_id    # Computed: tier_interval_region
 
@@ -96,10 +95,15 @@ module Billing
     # Cache management
     field :last_synced_at           # Timestamp of last Stripe sync
 
+    # Class-level timestamp for O(1) catalog freshness checks
+    # Key: billing_plan:catalog_synced_at (via Familia)
+    # Uses json_string to preserve Float type (Familia.now returns Float)
+    class_json_string :catalog_synced_at, default_expiration: Billing::Config::CATALOG_TTL
+
     set :entitlements
     set :features
     hashkey :limits
-    stringkey :stripe_data_snapshot, default_expiration: 12.hour  # Cached Stripe Product+Price JSON for recovery
+    stringkey :stripe_data_snapshot, default_expiration: Billing::Config::CATALOG_TTL  # Cached Stripe Product+Price JSON for recovery
 
     def init
       super
@@ -135,9 +139,12 @@ module Billing
 
     # Check if plan should show "Most Popular" badge
     #
+    # Familia v2 deserializes fields to JSON primitives, so is_popular
+    # is already a boolean (not a string) but can still be nil.
+    #
     # @return [Boolean] True if plan is marked as popular
     def popular?
-      is_popular.to_s == 'true'
+      !!is_popular
     end
 
     # Calculate monthly equivalent amount for display
@@ -170,6 +177,40 @@ module Billing
     end
 
     module ClassMethods
+      # Required metadata keys for OTS products (app check is separate)
+      # Note: 'interval' comes from the price object, not product metadata
+      REQUIRED_PRODUCT_METADATA = %w[tier region].freeze
+
+      # Validate product has all required metadata for plan creation
+      #
+      # @param product [Stripe::Product] The Stripe product
+      # @return [Array<String>] List of missing keys (empty if valid)
+      def validate_product_metadata(product)
+        metadata = product.metadata || {}
+        missing  = REQUIRED_PRODUCT_METADATA - metadata.keys.map(&:to_s)
+
+        if missing.any?
+          OT.lw '[Plan.validate_product_metadata] Product missing required metadata', {
+            product_id: product.id,
+            product_name: product.name,
+            missing_keys: missing.join(', '),
+          }
+        end
+
+        missing
+      end
+
+      # Check if product is a valid OTS product with all required metadata
+      #
+      # @param product [Stripe::Product] The Stripe product
+      # @return [Boolean] true if valid OTS product
+      def valid_ots_product?(product)
+        return false unless product.metadata && product.metadata[Metadata::FIELD_APP] == Metadata::APP_NAME
+
+        missing = validate_product_metadata(product)
+        missing.empty?
+      end
+
       # Refresh plan cache from Stripe API
       #
       # Fetches all active products and prices from Stripe, filters by app metadata,
@@ -177,17 +218,20 @@ module Billing
       #
       # ## Consistency Guarantee
       #
-      # This method uses a "collect-then-write" pattern to minimize inconsistency:
+      # This method uses an upsert pattern to ensure catalog availability:
       # 1. **Fetch phase**: All Stripe data is fetched and validated in memory first
-      # 2. **Write phase**: Only after all data is collected, plans are saved to Redis
+      # 2. **Upsert phase**: Each plan is created or updated individually
+      # 3. **Prune phase**: Plans not in current Stripe catalog are soft-deleted
+      # 4. **Cache rebuild**: Price ID lookup cache is refreshed
       #
-      # If Stripe API fails during the fetch phase, no cache modifications occur.
-      # If a write fails mid-save, previously cached plans remain valid (12-hour TTL),
-      # and the next refresh attempt will overwrite them.
+      # The catalog is NEVER cleared during sync, eliminating the empty-window
+      # race condition that occurred with the previous clear-then-rebuild pattern.
+      # If Stripe API fails during fetch, no cache modifications occur.
       #
       # @param progress [Proc, nil] Optional progress callback (called with status messages)
-      # @return [Integer] Number of plans cached
+      # @return [Integer] Number of plans synced
       # @raise [Stripe::StripeError] If Stripe API call fails during fetch phase
+      # @raise [Billing::CircuitOpenError] If circuit breaker is open
       def refresh_from_stripe(progress: nil)
         # Skip Stripe sync in CI/test environments without API key
         stripe_key = Onetime.billing_config.stripe_key
@@ -196,28 +240,43 @@ module Billing
           return 0
         end
 
-        OT.li '[Plan.refresh_from_stripe] Starting Stripe sync (collect-then-write)'
+        OT.li '[Plan.refresh_from_stripe] Starting Stripe sync (upsert pattern)'
 
         # PHASE 1: Fetch all data from Stripe into memory
         # No Redis writes occur during this phase
-        plan_data_list = collect_stripe_plans(progress: progress)
+        # Circuit breaker protects against cascade failures during Stripe outages
+        plan_data_list = Billing::StripeCircuitBreaker.call do
+          collect_stripe_plans(progress: progress)
+        end
 
         if plan_data_list.empty?
           OT.lw '[Plan.refresh_from_stripe] No valid plans fetched from Stripe'
           return 0
         end
 
-        progress&.call("Writing #{plan_data_list.size} plans to cache...")
+        progress&.call("Upserting #{plan_data_list.size} plans...")
 
-        # PHASE 2: Write all collected plans to Redis
-        # This happens only after all Stripe API calls succeeded
-        # Clear stale cache entries first to remove plans no longer in Stripe
-        clear_cache
+        # PHASE 2: Upsert all plans (NO clear_cache!)
+        # Each plan is created or updated individually, ensuring the catalog
+        # is never empty during sync
+        upserted_ids = []
+        plan_data_list.each do |plan_data|
+          plan = upsert_from_stripe_data(plan_data)
+          upserted_ids << plan.plan_id
+        end
 
-        items_count = persist_collected_plans(plan_data_list)
+        # PHASE 3: Prune stale plans not in current Stripe catalog
+        # Soft-deletes plans that are no longer active in Stripe
+        pruned_count = prune_stale_plans(upserted_ids)
 
-        OT.li "[Plan.refresh_from_stripe] Cached #{items_count} plans"
-        items_count
+        # PHASE 4: Rebuild lookup cache for O(1) price_id lookups
+        rebuild_stripe_price_id_cache
+
+        # PHASE 5: Update global sync timestamp for O(1) freshness checks
+        update_catalog_sync_timestamp
+
+        OT.li "[Plan.refresh_from_stripe] Synced #{upserted_ids.size} plans, pruned #{pruned_count}"
+        upserted_ids.size
       end
 
       private
@@ -251,28 +310,12 @@ module Billing
           products_processed += 1
           progress&.call("Processing product #{products_processed}: #{product.name[0..40]}...") if products_processed == 1 || products_processed % 5 == 0
 
-          # Skip products without required metadata
-          unless product.metadata[Metadata::FIELD_APP] == Metadata::APP_NAME
-            OT.ld '[Plan.collect_stripe_plans] Skipping product (not onetimesecret app)', {
+          # Skip products that aren't valid OTS products (wrong app or missing required metadata)
+          unless valid_ots_product?(product)
+            OT.ld '[Plan.collect_stripe_plans] Skipping invalid product', {
               product_id: product.id,
               product_name: product.name,
               app: product.metadata[Metadata::FIELD_APP],
-            }
-            next
-          end
-
-          unless product.metadata[Metadata::FIELD_TIER]
-            OT.ld '[Plan.collect_stripe_plans] Skipping product (missing tier)', {
-              product_id: product.id,
-              product_name: product.name,
-            }
-            next
-          end
-
-          unless product.metadata[Metadata::FIELD_REGION]
-            OT.ld '[Plan.collect_stripe_plans] Skipping product (missing region)', {
-              product_id: product.id,
-              product_name: product.name,
             }
             next
           end
@@ -290,6 +333,8 @@ module Billing
             next unless price.type == 'recurring'
 
             plan_data = extract_plan_data(product, price)
+            next if plan_data.nil? # Skip if metadata validation failed
+
             plan_data_list << plan_data
 
             OT.ld "[Plan.collect_stripe_plans] Collected plan: #{plan_data[:plan_id]}", {
@@ -303,12 +348,24 @@ module Billing
         plan_data_list
       end
 
+      public
+
       # Extracts plan data from Stripe product and price objects
       #
       # @param product [Stripe::Product] Stripe product object
       # @param price [Stripe::Price] Stripe price object
-      # @return [Hash] Plan data ready for persistence
+      # @return [Hash, nil] Plan data ready for persistence, or nil if validation fails
       def extract_plan_data(product, price)
+        # Early return if missing required metadata
+        missing = validate_product_metadata(product)
+        if missing.any?
+          OT.le '[Plan.extract_plan_data] Cannot extract plan data - missing metadata', {
+            product_id: product.id,
+            missing_keys: missing,
+          }
+          return nil
+        end
+
         interval = price.recurring.interval # 'month' or 'year'
         tier     = product.metadata[Metadata::FIELD_TIER]
         region   = product.metadata[Metadata::FIELD_REGION]
@@ -376,6 +433,7 @@ module Billing
           plan_id: plan_id,
           stripe_price_id: price.id,
           stripe_product_id: product.id,
+          stripe_updated_at: product.updated.to_s, # Unix timestamp for stale update detection
           name: product.name,
           tier: tier,
           interval: interval,
@@ -401,77 +459,140 @@ module Billing
         }
       end
 
-      # Persists collected plan data to Redis
+      # Upsert single plan from Stripe data
       #
-      # @param plan_data_list [Array<Hash>] Array of plan data hashes
-      # @return [Integer] Number of plans successfully saved
-      def persist_collected_plans(plan_data_list)
-        sync_timestamp = Time.now.to_i.to_s
-        saved_count    = 0
+      # Creates a new plan if it doesn't exist, or updates an existing one.
+      # This pattern avoids the empty catalog window that occurs with clear+rebuild.
+      #
+      # @param plan_data [Hash] Plan data from extract_plan_data or webhook payload
+      # @return [Plan] The upserted plan instance
+      def upsert_from_stripe_data(plan_data)
+        plan_id = plan_data[:plan_id]
 
-        plan_data_list.each do |data|
-          plan = new(
-            plan_id: data[:plan_id],
-            stripe_price_id: data[:stripe_price_id],
-            stripe_product_id: data[:stripe_product_id],
-            name: data[:name],
-            tier: data[:tier],
-            interval: data[:interval],
-            amount: data[:amount],
-            currency: data[:currency],
-            region: data[:region],
-            tenancy: data[:tenancy],
-            display_order: data[:display_order],
-            show_on_plans_page: data[:show_on_plans_page],
-            description: data[:description],
-          )
+        # Load existing or create new - handle expired entries gracefully
+        existing = begin
+          loaded = load(plan_id)
+          loaded if loaded&.exists?
+        rescue Familia::NoIdentifier
+          # Plan key expired but instances entry persisted - treat as new
+          nil
+        end
 
-          # Populate additional Stripe Price fields
-          plan.active            = data[:active]
-          plan.billing_scheme    = data[:billing_scheme]
-          plan.usage_type        = data[:usage_type]
-          plan.trial_period_days = data[:trial_period_days]
-          plan.nickname          = data[:nickname]
-          plan.plan_code         = data[:plan_code]
-          plan.is_popular        = data[:is_popular]
-          plan.plan_name_label   = data[:plan_name_label]
-          plan.last_synced_at    = sync_timestamp
+        # Check for stale update (out-of-order webhook delivery)
+        # Only skip if BOTH timestamps are valid (> 0)
+        if existing && plan_data[:stripe_updated_at]
+          incoming_updated = plan_data[:stripe_updated_at].to_i
+          existing_updated = existing.stripe_updated_at.to_i
 
-          # Add entitlements to set (unique values)
-          plan.entitlements.clear
-          data[:entitlements].each { |ent| plan.entitlements.add(ent) }
-
-          # Add features to set
-          plan.features.clear
-          data[:features].each { |feat| plan.features.add(feat) }
-
-          # Add limits to hashkey with flattened keys
-          plan.limits.clear
-          data[:limits].each do |resource, value|
-            key              = "#{resource}.max"
-            val              = value == -1 ? 'unlimited' : value.to_s
-            plan.limits[key] = val
+          if incoming_updated > 0 && existing_updated > 0 && incoming_updated <= existing_updated
+            OT.ld "[Plan.upsert_from_stripe_data] Skipping stale update for #{plan_id} " \
+                  "(incoming: #{incoming_updated}, existing: #{existing_updated})"
+            return existing
           end
+        end
 
-          # Store original Stripe data for recovery/debugging
-          plan.stripe_data_snapshot.value = data[:stripe_snapshot].to_json
+        plan = existing || new(plan_id: plan_id)
 
-          plan.save
+        # Apply scalar fields from plan_data
+        plan.stripe_price_id    = plan_data[:stripe_price_id]
+        plan.stripe_product_id  = plan_data[:stripe_product_id]
+        plan.name               = plan_data[:name]
+        plan.tier               = plan_data[:tier]
+        plan.interval           = plan_data[:interval]
+        plan.amount             = plan_data[:amount]
+        plan.currency           = plan_data[:currency]
+        plan.region             = plan_data[:region]
+        plan.tenancy            = plan_data[:tenancy]
+        plan.display_order      = plan_data[:display_order]
+        plan.show_on_plans_page = plan_data[:show_on_plans_page]
+        plan.description        = plan_data[:description]
+        plan.plan_code          = plan_data[:plan_code]
+        plan.is_popular         = plan_data[:is_popular]
+        plan.plan_name_label    = plan_data[:plan_name_label]
+        plan.active             = plan_data[:active]
+        plan.billing_scheme     = plan_data[:billing_scheme]
+        plan.usage_type         = plan_data[:usage_type]
+        plan.trial_period_days  = plan_data[:trial_period_days]
+        plan.nickname           = plan_data[:nickname]
+        plan.last_synced_at     = Time.now.to_i.to_s
 
-          OT.ld "[Plan.persist_collected_plans] Cached plan: #{data[:plan_id]}"
-          saved_count += 1
+        # Store stripe_updated_at for future stale update comparison
+        plan.stripe_updated_at  = plan_data[:stripe_updated_at] || Time.now.to_i.to_s
+
+        # Clear and repopulate entitlements set
+        plan.entitlements.clear
+        plan_data[:entitlements]&.each { |ent| plan.entitlements.add(ent) }
+
+        # Clear and repopulate features set
+        plan.features.clear
+        plan_data[:features]&.each { |feat| plan.features.add(feat) }
+
+        # Clear and repopulate limits hashkey with flattened keys
+        plan.limits.clear
+        plan_data[:limits]&.each do |resource, value|
+          key              = "#{resource}.max"
+          val              = value == -1 ? 'unlimited' : value.to_s
+          plan.limits[key] = val
+        end
+
+        # Store Stripe data snapshot for recovery
+        if plan_data[:stripe_snapshot]
+          plan.stripe_data_snapshot.value = plan_data[:stripe_snapshot].to_json
+        end
+
+        plan.save
+
+        action = existing ? 'Updated' : 'Created'
+        OT.ld "[Plan.upsert_from_stripe_data] #{action} plan: #{plan_id}"
+
+        plan
+      end
+
+      # Remove plans not in current Stripe catalog
+      #
+      # Uses soft-delete pattern - marks plans as inactive rather than destroying.
+      # Handles expired entries gracefully by removing orphaned instances entries.
+      #
+      # @param current_plan_ids [Array<String>] Plan IDs currently in Stripe catalog
+      # @return [Integer] Number of plans marked stale or cleaned up
+      def prune_stale_plans(current_plan_ids)
+        all_cached_ids = instances.to_a
+        stale_ids      = all_cached_ids - current_plan_ids
+        pruned_count   = 0
+
+        stale_ids.each do |plan_id|
+          plan = load(plan_id)
+
+          if plan&.exists?
+            # Plan exists in Redis - soft-delete by marking inactive
+            plan.active         = 'false'
+            plan.last_synced_at = Time.now.to_i.to_s
+            plan.save
+            OT.li "[Plan.prune_stale_plans] Marked stale: #{plan_id}"
+            pruned_count       += 1
+          else
+            # Plan key expired - just remove orphaned instances entry
+            instances.remove(plan_id)
+            OT.ld "[Plan.prune_stale_plans] Removed expired entry: #{plan_id}"
+            pruned_count += 1
+          end
+        rescue Familia::NoIdentifier => _ex
+          # Object expired but load returned something invalid - clean up instances
+          instances.remove(plan_id)
+          OT.ld "[Plan.prune_stale_plans] Cleaned orphan entry: #{plan_id}"
+          pruned_count += 1
         rescue StandardError => ex
-          # Log but continue - don't let one plan failure stop others
-          OT.le '[Plan.persist_collected_plans] Failed to save plan', {
-            plan_id: data[:plan_id],
+          # Always clean up orphan entry on unexpected errors to prevent stale references
+          instances.remove(plan_id)
+          OT.le '[Plan.prune_stale_plans] Error processing stale plan (cleaned orphan)', {
+            plan_id: plan_id,
             error: ex.message,
           }
         end
 
-        saved_count
+        OT.li "[Plan.prune_stale_plans] Pruned #{pruned_count} stale plans" if pruned_count.positive?
+        pruned_count
       end
-
-      public
 
       # Get plan by tier, interval, and region
       #
@@ -498,7 +619,8 @@ module Billing
       #
       # @return [Array<Plan>] All cached plans
       def list_plans
-        load_multi(instances.to_a)
+        # Filter out nil entries from expired plans (instances entry exists but hash expired)
+        load_multi(instances.to_a).compact
       end
 
       # Find plan by Stripe price ID
@@ -598,6 +720,28 @@ module Billing
         end
         instances.clear
         @stripe_price_id_cache = nil
+        catalog_synced_at.delete!
+      end
+
+      # Get the last successful catalog sync timestamp
+      #
+      # Returns the Unix timestamp of the last successful Stripe sync,
+      # or nil if no sync has occurred. Uses class_json_string for O(1)
+      # lookup instead of loading all plans.
+      #
+      # @return [Integer, nil] Unix timestamp (truncated from Float) or nil
+      def catalog_last_synced_at
+        catalog_synced_at.to_i if catalog_synced_at.exists?
+      end
+
+      # Update the global catalog sync timestamp
+      #
+      # Called after successful Stripe sync to record when the catalog
+      # was last refreshed. Stores Familia.now (Float) with JSON serialization
+      # to preserve type. TTL set via default_expiration.
+      #
+      def update_catalog_sync_timestamp
+        catalog_synced_at.value = Familia.now
       end
 
       # Load all plans from billing.yaml config into Redis cache

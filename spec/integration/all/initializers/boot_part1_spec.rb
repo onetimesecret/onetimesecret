@@ -182,7 +182,6 @@ RSpec.describe "Onetime::Config during Onetime.boot!", type: :integration do
         redis:
           uri: 'redis://127.0.0.1:6379/15'
           dbs: {session: 15}
-        colonels: ['colonel@example.com']
         emailer:
           mode: 'smtp'
           from: 'x@y.z'

@@ -58,8 +58,25 @@ RSpec.describe Billing::Initializers::BillingCatalog do
       allow(logger).to receive(:error)
     end
 
+    context 'when cache is valid' do
+      before do
+        allow(initializer).to receive(:catalog_valid?).and_return(true)
+      end
+
+      it 'skips Stripe sync' do
+        expect(Billing::Plan).not_to receive(:refresh_from_stripe)
+        initializer.execute(nil)
+      end
+
+      it 'logs cache valid message' do
+        expect(logger).to receive(:info).with('Cache valid, skipping Stripe sync')
+        initializer.execute(nil)
+      end
+    end
+
     context 'when Stripe sync succeeds' do
       before do
+        allow(initializer).to receive(:catalog_valid?).and_return(false)
         allow(Billing::Plan).to receive(:refresh_from_stripe)
       end
 
@@ -79,6 +96,7 @@ RSpec.describe Billing::Initializers::BillingCatalog do
       let(:stripe_error) { Stripe::APIConnectionError.new('Network error') }
 
       before do
+        allow(initializer).to receive(:catalog_valid?).and_return(false)
         allow(Billing::Plan).to receive(:refresh_from_stripe).and_raise(stripe_error)
         allow(Billing::Plan).to receive(:load_all_from_config).and_return(5)
       end
@@ -103,6 +121,7 @@ RSpec.describe Billing::Initializers::BillingCatalog do
       let(:config_error) { StandardError.new('Config file missing') }
 
       before do
+        allow(initializer).to receive(:catalog_valid?).and_return(false)
         allow(Billing::Plan).to receive(:refresh_from_stripe).and_raise(stripe_error)
         allow(Billing::Plan).to receive(:load_all_from_config).and_raise(config_error)
       end
@@ -122,6 +141,66 @@ RSpec.describe Billing::Initializers::BillingCatalog do
         )
 
         expect { initializer.execute(nil) }.to raise_error(StandardError)
+      end
+    end
+  end
+
+  describe '#catalog_valid?' do
+    let(:logger) { instance_double(SemanticLogger::Logger) }
+    let(:instances_set) { double('instances') }
+
+    before do
+      allow(Onetime).to receive(:billing_logger).and_return(logger)
+    end
+
+    context 'when instances is empty' do
+      before do
+        allow(Billing::Plan).to receive(:instances).and_return(instances_set)
+        allow(instances_set).to receive(:empty?).and_return(true)
+      end
+
+      it 'returns false' do
+        expect(initializer.send(:catalog_valid?)).to be false
+      end
+    end
+
+    context 'when instances is populated but no sync timestamp exists' do
+      before do
+        allow(Billing::Plan).to receive(:instances).and_return(instances_set)
+        allow(instances_set).to receive(:empty?).and_return(false)
+        allow(Billing::Plan).to receive(:catalog_last_synced_at).and_return(nil)
+      end
+
+      it 'returns false' do
+        expect(initializer.send(:catalog_valid?)).to be false
+      end
+    end
+
+    context 'when cache is stale (older than 12 hours)' do
+      let(:stale_timestamp) { Time.now.to_i - (13 * 60 * 60) }
+
+      before do
+        allow(Billing::Plan).to receive(:instances).and_return(instances_set)
+        allow(instances_set).to receive(:empty?).and_return(false)
+        allow(Billing::Plan).to receive(:catalog_last_synced_at).and_return(stale_timestamp)
+      end
+
+      it 'returns false' do
+        expect(initializer.send(:catalog_valid?)).to be false
+      end
+    end
+
+    context 'when cache is fresh (within 12 hours)' do
+      let(:fresh_timestamp) { Time.now.to_i - (6 * 60 * 60) }
+
+      before do
+        allow(Billing::Plan).to receive(:instances).and_return(instances_set)
+        allow(instances_set).to receive(:empty?).and_return(false)
+        allow(Billing::Plan).to receive(:catalog_last_synced_at).and_return(fresh_timestamp)
+      end
+
+      it 'returns true' do
+        expect(initializer.send(:catalog_valid?)).to be true
       end
     end
   end

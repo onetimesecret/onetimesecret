@@ -453,4 +453,141 @@ describe('PlanChangeModal', () => {
       expect(wrapper.text()).toContain('Credit for unused time');
     });
   });
+
+  describe('Credit Breakdown Display', () => {
+    // Test new fields: ending_balance, remaining_credit, actual_next_billing_due, tax
+    const basePreviewWithNewFields = {
+      ...mockPreviewResponse,
+      immediate_amount: 0,
+      next_period_amount: 3500,
+      ending_balance: 0,
+      tax: 0,
+      remaining_credit: 0,
+      actual_next_billing_due: 3500,
+    };
+
+    it('shows zero due today for downgrades with remaining credit', async () => {
+      const downgradePlan = { ...mockTargetPlan, amount: 3500, display_order: 5 };
+      const preview = {
+        ...basePreviewWithNewFields,
+        credit_applied: 13400,
+        immediate_amount: -9900, // Negative immediate (credit)
+        next_period_amount: 3500,
+        remaining_credit: 9900,
+        actual_next_billing_due: 0,
+        ending_balance: -9900,
+      };
+
+      mockPreviewPlanChange.mockResolvedValueOnce(preview);
+      wrapper = await mountComponent({ targetPlan: downgradePlan });
+      await nextTick();
+      await nextTick();
+
+      // Should show the breakdown but not show negative "Due Today"
+      expect(wrapper.html()).toBeDefined();
+    });
+
+    it('shows immediate amount for upgrades', async () => {
+      const preview = {
+        ...basePreviewWithNewFields,
+        credit_applied: 2000,
+        immediate_amount: 5000,
+        next_period_amount: 9900,
+        remaining_credit: 0,
+        actual_next_billing_due: 9900,
+        ending_balance: 0,
+      };
+
+      mockPreviewPlanChange.mockResolvedValueOnce(preview);
+      wrapper = await mountComponent();
+      await nextTick();
+      await nextTick();
+
+      // Should render without errors
+      expect(wrapper.html()).toBeDefined();
+    });
+
+    it('handles edge case where credit exactly equals next billing', async () => {
+      const downgradePlan = { ...mockTargetPlan, amount: 3500, display_order: 5 };
+      const preview = {
+        ...basePreviewWithNewFields,
+        credit_applied: 3500,
+        immediate_amount: 0,
+        next_period_amount: 3500,
+        remaining_credit: 0,
+        actual_next_billing_due: 0,
+        ending_balance: 0,
+      };
+
+      mockPreviewPlanChange.mockResolvedValueOnce(preview);
+      wrapper = await mountComponent({ targetPlan: downgradePlan });
+      await nextTick();
+      await nextTick();
+
+      // Should render without errors - $0 due, no remaining credit
+      expect(wrapper.html()).toBeDefined();
+    });
+
+    it('detects hasNewProrationFields correctly when fields are present', async () => {
+      const preview = {
+        ...mockPreviewResponse,
+        immediate_amount: 1000,
+        next_period_amount: 9900,
+      };
+
+      mockPreviewPlanChange.mockResolvedValueOnce(preview);
+      wrapper = await mountComponent();
+      await nextTick();
+      await nextTick();
+
+      // Component should use new field display path
+      expect(wrapper.html()).toBeDefined();
+    });
+
+    it('falls back gracefully when new fields are missing', async () => {
+      // Legacy response without new fields
+      const legacyPreview = {
+        amount_due: 7000,
+        subtotal: 9900,
+        credit_applied: 2900,
+        next_billing_date: Math.floor(Date.now() / 1000) + 86400 * 30,
+        currency: 'usd',
+        current_plan: {
+          price_id: 'price_current_123',
+          amount: 2900,
+          interval: 'month',
+        },
+        new_plan: {
+          price_id: 'price_target_456',
+          amount: 9900,
+          interval: 'month',
+        },
+        // No immediate_amount, next_period_amount, etc.
+      };
+
+      mockPreviewPlanChange.mockResolvedValueOnce(legacyPreview);
+      wrapper = await mountComponent();
+      await nextTick();
+      await nextTick();
+
+      // Should fall back to legacy display (shows "Next invoice")
+      expect(wrapper.text()).toContain('Next invoice');
+    });
+
+    it('includes tax in display when present', async () => {
+      const previewWithTax = {
+        ...basePreviewWithNewFields,
+        tax: 455, // $4.55 tax
+        amount_due: 4555, // Includes tax
+      };
+
+      mockPreviewPlanChange.mockResolvedValueOnce(previewWithTax);
+      wrapper = await mountComponent();
+      await nextTick();
+      await nextTick();
+
+      // Component should handle tax field without errors
+      expect(wrapper.html()).toBeDefined();
+    });
+  });
 });

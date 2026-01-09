@@ -3,16 +3,18 @@
 # Onetime Secret - Logging Configuration
 #
 # Strategic categories for debugging and operational instrumentation:
-#   App      - Default fallback for application-level logging
-#   Auth     - Authentication/authorization flows
-#   Bunny    - RabbitMQ AMQP client (connection, heartbeats)
-#   Familia  - Redis operations via Familia ORM
-#   HTTP     - HTTP requests, responses, and middleware
-#   Otto     - Otto framework operations
-#   Rhales   - Rhales template rendering (future)
-#   Secret   - Core business value (create/view/burn)
-#   Sequel   - Database queries and operations
-#   Session  - Session lifecycle management
+#   App       - Default fallback for application-level logging
+#   Auth      - Authentication/authorization flows
+#   Bunny     - RabbitMQ AMQP client (connection, heartbeats)
+#   Familia   - Redis operations via Familia ORM
+#   HTTP      - HTTP requests, responses, and middleware
+#   Otto      - Otto framework operations
+#   Rhales    - Rhales template rendering (future)
+#   Scheduler - Scheduled/recurring background jobs (rufus-scheduler)
+#   Secret    - Core business value (create/view/burn)
+#   Sequel    - Database queries and operations
+#   Session   - Session lifecycle management
+#   Workers   - RabbitMQ worker message processing and orchestration
 #
 # Environment variable overrides:
 #   LOG_LEVEL=debug                       - Set global log level
@@ -22,8 +24,10 @@
 #   DEBUG_AUTH=1                          - Quick debug flag for Auth
 #   DEBUG_BUNNY=1                         - Quick debug flag for Bunny (RabbitMQ)
 #   DEBUG_HTTP=1                          - Quick debug flag for HTTP
+#   DEBUG_SCHEDULER=1                     - Quick debug flag for Scheduler
 #   DEBUG_SECRET=1                        - Quick debug flag for Secret
 #   DEBUG_SESSION=1                       - Quick debug flag for Session
+#   DEBUG_WORKERS=1                       - Quick debug flag for Workers
 #
 # External library debug flags (use library's own flags):
 #   FAMILIA_DEBUG=1                       - Familia's built-in debug flag
@@ -55,13 +59,13 @@ loggers:
   CLI: info       # Command-line interface operations
   Familia: info   # Redis/Familia main database operations
   HTTP: info      # HTTP requests and middleware operations
-  Jobs: info
   Otto: info      # Otto framework operations
   Rhales: error   # Rhales template rendering (suppress unescaped HTML warnings)
+  Scheduler: info # Scheduled/recurring background jobs
   Secret: info    # Secret lifecycle (create, view, burn)
   Sequel: info    # Database queries and operations (SQL logged at :trace level)
   Session: info   # Session lifecycle (create, update, destroy)
-  Workers: debug
+  Workers: info   # RabbitMQ worker message processing and orchestration
 
 # HTTP request logging configuration
 http:

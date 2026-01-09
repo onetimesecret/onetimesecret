@@ -207,16 +207,6 @@ site:
     # a more restrictive mode where only authenticated users can create
     # secrets while maintaining site navigation and branding.
     required: <%= ENV['AUTH_REQUIRED'] == 'true' %>
-    # Email addresses listed below will be granted automatic
-    # administrative privileges upon account creation. These
-    # accounts have access to a page that show basic system stats.
-    # The term "colonel" is used instead of "admin". "Colonel" (which
-    # is pronounced "kernel") references both the protected core of a
-    # Linux system and a military rank, symbolizing high-level access
-    # permissions. This naming helps avoid basic, automated attacks
-    # that target common admin URLs or role names.
-    colonels:
-      - <%= ENV['COLONEL'] || 'CHANGEME@example.com' %>
     # Restrict account creation to specific email domains while allowing
     # secret-sharing with any email address. When set, only email addresses
     # from the listed domains can create accounts. This is useful for
@@ -500,6 +490,14 @@ jobs:
   # The cache has a 12-hour TTL, so 6-hour refresh provides redundancy.
   # Skips gracefully if no Stripe API key is configured (standalone mode).
   plan_cache_refresh_enabled: <%= ENV['JOBS_PLAN_CACHE_REFRESH_ENABLED'] == 'true' || false %>
+
+  # Catalog Retry Job
+  # Retries webhook events that were blocked by the Stripe circuit breaker.
+  # When Stripe API is unavailable, catalog update webhooks (product.updated,
+  # price.created, etc.) are queued for retry rather than failing. This job
+  # processes those queued events once the circuit breaker closes.
+  # Runs every 2 minutes when enabled; skips if circuit is still open.
+  catalog_retry_enabled: <%= ENV['JOBS_CATALOG_RETRY_ENABLED'] == 'true' || false %>
 
   # Expiration warning emails
   # Send email notifications before secrets expire to warn recipients

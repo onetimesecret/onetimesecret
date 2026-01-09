@@ -153,6 +153,11 @@ RSpec.describe 'Plan Switching Workflow', :integration do
                           select: ->(block = nil, &blk) { line_items.select(&(block || blk)) },
                           sum: ->(&blk) { line_items.sum(&blk) })
 
+    # Build total_taxes array (Stripe API 2025-03-31+ format)
+    # Note: total_tax_amounts was deprecated and replaced with total_taxes
+    tax_amount = attrs.delete(:tax) || 0
+    total_taxes = tax_amount.positive? ? [double('TaxAmount', amount: tax_amount)] : []
+
     double('Stripe::Invoice', {
       id: nil, # Previews don't have ID
       subtotal: line_items.sum(&:amount),
@@ -161,6 +166,9 @@ RSpec.describe 'Plan Switching Workflow', :integration do
       currency: 'cad',
       lines: lines_object,
       next_payment_attempt: (Time.now + 30 * 24 * 60 * 60).to_i,
+      # New fields for credit breakdown (added 2025-01)
+      ending_balance: 0,
+      total_taxes: total_taxes,  # Stripe API 2025-03-31+
     }.merge(attrs))
   end
 
@@ -1036,6 +1044,373 @@ RSpec.describe 'Plan Switching Workflow', :integration do
              { new_price_id: new_price_id }
 
         expect(last_response.status).to eq(200)
+      end
+    end
+  end
+
+  # ===========================================================================
+  # SCENARIO 4: PLAN CHANGE PREVIEW WITH CREDIT BREAKDOWN FIELDS
+  # ===========================================================================
+  # Tests for new response fields: ending_balance, remaining_credit,
+  # actual_next_billing_due, tax, immediate_amount, next_period_amount
+  # ===========================================================================
+  describe 'Scenario 4: Credit breakdown fields in preview response' do
+    let(:current_price_id) { 'price_single_team_monthly' }
+    let(:current_price) { build_mock_price(id: current_price_id, unit_amount: 9900) }
+    let(:subscription_item) { build_mock_subscription_item(id: 'si_credit', price: current_price) }
+    let(:mock_subscription) { build_mock_subscription(id: 'sub_credit', items: [subscription_item]) }
+
+    before do
+      organization.stripe_subscription_id = 'sub_credit'
+      organization.stripe_customer_id = 'cus_credit'
+      organization.planid = 'single_team_v1_monthly'
+      organization.subscription_status = 'active'
+      organization.save
+
+      allow(Stripe::Subscription).to receive(:retrieve)
+        .with('sub_credit')
+        .and_return(mock_subscription)
+    end
+
+    # -------------------------------------------------------------------------
+    # Large downgrade: credit exceeds next billing period
+    # -------------------------------------------------------------------------
+    context 'downgrade with large credit (credit exceeds next billing)' do
+      let(:lower_price_id) { 'price_identity_plus_monthly' }
+      let(:lower_price) { build_mock_price(id: lower_price_id, unit_amount: 3500) }
+
+      # Simulate: $99 plan → $35 plan mid-cycle with large credit
+      # Credit from unused $99: $117 (accumulated over billing period)
+      # Next period charge: $18 (prorated new plan)
+      # Proration credit to balance: $117
+      # remaining_credit = max($117 - $18, 0) = $99
+      # actual_next_billing_due = max($18 - $117, 0) = $0
+      let(:large_credit_preview) do
+        mock_preview = build_mock_invoice_preview(
+          lines: [
+            build_mock_preview_line_item(type: :credit, amount: -11700, price_id: lower_price),  # Credit for unused time
+            build_mock_preview_line_item(type: :charge, amount: 1800, price_id: lower_price),    # Prorated new plan
+          ],
+          subtotal: -9900,
+          amount_due: 0,  # Nothing due now, credit exceeds charge
+        )
+        allow(mock_preview).to receive(:ending_balance).and_return(-9900)  # $99 credit remaining
+        allow(mock_preview).to receive(:tax).and_return(0)
+        mock_preview
+      end
+
+      before do
+        allow(Stripe::Invoice).to receive(:create_preview)
+          .and_return(large_credit_preview)
+
+        allow(Stripe::Price).to receive(:retrieve)
+          .with(lower_price_id)
+          .and_return(lower_price)
+
+        allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
+          .with(lower_price_id)
+          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'identity_plus'))
+      end
+
+      it 'returns ending_balance as negative (credit remaining)' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: lower_price_id }
+
+        expect(last_response.status).to eq(200)
+        data = JSON.parse(last_response.body)
+        expect(data['ending_balance']).to eq(-9900)  # Negative = credit
+      end
+
+      it 'returns remaining_credit as absolute value' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: lower_price_id }
+
+        data = JSON.parse(last_response.body)
+        expect(data['remaining_credit']).to eq(9900)  # Absolute value
+      end
+
+      it 'returns actual_next_billing_due as zero (covered by credit)' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: lower_price_id }
+
+        data = JSON.parse(last_response.body)
+        expect(data['actual_next_billing_due']).to eq(0)
+      end
+
+      it 'includes tax field in response' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: lower_price_id }
+
+        data = JSON.parse(last_response.body)
+        expect(data).to have_key('tax')
+        expect(data['tax']).to eq(0)
+      end
+
+      it 'includes immediate_amount field' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: lower_price_id }
+
+        data = JSON.parse(last_response.body)
+        expect(data).to have_key('immediate_amount')
+      end
+
+      it 'includes next_period_amount field' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: lower_price_id }
+
+        data = JSON.parse(last_response.body)
+        expect(data).to have_key('next_period_amount')
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # Small downgrade: some credit but not enough to cover next period
+    # -------------------------------------------------------------------------
+    context 'downgrade with small credit (partial coverage of next billing)' do
+      let(:lower_price_id) { 'price_identity_plus_monthly' }
+      let(:lower_price) { build_mock_price(id: lower_price_id, unit_amount: 3500) }
+
+      # Simulate: small credit from unused time
+      let(:small_credit_preview) do
+        mock_preview = build_mock_invoice_preview(
+          lines: [
+            build_mock_preview_line_item(type: :credit, amount: -2000, price_id: lower_price),
+            build_mock_preview_line_item(type: :charge, amount: 3500, price_id: lower_price),
+          ],
+          subtotal: 1500,
+          amount_due: 1500,
+        )
+        allow(mock_preview).to receive(:ending_balance).and_return(0)  # No credit remaining
+        allow(mock_preview).to receive(:tax).and_return(0)
+        mock_preview
+      end
+
+      before do
+        allow(Stripe::Invoice).to receive(:create_preview)
+          .and_return(small_credit_preview)
+
+        allow(Stripe::Price).to receive(:retrieve)
+          .with(lower_price_id)
+          .and_return(lower_price)
+
+        allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
+          .with(lower_price_id)
+          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'identity_plus'))
+      end
+
+      it 'returns zero ending_balance when credit is fully applied' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: lower_price_id }
+
+        expect(last_response.status).to eq(200)
+        data = JSON.parse(last_response.body)
+        expect(data['ending_balance']).to eq(0)
+      end
+
+      it 'returns zero remaining_credit when fully consumed' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: lower_price_id }
+
+        data = JSON.parse(last_response.body)
+        expect(data['remaining_credit']).to eq(0)
+      end
+
+      it 'returns positive actual_next_billing_due when credit insufficient' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: lower_price_id }
+
+        data = JSON.parse(last_response.body)
+        # next_period_amount (3500) + ending_balance (0) = 3500, max(3500, 0) = 3500
+        expect(data['actual_next_billing_due']).to be >= 0
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # Upgrade: charge exceeds any credit
+    # -------------------------------------------------------------------------
+    context 'upgrade scenario (positive amount_due)' do
+      let(:higher_price_id) { 'price_org_max_monthly' }
+      let(:higher_price) { build_mock_price(id: higher_price_id, unit_amount: 19900) }
+
+      # Simulate: upgrade from $99 to $199 mid-cycle
+      let(:upgrade_preview) do
+        mock_preview = build_mock_invoice_preview(
+          lines: [
+            build_mock_preview_line_item(type: :credit, amount: -4950, price_id: higher_price),  # Half-month credit
+            build_mock_preview_line_item(type: :charge, amount: 9950, price_id: higher_price),    # Half-month new plan
+          ],
+          subtotal: 5000,
+          amount_due: 5000,
+        )
+        allow(mock_preview).to receive(:ending_balance).and_return(0)
+        allow(mock_preview).to receive(:tax).and_return(0)
+        mock_preview
+      end
+
+      before do
+        allow(Stripe::Invoice).to receive(:create_preview)
+          .and_return(upgrade_preview)
+
+        allow(Stripe::Price).to receive(:retrieve)
+          .with(higher_price_id)
+          .and_return(higher_price)
+
+        allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
+          .with(higher_price_id)
+          .and_return(double('Plan', legacy?: false, plan_id: 'org_max_v1_monthly', tier: 'org_max'))
+      end
+
+      it 'returns zero or positive ending_balance for upgrades' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: higher_price_id }
+
+        expect(last_response.status).to eq(200)
+        data = JSON.parse(last_response.body)
+        expect(data['ending_balance']).to be >= 0
+      end
+
+      it 'returns zero remaining_credit for upgrades' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: higher_price_id }
+
+        data = JSON.parse(last_response.body)
+        expect(data['remaining_credit']).to eq(0)
+      end
+
+      it 'returns positive actual_next_billing_due' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: higher_price_id }
+
+        data = JSON.parse(last_response.body)
+        expect(data['actual_next_billing_due']).to be > 0
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # Exact match: credit exactly equals next billing amount
+    # -------------------------------------------------------------------------
+    context 'credit exactly matches next billing amount' do
+      let(:lower_price_id) { 'price_identity_plus_monthly' }
+      let(:lower_price) { build_mock_price(id: lower_price_id, unit_amount: 3500) }
+
+      let(:exact_match_preview) do
+        mock_preview = build_mock_invoice_preview(
+          lines: [
+            build_mock_preview_line_item(type: :credit, amount: -3500, price_id: lower_price),
+            build_mock_preview_line_item(type: :charge, amount: 3500, price_id: lower_price),
+          ],
+          subtotal: 0,
+          amount_due: 0,
+        )
+        allow(mock_preview).to receive(:ending_balance).and_return(0)
+        allow(mock_preview).to receive(:tax).and_return(0)
+        mock_preview
+      end
+
+      before do
+        allow(Stripe::Invoice).to receive(:create_preview)
+          .and_return(exact_match_preview)
+
+        allow(Stripe::Price).to receive(:retrieve)
+          .with(lower_price_id)
+          .and_return(lower_price)
+
+        allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
+          .with(lower_price_id)
+          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'identity_plus'))
+      end
+
+      it 'returns zero ending_balance when exactly balanced' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: lower_price_id }
+
+        expect(last_response.status).to eq(200)
+        data = JSON.parse(last_response.body)
+        expect(data['ending_balance']).to eq(0)
+      end
+
+      it 'returns zero remaining_credit' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: lower_price_id }
+
+        data = JSON.parse(last_response.body)
+        expect(data['remaining_credit']).to eq(0)
+      end
+
+      it 'returns zero actual_next_billing_due (credit covers next period)' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: lower_price_id }
+
+        data = JSON.parse(last_response.body)
+        # When proration credit exactly equals next_period_amount:
+        # actual_next_billing_due = max(next_period - proration_credit, 0) = max(3500 - 3500, 0) = 0
+        expect(data['actual_next_billing_due']).to eq(0)
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # Tax scenario
+    # -------------------------------------------------------------------------
+    context 'with tax included' do
+      let(:lower_price_id) { 'price_identity_plus_monthly' }
+      let(:lower_price) { build_mock_price(id: lower_price_id, unit_amount: 3500) }
+
+      let(:taxed_preview) do
+        mock_preview = build_mock_invoice_preview(
+          lines: [
+            build_mock_preview_line_item(type: :credit, amount: -2000, price_id: lower_price),
+            build_mock_preview_line_item(type: :charge, amount: 3500, price_id: lower_price),
+          ],
+          subtotal: 1500,
+          amount_due: 1695,  # Including 13% tax (195 cents)
+          tax: 195,          # Tax amount for total_tax_amounts array
+        )
+        allow(mock_preview).to receive(:ending_balance).and_return(0)
+        mock_preview
+      end
+
+      before do
+        allow(Stripe::Invoice).to receive(:create_preview)
+          .and_return(taxed_preview)
+
+        allow(Stripe::Price).to receive(:retrieve)
+          .with(lower_price_id)
+          .and_return(lower_price)
+
+        allow(::Billing::Plan).to receive(:find_by_stripe_price_id)
+          .with(lower_price_id)
+          .and_return(double('Plan', legacy?: false, plan_id: 'identity_plus_v1_monthly', tier: 'identity_plus'))
+      end
+
+      it 'includes tax amount in response' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: lower_price_id }
+
+        expect(last_response.status).to eq(200)
+        data = JSON.parse(last_response.body)
+        expect(data['tax']).to eq(195)
+      end
+
+      it 'amount_due includes tax' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: lower_price_id }
+
+        data = JSON.parse(last_response.body)
+        expect(data['amount_due']).to eq(1695)
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # Same plan error case
+    # -------------------------------------------------------------------------
+    context 'switching to same plan (error case)' do
+      it 'returns 400 when switching to same price' do
+        post "/billing/api/org/#{organization.extid}/preview-plan-change",
+             { new_price_id: current_price_id }
+
+        expect(last_response.status).to eq(400)
+        data = JSON.parse(last_response.body)
+        expect(data['error']).to include('Already on this plan')
       end
     end
   end

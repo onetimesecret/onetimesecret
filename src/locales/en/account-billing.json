@@ -116,7 +116,13 @@
         "confirm_upgrade": "Confirm Upgrade",
         "confirm_downgrade": "Confirm Downgrade",
         "upgrade_to": "Upgrade to {plan}?",
-        "downgrade_to": "Downgrade to {plan}?"
+        "downgrade_to": "Downgrade to {plan}?",
+        "credit_applies_heading": "How your credit applies:",
+        "next_bill_amount": "Next bill amount:",
+        "credit_applied_to_bill": "Credit applied:",
+        "amount_due_next_billing": "Amount due at next billing:",
+        "remaining_account_credit": "Remaining account credit:",
+        "credit_future_note": "Applied to future invoices"
       },
       "invoices": {
         "title": "Billing History",

@@ -47,7 +47,6 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
       allow(OT).to receive_messages(conf: {
         'site' => {
           'authentication' => {
-            'colonels' => [],
             'autoverify' => nil,
           },
         },
@@ -75,8 +74,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         allow(OT).to receive(:conf).and_return({
           'site' => {
             'authentication' => {
-              'colonels' => [],
-              'autoverify' => 'false',
+                'autoverify' => 'false',
             },
           },
           'features' => {},
@@ -126,8 +124,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         allow(OT).to receive(:conf).and_return({
           'site' => {
             'authentication' => {
-              'colonels' => [],
-              'autoverify' => nil,
+                'autoverify' => nil,
             },
           },
           'features' => {},
@@ -148,8 +145,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         allow(OT).to receive(:conf).and_return({
           'site' => {
             'authentication' => {
-              'colonels' => [],
-              'autoverify' => 'true',
+                'autoverify' => 'true',
             },
           },
           'features' => {},
@@ -188,8 +184,7 @@ RSpec.describe Core::Logic::Authentication::AuthenticateSession do
         allow(OT).to receive(:conf).and_return({
           'site' => {
             'authentication' => {
-              'colonels' => [],
-              'autoverify' => '',
+                'autoverify' => '',
             },
           },
           'features' => {},

@@ -168,7 +168,7 @@ module Onetime
           # @raise [Billing::CatalogMissError] If price_id not in catalog
           # @see Billing::PlanValidator.resolve_plan_id
           def extract_plan_id_from_subscription(subscription)
-            price = subscription.items.data.first&.price
+            price    = subscription.items.data.first&.price
             price_id = price&.id
 
             raise ArgumentError, 'Subscription has no price' unless price_id
