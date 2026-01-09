@@ -91,24 +91,24 @@ module Auth
       RodauthOverrides.configure(self)
 
       # Security features: lockout, active sessions, remember me
-      if ENV['ENABLE_SECURITY_FEATURES'] != 'false'
+      if Onetime.auth_config.security_features_enabled?
         Features::Security.configure(self)
       end
 
       # Multi-Factor Authentication: TOTP, recovery codes
-      if ENV['ENABLE_MFA'] == 'true'
+      if Onetime.auth_config.mfa_enabled?
         Features::MFA.configure(self)
         Hooks::MFA.configure(self)
       end
 
       # Passwordless authentication: email magic links
-      if ENV['ENABLE_MAGIC_LINKS'] == 'true'
+      if Onetime.auth_config.magic_links_enabled?
         Features::Passwordless.configure(self)
         Hooks::Passwordless.configure(self)
       end
 
       # WebAuthn: biometrics, security keys (Face ID, Touch ID, YubiKey)
-      if ENV['ENABLE_WEBAUTHN'] == 'true'
+      if Onetime.auth_config.webauthn_enabled?
         Features::WebAuthn.configure(self)
         Hooks::WebAuthn.configure(self)
       end

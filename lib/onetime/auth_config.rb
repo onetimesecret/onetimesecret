@@ -65,6 +65,43 @@ module Onetime
       mode == 'simple'
     end
 
+    # Feature flags hash from full mode config
+    def features
+      full['features'] || {}
+    end
+
+    # Whether security features are enabled (lockout, active sessions, remember me)
+    # Default: true (when full mode is enabled)
+    def security_features_enabled?
+      return false unless full_enabled?
+
+      features.fetch('security', true)
+    end
+
+    # Whether MFA is enabled (TOTP, recovery codes)
+    # Default: false
+    def mfa_enabled?
+      return false unless full_enabled?
+
+      features.fetch('mfa', false)
+    end
+
+    # Whether magic links (passwordless email login) are enabled
+    # Default: false
+    def magic_links_enabled?
+      return false unless full_enabled?
+
+      features.fetch('magic_links', false)
+    end
+
+    # Whether WebAuthn (biometrics, security keys) is enabled
+    # Default: false
+    def webauthn_enabled?
+      return false unless full_enabled?
+
+      features.fetch('webauthn', false)
+    end
+
     # Reload configuration (useful for testing)
     # Also picks up any changes to AuthConfig.path
     def reload!
