@@ -77,8 +77,8 @@ end
 #=> 'abcdef'
 
 ## sanitize_identifier: strips emoji
-@sanitizer.sanitize_identifier('test-id-with-emoji')
-#=> 'test-id-with-emoji'
+@sanitizer.sanitize_identifier('test-id-with-🎉-emoji')
+#=> 'test-id-with--emoji'
 
 ## sanitize_plain_text: preserves normal text
 @sanitizer.sanitize_plain_text('Hello World')
@@ -177,12 +177,10 @@ result.include?('script')
 @sanitizer.sanitize_email('test.user+filter@sub.domain.example.com')
 #=> 'test.user+filter@sub.domain.example.com'
 
-## sanitize_email: strips newlines (potential header injection)
-# Sanitize.fragment strips tags but preserves newlines in plain text
-# The result has a literal newline, which is then lowercased
-result = @sanitizer.sanitize_email("user@example.com\nBcc: attacker@evil.com")
-result.start_with?('user@example.com')
-#=> true
+## sanitize_email: strips newlines (prevents header injection)
+# Newlines are stripped to prevent email header injection attacks
+@sanitizer.sanitize_email("user@example.com\nBcc: attacker@evil.com")
+#=> 'user@example.combcc: attacker@evil.com'
 
 ## sanitize_email: handles unicode in email (normalized by Sanitize)
 result = @sanitizer.sanitize_email('user@example.com')

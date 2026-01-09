@@ -141,7 +141,7 @@ module V1::Logic
       # most basic of checks, then whatever this is never had a whisker's
       # chance in a lion's den of being a custom domain anyway.
       def process_share_domain
-        potential_domain = sanitize_identifier(payload['share_domain'].to_s)
+        potential_domain = sanitize_plain_text(payload['share_domain'].to_s)
         return if potential_domain.empty?
 
         unless Onetime::CustomDomain.valid?(potential_domain)
