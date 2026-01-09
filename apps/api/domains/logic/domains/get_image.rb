@@ -22,17 +22,16 @@ module DomainsAPI::Logic
         :content_length, :image_data, :encoded_content
 
       def process_params
-        # Sanitize the id to allow only alphanumeric characters
-        @custom_domain_id = params['custom_domain_id'].to_s.gsub(/[^a-zA-Z0-9]/, '')
+        # Sanitize identifiers to allow only alphanumeric, underscore, and hyphen characters
+        @custom_domain_id = sanitize_identifier(params['custom_domain_id'])
 
         # One of: logo, icon. CustomDomain must have a matching hashkey field.
-        tmp_image_type = params['image_type'].to_s.gsub(/[^a-zA-Z0-9]/, '')
+        tmp_image_type = sanitize_identifier(params['image_type'])
         @image_type    = %w[logo icon].include?(tmp_image_type) ? tmp_image_type : nil
 
         # We capture the file extension for the image but we just log
         # it. The response content type is determined by the stored value.
-        tmp_image_ext = params['image_ext'].to_s.gsub(/[^a-zA-Z0-9]/, '')
-        @image_ext    = tmp_image_ext
+        @image_ext = sanitize_identifier(params['image_ext'])
 
         OT.ld "[GetImage] domain_id=#{custom_domain_id} type=#{image_type} ext=#{image_ext}"
       end

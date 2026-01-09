@@ -16,7 +16,7 @@ module InviteAPI::Logic
       attr_reader :invitation, :organization, :membership
 
       def process_params
-        @token = params['token']
+        @token = sanitize_identifier(params['token'])
       end
 
       def raise_concerns

@@ -18,7 +18,7 @@ module ColonelAPI
         attr_reader :org, :investigation_result
 
         def process_params
-          @org_id = params['org_id']
+          @org_id = sanitize_identifier(params['org_id'])
         end
 
         def raise_concerns

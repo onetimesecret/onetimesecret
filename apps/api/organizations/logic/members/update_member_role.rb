@@ -25,9 +25,9 @@ module OrganizationAPI::Logic
       attr_reader :organization, :target_member, :target_membership, :new_role, :old_role
 
       def process_params
-        @extid        = params['extid']
-        @member_extid = params['member_extid']
-        @new_role     = params['role'].to_s.strip.downcase
+        @extid        = sanitize_identifier(params['extid'])
+        @member_extid = sanitize_identifier(params['member_extid'])
+        @new_role     = sanitize_plain_text(params['role']).downcase
       end
 
       def raise_concerns

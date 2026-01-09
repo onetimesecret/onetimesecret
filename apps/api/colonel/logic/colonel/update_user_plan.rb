@@ -17,8 +17,8 @@ module ColonelAPI
         attr_reader :user_id, :user, :new_planid, :old_planid
 
         def process_params
-          @user_id    = params['user_id']
-          @new_planid = params['planid']
+          @user_id    = sanitize_identifier(params['user_id'])
+          @new_planid = sanitize_identifier(params['planid'])
 
           raise_form_error('User ID is required', field: :user_id) if user_id.to_s.empty?
           raise_form_error('Plan ID is required', field: :planid) if new_planid.to_s.empty?

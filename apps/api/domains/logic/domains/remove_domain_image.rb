@@ -17,7 +17,7 @@ module DomainsAPI::Logic
       end
 
       def process_params
-        @extid = params['extid'].to_s.strip
+        @extid = sanitize_identifier(params['extid'])
       end
 
       def raise_concerns
