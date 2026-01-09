@@ -136,7 +136,8 @@ module V2::Logic
         @recipient           = payload['recipient'].collect do |email_address|
           next if email_address.to_s.empty?
 
-          email_address.scan(r).uniq.first
+          sanitized_email = sanitize_email(email_address)
+          sanitized_email.scan(r).uniq.first
         end.compact.uniq
         @recipient_safe      = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
@@ -147,7 +148,7 @@ module V2::Logic
       # most basic of checks, then whatever this is never had a whisker's
       # chance in a lion's den of being a custom domain anyway.
       def process_share_domain
-        potential_domain = payload['share_domain'].to_s
+        potential_domain = sanitize_identifier(payload['share_domain'].to_s)
         return if potential_domain.empty?
 
         unless Onetime::CustomDomain.valid?(potential_domain)

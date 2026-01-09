@@ -22,7 +22,7 @@ module V1::Logic
             :metadata_url, :burn_url, :display_lines
 
       def process_params
-        @key = params['key'].to_s
+        @key = sanitize_identifier(params['key'].to_s)
         @metadata = Onetime::Metadata.load key
       end
 

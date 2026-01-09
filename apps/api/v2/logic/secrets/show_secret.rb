@@ -12,7 +12,7 @@ module V2::Logic
         :is_owner, :has_passphrase, :secret_identifier, :share_domain
 
       def process_params
-        @identifier = params['identifier'].to_s
+        @identifier = sanitize_identifier(params['identifier'].to_s)
         @secret     = Onetime::Secret.load identifier
         @passphrase = params['passphrase'].to_s
         @continue   = params['continue'].to_s == 'true'
