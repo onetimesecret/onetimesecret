@@ -236,6 +236,49 @@ site:
     same_site: strict
     # Prevent JavaScript access to cookies (always true in Rack)
     httponly: true
+  # Middleware Configuration
+  # Controls which security and performance middleware components are enabled.
+  # Each setting can be overridden via environment variables.
+  middleware:
+    # Serve static files for frontend vue application
+    # ENV: MIDDLEWARE_STATIC_FILES (default: true)
+    static_files: <%= ENV['MIDDLEWARE_STATIC_FILES'] != 'false' %>
+    # Sanitizes request parameters to ensure proper UTF-8 encoding
+    # Prevents encoding-based attacks and malformed input
+    # ENV: MIDDLEWARE_UTF8_SANITIZER (default: true)
+    utf8_sanitizer: <%= ENV['MIDDLEWARE_UTF8_SANITIZER'] != 'false' %>
+    # Protects against Cross-Site Request Forgery (CSRF) attacks
+    # Validates that requests originate from the same site
+    # ENV: MIDDLEWARE_AUTHENTICITY_TOKEN (default: true)
+    authenticity_token: <%= ENV['MIDDLEWARE_AUTHENTICITY_TOKEN'] != 'false' %>
+    # Protects against Cross-Site Request Forgery (CSRF) attacks
+    # Validates HTTP Origin header matches expected origin
+    # ENV: MIDDLEWARE_HTTP_ORIGIN (default: false)
+    http_origin: <%= ENV['MIDDLEWARE_HTTP_ORIGIN'] == 'true' %>
+    # Sets X-XSS-Protection header to enable browser XSS filtering
+    # Modern browsers rely less on this as CSP becomes standard
+    # ENV: MIDDLEWARE_XSS_HEADER (default: false)
+    xss_header: <%= ENV['MIDDLEWARE_XSS_HEADER'] == 'true' %>
+    # Prevents your site from being embedded in frames (clickjacking protection)
+    # Sets X-Frame-Options header to SAMEORIGIN or DENY
+    # ENV: MIDDLEWARE_FRAME_OPTIONS (default: false)
+    frame_options: <%= ENV['MIDDLEWARE_FRAME_OPTIONS'] == 'true' %>
+    # Blocks directory traversal attacks using "../" in paths
+    # Critical for preventing unauthorized file access
+    # ENV: MIDDLEWARE_PATH_TRAVERSAL (default: false)
+    path_traversal: <%= ENV['MIDDLEWARE_PATH_TRAVERSAL'] == 'true' %>
+    # Protects against cookie tossing attacks
+    # Prevents session fixation via manipulated cookies
+    # ENV: MIDDLEWARE_COOKIE_TOSSING (default: false)
+    cookie_tossing: <%= ENV['MIDDLEWARE_COOKIE_TOSSING'] == 'true' %>
+    # Prevents IP spoofing attacks by validating IP addresses
+    # Useful when IP-based access controls are implemented
+    # ENV: MIDDLEWARE_IP_SPOOFING (default: false)
+    ip_spoofing: <%= ENV['MIDDLEWARE_IP_SPOOFING'] == 'true' %>
+    # Forces all connections to use HTTPS via HSTS headers
+    # Disable only for development or when behind a secure proxy
+    # ENV: MIDDLEWARE_STRICT_TRANSPORT (default: false)
+    strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] == 'true' %>
 
 features:
   regions:
@@ -698,41 +741,6 @@ experimental:
   # middleware chain manipulation at runtime. For most applications, this
   # should be enabled in production environments.
   freeze_app: false
-  # Middleware Configuration
-  # Controls which security and performance middleware components are enabled
-  middleware:
-    # Serve static files for frontend vue application
-    static_files: true
-    # Sanitizes request parameters to ensure proper UTF-8 encoding
-    # Prevents encoding-based attacks and malformed input
-    utf8_sanitizer: true
-    # Protects against Cross-Site Request Forgery (CSRF) attacks
-    # Validates that requests originate from the same site
-    authenticity_token: true
-    # Protects against Cross-Site Request Forgery (CSRF) attacks
-    # Validates that requests originate from the same site
-    http_origin: false
-    # Escapes HTML entities in request parameters
-    # Helps prevent XSS attacks via request parameters
-    escaped_params: false
-    # Sets X-XSS-Protection header to enable browser XSS filtering
-    # Modern browsers rely less on this as CSP becomes standard
-    xss_header: false
-    # Prevents your site from being embedded in frames (clickjacking protection)
-    # Sets X-Frame-Options header to SAMEORIGIN or DENY
-    frame_options: false
-    # Blocks directory traversal attacks using "../" in paths
-    # Critical for preventing unauthorized file access
-    path_traversal: false
-    # Protects against cookie tossing attacks
-    # Prevents session fixation via manipulated cookies
-    cookie_tossing: false
-    # Prevents IP spoofing attacks by validating IP addresses
-    # Useful when IP-based access controls are implemented
-    ip_spoofing: false
-    # Forces all connections to use HTTPS via HSTS headers
-    # Disable only for development or when behind a secure proxy
-    strict_transport: false
   # When enabled, adds Content-Security-Policy headers to the response. When
   # `development.enabled=true`, the headers will be less restrictive but still
   # prevent any content loading from other origins. In regular production mode,
