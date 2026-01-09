@@ -1,12 +1,15 @@
-# lib/onetime/logic/input_sanitizers.rb
+# lib/onetime/security/input_sanitizers.rb
 #
 # frozen_string_literal: true
 
 require 'sanitize'
 
 module Onetime
-  module Logic
+  module Security
     # Centralized input sanitization methods for API logic classes.
+    #
+    # Layer-agnostic security module with no Rack dependencies.
+    # Can be called from request handlers, background jobs, tests, or CLI tooling.
     #
     # Provides type-appropriate sanitization:
     # - Identifiers: strict allowlist (alphanumeric, underscore, hyphen)
@@ -15,7 +18,7 @@ module Onetime
     #
     # Usage:
     #   Include in logic classes that process user input:
-    #     include Onetime::Logic::InputSanitizers
+    #     include Onetime::Security::InputSanitizers
     #
     #   Then call appropriate sanitizer in process_params:
     #     @extid = sanitize_identifier(params['extid'])

@@ -10,12 +10,14 @@
 module Core
   module Views
     module SanitizerHelpers
-      # Normalizes values to prevent injection attacks and ensure consistent formatting.
+      # Escapes values to prevent injection attacks and ensure consistent formatting.
       #
-      # @param value [String, Array, Hash] The value to normalize
-      # @return [String, Array, Hash] The normalized value
+      # Delegates to Security::OutputEscaper for HTML escaping logic.
+      #
+      # @param value [String, Array, Hash] The value to escape
+      # @return [String, Array, Hash] The escaped value safe for output
       def normalize_value(value)
-        Onetime::Utils.normalize_value(value)
+        Onetime::Utils.escape_for_output(value)
       end
 
       # Serializes view data to a script tag for frontend consumption.

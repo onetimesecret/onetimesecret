@@ -8,7 +8,7 @@ require 'timeout'
 require 'onetime/mail'
 require 'onetime/refinements/stripe_refinements'
 require 'onetime/logic/organization_context'
-require 'onetime/logic/input_sanitizers'
+require 'onetime/security/input_sanitizers'
 
 module Onetime
   module Logic
@@ -29,7 +29,7 @@ module Onetime
     # to make it available across all API versions and applications.
     class Base
       include Onetime::Logic::OrganizationContext
-      include Onetime::Logic::InputSanitizers
+      include Onetime::Security::InputSanitizers
 
       attr_reader :context, :sess, :cust, :params, :locale, :processed_params,
         :site, :features, :authentication, :domains_enabled, :strategy_result
