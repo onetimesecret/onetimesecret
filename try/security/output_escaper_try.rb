@@ -145,22 +145,6 @@ TestOutputEscaper.normalize_value('<b>test</b>')
 TestOutputEscaper.normalize_value('https://secure.example.com/')
 #=> 'https://secure.example.com/'
 
-## Integration: OutputEscaper is extended into Utils
-Onetime::Utils.respond_to?(:escape_for_output)
-#=> true
-
-## Integration: Utils.escape_for_output works correctly
-Onetime::Utils.escape_for_output('<div>test</div>')
-#=> '&lt;div&gt;test&lt;/div&gt;'
-
-## Integration: Utils.escape_for_output preserves HTTPS
-Onetime::Utils.escape_for_output('https://onetimesecret.com/')
-#=> 'https://onetimesecret.com/'
-
-## Integration: Utils has normalize_value alias
-Onetime::Utils.respond_to?(:normalize_value)
-#=> true
-
 ## Edge case: malformed URL that looks like HTTPS
 result = TestOutputEscaper.escape_for_output('https://<script>')
 result.include?('&lt;')

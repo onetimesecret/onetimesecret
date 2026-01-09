@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+require 'onetime/security/output_escaper'
+
 # SanitizerHelpers provides methods for sanitizing data before rendering in views.
 #
 # This module handles JSON serialization, HTML escaping, and caching to prevent
@@ -17,7 +19,7 @@ module Core
       # @param value [String, Array, Hash] The value to escape
       # @return [String, Array, Hash] The escaped value safe for output
       def normalize_value(value)
-        Onetime::Utils.escape_for_output(value)
+        Onetime::Security::OutputEscaper.escape_for_output(value)
       end
 
       # Serializes view data to a script tag for frontend consumption.

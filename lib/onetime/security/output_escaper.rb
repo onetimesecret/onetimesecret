@@ -16,11 +16,14 @@ module Onetime
     # and benefits from Rack's well-tested implementation.
     #
     # Usage:
+    #   Onetime::Security::OutputEscaper.escape_for_output(user_input)
+    #
+    # Or extend into a class/module:
     #   extend Onetime::Security::OutputEscaper
     #
-    #   escape_for_output(user_input)  # => HTML-escaped string
-    #
     module OutputEscaper
+      extend self
+
       # Converts a Ruby value into a JavaScript-friendly string or JSON.
       # Ensures special characters are properly escaped or converted to JSON.
       #
@@ -49,14 +52,14 @@ module Onetime
       # Legacy alias for backward compatibility
       alias normalize_value escape_for_output
 
-      private
-
+      # Check if string is an HTTPS URL (should not be escaped)
       def https?(str)
         uri = URI.parse(str)
         uri.is_a?(URI::HTTPS)
       rescue URI::InvalidURIError
         false
       end
+      private :https?
     end
   end
 end
