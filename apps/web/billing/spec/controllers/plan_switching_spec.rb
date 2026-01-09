@@ -1079,17 +1079,19 @@ RSpec.describe 'Plan Switching Workflow', :integration do
       let(:lower_price_id) { 'price_identity_plus_monthly' }
       let(:lower_price) { build_mock_price(id: lower_price_id, unit_amount: 3500) }
 
-      # Simulate: $99 plan → $35 plan mid-cycle
-      # Credit from unused $99: ~$50
-      # Next period $35
-      # Ending balance: -$15 (credit remaining)
+      # Simulate: $99 plan → $35 plan mid-cycle with large credit
+      # Credit from unused $99: $117 (accumulated over billing period)
+      # Next period charge: $18 (prorated new plan)
+      # Proration credit to balance: $117
+      # remaining_credit = max($117 - $18, 0) = $99
+      # actual_next_billing_due = max($18 - $117, 0) = $0
       let(:large_credit_preview) do
         mock_preview = build_mock_invoice_preview(
           lines: [
-            build_mock_preview_line_item(type: :credit, amount: -6400, price_id: lower_price),  # Credit for unused time
-            build_mock_preview_line_item(type: :charge, amount: 1800, price_id: lower_price),   # Prorated new plan
+            build_mock_preview_line_item(type: :credit, amount: -11700, price_id: lower_price),  # Credit for unused time
+            build_mock_preview_line_item(type: :charge, amount: 1800, price_id: lower_price),    # Prorated new plan
           ],
-          subtotal: -4600,
+          subtotal: -9900,
           amount_due: 0,  # Nothing due now, credit exceeds charge
         )
         allow(mock_preview).to receive(:ending_balance).and_return(-9900)  # $99 credit remaining
@@ -1335,14 +1337,14 @@ RSpec.describe 'Plan Switching Workflow', :integration do
         expect(data['remaining_credit']).to eq(0)
       end
 
-      it 'returns next period amount as actual_next_billing_due (no credit remaining)' do
+      it 'returns zero actual_next_billing_due (credit covers next period)' do
         post "/billing/api/org/#{organization.extid}/preview-plan-change",
              { new_price_id: lower_price_id }
 
         data = JSON.parse(last_response.body)
-        # When ending_balance is 0, no credit remains to offset next billing
-        # actual_next_billing_due = next_period_amount + ending_balance = 3500 + 0 = 3500
-        expect(data['actual_next_billing_due']).to eq(3500)
+        # When proration credit exactly equals next_period_amount:
+        # actual_next_billing_due = max(next_period - proration_credit, 0) = max(3500 - 3500, 0) = 0
+        expect(data['actual_next_billing_due']).to eq(0)
       end
     end
 
