@@ -262,7 +262,7 @@ module Onetime
 
           # Get product name from site config
           def site_product_name
-            @site_product_name ||= conf_dig('site', 'interface', 'ui', 'header', 'site_name') || 'One-Time Secret'
+            @site_product_name ||= conf_dig('site', 'interface', 'ui', 'header', 'site_name') || t('email.common.onetime_secret')
           end
 
           # Get host from site config
