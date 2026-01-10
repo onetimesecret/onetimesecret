@@ -24,11 +24,12 @@ module Onetime
         print_customer_summary(customer)
 
         # Payment methods
-        payment_methods = Stripe::PaymentMethod.list({
-          customer: customer_id,
-          limit: 10,
-        },
-                                                    )
+        payment_methods = Stripe::PaymentMethod.list(
+          {
+            customer: customer_id,
+            limit: 10,
+          },
+        )
 
         puts 'Payment Methods:'
         if payment_methods.data.empty?
@@ -51,11 +52,12 @@ module Onetime
         puts
 
         # Subscriptions
-        subscriptions = Stripe::Subscription.list({
-          customer: customer_id,
-          limit: 10,
-        },
-                                                 )
+        subscriptions = Stripe::Subscription.list(
+          {
+            customer: customer_id,
+            limit: 10,
+          },
+        )
 
         puts 'Subscriptions:'
         if subscriptions.data.empty?

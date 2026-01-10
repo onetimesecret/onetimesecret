@@ -22,10 +22,11 @@ module Billing
           with_organization do |org|
             org.clear_billing_fields
 
-            billing_logger.info 'Subscription deleted - organization marked as canceled', {
-              orgid: org.objid,
-              subscription_id: @data_object.id,
-            }
+            billing_logger.info 'Subscription deleted - organization marked as canceled',
+              {
+                orgid: org.objid,
+                subscription_id: @data_object.id,
+              }
           end
         end
       end

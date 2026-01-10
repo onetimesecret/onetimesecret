@@ -22,11 +22,12 @@ module Billing
           with_organization do |org|
             org.update_from_stripe_subscription(@data_object)
 
-            billing_logger.info 'Subscription resumed', {
-              orgid: org.objid,
-              subscription_id: @data_object.id,
-              status: @data_object.status,
-            }
+            billing_logger.info 'Subscription resumed',
+              {
+                orgid: org.objid,
+                subscription_id: @data_object.id,
+                status: @data_object.status,
+              }
           end
         end
       end

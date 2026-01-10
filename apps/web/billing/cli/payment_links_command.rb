@@ -12,7 +12,9 @@ module Onetime
 
       desc 'List Stripe payment links'
 
-      option :active_only, type: :boolean, default: true,
+      option :active_only,
+        type: :boolean,
+        default: true,
         desc: 'Show only active links'
       option :limit, type: :integer, default: 100, desc: 'Maximum results to return'
 
@@ -32,8 +34,13 @@ module Onetime
           return
         end
 
-        puts format('%-30s %-30s %-12s %-10s %s',
-          'ID', 'PRODUCT/PRICE', 'AMOUNT', 'INTERVAL', 'ACTIVE'
+        puts format(
+          '%-30s %-30s %-12s %-10s %s',
+          'ID',
+          'PRODUCT/PRICE',
+          'AMOUNT',
+          'INTERVAL',
+          'ACTIVE',
         )
         puts '-' * 100
 
@@ -69,7 +76,8 @@ module Onetime
             OT.logger.error { "Unexpected error fetching details for #{link.id}: #{ex.class}: #{ex.message}" }
           end
 
-          puts format('%-30s %-30s %-12s %-10s %s',
+          puts format(
+            '%-30s %-30s %-12s %-10s %s',
             link.id,
             product_name,
             amount[0..11],

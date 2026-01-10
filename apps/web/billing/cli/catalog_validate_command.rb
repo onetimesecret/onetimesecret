@@ -15,7 +15,9 @@ module Onetime
 
       desc 'Validate plan catalog YAML structure (schema validation only)'
 
-      option :strict, type: :boolean, default: false,
+      option :strict,
+        type: :boolean,
+        default: false,
         desc: 'Fail on warnings (default: only fail on errors)'
 
       def call(strict: false, **)

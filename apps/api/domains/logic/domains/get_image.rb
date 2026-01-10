@@ -18,8 +18,15 @@ module DomainsAPI::Logic
     #   /imagine/b79b17281be7264f778c/logo.png
     #
     class GetImage < DomainsAPI::Logic::Base
-      attr_reader :custom_domain_id, :filename, :custom_domain, :image_type, :image_ext, :content_type,
-        :content_length, :image_data, :encoded_content
+      attr_reader :custom_domain_id,
+        :filename,
+        :custom_domain,
+        :image_type,
+        :image_ext,
+        :content_type,
+        :content_length,
+        :image_data,
+        :encoded_content
 
       def process_params
         # Sanitize identifiers to allow only alphanumeric, underscore, and hyphen characters

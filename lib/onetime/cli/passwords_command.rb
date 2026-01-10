@@ -13,7 +13,9 @@ module Onetime
     class PasswordsCommand < Command
       desc 'Password hash statistics and management'
 
-      option :stats, type: :boolean, default: false,
+      option :stats,
+        type: :boolean,
+        default: false,
         desc: 'Show password hash algorithm distribution for all customers'
 
       def call(stats: false, **)

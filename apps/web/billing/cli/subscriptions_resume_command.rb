@@ -14,7 +14,9 @@ module Onetime
 
       argument :subscription_id, required: true, desc: 'Subscription ID (sub_xyz)'
 
-      option :yes, type: :boolean, default: false,
+      option :yes,
+        type: :boolean,
+        default: false,
         desc: 'Assume yes to prompts'
 
       def call(subscription_id:, yes: false, **)
@@ -40,9 +42,11 @@ module Onetime
           return unless $stdin.gets.chomp.downcase == 'y'
         end
 
-        updated = Stripe::Subscription.update(subscription_id, {
-          pause_collection: nil,
-        }
+        updated = Stripe::Subscription.update(
+          subscription_id,
+          {
+            pause_collection: nil,
+          },
         )
 
         puts "\nSubscription resumed successfully"

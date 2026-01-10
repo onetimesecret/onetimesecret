@@ -29,21 +29,23 @@ module Billing
         # Detect region from request (future: use GeoIP)
         region = detect_region
 
-        billing_logger.debug 'Plan checkout request', {
-          tier: tier,
-          billing_cycle: billing_cycle,
-          region: region,
-        }
+        billing_logger.debug 'Plan checkout request',
+          {
+            tier: tier,
+            billing_cycle: billing_cycle,
+            region: region,
+          }
 
         # Get plan from cache
         plan = ::Billing::Plan.get_plan(tier, billing_cycle, region)
 
         unless plan
-          billing_logger.warn 'Plan not found in cache', {
-            tier: tier,
-            billing_cycle: billing_cycle,
-            region: region,
-          }
+          billing_logger.warn 'Plan not found in cache',
+            {
+              tier: tier,
+              billing_cycle: billing_cycle,
+              region: region,
+            }
           res.redirect '/signup'
           return
         end
@@ -103,20 +105,22 @@ module Billing
         # Create Stripe Checkout Session
         checkout_session = Stripe::Checkout::Session.create(session_params)
 
-        billing_logger.info 'Checkout session created', {
-          session_id: checkout_session.id,
-          tier: tier,
-          billing_cycle: billing_cycle,
-          region: region,
-        }
+        billing_logger.info 'Checkout session created',
+          {
+            session_id: checkout_session.id,
+            tier: tier,
+            billing_cycle: billing_cycle,
+            region: region,
+          }
 
         res.redirect checkout_session.url
       rescue Stripe::StripeError => ex
-        billing_logger.error 'Stripe checkout session creation failed', {
-          exception: ex,
-          tier: tier,
-          billing_cycle: billing_cycle,
-        }
+        billing_logger.error 'Stripe checkout session creation failed',
+          {
+            exception: ex,
+            tier: tier,
+            billing_cycle: billing_cycle,
+          }
         res.redirect '/signup'
       end
 
@@ -135,16 +139,18 @@ module Billing
 
         res.redirect '/account'
       rescue Onetime::FormError => ex
-        billing_logger.warn 'Welcome page validation failed', {
-          error: ex.message,
-          session_id: req.params['session_id'],
-        }
+        billing_logger.warn 'Welcome page validation failed',
+          {
+            error: ex.message,
+            session_id: req.params['session_id'],
+          }
         res.redirect '/account'
       rescue Stripe::StripeError => ex
-        billing_logger.error 'Stripe session retrieval failed', {
-          exception: ex,
-          session_id: req.params['session_id'],
-        }
+        billing_logger.error 'Stripe session retrieval failed',
+          {
+            exception: ex,
+            session_id: req.params['session_id'],
+          }
         res.redirect '/account'
       end
 
@@ -161,10 +167,11 @@ module Billing
         org = find_or_create_default_organization(cust)
 
         unless org.stripe_customer_id
-          billing_logger.warn 'No Stripe customer ID for organization', {
-            org_extid: org.extid,
-            customer_extid: cust.extid,
-          }
+          billing_logger.warn 'No Stripe customer ID for organization',
+            {
+              org_extid: org.extid,
+              customer_extid: cust.extid,
+            }
           res.redirect '/account'
           return
         end
@@ -174,23 +181,26 @@ module Billing
         return_url = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
 
         # Create Stripe Customer Portal session
-        portal_session = Stripe::BillingPortal::Session.create({
-          customer: org.stripe_customer_id,
-          return_url: return_url,
-        },
-                                                              )
+        portal_session = Stripe::BillingPortal::Session.create(
+          {
+            customer: org.stripe_customer_id,
+            return_url: return_url,
+          },
+        )
 
-        billing_logger.info 'Customer portal session created', {
-          extid: org.objid,
-          customer_id: org.stripe_customer_id,
-        }
+        billing_logger.info 'Customer portal session created',
+          {
+            extid: org.objid,
+            customer_id: org.stripe_customer_id,
+          }
 
         res.redirect portal_session.url
       rescue Stripe::StripeError => ex
-        billing_logger.error 'Stripe portal session creation failed', {
-          exception: ex,
-          customer_id: org&.stripe_customer_id,
-        }
+        billing_logger.error 'Stripe portal session creation failed',
+          {
+            exception: ex,
+            customer_id: org&.stripe_customer_id,
+          }
         res.redirect '/account'
       end
 
@@ -227,10 +237,11 @@ module Billing
         org.is_default = true
         org.save
 
-        billing_logger.info 'Created default organization', {
-          org_extid: org.extid,
-          customer_extid: customer.extid,
-        }
+        billing_logger.info 'Created default organization',
+          {
+            org_extid: org.extid,
+            customer_extid: customer.extid,
+          }
 
         org
       end

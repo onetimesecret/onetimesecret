@@ -106,8 +106,14 @@ module Onetime
 
         # Print table section
         print_section_header('PRODUCTS')
-        puts format('%-22s %-20s %-20s %-7s %-7s %s',
-          'PRODUCT ID', 'NAME', 'PLAN ID', 'REGION', 'PRICES', 'STATUS'
+        puts format(
+          '%-22s %-20s %-20s %-7s %-7s %s',
+          'PRODUCT ID',
+          'NAME',
+          'PLAN ID',
+          'REGION',
+          'PRICES',
+          'STATUS',
         )
         print_separator
 
@@ -128,8 +134,14 @@ module Onetime
                     STATUS_VALID
                   end
 
-          puts format('%-22s %-20s %-20s %-7s %-7s %s',
-            product.id, name, plan_id[0..18], region[0..5], price_count, status
+          puts format(
+            '%-22s %-20s %-20s %-7s %-7s %s',
+            product.id,
+            name,
+            plan_id[0..18],
+            region[0..5],
+            price_count,
+            status,
           )
         end
 

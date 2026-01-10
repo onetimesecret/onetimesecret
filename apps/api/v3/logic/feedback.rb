@@ -67,13 +67,16 @@ module V3
         begin
           # Non-critical: feedback is saved in Redis regardless of email
           # Use :none fallback - don't block or spawn threads for notifications
-          Onetime::Jobs::Publisher.enqueue_email(:feedback_email, {
-            email_address: cust.email,
-            message: message,
-            display_domain: display_domain,
-            domain_strategy: domain_strategy,
-            locale: locale || OT.default_locale,
-          }, fallback: :none
+          Onetime::Jobs::Publisher.enqueue_email(
+            :feedback_email,
+            {
+              email_address: cust.email,
+              message: message,
+              display_domain: display_domain,
+              domain_strategy: domain_strategy,
+              locale: locale || OT.default_locale,
+            },
+            fallback: :none,
           )
         rescue StandardError => ex
           OT.le "Error sending feedback email: #{ex.message}", ex.backtrace

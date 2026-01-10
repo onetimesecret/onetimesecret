@@ -26,7 +26,10 @@ module Onetime
     class ConsoleCommand < DelayBootCommand
       desc 'Ruby irb with Onetime preloaded'
 
-      option :delay_boot, type: :boolean, default: false, aliases: ['B'],
+      option :delay_boot,
+        type: :boolean,
+        default: false,
+        aliases: ['B'],
         desc: 'Bring up the console without initializing'
 
       def call(delay_boot: false, **)

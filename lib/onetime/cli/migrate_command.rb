@@ -9,7 +9,10 @@ module Onetime
 
       argument :migration_file, type: :string, required: false, desc: 'Migration script filename'
 
-      option :run, type: :boolean, default: false, aliases: ['r'],
+      option :run,
+        type: :boolean,
+        default: false,
+        aliases: ['r'],
         desc: 'Actually apply changes (default is dry run mode)'
 
       def call(migration_file: nil, run: false, **)

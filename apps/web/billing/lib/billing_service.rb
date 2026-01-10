@@ -46,11 +46,12 @@ module Billing
       if price_id
         plan = ::Billing::Plan.find_by_stripe_price_id(price_id)
         if plan
-          OT.info '[BillingService.resolve_plan_id_from_subscription] Resolved via catalog', {
-            plan_id: plan.plan_id,
-            price_id: price_id,
-            subscription_id: subscription.id,
-          }
+          OT.info '[BillingService.resolve_plan_id_from_subscription] Resolved via catalog',
+            {
+              plan_id: plan.plan_id,
+              price_id: price_id,
+              subscription_id: subscription.id,
+            }
           return plan.plan_id
         end
       end
@@ -58,29 +59,32 @@ module Billing
       # 2. Try price-level metadata
       price_plan_id = price&.metadata&.[](Metadata::FIELD_PLAN_ID)
       if price_plan_id && !price_plan_id.empty?
-        OT.info '[BillingService.resolve_plan_id_from_subscription] Resolved via price metadata', {
-          plan_id: price_plan_id,
-          price_id: price_id,
-          subscription_id: subscription.id,
-        }
+        OT.info '[BillingService.resolve_plan_id_from_subscription] Resolved via price metadata',
+          {
+            plan_id: price_plan_id,
+            price_id: price_id,
+            subscription_id: subscription.id,
+          }
         return price_plan_id
       end
 
       # 3. Try subscription-level metadata (fallback, may be stale)
       sub_plan_id = subscription.metadata&.[](Metadata::FIELD_PLAN_ID)
       if sub_plan_id && !sub_plan_id.empty?
-        OT.lw '[BillingService.resolve_plan_id_from_subscription] Using subscription metadata (may be stale)', {
-          plan_id: sub_plan_id,
-          price_id: price_id,
-          subscription_id: subscription.id,
-        }
+        OT.lw '[BillingService.resolve_plan_id_from_subscription] Using subscription metadata (may be stale)',
+          {
+            plan_id: sub_plan_id,
+            price_id: price_id,
+            subscription_id: subscription.id,
+          }
         return sub_plan_id
       end
 
-      OT.lw '[BillingService.resolve_plan_id_from_subscription] Unable to resolve plan_id', {
-        price_id: price_id,
-        subscription_id: subscription.id,
-      }
+      OT.lw '[BillingService.resolve_plan_id_from_subscription] Unable to resolve plan_id',
+        {
+          price_id: price_id,
+          subscription_id: subscription.id,
+        }
       nil
     end
 

@@ -102,16 +102,18 @@ module Onetime
 
         def configure(builder, application_context: nil)
           logger = Onetime.get_logger('App')
-          logger.debug 'Configuring common middleware', {
-            application: application_context&.[](:name),
-          }
+          logger.debug 'Configuring common middleware',
+            {
+              application: application_context&.[](:name),
+            }
 
           # IP Privacy FIRST - masks public IPs before logging/monitoring
           # Private/localhost IPs are automatically exempted for development
           # Uses Otto's privacy middleware as a standalone Rack component
-          logger.debug 'Setting up IP Privacy middleware', {
-            note: 'masks public IPs',
-          }
+          logger.debug 'Setting up IP Privacy middleware',
+            {
+              note: 'masks public IPs',
+            }
           builder.use Otto::Security::Middleware::IPPrivacyMiddleware
 
           # IP Ban middleware - blocks banned IPs (after IP privacy)
@@ -132,13 +134,14 @@ module Onetime
           # Add session middleware early in the stack (before other middleware)
           session_config = Onetime.session_config
 
-          builder.use Onetime::Session, {
-            secret: session_config['secret'],
-            expire_after: session_config['expire_after'],
-            key: session_config['key'],
-            secure: session_config['secure'],
-            same_site: session_config['same_site'].to_sym,
-          }
+          builder.use Onetime::Session,
+            {
+              secret: session_config['secret'],
+              expire_after: session_config['expire_after'],
+              key: session_config['key'],
+              secure: session_config['secure'],
+              same_site: session_config['same_site'].to_sym,
+            }
 
           # Identity resolution middleware (after session)
           builder.use Onetime::Middleware::IdentityResolution
@@ -175,9 +178,10 @@ module Onetime
           # Add Sentry exception tracking when available
           # This block only executes if Sentry was successfully initialized
           Onetime.with_diagnostics do |diagnostics_conf|
-            logger.debug 'Sentry enabled', {
-              config: diagnostics_conf,
-            }
+            logger.debug 'Sentry enabled',
+              {
+                config: diagnostics_conf,
+              }
             # Position Sentry middleware early to capture exceptions throughout the stack
             builder.use Sentry::Rack::CaptureExceptions
           end

@@ -163,10 +163,11 @@ module Billing
         case current_state
         when 'open'
           retry_after = calculate_retry_after(state_data[:opened_at])
-          billing_logger.debug '[StripeCircuitBreaker] Circuit open, rejecting request', {
-            retry_after: retry_after,
-            failure_count: state_data[:failure_count],
-          }
+          billing_logger.debug '[StripeCircuitBreaker] Circuit open, rejecting request',
+            {
+              retry_after: retry_after,
+              failure_count: state_data[:failure_count],
+            }
           raise CircuitOpenError.new(
             "Stripe circuit breaker is open (#{state_data[:failure_count]} failures). " \
             "Retry after #{retry_after}s.",
@@ -205,9 +206,10 @@ module Billing
 
         return unless was_half_open
 
-        billing_logger.info '[StripeCircuitBreaker] Recovery successful, circuit closed', {
-          previous_failures: previous_state[:failure_count],
-        }
+        billing_logger.info '[StripeCircuitBreaker] Recovery successful, circuit closed',
+          {
+            previous_failures: previous_state[:failure_count],
+          }
       end
 
       # Record API failure
@@ -231,18 +233,20 @@ module Billing
         if new_count >= FAILURE_THRESHOLD
           # Open circuit - use HSETNX to only set opened_at once (first to reach threshold wins)
           redis.hsetnx(redis_key, 'opened_at', now.to_s)
-          billing_logger.warn '[StripeCircuitBreaker] Circuit OPENED', {
-            failure_count: new_count,
-            threshold: FAILURE_THRESHOLD,
-            error_class: error.class.name,
-            error_message: error.message,
-          }
+          billing_logger.warn '[StripeCircuitBreaker] Circuit OPENED',
+            {
+              failure_count: new_count,
+              threshold: FAILURE_THRESHOLD,
+              error_class: error.class.name,
+              error_message: error.message,
+            }
         else
-          billing_logger.warn '[StripeCircuitBreaker] Failure recorded', {
-            failure_count: new_count,
-            threshold: FAILURE_THRESHOLD,
-            error_class: error.class.name,
-          }
+          billing_logger.warn '[StripeCircuitBreaker] Failure recorded',
+            {
+              failure_count: new_count,
+              threshold: FAILURE_THRESHOLD,
+              error_class: error.class.name,
+            }
         end
       end
 

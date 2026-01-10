@@ -76,9 +76,10 @@ module Core
             ]
           rhales_logger.debug 'Schema validation middleware enabled'
         rescue LoadError => ex
-          rhales_logger.warn 'Could not load schema validation middleware - json_schemer gem not available', {
-            exception: ex,
-          }
+          rhales_logger.warn 'Could not load schema validation middleware - json_schemer gem not available',
+            {
+              exception: ex,
+            }
         end
       end
     end

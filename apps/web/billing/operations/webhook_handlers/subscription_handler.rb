@@ -46,10 +46,11 @@ module Billing
           org = find_organization_by_subscription(@data_object.id)
 
           unless org
-            billing_logger.warn 'Organization not found for subscription', {
-              subscription_id: @data_object.id,
-              event_type: @event.type,
-            }
+            billing_logger.warn 'Organization not found for subscription',
+              {
+                subscription_id: @data_object.id,
+                event_type: @event.type,
+              }
             return :not_found
           end
 

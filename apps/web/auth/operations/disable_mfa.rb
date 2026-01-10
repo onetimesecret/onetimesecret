@@ -114,11 +114,12 @@ module Auth
         OT.auth_logger.info "✅ MFA successfully disabled for: #{@email}"
         OT.auth_logger.info '⚠️  User should re-enable MFA from account settings after login'
 
-        OT.auth_logger.info '[disable-mfa] MFA disabled for account', {
-          email: OT::Utils.obscure_email(@email),
-          id: @account_id,
-          customer_id: @customer.custid,
-        }
+        OT.auth_logger.info '[disable-mfa] MFA disabled for account',
+          {
+            email: OT::Utils.obscure_email(@email),
+            id: @account_id,
+            customer_id: @customer.custid,
+          }
       end
 
       # Logs error information
@@ -127,10 +128,11 @@ module Auth
         OT.auth_logger.info "❌ Error disabling MFA: #{error.message}"
         OT.auth_logger.info error.backtrace.first(5).join("\n")
 
-        OT.auth_logger.error '[disable-mfa] Failed to disable MFA', {
-          email: OT::Utils.obscure_email(@email),
-          error: error.message,
-        }
+        OT.auth_logger.error '[disable-mfa] Failed to disable MFA',
+          {
+            email: OT::Utils.obscure_email(@email),
+            error: error.message,
+          }
       end
     end
   end

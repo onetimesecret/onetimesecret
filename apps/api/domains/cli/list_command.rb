@@ -12,16 +12,24 @@ module Onetime
 
       desc 'List all custom domains with organization info'
 
-      option :orphaned, type: :boolean, default: false,
+      option :orphaned,
+        type: :boolean,
+        default: false,
         desc: 'Filter for orphaned domains only'
 
-      option :org_id, type: :string, default: nil,
+      option :org_id,
+        type: :string,
+        default: nil,
         desc: 'Filter by organization ID'
 
-      option :verified, type: :boolean, default: false,
+      option :verified,
+        type: :boolean,
+        default: false,
         desc: 'Filter for verified domains only'
 
-      option :unverified, type: :boolean, default: false,
+      option :unverified,
+        type: :boolean,
+        default: false,
         desc: 'Filter for unverified domains only'
 
       def call(orphaned: false, org_id: nil, verified: false, unverified: false, **)
@@ -33,8 +41,12 @@ module Onetime
         end.compact
 
         # Apply filters
-        filtered_domains = apply_filters(all_domains, orphaned: orphaned, org_id: org_id,
-          verified: verified, unverified: unverified
+        filtered_domains = apply_filters(
+          all_domains,
+          orphaned: orphaned,
+          org_id: org_id,
+          verified: verified,
+          unverified: unverified,
         )
 
         puts format('%d custom domains', filtered_domains.size)
@@ -54,7 +66,8 @@ module Onetime
             puts format_domain_row(domain)
           else
             # Multiple records for same domain (duplicates)
-            puts format('%-40s %-30s %-12s %-10s',
+            puts format(
+              '%-40s %-30s %-12s %-10s',
               "#{display_domain} (#{domains.size} records)",
               'DUPLICATES',
               'CHECK',

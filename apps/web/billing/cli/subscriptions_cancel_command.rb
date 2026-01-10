@@ -17,11 +17,17 @@ module Onetime
 
       argument :subscription_id, required: true, desc: 'Subscription ID (sub_xyz)'
 
-      option :immediately, type: :boolean, default: false,
+      option :immediately,
+        type: :boolean,
+        default: false,
         desc: 'Cancel immediately instead of at period end'
-      option :yes, type: :boolean, default: false,
+      option :yes,
+        type: :boolean,
+        default: false,
         desc: 'Assume yes to prompts'
-      option :dry_run, type: :boolean, default: false,
+      option :dry_run,
+        type: :boolean,
+        default: false,
         desc: 'Preview operation without making changes'
 
       def call(subscription_id:, immediately: false, yes: false, dry_run: false, **)
@@ -63,9 +69,12 @@ module Onetime
         canceled = if immediately
           stripe_client.delete(Stripe::Subscription, subscription_id)
         else
-          stripe_client.update(Stripe::Subscription, subscription_id, {
-            cancel_at_period_end: true,
-          }
+          stripe_client.update(
+            Stripe::Subscription,
+            subscription_id,
+            {
+              cancel_at_period_end: true,
+            },
           )
         end
 

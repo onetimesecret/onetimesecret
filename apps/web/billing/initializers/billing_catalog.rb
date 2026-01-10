@@ -34,20 +34,22 @@ module Billing
           Billing::Plan.refresh_from_stripe
           Onetime.billing_logger.info 'Plan cache refreshed successfully'
         rescue StandardError => ex
-          Onetime.billing_logger.warn 'Stripe sync failed, falling back to billing.yaml', {
-            exception: ex,
-            message: ex.message,
-          }
+          Onetime.billing_logger.warn 'Stripe sync failed, falling back to billing.yaml',
+            {
+              exception: ex,
+              message: ex.message,
+            }
 
           # Fallback to local config when Stripe is unavailable
           begin
             count = Billing::Plan.load_all_from_config
             Onetime.billing_logger.info "Loaded #{count} plans from billing.yaml fallback"
           rescue StandardError => fallback_ex
-            Onetime.billing_logger.error 'Fallback to billing.yaml also failed', {
-              exception: fallback_ex,
-              message: fallback_ex.message,
-            }
+            Onetime.billing_logger.error 'Fallback to billing.yaml also failed',
+              {
+                exception: fallback_ex,
+                message: fallback_ex.message,
+              }
             raise fallback_ex
           end
         end

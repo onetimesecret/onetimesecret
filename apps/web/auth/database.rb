@@ -145,15 +145,16 @@ module Auth
     # @return [Hash] Sequel connection parameters
     def self.parse_postgres_multihost_url(url)
       # Extract components using regex since URI.parse won't work
-      match = url.match(%r{
-        ^postgresql://
-        (?:([^:@]+)(?::([^@]+))?@)?  # user:password (optional)
-        ([^,/]+)                      # first host:port
-        (?:,[^/]+)?                   # additional hosts (ignored - use primary)
-        (?:/([^?]+))?                 # database name
-        (?:\?(.+))?                   # query params
-      }x,
-                       )
+      match = url.match(
+        %r{
+                ^postgresql://
+                (?:([^:@]+)(?::([^@]+))?@)?  # user:password (optional)
+                ([^,/]+)                      # first host:port
+                (?:,[^/]+)?                   # additional hosts (ignored - use primary)
+                (?:/([^?]+))?                 # database name
+                (?:\?(.+))?                   # query params
+              }x,
+      )
 
       raise ArgumentError, "Invalid PostgreSQL URL format: #{url}" unless match
 

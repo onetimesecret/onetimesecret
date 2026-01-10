@@ -32,44 +32,48 @@ module Onetime::Metadata::Features
     module InstanceMethods
       def deliver_by_email(cust, locale, secret, eaddrs, _template = nil, _ticketno = nil)
         if eaddrs.nil? || eaddrs.empty?
-          secret_logger.info 'No email addresses specified for delivery', {
+          secret_logger.info 'No email addresses specified for delivery',
+            {
+              metadata_id: identifier,
+              secret_id: secret.identifier,
+              user: cust.obscure_email,
+              action: 'deliver_email',
+            }
+          return
+        end
+
+        secret_logger.debug 'Preparing email delivery',
+          {
             metadata_id: identifier,
             secret_id: secret.identifier,
             user: cust.obscure_email,
             action: 'deliver_email',
           }
-          return
-        end
-
-        secret_logger.debug 'Preparing email delivery', {
-          metadata_id: identifier,
-          secret_id: secret.identifier,
-          user: cust.obscure_email,
-          action: 'deliver_email',
-        }
 
         eaddrs = [eaddrs].flatten.compact[0..9] # Max 10
 
         eaddrs_safe     = eaddrs.collect { |e| OT::Utils.obscure_email(e) }
         eaddrs_safe_str = eaddrs_safe.join(', ')
 
-        secret_logger.info 'Delivering secret by email', {
-          metadata_id: identifier,
-          secret_id: secret.identifier,
-          user: cust.obscure_email,
-          recipient_count: eaddrs_safe.size,
-          recipients: eaddrs_safe_str,
-          action: 'deliver_email',
-        }
+        secret_logger.info 'Delivering secret by email',
+          {
+            metadata_id: identifier,
+            secret_id: secret.identifier,
+            user: cust.obscure_email,
+            recipient_count: eaddrs_safe.size,
+            recipients: eaddrs_safe_str,
+            action: 'deliver_email',
+          }
         recipients! eaddrs_safe_str
 
         if eaddrs.size > 1
-          secret_logger.warn 'Multiple recipients detected', {
-            metadata_id: identifier,
-            secret_id: secret.identifier,
-            recipient_count: eaddrs.size,
-            action: 'deliver_email',
-          }
+          secret_logger.warn 'Multiple recipients detected',
+            {
+              metadata_id: identifier,
+              secret_id: secret.identifier,
+              recipient_count: eaddrs.size,
+              action: 'deliver_email',
+            }
         end
 
         # Deliver to first recipient only
@@ -81,13 +85,15 @@ module Onetime::Metadata::Features
         # be serialized to JSON for the message queue - it becomes "#<Secret:0x...>".
         # The template uses secret_key for the URL and share_domain for custom domains.
         # Use secret.identifier (not deprecated secret.key which may be nil)
-        Onetime::Jobs::Publisher.enqueue_email(:secret_link, {
-          secret_key: secret.identifier,
-          share_domain: secret.share_domain,
-          recipient: email_address,
-          sender_email: cust.email,
-          locale: locale || OT.default_locale,
-        }
+        Onetime::Jobs::Publisher.enqueue_email(
+          :secret_link,
+          {
+            secret_key: secret.identifier,
+            share_domain: secret.share_domain,
+            recipient: email_address,
+            sender_email: cust.email,
+            locale: locale || OT.default_locale,
+          },
         ) # fallback: :async_thread is the default
       end
 
@@ -115,13 +121,14 @@ module Onetime::Metadata::Features
         # is still valid -- that should set the state to viewed as well.
         save update_expiration: false
 
-        secret_logger.info 'Metadata state transition to viewed', {
-          metadata_id: shortid,
-          secret_id: secret_identifier,
-          previous_state: 'new',
-          new_state: 'viewed',
-          timestamp: viewed,
-        }
+        secret_logger.info 'Metadata state transition to viewed',
+          {
+            metadata_id: shortid,
+            secret_id: secret_identifier,
+            previous_state: 'new',
+            new_state: 'viewed',
+            timestamp: viewed,
+          }
       end
 
       def received!
@@ -135,13 +142,14 @@ module Onetime::Metadata::Features
         self.secret_identifier = ''
         save update_expiration: false
 
-        secret_logger.info 'Metadata state transition to received', {
-          metadata_id: shortid,
-          secret_id: secret_identifier,
-          previous_state: previous_state,
-          new_state: 'received',
-          timestamp: received,
-        }
+        secret_logger.info 'Metadata state transition to received',
+          {
+            metadata_id: shortid,
+            secret_id: secret_identifier,
+            previous_state: previous_state,
+            new_state: 'received',
+            timestamp: received,
+          }
       end
 
       # We use this method in special cases where a metadata record exists with
@@ -161,13 +169,14 @@ module Onetime::Metadata::Features
         self.secret_identifier = ''
         save update_expiration: false
 
-        secret_logger.warn 'Metadata state transition to orphaned', {
-          metadata_id: shortid,
-          secret_id: original_secret_id,
-          previous_state: previous_state,
-          new_state: 'orphaned',
-          timestamp: updated,
-        }
+        secret_logger.warn 'Metadata state transition to orphaned',
+          {
+            metadata_id: shortid,
+            secret_id: original_secret_id,
+            previous_state: previous_state,
+            new_state: 'orphaned',
+            timestamp: updated,
+          }
       end
 
       def burned!
@@ -180,13 +189,14 @@ module Onetime::Metadata::Features
         self.secret_identifier = ''
         save update_expiration: false
 
-        secret_logger.info 'Metadata state transition to burned', {
-          metadata_id: shortid,
-          secret_id: secret_identifier,
-          previous_state: previous_state,
-          new_state: 'burned',
-          timestamp: burned,
-        }
+        secret_logger.info 'Metadata state transition to burned',
+          {
+            metadata_id: shortid,
+            secret_id: secret_identifier,
+            previous_state: previous_state,
+            new_state: 'burned',
+            timestamp: burned,
+          }
       end
 
       def expired!
@@ -201,15 +211,16 @@ module Onetime::Metadata::Features
         self.secret_key        = ''
         save update_expiration: false
 
-        secret_logger.info 'Metadata state transition to expired', {
-          metadata_id: shortid,
-          secret_id: secret_identifier,
-          previous_state: previous_state,
-          new_state: 'expired',
-          timestamp: updated,
-          secret_ttl: secret_ttl,
-          age_seconds: age,
-        }
+        secret_logger.info 'Metadata state transition to expired',
+          {
+            metadata_id: shortid,
+            secret_id: secret_identifier,
+            previous_state: previous_state,
+            new_state: 'expired',
+            timestamp: updated,
+            secret_ttl: secret_ttl,
+            age_seconds: age,
+          }
       end
 
       def state?(guess)

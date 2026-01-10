@@ -8,16 +8,24 @@ module Onetime
     class TotpCommand < Command
       desc 'Generate or verify TOTP codes for MFA testing'
 
-      argument :secret, type: :string, required: false,
+      argument :secret,
+        type: :string,
+        required: false,
         desc: 'Base32-encoded TOTP secret'
 
-      option :verify, type: :string, aliases: ['v'],
+      option :verify,
+        type: :string,
+        aliases: ['v'],
         desc: 'Verify a 6-digit code against the secret'
 
-      option :compute_hmac, type: :boolean, aliases: ['c'],
+      option :compute_hmac,
+        type: :boolean,
+        aliases: ['c'],
         desc: 'Compute HMAC secret from raw secret'
 
-      option :raw, type: :string, aliases: ['r'],
+      option :raw,
+        type: :string,
+        aliases: ['r'],
         desc: 'Raw secret for HMAC computation'
 
       def call(secret: nil, verify: nil, compute_hmac: false, raw: nil, **)

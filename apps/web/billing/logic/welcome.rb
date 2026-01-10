@@ -16,8 +16,11 @@ module Billing
       # @note The external API remains unchanged: GET /welcome?checkout={ID}
       #
       class FromStripePaymentLink < Onetime::Logic::Base
-        attr_reader :checkout_session_id, :checkout_session, :checkout_email,
-          :update_customer_fields, :stripe_subscription
+        attr_reader :checkout_session_id,
+          :checkout_session,
+          :checkout_email,
+          :update_customer_fields,
+          :stripe_subscription
 
         def process_params
           @checkout_session_id = params['checkout']
@@ -27,11 +30,12 @@ module Billing
           raise_form_error 'No Stripe checkout_session_id' unless checkout_session_id
 
           # Use expand to fetch subscription in a single API call
-          @checkout_session = Stripe::Checkout::Session.retrieve({
-            id: checkout_session_id,
-            expand: ['subscription'],
-          },
-                                                                )
+          @checkout_session = Stripe::Checkout::Session.retrieve(
+            {
+              id: checkout_session_id,
+              expand: ['subscription'],
+            },
+          )
           raise_form_error 'Invalid Stripe checkout session' unless checkout_session
 
           # The full subscription object is now available via expand
@@ -174,10 +178,12 @@ module Billing
 
           customer.reset_secret = secret.identifier
 
-          Onetime::Mail::Mailer.deliver(:welcome, {
-            email_address: customer.email,
-            secret: secret,
-          }
+          Onetime::Mail::Mailer.deliver(
+            :welcome,
+            {
+              email_address: customer.email,
+              secret: secret,
+            },
           )
         rescue StandardError => ex
           OT.le "[FromStripePaymentLink] Error sending verification email: #{ex.message}"
@@ -198,11 +204,12 @@ module Billing
           new_id      = fields[:stripe_customer_id].to_s
 
           if existing_id.present? && existing_id != new_id
-            OT.lw '[FromStripePaymentLink] Customer already has stripe_customer_id, keeping existing', {
-              existing: existing_id,
-              new: new_id,
-              customer: customer.obscure_email,
-            }
+            OT.lw '[FromStripePaymentLink] Customer already has stripe_customer_id, keeping existing',
+              {
+                existing: existing_id,
+                new: new_id,
+                customer: customer.obscure_email,
+              }
             fields.delete(:stripe_customer_id)
           end
 
@@ -234,11 +241,12 @@ module Billing
             raise_form_error 'Invalid checkout session ID format'
           end
 
-          @checkout_session = Stripe::Checkout::Session.retrieve({
-            id: session_id,
-            expand: %w[subscription customer],
-          },
-                                                                )
+          @checkout_session = Stripe::Checkout::Session.retrieve(
+            {
+              id: session_id,
+              expand: %w[subscription customer],
+            },
+          )
           raise_form_error 'Invalid checkout session' unless checkout_session
 
           @subscription = checkout_session.subscription
@@ -252,12 +260,13 @@ module Billing
           customer_extid  = metadata['customer_extid']
           plan_id         = metadata['plan_id']
 
-          OT.info '[ProcessCheckoutSession] Processing checkout', {
-            session_id: session_id,
-            customer_extid: customer_extid,
-            plan_id: plan_id,
-            subscription_id: subscription.id,
-          }
+          OT.info '[ProcessCheckoutSession] Processing checkout',
+            {
+              session_id: session_id,
+              customer_extid: customer_extid,
+              plan_id: plan_id,
+              subscription_id: subscription.id,
+            }
 
           # Load the actual customer from metadata (session may be anonymous after Stripe redirect)
           # The customer_extid was embedded in subscription metadata when checkout was created
@@ -273,11 +282,12 @@ module Billing
           # Update organization with subscription details (extracts planid, etc.)
           org.update_from_stripe_subscription(subscription)
 
-          OT.info '[ProcessCheckoutSession] Organization subscription activated', {
-            orgid: org.objid,
-            subscription_id: subscription.id,
-            plan_id: org.planid,  # Use actual planid set by update_from_stripe_subscription
-          }
+          OT.info '[ProcessCheckoutSession] Organization subscription activated',
+            {
+              orgid: org.objid,
+              subscription_id: subscription.id,
+              plan_id: org.planid,  # Use actual planid set by update_from_stripe_subscription
+            }
 
           success_data
         end

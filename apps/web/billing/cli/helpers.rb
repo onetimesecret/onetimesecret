@@ -116,7 +116,8 @@ module Onetime
         show_on_plans_display = %w[true 1 yes].include?(show_on_plans.downcase) ? 'yes' : 'no'
         active                = product.active ? 'yes' : 'no'
 
-        format('%-22s %-30s %-12s %-12s %-10s %-8s %-10s %s',
+        format(
+          '%-22s %-30s %-12s %-12s %-10s %-8s %-10s %s',
           product.id[0..21],
           product.name[0..29],
           tier[0..11],
@@ -155,7 +156,8 @@ module Onetime
         # Format product name with status
         product_with_status = "#{product_name} (#{product_status})"
 
-        format('%-22s %-35s %-15s %-12s %-10s %s',
+        format(
+          '%-22s %-35s %-15s %-12s %-10s %s',
           price.id[0..21],
           product_with_status[0..34],
           plan_id[0..14],
@@ -169,7 +171,8 @@ module Onetime
         amount             = format_amount(plan.amount, plan.currency)
         entitlements_count = plan.entitlements.size
 
-        format('%-20s %-18s %-10s %-10s %-12s %d',
+        format(
+          '%-20s %-18s %-10s %-10s %-12s %d',
           plan.plan_id[0..19],
           plan.tier[0..17],
           plan.interval[0..9],
@@ -252,7 +255,8 @@ module Onetime
         period_end_ts      = first_item&.current_period_end
         current_period_end = period_end_ts ? Time.at(period_end_ts).strftime('%Y-%m-%d') : 'N/A'
 
-        format('%-22s %-22s %-12s %-12s',
+        format(
+          '%-22s %-22s %-12s %-12s',
           subscription.id[0..21],
           customer_id,
           status,
@@ -265,7 +269,8 @@ module Onetime
         name    = customer.name || 'N/A'
         created = Time.at(customer.created).strftime('%Y-%m-%d')
 
-        format('%-22s %-30s %-25s %s',
+        format(
+          '%-22s %-30s %-25s %s',
           customer.id[0..21],
           email[0..29],
           name[0..24],
@@ -279,7 +284,8 @@ module Onetime
         status      = invoice.status || 'N/A'
         created     = Time.at(invoice.created).strftime('%Y-%m-%d')
 
-        format('%-22s %-22s %-12s %-10s %s',
+        format(
+          '%-22s %-22s %-12s %-10s %s',
           invoice.id[0..21],
           customer_id,
           amount[0..11],
@@ -292,7 +298,8 @@ module Onetime
         event_type = event.type[0..34]
         created    = Time.at(event.created).strftime('%Y-%m-%d %H:%M:%S')
 
-        format('%-22s %-35s %s',
+        format(
+          '%-22s %-35s %s',
           event.id[0..21],
           event_type,
           created,

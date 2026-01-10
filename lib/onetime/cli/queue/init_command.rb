@@ -34,9 +34,14 @@ module Onetime
       class InitCommand < Command
         desc 'Initialize RabbitMQ vhost, exchanges, and queues'
 
-        option :force, type: :boolean, default: false, aliases: ['f'],
+        option :force,
+          type: :boolean,
+          default: false,
+          aliases: ['f'],
           desc: 'Skip confirmation prompt'
-        option :dry_run, type: :boolean, default: false,
+        option :dry_run,
+          type: :boolean,
+          default: false,
           desc: 'Show what would be created without doing it'
 
         def call(force: false, dry_run: false, **)
@@ -186,12 +191,13 @@ module Onetime
           request                 = Net::HTTP::Put.new(uri.path)
           request.basic_auth(admin, pw)
           request['Content-Type'] = 'application/json'
-          request.body            = JSON.generate({
-            configure: '.*',
-            write: '.*',
-            read: '.*',
-          },
-                                                 )
+          request.body            = JSON.generate(
+            {
+              configure: '.*',
+              write: '.*',
+              read: '.*',
+            },
+          )
 
           response = http.request(request)
 

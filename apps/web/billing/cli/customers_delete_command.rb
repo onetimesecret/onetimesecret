@@ -14,7 +14,9 @@ module Onetime
 
       argument :customer_id, required: true, desc: 'Customer ID (cus_xxx)'
 
-      option :yes, type: :boolean, default: false,
+      option :yes,
+        type: :boolean,
+        default: false,
         desc: 'Assume yes to prompts'
 
       def call(customer_id:, yes: false, **)
@@ -24,22 +26,24 @@ module Onetime
         customer = Stripe::Customer.retrieve(customer_id)
 
         # Check for active subscriptions
-        subscriptions = Stripe::Subscription.list({
-          customer: customer_id,
-          status: 'active',
-          limit: 1,
-        },
-                                                 )
+        subscriptions = Stripe::Subscription.list(
+          {
+            customer: customer_id,
+            status: 'active',
+            limit: 1,
+          },
+        )
 
         if subscriptions.data.any?
           puts '⚠️  Customer has active subscriptions!'
           if yes
             puts 'Cancelling all active subscriptions before deleting customer...'
-            all_subscriptions = Stripe::Subscription.list({
-              customer: customer_id,
-              status: 'active',
-            },
-                                                         )
+            all_subscriptions = Stripe::Subscription.list(
+              {
+                customer: customer_id,
+                status: 'active',
+              },
+            )
             all_subscriptions.auto_paging_each do |subscription|
                 Stripe::Subscription.update(subscription.id, { cancel_at_period_end: false })
                 Stripe::Subscription.cancel(subscription.id)

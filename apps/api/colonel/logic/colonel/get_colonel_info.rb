@@ -12,12 +12,27 @@ module ColonelAPI
       class GetColonelInfo < ColonelAPI::Logic::Base
         using Familia::Refinements::TimeLiterals
 
-        attr_reader :billing_enabled, :title, :session_count,
-          :today_feedback, :yesterday_feedback, :older_feedback, :feedback_count,
-          :today_feedback_count, :yesterday_feedback_count, :older_feedback_count,
-          :recent_customers, :customer_count, :recent_customer_count, :metadata_count,
-          :secret_count, :secrets_created, :secrets_shared, :emails_sent, :split_tests,
-          :has_split_tests, :redis_info
+        attr_reader :billing_enabled,
+          :title,
+          :session_count,
+          :today_feedback,
+          :yesterday_feedback,
+          :older_feedback,
+          :feedback_count,
+          :today_feedback_count,
+          :yesterday_feedback_count,
+          :older_feedback_count,
+          :recent_customers,
+          :customer_count,
+          :recent_customer_count,
+          :metadata_count,
+          :secret_count,
+          :secrets_created,
+          :secrets_shared,
+          :emails_sent,
+          :split_tests,
+          :has_split_tests,
+          :redis_info
 
         def process_params
           OT.conf.fetch('site', {})

@@ -23,10 +23,11 @@ module Billing
             org.subscription_status = 'paused'
             org.save
 
-            billing_logger.info 'Subscription paused', {
-              orgid: org.objid,
-              subscription_id: @data_object.id,
-            }
+            billing_logger.info 'Subscription paused',
+              {
+                orgid: org.objid,
+                subscription_id: @data_object.id,
+              }
           end
         end
       end

@@ -22,7 +22,7 @@ module Onetime
 
     def initialize
       @environment = ENV['RACK_ENV'] || 'development'
-      @path = Onetime::Utils::ConfigResolver.resolve('billing')
+      @path        = Onetime::Utils::ConfigResolver.resolve('billing')
       load_config
     end
 
@@ -44,16 +44,17 @@ module Onetime
       # Debug logging on first access only (avoid log spam)
       unless @stripe_key_logged
         @stripe_key_logged = true
-        OT.ld '[BillingConfig.stripe_key] Key resolution', {
-          env_present: !env_key.to_s.strip.empty?,
-          config_present: !config_key.to_s.strip.empty?,
-          source: if env_key
-'ENV'
-else
-(config_key ? 'config' : 'none')
-end,
-          result_prefix: result&.slice(0, 8),
-        }
+        OT.ld '[BillingConfig.stripe_key] Key resolution',
+          {
+            env_present: !env_key.to_s.strip.empty?,
+            config_present: !config_key.to_s.strip.empty?,
+            source: if env_key
+          'ENV'
+          else
+          (config_key ? 'config' : 'none')
+          end,
+            result_prefix: result&.slice(0, 8),
+          }
       end
 
       result
@@ -109,7 +110,7 @@ end,
     # Also picks up any changes to BillingConfig.path
     def reload!
       @environment = ENV['RACK_ENV'] || 'development'
-      @path = resolve_config_file
+      @path        = resolve_config_file
       load_config
       self
     end

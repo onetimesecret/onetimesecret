@@ -36,11 +36,12 @@ module Core
                        nil
         end
 
-        auth_logger.debug 'Session destruction initiated', {
-          customer_id: customer_id,
-          session_id: session_id,
-          ip: req.ip,
-        }
+        auth_logger.debug 'Session destruction initiated',
+          {
+            customer_id: customer_id,
+            session_id: session_id,
+            ip: req.ip,
+          }
 
         # Clear all session data
         session.clear
@@ -51,11 +52,12 @@ module Core
           req.env['rack.session.options'][:renew] = true
         end
 
-        auth_logger.info 'Session destroyed', {
-          customer_id: customer_id,
-          session_id: session_id,
-          ip: req.ip,
-        }
+        auth_logger.info 'Session destroyed',
+          {
+            customer_id: customer_id,
+            session_id: session_id,
+            ip: req.ip,
+          }
 
         if json_requested?
           json_success('You have been logged out')
@@ -97,21 +99,23 @@ module Core
           session['authenticated']    = true
           session['authenticated_at'] = Familia.now.to_i
 
-          auth_logger.info 'Session synchronized after authentication', {
-            user_id: cust_after.custid,
-            email: cust_after.obscure_email,
-            external_id: cust_after.extid,
-            role: cust_after.role,
-            session_id: session.id&.public_id,
-            ip: req.ip,
-          }
+          auth_logger.info 'Session synchronized after authentication',
+            {
+              user_id: cust_after.custid,
+              email: cust_after.obscure_email,
+              external_id: cust_after.extid,
+              role: cust_after.role,
+              session_id: session.id&.public_id,
+              ip: req.ip,
+            }
 
           # Override redirect for colonel role
           if !json_requested? && cust_after.role?(:colonel)
-            auth_logger.debug 'Redirecting colonel to admin panel', {
-              user_id: cust_after.custid,
-              role: cust_after.role,
-            }
+            auth_logger.debug 'Redirecting colonel to admin panel',
+              {
+                user_id: cust_after.custid,
+                role: cust_after.role,
+              }
 
             res.redirect '/colonel/'
           end

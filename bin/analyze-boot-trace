@@ -249,7 +249,8 @@ class BootTraceAnalyzer
     signatures = seen_signatures.sort_by { |_sig, info| info[:ts] }
 
     # rubocop:disable Style/RedundantFormat
-    puts format('%-70s  %-68s',
+    puts format(
+      '%-70s  %-68s',
       'SIGNATURE (--> = new namespace)',
       'FILE PATH (--> = new directory)',
     )

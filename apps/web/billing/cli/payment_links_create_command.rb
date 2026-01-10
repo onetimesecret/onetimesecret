@@ -14,9 +14,12 @@ module Onetime
 
       option :price, type: :string, required: true, desc: 'Price ID (price_xxx)'
       option :quantity, type: :integer, default: 1, desc: 'Fixed quantity'
-      option :allow_quantity, type: :boolean, default: false,
+      option :allow_quantity,
+        type: :boolean,
+        default: false,
         desc: 'Allow customer to adjust quantity'
-      option :after_completion, type: :string,
+      option :after_completion,
+        type: :string,
         desc: 'Redirect URL after successful payment'
 
       def call(price:, quantity: 1, allow_quantity: false, after_completion: nil, **)

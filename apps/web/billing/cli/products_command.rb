@@ -19,10 +19,14 @@ module Onetime
 
       desc 'List all Stripe products and manage product operations'
 
-      option :active_only, type: :boolean, default: true,
+      option :active_only,
+        type: :boolean,
+        default: true,
         desc: 'Show only active products'
 
-      option :help, type: :boolean, default: false,
+      option :help,
+        type: :boolean,
+        default: false,
         desc: 'Show available subcommands'
 
       def call(active_only: true, help: false, **)
@@ -43,8 +47,16 @@ module Onetime
           return
         end
 
-        puts format('%-22s %-30s %-12s %-12s %-10s %-8s %-10s %s',
-          'ID', 'NAME', 'TIER', 'TENANCY', 'REGION', 'ORDER', 'SHOW', 'ACTIVE'
+        puts format(
+          '%-22s %-30s %-12s %-12s %-10s %-8s %-10s %s',
+          'ID',
+          'NAME',
+          'TIER',
+          'TENANCY',
+          'REGION',
+          'ORDER',
+          'SHOW',
+          'ACTIVE',
         )
         puts '-' * 125
 

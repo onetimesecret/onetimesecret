@@ -52,31 +52,34 @@ module Onetime
 
         # Priority 1: Check CIDR match
         if client_ip && ip_matches_homepage_cidrs?(client_ip)
-          http_logger.debug '[homepage_mode] Matched', {
-            mode: configured_mode,
-            method: 'cidr',
-            ip: client_ip,
-          }
+          http_logger.debug '[homepage_mode] Matched',
+            {
+              mode: configured_mode,
+              method: 'cidr',
+              ip: client_ip,
+            }
           return configured_mode
         end
 
         # Priority 2: Fallback to header check
         if mode_header_name && header_matches_mode?(mode_header_name, configured_mode)
-          http_logger.debug '[homepage_mode] Matched', {
-            mode: configured_mode,
-            method: 'header',
-            header: mode_header_name,
-          }
+          http_logger.debug '[homepage_mode] Matched',
+            {
+              mode: configured_mode,
+              method: 'header',
+              header: mode_header_name,
+            }
           return configured_mode
         end
 
         # No match - use default homepage
-        http_logger.debug '[homepage_mode] No match', {
-          mode: configured_mode,
-          client_ip: client_ip,
-          cidr_count: @cidr_matchers.length,
-          header_configured: !mode_header_name.nil?,
-        }
+        http_logger.debug '[homepage_mode] No match',
+          {
+            mode: configured_mode,
+            client_ip: client_ip,
+            cidr_count: @cidr_matchers.length,
+            header_configured: !mode_header_name.nil?,
+          }
         nil
       end
 
@@ -95,19 +98,21 @@ module Onetime
 
           # Validate privacy requirements
           unless validate_cidr_privacy(cidr)
-            http_logger.warn '[homepage_mode] CIDR rejected for privacy', {
-              cidr: cidr_string,
-              prefix: cidr.prefix,
-            }
+            http_logger.warn '[homepage_mode] CIDR rejected for privacy',
+              {
+                cidr: cidr_string,
+                prefix: cidr.prefix,
+              }
             next nil
           end
 
           cidr
         rescue IPAddr::InvalidAddressError => ex
-          http_logger.error '[homepage_mode] Invalid CIDR', {
-            cidr: cidr_string,
-            error: ex.message,
-          }
+          http_logger.error '[homepage_mode] Invalid CIDR',
+            {
+              cidr: cidr_string,
+              error: ex.message,
+            }
           nil
         end.compact
       end
@@ -223,9 +228,10 @@ module Onetime
           # Try Forwarded first (RFC standard), fallback to X-Forwarded-For
           extract_rfc7239_forwarded || extract_x_forwarded_for
         else
-          http_logger.warn '[homepage_mode] Unknown trusted_ip_header type, using X-Forwarded-For', {
-            configured_type: header_type,
-          }
+          http_logger.warn '[homepage_mode] Unknown trusted_ip_header type, using X-Forwarded-For',
+            {
+              configured_type: header_type,
+            }
           extract_x_forwarded_for
         end
       end
@@ -279,10 +285,11 @@ module Onetime
           ip = IPAddr.new(ip_string)
           @cidr_matchers.any? { |cidr| cidr.include?(ip) }
         rescue IPAddr::InvalidAddressError => ex
-          http_logger.error '[homepage_mode] Invalid IP address', {
-            ip: ip_string,
-            error: ex.message,
-          }
+          http_logger.error '[homepage_mode] Invalid IP address',
+            {
+              ip: ip_string,
+              error: ex.message,
+            }
           false
         end
       end

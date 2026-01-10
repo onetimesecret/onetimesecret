@@ -224,7 +224,9 @@ module Onetime
         if Familia.respond_to?(:on_command)
           Familia.on_command do |cmd, duration, context|
             Familia.logger.debug 'Redis command',
-              command: cmd, duration: duration, context: context
+              command: cmd,
+              duration: duration,
+              context: context
           end
         end
 

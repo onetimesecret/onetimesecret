@@ -12,7 +12,9 @@ module Onetime
 
       desc 'List product plan cache from Redis'
 
-      option :refresh, type: :boolean, default: false,
+      option :refresh,
+        type: :boolean,
+        default: false,
         desc: 'Refresh cache from Stripe before listing'
 
       def call(refresh: false, **)
@@ -33,8 +35,14 @@ module Onetime
           return
         end
 
-        puts format('%-20s %-18s %-10s %-10s %-12s %s',
-          'PLAN ID', 'TIER', 'INTERVAL', 'AMOUNT', 'REGION', 'CAPS'
+        puts format(
+          '%-20s %-18s %-10s %-10s %-12s %s',
+          'PLAN ID',
+          'TIER',
+          'INTERVAL',
+          'AMOUNT',
+          'REGION',
+          'CAPS',
         )
         puts '-' * 90
 

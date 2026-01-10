@@ -15,11 +15,17 @@ module Onetime
 
       option :product_id, type: :string, desc: 'Stripe Product ID (e.g., prod_xxx) - required for each plan'
       option :plan, type: :string, desc: 'Generate for specific plan only (e.g., identity_plus_v1)'
-      option :catalog, type: :string, default: 'etc/billing.yaml',
+      option :catalog,
+        type: :string,
+        default: 'etc/billing.yaml',
         desc: 'Path to billing plans catalog'
-      option :lookup, type: :boolean, default: true,
+      option :lookup,
+        type: :boolean,
+        default: true,
         desc: 'Lookup product IDs from Stripe using plan_id metadata (default: true)'
-      option :no_lookup, type: :boolean, default: false,
+      option :no_lookup,
+        type: :boolean,
+        default: false,
         desc: 'Skip Stripe lookup and use PRODUCT_ID placeholders'
 
       def call(product_id: nil, plan: nil, catalog: 'etc/billing.yaml', lookup: true, no_lookup: false, **)

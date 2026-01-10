@@ -14,7 +14,9 @@ module Onetime
 
       argument :link_id, required: true, desc: 'Payment link ID (plink_xxx)'
 
-      option :yes, type: :boolean, default: false,
+      option :yes,
+        type: :boolean,
+        default: false,
         desc: 'Assume yes to prompts'
 
       def call(link_id:, yes: false, **)

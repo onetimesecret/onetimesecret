@@ -72,11 +72,19 @@ module Onetime
       class DlqListCommand < DlqBase
         desc 'List messages in Dead Letter Queues'
 
-        argument :queue, type: :string, required: false,
+        argument :queue,
+          type: :string,
+          required: false,
           desc: 'Specific DLQ to list (e.g., billing.event)'
-        option :format, type: :string, default: 'text', aliases: ['f'],
+        option :format,
+          type: :string,
+          default: 'text',
+          aliases: ['f'],
           desc: 'Output format: text or json'
-        option :limit, type: :integer, default: 20, aliases: ['n'],
+        option :limit,
+          type: :integer,
+          default: 20,
+          aliases: ['n'],
           desc: 'Maximum messages to show per queue'
 
         def call(queue: nil, format: 'text', limit: 20, **)
@@ -161,13 +169,14 @@ module Onetime
             messages = peek_messages(channel, dlq_name, [limit, message_count].min)
 
             if format == 'json'
-              puts JSON.pretty_generate({
-                queue: dlq_name,
-                total_messages: message_count,
-                showing: messages.size,
-                messages: messages,
-              },
-                                       )
+              puts JSON.pretty_generate(
+                {
+                  queue: dlq_name,
+                  total_messages: message_count,
+                  showing: messages.size,
+                  messages: messages,
+                },
+              )
             else
               display_messages_text(dlq_name, message_count, messages)
             end
@@ -245,13 +254,22 @@ module Onetime
       class DlqShowCommand < DlqBase
         desc 'Show details of a specific DLQ message'
 
-        argument :queue, type: :string, required: true,
+        argument :queue,
+          type: :string,
+          required: true,
           desc: 'DLQ name (e.g., billing.event)'
-        option :id, type: :string, aliases: ['i'],
+        option :id,
+          type: :string,
+          aliases: ['i'],
           desc: 'Message ID to show'
-        option :index, type: :integer, aliases: ['n'],
+        option :index,
+          type: :integer,
+          aliases: ['n'],
           desc: 'Message index (1-based) to show'
-        option :format, type: :string, default: 'text', aliases: ['f'],
+        option :format,
+          type: :string,
+          default: 'text',
+          aliases: ['f'],
           desc: 'Output format: text or json'
 
         def call(queue:, id: nil, index: nil, format: 'text', **)
@@ -396,11 +414,18 @@ module Onetime
       class DlqReplayCommand < DlqBase
         desc 'Replay messages from DLQ back to original queue'
 
-        argument :queue, type: :string, required: true,
+        argument :queue,
+          type: :string,
+          required: true,
           desc: 'DLQ name (e.g., billing.event)'
-        option :count, type: :integer, aliases: ['n'],
+        option :count,
+          type: :integer,
+          aliases: ['n'],
           desc: 'Number of messages to replay (default: all)'
-        option :format, type: :string, default: 'text', aliases: ['f'],
+        option :format,
+          type: :string,
+          default: 'text',
+          aliases: ['f'],
           desc: 'Output format: text or json'
 
         def call(queue:, count: nil, format: 'text', **)
@@ -508,11 +533,18 @@ module Onetime
       class DlqPurgeCommand < DlqBase
         desc 'Purge (delete) messages from a Dead Letter Queue'
 
-        argument :queue, type: :string, required: true,
+        argument :queue,
+          type: :string,
+          required: true,
           desc: 'DLQ name (e.g., billing.event)'
-        option :force, type: :boolean, default: false, aliases: ['f'],
+        option :force,
+          type: :boolean,
+          default: false,
+          aliases: ['f'],
           desc: 'Skip confirmation prompt'
-        option :format, type: :string, default: 'text',
+        option :format,
+          type: :string,
+          default: 'text',
           desc: 'Output format: text or json'
 
         def call(queue:, force: false, format: 'text', **)

@@ -14,13 +14,21 @@ module Onetime
     class SyncAuthAccountsCommand < Command
       desc 'Synchronize customer records from Redis to Auth SQL database'
 
-      option :run, type: :boolean, default: false,
+      option :run,
+        type: :boolean,
+        default: false,
         desc: 'Execute synchronization (required for actual operation)'
 
-      option :help, type: :boolean, default: false, aliases: ['h'],
+      option :help,
+        type: :boolean,
+        default: false,
+        aliases: ['h'],
         desc: 'Show help message'
 
-      option :verbose, type: :boolean, default: false, aliases: ['v'],
+      option :verbose,
+        type: :boolean,
+        default: false,
+        aliases: ['v'],
         desc: 'Show detailed progress for each customer'
 
       def call(run: false, help: false, verbose: false, **)

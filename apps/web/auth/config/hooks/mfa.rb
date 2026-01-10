@@ -132,7 +132,8 @@ module Auth::Config::Hooks
         # Measure and log session sync duration
         Auth::Logging.measure(:mfa_session_sync, account_id: account_id, correlation_id: correlation_id) do
           # Rodauth handles session management automatically, but we sync session data
-          Onetime::ErrorHandler.safe_execute('sync_session_after_mfa',
+          Onetime::ErrorHandler.safe_execute(
+            'sync_session_after_mfa',
             account_id: account_id,
             email: account[:email],
           ) do

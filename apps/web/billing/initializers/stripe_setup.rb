@@ -32,19 +32,21 @@ module Billing
                        "present (prefix: #{stripe_key[0..7]}..., length: #{stripe_key.length})"
                      end
 
-        Onetime.billing_logger.debug '[StripeSetup] Checking Stripe configuration', {
-          stripe_key_status: key_status,
-          env_key_present: !ENV['STRIPE_API_KEY'].to_s.strip.empty?,
-          config_enabled: Onetime.billing_config.enabled?,
-        }
+        Onetime.billing_logger.debug '[StripeSetup] Checking Stripe configuration',
+          {
+            stripe_key_status: key_status,
+            env_key_present: !ENV['STRIPE_API_KEY'].to_s.strip.empty?,
+            config_enabled: Onetime.billing_config.enabled?,
+          }
 
         if stripe_key && !stripe_key.to_s.strip.empty?
           Stripe.api_key     = stripe_key
           Stripe.api_version = stripe_api_version if stripe_api_version
-          Onetime.billing_logger.info 'Stripe API configured', {
-            api_version: stripe_api_version || 'default',
-            key_prefix: stripe_key[0..7],
-          }
+          Onetime.billing_logger.info 'Stripe API configured',
+            {
+              api_version: stripe_api_version || 'default',
+              key_prefix: stripe_key[0..7],
+            }
         else
           Onetime.billing_logger.warn 'Stripe API key not configured - billing features disabled'
         end

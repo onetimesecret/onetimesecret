@@ -296,15 +296,16 @@ module Onetime
         # Write JSONL format (one JSON object per line)
         File.open(output_file, 'w') do |f|
           # Header line with metadata
-          f.puts JSON.generate({
-            meta: true,
-            instance: Onetime.instance,
-            events: @events.size,
-            duration_ms: elapsed_μs / 1000.0,
-            bindings: @capture_bindings,
-            ts: Time.now.iso8601,
-          },
-                              )
+          f.puts JSON.generate(
+            {
+              meta: true,
+              instance: Onetime.instance,
+              events: @events.size,
+              duration_ms: elapsed_μs / 1000.0,
+              bindings: @capture_bindings,
+              ts: Time.now.iso8601,
+            },
+          )
 
           # Event lines (compact format)
           @events.each do |event|

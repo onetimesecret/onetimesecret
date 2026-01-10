@@ -89,7 +89,8 @@ module Onetime
       # }
       #
       def self.check_records_exist(api_key, records)
-        post('/dns/check-records-exist',
+        post(
+          '/dns/check-records-exist',
           headers: { 'api-key' => api_key },
           body: { records: records }.to_json,
         )
@@ -104,7 +105,8 @@ module Onetime
       # 'match_against' value you've set.
       #
       def self.check_records_match_exactly(api_key, records)
-        post('/dns/check-records-match-exactly',
+        post(
+          '/dns/check-records-match-exactly',
           headers: { 'api-key' => api_key },
           body: { records: records }.to_json,
         )
@@ -154,7 +156,8 @@ module Onetime
         }
         post_options    = default_options.merge(options)
 
-        response = post('/vhosts',
+        response = post(
+          '/vhosts',
           headers: { 'api-key' => api_key },
           body: {
             incoming_address: incoming_address,
@@ -278,7 +281,8 @@ module Onetime
         }
         post_options    = default_options.merge(options)
 
-        response = post('/vhosts/update/by/incoming',
+        response = post(
+          '/vhosts/update/by/incoming',
           headers: { 'api-key' => api_key },
           body: {
             current_incoming_address: current_incoming_address,
@@ -317,7 +321,8 @@ module Onetime
       # @raise [HTTParty::ResponseError] If the API returns a 404 (Virtual Host not found) or 401 (Invalid API key) error.
       #
       def self.delete_vhost(api_key, incoming_address)
-        response = delete("/vhosts/by/incoming/#{incoming_address}",
+        response = delete(
+          "/vhosts/by/incoming/#{incoming_address}",
           headers: { 'api-key' => api_key },
         )
 

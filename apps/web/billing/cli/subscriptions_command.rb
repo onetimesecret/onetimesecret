@@ -12,7 +12,8 @@ module Onetime
 
       desc 'List Stripe subscriptions'
 
-      option :status, type: :string,
+      option :status,
+        type: :string,
         desc: 'Filter by status (active, past_due, canceled, incomplete, trialing, unpaid)'
       option :customer, type: :string, desc: 'Filter by customer ID'
       option :limit, type: :integer, default: 100, desc: 'Maximum results to return'
@@ -34,8 +35,12 @@ module Onetime
           return
         end
 
-        puts format('%-22s %-22s %-12s %s',
-          'ID', 'CUSTOMER', 'STATUS', 'PERIOD END'
+        puts format(
+          '%-22s %-22s %-12s %s',
+          'ID',
+          'CUSTOMER',
+          'STATUS',
+          'PERIOD END',
         )
         puts '-' * 70
 

@@ -22,11 +22,20 @@ module Onetime
     class SchedulerCommand < Command
         desc 'Start Rufus job scheduler'
 
-        option :environment, type: :string, default: 'development', aliases: ['e'],
+        option :environment,
+          type: :string,
+          default: 'development',
+          aliases: ['e'],
           desc: 'Environment to run in'
-        option :daemonize, type: :boolean, default: false, aliases: ['d'],
+        option :daemonize,
+          type: :boolean,
+          default: false,
+          aliases: ['d'],
           desc: 'Run as daemon'
-        option :log_level, type: :string, default: 'info', aliases: ['l'],
+        option :log_level,
+          type: :string,
+          default: 'info',
+          aliases: ['l'],
           desc: 'Log level: trace, debug, info, warn, error'
 
         def call(_environment: 'development', daemonize: false, _log_level: 'info', **)
@@ -108,12 +117,13 @@ module Onetime
 
         def log_scheduled_jobs(scheduler)
           scheduler.jobs.each do |job|
-            Onetime.app_logger.info(format(
-              '  %s: next run at %s',
-              job.id || job.original,
-              job.next_time,
-            ),
-                                   )
+            Onetime.app_logger.info(
+              format(
+                '  %s: next run at %s',
+                job.id || job.original,
+                job.next_time,
+              ),
+            )
           end
         end
     end

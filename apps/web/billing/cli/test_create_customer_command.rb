@@ -12,7 +12,9 @@ module Onetime
 
       desc 'Create test customer with payment method (test mode only)'
 
-      option :with_card, type: :boolean, default: true,
+      option :with_card,
+        type: :boolean,
+        default: true,
         desc: 'Attach test card payment method'
 
       def call(with_card: true, **)
@@ -32,12 +34,13 @@ module Onetime
         puts 'Creating test customer:'
         puts "  Email: #{email}"
 
-        customer = Stripe::Customer.create({
-          email: email,
-          name: 'Test Customer',
-          description: "CLI test customer - #{Time.now}",
-        },
-                                          )
+        customer = Stripe::Customer.create(
+          {
+            email: email,
+            name: 'Test Customer',
+            description: "CLI test customer - #{Time.now}",
+          },
+        )
 
         puts "\nCustomer created:"
         puts "  ID: #{customer.id}"
@@ -48,11 +51,13 @@ module Onetime
           # See: https://stripe.com/docs/testing#cards
           pm = Stripe::PaymentMethod.attach('pm_card_visa', { customer: customer.id })
 
-          Stripe::Customer.update(customer.id, {
-            invoice_settings: {
-              default_payment_method: pm.id,
+          Stripe::Customer.update(
+            customer.id,
+            {
+              invoice_settings: {
+                default_payment_method: pm.id,
+              },
             },
-          }
           )
 
           puts "\nTest card attached:"

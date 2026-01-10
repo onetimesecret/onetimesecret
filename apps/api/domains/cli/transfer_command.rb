@@ -14,13 +14,19 @@ module Onetime
 
       argument :domain_name, type: :string, required: true, desc: 'Domain name'
 
-      option :to_org, type: :string, required: true,
+      option :to_org,
+        type: :string,
+        required: true,
         desc: 'Destination organization ID'
 
-      option :from_org, type: :string, default: nil,
+      option :from_org,
+        type: :string,
+        default: nil,
         desc: 'Source organization ID (optional, uses domain\'s current org_id)'
 
-      option :force, type: :boolean, default: false,
+      option :force,
+        type: :boolean,
+        default: false,
         desc: 'Skip confirmation prompt'
 
       def call(domain_name:, to_org:, from_org: nil, force: false, **)

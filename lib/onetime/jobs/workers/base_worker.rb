@@ -102,8 +102,12 @@ module Onetime
 
           def log_error(message, error = nil, **payload)
             if error
-              logger.error message, worker: worker_name, error: error.message,
-                error_class: error.class.name, backtrace: error.backtrace&.first(5), **payload
+              logger.error message,
+                worker: worker_name,
+                error: error.message,
+                error_class: error.class.name,
+                backtrace: error.backtrace&.first(5),
+                **payload
             else
               logger.error message, worker: worker_name, **payload
             end

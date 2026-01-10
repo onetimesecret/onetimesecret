@@ -29,8 +29,11 @@ module Onetime
           return
         end
 
-        puts format('%-22s %-40s %s',
-          'ID', 'SQL', 'CREATED'
+        puts format(
+          '%-22s %-40s %s',
+          'ID',
+          'SQL',
+          'CREATED',
         )
         puts '-' * 80
 
@@ -38,7 +41,8 @@ module Onetime
           sql_preview = query.sql&.[](0..39) || 'N/A'
           created     = format_timestamp(query.created)
 
-          puts format('%-22s %-40s %s',
+          puts format(
+            '%-22s %-40s %s',
             query.id[0..21],
             sql_preview,
             created,

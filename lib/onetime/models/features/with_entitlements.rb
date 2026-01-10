@@ -144,9 +144,10 @@ module Onetime
             end
 
             # Final fallback: FREE tier to avoid "No features available"
-            OT.lw '[WithEntitlements] Plan cache miss, using FREE tier fallback', {
-              planid: planid,
-            }
+            OT.lw '[WithEntitlements] Plan cache miss, using FREE tier fallback',
+              {
+                planid: planid,
+              }
             WithEntitlements::FREE_TIER_ENTITLEMENTS.dup
           end
 

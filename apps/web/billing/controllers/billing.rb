@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ClassLength
+
 require 'stripe'
 
 require_relative 'base'
@@ -37,10 +39,11 @@ module Billing
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue StandardError => ex
-        billing_logger.error 'Failed to load billing overview', {
-          exception: ex,
-          extid: req.params['extid'],
-        }
+        billing_logger.error 'Failed to load billing overview',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
         json_error('Failed to load billing data', status: 500)
       end
 
@@ -72,11 +75,12 @@ module Billing
         plan = ::Billing::Plan.get_plan(tier, billing_cycle, region)
 
         unless plan
-          billing_logger.warn 'Plan not found', {
-            tier: tier,
-            billing_cycle: billing_cycle,
-            region: region,
-          }
+          billing_logger.warn 'Plan not found',
+            {
+              tier: tier,
+              billing_cycle: billing_cycle,
+              region: region,
+            }
           return json_error('Plan not found', status: 404)
         end
 
@@ -155,26 +159,29 @@ module Billing
           idempotency_key: idempotency_key,
         )
 
-        billing_logger.info 'Checkout session created for organization', {
-          extid: org.extid,  # Use extid for logging, not objid
-          session_id: checkout_session.id,
-          tier: tier,
-          billing_cycle: billing_cycle,
-          idempotency_key: idempotency_key[0..7], # Log prefix for debugging
-        }
+        billing_logger.info 'Checkout session created for organization',
+          {
+            extid: org.extid,  # Use extid for logging, not objid
+            session_id: checkout_session.id,
+            tier: tier,
+            billing_cycle: billing_cycle,
+            idempotency_key: idempotency_key[0..7], # Log prefix for debugging
+          }
 
-        json_response({
-          checkout_url: checkout_session.url,
-          session_id: checkout_session.id,
-        },
-                     )
+        json_response(
+          {
+            checkout_url: checkout_session.url,
+            session_id: checkout_session.id,
+          },
+        )
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue Stripe::StripeError => ex
-        billing_logger.error 'Stripe checkout session creation failed', {
-          exception: ex,
-          extid: req.params['extid'],
-        }
+        billing_logger.error 'Stripe checkout session creation failed',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
         json_error('Failed to create checkout session', status: 500)
       end
 
@@ -197,11 +204,12 @@ module Billing
         end
 
         # Retrieve invoices from Stripe
-        invoices = Stripe::Invoice.list({
-          customer: org.stripe_customer_id,
-          limit: 12, # Last 12 invoices
-        },
-                                       )
+        invoices = Stripe::Invoice.list(
+          {
+            customer: org.stripe_customer_id,
+            limit: 12, # Last 12 invoices
+          },
+        )
 
         invoice_data = invoices.data.map do |invoice|
           {
@@ -218,18 +226,20 @@ module Billing
           }
         end
 
-        json_response({
-          invoices: invoice_data,
-          has_more: invoices.has_more,
-        },
-                     )
+        json_response(
+          {
+            invoices: invoice_data,
+            has_more: invoices.has_more,
+          },
+        )
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue Stripe::StripeError => ex
-        billing_logger.error 'Failed to retrieve invoices', {
-          exception: ex,
-          extid: req.params['extid'],
-        }
+        billing_logger.error 'Failed to retrieve invoices',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
         json_error('Failed to retrieve invoices', status: 500)
       end
 
@@ -267,9 +277,10 @@ module Billing
 
         json_response({ plans: plan_data })
       rescue StandardError => ex
-        billing_logger.error 'Failed to list plans', {
-          exception: ex,
-        }
+        billing_logger.error 'Failed to list plans',
+          {
+            exception: ex,
+          }
         json_error('Failed to list plans', status: 500)
       end
 
@@ -285,11 +296,12 @@ module Billing
         org = load_organization(req.params['extid'])
 
         unless org.active_subscription?
-          return json_response({
-            has_active_subscription: false,
-            current_plan: org.planid,
-          },
-                              )
+          return json_response(
+            {
+              has_active_subscription: false,
+              current_plan: org.planid,
+            },
+          )
         end
 
         # Validate Stripe API key is configured before making API calls
@@ -301,22 +313,24 @@ module Billing
         subscription = Stripe::Subscription.retrieve(org.stripe_subscription_id)
         current_item = subscription.items.data.first
 
-        json_response({
-          has_active_subscription: true,
-          current_plan: org.planid,
-          current_price_id: current_item.price.id,
-          subscription_item_id: current_item.id,
-          subscription_status: subscription.status,
-          current_period_end: current_item.current_period_end,
-        },
-                     )
+        json_response(
+          {
+            has_active_subscription: true,
+            current_plan: org.planid,
+            current_price_id: current_item.price.id,
+            subscription_item_id: current_item.id,
+            subscription_status: subscription.status,
+            current_period_end: current_item.current_period_end,
+          },
+        )
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue Stripe::StripeError => ex
-        billing_logger.error 'Failed to retrieve subscription status', {
-          exception: ex,
-          extid: req.params['extid'],
-        }
+        billing_logger.error 'Failed to retrieve subscription status',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
         json_error('Failed to retrieve subscription status', status: 500)
       end
 
@@ -394,45 +408,48 @@ module Billing
         # Also capture Stripe's ending_balance if available (may be nil for previews)
         ending_balance = preview.ending_balance || 0
 
-        json_response({
-          amount_due: preview.amount_due,
-          immediate_amount: amounts[:immediate_amount],
-          next_period_amount: amounts[:next_period_amount],
-          subtotal: preview.subtotal,
-          credit_applied: amounts[:credit_applied],
-          next_billing_date: preview.next_payment_attempt,
-          currency: preview.currency,
-          current_plan: {
-            price_id: current_item.price.id,
-            amount: current_item.price.unit_amount,
-            interval: current_item.price.recurring&.interval,
+        json_response(
+          {
+            amount_due: preview.amount_due,
+            immediate_amount: amounts[:immediate_amount],
+            next_period_amount: amounts[:next_period_amount],
+            subtotal: preview.subtotal,
+            credit_applied: amounts[:credit_applied],
+            next_billing_date: preview.next_payment_attempt,
+            currency: preview.currency,
+            current_plan: {
+              price_id: current_item.price.id,
+              amount: current_item.price.unit_amount,
+              interval: current_item.price.recurring&.interval,
+            },
+            new_plan: {
+              price_id: new_price_id,
+              amount: new_price&.unit_amount,
+              interval: new_price&.recurring&.interval,
+            },
+            # Credit breakdown fields for clearer frontend display
+            ending_balance: ending_balance,           # Negative = credit remaining after invoice
+            tax: extract_tax_amount(preview),         # Tax amount on this invoice (if available)
+            remaining_credit: remaining_credit,        # Absolute value of credit if ending_balance negative
+            actual_next_billing_due: actual_next_billing_due, # What they'll actually pay at next billing
           },
-          new_plan: {
-            price_id: new_price_id,
-            amount: new_price&.unit_amount,
-            interval: new_price&.recurring&.interval,
-          },
-          # Credit breakdown fields for clearer frontend display
-          ending_balance: ending_balance,           # Negative = credit remaining after invoice
-          tax: extract_tax_amount(preview),         # Tax amount on this invoice (if available)
-          remaining_credit: remaining_credit,        # Absolute value of credit if ending_balance negative
-          actual_next_billing_due: actual_next_billing_due, # What they'll actually pay at next billing
-        },
-                     )
+        )
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
-        billing_logger.warn 'Invalid plan change preview request', {
-          exception: ex,
-          extid: req.params['extid'],
-          new_price_id: new_price_id,
-        }
+        billing_logger.warn 'Invalid plan change preview request',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+            new_price_id: new_price_id,
+          }
         json_error(ex.message, status: 400)
       rescue Stripe::StripeError => ex
-        billing_logger.error 'Failed to preview plan change', {
-          exception: ex,
-          extid: req.params['extid'],
-        }
+        billing_logger.error 'Failed to preview plan change',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
         json_error('Failed to preview plan change', status: 500)
       end
 
@@ -539,47 +556,52 @@ module Billing
           org.update_from_stripe_subscription(updated_subscription)
         rescue StandardError => ex
           local_sync_failed = true
-          billing_logger.error 'Local state sync failed after Stripe update', {
-            extid: org.extid,
-            stripe_subscription_id: updated_subscription.id,
-            new_price_id: new_price_id,
-            error_class: ex.class.name,
-            error_message: ex.message,
-            idempotency_key: idempotency_key[0..7],
-            recovery: 'webhook_reconciliation',
-          }
+          billing_logger.error 'Local state sync failed after Stripe update',
+            {
+              extid: org.extid,
+              stripe_subscription_id: updated_subscription.id,
+              new_price_id: new_price_id,
+              error_class: ex.class.name,
+              error_message: ex.message,
+              idempotency_key: idempotency_key[0..7],
+              recovery: 'webhook_reconciliation',
+            }
         end
 
-        billing_logger.info 'Plan changed successfully', {
-          extid: org.extid,
-          old_price_id: current_item.price.id,
-          new_price_id: new_price_id,
-          new_plan: local_sync_failed ? new_plan&.plan_id : org.planid,
-          local_sync_failed: local_sync_failed,
-          idempotency_key: idempotency_key[0..7], # Log prefix for debugging
-        }
+        billing_logger.info 'Plan changed successfully',
+          {
+            extid: org.extid,
+            old_price_id: current_item.price.id,
+            new_price_id: new_price_id,
+            new_plan: local_sync_failed ? new_plan&.plan_id : org.planid,
+            local_sync_failed: local_sync_failed,
+            idempotency_key: idempotency_key[0..7], # Log prefix for debugging
+          }
 
-        json_response({
-          success: true,
-          new_plan: local_sync_failed ? new_plan&.plan_id : org.planid,
-          status: updated_subscription.status,
-          current_period_end: updated_subscription.items.data.first.current_period_end,
-        },
-                     )
+        json_response(
+          {
+            success: true,
+            new_plan: local_sync_failed ? new_plan&.plan_id : org.planid,
+            status: updated_subscription.status,
+            current_period_end: updated_subscription.items.data.first.current_period_end,
+          },
+        )
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue Stripe::InvalidRequestError => ex
-        billing_logger.warn 'Invalid plan change request', {
-          exception: ex,
-          extid: req.params['extid'],
-          new_price_id: new_price_id,
-        }
+        billing_logger.warn 'Invalid plan change request',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+            new_price_id: new_price_id,
+          }
         json_error(ex.message, status: 400)
       rescue Stripe::StripeError => ex
-        billing_logger.error 'Failed to change plan', {
-          exception: ex,
-          extid: req.params['extid'],
-        }
+        billing_logger.error 'Failed to change plan',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
         json_error('Failed to change plan', status: 500)
       end
 

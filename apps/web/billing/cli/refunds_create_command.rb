@@ -12,13 +12,19 @@ module Onetime
 
       desc 'Create a refund for a charge'
 
-      option :charge, type: :string, required: true,
+      option :charge,
+        type: :string,
+        required: true,
         desc: 'Charge ID (ch_xxx)'
-      option :amount, type: :integer,
+      option :amount,
+        type: :integer,
         desc: 'Amount in cents (leave empty for full refund)'
-      option :reason, type: :string,
+      option :reason,
+        type: :string,
         desc: 'Reason: duplicate, fraudulent, requested_by_customer'
-      option :yes, type: :boolean, default: false,
+      option :yes,
+        type: :boolean,
+        default: false,
         desc: 'Assume yes to prompts'
 
       def call(charge:, amount: nil, reason: nil, yes: false, **)

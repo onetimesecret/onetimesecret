@@ -27,11 +27,18 @@ module Onetime
       class ResetCommand < Command
         desc 'Reset RabbitMQ queues (WARNING: destroys pending messages)'
 
-        option :queue, type: :string, aliases: ['q'],
+        option :queue,
+          type: :string,
+          aliases: ['q'],
           desc: 'Reset specific queue only'
-        option :force, type: :boolean, default: false, aliases: ['f'],
+        option :force,
+          type: :boolean,
+          default: false,
+          aliases: ['f'],
           desc: 'Skip confirmation prompt'
-        option :dry_run, type: :boolean, default: false,
+        option :dry_run,
+          type: :boolean,
+          default: false,
           desc: 'Show what would be deleted without doing it'
 
         def call(queue: nil, force: false, dry_run: false, **)

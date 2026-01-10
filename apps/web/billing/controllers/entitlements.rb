@@ -38,10 +38,11 @@ module Billing
         # Check if plan cache may be stale (plan assigned but not found)
         plan_cache_stale = plan_cache_stale?(org.planid)
         if plan_cache_stale
-          billing_logger.warn 'Plan cache appears stale for entitlements request', {
-            extid: req.params['extid'],
-            planid: org.planid,
-          }
+          billing_logger.warn 'Plan cache appears stale for entitlements request',
+            {
+              extid: req.params['extid'],
+              planid: org.planid,
+            }
         end
 
         data = {
@@ -57,10 +58,11 @@ module Billing
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue StandardError => ex
-        billing_logger.error 'Failed to load entitlements', {
-          exception: ex,
-          extid: req.params['extid'],
-        }
+        billing_logger.error 'Failed to load entitlements',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
         json_error('Failed to load entitlements', status: 500)
       end
 
@@ -112,11 +114,12 @@ module Billing
       rescue OT::Problem => ex
         json_error(ex.message, status: 403)
       rescue StandardError => ex
-        billing_logger.error 'Failed entitlement check', {
-          exception: ex,
-          extid: req.params['extid'],
-          entitlement: req.params['entitlement'],
-        }
+        billing_logger.error 'Failed entitlement check',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+            entitlement: req.params['entitlement'],
+          }
         json_error('Failed to check entitlement', status: 500)
       end
 
@@ -152,9 +155,10 @@ module Billing
 
         json_response(data)
       rescue StandardError => ex
-        billing_logger.error 'Failed to list entitlements', {
-          exception: ex,
-        }
+        billing_logger.error 'Failed to list entitlements',
+          {
+            exception: ex,
+          }
         json_error('Failed to list entitlements', status: 500)
       end
 
@@ -220,9 +224,10 @@ module Billing
         plans = begin
           ::Billing::Plan.list_plans
         rescue StandardError => ex
-          billing_logger.warn 'Failed to list plans from cache, falling back to config', {
-            exception: ex,
-          }
+          billing_logger.warn 'Failed to list plans from cache, falling back to config',
+            {
+              exception: ex,
+            }
           []
         end
 
@@ -276,9 +281,10 @@ module Billing
 
         summary
       rescue StandardError => ex
-        billing_logger.warn 'Failed to load plans from config', {
-          exception: ex,
-        }
+        billing_logger.warn 'Failed to load plans from config',
+          {
+            exception: ex,
+          }
         {}
       end
     end

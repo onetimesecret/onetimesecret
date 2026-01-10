@@ -22,8 +22,20 @@ module V2::Logic
     class RevealSecret < V2::Logic::Base
       include Onetime::LoggerMethods
 
-      attr_reader :identifier, :passphrase, :continue, :share_domain, :secret, :show_secret, :secret_value,
-        :verification, :correct_passphrase, :display_lines, :one_liner, :is_owner, :has_passphrase, :secret_identifier
+      attr_reader :identifier,
+        :passphrase,
+        :continue,
+        :share_domain,
+        :secret,
+        :show_secret,
+        :secret_value,
+        :verification,
+        :correct_passphrase,
+        :display_lines,
+        :one_liner,
+        :is_owner,
+        :has_passphrase,
+        :secret_identifier
 
       def process_params
         @identifier = sanitize_identifier(params['identifier'])
@@ -44,14 +56,15 @@ module V2::Logic
         @secret_identifier  = @secret.identifier
         @secret_shortid     = @secret.shortid
 
-        secret_logger.debug 'Secret reveal initiated', {
-          secret_identifier: secret.shortid,
-          viewable: secret.viewable?,
-          has_passphrase: secret.has_passphrase?,
-          passphrase_correct: correct_passphrase,
-          continue: continue,
-          user_id: cust&.custid,
-        }
+        secret_logger.debug 'Secret reveal initiated',
+          {
+            secret_identifier: secret.shortid,
+            viewable: secret.viewable?,
+            has_passphrase: secret.has_passphrase?,
+            passphrase_correct: correct_passphrase,
+            continue: continue,
+            user_id: cust&.custid,
+          }
 
         owner = secret.load_owner
         if show_secret
@@ -63,29 +76,32 @@ module V2::Logic
           if verification
 
             if owner.nil?
-              secret_logger.error 'Invalid verification attempt - owner not found', {
-                secret_identifier: secret.shortid,
-                action: 'verification',
-                result: :invalid,
-              }
+              secret_logger.error 'Invalid verification attempt - owner not found',
+                {
+                  secret_identifier: secret.shortid,
+                  action: 'verification',
+                  result: :invalid,
+                }
               # Do not mark as received obviously
               raise_form_error I18n.t('web.COMMON.verification_not_valid', locale: @locale, default: 'Verification not valid')
             elsif owner.anonymous?
-              secret_logger.error 'Invalid verification attempt - owner anonymous', {
-                secret_identifier: secret.shortid,
-                action: 'verification',
-                result: :invalid,
-              }
+              secret_logger.error 'Invalid verification attempt - owner anonymous',
+                {
+                  secret_identifier: secret.shortid,
+                  action: 'verification',
+                  result: :invalid,
+                }
               # Do not mark as received for an anonymous soul. How did we
               # even get here? It means a verification secret for authentication_mode=basic
               # has a nil or invalid object identifier for the owner.
               raise_form_error I18n.t('web.COMMON.verification_not_valid', locale: @locale, default: 'Verification not valid')
             elsif owner.verified?
-              secret_logger.error 'Invalid verification attempt - owner already verified', {
-                secret_identifier: secret.shortid,
-                action: 'verification',
-                result: :invalid,
-              }
+              secret_logger.error 'Invalid verification attempt - owner already verified',
+                {
+                  secret_identifier: secret.shortid,
+                  action: 'verification',
+                  result: :invalid,
+                }
               # This bloke was already verified. How did we get here? Who sent
               # multiple verification secrets? Or who sent a verification secret
               # even though the account was already verified?
@@ -96,12 +112,13 @@ module V2::Logic
               secret.received!
 
             elsif owner && (cust&.anonymous? || (cust&.custid == owner.custid && !owner.verified?))
-              secret_logger.info 'Owner verification successful', {
-                secret_identifier: secret.shortid,
-                owner_id: owner.objid,
-                action: 'verification',
-                result: :verified,
-              }
+              secret_logger.info 'Owner verification successful',
+                {
+                  secret_identifier: secret.shortid,
+                  owner_id: owner.objid,
+                  action: 'verification',
+                  result: :verified,
+                }
               owner.verified    = true
               owner.verified_by = 'email'  # Track email verification method
               owner.save
@@ -110,24 +127,27 @@ module V2::Logic
               secret.received!
 
             else
-              secret_logger.error 'Invalid verification - user already logged in', {
-                secret_identifier: secret.shortid,
-                user_id: cust&.custid,
-                action: 'verification',
-                result: :already_logged_in,
-              }
-              raise_form_error I18n.t('web.COMMON.verification_already_logged_in',
+              secret_logger.error 'Invalid verification - user already logged in',
+                {
+                  secret_identifier: secret.shortid,
+                  user_id: cust&.custid,
+                  action: 'verification',
+                  result: :already_logged_in,
+                }
+              raise_form_error I18n.t(
+                'web.COMMON.verification_already_logged_in',
                 locale: @locale,
                 default: 'Cannot verify when logged in',
               )
             end
           else
-            secret_logger.info 'Secret revealed successfully', {
-              secret_identifier: secret.shortid,
-              owner_id: owner&.objid,
-              action: 'reveal',
-              result: :success,
-            }
+            secret_logger.info 'Secret revealed successfully',
+              {
+                secret_identifier: secret.shortid,
+                owner_id: owner&.objid,
+                action: 'reveal',
+                result: :success,
+              }
 
             owner.increment_field :secrets_shared if !owner.nil? && !owner.anonymous?
 
@@ -149,13 +169,14 @@ module V2::Logic
           end
 
         elsif secret.has_passphrase? && !correct_passphrase
-          secret_logger.warn 'Incorrect passphrase attempt', {
-            secret_identifier: secret.shortid,
-            user_id: cust&.custid,
-            session_id: sess&.id&.public_id,
-            action: 'reveal',
-            result: :passphrase_failed,
-          }
+          secret_logger.warn 'Incorrect passphrase attempt',
+            {
+              secret_identifier: secret.shortid,
+              user_id: cust&.custid,
+              session_id: sess&.id&.public_id,
+              action: 'reveal',
+              result: :passphrase_failed,
+            }
 
           message = I18n.t('web.COMMON.incorrect_passphrase', locale: @locale, default: 'Incorrect passphrase')
           raise_form_error message

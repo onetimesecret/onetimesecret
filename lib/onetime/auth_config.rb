@@ -17,7 +17,7 @@ module Onetime
 
     def initialize
       @environment = ENV['RACK_ENV'] || 'development'
-      @path = Onetime::Utils::ConfigResolver.resolve('auth')
+      @path        = Onetime::Utils::ConfigResolver.resolve('auth')
       load_config
     end
 
@@ -154,18 +154,20 @@ module Onetime
     def validate_config_file_exists!
       return if File.exist?(@path)
 
-      raise ConfigError, config_error_message(
-        'Configuration file not found',
-        "File does not exist: #{@path}",
-      )
+      raise ConfigError,
+        config_error_message(
+          'Configuration file not found',
+          "File does not exist: #{@path}",
+        )
     end
 
     def handle_config_error(exception)
       # @config = default_config
-      raise ConfigError, config_error_message(
-        "Failed to load authentication configuration: #{exception.message}",
-        exception.backtrace&.first,
-      )
+      raise ConfigError,
+        config_error_message(
+          "Failed to load authentication configuration: #{exception.message}",
+          exception.backtrace&.first,
+        )
     end
 
     def config_error_message(primary_error, detail = nil)

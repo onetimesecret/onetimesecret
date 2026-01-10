@@ -123,10 +123,11 @@ module Billing
         private
 
         def log_start
-          billing_logger.info "Processing #{@event.type}", {
-            event_id: @event.id,
-            replay: replay?,
-          }
+          billing_logger.info "Processing #{@event.type}",
+            {
+              event_id: @event.id,
+              replay: replay?,
+            }
         end
 
         def log_complete(result)
@@ -134,10 +135,11 @@ module Billing
         end
 
         def log_error(error)
-          billing_logger.error "#{@event.type} failed", {
-            error: error.message,
-            backtrace: error.backtrace&.first(5),
-          }
+          billing_logger.error "#{@event.type} failed",
+            {
+              error: error.message,
+              backtrace: error.backtrace&.first(5),
+            }
         end
       end
     end

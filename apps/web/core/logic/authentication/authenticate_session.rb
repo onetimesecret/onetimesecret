@@ -44,20 +44,22 @@ module Core::Logic
         return if customer.argon2_hash?(customer.passphrase)
 
         customer.update_passphrase!(password)
-        auth_logger.info 'Password hash migrated to argon2', {
-          user_id: customer.objid,
-          email: customer.obscure_email,
-          action: 'password_hash_migration',
-        }
+        auth_logger.info 'Password hash migrated to argon2',
+          {
+            user_id: customer.objid,
+            email: customer.obscure_email,
+            action: 'password_hash_migration',
+          }
       rescue StandardError => ex
         # Log the error but don't fail the login - the bcrypt hash remains
         # intact and will be migrated on the next successful login attempt.
-        auth_logger.error 'Password hash migration failed', {
-          user_id: customer.objid,
-          email: customer.obscure_email,
-          error: ex.message,
-          action: 'password_hash_migration_failed',
-        }
+        auth_logger.error 'Password hash migration failed',
+          {
+            user_id: customer.objid,
+            email: customer.obscure_email,
+            error: ex.message,
+            action: 'password_hash_migration_failed',
+          }
       end
 
       def raise_concerns
@@ -69,25 +71,27 @@ module Core::Logic
 
       def process
         unless success?
-          auth_logger.warn 'Login failed', {
-            email: cust.obscure_email,
-            role: cust.role,
-            session_id: sess&.id,
-            ip: @strategy_result.metadata[:ip],
-            reason: :invalid_credentials,
-          }
+          auth_logger.warn 'Login failed',
+            {
+              email: cust.obscure_email,
+              role: cust.role,
+              session_id: sess&.id,
+              ip: @strategy_result.metadata[:ip],
+              reason: :invalid_credentials,
+            }
 
           raise_form_error 'Invalid email or password', field: 'email', error_type: 'invalid'
         end
 
         if cust.pending?
-          auth_logger.info 'Login pending customer verification', {
-            customer_id: cust.objid,
-            email: cust.obscure_email,
-            role: cust.role,
-            session_id: sess&.id,
-            status: :pending,
-          }
+          auth_logger.info 'Login pending customer verification',
+            {
+              customer_id: cust.objid,
+              email: cust.obscure_email,
+              role: cust.role,
+              session_id: sess&.id,
+              status: :pending,
+            }
 
           # Do not send an email to a someone that's just logged-in with a basic
           # authmode account where verified=false and autoverify is disabled. With
@@ -102,14 +106,16 @@ module Core::Logic
           unless autoverify.to_s == 'true'
             # When autoverify is enabled, proactively help pending accounts
             # get verified by resending the verification email (valid for 24h)
-            auth_logger.info 'Resending verification email (autoverify mode)', {
-              customer_id: cust.objid,
-              email: cust.obscure_email,
-            }
+            auth_logger.info 'Resending verification email (autoverify mode)',
+              {
+                customer_id: cust.objid,
+                email: cust.obscure_email,
+              }
 
             send_verification_email nil
 
-            verification_msg = I18n.t('web.COMMON.verification_sent_to',
+            verification_msg = I18n.t(
+              'web.COMMON.verification_sent_to',
               locale: locale,
               default: 'Verification sent to',
             )
@@ -136,15 +142,16 @@ module Core::Logic
         sess['role'] = cust.role
         cust.save
 
-        auth_logger.info 'Login successful', {
-          user_id: cust.objid,
-          email: cust.obscure_email,
-          role: cust.role,
-          session_id: sess.id,
-          ip: @strategy_result.metadata[:ip],
-          stay: stay,
-          session_ttl: session_ttl,
-        }
+        auth_logger.info 'Login successful',
+          {
+            user_id: cust.objid,
+            email: cust.obscure_email,
+            role: cust.role,
+            session_id: sess.id,
+            ip: @strategy_result.metadata[:ip],
+            stay: stay,
+            session_ttl: session_ttl,
+          }
 
         success_data
       end
