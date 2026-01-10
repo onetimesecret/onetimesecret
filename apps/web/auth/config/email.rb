@@ -29,11 +29,8 @@ module Auth::Config::Email
     end
     ResetPassword.configure(auth)
 
-    # Only configure email_auth email if the feature is enabled
-    # (email_auth is opt-in via ENABLE_EMAIL_AUTH env var)
-    if Onetime.auth_config.email_auth_enabled?
-      EmailAuth.configure(auth)
-    end
+    # NOTE: email_auth email template is configured in features/email_auth.rb
+    # after the :email_auth feature is enabled (the method requires the feature)
 
     # 3. Delivery mechanism (intercepts all email sending)
     Delivery.configure(auth)

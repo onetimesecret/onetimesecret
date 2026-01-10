@@ -19,8 +19,8 @@ module Auth::Config::Features
       auth.email_auth_deadline_interval 15.minutes
       auth.email_auth_skip_resend_email_within 30.seconds
 
-      # Email content is configured in config/email/email_auth.rb
-      # using the MagicLink template class for proper i18n support.
+      # Email template configuration (must be after enable :email_auth)
+      Auth::Config::Email::EmailAuth.configure(auth)
 
       # JSON API response configuration
       # In JSON mode, flash methods automatically become JSON responses

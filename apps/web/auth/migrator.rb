@@ -158,7 +158,7 @@ module Auth
         # Disconnect if we created a separate elevated connection. Previously
         # checked `test_conn != database_connection` but object comparison is
         # unreliable due to connection pooling; the flag is authoritative.
-        test_conn.disconnect if using_elevated_url
+        test_conn&.disconnect if using_elevated_url
       end
 
       def build_log_context(adapter_scheme)
