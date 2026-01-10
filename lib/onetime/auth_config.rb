@@ -13,11 +13,11 @@ module Onetime
   class AuthConfig
     include Singleton
 
-    attr_reader :config, :mode, :environment
+    attr_reader :config, :path, :mode, :environment
 
     def initialize
       @environment = ENV['RACK_ENV'] || 'development'
-      @config_file = Onetime::Utils::ConfigResolver.resolve('auth')
+      @path = Onetime::Utils::ConfigResolver.resolve('auth')
       load_config
     end
 
@@ -125,7 +125,7 @@ module Onetime
     # Reload configuration (useful for testing)
     # Also picks up any changes to AuthConfig.path
     def reload!
-      @config_file = self.class.path || File.join(Onetime::HOME, 'etc/auth.yaml')
+      @path = self.class.path || File.join(Onetime::HOME, 'etc/auth.yaml')
       load_config
       self
     end
@@ -144,7 +144,7 @@ module Onetime
     def load_config
       validate_config_file_exists!
 
-      erb_template = ERB.new(File.read(@config_file))
+      erb_template = ERB.new(File.read(@path))
       yaml_content = erb_template.result(binding)
       @config      = YAML.safe_load(yaml_content, symbolize_names: false)
     rescue StandardError => ex
@@ -152,11 +152,11 @@ module Onetime
     end
 
     def validate_config_file_exists!
-      return if File.exist?(@config_file)
+      return if File.exist?(@path)
 
       raise ConfigError, config_error_message(
         'Configuration file not found',
-        "File does not exist: #{@config_file}",
+        "File does not exist: #{@path}",
       )
     end
 
@@ -174,7 +174,7 @@ module Onetime
         #{detail if detail}
 
         To fix this issue:
-        1. Ensure the configuration file exists at: #{@config_file}
+        1. Ensure the configuration file exists at: #{@path}
         2. Copy etc/defaults/auth.defaults.yaml if needed
         3. Verify YAML syntax is valid
         4. Check file permissions

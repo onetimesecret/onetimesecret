@@ -18,11 +18,11 @@ require_relative '../../apps/web/billing/lib/test_support/billing_helpers'
 
 ## Billing config file exists in test environment (billing.test.yaml)
 # ConfigResolver finds apps/web/billing/spec/billing.test.yaml
-Onetime::BillingConfig.instance.config_file.nil?
+Onetime::BillingConfig.instance.path.nil?
 #=> false
 
 ## Billing config file actually exists on disk
-File.exist?(Onetime::BillingConfig.instance.config_file)
+File.exist?(Onetime::BillingConfig.instance.path)
 #=> true
 
 ## Billing config returns disabled state

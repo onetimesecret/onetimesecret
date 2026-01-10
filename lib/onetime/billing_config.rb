@@ -18,11 +18,11 @@ module Onetime
   class BillingConfig
     include Singleton
 
-    attr_reader :config, :config_file, :environment
+    attr_reader :config, :path, :environment
 
     def initialize
       @environment = ENV['RACK_ENV'] || 'development'
-      @config_file = Onetime::Utils::ConfigResolver.resolve('billing')
+      @path = Onetime::Utils::ConfigResolver.resolve('billing')
       load_config
     end
 
@@ -109,7 +109,7 @@ end,
     # Also picks up any changes to BillingConfig.path
     def reload!
       @environment = ENV['RACK_ENV'] || 'development'
-      @config_file = resolve_config_file
+      @path = resolve_config_file
       load_config
       self
     end
@@ -117,12 +117,12 @@ end,
     private
 
     def load_config
-      unless @config_file && File.exist?(@config_file)
+      unless @path && File.exist?(@path)
         @config = {}
         return
       end
 
-      erb_template = ERB.new(File.read(@config_file))
+      erb_template = ERB.new(File.read(@path))
       yaml_content = erb_template.result
       @config      = YAML.safe_load(yaml_content, symbolize_names: false) || {}
     rescue StandardError => ex
