@@ -55,7 +55,7 @@ describe('Colonel Routes Configuration', () => {
       const route = colonelRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/settings');
       expect(route).toBeDefined();
       expect(route?.name).toBe('SystemSettings');
-      expect(route?.meta?.title).toBe('web.TITLES.system_settings');
+      expect(route?.meta?.title).toBe('web.colonel.titles.system_settings');
     });
 
     it('should define /colonel/secrets route correctly', () => {
