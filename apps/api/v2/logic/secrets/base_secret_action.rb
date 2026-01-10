@@ -9,6 +9,9 @@ module V2::Logic
     class BaseSecretAction < V2::Logic::Base
       include Onetime::LoggerMethods
 
+      # Email validation regex - defined once to avoid recompilation on every call
+      EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
+
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted, :metadata,
         :secret, :share_domain, :custom_domain, :payload
       attr_accessor :token
@@ -132,12 +135,11 @@ module V2::Logic
 
       def process_recipient
         payload['recipient'] = [payload['recipient']].flatten.compact.uniq # force a list
-        r                    = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
         @recipient           = payload['recipient'].collect do |email_address|
           next if email_address.to_s.empty?
 
           sanitized_email = sanitize_email(email_address)
-          sanitized_email.scan(r).uniq.first
+          sanitized_email.scan(EMAIL_REGEX).uniq.first
         end.compact.uniq
         @recipient_safe      = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
