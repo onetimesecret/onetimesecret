@@ -144,7 +144,7 @@
     "marked": "15.0.12",
     "marked-highlight": "2.2.2",
     "nanoid": "5.1.6",
-    "pinia": "^3.0.3",
+    "pinia": "^3.0.4",
     "pnpm": "10.10.0",
     "qrcode": "^1.5.4",
     "stripe": "18.3.0",
