@@ -24,6 +24,7 @@ full:
     hardening: true
     active_sessions: true
     remember_me: true
+    verify_account: false  # Disabled in test mode
     mfa: false
     email_auth: false
     webauthn: false

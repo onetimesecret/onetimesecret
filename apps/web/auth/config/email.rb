@@ -23,9 +23,8 @@ module Auth::Config::Email
 
     # 2. Email templates (use helper methods)
     # Only configure verify_account email if the feature is enabled
-    # (verify_account is disabled in test mode - see features/account_management.rb)
-    auth_class = auth.instance_variable_get(:@auth)
-    if auth_class&.features&.include?(:verify_account)
+    # (verify_account is disabled in test mode via YAML config)
+    if Onetime.auth_config.verify_account_enabled?
       VerifyAccount.configure(auth)
     end
     ResetPassword.configure(auth)

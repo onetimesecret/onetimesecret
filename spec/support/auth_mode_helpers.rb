@@ -28,6 +28,7 @@ module AuthModeHelpers
       @hardening_enabled = options.fetch(:hardening_enabled, true)
       @active_sessions_enabled = options.fetch(:active_sessions_enabled, true)
       @remember_me_enabled = options.fetch(:remember_me_enabled, true)
+      @verify_account_enabled = options.fetch(:verify_account_enabled, false)  # Disabled in test by default
       @mfa_enabled = options.fetch(:mfa_enabled, true)
       @email_auth_enabled = options.fetch(:email_auth_enabled, false)
       @webauthn_enabled = options.fetch(:webauthn_enabled, false)
@@ -56,6 +57,10 @@ module AuthModeHelpers
 
     def remember_me_enabled?
       @remember_me_enabled
+    end
+
+    def verify_account_enabled?
+      @verify_account_enabled
     end
 
     def mfa_enabled?

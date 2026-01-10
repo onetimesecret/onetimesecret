@@ -88,6 +88,12 @@ module Onetime
       feature_enabled?('remember_me', default: true)
     end
 
+    # Whether verify account (email verification) is enabled
+    # Default: true (when full mode is enabled), but false in test environment
+    def verify_account_enabled?
+      feature_enabled?('verify_account', default: true)
+    end
+
     # Whether MFA is enabled (TOTP, recovery codes)
     # Default: false
     def mfa_enabled?

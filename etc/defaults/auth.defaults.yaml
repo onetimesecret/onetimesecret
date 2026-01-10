@@ -68,6 +68,9 @@ full:
     # Remember me: persistent login across browser sessions (default: ON)
     remember_me: <%= ENV['ENABLE_REMEMBER_ME'] != 'false' %>
 
+    # Email verification: require email verification on signup (default: ON, OFF in test)
+    verify_account: <%= ENV['ENABLE_VERIFY_ACCOUNT'] != 'false' && ENV['RACK_ENV'] != 'test' %>
+
     # MFA: TOTP codes and recovery codes (default: OFF)
     mfa: <%= ENV['ENABLE_MFA'] == 'true' %>
 

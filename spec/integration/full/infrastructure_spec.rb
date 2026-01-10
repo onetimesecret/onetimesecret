@@ -34,6 +34,7 @@ RSpec.describe 'Full Mode Test Infrastructure', type: :integration do
       expect(Onetime.auth_config).to respond_to(:hardening_enabled?)
       expect(Onetime.auth_config).to respond_to(:active_sessions_enabled?)
       expect(Onetime.auth_config).to respond_to(:remember_me_enabled?)
+      expect(Onetime.auth_config).to respond_to(:verify_account_enabled?)
       expect(Onetime.auth_config).to respond_to(:mfa_enabled?)
       expect(Onetime.auth_config).to respond_to(:email_auth_enabled?)
       expect(Onetime.auth_config).to respond_to(:webauthn_enabled?)

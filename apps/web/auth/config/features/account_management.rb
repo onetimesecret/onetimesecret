@@ -11,8 +11,9 @@ module Auth::Config::Features
       auth.enable :change_password
       auth.enable :reset_password
 
-      # Only configure verify_account if the feature is enabled (disabled in test)
-      unless ENV['RACK_ENV'] == 'test'
+      # Only configure verify_account if the feature is enabled
+      # (disabled in test mode via YAML config: RACK_ENV != 'test')
+      if Onetime.auth_config.verify_account_enabled?
         auth.enable :verify_account
 
         # Password is set during account creation, not during verification
