@@ -62,16 +62,16 @@ module Onetime
         Sanitize.fragment(value.to_s).gsub(/[\r\n]/, '').strip.downcase
       end
 
-      # Sanitize IP addresses (IPv4 and IPv6)
+      # Sanitize IP addresses (IPv4 and IPv6) with optional CIDR notation
       #
       # Uses allowlist to permit only valid IP address characters.
       # Does NOT validate the IP format - that should be done separately.
-      # Allows: digits, dots (IPv4), colons (IPv6), and hex letters (IPv6)
+      # Allows: digits, dots (IPv4), colons (IPv6), hex letters (IPv6), slash (CIDR)
       #
       # @param value [String, nil] The IP address value to sanitize
       # @return [String] Sanitized IP address with only allowed characters
       def sanitize_ip_address(value)
-        value.to_s.gsub(/[^0-9a-fA-F.:]/, '')
+        value.to_s.gsub(%r{[^0-9a-fA-F.:/]}, '')
       end
     end
   end

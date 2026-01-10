@@ -187,6 +187,38 @@ result = @sanitizer.sanitize_email('user@example.com')
 result.include?('@')
 #=> true
 
+## sanitize_ip_address: preserves valid IPv4 address
+@sanitizer.sanitize_ip_address('192.168.1.100')
+#=> '192.168.1.100'
+
+## sanitize_ip_address: preserves valid IPv6 address
+@sanitizer.sanitize_ip_address('2001:0db8:85a3:0000:0000:8a2e:0370:7334')
+#=> '2001:0db8:85a3:0000:0000:8a2e:0370:7334'
+
+## sanitize_ip_address: preserves CIDR notation
+@sanitizer.sanitize_ip_address('192.168.1.0/24')
+#=> '192.168.1.0/24'
+
+## sanitize_ip_address: preserves IPv6 CIDR notation
+@sanitizer.sanitize_ip_address('2001:db8::/32')
+#=> '2001:db8::/32'
+
+## sanitize_ip_address: strips non-IP characters (keeps hex letters for IPv6)
+@sanitizer.sanitize_ip_address('<script>192.168.1.1')
+#=> 'c192.168.1.1'
+
+## sanitize_ip_address: strips spaces and SQL keywords
+@sanitizer.sanitize_ip_address('192.168.1.1; DROP')
+#=> '192.168.1.1D'
+
+## sanitize_ip_address: handles nil input
+@sanitizer.sanitize_ip_address(nil)
+#=> ''
+
+## sanitize_ip_address: handles empty string
+@sanitizer.sanitize_ip_address('')
+#=> ''
+
 ## Integration: InputSanitizers module exists and can be included
 # Full integration with Logic::Base is tested elsewhere when OT.boot! :app is used
 Onetime::Security::InputSanitizers.is_a?(Module)

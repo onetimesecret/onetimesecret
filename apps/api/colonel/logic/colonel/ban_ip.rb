@@ -12,7 +12,7 @@ module ColonelAPI
         attr_reader :ip_address, :reason, :expiration, :banned_ip
 
         def process_params
-          @ip_address = sanitize_plain_text(params['ip_address'])
+          @ip_address = sanitize_ip_address(params['ip_address'])
           @reason     = sanitize_plain_text(params['reason'], max_length: 255)
           @expiration = params['expiration'].to_i if params['expiration']
 
