@@ -10,7 +10,7 @@
 # Consolidates common frontend setup steps.
 #
 # Setup Steps:
-#   1. Install Node.js (default: v22)
+#   1. Install Node.js (default: v25)
 #   2. Install pnpm package manager
 #   3. Configure pnpm store caching
 #   4. Install dependencies with frozen lockfile (optional)
@@ -18,7 +18,7 @@
 # Usage:
 #   - uses: ./.github/actions/setup-node-env
 #     with:
-#       node-version: '22'
+#       node-version: '25'
 #       install-dependencies: 'true'
 #
 # Changelog:
@@ -35,7 +35,7 @@ inputs:
   node-version:
     description: 'Node.js version to use'
     required: false
-    default: '22'
+    default: '25'
   install-dependencies:
     description: 'Whether to run pnpm install'
     required: false
