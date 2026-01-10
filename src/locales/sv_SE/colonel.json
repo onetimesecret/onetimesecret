@@ -82,19 +82,7 @@
       "activateTestMode": "Aktivera testläge",
       "testModeActive": "Testläge aktivt",
       "testModeDescription": "Testa din applikation med olika planbehörigheter. Ändringar är tillfälliga och påverkar endast din session.",
-      "warningTestMode": "Du testar med {planName}-behörigheter (tillfällig sessionsåsidosättning).",
-      "titles": {
-        "index": "Colonel",
-        "users": "Colonel-användare",
-        "secrets": "Hemlighetshantering",
-        "domains": "Anpassade domäner",
-        "system": "System",
-        "maindb": "Huvuddatabas",
-        "authdb": "Autentiseringsdatabas",
-        "bannedIps": "Blockerade IP-adresser",
-        "usage": "Användningsexport",
-        "info": "Colonel-information"
-      }
+      "warningTestMode": "Du testar med {planName}-behörigheter (tillfällig sessionsåsidosättning)."
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "När du skickar feedback ser vi:",

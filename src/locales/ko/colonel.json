@@ -82,19 +82,7 @@
       "activateTestMode": "테스트 모드 활성화",
       "testModeActive": "테스트 모드 활성",
       "testModeDescription": "다른 플랜 권한으로 애플리케이션을 테스트합니다. 변경 사항은 임시이며 현재 세션에만 영향을 미칩니다.",
-      "warningTestMode": "{planName} 권한으로 테스트 중입니다 (임시 세션 오버라이드).",
-      "titles": {
-        "index": "관리",
-        "users": "사용자 관리",
-        "secrets": "비밀 메시지 관리",
-        "domains": "맞춤 도메인",
-        "system": "시스템",
-        "maindb": "메인 데이터베이스",
-        "authdb": "인증 데이터베이스",
-        "bannedIps": "차단된 IP",
-        "usage": "사용량 내보내기",
-        "info": "시스템 정보"
-      }
+      "warningTestMode": "{planName} 권한으로 테스트 중입니다 (임시 세션 오버라이드)."
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "피드백을 제출하면 저희가 확인할 수 있는 정보:",

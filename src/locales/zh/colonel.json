@@ -82,19 +82,7 @@
       "activateTestMode": "激活测试模式",
       "testModeActive": "测试模式已激活",
       "testModeDescription": "使用不同的套餐权限测试您的应用程序。更改是临时的，仅影响您的会话。",
-      "warningTestMode": "您正在使用 {planName} 权限进行测试（临时会话覆盖）。",
-      "titles": {
-        "index": "管理",
-        "users": "用户管理",
-        "secrets": "内容管理",
-        "domains": "自定义域名",
-        "system": "系统",
-        "maindb": "主数据库",
-        "authdb": "认证数据库",
-        "bannedIps": "封禁 IP",
-        "usage": "使用量导出",
-        "info": "系统信息"
-      }
+      "warningTestMode": "您正在使用 {planName} 权限进行测试（临时会话覆盖）。"
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "当您提交反馈时，我们将看到：",

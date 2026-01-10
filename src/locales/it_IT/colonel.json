@@ -82,19 +82,7 @@
       "activateTestMode": "Attiva modalità test",
       "testModeActive": "Modalità test attiva",
       "testModeDescription": "Testa la tua applicazione con diversi permessi del piano. Le modifiche sono temporanee e influenzano solo la tua sessione.",
-      "warningTestMode": "Stai testando con i permessi di {planName} (override temporaneo della sessione).",
-      "titles": {
-        "index": "Amministrazione",
-        "users": "Gestione utenti",
-        "secrets": "Gestione segreti",
-        "domains": "Domini personalizzati",
-        "system": "Sistema",
-        "maindb": "Database principale",
-        "authdb": "Database autenticazione",
-        "bannedIps": "IP bloccati",
-        "usage": "Esporta utilizzo",
-        "info": "Informazioni di sistema"
-      }
+      "warningTestMode": "Stai testando con i permessi di {planName} (override temporaneo della sessione)."
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "Quando invii un feedback, vediamo:",

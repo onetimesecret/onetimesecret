@@ -82,19 +82,7 @@
       "activateTestMode": "Activa el mode de prova",
       "testModeActive": "Mode de prova actiu",
       "testModeDescription": "Prova la teva aplicació amb diferents drets de pla. Els canvis són temporals i només afecten la teva sessió.",
-      "warningTestMode": "Estàs provant amb els drets de {planName} (substitució temporal de sessió).",
-      "titles": {
-        "index": "Administració",
-        "users": "Gestió d'usuaris",
-        "secrets": "Gestió de secrets",
-        "domains": "Dominis personalitzats",
-        "system": "Sistema",
-        "maindb": "Base de dades principal",
-        "authdb": "Base de dades d'autenticació",
-        "bannedIps": "IPs bloquejades",
-        "usage": "Exportació d'ús",
-        "info": "Informació del sistema"
-      }
+      "warningTestMode": "Estàs provant amb els drets de {planName} (substitució temporal de sessió)."
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "Quan enviïs comentaris, veurem:",

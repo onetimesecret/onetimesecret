@@ -82,19 +82,7 @@
       "activateTestMode": "הפעלת מצב בדיקה",
       "testModeActive": "מצב בדיקה פעיל",
       "testModeDescription": "בדקו את האפליקציה עם הרשאות תוכנית שונות. השינויים זמניים ומשפיעים רק על הסשן שלכם.",
-      "warningTestMode": "אתם בודקים עם הרשאות {planName} (עקיפת סשן זמנית).",
-      "titles": {
-        "index": "ניהול מערכת",
-        "users": "ניהול משתמשים",
-        "secrets": "ניהול סודות",
-        "domains": "דומיינים מותאמים אישית",
-        "system": "מערכת",
-        "maindb": "בסיס נתונים ראשי",
-        "authdb": "בסיס נתוני אימות",
-        "bannedIps": "כתובות IP חסומות",
-        "usage": "ייצוא שימוש",
-        "info": "מידע על המערכת"
-      }
+      "warningTestMode": "אתם בודקים עם הרשאות {planName} (עקיפת סשן זמנית)."
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "כאשר תשלחו משוב, נראה:",

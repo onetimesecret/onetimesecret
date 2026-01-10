@@ -82,19 +82,7 @@
       "activateTestMode": "Activer le mode test",
       "testModeActive": "Mode test actif",
       "testModeDescription": "Testez votre application avec différents droits de forfait. Les modifications sont temporaires et n'affectent que votre session.",
-      "warningTestMode": "Vous testez avec les droits {planName} (substitution temporaire de session).",
-      "titles": {
-        "index": "Administration",
-        "users": "Gestion des utilisateurs",
-        "secrets": "Gestion des secrets",
-        "domains": "Domaines personnalisés",
-        "system": "Système",
-        "maindb": "Base de données principale",
-        "authdb": "Base de données d'authentification",
-        "bannedIps": "Adresses IP bannies",
-        "usage": "Export d'utilisation",
-        "info": "Informations système"
-      }
+      "warningTestMode": "Vous testez avec les droits {planName} (substitution temporaire de session)."
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "Votre message sera transmis à notre équipe :",

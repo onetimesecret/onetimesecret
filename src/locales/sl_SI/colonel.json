@@ -82,19 +82,7 @@
       "activateTestMode": "Aktiviraj testni način",
       "testModeActive": "Testni način aktiven",
       "testModeDescription": "Testirajte svojo aplikacijo z različnimi pravicami paketov. Spremembe so začasne in vplivajo samo na vašo sejo.",
-      "warningTestMode": "Testirate s pravicami paketa {planName} (začasno preglasitev seje).",
-      "titles": {
-        "index": "Administracija",
-        "users": "Upravljanje uporabnikov",
-        "secrets": "Upravljanje skrivnosti",
-        "domains": "Domene po meri",
-        "system": "Sistem",
-        "maindb": "Glavna baza podatkov",
-        "authdb": "Baza podatkov za avtentikacijo",
-        "bannedIps": "Blokirani IP-ji",
-        "usage": "Izvoz uporabe",
-        "info": "Sistemske informacije"
-      }
+      "warningTestMode": "Testirate s pravicami paketa {planName} (začasno preglasitev seje)."
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "Ko pošljete povratne informacije, bomo videli:",
