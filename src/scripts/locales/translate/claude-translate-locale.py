@@ -109,8 +109,8 @@ def extract_entries_from_diff(diff_output: str) -> list[TranslationEntry]:
 
     # Pattern for hunk header: @@ -old_start,old_count +new_start,new_count @@
     hunk_pattern = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@")
-    # Pattern for JSON key-value: "key": "value"
-    kv_pattern = re.compile(r'^\+\s*"([^"]+)"\s*:\s*"([^"]*)"')
+    # Pattern for JSON key-value: "key": "value" (handles escaped quotes in values)
+    kv_pattern = re.compile(r'^\+\s*"([^"]+)"\s*:\s*"((?:[^"\\]|\\.)*)"')
 
     for line in diff_output.splitlines():
         # Track current file
@@ -433,11 +433,10 @@ async def run_claude_sdk(
 
     Returns:
         (result_text, success) tuple
-    """
-    if not HAS_SDK:
-        log_warn("SDK not available, falling back to subprocess batch mode")
-        return run_claude_batch(prompt, project_root, verbose)
 
+    Note:
+        Caller must check HAS_SDK before calling this function.
+    """
     options = ClaudeAgentOptions(
         cwd=str(project_root),
         allowed_tools=["Read"],  # Only need file read for guide
@@ -521,8 +520,10 @@ def apply_translations_with_sed(
             continue
 
         # Escape special characters for sed
-        old_escaped = entry.english.replace("/", r"\/").replace("&", r"\&")
-        new_escaped = translated.replace("/", r"\/").replace("&", r"\&")
+        # For the search pattern, escape regex metacharacters and sed delimiters
+        old_escaped = re.escape(entry.english).replace("/", r"\/")
+        # For replacement, escape backslashes first, then & and /
+        new_escaped = translated.replace("\\", r"\\").replace("&", r"\&").replace("/", r"\/")
 
         # Use sed to replace on specific line: sed -i '' 'LINEs/old/new/' file (macOS)
         sed_cmd = [
