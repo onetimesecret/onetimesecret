@@ -73,6 +73,7 @@ Procfile.*
 # Auto-generated files
 src/auto-imports.d.ts
 src/.eslintrc-auto-import.json
+*.pyc
 
 # Environment files
 .env*
