@@ -55,6 +55,9 @@ export type AuthStore = {
   // Getters
   needsCheck: boolean;
   isInitialized: boolean;
+  awaitingMfa: boolean;
+  isFullyAuthenticated: boolean;
+  isUserPresent: boolean;
 
   // Actions
   init: () => { needsCheck: boolean; isInitialized: boolean };
@@ -109,6 +112,32 @@ export const useAuthStore = defineStore('auth', () => {
   });
 
   const isInitialized = computed(() => _initialized.value);
+
+  /**
+   * Whether user is awaiting MFA verification (password OK, OTP pending).
+   * This is a transitional state between unauthenticated and fully authenticated.
+   */
+  const awaitingMfa = computed(() => WindowService.get('awaiting_mfa') ?? false);
+
+  /**
+   * Whether user has completed ALL authentication steps.
+   * False if MFA is pending, even if password auth succeeded.
+   * Use this for route protection and access control.
+   */
+  const isFullyAuthenticated = computed(() =>
+    isAuthenticated.value === true && !awaitingMfa.value
+  );
+
+  /**
+   * Whether a user is present (logged in partially or fully).
+   * True for both MFA-pending and fully authenticated states.
+   * Use this for UI decisions (show user menu, hide sign-in links).
+   */
+  const isUserPresent = computed(() => {
+    const cust = WindowService.get('cust');
+    const email = WindowService.get('email');
+    return !!((isAuthenticated.value && cust) || (awaitingMfa.value && email));
+  });
 
   // Actions
 
@@ -189,22 +218,23 @@ export const useAuthStore = defineStore('auth', () => {
    * - Automatic logout after MAX_FAILURES consecutive failures
    * - Resets failure counter on successful check
    * - Maintains sync between local and window state
+   * - Allows refresh during MFA pending state (awaiting_mfa=true)
    *
    * @returns Current authentication state
    */
   async function checkWindowStatus() {
-    // Only skip the check if we're CERTAIN the user is not authenticated (false).
+    // Allow refresh if authenticated OR if awaiting MFA completion.
     // When isAuthenticated is null (uncertain/initial state), we should verify.
-    // This fixes the race condition on page refresh where init() might not have
-    // properly read the window state yet.
+    // The MFA pending state needs window refresh to get awaiting_mfa flag.
     loggingService.debug('[AuthStore.checkWindowStatus] Called with state:', {
       isAuthenticated: isAuthenticated.value,
       isAuthenticatedType: typeof isAuthenticated.value,
-      willSkip: isAuthenticated.value === false,
+      awaitingMfa: awaitingMfa.value,
+      willSkip: isAuthenticated.value === false && !awaitingMfa.value,
     });
 
-    if (isAuthenticated.value === false) {
-      loggingService.debug('[AuthStore.checkWindowStatus] Skipping check - user definitively not authenticated');
+    if (isAuthenticated.value === false && !awaitingMfa.value) {
+      loggingService.debug('[AuthStore.checkWindowStatus] Skipping check - user definitively not authenticated and not awaiting MFA');
       return false;
     }
 
@@ -378,6 +408,9 @@ export const useAuthStore = defineStore('auth', () => {
     // Getters
     needsCheck,
     isInitialized,
+    awaitingMfa,
+    isFullyAuthenticated,
+    isUserPresent,
 
     // Actions
     init,
