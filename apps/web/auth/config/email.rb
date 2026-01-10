@@ -8,6 +8,7 @@ require 'onetime/mail'
 require_relative 'email/helpers'
 require_relative 'email/verify_account'
 require_relative 'email/reset_password'
+require_relative 'email/email_auth'
 require_relative 'email/delivery'
 
 module Auth::Config::Email
@@ -28,6 +29,12 @@ module Auth::Config::Email
       VerifyAccount.configure(auth)
     end
     ResetPassword.configure(auth)
+
+    # Only configure email_auth email if the feature is enabled
+    # (email_auth is opt-in via ENABLE_EMAIL_AUTH env var)
+    if Onetime.auth_config.email_auth_enabled?
+      EmailAuth.configure(auth)
+    end
 
     # 3. Delivery mechanism (intercepts all email sending)
     Delivery.configure(auth)

@@ -19,26 +19,8 @@ module Auth::Config::Features
       auth.email_auth_deadline_interval 15.minutes
       auth.email_auth_skip_resend_email_within 30.seconds
 
-      # Email content for magic links
-      auth.email_auth_email_subject 'Login Link'
-      auth.email_auth_email_body do
-        <<~EMAIL
-          Hello,
-
-          You requested a login link for your OneTimeSecret account.
-
-          Click the link below to sign in:
-
-          #{email_auth_email_link}
-
-          This link will expire in 15 minutes.
-
-          If you didn't request this, you can safely ignore this email.
-
-          Best regards,
-          The OneTimeSecret Team
-        EMAIL
-      end
+      # Email content is configured in config/email/email_auth.rb
+      # using the MagicLink template class for proper i18n support.
 
       # JSON API response configuration
       # In JSON mode, flash methods automatically become JSON responses
