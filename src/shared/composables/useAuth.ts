@@ -5,6 +5,7 @@ import {
   createError,
   type AsyncHandlerOptions,
 } from '@/shared/composables/useAsyncHandler';
+import { WindowService } from '@/services/window.service';
 import {
   isAuthError,
   requiresMfa,
@@ -172,15 +173,17 @@ export function useAuth() {
 
       // Check if MFA is required (Rodauth returns success but with mfa_required flag)
       if (requiresMfa(validated)) {
-        console.log('[useAuth] MFA required, refreshing window state and redirecting', {
+        console.log('[useAuth] MFA required, updating state and redirecting', {
           mfa_auth_url: validated.mfa_auth_url,
           mfa_methods: validated.mfa_methods,
         });
 
-        // Refresh window state to get awaiting_mfa flag from backend
-        await authStore.checkWindowStatus();
+        // Update window state directly from login response - no round-trip needed.
+        // The login response already tells us MFA is required, so we set awaiting_mfa
+        // to allow route guards to permit access to /mfa-verify.
+        WindowService.update({ awaiting_mfa: true });
 
-        // Now redirect - route guard will allow access since awaiting_mfa is set
+        // Redirect to MFA verification - guard will allow access since awaiting_mfa is set
         await router.push('/mfa-verify');
         return false; // Not fully logged in yet
       }

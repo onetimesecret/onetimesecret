@@ -32,8 +32,9 @@ import { computed, inject, ref } from 'vue';
  *    - User sees: Sign In / Create Account links
  *    - Access: Public pages only
  *
- * 2. AWAITING MFA (isAuthenticated=true, awaitingMfa=true)
+ * 2. AWAITING MFA (isAuthenticated=false, awaitingMfa=true)
  *    - Password verified, OTP pending
+ *    - Server returns authenticated=false until MFA completes
  *    - User sees: Limited menu with "Complete MFA" option
  *    - Access: MFA verification page only, guards redirect elsewhere to /mfa-verify
  *    - Session has awaiting_mfa=true flag from server
@@ -58,6 +59,10 @@ import { computed, inject, ref } from 'vue';
  *
  * The awaitingMfa computed property reads from WindowService. If the reactive
  * cache isn't updated, route guards see stale state and redirect incorrectly.
+ *
+ * LOGIN WITH MFA: The login response includes mfa_required=true, so useAuth
+ * updates WindowService directly with awaiting_mfa=true. No /window fetch is
+ * needed - the state flows naturally from the login response to the route guard.
  *
  * ───────────────────────────────────────────────────────────────────────────────
  * PERIODIC REFRESH CONFIGURATION
@@ -270,15 +275,16 @@ export const useAuthStore = defineStore('auth', () => {
   async function checkWindowStatus() {
     // Allow refresh if authenticated OR if awaiting MFA completion.
     // When isAuthenticated is null (uncertain/initial state), we should verify.
-    // The MFA pending state needs window refresh to get awaiting_mfa flag.
+    // Skip only when definitively unauthenticated and not awaiting MFA.
+    const shouldSkip = isAuthenticated.value === false && !awaitingMfa.value;
     loggingService.debug('[AuthStore.checkWindowStatus] Called with state:', {
       isAuthenticated: isAuthenticated.value,
       isAuthenticatedType: typeof isAuthenticated.value,
       awaitingMfa: awaitingMfa.value,
-      willSkip: isAuthenticated.value === false && !awaitingMfa.value,
+      willSkip: shouldSkip,
     });
 
-    if (isAuthenticated.value === false && !awaitingMfa.value) {
+    if (shouldSkip) {
       loggingService.debug('[AuthStore.checkWindowStatus] Skipping check - user definitively not authenticated and not awaiting MFA');
       return false;
     }
