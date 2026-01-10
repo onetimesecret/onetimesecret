@@ -58,7 +58,7 @@ module Onetime::Customer::Features
         # Track previous role for index update (only for existing records)
         previous_role = nil
         if exists?
-          raw_role = dbclient.hget(dbkey, 'role')
+          raw_role      = dbclient.hget(dbkey, 'role')
           previous_role = raw_role ? JSON.parse(raw_role) : nil
         end
 
