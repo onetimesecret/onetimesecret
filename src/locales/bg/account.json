@@ -58,6 +58,12 @@
       "title": "Настройки",
       "description": "Управление на настройките и предпочитанията на вашия акаунт",
       "manage_your_account_settings_and_preferences": "Управление на настройките и предпочитанията на вашия акаунт",
+      "back_to_dashboard": "Обратно към таблото",
+      "sections": {
+        "account": "Акаунт",
+        "billing": "Фактуриране",
+        "advanced": "Разширени"
+      },
       "general": "Общи",
       "preferences": "Предпочитания",
       "appearance": "Външен вид",

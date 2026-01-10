@@ -211,6 +211,8 @@
       "pricing": "Цени",
       "refresh": "Обнови",
       "reload": "Презареди",
+      "filter": "Филтър",
+      "clear": "Изчисти",
       "caption_recent_secrets": "Тайни връзки, създадени в тази сесия",
       "create_link_short": "Създай връзка",
       "create_link": "Създай тайна връзка",

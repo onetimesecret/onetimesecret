@@ -57,6 +57,19 @@
         "entitlements_load_error": "Неуспешно зареждане на детайли за функции",
         "no_entitlements": "Няма налични функции"
       },
+      "features": {
+        "create_secrets": "Създаване и споделяне на тайни",
+        "api_access": "API достъп",
+        "custom_domains": "Персонализирани домейни",
+        "custom_branding": "Персонализирана марка",
+        "branded_homepage": "Брандирана начална страница",
+        "manage_teams": "Управление на екипи",
+        "manage_members": "Управление на членове",
+        "audit_logs": "Журнали за одит",
+        "sso": "Единен вход (SSO)",
+        "priority_support": "Приоритетна поддръжка",
+        "sla": "Споразумение за ниво на обслужване"
+      },
       "plans": {
         "title": "Изберете план",
         "choose_plan": "Изберете плана, който отговаря на вашите нужди",
@@ -95,13 +108,21 @@
         "current_plan_label": "Текущ план:",
         "new_plan_label": "Нов план:",
         "credit_label": "Кредит за неизползвано време:",
+        "due_today": "Дължимо днес:",
+        "next_billing": "Следващо фактуриране ({date}):",
         "next_invoice": "Следваща фактура",
         "limits_update_notice": "Вашите лимити на функции ще се актуализират незабавно след промяната на плана.",
         "change_failed": "Промяната на плана е неуспешна. Моля, опитайте отново.",
         "confirm_upgrade": "Потвърдете надграждането",
         "confirm_downgrade": "Потвърдете понижаването",
         "upgrade_to": "Надгради до",
-        "downgrade_to": "Понижение до {plan}?"
+        "downgrade_to": "Понижение до {plan}?",
+        "credit_applies_heading": "Как се прилага кредитът ви:",
+        "next_bill_amount": "Сума на следващата фактура:",
+        "credit_applied_to_bill": "Приложен кредит:",
+        "amount_due_next_billing": "Дължима сума при следващо фактуриране:",
+        "remaining_account_credit": "Оставащ кредит по сметката:",
+        "credit_future_note": "Прилага се към бъдещи фактури"
       },
       "invoices": {
         "title": "История на фактурирането",
@@ -131,7 +152,9 @@
         "inactive": "Неактивен",
         "past_due": "Просрочен",
         "canceled": "Отменен",
-        "catalog_name": "План"
+        "catalog_name": "План",
+        "team_usage": "Използване на екипи",
+        "teams_used": "{used} от {limit} екипа"
       },
       "portal": {
         "title": "Портал за фактуриране",

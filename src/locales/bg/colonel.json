@@ -82,12 +82,120 @@
       "activateTestMode": "Активирайте тестов режим",
       "testModeActive": "Тестовият режим е активен",
       "testModeDescription": "Тествайте приложението с различни права на планове. Промените са временни и засягат само вашата сесия.",
-      "warningTestMode": "Тествате с права на {planName} (временно заместване на сесията)."
-    },
-    "feedback": {
-      "when_you_submit_feedback_well_see": "Когато изпратите обратна връзка, ние ще видим:",
-      "send_feedback": "Изпрати обратна връзка",
-      "sending_ellipses": "Изпращане..."
+      "warningTestMode": "Тествате с права на {planName} (временно заместване на сесията).",
+      "organizations": {
+        "title": "Организации",
+        "description": "Мониторинг на синхронизацията на фактурирането",
+        "pageTitle": "Мониторинг на състоянието на фактурирането",
+        "organizationsCount": "{count} организации",
+        "needAttention": "{count} изискват внимание",
+        "unknownCount": "{count} неизвестни",
+        "noOrganizations": "Няма намерени организации",
+        "filters": {
+          "syncStatus": "Статус на синхронизация",
+          "subscription": "Абонамент",
+          "all": "Всички",
+          "potentiallyStale": "Възможно остарели",
+          "unknown": "Неизвестен",
+          "synced": "Синхронизиран",
+          "active": "Активен",
+          "trialing": "Пробен период",
+          "pastDue": "Просрочен",
+          "canceled": "Отменен"
+        },
+        "columns": {
+          "account": "Акаунт",
+          "billing": "Фактуриране",
+          "status": "Статус",
+          "usage": "Използване",
+          "created": "Създаден",
+          "details": "Детайли",
+          "owner": "Собственик",
+          "plan": "План",
+          "members": "Членове",
+          "domains": "Домейни",
+          "subscription": "Абонамент",
+          "default_workspace": "Работно пространство по подразбиране",
+          "has_billing": "Има фактуриране"
+        },
+        "legacy": {
+          "title": "Администрация на фактурирането на организации",
+          "description": "Управление на организации и мониторинг на синхронизацията на фактурирането ({total} общо)",
+          "empty": "Няма намерени организации",
+          "potentially_stale": "възможно остарял"
+        },
+        "status": {
+          "stale": "Остарял",
+          "unknown": "Неизвестен",
+          "active": "active"
+        },
+        "actions": {
+          "investigate": "Разследване",
+          "checking": "Проверка..."
+        },
+        "expanded": {
+          "customer": "Клиент",
+          "subscription": "Абонамент",
+          "orgId": "ID на организация"
+        },
+        "investigation": {
+          "failed": "Разследването е неуспешно",
+          "result": "Резултат от разследването",
+          "verifiedSynced": "Потвърдено синхронизиран",
+          "mismatchFound": "Открито несъответствие",
+          "unableToCompare": "Невъзможно сравнение",
+          "stripeDetails": "Детайли за абонамента в Stripe",
+          "statusLabel": "Статус",
+          "product": "Продукт",
+          "resolvedPlan": "Определен план",
+          "priceId": "ID на цена",
+          "local": "Локален",
+          "stripe": "Stripe"
+        },
+        "usage": {
+          "members": "{count} членове",
+          "domains": "{count} домейна"
+        }
+      },
+      "secrets": {
+        "title": "Тайни",
+        "description": "Преглед и управление на всички тайни"
+      },
+      "bannedIps": {
+        "title": "Забранени IP адреси",
+        "description": "Управление на списъка със забранени IP адреси"
+      },
+      "usageExport": {
+        "title": "Експорт на използване",
+        "description": "Експорт на данни и статистики за използване"
+      },
+      "systemSettings": {
+        "title": "Система",
+        "description": "Системни настройки, бази данни и конфигурация"
+      },
+      "customDomains": {
+        "title": "Персонализирани домейни",
+        "description": "Управление на персонализирани домейни и брандиране"
+      },
+      "feedback": {
+        "when_you_submit_feedback_well_see": "Когато изпратите обратна връзка, ние ще видим:",
+        "send_feedback": "Изпрати обратна връзка",
+        "sending_ellipses": "Изпращане..."
+      },
+      "titles": {
+        "index": "Администрация",
+        "users": "Управление на потребители",
+        "secrets": "Управление на тайни",
+        "domains": "Персонализирани домейни",
+        "system": "Система",
+        "maindb": "Основна база данни",
+        "authdb": "База данни за удостоверяване",
+        "bannedIps": "Забранени IP адреси",
+        "usage": "Експорт на използване",
+        "info": "Системна информация",
+        "organizations": "Организации",
+        "redis": "Redis"
+      }
     }
   }
 }

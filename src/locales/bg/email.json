@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "P.S. Този имейл беше изпратен до %{email_address}."
     },
+    "magic_link": {
+      "subject": "Влезте в %{display_domain}",
+      "title": "Вход с магическа връзка",
+      "request_notice": "Поискахте връзка за вход в акаунта си в %{product_name}.",
+      "login_button": "Вход",
+      "copy_link_prompt": "Или копирайте и поставете тази връзка:",
+      "expiration_notice": "Тази връзка ще изтече след 15 минути.",
+      "ignore_notice": "Ако не сте поискали тази връзка, можете спокойно да игнорирате този имейл.",
+      "signature": "Delano",
+      "postscript": "P.S. Този имейл беше изпратен до %{email_address}."
+    },
     "incoming_secret": {
       "subject": "Получихте тайно съобщение",
       "received_message": "Получихте защитено съобщение:",
