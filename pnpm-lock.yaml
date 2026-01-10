@@ -90,8 +90,8 @@ importers:
         specifier: ^1.5.4
         version: 1.5.4
       stripe:
-        specifier: 18.3.0
-        version: 18.3.0(@types/node@22.19.5)
+        specifier: ^20.1.2
+        version: 20.1.2(@types/node@22.19.5)
       vue:
         specifier: 3.5.22
         version: 3.5.22(typescript@5.9.3)
@@ -4020,11 +4020,11 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
-  stripe@18.3.0:
-    resolution: {integrity: sha512-FkxrTUUcWB4CVN2yzgsfF/YHD6WgYHduaa7VmokCy5TLCgl5UNJkwortxcedrxSavQ8Qfa4Ir4JxcbIYiBsyLg==}
-    engines: {node: '>=12.*'}
+  stripe@20.1.2:
+    resolution: {integrity: sha512-qU+lQRRJnTxmyvglYBPE24/IepncmywsAg0GDTsTdP2pb+3e3RdREHJZjKgqCmv0phPxN/nmgNPnIPPH8w0P4A==}
+    engines: {node: '>=16'}
     peerDependencies:
-      '@types/node': '>=12.x.x'
+      '@types/node': '>=16'
     peerDependenciesMeta:
       '@types/node':
         optional: true
@@ -8405,7 +8405,7 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  stripe@18.3.0(@types/node@22.19.5):
+  stripe@20.1.2(@types/node@22.19.5):
     dependencies:
       qs: 6.14.1
     optionalDependencies:
