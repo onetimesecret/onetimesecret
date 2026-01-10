@@ -26,6 +26,22 @@ module Onetime
     #     @contact_email = sanitize_email(params['contact_email'])
     #
     module InputSanitizers
+      # Regex patterns for input sanitization
+      # Defined as constants to avoid recompilation and improve reviewability
+
+      # Matches any character NOT in the identifier allowlist [a-zA-Z0-9_-]
+      IDENTIFIER_STRIP_PATTERN = /[^a-zA-Z0-9_-]/
+
+      # Matches one or more whitespace characters for normalization
+      WHITESPACE_NORMALIZE_PATTERN = /\s+/
+
+      # Matches newline characters (CR, LF) for header injection prevention
+      NEWLINE_STRIP_PATTERN = /[\r\n]/
+
+      # Matches any character NOT valid in IPv4/IPv6/CIDR notation
+      # Allows: 0-9, a-f, A-F (hex), dots, colons, forward slash
+      IP_ADDRESS_STRIP_PATTERN = %r{[^0-9a-fA-F.:/]}
+
       # Sanitize identifiers (extid, objid, custid, etc.)
       #
       # Uses strict allowlist to permit only safe characters.
@@ -34,7 +50,7 @@ module Onetime
       # @param value [String, nil] The identifier value to sanitize
       # @return [String] Sanitized identifier with only allowed characters
       def sanitize_identifier(value)
-        value.to_s.gsub(/[^a-zA-Z0-9_-]/, '')
+        value.to_s.gsub(IDENTIFIER_STRIP_PATTERN, '')
       end
 
       # Sanitize plain text input (display names, titles, descriptions)
@@ -46,7 +62,7 @@ module Onetime
       # @param max_length [Integer, nil] Optional maximum length
       # @return [String] Sanitized text with HTML stripped and whitespace normalized
       def sanitize_plain_text(value, max_length: nil)
-        result = Sanitize.fragment(value.to_s).strip.gsub(/\s+/, ' ')
+        result = Sanitize.fragment(value.to_s).strip.gsub(WHITESPACE_NORMALIZE_PATTERN, ' ')
         max_length ? result.slice(0, max_length) : result
       end
 
@@ -59,7 +75,7 @@ module Onetime
       # @param value [String, nil] The email value to sanitize
       # @return [String] Sanitized email, lowercase and stripped
       def sanitize_email(value)
-        Sanitize.fragment(value.to_s).gsub(/[\r\n]/, '').strip.downcase
+        Sanitize.fragment(value.to_s).gsub(NEWLINE_STRIP_PATTERN, '').strip.downcase
       end
 
       # Sanitize IP addresses (IPv4 and IPv6) with optional CIDR notation
@@ -71,7 +87,7 @@ module Onetime
       # @param value [String, nil] The IP address value to sanitize
       # @return [String] Sanitized IP address with only allowed characters
       def sanitize_ip_address(value)
-        value.to_s.gsub(%r{[^0-9a-fA-F.:/]}, '')
+        value.to_s.gsub(IP_ADDRESS_STRIP_PATTERN, '')
       end
     end
   end
