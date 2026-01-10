@@ -13,11 +13,11 @@ module Onetime
   class AuthConfig
     include Singleton
 
-    attr_reader :config, :mode, :environment
+    attr_reader :config, :path, :mode, :environment
 
     def initialize
       @environment = ENV['RACK_ENV'] || 'development'
-      @config_file = Onetime::Utils::ConfigResolver.resolve('auth')
+      @path = Onetime::Utils::ConfigResolver.resolve('auth')
       load_config
     end
 
@@ -65,20 +65,86 @@ module Onetime
       mode == 'simple'
     end
 
+    # Feature flags hash from full mode config
+    def features
+      full['features'] || {}
+    end
+
+    # Whether hardening features are enabled (lockout, password requirements)
+    # Default: true (when full mode is enabled)
+    def hardening_enabled?
+      feature_enabled?('hardening', default: true)
+    end
+
+    # Whether active sessions tracking is enabled
+    # Default: true (when full mode is enabled)
+    def active_sessions_enabled?
+      feature_enabled?('active_sessions', default: true)
+    end
+
+    # Whether remember me functionality is enabled
+    # Default: true (when full mode is enabled)
+    def remember_me_enabled?
+      feature_enabled?('remember_me', default: true)
+    end
+
+    # Whether verify account (email verification) is enabled
+    # Default: true (when full mode is enabled), but false in test environment
+    def verify_account_enabled?
+      feature_enabled?('verify_account', default: true)
+    end
+
+    # Whether MFA is enabled (TOTP, recovery codes)
+    # Default: false
+    def mfa_enabled?
+      feature_enabled?('mfa', default: false)
+    end
+
+    # Whether email auth is enabled (passwordless login via email, aka magic links)
+    # Default: false
+    def email_auth_enabled?
+      feature_enabled?('email_auth', default: false)
+    end
+
+    # Whether WebAuthn (biometrics, security keys) is enabled
+    # Default: false
+    def webauthn_enabled?
+      feature_enabled?('webauthn', default: false)
+    end
+
+    # DEPRECATED: Use hardening_enabled?, active_sessions_enabled?, remember_me_enabled?
+    def security_features_enabled?
+      hardening_enabled? && active_sessions_enabled? && remember_me_enabled?
+    end
+
+    # DEPRECATED: Use email_auth_enabled?
+    def magic_links_enabled?
+      email_auth_enabled?
+    end
+
     # Reload configuration (useful for testing)
     # Also picks up any changes to AuthConfig.path
     def reload!
-      @config_file = self.class.path || File.join(Onetime::HOME, 'etc/auth.yaml')
+      @path = self.class.path || File.join(Onetime::HOME, 'etc/auth.yaml')
       load_config
       self
     end
 
     private
 
+    # Generic helper to check if a feature is enabled in full mode.
+    # Returns false if not in full mode, otherwise fetches the feature
+    # flag from config, falling back to the provided default.
+    def feature_enabled?(key, default:)
+      return false unless full_enabled?
+
+      features.fetch(key, default)
+    end
+
     def load_config
       validate_config_file_exists!
 
-      erb_template = ERB.new(File.read(@config_file))
+      erb_template = ERB.new(File.read(@path))
       yaml_content = erb_template.result(binding)
       @config      = YAML.safe_load(yaml_content, symbolize_names: false)
     rescue StandardError => ex
@@ -86,11 +152,11 @@ module Onetime
     end
 
     def validate_config_file_exists!
-      return if File.exist?(@config_file)
+      return if File.exist?(@path)
 
       raise ConfigError, config_error_message(
         'Configuration file not found',
-        "File does not exist: #{@config_file}",
+        "File does not exist: #{@path}",
       )
     end
 
@@ -108,7 +174,7 @@ module Onetime
         #{detail if detail}
 
         To fix this issue:
-        1. Ensure the configuration file exists at: #{@config_file}
+        1. Ensure the configuration file exists at: #{@path}
         2. Copy etc/defaults/auth.defaults.yaml if needed
         3. Verify YAML syntax is valid
         4. Check file permissions

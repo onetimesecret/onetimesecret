@@ -22,7 +22,7 @@ require 'apps/web/billing/models/plan'
 ## Setup: Enable billing for these entitlement tests
 # The WithEntitlements module returns STANDALONE_ENTITLEMENTS when billing is disabled.
 # For these tests to validate plan-specific entitlements, we need billing enabled.
-BillingTestHelpers.restore_billing!
+BillingTestHelpers.restore_billing!(enabled: true)
 
 ## Setup: Populate Plan cache with test data (replaces hardcoded PLAN_DEFINITIONS)
 Billing::Plan.clear_cache
@@ -359,33 +359,35 @@ Billing::PlanHelpers.available_plans.include?('identity_v1')
 Billing::PlanHelpers.available_plans.include?('identity_v0')
 #=> false
 
-## Test: Fail-safe for nil planid returns empty entitlements
+## Test: Fail-safe for nil planid returns FREE_TIER_ENTITLEMENTS
+# When billing is enabled but planid is nil, user gets basic free tier access
 @no_plan_org        = Onetime::Organization.new(
   display_name: 'No Plan',
   owner_id: 'cust_test_888',
   contact_email: "noplan-#{@test_suffix}@example.com",
 )
 @no_plan_org.planid = nil
-@no_plan_org.entitlements
-#=> []
+@no_plan_org.entitlements.sort
+#=> ["api_access", "create_secrets", "view_receipt"]
 
-## Test: Fail-safe for nil planid denies api_access
+## Test: Fail-safe for nil planid allows api_access (free tier)
 @no_plan_org.can?('api_access')
-#=> false
+#=> true
 
-## Test: Fail-safe for nil planid returns 0 limit
+## Test: Fail-safe for nil planid returns free tier limit (0 teams)
 @no_plan_org.limit_for('teams')
 #=> 0
 
-## Test: Fail-safe for empty planid returns empty entitlements
+## Test: Fail-safe for empty planid returns FREE_TIER_ENTITLEMENTS
+# Empty string planid treated same as nil - gets free tier access
 @empty_plan_org        = Onetime::Organization.new(
   display_name: 'Empty Plan',
   owner_id: 'cust_test_777',
   contact_email: "empty-#{@test_suffix}@example.com",
 )
 @empty_plan_org.planid = ''
-@empty_plan_org.entitlements
-#=> []
+@empty_plan_org.entitlements.sort
+#=> ["api_access", "create_secrets", "view_receipt"]
 
 ## Test: New organization defaults to free plan
 @new_org = Onetime::Organization.new(

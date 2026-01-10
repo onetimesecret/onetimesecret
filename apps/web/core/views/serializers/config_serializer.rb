@@ -97,25 +97,18 @@ module Core
         #
         # Feature flags indicate which authentication methods are available
         # based on the current authentication mode (simple vs full).
+        # Uses AuthConfig methods which already check full_enabled? internally.
         #
         # @return [Hash] Feature flags for frontend consumption
         def build_feature_flags
-          features = {
-            'magic_links' => false,
-            'email_auth' => false,
-            'webauthn' => false,
+          {
+            'hardening' => Onetime.auth_config.hardening_enabled?,
+            'active_sessions' => Onetime.auth_config.active_sessions_enabled?,
+            'remember_me' => Onetime.auth_config.remember_me_enabled?,
+            'mfa' => Onetime.auth_config.mfa_enabled?,
+            'email_auth' => Onetime.auth_config.email_auth_enabled?,
+            'webauthn' => Onetime.auth_config.webauthn_enabled?,
           }
-
-          # Passwordless features only available in full mode
-          if Onetime.auth_config.full_enabled?
-            # Check if email_auth is in the full mode features list
-            full_features           = Onetime.auth_config.full.fetch('features', [])
-            features['magic_links'] = full_features.include?('email_auth')
-            features['email_auth']  = full_features.include?('email_auth')
-            features['webauthn']    = full_features.include?('webauthn')
-          end
-
-          features
         end
       end
 

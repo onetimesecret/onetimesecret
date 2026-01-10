@@ -46,17 +46,45 @@ RSpec.describe 'Auth module structure smoke tests' do
       require_relative '../../config/features'
     end
 
-    describe 'Security module' do
+    describe 'Hardening module' do
       it 'is defined' do
-        expect(defined?(Auth::Config::Features::Security)).to eq('constant')
+        expect(defined?(Auth::Config::Features::Hardening)).to eq('constant')
       end
 
       it 'has configure class method' do
-        expect(Auth::Config::Features::Security).to respond_to(:configure)
+        expect(Auth::Config::Features::Hardening).to respond_to(:configure)
       end
 
       it 'configure accepts one argument' do
-        expect(Auth::Config::Features::Security.method(:configure).arity).to eq(1)
+        expect(Auth::Config::Features::Hardening.method(:configure).arity).to eq(1)
+      end
+    end
+
+    describe 'ActiveSessions module' do
+      it 'is defined' do
+        expect(defined?(Auth::Config::Features::ActiveSessions)).to eq('constant')
+      end
+
+      it 'has configure class method' do
+        expect(Auth::Config::Features::ActiveSessions).to respond_to(:configure)
+      end
+
+      it 'configure accepts one argument' do
+        expect(Auth::Config::Features::ActiveSessions.method(:configure).arity).to eq(1)
+      end
+    end
+
+    describe 'RememberMe module' do
+      it 'is defined' do
+        expect(defined?(Auth::Config::Features::RememberMe)).to eq('constant')
+      end
+
+      it 'has configure class method' do
+        expect(Auth::Config::Features::RememberMe).to respond_to(:configure)
+      end
+
+      it 'configure accepts one argument' do
+        expect(Auth::Config::Features::RememberMe.method(:configure).arity).to eq(1)
       end
     end
 
@@ -74,17 +102,17 @@ RSpec.describe 'Auth module structure smoke tests' do
       end
     end
 
-    describe 'Passwordless module' do
+    describe 'EmailAuth module' do
       it 'is defined' do
-        expect(defined?(Auth::Config::Features::Passwordless)).to eq('constant')
+        expect(defined?(Auth::Config::Features::EmailAuth)).to eq('constant')
       end
 
       it 'has configure class method' do
-        expect(Auth::Config::Features::Passwordless).to respond_to(:configure)
+        expect(Auth::Config::Features::EmailAuth).to respond_to(:configure)
       end
 
       it 'configure accepts one argument' do
-        expect(Auth::Config::Features::Passwordless.method(:configure).arity).to eq(1)
+        expect(Auth::Config::Features::EmailAuth.method(:configure).arity).to eq(1)
       end
     end
 

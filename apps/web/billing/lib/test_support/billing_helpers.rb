@@ -19,9 +19,18 @@ module BillingTestHelpers
 
     # Restore billing configuration for tests that need it
     # Resets singleton so it reloads from ConfigResolver
-    def restore_billing!
+    #
+    # @param enabled [Boolean] When true, force billing to be enabled regardless
+    #   of config file setting. Default: false (use config file value).
+    #   This is essential for tests that need plan-based entitlements rather
+    #   than standalone mode.
+    def restore_billing!(enabled: false)
       ensure_familia_configured!
+      clear_plan_cache!
       reset_billing_singleton!
+
+      # Override config file setting with the enabled parameter value
+      Onetime::BillingConfig.instance.config['enabled'] = enabled
     end
 
     # Ensure Familia is configured with test Redis URI
@@ -64,7 +73,7 @@ module BillingTestHelpers
     # Enable billing for a test block
     # Automatically cleans up afterward
     def with_billing_enabled(plans: [])
-      restore_billing!
+      restore_billing!(enabled: true)
       populate_test_plans(plans) if plans.any?
       yield
     ensure

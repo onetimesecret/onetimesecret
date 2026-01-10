@@ -330,6 +330,35 @@ jobs:
   # TIER 3: INTEGRATION TESTS (~45-90s each, run in parallel)
   # ============================================================================
 
+  test-all-clean:
+    name: T3 · Comprehensive (test:all:clean)
+    timeout-minutes: 15
+    runs-on: *runs-on
+    needs: [changes, build-assets, ruby-unit, typescript-unit]
+    if: |
+      always() &&
+      needs.changes.outputs.ruby == 'true' &&
+      needs.changes.outputs.typescript == 'true' &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    services:
+      redis: *valkey-service
+    steps:
+      - *checkout-step
+
+      - name: Setup Node.js environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Setup Ruby test environment
+        uses: ./.github/actions/setup-ruby-test-env
+
+      - name: Run test:all:clean
+        shell: bash
+        env:
+          REDIS_URL: 'redis://127.0.0.1:2121/0'
+          RACK_ENV: 'test'
+        run: pnpm test:all:clean
+
   ruby-integration-simple:
     name: T3 · Ruby Integration (Simple Mode)
     timeout-minutes: 10
@@ -515,6 +544,7 @@ jobs:
       - ruby-integration-full-postgres
       - ruby-integration-disabled
       - typescript-unit
+      - test-all-clean
     if: always()
 
     steps:
@@ -576,6 +606,7 @@ jobs:
       - ruby-integration-full-sqlite
       - ruby-integration-full-postgres
       - ruby-integration-disabled
+      - test-all-clean
       - check-oci-image
       - aggregate-test-results
     # always() ensures this runs even if some jobs failed/skipped

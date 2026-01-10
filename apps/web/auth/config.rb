@@ -90,25 +90,35 @@ module Auth
       Hooks::ErrorHandling.configure(self)
       RodauthOverrides.configure(self)
 
-      # Security features: lockout, active sessions, remember me
-      if ENV['ENABLE_SECURITY_FEATURES'] != 'false'
-        Features::Security.configure(self)
+      # Hardening: brute force protection, password requirements
+      if Onetime.auth_config.hardening_enabled?
+        Features::Hardening.configure(self)
+      end
+
+      # Active sessions: track and manage sessions across devices
+      if Onetime.auth_config.active_sessions_enabled?
+        Features::ActiveSessions.configure(self)
+      end
+
+      # Remember me: persistent login across browser sessions
+      if Onetime.auth_config.remember_me_enabled?
+        Features::RememberMe.configure(self)
       end
 
       # Multi-Factor Authentication: TOTP, recovery codes
-      if ENV['ENABLE_MFA'] == 'true'
+      if Onetime.auth_config.mfa_enabled?
         Features::MFA.configure(self)
         Hooks::MFA.configure(self)
       end
 
-      # Passwordless authentication: email magic links
-      if ENV['ENABLE_MAGIC_LINKS'] == 'true'
-        Features::Passwordless.configure(self)
-        Hooks::Passwordless.configure(self)
+      # Email auth: passwordless login via email links (aka magic links)
+      if Onetime.auth_config.email_auth_enabled?
+        Features::EmailAuth.configure(self)
+        Hooks::EmailAuth.configure(self)
       end
 
       # WebAuthn: biometrics, security keys (Face ID, Touch ID, YubiKey)
-      if ENV['ENABLE_WEBAUTHN'] == 'true'
+      if Onetime.auth_config.webauthn_enabled?
         Features::WebAuthn.configure(self)
         Hooks::WebAuthn.configure(self)
       end

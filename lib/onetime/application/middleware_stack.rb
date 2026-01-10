@@ -186,16 +186,6 @@ module Onetime
           # Configures security-related middleware components based on application settings
           logger.debug 'Setting up Security middleware'
           builder.use Onetime::Middleware::Security
-
-          # Performance Optimization
-          # Support running with code frozen in production-like environments
-          # This reduces memory usage and prevents runtime modifications
-          return unless Onetime.conf&.dig(:experimental, :freeze_app).eql?(true)
-
-          logger.info 'Freezing app by request', {
-            env: Onetime.env,
-          }
-          builder.freeze_app
         end
       end
     end

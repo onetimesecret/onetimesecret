@@ -22,13 +22,16 @@ module AuthModeHelpers
   # Mock object that responds to all AuthConfig methods
   class MockAuthConfig
     attr_reader :mode
-    attr_accessor :mfa_enabled, :magic_links_enabled, :security_features_enabled
 
     def initialize(mode, **options)
       @mode = mode.to_s
+      @hardening_enabled = options.fetch(:hardening_enabled, true)
+      @active_sessions_enabled = options.fetch(:active_sessions_enabled, true)
+      @remember_me_enabled = options.fetch(:remember_me_enabled, true)
+      @verify_account_enabled = options.fetch(:verify_account_enabled, false)  # Disabled in test by default
       @mfa_enabled = options.fetch(:mfa_enabled, true)
-      @magic_links_enabled = options.fetch(:magic_links_enabled, false)
-      @security_features_enabled = options.fetch(:security_features_enabled, true)
+      @email_auth_enabled = options.fetch(:email_auth_enabled, false)
+      @webauthn_enabled = options.fetch(:webauthn_enabled, false)
     end
 
     def full_enabled?
@@ -41,6 +44,44 @@ module AuthModeHelpers
 
     def disabled?
       @mode == 'disabled'
+    end
+
+    # Predicate methods matching AuthConfig interface
+    def hardening_enabled?
+      @hardening_enabled
+    end
+
+    def active_sessions_enabled?
+      @active_sessions_enabled
+    end
+
+    def remember_me_enabled?
+      @remember_me_enabled
+    end
+
+    def verify_account_enabled?
+      @verify_account_enabled
+    end
+
+    def mfa_enabled?
+      @mfa_enabled
+    end
+
+    def email_auth_enabled?
+      @email_auth_enabled
+    end
+
+    def webauthn_enabled?
+      @webauthn_enabled
+    end
+
+    # DEPRECATED: Forwards to new methods for backward compatibility
+    def security_features_enabled?
+      hardening_enabled? && active_sessions_enabled? && remember_me_enabled?
+    end
+
+    def magic_links_enabled?
+      email_auth_enabled?
     end
 
     def database_url

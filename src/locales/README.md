@@ -1,67 +1,56 @@
 # Locales Directory
 
-This directory contains internationalization (i18n) files for all supported languages.
-
-## Translation Guidelines
-
-### Standard Translation Process
-
-1. **Use `en.json` as reference** - All translations should match the English structure
-2. **Preserve key names** - Only translate the values, never the keys
-3. **Maintain placeholders** - Keep `{variable}` syntax intact (e.g., `{count}`, `{email}`)
-
-### Special Rules for Security Messages
-
-**Security-critical messages** in any `*.security.*` require special handling:
-
-- **Read first**: `SECURITY-TRANSLATION-GUIDE.md` and `UX-TRANSLATION-GUIDE.md` in this directory
-- **Follow OWASP/NIST guidelines**: Messages must remain generic to prevent information disclosure
-- **NO creative rewording**: Semantic meaning must be identical across languages
-- **Validation required**: Run `pnpm test:unit security-messages` to verify compliance
-
-### DO NOT Translate: Underscore-Prefixed Keys
-
-Keys starting with `_` are **metadata/documentation only**:
-
-```json
-{
-  "_README": "⚠️ SECURITY-CRITICAL...",      // ← Keep in English
-  "_safe_information": { ... },              // ← Keep in English
-  "authentication_failed": "..."             // ← Translate this
-}
-```
-
-### DO NOT Translate: This README
-
-- **This README.md**: Keep in **English** (canonical version)
-- **SECURITY-TRANSLATION-GUIDE.md**: Keep in **English** (canonical version)
-- Optional: Teams may create localized copies (e.g., `README.es.md`) if helpful
+i18n files for 34+ languages.
 
 ## File Structure
 
 ```
 src/locales/
-├── scripts/                            ← Scripts for managing translations
-├── README.md                           ← You are here
-├── SECURITY-TRANSLATION-GUIDE.md       ← Security translation rules
-├── en.json                             ← Base language (English)
-├── fr_FR.json                          ← French (France)
-├── fr_CA.json                          ← French (Canada)
-├── de.json                             ← German
-├── ...
+├── en/                          ← Multi-file English (source of truth)
+│   ├── _common.json             ← Shared strings (buttons, labels, errors)
+│   ├── account.json             ← Account settings
+│   ├── account-billing.json     ← Billing/subscription UI
+│   ├── auth.json                ← Basic auth (login, signup)
+│   ├── auth-full.json           ← Extended auth (MFA, recovery, WebAuthn)
+│   ├── colonel.json             ← Admin panel
+│   ├── email.json               ← Email templates
+│   ├── error-pages.json         ← HTTP error pages
+│   ├── feature-*.json           ← Feature-specific strings
+│   ├── homepage.json            ← Landing page
+│   └── layout.json              ← Navigation, footer, chrome
+├── de/                          ← German (multi-file)
+├── fr/                          ← French (multi-file)
+├── ...                          ← Other languages
+├── SECURITY-TRANSLATION-GUIDE.md
+└── UX-TRANSLATION-GUIDE.md
 ```
 
-## Testing Translations
+## Precompile Cache
+
+Multi-file locales are merged at boot time. Enable caching to skip recompilation:
+
+```yaml
+# etc/config.yaml
+i18n:
+  precompile_cache: true   # Default: enabled via I18N_PRECOMPILE_CACHE env
+```
+
+Cache files (`.merged-*.cache`) are created per-locale and invalidated when source files change. Disable for development with `I18N_PRECOMPILE_CACHE=false`.
+
+The multi-file split optimizes for human editing, not performance. Translation contributors work on focused domain files rather than 2000-line monoliths.
+
+## Translation Rules
+
+1. Use `en/` as reference - match the structure exactly
+2. Preserve keys - only translate values
+3. Keep placeholders intact: `{count}`, `{email}`, `{name}`
+4. Keys prefixed with `_` are metadata - do not translate
+
+Security messages (`*.security.*` keys) require special handling - see `SECURITY-TRANSLATION-GUIDE.md`.
+
+## Testing
 
 ```bash
-# Run security message validation
-pnpm test:unit security-messages
-
-# Type check (ensures no syntax errors in JSON)
-pnpm run type-check
-
-# Run full test suite
-pnpm test
+pnpm test:unit security-messages   # Validate security message compliance
+pnpm run type-check                # Check JSON syntax
 ```
-
-**Key Principle**: Preserve security while enabling accessibility. Thank you for helping make Onetime Secret available to users worldwide! 🌍

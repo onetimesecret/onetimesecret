@@ -15,6 +15,7 @@ module V1
   module ControllerHelpers
     include Onetime::Helpers::SessionHelpers
     include Onetime::Helpers::ShrimpHelpers
+
     # `carefully` is a wrapper around the main web application logic. We
     # handle errors, redirects, and other exceptions here to ensure that
     # we respond consistently to all requests. That's why we integrate
@@ -91,7 +92,7 @@ module V1
       not_found_response ex.message, shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue Familia::FieldTypeError => ex
       # session may be a Hash fallback when no session middleware is available
-      session_id = (session.respond_to?(:id) && session.id&.to_s) || req.cookies['onetime.session'] || 'unknown'
+      session_id       = (session.respond_to?(:id) && session.id&.to_s) || req.cookies['onetime.session'] || 'unknown'
       short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
       OT.le "[attempt-saving-non-string-to-db] #{obscured} (#{req.client_ipaddress}): #{short_session_id} (#{req.current_absolute_uri})"
 
@@ -121,9 +122,9 @@ module V1
       regenerate_shrimp! if respond_to?(:regenerate_shrimp!)
       error_response "We'll be back shortly!", shrimp: (respond_to?(:shrimp_token) ? shrimp_token : nil)
     rescue StandardError => ex
-      custid = cust&.custid || '<notset>'
+      custid           = cust&.custid || '<notset>'
       # session may be a Hash fallback when no session middleware is available
-      session_id = (session.respond_to?(:id) && session.id&.to_s) || req.cookies['onetime.session'] || 'unknown'
+      session_id       = (session.respond_to?(:id) && session.id&.to_s) || req.cookies['onetime.session'] || 'unknown'
       short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
       OT.le "#{ex.class}: #{ex.message} -- #{req.current_absolute_uri} -- #{req.client_ipaddress} #{custid} #{short_session_id} #{locale} #{content_type} #{redirect} "
       OT.le ex.backtrace.join("\n")
@@ -183,8 +184,8 @@ module V1
       # Skip the Content-Security-Policy header if it's already set
       return if res.headers['content-security-policy']
 
-      # Skip the CSP header unless it's enabled in the experimental settings
-      return if OT.conf.dig('experimental', 'csp', 'enabled') != true
+      # Skip the CSP header unless it's enabled in site.security settings
+      return if OT.conf.dig('site', 'security', 'csp', 'enabled') != true
 
       # Skip the Content-Security-Policy header if the front is running in
       # development mode. We need to allow inline scripts and styles for
@@ -318,7 +319,6 @@ module V1
       (req.env['HTTP_X_FORWARDED_PROTO'] == 'https' || req.env['HTTP_X_SCHEME'] == 'https')
     end
 
-
     def deny_agents! *_agents
       BADAGENTS.flatten.each do |agent|
         if req.user_agent =~ /#{agent}/i
@@ -368,7 +368,6 @@ module V1
       verify_shrimp!(token) if token
     end
 
-
     # Checks if authentication is enabled for the site.
     #
     # This method determines whether authentication is enabled by checking the
@@ -398,10 +397,10 @@ module V1
     def log_customer_activity
       return if cust.anonymous?
 
-      reqstr  = stringify_request_details(req)
-      custref = cust.obscure_email
+      reqstr           = stringify_request_details(req)
+      custref          = cust.obscure_email
       # session may be a Hash fallback when no session middleware is available
-      session_id = (session.respond_to?(:id) && session.id&.to_s) || req.cookies['onetime.session'] || 'unknown'
+      session_id       = (session.respond_to?(:id) && session.id&.to_s) || req.cookies['onetime.session'] || 'unknown'
       short_session_id = session_id.length <= 10 ? session_id : session_id[0, 10] + '...'
       OT.info "[carefully] #{short_session_id} #{custref} at #{reqstr}"
     end

@@ -14,7 +14,7 @@ require_relative '../../lib/test_support/billing_helpers'
 require 'apps/web/billing/models/plan'
 
 ## Setup: Enable billing and ensure Familia is configured
-BillingTestHelpers.restore_billing!
+BillingTestHelpers.restore_billing!(enabled: true)
 
 ## Setup: Clear any existing plan cache
 Billing::Plan.clear_cache
@@ -87,7 +87,7 @@ Billing::Plan.instances.size
 
 ## Verify limits were loaded
 @monthly.limits_hash.keys.sort
-#=> ["custom_domains.max", "members_per_team.max", "secret_lifetime.max", "teams.max"]
+#=> ["custom_domains.max", "members_per_team.max", "organizations.max", "secret_lifetime.max", "teams.max"]
 
 ## Verify unlimited custom_domains limit
 @monthly.limits_hash['custom_domains.max']

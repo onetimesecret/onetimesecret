@@ -9,12 +9,13 @@ module Auth::Config::Email
     def self.configure(auth)
       # Configure email delivery using unified mailer
       auth.send_email do |email|
-        Onetime.auth_logger.debug 'send_email hook called', {
-          subject: email.subject.to_s,
-          to: email.to.to_s,
-          multipart: email.multipart?,
-          rack_env: ENV.fetch('RACK_ENV', nil),
-        }
+        Onetime.auth_logger.debug 'send_email hook called',
+          {
+            subject: email.subject.to_s,
+            to: email.to.to_s,
+            multipart: email.multipart?,
+            rack_env: ENV.fetch('RACK_ENV', nil),
+          }
 
         # Extract body content from multipart or simple email
         body_content = if email.multipart?
@@ -27,13 +28,15 @@ module Auth::Config::Email
 
         # Critical auth flow (verification, password reset): use sync fallback
         # Rodauth emails must be delivered - user is waiting for auth action
-        Onetime::Jobs::Publisher.enqueue_email_raw({
-          to: email.to,
-          from: email.from,
-          subject: email.subject,
-          body: body_content,
-        }, fallback: :sync
-                                                  )
+        Onetime::Jobs::Publisher.enqueue_email_raw(
+          {
+            to: email.to,
+            from: email.from,
+            subject: email.subject,
+            body: body_content,
+          },
+          fallback: :sync,
+        )
       end
     end
   end

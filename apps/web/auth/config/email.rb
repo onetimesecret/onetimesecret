@@ -8,6 +8,7 @@ require 'onetime/mail'
 require_relative 'email/helpers'
 require_relative 'email/verify_account'
 require_relative 'email/reset_password'
+require_relative 'email/email_auth'
 require_relative 'email/delivery'
 
 module Auth::Config::Email
@@ -22,12 +23,17 @@ module Auth::Config::Email
 
     # 2. Email templates (use helper methods)
     # Only configure verify_account email if the feature is enabled
-    # (verify_account is disabled in test mode - see features/account_management.rb)
-    auth_class = auth.instance_variable_get(:@auth)
-    if auth_class&.features&.include?(:verify_account)
+    # (verify_account is disabled in test mode via YAML config)
+    if Onetime.auth_config.verify_account_enabled?
       VerifyAccount.configure(auth)
     end
     ResetPassword.configure(auth)
+
+    # Only configure email_auth email if the feature is enabled
+    # (email_auth is opt-in via ENABLE_EMAIL_AUTH env var)
+    if Onetime.auth_config.email_auth_enabled?
+      EmailAuth.configure(auth)
+    end
 
     # 3. Delivery mechanism (intercepts all email sending)
     Delivery.configure(auth)

@@ -40,6 +40,7 @@
 #   $ ruby support/clean_database.rb --env test --force
 #
 
+require 'bundler/setup'
 require 'redis'
 require 'optparse'
 

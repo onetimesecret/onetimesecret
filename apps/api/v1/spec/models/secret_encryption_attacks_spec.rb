@@ -95,8 +95,10 @@ RSpec.describe Onetime::Secret, 'security hardening' do
     end
 
     it 'raises an error when encrypted value is corrupted' do
-      # Corrupt the encrypted value
-      secret.value = secret.value[0..-2] + "X"
+      # Corrupt the encrypted value by truncating bytes. AES-CBC uses 16-byte blocks
+      # with PKCS7 padding. Truncating 5 bytes ensures incorrect block length which
+      # reliably triggers CipherError across OpenSSL versions.
+      secret.value = secret.value[0..-6]
 
       expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
     end

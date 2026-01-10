@@ -45,6 +45,41 @@ const sessionConfigSchema = z.object({
 });
 
 /**
+ * Content Security Policy configuration
+ */
+const cspSchema = z.object({
+  enabled: z.boolean().default(false),
+});
+
+/**
+ * Security configuration
+ *
+ * Additional security settings beyond middleware.
+ */
+const securitySchema = z.object({
+  csp: cspSchema.optional(),
+});
+
+/**
+ * Middleware configuration
+ *
+ * Controls which Rack middleware components are enabled.
+ * Relocated from experimental to site as these are now stable.
+ */
+const middlewareSchema = z.object({
+  static_files: z.boolean().default(true),
+  utf8_sanitizer: z.boolean().default(true),
+  authenticity_token: z.boolean().default(true),
+  http_origin: z.boolean().default(false),
+  xss_header: z.boolean().default(false),
+  frame_options: z.boolean().default(false),
+  path_traversal: z.boolean().default(false),
+  cookie_tossing: z.boolean().default(false),
+  ip_spoofing: z.boolean().default(false),
+  strict_transport: z.boolean().default(false),
+});
+
+/**
  * Secret options - passphrase settings
  */
 const passphraseSchema = z.object({
@@ -92,9 +127,14 @@ const siteSchema = z.object({
   authentication: siteAuthenticationSchema.optional(),
   support: siteSupportSchema.optional(),
   session: sessionConfigSchema.optional(),
+  middleware: middlewareSchema.optional(),
+  security: securitySchema.optional(),
 });
 
 export type SessionConfig = z.infer<typeof sessionConfigSchema>;
+export type MiddlewareConfig = z.infer<typeof middlewareSchema>;
+export type CspConfig = z.infer<typeof cspSchema>;
+export type SecurityConfig = z.infer<typeof securitySchema>;
 
 export {
   siteSchema,
@@ -103,4 +143,7 @@ export {
   passphraseSchema,
   passwordGenerationSchema,
   sessionConfigSchema,
+  middlewareSchema,
+  securitySchema,
+  cspSchema,
 };
