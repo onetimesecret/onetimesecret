@@ -5,19 +5,61 @@ import { z } from 'zod';
 /**
  * Rodauth-compatible authentication response schemas
  *
- * Rodauth JSON API returns:
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * AUTHENTICATION FLOW OVERVIEW
+ * ═══════════════════════════════════════════════════════════════════════════════
+ *
+ * This module defines Zod schemas for validating Rodauth JSON API responses.
+ * The authentication flow has multiple paths depending on account configuration:
+ *
+ * 1. STANDARD LOGIN (no MFA):
+ *    POST /auth/login → { success: "You have been logged in" }
+ *    → User is fully authenticated, redirect to dashboard
+ *
+ * 2. LOGIN WITH MFA ENABLED:
+ *    POST /auth/login → { success: "...", mfa_required: true, mfa_methods: [...] }
+ *    → User has partial auth (awaiting_mfa=true), redirect to /mfa-verify
+ *    POST /auth/otp-auth → { success: "You have been multifactor authenticated" }
+ *    → User is fully authenticated (awaiting_mfa=false), redirect to dashboard
+ *
+ * 3. ERROR RESPONSES:
+ *    Any endpoint → { error: "message", "field-error": ["field", "message"] }
+ *
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * ZOD UNION ORDERING (CRITICAL)
+ * ═══════════════════════════════════════════════════════════════════════════════
+ *
+ * Zod unions match the FIRST schema that validates successfully. This means:
+ * - More specific schemas MUST come before less specific ones
+ * - { success, mfa_required } must precede { success } alone
+ *
+ * If order is wrong, Zod strips the MFA fields during validation, breaking
+ * the login flow for MFA-enabled accounts.
+ *
+ * Rodauth JSON API response format:
  * - Success: { success: "message" }
  * - Error: { error: "message", "field-error": ["field", "error"] }
- *
- * These schemas work with both email and full authentication modes.
  */
 
-// Success response schema
+// ─────────────────────────────────────────────────────────────────────────────
+// Base Response Schemas
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Standard success response - used when no additional data is needed.
+ * Example: logout, password change, account verification
+ */
 const authSuccessSchema = z.object({
   success: z.string(),
 });
 
-// Success response with MFA requirement
+/**
+ * Success response with MFA requirement flag.
+ * Returned by /auth/login when the account has MFA enabled.
+ *
+ * The presence of mfa_required=true indicates the user has completed
+ * password authentication but must still verify with OTP/recovery code.
+ */
 const authSuccessWithMfaSchema = z.object({
   success: z.string(),
   mfa_required: z.boolean(),
@@ -25,19 +67,32 @@ const authSuccessWithMfaSchema = z.object({
   mfa_methods: z.array(z.string()).optional(),
 });
 
-// Error response schema with optional field-level errors
+/**
+ * Error response with optional field-level error details.
+ * field-error tuple: [field_name, error_message]
+ */
 const authErrorSchema = z.object({
   error: z.string(),
   'field-error': z.tuple([z.string(), z.string()]).optional(),
 });
 
-// Union type for auth responses (can be success or error)
+// ─────────────────────────────────────────────────────────────────────────────
+// Composite Response Schemas
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Standard auth response for endpoints that don't return MFA data */
 const authResponseSchema = z.union([authSuccessSchema, authErrorSchema]);
 
-// Login response (can include MFA requirement)
+/**
+ * Login response schema - supports MFA flow.
+ *
+ * IMPORTANT: authSuccessWithMfaSchema MUST come before authSuccessSchema.
+ * Zod unions match first valid schema, and { success } alone would match
+ * before { success, mfa_required }, stripping the MFA fields.
+ */
 export const loginResponseSchema = z.union([
-  authSuccessSchema,
-  authSuccessWithMfaSchema,
+  authSuccessWithMfaSchema, // Must be first - more specific (has mfa_required)
+  authSuccessSchema,        // Less specific - matches any { success } response
   authErrorSchema,
 ]);
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
