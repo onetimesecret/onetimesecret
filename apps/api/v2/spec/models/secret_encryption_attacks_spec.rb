@@ -181,9 +181,97 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       secret.encrypt_value(secret_value)
     end
 
-    it 'raises an error when encrypted value is corrupted' do
-      # Corrupt the encrypted value
-      secret.value = secret.value[0..-2] + 'X'
+    it 'raises an error when encrypted value is truncated' do
+      # Corrupt the encrypted value by truncating bytes. AES-CBC uses 16-byte blocks
+      # with PKCS7 padding. Truncating 5 bytes ensures incorrect block length which
+      # reliably triggers CipherError across OpenSSL versions.
+      secret.value = secret.value[0..-6]
+
+      expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
+    end
+
+    it 'detects byte-level corruption in encrypted values' do
+      original_encrypted = secret.value.dup
+
+      # XOR-flip bytes at strategic positions (start, middle, end) to ensure
+      # corruption regardless of Base64 padding or block boundaries.
+      # This tests the security property: corrupted ciphertext must not
+      # decrypt to the original plaintext.
+      corrupted = original_encrypted.bytes.map.with_index do |byte, i|
+        i % 8 == 0 ? byte ^ 0xFF : byte
+      end.pack('C*')
+      secret.value = corrupted
+
+      decrypted = begin
+        secret.decrypted_value
+      rescue OpenSSL::Cipher::CipherError
+        nil # Error is acceptable - corruption was detected
+      end
+
+      # Security property: corrupted ciphertext must not produce original plaintext
+      expect(decrypted).not_to eq(secret_value),
+        'Corrupted ciphertext should not decrypt to original plaintext'
+    end
+
+    it 'produces corrupted plaintext when IV is corrupted (first 16 bytes)' do
+      # In AES-CBC, the IV affects only the first block of plaintext.
+      # Corrupting the IV should NOT raise an error but SHOULD produce
+      # incorrect plaintext. This tests the security property that IV
+      # tampering is detectable only by content verification, not crypto errors.
+
+      # Use a longer plaintext to ensure sufficient ciphertext length
+      long_value = 'This is a longer secret value that spans multiple AES blocks for testing'
+      secret.encrypt_value(long_value)
+      original_encrypted = secret.value.dup
+
+      # The encrypted value is raw binary, not Base64 encoded
+      # Skip if ciphertext is too short (need at least IV + 1 block = 32 bytes)
+      skip 'Ciphertext too short for IV corruption test' if original_encrypted.bytesize < 32
+
+      # Flip bits in the IV (first 16 bytes only)
+      corrupted_iv = original_encrypted[0, 16].bytes.map { |b| b ^ 0xFF }.pack('C*')
+      corrupted = corrupted_iv + original_encrypted[16..]
+      secret.value = corrupted
+
+      # IV corruption in CBC mode does not cause CipherError - it silently
+      # corrupts the first plaintext block while remaining blocks decrypt fine
+      decrypted = secret.decrypted_value
+
+      expect(decrypted).not_to eq(long_value),
+        'IV-corrupted ciphertext must not decrypt to original plaintext'
+      # The decrypted value will be garbage for the first 16 bytes
+      expect(decrypted.length).to be > 0
+    end
+
+    it 'raises error when exactly one AES block is truncated' do
+      # Remove exactly 16 bytes (one AES block) from the end.
+      # This tests that the PKCS7 padding validation fails correctly
+      # when a complete block is removed.
+
+      # Use a longer plaintext to ensure sufficient ciphertext for truncation
+      long_value = 'This is a longer secret value that spans multiple AES blocks for testing'
+      secret.encrypt_value(long_value)
+
+      # The encrypted value is raw binary, not Base64 encoded
+      # Skip if ciphertext is too short
+      skip 'Ciphertext too short for block truncation test' if secret.value.bytesize < 32
+
+      truncated = secret.value[0...-16]
+      secret.value = truncated
+
+      expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
+    end
+
+    it 'raises error when ciphertext has non-block-aligned length' do
+      # AES requires ciphertext length to be multiple of 16 bytes.
+      # Remove 7 bytes to create invalid block alignment.
+
+      # The encrypted value is raw binary, not Base64 encoded
+      # Skip if ciphertext is too short
+      skip 'Ciphertext too short for alignment test' if secret.value.bytesize < 16
+
+      misaligned = secret.value[0...-7]
+      secret.value = misaligned
 
       expect { secret.decrypted_value }.to raise_error(OpenSSL::Cipher::CipherError)
     end
