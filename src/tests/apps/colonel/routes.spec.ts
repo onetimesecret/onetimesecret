@@ -34,21 +34,21 @@ describe('Colonel Routes Configuration', () => {
       const route = colonelRoutes.find((r: RouteRecordRaw) => r.path === '/colonel');
       expect(route).toBeDefined();
       expect(route?.name).toBe('Colonel');
-      expect(route?.meta?.title).toBe('web.TITLES.colonel');
+      expect(route?.meta?.title).toBe('web.colonel.titles.index');
     });
 
     it('should define /colonel/users route correctly', () => {
       const route = colonelRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/users');
       expect(route).toBeDefined();
       expect(route?.name).toBe('ColonelUsers');
-      expect(route?.meta?.title).toBe('web.TITLES.colonel_users');
+      expect(route?.meta?.title).toBe('web.colonel.titles.users');
     });
 
     it('should define /colonel/system route correctly', () => {
       const route = colonelRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/system');
       expect(route).toBeDefined();
       expect(route?.name).toBe('ColonelSystem');
-      expect(route?.meta?.title).toBe('web.TITLES.colonel_system');
+      expect(route?.meta?.title).toBe('web.colonel.titles.system');
     });
 
     it('should define /colonel/settings route correctly', () => {
@@ -62,49 +62,49 @@ describe('Colonel Routes Configuration', () => {
       const route = colonelRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/secrets');
       expect(route).toBeDefined();
       expect(route?.name).toBe('ColonelSecrets');
-      expect(route?.meta?.title).toBe('web.TITLES.colonel_secrets');
+      expect(route?.meta?.title).toBe('web.colonel.titles.secrets');
     });
 
     it('should define /colonel/domains route correctly', () => {
       const route = colonelRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/domains');
       expect(route).toBeDefined();
       expect(route?.name).toBe('ColonelDomains');
-      expect(route?.meta?.title).toBe('web.TITLES.colonel_domains');
+      expect(route?.meta?.title).toBe('web.colonel.titles.domains');
     });
 
     it('should define /colonel/database/maindb route correctly', () => {
       const route = colonelRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/database/maindb');
       expect(route).toBeDefined();
       expect(route?.name).toBe('ColonelSystemMainDB');
-      expect(route?.meta?.title).toBe('web.TITLES.colonel_maindb');
+      expect(route?.meta?.title).toBe('web.colonel.titles.maindb');
     });
 
     it('should define /colonel/database/authdb route correctly', () => {
       const route = colonelRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/database/authdb');
       expect(route).toBeDefined();
       expect(route?.name).toBe('ColonelSystemAuthDB');
-      expect(route?.meta?.title).toBe('web.TITLES.colonel_authdb');
+      expect(route?.meta?.title).toBe('web.colonel.titles.authdb');
     });
 
     it('should define /colonel/system/redis route correctly', () => {
       const route = colonelRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/system/redis');
       expect(route).toBeDefined();
       expect(route?.name).toBe('ColonelSystemRedis');
-      expect(route?.meta?.title).toBe('web.TITLES.colonel_redis');
+      expect(route?.meta?.title).toBe('web.colonel.titles.redis');
     });
 
     it('should define /colonel/banned-ips route correctly', () => {
       const route = colonelRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/banned-ips');
       expect(route).toBeDefined();
       expect(route?.name).toBe('ColonelBannedIPs');
-      expect(route?.meta?.title).toBe('web.TITLES.colonel_banned_ips');
+      expect(route?.meta?.title).toBe('web.colonel.titles.bannedIps');
     });
 
     it('should define /colonel/usage route correctly', () => {
       const route = colonelRoutes.find((r: RouteRecordRaw) => r.path === '/colonel/usage');
       expect(route).toBeDefined();
       expect(route?.name).toBe('ColonelUsageExport');
-      expect(route?.meta?.title).toBe('web.TITLES.colonel_usage');
+      expect(route?.meta?.title).toBe('web.colonel.titles.usage');
     });
   });
 
