@@ -177,6 +177,9 @@ RSpec.describe Onetime::Secret, 'security hardening' do
   end
 
   describe 'handling corrupted encryption data', allow_redis: false do
+    # Longer plaintext that spans multiple AES blocks for IV/block corruption tests
+    let(:long_secret_value) { 'This is a longer secret value that spans multiple AES blocks for testing' }
+
     before do
       secret.encrypt_value(secret_value)
     end
@@ -194,7 +197,7 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       original_encrypted = secret.value.dup
 
       # XOR-flip bytes at strategic positions (start, middle, end) to ensure
-      # corruption regardless of Base64 padding or block boundaries.
+      # corruption regardless of ciphertext block boundaries or specific byte positions.
       # This tests the security property: corrupted ciphertext must not
       # decrypt to the original plaintext.
       corrupted = original_encrypted.bytes.map.with_index do |byte, i|
@@ -219,9 +222,7 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       # incorrect plaintext. This tests the security property that IV
       # tampering is detectable only by content verification, not crypto errors.
 
-      # Use a longer plaintext to ensure sufficient ciphertext length
-      long_value = 'This is a longer secret value that spans multiple AES blocks for testing'
-      secret.encrypt_value(long_value)
+      secret.encrypt_value(long_secret_value)
       original_encrypted = secret.value.dup
 
       # The encrypted value is raw binary, not Base64 encoded
@@ -237,9 +238,12 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       # corrupts the first plaintext block while remaining blocks decrypt fine
       decrypted = secret.decrypted_value
 
-      expect(decrypted).not_to eq(long_value),
+      expect(decrypted).not_to eq(long_secret_value),
         'IV-corrupted ciphertext must not decrypt to original plaintext'
-      # The decrypted value will be garbage for the first 16 bytes
+      # CBC mode property: IV corruption affects decryption but may not raise errors.
+      # The key security property is that the original plaintext is NOT recovered.
+      # Note: The encryptor gem's IV handling means we can't make strong assertions
+      # about which bytes are corrupted, only that corruption is detectable.
       expect(decrypted.length).to be > 0
     end
 
@@ -248,9 +252,7 @@ RSpec.describe Onetime::Secret, 'security hardening' do
       # This tests that the PKCS7 padding validation fails correctly
       # when a complete block is removed.
 
-      # Use a longer plaintext to ensure sufficient ciphertext for truncation
-      long_value = 'This is a longer secret value that spans multiple AES blocks for testing'
-      secret.encrypt_value(long_value)
+      secret.encrypt_value(long_secret_value)
 
       # The encrypted value is raw binary, not Base64 encoded
       # Skip if ciphertext is too short
