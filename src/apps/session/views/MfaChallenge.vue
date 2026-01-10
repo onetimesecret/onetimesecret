@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import AuthView from '@/apps/session/components/AuthView.vue';
   import OtpCodeInput from '@/apps/session/components/OtpCodeInput.vue';
+  import { loggingService } from '@/services/logging.service';
   import { useAuth } from '@/shared/composables/useAuth';
   import { useMfa } from '@/shared/composables/useMfa';
   import { useAuthStore } from '@/shared/stores/authStore';
@@ -21,18 +22,29 @@
   const useRecoveryMode = ref(false);
   const otpInputRef = ref<HTMLInputElement | null>(null);
 
-  // Check if user is already authenticated or MFA is not enabled
+  // Check if user is already fully authenticated or MFA is not enabled
   onMounted(async () => {
-    if (authStore.isAuthenticated) {
+    loggingService.debug('[MfaChallenge] onMounted - checking state:', {
+      isAuthenticated: authStore.isAuthenticated,
+      isFullyAuthenticated: authStore.isFullyAuthenticated,
+      awaitingMfa: authStore.awaitingMfa,
+      windowState: window.__ONETIME_STATE__,
+    });
+
+    // Only redirect if FULLY authenticated (not just partially with MFA pending)
+    if (authStore.isFullyAuthenticated) {
+      loggingService.debug('[MfaChallenge] Already fully authenticated, redirecting to /');
       router.push('/');
       return;
     }
 
     // Check if MFA is actually enabled for this account
     const status = await fetchMfaStatus();
+    loggingService.debug('[MfaChallenge] MFA status check:', { status });
     if (status && !status.enabled) {
       // MFA not enabled but session has awaiting_mfa=true
       // This is an inconsistent state - clear it by completing auth
+      loggingService.debug('[MfaChallenge] MFA not enabled, completing auth');
       await authStore.setAuthenticated(true);
       router.push('/');
     }
@@ -48,15 +60,22 @@
   const handleVerifyOtp = async () => {
     if (otpCode.value.length !== 6) return;
 
+    loggingService.debug('[MfaChallenge] Verifying OTP...');
     clearError();
     const success = await verifyOtp(otpCode.value);
+    loggingService.debug('[MfaChallenge] OTP verification result:', { success });
 
     if (success) {
       // Update auth state and navigate
+      loggingService.debug('[MfaChallenge] Setting authenticated=true');
       await authStore.setAuthenticated(true);
+      loggingService.debug('[MfaChallenge] After setAuthenticated, window state:', {
+        windowState: window.__ONETIME_STATE__,
+      });
       router.push('/');
     } else {
       // Clear input on error
+      loggingService.debug('[MfaChallenge] OTP failed, clearing input');
       otpCode.value = '';
       if (otpInputRef.value) {
         otpInputRef.value.value = '';
