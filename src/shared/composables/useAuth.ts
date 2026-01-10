@@ -37,20 +37,45 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
 /**
- * Authentication composable for handling login, signup, logout, and password reset
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * AUTHENTICATION COMPOSABLE
+ * ═══════════════════════════════════════════════════════════════════════════════
  *
- * Works with both email and full authentication modes - backend returns
- * Rodauth-compatible JSON format in both cases.
+ * Handles authentication operations: login, signup, logout, password management.
+ * Works with Rodauth-compatible JSON API backend.
+ *
+ * ───────────────────────────────────────────────────────────────────────────────
+ * LOGIN FLOW WITH MFA
+ * ───────────────────────────────────────────────────────────────────────────────
+ *
+ * 1. User submits credentials via SignInForm
+ * 2. login() POSTs to /auth/login
+ * 3. Response is validated by loginResponseSchema (Zod)
+ *    - CRITICAL: Schema union order matters - MFA schema must be first
+ * 4. If requiresMfa(response) is true:
+ *    a. checkWindowStatus() refreshes state (gets awaiting_mfa=true)
+ *    b. router.push('/mfa-verify') navigates to OTP form
+ *    c. MfaChallenge.vue handles OTP verification via useMfa composable
+ * 5. If no MFA required:
+ *    a. setAuthenticated(true) updates state and fetches /window
+ *    b. router.push('/') navigates to dashboard
+ *
+ * ───────────────────────────────────────────────────────────────────────────────
+ * RELATED MODULES
+ * ───────────────────────────────────────────────────────────────────────────────
+ *
+ * - authStore: Session state management, periodic /window refresh
+ * - useMfa: OTP setup, verification, recovery codes
+ * - WindowService: Reactive access to server state
+ * - Route guards: Navigation protection based on auth state
  *
  * @example
  * ```ts
  * const { login, signup, logout, isLoading, error } = useAuth();
  *
- * // Login
  * const success = await login('user@example.com', 'password');
- * if (!success && error.value) {
- *   console.log(error.value); // Display error message
- * }
+ * // If MFA enabled: redirects to /mfa-verify
+ * // If no MFA: redirects to dashboard
  * ```
  */
 /* eslint-disable max-lines-per-function */

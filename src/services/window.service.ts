@@ -6,6 +6,61 @@ import { reactive } from 'vue';
 const STATE_KEY = '__ONETIME_STATE__';
 
 /**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * WINDOW SERVICE - REACTIVE STATE BRIDGE
+ * ═══════════════════════════════════════════════════════════════════════════════
+ *
+ * Provides reactive access to server-injected window state. This service is the
+ * bridge between server-rendered state and Vue's reactivity system.
+ *
+ * ───────────────────────────────────────────────────────────────────────────────
+ * DUAL STATE ARCHITECTURE (CRITICAL)
+ * ───────────────────────────────────────────────────────────────────────────────
+ *
+ * State exists in TWO locations that must stay synchronized:
+ *
+ * 1. window.__ONETIME_STATE__
+ *    - Server-injected on page load
+ *    - Used by legacy code and SSR hydration
+ *    - NOT reactive - changes don't trigger Vue updates
+ *
+ * 2. WindowService.reactiveState (internal)
+ *    - Vue reactive() proxy initialized from window state
+ *    - Used by computed properties (authStore.awaitingMfa, etc.)
+ *    - Changes trigger Vue reactivity system
+ *
+ * ───────────────────────────────────────────────────────────────────────────────
+ * CRITICAL: ALWAYS USE update() FOR STATE CHANGES
+ * ───────────────────────────────────────────────────────────────────────────────
+ *
+ * When refreshing state from /window endpoint:
+ *   ✓ WindowService.update(response.data)  - Updates BOTH locations
+ *   ✗ window.__ONETIME_STATE__ = data      - Breaks reactivity!
+ *
+ * Direct assignment to window.__ONETIME_STATE__ does NOT update reactiveState,
+ * causing computed properties to return stale values. This breaks features like
+ * MFA flow where awaitingMfa must update after OTP verification.
+ *
+ * ───────────────────────────────────────────────────────────────────────────────
+ * AUTHENTICATION FLOW USAGE
+ * ───────────────────────────────────────────────────────────────────────────────
+ *
+ * The authStore uses WindowService for reactive auth state:
+ *
+ *   const awaitingMfa = computed(() => WindowService.get('awaiting_mfa'))
+ *
+ * After MFA verification:
+ * 1. Server sets awaiting_mfa=false in session
+ * 2. authStore.checkWindowStatus() fetches /window
+ * 3. WindowService.update() syncs state to reactiveState
+ * 4. awaitingMfa computed updates to false
+ * 5. Route guard allows navigation away from /mfa-verify
+ *
+ * If step 3 uses direct assignment instead of update(), step 4 never happens
+ * and the user gets stuck on the MFA page.
+ */
+
+/**
  * Internal reactive state that mirrors window.__ONETIME_STATE__.
  * This enables Vue's reactivity system to track changes when state is updated.
  */
