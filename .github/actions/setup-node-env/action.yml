@@ -36,10 +36,6 @@ inputs:
     description: 'Node.js version to use'
     required: false
     default: '22'
-  pnpm-version:
-    description: 'pnpm version to use'
-    required: false
-    default: 'latest'
   install-dependencies:
     description: 'Whether to run pnpm install'
     required: false
@@ -54,9 +50,7 @@ runs:
         node-version: ${{ inputs.node-version }}
 
     - name: Setup pnpm
-      uses: pnpm/action-setup@f2b2b233b538f500472c7274c7012f57857d8ce0
-      with:
-        version: ${{ inputs.pnpm-version }}
+      uses: pnpm/action-setup@c5ba7f7862a0f64c1b1a05fbac13e0b8e86ba08c # v4
 
     - name: Get pnpm store directory
       id: pnpm-cache

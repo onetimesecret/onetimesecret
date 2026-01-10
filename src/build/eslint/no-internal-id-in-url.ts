@@ -13,7 +13,6 @@
  */
 
 import type { Rule } from 'eslint';
-import type { MemberExpression, TemplateLiteral, Node } from 'estree';
 
 /**
  * URL context patterns that should use ExtId, not internal IDs
@@ -54,10 +53,14 @@ const EXTERNAL_ID_PROPERTIES = ['extid', 'external_id', 'ext_id'];
 
 /**
  * Check if a node is within a URL context
+ *
+ * Note: Using 'any' for node type due to ESLint/estree type version conflicts.
+ * ESLint's Rule types and @types/estree can have incompatible versions.
  */
-function isInUrlContext(node: Node, context: Rule.RuleContext): boolean {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function isInUrlContext(node: any, context: Rule.RuleContext): boolean {
   const sourceCode = context.sourceCode || context.getSourceCode();
-  const ancestors = sourceCode.getAncestors(node);
+  const ancestors = sourceCode.getAncestors(node) as any[];
 
   return ancestors.some((ancestor) => {
     const source = sourceCode.getText(ancestor);
@@ -126,7 +129,7 @@ const rule: Rule.RuleModule = {
       /**
        * Check member expressions like `entity.id` in template literals or string concatenations
        */
-      MemberExpression(node: MemberExpression & Rule.NodeParentExtension): void {
+      MemberExpression(node): void {
         // Only check identifier properties
         if (node.property.type !== 'Identifier') {
           return;
@@ -171,7 +174,7 @@ const rule: Rule.RuleModule = {
        * Check template literals for patterns like `/${entity}.id}`
        * This catches cases where the MemberExpression check might miss
        */
-      TemplateLiteral(node: TemplateLiteral & Rule.NodeParentExtension): void {
+      TemplateLiteral(node): void {
         const sourceCode = context.sourceCode || context.getSourceCode();
         const source = sourceCode.getText(node);
 

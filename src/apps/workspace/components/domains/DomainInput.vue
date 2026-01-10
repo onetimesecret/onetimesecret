@@ -3,7 +3,6 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import { defineEmits } from 'vue';
 
 const { t } = useI18n();
 
