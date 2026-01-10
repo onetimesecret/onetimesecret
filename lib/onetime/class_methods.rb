@@ -357,10 +357,11 @@ module Onetime
 
       @legacy_log_warnings << caller_file
 
-      logger.warn 'Legacy logging detected - use keyword arguments for structured logging', {
-        file: caller_file,
-        migration_guide: 'docs/logging-migration-guide.md',
-      }
+      logger.warn 'Legacy logging detected - use keyword arguments for structured logging',
+        {
+          file: caller_file,
+          migration_guide: 'docs/logging-migration-guide.md',
+        }
     end
     private :warn_about_legacy_logging
 

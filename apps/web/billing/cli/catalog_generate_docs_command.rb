@@ -14,7 +14,8 @@ module Onetime
 
       desc 'Generate plan-definitions.md from billing.yaml'
 
-      option :output, type: :string,
+      option :output,
+        type: :string,
         desc: 'Output file path (default: docs/billing/plan-definitions.md)'
 
       def call(output: nil, **)
@@ -121,7 +122,8 @@ module Onetime
         plans.each do |plan_id, plan_data|
           show_icon   = plan_data['show_on_plans_page'] ? '✓' : '✗'
           legacy_icon = plan_data['legacy'] ? '⚠️' : ''
-          rows << format('| %s | %s | %s | %s | %s | %s | %s | %s |',
+          rows << format(
+            '| %s | %s | %s | %s | %s | %s | %s | %s |',
             plan_id,
             plan_data['name'],
             plan_data['tier'],

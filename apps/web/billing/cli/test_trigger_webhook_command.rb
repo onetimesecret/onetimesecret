@@ -12,12 +12,15 @@ module Onetime
 
       desc 'Trigger a test webhook event (requires Stripe CLI)'
 
-      argument :event_type, required: true,
+      argument :event_type,
+        required: true,
         desc: 'Event type (e.g., customer.subscription.updated)'
 
-      option :subscription, type: :string,
+      option :subscription,
+        type: :string,
         desc: 'Subscription ID for subscription events'
-      option :customer, type: :string,
+      option :customer,
+        type: :string,
         desc: 'Customer ID for customer events'
 
       def call(event_type:, subscription: nil, customer: nil, **)

@@ -136,9 +136,14 @@ module Onetime
           scanned += 1
           break if scanned > max_scan
 
-          next unless matches_filters?(event, type: type, cutoff: cutoff,
-            stripe_customer_id: stripe_customer_id, original_customer_id: customer,
-            status: status, force: force
+          next unless matches_filters?(
+            event,
+            type: type,
+            cutoff: cutoff,
+            stripe_customer_id: stripe_customer_id,
+            original_customer_id: customer,
+            status: status,
+            force: force,
           )
 
           events << event
@@ -184,8 +189,10 @@ module Onetime
         return false if cutoff && event.first_seen_at.to_i < cutoff.to_i
 
         # Customer filter (pass both Stripe ID and original input for metadata matching)
-        if (stripe_customer_id || original_customer_id) && !matches_customer?(event, stripe_customer_id,
-          original_customer_id: original_customer_id
+        if (stripe_customer_id || original_customer_id) && !matches_customer?(
+          event,
+          stripe_customer_id,
+          original_customer_id: original_customer_id,
         )
           return false
         end
@@ -273,14 +280,19 @@ module Onetime
         puts "Found #{events.size} event(s) matching filters:"
         puts ''
 
-        puts format('%-28s %-35s %-10s %s',
-          'EVENT ID', 'TYPE', 'STATUS', 'AGE'
+        puts format(
+          '%-28s %-35s %-10s %s',
+          'EVENT ID',
+          'TYPE',
+          'STATUS',
+          'AGE',
         )
         puts '-' * 90
 
         events.each do |event|
           age = format_age(event.first_seen_at)
-          puts format('%-28s %-35s %-10s %s',
+          puts format(
+            '%-28s %-35s %-10s %s',
             event.stripe_event_id,
             event.event_type.to_s[0...35],
             event.processing_status,

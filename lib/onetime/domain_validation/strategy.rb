@@ -60,8 +60,9 @@ module Onetime
       # @raise [ArgumentError] If strict mode is enabled
       def self.handle_unknown_strategy(strategy_name, strict_mode, config)
         if strict_mode
-          raise ArgumentError, "Unknown domain validation strategy: '#{strategy_name}'. " \
-                               'Valid options: approximated, passthrough, caddy_on_demand'
+          raise ArgumentError,
+            "Unknown domain validation strategy: '#{strategy_name}'. " \
+            'Valid options: approximated, passthrough, caddy_on_demand'
         end
 
         OT.le "[DomainValidation] Unknown strategy: '#{strategy_name}', " \

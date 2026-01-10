@@ -131,7 +131,8 @@ namespace :spec do
       env = {
         'RACK_ENV' => 'test',
         'AUTHENTICATION_MODE' => 'full',
-        'AUTH_DATABASE_URL' => ENV.fetch('AUTH_DATABASE_URL',
+        'AUTH_DATABASE_URL' => ENV.fetch(
+          'AUTH_DATABASE_URL',
           'postgresql://postgres@localhost:5432/onetime_auth_test',
         ),
       }

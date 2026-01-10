@@ -105,11 +105,12 @@ module Onetime
 
             # Validate subscription status is known value
             unless Billing::Metadata::VALID_SUBSCRIPTION_STATUSES.include?(subscription.status)
-              OT.lw '[Organization.update_from_stripe_subscription] Unknown subscription status', {
-                subscription_id: subscription.id,
-                status: subscription.status,
-                orgid: objid,
-              }
+              OT.lw '[Organization.update_from_stripe_subscription] Unknown subscription status',
+                {
+                  subscription_id: subscription.id,
+                  status: subscription.status,
+                  orgid: objid,
+                }
             end
 
             # ==========================================================================
@@ -176,20 +177,22 @@ module Onetime
             # Catalog-first resolution (fail-closed)
             plan_id = Billing::PlanValidator.resolve_plan_id(price_id)
 
-            OT.info '[Organization.extract_plan_id_from_subscription] Resolved plan from catalog', {
-              plan_id: plan_id,
-              price_id: price_id,
-              subscription_id: subscription.id,
-            }
+            OT.info '[Organization.extract_plan_id_from_subscription] Resolved plan from catalog',
+              {
+                plan_id: plan_id,
+                price_id: price_id,
+                subscription_id: subscription.id,
+              }
 
             # Detect and log drift (metadata used only for debugging)
             metadata_plan_id = extract_metadata_plan_id(subscription)
             if metadata_plan_id && metadata_plan_id != plan_id
-              OT.lw '[Organization.extract_plan_id_from_subscription] Drift detected - using catalog value', {
-                catalog_plan_id: plan_id,
-                metadata_plan_id: metadata_plan_id,
-                subscription_id: subscription.id,
-              }
+              OT.lw '[Organization.extract_plan_id_from_subscription] Drift detected - using catalog value',
+                {
+                  catalog_plan_id: plan_id,
+                  metadata_plan_id: metadata_plan_id,
+                  subscription_id: subscription.id,
+                }
             end
 
             plan_id

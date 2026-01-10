@@ -9,22 +9,37 @@ module Onetime
     class MigrateRedisDataCommand < DelayBootCommand
       desc 'Consolidate Redis data from multiple databases to database 0'
 
-      option :run, type: :boolean, default: false,
+      option :run,
+        type: :boolean,
+        default: false,
         desc: 'Actually apply changes (default is dry run mode)'
 
-      option :show_commands, type: :boolean, default: false,
+      option :show_commands,
+        type: :boolean,
+        default: false,
         desc: 'Generate redis-cli commands for manual execution'
 
-      option :yes, type: :boolean, default: false, aliases: ['y'],
+      option :yes,
+        type: :boolean,
+        default: false,
+        aliases: ['y'],
         desc: 'Auto-confirm consolidation (non-interactive mode)'
 
-      option :batch_size, type: :string, default: nil,
+      option :batch_size,
+        type: :string,
+        default: nil,
         desc: 'Set batch size for consolidation (default: 100, max: 10000)'
 
-      option :help, type: :boolean, default: false, aliases: ['h'],
+      option :help,
+        type: :boolean,
+        default: false,
+        aliases: ['h'],
         desc: 'Show help message'
 
-      option :verbose, type: :boolean, default: false, aliases: ['v'],
+      option :verbose,
+        type: :boolean,
+        default: false,
+        aliases: ['v'],
         desc: 'Show detailed progress and CLI commands'
 
       def call(run: false, show_commands: false, yes: false, batch_size: nil, help: false, verbose: false, **)

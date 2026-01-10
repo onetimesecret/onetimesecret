@@ -7,9 +7,20 @@ module V2::Logic
     using Familia::Refinements::TimeLiterals
 
     class ShowSecret < V2::Logic::Base
-      attr_reader :identifier, :passphrase, :continue, :secret, :show_secret, :secret_value,
-        :verification, :correct_passphrase, :display_lines, :one_liner,
-        :is_owner, :has_passphrase, :secret_identifier, :share_domain
+      attr_reader :identifier,
+        :passphrase,
+        :continue,
+        :secret,
+        :show_secret,
+        :secret_value,
+        :verification,
+        :correct_passphrase,
+        :display_lines,
+        :one_liner,
+        :is_owner,
+        :has_passphrase,
+        :secret_identifier,
+        :share_domain
 
       def process_params
         @identifier = sanitize_identifier(params['identifier'].to_s)

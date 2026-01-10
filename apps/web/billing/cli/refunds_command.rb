@@ -31,8 +31,13 @@ module Onetime
           return
         end
 
-        puts format('%-22s %-22s %-12s %-10s %s',
-          'ID', 'CHARGE', 'AMOUNT', 'STATUS', 'CREATED'
+        puts format(
+          '%-22s %-22s %-12s %-10s %s',
+          'ID',
+          'CHARGE',
+          'AMOUNT',
+          'STATUS',
+          'CREATED',
         )
         puts '-' * 90
 
@@ -40,7 +45,8 @@ module Onetime
           amount  = format_amount(refund.amount, refund.currency)
           created = format_timestamp(refund.created)
 
-          puts format('%-22s %-22s %-12s %-10s %s',
+          puts format(
+            '%-22s %-22s %-12s %-10s %s',
             refund.id[0..21],
             refund.charge[0..21],
             amount[0..11],

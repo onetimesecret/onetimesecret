@@ -257,7 +257,8 @@ Sequel.migration do
   end
 
   down do
-    drop_table(:account_sms_codes,
+    drop_table(
+      :account_sms_codes,
       :account_recovery_codes,
       :account_otp_unlocks,
       :account_otp_keys,

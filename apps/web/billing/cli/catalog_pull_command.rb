@@ -12,7 +12,9 @@ module Onetime
 
       desc 'Pull products and prices from Stripe to Redis cache'
 
-      option :clear, type: :boolean, default: false,
+      option :clear,
+        type: :boolean,
+        default: false,
         desc: 'Clear existing cache before pulling'
 
       def call(clear: false, **)

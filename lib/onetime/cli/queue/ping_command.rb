@@ -27,11 +27,19 @@ module Onetime
       class PingCommand < Command
         desc 'Test job queue communication by sending ping messages'
 
-        option :queue, type: :string, aliases: ['q'],
+        option :queue,
+          type: :string,
+          aliases: ['q'],
           desc: 'Test specific queue: email, billing, notification, transient (default: all)'
-        option :wait, type: :integer, default: 5, aliases: ['w'],
+        option :wait,
+          type: :integer,
+          default: 5,
+          aliases: ['w'],
           desc: 'Seconds to wait for worker acknowledgment'
-        option :dry_run, type: :boolean, default: false, aliases: ['n'],
+        option :dry_run,
+          type: :boolean,
+          default: false,
+          aliases: ['n'],
           desc: 'Show what would be published without sending'
 
         # Map friendly names to actual queue names

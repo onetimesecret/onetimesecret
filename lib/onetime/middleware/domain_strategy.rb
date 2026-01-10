@@ -74,10 +74,11 @@ module Onetime
         domains_config      = OT.conf&.dig('features', 'domains') || {}
         self.class.initialize_from_config(domains_config)
 
-        boot_logger.debug 'DomainStrategy initialized', {
-          app_context: @application_context,
-          canonical_domain: canonical_domain,
-        }
+        boot_logger.debug 'DomainStrategy initialized',
+          {
+            app_context: @application_context,
+            canonical_domain: canonical_domain,
+          }
       end
 
       # Processes the incoming request and classifies the domain.
@@ -111,11 +112,12 @@ module Onetime
             display_domain  = override_domain
             domain_strategy = :custom
 
-            http_logger.info '[DomainStrategy] override active', {
-              domain: override_domain,
-              source: override_source,
-              strategy: domain_strategy,
-            }
+            http_logger.info '[DomainStrategy] override active',
+              {
+                domain: override_domain,
+                source: override_source,
+                strategy: domain_strategy,
+              }
           else
             display_domain  = env[Rack::DetectHost.result_field_name]
             # OT.ld "[middleware] DomainStrategy: detected_host=#{display_domain.inspect} result_field_name=#{Rack::DetectHost.result_field_name}"
@@ -126,10 +128,11 @@ module Onetime
         env['onetime.display_domain']  = display_domain
         env['onetime.domain_strategy'] = domain_strategy || :invalid # make sure never nil
 
-        http_logger.debug '[DomainStrategy] determined', {
-          host: display_domain,
-          strategy: domain_strategy,
-        }
+        http_logger.debug '[DomainStrategy] determined',
+          {
+            host: display_domain,
+            strategy: domain_strategy,
+          }
 
         @app.call(env)
       end
@@ -145,12 +148,13 @@ module Onetime
       def detect_domain_override(env)
         detected_host = env[Rack::DetectHost.result_field_name]
 
-        http_logger.debug '[DomainStrategy] detect_domain_override check', {
-          domain_context_enabled: domain_context_enabled?,
-          detected_host: detected_host,
-          env_var: ENV.fetch(DOMAIN_CONTEXT_ENV_VAR, nil),
-          header: env[DOMAIN_CONTEXT_HEADER],
-        }
+        http_logger.debug '[DomainStrategy] detect_domain_override check',
+          {
+            domain_context_enabled: domain_context_enabled?,
+            detected_host: detected_host,
+            env_var: ENV.fetch(DOMAIN_CONTEXT_ENV_VAR, nil),
+            header: env[DOMAIN_CONTEXT_HEADER],
+          }
 
         return unless domain_context_enabled?
 
@@ -204,17 +208,19 @@ module Onetime
             when ->(d) { known_custom_domain?(d.name) }       then :custom
             end
           rescue PublicSuffix::DomainInvalid => ex
-            Onetime.http_logger.debug 'Invalid domain in strategy selection', {
-              exception: ex,
-              request_domain: request_domain,
-            }
+            Onetime.http_logger.debug 'Invalid domain in strategy selection',
+              {
+                exception: ex,
+                request_domain: request_domain,
+              }
             nil
           rescue StandardError => ex
-            Onetime.http_logger.error 'Unhandled error in domain strategy', {
-              exception: ex,
-              request_domain: request_domain,
-              canonical_domain: canonical_domain,
-            }
+            Onetime.http_logger.error 'Unhandled error in domain strategy',
+              {
+                exception: ex,
+                request_domain: request_domain,
+                canonical_domain: canonical_domain,
+              }
             nil
           end
 
@@ -334,7 +340,9 @@ module Onetime
       # @note If dynamic reconfiguration is needed, consider using a thread-safe
       #   configuration store (e.g., monitor pattern) instead of class variables.
       module ClassMethods
-        attr_reader :canonical_domain, :domains_enabled, :canonical_domain_parsed,
+        attr_reader :canonical_domain,
+          :domains_enabled,
+          :canonical_domain_parsed,
           :domain_context_enabled
 
         alias domains_enabled? domains_enabled
@@ -344,9 +352,10 @@ module Onetime
         def initialize_from_config(domains_config)
           raise ArgumentError, 'Configuration cannot be nil' if domains_config.nil?
 
-          Onetime.http_logger.debug 'DomainStrategy initializing from config', {
-            domains_enabled_before: domains_enabled,
-          }
+          Onetime.http_logger.debug 'DomainStrategy initializing from config',
+            {
+              domains_enabled_before: domains_enabled,
+            }
 
           @domains_enabled  = domains_config.fetch('enabled', false)
           @canonical_domain = get_canonical_domain(domains_config)
@@ -355,11 +364,12 @@ module Onetime
           dev_config              = OT.conf&.dig('development') || {}
           @domain_context_enabled = dev_config['domain_context_enabled'] == true
 
-          Onetime.http_logger.debug 'DomainStrategy config loaded', {
-            domains_enabled: domains_enabled,
-            canonical_domain: canonical_domain,
-            domain_context_enabled: domain_context_enabled,
-          }
+          Onetime.http_logger.debug 'DomainStrategy config loaded',
+            {
+              domains_enabled: domains_enabled,
+              canonical_domain: canonical_domain,
+              domain_context_enabled: domain_context_enabled,
+            }
 
           # We don't need to get into any domain parsing if domains are disabled
           return unless domains_enabled?

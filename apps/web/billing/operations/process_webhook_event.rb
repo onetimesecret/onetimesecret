@@ -79,9 +79,10 @@ module Billing
         if handler_class
           handler_class.new(event: @event, context: @context).call
         else
-          billing_logger.debug 'Unhandled webhook event type', {
-            event_type: @event.type,
-          }
+          billing_logger.debug 'Unhandled webhook event type',
+            {
+              event_type: @event.type,
+            }
           :unhandled
         end
       end

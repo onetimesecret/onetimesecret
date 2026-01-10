@@ -87,25 +87,28 @@ module Billing
       begin
         event = Stripe::Webhook.construct_event(payload, signature, @webhook_secret)
       rescue JSON::ParserError => ex
-        billing_logger.error '[WebhookValidator] Invalid JSON payload', {
-          error: ex.message,
-        }
+        billing_logger.error '[WebhookValidator] Invalid JSON payload',
+          {
+            error: ex.message,
+          }
         raise
       rescue Stripe::SignatureVerificationError => ex
-        billing_logger.error '[WebhookValidator] Invalid signature', {
-          error: ex.message,
-        }
+        billing_logger.error '[WebhookValidator] Invalid signature',
+          {
+            error: ex.message,
+          }
         raise
       end
 
       # Validate event timestamp to prevent replay attacks
       verify_timestamp!(event)
 
-      billing_logger.info '[WebhookValidator] Event validated successfully', {
-        event_id: event.id,
-        event_type: event.type,
-        created_at: Time.at(event.created).iso8601,
-      }
+      billing_logger.info '[WebhookValidator] Event validated successfully',
+        {
+          event_id: event.id,
+          event_type: event.type,
+          created_at: Time.at(event.created).iso8601,
+        }
 
       event
     end
@@ -139,12 +142,13 @@ module Billing
       event.attempt_count    = '0'
       event.save
 
-      billing_logger.debug '[WebhookValidator] Event metadata initialized', {
-        event_id: stripe_event.id,
-        event_type: stripe_event.type,
-        api_version: stripe_event.api_version,
-        livemode: stripe_event.livemode,
-      }
+      billing_logger.debug '[WebhookValidator] Event metadata initialized',
+        {
+          event_id: stripe_event.id,
+          event_type: stripe_event.type,
+          api_version: stripe_event.api_version,
+          livemode: stripe_event.livemode,
+        }
 
       event
     end
@@ -167,34 +171,37 @@ module Billing
 
       # Check if event is too old (replay attack)
       if age > MAX_EVENT_AGE
-        billing_logger.error '[WebhookValidator] Event too old (possible replay attack)', {
-          event_id: event.id,
-          event_type: event.type,
-          event_time: event_time.iso8601,
-          current_time: current_time.iso8601,
-          age_seconds: age.to_i,
-        }
+        billing_logger.error '[WebhookValidator] Event too old (possible replay attack)',
+          {
+            event_id: event.id,
+            event_type: event.type,
+            event_time: event_time.iso8601,
+            current_time: current_time.iso8601,
+            age_seconds: age.to_i,
+          }
 
         raise SecurityError, "Event too old: #{age.to_i}s (max: #{MAX_EVENT_AGE}s)"
       end
 
       # Check if event is too far in the future (clock skew or manipulation)
       if age < -MAX_FUTURE_TOLERANCE
-        billing_logger.error '[WebhookValidator] Event timestamp in future', {
-          event_id: event.id,
-          event_type: event.type,
-          event_time: event_time.iso8601,
-          current_time: current_time.iso8601,
-          future_seconds: age.abs.to_i,
-        }
+        billing_logger.error '[WebhookValidator] Event timestamp in future',
+          {
+            event_id: event.id,
+            event_type: event.type,
+            event_time: event_time.iso8601,
+            current_time: current_time.iso8601,
+            future_seconds: age.abs.to_i,
+          }
 
         raise SecurityError, "Event timestamp in future: #{age.abs.to_i}s"
       end
 
-      billing_logger.debug '[WebhookValidator] Timestamp valid', {
-        event_id: event.id,
-        age_seconds: age.to_i,
-      }
+      billing_logger.debug '[WebhookValidator] Timestamp valid',
+        {
+          event_id: event.id,
+          age_seconds: age.to_i,
+        }
     end
   end
 end

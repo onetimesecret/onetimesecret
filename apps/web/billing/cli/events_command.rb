@@ -31,8 +31,11 @@ module Onetime
           return
         end
 
-        puts format('%-22s %-35s %s',
-          'ID', 'TYPE', 'CREATED'
+        puts format(
+          '%-22s %-35s %s',
+          'ID',
+          'TYPE',
+          'CREATED',
         )
         puts '-' * 70
 

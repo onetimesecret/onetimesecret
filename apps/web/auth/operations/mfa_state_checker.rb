@@ -26,8 +26,11 @@ module Auth
     class MfaStateChecker
       # State object returned by the checker
       class State
-        attr_reader :account_id, :has_otp_secret, :has_recovery_codes,
-          :otp_last_use, :unused_recovery_code_count
+        attr_reader :account_id,
+          :has_otp_secret,
+          :has_recovery_codes,
+          :otp_last_use,
+          :unused_recovery_code_count
 
         def initialize(
           account_id:,

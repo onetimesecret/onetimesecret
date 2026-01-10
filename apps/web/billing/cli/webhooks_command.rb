@@ -183,13 +183,19 @@ module Onetime
           return
         end
 
-        puts format('%-25s %-35s %-12s %-6s %s',
-          'EVENT ID', 'TYPE', 'STATUS', 'RETRIES', 'LAST ATTEMPT'
+        puts format(
+          '%-25s %-35s %-12s %-6s %s',
+          'EVENT ID',
+          'TYPE',
+          'STATUS',
+          'RETRIES',
+          'LAST ATTEMPT',
         )
         puts '-' * 110
 
         matching_events.sort_by { |e| -(e.last_attempt_at.to_i) }.each do |event|
-          puts format('%-25s %-35s %-12s %-6s %s',
+          puts format(
+            '%-25s %-35s %-12s %-6s %s',
             event.stripe_event_id,
             event.event_type.to_s[0...35],
             format_status(event.processing_status),

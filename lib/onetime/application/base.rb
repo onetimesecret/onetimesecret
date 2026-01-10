@@ -74,20 +74,23 @@ module Onetime
       attr_reader :options, :router, :rack_app
 
       def initialize(options = {})
-        app_logger.debug 'Initializing', {
-          application: self.class.name,
-          options: options,
-        }
+        app_logger.debug 'Initializing',
+          {
+            application: self.class.name,
+            options: options,
+          }
         @options  = options
 
-        app_logger.debug 'Building router', {
-          application: self.class.name,
-        }
+        app_logger.debug 'Building router',
+          {
+            application: self.class.name,
+          }
         @router   = build_router
 
-        app_logger.debug 'Building rack app', {
-          application: self.class.name,
-        }
+        app_logger.debug 'Building rack app',
+          {
+            application: self.class.name,
+          }
         @rack_app = build_rack_app
       end
 
@@ -166,9 +169,10 @@ module Onetime
           # Wrap the warmup to log before and after actual execution
           if base_klass.warmup
             builder.warmup do |built_app|
-              Onetime.app_logger.debug 'Warmup started', {
-                application: app_context[:name],
-              }
+              Onetime.app_logger.debug 'Warmup started',
+                {
+                  application: app_context[:name],
+                }
 
               # Call the actual warmup block
               base_klass.warmup.call(built_app)
@@ -204,9 +208,10 @@ module Onetime
         def inherited(subclass)
           # Keep track subclasses without immediate registration
           Registry.register_application_class(subclass)
-          Onetime.app_logger.debug 'Application registered', {
-            application: subclass.name,
-          }
+          Onetime.app_logger.debug 'Application registered',
+            {
+              application: subclass.name,
+            }
         end
 
         def use(klass, *args, &block)
@@ -257,8 +262,13 @@ module Onetime
             @init_block        = block
 
             class << self
-              attr_reader :initializer_name, :application_class, :depends_on,
-                :provides, :optional, :description_text, :init_block
+              attr_reader :initializer_name,
+                :application_class,
+                :depends_on,
+                :provides,
+                :optional,
+                :description_text,
+                :init_block
             end
 
             # Override description if provided

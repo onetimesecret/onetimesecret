@@ -222,25 +222,26 @@ module Auth
             secret_access_key: secret_key,
           )
 
-          client.send_email({
-            source: email[:from],
-            destination: {
-              to_addresses: [email[:to]],
-            },
-            message: {
-              subject: {
-                data: email[:subject],
-                charset: 'UTF-8',
+          client.send_email(
+            {
+              source: email[:from],
+              destination: {
+                to_addresses: [email[:to]],
               },
-              body: {
-                text: {
-                  data: email[:body],
+              message: {
+                subject: {
+                  data: email[:subject],
                   charset: 'UTF-8',
+                },
+                body: {
+                  text: {
+                    data: email[:body],
+                    charset: 'UTF-8',
+                  },
                 },
               },
             },
-          },
-                           )
+          )
 
           log_delivery(email, 'sent', 'SES')
         rescue StandardError => ex
@@ -387,10 +388,11 @@ module Auth
         # Validate the delivery strategy
         @delivery_strategy # This will raise if configuration is invalid
       rescue ArgumentError => ex
-        Onetime.auth_logger.error 'Email configuration invalid, falling back to logger delivery', {
-          error: ex.message,
-          fallback_provider: 'logger',
-        }
+        Onetime.auth_logger.error 'Email configuration invalid, falling back to logger delivery',
+          {
+            error: ex.message,
+            fallback_provider: 'logger',
+          }
         @delivery_strategy = Delivery::Logger.new
         @provider          = 'logger'
       end

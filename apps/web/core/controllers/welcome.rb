@@ -53,27 +53,30 @@ module Core
           payment_links = OT.billing_config.payment_links
           payment_link  = payment_links.dig(tierid, billing_cycle)
 
-          http_logger.debug 'Plan redirect request', {
-            tierid: tierid,
-            billing_cycle: billing_cycle,
-            payment_link: payment_link,
-          }
+          http_logger.debug 'Plan redirect request',
+            {
+              tierid: tierid,
+              billing_cycle: billing_cycle,
+              payment_link: payment_link,
+            }
 
           validated_url = validate_url(payment_link)
 
           unless validated_url
-            http_logger.warn 'Unknown plan configuration - redirecting to signup', {
-              tierid: tierid,
-              billing_cycle: billing_cycle,
-            }
+            http_logger.warn 'Unknown plan configuration - redirecting to signup',
+              {
+                tierid: tierid,
+                billing_cycle: billing_cycle,
+              }
             raise OT::Redirect.new('/signup')
           end
 
-          http_logger.info 'Plan clicked - redirecting to Stripe', {
-            tierid: tierid,
-            billing_cycle: billing_cycle,
-            url: validated_url.to_s,
-          }
+          http_logger.info 'Plan clicked - redirecting to Stripe',
+            {
+              tierid: tierid,
+              billing_cycle: billing_cycle,
+              url: validated_url.to_s,
+            }
 
           stripe_params = {
             # rack.locale is a list, often with just a single locale (e.g. `[en]`).
@@ -98,9 +101,10 @@ module Core
 
           # Apply the query parameters back to the URI::HTTP object
           validated_url.query = URI.encode_www_form(stripe_params)
-          http_logger.debug 'Updated Stripe URL with query parameters', {
-            query: validated_url.query,
-          }
+          http_logger.debug 'Updated Stripe URL with query parameters',
+            {
+              query: validated_url.query,
+            }
           res.redirect validated_url.to_s # convert URI::Generic to a string
       end
 
@@ -166,24 +170,27 @@ module Core
         return_url  = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
 
         # Create a Stripe Customer Portal session
-        stripe_session = Stripe::BillingPortal::Session.create({
-          customer: customer_id,
-          return_url: return_url,
-        },
-                                                              )
+        stripe_session = Stripe::BillingPortal::Session.create(
+          {
+            customer: customer_id,
+            return_url: return_url,
+          },
+        )
 
         # Continue the redirect
         res.redirect stripe_session.url
       rescue Stripe::StripeError => ex
-            http_logger.error 'Stripe customer portal creation failed', {
-              exception: ex,
-              customer_id: customer_id,
-            }
+            http_logger.error 'Stripe customer portal creation failed',
+              {
+                exception: ex,
+                customer_id: customer_id,
+              }
             raise_form_error(ex.message)
       rescue StandardError => ex
-            http_logger.error 'Unexpected error creating customer portal session', {
-              exception: ex,
-            }
+            http_logger.error 'Unexpected error creating customer portal session',
+              {
+                exception: ex,
+              }
             raise_form_error('An unexpected error occurred')
       end
     end

@@ -22,11 +22,12 @@ module Onetime
         ip_address = req.ip
 
         if ip_address && Onetime::BannedIP.banned?(ip_address)
-          @logger.warn 'Blocked request from banned IP', {
-            ip: ip_address,
-            path: env['PATH_INFO'],
-            method: env['REQUEST_METHOD'],
-          }
+          @logger.warn 'Blocked request from banned IP',
+            {
+              ip: ip_address,
+              path: env['PATH_INFO'],
+              method: env['REQUEST_METHOD'],
+            }
 
           return forbidden_response(env)
         end

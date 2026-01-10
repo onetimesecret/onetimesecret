@@ -17,16 +17,25 @@ module Onetime
     class RoleCommand < Command
       desc 'Manage customer roles (promote, demote, list)'
 
-      argument :action, type: :string, required: true,
+      argument :action,
+        type: :string,
+        required: true,
         desc: 'Action to perform: promote, demote, or list'
 
-      argument :email, type: :string, required: false,
+      argument :email,
+        type: :string,
+        required: false,
         desc: 'Email address of the customer (required for promote/demote)'
 
-      option :role, type: :string, default: 'colonel',
+      option :role,
+        type: :string,
+        default: 'colonel',
         desc: 'Target role for promotion or listing (colonel, admin, staff, customer)'
 
-      option :force, type: :boolean, default: false, aliases: ['-f'],
+      option :force,
+        type: :boolean,
+        default: false,
+        aliases: ['-f'],
         desc: 'Skip confirmation prompt'
 
       # Valid roles in hierarchy order (highest to lowest)

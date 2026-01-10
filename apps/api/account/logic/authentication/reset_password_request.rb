@@ -32,11 +32,12 @@ module AccountAPI::Logic
         cust = Onetime::Customer.load @login_or_email
 
         if cust.pending?
-          auth_logger.info 'Resending verification email for pending customer', {
-            customer_id: cust.objid,
-            email: cust.obscure_email,
-            status: :pending,
-          }
+          auth_logger.info 'Resending verification email for pending customer',
+            {
+              customer_id: cust.objid,
+              email: cust.obscure_email,
+              status: :pending,
+            }
 
           send_verification_email
           msg = "#{I18n.t('web.COMMON.verification_sent_to', locale: @locale)} #{cust.objid}."
@@ -50,39 +51,45 @@ module AccountAPI::Logic
 
         cust.reset_secret = secret.identifier  # as a standalone dbkey, writes immediately
 
-        auth_logger.debug 'Delivering password reset email', {
-          customer_id: cust.objid,
-          email: cust.obscure_email,
-          secret_identifier: secret.identifier,
-          token: token&.slice(0, 8), # Only log first 8 chars for debugging
-        }
+        auth_logger.debug 'Delivering password reset email',
+          {
+            customer_id: cust.objid,
+            email: cust.obscure_email,
+            secret_identifier: secret.identifier,
+            token: token&.slice(0, 8), # Only log first 8 chars for debugging
+          }
 
         begin
           # Critical auth flow: use sync fallback to ensure email is sent
           # User is waiting for password reset, blocking is acceptable
-          Onetime::Jobs::Publisher.enqueue_email(:password_request, {
-            email_address: cust.email,
-            secret: secret,
-            locale: locale || cust.locale || OT.default_locale,
-          }, fallback: :sync
+          Onetime::Jobs::Publisher.enqueue_email(
+            :password_request,
+            {
+              email_address: cust.email,
+              secret: secret,
+              locale: locale || cust.locale || OT.default_locale,
+            },
+            fallback: :sync,
           )
         rescue StandardError => ex
           errmsg = "Couldn't send the notification email. Let know below."
-          auth_logger.error 'Password reset email delivery failed', {
-            customer_id: cust.objid,
-            email: cust.obscure_email,
-            error: ex.message,
-            session_id: sess&.id,
-          }
+          auth_logger.error 'Password reset email delivery failed',
+            {
+              customer_id: cust.objid,
+              email: cust.obscure_email,
+              error: ex.message,
+              session_id: sess&.id,
+            }
 
           set_error_message(errmsg)
         else
-          auth_logger.info 'Password reset email sent', {
-            customer_id: cust.objid,
-            email: cust.obscure_email,
-            session_id: sess&.id,
-            secret_identifier: secret.identifier,
-          }
+          auth_logger.info 'Password reset email sent',
+            {
+              customer_id: cust.objid,
+              email: cust.obscure_email,
+              session_id: sess&.id,
+              secret_identifier: secret.identifier,
+            }
 
           set_info_message "We sent instructions to #{cust.objid}"
         end

@@ -61,12 +61,13 @@ module Billing
         rescue Billing::CircuitOpenError => ex
           schedule_circuit_retry(ex)
         rescue StandardError => ex
-          billing_logger.error '[CatalogUpdated] Sync failed', {
-            error: ex.message,
-            event_type: @event.type,
-            object_id: @data_object.id,
-            backtrace: ex.backtrace&.first(3),
-          }
+          billing_logger.error '[CatalogUpdated] Sync failed',
+            {
+              error: ex.message,
+              event_type: @event.type,
+              object_id: @data_object.id,
+              backtrace: ex.backtrace&.first(3),
+            }
           # Don't fail webhook for sync errors - prevents retry storms
           :success
         end
@@ -87,21 +88,23 @@ module Billing
           # If no event record available, we can't schedule retry
           # This happens during CLI replays or sync fallback processing
           unless webhook_event
-            billing_logger.warn '[CatalogUpdated] Circuit breaker open, no event record for retry', {
-              event_type: @event.type,
-              object_id: @data_object.id,
-              retry_after: error.retry_after,
-            }
+            billing_logger.warn '[CatalogUpdated] Circuit breaker open, no event record for retry',
+              {
+                event_type: @event.type,
+                object_id: @data_object.id,
+                retry_after: error.retry_after,
+              }
             return :success
           end
 
           # Check if already at max retries
           if webhook_event.circuit_retry_exhausted?
-            billing_logger.error '[CatalogUpdated] Circuit retry exhausted', {
-              event_type: @event.type,
-              object_id: @data_object.id,
-              retry_count: webhook_event.circuit_retry_count,
-            }
+            billing_logger.error '[CatalogUpdated] Circuit retry exhausted',
+              {
+                event_type: @event.type,
+                object_id: @data_object.id,
+                retry_count: webhook_event.circuit_retry_count,
+              }
             webhook_event.mark_failed!(error)
             return :success
           end
@@ -110,12 +113,13 @@ module Billing
           delay = error.retry_after || 60
           webhook_event.schedule_circuit_retry(delay_seconds: delay)
 
-          billing_logger.warn '[CatalogUpdated] Circuit breaker open, scheduled retry', {
-            event_type: @event.type,
-            object_id: @data_object.id,
-            retry_after: delay,
-            retry_count: webhook_event.circuit_retry_count,
-          }
+          billing_logger.warn '[CatalogUpdated] Circuit breaker open, scheduled retry',
+            {
+              event_type: @event.type,
+              object_id: @data_object.id,
+              retry_after: delay,
+              retry_count: webhook_event.circuit_retry_count,
+            }
 
           :queued
         end
@@ -183,11 +187,12 @@ module Billing
 
           Billing::Plan.rebuild_stripe_price_id_cache
 
-          billing_logger.info '[CatalogUpdated] Synced product', {
-            product_id: product_id,
-            product_name: product.name,
-            prices_synced: synced_count,
-          }
+          billing_logger.info '[CatalogUpdated] Synced product',
+            {
+              product_id: product_id,
+              product_name: product.name,
+              prices_synced: synced_count,
+            }
         end
 
         # Sync a single price and its parent product
@@ -211,10 +216,11 @@ module Billing
           Billing::Plan.upsert_from_stripe_data(plan_data)
           Billing::Plan.rebuild_stripe_price_id_cache
 
-          billing_logger.info '[CatalogUpdated] Synced price', {
-            price_id: price_id,
-            plan_id: plan_data[:plan_id],
-          }
+          billing_logger.info '[CatalogUpdated] Synced price',
+            {
+              price_id: price_id,
+              plan_id: plan_data[:plan_id],
+            }
         end
 
         # Mark all plans for a deleted product as inactive
@@ -233,19 +239,21 @@ module Billing
             plan.last_synced_at = Time.now.to_i.to_s
             plan.save
 
-            billing_logger.info '[CatalogUpdated] Marked plan inactive (product deleted)', {
-              plan_id: plan.plan_id,
-              product_id: product_id,
-            }
+            billing_logger.info '[CatalogUpdated] Marked plan inactive (product deleted)',
+              {
+                plan_id: plan.plan_id,
+                product_id: product_id,
+              }
             marked_count += 1
           end
 
           Billing::Plan.rebuild_stripe_price_id_cache if marked_count > 0
 
-          billing_logger.info '[CatalogUpdated] Product deletion processed', {
-            product_id: product_id,
-            plans_marked_inactive: marked_count,
-          }
+          billing_logger.info '[CatalogUpdated] Product deletion processed',
+            {
+              product_id: product_id,
+              plans_marked_inactive: marked_count,
+            }
         end
 
         # Mark a plan for a deleted price as inactive
@@ -258,9 +266,10 @@ module Billing
           plan = Billing::Plan.find_by_stripe_price_id(price_id)
 
           unless plan
-            billing_logger.info '[CatalogUpdated] Price deletion - no matching plan', {
-              price_id: price_id,
-            }
+            billing_logger.info '[CatalogUpdated] Price deletion - no matching plan',
+              {
+                price_id: price_id,
+              }
             return
           end
 
@@ -270,10 +279,11 @@ module Billing
 
           Billing::Plan.rebuild_stripe_price_id_cache
 
-          billing_logger.info '[CatalogUpdated] Marked plan inactive (price deleted)', {
-            plan_id: plan.plan_id,
-            price_id: price_id,
-          }
+          billing_logger.info '[CatalogUpdated] Marked plan inactive (price deleted)',
+            {
+              plan_id: plan.plan_id,
+              price_id: price_id,
+            }
         end
       end
     end

@@ -12,10 +12,14 @@ module Onetime
 
       desc 'Find and fix all domain relationship issues'
 
-      option :dry_run, type: :boolean, default: false,
+      option :dry_run,
+        type: :boolean,
+        default: false,
         desc: 'Preview changes without applying'
 
-      option :force, type: :boolean, default: false,
+      option :force,
+        type: :boolean,
+        default: false,
         desc: 'Skip confirmation prompt'
 
       def call(dry_run: false, force: false, **)

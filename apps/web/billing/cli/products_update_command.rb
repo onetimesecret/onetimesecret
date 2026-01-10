@@ -18,7 +18,9 @@ module Onetime
 
       argument :product_id, required: true, desc: 'Product ID (e.g., prod_xxx)'
 
-      option :interactive, type: :boolean, default: false,
+      option :interactive,
+        type: :boolean,
+        default: false,
         desc: 'Interactive mode - prompt for all fields'
 
       option :plan_id, type: :string, desc: 'Plan ID'

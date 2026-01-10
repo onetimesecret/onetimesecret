@@ -63,10 +63,12 @@ module Rack
         logger.debug("[EntitlementCheck] #{org.objid} has #{@entitlement}")
         @app.call(env)
       else
-        logger.info("[EntitlementCheck] #{org.objid} denied #{@entitlement}", {
-          current_plan: org.planid,
-          upgrade_to: Billing::PlanHelpers.upgrade_path_for(@entitlement, org.planid),
-        }
+        logger.info(
+          "[EntitlementCheck] #{org.objid} denied #{@entitlement}",
+          {
+            current_plan: org.planid,
+            upgrade_to: Billing::PlanHelpers.upgrade_path_for(@entitlement, org.planid),
+          },
         )
 
         denial_response(

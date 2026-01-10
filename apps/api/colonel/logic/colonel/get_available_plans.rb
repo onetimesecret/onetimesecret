@@ -108,10 +108,11 @@ module ColonelAPI
           # Extract just the data hashes (without the interval tracking key)
           plans_by_tier.values.map { |entry| entry[:data] }
         rescue StandardError => ex
-          OT.le '[GetAvailablePlans] Error loading plans from cache', {
-            exception: ex,
-            message: ex.message,
-          }
+          OT.le '[GetAvailablePlans] Error loading plans from cache',
+            {
+              exception: ex,
+              message: ex.message,
+            }
           []
         end
       end

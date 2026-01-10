@@ -65,16 +65,18 @@ module Billing
 
       # Log key status for debugging (secure - only prefix, never full key)
       if @api_key.nil? || @api_key.to_s.strip.empty?
-        billing_logger.error '[StripeClient] No API key available', {
-          api_key_param_nil: api_key.nil?,
-          billing_config_key_nil: Onetime.billing_config.stripe_key.nil?,
-          env_key_present: !ENV['STRIPE_API_KEY'].to_s.strip.empty?,
-        }
+        billing_logger.error '[StripeClient] No API key available',
+          {
+            api_key_param_nil: api_key.nil?,
+            billing_config_key_nil: Onetime.billing_config.stripe_key.nil?,
+            env_key_present: !ENV['STRIPE_API_KEY'].to_s.strip.empty?,
+          }
       else
-        billing_logger.debug '[StripeClient] Initialized with API key', {
-          key_prefix: @api_key[0..7],
-          key_length: @api_key.length,
-        }
+        billing_logger.debug '[StripeClient] Initialized with API key',
+          {
+            key_prefix: @api_key[0..7],
+            key_length: @api_key.length,
+          }
       end
 
       configure_stripe
@@ -97,10 +99,11 @@ module Billing
     def create(resource_class, params = {}, idempotency_key: nil)
       key = idempotency_key || generate_idempotency_key
 
-      billing_logger.debug "[StripeClient.create] Creating #{resource_class}", {
-        params: params.except(:card, :source), # Don't log sensitive data
-        idempotency_key: key,
-      }
+      billing_logger.debug "[StripeClient.create] Creating #{resource_class}",
+        {
+          params: params.except(:card, :source), # Don't log sensitive data
+          idempotency_key: key,
+        }
 
       with_retry do
         resource_class.create(params, { idempotency_key: key })
@@ -119,10 +122,11 @@ module Billing
     #   client.update(Stripe::Customer, 'cus_123', metadata: { foo: 'bar' })
     #
     def update(resource_class, id, params = {})
-      billing_logger.debug "[StripeClient.update] Updating #{resource_class}", {
-        id: id,
-        params: params.except(:card, :source),
-      }
+      billing_logger.debug "[StripeClient.update] Updating #{resource_class}",
+        {
+          id: id,
+          params: params.except(:card, :source),
+        }
 
       with_retry do
         resource_class.update(id, params)
@@ -180,9 +184,10 @@ module Billing
     #   client.delete(Stripe::Subscription, 'sub_123')
     #
     def delete(resource_class, id)
-      billing_logger.debug "[StripeClient.delete] Deleting #{resource_class}", {
-        id: id,
-      }
+      billing_logger.debug "[StripeClient.delete] Deleting #{resource_class}",
+        {
+          id: id,
+        }
 
       with_retry do
         # Subscriptions use 'cancel' instead of 'delete'
@@ -250,21 +255,23 @@ module Billing
           delay = NETWORK_RETRY_BASE_DELAY * retries
           delay = [delay, MAX_RETRY_DELAY].min
 
-          billing_logger.warn '[StripeClient] Network error, retrying', {
-            attempt: retries,
-            max_retries: MAX_RETRIES,
-            delay: delay,
-            error: ex.message,
-          }
+          billing_logger.warn '[StripeClient] Network error, retrying',
+            {
+              attempt: retries,
+              max_retries: MAX_RETRIES,
+              delay: delay,
+              error: ex.message,
+            }
 
           sleep(delay)
           retry
         end
 
-        billing_logger.error '[StripeClient] Network error exhausted retries', {
-          attempts: retries,
-          error: ex.message,
-        }
+        billing_logger.error '[StripeClient] Network error exhausted retries',
+          {
+            attempts: retries,
+            error: ex.message,
+          }
         raise
       rescue Stripe::RateLimitError => ex
         retries += 1
@@ -273,29 +280,32 @@ module Billing
           delay = RATE_LIMIT_RETRY_BASE_DELAY * (2 ** retries)
           delay = [delay, MAX_RETRY_DELAY].min
 
-          billing_logger.warn '[StripeClient] Rate limited, backing off', {
-            attempt: retries,
-            max_retries: MAX_RETRIES,
-            delay: delay,
-            error: ex.message,
-          }
+          billing_logger.warn '[StripeClient] Rate limited, backing off',
+            {
+              attempt: retries,
+              max_retries: MAX_RETRIES,
+              delay: delay,
+              error: ex.message,
+            }
 
           sleep(delay)
           retry
         end
 
-        billing_logger.error '[StripeClient] Rate limit exhausted retries', {
-          attempts: retries,
-          error: ex.message,
-        }
+        billing_logger.error '[StripeClient] Rate limit exhausted retries',
+          {
+            attempts: retries,
+            error: ex.message,
+          }
         raise
       rescue Stripe::StripeError => ex
         # Don't retry other Stripe errors (invalid requests, auth failures, etc.)
         # These are not transient and retrying won't help
-        billing_logger.error '[StripeClient] Non-retryable Stripe error', {
-          error_class: ex.class.name,
-          error: ex.message,
-        }
+        billing_logger.error '[StripeClient] Non-retryable Stripe error',
+          {
+            error_class: ex.class.name,
+            error: ex.message,
+          }
         raise
       end
     end

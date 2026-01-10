@@ -2,6 +2,8 @@
 #
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ModuleLength
+
 require 'stripe'
 require_relative '../metadata'
 require_relative '../config'
@@ -169,10 +171,11 @@ module Billing
 
       JSON.parse(snapshot)
     rescue JSON::ParserError => ex
-      Onetime.billing_logger.error 'Failed to parse stripe_data_snapshot', {
-        plan_id: plan_id,
-        error: ex.message,
-      }
+      Onetime.billing_logger.error 'Failed to parse stripe_data_snapshot',
+        {
+          plan_id: plan_id,
+          error: ex.message,
+        }
       nil
     end
 
@@ -190,11 +193,12 @@ module Billing
         missing  = REQUIRED_PRODUCT_METADATA - metadata.keys.map(&:to_s)
 
         if missing.any?
-          OT.lw '[Plan.validate_product_metadata] Product missing required metadata', {
-            product_id: product.id,
-            product_name: product.name,
-            missing_keys: missing.join(', '),
-          }
+          OT.lw '[Plan.validate_product_metadata] Product missing required metadata',
+            {
+              product_id: product.id,
+              product_name: product.name,
+              missing_keys: missing.join(', '),
+            }
         end
 
         missing
@@ -295,11 +299,12 @@ module Billing
         ensure_stripe_configured!
 
         # Fetch all active products with onetimesecret metadata
-        products = Stripe::Product.list({
-          active: true,
-          limit: RECORD_LIMIT,
-        },
-                                       )
+        products = Stripe::Product.list(
+          {
+            active: true,
+            limit: RECORD_LIMIT,
+          },
+        )
 
         plan_data_list     = []
         products_processed = 0
@@ -312,21 +317,23 @@ module Billing
 
           # Skip products that aren't valid OTS products (wrong app or missing required metadata)
           unless valid_ots_product?(product)
-            OT.ld '[Plan.collect_stripe_plans] Skipping invalid product', {
-              product_id: product.id,
-              product_name: product.name,
-              app: product.metadata[Metadata::FIELD_APP],
-            }
+            OT.ld '[Plan.collect_stripe_plans] Skipping invalid product',
+              {
+                product_id: product.id,
+                product_name: product.name,
+                app: product.metadata[Metadata::FIELD_APP],
+              }
             next
           end
 
           # Fetch all active prices for this product
-          prices = Stripe::Price.list({
-            product: product.id,
-            active: true,
-            limit: 100,
-          },
-                                     )
+          prices = Stripe::Price.list(
+            {
+              product: product.id,
+              active: true,
+              limit: 100,
+            },
+          )
 
           prices.auto_paging_each do |price|
             # Skip non-recurring prices
@@ -337,10 +344,11 @@ module Billing
 
             plan_data_list << plan_data
 
-            OT.ld "[Plan.collect_stripe_plans] Collected plan: #{plan_data[:plan_id]}", {
-              stripe_price_id: price.id,
-              amount: price.unit_amount,
-            }
+            OT.ld "[Plan.collect_stripe_plans] Collected plan: #{plan_data[:plan_id]}",
+              {
+                stripe_price_id: price.id,
+                amount: price.unit_amount,
+              }
           end
         end
 
@@ -359,10 +367,11 @@ module Billing
         # Early return if missing required metadata
         missing = validate_product_metadata(product)
         if missing.any?
-          OT.le '[Plan.extract_plan_data] Cannot extract plan data - missing metadata', {
-            product_id: product.id,
-            missing_keys: missing,
-          }
+          OT.le '[Plan.extract_plan_data] Cannot extract plan data - missing metadata',
+            {
+              product_id: product.id,
+              missing_keys: missing,
+            }
           return nil
         end
 
@@ -584,10 +593,11 @@ module Billing
         rescue StandardError => ex
           # Always clean up orphan entry on unexpected errors to prevent stale references
           instances.remove(plan_id)
-          OT.le '[Plan.prune_stale_plans] Error processing stale plan (cleaned orphan)', {
-            plan_id: plan_id,
-            error: ex.message,
-          }
+          OT.le '[Plan.prune_stale_plans] Error processing stale plan (cleaned orphan)',
+            {
+              plan_id: plan_id,
+              error: ex.message,
+            }
         end
 
         OT.li "[Plan.prune_stale_plans] Pruned #{pruned_count} stale plans" if pruned_count.positive?
@@ -670,9 +680,10 @@ module Billing
         if stripe_key && !stripe_key.to_s.strip.empty?
           Stripe.api_key     = stripe_key
           Stripe.api_version = Onetime.billing_config.stripe_api_version
-          OT.ld '[Plan.ensure_stripe_configured!] Configured Stripe API key', {
-            key_prefix: stripe_key[0..7],
-          }
+          OT.ld '[Plan.ensure_stripe_configured!] Configured Stripe API key',
+            {
+              key_prefix: stripe_key[0..7],
+            }
         else
           OT.le '[Plan.ensure_stripe_configured!] No Stripe API key available'
           raise Stripe::AuthenticationError, 'No Stripe API key available. Check billing configuration.'
@@ -839,12 +850,13 @@ module Billing
 
             plan.save
 
-            OT.ld "[Plan.load_all_from_config] Cached plan: #{plan_id}", {
-              tier: tier,
-              interval: interval,
-              amount: price['amount'],
-              currency: price['currency'],
-            }
+            OT.ld "[Plan.load_all_from_config] Cached plan: #{plan_id}",
+              {
+                tier: tier,
+                interval: interval,
+                amount: price['amount'],
+                currency: price['currency'],
+              }
 
             plans_count += 1
           end

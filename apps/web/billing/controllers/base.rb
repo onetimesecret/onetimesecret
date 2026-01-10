@@ -76,10 +76,11 @@ module Billing
         begin
           uri = URI.parse(url)
         rescue URI::InvalidURIError => ex
-          billing_logger.error 'Invalid URI in URL validation', {
-            exception: ex,
-            url: url,
-          }
+          billing_logger.error 'Invalid URI in URL validation',
+            {
+              exception: ex,
+              url: url,
+            }
         else
           uri.host ||= OT.conf['site']['host']
           if (OT.conf['site']['ssl']) && (uri.scheme.nil? || uri.scheme != 'https')
@@ -105,9 +106,10 @@ module Billing
 
         Onetime::Customer.anonymous
       rescue StandardError => ex
-        billing_logger.error 'Failed to load customer', {
-          exception: ex,
-        }
+        billing_logger.error 'Failed to load customer',
+          {
+            exception: ex,
+          }
         Onetime::Customer.anonymous
       end
 
@@ -128,13 +130,14 @@ module Billing
       def stripe_api_key_missing?(context = 'Stripe operation')
         return false if Stripe.api_key && !Stripe.api_key.to_s.strip.empty?
 
-        billing_logger.error 'Stripe API key not configured', {
-          context: context,
-          stripe_key_nil: Stripe.api_key.nil?,
-          billing_enabled: OT.billing_config.enabled?,
-          env_key_present: !ENV['STRIPE_API_KEY'].to_s.strip.empty?,
-          config_key_present: !OT.billing_config.billing['stripe_key'].to_s.strip.empty?,
-        }
+        billing_logger.error 'Stripe API key not configured',
+          {
+            context: context,
+            stripe_key_nil: Stripe.api_key.nil?,
+            billing_enabled: OT.billing_config.enabled?,
+            env_key_present: !ENV['STRIPE_API_KEY'].to_s.strip.empty?,
+            config_key_present: !OT.billing_config.billing['stripe_key'].to_s.strip.empty?,
+          }
         true
       end
 
@@ -155,30 +158,33 @@ module Billing
         # Use Familia v2 auto-generated reverse collection method for O(1) lookup
         return if cust.organization_instances.any?
 
-        billing_logger.info '[self-healing] Customer has no organization, creating default workspace', {
-          user: cust.extid,
-        }
+        billing_logger.info '[self-healing] Customer has no organization, creating default workspace',
+          {
+            user: cust.extid,
+          }
 
         # Call CreateDefaultWorkspace operation
         require_relative '../../auth/operations/create_default_workspace'
         result = Auth::Operations::CreateDefaultWorkspace.new(customer: cust).call
 
         if result
-          billing_logger.info '[self-healing] Successfully created default workspace', {
-            user: cust.extid,
-            extid: result[:organization]&.extid,
-            team_id: result[:team]&.team_id,
-          }
+          billing_logger.info '[self-healing] Successfully created default workspace',
+            {
+              user: cust.extid,
+              extid: result[:organization]&.extid,
+              team_id: result[:team]&.team_id,
+            }
         end
       rescue StandardError => ex
         # Errors are logged but NOT raised - this is a self-healing operation
         # The user experience should continue even if workspace creation fails
-        billing_logger.error '[self-healing] Failed to create default workspace', {
-          exception: ex,
-          user: cust.extid,
-          message: ex.message,
-          backtrace: ex.backtrace&.first(5),
-        }
+        billing_logger.error '[self-healing] Failed to create default workspace',
+          {
+            exception: ex,
+            user: cust.extid,
+            message: ex.message,
+            backtrace: ex.backtrace&.first(5),
+          }
       end
 
       # Load organization and verify ownership/membership
@@ -192,18 +198,20 @@ module Billing
         raise OT::Problem, 'Organization not found' unless org
 
         unless org.member?(cust)
-          billing_logger.warn 'Access denied to organization', {
-            extid: extid,
-            user: cust.extid,
-          }
+          billing_logger.warn 'Access denied to organization',
+            {
+              extid: extid,
+              user: cust.extid,
+            }
           raise OT::Problem, 'Access denied'
         end
 
         if require_owner && !org.owner?(cust)
-          billing_logger.warn 'Owner access required', {
-            extid: extid,
-            user: cust.extid,
-          }
+          billing_logger.warn 'Owner access required',
+            {
+              extid: extid,
+              user: cust.extid,
+            }
           raise OT::Problem, 'Owner access required'
         end
 

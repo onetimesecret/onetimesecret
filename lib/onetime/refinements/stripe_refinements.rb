@@ -23,35 +23,43 @@ module Onetime::StripeRefinements
       :trial_end,
       :livemode,
 
-      { items: ->(sub) {
-        sub.items.data.map do |item|
+      {
+        items: ->(sub) {
+                sub.items.data.map do |item|
+                  {
+                    price_id: item.price.id,
+                    price_nickname: item.price.nickname,
+                    quantity: item.quantity,
+                  }
+                end
+        },
+      },
+
+      {
+        current_period_remaining: ->(sub) {
+                (Time.at(sub.current_period_end) - Familia.now).to_i
+        },
+      },
+
+      {
+        on_trial: ->(sub) {
+                sub.trial_end && Familia.now < Time.at(sub.trial_end)
+        },
+      },
+
+      {
+        plan: ->(sub) {
+                if sub.plan
           {
-            price_id: item.price.id,
-            price_nickname: item.price.nickname,
-            quantity: item.quantity,
+            id: sub.plan.id,
+            nickname: sub.plan.nickname,
+            amount: sub.plan.amount,
+            interval: sub.plan.interval,
+            interval_count: sub.plan.interval_count,
           }
         end
-      } },
-
-      { current_period_remaining: ->(sub) {
-        (Time.at(sub.current_period_end) - Familia.now).to_i
-      } },
-
-      { on_trial: ->(sub) {
-        sub.trial_end && Familia.now < Time.at(sub.trial_end)
-      } },
-
-      { plan: ->(sub) {
-        if sub.plan
-  {
-    id: sub.plan.id,
-    nickname: sub.plan.nickname,
-    amount: sub.plan.amount,
-    interval: sub.plan.interval,
-    interval_count: sub.plan.interval_count,
-  }
-end
-      } },
+              },
+      },
     ]
   end
 
@@ -87,28 +95,34 @@ end
       :preferred_locales,
       :currency,
 
-      { address: ->(cust) {
-        if cust.address
-  {
-    city: cust.address.city,
-    country: cust.address.country,
-    line1: cust.address.line1,
-    line2: cust.address.line2,
-    postal_code: cust.address.postal_code,
-    state: cust.address.state,
-  }
-end
-      } },
+      {
+        address: ->(cust) {
+                if cust.address
+          {
+            city: cust.address.city,
+            country: cust.address.country,
+            line1: cust.address.line1,
+            line2: cust.address.line2,
+            postal_code: cust.address.postal_code,
+            state: cust.address.state,
+          }
+        end
+        },
+      },
 
-      { has_payment_method: ->(cust) {
-        !cust.default_source.nil?
-      } },
+      {
+        has_payment_method: ->(cust) {
+                !cust.default_source.nil?
+        },
+      },
 
-      { metadata: ->(cust) {
-        # Only include safe metadata fields
-        safe_metadata_identifiers = [:public_note, :preferred_language]
-        cust.metadata_list.select { |k, _| safe_metadata_identifiers.include?(k.to_sym) }
-      } },
+      {
+        metadata: ->(cust) {
+                # Only include safe metadata fields
+                safe_metadata_identifiers = [:public_note, :preferred_language]
+                cust.metadata_list.select { |k, _| safe_metadata_identifiers.include?(k.to_sym) }
+        },
+      },
     ]
   end
 end

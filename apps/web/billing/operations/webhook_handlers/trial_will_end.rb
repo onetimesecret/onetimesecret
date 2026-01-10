@@ -21,11 +21,12 @@ module Billing
 
         def process
           with_organization do |org|
-            billing_logger.info 'Trial ending soon', {
-              orgid: org.objid,
-              subscription_id: @data_object.id,
-              trial_end: @data_object.trial_end,
-            }
+            billing_logger.info 'Trial ending soon',
+              {
+                orgid: org.objid,
+                subscription_id: @data_object.id,
+                trial_end: @data_object.trial_end,
+              }
 
             # Future: Send trial ending notification unless skip_notifications?
           end

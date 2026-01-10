@@ -15,25 +15,39 @@ module Onetime
     class CustomersCommand < Command
       desc 'Manage customer records (create, list, check)'
 
-      option :list, type: :boolean, default: false,
+      option :list,
+        type: :boolean,
+        default: false,
         desc: 'List all customers grouped by domain'
 
-      option :check, type: :boolean, default: false,
+      option :check,
+        type: :boolean,
+        default: false,
         desc: 'Check for customers with mismatched custid and email fields'
 
-      option :check_email, type: :boolean, default: false,
+      option :check_email,
+        type: :boolean,
+        default: false,
         desc: 'When listing, group by email domain instead of custid'
 
-      option :create, type: :string, default: nil,
+      option :create,
+        type: :string,
+        default: nil,
         desc: 'Create a new customer with the specified email address'
 
-      option :role, type: :string, default: 'customer',
+      option :role,
+        type: :string,
+        default: 'customer',
         desc: 'Role for new customer (customer, colonel, admin, staff)'
 
-      option :password, type: :string, default: nil,
+      option :password,
+        type: :string,
+        default: nil,
         desc: 'Password for new customer (generates random if not provided)'
 
-      option :verified, type: :boolean, default: true,
+      option :verified,
+        type: :boolean,
+        default: true,
         desc: 'Whether to mark the account as verified (default: true)'
 
       # Valid roles in hierarchy order

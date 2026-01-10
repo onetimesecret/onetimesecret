@@ -24,16 +24,23 @@ module Onetime
 
       desc 'Push billing catalog to Stripe (create/update products)'
 
-      option :dry_run, type: :boolean, default: false,
+      option :dry_run,
+        type: :boolean,
+        default: false,
         desc: 'Preview changes without making them'
 
-      option :force, type: :boolean, default: false,
+      option :force,
+        type: :boolean,
+        default: false,
         desc: 'Skip confirmation prompts'
 
-      option :plan, type: :string,
+      option :plan,
+        type: :string,
         desc: 'Push only a specific plan (e.g., identity_plus_v1)'
 
-      option :skip_prices, type: :boolean, default: false,
+      option :skip_prices,
+        type: :boolean,
+        default: false,
         desc: 'Skip price creation, only push products'
 
       def call(dry_run: false, force: false, plan: nil, skip_prices: false, **)

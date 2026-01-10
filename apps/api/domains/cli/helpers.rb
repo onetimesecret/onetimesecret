@@ -34,7 +34,8 @@ module Onetime
         status   = domain.verification_state || 'unknown'
         verified = domain.verified.to_s == 'true' ? 'yes' : 'no'
 
-        format('%-40s %-30s %-12s %-10s',
+        format(
+          '%-40s %-30s %-12s %-10s',
           domain.display_domain[0..39],
           org_info[0..29],
           status[0..11],

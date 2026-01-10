@@ -25,18 +25,20 @@ module Billing
           org = Onetime::Organization.find_by_stripe_customer_id(stripe_customer.id)
 
           unless org
-            billing_logger.debug 'Organization not found for Stripe customer', {
-              stripe_customer_id: stripe_customer.id,
-            }
+            billing_logger.debug 'Organization not found for Stripe customer',
+              {
+                stripe_customer_id: stripe_customer.id,
+              }
             return :not_found
           end
 
           check_email_sync(org, stripe_customer)
 
-          billing_logger.info 'Customer update processed', {
-            orgid: org.objid,
-            stripe_customer_id: stripe_customer.id,
-          }
+          billing_logger.info 'Customer update processed',
+            {
+              orgid: org.objid,
+              stripe_customer_id: stripe_customer.id,
+            }
 
           :success
         end
@@ -49,12 +51,13 @@ module Billing
           owner = org.owner
           return if owner.email == stripe_customer.email
 
-          billing_logger.info 'Customer email changed in Stripe', {
-            orgid: org.objid,
-            stripe_customer_id: stripe_customer.id,
-            old_email: owner.email,
-            new_email: stripe_customer.email,
-          }
+          billing_logger.info 'Customer email changed in Stripe',
+            {
+              orgid: org.objid,
+              stripe_customer_id: stripe_customer.id,
+              old_email: owner.email,
+              new_email: stripe_customer.email,
+            }
           # NOTE: We don't auto-update email as it may require verification
         end
       end

@@ -34,7 +34,8 @@ module Onetime
           verified = domain.verified || 'false'
           created  = format_timestamp(domain.created)
 
-          puts format('%-40s %-12s %-10s %-20s',
+          puts format(
+            '%-40s %-12s %-10s %-20s',
             domain.display_domain,
             status,
             verified,

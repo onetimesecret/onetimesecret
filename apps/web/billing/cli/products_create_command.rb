@@ -14,7 +14,9 @@ module Onetime
 
       argument :name, required: false, desc: 'Product name'
 
-      option :interactive, type: :boolean, default: false,
+      option :interactive,
+        type: :boolean,
+        default: false,
         desc: 'Interactive mode - prompt for all fields'
 
       option :plan_id, type: :string, desc: 'Plan ID (optional, e.g., identity_plus_v1)'
@@ -24,20 +26,28 @@ module Onetime
       option :entitlements, type: :string, desc: 'Entitlements (comma-separated)'
       option :marketing_features, type: :string, desc: 'Marketing features (comma-separated)'
       option :display_order, type: :string, desc: 'Display order (higher = earlier, default: 0)'
-      option :show_on_plans_page, type: :boolean, default: true,
+      option :show_on_plans_page,
+        type: :boolean,
+        default: true,
         desc: 'Show on plans page (default: true)'
       option :limit_teams, type: :string, desc: 'Limit teams (-1 for unlimited)'
       option :limit_members_per_team, type: :string, desc: 'Limit members per team (-1 for unlimited)'
       option :limit_custom_domains, type: :string, desc: 'Limit custom domains (-1 for unlimited)'
       option :limit_secret_lifetime, type: :string, desc: 'Limit secret lifetime (seconds)'
       option :limit_secrets_per_day, type: :string, desc: 'Limit secrets per day (-1 for unlimited)'
-      option :force, type: :boolean, default: false,
+      option :force,
+        type: :boolean,
+        default: false,
         desc: 'Create duplicate product without checking for existing'
 
-      option :yes, type: :boolean, default: false,
+      option :yes,
+        type: :boolean,
+        default: false,
         desc: 'Skip confirmation prompts (for automation)'
 
-      option :update, type: :boolean, default: false,
+      option :update,
+        type: :boolean,
+        default: false,
         desc: 'Update existing product if found (requires --yes for non-interactive)'
 
       def call(name: nil, interactive: false, force: false, yes: false, update: false, **options)

@@ -18,8 +18,16 @@ module DomainsAPI::Logic
     end
 
     class UpdateDomainImage < DomainsAPI::Logic::Base
-      attr_reader :greenlighted, :image, :display_domain, :custom_domain, :content_type, :filename, :height, :width,
-        :ratio, :bytes
+      attr_reader :greenlighted,
+        :image,
+        :display_domain,
+        :custom_domain,
+        :content_type,
+        :filename,
+        :height,
+        :width,
+        :ratio,
+        :bytes
 
       @field = nil
 

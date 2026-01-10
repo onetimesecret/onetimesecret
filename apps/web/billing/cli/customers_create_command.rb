@@ -15,7 +15,9 @@ module Onetime
 
       option :email, type: :string, desc: 'Customer email'
       option :name, type: :string, desc: 'Customer name'
-      option :interactive, type: :boolean, default: false,
+      option :interactive,
+        type: :boolean,
+        default: false,
         desc: 'Interactive mode - prompt for fields'
 
       def call(email: nil, name: nil, interactive: false, **)

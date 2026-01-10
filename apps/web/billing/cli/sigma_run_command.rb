@@ -14,7 +14,9 @@ module Onetime
 
       argument :query_id, required: true, desc: 'Sigma query ID (sqa_xxx)'
 
-      option :format, type: :string, default: 'table',
+      option :format,
+        type: :string,
+        default: 'table',
         desc: 'Output format: table, csv, json'
       option :output, type: :string, desc: 'Output file path'
 

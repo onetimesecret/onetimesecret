@@ -42,9 +42,10 @@ module Onetime::Metadata::Features
       base.safe_dump_field :is_burned, ->(m) { m.state?(:burned) }
       base.safe_dump_field :is_expired, ->(m) { m.state?(:expired) }
       base.safe_dump_field :is_orphaned, ->(m) { m.state?(:orphaned) }
-      base.safe_dump_field :is_destroyed, ->(m) {
-        m.state?(:received) || m.state?(:burned) || m.state?(:expired) || m.state?(:orphaned)
-      }
+      base.safe_dump_field :is_destroyed,
+        ->(m) {
+                m.state?(:received) || m.state?(:burned) || m.state?(:expired) || m.state?(:orphaned)
+        }
       # We use the hash syntax here since `:truncated?` is not a valid symbol.
       # base.safe_dump_field :is_truncated, ->(m) { m.truncated? }
       base.safe_dump_field :has_passphrase, ->(m) { m.has_passphrase? }

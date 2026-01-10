@@ -13,7 +13,9 @@ module Onetime
       desc 'List all Stripe prices'
 
       option :product, type: :string, desc: 'Filter by product ID'
-      option :active_only, type: :boolean, default: true,
+      option :active_only,
+        type: :boolean,
+        default: true,
         desc: 'Show only active prices'
 
       def call(product: nil, active_only: true, **)
@@ -32,8 +34,14 @@ module Onetime
           return
         end
 
-        puts format('%-22s %-35s %-15s %-12s %-10s %s',
-          'ID', 'PRODUCT NAME', 'PLAN_ID', 'AMOUNT', 'INTERVAL', 'PRICE'
+        puts format(
+          '%-22s %-35s %-15s %-12s %-10s %s',
+          'ID',
+          'PRODUCT NAME',
+          'PLAN_ID',
+          'AMOUNT',
+          'INTERVAL',
+          'PRICE',
         )
         puts '-' * 115
 

@@ -23,9 +23,14 @@ module Onetime
       class StatusCommand < Command
         desc 'Show job system status'
 
-        option :format, type: :string, default: 'text', aliases: ['f'],
+        option :format,
+          type: :string,
+          default: 'text',
+          aliases: ['f'],
           desc: 'Output format: text or json'
-        option :watch, type: :integer, aliases: ['w'],
+        option :watch,
+          type: :integer,
+          aliases: ['w'],
           desc: 'Watch mode with refresh interval in seconds'
 
         def call(format: 'text', watch: nil, **)
@@ -258,8 +263,11 @@ module Onetime
               if info.is_a?(Hash) && info[:error]
                 puts format('  %s: %s', queue_name, info[:error])
               elsif info.is_a?(Hash)
-                puts format('  %s: %d messages, %d consumers',
-                  queue_name, info[:messages], info[:consumers]
+                puts format(
+                  '  %s: %d messages, %d consumers',
+                  queue_name,
+                  info[:messages],
+                  info[:consumers],
                 )
               end
             end

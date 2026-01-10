@@ -56,10 +56,11 @@ module Core
         manifest_path = File.join(PUBLIC_DIR, 'dist', '.vite', 'manifest.json')
 
         unless File.exist?(manifest_path)
-          app_logger.error 'Vite manifest not found - frontend assets unavailable', {
-            manifest_path: manifest_path,
-            instruction: 'Run `pnpm run build` to generate assets',
-          }
+          app_logger.error 'Vite manifest not found - frontend assets unavailable',
+            {
+              manifest_path: manifest_path,
+              instruction: 'Run `pnpm run build` to generate assets',
+            }
           return error_script(nonce, 'Vite manifest.json not found. Run `pnpm run build`')
         end
 

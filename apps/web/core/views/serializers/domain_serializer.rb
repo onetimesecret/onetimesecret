@@ -61,11 +61,12 @@ module Core
               # have some visibility which customers this will affect. We've made
               # the verification more stringent so currently many existing domains
               # would return obj.ready? == false.
-              app_logger.warn 'Serializing unverified custom domain', {
-                domain: obj.display_domain,
-                verified: obj.verified,
-                resolving: obj.resolving,
-              }
+              app_logger.warn 'Serializing unverified custom domain',
+                {
+                  domain: obj.display_domain,
+                  verified: obj.verified,
+                  resolving: obj.resolving,
+                }
             end
 
             obj.display_domain

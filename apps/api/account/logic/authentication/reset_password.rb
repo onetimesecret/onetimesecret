@@ -40,12 +40,13 @@ module AccountAPI::Logic
           # the password.
           secret.received!
 
-          auth_logger.warn 'Invalid reset secret attempted', {
-            customer_id: @cust.custid,
-            email: @cust.obscure_email,
-            secret_identifier: secret.identifier,
-            ip: @strategy_result&.metadata&.dig(:ip),
-          }
+          auth_logger.warn 'Invalid reset secret attempted',
+            {
+              customer_id: @cust.custid,
+              email: @cust.obscure_email,
+              secret_identifier: secret.identifier,
+              ip: @strategy_result&.metadata&.dig(:ip),
+            }
 
           raise_form_error 'Invalid reset secret'
         end
@@ -56,12 +57,13 @@ module AccountAPI::Logic
           # change the password of an account that has not been verified.
           # This is to prevent unauthorized password changes.
 
-          auth_logger.warn 'Password reset attempted for unverified account', {
-            customer_id: @cust.custid,
-            email: @cust.obscure_email,
-            status: :pending,
-            ip: @strategy_result&.metadata&.dig(:ip),
-          }
+          auth_logger.warn 'Password reset attempted for unverified account',
+            {
+              customer_id: @cust.custid,
+              email: @cust.obscure_email,
+              status: :pending,
+              ip: @strategy_result&.metadata&.dig(:ip),
+            }
 
           raise_form_error 'Account not verified'
         end
@@ -77,12 +79,13 @@ module AccountAPI::Logic
         # don't match.
         secret.destroy!
 
-        auth_logger.info 'Password successfully changed', {
-          customer_id: @cust.custid,
-          email: @cust.obscure_email,
-          ip: @strategy_result&.metadata&.dig(:ip),
-          session_id: sess&.id,
-        }
+        auth_logger.info 'Password successfully changed',
+          {
+            customer_id: @cust.custid,
+            email: @cust.obscure_email,
+            ip: @strategy_result&.metadata&.dig(:ip),
+            session_id: sess&.id,
+          }
 
         success_data
       end

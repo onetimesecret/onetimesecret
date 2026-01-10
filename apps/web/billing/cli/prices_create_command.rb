@@ -16,9 +16,13 @@ module Onetime
 
       option :amount, type: :integer, desc: 'Amount in cents (e.g., 900 for $9.00)'
       option :currency, type: :string, default: 'usd', desc: 'Currency code'
-      option :interval, type: :string, default: 'month',
+      option :interval,
+        type: :string,
+        default: 'month',
         desc: 'Billing interval (month, year, week, day)'
-      option :interval_count, type: :integer, default: 1,
+      option :interval_count,
+        type: :integer,
+        default: 1,
         desc: 'Number of intervals between billings'
 
       def call(product_id: nil, amount: nil, currency: 'usd', interval: 'month', interval_count: 1, **)
@@ -68,16 +72,17 @@ module Onetime
         response = $stdin.gets
         return unless response&.chomp&.downcase == 'y'
 
-        price = Stripe::Price.create({
-          product: product_id,
-          unit_amount: amount,
-          currency: currency,
-          recurring: {
-            interval: interval,
-            interval_count: interval_count,
+        price = Stripe::Price.create(
+          {
+            product: product_id,
+            unit_amount: amount,
+            currency: currency,
+            recurring: {
+              interval: interval,
+              interval_count: interval_count,
+            },
           },
-        },
-                                    )
+        )
 
         puts "\nPrice created successfully:"
         puts "  ID: #{price.id}"

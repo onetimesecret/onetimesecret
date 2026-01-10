@@ -37,7 +37,8 @@ module Onetime
         boot           = status[:boot]
         boot_indicator = boot[:success] ? "\u2713" : "\u2717"
 
-        lines << format('ots status | %s | %s auth | %s boot | %s',
+        lines << format(
+          'ots status | %s | %s auth | %s boot | %s',
           status[:environment],
           status[:auth_mode],
           boot_indicator,
@@ -136,9 +137,13 @@ module Onetime
       def redis_status_text(info)
         case info[:status]
         when 'connected'
-          format('%s:%d/%d (pool: %d, models: %d)',
-            info[:host], info[:port], info[:db],
-            info[:pool_size], info[:models]
+          format(
+            '%s:%d/%d (pool: %d, models: %d)',
+            info[:host],
+            info[:port],
+            info[:db],
+            info[:pool_size],
+            info[:models],
           )
         when 'error'
           info[:error]
@@ -163,9 +168,12 @@ module Onetime
       def rabbitmq_status_text(info)
         case info[:status]
         when 'connected'
-          format('%s:%d (%d queues, %d pending)',
-            info[:host], info[:port],
-            info[:queue_count], info[:pending_messages]
+          format(
+            '%s:%d (%d queues, %d pending)',
+            info[:host],
+            info[:port],
+            info[:queue_count],
+            info[:pending_messages],
           )
         when 'not_required'
           'not required'
@@ -223,11 +231,19 @@ module Onetime
     class StatusCommand < Command
       desc 'Show system-wide service status'
 
-      option :format, type: :string, default: 'text', aliases: ['f'],
+      option :format,
+        type: :string,
+        default: 'text',
+        aliases: ['f'],
         desc: 'Output format: text or json'
-      option :watch, type: :integer, aliases: ['w'],
+      option :watch,
+        type: :integer,
+        aliases: ['w'],
         desc: 'Watch mode with refresh interval in seconds'
-      option :quiet, type: :boolean, default: false, aliases: ['q'],
+      option :quiet,
+        type: :boolean,
+        default: false,
+        aliases: ['q'],
         desc: 'Only show services with issues'
 
       HTTP_TIMEOUT = 2

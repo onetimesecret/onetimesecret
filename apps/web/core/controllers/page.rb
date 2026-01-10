@@ -23,22 +23,23 @@ module Core
 
       def export_window
         rack_session = req.env['rack.session']
-        session_logger.debug 'Exporting window state', {
-          session_class: rack_session.class.name,
-          session_id: begin
-                        rack_session.id.public_id
-          rescue StandardError
-                        'no-id'
-          end,
-          session_keys: begin
-                          rack_session.keys
-          rescue StandardError
-                          []
-          end,
-          authenticated: rack_session['authenticated'],
-          has_external_id: !rack_session['external_id'].nil?,
-          authenticated_check: authenticated?,
-        }
+        session_logger.debug 'Exporting window state',
+          {
+            session_class: rack_session.class.name,
+            session_id: begin
+                                  rack_session.id.public_id
+            rescue StandardError
+                                  'no-id'
+            end,
+            session_keys: begin
+                                    rack_session.keys
+            rescue StandardError
+                                    []
+            end,
+            authenticated: rack_session['authenticated'],
+            has_external_id: !rack_session['external_id'].nil?,
+            authenticated_check: authenticated?,
+          }
 
         # Simplified: BaseView now extracts everything from req
         view                        = Core::Views::ExportWindow.new(req)

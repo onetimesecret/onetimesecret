@@ -107,8 +107,12 @@ def test_problematic_secret(secret_identifier, additional_global_secrets = [], p
 
   result = nil
   potential_passphrases.each do |passphrase|
-    result = test_decrypt(encrypted_value, secret_identifier, secret.value_encryption,
-      passphrase, potential_global_secrets
+    result = test_decrypt(
+      encrypted_value,
+      secret_identifier,
+      secret.value_encryption,
+      passphrase,
+      potential_global_secrets,
     )
     break if result
   end

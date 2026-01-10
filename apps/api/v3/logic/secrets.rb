@@ -71,12 +71,14 @@ module V3
           return unless owner.email.to_s.present?
           return unless owner.notify_on_reveal?
 
-          Onetime::Jobs::Publisher.enqueue_email(:secret_revealed, {
-            recipient: owner.email,
-            secret_shortid: secret.shortid,
-            revealed_at: Time.now.utc.iso8601,
-            locale: owner.locale.to_s.empty? ? OT.default_locale : owner.locale,
-          }
+          Onetime::Jobs::Publisher.enqueue_email(
+            :secret_revealed,
+            {
+              recipient: owner.email,
+              secret_shortid: secret.shortid,
+              revealed_at: Time.now.utc.iso8601,
+              locale: owner.locale.to_s.empty? ? OT.default_locale : owner.locale,
+            },
           )
         rescue StandardError => ex
           # Log but don't fail the reveal - notification is non-critical

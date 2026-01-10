@@ -14,10 +14,14 @@ module Onetime
 
       argument :domain_name, type: :string, required: true, desc: 'Domain name'
 
-      option :org_id, type: :string, default: nil,
+      option :org_id,
+        type: :string,
+        default: nil,
         desc: 'Organization ID to assign if domain is orphaned'
 
-      option :force, type: :boolean, default: false,
+      option :force,
+        type: :boolean,
+        default: false,
         desc: 'Skip confirmation prompt'
 
       def call(domain_name:, org_id: nil, force: false, **)

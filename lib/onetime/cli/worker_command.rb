@@ -26,15 +26,28 @@ module Onetime
     class WorkerCommand < Command
         desc 'Start Sneakers job workers'
 
-        option :queues, type: :string, aliases: ['q'],
+        option :queues,
+          type: :string,
+          aliases: ['q'],
           desc: 'Comma-separated list of queues to process (default: all)'
-        option :concurrency, type: :integer, default: 10, aliases: ['c'],
+        option :concurrency,
+          type: :integer,
+          default: 10,
+          aliases: ['c'],
           desc: 'Number of worker threads'
-        option :daemonize, type: :boolean, default: false, aliases: ['d'],
+        option :daemonize,
+          type: :boolean,
+          default: false,
+          aliases: ['d'],
           desc: 'Run as daemon'
-        option :environment, type: :string, default: 'development', aliases: ['e'],
+        option :environment,
+          type: :string,
+          default: 'development',
+          aliases: ['e'],
           desc: 'Environment to run in'
-        option :log_level, type: :string, aliases: ['l'],
+        option :log_level,
+          type: :string,
+          aliases: ['l'],
           desc: 'Override Jobs logger level (trace/debug/info/warn/error)'
 
         def call(queues: nil, concurrency: 10, daemonize: false, environment: 'development',

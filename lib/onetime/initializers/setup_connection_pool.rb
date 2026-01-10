@@ -47,15 +47,16 @@ module Onetime
       # 1. ConnectionPool retries checkout once on connection errors
       # 2. Redis driver retries once with minimal delay for stale connections
       database_pool = ConnectionPool.new(size: pool_size, timeout: pool_timeout, reconnect_attempts: 4) do
-        Redis.new(parsed_uri.conf.merge(
-          reconnect_attempts: [
-            0.05, # 50ms delay before first retry
-            0.20, # 200ms for 2nd
-            1,    # 1000ms
-            2,    # wait a full 2000s for final retry
-          ],
-        ),
-                 )
+        Redis.new(
+          parsed_uri.conf.merge(
+            reconnect_attempts: [
+              0.05, # 50ms delay before first retry
+              0.20, # 200ms for 2nd
+              1,    # 1000ms
+              2,    # wait a full 2000s for final retry
+            ],
+          ),
+        )
       end
 
       # Configure Familia connection provider and transaction settings
@@ -83,10 +84,12 @@ module Onetime
       db_port     = parsed_uri.conf[:port] || 6379
       db_info     = "#{db_host}:#{db_port}/#{parsed_uri.conf[:db] || 0}"
 
-      OT.log_box([
-                   "✅ DATABASE: Connected #{model_count} models to Redis",
-                   "   Location: #{db_info}",
-                 ], level: :debug
+      OT.log_box(
+        [
+          "✅ DATABASE: Connected #{model_count} models to Redis",
+          "   Location: #{db_info}",
+        ],
+        level: :debug,
       )
 
       # Optional: Single migration flag for entire DB 0

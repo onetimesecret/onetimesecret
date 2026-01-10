@@ -15,7 +15,8 @@ module Onetime
       argument :product_id, required: true, desc: 'Product ID (e.g., prod_xxx)'
 
       option :limit, type: :integer, default: 20, desc: 'Maximum results to return'
-      option :type, type: :string,
+      option :type,
+        type: :string,
         desc: 'Filter by specific event type (e.g., product.updated)'
 
       def call(product_id:, limit: 20, type: nil, **)
@@ -57,8 +58,12 @@ module Onetime
           return
         end
 
-        puts format('%-22s %-35s %-12s %s',
-          'ID', 'TYPE', 'LIVEMODE', 'CREATED'
+        puts format(
+          '%-22s %-35s %-12s %s',
+          'ID',
+          'TYPE',
+          'LIVEMODE',
+          'CREATED',
         )
         puts '-' * 85
 
@@ -66,7 +71,8 @@ module Onetime
           livemode = event.livemode ? 'live' : 'test'
           created  = format_timestamp(event.created)
 
-          puts format('%-22s %-35s %-12s %s',
+          puts format(
+            '%-22s %-35s %-12s %s',
             event.id[0..21],
             event.type[0..34],
             livemode,

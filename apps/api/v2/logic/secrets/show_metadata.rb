@@ -10,15 +10,40 @@ module V2::Logic
       # Working variables
       attr_reader :identifier, :metadata, :secret
       # Template variables
-      attr_reader :metadata_identifier, :metadata_shortid, :secret_identifier, :secret_state,
-        :secret_shortid, :recipients, :no_cache, :expiration_in_seconds,
-        :natural_expiration, :is_received, :is_burned, :secret_realttl,
-        :is_destroyed, :expiration, :view_count,
-        :has_passphrase, :can_decrypt, :secret_value,
-        :show_secret, :show_secret_link, :show_metadata_link, :metadata_attributes,
-        :show_metadata, :show_recipients, :share_domain, :is_orphaned,
-        :share_path, :burn_path, :metadata_path, :share_url, :is_expired,
-        :metadata_url, :burn_url, :display_lines
+      attr_reader :metadata_identifier,
+        :metadata_shortid,
+        :secret_identifier,
+        :secret_state,
+        :secret_shortid,
+        :recipients,
+        :no_cache,
+        :expiration_in_seconds,
+        :natural_expiration,
+        :is_received,
+        :is_burned,
+        :secret_realttl,
+        :is_destroyed,
+        :expiration,
+        :view_count,
+        :has_passphrase,
+        :can_decrypt,
+        :secret_value,
+        :show_secret,
+        :show_secret_link,
+        :show_metadata_link,
+        :metadata_attributes,
+        :show_metadata,
+        :show_recipients,
+        :share_domain,
+        :is_orphaned,
+        :share_path,
+        :burn_path,
+        :metadata_path,
+        :share_url,
+        :is_expired,
+        :metadata_url,
+        :burn_url,
+        :display_lines
 
       def process_params
         @identifier = sanitize_identifier(params['identifier'])
@@ -190,19 +215,20 @@ module V2::Logic
         attributes[:secret_identifier] = secret_identifier if show_secret
 
         # Add additional attributes not included in safe dump
-        attributes.merge!({
-          secret_state: secret_state, # can be nil (e.g. if secret is consumed)
-          natural_expiration: natural_expiration,
-          expiration: expiration,
-          expiration_in_seconds: expiration_in_seconds,
-          share_path: share_path,
-          burn_path: burn_path,
-          metadata_path: metadata_path,
-          share_url: share_url,
-          metadata_url: metadata_url,
-          burn_url: burn_url,
-        },
-                         )
+        attributes.merge!(
+          {
+            secret_state: secret_state, # can be nil (e.g. if secret is consumed)
+            natural_expiration: natural_expiration,
+            expiration: expiration,
+            expiration_in_seconds: expiration_in_seconds,
+            share_path: share_path,
+            burn_path: burn_path,
+            metadata_path: metadata_path,
+            share_url: share_url,
+            metadata_url: metadata_url,
+            burn_url: burn_url,
+          },
+        )
 
         attributes
       end

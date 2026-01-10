@@ -89,11 +89,12 @@ module Onetime
               failure_count += 1
             end
 
-            scheduler_logger.info '[CatalogRetryJob] Completed', {
-              success: success_count,
-              requeued: requeued_count,
-              failed: failure_count,
-            }
+            scheduler_logger.info '[CatalogRetryJob] Completed',
+              {
+                success: success_count,
+                requeued: requeued_count,
+                failed: failure_count,
+              }
           end
 
           def process_single_event(event_record)
@@ -103,10 +104,11 @@ module Onetime
               return :failed
             end
 
-            scheduler_logger.info "[CatalogRetryJob] Retrying #{event_record.event_type}", {
-              event_id: event_record.stripe_event_id,
-              retry_count: event_record.circuit_retry_count,
-            }
+            scheduler_logger.info "[CatalogRetryJob] Retrying #{event_record.event_type}",
+              {
+                event_id: event_record.stripe_event_id,
+                retry_count: event_record.circuit_retry_count,
+              }
 
             # Reprocess the event
             operation = Billing::Operations::ProcessWebhookEvent.new(
@@ -122,51 +124,57 @@ module Onetime
 
             if result == :queued
               # Handler scheduled another retry (circuit still blocked or rate limited)
-              scheduler_logger.info '[CatalogRetryJob] Event requeued for later retry', {
-                event_id: event_record.stripe_event_id,
-              }
+              scheduler_logger.info '[CatalogRetryJob] Event requeued for later retry',
+                {
+                  event_id: event_record.stripe_event_id,
+                }
               :requeued
             else
               # Success - clear retry scheduling
               event_record.clear_circuit_retry
               event_record.mark_success!
 
-              scheduler_logger.info '[CatalogRetryJob] Event processed successfully', {
-                event_id: event_record.stripe_event_id,
-                result: result,
-              }
+              scheduler_logger.info '[CatalogRetryJob] Event processed successfully',
+                {
+                  event_id: event_record.stripe_event_id,
+                  result: result,
+                }
               :success
             end
           rescue Billing::CircuitOpenError => ex
             # Circuit opened again during processing
             if event_record.circuit_retry_exhausted?
-              scheduler_logger.error '[CatalogRetryJob] Circuit retry exhausted', {
-                event_id: event_record.stripe_event_id,
-                retry_count: event_record.circuit_retry_count,
-              }
+              scheduler_logger.error '[CatalogRetryJob] Circuit retry exhausted',
+                {
+                  event_id: event_record.stripe_event_id,
+                  retry_count: event_record.circuit_retry_count,
+                }
               event_record.mark_failed!(ex)
               :failed
             else
               event_record.schedule_circuit_retry(delay_seconds: ex.retry_after || 60)
-              scheduler_logger.warn '[CatalogRetryJob] Circuit open, requeued', {
-                event_id: event_record.stripe_event_id,
-                retry_after: ex.retry_after,
-              }
+              scheduler_logger.warn '[CatalogRetryJob] Circuit open, requeued',
+                {
+                  event_id: event_record.stripe_event_id,
+                  retry_after: ex.retry_after,
+                }
               :requeued
             end
           rescue Stripe::RateLimitError => ex
             # Rate limited - schedule retry with longer delay
             event_record.schedule_circuit_retry(delay_seconds: 120)
-            scheduler_logger.warn '[CatalogRetryJob] Rate limited, requeued', {
-              event_id: event_record.stripe_event_id,
-              error: ex.message,
-            }
+            scheduler_logger.warn '[CatalogRetryJob] Rate limited, requeued',
+              {
+                event_id: event_record.stripe_event_id,
+                error: ex.message,
+              }
             :requeued
           rescue StandardError => ex
-            scheduler_logger.error '[CatalogRetryJob] Processing failed', {
-              event_id: event_record.stripe_event_id,
-              error: ex.message,
-            }
+            scheduler_logger.error '[CatalogRetryJob] Processing failed',
+              {
+                event_id: event_record.stripe_event_id,
+                error: ex.message,
+              }
             event_record.mark_failed!(ex)
             :failed
           end

@@ -37,10 +37,11 @@ module Billing
 
           # Skip one-time payments
           unless session.subscription
-            billing_logger.info 'Checkout session has no subscription (one-time payment)', {
-              session_id: session.id,
-              mode: session.mode,
-            }
+            billing_logger.info 'Checkout session has no subscription (one-time payment)',
+              {
+                session_id: session.id,
+                mode: session.mode,
+              }
             return :skipped
           end
 
@@ -50,17 +51,19 @@ module Billing
 
           customer_extid = metadata['customer_extid']
           unless customer_extid
-            billing_logger.warn 'No customer_extid in subscription metadata', {
-              subscription_id: subscription.id,
-            }
+            billing_logger.warn 'No customer_extid in subscription metadata',
+              {
+                subscription_id: subscription.id,
+              }
             return :skipped
           end
 
           unless valid_identifier?(customer_extid)
-            billing_logger.warn 'Invalid customer_extid format in subscription metadata', {
-              subscription_id: subscription.id,
-              customer_extid: customer_extid.to_s[0, 50], # Truncate for safety
-            }
+            billing_logger.warn 'Invalid customer_extid format in subscription metadata',
+              {
+                subscription_id: subscription.id,
+                customer_extid: customer_extid.to_s[0, 50], # Truncate for safety
+              }
             return :skipped
           end
 
@@ -74,20 +77,22 @@ module Billing
 
           # Idempotency: Check if already processed (same org + same subscription)
           if org.stripe_subscription_id == subscription.id
-            billing_logger.info 'Checkout already processed (idempotent replay)', {
-              orgid: org.objid,
-              subscription_id: subscription.id,
-            }
+            billing_logger.info 'Checkout already processed (idempotent replay)',
+              {
+                orgid: org.objid,
+                subscription_id: subscription.id,
+              }
             return :success
           end
 
           org.update_from_stripe_subscription(subscription)
 
-          billing_logger.info 'Checkout completed - organization subscription activated', {
-            orgid: org.objid,
-            subscription_id: subscription.id,
-            customer_extid: customer_extid,
-          }
+          billing_logger.info 'Checkout completed - organization subscription activated',
+            {
+              orgid: org.objid,
+              subscription_id: subscription.id,
+              customer_extid: customer_extid,
+            }
 
           # Future: Send welcome notification unless skip_notifications?
           :success

@@ -14,10 +14,14 @@ module Onetime
 
       desc 'Validate Stripe prices (Stripe API only)'
 
-      option :product, type: :string, default: nil,
+      option :product,
+        type: :string,
+        default: nil,
         desc: 'Filter by product ID'
 
-      option :strict, type: :boolean, default: false,
+      option :strict,
+        type: :boolean,
+        default: false,
         desc: 'Fail on warnings (default: only fail on errors)'
 
       def call(product: nil, strict: false, **)
@@ -314,8 +318,13 @@ module Onetime
 
         # Print table section
         print_section_header('PRICES', 120)
-        puts format('%-31s %-25s %-12s %-9s %s',
-          'PRICE ID', 'PRODUCT', 'AMOUNT', 'INTERVAL', 'STATUS'
+        puts format(
+          '%-31s %-25s %-12s %-9s %s',
+          'PRICE ID',
+          'PRODUCT',
+          'AMOUNT',
+          'INTERVAL',
+          'STATUS',
         )
         puts '━' * 120
 
@@ -344,8 +353,13 @@ module Onetime
           # Determine status using shared helper
           status = status_for_price(price, errors, warnings)
 
-          puts format('%-31s %-25s %-12s %-9s %s',
-            price.id, product_name, amount_str, interval_str, status
+          puts format(
+            '%-31s %-25s %-12s %-9s %s',
+            price.id,
+            product_name,
+            amount_str,
+            interval_str,
+            status,
           )
         end
 

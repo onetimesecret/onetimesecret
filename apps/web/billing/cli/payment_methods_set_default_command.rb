@@ -34,11 +34,13 @@ module Onetime
         print "\nSet as default? (y/n): "
         return unless $stdin.gets.chomp.downcase == 'y'
 
-        updated = Stripe::Customer.update(customer, {
-          invoice_settings: {
-            default_payment_method: payment_method_id,
+        updated = Stripe::Customer.update(
+          customer,
+          {
+            invoice_settings: {
+              default_payment_method: payment_method_id,
+            },
           },
-        }
         )
 
         puts "\nDefault payment method updated successfully"

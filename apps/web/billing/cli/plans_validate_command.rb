@@ -14,7 +14,9 @@ module Onetime
 
       desc 'Validate plan production readiness (products + prices)'
 
-      option :strict, type: :boolean, default: false,
+      option :strict,
+        type: :boolean,
+        default: false,
         desc: 'Fail on warnings (default: only fail on errors)'
 
       def call(strict: false, **)
@@ -218,8 +220,13 @@ module Onetime
 
         # Print table section
         print_section_header('PLANS')
-        puts format('%-22s %-20s %-7s %-16s %s',
-          'PRODUCT ID', 'PLAN ID', 'REGION', 'PRICES', 'STATUS'
+        puts format(
+          '%-22s %-20s %-7s %-16s %s',
+          'PRODUCT ID',
+          'PLAN ID',
+          'REGION',
+          'PRICES',
+          'STATUS',
         )
         print_separator
 
@@ -252,8 +259,13 @@ module Onetime
                   end
 
           # Full product ID (no truncation)
-          puts format('%-22s %-20s %-7s %-16s %s',
-            product.id, plan_id[0..18], region[0..5], price_summary, status
+          puts format(
+            '%-22s %-20s %-7s %-16s %s',
+            product.id,
+            plan_id[0..18],
+            region[0..5],
+            price_summary,
+            status,
           )
         end
 

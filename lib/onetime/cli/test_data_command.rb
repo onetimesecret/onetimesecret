@@ -9,10 +9,14 @@ module Onetime
 
       argument :email, type: :string, required: true, desc: 'Customer email address'
 
-      option :org_name, type: :string, default: nil,
+      option :org_name,
+        type: :string,
+        default: nil,
         desc: 'Organization name (default: auto-generated)'
 
-      option :cleanup, type: :boolean, default: false,
+      option :cleanup,
+        type: :boolean,
+        default: false,
         desc: 'Remove all non-default orgs for the user'
 
       def call(email:, org_name: nil, cleanup: false, **)

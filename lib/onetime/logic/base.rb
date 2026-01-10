@@ -31,8 +31,17 @@ module Onetime
       include Onetime::Logic::OrganizationContext
       include Onetime::Security::InputSanitizers
 
-      attr_reader :context, :sess, :cust, :params, :locale, :processed_params,
-        :site, :features, :authentication, :domains_enabled, :strategy_result
+      attr_reader :context,
+        :sess,
+        :cust,
+        :params,
+        :locale,
+        :processed_params,
+        :site,
+        :features,
+        :authentication,
+        :domains_enabled,
+        :strategy_result
 
       attr_accessor :domain_strategy, :display_domain
 
@@ -184,10 +193,13 @@ module Onetime
         cust.reset_secret = secret.identifier
 
         begin
-          Onetime::Mail::Mailer.deliver(:welcome, {
-            email_address: cust.email,
-            secret: secret,
-          }, locale: locale || 'en'
+          Onetime::Mail::Mailer.deliver(
+            :welcome,
+            {
+              email_address: cust.email,
+              secret: secret,
+            },
+            locale: locale || 'en',
           )
         rescue StandardError => ex
           errmsg = "Couldn't send the verification email. Let us know below."
