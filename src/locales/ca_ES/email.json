@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "P.D. Aquest correu electrònic s'ha enviat a %{email_address}."
     },
+    "magic_link": {
+      "subject": "Inicia sessió a %{display_domain}",
+      "title": "Inicia sessió amb l'enllaç màgic",
+      "request_notice": "Has sol·licitat un enllaç d'accés per al teu compte de %{product_name}.",
+      "login_button": "Iniciar sessió",
+      "copy_link_prompt": "O copia i enganxa aquest enllaç:",
+      "expiration_notice": "Aquest enllaç caducarà en 15 minuts.",
+      "ignore_notice": "Si no has sol·licitat aquest enllaç, pots ignorar aquest correu electrònic sense problema.",
+      "signature": "Delano",
+      "postscript": "P.D. Aquest correu electrònic s'ha enviat a %{email_address}."
+    },
     "incoming_secret": {
       "subject": "Heu rebut un missatge secret",
       "received_message": "Heu rebut un missatge segur:",

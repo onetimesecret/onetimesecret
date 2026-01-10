@@ -110,7 +110,20 @@
           "status": "Status",
           "usage": "Usage",
           "created": "Created",
-          "details": "Details"
+          "details": "Details",
+          "owner": "Owner",
+          "plan": "Plan",
+          "members": "Members",
+          "domains": "Domains",
+          "subscription": "Subscription",
+          "default_workspace": "Default Workspace",
+          "has_billing": "Has Billing"
+        },
+        "legacy": {
+          "title": "Organizations Billing Admin",
+          "description": "Manage organizations and monitor billing sync health ({total} total)",
+          "empty": "No organizations found",
+          "potentially_stale": "potentially stale"
         },
         "status": {
           "stale": "Stale",
@@ -169,6 +182,20 @@
         "when_you_submit_feedback_well_see": "When you submit feedback, we'll see:",
         "send_feedback": "Send feedback",
         "sending_ellipses": "Sending..."
+      },
+      "titles": {
+        "index": "Administration",
+        "users": "User Management",
+        "secrets": "Secret Management",
+        "domains": "Custom Domains",
+        "system": "System",
+        "maindb": "Main Database",
+        "authdb": "Auth Database",
+        "bannedIps": "Banned IPs",
+        "usage": "Usage Export",
+        "info": "System Information",
+        "organizations": "Organizations",
+        "redis": "Redis"
       }
     }
   }

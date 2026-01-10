@@ -30,6 +30,17 @@
       "signature": "ديلانو",
       "postscript": "ملاحظة: أُرسلت هذه الرسالة إلى %{email_address}."
     },
+    "magic_link": {
+      "subject": "تسجيل الدخول إلى %{display_domain}",
+      "title": "تسجيل الدخول برابط سحري",
+      "request_notice": "لقد طلبت رابط تسجيل الدخول لحسابك في %{product_name}.",
+      "login_button": "تسجيل الدخول",
+      "copy_link_prompt": "أو انسخ والصق هذا الرابط:",
+      "expiration_notice": "تنتهي صلاحية هذا الرابط خلال 15 دقيقة.",
+      "ignore_notice": "إذا لم تطلب هذا الرابط، يمكنك تجاهل هذا البريد الإلكتروني بأمان.",
+      "signature": "ديلانو",
+      "postscript": "ملاحظة: تم إرسال هذا البريد الإلكتروني إلى %{email_address}."
+    },
     "incoming_secret": {
       "subject": "لقد تلقيت رسالة سرية",
       "received_message": "لقد تلقيت رسالة آمنة:",

@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "Tái bút: Email này đã được gửi đến %{email_address}."
     },
+    "magic_link": {
+      "subject": "Đăng nhập vào %{display_domain}",
+      "title": "Đăng nhập bằng liên kết ma thuật",
+      "request_notice": "Bạn đã yêu cầu liên kết đăng nhập cho tài khoản %{product_name} của bạn.",
+      "login_button": "Đăng nhập",
+      "copy_link_prompt": "Hoặc sao chép và dán liên kết này:",
+      "expiration_notice": "Liên kết này sẽ hết hạn sau 15 phút.",
+      "ignore_notice": "Nếu bạn không yêu cầu liên kết này, bạn có thể bỏ qua email này.",
+      "signature": "Delano",
+      "postscript": "Tái bút: Email này đã được gửi đến %{email_address}."
+    },
     "incoming_secret": {
       "subject": "Bạn đã nhận được một tin nhắn bí mật",
       "received_message": "Bạn đã nhận được một tin nhắn bảo mật:",

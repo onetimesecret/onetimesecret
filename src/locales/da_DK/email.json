@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "P.S. Denne e-mail blev sendt til %{email_address}."
     },
+    "magic_link": {
+      "subject": "Log ind på %{display_domain}",
+      "title": "Log ind med Magic Link",
+      "request_notice": "Du har anmodet om et login-link til din %{product_name}-konto.",
+      "login_button": "Log ind",
+      "copy_link_prompt": "Eller kopiér og indsæt dette link:",
+      "expiration_notice": "Dette link udløber om 15 minutter.",
+      "ignore_notice": "Hvis du ikke har anmodet om dette link, kan du trygt ignorere denne e-mail.",
+      "signature": "Delano",
+      "postscript": "P.S. Denne e-mail blev sendt til %{email_address}."
+    },
     "incoming_secret": {
       "subject": "Du har modtaget en hemmelig besked",
       "received_message": "Du har modtaget en sikker besked:",

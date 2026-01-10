@@ -323,19 +323,7 @@
       "recovery_codes": "Recovery Codes",
       "api_settings": "API Settings",
       "advanced_settings": "Advanced Settings",
-      "colonel": "Administration",
-      "colonel_users": "User Management",
-      "colonel_secrets": "Secret Management",
-      "colonel_domains": "Custom Domains",
-      "colonel_system": "System",
       "system_settings": "System Settings",
-      "colonel_maindb": "Main Database",
-      "colonel_authdb": "Auth Database",
-      "colonel_banned_ips": "Banned IPs",
-      "colonel_usage": "Usage Export",
-      "colonel_info": "System Information",
-      "colonel_organizations": "Organizations",
-      "colonel_redis": "Redis",
       "not_found": "Page Not Found",
       "organizations_settings": "Organizations",
       "organization_settings": "Organization Settings"
@@ -349,32 +337,6 @@
       "share_passphrase_instruction": "Share the passphrase separately through a secure channel",
       "secure_channel_instruction": "Use a different secure channel to share sensitive information",
       "phishing_warning": "Always verify you're on the official Onetime Secret website. Fraudsters sometimes create fake websites that look exactly like Onetime Secret to steal your secrets. To avoid phishing attacks, check the region domain before creating new links."
-    },
-    "colonel": {
-      "organizations": {
-        "title": "Organizations Billing Admin",
-        "description": "Manage organizations and monitor billing sync health ({total} total)",
-        "empty": "No organizations found",
-        "potentially_stale": "potentially stale",
-        "owner": "Owner",
-        "plan": "Plan",
-        "members": "Members",
-        "domains": "Domains",
-        "created": "Created",
-        "subscription": "Subscription",
-        "default_workspace": "Default Workspace",
-        "has_billing": "Has Billing",
-        "sync_status": {
-          "synced": "Synced",
-          "potentially_stale": "Potentially Stale",
-          "unknown": "Unknown"
-        },
-        "filters": {
-          "sync_status": "Sync Status",
-          "subscription_status": "Subscription",
-          "all": "All"
-        }
-      }
     }
   }
 }

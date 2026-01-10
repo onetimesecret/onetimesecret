@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "Not: Bu e-posta %{email_address} adresine gönderildi."
     },
+    "magic_link": {
+      "subject": "%{display_domain} için giriş yap",
+      "title": "Sihirli Bağlantı ile Giriş Yap",
+      "request_notice": "%{product_name} hesabınız için bir giriş bağlantısı talep ettiniz.",
+      "login_button": "Giriş Yap",
+      "copy_link_prompt": "Veya bu bağlantıyı kopyalayıp yapıştırın:",
+      "expiration_notice": "Bu bağlantının süresi 15 dakika içinde dolacaktır.",
+      "ignore_notice": "Bu bağlantıyı siz talep etmediyseniz, bu e-postayı güvenle görmezden gelebilirsiniz.",
+      "signature": "Delano",
+      "postscript": "Not: Bu e-posta %{email_address} adresine gönderilmiştir."
+    },
     "incoming_secret": {
       "subject": "Gizli bir mesaj aldınız",
       "received_message": "Güvenli bir mesaj aldınız:",

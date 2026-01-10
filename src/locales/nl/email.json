@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "P.S. Deze e-mail is verstuurd naar %{email_address}."
     },
+    "magic_link": {
+      "subject": "Inloggen bij %{display_domain}",
+      "title": "Inloggen met magische link",
+      "request_notice": "Je hebt een inloglink aangevraagd voor je %{product_name} account.",
+      "login_button": "Inloggen",
+      "copy_link_prompt": "Of kopieer en plak deze link:",
+      "expiration_notice": "Deze link verloopt over 15 minuten.",
+      "ignore_notice": "Als je deze link niet hebt aangevraagd, kun je deze e-mail veilig negeren.",
+      "signature": "Delano",
+      "postscript": "P.S. Deze e-mail is verzonden naar %{email_address}."
+    },
     "incoming_secret": {
       "subject": "Je hebt een beveiligd bericht ontvangen",
       "received_message": "Je hebt een beveiligd bericht ontvangen:",

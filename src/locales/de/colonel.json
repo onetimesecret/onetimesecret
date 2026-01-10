@@ -82,12 +82,120 @@
       "activateTestMode": "Testmodus aktivieren",
       "testModeActive": "Testmodus aktiv",
       "testModeDescription": "Teste deine Anwendung mit verschiedenen Plan-Berechtigungen. Änderungen sind temporär und betreffen nur deine Sitzung.",
-      "warningTestMode": "Du testest mit {planName}-Berechtigungen (temporäre Sitzungsüberschreibung)."
-    },
-    "feedback": {
-      "when_you_submit_feedback_well_see": "Wenn du Feedback sendest, sehen wir:",
-      "send_feedback": "Feedback senden",
-      "sending_ellipses": "Sendet..."
+      "warningTestMode": "Du testest mit {planName}-Berechtigungen (temporäre Sitzungsüberschreibung).",
+      "organizations": {
+        "title": "Organisationen",
+        "description": "Synchronisationsstatus der Organisationsabrechnung überwachen",
+        "pageTitle": "Abrechnungs-Statusmonitor",
+        "organizationsCount": "{count} Organisationen",
+        "needAttention": "{count} erfordern Aufmerksamkeit",
+        "unknownCount": "{count} unbekannt",
+        "noOrganizations": "Keine Organisationen gefunden",
+        "filters": {
+          "syncStatus": "Synchronisationsstatus",
+          "subscription": "Abonnement",
+          "all": "Alle",
+          "potentiallyStale": "Möglicherweise veraltet",
+          "unknown": "Unbekannt",
+          "synced": "Synchronisiert",
+          "active": "Aktiv",
+          "trialing": "Testphase",
+          "pastDue": "Überfällig",
+          "canceled": "Gekündigt"
+        },
+        "columns": {
+          "account": "Konto",
+          "billing": "Abrechnung",
+          "status": "Status",
+          "usage": "Nutzung",
+          "created": "Erstellt",
+          "details": "Details",
+          "owner": "Inhaber",
+          "plan": "Tarif",
+          "members": "Mitglieder",
+          "domains": "Domains",
+          "subscription": "Abonnement",
+          "default_workspace": "Standard-Arbeitsbereich",
+          "has_billing": "Hat Abrechnung"
+        },
+        "legacy": {
+          "title": "Organizations Billing Admin",
+          "description": "Manage organizations and monitor billing sync health ({total} total)",
+          "empty": "Keine Organisationen gefunden",
+          "potentially_stale": "möglicherweise veraltet"
+        },
+        "status": {
+          "stale": "Veraltet",
+          "unknown": "Unbekannt",
+          "active": "active"
+        },
+        "actions": {
+          "investigate": "Untersuchen",
+          "checking": "Prüfen..."
+        },
+        "expanded": {
+          "customer": "Kunde",
+          "subscription": "Abonnement",
+          "orgId": "Org-ID"
+        },
+        "investigation": {
+          "failed": "Untersuchung fehlgeschlagen",
+          "result": "Untersuchungsergebnis",
+          "verifiedSynced": "Synchronisation bestätigt",
+          "mismatchFound": "Abweichung gefunden",
+          "unableToCompare": "Vergleich nicht möglich",
+          "stripeDetails": "Stripe-Abonnementdetails",
+          "statusLabel": "Status",
+          "product": "Produkt",
+          "resolvedPlan": "Ermittelter Tarif",
+          "priceId": "Preis-ID",
+          "local": "Lokal",
+          "stripe": "Stripe"
+        },
+        "usage": {
+          "members": "{count} Mitglieder",
+          "domains": "{count} Domains"
+        }
+      },
+      "secrets": {
+        "title": "Geheimnisse",
+        "description": "Alle Geheimnisse anzeigen und verwalten"
+      },
+      "bannedIps": {
+        "title": "Gesperrte IPs",
+        "description": "IP-Sperrliste verwalten"
+      },
+      "usageExport": {
+        "title": "Nutzungsexport",
+        "description": "Nutzungsdaten und Statistiken exportieren"
+      },
+      "systemSettings": {
+        "title": "System",
+        "description": "Systemeinstellungen, Datenbanken und Konfiguration"
+      },
+      "customDomains": {
+        "title": "Benutzerdefinierte Domains",
+        "description": "Benutzerdefinierte Domains und Branding verwalten"
+      },
+      "feedback": {
+        "when_you_submit_feedback_well_see": "Wenn du Feedback sendest, sehen wir:",
+        "send_feedback": "Feedback senden",
+        "sending_ellipses": "Sendet..."
+      },
+      "titles": {
+        "index": "Administration",
+        "users": "Benutzerverwaltung",
+        "secrets": "Geheimnisverwaltung",
+        "domains": "Benutzerdefinierte Domains",
+        "system": "System",
+        "maindb": "Hauptdatenbank",
+        "authdb": "Authentifizierungsdatenbank",
+        "bannedIps": "Gesperrte IPs",
+        "usage": "Nutzungsexport",
+        "info": "Systeminformationen",
+        "organizations": "Organisationen",
+        "redis": "Redis"
+      }
     }
   }
 }

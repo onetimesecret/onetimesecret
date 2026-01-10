@@ -1,0 +1,9 @@
+[project]
+name = "ots-translate-locale"
+version = "0.1.0"
+description = "Translate OneTimeSecret locale files using Claude CLI"
+requires-python = ">=3.10"
+
+# SDK is optional - script works with subprocess fallback
+[project.optional-dependencies]
+sdk = ["claude-agent-sdk>=0.1.19"]
