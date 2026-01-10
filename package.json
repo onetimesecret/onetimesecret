@@ -100,7 +100,7 @@
     "test:tryouts:clean": "pnpm valkey:clean && pnpm test:tryouts ",
     "test:unit": "pnpm test",
     "test:unit:coverage": "pnpm test:coverage",
-    "test:all": "pnpm test:rspec:all && pnpm test:tryouts:all && pnpm test:unit",
+    "test:all": "pnpm test:rspec:all && pnpm test:tryouts:agent && pnpm test:unit",
     "test:all:clean": "pnpm test:database:clean && pnpm test:all",
     "test:watch": "pnpm test:base --ui --no-open",
     "test:watch:coverage": "pnpm test:base --coverage",
