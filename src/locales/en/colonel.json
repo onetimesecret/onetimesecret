@@ -110,7 +110,20 @@
           "status": "Status",
           "usage": "Usage",
           "created": "Created",
-          "details": "Details"
+          "details": "Details",
+          "owner": "Owner",
+          "plan": "Plan",
+          "members": "Members",
+          "domains": "Domains",
+          "subscription": "Subscription",
+          "default_workspace": "Default Workspace",
+          "has_billing": "Has Billing"
+        },
+        "legacy": {
+          "title": "Organizations Billing Admin",
+          "description": "Manage organizations and monitor billing sync health ({total} total)",
+          "empty": "No organizations found",
+          "potentially_stale": "potentially stale"
         },
         "status": {
           "stale": "Stale",
