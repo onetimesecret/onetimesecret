@@ -32,9 +32,6 @@ importers:
       '@intlify/core':
         specifier: 11.1.12
         version: 11.1.12
-      '@prettier/plugin-ruby':
-        specifier: ^4.0.4
-        version: 4.0.4(prettier@3.7.4)
       '@sentry/browser':
         specifier: ^10.32.1
         version: 10.32.1
@@ -47,32 +44,35 @@ importers:
       '@simplewebauthn/browser':
         specifier: ^13.2.2
         version: 13.2.2
-      '@types/jsdom':
-        specifier: ^21.1.7
-        version: 21.1.7
+      '@vue/runtime-core':
+        specifier: ^3.5.26
+        version: 3.5.26
+      '@vueuse/core':
+        specifier: ^13.9.0
+        version: 13.9.0(vue@3.5.22(typescript@5.9.3))
       '@vueuse/integrations':
         specifier: 13.6.0
-        version: 13.6.0(axios@1.13.2)(focus-trap@7.6.5)(qrcode@1.5.4)(vue@3.5.22(typescript@5.9.3))
+        version: 13.6.0(axios@1.13.2)(focus-trap@7.7.1)(qrcode@1.5.4)(vue@3.5.22(typescript@5.9.3))
       axios:
         specifier: ^1.13.2
         version: 1.13.2
       codemirror:
-        specifier: 6.0.2
+        specifier: ^6.0.2
         version: 6.0.2
       date-fns:
-        specifier: 4.1.0
+        specifier: ^4.1.0
         version: 4.1.0
       dompurify:
-        specifier: 3.2.7
-        version: 3.2.7
+        specifier: ^3.3.1
+        version: 3.3.1
       focus-trap:
-        specifier: 7.6.5
-        version: 7.6.5
+        specifier: ^7.7.1
+        version: 7.7.1
       focus-trap-vue:
-        specifier: 4.1.0
-        version: 4.1.0(focus-trap@7.6.5)(vue@3.5.22(typescript@5.9.3))
+        specifier: ^4.1.0
+        version: 4.1.0(focus-trap@7.7.1)(vue@3.5.22(typescript@5.9.3))
       highlight.js:
-        specifier: 11.11.1
+        specifier: ^11.11.1
         version: 11.11.1
       marked:
         specifier: ^15.0.12
@@ -81,14 +81,11 @@ importers:
         specifier: ^2.2.3
         version: 2.2.3(marked@15.0.12)
       nanoid:
-        specifier: 5.1.6
+        specifier: ^5.1.6
         version: 5.1.6
       pinia:
         specifier: ^3.0.4
         version: 3.0.4(typescript@5.9.3)(vue@3.5.22(typescript@5.9.3))
-      pnpm:
-        specifier: 10.10.0
-        version: 10.10.0
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
@@ -104,6 +101,9 @@ importers:
       vue-i18n:
         specifier: 11.1.12
         version: 11.1.12(vue@3.5.22(typescript@5.9.3))
+      vue-router:
+        specifier: ^4.6.4
+        version: 4.6.4(vue@3.5.22(typescript@5.9.3))
       zod:
         specifier: 4.1.11
         version: 4.1.11
@@ -138,6 +138,9 @@ importers:
       '@playwright/test':
         specifier: ^1.57.0
         version: 1.57.0
+      '@prettier/plugin-ruby':
+        specifier: ^4.0.4
+        version: 4.0.4(prettier@3.7.4)
       '@sentry/cli':
         specifier: ^3.0.3
         version: 3.0.3
@@ -159,6 +162,9 @@ importers:
       '@types/fs-extra':
         specifier: ^11.0.4
         version: 11.0.4
+      '@types/jsdom':
+        specifier: ^21.1.7
+        version: 21.1.7
       '@types/node':
         specifier: ^22.19.5
         version: 22.19.5
@@ -180,15 +186,9 @@ importers:
       '@vitest/ui':
         specifier: ^4.0.16
         version: 4.0.16(vitest@4.0.16)
-      '@vue/runtime-core':
-        specifier: ^3.5.26
-        version: 3.5.26
       '@vue/test-utils':
         specifier: ^2.4.6
         version: 2.4.6
-      '@vueuse/core':
-        specifier: ^13.9.0
-        version: 13.9.0(vue@3.5.22(typescript@5.9.3))
       axios-mock-adapter:
         specifier: ^2.1.0
         version: 2.1.0(axios@1.13.2)
@@ -250,8 +250,8 @@ importers:
         specifier: ^3.7.4
         version: 3.7.4
       prettier-plugin-tailwindcss:
-        specifier: ^0.6.14
-        version: 0.6.14(prettier@3.7.4)
+        specifier: ^0.7.2
+        version: 0.7.2(prettier@3.7.4)
       prettier-plugin-vue:
         specifier: ^1.1.6
         version: 1.1.6
@@ -303,12 +303,9 @@ importers:
       vue-eslint-parser:
         specifier: ^10.2.0
         version: 10.2.0(eslint@9.39.2(jiti@2.6.1))
-      vue-router:
-        specifier: ^4.6.4
-        version: 4.6.4(vue@3.5.22(typescript@5.9.3))
       vue-router-mock:
-        specifier: ^1.1.0
-        version: 1.1.0(vue-router@4.6.4(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3))
+        specifier: ^2.0.0
+        version: 2.0.0(vue-router@4.6.4(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3))
       vue-tsc:
         specifier: ^3.2.2
         version: 3.2.2(typescript@5.9.3)
@@ -2385,8 +2382,8 @@ packages:
     resolution: {integrity: sha512-35mSku4ZXK0vfCuHEDAwt55dg2jNajHZ1odvF+8SSr82EsZY4QmXfuWso8oEd8zRhVObSN18aM0CjSdoBX7zIw==}
     engines: {node: '>=0.10.0'}
 
-  dompurify@3.2.7:
-    resolution: {integrity: sha512-WhL/YuveyGXJaerVlMYGWhvQswa7myDG17P7Vu65EWC05o8vfeNbvNf4d/BOvH99+ZW+LlQsc1GDKMa1vNK6dw==}
+  dompurify@3.3.1:
+    resolution: {integrity: sha512-qkdCKzLNtrgPFP1Vo+98FRzJnBRGe4ffyCea9IwHB1fyxPOeNTHpLKYGd4Uk9xvNoH0ZoOjwZxNptyMwqrId1Q==}
 
   dotenv@16.6.1:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
@@ -2712,8 +2709,8 @@ packages:
       focus-trap: ^7.0.0
       vue: ^3.0.0
 
-  focus-trap@7.6.5:
-    resolution: {integrity: sha512-7Ke1jyybbbPZyZXFxEftUtxFGLMpE2n6A+z//m4CRDlj0hW+o3iYSmh8nFlYMurOiJVDmJRilUQtJr08KfIxlg==}
+  focus-trap@7.7.1:
+    resolution: {integrity: sha512-Pkp8m55GjxBLnhBoT6OXdMvfRr4TjMAKLvFM566zlIryq5plbhaTmLAJWTGR0EkRwLjEte1lCOG9MxF1ipJrOg==}
 
   follow-redirects@1.15.11:
     resolution: {integrity: sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ==}
@@ -3619,11 +3616,6 @@ packages:
     resolution: {integrity: sha512-40QW5YalBNfQo5yRYmiw7Yz6TKKVr3h6970B2YE+3fQpsWcrbj1PzJgxeJ19DRQjhMbKPIuMY8rFaXc8moolVw==}
     engines: {node: '>=10.13.0'}
 
-  pnpm@10.10.0:
-    resolution: {integrity: sha512-1hXbJG/nDyXc/qbY1z3ueCziPiJF48T2+Igkn7VoFJMYY33Kc8LFyO8qTKDVZX+5VnGIv6tH9WbR7mzph4FcOQ==}
-    engines: {node: '>=18.12'}
-    hasBin: true
-
   possible-typed-array-names@1.1.0:
     resolution: {integrity: sha512-/+5VFTchJDoVj3bhoqi6UeymcD00DAwb1nJwamzPvHEszJ4FpF6SNNbUbOS8yI56qHzdV8eK0qEfOSiodkTdxg==}
     engines: {node: '>= 0.4'}
@@ -3644,9 +3636,9 @@ packages:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
 
-  prettier-plugin-tailwindcss@0.6.14:
-    resolution: {integrity: sha512-pi2e/+ZygeIqntN+vC573BcW5Cve8zUB0SSAGxqpB4f96boZF4M3phPVoOFCeypwkpRYdi7+jQ5YJJUwrkGUAg==}
-    engines: {node: '>=14.21.3'}
+  prettier-plugin-tailwindcss@0.7.2:
+    resolution: {integrity: sha512-LkphyK3Fw+q2HdMOoiEHWf93fNtYJwfamoKPl7UwtjFQdei/iIBoX11G6j706FzN3ymX9mPVi97qIY8328vdnA==}
+    engines: {node: '>=20.19'}
     peerDependencies:
       '@ianvs/prettier-plugin-sort-imports': '*'
       '@prettier/plugin-hermes': '*'
@@ -3658,14 +3650,12 @@ packages:
       prettier: ^3.0
       prettier-plugin-astro: '*'
       prettier-plugin-css-order: '*'
-      prettier-plugin-import-sort: '*'
       prettier-plugin-jsdoc: '*'
       prettier-plugin-marko: '*'
       prettier-plugin-multiline-arrays: '*'
       prettier-plugin-organize-attributes: '*'
       prettier-plugin-organize-imports: '*'
       prettier-plugin-sort-imports: '*'
-      prettier-plugin-style-order: '*'
       prettier-plugin-svelte: '*'
     peerDependenciesMeta:
       '@ianvs/prettier-plugin-sort-imports':
@@ -3686,8 +3676,6 @@ packages:
         optional: true
       prettier-plugin-css-order:
         optional: true
-      prettier-plugin-import-sort:
-        optional: true
       prettier-plugin-jsdoc:
         optional: true
       prettier-plugin-marko:
@@ -3699,8 +3687,6 @@ packages:
       prettier-plugin-organize-imports:
         optional: true
       prettier-plugin-sort-imports:
-        optional: true
-      prettier-plugin-style-order:
         optional: true
       prettier-plugin-svelte:
         optional: true
@@ -4420,8 +4406,8 @@ packages:
     peerDependencies:
       vue: ^3.0.0
 
-  vue-router-mock@1.1.0:
-    resolution: {integrity: sha512-RhKhxkiZh2zB2eRkzfcCILQQ0ZUc0tk7CE2ZC1PGJYi5GOU+2QQAGHtTCgb8V4B/OPm9ws+X5Q9SQB5vyTXxBQ==}
+  vue-router-mock@2.0.0:
+    resolution: {integrity: sha512-UmfJ9C4odcC8P2d8+yZWGPnjK7MMc1Uk3bmchpq+8lcGEdpwrO18RPQOMUEiwAjqjTVN5Z955Weaz2Ev9UrXMw==}
     peerDependencies:
       vue: ^3.2.23
       vue-router: ^4.0.12
@@ -6250,14 +6236,14 @@ snapshots:
       '@vueuse/shared': 13.9.0(vue@3.5.22(typescript@5.9.3))
       vue: 3.5.22(typescript@5.9.3)
 
-  '@vueuse/integrations@13.6.0(axios@1.13.2)(focus-trap@7.6.5)(qrcode@1.5.4)(vue@3.5.22(typescript@5.9.3))':
+  '@vueuse/integrations@13.6.0(axios@1.13.2)(focus-trap@7.7.1)(qrcode@1.5.4)(vue@3.5.22(typescript@5.9.3))':
     dependencies:
       '@vueuse/core': 13.6.0(vue@3.5.22(typescript@5.9.3))
       '@vueuse/shared': 13.6.0(vue@3.5.22(typescript@5.9.3))
       vue: 3.5.22(typescript@5.9.3)
     optionalDependencies:
       axios: 1.13.2
-      focus-trap: 7.6.5
+      focus-trap: 7.7.1
       qrcode: 1.5.4
 
   '@vueuse/metadata@13.6.0': {}
@@ -6673,7 +6659,7 @@ snapshots:
     dependencies:
       esutils: 2.0.3
 
-  dompurify@3.2.7:
+  dompurify@3.3.1:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 
@@ -7114,12 +7100,12 @@ snapshots:
 
   flatted@3.3.3: {}
 
-  focus-trap-vue@4.1.0(focus-trap@7.6.5)(vue@3.5.22(typescript@5.9.3)):
+  focus-trap-vue@4.1.0(focus-trap@7.7.1)(vue@3.5.22(typescript@5.9.3)):
     dependencies:
-      focus-trap: 7.6.5
+      focus-trap: 7.7.1
       vue: 3.5.22(typescript@5.9.3)
 
-  focus-trap@7.6.5:
+  focus-trap@7.7.1:
     dependencies:
       tabbable: 6.4.0
 
@@ -8014,8 +8000,6 @@ snapshots:
 
   pngjs@5.0.0: {}
 
-  pnpm@10.10.0: {}
-
   possible-typed-array-names@1.1.0: {}
 
   postcss-selector-parser@6.0.10:
@@ -8036,7 +8020,7 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier-plugin-tailwindcss@0.6.14(prettier@3.7.4):
+  prettier-plugin-tailwindcss@0.7.2(prettier@3.7.4):
     dependencies:
       prettier: 3.7.4
 
@@ -8810,7 +8794,7 @@ snapshots:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.22(typescript@5.9.3)
 
-  vue-router-mock@1.1.0(vue-router@4.6.4(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3)):
+  vue-router-mock@2.0.0(vue-router@4.6.4(vue@3.5.22(typescript@5.9.3)))(vue@3.5.22(typescript@5.9.3)):
     dependencies:
       vue: 3.5.22(typescript@5.9.3)
       vue-router: 4.6.4(vue@3.5.22(typescript@5.9.3))
