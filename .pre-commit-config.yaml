@@ -46,6 +46,10 @@ default_install_hook_types:
 # Default execution stage
 default_stages: [pre-commit]
 
+default_language_version:
+  ruby: system
+  node: system
+
 # Allow all hooks to run even if one (or more fails). This avoids
 # the commit->fail->fix->commit->fail->fix->commit routine.
 fail_fast: false
