@@ -18,7 +18,7 @@ module Onetime
   class BillingConfig
     include Singleton
 
-    attr_reader :config, :environment
+    attr_reader :config, :config_file, :environment
 
     def initialize
       @environment = ENV['RACK_ENV'] || 'development'

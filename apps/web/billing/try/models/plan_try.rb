@@ -13,7 +13,7 @@ require_relative '../../../../../try/support/test_helpers'
 require 'apps/web/billing/models/plan'
 
 ## Setup: Enable billing for these plan cache tests
-BillingTestHelpers.restore_billing!
+BillingTestHelpers.restore_billing!(enabled: true)
 
 ## Clear any existing plan cache
 Billing::Plan.clear_cache.class

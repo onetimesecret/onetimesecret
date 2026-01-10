@@ -121,3 +121,30 @@ plans:
         interval: year
         amount: 12000 # $120.00 in cents
         currency: usd
+
+  # Legacy plan for testing legacy plan detection
+  # Tests verify that plans with legacy: true are detected correctly
+  identity:
+    name: 'Identity (Legacy)'
+    tier: single_team
+    tenancy: multi
+    region: EU
+    display_order: 99
+    show_on_plans_page: false
+    legacy: true
+    description: 'Legacy plan for testing'
+
+    entitlements:
+      - create_secrets
+      - view_receipt
+      - api_access
+      - manage_teams
+
+    limits:
+      teams: 1
+      organizations: 1
+      members_per_team: 5
+      custom_domains: 0
+      secret_lifetime: 1209600 # 14 days
+
+    prices: []

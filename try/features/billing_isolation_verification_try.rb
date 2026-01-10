@@ -16,13 +16,14 @@
 require_relative '../support/test_helpers'
 require_relative '../../apps/web/billing/lib/test_support/billing_helpers'
 
-## Billing is disabled by default in test environment
-Onetime::BillingConfig.path
-#=> '/nonexistent/billing_disabled_for_tests.yaml'
-
-## Billing config file does not exist
-File.exist?(Onetime::BillingConfig.path)
+## Billing config file exists in test environment (billing.test.yaml)
+# ConfigResolver finds apps/web/billing/spec/billing.test.yaml
+Onetime::BillingConfig.instance.config_file.nil?
 #=> false
+
+## Billing config file actually exists on disk
+File.exist?(Onetime::BillingConfig.instance.config_file)
+#=> true
 
 ## Billing config returns disabled state
 Onetime::BillingConfig.instance.enabled?
@@ -54,7 +55,7 @@ end
 
 ## Object gets standalone entitlements when billing disabled
 # Standalone mode gives all base entitlements without restrictions
-@obj.can?(:create_secrets)
+@obj.can?(:api_access)
 #=> true
 
 ## Object entitlements array is not empty in standalone mode
@@ -117,27 +118,17 @@ BillingTestHelpers.cleanup_billing_state!
 [Onetime::BillingConfig.instance.enabled?, Billing::Plan.all.empty?]
 #=> [false, true]
 
-## restore_billing! switches to real billing config path
-# The path should change from disabled to actual config when restored
-@before_path = Onetime::BillingConfig.path
-# Store the check that before_path is the disabled path
-@before_is_disabled = @before_path == '/nonexistent/billing_disabled_for_tests.yaml'
-# Restore to real path - note this may fail if billing.yaml doesn't exist
-# but that's okay, the path variable will change
-begin
-  BillingTestHelpers.restore_billing!
-  @after_path = Onetime::BillingConfig.path
-rescue StandardError
-  # Even if restore fails, the path variable changes
-  @after_path = Onetime::BillingConfig.path
-end
-# Disable billing again
+## restore_billing!(enabled: true) enables billing
+# When enabled: true is passed, billing should be force-enabled
+@before_enabled = Onetime::BillingConfig.instance.enabled?
+BillingTestHelpers.restore_billing!(enabled: true)
+@after_enabled = Onetime::BillingConfig.instance.enabled?
+# Disable billing again for subsequent tests
 BillingTestHelpers.disable_billing!
-@final_path = Onetime::BillingConfig.path
-@final_is_disabled = @final_path == '/nonexistent/billing_disabled_for_tests.yaml'
-# Test that before was disabled and final is disabled
-[@before_is_disabled, @final_is_disabled]
-#=> [true, true]
+@final_enabled = Onetime::BillingConfig.instance.enabled?
+# Test that before was disabled, after was enabled, final is disabled
+[@before_enabled, @after_enabled, @final_enabled]
+#=> [false, true, false]
 
 ## ensure_familia_configured! is idempotent
 # Should not change URI if already configured for test
