@@ -455,10 +455,13 @@ export const useAuthStore = defineStore('auth', () => {
       await $stopAuthCheck();
     }
 
-    // Sync authenticated flag via WindowService for reactivity
-    // Note: checkWindowStatus() already updates full state, but we ensure
-    // the authenticated flag is set even if the API call failed
-    WindowService.update({ authenticated: value });
+    // Sync flags via WindowService for reactivity. When setting authenticated to true,
+    // we also set awaiting_mfa to false. This optimistic update prevents getting
+    // stuck if the subsequent checkWindowStatus() call fails.
+    WindowService.update({
+      authenticated: value,
+      ...(value ? { awaiting_mfa: false } : {}),
+    });
   }
 
   return {
