@@ -237,8 +237,34 @@ Layout/IndentationWidth:
 Layout/HashAlignment:
   Enabled: true
 
+# Force opening brace on its own line when hash spans multiple lines
+Layout/FirstHashElementLineBreak:
+  Enabled: true
+
+# Use consistent indentation (not aligned to opening paren)
 Layout/FirstHashElementIndentation:
   Enabled: true
+  EnforcedStyle: consistent
+
+# Each hash key on its own line in multiline hashes
+Layout/MultilineHashKeyLineBreaks:
+  Enabled: true
+  AllowMultilineFinalElement: false
+
+# Closing brace mirrors opening brace placement
+Layout/MultilineHashBraceLayout:
+  Enabled: true
+  EnforcedStyle: symmetrical
+
+# Each argument on its own line in multiline method calls
+Layout/MultilineMethodArgumentLineBreaks:
+  Enabled: true
+  AllowMultilineFinalElement: false
+
+# Force first argument onto new line when method call is multiline
+Layout/FirstMethodArgumentLineBreak:
+  Enabled: true
+  AllowMultilineFinalElement: false
 
 Lint/Void:
   Enabled: true
