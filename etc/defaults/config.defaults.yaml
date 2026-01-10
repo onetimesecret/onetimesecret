@@ -279,6 +279,21 @@ site:
     # Disable only for development or when behind a secure proxy
     # ENV: MIDDLEWARE_STRICT_TRANSPORT (default: false)
     strict_transport: <%= ENV['MIDDLEWARE_STRICT_TRANSPORT'] == 'true' %>
+  # Security Configuration
+  # Additional security settings beyond middleware
+  security:
+    # Content Security Policy (CSP) Configuration
+    #
+    # When enabled, adds Content-Security-Policy headers to responses.
+    # - Development mode: Less restrictive headers to allow hot reloading
+    # - Production mode: Strict headers with nonce-based script protection
+    #
+    # The nonce is available via `req.env['onetime.nonce']` for custom
+    # script/style assets. Backend views add it automatically.
+    #
+    # ENV: CSP_ENABLED (default: false)
+    csp:
+      enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>
 
 features:
   regions:
@@ -743,14 +758,3 @@ experimental:
   #   data (e.g., encrypted model fields) - this is a known gap to be addressed
   #
   rotated_secrets: []
-  # When enabled, adds Content-Security-Policy headers to the response. When
-  # `development.enabled=true`, the headers will be less restrictive but still
-  # prevent any content loading from other origins. In regular production mode,
-  # a secure nonce will be included with the headers and unsafe-inline content
-  # is completely blocked. The nonce can be accessed via the rack request object
-  # `req.env['onetime.nonce']`. The backend views grab it from there to add it to
-  # all front-end script and style assets automatically. You'd only need to use
-  # the none if you're adding new script or style dependencies.
-  # When disabled, no csp headers are included in any environment.
-  csp:
-    enabled: <%= ENV['CSP_ENABLED'] == 'true' || false %>

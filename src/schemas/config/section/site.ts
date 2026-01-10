@@ -45,6 +45,22 @@ const sessionConfigSchema = z.object({
 });
 
 /**
+ * Content Security Policy configuration
+ */
+const cspSchema = z.object({
+  enabled: z.boolean().default(false),
+});
+
+/**
+ * Security configuration
+ *
+ * Additional security settings beyond middleware.
+ */
+const securitySchema = z.object({
+  csp: cspSchema.optional(),
+});
+
+/**
  * Middleware configuration
  *
  * Controls which Rack middleware components are enabled.
@@ -112,10 +128,13 @@ const siteSchema = z.object({
   support: siteSupportSchema.optional(),
   session: sessionConfigSchema.optional(),
   middleware: middlewareSchema.optional(),
+  security: securitySchema.optional(),
 });
 
 export type SessionConfig = z.infer<typeof sessionConfigSchema>;
 export type MiddlewareConfig = z.infer<typeof middlewareSchema>;
+export type CspConfig = z.infer<typeof cspSchema>;
+export type SecurityConfig = z.infer<typeof securitySchema>;
 
 export {
   siteSchema,
@@ -125,4 +144,6 @@ export {
   passwordGenerationSchema,
   sessionConfigSchema,
   middlewareSchema,
+  securitySchema,
+  cspSchema,
 };
