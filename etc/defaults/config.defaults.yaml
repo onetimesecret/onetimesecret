@@ -689,10 +689,15 @@ development:
   # SECURITY: Must remain false in production. No query param support.
   domain_context_enabled: <%= ENV['DOMAIN_CONTEXT_ENABLED'] == 'true' %>
 experimental:
-  # SECURITY FEATURE: Controls whether the application can run without a
-  # site.secret (either in this file or via the SECRET env var).
+  # SECURITY FEATURE: Allow application to run without a site.secret
   #
-  # DEFAULT: false (application will fail to start if site.secret is nil)
+  # WHY THIS EXISTS:
+  # The application encrypts secret content using site.secret before storing
+  # in Redis. If site.secret is nil/empty, encryption still occurs but with
+  # a predictable key - making stored data vulnerable. This setting exists
+  # to recover secrets that were accidentally created during such a state.
+  #
+  # DEFAULT: false (application fails to start if site.secret is nil)
   #
   # WARNING: Setting to true presents significant security risks:
   # - Secrets may be stored without proper encryption
@@ -712,6 +717,9 @@ experimental:
   # - When decrypting, CipherErrors with the real secret will cause
   #   automatic retry with nil secret
   #
+  # RELATED: rotated_secrets (below) provides a safer rotation mechanism
+  # for planned secret changes. Use that instead when possible.
+  #
   allow_nil_global_secret: <%= ENV['ALLOW_NIL_GLOBAL_SECRET'] == 'true' || false %>
   # SECURITY FEATURE: Support for rotating global secret
   #
@@ -726,21 +734,15 @@ experimental:
   # MAINTENANCE: Remove secrets from this list after the relevant secrets
   # have expired or has been successfully re-encrypted with the current
   # primary secret. An easy guideline is the maximum TTL in `ttl_options`.
+  #
+  # KNOWN LIMITATIONS:
+  # - Only works with Secret/Metadata content encryption (LegacyEncryptedFields)
+  # - Does NOT work with Familia's EncryptedFields (used for model attributes)
+  # - Does NOT affect SESSION_SECRET or HMAC_SECRET (separate systems)
+  # - Changing site.secret without proper rotation will break Familia-encrypted
+  #   data (e.g., encrypted model fields) - this is a known gap to be addressed
+  #
   rotated_secrets: []
-  # When set to true, the Rack::Builder#freeze_app freezes the middleware stack
-  # after initialization to prevent any runtime modifications to the app
-  # middleware chain. This is a security measure that prevents malicious
-  # code from injecting new middleware.
-  #
-  # Effects:
-  # - Freezes the middleware stack, preventing adding/removing after boot
-  # - Freezes the app object passed to Rack::Builder
-  # - Does not affect request/response object mutability
-  #
-  # Note: This setting can help make your application more secure by preventing
-  # middleware chain manipulation at runtime. For most applications, this
-  # should be enabled in production environments.
-  freeze_app: false
   # When enabled, adds Content-Security-Policy headers to the response. When
   # `development.enabled=true`, the headers will be less restrictive but still
   # prevent any content loading from other origins. In regular production mode,

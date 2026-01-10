@@ -13,6 +13,11 @@ module Onetime
     # - Onetime::Runtime.security.global_secret
     # - Onetime::Runtime.security.rotated_secrets
     #
+    # KNOWN LIMITATION: rotated_secrets only supports LegacyEncryptedFields
+    # (Secret/Metadata content encryption). It does NOT integrate with:
+    # - Familia's EncryptedFields (configured separately in configure_familia.rb)
+    # - SESSION_SECRET or HMAC_SECRET (separate ENV-based systems)
+    #
     class SetSecrets < Onetime::Boot::Initializer
       @provides = [:secrets]
 
