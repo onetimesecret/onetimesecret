@@ -51,7 +51,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/apps/colonel/views/SystemSettings.vue'),
     meta: {
       ...defaultMeta,
-      title: 'web.TITLES.system_settings',
+      title: 'web.colonel.titles.system_settings',
     },
     props: true,
   },
