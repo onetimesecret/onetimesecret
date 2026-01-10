@@ -73,33 +73,25 @@ module Onetime
     # Whether security features are enabled (lockout, active sessions, remember me)
     # Default: true (when full mode is enabled)
     def security_features_enabled?
-      return false unless full_enabled?
-
-      features.fetch('security', true)
+      feature_enabled?('security', default: true)
     end
 
     # Whether MFA is enabled (TOTP, recovery codes)
     # Default: false
     def mfa_enabled?
-      return false unless full_enabled?
-
-      features.fetch('mfa', false)
+      feature_enabled?('mfa', default: false)
     end
 
     # Whether magic links (passwordless email login) are enabled
     # Default: false
     def magic_links_enabled?
-      return false unless full_enabled?
-
-      features.fetch('magic_links', false)
+      feature_enabled?('magic_links', default: false)
     end
 
     # Whether WebAuthn (biometrics, security keys) is enabled
     # Default: false
     def webauthn_enabled?
-      return false unless full_enabled?
-
-      features.fetch('webauthn', false)
+      feature_enabled?('webauthn', default: false)
     end
 
     # Reload configuration (useful for testing)
@@ -111,6 +103,15 @@ module Onetime
     end
 
     private
+
+    # Generic helper to check if a feature is enabled in full mode.
+    # Returns false if not in full mode, otherwise fetches the feature
+    # flag from config, falling back to the provided default.
+    def feature_enabled?(key, default:)
+      return false unless full_enabled?
+
+      features.fetch(key, default)
+    end
 
     def load_config
       validate_config_file_exists!
