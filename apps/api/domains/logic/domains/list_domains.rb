@@ -21,7 +21,7 @@ module DomainsAPI::Logic
 
       def process_params
         @with_brand   = !params['with_brand'].to_s.empty?
-        @org_id_param = params['org_id'].to_s.strip
+        @org_id_param = sanitize_identifier(params['org_id'])
       end
 
       def raise_concerns

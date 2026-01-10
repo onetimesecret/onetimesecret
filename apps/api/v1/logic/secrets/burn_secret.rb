@@ -12,7 +12,7 @@ module V1::Logic
       attr_reader :metadata, :secret, :correct_passphrase, :greenlighted
 
       def process_params
-        @key = params['key'].to_s
+        @key = sanitize_identifier(params['key'])
         @metadata = Onetime::Metadata.load key
         @passphrase = params['passphrase'].to_s
         @continue = [true, 'true'].include?(params['continue'])

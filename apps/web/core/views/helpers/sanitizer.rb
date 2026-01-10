@@ -4,20 +4,12 @@
 
 # SanitizerHelpers provides methods for sanitizing data before rendering in views.
 #
-# This module handles JSON serialization, HTML escaping, and caching to prevent
-# common security issues like XSS attacks and ensure proper data rendering.
+# This module handles JSON serialization for script tags, preventing XSS attacks
+# through proper escaping of script tag boundaries and control characters.
 #
 module Core
   module Views
     module SanitizerHelpers
-      # Normalizes values to prevent injection attacks and ensure consistent formatting.
-      #
-      # @param value [String, Array, Hash] The value to normalize
-      # @return [String, Array, Hash] The normalized value
-      def normalize_value(value)
-        Onetime::Utils.normalize_value(value)
-      end
-
       # Serializes view data to a script tag for frontend consumption.
       #
       # @return [String] HTML script tag containing serialized data
@@ -44,6 +36,9 @@ module Core
       end
 
       # Converts data to sanitized JSON to prevent XSS attacks.
+      #
+      # Escapes script tag boundaries and control characters to prevent
+      # injection when embedding JSON in HTML script tags.
       #
       # @param data [Hash, Array] Data to convert to JSON
       # @return [String] Sanitized JSON string

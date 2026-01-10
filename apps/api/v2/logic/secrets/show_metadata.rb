@@ -21,7 +21,7 @@ module V2::Logic
         :metadata_url, :burn_url, :display_lines
 
       def process_params
-        @identifier = params['identifier'].to_s
+        @identifier = sanitize_identifier(params['identifier'])
         @metadata   = Onetime::Metadata.load identifier
       end
 

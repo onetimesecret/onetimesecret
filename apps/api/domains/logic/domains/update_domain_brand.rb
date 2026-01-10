@@ -11,7 +11,7 @@ module DomainsAPI::Logic
       attr_reader :greenlighted, :brand_settings, :display_domain, :custom_domain
 
       def process_params
-        @extid = params['extid'].to_s.strip
+        @extid = sanitize_identifier(params['extid'])
 
         # Use BrandSettings.members as the single source of truth for valid keys
         valid_keys = Onetime::CustomDomain::BrandSettings.members.map(&:to_s)

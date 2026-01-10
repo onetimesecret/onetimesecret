@@ -123,11 +123,12 @@ Onetime::Middleware::Security.middleware_components = {
     key: :http_origin,
     klass: Rack::Protection::HttpOrigin,
   },
-  # Escapes HTML in parameters to prevent XSS
-  'EscapedParams' => {
-    key: :escaped_params,
-    klass: Rack::Protection::EscapedParams,
-  },
+  # NOTE: Rack::Protection::EscapedParams intentionally excluded.
+  # It escapes ALL string parameters uniformly (no field exclusions),
+  # which corrupts sensitive fields like passwords, passphrases, and
+  # secret content. OTS uses Onetime::Security::InputSanitizers for
+  # field-aware sanitization instead.
+  #
   # Sets X-XSS-Protection header
   'XSSHeader' => {
     key: :xss_header,

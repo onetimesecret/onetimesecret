@@ -5,6 +5,7 @@
 require 'timeout'
 
 require_relative 'helpers'
+require 'onetime/security/input_sanitizers'
 
 module V1
   module Logic
@@ -12,6 +13,7 @@ module V1
       using Familia::Refinements::TimeLiterals
 
       include V1::Logic::UriHelpers
+      include Onetime::Security::InputSanitizers
 
       attr_reader :sess, :cust, :params, :locale, :processed_params
       attr_reader :site, :authentication, :domains_enabled

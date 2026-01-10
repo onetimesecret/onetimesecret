@@ -31,8 +31,8 @@ module DomainsAPI::Logic
       # Extracts and sets instance variables for the domain extid and uploaded image file.
       # Handles cases where the image parameter is either a hash (from a form upload) or a file object directly.
       def process_params
-        # Strip any leading/trailing whitespace from the extid parameter and set it to an instance variable.
-        @extid = params['extid'].to_s.strip
+        # Sanitize the extid to only allow alphanumeric, underscore, and hyphen characters
+        @extid = sanitize_identifier(params['extid'])
 
         # Debug: Log what we received
         OT.ld "[UpdateDomainImage] params keys: #{params.keys.inspect}"

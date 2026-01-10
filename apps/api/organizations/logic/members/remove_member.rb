@@ -19,8 +19,8 @@ module OrganizationAPI::Logic
       attr_reader :organization, :target_member, :target_membership, :actor_membership
 
       def process_params
-        @extid        = params['extid']
-        @member_extid = params['member_extid']
+        @extid        = sanitize_identifier(params['extid'])
+        @member_extid = sanitize_identifier(params['member_extid'])
       end
 
       def raise_concerns

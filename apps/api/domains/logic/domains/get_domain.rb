@@ -11,7 +11,7 @@ module DomainsAPI::Logic
       attr_reader :greenlighted, :display_domain, :custom_domain
 
       def process_params
-        @extid = params['extid'].to_s.strip
+        @extid = sanitize_identifier(params['extid'])
       end
 
       def raise_concerns

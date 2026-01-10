@@ -11,7 +11,7 @@ module ColonelAPI
         attr_reader :secret_id, :secret, :metadata, :deleted_secret, :deleted_metadata
 
         def process_params
-          @secret_id = params['secret_id']
+          @secret_id = sanitize_identifier(params['secret_id'])
           raise_form_error('Secret ID is required', field: :secret_id) if secret_id.to_s.empty?
         end
 

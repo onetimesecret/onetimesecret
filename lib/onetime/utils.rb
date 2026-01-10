@@ -6,14 +6,12 @@ require 'pathname'
 
 require_relative 'utils/domain_parser'
 require_relative 'utils/enumerables'
-require_relative 'utils/sanitation'
 require_relative 'utils/strings'
 require_relative 'utils/time_utils'
 
 module Onetime
   module Utils
     extend Enumerables
-    extend Sanitation
     extend Strings
     extend TimeUtils
 

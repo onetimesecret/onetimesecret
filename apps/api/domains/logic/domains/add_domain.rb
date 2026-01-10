@@ -14,8 +14,8 @@ module DomainsAPI::Logic
       attr_reader :greenlighted, :custom_domain, :domain_input, :display_domain
 
       def process_params
-        # PublicSuffix does its own normalizing so we don't need to do any here
-        @domain_input = params['domain'].to_s
+        # Sanitize plain text to strip HTML tags before PublicSuffix normalizes
+        @domain_input = sanitize_plain_text(params['domain'])
 
         OT.ld "[AddDomain] Parsing #{domain_input}"
       end

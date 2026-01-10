@@ -12,8 +12,8 @@ module ColonelAPI
         attr_reader :ip_address, :reason, :expiration, :banned_ip
 
         def process_params
-          @ip_address = params['ip_address']
-          @reason     = params['reason']
+          @ip_address = sanitize_ip_address(params['ip_address'])
+          @reason     = sanitize_plain_text(params['reason'], max_length: 255)
           @expiration = params['expiration'].to_i if params['expiration']
 
           raise_form_error('IP address is required', field: :ip_address) if ip_address.to_s.empty?

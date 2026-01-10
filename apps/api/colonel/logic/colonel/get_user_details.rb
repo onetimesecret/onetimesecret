@@ -11,7 +11,7 @@ module ColonelAPI
         attr_reader :user_id, :user, :user_secrets, :user_metadata, :organizations
 
         def process_params
-          @user_id = params['user_id']
+          @user_id = sanitize_identifier(params['user_id'])
           raise_form_error('User ID is required', field: :user_id) if user_id.to_s.empty?
         end
 

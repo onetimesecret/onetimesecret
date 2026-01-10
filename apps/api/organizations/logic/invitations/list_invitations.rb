@@ -14,7 +14,7 @@ module OrganizationAPI::Logic
       attr_reader :organization, :invitations
 
       def process_params
-        @extid = params['extid']
+        @extid = sanitize_identifier(params['extid'])
       end
 
       def raise_concerns

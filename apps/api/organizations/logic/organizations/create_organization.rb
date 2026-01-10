@@ -8,9 +8,9 @@ module OrganizationAPI::Logic
       attr_reader :organization, :display_name, :description, :contact_email
 
       def process_params
-        @display_name  = params['display_name'].to_s.strip
-        @description   = params['description'].to_s.strip
-        @contact_email = params['contact_email'].to_s.strip
+        @display_name  = sanitize_plain_text(params['display_name'])
+        @description   = sanitize_plain_text(params['description'])
+        @contact_email = sanitize_email(params['contact_email'])
       end
 
       def raise_concerns

@@ -26,7 +26,7 @@ module V2::Logic
         :verification, :correct_passphrase, :display_lines, :one_liner, :is_owner, :has_passphrase, :secret_identifier
 
       def process_params
-        @identifier = params['identifier'].to_s
+        @identifier = sanitize_identifier(params['identifier'])
         @secret     = Onetime::Secret.load identifier
         @passphrase = params['passphrase'].to_s
         @continue   = params['continue'].to_s == 'true'

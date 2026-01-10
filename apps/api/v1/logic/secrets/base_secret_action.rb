@@ -8,6 +8,9 @@ module V1::Logic
     using Familia::Refinements::TimeLiterals
 
     class BaseSecretAction < V1::Logic::Base
+      # Email validation regex - defined once to avoid recompilation on every call
+      EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
+
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
       attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload, :default_expiration
 
@@ -126,10 +129,10 @@ module V1::Logic
 
       def process_recipient
         payload['recipient'] = [payload['recipient']].flatten.compact.uniq # force a list
-        r = Regexp.new(/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/)
         @recipient = payload['recipient'].collect { |email_address|
           next if email_address.to_s.empty?
-          email_address.scan(r).uniq.first
+          sanitized_email = sanitize_email(email_address)
+          sanitized_email.scan(EMAIL_REGEX).uniq.first
         }.compact.uniq
         @recipient_safe = recipient.collect { |r| OT::Utils.obscure_email(r) }
       end
@@ -140,7 +143,7 @@ module V1::Logic
       # most basic of checks, then whatever this is never had a whisker's
       # chance in a lion's den of being a custom domain anyway.
       def process_share_domain
-        potential_domain = payload['share_domain'].to_s
+        potential_domain = sanitize_plain_text(payload['share_domain'].to_s)
         return if potential_domain.empty?
 
         unless Onetime::CustomDomain.valid?(potential_domain)

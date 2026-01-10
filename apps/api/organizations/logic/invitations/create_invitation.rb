@@ -17,9 +17,9 @@ module OrganizationAPI::Logic
       attr_reader :organization, :email, :role, :membership
 
       def process_params
-        @extid = params['extid']
-        @email = params['email'].to_s.strip.downcase
-        @role  = params['role'].to_s.strip
+        @extid = sanitize_identifier(params['extid'])
+        @email = sanitize_email(params['email'])
+        @role  = sanitize_plain_text(params['role'])
         @role  = 'member' if @role.empty?
       end
 

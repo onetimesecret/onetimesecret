@@ -15,7 +15,7 @@ module V1::Logic
                   :secret_key, :share_domain
 
       def process_params
-        @key = params['key'].to_s
+        @key = sanitize_identifier(params['key'].to_s)
         @secret = Onetime::Secret.load key
         @passphrase = params['passphrase'].to_s
         @continue = params['continue'].to_s == 'true'

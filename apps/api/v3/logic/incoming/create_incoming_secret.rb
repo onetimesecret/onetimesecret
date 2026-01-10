@@ -43,13 +43,13 @@ module V3
 
           # Extract and validate memo
           memo_max = incoming_config['memo_max_length'] || 50
-          @memo    = @payload['memo'].to_s.strip[0...memo_max]
+          @memo    = sanitize_plain_text(@payload['memo'].to_s, max_length: memo_max)
 
           # Extract secret value
           @secret_value = @payload['secret'].to_s
 
           # Extract recipient hash instead of email
-          @recipient_hash = @payload['recipient'].to_s.strip
+          @recipient_hash = sanitize_identifier(@payload['recipient'].to_s.strip)
 
           # Look up actual email from hash
           @recipient_email = OT.lookup_incoming_recipient(@recipient_hash)

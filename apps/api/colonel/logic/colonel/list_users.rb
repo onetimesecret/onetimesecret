@@ -15,7 +15,7 @@ module ColonelAPI
           @per_page    = (params['per_page'] || 50).to_i
           @per_page    = 100 if @per_page > 100 # Max 100 per page
           @page        = 1 if @page < 1
-          @role_filter = params['role'] # Optional: filter by role
+          @role_filter = sanitize_plain_text(params['role']) # Optional: filter by role
         end
 
         def raise_concerns
