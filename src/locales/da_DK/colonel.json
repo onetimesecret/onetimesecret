@@ -82,7 +82,19 @@
       "activateTestMode": "Aktiver testtilstand",
       "testModeActive": "Testtilstand aktiv",
       "testModeDescription": "Test din applikation med forskellige planrettigheder. Ændringer er midlertidige og påvirker kun din session.",
-      "warningTestMode": "Du tester med {planName}-rettigheder (midlertidig sessionsoverskrivning)."
+      "warningTestMode": "Du tester med {planName}-rettigheder (midlertidig sessionsoverskrivning).",
+      "titles": {
+        "index": "",
+        "users": "",
+        "secrets": "Beskedhåndtering",
+        "domains": "Brugerdefinerede domæner",
+        "system": "System",
+        "maindb": "Hoveddatabase",
+        "authdb": "Godkendelsesdatabase",
+        "bannedIps": "Blokerede IP'er",
+        "usage": "Brugseksport",
+        "info": ""
+      }
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "Når du sender feedback, vil vi se:",

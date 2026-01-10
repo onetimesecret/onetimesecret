@@ -82,7 +82,19 @@
       "activateTestMode": "Test modunu etkinleştir",
       "testModeActive": "Test modu aktif",
       "testModeDescription": "Uygulamanızı farklı plan yetkileriyle test edin. Değişiklikler geçicidir ve yalnızca oturumunuzu etkiler.",
-      "warningTestMode": "{planName} yetkileriyle test ediyorsunuz (geçici oturum geçersiz kılma)."
+      "warningTestMode": "{planName} yetkileriyle test ediyorsunuz (geçici oturum geçersiz kılma).",
+      "titles": {
+        "index": "",
+        "users": "",
+        "secrets": "Sır Yönetimi",
+        "domains": "Özel Alan Adları",
+        "system": "Sistem",
+        "maindb": "Ana Veritabanı",
+        "authdb": "Kimlik Doğrulama Veritabanı",
+        "bannedIps": "Yasaklı IP'ler",
+        "usage": "Kullanım Dışa Aktarımı",
+        "info": ""
+      }
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "Geribildirim gönderdiğinizde göreceğimiz bilgiler:",

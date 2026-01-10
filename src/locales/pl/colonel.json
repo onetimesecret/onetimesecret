@@ -82,7 +82,19 @@
       "activateTestMode": "Aktywuj tryb testowy",
       "testModeActive": "Tryb testowy aktywny",
       "testModeDescription": "Przetestuj aplikację z różnymi uprawnieniami planów. Zmiany są tymczasowe i dotyczą tylko Twojej sesji.",
-      "warningTestMode": "Testujesz z uprawnieniami {planName} (tymczasowe nadpisanie sesji)."
+      "warningTestMode": "Testujesz z uprawnieniami {planName} (tymczasowe nadpisanie sesji).",
+      "titles": {
+        "index": "Administracja",
+        "users": "Zarządzanie użytkownikami",
+        "secrets": "Zarządzanie sekretami",
+        "domains": "Domeny niestandardowe",
+        "system": "System",
+        "maindb": "Główna baza danych",
+        "authdb": "Baza uwierzytelniania",
+        "bannedIps": "Zablokowane IP",
+        "usage": "Eksport użycia",
+        "info": "Informacje o systemie"
+      }
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "Gdy prześlesz opinię, zobaczymy:",

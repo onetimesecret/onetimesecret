@@ -82,7 +82,19 @@
       "activateTestMode": "Activar modo de prueba",
       "testModeActive": "Modo de prueba activo",
       "testModeDescription": "Prueba tu aplicación con diferentes privilegios de plan. Los cambios son temporales y solo afectan tu sesión.",
-      "warningTestMode": "Estás probando con los privilegios de {planName} (anulación temporal de sesión)."
+      "warningTestMode": "Estás probando con los privilegios de {planName} (anulación temporal de sesión).",
+      "titles": {
+        "index": "Administración",
+        "users": "Gestión de Usuarios",
+        "secrets": "Gestión de Secretos",
+        "domains": "Dominios Personalizados",
+        "system": "Sistema",
+        "maindb": "Base de Datos Principal",
+        "authdb": "Base de Datos de Autenticación",
+        "bannedIps": "IPs Bloqueadas",
+        "usage": "Exportación de Uso",
+        "info": "Información del Sistema"
+      }
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "Cuando envíes comentarios, veremos:",

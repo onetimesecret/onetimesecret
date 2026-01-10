@@ -82,7 +82,19 @@
       "activateTestMode": "Kích hoạt chế độ thử nghiệm",
       "testModeActive": "Chế độ thử nghiệm đang hoạt động",
       "testModeDescription": "Thử nghiệm ứng dụng của bạn với các quyền lợi gói khác nhau. Thay đổi là tạm thời và chỉ ảnh hưởng đến phiên của bạn.",
-      "warningTestMode": "Bạn đang thử nghiệm với quyền lợi gói {planName} (ghi đè phiên tạm thời)."
+      "warningTestMode": "Bạn đang thử nghiệm với quyền lợi gói {planName} (ghi đè phiên tạm thời).",
+      "titles": {
+        "index": "Quản trị",
+        "users": "Quản lý người dùng",
+        "secrets": "Quản lý bí mật",
+        "domains": "Tên miền tùy chỉnh",
+        "system": "Hệ thống",
+        "maindb": "Cơ sở dữ liệu chính",
+        "authdb": "Cơ sở dữ liệu xác thực",
+        "bannedIps": "IP bị cấm",
+        "usage": "Xuất dữ liệu sử dụng",
+        "info": "Thông tin hệ thống"
+      }
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "Khi bạn gửi phản hồi, chúng tôi sẽ thấy:",

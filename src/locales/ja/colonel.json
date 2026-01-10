@@ -82,7 +82,19 @@
       "activateTestMode": "テストモードを有効化",
       "testModeActive": "テストモード有効",
       "testModeDescription": "異なるプランの権限でアプリケーションをテストします。変更は一時的で、このセッションにのみ影響します。",
-      "warningTestMode": "{planName}の権限でテスト中です（一時的なセッションオーバーライド）。"
+      "warningTestMode": "{planName}の権限でテスト中です（一時的なセッションオーバーライド）。",
+      "titles": {
+        "index": "管理",
+        "users": "ユーザー管理",
+        "secrets": "シークレット管理",
+        "domains": "カスタムドメイン",
+        "system": "システム",
+        "maindb": "メインデータベース",
+        "authdb": "認証データベース",
+        "bannedIps": "禁止IPアドレス",
+        "usage": "使用状況エクスポート",
+        "info": "システム情報"
+      }
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "フィードバックを送信すると、以下が表示されます:",

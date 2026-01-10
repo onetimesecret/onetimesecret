@@ -82,7 +82,19 @@
       "activateTestMode": "Whakahohea te aratau whakamātau",
       "testModeActive": "Kei te hohe te aratau whakamātau",
       "testModeDescription": "Whakamātaua tō taupānga me ngā whakaaetanga mahere rerekē. He wā poto ngā huringa, ka pā anake ki tō wātū.",
-      "warningTestMode": "Kei te whakamātau koe me ngā whakaaetanga {planName} (he whakapānga wātū wā poto)."
+      "warningTestMode": "Kei te whakamātau koe me ngā whakaaetanga {planName} (he whakapānga wātū wā poto).",
+      "titles": {
+        "index": "Whakahaere",
+        "users": "Whakahaere Kaiwhakamahi",
+        "secrets": "Whakahaere Karere Huna",
+        "domains": "Ngā Rohe Ritenga",
+        "system": "Pūnaha",
+        "maindb": "Pātengi Raraunga Matua",
+        "authdb": "Pātengi Raraunga Whakaū",
+        "bannedIps": "Ngā IP Kua Aukati",
+        "usage": "Kaweake Whakamahinga",
+        "info": "Mōhiohio Pūnaha"
+      }
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "Ina tuku koe i te urupare, ka kite mātou:",

@@ -82,7 +82,19 @@
       "activateTestMode": "تفعيل وضع الاختبار",
       "testModeActive": "وضع الاختبار نشط",
       "testModeDescription": "اختبر تطبيقك بميزات خطط مختلفة. التغييرات مؤقتة وتؤثر على جلستك فقط.",
-      "warningTestMode": "أنت تختبر بميزات {planName} (تجاوز جلسة مؤقت)."
+      "warningTestMode": "أنت تختبر بميزات {planName} (تجاوز جلسة مؤقت).",
+      "titles": {
+        "index": "الإدارة",
+        "users": "إدارة المستخدمين",
+        "secrets": "إدارة الأسرار",
+        "domains": "النطاقات المخصصة",
+        "system": "النظام",
+        "maindb": "قاعدة البيانات الرئيسية",
+        "authdb": "قاعدة بيانات المصادقة",
+        "bannedIps": "عناوين IP المحظورة",
+        "usage": "تصدير الاستخدام",
+        "info": "معلومات النظام"
+      }
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "عند إرسال الملاحظات، سنرى:",

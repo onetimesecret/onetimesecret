@@ -82,7 +82,19 @@
       "activateTestMode": "Ativar modo de teste",
       "testModeActive": "Modo de teste ativo",
       "testModeDescription": "Teste sua aplicação com diferentes privilégios de plano. As alterações são temporárias e afetam apenas sua sessão.",
-      "warningTestMode": "Você está testando com privilégios de {planName} (substituição temporária de sessão)."
+      "warningTestMode": "Você está testando com privilégios de {planName} (substituição temporária de sessão).",
+      "titles": {
+        "index": "Administração",
+        "users": "Gerenciamento de Usuários",
+        "secrets": "Gerenciamento de Mensagens Confidenciais",
+        "domains": "Domínios Personalizados",
+        "system": "Sistema",
+        "maindb": "Banco de Dados Principal",
+        "authdb": "Banco de Dados de Autenticação",
+        "bannedIps": "IPs Bloqueados",
+        "usage": "Exportação de Uso",
+        "info": "Informações do Sistema"
+      }
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "Quando você envia feedback, nós veremos:",

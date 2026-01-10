@@ -82,7 +82,19 @@
       "activateTestMode": "Teszt mód aktiválása",
       "testModeActive": "Teszt mód aktív",
       "testModeDescription": "Tesztelje alkalmazását különböző csomag jogosultságokkal. A változtatások ideiglenesek és csak az ön munkamenetét érintik.",
-      "warningTestMode": "Ön {planName} jogosultságokkal tesztel (ideiglenes munkamenet felülírás)."
+      "warningTestMode": "Ön {planName} jogosultságokkal tesztel (ideiglenes munkamenet felülírás).",
+      "titles": {
+        "index": "Adminisztráció",
+        "users": "Felhasználó kezelés",
+        "secrets": "Titkok kezelése",
+        "domains": "Egyéni domének",
+        "system": "Rendszer",
+        "maindb": "Fő adatbázis",
+        "authdb": "Hitelesítési adatbázis",
+        "bannedIps": "Tiltott IP-k",
+        "usage": "Használati export",
+        "info": "Rendszerinformációk"
+      }
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "Amikor visszajelzést küld, látni fogjuk:",

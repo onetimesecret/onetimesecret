@@ -82,7 +82,19 @@
       "activateTestMode": "Testmodus activeren",
       "testModeActive": "Testmodus actief",
       "testModeDescription": "Test je applicatie met verschillende abonnementsrechten. Wijzigingen zijn tijdelijk en beïnvloeden alleen je sessie.",
-      "warningTestMode": "Je test met {planName}-rechten (tijdelijke sessie-override)."
+      "warningTestMode": "Je test met {planName}-rechten (tijdelijke sessie-override).",
+      "titles": {
+        "index": "Administratie",
+        "users": "Gebruikersbeheer",
+        "secrets": "Berichtenbeheer",
+        "domains": "Aangepaste domeinen",
+        "system": "Systeem",
+        "maindb": "Hoofddatabase",
+        "authdb": "Authenticatiedatabase",
+        "bannedIps": "Geblokkeerde IP's",
+        "usage": "Gebruiksexport",
+        "info": "Systeeminformatie"
+      }
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "Wanneer je feedback verstuurt, zien wij:",

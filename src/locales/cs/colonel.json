@@ -82,7 +82,19 @@
       "activateTestMode": "Aktivovat testovací režim",
       "testModeActive": "Testovací režim aktivní",
       "testModeDescription": "Testuj svou aplikaci s různými oprávněními tarifu. Změny jsou dočasné a ovlivňují pouze tvou relaci.",
-      "warningTestMode": "Testuješ s oprávněními {planName} (dočasné přepsání relace)."
+      "warningTestMode": "Testuješ s oprávněními {planName} (dočasné přepsání relace).",
+      "titles": {
+        "index": "Administrace",
+        "users": "Správa uživatelů",
+        "secrets": "Správa tajemství",
+        "domains": "Vlastní domény",
+        "system": "Systém",
+        "maindb": "Hlavní databáze",
+        "authdb": "Autentizační databáze",
+        "bannedIps": "Blokované IP adresy",
+        "usage": "Export využití",
+        "info": "Systémové informace"
+      }
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "Když odešleš zpětnou vazbu, uvidíme:",

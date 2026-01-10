@@ -82,7 +82,19 @@
       "activateTestMode": "Testmodus aktivieren",
       "testModeActive": "Testmodus aktiv",
       "testModeDescription": "Teste deine Anwendung mit verschiedenen Plan-Berechtigungen. Änderungen sind temporär und betreffen nur deine Sitzung.",
-      "warningTestMode": "Du testest mit {planName}-Berechtigungen (temporäre Sitzungsüberschreibung)."
+      "warningTestMode": "Du testest mit {planName}-Berechtigungen (temporäre Sitzungsüberschreibung).",
+      "titles": {
+        "index": "Administration",
+        "users": "Benutzerverwaltung",
+        "secrets": "Geheimnisverwaltung",
+        "domains": "Benutzerdefinierte Domains",
+        "system": "System",
+        "maindb": "Hauptdatenbank",
+        "authdb": "Auth-Datenbank",
+        "bannedIps": "Gesperrte IPs",
+        "usage": "Nutzungsexport",
+        "info": "Systeminformationen"
+      }
     },
     "feedback": {
       "when_you_submit_feedback_well_see": "Wenn du Feedback sendest, sehen wir:",
