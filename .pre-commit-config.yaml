@@ -46,6 +46,8 @@ default_install_hook_types:
 # Default execution stage
 default_stages: [pre-commit]
 
+# Use 'system' to leverage existing rbenv/nvm installations from PATH,
+# while pre-commit still manages isolated gem/package environments.
 default_language_version:
   ruby: system
   node: system
