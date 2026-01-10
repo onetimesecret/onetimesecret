@@ -31,9 +31,9 @@ RSpec.describe 'Full Mode Test Infrastructure', type: :integration do
     end
 
     it 'has feature toggles' do
-      expect(Onetime.auth_config).to respond_to(:mfa_enabled)
-      expect(Onetime.auth_config).to respond_to(:magic_links_enabled)
-      expect(Onetime.auth_config).to respond_to(:security_features_enabled)
+      expect(Onetime.auth_config).to respond_to(:mfa_enabled?)
+      expect(Onetime.auth_config).to respond_to(:magic_links_enabled?)
+      expect(Onetime.auth_config).to respond_to(:security_features_enabled?)
     end
   end
 

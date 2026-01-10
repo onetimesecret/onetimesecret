@@ -22,13 +22,13 @@ module AuthModeHelpers
   # Mock object that responds to all AuthConfig methods
   class MockAuthConfig
     attr_reader :mode
-    attr_accessor :mfa_enabled, :magic_links_enabled, :security_features_enabled
 
     def initialize(mode, **options)
       @mode = mode.to_s
       @mfa_enabled = options.fetch(:mfa_enabled, true)
       @magic_links_enabled = options.fetch(:magic_links_enabled, false)
       @security_features_enabled = options.fetch(:security_features_enabled, true)
+      @webauthn_enabled = options.fetch(:webauthn_enabled, false)
     end
 
     def full_enabled?
@@ -41,6 +41,23 @@ module AuthModeHelpers
 
     def disabled?
       @mode == 'disabled'
+    end
+
+    # Predicate methods matching AuthConfig interface
+    def security_features_enabled?
+      @security_features_enabled
+    end
+
+    def mfa_enabled?
+      @mfa_enabled
+    end
+
+    def magic_links_enabled?
+      @magic_links_enabled
+    end
+
+    def webauthn_enabled?
+      @webauthn_enabled
     end
 
     def database_url
