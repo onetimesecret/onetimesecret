@@ -133,7 +133,14 @@ describe('Router Guards', () => {
 
       protectedRoute = {
         meta: { requiresAuth: true },
-        // Add other required RouteLocationNormalized properties
+        fullPath: '/protected',
+        path: '/protected',
+        name: 'Protected',
+        params: {},
+        query: {},
+        hash: '',
+        matched: [],
+        redirectedFrom: undefined,
       } as RouteLocationNormalized;
     });
 
