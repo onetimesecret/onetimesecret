@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "P.S. I tukuna tēnei īmēra ki %{email_address}."
     },
+    "magic_link": {
+      "subject": "Takiuru ki %{display_domain}",
+      "title": "Takiuru mā te Hononga Mākutu",
+      "request_notice": "I tono koe i tētahi hononga takiuru mō tō pūkete %{product_name}.",
+      "login_button": "Takiuru",
+      "copy_link_prompt": "Tāruatia rānei ka whakapiri i tēnei hononga:",
+      "expiration_notice": "Ka pau tēnei hononga i roto i te 15 meneti.",
+      "ignore_notice": "Mēnā kāore koe i tono i tēnei hononga, ka taea e koe te karo i tēnei īmēra.",
+      "signature": "Delano",
+      "postscript": "Tāpiritanga: I tukuna tēnei īmēra ki %{email_address}."
+    },
     "incoming_secret": {
       "subject": "Kua whiwhi koe i tētahi karere huna",
       "received_message": "Kua whiwhi koe i tētahi karere haumaru:",

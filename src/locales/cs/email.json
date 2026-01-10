@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "P.S. Tento e-mail byl odeslán na %{email_address}."
     },
+    "magic_link": {
+      "subject": "Přihlášení na %{display_domain}",
+      "title": "Přihlášení pomocí magického odkazu",
+      "request_notice": "Vyžádal/a sis přihlašovací odkaz pro svůj účet %{product_name}.",
+      "login_button": "Přihlásit se",
+      "copy_link_prompt": "Nebo zkopíruj a vlož tento odkaz:",
+      "expiration_notice": "Tento odkaz vyprší za 15 minut.",
+      "ignore_notice": "Pokud sis tento odkaz nevyžádal/a, můžeš tento e-mail klidně ignorovat.",
+      "signature": "Delano",
+      "postscript": "P.S. Tento e-mail byl odeslán na adresu %{email_address}."
+    },
     "incoming_secret": {
       "subject": "Obdrželi jste tajnou zprávu",
       "received_message": "Obdrželi jste bezpečnou zprávu:",

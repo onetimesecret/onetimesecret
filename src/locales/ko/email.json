@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "P.S. 이 이메일은 %{email_address}로 발송되었습니다."
     },
+    "magic_link": {
+      "subject": "%{display_domain}에 로그인",
+      "title": "매직 링크로 로그인",
+      "request_notice": "%{product_name} 계정의 로그인 링크를 요청하셨습니다.",
+      "login_button": "로그인",
+      "copy_link_prompt": "또는 이 링크를 복사하여 붙여넣으세요:",
+      "expiration_notice": "이 링크는 15분 후에 만료됩니다.",
+      "ignore_notice": "이 링크를 요청하지 않으셨다면 이 이메일을 무시하셔도 됩니다.",
+      "signature": "Delano",
+      "postscript": "추신: 이 이메일은 %{email_address}(으)로 발송되었습니다."
+    },
     "incoming_secret": {
       "subject": "비밀 메시지를 받으셨습니다",
       "received_message": "안전한 메시지를 받으셨습니다:",

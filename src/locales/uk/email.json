@@ -30,6 +30,17 @@
       "signature": "Делано",
       "postscript": "P.S. Цей лист було надіслано на %{email_address}."
     },
+    "magic_link": {
+      "subject": "Вхід до %{display_domain}",
+      "title": "Вхід за допомогою магічного посилання",
+      "request_notice": "Ви запросили посилання для входу до вашого облікового запису %{product_name}.",
+      "login_button": "Увійти",
+      "copy_link_prompt": "Або скопіюйте та вставте це посилання:",
+      "expiration_notice": "Термін дії цього посилання закінчується через 15 хвилин.",
+      "ignore_notice": "Якщо ви не запитували це посилання, можете проігнорувати цей лист.",
+      "signature": "Delano",
+      "postscript": "P.S. Цей лист надіслано на адресу %{email_address}."
+    },
     "incoming_secret": {
       "subject": "Ви отримали таємне повідомлення",
       "received_message": "Ви отримали захищене повідомлення:",

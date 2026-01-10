@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "P.-S. Ce courriel a été envoyé à %{email_address}."
     },
+    "magic_link": {
+      "subject": "Connexion à %{display_domain}",
+      "title": "Connexion par lien magique",
+      "request_notice": "Vous avez demandé un lien de connexion pour votre compte %{product_name}.",
+      "login_button": "Se connecter",
+      "copy_link_prompt": "Ou copiez et collez ce lien :",
+      "expiration_notice": "Ce lien expirera dans 15 minutes.",
+      "ignore_notice": "Si vous n'avez pas demandé ce lien, vous pouvez ignorer ce courriel en toute sécurité.",
+      "signature": "Delano",
+      "postscript": "P.-S. Ce courriel a été envoyé à %{email_address}."
+    },
     "incoming_secret": {
       "subject": "Vous avez reçu un message secret",
       "received_message": "Vous avez reçu un message sécurisé :",

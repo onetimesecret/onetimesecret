@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "追伸：このメールは%{email_address}宛に送信されました。"
     },
+    "magic_link": {
+      "subject": "%{display_domain}へログイン",
+      "title": "マジックリンクでログイン",
+      "request_notice": "%{product_name}アカウントへのログインリンクがリクエストされました。",
+      "login_button": "ログイン",
+      "copy_link_prompt": "または、このリンクをコピーして貼り付けてください:",
+      "expiration_notice": "このリンクの有効期限は15分です。",
+      "ignore_notice": "このリンクをリクエストした覚えがない場合は、このメールを無視しても問題ありません。",
+      "signature": "Delano",
+      "postscript": "追伸: このメールは%{email_address}宛に送信されました。"
+    },
     "incoming_secret": {
       "subject": "シークレットメッセージが届いています",
       "received_message": "セキュアなメッセージが届いています：",

@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "P.S. Diese E-Mail wurde an %{email_address} gesendet."
     },
+    "magic_link": {
+      "subject": "Anmelden bei %{display_domain}",
+      "title": "Anmelden mit Magic Link",
+      "request_notice": "Sie haben einen Anmeldelink für Ihr %{product_name}-Konto angefordert.",
+      "login_button": "Anmelden",
+      "copy_link_prompt": "Oder kopieren Sie diesen Link:",
+      "expiration_notice": "Dieser Link ist 15 Minuten gültig.",
+      "ignore_notice": "Falls Sie diesen Link nicht angefordert haben, können Sie diese E-Mail ignorieren.",
+      "signature": "Delano",
+      "postscript": "P.S. Diese E-Mail wurde an %{email_address} gesendet."
+    },
     "incoming_secret": {
       "subject": "Sie haben eine geheime Nachricht erhalten",
       "received_message": "Sie haben eine sichere Nachricht erhalten:",

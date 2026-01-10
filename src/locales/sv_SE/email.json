@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "P.S. Detta e-postmeddelande skickades till %{email_address}."
     },
+    "magic_link": {
+      "subject": "Logga in på %{display_domain}",
+      "title": "Logga in med magisk länk",
+      "request_notice": "Du begärde en inloggningslänk för ditt %{product_name}-konto.",
+      "login_button": "Logga in",
+      "copy_link_prompt": "Eller kopiera och klistra in denna länk:",
+      "expiration_notice": "Denna länk går ut om 15 minuter.",
+      "ignore_notice": "Om du inte begärde denna länk kan du ignorera detta e-postmeddelande.",
+      "signature": "Delano",
+      "postscript": "P.S. Detta e-postmeddelande skickades till %{email_address}."
+    },
     "incoming_secret": {
       "subject": "Du har fått ett hemligt meddelande",
       "received_message": "Du har fått ett säkert meddelande:",

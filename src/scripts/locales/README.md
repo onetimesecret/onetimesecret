@@ -33,6 +33,10 @@ Translation coverage analysis tools.
 - **`analyze-by-file.js`** - Break down missing keys by file
 - **`analyze-common-missing.js`** - Find keys missing across many locales
 
+### `/translate`
+AI-powered translation using Claude CLI.
+- **`claude-translate-locale.py`** - Translate a single locale from git diff
+
 ### `/migrate`
 Migration tools for locale key transformations.
 - **`migrate-camel-to-snake.py`** - Migrates camelCase keys to snake_case (run with `--dry-run` first)
@@ -82,6 +86,17 @@ python3 ./migrate/migrate-camel-to-snake.py
 ### 5. Audit Translation Coverage
 ```bash
 node ./audit/audit-translations.js
+```
+
+### 6. Translate Locales with Claude
+```bash
+# Single locale
+./translate/claude-translate-locale.py pt_PT --verbose --stream
+
+# All locales with changed email.json files
+git diff --name-only | grep 'email.json' | sed 's|src/locales/\(.*\)/email.json|\1|' | while read locale; do
+  ./translate/claude-translate-locale.py "$locale" --verbose --stream
+done
 ```
 
 ## Script Options

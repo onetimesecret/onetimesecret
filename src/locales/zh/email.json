@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "附言:此邮件已发送至%{email_address}。"
     },
+    "magic_link": {
+      "subject": "登录 %{display_domain}",
+      "title": "使用魔法链接登录",
+      "request_notice": "您请求了 %{product_name} 账户的登录链接。",
+      "login_button": "登录",
+      "copy_link_prompt": "或复制并粘贴此链接：",
+      "expiration_notice": "此链接将在15分钟后过期。",
+      "ignore_notice": "如果您未请求此链接，可以忽略这封邮件。",
+      "signature": "Delano",
+      "postscript": "附：此邮件已发送至 %{email_address}。"
+    },
     "incoming_secret": {
       "subject": "您收到了一条内容消息",
       "received_message": "您收到了一条安全消息:",

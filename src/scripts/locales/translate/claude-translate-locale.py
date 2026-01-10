@@ -12,6 +12,13 @@ Examples:
     ./claude-translate-locale.py pt_PT
     ./claude-translate-locale.py ru --dry-run
     ./claude-translate-locale.py de_AT --stream --commit
+
+Batch Processing:
+    Process all locales with changed email.json files:
+
+    git diff --name-only | grep 'email.json' | sed 's|src/locales/\\(.*\\)/email.json|\\1|' | while read locale; do
+      ./claude-translate-locale.py "$locale" --verbose --stream
+    done
 """
 
 import argparse

@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "P.S. Ta e-pošta je bila poslana na %{email_address}."
     },
+    "magic_link": {
+      "subject": "Prijava v %{display_domain}",
+      "title": "Prijava s čarobno povezavo",
+      "request_notice": "Zahtevali ste povezavo za prijavo v vaš račun %{product_name}.",
+      "login_button": "Prijava",
+      "copy_link_prompt": "Ali kopirajte in prilepite to povezavo:",
+      "expiration_notice": "Ta povezava poteče čez 15 minut.",
+      "ignore_notice": "Če niste zahtevali te povezave, lahko to e-pošto varno prezrete.",
+      "signature": "Delano",
+      "postscript": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address}."
+    },
     "incoming_secret": {
       "subject": "Prejeli ste skrivno sporočilo",
       "received_message": "Prejeli ste varno sporočilo:",

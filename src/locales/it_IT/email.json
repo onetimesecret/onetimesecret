@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "P.S. Questa email è stata inviata a %{email_address}."
     },
+    "magic_link": {
+      "subject": "Accedi a %{display_domain}",
+      "title": "Accedi con Link Magico",
+      "request_notice": "Hai richiesto un link di accesso per il tuo account %{product_name}.",
+      "login_button": "Accedi",
+      "copy_link_prompt": "Oppure copia e incolla questo link:",
+      "expiration_notice": "Questo link scadrà tra 15 minuti.",
+      "ignore_notice": "Se non hai richiesto questo link, puoi ignorare questa email.",
+      "signature": "Delano",
+      "postscript": "P.S. Questa email è stata inviata a %{email_address}."
+    },
     "incoming_secret": {
       "subject": "Hai ricevuto un messaggio segreto",
       "received_message": "Hai ricevuto un messaggio sicuro:",

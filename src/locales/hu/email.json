@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "U.i. Ez az e-mail a következő címre lett küldve: %{email_address}."
     },
+    "magic_link": {
+      "subject": "Bejelentkezés: %{display_domain}",
+      "title": "Bejelentkezés mágikus hivatkozással",
+      "request_notice": "Ön bejelentkezési hivatkozást kért a %{product_name} fiókjához.",
+      "login_button": "Bejelentkezés",
+      "copy_link_prompt": "Vagy másolja és illessze be ezt a hivatkozást:",
+      "expiration_notice": "Ez a hivatkozás 15 perc múlva lejár.",
+      "ignore_notice": "Ha nem Ön kérte ezt a hivatkozást, nyugodtan figyelmen kívül hagyhatja ezt az e-mailt.",
+      "signature": "Delano",
+      "postscript": "U.i. Ez az e-mail a következő címre lett elküldve: %{email_address}."
+    },
     "incoming_secret": {
       "subject": "Titkos üzenetet kapott",
       "received_message": "Biztonságos üzenetet kapott:",

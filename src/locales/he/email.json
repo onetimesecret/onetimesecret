@@ -30,6 +30,17 @@
       "signature": "דלאנו",
       "postscript": "נ.ב. דוא״ל זה נשלח אל %{email_address}."
     },
+    "magic_link": {
+      "subject": "התחברות ל-%{display_domain}",
+      "title": "התחברות באמצעות קישור קסם",
+      "request_notice": "ביקשת קישור התחברות לחשבון ה-%{product_name} שלך.",
+      "login_button": "התחברות",
+      "copy_link_prompt": "או העתק והדבק את הקישור הזה:",
+      "expiration_notice": "תוקף הקישור יפוג בעוד 15 דקות.",
+      "ignore_notice": "אם לא ביקשת קישור זה, אפשר להתעלם מהודעה זו.",
+      "signature": "Delano",
+      "postscript": "נ.ב. הודעה זו נשלחה אל %{email_address}."
+    },
     "incoming_secret": {
       "subject": "קיבלתם הודעה סודית",
       "received_message": "קיבלתם הודעה מאובטחת:",

@@ -30,6 +30,17 @@
       "signature": "Delano",
       "postscript": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address}."
     },
+    "magic_link": {
+      "subject": "Σύνδεση στο %{display_domain}",
+      "title": "Σύνδεση με Μαγικό Σύνδεσμο",
+      "request_notice": "Ζητήσατε έναν σύνδεσμο σύνδεσης για τον λογαριασμό σας στο %{product_name}.",
+      "login_button": "Σύνδεση",
+      "copy_link_prompt": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:",
+      "expiration_notice": "Αυτός ο σύνδεσμος θα λήξει σε 15 λεπτά.",
+      "ignore_notice": "Εάν δεν ζητήσατε αυτόν τον σύνδεσμο, μπορείτε να αγνοήσετε αυτό το μήνυμα.",
+      "signature": "Delano",
+      "postscript": "Υ.Γ. Αυτό το μήνυμα εστάλη στη διεύθυνση %{email_address}."
+    },
     "incoming_secret": {
       "subject": "Λάβατε ένα μυστικό μήνυμα",
       "received_message": "Λάβατε ένα ασφαλές μήνυμα:",
