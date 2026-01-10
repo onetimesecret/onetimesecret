@@ -1,15 +1,17 @@
-# apps/web/auth/config/features/passwordless.rb
+# apps/web/auth/config/features/email_auth.rb
 #
 # frozen_string_literal: true
 
 module Auth::Config::Features
-  # Passwordless (Email Magic Links) feature configuration
+  # Email Auth feature: passwordless login via email links (aka magic links).
+  # Users receive a time-limited link to sign in without a password.
   #
-  module Passwordless
+  # ENV: ENABLE_EMAIL_AUTH (default: disabled, set to 'true' to enable)
+  #
+  module EmailAuth
     using Familia::Refinements::TimeLiterals
 
     def self.configure(auth)
-      # Email Auth / Magic Links (conditionally enabled via ENV in config.rb)
       auth.enable :email_auth
 
       # Magic links are only valid for a short period so we also keep

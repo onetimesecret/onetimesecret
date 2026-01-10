@@ -70,10 +70,22 @@ module Onetime
       full['features'] || {}
     end
 
-    # Whether security features are enabled (lockout, active sessions, remember me)
+    # Whether hardening features are enabled (lockout, password requirements)
     # Default: true (when full mode is enabled)
-    def security_features_enabled?
-      feature_enabled?('security', default: true)
+    def hardening_enabled?
+      feature_enabled?('hardening', default: true)
+    end
+
+    # Whether active sessions tracking is enabled
+    # Default: true (when full mode is enabled)
+    def active_sessions_enabled?
+      feature_enabled?('active_sessions', default: true)
+    end
+
+    # Whether remember me functionality is enabled
+    # Default: true (when full mode is enabled)
+    def remember_me_enabled?
+      feature_enabled?('remember_me', default: true)
     end
 
     # Whether MFA is enabled (TOTP, recovery codes)
@@ -82,16 +94,26 @@ module Onetime
       feature_enabled?('mfa', default: false)
     end
 
-    # Whether magic links (passwordless email login) are enabled
+    # Whether email auth is enabled (passwordless login via email, aka magic links)
     # Default: false
-    def magic_links_enabled?
-      feature_enabled?('magic_links', default: false)
+    def email_auth_enabled?
+      feature_enabled?('email_auth', default: false)
     end
 
     # Whether WebAuthn (biometrics, security keys) is enabled
     # Default: false
     def webauthn_enabled?
       feature_enabled?('webauthn', default: false)
+    end
+
+    # DEPRECATED: Use hardening_enabled?, active_sessions_enabled?, remember_me_enabled?
+    def security_features_enabled?
+      hardening_enabled? && active_sessions_enabled? && remember_me_enabled?
+    end
+
+    # DEPRECATED: Use email_auth_enabled?
+    def magic_links_enabled?
+      email_auth_enabled?
     end
 
     # Reload configuration (useful for testing)

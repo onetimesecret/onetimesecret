@@ -1,15 +1,15 @@
-# apps/web/auth/config/hooks/passwordless.rb
+# apps/web/auth/config/hooks/email_auth.rb
 #
 # frozen_string_literal: true
 
 #
 # ==============================================================================
-# USER JOURNEY: PASSWORDLESS EMAIL AUTHENTICATION (MAGIC LINK)
+# USER JOURNEY: EMAIL AUTH (PASSWORDLESS LOGIN VIA MAGIC LINK)
 # ==============================================================================
 #
-# This file configures Rodauth hooks for passwordless authentication via email
-# link (also known as "Magic Link" authentication). Users can log in without
-# entering a password by clicking a unique link sent to their email.
+# This file configures Rodauth hooks for email auth (aka "magic link" login).
+# Users can log in without entering a password by clicking a unique link sent
+# to their email.
 #
 # USER FLOW (WITHOUT MFA):
 #
@@ -75,7 +75,7 @@
 # ==============================================================================
 
 module Auth::Config::Hooks
-  module Passwordless
+  module EmailAuth
     def self.configure(auth)
       # ========================================================================
       # HOOK: Before Email Auth Route (Token Validation)

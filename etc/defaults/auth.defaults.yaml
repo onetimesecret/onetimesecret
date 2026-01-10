@@ -53,18 +53,26 @@ full:
   # Service URL (used for internal requests)
   #service_url: <%= ENV['AUTH_SERVICE_URL'] || 'http://127.0.0.1:3000/auth' %>
 
-  # Optional features (enabled via ENV variables)
-  # Security features are enabled by default; others disabled by default
+  # Optional Rodauth features (enabled via ENV variables)
+  #
+  # Pattern: Features default ON use `!= 'false'` (must explicitly disable)
+  #          Features default OFF use `== 'true'` (must explicitly enable)
+  #
   features:
-    security: <%= ENV['ENABLE_SECURITY_FEATURES'] != 'false' %>
-    mfa: <%= ENV['ENABLE_MFA'] == 'true' %>
-    magic_links: <%= ENV['ENABLE_MAGIC_LINKS'] == 'true' %>
-    webauthn: <%= ENV['ENABLE_WEBAUTHN'] == 'true' %>
+    # Attack prevention: brute force lockout, password requirements (default: ON)
+    hardening: <%= ENV['ENABLE_HARDENING'] != 'false' %>
 
-  # Security settings (COMING SOON)
-  # security:
-  #   password_minimum_length: 8
-  #   max_invalid_logins: 5
-  #   lockout_expiration: 3600     # 1 hour
-  #   session_expire_after: 86400  # 24 hours
-  #   require_email_confirmation: false  # Set to true when email is configured
+    # Session tracking: view and manage active sessions (default: ON)
+    active_sessions: <%= ENV['ENABLE_ACTIVE_SESSIONS'] != 'false' %>
+
+    # Remember me: persistent login across browser sessions (default: ON)
+    remember_me: <%= ENV['ENABLE_REMEMBER_ME'] != 'false' %>
+
+    # MFA: TOTP codes and recovery codes (default: OFF)
+    mfa: <%= ENV['ENABLE_MFA'] == 'true' %>
+
+    # Email auth: passwordless login via email links, aka magic links (default: OFF)
+    email_auth: <%= ENV['ENABLE_EMAIL_AUTH'] == 'true' %>
+
+    # WebAuthn: biometrics and security keys (default: OFF)
+    webauthn: <%= ENV['ENABLE_WEBAUTHN'] == 'true' %>

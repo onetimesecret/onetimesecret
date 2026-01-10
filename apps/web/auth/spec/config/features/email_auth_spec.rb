@@ -1,27 +1,27 @@
-# apps/web/auth/spec/config/features/passwordless_spec.rb
+# apps/web/auth/spec/config/features/email_auth_spec.rb
 #
 # frozen_string_literal: true
 
-# Tests for ENABLE_MAGIC_LINKS ENV variable
+# Tests for ENABLE_EMAIL_AUTH ENV variable
 #
-# Verifies that passwordless/magic link features (email_auth) are:
+# Verifies that email auth (aka magic links) feature is:
 # - Disabled by default (when ENV not set)
-# - Enabled when ENV['ENABLE_MAGIC_LINKS'] == 'true'
+# - Enabled when ENV['ENABLE_EMAIL_AUTH'] == 'true'
 #
-# Reference: apps/web/auth/config/features/passwordless.rb
+# Reference: apps/web/auth/config/features/email_auth.rb
 
 require_relative '../../spec_helper'
 
-RSpec.describe 'Auth::Config::Features::Passwordless' do
+RSpec.describe 'Auth::Config::Features::EmailAuth' do
   let(:db) { create_test_database }
 
-  describe 'when ENABLE_MAGIC_LINKS=true (enabled)' do
+  describe 'when ENABLE_EMAIL_AUTH=true (enabled)' do
     let(:app) do
       create_rodauth_app(
         db: db,
         features: [:base, :login, :logout, :email_auth],
       ) do
-        # Configuration values from passwordless.rb
+        # Configuration values from email_auth.rb
         email_auth_deadline_interval(15 * 60)        # 15 minutes
         email_auth_skip_resend_email_within 30       # 30 seconds
         email_auth_route 'email-login'
@@ -61,7 +61,7 @@ RSpec.describe 'Auth::Config::Features::Passwordless' do
 
     describe 'configuration values' do
       let(:rodauth_instance) do
-        env     = {
+        env = {
           'REQUEST_METHOD' => 'GET',
           'PATH_INFO' => '/',
           'rack.input' => StringIO.new,
@@ -93,7 +93,7 @@ RSpec.describe 'Auth::Config::Features::Passwordless' do
     end
   end
 
-  describe 'when ENABLE_MAGIC_LINKS is not set (disabled by default)' do
+  describe 'when ENABLE_EMAIL_AUTH is not set (disabled by default)' do
     let(:app) do
       create_rodauth_app(
         db: db,

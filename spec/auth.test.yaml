@@ -18,12 +18,14 @@ full:
   # Uses in-memory SQLite for tests to avoid file persistence issues
   database_url: "<%= ENV['AUTH_DATABASE_URL'] || 'sqlite::memory:' %>"
 
-  # Optional features (matches auth.defaults.yaml format)
-  # For tests, security is enabled by default; others disabled
+  # Optional Rodauth features (matches auth.defaults.yaml format)
+  # For tests, hardening/sessions enabled by default; others disabled
   features:
-    security: true
+    hardening: true
+    active_sessions: true
+    remember_me: true
     mfa: false
-    magic_links: false
+    email_auth: false
     webauthn: false
 
   # Security settings

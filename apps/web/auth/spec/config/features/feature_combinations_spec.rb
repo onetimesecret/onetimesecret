@@ -18,10 +18,13 @@ RSpec.describe 'Rodauth Feature Combinations' do
   let(:db) { create_test_database }
 
   describe 'all features enabled simultaneously' do
-    # Simulates ENV['ENABLE_SECURITY_FEATURES'] != 'false' (default)
-    # plus ENV['ENABLE_MFA'] = 'true'
-    # plus ENV['ENABLE_MAGIC_LINKS'] = 'true'
-    # plus ENV['ENABLE_WEBAUTHN'] = 'true'
+    # Simulates all features enabled:
+    # ENV['ENABLE_HARDENING'] != 'false' (default ON)
+    # ENV['ENABLE_ACTIVE_SESSIONS'] != 'false' (default ON)
+    # ENV['ENABLE_REMEMBER_ME'] != 'false' (default ON)
+    # ENV['ENABLE_MFA'] = 'true'
+    # ENV['ENABLE_EMAIL_AUTH'] = 'true'
+    # ENV['ENABLE_WEBAUTHN'] = 'true'
     let(:app) do
       create_rodauth_app(
         db: db,
@@ -96,8 +99,8 @@ RSpec.describe 'Rodauth Feature Combinations' do
     end
   end
 
-  describe 'MFA without security features' do
-    # Simulates ENV['ENABLE_SECURITY_FEATURES'] = 'false'
+  describe 'MFA without hardening features' do
+    # Simulates ENV['ENABLE_HARDENING'] = 'false'
     # plus ENV['ENABLE_MFA'] = 'true'
     let(:app) do
       create_rodauth_app(
@@ -152,8 +155,8 @@ RSpec.describe 'Rodauth Feature Combinations' do
     end
   end
 
-  describe 'passwordless and WebAuthn together' do
-    # Simulates ENV['ENABLE_MAGIC_LINKS'] = 'true'
+  describe 'email auth and WebAuthn together' do
+    # Simulates ENV['ENABLE_EMAIL_AUTH'] = 'true'
     # plus ENV['ENABLE_WEBAUTHN'] = 'true'
     let(:app) do
       create_rodauth_app(
@@ -186,7 +189,10 @@ RSpec.describe 'Rodauth Feature Combinations' do
   end
 
   describe 'minimal configuration (all optional features disabled)' do
-    # Simulates ENV['ENABLE_SECURITY_FEATURES'] = 'false'
+    # Simulates all features disabled:
+    # ENV['ENABLE_HARDENING'] = 'false'
+    # ENV['ENABLE_ACTIVE_SESSIONS'] = 'false'
+    # ENV['ENABLE_REMEMBER_ME'] = 'false'
     # with no other optional features enabled
     let(:app) do
       create_rodauth_app(
