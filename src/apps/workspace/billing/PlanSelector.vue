@@ -245,9 +245,37 @@ onMounted(async () => {
       await loadSubscriptionStatus(orgExtid.value);
     }
 
-    // Check for upgrade_to query param
+    // Check for product/interval query params (from billing redirect flow)
+    // These come from /pricing page -> signup/login -> redirect here
+    const productParam = route.query.product as string;
+    const intervalParam = route.query.interval as string;
+
+    if (productParam) {
+      // Set billing interval from query param
+      if (intervalParam === 'yearly' || intervalParam === 'year') {
+        billingInterval.value = 'year';
+      } else {
+        billingInterval.value = 'month';
+      }
+
+      // Find the matching plan based on product and interval
+      // Product is like 'identity_plus_v1', plan.id is like 'identity_plus_v1_monthly'
+      const intervalSuffix = billingInterval.value === 'year' ? 'yearly' : 'monthly';
+      const expectedPlanId = `${productParam}_${intervalSuffix}`;
+
+      // Find plan by exact match or prefix match
+      const matchingPlan = plans.value.find(
+        p => p.id === expectedPlanId || p.id.startsWith(productParam)
+      );
+
+      if (matchingPlan) {
+        suggestedPlanId.value = matchingPlan.id;
+      }
+    }
+
+    // Legacy: Check for upgrade_to query param (backwards compatibility)
     const upgradeToParam = route.query.upgrade_to as string;
-    if (upgradeToParam) {
+    if (upgradeToParam && !suggestedPlanId.value) {
       suggestedPlanId.value = upgradeToParam;
     }
   } catch (err) {

@@ -10,7 +10,6 @@ import { WindowService } from '@/services/window.service';
 import {
   isAuthError,
   requiresMfa,
-  hasBillingRedirect,
   type LoginResponse,
   type CreateAccountResponse,
   type LogoutResponse,
@@ -19,7 +18,6 @@ import {
   type VerifyAccountResponse,
   type ChangePasswordResponse,
   type CloseAccountResponse,
-  type BillingRedirect,
 } from '@/schemas/api/auth/endpoints/auth';
 import {
   loginResponseSchema,
@@ -164,14 +162,22 @@ export function useAuth() {
 
   /**
    * Handles billing redirect after successful authentication.
+   * Reads product/interval directly from route query params.
    * Returns true if redirect was performed, false otherwise.
    *
    * Only redirects when:
-   * - billing_redirect is present and valid
+   * - product and interval are present in query params
    * - billing_enabled is true (WindowService)
    * - Organization can be resolved
    */
-  async function handleBillingRedirect(billingRedirect: BillingRedirect): Promise<boolean> {
+  async function handleBillingRedirect(): Promise<boolean> {
+    const { product, interval } = getBillingParams();
+
+    // No billing params in URL - skip redirect
+    if (!product || !interval) {
+      return false;
+    }
+
     // Check if billing is enabled (graceful degradation for self-hosted)
     const billingEnabled = WindowService.get('billing_enabled');
     if (!billingEnabled) {
@@ -189,16 +195,15 @@ export function useAuth() {
         return false;
       }
 
-      const { product, interval } = billingRedirect;
-      const checkoutUrl = `/billing/${org.extid}/checkout?product=${product}&interval=${interval}`;
+      const plansUrl = `/billing/${org.extid}/plans?product=${product}&interval=${interval}`;
 
-      loggingService.debug('[useAuth] Redirecting to billing checkout', {
+      loggingService.debug('[useAuth] Redirecting to billing plans', {
         org: org.extid,
         product,
         interval,
       });
 
-      await router.push(checkoutUrl);
+      await router.push(plansUrl);
       return true;
     } catch (err) {
       // Graceful degradation - if billing redirect fails, continue to dashboard
@@ -271,13 +276,10 @@ export function useAuth() {
       // Success - update auth state (this fetches fresh window state)
       await authStore.setAuthenticated(true);
 
-      // Check for billing redirect (e.g., user upgrading during signup flow)
-      if (hasBillingRedirect(validated)) {
-        const redirected = await handleBillingRedirect(validated.billing_redirect);
-        if (redirected) {
-          return true; // Redirected to checkout
-        }
-        // Fall through to dashboard if billing redirect failed
+      // Check for billing redirect from query params (e.g., user upgrading during signup flow)
+      const redirected = await handleBillingRedirect();
+      if (redirected) {
+        return true; // Redirected to billing plans
       }
 
       await router.push('/');
@@ -324,7 +326,17 @@ export function useAuth() {
       // Success - account created but NOT authenticated yet
       // User needs to either verify email or sign in
       notificationsStore.show(validated.success, 'success', 'top');
-      await router.push('/signin');
+
+      // Preserve billing params when redirecting to signin
+      // so the subsequent login can pick them up for billing redirect
+      if (billingParams.product && billingParams.interval) {
+        await router.push({
+          path: '/signin',
+          query: { product: billingParams.product, interval: billingParams.interval },
+        });
+      } else {
+        await router.push('/signin');
+      }
       return true;
     });
 

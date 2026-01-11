@@ -17,7 +17,8 @@ module Auth::Config::Hooks
   #    a. Validates the plan exists in catalog
   #    b. Stores plan selection in session
   #    c. Adds `billing_redirect` to JSON response
-  # 5. Frontend reads redirect and navigates to checkout
+  # 5. Frontend uses its query params to navigate to checkout
+  #    (billing_redirect in response is optional - used for validation/analytics)
   #
   # ## Query Parameters
   #
