@@ -262,7 +262,8 @@ module Onetime
     # Destroy the membership with proper index cleanup
     #
     # Cleans up all unique index entries before destroying the record,
-    # which allows the email to be re-invited later.
+    # which allows the email to be re-invited later. Also removes from
+    # the organization's pending_invitations set if still pending.
     def destroy_with_index_cleanup!
       # Remove org_email_lookup entry if exists
       # Use remove_field since the index is a Familia::HashKey
@@ -279,6 +280,10 @@ module Onetime
       if token
         self.class.token_lookup.remove_field(token)
       end
+
+      # Remove from org's pending_invitations set if still pending
+      # This prevents stale objids from affecting quota calculations
+      organization&.pending_invitations&.remove(objid) if pending?
 
       destroy!
     end

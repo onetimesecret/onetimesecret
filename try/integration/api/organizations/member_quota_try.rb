@@ -133,24 +133,20 @@ reloaded_org.pending_invitation_count
 @result2[:status]
 #=> 422
 
-## After deleting invite2: check remaining pending invitations
-# Delete the remaining pending invitation (invite2)
+## Revoke invite2: removes from pending_invitations set
 @invite2 = Onetime::OrganizationMembership.load(@invite2_id)
-@invite2.destroy!
+@invite2.revoke!
 @org = Onetime::Organization.load(@org.objid)
-# What pending invitations still exist? (debugging potential code bug)
-@pending = @org.pending_invitations.to_a
-@remaining_emails = @pending.map { |inv| inv.email rescue "unknown" }
-# Expected: empty array after deleting invite2
-# Actual: might reveal a bug if there's an extra invitation
-@remaining_emails.empty? || @remaining_emails
-#==> true
+@org.pending_invitation_count
+#=> 0
 
-## Under limit (2/3), can invite NEW email (TEST MAY FAIL DUE TO CODE BUG)
-# If previous test shows unexpected pending invitations, this will fail
+## After revoke: pending_invitations set is empty
+@org.pending_invitations.to_a.empty?
+#=> true
+
+## Under limit (2/3), can invite new member
 @result3 = run_billing_test_invite(@org, @session, "member4_#{@timestamp}@example.com", @limited_plan)
-# Debug: show counts inside billing block
-@result3[:status] == 200 ? 200 : "#{@result3[:status]}: members=#{@result3[:member_count]} pending=#{@result3[:pending_count]}"
+@result3[:status]
 #=> 200
 
 ## Invitation created successfully when under limit
@@ -160,10 +156,11 @@ reloaded_org.pending_invitation_count
 
 # Teardown
 begin
-  [@invite1_id, @invite2_id, @invite3_id].compact.each do |invite_id|
+  [@invite1_id, @invite3_id].compact.each do |invite_id|
     invite = Onetime::OrganizationMembership.load(invite_id)
-    invite&.destroy!
+    invite&.destroy_with_index_cleanup!
   end
+  # invite2 already destroyed via revoke!
 
   @member1&.destroy!
   @org&.destroy!
