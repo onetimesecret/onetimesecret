@@ -2,14 +2,14 @@
 #
 # frozen_string_literal: true
 
-# Tests for magic links (passwordless login) toggle via ENABLE_MAGIC_LINKS env var.
+# Tests for email auth (magic links/passwordless login) toggle via ENABLE_EMAIL_AUTH env var.
 # NOTE: Rodauth features are configured at boot time. These tests verify
-# the current state based on whether ENABLE_MAGIC_LINKS was set when the app loaded.
+# the current state based on whether ENABLE_EMAIL_AUTH was set when the app loaded.
 
 require 'spec_helper'
 require 'rack/test'
 
-RSpec.describe 'Magic Links Toggle', type: :integration do
+RSpec.describe 'Email Auth (Magic Links) Toggle', type: :integration do
   include Rack::Test::Methods
 
   def app
@@ -22,17 +22,17 @@ RSpec.describe 'Magic Links Toggle', type: :integration do
     {}
   end
 
-  # Detect if magic links was actually enabled at boot time by checking for methods
+  # Detect if email auth was actually enabled at boot time by checking for methods
   # Note: ENV var alone is not sufficient - must check if Rodauth actually loaded email_auth features
-  let(:magic_links_features_available) do
+  let(:email_auth_features_available) do
     Auth::Config.method_defined?(:email_auth_route) ||
       Auth::Config.private_method_defined?(:email_auth_route)
   end
 
   describe 'configuration' do
-    it 'detects ENABLE_MAGIC_LINKS environment variable' do
-      # This test documents the current state - magic links may or may not be enabled
-      expect([nil, 'true', 'false']).to include(ENV['ENABLE_MAGIC_LINKS'])
+    it 'detects ENABLE_EMAIL_AUTH environment variable' do
+      # This test documents the current state - email auth may or may not be enabled
+      expect([nil, 'true', 'false']).to include(ENV['ENABLE_EMAIL_AUTH'])
     end
 
     it 'mounts Auth app' do
@@ -44,24 +44,24 @@ RSpec.describe 'Magic Links Toggle', type: :integration do
     # These tests verify whether email_auth features were configured at boot time
     # by checking if the Rodauth methods exist
 
-    it 'correctly detects magic links feature availability' do
-      # This documents the actual state - magic links may or may not be enabled
-      # depending on whether ENABLE_MAGIC_LINKS=true was set when Auth::Config loaded
-      expect(magic_links_features_available).to be(true).or be(false)
+    it 'correctly detects email auth feature availability' do
+      # This documents the actual state - email auth may or may not be enabled
+      # depending on whether ENABLE_EMAIL_AUTH=true was set when Auth::Config loaded
+      expect(email_auth_features_available).to be(true).or be(false)
     end
 
-    it 'ENV and feature state are consistent when magic links enabled' do
-      # If magic links features are available, ENV should have been set
-      if magic_links_features_available
-        expect(ENV['ENABLE_MAGIC_LINKS']).to eq('true')
+    it 'ENV and feature state are consistent when email auth enabled' do
+      # If email auth features are available, ENV should have been set
+      if email_auth_features_available
+        expect(ENV['ENABLE_EMAIL_AUTH']).to eq('true')
       end
     end
   end
 
-  describe 'magic links routes' do
-    context 'when magic links features are available' do
+  describe 'email auth routes' do
+    context 'when email auth features are available' do
       before do
-        skip 'Magic links features not available' unless magic_links_features_available
+        skip 'Email auth features not available' unless email_auth_features_available
       end
 
       describe 'POST /auth/email-login-request' do
@@ -92,9 +92,9 @@ RSpec.describe 'Magic Links Toggle', type: :integration do
       end
     end
 
-    context 'when magic links features are not available' do
+    context 'when email auth features are not available' do
       before do
-        skip 'Magic links features are available' if magic_links_features_available
+        skip 'Email auth features are available' if email_auth_features_available
       end
 
       it 'returns 404 for /auth/email-login-request' do

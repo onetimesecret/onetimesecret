@@ -2,9 +2,13 @@
 #
 # frozen_string_literal: true
 
-# Tests for security features toggle via ENABLE_SECURITY_FEATURES env var.
-# When enabled (default), security features like lockout and active sessions
-# are available.
+# Tests for security features (hardening, active_sessions, remember_me).
+# These are controlled by granular ENV variables:
+#   - ENABLE_HARDENING (lockout, password requirements)
+#   - ENABLE_ACTIVE_SESSIONS (session tracking)
+#   - ENABLE_REMEMBER_ME (persistent sessions)
+#
+# All are enabled by default (unless explicitly set to 'false').
 #
 # Note: This spec is in spec/integration/full/ and automatically gets the
 # :full_auth_mode tag, which triggers FullModeSuiteDatabase.setup! before
@@ -32,9 +36,17 @@ RSpec.describe 'Security Features Toggle', type: :integration do
   end
 
   describe 'default configuration (security enabled)' do
-    it 'has security features enabled by default' do
-      # ENV['ENABLE_SECURITY_FEATURES'] != 'false' means enabled
-      expect(ENV['ENABLE_SECURITY_FEATURES']).not_to eq('false')
+    it 'has hardening features enabled by default' do
+      # ENV['ENABLE_HARDENING'] != 'false' means enabled
+      expect(ENV['ENABLE_HARDENING']).not_to eq('false')
+    end
+
+    it 'has active sessions enabled by default' do
+      expect(ENV['ENABLE_ACTIVE_SESSIONS']).not_to eq('false')
+    end
+
+    it 'has remember me enabled by default' do
+      expect(ENV['ENABLE_REMEMBER_ME']).not_to eq('false')
     end
 
     it 'mounts Auth app' do

@@ -17,44 +17,45 @@ require_relative '../spec_helper'
 require 'climate_control'
 
 RSpec.describe 'Auth::Config ENV Conditional Logic' do
-  describe 'ENABLE_SECURITY_FEATURES pattern (!= false, enabled by default)' do
-    # Pattern: ENV['ENABLE_SECURITY_FEATURES'] != 'false'
+  describe 'ENABLE_HARDENING pattern (!= false, enabled by default)' do
+    # Pattern: ENV['ENABLE_HARDENING'] != 'false'
     # This means: enabled unless explicitly set to 'false'
+    # Same pattern used by: ENABLE_ACTIVE_SESSIONS, ENABLE_REMEMBER_ME, ENABLE_VERIFY_ACCOUNT
 
     it 'is enabled when ENV is not set (nil)' do
-      ClimateControl.modify('ENABLE_SECURITY_FEATURES' => nil) do
-        expect(ENV['ENABLE_SECURITY_FEATURES'] != 'false').to be true
+      ClimateControl.modify('ENABLE_HARDENING' => nil) do
+        expect(ENV['ENABLE_HARDENING'] != 'false').to be true
       end
     end
 
     it 'is enabled when ENV is empty string' do
-      ClimateControl.modify('ENABLE_SECURITY_FEATURES' => '') do
-        expect(ENV['ENABLE_SECURITY_FEATURES'] != 'false').to be true
+      ClimateControl.modify('ENABLE_HARDENING' => '') do
+        expect(ENV['ENABLE_HARDENING'] != 'false').to be true
       end
     end
 
     it 'is enabled when ENV is "true"' do
-      ClimateControl.modify('ENABLE_SECURITY_FEATURES' => 'true') do
-        expect(ENV['ENABLE_SECURITY_FEATURES'] != 'false').to be true
+      ClimateControl.modify('ENABLE_HARDENING' => 'true') do
+        expect(ENV['ENABLE_HARDENING'] != 'false').to be true
       end
     end
 
     it 'is enabled when ENV is any other value' do
-      ClimateControl.modify('ENABLE_SECURITY_FEATURES' => 'yes') do
-        expect(ENV['ENABLE_SECURITY_FEATURES'] != 'false').to be true
+      ClimateControl.modify('ENABLE_HARDENING' => 'yes') do
+        expect(ENV['ENABLE_HARDENING'] != 'false').to be true
       end
     end
 
     it 'is DISABLED only when ENV is exactly "false"' do
-      ClimateControl.modify('ENABLE_SECURITY_FEATURES' => 'false') do
-        expect(ENV['ENABLE_SECURITY_FEATURES'] != 'false').to be false
+      ClimateControl.modify('ENABLE_HARDENING' => 'false') do
+        expect(ENV['ENABLE_HARDENING'] != 'false').to be false
       end
     end
 
     it 'is enabled when ENV is "False" (case sensitive)' do
-      ClimateControl.modify('ENABLE_SECURITY_FEATURES' => 'False') do
+      ClimateControl.modify('ENABLE_HARDENING' => 'False') do
         # NOTE: This is enabled because comparison is case-sensitive
-        expect(ENV['ENABLE_SECURITY_FEATURES'] != 'false').to be true
+        expect(ENV['ENABLE_HARDENING'] != 'false').to be true
       end
     end
   end
@@ -101,16 +102,16 @@ RSpec.describe 'Auth::Config ENV Conditional Logic' do
     end
   end
 
-  describe 'ENABLE_MAGIC_LINKS pattern (== true, disabled by default)' do
+  describe 'ENABLE_EMAIL_AUTH pattern (== true, disabled by default)' do
     it 'is disabled by default' do
-      ClimateControl.modify('ENABLE_MAGIC_LINKS' => nil) do
-        expect(ENV['ENABLE_MAGIC_LINKS'] == 'true').to be false
+      ClimateControl.modify('ENABLE_EMAIL_AUTH' => nil) do
+        expect(ENV['ENABLE_EMAIL_AUTH'] == 'true').to be false
       end
     end
 
     it 'is enabled when set to "true"' do
-      ClimateControl.modify('ENABLE_MAGIC_LINKS' => 'true') do
-        expect(ENV['ENABLE_MAGIC_LINKS'] == 'true').to be true
+      ClimateControl.modify('ENABLE_EMAIL_AUTH' => 'true') do
+        expect(ENV['ENABLE_EMAIL_AUTH'] == 'true').to be true
       end
     end
   end
