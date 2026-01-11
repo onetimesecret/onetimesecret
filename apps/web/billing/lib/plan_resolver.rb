@@ -28,6 +28,16 @@ module Billing
   #
   # This resolver validates the params and returns the correct checkout values.
   #
+  # ## Terminology: interval vs billing_cycle
+  #
+  # Following Stripe's conventions:
+  #   - `interval` = price frequency (month, year) - user's plan selection
+  #   - `billing_cycle` = subscription parameter - when billing occurs
+  #
+  # The frontend sends `interval` (abstract choice), and we return
+  # `billing_cycle` (subscription-specific). This semantic shift marks
+  # the transition from "plan selection" to "subscription creation."
+  #
   # ## Usage
   #
   #   # Resolve plan from URL params

@@ -98,6 +98,15 @@ export function useAuth() {
    * Extracts billing-related query params from the current route.
    * Used to forward product/interval selection through auth flows.
    *
+   * Terminology note:
+   * - `interval` = plan frequency choice (month, year) - user's selection
+   * - `billing_cycle` = subscription parameter - returned by backend
+   *
+   * The backend translates interval → billing_cycle when creating the
+   * billing_redirect response, aligning with Stripe's terminology where
+   * "interval" is the price frequency and "billing_cycle" refers to
+   * subscription billing dates.
+   *
    * @returns Object with product and interval if present in query params
    */
   function getBillingParams(): { product?: string; interval?: string } {
