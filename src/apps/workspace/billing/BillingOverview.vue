@@ -1,7 +1,8 @@
 <!-- src/apps/workspace/billing/BillingOverview.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
@@ -15,9 +16,12 @@ import type { Organization } from '@/types/organization';
 import { computed, onMounted, ref } from 'vue';
 
 const { t } = useI18n();
+const route = useRoute();
 const organizationStore = useOrganizationStore();
 
-const selectedOrgId = ref<string | null>(null);
+// Org extid comes from URL (e.g., /billing/:extid/overview)
+const orgExtid = computed(() => route.params.extid as string);
+
 const selectedOrg = ref<Organization | null>(null);
 const paymentMethod = ref<PaymentMethod | null>(null);
 const nextBillingDate = ref<Date | null>(null);
@@ -25,7 +29,14 @@ const planFeatures = ref<string[]>([]);
 const isLoading = ref(false);
 const error = ref('');
 
+// Check for upgrade success from checkout redirect
+const showUpgradeSuccess = computed(() => route.query.upgraded === 'true');
+const successMessage = computed(() =>
+  showUpgradeSuccess.value ? t('web.billing.overview.upgrade_success') : '',
+);
+
 const organizations = computed(() => organizationStore.organizations);
+
 const {
   entitlements,
   formatEntitlement,
@@ -82,16 +93,6 @@ const loadOrganizationData = async (extid: string) => {
   }
 };
 
-const handleOrgChange = (orgId: string) => {
-  // Find org by internal ID to get extid for API call
-  const org = organizations.value.find((o) => o.id === orgId);
-  if (org?.extid) {
-    loadOrganizationData(org.extid);
-  } else {
-    console.warn('[BillingOverview] Organization not found in cache, cannot load:', orgId);
-  }
-};
-
 const _formatCardBrand = (brand: string): string => brand.charAt(0).toUpperCase() + brand.slice(1);
 
 const formatNextBillingDate = (date: Date): string => new Intl.DateTimeFormat('en-US', {
@@ -111,21 +112,14 @@ onMounted(async () => {
     // Initialize entitlement definitions for formatting
     await initDefinitions();
 
-    if (organizations.value.length === 0) {
-      await organizationStore.fetchOrganizations();
-    }
-
-    if (organizations.value.length > 0) {
-      const firstOrg = organizations.value[0];
-      selectedOrgId.value = firstOrg.id;
-      if (firstOrg.extid) {
-        await loadOrganizationData(firstOrg.extid);
-      }
+    // Load organization data using extid from URL
+    if (orgExtid.value) {
+      await loadOrganizationData(orgExtid.value);
     }
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.message || 'Failed to load organizations';
-    console.error('[BillingOverview] Error loading organizations:', err);
+    error.value = classified.message || 'Failed to load billing information';
+    console.error('[BillingOverview] Error loading billing data:', err);
   }
 });
 </script>
@@ -133,30 +127,25 @@ onMounted(async () => {
 <template>
   <BillingLayout>
     <div class="space-y-6">
-      <!-- Header -->
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-          {{ t('web.billing.overview.title') }}
-        </h1>
-      </div>
-
-      <!-- Organization Selector (if multiple orgs) -->
-      <div v-if="organizations.length > 1" class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-        <label for="org-select" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {{ t('web.billing.overview.organization_selector') }}
-        </label>
-        <select
-          id="org-select"
-          v-model="selectedOrgId"
-          @change="handleOrgChange(selectedOrgId!)"
-          class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm">
-          <option
-            v-for="org in organizations"
-            :key="org.id"
-            :value="org.id">
-            {{ org.display_name }}
-          </option>
-        </select>
+      <!-- Upgrade Success Banner -->
+      <div
+        v-if="showUpgradeSuccess"
+        class="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
+        <div class="flex items-center gap-3">
+          <OIcon
+            collection="heroicons"
+            name="check-circle"
+            class="size-6 text-green-500 dark:text-green-400"
+            aria-hidden="true" />
+          <div>
+            <p class="font-medium text-green-800 dark:text-green-300">
+              {{ successMessage }}
+            </p>
+            <p class="mt-1 text-sm text-green-700 dark:text-green-400">
+              {{ t('web.billing.overview.upgrade_success_description') }}
+            </p>
+          </div>
+        </div>
       </div>
 
       <!-- Error Alert -->
@@ -191,7 +180,7 @@ onMounted(async () => {
         </p>
         <div class="mt-6">
           <router-link
-            :to="{ name: 'Billing Organizations' }"
+            :to="{ name: 'Organizations' }"
             class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
             <OIcon
               collection="heroicons"
@@ -240,7 +229,7 @@ onMounted(async () => {
                 </p>
               </div>
               <router-link
-                :to="{ name: 'Billing Plans' }"
+                :to="{ name: 'Billing Plans', params: { extid: orgExtid } }"
                 class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
                 <OIcon
                   collection="heroicons"

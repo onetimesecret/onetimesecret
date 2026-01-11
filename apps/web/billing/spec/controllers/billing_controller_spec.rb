@@ -227,8 +227,8 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
   describe 'POST /billing/api/org/:extid/checkout' do
     include_context 'with_test_plans'
 
-    let(:tier) { 'single_team' }
-    let(:billing_cycle) { 'monthly' }
+    let(:product) { 'identity_plus_v1' }
+    let(:interval) { 'monthly' }
 
     before do
       # Ensure customer is organization owner
@@ -247,8 +247,8 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       allow(Stripe::Checkout::Session).to receive(:create).and_return(mock_session)
 
       post "/billing/api/org/#{organization.extid}/checkout", {
-        tier: tier,
-        billing_cycle: billing_cycle,
+        product: product,
+        interval: interval,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(200)
@@ -269,31 +269,31 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       )
     end
 
-    it 'returns 400 when tier is missing' do
+    it 'returns 400 when product is missing' do
       post "/billing/api/org/#{organization.extid}/checkout", {
-        billing_cycle: billing_cycle,
+        interval: interval,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(400)
-      expect(last_response.body).to include('Missing tier or billing_cycle')
+      expect(last_response.body).to include('Missing product or interval')
     end
 
-    it 'returns 400 when billing_cycle is missing' do
+    it 'returns 400 when interval is missing' do
       post "/billing/api/org/#{organization.extid}/checkout", {
-        tier: tier,
+        product: product,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(400)
-      expect(last_response.body).to include('Missing tier or billing_cycle')
+      expect(last_response.body).to include('Missing product or interval')
     end
 
-    it 'returns 404 when plan is not found' do
+    it 'returns 400 when plan is not found' do
       post "/billing/api/org/#{organization.extid}/checkout", {
-        tier: 'nonexistent_tier',
-        billing_cycle: 'monthly',
+        product: 'nonexistent_product',
+        interval: 'monthly',
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
-      expect(last_response.status).to eq(404)
+      expect(last_response.status).to eq(400)
       expect(last_response.body).to include('Plan not found')
     end
 
@@ -311,8 +311,8 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       allow(Stripe::Checkout::Session).to receive(:create).and_return(mock_session)
 
       post "/billing/api/org/#{organization.extid}/checkout", {
-        tier: tier,
-        billing_cycle: billing_cycle,
+        product: product,
+        interval: interval,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(200)
@@ -335,14 +335,15 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       allow(Stripe::Checkout::Session).to receive(:create).and_return(mock_session)
 
       post "/billing/api/org/#{organization.extid}/checkout", {
-        tier: tier,
-        billing_cycle: billing_cycle,
+        product: product,
+        interval: interval,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(200)
 
       # Verify subscription_data.metadata was passed correctly
       # The metadata contains: orgid, plan_id, tier, region, customer_extid
+      # Note: tier is resolved from product by PlanResolver
       expect(Stripe::Checkout::Session).to have_received(:create).with(
         hash_including(
           mode: 'subscription',
@@ -350,7 +351,7 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
           subscription_data: hash_including(
             metadata: hash_including(
               orgid: organization.objid,
-              tier: tier,
+              tier: 'single_team', # Resolved from identity_plus_v1
               customer_extid: customer.extid
             )
           )
@@ -370,8 +371,8 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       # Make two identical requests
       2.times do
         post "/billing/api/org/#{organization.extid}/checkout", {
-          tier: tier,
-          billing_cycle: billing_cycle,
+          product: product,
+          interval: interval,
         }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
         expect(last_response.status).to eq(200)
@@ -401,8 +402,8 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       }
 
       post "/billing/api/org/#{organization.extid}/checkout", {
-        tier: tier,
-        billing_cycle: billing_cycle,
+        product: product,
+        interval: interval,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(403)
@@ -413,8 +414,8 @@ RSpec.describe 'Billing::Controllers::BillingController', :integration, :stripe_
       env 'rack.session', {}
 
       post "/billing/api/org/#{organization.extid}/checkout", {
-        tier: tier,
-        billing_cycle: billing_cycle,
+        product: product,
+        interval: interval,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(401)

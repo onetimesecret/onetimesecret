@@ -181,7 +181,7 @@ module Onetime
     end
 
     class << self
-      def create!(display_name, owner_customer, contact_email = nil)
+      def create!(display_name, owner_customer, contact_email = nil, **)
         raise Onetime::Problem, 'Owner required' if owner_customer.nil?
 
         display_name = display_name.to_s.strip
@@ -197,6 +197,7 @@ module Onetime
           display_name: display_name,
           owner_id: owner_customer.custid,
           contact_email: contact_email.empty? ? nil : contact_email,
+          **,
         )
         org.save
 

@@ -152,16 +152,15 @@ module Billing
           org  = orgs.find { |o| o.is_default }
           return org if org
 
-          # 4. Create default org (shouldn't happen - checkout requires org)
+          # 4. Create default org (self-healing fallback - shouldn't happen, checkout requires org)
+          # See: apps/web/auth/operations/create_default_workspace.rb
           billing_logger.warn 'Creating default org during checkout (unexpected)', { customer_extid: customer.extid }
-          org            = Onetime::Organization.create!(
+          Onetime::Organization.create!(
             "#{customer.email}'s Workspace",
             customer,
             customer.email,
+            is_default: true,
           )
-          org.is_default = true
-          org.save
-          org
         end
       end
     end

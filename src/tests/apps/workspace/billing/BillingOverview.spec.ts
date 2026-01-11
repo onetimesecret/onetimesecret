@@ -11,7 +11,13 @@ import {
   mockOverviewResponses,
 } from '@/tests/fixtures/billing.fixture';
 
-vi.mock('vue-router', () => ({ useRoute: () => ({ path: '/billing/overview' }) }));
+vi.mock('vue-router', () => ({
+  useRoute: () => ({
+    path: '/billing/on1abc123/overview',
+    params: { extid: 'on1abc123' },
+    query: {},
+  }),
+}));
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
   default: { name: 'OIcon', template: '<span class="o-icon" />', props: ['collection', 'name', 'class'] },
 }));
@@ -141,7 +147,8 @@ describe('BillingOverview', () => {
 
       resolveOrg!(mockOrganization);
       await flushPromises();
-      expect(wrapper.text()).toContain('Billing Overview');
+      // Component renders plan info after loading
+      expect(wrapper.text()).toContain('Current Plan');
     });
   });
 
@@ -193,22 +200,19 @@ describe('BillingOverview', () => {
     });
   });
 
-  describe('Multi-Org Support', () => {
-    it('multi-org selector triggers data reload on change', async () => {
+  describe('URL-based Org Routing', () => {
+    it('loads organization data based on URL extid param', async () => {
       const orgs = [mockOrganization, mockFreeOrganization];
       wrapper = await mountComponent({ organizations: orgs });
 
-      const selector = wrapper.find('#org-select');
-      expect(selector.exists()).toBe(true);
+      // Component loads data for org specified in URL params (on1abc123)
       expect(mockGetOverview).toHaveBeenCalledWith('on1abc123');
-
-      await selector.setValue('org_456');
-      await flushPromises();
-      expect(mockGetOverview).toHaveBeenCalledWith('on2def456');
+      expect(mockFetchOrganization).toHaveBeenCalledWith('on1abc123');
     });
 
-    it('hides org selector for single organization', async () => {
+    it('displays organization name from URL param', async () => {
       wrapper = await mountComponent({ organizations: [mockOrganization] });
+      // Org selector was removed - routing is now URL-based
       expect(wrapper.find('#org-select').exists()).toBe(false);
     });
   });

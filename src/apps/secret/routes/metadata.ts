@@ -77,7 +77,7 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         displayToggles: true,
       },
-      scopesAvailable: SCOPE_PRESETS.hideBoth,
+      scopesAvailable: SCOPE_PRESETS.lockBoth,
     },
   },
   {
@@ -97,7 +97,7 @@ const routes: Array<RouteRecordRaw> = [
         displayVersion: true,
         displayToggles: true,
       },
-      scopesAvailable: SCOPE_PRESETS.hideBoth,
+      scopesAvailable: SCOPE_PRESETS.lockBoth,
     },
   },
   {

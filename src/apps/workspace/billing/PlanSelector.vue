@@ -3,6 +3,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import PlanChangeModal from './PlanChangeModal.vue';
@@ -12,6 +13,7 @@ import { BillingService, type Plan as BillingPlan, type SubscriptionStatusRespon
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { BillingInterval } from '@/types/billing';
 import { formatCurrency } from '@/types/billing';
+import type { Organization } from '@/types/organization';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -19,16 +21,22 @@ const { t } = useI18n();
 const route = useRoute();
 const organizationStore = useOrganizationStore();
 
+// Org extid comes from URL (e.g., /billing/:extid/plans)
+const orgExtid = computed(() => route.params.extid as string);
+
 const billingInterval = ref<BillingInterval>('month');
-const selectedOrgId = ref<string | null>(null);
 const isCreatingCheckout = ref(false);
 const isLoadingPlans = ref(false);
+const isLoadingOrg = ref(false);
 const error = ref('');
 const suggestedPlanId = ref<string | null>(null);
 const successMessage = ref('');
 
 // Plans loaded from API
 const plans = ref<BillingPlan[]>([]);
+
+// Selected organization loaded from route extid
+const selectedOrg = ref<Organization | null>(null);
 
 // Subscription status for plan switching
 const subscriptionStatus = ref<SubscriptionStatusResponse | null>(null);
@@ -44,18 +52,12 @@ const currentPlanForModal = computed(() => {
   return plans.value.find(p => p.stripe_price_id === subscriptionStatus.value?.current_price_id) ?? null;
 });
 
-const organizations = computed(() => organizationStore.organizations);
-const selectedOrg = computed(() =>
-  organizations.value.find(org => org.id === selectedOrgId.value)
-);
-
 // Use entitlements composable for definitions loading
-const selectedOrgRef = computed(() => selectedOrg.value ?? null);
 const {
   initDefinitions,
   isLoadingDefinitions,
   definitionsError,
-} = useEntitlements(selectedOrgRef);
+} = useEntitlements(selectedOrg);
 
 /**
  * Get the current organization's tier by finding the matching plan.
@@ -102,41 +104,7 @@ const _getMembersLimit = (plan: BillingPlan): number | string => {
 /**
  * Combined loading state for the component
  */
-const isLoadingContent = computed(() => isLoadingPlans.value || isLoadingDefinitions.value);
-
-/**
- * Tier hierarchy for inheritance (lower index = lower tier).
- * Higher tiers inherit from lower tiers, so:
- * - free: shows all its features (no base)
- * - single_team: shows "Everything in Free, plus:" + new features
- * - multi_team: shows "Everything in Single Team, plus:" + new features
- */
-const TIER_HIERARCHY = ['free', 'single_team', 'multi_team'] as const;
-
-/**
- * Get the base plan for inheritance display.
- * Higher tiers reference their immediate lower tier.
- */
-const getBasePlan = (plan: BillingPlan): BillingPlan | undefined => {
-  const tierIndex = TIER_HIERARCHY.indexOf(plan.tier as (typeof TIER_HIERARCHY)[number]);
-  if (tierIndex <= 0) return undefined; // Lowest tier (free) has no base
-
-  const baseTier = TIER_HIERARCHY[tierIndex - 1];
-  return filteredPlans.value.find(p => p.tier === baseTier && p.interval === plan.interval);
-};
-
-/**
- * Get only NEW features for this plan (excluding base plan features).
- * For lowest tier plans, shows all features.
- * Features are i18n locale keys like 'web.billing.features.custom_domains'.
- */
-const getNewFeatures = (plan: BillingPlan): string[] => {
-  const basePlan = getBasePlan(plan);
-  if (!basePlan) return plan.features; // Show all for lowest tier
-
-  // Filter out features that exist in base plan
-  return plan.features.filter(feat => !basePlan.features.includes(feat));
-};
+const isLoadingContent = computed(() => isLoadingPlans.value || isLoadingDefinitions.value || isLoadingOrg.value);
 
 /**
  * Get the monthly price for display.
@@ -192,13 +160,7 @@ const loadPlans = async () => {
 };
 
 const handlePlanSelect = async (plan: BillingPlan) => {
-  if (isPlanCurrent(plan) || !selectedOrgId.value || plan.tier === 'free') return;
-
-  const selectedOrganization = organizations.value.find(org => org.id === selectedOrgId.value);
-  if (!selectedOrganization?.extid) {
-    error.value = 'Organization not found';
-    return;
-  }
+  if (isPlanCurrent(plan) || !selectedOrg.value?.extid || plan.tier === 'free') return;
 
   // Clear any previous messages
   error.value = '';
@@ -215,10 +177,10 @@ const handlePlanSelect = async (plan: BillingPlan) => {
   isCreatingCheckout.value = true;
 
   try {
+    // Pass plan object - service derives product from plan.id
     const response = await BillingService.createCheckoutSession(
-      selectedOrganization.extid,
-      plan.tier,
-      billingInterval.value
+      selectedOrg.value.extid,
+      { id: plan.id, interval: plan.interval }
     );
 
     // Redirect to Stripe Checkout
@@ -247,18 +209,18 @@ const handlePlanChangeSuccess = async (newPlan: string) => {
   successMessage.value = `Successfully switched to ${newPlan}`;
 
   // Refresh subscription status and organization data
-  const selectedOrganization = organizations.value.find(org => org.id === selectedOrgId.value);
-  if (selectedOrganization) {
-    await loadSubscriptionStatus(selectedOrganization);
-    await organizationStore.fetchOrganizations();
+  if (orgExtid.value) {
+    await loadSubscriptionStatus(orgExtid.value);
+    // Refresh org data
+    const org = await organizationStore.fetchOrganization(orgExtid.value);
+    selectedOrg.value = org;
   }
 };
 
 // Helper to load subscription status with error handling
-const loadSubscriptionStatus = async (org: { extid?: string }) => {
-  if (!org.extid) return;
+const loadSubscriptionStatus = async (extid: string) => {
   try {
-    subscriptionStatus.value = await BillingService.getSubscriptionStatus(org.extid);
+    subscriptionStatus.value = await BillingService.getSubscriptionStatus(extid);
   } catch (_err) {
     // Non-fatal: user may not have a subscription yet
     console.log('[PlanSelector] No active subscription found');
@@ -267,48 +229,68 @@ const loadSubscriptionStatus = async (org: { extid?: string }) => {
 
 onMounted(async () => {
   try {
+    isLoadingOrg.value = true;
+
     // Load entitlement definitions and plans in parallel
     await Promise.all([
       initDefinitions(),
       loadPlans(),
     ]);
 
-    if (organizations.value.length === 0) {
-      await organizationStore.fetchOrganizations();
-    }
-
-    if (organizations.value.length > 0) {
-      selectedOrgId.value = organizations.value[0].id;
+    // Load organization data using extid from URL
+    if (orgExtid.value) {
+      const org = await organizationStore.fetchOrganization(orgExtid.value);
+      selectedOrg.value = org;
       // Load subscription status to determine checkout vs plan change flow
-      await loadSubscriptionStatus(organizations.value[0]);
+      await loadSubscriptionStatus(orgExtid.value);
     }
 
-    // Check for upgrade_to query param
+    // Check for product/interval query params (from billing redirect flow)
+    // These come from /pricing page -> signup/login -> redirect here
+    const productParam = route.query.product as string;
+    const intervalParam = route.query.interval as string;
+
+    if (productParam) {
+      // Set billing interval from query param
+      if (intervalParam === 'yearly' || intervalParam === 'year') {
+        billingInterval.value = 'year';
+      } else {
+        billingInterval.value = 'month';
+      }
+
+      // Find the matching plan based on product and interval
+      // Product is like 'identity_plus_v1', plan.id is like 'identity_plus_v1_monthly'
+      const intervalSuffix = billingInterval.value === 'year' ? 'yearly' : 'monthly';
+      const expectedPlanId = `${productParam}_${intervalSuffix}`;
+
+      // Find plan by exact match or prefix match
+      const matchingPlan = plans.value.find(
+        p => p.id === expectedPlanId || p.id.startsWith(productParam)
+      );
+
+      if (matchingPlan) {
+        suggestedPlanId.value = matchingPlan.id;
+      }
+    }
+
+    // Legacy: Check for upgrade_to query param (backwards compatibility)
     const upgradeToParam = route.query.upgrade_to as string;
-    if (upgradeToParam) {
+    if (upgradeToParam && !suggestedPlanId.value) {
       suggestedPlanId.value = upgradeToParam;
     }
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.message || 'Failed to load organizations';
-    console.error('[PlanSelector] Error loading organizations:', err);
+    error.value = classified.message || 'Failed to load billing data';
+    console.error('[PlanSelector] Error loading billing data:', err);
+  } finally {
+    isLoadingOrg.value = false;
   }
 });
 </script>
 
 <template>
-  <div class="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
+  <BillingLayout>
     <div class="space-y-8">
-      <!-- Header -->
-      <div class="text-center">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-          {{ t('web.billing.plans.title') }}
-        </h1>
-        <p class="mt-2 text-base text-gray-600 dark:text-gray-400">
-          {{ t('web.billing.plans.subtitle') }}
-        </p>
-      </div>
-
       <!-- Billing Interval Toggle -->
       <div class="flex items-center justify-center gap-3"
 role="group"
@@ -469,14 +451,9 @@ aria-live="polite">
                 {{ t('web.billing.plans.features') }}
               </p>
 
-              <!-- Show base plan reference for higher tiers -->
-              <p v-if="getBasePlan(plan)" class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                ✓ {{ t('web.billing.plans.everything_in', { plan: getBasePlan(plan)?.name }) }}
-              </p>
-
               <ul class="space-y-2">
                 <li
-                  v-for="feature in getNewFeatures(plan)"
+                  v-for="feature in plan.features"
                   :key="feature"
                   class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
                   <OIcon
@@ -537,5 +514,5 @@ aria-live="polite">
       @close="handlePlanChangeClose"
       @success="handlePlanChangeSuccess"
     />
-  </div>
+  </BillingLayout>
 </template>

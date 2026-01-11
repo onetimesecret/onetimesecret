@@ -127,9 +127,9 @@ const selectDomain = (domain: string): void => {
 const shouldShow = computed(() => isScopeActive.value);
 
 /**
- * Navigate to domains management page to add a new domain
+ * Navigate to domains management page
  */
-const navigateToAddDomain = (): void => {
+const navigateToManageDomains = (): void => {
   router.push('/domains');
 };
 
@@ -289,7 +289,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
           aria-hidden="true" ></div>
 
         <!-- Add Domain Link -->
-        <MenuItem v-slot="{ active }" @click="navigateToAddDomain">
+        <MenuItem v-slot="{ active }" @click="navigateToManageDomains">
           <button
             type="button"
             class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
@@ -297,11 +297,11 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
             <span class="flex items-center gap-2">
               <OIcon
                 collection="heroicons"
-                name="plus"
-                class="size-4 text-brand-500 dark:text-brand-400"
+                name="cog-6-tooth"
+                class="size-4 text-gray-500 dark:text-gray-400"
                 aria-hidden="true" />
-              <span class="text-sm text-brand-600 dark:text-brand-400">
-                {{ t('web.domains.add_domain') }}
+              <span class="text-sm text-gray-700 dark:text-gray-300">
+                {{ t('web.domains.manage_domains') }}
               </span>
             </span>
           </button>

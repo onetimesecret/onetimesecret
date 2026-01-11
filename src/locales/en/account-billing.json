@@ -13,7 +13,7 @@
       "overview": {
         "title": "Billing Overview",
         "description": "View and manage your subscription and payment details",
-        "organization_selector": "Select Organization",
+        "billing_for_organization": "Billing for this organization",
         "current_plan": "Current Plan",
         "plan_features": "Plan Features",
         "payment_method": "Payment Method",
@@ -35,6 +35,8 @@
         "manage_billing_description": "Update payment info",
         "no_organizations_title": "No Organizations",
         "no_organizations_description": "Create an organization to manage your billing and subscription",
+        "upgrade_success": "Your plan has been upgraded successfully",
+        "upgrade_success_description": "Your new plan is now active. Thank you for your purchase.",
         "entitlements": {
           "create_secrets": "Create Secrets",
           "view_receipt": "View Receipts",

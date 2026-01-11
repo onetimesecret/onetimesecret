@@ -138,6 +138,7 @@ function getRegionSection(t: ComposerTranslation): SettingsNavigationItem {
     ],
   };
 }
+
 /**
  * Generate flat settings navigation configuration (legacy)
  * @deprecated Use getSettingsNavigationSections for grouped navigation

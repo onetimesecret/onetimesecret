@@ -39,6 +39,7 @@
 module Auth::Config::Hooks
   require_relative 'hooks/account'
   require_relative 'hooks/audit_logging'
+  require_relative 'hooks/billing'
   require_relative 'hooks/error_handling'
   require_relative 'hooks/login'
   require_relative 'hooks/logout'

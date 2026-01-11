@@ -32,11 +32,12 @@ import {
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { LockoutStatus } from '@/types/auth';
 import type { AxiosInstance } from 'axios';
 import { inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -83,11 +84,39 @@ import { useRouter } from 'vue-router';
 /* eslint-disable max-lines-per-function */
 export function useAuth() {
   const $api = inject('api') as AxiosInstance;
+  const route = useRoute();
   const router = useRouter();
   const { locale } = useI18n();
   const authStore = useAuthStore();
   const csrfStore = useCsrfStore();
   const notificationsStore = useNotificationsStore();
+  const organizationStore = useOrganizationStore();
+
+  /**
+   * Extracts billing-related query params from the current route.
+   * Used to forward product/interval selection through auth flows.
+   *
+   * Terminology note:
+   * - `interval` = plan frequency choice (month, year) - user's selection
+   * - `billing_cycle` = subscription parameter - returned by backend
+   *
+   * The backend translates interval → billing_cycle when creating the
+   * billing_redirect response, aligning with Stripe's terminology where
+   * "interval" is the price frequency and "billing_cycle" refers to
+   * subscription billing dates.
+   *
+   * @returns Object with product and interval if present in query params
+   */
+  function getBillingParams(): { product?: string; interval?: string } {
+    const params: { product?: string; interval?: string } = {};
+    if (route.query.product && typeof route.query.product === 'string') {
+      params.product = route.query.product;
+    }
+    if (route.query.interval && typeof route.query.interval === 'string') {
+      params.interval = route.query.interval;
+    }
+    return params;
+  }
 
   const isLoading = ref(false);
   const error = ref<string | null>(null);
@@ -132,6 +161,58 @@ export function useAuth() {
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
   /**
+   * Handles billing redirect after successful authentication.
+   * Reads product/interval directly from route query params.
+   * Returns true if redirect was performed, false otherwise.
+   *
+   * Only redirects when:
+   * - product and interval are present in query params
+   * - billing_enabled is true (WindowService)
+   * - Organization can be resolved
+   */
+  async function handleBillingRedirect(): Promise<boolean> {
+    const { product, interval } = getBillingParams();
+
+    // No billing params in URL - skip redirect
+    if (!product || !interval) {
+      return false;
+    }
+
+    // Check if billing is enabled (graceful degradation for self-hosted)
+    const billingEnabled = WindowService.get('billing_enabled');
+    if (!billingEnabled) {
+      loggingService.debug('[useAuth] Billing redirect skipped - billing not enabled');
+      return false;
+    }
+
+    try {
+      // Fetch organizations to get the default org's extid
+      await organizationStore.fetchOrganizations();
+      const org = organizationStore.restorePersistedSelection();
+
+      if (!org?.extid) {
+        loggingService.warn('[useAuth] Billing redirect skipped - no organization found');
+        return false;
+      }
+
+      const plansUrl = `/billing/${org.extid}/plans?product=${product}&interval=${interval}`;
+
+      loggingService.debug('[useAuth] Redirecting to billing plans', {
+        org: org.extid,
+        product,
+        interval,
+      });
+
+      await router.push(plansUrl);
+      return true;
+    } catch (err) {
+      // Graceful degradation - if billing redirect fails, continue to dashboard
+      loggingService.error(new Error(`Billing redirect failed: ${err}`));
+      return false;
+    }
+  }
+
+  /**
    * Logs in a user with email and password
    *
    * @param email - User's email address
@@ -148,12 +229,14 @@ export function useAuth() {
     clearErrors();
 
     const result = await wrap(async () => {
+      const billingParams = getBillingParams();
       const response = await $api.post<LoginResponse>('/auth/login', {
         login: email,
         password: password,
         shrimp: csrfStore.shrimp,
         'remember-me': rememberMe,
         locale: locale.value,
+        ...billingParams,
       });
 
       const validated = loginResponseSchema.parse(response.data);
@@ -192,6 +275,13 @@ export function useAuth() {
 
       // Success - update auth state (this fetches fresh window state)
       await authStore.setAuthenticated(true);
+
+      // Check for billing redirect from query params (e.g., user upgrading during signup flow)
+      const redirected = await handleBillingRedirect();
+      if (redirected) {
+        return true; // Redirected to billing plans
+      }
+
       await router.push('/');
       return true;
     });
@@ -215,12 +305,14 @@ export function useAuth() {
     clearErrors();
 
     const result = await wrap(async () => {
+      const billingParams = getBillingParams();
       const response = await $api.post<CreateAccountResponse>('/auth/create-account', {
         login: email,
         password: password,
         agree: termsAgreed,
         shrimp: csrfStore.shrimp,
         locale: locale.value,
+        ...billingParams,
       });
 
       const validated = createAccountResponseSchema.parse(response.data);
@@ -234,7 +326,17 @@ export function useAuth() {
       // Success - account created but NOT authenticated yet
       // User needs to either verify email or sign in
       notificationsStore.show(validated.success, 'success', 'top');
-      await router.push('/signin');
+
+      // Preserve billing params when redirecting to signin
+      // so the subsequent login can pick them up for billing redirect
+      if (billingParams.product && billingParams.interval) {
+        await router.push({
+          path: '/signin',
+          query: { product: billingParams.product, interval: billingParams.interval },
+        });
+      } else {
+        await router.push('/signin');
+      }
       return true;
     });
 

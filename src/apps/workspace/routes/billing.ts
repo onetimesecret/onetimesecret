@@ -2,8 +2,8 @@
 
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import { WindowService } from '@/services/window.service';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { RouteRecordRaw } from 'vue-router';
-import { SCOPE_PRESETS } from '@/types/router';
 
 const standardLayoutProps = {
   displayMasthead: true,
@@ -16,8 +16,8 @@ const standardLayoutProps = {
 } as const;
 
 /**
- * Guard to check if billing is enabled before accessing billing routes
- * Redirects to dashboard with notification if billing is disabled
+ * Guard to check if billing is enabled before accessing billing routes.
+ * Redirects to dashboard if billing is disabled.
  */
 function checkBillingEnabled() {
   const billingEnabled = WindowService.get('billing_enabled');
@@ -29,14 +29,37 @@ function checkBillingEnabled() {
   return true;
 }
 
+/**
+ * Creates a guard to redirect to /billing/:extid/:targetPage using the current org.
+ */
+function createBillingRedirect(targetPage: string) {
+  return async () => {
+    const organizationStore = useOrganizationStore();
+
+    if (organizationStore.organizations.length === 0) {
+      await organizationStore.fetchOrganizations();
+    }
+
+    const org = organizationStore.currentOrganization || organizationStore.organizations[0];
+    return { path: `/billing/${org.extid}/${targetPage}` };
+  };
+}
+
 const routes: Array<RouteRecordRaw> = [
+  // Redirect /billing to default org's billing page
   {
     path: '/billing',
-    redirect: '/billing/overview',
-    beforeEnter: checkBillingEnabled,
+    beforeEnter: [checkBillingEnabled, createBillingRedirect('overview')],
+    component: () => import('@/apps/workspace/billing/BillingOverview.vue'),
+  },
+  // Redirect /billing/plans to default org's plans page
+  {
+    path: '/billing/plans',
+    beforeEnter: [checkBillingEnabled, createBillingRedirect('plans')],
+    component: () => import('@/apps/workspace/billing/PlanSelector.vue'),
   },
   {
-    path: '/billing/overview',
+    path: '/billing/:extid/overview',
     name: 'Billing Overview',
     beforeEnter: checkBillingEnabled,
     component: () => import('@/apps/workspace/billing/BillingOverview.vue'),
@@ -45,11 +68,15 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'hide',
+        onOrgSwitch: 'same',
+      },
     },
   },
   {
-    path: '/billing/plans',
+    path: '/billing/:extid/plans',
     name: 'Billing Plans',
     beforeEnter: checkBillingEnabled,
     component: () => import('@/apps/workspace/billing/PlanSelector.vue'),
@@ -58,11 +85,15 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'hide',
+        onOrgSwitch: 'same',
+      },
     },
   },
   {
-    path: '/billing/invoices',
+    path: '/billing/:extid/invoices',
     name: 'Billing Invoices',
     beforeEnter: checkBillingEnabled,
     component: () => import('@/apps/workspace/billing/InvoiceList.vue'),
@@ -71,46 +102,12 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
+      scopesAvailable: {
+        organization: 'show',
+        domain: 'hide',
+        onOrgSwitch: 'same',
+      },
     },
-  },
-  // Legacy routes for backward compatibility
-  {
-    path: '/account/billing',
-    redirect: '/billing/overview',
-    beforeEnter: checkBillingEnabled,
-  },
-  {
-    path: '/account/billing/plans',
-    redirect: '/billing/plans',
-    beforeEnter: checkBillingEnabled,
-  },
-  {
-    path: '/account/billing/invoices',
-    redirect: '/billing/invoices',
-    beforeEnter: checkBillingEnabled,
-  },
-  // Legacy billing redirects to /org moved to organizations.ts
-  // These billing-prefixed org redirects remain for backwards compatibility
-  {
-    path: '/billing/organizations',
-    redirect: '/org',
-  },
-  {
-    path: '/billing/organization/:extid',
-    redirect: (to) => ({
-      path: `/org/${to.params.extid}`,
-    }),
-  },
-  {
-    path: '/billing/orgs',
-    redirect: '/org',
-  },
-  {
-    path: '/billing/org/:extid',
-    redirect: (to) => ({
-      path: `/org/${to.params.extid}`,
-    }),
   },
 ];
 

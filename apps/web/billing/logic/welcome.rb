@@ -139,15 +139,15 @@ module Billing
           orgs = customer.organization_instances.to_a
           org  = orgs.find(&:is_default)
 
+          # Self-healing fallback - see: apps/web/auth/operations/create_default_workspace.rb
           unless org
             OT.info "[FromStripePaymentLink] No default organization found, creating one for customer #{customer.obscure_email}"
-            org            = Onetime::Organization.create!(
+            org = Onetime::Organization.create!(
               "#{customer.email}'s Workspace",
               customer,
               customer.email,
+              is_default: true,
             )
-            org.is_default = true
-            org.save
           end
 
           OT.info "[FromStripePaymentLink] Updating organization #{org.objid} billing from subscription #{stripe_subscription.id}"
@@ -227,7 +227,7 @@ module Billing
       # @note This is used by /billing/welcome endpoint
       #
       class ProcessCheckoutSession < Onetime::Logic::Base
-        attr_reader :session_id, :checkout_session, :subscription
+        attr_reader :session_id, :checkout_session, :subscription, :target_organization
 
         def process_params
           @session_id = params['session_id']
@@ -258,12 +258,14 @@ module Billing
 
           metadata        = subscription.metadata
           customer_extid  = metadata['customer_extid']
+          orgid           = metadata['orgid']
           plan_id         = metadata['plan_id']
 
           OT.info '[ProcessCheckoutSession] Processing checkout',
             {
               session_id: session_id,
               customer_extid: customer_extid,
+              orgid: orgid,
               plan_id: plan_id,
               subscription_id: subscription.id,
             }
@@ -276,44 +278,87 @@ module Billing
             raise_form_error 'Customer not found'
           end
 
-          # Find or create default organization for the customer
-          org = find_or_create_default_organization(customer)
+          # Find the target organization from metadata (the org that initiated checkout)
+          # This ensures the correct org gets upgraded, not just the customer's default
+          @target_organization = find_target_organization(customer, metadata)
 
           # Update organization with subscription details (extracts planid, etc.)
-          org.update_from_stripe_subscription(subscription)
+          @target_organization.update_from_stripe_subscription(subscription)
 
           OT.info '[ProcessCheckoutSession] Organization subscription activated',
             {
-              orgid: org.objid,
+              orgid: @target_organization.objid,
+              extid: @target_organization.extid,
               subscription_id: subscription.id,
-              plan_id: org.planid,  # Use actual planid set by update_from_stripe_subscription
+              plan_id: @target_organization.planid,
             }
 
           success_data
         end
 
         def success_data
-          { session_id: session_id, success: true }
+          {
+            session_id: session_id,
+            success: true,
+            org_extid: @target_organization&.extid,
+          }
         end
 
         private
 
-        # Find existing default organization or create one
+        # Find the target organization for this checkout
+        #
+        # Priority:
+        # 1. orgid from subscription metadata (explicit org that initiated checkout)
+        # 2. Org already linked to this Stripe customer (idempotent replay)
+        # 3. Customer's default org (legacy/fallback)
+        # 4. Create new default org (shouldn't happen in normal flow)
         #
         # @param customer [Onetime::Customer] The customer
-        # @return [Onetime::Organization] The default organization
-        def find_or_create_default_organization(customer)
+        # @param metadata [Stripe::StripeObject] Subscription metadata
+        # @return [Onetime::Organization] The target organization
+        def find_target_organization(customer, metadata)
+          # 1. Explicit org from metadata (most reliable - set during checkout creation)
+          orgid = metadata['orgid']
+          if orgid
+            org = Onetime::Organization.load(orgid)
+            if org
+              OT.info '[ProcessCheckoutSession] Found org from subscription metadata',
+                { orgid: orgid, extid: org.extid }
+              return org
+            end
+            OT.lw '[ProcessCheckoutSession] orgid in metadata not found', { orgid: orgid }
+          end
+
+          # 2. Org already linked to Stripe customer (idempotent replay case)
+          stripe_customer_id = checkout_session&.customer
+          if stripe_customer_id.is_a?(String) && stripe_customer_id.start_with?('cus_')
+            org = Onetime::Organization.find_by_stripe_customer_id(stripe_customer_id)
+            if org
+              OT.info '[ProcessCheckoutSession] Found org by stripe_customer_id',
+                { stripe_customer_id: stripe_customer_id, extid: org.extid }
+              return org
+            end
+          end
+
+          # 3. Customer's default org (fallback for legacy checkouts)
           orgs = customer.organization_instances.to_a
           org  = orgs.find { |o| o.is_default }
+          if org
+            OT.info '[ProcessCheckoutSession] Using customer default org (fallback)',
+              { extid: org.extid }
+            return org
+          end
 
-          return org if org
-
-          # Create default organization if none exists
-          OT.info "[ProcessCheckoutSession] Creating default organization for #{customer.obscure_email}"
+          # 4. Create default org (self-healing fallback - shouldn't happen, checkout requires org context)
+          # See: apps/web/auth/operations/create_default_workspace.rb
+          OT.lw '[ProcessCheckoutSession] Creating default org during checkout (unexpected)',
+            { customer_extid: customer.extid }
           Onetime::Organization.create!(
             "#{customer.email}'s Workspace",
             customer,
             customer.email,
+            is_default: true,
           )
         end
       end

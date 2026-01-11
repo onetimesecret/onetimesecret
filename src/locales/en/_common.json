@@ -327,7 +327,8 @@
       "system_settings": "System Settings",
       "not_found": "Page Not Found",
       "organizations_settings": "Organizations",
-      "organization_settings": "Organization Settings"
+      "organization_settings": "Organization Settings",
+      "pricing": "Pricing"
     },
     "ARIA": {
       "focus_is_now_in_the_main_text_area": "Focus is now in the main text area"
@@ -338,6 +339,15 @@
       "share_passphrase_instruction": "Share the passphrase separately through a secure channel",
       "secure_channel_instruction": "Use a different secure channel to share sensitive information",
       "phishing_warning": "Always verify you're on the official Onetime Secret website. Fraudsters sometimes create fake websites that look exactly like Onetime Secret to steal your secrets. To avoid phishing attacks, check the region domain before creating new links."
+    },
+    "pricing": {
+      "title": "Simple, Transparent Pricing",
+      "subtitle": "Choose the plan that fits your needs. All plans include unlimited secret sharing and privacy-first design.",
+      "get_started_free": "Get Started Free",
+      "start_trial": "Get Started",
+      "already_have_account": "Already have an account?",
+      "sign_in": "Sign in",
+      "recommended_for_you": "Recommended for You"
     }
   }
 }

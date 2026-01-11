@@ -167,19 +167,30 @@ export const BillingService = {
   /**
    * Create a checkout session for subscribing to or changing a plan
    *
+   * Terminology:
+   * - `product`: The plan product ID without interval suffix (e.g., 'identity_plus_v1')
+   * - `interval`: The billing interval ('month' or 'year')
+   *
+   * The product is derived from plan.id by removing the interval suffix.
+   *
    * @param orgExtId - Organization external ID
-   * @param tier - Plan tier (e.g., 'single_team', 'multi_team')
-   * @param billingCycle - Billing cycle ('month' or 'year')
+   * @param plan - Plan object with id and interval
    * @returns Checkout session URL and ID
    */
   async createCheckoutSession(
     orgExtId: string,
-    tier: string,
-    billingCycle: string
+    plan: { id: string; interval: string }
   ): Promise<CheckoutSessionResponse> {
+    // Derive product from plan.id by removing interval suffix
+    // plan.id = 'identity_plus_v1_monthly' → product = 'identity_plus_v1'
+    const intervalSuffix = plan.interval === 'year' ? '_yearly' : '_monthly';
+    const product = plan.id.endsWith(intervalSuffix)
+      ? plan.id.slice(0, -intervalSuffix.length)
+      : plan.id;
+
     const response = await $api.post(`/billing/api/org/${orgExtId}/checkout`, {
-      tier,
-      billing_cycle: billingCycle,
+      product,
+      interval: plan.interval,
     });
     return response.data;
   },

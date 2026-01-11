@@ -185,11 +185,11 @@
           },
           "created": {
             "type": "string",
-            "format": "date"
+            "format": "date-time"
           },
           "updated": {
             "type": "string",
-            "format": "date"
+            "format": "date-time"
           },
           "key": {
             "type": "string"
@@ -273,12 +273,12 @@
           "created": {
             "type": "string",
             "nullable": true,
-            "format": "date"
+            "format": "date-time"
           },
           "updated": {
             "type": "string",
             "nullable": true,
-            "format": "date"
+            "format": "date-time"
           },
           "key": {
             "type": "string",
@@ -341,22 +341,22 @@
           "shared": {
             "type": "string",
             "nullable": true,
-            "format": "date"
+            "format": "date-time"
           },
           "received": {
             "type": "string",
             "nullable": true,
-            "format": "date"
+            "format": "date-time"
           },
           "burned": {
             "type": "string",
             "nullable": true,
-            "format": "date"
+            "format": "date-time"
           },
           "viewed": {
             "type": "string",
             "nullable": true,
-            "format": "date"
+            "format": "date-time"
           },
           "is_viewed": {
             "type": "boolean",
@@ -396,7 +396,8 @@
               "burned",
               "viewed",
               "expired",
-              "orphaned"
+              "orphaned",
+              null
             ]
           },
           "natural_expiration": {
@@ -405,7 +406,7 @@
           "expiration": {
             "type": "string",
             "nullable": true,
-            "format": "date"
+            "format": "date-time"
           },
           "expiration_in_seconds": {
             "type": "number",
@@ -534,11 +535,11 @@
               },
               "created": {
                 "type": "string",
-                "format": "date"
+                "format": "date-time"
               },
               "updated": {
                 "type": "string",
-                "format": "date"
+                "format": "date-time"
               },
               "key": {
                 "type": "string"
@@ -637,12 +638,12 @@
               "created": {
                 "type": "string",
                 "nullable": true,
-                "format": "date"
+                "format": "date-time"
               },
               "updated": {
                 "type": "string",
                 "nullable": true,
-                "format": "date"
+                "format": "date-time"
               },
               "key": {
                 "type": "string",
@@ -705,22 +706,22 @@
               "shared": {
                 "type": "string",
                 "nullable": true,
-                "format": "date"
+                "format": "date-time"
               },
               "received": {
                 "type": "string",
                 "nullable": true,
-                "format": "date"
+                "format": "date-time"
               },
               "burned": {
                 "type": "string",
                 "nullable": true,
-                "format": "date"
+                "format": "date-time"
               },
               "viewed": {
                 "type": "string",
                 "nullable": true,
-                "format": "date"
+                "format": "date-time"
               },
               "is_viewed": {
                 "type": "boolean",
@@ -760,7 +761,8 @@
                   "burned",
                   "viewed",
                   "expired",
-                  "orphaned"
+                  "orphaned",
+                  null
                 ]
               },
               "natural_expiration": {
@@ -769,7 +771,7 @@
               "expiration": {
                 "type": "string",
                 "nullable": true,
-                "format": "date"
+                "format": "date-time"
               },
               "expiration_in_seconds": {
                 "type": "number",
@@ -907,12 +909,12 @@
                   "created": {
                     "type": "string",
                     "nullable": true,
-                    "format": "date"
+                    "format": "date-time"
                   },
                   "updated": {
                     "type": "string",
                     "nullable": true,
-                    "format": "date"
+                    "format": "date-time"
                   },
                   "key": {
                     "type": "string"
@@ -973,22 +975,22 @@
                   "shared": {
                     "type": "string",
                     "nullable": true,
-                    "format": "date"
+                    "format": "date-time"
                   },
                   "received": {
                     "type": "string",
                     "nullable": true,
-                    "format": "date"
+                    "format": "date-time"
                   },
                   "burned": {
                     "type": "string",
                     "nullable": true,
-                    "format": "date"
+                    "format": "date-time"
                   },
                   "viewed": {
                     "type": "string",
                     "nullable": true,
-                    "format": "date"
+                    "format": "date-time"
                   },
                   "is_viewed": {
                     "type": "boolean",
@@ -1032,11 +1034,11 @@
                   },
                   "created": {
                     "type": "string",
-                    "format": "date"
+                    "format": "date-time"
                   },
                   "updated": {
                     "type": "string",
-                    "format": "date"
+                    "format": "date-time"
                   },
                   "key": {
                     "type": "string"
@@ -1161,12 +1163,12 @@
                           "created": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date"
+                            "format": "date-time"
                           },
                           "updated": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date"
+                            "format": "date-time"
                           },
                           "key": {
                             "type": "string",
@@ -1229,22 +1231,22 @@
                           "shared": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date"
+                            "format": "date-time"
                           },
                           "received": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date"
+                            "format": "date-time"
                           },
                           "burned": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date"
+                            "format": "date-time"
                           },
                           "viewed": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date"
+                            "format": "date-time"
                           },
                           "is_viewed": {
                             "type": "boolean",
@@ -1284,7 +1286,8 @@
                               "burned",
                               "viewed",
                               "expired",
-                              "orphaned"
+                              "orphaned",
+                              null
                             ]
                           },
                           "natural_expiration": {
@@ -1293,7 +1296,7 @@
                           "expiration": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date"
+                            "format": "date-time"
                           },
                           "expiration_in_seconds": {
                             "type": "number",
@@ -1466,12 +1469,12 @@
                         "created": {
                           "type": "string",
                           "nullable": true,
-                          "format": "date"
+                          "format": "date-time"
                         },
                         "updated": {
                           "type": "string",
                           "nullable": true,
-                          "format": "date"
+                          "format": "date-time"
                         },
                         "key": {
                           "type": "string",
@@ -1534,22 +1537,22 @@
                         "shared": {
                           "type": "string",
                           "nullable": true,
-                          "format": "date"
+                          "format": "date-time"
                         },
                         "received": {
                           "type": "string",
                           "nullable": true,
-                          "format": "date"
+                          "format": "date-time"
                         },
                         "burned": {
                           "type": "string",
                           "nullable": true,
-                          "format": "date"
+                          "format": "date-time"
                         },
                         "viewed": {
                           "type": "string",
                           "nullable": true,
-                          "format": "date"
+                          "format": "date-time"
                         },
                         "is_viewed": {
                           "type": "boolean",
@@ -1589,7 +1592,8 @@
                             "burned",
                             "viewed",
                             "expired",
-                            "orphaned"
+                            "orphaned",
+                            null
                           ]
                         },
                         "natural_expiration": {
@@ -1598,7 +1602,7 @@
                         "expiration": {
                           "type": "string",
                           "nullable": true,
-                          "format": "date"
+                          "format": "date-time"
                         },
                         "expiration_in_seconds": {
                           "type": "number",
@@ -1842,12 +1846,12 @@
                             "created": {
                               "type": "string",
                               "nullable": true,
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "updated": {
                               "type": "string",
                               "nullable": true,
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "key": {
                               "type": "string"
@@ -1908,22 +1912,22 @@
                             "shared": {
                               "type": "string",
                               "nullable": true,
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "received": {
                               "type": "string",
                               "nullable": true,
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "burned": {
                               "type": "string",
                               "nullable": true,
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "viewed": {
                               "type": "string",
                               "nullable": true,
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "is_viewed": {
                               "type": "boolean",
@@ -1967,11 +1971,11 @@
                             },
                             "created": {
                               "type": "string",
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "updated": {
                               "type": "string",
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "key": {
                               "type": "string"
@@ -2161,12 +2165,12 @@
                             "created": {
                               "type": "string",
                               "nullable": true,
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "updated": {
                               "type": "string",
                               "nullable": true,
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "key": {
                               "type": "string"
@@ -2227,22 +2231,22 @@
                             "shared": {
                               "type": "string",
                               "nullable": true,
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "received": {
                               "type": "string",
                               "nullable": true,
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "burned": {
                               "type": "string",
                               "nullable": true,
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "viewed": {
                               "type": "string",
                               "nullable": true,
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "is_viewed": {
                               "type": "boolean",
@@ -2286,11 +2290,11 @@
                             },
                             "created": {
                               "type": "string",
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "updated": {
                               "type": "string",
-                              "format": "date"
+                              "format": "date-time"
                             },
                             "key": {
                               "type": "string"

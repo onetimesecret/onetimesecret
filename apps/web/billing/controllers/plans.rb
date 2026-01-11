@@ -15,36 +15,50 @@ module Billing
       # Replaces static Stripe Payment Links with dynamic Checkout Sessions
       # that include organization metadata.
       #
-      # GET /billing/plans/:tier/:billing_cycle
+      # GET /billing/plans/:product/:interval
       #
-      # @param [String] tier The selected plan tier (e.g., 'single_team', 'multi_team')
-      # @param [String] billing_cycle The chosen billing frequency ('monthly', 'yearly')
+      # @param [String] product The plan product ID (e.g., 'identity_plus_v1')
+      # @param [String] interval The billing interval ('monthly', 'yearly')
       #
       # @return [HTTP 302] Redirects to Stripe Checkout Session
       #
       def checkout_redirect
-        tier          = req.params['tier'] ||= 'single_team'
-        billing_cycle = req.params['billing_cycle'] ||= 'monthly'
+        product  = req.params['product']
+        interval = req.params['interval']
 
         # Detect region from request (future: use GeoIP)
         region = detect_region
 
         billing_logger.debug 'Plan checkout request',
           {
-            tier: tier,
-            billing_cycle: billing_cycle,
+            product: product,
+            interval: interval,
             region: region,
           }
 
-        # Get plan from cache
-        plan = ::Billing::Plan.get_plan(tier, billing_cycle, region)
+        # Resolve plan from product + interval
+        result = ::Billing::PlanResolver.resolve(product: product, interval: interval)
+
+        unless result.success?
+          billing_logger.warn 'Plan resolution failed',
+            {
+              product: product,
+              interval: interval,
+              error: result.error,
+            }
+          res.redirect '/signup'
+          return
+        end
+
+        # Get the resolved plan
+        plan = result.plan || ::Billing::Plan.load(result.plan_id)
 
         unless plan
-          billing_logger.warn 'Plan not found in cache',
+          billing_logger.warn 'Plan not found after resolution',
             {
-              tier: tier,
-              billing_cycle: billing_cycle,
-              region: region,
+              product: product,
+              interval: interval,
+              plan_id: result.plan_id,
             }
           res.redirect '/signup'
           return
@@ -94,7 +108,7 @@ module Billing
           metadata: {
             debug_info: {
               checkout_plan_id: plan.plan_id,
-              checkout_tier: tier,
+              checkout_tier: result.tier,
               checkout_region: region,
               checkout_timestamp: Time.now.iso8601,
             }.to_json,
@@ -108,8 +122,8 @@ module Billing
         billing_logger.info 'Checkout session created',
           {
             session_id: checkout_session.id,
-            tier: tier,
-            billing_cycle: billing_cycle,
+            product: product,
+            interval: interval,
             region: region,
           }
 
@@ -118,8 +132,8 @@ module Billing
         billing_logger.error 'Stripe checkout session creation failed',
           {
             exception: ex,
-            tier: tier,
-            billing_cycle: billing_cycle,
+            product: product,
+            interval: interval,
           }
         res.redirect '/signup'
       end
@@ -133,25 +147,35 @@ module Billing
       # @see Billing::Logic::Welcome::ProcessCheckoutSession
       #
       def welcome
-        logic = Billing::Logic::Welcome::ProcessCheckoutSession.new(strategy_result, req.params, locale)
+        logic  = Billing::Logic::Welcome::ProcessCheckoutSession.new(strategy_result, req.params, locale)
         logic.raise_concerns
-        logic.process
+        result = logic.process
 
-        res.redirect '/account'
+        # Redirect to the billing overview for the upgraded organization
+        # This provides clear feedback about the successful purchase
+        org_extid = result[:org_extid]
+        if org_extid
+          res.redirect "/billing/#{org_extid}/overview?upgraded=true"
+        else
+          # Fallback for one-time payments or missing org context
+          res.redirect '/account'
+        end
       rescue Onetime::FormError => ex
         billing_logger.warn 'Welcome page validation failed',
           {
             error: ex.message,
             session_id: req.params['session_id'],
           }
-        res.redirect '/account'
+        # Redirect to account with error indicator
+        res.redirect '/account?billing_error=validation'
       rescue Stripe::StripeError => ex
         billing_logger.error 'Stripe session retrieval failed',
           {
             exception: ex,
             session_id: req.params['session_id'],
           }
-        res.redirect '/account'
+        # Redirect to account with error indicator
+        res.redirect '/account?billing_error=stripe'
       end
 
       # Redirect to Stripe Customer Portal
@@ -178,7 +202,10 @@ module Billing
 
         site_host  = Onetime.conf['site']['host']
         is_secure  = Onetime.conf['site']['ssl']
-        return_url = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
+        protocol   = is_secure ? 'https' : 'http'
+
+        # Return to billing overview for the specific organization
+        return_url = "#{protocol}://#{site_host}/billing/#{org.extid}/overview"
 
         # Create Stripe Customer Portal session
         portal_session = Stripe::BillingPortal::Session.create(
@@ -190,7 +217,7 @@ module Billing
 
         billing_logger.info 'Customer portal session created',
           {
-            extid: org.objid,
+            extid: org.extid,
             customer_id: org.stripe_customer_id,
           }
 
@@ -228,14 +255,14 @@ module Billing
 
         return default_org if default_org
 
-        # Create default organization
-        org            = Onetime::Organization.create!(
+        # Create default organization (self-healing fallback)
+        # See: apps/web/auth/operations/create_default_workspace.rb
+        org = Onetime::Organization.create!(
           "#{customer.email}'s Workspace",
           customer,
           customer.email,
+          is_default: true,
         )
-        org.is_default = true
-        org.save
 
         billing_logger.info 'Created default organization',
           {

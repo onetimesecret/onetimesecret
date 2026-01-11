@@ -57,19 +57,19 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
     created_customers.each(&:destroy!)
   end
 
-  describe 'GET /billing/plans/:tier/:billing_cycle' do
-    let(:tier) { 'single_team' }
-    let(:billing_cycle) { 'monthly' }
+  describe 'GET /billing/plans/:product/:interval' do
+    let(:product) { 'identity_plus_v1' }
+    let(:interval) { 'monthly' }
 
     it 'redirects to Stripe checkout session', :vcr do
-      get "/billing/plans/#{tier}/#{billing_cycle}"
+      get "/billing/plans/#{product}/#{interval}"
 
       expect(last_response.status).to eq(302)
       expect(last_response.location).to match(%r{\Ahttps://checkout\.stripe\.com/})
     end
 
     it 'creates checkout session with correct plan', :vcr do
-      get "/billing/plans/#{tier}/#{billing_cycle}"
+      get "/billing/plans/#{product}/#{interval}"
 
       expect(last_response.status).to eq(302)
 
@@ -79,11 +79,11 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
 
       # Verify plan metadata (tier is stored in debug_info JSON)
       debug_info = JSON.parse(session.subscription_data['metadata']['debug_info'])
-      expect(debug_info['checkout_tier']).to eq(tier)
+      expect(debug_info['checkout_tier']).to eq('single_team')
     end
 
     it 'pre-fills customer email for authenticated users', :vcr do
-      get "/billing/plans/#{tier}/#{billing_cycle}"
+      get "/billing/plans/#{product}/#{interval}"
 
       expect(last_response.status).to eq(302)
 
@@ -94,7 +94,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
     end
 
     it 'includes customer ID in metadata for authenticated users', :vcr do
-      get "/billing/plans/#{tier}/#{billing_cycle}"
+      get "/billing/plans/#{product}/#{interval}"
 
       expect(last_response.status).to eq(302)
 
@@ -104,8 +104,8 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       expect(session.subscription_data['metadata']['customer_extid']).to eq(customer.extid)
     end
 
-    it 'redirects to /signup when plan is not found', :vcr do
-      get '/billing/plans/nonexistent_tier/monthly'
+    it 'redirects to /signup when plan resolution fails', :vcr do
+      get '/billing/plans/nonexistent_product/monthly'
 
       expect(last_response.status).to eq(302)
       expect(last_response.location).to include('/signup')
@@ -115,14 +115,14 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       # Simulate Stripe error
       allow(Stripe::Checkout::Session).to receive(:create).and_raise(Stripe::StripeError)
 
-      get "/billing/plans/#{tier}/#{billing_cycle}"
+      get "/billing/plans/#{product}/#{interval}"
 
       expect(last_response.status).to eq(302)
       expect(last_response.location).to include('/signup')
     end
 
-    it 'uses yearly billing_cycle parameter', :vcr do
-      get "/billing/plans/#{tier}/yearly"
+    it 'uses yearly interval parameter', :vcr do
+      get "/billing/plans/#{product}/yearly"
 
       expect(last_response.status).to eq(302)
 
@@ -131,13 +131,13 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
 
       # Verify yearly plan was used (tier is stored in debug_info JSON)
       debug_info = JSON.parse(session.subscription_data['metadata']['debug_info'])
-      expect(debug_info['checkout_tier']).to eq(tier)
+      expect(debug_info['checkout_tier']).to eq('single_team')
     end
 
     it 'does not require authentication', :vcr do
       env 'rack.session', {}
 
-      get "/billing/plans/#{tier}/#{billing_cycle}"
+      get "/billing/plans/#{product}/#{interval}"
 
       expect(last_response.status).to eq(302)
       expect(last_response.location).to match(%r{\Ahttps://[^/]*stripe\.com/})
@@ -147,7 +147,7 @@ RSpec.describe 'Billing::Controllers::Plans', :integration, :stripe_sandbox_api,
       # Future: Test with different CloudFlare headers
       # For now, verify default region works
 
-      get "/billing/plans/#{tier}/#{billing_cycle}"
+      get "/billing/plans/#{product}/#{interval}"
 
       expect(last_response.status).to eq(302)
 

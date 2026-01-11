@@ -125,34 +125,34 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
   end
 
   describe 'POST /billing/api/org/:extid/checkout' do
-    let(:tier) { 'single_team' }
-    let(:billing_cycle) { 'monthly' }
+    let(:product) { 'identity_plus_v1' }
+    let(:interval) { 'monthly' }
 
-    it 'returns 400 when tier is missing' do
+    it 'returns 400 when product is missing' do
       post "/billing/api/org/#{organization.extid}/checkout", {
-        billing_cycle: billing_cycle,
+        interval: interval,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(400)
-      expect(last_response.body).to include('Missing tier or billing_cycle')
+      expect(last_response.body).to include('Missing product or interval')
     end
 
-    it 'returns 400 when billing_cycle is missing' do
+    it 'returns 400 when interval is missing' do
       post "/billing/api/org/#{organization.extid}/checkout", {
-        tier: tier,
+        product: product,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(400)
-      expect(last_response.body).to include('Missing tier or billing_cycle')
+      expect(last_response.body).to include('Missing product or interval')
     end
 
-    it 'returns 404 when plan is not found' do
+    it 'returns 400 when plan resolution fails' do
       post "/billing/api/org/#{organization.extid}/checkout", {
-        tier: 'nonexistent_tier',
-        billing_cycle: 'monthly',
+        product: 'nonexistent_product',
+        interval: 'monthly',
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
-      expect(last_response.status).to eq(404)
+      expect(last_response.status).to eq(400)
       expect(last_response.body).to include('Plan not found')
     end
 
@@ -161,8 +161,8 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
       authenticate_as(member)
 
       post "/billing/api/org/#{organization.extid}/checkout", {
-        tier: tier,
-        billing_cycle: billing_cycle,
+        product: product,
+        interval: interval,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(403)
@@ -173,8 +173,8 @@ RSpec.describe 'Billing::Controllers::BillingController - Unit Tests' do
       clear_authentication
 
       post "/billing/api/org/#{organization.extid}/checkout", {
-        tier: tier,
-        billing_cycle: billing_cycle,
+        product: product,
+        interval: interval,
       }.to_json, { 'CONTENT_TYPE' => 'application/json' }
 
       expect(last_response.status).to eq(401)

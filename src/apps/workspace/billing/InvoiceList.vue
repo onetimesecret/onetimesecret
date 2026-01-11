@@ -1,26 +1,26 @@
 <!-- src/apps/workspace/billing/InvoiceList.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import { classifyError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
-import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { InvoiceStatus } from '@/types/billing';
 import { formatCurrency } from '@/types/billing';
 import { computed, onMounted, ref } from 'vue';
 
 const { t } = useI18n();
-const organizationStore = useOrganizationStore();
+const route = useRoute();
 
-const selectedOrgId = ref<string | null>(null);
+// Org extid comes from URL (e.g., /billing/:extid/invoices)
+const orgExtid = computed(() => route.params.extid as string);
+
 const invoices = ref<any[]>([]);
 const isLoading = ref(false);
 const error = ref('');
-
-const organizations = computed(() => organizationStore.organizations);
 
 const formatDate = (timestamp: number): string => new Intl.DateTimeFormat('en-US', {
     month: 'short',
@@ -37,42 +37,11 @@ const getStatusBadgeClass = (status: InvoiceStatus): string => {
   return classes[status];
 };
 
-const handleOrgChange = async (orgId: string) => {
-  selectedOrgId.value = orgId;
-  await loadInvoices(orgId);
-};
-
-const loadInvoices = async (orgId: string) => {
-  // Guard: Wait for organizations to load if not yet available
-  if (organizations.value.length === 0) {
-    try {
-      await organizationStore.fetchOrganizations();
-    } catch (err) {
-      const classified = classifyError(err);
-      error.value = classified.message || t('web.billing.invoices.load_error');
-      console.error('[InvoiceList] Error loading organizations:', err);
-      return;
-    }
-  }
-
-  const organization = organizations.value.find(org => org.id === orgId);
-
-  // Distinguish between "org not found" vs "org has no extid"
-  if (!organization) {
-    error.value = t('web.billing.overview.no_organizations_title');
-    return;
-  }
-
-  if (!organization.extid) {
-    error.value = t('web.billing.invoices.load_error');
-    console.error('[InvoiceList] Organization missing extid:', organization.id);
-    return;
-  }
-
+const loadInvoices = async (extid: string) => {
   isLoading.value = true;
   error.value = '';
   try {
-    const response = await BillingService.listInvoices(organization.extid);
+    const response = await BillingService.listInvoices(extid);
     invoices.value = response.invoices || [];
   } catch (err) {
     const classified = classifyError(err);
@@ -97,18 +66,14 @@ const handleDownload = async (invoice: any) => {
 
 onMounted(async () => {
   try {
-    if (organizations.value.length === 0) {
-      await organizationStore.fetchOrganizations();
-    }
-
-    if (organizations.value.length > 0) {
-      selectedOrgId.value = organizations.value[0].id;
-      await loadInvoices(organizations.value[0].id);
+    // Load invoices using extid from URL
+    if (orgExtid.value) {
+      await loadInvoices(orgExtid.value);
     }
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.message || 'Failed to load organizations';
-    console.error('[InvoiceList] Error loading organizations:', err);
+    error.value = classified.message || 'Failed to load invoices';
+    console.error('[InvoiceList] Error loading invoices:', err);
   }
 });
 </script>
@@ -116,35 +81,6 @@ onMounted(async () => {
 <template>
   <BillingLayout>
     <div class="space-y-6">
-      <!-- Header -->
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-          {{ t('web.billing.invoices.title') }}
-        </h1>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          View and download your billing history
-        </p>
-      </div>
-
-      <!-- Organization Selector -->
-      <div v-if="organizations.length > 1" class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-        <label for="org-select" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {{ t('web.billing.overview.organization_selector') }}
-        </label>
-        <select
-          id="org-select"
-          v-model="selectedOrgId"
-          @change="handleOrgChange(selectedOrgId!)"
-          class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm">
-          <option
-            v-for="org in organizations"
-            :key="org.id"
-            :value="org.id">
-            {{ org.display_name }}
-          </option>
-        </select>
-      </div>
-
       <!-- Error Alert -->
       <BasicFormAlerts v-if="error" :error="error" />
 
@@ -255,7 +191,7 @@ onMounted(async () => {
         </p>
         <div class="mt-6">
           <router-link
-            :to="{ name: 'Billing Plans' }"
+            :to="{ name: 'Billing Plans', params: { extid: orgExtid } }"
             class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-base font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
             <OIcon
               collection="tabler"

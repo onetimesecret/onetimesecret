@@ -18,7 +18,7 @@
 # 3. Be kept in sync when products/prices change
 #
 # This coordination overhead makes real API testing impractical for:
-# - Checkout redirect flow (GET /billing/plans/:tier/:billing_cycle)
+# - Checkout redirect flow (GET /billing/plans/:product/:interval)
 # - Welcome/post-checkout flow (GET /billing/welcome)
 #
 # Other billing tests (portal, webhooks) should continue using VCR with

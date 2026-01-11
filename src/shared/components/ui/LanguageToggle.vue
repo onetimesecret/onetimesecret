@@ -3,6 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import { useLanguage } from '@/shared/composables/useLanguage';
+  import { DEFAULT_LOCALE } from '@/shared/stores/languageStore';
   import { computed, onMounted, onUnmounted, ref } from 'vue';
 
   import OIcon from '@/shared/components/icons/OIcon.vue';
@@ -11,14 +12,14 @@
     compact?: boolean;
     /**
      * Tailwind class to control the maximum height of the dropdown menu.
-     * Defaults to 'max-h-72'.
+     * Defaults to 'max-h-96'.
      */
     maxHeight?: string;
   }
 
   const props = withDefaults(defineProps<Props>(), {
     compact: false,
-    maxHeight: 'max-h-72', // Default max height class
+    maxHeight: 'max-h-96', // Default max height class (384px)
   });
 
   const emit = defineEmits<{
@@ -39,6 +40,19 @@
     // Safely access the locale name, fallback to the locale code
      supportedLocalesWithNames?.[currentLocale.value] || currentLocale.value
   );
+
+  const defaultLocaleName = computed(() =>
+    supportedLocalesWithNames?.[DEFAULT_LOCALE] || DEFAULT_LOCALE
+  );
+
+  const canResetToDefault = computed(() =>
+    currentLocale.value !== DEFAULT_LOCALE
+  );
+
+  const resetToDefault = async () => {
+    if (!canResetToDefault.value) return;
+    await changeLocale(DEFAULT_LOCALE);
+  };
 
   const toggleMenu = () => {
     isMenuOpen.value = !isMenuOpen.value;
@@ -198,12 +212,26 @@
         :id="dropdownId"
         :class="['overflow-y-auto py-1', props.maxHeight]"
         role="none">
-        <!-- prettier-ignore-attribute class -->
+        <!-- Header: Reset to default or show current selection -->
         <div
-          class="border-b border-gray-200 px-4 py-2 text-sm font-medium
-               text-gray-500 dark:border-gray-700 dark:text-gray-400"
+          class="border-b border-gray-200 px-4 py-2 text-sm font-medium dark:border-gray-700"
           role="presentation">
-          <div class="flex items-center justify-between font-bold text-gray-700 dark:text-gray-100">
+          <button
+            v-if="canResetToDefault"
+            type="button"
+            @click="resetToDefault"
+            class="flex w-full items-center justify-between rounded-md py-1 text-gray-700 transition-colors hover:text-brand-600 dark:text-gray-100 dark:hover:text-brand-400"
+            :title="t('web.layout.reset_to_default_language', [defaultLocaleName])">
+            <span class="font-bold">{{ currentLocaleName }}</span>
+            <OIcon
+              collection="heroicons"
+              name="x-mark"
+              class="size-5 text-gray-400 hover:text-brand-500 dark:text-gray-500 dark:hover:text-brand-400"
+              aria-hidden="true" />
+          </button>
+          <div
+            v-else
+            class="flex items-center justify-between py-1 font-bold text-gray-700 dark:text-gray-100">
             {{ currentLocaleName }}
             <OIcon
               collection="heroicons"

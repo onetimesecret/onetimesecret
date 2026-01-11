@@ -54,32 +54,42 @@ module Billing
       #
       # POST /billing/org/:extid/checkout
       #
-      # @param [String] tier Plan tier (from request body)
-      # @param [String] billing_cycle Billing cycle (from request body)
+      # @param [String] product Plan product identifier (e.g., 'identity_plus_v1')
+      # @param [String] interval Billing interval ('monthly' or 'yearly')
       #
       # @return [Hash] Checkout session URL
       def create_checkout_session
         org = load_organization(req.params['extid'], require_owner: true)
 
-        tier          = req.params['tier']
-        billing_cycle = req.params['billing_cycle']
+        product  = req.params['product']
+        interval = req.params['interval']
 
-        unless tier && billing_cycle
-          return json_error('Missing tier or billing_cycle', status: 400)
+        unless product && interval
+          return json_error('Missing product or interval', status: 400)
         end
 
-        # Detect region
-        region = detect_region
+        # Resolve plan from product + interval
+        result = ::Billing::PlanResolver.resolve(product: product, interval: interval)
 
-        # Get plan from cache
-        plan = ::Billing::Plan.get_plan(tier, billing_cycle, region)
+        unless result.success?
+          billing_logger.warn 'Plan resolution failed',
+            {
+              product: product,
+              interval: interval,
+              error: result.error,
+            }
+          return json_error(result.error, status: 400)
+        end
+
+        # Get the resolved plan
+        plan = result.plan || ::Billing::Plan.load(result.plan_id)
 
         unless plan
-          billing_logger.warn 'Plan not found',
+          billing_logger.warn 'Plan not found after resolution',
             {
-              tier: tier,
-              billing_cycle: billing_cycle,
-              region: region,
+              product: product,
+              interval: interval,
+              plan_id: result.plan_id,
             }
           return json_error('Plan not found', status: 404)
         end
@@ -90,7 +100,7 @@ module Billing
         protocol  = is_secure ? 'https' : 'http'
 
         success_url = "#{protocol}://#{site_host}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
-        cancel_url  = "#{protocol}://#{site_host}/account"
+        cancel_url  = "#{protocol}://#{site_host}/billing/#{org.extid}/plans"
 
         session_params = {
           mode: 'subscription',
@@ -107,8 +117,8 @@ module Billing
             metadata: {
               orgid: org.objid,
               plan_id: plan.plan_id,
-              tier: tier,
-              region: region,
+              tier: result.tier,
+              region: detect_region,
               customer_extid: cust.extid,
             },
           },
@@ -163,8 +173,8 @@ module Billing
           {
             extid: org.extid,  # Use extid for logging, not objid
             session_id: checkout_session.id,
-            tier: tier,
-            billing_cycle: billing_cycle,
+            product: product,
+            interval: interval,
             idempotency_key: idempotency_key[0..7], # Log prefix for debugging
           }
 

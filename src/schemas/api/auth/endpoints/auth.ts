@@ -46,11 +46,38 @@ import { z } from 'zod';
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
+ * Billing redirect information returned after login/signup when user
+ * should be redirected to checkout (e.g., upgrading during signup flow).
+ * Only present when billing is enabled and user needs to complete checkout.
+ *
+ * Terminology:
+ * - product: Plan identifier (e.g., 'identity_plus_v1')
+ * - interval: Billing frequency choice ('monthly' or 'yearly')
+ */
+const billingRedirectSchema = z.object({
+  product: z.string(),
+  interval: z.string(),
+  valid: z.boolean(),
+});
+
+export type BillingRedirect = z.infer<typeof billingRedirectSchema>;
+
+/**
  * Standard success response - used when no additional data is needed.
  * Example: logout, password change, account verification
  */
 const authSuccessSchema = z.object({
   success: z.string(),
+});
+
+/**
+ * Success response with optional billing redirect.
+ * Returned by /auth/login or /auth/create-account when user should be
+ * redirected to checkout after authentication.
+ */
+const authSuccessWithBillingSchema = z.object({
+  success: z.string(),
+  billing_redirect: billingRedirectSchema.optional(),
 });
 
 /**
@@ -65,6 +92,7 @@ const authSuccessWithMfaSchema = z.object({
   mfa_required: z.boolean(),
   mfa_auth_url: z.string().optional(),
   mfa_methods: z.array(z.string()).optional(),
+  billing_redirect: billingRedirectSchema.optional(),
 });
 
 /**
@@ -84,21 +112,31 @@ const authErrorSchema = z.object({
 const authResponseSchema = z.union([authSuccessSchema, authErrorSchema]);
 
 /**
- * Login response schema - supports MFA flow.
+ * Login response schema - supports MFA and billing redirect flows.
  *
- * IMPORTANT: authSuccessWithMfaSchema MUST come before authSuccessSchema.
- * Zod unions match first valid schema, and { success } alone would match
- * before { success, mfa_required }, stripping the MFA fields.
+ * IMPORTANT: Schema union order matters - Zod matches first valid schema.
+ * Order from most to least specific:
+ * 1. MFA required (has mfa_required) - most specific
+ * 2. Billing redirect (has billing_redirect) - moderately specific
+ * 3. Plain success - least specific
  */
 export const loginResponseSchema = z.union([
-  authSuccessWithMfaSchema, // Must be first - more specific (has mfa_required)
-  authSuccessSchema,        // Less specific - matches any { success } response
+  authSuccessWithMfaSchema,     // Most specific - has mfa_required
+  authSuccessWithBillingSchema, // Moderately specific - has billing_redirect
+  authSuccessSchema,            // Least specific - just { success }
   authErrorSchema,
 ]);
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
 
-// Signup/Create account response
-export const createAccountResponseSchema = authResponseSchema;
+/**
+ * Signup response schema - supports billing redirect flow.
+ * After account creation, user may be redirected to checkout.
+ */
+export const createAccountResponseSchema = z.union([
+  authSuccessWithBillingSchema, // Has billing_redirect
+  authSuccessSchema,            // Just { success }
+  authErrorSchema,
+]);
 export type CreateAccountResponse = z.infer<typeof createAccountResponseSchema>;
 
 // Logout response
@@ -160,6 +198,19 @@ export function requiresMfa(
   response: LoginResponse
 ): response is z.infer<typeof authSuccessWithMfaSchema> {
   return 'success' in response && 'mfa_required' in response && response.mfa_required === true;
+}
+
+// Type guard to check if response has a valid billing redirect.
+// Narrows to a type where billing_redirect is REQUIRED (not optional).
+export function hasBillingRedirect(
+  response: LoginResponse | CreateAccountResponse
+): response is { success: string; billing_redirect: BillingRedirect } {
+  return (
+    'success' in response &&
+    'billing_redirect' in response &&
+    response.billing_redirect !== undefined &&
+    response.billing_redirect.valid === true
+  );
 }
 
 /**

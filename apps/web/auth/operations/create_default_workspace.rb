@@ -3,11 +3,30 @@
 # frozen_string_literal: true
 
 #
+# CANONICAL SOURCE FOR DEFAULT WORKSPACE CREATION
+#
 # Creates a default Organization for a new customer during registration.
 # This ensures every user has a workspace ready, even if they're on an individual plan.
 #
 # Note: The org is hidden from individual plan users in the frontend via
 # plan-based feature flags, but the infrastructure exists for seamless upgrades.
+#
+# ## Why Fallbacks Exist Elsewhere
+#
+# Several other locations have "self-healing" fallback code that creates default
+# workspaces when one doesn't exist. This compensates for edge cases where this
+# canonical flow wasn't triggered (e.g., legacy accounts, failed transactions,
+# race conditions during signup, or Stripe webhook replays).
+#
+# Fallback locations (all should use `is_default: true` atomically):
+#   - lib/onetime/application/organization_loader.rb - Request-time self-healing
+#   - apps/web/billing/logic/welcome.rb - Stripe payment link/checkout handlers
+#   - apps/web/billing/controllers/plans.rb - Billing flow fallback
+#   - apps/web/billing/operations/webhook_handlers/checkout_completed.rb
+#
+# Ideally, this class would be the single entry point and fallbacks wouldn't
+# be needed. Until the signup flow guarantees workspace creation, the fallbacks
+# provide resilience for production edge cases.
 #
 
 module Auth
