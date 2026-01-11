@@ -110,6 +110,177 @@ RSpec.describe OrganizationAPI::Logic::Organizations::UpdateOrganization do
     logic.process
   end
 
+  describe '#process_params' do
+    it 'extracts extid from params' do
+      expect(logic.extid).to eq('ext-org-123')
+    end
+
+    it 'extracts display_name from params' do
+      expect(logic.display_name).to eq('Updated Org')
+    end
+
+    it 'extracts description from params' do
+      expect(logic.description).to eq('Updated description')
+    end
+
+    it 'extracts billing_email from params' do
+      expect(logic.billing_email).to eq('new-billing@example.com')
+    end
+
+    context 'backwards compatibility with contact_email' do
+      let(:params) do
+        {
+          'extid' => 'ext-org-123',
+          'display_name' => 'Updated Org',
+          'description' => '',
+          'contact_email' => 'legacy-contact@example.com'
+        }
+      end
+
+      it 'uses contact_email when billing_email not provided' do
+        expect(logic.billing_email).to eq('legacy-contact@example.com')
+      end
+    end
+
+    context 'when billing_email takes precedence' do
+      let(:params) do
+        {
+          'extid' => 'ext-org-123',
+          'display_name' => 'Updated Org',
+          'description' => '',
+          'billing_email' => 'billing@example.com',
+          'contact_email' => 'contact@example.com'
+        }
+      end
+
+      it 'prefers billing_email over contact_email' do
+        expect(logic.billing_email).to eq('billing@example.com')
+      end
+    end
+
+    it 'strips whitespace from display_name' do
+      params['display_name'] = '  Spaced Name  '
+      expect(logic.display_name).to eq('Spaced Name')
+    end
+  end
+
+  describe '#raise_concerns' do
+    context 'when customer is anonymous' do
+      let(:customer) do
+        instance_double(
+          Onetime::Customer,
+          objid: 'anon-123',
+          anonymous?: true,
+          role: 'anonymous'
+        )
+      end
+
+      it 'raises unauthorized error' do
+        expect { logic.raise_concerns }.to raise_error(
+          Onetime::FormError, /Authentication required/
+        )
+      end
+    end
+
+    context 'when extid is empty' do
+      let(:params) do
+        {
+          'extid' => '',
+          'display_name' => 'Updated Org',
+          'description' => '',
+          'billing_email' => ''
+        }
+      end
+
+      it 'raises form error for missing extid' do
+        expect { logic.raise_concerns }.to raise_error(
+          Onetime::FormError, /Organization ID required/
+        )
+      end
+    end
+
+    context 'when organization not found' do
+      before do
+        allow(Onetime::Organization).to receive(:find_by_extid)
+          .with('ext-org-123')
+          .and_return(nil)
+      end
+
+      it 'raises not found error' do
+        expect { logic.raise_concerns }.to raise_error(
+          Onetime::RecordNotFound, /Organization not found/
+        )
+      end
+    end
+
+    context 'when user is not owner' do
+      before do
+        allow(organization).to receive(:owner?).with(customer).and_return(false)
+      end
+
+      it 'raises authorization error' do
+        expect { logic.raise_concerns }.to raise_error(
+          Onetime::Forbidden, /Only organization owner/
+        )
+      end
+    end
+
+    context 'when display_name is too long' do
+      let(:params) do
+        {
+          'extid' => 'ext-org-123',
+          'display_name' => 'x' * 101,
+          'description' => '',
+          'billing_email' => ''
+        }
+      end
+
+      it 'raises form error for name too long' do
+        expect { logic.raise_concerns }.to raise_error(
+          Onetime::FormError, /must be less than 100 characters/
+        )
+      end
+    end
+
+    context 'when description is too long' do
+      let(:params) do
+        {
+          'extid' => 'ext-org-123',
+          'display_name' => 'Valid Name',
+          'description' => 'x' * 501,
+          'billing_email' => ''
+        }
+      end
+
+      it 'raises form error for description too long' do
+        expect { logic.raise_concerns }.to raise_error(
+          Onetime::FormError, /Description must be less than 500 characters/
+        )
+      end
+    end
+
+    context 'with valid params' do
+      it 'does not raise any error' do
+        expect { logic.raise_concerns }.not_to raise_error
+      end
+
+      it 'loads the organization' do
+        logic.raise_concerns
+        expect(logic.organization).to eq(organization)
+      end
+    end
+  end
+
+  describe '#form_fields' do
+    it 'returns hash with form field values' do
+      fields = logic.form_fields
+      expect(fields[:extid]).to eq('ext-org-123')
+      expect(fields[:display_name]).to eq('Updated Org')
+      expect(fields[:description]).to eq('Updated description')
+      expect(fields[:billing_email]).to eq('new-billing@example.com')
+    end
+  end
+
   describe '#process' do
     context 'when organization has no Stripe customer' do
       before do
