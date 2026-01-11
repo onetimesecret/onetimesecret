@@ -6,11 +6,7 @@
   import WorkspaceSecretForm from '@/apps/workspace/components/forms/WorkspaceSecretForm.vue';
   import UpgradeBanner from '@/apps/workspace/dashboard/components/UpgradeBanner.vue';
   import { useDomainScope } from '@/shared/composables/useDomainScope';
-  import { WindowService } from '@/services/window.service';
   import { computed, ref } from 'vue';
-
-  const cust = WindowService.get('cust');
-  const isBetaEnabled = computed(() => cust?.feature_flags?.beta ?? false);
 
   // Domain scope management
   const { isScopeActive } = useDomainScope();
@@ -52,6 +48,6 @@
       ref="secretFormRef"
       class="mb-12" />
 
-    <RecentSecretsTable v-if="isBetaEnabled" />
+    <RecentSecretsTable />
   </div>
 </template>
