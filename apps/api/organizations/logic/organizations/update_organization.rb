@@ -49,24 +49,14 @@ module OrganizationAPI::Logic
         verify_organization_owner(@organization)
 
         # Validate display_name if provided
-        unless display_name.empty?
-          if display_name.empty?
-            raise_form_error('Organization name must be at least 1 character', field: :display_name, error_type: :invalid)
-          end
-
-          if display_name.length > 100
-            raise_form_error('Organization name must be less than 100 characters', field: :display_name, error_type: :invalid)
-          end
+        if !display_name.empty? && (display_name.length > 100)
+          raise_form_error('Organization name must be less than 100 characters', field: :display_name, error_type: :invalid)
         end
 
         # Validate description if provided
         if description.to_s.length > 500
           raise_form_error('Description must be less than 500 characters', field: :description, error_type: :invalid)
         end
-
-        # Use unique_index finder for O(1) lookup (no iteration)
-        existing_org  = Onetime::Organization.find_by_extid(extid)
-        @organization = existing_org if existing_org
       end
 
       def process
