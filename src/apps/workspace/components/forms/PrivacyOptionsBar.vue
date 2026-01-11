@@ -257,7 +257,7 @@
                   :type="passphraseVisible ? 'text' : 'password'"
                   :value="currentPassphrase"
                   :disabled="isSubmitting"
-                  autocomplete="off"
+                  autocomplete="one-time-code"
                   class="w-full rounded-md border bg-white py-2 pl-3 pr-16
                     text-sm text-gray-900 placeholder:text-gray-400
                     focus:outline-none focus:ring-2

@@ -161,16 +161,11 @@
 
   // Keyboard shortcut: Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux)
   const keys = useMagicKeys();
-  const cmdEnter = keys['Meta+Enter'];
-  const ctrlEnter = keys['Control+Enter'];
+  const submitShortcut = computed(
+    () => keys['Meta+Enter'].value || keys['Control+Enter'].value
+  );
 
-  whenever(cmdEnter, () => {
-    if (hasContent.value && !isSubmitting.value) {
-      handleSubmit();
-    }
-  });
-
-  whenever(ctrlEnter, () => {
+  whenever(submitShortcut, () => {
     if (hasContent.value && !isSubmitting.value) {
       handleSubmit();
     }

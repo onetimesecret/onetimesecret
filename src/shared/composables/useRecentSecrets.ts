@@ -273,9 +273,14 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
   // Clear local storage on auth state changes to prevent:
   // - Stale guest data mixing with authenticated API data on login
   // - Old secrets lingering after logout (unsettling UX)
-  watch(isAuthenticated, () => {
-    local.clear();
-  });
+  // flush: 'sync' ensures clearing happens immediately, not deferred
+  watch(
+    isAuthenticated,
+    () => {
+      local.clear();
+    },
+    { flush: 'sync' }
+  );
 
   // Unified interface that switches based on auth state
   const records = computed<RecentSecretRecord[]>(() =>
