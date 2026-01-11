@@ -155,16 +155,14 @@ reloaded_org.pending_invitation_count
 #=> "member4_#{@timestamp}@example.com"
 
 # Teardown
-begin
-  [@invite1_id, @invite3_id].compact.each do |invite_id|
-    invite = Onetime::OrganizationMembership.load(invite_id)
-    invite&.destroy_with_index_cleanup!
-  end
-  # invite2 already destroyed via revoke!
-
-  @member1&.destroy!
-  @org&.destroy!
-  @owner&.destroy!
-rescue StandardError => e
-  warn "[Teardown] Cleanup error (ignorable): #{e.message}"
+# invite1 was accepted (now active membership for @member1)
+# invite2 was revoked (already destroyed)
+# invite3 was created in billing block
+[@invite1_id, @invite3_id].compact.each do |invite_id|
+  invite = Onetime::OrganizationMembership.load(invite_id)
+  invite&.destroy_with_index_cleanup!
 end
+
+@member1&.destroy!
+@org&.destroy!
+@owner&.destroy!

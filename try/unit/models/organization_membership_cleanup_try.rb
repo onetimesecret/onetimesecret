@@ -152,12 +152,9 @@ declined.status
 #=> 0
 
 # Teardown
-begin
-  # Clean up declined invitation (use instance variable from test)
-  @invite_decline_record = Onetime::OrganizationMembership.load(@invite_decline_id)
-  @invite_decline_record&.destroy!
-  @org&.destroy!
-  @owner&.destroy!
-rescue StandardError => e
-  warn "[Teardown] Cleanup error (ignorable): #{e.message}"
-end
+# Clean up declined invitation (still exists with 'declined' status)
+@invite_decline_record = Onetime::OrganizationMembership.load(@invite_decline_id)
+@invite_decline_record&.destroy!
+
+@org&.destroy!
+@owner&.destroy!
