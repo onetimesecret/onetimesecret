@@ -255,14 +255,14 @@ module Billing
 
         return default_org if default_org
 
-        # Create default organization
-        org            = Onetime::Organization.create!(
+        # Create default organization (self-healing fallback)
+        # See: apps/web/auth/operations/create_default_workspace.rb
+        org = Onetime::Organization.create!(
           "#{customer.email}'s Workspace",
           customer,
           customer.email,
+          is_default: true,
         )
-        org.is_default = true
-        org.save
 
         billing_logger.info 'Created default organization',
           {

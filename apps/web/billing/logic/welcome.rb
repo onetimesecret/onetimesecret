@@ -139,15 +139,15 @@ module Billing
           orgs = customer.organization_instances.to_a
           org  = orgs.find(&:is_default)
 
+          # Self-healing fallback - see: apps/web/auth/operations/create_default_workspace.rb
           unless org
             OT.info "[FromStripePaymentLink] No default organization found, creating one for customer #{customer.obscure_email}"
-            org            = Onetime::Organization.create!(
+            org = Onetime::Organization.create!(
               "#{customer.email}'s Workspace",
               customer,
               customer.email,
+              is_default: true,
             )
-            org.is_default = true
-            org.save
           end
 
           OT.info "[FromStripePaymentLink] Updating organization #{org.objid} billing from subscription #{stripe_subscription.id}"
@@ -350,17 +350,16 @@ module Billing
             return org
           end
 
-          # 4. Create default org (shouldn't happen - checkout requires org context)
+          # 4. Create default org (self-healing fallback - shouldn't happen, checkout requires org context)
+          # See: apps/web/auth/operations/create_default_workspace.rb
           OT.lw '[ProcessCheckoutSession] Creating default org during checkout (unexpected)',
             { customer_extid: customer.extid }
-          new_org            = Onetime::Organization.create!(
+          Onetime::Organization.create!(
             "#{customer.email}'s Workspace",
             customer,
             customer.email,
+            is_default: true,
           )
-          new_org.is_default = true
-          new_org.save
-          new_org
         end
       end
     end

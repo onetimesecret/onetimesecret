@@ -160,11 +160,10 @@ module Onetime
         orgs = customer.organization_instances.to_a
         return orgs.first if orgs.any?
 
-        # Create default organization
-        display_name   = "#{customer.email}'s Workspace"
-        org            = Onetime::Organization.create!(display_name, customer, customer.email)
-        org.is_default = true
-        org.save
+        # Create default organization (self-healing fallback)
+        # See: apps/web/auth/operations/create_default_workspace.rb
+        display_name = "#{customer.email}'s Workspace"
+        org          = Onetime::Organization.create!(display_name, customer, customer.email, is_default: true)
 
         OT.info "[OrganizationLoader] Created default organization #{org.objid} for #{customer.objid}"
 
