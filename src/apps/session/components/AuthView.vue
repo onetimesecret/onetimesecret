@@ -23,6 +23,7 @@
     withSubheading?: boolean;
     hideIcon?: boolean;
     hideBackgroundIcon?: boolean;
+    showReturnHome?: boolean;
   }
 
   // Define props with defaults
@@ -33,6 +34,7 @@
     withSubheading: false,
     hideIcon: false,
     hideBackgroundIcon: false,
+    showReturnHome: true,
     featureIcon: () => ({
       collection: 'material-symbols',
       name: 'mail-lock-outline',
@@ -152,7 +154,7 @@
         </div>
 
         <!-- Subtle home link for escape route -->
-        <div class="border-t border-gray-200 pt-6 dark:border-gray-700">
+        <div v-if="showReturnHome" class="border-t border-gray-200 pt-6 dark:border-gray-700">
           <RouterLink
             to="/"
             class="inline-flex items-center text-sm text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-400"
