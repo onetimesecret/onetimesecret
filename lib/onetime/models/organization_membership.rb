@@ -261,9 +261,24 @@ module Onetime
 
     # Destroy the membership with proper index cleanup
     #
-    # Cleans up all unique index entries before destroying the record,
-    # which allows the email to be re-invited later. Also removes from
-    # the organization's pending_invitations set if still pending.
+    # DESIGN NOTE: This method exists because Familia's base destroy! only
+    # deletes the object's Redis hash. It intentionally doesn't know about
+    # application-level indexes (pending_invitations, unique lookups) because:
+    #
+    #   1. Familia is ORM-layer; indexes are application-layer concerns
+    #   2. Different operations need different cleanup (accept vs decline vs revoke)
+    #   3. Follows ORM patterns where relationship cleanup is opt-in
+    #
+    # Always use semantic methods (revoke!, decline!, accept!) for business
+    # operations. Use this method for safe deletion in tests/migrations.
+    # Only use raw destroy! when you explicitly want no cleanup.
+    #
+    # Cleans up:
+    #   - org_email_lookup (allows email to be re-invited)
+    #   - org_customer_lookup
+    #   - token_lookup
+    #   - pending_invitations set (prevents stale quota counts)
+    #
     def destroy_with_index_cleanup!
       # Remove org_email_lookup entry if exists
       # Use remove_field since the index is a Familia::HashKey

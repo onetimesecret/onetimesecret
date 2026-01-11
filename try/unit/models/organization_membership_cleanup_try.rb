@@ -5,13 +5,40 @@
 #
 # Unit tests for OrganizationMembership cleanup behavior
 #
-# Documents the contract for different destroy/cleanup methods:
-# - destroy! (Familia base): deletes record only, does NOT clean up pending set
-# - destroy_with_index_cleanup!: cleans up indexes AND pending set
-# - revoke!: semantic method for revoking pending invitations (uses destroy_with_index_cleanup!)
+# DESIGN RATIONALE
+# ================
+# Familia's base destroy! method only deletes the object's Redis hash.
+# It intentionally does NOT clean up application-level indexes because:
 #
-# This distinction is important because stale objids in pending_invitations
-# cause incorrect quota calculations.
+#   1. Familia is ORM-layer; indexes are application-layer concerns
+#   2. Different operations need different cleanup:
+#      - accept!  → removes from pending, adds to members, keeps record
+#      - decline! → removes from pending, keeps record with 'declined' status
+#      - revoke!  → removes from pending, destroys record and indexes
+#   3. Follows ORM patterns where relationship cleanup is opt-in
+#
+# METHOD CONTRACT
+# ===============
+# - destroy! (Familia base)     : Deletes Redis hash only. NO index cleanup.
+#                                 Use only when you explicitly want no cleanup.
+#
+# - destroy_with_index_cleanup! : Cleans up ALL indexes + pending set, then destroy!
+#                                 Use for safe deletion in tests/migrations.
+#
+# - revoke!                     : Semantic method for admins revoking invitations.
+#                                 Validates state, cleans up, destroys.
+#
+# - decline!                    : Semantic method for invitees declining.
+#                                 Removes from pending but KEEPS the record.
+#
+# - accept!                     : Semantic method for invitees accepting.
+#                                 Removes from pending, adds to members.
+#
+# WHY THIS MATTERS
+# ================
+# Stale objids in pending_invitations cause pending_invitation_count to return
+# incorrect values, which breaks quota enforcement (users blocked from inviting
+# when they're actually under limit).
 
 require_relative '../../support/test_helpers'
 
