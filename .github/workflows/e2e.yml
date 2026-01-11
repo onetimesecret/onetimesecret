@@ -169,8 +169,10 @@ jobs:
           export PLAYWRIGHT_BASE_URL=${{ env.TEST_BASE_URL }}
           export CI=true
 
-          # Run tests - use existing playwright config with base URL override
-          pnpm test:playwright \
+          # Run only 'all/' tests - these work without auth or billing configuration
+          # Tests in 'full/' require authenticated sessions
+          # Tests in 'full-billing/' require auth + billing enabled
+          pnpm test:playwright src/tests/e2e/all/ \
             --reporter=github \
             --max-failures=5
         env:

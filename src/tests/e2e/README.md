@@ -1,16 +1,36 @@
-# E2E Testing Guide - 2025-09-17
+# E2E Testing Guide
 
 This directory contains end-to-end integration tests that validate the complete application stack from build to deployment.
 
 ## Directory Structure
 
+Tests are organized by authentication mode, mirroring the RSpec integration test structure:
+
 ```
-tests/e2e/
+src/tests/e2e/
 ├── README.md              # This file
 ├── playwright.config.ts   # Playwright configuration
-├── integration.spec.ts    # Main integration tests
-└── fixtures/              # Test data and helpers (create as needed)
+├── all/                   # Tests that work without authentication
+│   ├── integration.spec.ts    # Homepage, secret creation flows
+│   └── secret-context.spec.ts # Public secret viewing
+├── full/                  # Tests requiring full auth mode (user sessions)
+│   ├── settings-layout.spec.ts        # Account settings pages
+│   ├── scope-switcher.spec.ts         # Organization/domain switching
+│   ├── identifier-url-patterns.spec.ts # URL routing with auth
+│   └── domain-scope-consultant.spec.ts # Domain context flows
+└── full-billing/          # Tests requiring full auth + billing enabled
+    ├── pricing-flow.spec.ts    # Pricing page deep links
+    ├── billing-blockers.spec.ts # Billing page functionality
+    └── plan-switching.spec.ts   # Plan upgrade/downgrade flows
 ```
+
+### Auth Mode Requirements
+
+| Directory | Auth Mode | Billing | CI Container | Notes |
+|-----------|-----------|---------|--------------|-------|
+| `all/` | None | No | Yes | Run in basic CI container |
+| `full/` | Full (Rodauth) | No | Manual only | Requires user session |
+| `full-billing/` | Full + Billing | Yes | Manual only | Requires billing.yaml config |
 
 ## Quick Setup
 
