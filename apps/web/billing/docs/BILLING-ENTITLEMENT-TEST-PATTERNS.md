@@ -18,9 +18,9 @@ Billing is now **disabled by default** in all tests (Tryouts and RSpec), with op
 
 ### Core Components
 
-1. **`try/support/billing_helpers.rb`**: Shared isolation helpers used by both Tryouts and RSpec
+1. **`apps/web/billing/lib/test_support/billing_helpers.rb`**: Shared isolation helpers used by both Tryouts and RSpec
 2. **`try/support/test_helpers.rb`**: Tryouts test setup (calls `BillingTestHelpers.disable_billing!`)
-3. **`spec/support/billing_isolation.rb`**: RSpec hooks that disable billing before each test
+3. **`apps/web/billing/spec/support/billing_isolation.rb`**: RSpec hooks that disable billing before each test
 4. **`spec/spec_helper.rb`**: Loads billing isolation support
 
 ### Key Mechanisms
@@ -367,12 +367,12 @@ end
 
 ## Related Files
 
-- `try/support/billing_helpers.rb` - Core isolation helpers
+- `apps/web/billing/lib/test_support/billing_helpers.rb` - Core isolation helpers
 - `try/support/test_helpers.rb` - Tryouts setup
-- `spec/support/billing_isolation.rb` - RSpec hooks
+- `apps/web/billing/spec/support/billing_isolation.rb` - RSpec hooks
 - `try/features/billing_isolation_verification_try.rb` - Verification tests
-- `spec/integration/api/colonel/entitlement_test_spec.rb` - Entitlement test mode tests
-- `spec/unit/models/features/with_entitlements_test_mode_spec.rb` - WithEntitlements tests
+- `spec/integration/all/entitlement_test_spec.rb` - Entitlement test mode tests
+- `spec/unit/onetime/models/features/with_entitlements_test_mode_spec.rb` - WithEntitlements tests
 
 ## See Also
 

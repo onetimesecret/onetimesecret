@@ -112,7 +112,7 @@ This plan is grandfathered in for all identity customers <= 2025-12-31.
 - `custom_domains`: 25 (more available by request -- sold as "unlimited")
 
 
-## Capability Categories (work in progress)
+## Entitlement Categories (work in progress)
 
 **Core:**
 - `create_secrets`, `view_receipt`, `extended_default_expiration`, `api_access`
@@ -142,7 +142,7 @@ Each Stripe product must include the following metadata fields to be recognized 
   "tier": "single_team",
   "region": "EU",
   "tenancy": "multi",
-  "capabilities": "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration",
+  "entitlements": "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration",
   "created": "2025-11-23"
 }
 ```
@@ -183,7 +183,7 @@ Each Stripe product must include the following metadata fields to be recognized 
   "tier": "multi_team",
   "region": "EU",
   "tenancy": "multi",
-  "capabilities": "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration,manage_teams,manage_members",
+  "entitlements": "create_secrets,view_receipt,api_access,custom_domains,extended_default_expiration,manage_teams,manage_members",
   "created": "2025-11-23",
   "display_order": "20",
   "show_on_plans_page": "true",

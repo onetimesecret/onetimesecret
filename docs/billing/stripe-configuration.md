@@ -9,9 +9,9 @@
 
 Billing is optional and disabled by default. To enable:
 
-1. **Copy the template:**
+1. **Copy the example config:**
    ```bash
-   cp etc/defaults/billing.defaults.yaml etc/billing.yaml
+   cp etc/examples/billing.example.yaml etc/billing.yaml
    ```
 
 2. **Configure environment variables** (or edit `etc/billing.yaml` directly):
@@ -37,15 +37,15 @@ Create products in [Stripe Dashboard → Products](https://dashboard.stripe.com/
 {
   "app": "onetimesecret",
   "plan_id": "identity_v1",
-  "capabilities": ["create_secrets", "create_team", "custom_domains"],
-  "limit_teams": 1,
-  "limit_members_per_team": -1
+  "entitlements": "create_secrets,create_team,custom_domains",
+  "limit_teams": "1",
+  "limit_members_per_team": "-1"
 }
 ```
 
 **Available plan_id values:** See `apps/web/billing/plan_helpers.rb` and plan cache
 
-**Capabilities list:** See `WithCapabilities::STANDALONE_CAPABILITIES` constant in `lib/onetime/models/features/with_capabilities.rb`
+**Entitlements list:** See `WithEntitlements::STANDALONE_ENTITLEMENTS` constant in `lib/onetime/models/features/with_entitlements.rb`
 
 **Limits:** Use `-1` for unlimited, `0` for none, positive integers for specific limits
 
