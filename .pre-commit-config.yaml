@@ -120,30 +120,19 @@ repos:
         pass_filenames: false
         always_run: true
 
-  # JavaScript/TypeScript Linting: Managed ESLint environment
+  # JavaScript/TypeScript Linting: Use project's ESLint installation
+  # Note: Uses language: system to leverage the project's node_modules,
+  # ensuring eslint.config.ts has access to all required plugins and configs.
+  # The isolated `language: node` approach fails because flat config requires
+  # the full project context (path aliases, vue-eslint-parser setup, etc.).
   - repo: local
     hooks:
       - id: eslint
         name: ESLint
         description: High-performance linting for TypeScript and Vue
-        entry: eslint --quiet --config eslint.config.ts --fix
-        language: node
+        entry: ./node_modules/.bin/eslint --quiet --config eslint.config.ts --fix
+        language: system
         files: \.(ts|vue|mjs)$
-        additional_dependencies:
-          - eslint@9.26.0
-          - typescript@5.9.3
-          - '@typescript-eslint/parser@8.48.1'
-          - '@typescript-eslint/eslint-plugin@8.48.1'
-          - 'eslint-plugin-vue@10.5.1'
-          - 'vue-eslint-parser@10.2.0'
-          - 'eslint-plugin-import@2.32.0'
-          - 'eslint-import-resolver-typescript@4.4.4'
-          - 'eslint-plugin-tailwindcss@4.0.0-beta.0'
-          - '@intlify/eslint-plugin-vue-i18n@4.1.0'
-          - 'eslint-config-prettier@10.1.8'
-          - 'globals@16.2.0'
-          - 'typescript-eslint@8.48.1'
-          - 'jiti@2.4.2'
 
   # Commit metadata tracking
   - repo: local
