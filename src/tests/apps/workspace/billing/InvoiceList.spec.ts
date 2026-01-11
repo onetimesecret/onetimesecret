@@ -39,7 +39,11 @@ vi.mock('@/shared/components/forms/BasicFormAlerts.vue', () => ({
 // Mock vue-router with isNavigationFailure for classifyError
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: vi.fn() }),
-  useRoute: () => ({ params: {} }),
+  useRoute: () => ({
+    path: '/billing/org_ext_1/invoices',
+    params: { extid: 'org_ext_1' },
+    query: {},
+  }),
   isNavigationFailure: () => false,
 }));
 
@@ -336,16 +340,14 @@ describe('InvoiceList', () => {
       expect(errorAlert.text()).toContain('Network error');
     });
 
-    it('shows error when organization has no extid', async () => {
-      mockOrganizations.mockReturnValue([
-        { id: 'org_1', extid: '', display_name: 'Test Org' },
-      ]);
-
+    it('uses extid from route params for API calls', async () => {
+      // Component now uses route.params.extid instead of org store
+      // This test verifies the API is called with the URL param
+      mockListInvoices.mockResolvedValueOnce({ invoices: mockInvoices });
       wrapper = await mountComponent();
 
-      const errorAlert = wrapper.find('[data-testid="error-alert"]');
-      expect(errorAlert.exists()).toBe(true);
-      expect(errorAlert.text()).toContain('Failed to load invoices');
+      // API should be called with extid from route params
+      expect(mockListInvoices).toHaveBeenCalledWith('org_ext_1');
     });
   });
 
