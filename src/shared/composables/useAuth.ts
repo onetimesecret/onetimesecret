@@ -189,13 +189,13 @@ export function useAuth() {
         return false;
       }
 
-      const { tier, billing_cycle } = billingRedirect;
-      const checkoutUrl = `/billing/${org.extid}/checkout?tier=${tier}&billing_cycle=${billing_cycle}`;
+      const { product, interval } = billingRedirect;
+      const checkoutUrl = `/billing/${org.extid}/checkout?product=${product}&interval=${interval}`;
 
       loggingService.debug('[useAuth] Redirecting to billing checkout', {
         org: org.extid,
-        tier,
-        billing_cycle,
+        product,
+        interval,
       });
 
       await router.push(checkoutUrl);

@@ -212,16 +212,14 @@ module Auth::Config::Hooks
           }
         end
 
-        # Resolve plan from catalog
+        # Validate plan exists in catalog (checkout endpoint will resolve details)
         result = ::Billing::PlanResolver.resolve(product: product, interval: interval)
 
         if result.success?
+          # Return minimal info - checkout endpoint resolves plan details
           {
             product: product,
             interval: interval,
-            plan_id: result.plan_id,
-            tier: result.tier,
-            billing_cycle: result.billing_cycle,
             valid: true,
           }
         else

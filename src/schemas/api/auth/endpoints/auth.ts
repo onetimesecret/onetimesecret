@@ -49,13 +49,14 @@ import { z } from 'zod';
  * Billing redirect information returned after login/signup when user
  * should be redirected to checkout (e.g., upgrading during signup flow).
  * Only present when billing is enabled and user needs to complete checkout.
+ *
+ * Terminology:
+ * - product: Plan identifier (e.g., 'identity_plus_v1')
+ * - interval: Billing frequency choice ('monthly' or 'yearly')
  */
 const billingRedirectSchema = z.object({
   product: z.string(),
   interval: z.string(),
-  plan_id: z.string(),
-  tier: z.string(),
-  billing_cycle: z.string(),
   valid: z.boolean(),
 });
 
