@@ -1,7 +1,7 @@
 <!-- src/apps/workspace/billing/BillingOverview.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
@@ -12,12 +12,11 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { PaymentMethod } from '@/types/billing';
 import { getPlanDisplayName } from '@/types/billing';
 import type { Organization } from '@/types/organization';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 const { t } = useI18n();
 const organizationStore = useOrganizationStore();
 
-const selectedOrgId = ref<string | null>(null);
 const selectedOrg = ref<Organization | null>(null);
 const paymentMethod = ref<PaymentMethod | null>(null);
 const nextBillingDate = ref<Date | null>(null);
@@ -26,6 +25,8 @@ const isLoading = ref(false);
 const error = ref('');
 
 const organizations = computed(() => organizationStore.organizations);
+const currentOrganization = computed(() => organizationStore.currentOrganization);
+
 const {
   entitlements,
   formatEntitlement,
@@ -82,16 +83,6 @@ const loadOrganizationData = async (extid: string) => {
   }
 };
 
-const handleOrgChange = (orgId: string) => {
-  // Find org by internal ID to get extid for API call
-  const org = organizations.value.find((o) => o.id === orgId);
-  if (org?.extid) {
-    loadOrganizationData(org.extid);
-  } else {
-    console.warn('[BillingOverview] Organization not found in cache, cannot load:', orgId);
-  }
-};
-
 const _formatCardBrand = (brand: string): string => brand.charAt(0).toUpperCase() + brand.slice(1);
 
 const formatNextBillingDate = (date: Date): string => new Intl.DateTimeFormat('en-US', {
@@ -106,6 +97,23 @@ const daysUntilBilling = computed(() => {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 });
 
+// Track if initial load is in progress to avoid race condition
+const initialLoadComplete = ref(false);
+
+// Watch for organization changes from the header switcher
+watch(
+  currentOrganization,
+  async (newOrg, oldOrg) => {
+    // Skip if this is during initial mount or same org
+    if (!initialLoadComplete.value) return;
+    if (newOrg?.extid === oldOrg?.extid) return;
+
+    if (newOrg?.extid) {
+      await loadOrganizationData(newOrg.extid);
+    }
+  }
+);
+
 onMounted(async () => {
   try {
     // Initialize entitlement definitions for formatting
@@ -115,13 +123,17 @@ onMounted(async () => {
       await organizationStore.fetchOrganizations();
     }
 
-    if (organizations.value.length > 0) {
-      const firstOrg = organizations.value[0];
-      selectedOrgId.value = firstOrg.id;
-      if (firstOrg.extid) {
-        await loadOrganizationData(firstOrg.extid);
+    // Use currentOrganization from store if set, otherwise use first org
+    const orgToLoad = currentOrganization.value || organizations.value[0];
+    if (orgToLoad?.extid) {
+      // Set the store's current org if not already set
+      if (!currentOrganization.value) {
+        organizationStore.setCurrentOrganization(orgToLoad);
       }
+      await loadOrganizationData(orgToLoad.extid);
     }
+
+    initialLoadComplete.value = true;
   } catch (err) {
     const classified = classifyError(err);
     error.value = classified.message || 'Failed to load organizations';
@@ -133,25 +145,6 @@ onMounted(async () => {
 <template>
   <BillingLayout>
     <div class="space-y-6">
-      <!-- Organization Selector (if multiple orgs) -->
-      <div v-if="organizations.length > 1" class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-        <label for="org-select" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {{ t('web.billing.overview.organization_selector') }}
-        </label>
-        <select
-          id="org-select"
-          v-model="selectedOrgId"
-          @change="handleOrgChange(selectedOrgId!)"
-          class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm">
-          <option
-            v-for="org in organizations"
-            :key="org.id"
-            :value="org.id">
-            {{ org.display_name }}
-          </option>
-        </select>
-      </div>
-
       <!-- Error Alert -->
       <BasicFormAlerts v-if="error" :error="error" />
 
@@ -184,7 +177,7 @@ onMounted(async () => {
         </p>
         <div class="mt-6">
           <router-link
-            :to="{ name: 'Billing Organizations' }"
+            :to="{ name: 'Organizations' }"
             class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
             <OIcon
               collection="heroicons"

@@ -13,7 +13,7 @@
       "overview": {
         "title": "Billing Overview",
         "description": "View and manage your subscription and payment details",
-        "organization_selector": "Select Organization",
+        "billing_for_organization": "Billing for this organization",
         "current_plan": "Current Plan",
         "plan_features": "Plan Features",
         "payment_method": "Payment Method",

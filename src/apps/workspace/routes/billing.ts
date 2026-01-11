@@ -2,8 +2,8 @@
 
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
 import { WindowService } from '@/services/window.service';
-import type { RouteRecordRaw } from 'vue-router';
 import { SCOPE_PRESETS } from '@/types/router';
+import type { RouteRecordRaw } from 'vue-router';
 
 const standardLayoutProps = {
   displayMasthead: true,
@@ -45,7 +45,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
+      scopesAvailable: SCOPE_PRESETS.orgShowDomainHide,
     },
   },
   {
@@ -58,7 +58,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
+      scopesAvailable: SCOPE_PRESETS.orgShowDomainHide,
     },
   },
   {
@@ -71,7 +71,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
+      scopesAvailable: SCOPE_PRESETS.orgShowDomainHide,
     },
   },
   // Legacy routes for backward compatibility
@@ -89,12 +89,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/account/billing/invoices',
     redirect: '/billing/invoices',
     beforeEnter: checkBillingEnabled,
-  },
-  // Legacy billing redirects to /org moved to organizations.ts
-  // These billing-prefixed org redirects remain for backwards compatibility
-  {
-    path: '/billing/organizations',
-    redirect: '/org',
   },
   {
     path: '/billing/organization/:extid',
