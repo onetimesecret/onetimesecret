@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/payment_receipt.rb
+# lib/onetime/mail/views/payment_failed.rb
 #
 # frozen_string_literal: true
 
@@ -8,22 +8,22 @@ require_relative 'billing_template_helpers'
 module Onetime
   module Mail
     module Templates
-      # Payment receipt email template.
+      # Payment failed email template.
       #
-      # Sent after successful payment processing.
+      # Sent when a payment attempt fails.
       #
       # Required data:
-      #   email_address: Customer's email
-      #   amount:        Payment amount (numeric)
-      #   currency:      Currency code (e.g., 'usd')
-      #   plan_name:     Subscription plan name
-      #   invoice_id:    Stripe invoice ID
-      #   paid_at:       Timestamp when paid
+      #   email_address:  Customer's email
+      #   amount:         Failed payment amount
+      #   currency:       Currency code
+      #   plan_name:      Subscription plan name
+      #   failure_reason: Human-readable reason
       #
       # Optional data:
-      #   invoice_url:   Stripe hosted invoice link
+      #   retry_date:        When next retry occurs
+      #   update_payment_url: Link to update payment method
       #
-      class PaymentReceipt < Base
+      class PaymentFailed < Base
         include BillingTemplateHelpers
 
         protected
@@ -33,15 +33,14 @@ module Onetime
           raise ArgumentError, 'Amount required' unless data[:amount]
           raise ArgumentError, 'Currency required' unless data[:currency]
           raise ArgumentError, 'Plan name required' unless data[:plan_name]
-          raise ArgumentError, 'Invoice ID required' unless data[:invoice_id]
-          raise ArgumentError, 'Paid at required' unless data[:paid_at]
+          raise ArgumentError, 'Failure reason required' unless data[:failure_reason]
         end
 
         public
 
         def subject
           EmailTranslations.translate(
-            'email.payment_receipt.subject',
+            'email.payment_failed.subject',
             locale: locale,
             product_name: product_name,
           )
@@ -51,12 +50,18 @@ module Onetime
           data[:email_address]
         end
 
-        def paid_at_formatted
-          format_timestamp(data[:paid_at])
+        def failure_reason
+          data[:failure_reason]
         end
 
-        def invoice_url
-          data[:invoice_url]
+        def retry_date_formatted
+          return nil unless data[:retry_date]
+
+          format_timestamp(data[:retry_date])
+        end
+
+        def update_payment_url
+          data[:update_payment_url]
         end
 
         private
@@ -66,8 +71,9 @@ module Onetime
             product_name: product_name,
             display_domain: display_domain,
             formatted_amount: formatted_amount,
-            paid_at_formatted: paid_at_formatted,
-            invoice_url: invoice_url,
+            failure_reason: failure_reason,
+            retry_date_formatted: retry_date_formatted,
+            update_payment_url: update_payment_url,
           )
           TemplateContext.new(computed_data, locale).get_binding
         end

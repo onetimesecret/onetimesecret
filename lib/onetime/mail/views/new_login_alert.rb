@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/new_login_alert.rb
+# lib/onetime/mail/views/new_login_alert.rb
 #
 # frozen_string_literal: true
 

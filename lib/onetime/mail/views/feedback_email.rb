@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/feedback_email.rb
+# lib/onetime/mail/views/feedback_email.rb
 #
 # frozen_string_literal: true
 

@@ -15,7 +15,7 @@ OT.boot! :test, false
 
 # Load the mail module
 require 'onetime/mail'
-require 'onetime/mail/templates/payment_receipt'
+require 'onetime/mail/views/payment_receipt'
 
 @valid_data = {
   email_address: 'customer@example.com',

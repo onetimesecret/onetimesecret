@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/mfa_enabled.rb
+# lib/onetime/mail/views/mfa_disabled.rb
 #
 # frozen_string_literal: true
 
@@ -7,28 +7,28 @@ require_relative 'base'
 module Onetime
   module Mail
     module Templates
-      # Security notification sent when two-factor authentication is enabled.
+      # Security notification sent when two-factor authentication is disabled.
       #
       # Required data:
       #   email_address: Account email address
-      #   enabled_at:    ISO8601 timestamp of MFA enablement
+      #   disabled_at:   ISO8601 timestamp of MFA disablement
       #
       # Optional data:
       #   baseuri: Override site base URI
       #
-      class MfaEnabled < Base
+      class MfaDisabled < Base
         protected
 
         def validate_data!
           raise ArgumentError, 'Email address required' unless data[:email_address]
-          raise ArgumentError, 'Enabled at timestamp required' unless data[:enabled_at]
+          raise ArgumentError, 'Disabled at timestamp required' unless data[:disabled_at]
         end
 
         public
 
         def subject
           EmailTranslations.translate(
-            'email.mfa_enabled.subject',
+            'email.mfa_disabled.subject',
             locale: locale,
           )
         end
@@ -37,15 +37,15 @@ module Onetime
           data[:email_address]
         end
 
-        def enabled_at
-          data[:enabled_at]
+        def disabled_at
+          data[:disabled_at]
         end
 
-        def enabled_at_formatted
-          time = Time.parse(enabled_at.to_s)
+        def disabled_at_formatted
+          time = Time.parse(disabled_at.to_s)
           time.strftime('%B %d, %Y at %H:%M UTC')
         rescue ArgumentError
-          enabled_at.to_s
+          disabled_at.to_s
         end
 
         def security_settings_path
@@ -60,8 +60,8 @@ module Onetime
 
         def template_binding
           computed_data = data.merge(
-            enabled_at: enabled_at,
-            enabled_at_formatted: enabled_at_formatted,
+            disabled_at: disabled_at,
+            disabled_at_formatted: disabled_at_formatted,
             security_settings_path: security_settings_path,
             baseuri: baseuri,
           )

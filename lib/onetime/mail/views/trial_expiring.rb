@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/trial_expiring.rb
+# lib/onetime/mail/views/trial_expiring.rb
 #
 # frozen_string_literal: true
 

@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/organization_invitation.rb
+# lib/onetime/mail/views/organization_invitation.rb
 #
 # frozen_string_literal: true
 

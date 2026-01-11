@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/password_changed.rb
+# lib/onetime/mail/views/password_changed.rb
 #
 # frozen_string_literal: true
 

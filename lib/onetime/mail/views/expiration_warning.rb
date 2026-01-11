@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/expiration_warning.rb
+# lib/onetime/mail/views/expiration_warning.rb
 #
 # frozen_string_literal: true
 

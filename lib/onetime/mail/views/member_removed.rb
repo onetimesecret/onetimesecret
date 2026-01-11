@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/member_removed.rb
+# lib/onetime/mail/views/member_removed.rb
 #
 # frozen_string_literal: true
 

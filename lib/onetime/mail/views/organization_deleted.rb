@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/organization_deleted.rb
+# lib/onetime/mail/views/organization_deleted.rb
 #
 # frozen_string_literal: true
 

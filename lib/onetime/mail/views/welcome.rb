@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/password_request.rb
+# lib/onetime/mail/views/welcome.rb
 #
 # frozen_string_literal: true
 
@@ -7,26 +7,26 @@ require_relative 'base'
 module Onetime
   module Mail
     module Templates
-      # Password reset request email template.
+      # Welcome/verification email template for new users.
       #
       # Required data:
       #   email_address: User's email address
       #
       # One of the following is required:
-      #   reset_password_path: Full reset URL (full mode - from Rodauth)
-      #   secret:              Secret object for reset (simple mode)
+      #   verification_path: Full verification URL (full mode - from Rodauth)
+      #   secret:            Secret object for verification (simple mode)
       #
       # Optional data:
       #   baseuri: Override site base URI
       #
-      class PasswordRequest < Base
+      class Welcome < Base
         protected
 
         def validate_data!
           raise ArgumentError, 'Email address required' unless data[:email_address]
-          # Either reset_password_path (full mode) or secret (simple mode) is required
-          unless data[:reset_password_path] || data[:secret]
-            raise ArgumentError, 'Reset password path or secret required'
+          # Either verification_path (full mode) or secret (simple mode) is required
+          unless data[:verification_path] || data[:secret]
+            raise ArgumentError, 'Verification path or secret required'
           end
         end
 
@@ -34,9 +34,9 @@ module Onetime
 
         def subject
           EmailTranslations.translate(
-            'email.password_request.subject',
+            'email.welcome.subject',
             locale: locale,
-            display_domain: display_domain,
+            product_name: product_name,
           )
         end
 
@@ -44,22 +44,22 @@ module Onetime
           data[:email_address]
         end
 
-        def forgot_path
-          # Full mode: reset_password_path is a full URL from Rodauth
-          # Simple mode: generate secret-based path (/forgot/...)
-          if data[:reset_password_path]
-            # Rodauth provides full URL, return empty so baseuri+forgot_path works
+        def verify_uri
+          # Full mode: verification_path is a full URL from Rodauth
+          # Simple mode: generate secret-based path (/secret/...)
+          if data[:verification_path]
+            # Rodauth provides full URL, return empty so baseuri+verify_uri works
             ''
           else
             secret = data[:secret]
             key    = secret.respond_to?(:identifier) ? secret.identifier : secret.to_s
-            "/forgot/#{key}"
+            "/secret/#{key}"
           end
         end
 
-        def reset_password_url
-          # Full URL for password reset - used directly in templates
-          data[:reset_password_path] || "#{baseuri}#{forgot_path}"
+        def verification_url
+          # Full URL for verification - used directly in templates
+          data[:verification_path] || "#{baseuri}#{verify_uri}"
         end
 
         def email_address
@@ -74,12 +74,11 @@ module Onetime
 
         def template_binding
           computed_data = data.merge(
-            forgot_path: forgot_path,
-            reset_password_url: reset_password_url,
+            verify_uri: verify_uri,
+            verification_url: verification_url,
             email_address: email_address,
             baseuri: baseuri,
             product_name: product_name,
-            display_domain: display_domain,
           )
           TemplateContext.new(computed_data, locale).get_binding
         end

@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/role_changed.rb
+# lib/onetime/mail/views/role_changed.rb
 #
 # frozen_string_literal: true
 

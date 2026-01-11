@@ -15,7 +15,7 @@ OT.boot! :test, false
 
 # Load the mail module
 require 'onetime/mail'
-require 'onetime/mail/templates/mfa_enabled'
+require 'onetime/mail/views/mfa_enabled'
 
 @valid_data = {
   email_address: 'user@example.com',

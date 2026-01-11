@@ -15,7 +15,7 @@ OT.boot! :test, false
 
 # Load the mail module
 require 'onetime/mail'
-require 'onetime/mail/templates/trial_expiring'
+require 'onetime/mail/views/trial_expiring'
 
 @valid_data = {
   email_address: 'customer@example.com',

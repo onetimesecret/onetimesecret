@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/base.rb
+# lib/onetime/mail/views/base.rb
 #
 # frozen_string_literal: true
 
@@ -39,7 +39,7 @@ module Onetime
       # Base class for email templates using ERB.
       #
       # Subclasses define template-specific data and subject lines.
-      # Templates are loaded from templates/mail/ directory.
+      # Templates are loaded from lib/onetime/mail/templates/ directory.
       #
       # Design notes for future ruby-i18n integration:
       # - Template data is passed as a hash, not instance variables
@@ -59,7 +59,7 @@ module Onetime
       #   template.subject      # => email subject line
       #
       class Base
-        TEMPLATE_PATH = File.expand_path('../../../../templates/mail', __dir__)
+        TEMPLATE_PATH = File.expand_path('../templates', __dir__)
 
         attr_reader :data, :locale
 

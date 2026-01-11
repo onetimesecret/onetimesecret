@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/magic_link.rb
+# lib/onetime/mail/views/magic_link.rb
 #
 # frozen_string_literal: true
 

@@ -13,14 +13,14 @@
 # Run with: pnpm run test:rspec spec/integration/all/mail/template_rendering_spec.rb
 
 require 'spec_helper'
-require 'onetime/mail/templates/base'
-require 'onetime/mail/templates/secret_link'
-require 'onetime/mail/templates/welcome'
-require 'onetime/mail/templates/password_request'
-require 'onetime/mail/templates/incoming_secret'
-require 'onetime/mail/templates/secret_revealed'
-require 'onetime/mail/templates/expiration_warning'
-require 'onetime/mail/templates/feedback_email'
+require 'onetime/mail/views/base'
+require 'onetime/mail/views/secret_link'
+require 'onetime/mail/views/welcome'
+require 'onetime/mail/views/password_request'
+require 'onetime/mail/views/incoming_secret'
+require 'onetime/mail/views/secret_revealed'
+require 'onetime/mail/views/expiration_warning'
+require 'onetime/mail/views/feedback_email'
 
 RSpec.describe 'Email Template Rendering', type: :integration do
   # Load locale files for i18n translations

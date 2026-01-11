@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/secret_link.rb
+# lib/onetime/mail/views/secret_link.rb
 #
 # frozen_string_literal: true
 

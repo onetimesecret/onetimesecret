@@ -1,4 +1,4 @@
-# lib/onetime/mail/templates/email_change_confirmation.rb
+# lib/onetime/mail/views/email_change_confirmation.rb
 #
 # frozen_string_literal: true
 
