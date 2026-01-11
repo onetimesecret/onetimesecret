@@ -2,34 +2,18 @@
 
 Intent-based test specifications for browser automation agents.
 
+## Design Rationale
+
+- **Intent as a sentence** - agent determines approach from goal
+- **Declarative setup** - states preconditions (`auth: logged_in`) rather than procedural steps
+- **Verify as assertions** - what to check, not how to check it
+
+LLM agents infer mechanics from intent, so step-by-step instructions are unnecessary.
+
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `schema.yaml` | Field definitions and fixtures |
-| `issue-2114-secret-context.yaml` | Example test cases |
-
-## Example
-
-```yaml
-- id: OTS-2114-SC-001
-  intent: Creator viewing their own secret sees ownership warning
-  setup:
-    auth: logged_in
-    state: { has_created_secret: true }
-  target: "{{secret_link}}"
-  verify:
-    - Yellow warning banner with "You created this secret"
-    - Dashboard link visible (not signup CTA)
-  priority: high
-  covers: [useSecretContext, actorRole]
-```
-
-## Schema
-
-See `schema.yaml` for full field definitions.
-
-Required: `id`, `intent`, `setup`, `target`, `verify`, `priority`, `type`
+- `schema.ts` - Zod v4 schema (source of truth for field types)
+- `issue-{number}-{feature}.yaml` - Test cases linked to GitHub issues
 
 ## Converting from Qase
 
