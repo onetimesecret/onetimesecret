@@ -13,6 +13,8 @@
 
   const props = defineProps<{
     concealedMessage: ConcealedMessage;
+    /** Row index (1-based) for visual reference */
+    index: number;
   }>();
 
   const emit = defineEmits<{
@@ -116,6 +118,13 @@
       ttlBackgroundClass,
       { 'opacity-70': isExpired || isBurned },
     ]">
+    <!-- Index Column -->
+    <td class="w-16 whitespace-nowrap px-3 py-4 text-center">
+      <span class="text-2xl font-bold tabular-nums text-gray-300 dark:text-gray-600">
+        {{ index }}
+      </span>
+    </td>
+
     <!-- Secret ID Column -->
     <td class="whitespace-nowrap px-6 py-4">
       <div class="flex flex-col">

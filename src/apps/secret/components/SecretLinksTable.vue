@@ -134,6 +134,13 @@
           </caption>
           <thead class="bg-gray-50 dark:bg-slate-800">
             <tr>
+              <!-- Index Column Header -->
+              <th
+                scope="col"
+                class="w-12 px-3 py-2.5 text-center text-xs font-medium uppercase tracking-wider
+                  text-gray-700 dark:text-gray-400">
+                #
+              </th>
               <!-- prettier-ignore-attribute class -->
               <th
                 scope="col"
@@ -159,9 +166,10 @@
           </thead>
           <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
             <SecretLinksTableRow
-              v-for="concealedMessage in sortedSecrets"
+              v-for="(concealedMessage, idx) in sortedSecrets"
               :key="concealedMessage.id"
               :concealed-message="concealedMessage"
+              :index="sortedSecrets.length - idx"
               @copy="handleCopy"
               @delete="handleBurn" />
           </tbody>
