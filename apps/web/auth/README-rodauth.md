@@ -104,8 +104,12 @@ module Auth
       enable :create_account, :close_account, :change_password, :reset_password
       enable :verify_account unless ENV['RACK_ENV'] == 'test'
       enable :otp, :recovery_codes
-      enable :lockout, :active_sessions, :remember if ENV['ENABLE_SECURITY_FEATURES'] != 'false'
-      enable :email_auth if ENV['ENABLE_MAGIC_LINKS'] == 'true'
+      # Granular security features (enabled by default)
+      enable :lockout, :login_password_requirements_base if ENV['ENABLE_HARDENING'] != 'false'
+      enable :active_sessions if ENV['ENABLE_ACTIVE_SESSIONS'] != 'false'
+      enable :remember if ENV['ENABLE_REMEMBER_ME'] != 'false'
+      # Optional auth methods (disabled by default)
+      enable :email_auth if ENV['ENABLE_EMAIL_AUTH'] == 'true'
       enable :webauthn if ENV['ENABLE_WEBAUTHN'] == 'true'
 
       # 2. Configure subsystems (order: base → features → hooks)

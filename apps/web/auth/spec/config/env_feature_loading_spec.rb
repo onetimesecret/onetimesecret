@@ -43,21 +43,50 @@ require_relative '../../config/features/mfa'
 RSpec.describe 'ENV-conditional feature loading' do
   let(:db) { create_test_database }
 
-  # Helper that mirrors config.rb conditional logic for security features
-  def build_security_features_app(db)
+  # Helper that mirrors config.rb conditional logic for hardening features
+  def build_hardening_features_app(db)
     features = [:base, :login, :logout]
 
     # Same pattern as config.rb: enabled unless explicitly 'false'
-    if ENV['ENABLE_SECURITY_FEATURES'] != 'false'
-      features += [:lockout, :active_sessions, :login_password_requirements_base, :remember]
+    if ENV['ENABLE_HARDENING'] != 'false'
+      features += [:lockout, :login_password_requirements_base]
+    end
+
+    create_rodauth_app(db: db, features: features) do
+      if respond_to?(:max_invalid_logins)
+        max_invalid_logins 5
+      end
+    end
+  end
+
+  # Helper that mirrors config.rb conditional logic for active sessions
+  def build_active_sessions_app(db)
+    features = [:base, :login, :logout]
+
+    # Same pattern as config.rb: enabled unless explicitly 'false'
+    if ENV['ENABLE_ACTIVE_SESSIONS'] != 'false'
+      features += [:active_sessions]
     end
 
     create_rodauth_app(db: db, features: features) do
       if respond_to?(:session_inactivity_deadline)
         session_inactivity_deadline 86_400
         session_lifetime_deadline 2_592_000
-        max_invalid_logins 5
       end
+    end
+  end
+
+  # Helper that mirrors config.rb conditional logic for remember me
+  def build_remember_me_app(db)
+    features = [:base, :login, :logout]
+
+    # Same pattern as config.rb: enabled unless explicitly 'false'
+    if ENV['ENABLE_REMEMBER_ME'] != 'false'
+      features += [:remember]
+    end
+
+    create_rodauth_app(db: db, features: features) do
+      # No additional configuration needed
     end
   end
 
@@ -79,12 +108,12 @@ RSpec.describe 'ENV-conditional feature loading' do
     end
   end
 
-  # Helper that mirrors config.rb conditional logic for magic links
-  def build_passwordless_features_app(db)
+  # Helper that mirrors config.rb conditional logic for email auth (magic links)
+  def build_email_auth_app(db)
     features = [:base, :login, :logout]
 
     # Same pattern as config.rb: disabled unless explicitly 'true'
-    if ENV['ENABLE_MAGIC_LINKS'] == 'true'
+    if ENV['ENABLE_EMAIL_AUTH'] == 'true'
       features += [:email_auth]
     end
 
@@ -113,54 +142,34 @@ RSpec.describe 'ENV-conditional feature loading' do
     end
   end
 
-  describe 'ENABLE_SECURITY_FEATURES' do
+  describe 'ENABLE_HARDENING' do
     context 'when not set (default - enabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_SECURITY_FEATURES' => nil) do
+        ClimateControl.modify('ENABLE_HARDENING' => nil) do
           example.run
         end
       end
 
       it 'enables lockout feature' do
-        app = build_security_features_app(db)
+        app = build_hardening_features_app(db)
         expect(rodauth_responds_to?(app, :max_invalid_logins)).to be true
-      end
-
-      it 'enables active_sessions feature' do
-        app = build_security_features_app(db)
-        expect(rodauth_responds_to?(app, :session_inactivity_deadline)).to be true
-      end
-
-      it 'enables remember feature' do
-        app = build_security_features_app(db)
-        expect(rodauth_responds_to?(app, :remember_login)).to be true
       end
     end
 
     context 'when set to "false" (disabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_SECURITY_FEATURES' => 'false') do
+        ClimateControl.modify('ENABLE_HARDENING' => 'false') do
           example.run
         end
       end
 
       it 'disables lockout feature' do
-        app = build_security_features_app(db)
+        app = build_hardening_features_app(db)
         expect(rodauth_responds_to?(app, :max_invalid_logins)).to be false
       end
 
-      it 'disables active_sessions feature' do
-        app = build_security_features_app(db)
-        expect(rodauth_responds_to?(app, :session_inactivity_deadline)).to be false
-      end
-
-      it 'disables remember feature' do
-        app = build_security_features_app(db)
-        expect(rodauth_responds_to?(app, :remember_login)).to be false
-      end
-
       it 'still has core login/logout' do
-        app = build_security_features_app(db)
+        app = build_hardening_features_app(db)
         expect(rodauth_responds_to?(app, :login_route)).to be true
         expect(rodauth_responds_to?(app, :logout_route)).to be true
       end
@@ -168,14 +177,70 @@ RSpec.describe 'ENV-conditional feature loading' do
 
     context 'when set to "true" (explicitly enabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_SECURITY_FEATURES' => 'true') do
+        ClimateControl.modify('ENABLE_HARDENING' => 'true') do
           example.run
         end
       end
 
-      it 'enables security features (true != false)' do
-        app = build_security_features_app(db)
+      it 'enables hardening features (true != false)' do
+        app = build_hardening_features_app(db)
         expect(rodauth_responds_to?(app, :max_invalid_logins)).to be true
+      end
+    end
+  end
+
+  describe 'ENABLE_ACTIVE_SESSIONS' do
+    context 'when not set (default - enabled)' do
+      around do |example|
+        ClimateControl.modify('ENABLE_ACTIVE_SESSIONS' => nil) do
+          example.run
+        end
+      end
+
+      it 'enables active_sessions feature' do
+        app = build_active_sessions_app(db)
+        expect(rodauth_responds_to?(app, :session_inactivity_deadline)).to be true
+      end
+    end
+
+    context 'when set to "false" (disabled)' do
+      around do |example|
+        ClimateControl.modify('ENABLE_ACTIVE_SESSIONS' => 'false') do
+          example.run
+        end
+      end
+
+      it 'disables active_sessions feature' do
+        app = build_active_sessions_app(db)
+        expect(rodauth_responds_to?(app, :session_inactivity_deadline)).to be false
+      end
+    end
+  end
+
+  describe 'ENABLE_REMEMBER_ME' do
+    context 'when not set (default - enabled)' do
+      around do |example|
+        ClimateControl.modify('ENABLE_REMEMBER_ME' => nil) do
+          example.run
+        end
+      end
+
+      it 'enables remember feature' do
+        app = build_remember_me_app(db)
+        expect(rodauth_responds_to?(app, :remember_login)).to be true
+      end
+    end
+
+    context 'when set to "false" (disabled)' do
+      around do |example|
+        ClimateControl.modify('ENABLE_REMEMBER_ME' => 'false') do
+          example.run
+        end
+      end
+
+      it 'disables remember feature' do
+        app = build_remember_me_app(db)
+        expect(rodauth_responds_to?(app, :remember_login)).to be false
       end
     end
   end
@@ -241,34 +306,34 @@ RSpec.describe 'ENV-conditional feature loading' do
     end
   end
 
-  describe 'ENABLE_MAGIC_LINKS' do
+  describe 'ENABLE_EMAIL_AUTH' do
     context 'when not set (default - disabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_MAGIC_LINKS' => nil) do
+        ClimateControl.modify('ENABLE_EMAIL_AUTH' => nil) do
           example.run
         end
       end
 
       it 'does not enable email_auth feature' do
-        app = build_passwordless_features_app(db)
+        app = build_email_auth_app(db)
         expect(rodauth_responds_to?(app, :email_auth_route)).to be false
       end
     end
 
     context 'when set to "true" (enabled)' do
       around do |example|
-        ClimateControl.modify('ENABLE_MAGIC_LINKS' => 'true') do
+        ClimateControl.modify('ENABLE_EMAIL_AUTH' => 'true') do
           example.run
         end
       end
 
       it 'enables email_auth feature' do
-        app = build_passwordless_features_app(db)
+        app = build_email_auth_app(db)
         expect(rodauth_responds_to?(app, :email_auth_route)).to be true
       end
 
       it 'enables email auth key creation' do
-        app = build_passwordless_features_app(db)
+        app = build_email_auth_app(db)
         expect(rodauth_responds_to?(app, :create_email_auth_key)).to be true
       end
     end
@@ -311,9 +376,11 @@ RSpec.describe 'ENV-conditional feature loading' do
     context 'all features enabled' do
       around do |example|
         ClimateControl.modify(
-          'ENABLE_SECURITY_FEATURES' => 'true',
+          'ENABLE_HARDENING' => 'true',
+          'ENABLE_ACTIVE_SESSIONS' => 'true',
+          'ENABLE_REMEMBER_ME' => 'true',
           'ENABLE_MFA' => 'true',
-          'ENABLE_MAGIC_LINKS' => 'true',
+          'ENABLE_EMAIL_AUTH' => 'true',
           'ENABLE_WEBAUTHN' => 'true',
         ) do
           example.run
@@ -345,18 +412,18 @@ RSpec.describe 'ENV-conditional feature loading' do
       end
     end
 
-    context 'security disabled but MFA enabled' do
+    context 'hardening disabled but MFA enabled' do
       around do |example|
         ClimateControl.modify(
-          'ENABLE_SECURITY_FEATURES' => 'false',
+          'ENABLE_HARDENING' => 'false',
           'ENABLE_MFA' => 'true',
         ) do
           example.run
         end
       end
 
-      it 'has MFA without security features' do
-        # MFA without security
+      it 'has MFA without hardening features' do
+        # MFA without hardening
         features = [:base, :login, :logout, :two_factor_base, :otp, :recovery_codes]
 
         app = create_rodauth_app(db: db, features: features) do
@@ -372,9 +439,11 @@ RSpec.describe 'ENV-conditional feature loading' do
     context 'minimal configuration (only core features)' do
       around do |example|
         ClimateControl.modify(
-          'ENABLE_SECURITY_FEATURES' => 'false',
+          'ENABLE_HARDENING' => 'false',
+          'ENABLE_ACTIVE_SESSIONS' => 'false',
+          'ENABLE_REMEMBER_ME' => 'false',
           'ENABLE_MFA' => 'false',
-          'ENABLE_MAGIC_LINKS' => 'false',
+          'ENABLE_EMAIL_AUTH' => 'false',
           'ENABLE_WEBAUTHN' => 'false',
         ) do
           example.run
