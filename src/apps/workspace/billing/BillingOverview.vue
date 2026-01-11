@@ -2,6 +2,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
@@ -12,10 +13,14 @@ import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { PaymentMethod } from '@/types/billing';
 import { getPlanDisplayName } from '@/types/billing';
 import type { Organization } from '@/types/organization';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 const { t } = useI18n();
+const route = useRoute();
 const organizationStore = useOrganizationStore();
+
+// Org extid comes from URL (e.g., /billing/:extid/overview)
+const orgExtid = computed(() => route.params.extid as string);
 
 const selectedOrg = ref<Organization | null>(null);
 const paymentMethod = ref<PaymentMethod | null>(null);
@@ -25,7 +30,6 @@ const isLoading = ref(false);
 const error = ref('');
 
 const organizations = computed(() => organizationStore.organizations);
-const currentOrganization = computed(() => organizationStore.currentOrganization);
 
 const {
   entitlements,
@@ -97,47 +101,19 @@ const daysUntilBilling = computed(() => {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 });
 
-// Track if initial load is in progress to avoid race condition
-const initialLoadComplete = ref(false);
-
-// Watch for organization changes from the header switcher
-watch(
-  currentOrganization,
-  async (newOrg, oldOrg) => {
-    // Skip if this is during initial mount or same org
-    if (!initialLoadComplete.value) return;
-    if (newOrg?.extid === oldOrg?.extid) return;
-
-    if (newOrg?.extid) {
-      await loadOrganizationData(newOrg.extid);
-    }
-  }
-);
-
 onMounted(async () => {
   try {
     // Initialize entitlement definitions for formatting
     await initDefinitions();
 
-    if (organizations.value.length === 0) {
-      await organizationStore.fetchOrganizations();
+    // Load organization data using extid from URL
+    if (orgExtid.value) {
+      await loadOrganizationData(orgExtid.value);
     }
-
-    // Use currentOrganization from store if set, otherwise use first org
-    const orgToLoad = currentOrganization.value || organizations.value[0];
-    if (orgToLoad?.extid) {
-      // Set the store's current org if not already set
-      if (!currentOrganization.value) {
-        organizationStore.setCurrentOrganization(orgToLoad);
-      }
-      await loadOrganizationData(orgToLoad.extid);
-    }
-
-    initialLoadComplete.value = true;
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.message || 'Failed to load organizations';
-    console.error('[BillingOverview] Error loading organizations:', err);
+    error.value = classified.message || 'Failed to load billing information';
+    console.error('[BillingOverview] Error loading billing data:', err);
   }
 });
 </script>
@@ -226,7 +202,7 @@ onMounted(async () => {
                 </p>
               </div>
               <router-link
-                :to="{ name: 'Billing Plans' }"
+                :to="{ name: 'Billing Plans', params: { extid: orgExtid } }"
                 class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
                 <OIcon
                   collection="heroicons"

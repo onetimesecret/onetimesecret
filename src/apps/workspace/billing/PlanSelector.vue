@@ -13,6 +13,7 @@ import { BillingService, type Plan as BillingPlan, type SubscriptionStatusRespon
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { BillingInterval } from '@/types/billing';
 import { formatCurrency } from '@/types/billing';
+import type { Organization } from '@/types/organization';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -20,16 +21,22 @@ const { t } = useI18n();
 const route = useRoute();
 const organizationStore = useOrganizationStore();
 
+// Org extid comes from URL (e.g., /billing/:extid/plans)
+const orgExtid = computed(() => route.params.extid as string);
+
 const billingInterval = ref<BillingInterval>('month');
-const selectedOrgId = ref<string | null>(null);
 const isCreatingCheckout = ref(false);
 const isLoadingPlans = ref(false);
+const isLoadingOrg = ref(false);
 const error = ref('');
 const suggestedPlanId = ref<string | null>(null);
 const successMessage = ref('');
 
 // Plans loaded from API
 const plans = ref<BillingPlan[]>([]);
+
+// Selected organization loaded from route extid
+const selectedOrg = ref<Organization | null>(null);
 
 // Subscription status for plan switching
 const subscriptionStatus = ref<SubscriptionStatusResponse | null>(null);
@@ -45,18 +52,12 @@ const currentPlanForModal = computed(() => {
   return plans.value.find(p => p.stripe_price_id === subscriptionStatus.value?.current_price_id) ?? null;
 });
 
-const organizations = computed(() => organizationStore.organizations);
-const selectedOrg = computed(() =>
-  organizations.value.find(org => org.id === selectedOrgId.value)
-);
-
 // Use entitlements composable for definitions loading
-const selectedOrgRef = computed(() => selectedOrg.value ?? null);
 const {
   initDefinitions,
   isLoadingDefinitions,
   definitionsError,
-} = useEntitlements(selectedOrgRef);
+} = useEntitlements(selectedOrg);
 
 /**
  * Get the current organization's tier by finding the matching plan.
@@ -103,7 +104,7 @@ const _getMembersLimit = (plan: BillingPlan): number | string => {
 /**
  * Combined loading state for the component
  */
-const isLoadingContent = computed(() => isLoadingPlans.value || isLoadingDefinitions.value);
+const isLoadingContent = computed(() => isLoadingPlans.value || isLoadingDefinitions.value || isLoadingOrg.value);
 
 /**
  * Tier hierarchy for inheritance (lower index = lower tier).
@@ -193,13 +194,7 @@ const loadPlans = async () => {
 };
 
 const handlePlanSelect = async (plan: BillingPlan) => {
-  if (isPlanCurrent(plan) || !selectedOrgId.value || plan.tier === 'free') return;
-
-  const selectedOrganization = organizations.value.find(org => org.id === selectedOrgId.value);
-  if (!selectedOrganization?.extid) {
-    error.value = 'Organization not found';
-    return;
-  }
+  if (isPlanCurrent(plan) || !selectedOrg.value?.extid || plan.tier === 'free') return;
 
   // Clear any previous messages
   error.value = '';
@@ -217,7 +212,7 @@ const handlePlanSelect = async (plan: BillingPlan) => {
 
   try {
     const response = await BillingService.createCheckoutSession(
-      selectedOrganization.extid,
+      selectedOrg.value.extid,
       plan.tier,
       billingInterval.value
     );
@@ -248,18 +243,18 @@ const handlePlanChangeSuccess = async (newPlan: string) => {
   successMessage.value = `Successfully switched to ${newPlan}`;
 
   // Refresh subscription status and organization data
-  const selectedOrganization = organizations.value.find(org => org.id === selectedOrgId.value);
-  if (selectedOrganization) {
-    await loadSubscriptionStatus(selectedOrganization);
-    await organizationStore.fetchOrganizations();
+  if (orgExtid.value) {
+    await loadSubscriptionStatus(orgExtid.value);
+    // Refresh org data
+    const org = await organizationStore.fetchOrganization(orgExtid.value);
+    selectedOrg.value = org;
   }
 };
 
 // Helper to load subscription status with error handling
-const loadSubscriptionStatus = async (org: { extid?: string }) => {
-  if (!org.extid) return;
+const loadSubscriptionStatus = async (extid: string) => {
   try {
-    subscriptionStatus.value = await BillingService.getSubscriptionStatus(org.extid);
+    subscriptionStatus.value = await BillingService.getSubscriptionStatus(extid);
   } catch (_err) {
     // Non-fatal: user may not have a subscription yet
     console.log('[PlanSelector] No active subscription found');
@@ -268,20 +263,20 @@ const loadSubscriptionStatus = async (org: { extid?: string }) => {
 
 onMounted(async () => {
   try {
+    isLoadingOrg.value = true;
+
     // Load entitlement definitions and plans in parallel
     await Promise.all([
       initDefinitions(),
       loadPlans(),
     ]);
 
-    if (organizations.value.length === 0) {
-      await organizationStore.fetchOrganizations();
-    }
-
-    if (organizations.value.length > 0) {
-      selectedOrgId.value = organizations.value[0].id;
+    // Load organization data using extid from URL
+    if (orgExtid.value) {
+      const org = await organizationStore.fetchOrganization(orgExtid.value);
+      selectedOrg.value = org;
       // Load subscription status to determine checkout vs plan change flow
-      await loadSubscriptionStatus(organizations.value[0]);
+      await loadSubscriptionStatus(orgExtid.value);
     }
 
     // Check for upgrade_to query param
@@ -291,8 +286,10 @@ onMounted(async () => {
     }
   } catch (err) {
     const classified = classifyError(err);
-    error.value = classified.message || 'Failed to load organizations';
-    console.error('[PlanSelector] Error loading organizations:', err);
+    error.value = classified.message || 'Failed to load billing data';
+    console.error('[PlanSelector] Error loading billing data:', err);
+  } finally {
+    isLoadingOrg.value = false;
   }
 });
 </script>
