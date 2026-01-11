@@ -177,10 +177,10 @@ const handlePlanSelect = async (plan: BillingPlan) => {
   isCreatingCheckout.value = true;
 
   try {
+    // Pass plan object - service derives product from plan.id
     const response = await BillingService.createCheckoutSession(
       selectedOrg.value.extid,
-      plan.tier,
-      billingInterval.value
+      { id: plan.id, interval: plan.interval }
     );
 
     // Redirect to Stripe Checkout

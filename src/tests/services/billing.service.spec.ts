@@ -293,7 +293,7 @@ describe('BillingService', () => {
   });
 
   describe('createCheckoutSession', () => {
-    it('calls correct endpoint with tier and billing cycle', async () => {
+    it('calls correct endpoint with product and interval', async () => {
       const mockResponse = {
         data: {
           checkout_url: 'https://checkout.stripe.com/session_123',
@@ -304,13 +304,33 @@ describe('BillingService', () => {
 
       const result = await BillingService.createCheckoutSession(
         'org_abc',
-        'single_team',
-        'month'
+        { id: 'identity_plus_v1_monthly', interval: 'month' }
       );
 
       expect(mockPost).toHaveBeenCalledWith(
         '/billing/api/org/org_abc/checkout',
-        { tier: 'single_team', billing_cycle: 'month' }
+        { product: 'identity_plus_v1', interval: 'month' }
+      );
+      expect(result.checkout_url).toContain('stripe.com');
+    });
+
+    it('handles yearly plans correctly', async () => {
+      const mockResponse = {
+        data: {
+          checkout_url: 'https://checkout.stripe.com/session_456',
+          session_id: 'cs_456',
+        },
+      };
+      mockPost.mockResolvedValueOnce(mockResponse);
+
+      const result = await BillingService.createCheckoutSession(
+        'org_abc',
+        { id: 'identity_plus_v1_yearly', interval: 'year' }
+      );
+
+      expect(mockPost).toHaveBeenCalledWith(
+        '/billing/api/org/org_abc/checkout',
+        { product: 'identity_plus_v1', interval: 'year' }
       );
       expect(result.checkout_url).toContain('stripe.com');
     });
