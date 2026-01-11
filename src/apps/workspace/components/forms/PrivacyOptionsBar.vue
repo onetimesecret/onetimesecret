@@ -1,4 +1,4 @@
-<!-- src/apps/workspace/components/domains/PrivacyOptionsBar.vue -->
+<!-- src/apps/workspace/components/forms/PrivacyOptionsBar.vue -->
 
 <script setup lang="ts">
   /**
@@ -117,8 +117,8 @@
       <!-- Privacy Options Label -->
       <div class="flex items-center gap-2">
         <OIcon
-          collection="mdi"
-          name="shield-lock-outline"
+          collection="material-symbols"
+          name="shield-outline"
           class="size-5 text-gray-500 dark:text-gray-400"
           aria-hidden="true" />
         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">

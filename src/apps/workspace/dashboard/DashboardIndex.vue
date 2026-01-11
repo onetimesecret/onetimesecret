@@ -2,7 +2,7 @@
 
 <script setup lang="ts">
   import RecentSecretsTable from '@/apps/secret/components/RecentSecretsTable.vue';
-  import PrivacyOptionsBar from '@/apps/workspace/components/domains/PrivacyOptionsBar.vue';
+  import PrivacyOptionsBar from '@/apps/workspace/components/forms/PrivacyOptionsBar.vue';
   import WorkspaceSecretForm from '@/apps/workspace/components/forms/WorkspaceSecretForm.vue';
   import UpgradeBanner from '@/apps/workspace/dashboard/components/UpgradeBanner.vue';
   import { useDomainScope } from '@/shared/composables/useDomainScope';
@@ -48,6 +48,6 @@
       ref="secretFormRef"
       class="mb-12" />
 
-    <RecentSecretsTable />
+    <RecentSecretsTable :show-workspace-mode-toggle="false" />
   </div>
 </template>

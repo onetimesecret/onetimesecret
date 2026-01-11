@@ -6,6 +6,15 @@ import SecretLinksTable from '@/apps/secret/components/SecretLinksTable.vue';
 import { useConcealedMetadataStore } from '@/shared/stores/concealedMetadataStore';
 import { computed, ref } from 'vue';
 
+export interface Props {
+  /** Whether to show the workspace mode toggle checkbox. Default true. */
+  showWorkspaceModeToggle?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  showWorkspaceModeToggle: true,
+});
+
 const { t } = useI18n();
 const concealedMetadataStore = useConcealedMetadataStore();
 const tableId = ref(`recent-secrets-${Math.random().toString(36).substring(2, 9)}`);
@@ -44,22 +53,24 @@ const dismissAllRecents = () => {
       </div>
 
       <div class="flex items-center gap-3">
-        <!-- Workspace mode toggle -->
-        <label
-          class="flex cursor-pointer items-center gap-2"
-          :title="t('web.secrets.workspace_mode_description')">
-          <input
-            type="checkbox"
-            :checked="concealedMetadataStore.workspaceMode"
-            @change="concealedMetadataStore.toggleWorkspaceMode()"
-            class="size-4 rounded border-gray-300 text-brand-600
-              focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700" />
-          <span class="text-sm text-gray-600 dark:text-gray-300">
-            {{ t('web.secrets.workspace_mode') }}
-          </span>
-        </label>
+        <!-- Workspace mode toggle (hideable via prop for dashboard chip control) -->
+        <template v-if="props.showWorkspaceModeToggle">
+          <label
+            class="flex cursor-pointer items-center gap-2"
+            :title="t('web.secrets.workspace_mode_description')">
+            <input
+              type="checkbox"
+              :checked="concealedMetadataStore.workspaceMode"
+              @change="concealedMetadataStore.toggleWorkspaceMode()"
+              class="size-4 rounded border-gray-300 text-brand-600
+                focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700" />
+            <span class="text-sm text-gray-600 dark:text-gray-300">
+              {{ t('web.secrets.workspace_mode') }}
+            </span>
+          </label>
 
-        <span class="text-gray-300 dark:text-gray-600">|</span>
+          <span class="text-gray-300 dark:text-gray-600">|</span>
+        </template>
 
         <span
           v-if="concealedMetadataStore.hasMessages"
