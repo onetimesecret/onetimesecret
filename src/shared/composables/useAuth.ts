@@ -39,7 +39,7 @@ import type { LockoutStatus } from '@/types/auth';
 import type { AxiosInstance } from 'axios';
 import { inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -86,12 +86,30 @@ import { useRouter } from 'vue-router';
 /* eslint-disable max-lines-per-function */
 export function useAuth() {
   const $api = inject('api') as AxiosInstance;
+  const route = useRoute();
   const router = useRouter();
   const { locale } = useI18n();
   const authStore = useAuthStore();
   const csrfStore = useCsrfStore();
   const notificationsStore = useNotificationsStore();
   const organizationStore = useOrganizationStore();
+
+  /**
+   * Extracts billing-related query params from the current route.
+   * Used to forward product/interval selection through auth flows.
+   *
+   * @returns Object with product and interval if present in query params
+   */
+  function getBillingParams(): { product?: string; interval?: string } {
+    const params: { product?: string; interval?: string } = {};
+    if (route.query.product && typeof route.query.product === 'string') {
+      params.product = route.query.product;
+    }
+    if (route.query.interval && typeof route.query.interval === 'string') {
+      params.interval = route.query.interval;
+    }
+    return params;
+  }
 
   const isLoading = ref(false);
   const error = ref<string | null>(null);
@@ -197,12 +215,14 @@ export function useAuth() {
     clearErrors();
 
     const result = await wrap(async () => {
+      const billingParams = getBillingParams();
       const response = await $api.post<LoginResponse>('/auth/login', {
         login: email,
         password: password,
         shrimp: csrfStore.shrimp,
         'remember-me': rememberMe,
         locale: locale.value,
+        ...billingParams,
       });
 
       const validated = loginResponseSchema.parse(response.data);
@@ -274,12 +294,14 @@ export function useAuth() {
     clearErrors();
 
     const result = await wrap(async () => {
+      const billingParams = getBillingParams();
       const response = await $api.post<CreateAccountResponse>('/auth/create-account', {
         login: email,
         password: password,
         agree: termsAgreed,
         shrimp: csrfStore.shrimp,
         locale: locale.value,
+        ...billingParams,
       });
 
       const validated = createAccountResponseSchema.parse(response.data);
