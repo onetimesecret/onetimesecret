@@ -17,6 +17,12 @@
 
   const { t } = useI18n();
 
+  // Disable auto attribute inheritance since we have multiple root nodes (main div + Teleport)
+  // and manually bind $attrs to the main container
+  defineOptions({
+    inheritAttrs: false,
+  });
+
   const props = withDefaults(
     defineProps<{
       /** Current TTL value in seconds */
@@ -105,6 +111,7 @@
 
 <template>
   <div
+    v-bind="$attrs"
     class="border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:px-6">
     <div class="flex flex-wrap items-center gap-4">
       <!-- Privacy Options Label -->
