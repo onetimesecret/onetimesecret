@@ -165,6 +165,58 @@ const routes: Array<RouteRecordRaw> = [
       scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
+  {
+    path: '/pricing',
+    name: 'Pricing',
+    component: () => import('@/apps/secret/support/Pricing.vue'),
+    meta: {
+      title: 'web.TITLES.pricing',
+      requiresAuth: false,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayFooterLinks: true,
+        displayFeedback: false, // Pricing page has its own feedback toggle
+      },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+    },
+  },
+  // Deep-link routes for external sites to link directly to specific plans
+  // URL pattern: /pricing/:product/:interval
+  // Examples: /pricing/identity_plus/month, /pricing/team_plus/year
+  // Resolves to plan ID: {product}_v{version}_{interval} (e.g., identity_plus_v1_monthly)
+  {
+    path: '/pricing/:product',
+    name: 'PricingProduct',
+    component: () => import('@/apps/secret/support/Pricing.vue'),
+    meta: {
+      title: 'web.TITLES.pricing',
+      requiresAuth: false,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayFooterLinks: true,
+        displayFeedback: false,
+      },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+    },
+  },
+  {
+    path: '/pricing/:product/:interval',
+    name: 'PricingProductInterval',
+    component: () => import('@/apps/secret/support/Pricing.vue'),
+    meta: {
+      title: 'web.TITLES.pricing',
+      requiresAuth: false,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayFooterLinks: true,
+        displayFeedback: false,
+      },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+    },
+  },
 ];
 
 export default routes;
