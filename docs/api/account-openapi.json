@@ -53,6 +53,138 @@
       }
     },
     "schemas": {
+      "Account": {
+        "type": "object",
+        "properties": {
+          "cust": {
+            "type": "object",
+            "properties": {
+              "identifier": {
+                "type": "string"
+              },
+              "created": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updated": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "objid": {
+                "type": "string"
+              },
+              "extid": {
+                "type": "string"
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "customer",
+                  "colonel",
+                  "recipient",
+                  "user_deleted_self"
+                ]
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              },
+              "verified": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "active": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "contributor": {
+                "type": "boolean",
+                "nullable": true
+              },
+              "secrets_created": {
+                "type": "number",
+                "nullable": true,
+                "default": 0
+              },
+              "secrets_burned": {
+                "type": "number",
+                "nullable": true,
+                "default": 0
+              },
+              "secrets_shared": {
+                "type": "number",
+                "nullable": true,
+                "default": 0
+              },
+              "emails_sent": {
+                "type": "number",
+                "nullable": true,
+                "default": 0
+              },
+              "last_login": {
+                "type": "string",
+                "nullable": true,
+                "format": "date-time"
+              },
+              "locale": {
+                "type": "string",
+                "nullable": true
+              },
+              "notify_on_reveal": {
+                "type": "boolean",
+                "nullable": true,
+                "default": false
+              },
+              "feature_flags": {
+                "type": "object",
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "default": {}
+              }
+            },
+            "required": [
+              "identifier",
+              "created",
+              "updated",
+              "objid",
+              "extid",
+              "role",
+              "email",
+              "locale"
+            ],
+            "additionalProperties": false
+          },
+          "apitoken": {
+            "type": "string"
+          },
+          "stripe_customer": {
+            "$ref": "#/components/schemas/StripeCustomer"
+          },
+          "stripe_subscriptions": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/StripeSubscription"
+            }
+          }
+        },
+        "required": [
+          "cust",
+          "stripe_customer",
+          "stripe_subscriptions"
+        ]
+      },
       "StripeCustomer": {
         "type": "object",
         "nullable": true,
@@ -236,138 +368,6 @@
           "canceled_at",
           "items",
           "metadata"
-        ]
-      },
-      "Account": {
-        "type": "object",
-        "properties": {
-          "cust": {
-            "type": "object",
-            "properties": {
-              "identifier": {
-                "type": "string"
-              },
-              "created": {
-                "type": "string",
-                "format": "date"
-              },
-              "updated": {
-                "type": "string",
-                "format": "date"
-              },
-              "objid": {
-                "type": "string"
-              },
-              "extid": {
-                "type": "string"
-              },
-              "role": {
-                "type": "string",
-                "enum": [
-                  "customer",
-                  "colonel",
-                  "recipient",
-                  "user_deleted_self"
-                ]
-              },
-              "email": {
-                "type": "string",
-                "format": "email"
-              },
-              "verified": {
-                "type": "boolean",
-                "nullable": true
-              },
-              "active": {
-                "type": "boolean",
-                "nullable": true
-              },
-              "contributor": {
-                "type": "boolean",
-                "nullable": true
-              },
-              "secrets_created": {
-                "type": "number",
-                "nullable": true,
-                "default": 0
-              },
-              "secrets_burned": {
-                "type": "number",
-                "nullable": true,
-                "default": 0
-              },
-              "secrets_shared": {
-                "type": "number",
-                "nullable": true,
-                "default": 0
-              },
-              "emails_sent": {
-                "type": "number",
-                "nullable": true,
-                "default": 0
-              },
-              "last_login": {
-                "type": "string",
-                "nullable": true,
-                "format": "date"
-              },
-              "locale": {
-                "type": "string",
-                "nullable": true
-              },
-              "notify_on_reveal": {
-                "type": "boolean",
-                "nullable": true,
-                "default": false
-              },
-              "feature_flags": {
-                "type": "object",
-                "additionalProperties": {
-                  "anyOf": [
-                    {
-                      "type": "boolean"
-                    },
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "string"
-                    }
-                  ]
-                },
-                "default": {}
-              }
-            },
-            "required": [
-              "identifier",
-              "created",
-              "updated",
-              "objid",
-              "extid",
-              "role",
-              "email",
-              "locale"
-            ],
-            "additionalProperties": false
-          },
-          "apitoken": {
-            "type": "string"
-          },
-          "stripe_customer": {
-            "$ref": "#/components/schemas/StripeCustomer"
-          },
-          "stripe_subscriptions": {
-            "type": "array",
-            "nullable": true,
-            "items": {
-              "$ref": "#/components/schemas/StripeSubscription"
-            }
-          }
-        },
-        "required": [
-          "cust",
-          "stripe_customer",
-          "stripe_subscriptions"
         ]
       },
       "ApiToken": {
