@@ -287,6 +287,7 @@
     "TITLES": {
       "incoming": "Incoming Secrets",
       "feedback": "Feedback",
+      "help": "Help",
       "signin": "Sign In",
       "signup": "Create Account",
       "forgot_password": "Forgot Password",

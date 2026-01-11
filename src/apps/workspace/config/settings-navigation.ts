@@ -1,6 +1,5 @@
 // src/apps/workspace/config/settings-navigation.ts
 
-import { WindowService } from '@/services/window.service';
 import type { ComposerTranslation } from 'vue-i18n';
 
 /**
@@ -139,39 +138,6 @@ function getRegionSection(t: ComposerTranslation): SettingsNavigationItem {
     ],
   };
 }
-
-/** Billing section navigation (conditionally visible) */
-function getBillingSection(t: ComposerTranslation): SettingsNavigationItem {
-  return {
-    id: 'billing',
-    to: '/billing',
-    icon: { collection: 'heroicons', name: 'credit-card' },
-    label: t('web.billing.overview.title'),
-    description: t('web.billing.manage_subscription_and_billing'),
-    visible: () => WindowService.get('billing_enabled') === true,
-    children: [
-      {
-        id: 'billing-overview',
-        to: '/billing/overview',
-        icon: { collection: 'heroicons', name: 'chart-bar' },
-        label: t('web.billing.overview.title'),
-      },
-      {
-        id: 'billing-plans',
-        to: '/billing/plans',
-        icon: { collection: 'heroicons', name: 'sparkles' },
-        label: t('web.billing.plans.title'),
-      },
-      {
-        id: 'billing-invoices',
-        to: '/billing/invoices',
-        icon: { collection: 'heroicons', name: 'document-text' },
-        label: t('web.billing.invoices.title'),
-      },
-    ],
-  };
-}
-
 /**
  * Generate flat settings navigation configuration (legacy)
  * @deprecated Use getSettingsNavigationSections for grouped navigation
@@ -187,11 +153,7 @@ export function getSettingsNavigation(t: ComposerTranslation): SettingsNavigatio
  * Generate grouped settings navigation configuration
  * Returns sections with their navigation items for sidebar rendering
  */
-export function getSettingsNavigationSections(
-  t: ComposerTranslation
-): SettingsNavigationSection[] {
-  const billingSection = getBillingSection(t);
-
+export function getSettingsNavigationSections(t: ComposerTranslation): SettingsNavigationSection[] {
   return [
     {
       id: 'account',
@@ -207,12 +169,6 @@ export function getSettingsNavigationSections(
           description: t('web.settings.api.manage_api_keys'),
         },
       ],
-    },
-    {
-      id: 'billing',
-      label: t('web.settings.sections.billing'),
-      visible: () => WindowService.get('billing_enabled') === true,
-      items: [billingSection],
     },
     {
       id: 'advanced',

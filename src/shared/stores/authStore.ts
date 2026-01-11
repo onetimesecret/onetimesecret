@@ -9,7 +9,64 @@ import { defineStore, PiniaCustomProperties } from 'pinia';
 import { computed, inject, ref } from 'vue';
 
 /**
- * Configuration for window state refresh behavior.
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * AUTHENTICATION STATE MANAGEMENT
+ * ═══════════════════════════════════════════════════════════════════════════════
+ *
+ * This store manages client-side authentication state and coordinates with
+ * the server via the /window endpoint. It works in concert with:
+ *
+ * - useAuth composable: Handles auth operations (login, logout, signup)
+ * - useMfa composable: Handles MFA setup and verification
+ * - WindowService: Provides reactive access to server-injected state
+ * - Route guards: Enforce authentication requirements on navigation
+ *
+ * ───────────────────────────────────────────────────────────────────────────────
+ * AUTHENTICATION STATES
+ * ───────────────────────────────────────────────────────────────────────────────
+ *
+ * The system recognizes three distinct authentication states:
+ *
+ * 1. UNAUTHENTICATED (isAuthenticated=false, awaitingMfa=false)
+ *    - No valid session
+ *    - User sees: Sign In / Create Account links
+ *    - Access: Public pages only
+ *
+ * 2. AWAITING MFA (isAuthenticated=false, awaitingMfa=true)
+ *    - Password verified, OTP pending
+ *    - Server returns authenticated=false until MFA completes
+ *    - User sees: Limited menu with "Complete MFA" option
+ *    - Access: MFA verification page only, guards redirect elsewhere to /mfa-verify
+ *    - Session has awaiting_mfa=true flag from server
+ *
+ * 3. FULLY AUTHENTICATED (isAuthenticated=true, awaitingMfa=false)
+ *    - All auth steps complete
+ *    - User sees: Full navigation menu
+ *    - Access: All authorized pages
+ *
+ * ───────────────────────────────────────────────────────────────────────────────
+ * STATE SYNCHRONIZATION (CRITICAL)
+ * ───────────────────────────────────────────────────────────────────────────────
+ *
+ * State is stored in two places that MUST stay synchronized:
+ *
+ * 1. window.__ONETIME_STATE__ - Server-injected on page load
+ * 2. WindowService.reactiveState - Vue reactive cache for computed properties
+ *
+ * When refreshing state from /window endpoint:
+ * - ALWAYS use WindowService.update() to update BOTH locations
+ * - NEVER assign directly to window.__ONETIME_STATE__ (breaks reactivity)
+ *
+ * The awaitingMfa computed property reads from WindowService. If the reactive
+ * cache isn't updated, route guards see stale state and redirect incorrectly.
+ *
+ * LOGIN WITH MFA: The login response includes mfa_required=true, so useAuth
+ * updates WindowService directly with awaiting_mfa=true. No /window fetch is
+ * needed - the state flows naturally from the login response to the route guard.
+ *
+ * ───────────────────────────────────────────────────────────────────────────────
+ * PERIODIC REFRESH CONFIGURATION
+ * ───────────────────────────────────────────────────────────────────────────────
  *
  * The timing strategy uses two mechanisms:
  * 1. Base interval (15 minutes) for regular checks
@@ -17,20 +74,13 @@ import { computed, inject, ref } from 'vue';
  *    across multiple browser sessions, reducing server load spikes
  *
  * The /window endpoint provides complete state refresh including:
- * - Authentication status and customer data
+ * - Authentication status (authenticated, awaiting_mfa)
+ * - Customer data and entitlements
  * - CSRF token (shrimp) refresh
  * - Configuration and feature flags
- * - i18n and domain settings
  *
  * Note: Exponential backoff was intentionally removed in favor of a simpler
- * "3 strikes" model because:
- * 1. Immediate logout after 3 failures provides clearer UX
- * 2. The 15-minute base interval already provides adequate spacing
- * 3. Backoff could mask serious issues by waiting longer between retries
- *
- * @note We created a new src/composables/useAuth.ts for auth operations (login,
- * signup, logout, password reset) and are keeping this authStore.ts focused
- * on session state management and periodic window state refresh.
+ * "3 strikes" model because immediate logout after failures provides clearer UX.
  */
 export const AUTH_CHECK_CONFIG = {
   INTERVAL: 15 * 60 * 1000,
@@ -55,6 +105,9 @@ export type AuthStore = {
   // Getters
   needsCheck: boolean;
   isInitialized: boolean;
+  awaitingMfa: boolean;
+  isFullyAuthenticated: boolean;
+  isUserPresent: boolean;
 
   // Actions
   init: () => { needsCheck: boolean; isInitialized: boolean };
@@ -109,6 +162,32 @@ export const useAuthStore = defineStore('auth', () => {
   });
 
   const isInitialized = computed(() => _initialized.value);
+
+  /**
+   * Whether user is awaiting MFA verification (password OK, OTP pending).
+   * This is a transitional state between unauthenticated and fully authenticated.
+   */
+  const awaitingMfa = computed(() => WindowService.get('awaiting_mfa') ?? false);
+
+  /**
+   * Whether user has completed ALL authentication steps.
+   * False if MFA is pending, even if password auth succeeded.
+   * Use this for route protection and access control.
+   */
+  const isFullyAuthenticated = computed(() =>
+    isAuthenticated.value === true && !awaitingMfa.value
+  );
+
+  /**
+   * Whether a user is present (logged in partially or fully).
+   * True for both MFA-pending and fully authenticated states.
+   * Use this for UI decisions (show user menu, hide sign-in links).
+   */
+  const isUserPresent = computed(() => {
+    const cust = WindowService.get('cust');
+    const email = WindowService.get('email');
+    return !!((isAuthenticated.value && cust) || (awaitingMfa.value && email));
+  });
 
   // Actions
 
@@ -189,22 +268,24 @@ export const useAuthStore = defineStore('auth', () => {
    * - Automatic logout after MAX_FAILURES consecutive failures
    * - Resets failure counter on successful check
    * - Maintains sync between local and window state
+   * - Allows refresh during MFA pending state (awaiting_mfa=true)
    *
    * @returns Current authentication state
    */
   async function checkWindowStatus() {
-    // Only skip the check if we're CERTAIN the user is not authenticated (false).
+    // Allow refresh if authenticated OR if awaiting MFA completion.
     // When isAuthenticated is null (uncertain/initial state), we should verify.
-    // This fixes the race condition on page refresh where init() might not have
-    // properly read the window state yet.
+    // Skip only when definitively unauthenticated and not awaiting MFA.
+    const shouldSkip = isAuthenticated.value === false && !awaitingMfa.value;
     loggingService.debug('[AuthStore.checkWindowStatus] Called with state:', {
       isAuthenticated: isAuthenticated.value,
       isAuthenticatedType: typeof isAuthenticated.value,
-      willSkip: isAuthenticated.value === false,
+      awaitingMfa: awaitingMfa.value,
+      willSkip: shouldSkip,
     });
 
-    if (isAuthenticated.value === false) {
-      loggingService.debug('[AuthStore.checkWindowStatus] Skipping check - user definitively not authenticated');
+    if (shouldSkip) {
+      loggingService.debug('[AuthStore.checkWindowStatus] Skipping check - user definitively not authenticated and not awaiting MFA');
       return false;
     }
 
@@ -213,9 +294,14 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await $api.get(AUTH_CHECK_CONFIG.ENDPOINT);
 
-      // Update entire window state with fresh data
-      if (window.__ONETIME_STATE__ && response.data) {
-        window.__ONETIME_STATE__ = response.data;
+      // Update window state via WindowService to maintain reactivity.
+      // CRITICAL: Must use WindowService.update() to sync BOTH:
+      //   1. window.__ONETIME_STATE__ (for legacy code)
+      //   2. WindowService.reactiveState (for Vue computed properties)
+      // Direct assignment to window.__ONETIME_STATE__ breaks reactivity
+      // and causes stale awaitingMfa state in route guards.
+      if (response.data) {
+        WindowService.update(response.data);
       }
 
       // Update local auth state from refreshed window data
@@ -225,6 +311,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       loggingService.debug('[AuthStore.checkWindowStatus] API response:', {
         authenticated: response.data.authenticated,
+        awaiting_mfa: response.data.awaiting_mfa,
         newIsAuthenticated: isAuthenticated.value,
       });
 
@@ -344,7 +431,13 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * Sets the authenticated state and updates window state
+   * Sets the authenticated state and refreshes window state from server.
+   *
+   * Called after successful authentication operations (login, MFA verification).
+   * Triggers a /window refresh to get complete server state including:
+   * - Customer data and entitlements
+   * - Updated awaiting_mfa flag (critical for MFA flow completion)
+   * - Fresh CSRF token
    *
    * @param value - The authentication state to set
    */
@@ -355,16 +448,20 @@ export const useAuthStore = defineStore('auth', () => {
     if (value) {
       sessionStorage.setItem('ots_auth_state', 'true');
       // Fetch fresh window state immediately to get customer data
+      // and updated awaiting_mfa flag (critical after MFA verification)
       await checkWindowStatus();
     } else {
       sessionStorage.removeItem('ots_auth_state');
       await $stopAuthCheck();
     }
 
-    // Sync window state flag
-    if (window.__ONETIME_STATE__) {
-      window.__ONETIME_STATE__.authenticated = value;
-    }
+    // Sync flags via WindowService for reactivity. When setting authenticated to true,
+    // we also set awaiting_mfa to false. This optimistic update prevents getting
+    // stuck if the subsequent checkWindowStatus() call fails.
+    WindowService.update({
+      authenticated: value,
+      ...(value ? { awaiting_mfa: false } : {}),
+    });
   }
 
   return {
@@ -378,6 +475,9 @@ export const useAuthStore = defineStore('auth', () => {
     // Getters
     needsCheck,
     isInitialized,
+    awaitingMfa,
+    isFullyAuthenticated,
+    isUserPresent,
 
     // Actions
     init,

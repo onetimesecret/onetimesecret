@@ -42,7 +42,7 @@ const isParentActive = (item: SettingsNavigationItem): boolean => {
     aria-label="Settings navigation">
     <!-- Back to Dashboard link -->
     <router-link
-      to="/account"
+      to="/"
       class="group flex items-center gap-2 text-sm text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
       <OIcon
         collection="heroicons"

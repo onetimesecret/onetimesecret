@@ -5,9 +5,12 @@
   import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
   import UserMenu from '@/shared/components/navigation/UserMenu.vue';
   import { WindowService } from '@/services/window.service';
+  import { useAuthStore } from '@/shared/stores/authStore';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, watch, type Component, onMounted } from 'vue';
   import { shallowRef } from 'vue';
+
+  const authStore = useAuthStore();
 
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
@@ -28,13 +31,10 @@
 
   const isColonel = computed(() => windowProps.value.cust?.role === 'colonel');
 
-  // User is partially or fully authenticated
+  // User is partially or fully authenticated - use centralized auth store getter
   // Partially: email verified but awaiting MFA (awaiting_mfa = true, has email but no cust)
   // Fully: all authentication steps complete (authenticated = true, has cust)
-  const isUserPresent = computed(() => {
-    const { authenticated, awaiting_mfa, cust, email } = windowProps.value;
-    return !!((authenticated && cust) || (awaiting_mfa && email));
-  });
+  const isUserPresent = computed(() => authStore.isUserPresent);
 
   // i18n setup
   const { t } = useI18n();

@@ -87,7 +87,7 @@ describe('Router Guards', () => {
       redirectedFrom: undefined
     };
 
-    const authStore = { isAuthenticated: true };
+    const authStore = { isAuthenticated: true, isFullyAuthenticated: true };
     vi.mocked(useAuthStore).mockReturnValue(authStore as any);
 
     const result = await guard(to as any);
@@ -111,7 +111,7 @@ describe('Router Guards', () => {
       meta: {}
     };
 
-    const authStore = { isAuthenticated: true };
+    const authStore = { isAuthenticated: true, isFullyAuthenticated: true };
     vi.mocked(useAuthStore).mockReturnValue(authStore as any);
 
     const result = await guard(to as any);
@@ -133,7 +133,14 @@ describe('Router Guards', () => {
 
       protectedRoute = {
         meta: { requiresAuth: true },
-        // Add other required RouteLocationNormalized properties
+        fullPath: '/protected',
+        path: '/protected',
+        name: 'Protected',
+        params: {},
+        query: {},
+        hash: '',
+        matched: [],
+        redirectedFrom: undefined,
       } as RouteLocationNormalized;
     });
 

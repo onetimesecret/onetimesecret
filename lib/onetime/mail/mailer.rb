@@ -16,6 +16,7 @@ require_relative 'templates/feedback_email'
 require_relative 'templates/secret_revealed'
 require_relative 'templates/expiration_warning'
 require_relative 'templates/organization_invitation'
+require_relative 'templates/magic_link'
 
 module Onetime
   module Mail

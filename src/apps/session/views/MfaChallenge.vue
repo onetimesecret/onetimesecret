@@ -4,6 +4,7 @@
   import { useI18n } from 'vue-i18n';
   import AuthView from '@/apps/session/components/AuthView.vue';
   import OtpCodeInput from '@/apps/session/components/OtpCodeInput.vue';
+  import { loggingService } from '@/services/logging.service';
   import { useAuth } from '@/shared/composables/useAuth';
   import { useMfa } from '@/shared/composables/useMfa';
   import { useAuthStore } from '@/shared/stores/authStore';
@@ -21,18 +22,29 @@
   const useRecoveryMode = ref(false);
   const otpInputRef = ref<HTMLInputElement | null>(null);
 
-  // Check if user is already authenticated or MFA is not enabled
+  // Check if user is already fully authenticated or MFA is not enabled
   onMounted(async () => {
-    if (authStore.isAuthenticated) {
+    loggingService.debug('[MfaChallenge] onMounted - checking state:', {
+      isAuthenticated: authStore.isAuthenticated,
+      isFullyAuthenticated: authStore.isFullyAuthenticated,
+      awaitingMfa: authStore.awaitingMfa,
+      windowState: window.__ONETIME_STATE__,
+    });
+
+    // Only redirect if FULLY authenticated (not just partially with MFA pending)
+    if (authStore.isFullyAuthenticated) {
+      loggingService.debug('[MfaChallenge] Already fully authenticated, redirecting to /');
       router.push('/');
       return;
     }
 
     // Check if MFA is actually enabled for this account
     const status = await fetchMfaStatus();
+    loggingService.debug('[MfaChallenge] MFA status check:', { status });
     if (status && !status.enabled) {
       // MFA not enabled but session has awaiting_mfa=true
       // This is an inconsistent state - clear it by completing auth
+      loggingService.debug('[MfaChallenge] MFA not enabled, completing auth');
       await authStore.setAuthenticated(true);
       router.push('/');
     }
@@ -48,15 +60,22 @@
   const handleVerifyOtp = async () => {
     if (otpCode.value.length !== 6) return;
 
+    loggingService.debug('[MfaChallenge] Verifying OTP...');
     clearError();
     const success = await verifyOtp(otpCode.value);
+    loggingService.debug('[MfaChallenge] OTP verification result:', { success });
 
     if (success) {
       // Update auth state and navigate
+      loggingService.debug('[MfaChallenge] Setting authenticated=true');
       await authStore.setAuthenticated(true);
+      loggingService.debug('[MfaChallenge] After setAuthenticated, window state:', {
+        windowState: window.__ONETIME_STATE__,
+      });
       router.push('/');
     } else {
       // Clear input on error
+      loggingService.debug('[MfaChallenge] OTP failed, clearing input');
       otpCode.value = '';
       if (otpInputRef.value) {
         otpInputRef.value.value = '';
@@ -108,7 +127,8 @@
   <AuthView
     :heading="t('web.auth.mfa.title')"
     heading-id="mfa-verify-heading"
-    :with-subheading="false">
+    :with-subheading="false"
+    :show-return-home="false">
     <template #form>
       <div class="space-y-6">
         <!-- OTP Mode -->
@@ -153,7 +173,7 @@
             type="button"
             class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
             <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
-            <span v-else>{{ t('web.auth.mfa.verify') }}</span>
+            <span v-else>{{ t('web.auth.mfa.verify_login') }}</span>
           </button>
           <span id="verify-button-hint" class="sr-only">
             {{ otpCode.length === 6 ? '' : t('web.auth.mfa.enter_all_digits') }}
@@ -166,26 +186,6 @@
             aria-atomic="true"
             class="sr-only">
             {{ t('web.COMMON.form_processing') }}
-          </div>
-
-          <!-- Switch to recovery code and cancel -->
-          <div class="mt-4 space-y-2 text-center">
-            <button
-              @click="toggleRecoveryMode"
-              type="button"
-              class="text-sm text-brand-600 transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-              {{ t('web.auth.mfa.use_recovery_code') }}
-            </button>
-            <div class="mt-3">
-              <button
-                @click="handleCancel"
-                type="button"
-                :disabled="isLoading"
-                :aria-label="t('web.auth.mfa.cancel') + ' - ' + t('web.login.button_sign_in')"
-                class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-                {{ t('web.auth.mfa.cancel') }}
-              </button>
-            </div>
           </div>
         </div>
 
@@ -249,27 +249,46 @@
               class="sr-only">
               {{ t('web.COMMON.form_processing') }}
             </div>
-
-            <!-- Switch back to OTP and cancel -->
-            <div class="space-y-2 text-center">
-              <button
-                @click="toggleRecoveryMode"
-                type="button"
-                class="text-sm text-brand-600 transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-                {{ t('web.auth.mfa.back_to_code') }}
-              </button>
-              <div class="mt-3">
-                <button
-                  @click="handleCancel"
-                  type="button"
-                  :disabled="isLoading"
-                  class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-                  {{ t('web.auth.mfa.cancel') }}
-                </button>
-              </div>
-            </div>
           </form>
         </div>
+      </div>
+    </template>
+
+    <!-- Footer: Secondary actions outside the card -->
+    <template #footer>
+      <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
+        <nav
+          aria-label="Alternative authentication options"
+          class="flex items-center justify-center gap-2 text-sm">
+        <!-- OTP mode: show recovery code option -->
+        <template v-if="!useRecoveryMode">
+          <button
+            @click="toggleRecoveryMode"
+            type="button"
+            class="text-gray-500 transition-colors duration-200 hover:text-gray-700 focus:outline-none focus:underline dark:text-gray-400 dark:hover:text-gray-300">
+            {{ t('web.auth.mfa.use_recovery_code_short') }}
+          </button>
+        </template>
+        <!-- Recovery mode: show back to OTP option -->
+        <template v-else>
+          <button
+            @click="toggleRecoveryMode"
+            type="button"
+            class="text-gray-500 transition-colors duration-200 hover:text-gray-700 focus:outline-none focus:underline dark:text-gray-400 dark:hover:text-gray-300">
+            {{ t('web.auth.mfa.back_to_code') }}
+          </button>
+        </template>
+
+        <span class="text-gray-300 dark:text-gray-600" aria-hidden="true">&#8226;</span>
+
+        <button
+          @click="handleCancel"
+          type="button"
+          :disabled="isLoading"
+          class="text-gray-500 transition-colors duration-200 hover:text-gray-700 focus:outline-none focus:underline disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-300">
+          {{ t('web.auth.mfa.cancel_sign_in') }}
+        </button>
+        </nav>
       </div>
     </template>
   </AuthView>

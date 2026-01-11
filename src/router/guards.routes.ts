@@ -1,8 +1,8 @@
 // src/router/guards.routes.ts
 
 import { loggingService } from '@/services/logging.service';
-import { usePageTitle } from '@/shared/composables/usePageTitle';
 import { WindowService } from '@/services/window.service';
+import { usePageTitle } from '@/shared/composables/usePageTitle';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useLanguageStore } from '@/shared/stores/languageStore';
 import { RouteLocationNormalized, Router } from 'vue-router';
@@ -22,13 +22,16 @@ export async function setupRouterGuards(router: Router): Promise<void> {
 
     if (to.name === 'NotFound') return true;
 
-    const mfaRedirect = handleMfaAccess(to, authStore.isAuthenticated);
+    // Handle MFA requirement checks
+    const mfaRedirect = handleMfaAccess(to, authStore);
     if (mfaRedirect) return mfaRedirect;
 
-    if (to.path === '/') return authStore.isAuthenticated ? { name: 'Dashboard' } : true;
+    // Handle root path redirect
+    if (to.path === '/') return authStore.isFullyAuthenticated ? { name: 'Dashboard' } : true;
 
-    // Redirect authenticated users away from auth routes (respect redirect param)
-    if (isAuthRoute(to) && authStore.isAuthenticated) {
+    // Redirect fully authenticated users away from auth routes (respect redirect param)
+    // MFA pending users should still access auth routes like /mfa-verify
+    if (isAuthRoute(to) && authStore.isFullyAuthenticated) {
       const redirectParam = to.query.redirect as string | undefined;
       const isValidRedirect = redirectParam?.startsWith('/') && !redirectParam.startsWith('//');
       return isValidRedirect ? { path: redirectParam } : { name: 'Dashboard' };
@@ -52,7 +55,10 @@ export async function setupRouterGuards(router: Router): Promise<void> {
   router.afterEach((to: RouteLocationNormalized) => {
     // Find the title from the matched routes, starting from the most specific
     // This handles nested routes properly by inheriting from parent routes
-    const nearestWithTitle = to.matched.slice().reverse().find(r => r.meta && r.meta.title);
+    const nearestWithTitle = to.matched
+      .slice()
+      .reverse()
+      .find((r) => r.meta && r.meta.title);
 
     let newTitle: string | null = null;
 
@@ -82,20 +88,44 @@ function isAuthRoute(route: RouteLocationNormalized): boolean {
 /**
  * Handle MFA verification access control
  * @param to - Target route
- * @param isAuthenticated - Current authentication status
+ * @param authStore - Auth store with awaitingMfa and isFullyAuthenticated getters
  * @returns Redirect object or null if no redirect needed
  */
-function handleMfaAccess(to: RouteLocationNormalized, isAuthenticated: boolean | null) {
-  const awaitingMfa = WindowService.get('awaiting_mfa');
+function handleMfaAccess(
+  to: RouteLocationNormalized,
+  authStore: {
+    awaitingMfa: boolean;
+    isFullyAuthenticated: boolean;
+    isAuthenticated: boolean | null;
+  }
+) {
+  const { awaitingMfa, isFullyAuthenticated, isAuthenticated } = authStore;
+
+  // DEBUG: Log MFA state on every navigation
+  loggingService.debug('[MFA Guard] State check:', {
+    targetPath: to.path,
+    targetName: to.name,
+    awaitingMfa,
+    isAuthenticated,
+    isFullyAuthenticated,
+    windowState: window.__ONETIME_STATE__,
+  });
 
   // Redirect to MFA verification if awaiting second factor
   if (awaitingMfa && to.path !== '/mfa-verify') {
+    loggingService.debug('[MFA Guard] Redirecting to /mfa-verify (awaiting MFA)');
     return { path: '/mfa-verify' };
   }
 
   // Prevent access to MFA verify page when not awaiting MFA
   if (to.path === '/mfa-verify' && !awaitingMfa) {
-    return isAuthenticated ? { name: 'Dashboard' } : { path: '/signin' };
+    // Use isFullyAuthenticated to determine redirect target
+    const redirect = isFullyAuthenticated ? { name: 'Dashboard' } : { path: '/signin' };
+    loggingService.debug('[MFA Guard] Redirecting from /mfa-verify:', {
+      redirect,
+      reason: 'not awaiting MFA',
+    });
+    return redirect;
   }
 
   return null;
@@ -186,7 +216,9 @@ async function validateAuthentication(
     return authStatus ?? false;
   }
 
-  loggingService.debug('[validateAuthentication] Using cached auth state:', { isAuthenticated: store.isAuthenticated });
+  loggingService.debug('[validateAuthentication] Using cached auth state:', {
+    isAuthenticated: store.isAuthenticated,
+  });
   return store.isAuthenticated ?? false;
 }
 
