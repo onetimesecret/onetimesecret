@@ -41,6 +41,7 @@
       "save_changes": "Save Changes",
       "update_success": "Organization updated successfully",
       "update_error": "Failed to update organization",
+      "billing_email_updated": "Billing email updated successfully",
       "billing_coming_soon": "Billing Integration Coming Soon",
       "billing_coming_soon_description": "Unified billing and subscription management will be available in a future release.",
       "about_title": "About Organizations",

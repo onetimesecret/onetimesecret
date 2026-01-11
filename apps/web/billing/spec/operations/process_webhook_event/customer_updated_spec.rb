@@ -85,6 +85,112 @@ RSpec.describe 'ProcessWebhookEvent: customer.updated', :integration, :process_w
         expect(customer.email).to eq(original_email)
       end
     end
+
+    # Billing email sync scenarios (Stripe -> OTS)
+    context 'billing email sync' do
+      context 'when Stripe email differs from organization billing_email' do
+        let(:new_billing_email) { 'new-billing@example.com' }
+
+        let(:stripe_customer) do
+          build_stripe_customer(
+            id: stripe_customer_id,
+            email: new_billing_email,
+            metadata: { 'customer_extid' => customer.extid },
+          )
+        end
+
+        before do
+          # Set initial billing email different from Stripe
+          organization.billing_email = 'old-billing@example.com'
+          organization.save
+        end
+
+        it 'syncs billing_email from Stripe to organization' do
+          operation.call
+          organization.refresh!
+          expect(organization.billing_email).to eq(new_billing_email)
+        end
+
+        it 'syncs contact_email for consistency' do
+          operation.call
+          organization.refresh!
+          expect(organization.contact_email).to eq(new_billing_email)
+        end
+
+        it 'updates the organization timestamp' do
+          original_updated = organization.updated
+          sleep 0.01 # Ensure time difference
+          operation.call
+          organization.refresh!
+          expect(organization.updated).to be >= original_updated
+        end
+      end
+
+      context 'when Stripe email matches organization billing_email' do
+        let(:stripe_customer) do
+          build_stripe_customer(
+            id: stripe_customer_id,
+            email: 'same@example.com',
+            metadata: { 'customer_extid' => customer.extid },
+          )
+        end
+
+        before do
+          organization.billing_email = 'same@example.com'
+          organization.save
+        end
+
+        it 'does not update organization (no-op)' do
+          original_updated = organization.updated
+          operation.call
+          organization.refresh!
+          # Updated timestamp should not change when email is same
+          expect(organization.updated).to eq(original_updated)
+        end
+      end
+
+      context 'when Stripe email is empty' do
+        let(:stripe_customer) do
+          build_stripe_customer(
+            id: stripe_customer_id,
+            email: '',
+            metadata: { 'customer_extid' => customer.extid },
+          )
+        end
+
+        before do
+          organization.billing_email = 'existing@example.com'
+          organization.save
+        end
+
+        it 'does not clear organization billing_email' do
+          operation.call
+          organization.refresh!
+          expect(organization.billing_email).to eq('existing@example.com')
+        end
+      end
+
+      context 'when Stripe email is nil' do
+        let(:stripe_customer) do
+          build_stripe_customer(
+            id: stripe_customer_id,
+            email: nil,
+            metadata: { 'customer_extid' => customer.extid },
+          )
+        end
+
+        before do
+          organization.billing_email = 'existing@example.com'
+          organization.save
+        end
+
+        it 'does not clear organization billing_email' do
+          operation.call
+          organization.refresh!
+          expect(organization.billing_email).to eq('existing@example.com')
+        end
+      end
+    end
   end
 
   context 'with unknown organization' do
