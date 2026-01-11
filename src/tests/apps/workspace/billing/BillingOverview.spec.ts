@@ -6,6 +6,10 @@ import { createI18n } from 'vue-i18n';
 import { createPinia, setActivePinia } from 'pinia';
 import BillingOverview from '@/apps/workspace/billing/BillingOverview.vue';
 import { nextTick, ref } from 'vue';
+import {
+  createMockOverviewResponse,
+  mockOverviewResponses,
+} from '@/tests/fixtures/billing.fixture';
 
 vi.mock('vue-router', () => ({ useRoute: () => ({ path: '/billing/overview' }) }));
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
@@ -23,6 +27,7 @@ vi.mock('@/services/billing.service', () => ({
   BillingService: { getOverview: (...args: unknown[]) => mockGetOverview(...args) },
 }));
 
+// Lightweight org shape for store mock (not full Organization type)
 const mockOrganization = {
   id: 'org_123', extid: 'on1abc123', display_name: 'Test Organization',
   planid: 'identity_plus_v1_monthly', entitlements: ['api_access'], limits: { teams: 1 }, is_default: true,
@@ -32,7 +37,8 @@ const mockFreeOrganization = {
   planid: '', entitlements: [] as string[], limits: { teams: 0 }, is_default: false,
 };
 
-const storeState = { organizations: [] as typeof mockOrganization[] };
+type MockOrg = typeof mockOrganization;
+const storeState = { organizations: [] as MockOrg[] };
 const mockFetchOrganizations = vi.fn();
 const mockFetchOrganization = vi.fn();
 const mockFetchEntitlements = vi.fn();
@@ -63,13 +69,10 @@ vi.mock('@/types/billing', () => ({
   getPlanDisplayName: (id: string) => ({ identity_plus_v1_monthly: 'Identity Plus' }[id] || id),
 }));
 
-const mockOverviewResponse = {
+// Use shared fixture factory for overview response
+const defaultOverviewResponse = createMockOverviewResponse({
   organization: { id: 'org_123', external_id: 'on1abc123', display_name: 'Test Org', billing_email: null },
-  subscription: { id: 'sub_123', status: 'active', period_end: Date.now() / 1000 + 86400 * 30, active: true, past_due: false, canceled: false },
-  plan: { id: 'identity_plus_v1_monthly', name: 'Identity Plus', tier: 'single_team', interval: 'month', amount: 2900, currency: 'usd',
-    features: ['web.billing.features.feature1', 'web.billing.features.feature2'], limits: { teams: 1 } },
-  usage: { teams: 1, members: 3 },
-};
+});
 
 const i18n = createI18n({
   legacy: false, locale: 'en',
@@ -78,7 +81,8 @@ const i18n = createI18n({
       overview: { title: 'Billing Overview', organization_selector: 'Select Organization', current_plan: 'Current Plan',
         upgrade_plan: 'Upgrade Plan', change_plan: 'Change Plan', plan_features: 'Plan Features',
         no_organizations_title: 'No Organizations', no_organizations_description: 'Create an organization to get started',
-        no_entitlements: 'No entitlements available' },
+        no_entitlements: 'No entitlements available', next_billing_date: 'Next Billing Date',
+        days_remaining: 'days remaining' },
       subscription: { active: 'Active' }, plans: { free_plan: 'Free' },
       features: { feature1: 'Feature One', feature2: 'Feature Two' },
     },
@@ -100,12 +104,12 @@ describe('BillingOverview', () => {
     mockEntitlements.value = [];
     mockInitDefinitions.mockResolvedValue(undefined);
     mockFetchEntitlements.mockResolvedValue(undefined);
-    mockGetOverview.mockResolvedValue(mockOverviewResponse);
+    mockGetOverview.mockResolvedValue(defaultOverviewResponse);
   });
 
   afterEach(() => { wrapper?.unmount(); });
 
-  const mountComponent = async (options: { organizations?: typeof mockOrganization[] } = {}) => {
+  const mountComponent = async (options: { organizations?: MockOrg[] } = {}) => {
     const orgs = options.organizations ?? [mockOrganization];
     storeState.organizations = orgs;
     mockFetchOrganization.mockImplementation(
@@ -127,10 +131,8 @@ describe('BillingOverview', () => {
   describe('Loading State', () => {
     it('renders loading state initially', async () => {
       storeState.organizations = [mockOrganization];
-      let resolveOrg: (value: typeof mockOrganization) => void;
-      mockFetchOrganization.mockReturnValue(new Promise(r => {
-        resolveOrg = r;
-      }));
+      let resolveOrg: (value: MockOrg) => void;
+      mockFetchOrganization.mockReturnValue(new Promise(r => { resolveOrg = r; }));
 
       wrapper = mount(BillingOverview, {
         global: { plugins: [i18n, pinia], stubs: { RouterLink: routerLinkStub } },
@@ -150,8 +152,7 @@ describe('BillingOverview', () => {
     });
 
     it('shows "Free" for users without subscription', async () => {
-      const freeResponse = { ...mockOverviewResponse, subscription: null, plan: null };
-      mockGetOverview.mockResolvedValueOnce(freeResponse);
+      mockGetOverview.mockResolvedValueOnce(mockOverviewResponses.free);
       wrapper = await mountComponent({ organizations: [mockFreeOrganization] });
       expect(wrapper.text()).toContain('Free');
     });
@@ -165,31 +166,22 @@ describe('BillingOverview', () => {
     });
 
     it('shows entitlements loading skeleton during load', async () => {
-      // Mock delayed BillingService.getOverview to keep component in loading state
-      let resolveOverview: (value: typeof mockOverviewResponse) => void;
+      let resolveOverview: (value: ReturnType<typeof createMockOverviewResponse>) => void;
       storeState.organizations = [mockOrganization];
       mockFetchOrganization.mockResolvedValue(mockOrganization);
       mockFetchEntitlements.mockResolvedValue(undefined);
-      mockGetOverview.mockImplementationOnce(() => new Promise(r => {
-        resolveOverview = r;
-      }));
+      mockGetOverview.mockImplementationOnce(() => new Promise(r => { resolveOverview = r; }));
 
       wrapper = mount(BillingOverview, {
         global: { plugins: [i18n, pinia], stubs: { RouterLink: routerLinkStub } },
       });
 
-      // Give initial mount/fetch time to start but stay in loading
       await nextTick();
       await nextTick();
-
-      // Component should render the billing layout during load
       expect(wrapper.find('.billing-layout').exists()).toBe(true);
 
-      // Complete the loading
-      resolveOverview!(mockOverviewResponse);
+      resolveOverview!(defaultOverviewResponse);
       await flushPromises();
-
-      // After load completes, plan features should be displayed
       expect(wrapper.text()).toContain('Feature One');
     });
 
@@ -228,8 +220,7 @@ describe('BillingOverview', () => {
     });
 
     it('shows "Upgrade Plan" button for free users', async () => {
-      const freeResponse = { ...mockOverviewResponse, subscription: null, plan: null };
-      mockGetOverview.mockResolvedValueOnce(freeResponse);
+      mockGetOverview.mockResolvedValueOnce(mockOverviewResponses.free);
       wrapper = await mountComponent({ organizations: [mockFreeOrganization] });
       expect(wrapper.text()).toContain('Upgrade Plan');
     });
@@ -240,6 +231,39 @@ describe('BillingOverview', () => {
       wrapper = await mountComponent({ organizations: [] });
       expect(wrapper.text()).toContain('No Organizations');
       expect(wrapper.find('a').exists()).toBe(true);
+    });
+  });
+
+  describe('Next Billing Date', () => {
+    it('displays next billing date when subscription has period_end', async () => {
+      wrapper = await mountComponent();
+      const billingDateEl = wrapper.find('[data-testid="next-billing-date"]');
+      expect(billingDateEl.exists()).toBe(true);
+      expect(billingDateEl.text()).toContain('Next Billing Date');
+
+      const expectedDate = new Date(defaultOverviewResponse.subscription!.period_end * 1000);
+      const formattedDate = new Intl.DateTimeFormat('en-US', {
+        month: 'long', day: 'numeric', year: 'numeric',
+      }).format(expectedDate);
+      expect(billingDateEl.text()).toContain(formattedDate);
+    });
+
+    it('does not display next billing date when subscription has no period_end', async () => {
+      const noDateResponse = createMockOverviewResponse({
+        organization: { id: 'org_123', external_id: 'on1abc123', display_name: 'Test Org', billing_email: null },
+        subscription: { id: 'sub_123', status: 'active', period_end: 0, active: true, past_due: false, canceled: false },
+      });
+      mockGetOverview.mockResolvedValueOnce(noDateResponse);
+      wrapper = await mountComponent();
+      const billingDateEl = wrapper.find('[data-testid="next-billing-date"]');
+      expect(billingDateEl.exists()).toBe(false);
+    });
+
+    it('does not display next billing date for free users', async () => {
+      mockGetOverview.mockResolvedValueOnce(mockOverviewResponses.free);
+      wrapper = await mountComponent({ organizations: [mockFreeOrganization] });
+      const billingDateEl = wrapper.find('[data-testid="next-billing-date"]');
+      expect(billingDateEl.exists()).toBe(false);
     });
   });
 });

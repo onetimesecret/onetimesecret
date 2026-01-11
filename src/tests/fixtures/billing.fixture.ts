@@ -1,6 +1,7 @@
 // src/tests/fixtures/billing.fixture.ts
 
 import type {
+  BillingOverviewResponse,
   Plan,
   PlanChangePreviewResponse,
   SubscriptionStatusResponse,
@@ -365,3 +366,60 @@ export const mockInvoices: MockInvoice[] = [
     hosted_invoice_url: null,
   }),
 ];
+
+/**
+ * Factory for creating billing overview responses
+ */
+export function createMockOverviewResponse(
+  overrides: Partial<BillingOverviewResponse> = {}
+): BillingOverviewResponse {
+  return {
+    organization: {
+      id: 'org_123',
+      external_id: 'org_ext_123',
+      display_name: 'Test Organization',
+      billing_email: null,
+    },
+    subscription: {
+      id: 'sub_123',
+      status: 'active',
+      period_end: Math.floor(Date.now() / 1000) + 86400 * 30,
+      active: true,
+      past_due: false,
+      canceled: false,
+    },
+    plan: {
+      id: 'identity_plus_v1_monthly',
+      name: 'Identity Plus',
+      tier: 'single_team',
+      interval: 'month',
+      amount: 2900,
+      currency: 'usd',
+      features: ['web.billing.features.feature1', 'web.billing.features.feature2'],
+      limits: { teams: 1 },
+    },
+    usage: { teams: 1, members: 3 },
+    ...overrides,
+  };
+}
+
+/**
+ * Pre-configured overview response variants
+ */
+export const mockOverviewResponses = {
+  active: createMockOverviewResponse(),
+  free: createMockOverviewResponse({
+    subscription: null,
+    plan: null,
+  }),
+  pastDue: createMockOverviewResponse({
+    subscription: {
+      id: 'sub_123',
+      status: 'past_due',
+      period_end: Math.floor(Date.now() / 1000) + 86400 * 30,
+      active: true,
+      past_due: true,
+      canceled: false,
+    },
+  }),
+};

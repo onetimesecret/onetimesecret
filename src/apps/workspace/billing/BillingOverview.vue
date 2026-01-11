@@ -94,13 +94,13 @@ const handleOrgChange = (orgId: string) => {
 
 const _formatCardBrand = (brand: string): string => brand.charAt(0).toUpperCase() + brand.slice(1);
 
-const _formatNextBillingDate = (date: Date): string => new Intl.DateTimeFormat('en-US', {
+const formatNextBillingDate = (date: Date): string => new Intl.DateTimeFormat('en-US', {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
   }).format(date);
 
-const _daysUntilBilling = computed(() => {
+const daysUntilBilling = computed(() => {
   if (!nextBillingDate.value) return null;
   const diff = nextBillingDate.value.getTime() - Date.now();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
@@ -227,6 +227,17 @@ onMounted(async () => {
                   ]">
                   {{ planStatus === 'active' ? t('web.billing.subscription.active') : t('web.billing.plans.free_plan') }}
                 </span>
+                <!-- Next Billing Date -->
+                <p
+                  v-if="nextBillingDate"
+                  class="mt-2 text-sm text-gray-600 dark:text-gray-400"
+                  data-testid="next-billing-date">
+                  {{ t('web.billing.overview.next_billing_date') }}:
+                  {{ formatNextBillingDate(nextBillingDate) }}
+                  <span v-if="daysUntilBilling" class="text-gray-500 dark:text-gray-500">
+                    ({{ daysUntilBilling }} {{ t('web.billing.overview.days_remaining') }})
+                  </span>
+                </p>
               </div>
               <router-link
                 :to="{ name: 'Billing Plans' }"
