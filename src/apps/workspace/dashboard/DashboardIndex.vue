@@ -5,11 +5,12 @@
   import RecentSecretsTable from '@/apps/secret/components/RecentSecretsTable.vue';
   import PrivacyDefaultsBar from '@/apps/workspace/components/domains/PrivacyDefaultsBar.vue';
   import UpgradeBanner from '@/apps/workspace/dashboard/components/UpgradeBanner.vue';
+  import { useWorkspacePrivacyDefaults } from '@/apps/workspace/composables/useWorkspacePrivacyDefaults';
   import { useDomainScope } from '@/shared/composables/useDomainScope';
   import { useBranding } from '@/shared/composables/useBranding';
   import { WindowService } from '@/services/window.service';
   import type { BrandSettings } from '@/schemas/models';
-  import { computed, onMounted, watch } from 'vue';
+  import { computed, onMounted, ref, watch } from 'vue';
 
   const cust = WindowService.get('cust');
   const isBetaEnabled = computed(() => cust?.feature_flags?.beta ?? false);
@@ -25,14 +26,23 @@
     saveBranding
   } = useBranding(currentScope.value.domain);
 
-  // Initialize branding on mount
+  // Computed for canonical check
+  const isCanonical = computed(() => currentScope.value.isCanonical);
+
+  // Get unified privacy defaults from the workspace composable
+  const { isEditable } = useWorkspacePrivacyDefaults({
+    brandSettings: ref(brandSettings.value),
+    isCanonical
+  });
+
+  // Initialize branding on mount (only for custom domains)
   onMounted(() => {
     if (isScopeActive.value && !currentScope.value.isCanonical) {
       initBranding();
     }
   });
 
-  // Re-initialize when domain scope changes
+  // Re-initialize when domain scope changes (only for custom domains)
   watch(
     () => currentScope.value.domain,
     () => {
@@ -42,15 +52,14 @@
     }
   );
 
-  // Handle privacy defaults update
+  // Handle privacy defaults update (only for custom domains)
   const handlePrivacyUpdate = async (settings: Partial<BrandSettings>) => {
+    if (!isEditable.value) return;
     await saveBranding(settings, currentScope.value.domain);
   };
 
-  // Only show privacy bar for custom domains (not canonical)
-  const showPrivacyBar = computed(() =>
-    isScopeActive.value && !currentScope.value.isCanonical
-  );
+  // Show privacy bar when domain scope is active (for all domains now)
+  const showPrivacyBar = computed(() => isScopeActive.value);
 </script>
 
 <template>
@@ -58,11 +67,13 @@
     <!-- Upgrade Banner (shown for free plan users when billing is enabled) -->
     <UpgradeBanner />
 
-    <!-- Privacy Defaults Bar (only shown when custom domain scope is active) -->
+    <!-- Privacy Defaults Bar (shown when domain scope is active) -->
     <PrivacyDefaultsBar
       v-if="showPrivacyBar"
       :brand-settings="brandSettings"
       :is-loading="isLoading"
+      :is-canonical="isCanonical"
+      :is-editable="isEditable"
       class="mb-6 rounded-lg"
       @update="handlePrivacyUpdate" />
 
