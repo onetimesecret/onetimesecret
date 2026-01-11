@@ -39,7 +39,9 @@ const dismissAllRecents = () => {
 </script>
 
 <template>
-  <section aria-labelledby="recent-secrets-heading">
+  <section
+    aria-labelledby="recent-secrets-heading"
+    class="pb-24">
     <div
       v-if="hasRecords"
       class="mb-4 flex items-center justify-between">
