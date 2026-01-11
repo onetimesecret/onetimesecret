@@ -598,4 +598,137 @@ describe('useDomainScope', () => {
       expect(isScopeActive.value).toBe(false);
     });
   });
+
+  describe('getPreferredDomain behavior', () => {
+    it('prefers custom domain over canonical when custom domains exist', async () => {
+      vi.mocked(WindowService.getMultiple).mockReturnValue({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      // Set custom domains - first non-canonical should be preferred
+      setMockDomains(['acme.example.com', 'widgets.example.com']);
+
+      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
+      const { currentScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // Should select first custom domain, not canonical
+      expect(currentScope.value.domain).toBe('acme.example.com');
+      expect(currentScope.value.isCanonical).toBe(false);
+    });
+
+    it('falls back to canonical when no custom domains available', async () => {
+      vi.mocked(WindowService.getMultiple).mockReturnValue({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      // No custom domains - only canonical available
+      setMockDomains([]);
+
+      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
+      const { currentScope, availableDomains } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // Should fall back to canonical
+      expect(currentScope.value.domain).toBe('onetimesecret.com');
+      expect(currentScope.value.isCanonical).toBe(true);
+      // Available domains should include canonical even when no custom domains
+      expect(availableDomains.value).toContain('onetimesecret.com');
+    });
+
+    it('prefers first custom domain when multiple custom domains exist', async () => {
+      vi.mocked(WindowService.getMultiple).mockReturnValue({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      // Multiple custom domains - first should be selected
+      setMockDomains(['zebra.example.com', 'alpha.example.com', 'beta.example.com']);
+
+      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
+      const { currentScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // Should select first in array order, not alphabetical
+      expect(currentScope.value.domain).toBe('zebra.example.com');
+    });
+
+    it('handles array with only canonical domain', async () => {
+      vi.mocked(WindowService.getMultiple).mockReturnValue({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      // Only canonical domain in the list
+      setMockDomains(['onetimesecret.com']);
+
+      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
+      const { currentScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // No custom domains to prefer, should use canonical
+      expect(currentScope.value.domain).toBe('onetimesecret.com');
+      expect(currentScope.value.isCanonical).toBe(true);
+    });
+
+    it('skips canonical in the list when selecting preferred domain', async () => {
+      vi.mocked(WindowService.getMultiple).mockReturnValue({
+        domains_enabled: true,
+        site_host: 'onetimesecret.com',
+        display_domain: 'onetimesecret.com',
+      });
+
+      // Canonical appears first but should be skipped for a custom domain
+      setMockDomains(['onetimesecret.com', 'custom.example.com']);
+
+      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
+      const { currentScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // Should skip canonical and prefer custom domain
+      expect(currentScope.value.domain).toBe('custom.example.com');
+      expect(currentScope.value.isCanonical).toBe(false);
+    });
+
+    it('returns empty string when no domains available and no canonical', async () => {
+      vi.mocked(WindowService.getMultiple).mockReturnValue({
+        domains_enabled: true,
+        site_host: '',
+        display_domain: '',
+      });
+
+      setMockDomains([]);
+
+      const { useDomainScope } = await import('@/shared/composables/useDomainScope');
+      const { currentScope } = useDomainScope();
+
+      // Wait for async initialization
+      await nextTick();
+      await new Promise((r) => setTimeout(r, 10));
+
+      // With no domains at all, should be empty
+      expect(currentScope.value.domain).toBe('');
+    });
+  });
 });

@@ -56,6 +56,13 @@ function buildAvailableDomains(storeDomains: Array<{ display_domain: string }>):
   return domainNames;
 }
 
+/** Get the preferred default domain (custom domain preferred over canonical) */
+function getPreferredDomain(available: string[]): string {
+  // Prefer first custom domain (non-canonical) if available
+  const customDomain = available.find((d) => d !== canonicalDomain);
+  return customDomain || available[0] || canonicalDomain || '';
+}
+
 /** Find extid for a given display_domain from store domains */
 function findExtidByDomain(
   storeDomains: Array<{ display_domain: string; extid: string }>,
@@ -76,8 +83,9 @@ async function initializeDomainScope(
       await fetchFn();
       const saved = localStorage.getItem('domainScope');
       const available = getAvailable();
+      // Use saved preference if valid, otherwise prefer custom domain
       currentDomain.value = (saved && available.includes(saved))
-        ? saved : available[0] || canonicalDomain || '';
+        ? saved : getPreferredDomain(available);
     } else {
       currentDomain.value = canonicalDomain || '';
     }
@@ -122,8 +130,9 @@ export function useDomainScope() {
   watch(() => organizationStore.currentOrganization?.id, async (newOrgId, oldOrgId) => {
     if (newOrgId && newOrgId !== oldOrgId) {
       await fetchDomainsForOrganization();
+      // If current selection is invalid for new org, prefer custom domain
       if (currentDomain.value && !availableDomains.value.includes(currentDomain.value)) {
-        currentDomain.value = availableDomains.value[0] || canonicalDomain || '';
+        currentDomain.value = getPreferredDomain(availableDomains.value);
       }
     }
   }, { immediate: true });
