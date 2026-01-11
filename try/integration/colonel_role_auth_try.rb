@@ -1,11 +1,11 @@
-# try/colonel_role_auth_try.rb
+# try/integration/colonel_role_auth_try.rb
 #
 # frozen_string_literal: true
 
 # Test Otto's role= parameter support for colonel endpoints
 # Verifies that auth=sessionauth role=colonel correctly authorizes colonel users
 
-require_relative 'support/test_helpers'
+require_relative '../support/test_helpers'
 
 require 'rack'
 require 'rack/mock'

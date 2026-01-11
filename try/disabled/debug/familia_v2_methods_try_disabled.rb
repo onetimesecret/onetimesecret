@@ -1,4 +1,4 @@
-# try/debug/familia_v2_methods_try.rb
+# try/disabled/debug/familia_v2_methods_try_disabled.rb
 #
 # frozen_string_literal: true
 
@@ -6,7 +6,7 @@
 # Debug what methods are available from participates_in
 #
 
-require_relative '../support/test_models'
+require_relative '../../support/test_models'
 
 
 OT.boot! :test

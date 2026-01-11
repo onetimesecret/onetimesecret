@@ -1,4 +1,4 @@
-# try/debug/familia_v2_bidirectional_try.rb
+# try/disabled/debug/familia_v2_bidirectional_try_disabled.rb
 #
 # frozen_string_literal: true
 
@@ -6,7 +6,7 @@
 # Debug Familia v2 bidirectional relationships
 #
 
-require_relative '../support/test_models'
+require_relative '../../support/test_models'
 
 
 OT.boot! :test
