@@ -4,7 +4,7 @@ import { PiniaPluginOptions } from '@/plugins/pinia';
 import { loggingService } from '@/services/logging.service';
 import { type ConcealedMessage } from '@/types/ui/concealed-message';
 import { defineStore, PiniaCustomProperties } from 'pinia';
-import { ref, computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 interface StoreOptions extends PiniaPluginOptions {}
 
@@ -30,9 +30,11 @@ export type ConcealedMetadataStore = {
   $reset: () => void;
 } & PiniaCustomProperties;
 
-// Local storage key for persisting concealed messages
-const STORAGE_KEY = 'oneTimeSecret_concealedMessages';
-const WORKSPACE_MODE_KEY = 'oneTimeSecret_workspaceMode';
+// Local storage key for persisting receipts when not authenticated. It's
+// actually session storage. Uses pascalCase convention (unlike cookies
+// which use dot notation).
+const STORAGE_KEY = 'onetimeReceiptCache';
+const WORKSPACE_MODE_KEY = 'onetimeWorkspaceMode';
 
 /**
  * Loads concealed messages from sessionStorage
