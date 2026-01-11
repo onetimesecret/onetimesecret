@@ -29,6 +29,12 @@ const planFeatures = ref<string[]>([]);
 const isLoading = ref(false);
 const error = ref('');
 
+// Check for upgrade success from checkout redirect
+const showUpgradeSuccess = computed(() => route.query.upgraded === 'true');
+const successMessage = computed(() =>
+  showUpgradeSuccess.value ? t('web.billing.overview.upgrade_success') : '',
+);
+
 const organizations = computed(() => organizationStore.organizations);
 
 const {
@@ -121,6 +127,27 @@ onMounted(async () => {
 <template>
   <BillingLayout>
     <div class="space-y-6">
+      <!-- Upgrade Success Banner -->
+      <div
+        v-if="showUpgradeSuccess"
+        class="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
+        <div class="flex items-center gap-3">
+          <OIcon
+            collection="heroicons"
+            name="check-circle"
+            class="size-6 text-green-500 dark:text-green-400"
+            aria-hidden="true" />
+          <div>
+            <p class="font-medium text-green-800 dark:text-green-300">
+              {{ successMessage }}
+            </p>
+            <p class="mt-1 text-sm text-green-700 dark:text-green-400">
+              {{ t('web.billing.overview.upgrade_success_description') }}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <!-- Error Alert -->
       <BasicFormAlerts v-if="error" :error="error" />
 
