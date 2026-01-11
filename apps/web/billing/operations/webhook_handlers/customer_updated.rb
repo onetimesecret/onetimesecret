@@ -103,6 +103,17 @@ module Billing
               stripe_customer_id: stripe_customer.id,
               new_email: stripe_email,
             }
+        rescue StandardError => ex
+          # If save fails, clear the flag to avoid blocking subsequent updates
+          Billing::WebhookSyncFlag.clear_skip_stripe_sync(org.extid)
+          billing_logger.error 'Failed to save organization during billing email sync',
+            {
+              stripe_event_id: @event.id,
+              org_extid: org.extid,
+              error: ex.message,
+            }
+          # Re-raise to ensure the webhook processing is marked as failed
+          raise
         end
       end
     end

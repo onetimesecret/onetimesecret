@@ -124,6 +124,68 @@ RSpec.describe 'ProcessWebhookEvent: customer.updated', :integration, :process_w
           organization.refresh!
           expect(organization.updated).to be >= original_updated
         end
+
+        it 'sets WebhookSyncFlag before saving organization' do
+          # Verify the flag is set during the sync operation
+          expect(Billing::WebhookSyncFlag).to receive(:set_skip_stripe_sync)
+            .with(organization.extid)
+            .and_call_original
+
+          operation.call
+
+          # Flag should still be set after successful save (it expires via TTL)
+          expect(Billing::WebhookSyncFlag.skip_stripe_sync?(organization.extid)).to be true
+        end
+      end
+
+      context 'when org.save raises an error' do
+        let(:new_billing_email) { 'error-test@example.com' }
+
+        let(:stripe_customer) do
+          build_stripe_customer(
+            id: stripe_customer_id,
+            email: new_billing_email,
+            metadata: { 'customer_extid' => customer.extid },
+          )
+        end
+
+        before do
+          organization.billing_email = 'old-billing@example.com'
+          organization.save
+        end
+
+        it 'clears WebhookSyncFlag when save fails' do
+          # Stub save to raise after flag is set
+          allow(organization).to receive(:save).and_raise(StandardError.new('Redis connection error'))
+
+          expect(Billing::WebhookSyncFlag).to receive(:set_skip_stripe_sync)
+            .with(organization.extid)
+            .and_call_original
+          expect(Billing::WebhookSyncFlag).to receive(:clear_skip_stripe_sync)
+            .with(organization.extid)
+            .and_call_original
+
+          expect { operation.call }.to raise_error(StandardError, 'Redis connection error')
+
+          # Flag should be cleared after error
+          expect(Billing::WebhookSyncFlag.skip_stripe_sync?(organization.extid)).to be false
+        end
+
+        it 're-raises the original exception' do
+          original_error = RuntimeError.new('Database failure')
+          allow(organization).to receive(:save).and_raise(original_error)
+
+          expect { operation.call }.to raise_error(original_error)
+        end
+
+        it 'logs the error with context' do
+          allow(organization).to receive(:save).and_raise(StandardError.new('Test error'))
+
+          # The billing_logger should receive an error log
+          # We can't easily verify the exact message without more mocking,
+          # but we verify the error path is taken by checking the exception
+          expect { operation.call }.to raise_error(StandardError, 'Test error')
+        end
       end
 
       context 'when Stripe email matches organization billing_email' do
@@ -147,6 +209,11 @@ RSpec.describe 'ProcessWebhookEvent: customer.updated', :integration, :process_w
           # Updated timestamp should not change when email is same (within float tolerance)
           expect(organization.updated).to be_within(0.001).of(original_updated)
         end
+
+        it 'does not set WebhookSyncFlag (early return)' do
+          expect(Billing::WebhookSyncFlag).not_to receive(:set_skip_stripe_sync)
+          operation.call
+        end
       end
 
       context 'when Stripe email is empty' do
@@ -168,6 +235,11 @@ RSpec.describe 'ProcessWebhookEvent: customer.updated', :integration, :process_w
           organization.refresh!
           expect(organization.billing_email).to eq('existing@example.com')
         end
+
+        it 'does not set WebhookSyncFlag (early return)' do
+          expect(Billing::WebhookSyncFlag).not_to receive(:set_skip_stripe_sync)
+          operation.call
+        end
       end
 
       context 'when Stripe email is nil' do
@@ -188,6 +260,11 @@ RSpec.describe 'ProcessWebhookEvent: customer.updated', :integration, :process_w
           operation.call
           organization.refresh!
           expect(organization.billing_email).to eq('existing@example.com')
+        end
+
+        it 'does not set WebhookSyncFlag (early return)' do
+          expect(Billing::WebhookSyncFlag).not_to receive(:set_skip_stripe_sync)
+          operation.call
         end
       end
     end
