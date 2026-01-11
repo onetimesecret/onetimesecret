@@ -100,6 +100,21 @@ result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: 'a
 result.billing_cycle
 #=> 'yearly'
 
+## Resolve handles annually variant
+result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: 'annually')
+result.billing_cycle
+#=> 'yearly'
+
+## Resolve normalizes uppercase intervals
+result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: 'MONTHLY')
+result.billing_cycle
+#=> 'monthly'
+
+## Resolve normalizes mixed case intervals
+result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: 'Yearly')
+result.billing_cycle
+#=> 'yearly'
+
 ## Resolve returns failure for missing product
 result = Billing::PlanResolver.resolve(product: nil, interval: 'monthly')
 [result.success?, result.error]
@@ -107,6 +122,16 @@ result = Billing::PlanResolver.resolve(product: nil, interval: 'monthly')
 
 ## Resolve returns failure for missing interval
 result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: nil)
+[result.success?, result.error]
+#=> [false, 'Missing interval']
+
+## Resolve handles empty string product
+result = Billing::PlanResolver.resolve(product: '  ', interval: 'monthly')
+[result.success?, result.error]
+#=> [false, 'Missing product']
+
+## Resolve handles empty string interval
+result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: '')
 [result.success?, result.error]
 #=> [false, 'Missing interval']
 
@@ -119,6 +144,16 @@ result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: 'w
 result = Billing::PlanResolver.resolve(product: 'unknown_plan', interval: 'monthly')
 [result.success?, result.error.include?('Plan not found')]
 #=> [false, true]
+
+## Result failed? returns true for failed resolution
+result = Billing::PlanResolver.resolve(product: 'unknown', interval: 'monthly')
+result.failed?
+#=> true
+
+## Result failed? returns false for successful resolution
+result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: 'monthly')
+result.failed?
+#=> false
 
 ## valid_params? returns true for valid params
 Billing::PlanResolver.valid_params?(product: 'any_product', interval: 'monthly')
@@ -156,5 +191,10 @@ result.checkout_url('org_abc123')
 result = Billing::PlanResolver.resolve(product: 'unknown', interval: 'monthly')
 result.checkout_url('org_abc123')
 #=> nil
+
+## checkout_url handles org_extid with underscores
+result = Billing::PlanResolver.resolve(product: 'identity_plus_v1', interval: 'monthly')
+result.checkout_url('org_abc_123_def')
+#=> '/billing/api/org/org_abc_123_def/checkout'
 
 teardown_test_plan
