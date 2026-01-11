@@ -10,6 +10,7 @@ import { WindowService } from '@/services/window.service';
 import {
   isAuthError,
   requiresMfa,
+  hasBillingRedirect,
   type LoginResponse,
   type CreateAccountResponse,
   type LogoutResponse,
@@ -18,6 +19,7 @@ import {
   type VerifyAccountResponse,
   type ChangePasswordResponse,
   type CloseAccountResponse,
+  type BillingRedirect,
 } from '@/schemas/api/auth/endpoints/auth';
 import {
   loginResponseSchema,
@@ -32,6 +34,7 @@ import {
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { LockoutStatus } from '@/types/auth';
 import type { AxiosInstance } from 'axios';
 import { inject, ref } from 'vue';
@@ -88,6 +91,7 @@ export function useAuth() {
   const authStore = useAuthStore();
   const csrfStore = useCsrfStore();
   const notificationsStore = useNotificationsStore();
+  const organizationStore = useOrganizationStore();
 
   const isLoading = ref(false);
   const error = ref<string | null>(null);
@@ -130,6 +134,51 @@ export function useAuth() {
   };
 
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
+
+  /**
+   * Handles billing redirect after successful authentication.
+   * Returns true if redirect was performed, false otherwise.
+   *
+   * Only redirects when:
+   * - billing_redirect is present and valid
+   * - billing_enabled is true (WindowService)
+   * - Organization can be resolved
+   */
+  async function handleBillingRedirect(billingRedirect: BillingRedirect): Promise<boolean> {
+    // Check if billing is enabled (graceful degradation for self-hosted)
+    const billingEnabled = WindowService.get('billing_enabled');
+    if (!billingEnabled) {
+      loggingService.debug('[useAuth] Billing redirect skipped - billing not enabled');
+      return false;
+    }
+
+    try {
+      // Fetch organizations to get the default org's extid
+      await organizationStore.fetchOrganizations();
+      const org = organizationStore.restorePersistedSelection();
+
+      if (!org?.extid) {
+        loggingService.warn('[useAuth] Billing redirect skipped - no organization found');
+        return false;
+      }
+
+      const { tier, billing_cycle } = billingRedirect;
+      const checkoutUrl = `/billing/${org.extid}/checkout?tier=${tier}&billing_cycle=${billing_cycle}`;
+
+      loggingService.debug('[useAuth] Redirecting to billing checkout', {
+        org: org.extid,
+        tier,
+        billing_cycle,
+      });
+
+      await router.push(checkoutUrl);
+      return true;
+    } catch (err) {
+      // Graceful degradation - if billing redirect fails, continue to dashboard
+      loggingService.error(new Error(`Billing redirect failed: ${err}`));
+      return false;
+    }
+  }
 
   /**
    * Logs in a user with email and password
@@ -192,6 +241,16 @@ export function useAuth() {
 
       // Success - update auth state (this fetches fresh window state)
       await authStore.setAuthenticated(true);
+
+      // Check for billing redirect (e.g., user upgrading during signup flow)
+      if (hasBillingRedirect(validated)) {
+        const redirected = await handleBillingRedirect(validated.billing_redirect);
+        if (redirected) {
+          return true; // Redirected to checkout
+        }
+        // Fall through to dashboard if billing redirect failed
+      }
+
       await router.push('/');
       return true;
     });
