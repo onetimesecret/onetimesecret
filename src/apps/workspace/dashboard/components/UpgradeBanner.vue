@@ -66,7 +66,8 @@ const handleDismiss = () => {
         </p>
         <div class="mt-3 flex flex-wrap gap-2">
           <router-link
-            :to="`/billing/${currentOrg?.extid}/plans`"
+            v-if="currentOrg?.extid"
+            :to="`/billing/${currentOrg.extid}/plans`"
             class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
             <OIcon
               collection="heroicons"

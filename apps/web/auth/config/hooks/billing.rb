@@ -33,8 +33,6 @@ module Auth::Config::Hooks
   #     "billing_redirect": {
   #       "product": "identity_plus_v1",
   #       "interval": "monthly",
-  #       "plan_id": "identity_plus_v1_monthly",
-  #       "tier": "identity",
   #       "valid": true
   #     }
   #   }

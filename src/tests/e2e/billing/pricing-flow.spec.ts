@@ -27,10 +27,11 @@ import { test, expect, Page } from '@playwright/test';
  */
 async function waitForPricingPageLoad(page: Page): Promise<void> {
   // Wait for either plan cards or no plans message
-  await page.waitForSelector(
-    '[class*="rounded-2xl"], text=/no.*plans available/i',
-    { timeout: 15000 }
-  );
+  // Using locator().or() instead of waitForSelector with mixed selectors
+  const planCards = page.locator('[class*="rounded-2xl"]');
+  const noPlansMessage = page.getByText(/no.*plans available/i);
+
+  await planCards.or(noPlansMessage).first().waitFor({ timeout: 15000 });
 
   // Ensure loading spinner is gone
   await expect(page.locator('.animate-spin')).not.toBeVisible({ timeout: 5000 });
@@ -226,8 +227,8 @@ test.describe('CTA Navigation', () => {
     const yearlyButton = page.getByRole('button', { name: /yearly/i });
     await yearlyButton.click();
 
-    // Wait for plans to update
-    await page.waitForTimeout(500);
+    // Wait for toggle state to update
+    await expect(yearlyButton).toHaveAttribute('aria-pressed', 'true');
 
     // Click a paid plan CTA
     const paidPlanCta = page.getByRole('link', { name: /get started/i }).first();
@@ -285,7 +286,7 @@ test.describe('Billing Interval Toggle', () => {
     await yearlyButton.click();
 
     // Wait for toggle state to update
-    await page.waitForTimeout(300);
+    await expect(yearlyButton).toHaveAttribute('aria-pressed', 'true');
 
     // Verify yearly toggle now selected
     expect(await isYearlySelected(page)).toBe(true);
@@ -303,7 +304,9 @@ test.describe('Billing Interval Toggle', () => {
     // Toggle back to monthly
     const monthlyButton = page.getByRole('button', { name: /monthly/i });
     await monthlyButton.click();
-    await page.waitForTimeout(300);
+
+    // Wait for toggle state to update
+    await expect(monthlyButton).toHaveAttribute('aria-pressed', 'true');
 
     // Verify monthly toggle selected again
     expect(await isMonthlySelected(page)).toBe(true);
@@ -328,13 +331,12 @@ test.describe('Billing Interval Toggle', () => {
     await expect(monthlyButton).toHaveAttribute('aria-pressed', 'true');
     await expect(yearlyButton).toHaveAttribute('aria-pressed', 'false');
 
-    // Click yearly
+    // Click yearly and wait for aria-pressed to flip
     await yearlyButton.click();
-    await page.waitForTimeout(300);
+    await expect(yearlyButton).toHaveAttribute('aria-pressed', 'true');
 
     // aria-pressed should flip
     await expect(monthlyButton).toHaveAttribute('aria-pressed', 'false');
-    await expect(yearlyButton).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('yearly plans show annual price with monthly equivalent', async ({ page }) => {
@@ -480,7 +482,8 @@ test.describe('Pricing Page Accessibility', () => {
     await yearlyButton.focus();
     await page.keyboard.press('Enter');
 
-    await page.waitForTimeout(300);
+    // Wait for toggle state to update
+    await expect(yearlyButton).toHaveAttribute('aria-pressed', 'true');
     expect(await isYearlySelected(page)).toBe(true);
   });
 
