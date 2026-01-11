@@ -9,7 +9,7 @@
    * that expand to show controls - achieving parity with SecretForm
    * but in a more compact chip-based UI.
    */
-  import { computed, ref } from 'vue';
+  import { computed, nextTick, ref } from 'vue';
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
@@ -84,11 +84,12 @@
     showTtlDropdown.value = false;
   };
 
-  const togglePassphraseInput = () => {
+  const togglePassphraseInput = async () => {
     showPassphraseInput.value = !showPassphraseInput.value;
     showTtlDropdown.value = false;
     if (showPassphraseInput.value) {
-      setTimeout(() => passphraseInputRef.value?.focus(), 50);
+      await nextTick();
+      passphraseInputRef.value?.focus();
     }
   };
 

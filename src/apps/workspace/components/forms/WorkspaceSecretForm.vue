@@ -111,7 +111,9 @@
         };
         // Add the message to the store
         concealedMetadataStore.addMessage(newMessage);
-        operations.reset();
+        // Selectively reset form fields to preserve share_domain
+        operations.updateField('secret', '');
+        operations.updateField('passphrase', '');
         clearTextarea();
 
         // Reset TTL to default after creation

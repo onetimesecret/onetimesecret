@@ -118,18 +118,15 @@ describe('useWorkspacePrivacyDefaults', () => {
     });
 
     it('uses global passphrase required setting when true', () => {
+      // Mutate the mock to simulate global passphrase required = true
       mockSecretOptions.passphrase = { required: true };
 
-      // Need to re-import to pick up new mock value
-      vi.resetModules();
-      vi.mock('@/shared/composables/usePrivacyOptions', () => ({
-        usePrivacyOptions: () => ({ formatDuration: mockFormatDuration }),
-      }));
-      vi.mock('@/services/window.service', () => ({
-        WindowService: {
-          get: vi.fn(() => mockSecretOptions),
-        },
-      }));
+      const options = createOptions({ isCanonical: true });
+      const { privacyDefaults } = useWorkspacePrivacyDefaults(options);
+
+      // Canonical domain should reflect the global passphrase required setting
+      expect(privacyDefaults.value.isGlobalDefaults).toBe(true);
+      expect(privacyDefaults.value.passphraseRequired).toBe(true);
     });
   });
 
@@ -394,11 +391,10 @@ describe('useWorkspacePrivacyDefaults', () => {
           notify_enabled: false,
         },
       });
-      const { privacyDefaults, hasCustomSettings } = useWorkspacePrivacyDefaults(options);
+      const { privacyDefaults } = useWorkspacePrivacyDefaults(options);
 
       // TTL of 0 should be treated as set (not null)
       expect(privacyDefaults.value.defaultTtl).toBe(0);
-      // 0 is falsy but not null, so hasCustomSettings depends on null check
     });
   });
 });
