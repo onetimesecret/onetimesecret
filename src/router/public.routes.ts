@@ -149,6 +149,22 @@ const routes: Array<RouteRecordRaw> = [
       scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
+  {
+    path: '/help',
+    name: 'Help',
+    component: () => import('@/apps/secret/support/Help.vue'),
+    meta: {
+      title: 'web.TITLES.help',
+      requiresAuth: false,
+      layout: DefaultLayout,
+      layoutProps: {
+        displayMasthead: true,
+        displayFooterLinks: true,
+        displayFeedback: true,
+      },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+    },
+  },
 ];
 
 export default routes;
