@@ -11,7 +11,7 @@
    * Key differences from SecretForm:
    * - Larger textarea for content
    * - Privacy inputs controlled externally via props
-   * - Always in workspace mode (stays on page after creation)
+   * - Respects workspace mode toggle (stays on page or navigates to receipt)
    */
   import { useI18n } from 'vue-i18n';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
@@ -28,10 +28,12 @@
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import { nanoid } from 'nanoid';
   import { computed, watch } from 'vue';
+  import { useRouter } from 'vue-router';
   import { useCharCounter } from '@/shared/composables/useCharCounter';
   import { useTextarea } from '@/shared/composables/useTextarea';
 
   const { t } = useI18n();
+  const router = useRouter();
 
   export interface Props {
     /** Corner styling class */
@@ -118,7 +120,10 @@
         // Emit event for parent components
         emit('created', newMessage);
 
-        // Workspace mode: always stay on page (no navigation)
+        // Navigate to receipt page if workspace mode is off
+        if (!concealedMetadataStore.workspaceMode) {
+          router.push(`/private/${newMessage.metadata_identifier}`);
+        }
       },
     });
 

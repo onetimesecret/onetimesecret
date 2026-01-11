@@ -14,8 +14,10 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
   import { WindowService } from '@/services/window.service';
+  import { useConcealedMetadataStore } from '@/shared/stores/concealedMetadataStore';
 
   const { t } = useI18n();
+  const concealedMetadataStore = useConcealedMetadataStore();
 
   // Disable auto attribute inheritance since we have multiple root nodes (main div + Teleport)
   // and manually bind $attrs to the main container
@@ -208,6 +210,35 @@
           <span>{{ passphraseDisplay }}</span>
           <OIcon
             v-if="hasPassphrase"
+            collection="heroicons"
+            name="check"
+            class="size-3 text-brand-600 dark:text-brand-400"
+            aria-hidden="true" />
+        </button>
+
+        <!-- Stay on Page Chip (Workspace Mode Toggle) -->
+        <button
+          type="button"
+          :disabled="isSubmitting"
+          @click="concealedMetadataStore.toggleWorkspaceMode()"
+          :title="t('web.secrets.workspace_mode_description')"
+          class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs
+            font-medium ring-1 ring-inset transition-all
+            focus:outline-none focus:ring-2 focus:ring-brand-500
+            disabled:opacity-50 disabled:cursor-not-allowed"
+          :class="
+            concealedMetadataStore.workspaceMode
+              ? 'bg-brand-50 text-brand-700 ring-brand-600/20 hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-400/30'
+              : 'bg-gray-50 text-gray-600 ring-gray-500/20 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-500/30'
+          ">
+          <OIcon
+            collection="mdi"
+            :name="concealedMetadataStore.workspaceMode ? 'pin' : 'pin-off'"
+            class="size-3.5"
+            aria-hidden="true" />
+          <span>{{ t('web.secrets.workspace_mode') }}</span>
+          <OIcon
+            v-if="concealedMetadataStore.workspaceMode"
             collection="heroicons"
             name="check"
             class="size-3 text-brand-600 dark:text-brand-400"
