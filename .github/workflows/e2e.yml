@@ -172,7 +172,7 @@ jobs:
           # Run only 'all/' tests - these work without auth or billing configuration
           # Tests in 'full/' require authenticated sessions
           # Tests in 'full-billing/' require auth + billing enabled
-          pnpm test:playwright src/tests/e2e/all/ \
+          pnpm test:playwright e2e/all/ \
             --reporter=github \
             --max-failures=5
         env:
@@ -183,7 +183,7 @@ jobs:
         if: always()
         with:
           name: playwright-report-e2e-integration
-          path: src/tests/e2e/playwright-report/
+          path: e2e/playwright-report/
           retention-days: 7
 
       - name: Debug on failure

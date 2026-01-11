@@ -7,7 +7,7 @@ This directory contains end-to-end integration tests that validate the complete 
 Tests are organized by authentication mode, mirroring the RSpec integration test structure:
 
 ```
-src/tests/e2e/
+e2e/
 ├── README.md              # This file
 ├── playwright.config.ts   # Playwright configuration
 ├── all/                   # Tests that work without authentication
@@ -46,7 +46,7 @@ PLAYWRIGHT_BASE_URL=https://dev.onetime.dev
 
 pnpm run dev  # In terminal 1
 
-PLAYWRIGHT_BASE_URL=$HOST pnpm test:playwright tests/e2e/  # In terminal 2
+PLAYWRIGHT_BASE_URL=$HOST pnpm test:playwright e2e/  # In terminal 2
 ```
 
 ## Test Environments
@@ -57,7 +57,7 @@ PLAYWRIGHT_BASE_URL=$HOST pnpm test:playwright tests/e2e/  # In terminal 2
 pnpm run dev
 
 # Run tests
-PLAYWRIGHT_BASE_URL=http://localhost:5173 pnpm test:playwright tests/e2e/
+PLAYWRIGHT_BASE_URL=http://localhost:5173 pnpm test:playwright e2e/
 ```
 **Use for:** Rapid iteration, UI development, selector debugging
 
@@ -71,7 +71,7 @@ RACK_ENV=production SECRET=test123 REDIS_URL=redis://localhost:6379/0 \
   bundle exec thin -R config.ru -p 3000 start
 
 # Run tests
-PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm test:playwright tests/e2e/
+PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm test:playwright e2e/
 ```
 **Use for:** Asset bundling validation, performance testing, pre-deployment verification
 
@@ -85,7 +85,7 @@ docker run -d --name ots-test -p 3000:3000 \
   onetimesecret-test
 
 # Run tests
-PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm test:playwright tests/e2e/
+PLAYWRIGHT_BASE_URL=http://localhost:3000 pnpm test:playwright e2e/
 
 # Cleanup
 docker stop ots-test && docker rm ots-test
@@ -97,16 +97,16 @@ docker stop ots-test && docker rm ots-test
 ### Visual Debugging
 ```bash
 # Interactive UI mode
-pnpm test:playwright tests/e2e/ --ui
+pnpm test:playwright e2e/ --ui
 
 # Watch mode (headed browser)
-pnpm test:playwright tests/e2e/ --headed --project=chromium
+pnpm test:playwright e2e/ --headed --project=chromium
 ```
 
 ### Trace Generation
 ```bash
 # Generate detailed traces
-pnpm test:playwright tests/e2e/ --trace=on --reporter=html
+pnpm test:playwright e2e/ --trace=on --reporter=html
 
 # View traces
 pnpm playwright show-trace test-results/*/trace.zip
@@ -115,13 +115,13 @@ pnpm playwright show-trace test-results/*/trace.zip
 ### Targeted Testing
 ```bash
 # Run specific test
-pnpm test:playwright tests/e2e/integration.spec.ts -g "homepage loads"
+pnpm test:playwright e2e/integration.spec.ts -g "homepage loads"
 
 # Run against specific browser
-pnpm test:playwright tests/e2e/ --project=firefox
+pnpm test:playwright e2e/ --project=firefox
 
 # Debug specific test
-pnpm test:playwright tests/e2e/integration.spec.ts --debug
+pnpm test:playwright e2e/integration.spec.ts --debug
 ```
 
 ## Working with Claude Code/Desktop
@@ -146,7 +146,7 @@ pnpm test:playwright tests/e2e/integration.spec.ts --debug
    **Application Logs:** (if relevant)
    [paste server/container logs]
 
-   **Test File:** tests/e2e/integration.spec.ts
+   **Test File:** e2e/integration.spec.ts
    [share the specific failing test]
 
    Can you help debug this issue?
@@ -163,7 +163,7 @@ pnpm test:playwright tests/e2e/integration.spec.ts --debug
 #### Asset Loading Issues
 ```bash
 # Check network requests
-pnpm test:playwright tests/e2e/ --headed
+pnpm test:playwright e2e/ --headed
 # Open browser DevTools → Network tab
 
 # Test specific asset loading

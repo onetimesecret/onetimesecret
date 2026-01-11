@@ -1,4 +1,4 @@
-// src/tests/e2e/playwright.config.ts
+// e2e/playwright.config.ts
 
 import { defineConfig, devices } from '@playwright/test';
 
@@ -10,7 +10,7 @@ const DEFAULT_LOCAL_URL = 'http://localhost:7143';
  *
  * Usage:
  *   # Auto-start local server (requires `pnpm run build` first)
- *   pnpm playwright test --config=src/tests/e2e/playwright.config.ts
+ *   pnpm playwright test --config=e2e/playwright.config.ts
  *
  *   # Test against external URL (skips local server)
  *   PLAYWRIGHT_BASE_URL=http://localhost:7143 pnpm test:playwright
@@ -109,7 +109,7 @@ export default defineConfig({
     ? undefined // External URL provided - don't start local server
     : {
         command: 'RACK_ENV=production bin/ots server',
-        cwd: '../../../', // Project root relative to this config
+        cwd: '../', // Project root relative to this config
         url: DEFAULT_LOCAL_URL,
         reuseExistingServer: !process.env.CI,
         timeout: 30000,
