@@ -2,7 +2,9 @@
 #
 # frozen_string_literal: true
 
-require 'spec/spec_helper.rb'
+require_relative '../../../../../try/support/test_helpers'
+
+OT.boot! :test
 require_relative '../../cli/helpers'
 
 # Tests for DomainsHelpers module
