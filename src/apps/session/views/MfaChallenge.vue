@@ -127,7 +127,8 @@
   <AuthView
     :heading="t('web.auth.mfa.title')"
     heading-id="mfa-verify-heading"
-    :with-subheading="false">
+    :with-subheading="false"
+    :show-return-home="false">
     <template #form>
       <div class="space-y-6">
         <!-- OTP Mode -->
@@ -172,7 +173,7 @@
             type="button"
             class="w-full rounded-md bg-brand-600 px-4 py-3 text-lg font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
             <span v-if="isLoading">{{ t('web.COMMON.processing') || 'Processing...' }}</span>
-            <span v-else>{{ t('web.auth.mfa.verify') }}</span>
+            <span v-else>{{ t('web.auth.mfa.verify_login') }}</span>
           </button>
           <span id="verify-button-hint" class="sr-only">
             {{ otpCode.length === 6 ? '' : t('web.auth.mfa.enter_all_digits') }}
@@ -185,26 +186,6 @@
             aria-atomic="true"
             class="sr-only">
             {{ t('web.COMMON.form_processing') }}
-          </div>
-
-          <!-- Switch to recovery code and cancel -->
-          <div class="mt-4 space-y-2 text-center">
-            <button
-              @click="toggleRecoveryMode"
-              type="button"
-              class="text-sm text-brand-600 transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-              {{ t('web.auth.mfa.use_recovery_code') }}
-            </button>
-            <div class="mt-3">
-              <button
-                @click="handleCancel"
-                type="button"
-                :disabled="isLoading"
-                :aria-label="t('web.auth.mfa.cancel') + ' - ' + t('web.login.button_sign_in')"
-                class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-                {{ t('web.auth.mfa.cancel') }}
-              </button>
-            </div>
           </div>
         </div>
 
@@ -268,27 +249,46 @@
               class="sr-only">
               {{ t('web.COMMON.form_processing') }}
             </div>
-
-            <!-- Switch back to OTP and cancel -->
-            <div class="space-y-2 text-center">
-              <button
-                @click="toggleRecoveryMode"
-                type="button"
-                class="text-sm text-brand-600 transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-                {{ t('web.auth.mfa.back_to_code') }}
-              </button>
-              <div class="mt-3">
-                <button
-                  @click="handleCancel"
-                  type="button"
-                  :disabled="isLoading"
-                  class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-                  {{ t('web.auth.mfa.cancel') }}
-                </button>
-              </div>
-            </div>
           </form>
         </div>
+      </div>
+    </template>
+
+    <!-- Footer: Secondary actions outside the card -->
+    <template #footer>
+      <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
+        <nav
+          aria-label="Alternative authentication options"
+          class="flex items-center justify-center gap-2 text-sm">
+        <!-- OTP mode: show recovery code option -->
+        <template v-if="!useRecoveryMode">
+          <button
+            @click="toggleRecoveryMode"
+            type="button"
+            class="text-gray-500 transition-colors duration-200 hover:text-gray-700 focus:outline-none focus:underline dark:text-gray-400 dark:hover:text-gray-300">
+            {{ t('web.auth.mfa.use_recovery_code_short') }}
+          </button>
+        </template>
+        <!-- Recovery mode: show back to OTP option -->
+        <template v-else>
+          <button
+            @click="toggleRecoveryMode"
+            type="button"
+            class="text-gray-500 transition-colors duration-200 hover:text-gray-700 focus:outline-none focus:underline dark:text-gray-400 dark:hover:text-gray-300">
+            {{ t('web.auth.mfa.back_to_code') }}
+          </button>
+        </template>
+
+        <span class="text-gray-300 dark:text-gray-600" aria-hidden="true">&#8226;</span>
+
+        <button
+          @click="handleCancel"
+          type="button"
+          :disabled="isLoading"
+          class="text-gray-500 transition-colors duration-200 hover:text-gray-700 focus:outline-none focus:underline disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-300">
+          {{ t('web.auth.mfa.cancel_sign_in') }}
+        </button>
+        </nav>
       </div>
     </template>
   </AuthView>
