@@ -86,7 +86,7 @@
                 id="feedback-message"
                 v-model="feedbackMessage"
                 name="msg"
-                rows="3"
+                rows="7"
                 class="w-full resize-y rounded-md border border-gray-300 px-4 py-2 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                 :placeholder="t('web.COMMON.feedback_text')"></textarea>
               <input

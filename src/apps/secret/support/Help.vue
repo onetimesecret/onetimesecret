@@ -8,7 +8,8 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <section class="mb-8" aria-labelledby="help-section-title">
+  <div class="container mx-auto max-w-2xl px-4 py-8">
+    <section aria-labelledby="help-section-title">
     <h1
       id="help-section-title"
       class="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
@@ -83,5 +84,6 @@ const { t } = useI18n();
         </div>
       </div>
     </div>
-  </section>
+    </section>
+  </div>
 </template>

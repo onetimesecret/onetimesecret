@@ -9,14 +9,13 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <section
-    class="mb-8"
-    aria-labelledby="feedback-section-title">
-    <h3
+  <div class="container mx-auto max-w-2xl px-4 py-8">
+    <section aria-labelledby="feedback-section-title">
+    <h1
       id="feedback-section-title"
-      lass="text-2xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+      class="mb-6 text-2xl font-semibold text-gray-900 dark:text-gray-100">
       {{ t('web.feedback.share_your_feedback') }}
-    </h3>
+    </h1>
 
     <FeedbackForm :show-red-button="true" />
 
@@ -47,5 +46,6 @@ const { t } = useI18n();
         </div>
       </div>
     </div>
-  </section>
+    </section>
+  </div>
 </template>
