@@ -129,16 +129,16 @@
   <div
     class="border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:px-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
-      <!-- Left: Privacy Defaults Display -->
+      <!-- Left: Privacy Options Display -->
       <div class="flex flex-wrap items-center gap-3">
         <div class="flex items-center gap-2">
           <OIcon
             collection="mdi"
             name="shield-lock-outline"
             class="size-5 text-gray-500 dark:text-gray-400"
-            :aria-label="t('web.domains.privacy_defaults_icon')" />
+            :aria-label="t('web.COMMON.secret_privacy_options')" />
           <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {{ t('web.domains.privacy_defaults') }}:
+            {{ t('web.COMMON.secret_privacy_options') }}
           </span>
         </div>
 
