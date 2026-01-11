@@ -120,7 +120,17 @@ repos:
         pass_filenames: false
         always_run: true
 
-  # JavaScript/TypeScript Linting: Managed ESLint environment
+  # JavaScript/TypeScript Linting: Isolated ESLint Environment
+  #
+  # IMPORTANT: This hook maintains its own ESLint dependencies independent of
+  # the project's node_modules. This ensures:
+  #   1. Pre-commit works even with stale/missing node_modules
+  #   2. Consistent linting across all developer machines
+  #   3. CI-like isolation that catches "works on my machine" issues
+  #
+  # When updating, sync versions with package.json to avoid config drift.
+  # Run `pre-commit clean` after updating to clear cached environments.
+  #
   - repo: local
     hooks:
       - id: eslint
@@ -130,20 +140,28 @@ repos:
         language: node
         files: \.(ts|vue|mjs)$
         additional_dependencies:
-          - eslint@9.26.0
+          # Core ESLint - must match eslint.config.ts requirements
+          - eslint@9.39.2
+          - '@eslint/js@9.39.2'
           - typescript@5.9.3
-          - '@typescript-eslint/parser@8.48.1'
-          - '@typescript-eslint/eslint-plugin@8.48.1'
-          - 'eslint-plugin-vue@10.5.1'
-          - 'vue-eslint-parser@10.2.0'
-          - 'eslint-plugin-import@2.32.0'
-          - 'eslint-import-resolver-typescript@4.4.4'
-          - 'eslint-plugin-tailwindcss@4.0.0-beta.0'
+          - jiti@2.6.1
+          - globals@17.0.0
+          # TypeScript support
+          - '@typescript-eslint/parser@8.52.0'
+          - '@typescript-eslint/eslint-plugin@8.52.0'
+          - typescript-eslint@8.52.0
+          # Vue support - requires flat config exports
+          - eslint-plugin-vue@10.6.2
+          - vue-eslint-parser@10.2.0
+          # Import ordering and resolution
+          - eslint-plugin-import@2.32.0
+          - eslint-import-resolver-typescript@4.4.4
+          # Tailwind CSS - beta required for flat config
+          - eslint-plugin-tailwindcss@4.0.0-beta.0
+          # i18n validation
           - '@intlify/eslint-plugin-vue-i18n@4.1.0'
-          - 'eslint-config-prettier@10.1.8'
-          - 'globals@16.2.0'
-          - 'typescript-eslint@8.48.1'
-          - 'jiti@2.4.2'
+          # Prettier integration
+          - eslint-config-prettier@10.1.8
 
   # Commit metadata tracking
   - repo: local
