@@ -105,10 +105,14 @@ function transformApiRecord(record: MetadataRecords): RecentSecretRecord {
   const secretId = record.secret_shortid ?? '';
   const createdAt =
     record.created instanceof Date ? record.created : new Date();
+  // extid uses identifier for receipt page URLs (not shortid)
+  const extid = record.identifier ?? id;
+  // Combine burned states using boolean OR to reduce complexity
+  const isBurned = Boolean(record.is_burned || record.is_destroyed);
 
   return {
     id,
-    extid: id,
+    extid,
     shortid: secretId,
     secretExtid: secretId,
     hasPassphrase: record.has_passphrase ?? false,
@@ -117,7 +121,7 @@ function transformApiRecord(record: MetadataRecords): RecentSecretRecord {
     shareDomain: record.share_domain ?? undefined,
     isViewed: record.is_viewed ?? false,
     isReceived: record.is_received ?? false,
-    isBurned: (record.is_burned ?? record.is_destroyed) ?? false,
+    isBurned,
     isExpired: record.is_expired ?? false,
     source: 'api',
     originalRecord: record,
