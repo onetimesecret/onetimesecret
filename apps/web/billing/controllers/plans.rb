@@ -133,25 +133,35 @@ module Billing
       # @see Billing::Logic::Welcome::ProcessCheckoutSession
       #
       def welcome
-        logic = Billing::Logic::Welcome::ProcessCheckoutSession.new(strategy_result, req.params, locale)
+        logic  = Billing::Logic::Welcome::ProcessCheckoutSession.new(strategy_result, req.params, locale)
         logic.raise_concerns
-        logic.process
+        result = logic.process
 
-        res.redirect '/account'
+        # Redirect to the billing overview for the upgraded organization
+        # This provides clear feedback about the successful purchase
+        org_extid = result[:org_extid]
+        if org_extid
+          res.redirect "/billing/#{org_extid}/overview?upgraded=true"
+        else
+          # Fallback for one-time payments or missing org context
+          res.redirect '/account'
+        end
       rescue Onetime::FormError => ex
         billing_logger.warn 'Welcome page validation failed',
           {
             error: ex.message,
             session_id: req.params['session_id'],
           }
-        res.redirect '/account'
+        # Redirect to account with error indicator
+        res.redirect '/account?billing_error=validation'
       rescue Stripe::StripeError => ex
         billing_logger.error 'Stripe session retrieval failed',
           {
             exception: ex,
             session_id: req.params['session_id'],
           }
-        res.redirect '/account'
+        # Redirect to account with error indicator
+        res.redirect '/account?billing_error=stripe'
       end
 
       # Redirect to Stripe Customer Portal
@@ -178,7 +188,10 @@ module Billing
 
         site_host  = Onetime.conf['site']['host']
         is_secure  = Onetime.conf['site']['ssl']
-        return_url = "#{is_secure ? 'https' : 'http'}://#{site_host}/account"
+        protocol   = is_secure ? 'https' : 'http'
+
+        # Return to billing overview for the specific organization
+        return_url = "#{protocol}://#{site_host}/billing/#{org.extid}/overview"
 
         # Create Stripe Customer Portal session
         portal_session = Stripe::BillingPortal::Session.create(
@@ -190,7 +203,7 @@ module Billing
 
         billing_logger.info 'Customer portal session created',
           {
-            extid: org.objid,
+            extid: org.extid,
             customer_id: org.stripe_customer_id,
           }
 

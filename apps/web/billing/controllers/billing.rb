@@ -90,7 +90,7 @@ module Billing
         protocol  = is_secure ? 'https' : 'http'
 
         success_url = "#{protocol}://#{site_host}/billing/welcome?session_id={CHECKOUT_SESSION_ID}"
-        cancel_url  = "#{protocol}://#{site_host}/account"
+        cancel_url  = "#{protocol}://#{site_host}/billing/#{org.extid}/plans"
 
         session_params = {
           mode: 'subscription',
