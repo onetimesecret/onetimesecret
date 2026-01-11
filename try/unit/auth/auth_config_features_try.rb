@@ -90,6 +90,17 @@ config.instance_variable_get(:@config)['mode'] = 'full'
 config.security_features_enabled?
 #=> true
 
+## security_features_enabled? returns false when any underlying feature is disabled
+config = Onetime::AuthConfig.instance
+config.instance_variable_get(:@config)['mode'] = 'full'
+features = config.instance_variable_get(:@config)['full']['features']
+original_remember_me = features['remember_me']
+features['remember_me'] = false
+result = config.security_features_enabled?
+features['remember_me'] = original_remember_me
+result
+#=> false
+
 # Teardown: Restore original method and clear singleton
 Onetime::Utils::ConfigResolver.define_singleton_method(:resolve, @original_resolve)
 Onetime::AuthConfig.instance_variable_set(:@singleton__instance__, nil)
