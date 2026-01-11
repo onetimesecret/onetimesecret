@@ -1,0 +1,772 @@
+# LLM-Optimized Test Cases: Scope Switcher UX
+# Converted from: e2e/qase-test-cases-scope-switcher.md
+# Schema version: 1.0.0
+
+suite:
+  id: scope-switcher-ux
+  name: Scope Switcher - Organization and Domain Context Switching
+  feature: OrganizationScopeSwitcher and DomainScopeSwitcher components
+  issue: https://github.com/onetimesecret/onetimesecret/issues/2313
+  tags: [vue, navigation, context-switching, accessibility]
+
+# Visibility Rules Matrix (reference):
+# | Page            | Org Switcher | Domain Switcher |
+# |-----------------|--------------|-----------------|
+# | Dashboard       | show         | show            |
+# | Secret creation | show         | show            |
+# | Org settings    | locked       | hide            |
+# | Domains list    | show         | show            |
+# | Domain detail   | show         | locked          |
+# | Billing         | locked       | hide            |
+# | Account         | hide         | hide            |
+
+definitions:
+  users:
+    authenticated: &user_auth
+      auth: logged_in
+      description: Standard authenticated user
+
+    multi_org: &user_multi_org
+      auth: logged_in
+      state:
+        organizations_count: 2
+      description: User with multiple organizations
+
+    with_domains: &user_with_domains
+      auth: logged_in
+      state:
+        has_custom_domains: true
+        domains_count: 2
+      description: User with custom domains enabled
+
+    full_access: &user_full
+      auth: logged_in
+      state:
+        organizations_count: 2
+        has_custom_domains: true
+        domains_count: 2
+      description: User with multiple orgs and domains
+
+tests:
+  # ===========================================================================
+  # SECTION 1: Visibility Rules
+  # ===========================================================================
+
+  - id: TC-SS-001
+    intent: Dashboard shows interactive organization switcher for authenticated user
+    setup:
+      <<: *user_auth
+      state:
+        has_organization: true
+    target: /dashboard
+    action:
+      type: none
+    verify:
+      - Organization switcher visible in header
+      - Current organization name displayed
+      - Switcher is interactive (not disabled)
+      - Dropdown chevron visible
+      - selector: "[data-testid='org-scope-switcher']"
+        assertion: visible
+      - selector: "[data-testid='org-scope-switcher-trigger']"
+        assertion: visible
+    priority: high
+    type: functional
+    covers: [OrganizationScopeSwitcher, organizationStore]
+
+  - id: TC-SS-002
+    intent: Dashboard shows interactive domain switcher for user with custom domains
+    setup:
+      <<: *user_with_domains
+    target: /dashboard
+    action:
+      type: none
+    verify:
+      - Domain switcher visible in header
+      - Current domain scope displayed
+      - Switcher is interactive (not disabled)
+      - selector: "[data-testid='domain-scope-switcher']"
+        assertion: visible
+    priority: high
+    type: functional
+    covers: [DomainScopeSwitcher, useDomainScope]
+    notes: If user has no custom domains, domain switcher should be hidden (not an error)
+
+  - id: TC-SS-003
+    intent: Secret creation page shows interactive organization switcher
+    setup:
+      <<: *user_auth
+    target: /
+    action:
+      type: none
+    verify:
+      - Organization switcher visible in header
+      - Current organization displayed
+      - Switcher is interactive
+      - selector: "[data-testid='org-scope-switcher']"
+        assertion: visible
+    priority: high
+    type: functional
+    covers: [OrganizationScopeSwitcher]
+
+  - id: TC-SS-004
+    intent: Secret creation page shows domain switcher for users with domains
+    setup:
+      <<: *user_with_domains
+    target: /
+    action:
+      type: none
+    verify:
+      - Domain switcher visible (if user has domains)
+      - Current scope displayed
+      - Secrets created will use selected domain context
+      - selector: "[data-testid='domain-scope-switcher']"
+        assertion: visible
+    priority: high
+    type: functional
+    covers: [DomainScopeSwitcher]
+
+  - id: TC-SS-005
+    intent: Organization settings page shows locked (non-interactive) org switcher
+    setup:
+      <<: *user_auth
+      state:
+        has_organization: true
+        organization_extid: "{{org_extid}}"
+    target: /org/{{org_extid}}
+    action:
+      type: click
+      element: Organization switcher trigger
+    verify:
+      - Organization switcher is visible
+      - Current organization name displayed
+      - Switcher is disabled/locked (cursor not-allowed, opacity reduced)
+      - Clicking does not open dropdown
+      - selector: "[data-testid='org-scope-switcher-trigger']"
+        assertion: visible
+      - selector: "[data-testid='org-scope-switcher-trigger'][aria-disabled='true']"
+        assertion: exists
+    priority: high
+    type: functional
+    covers: [OrganizationScopeSwitcher, locked state]
+
+  - id: TC-SS-006
+    intent: Organization settings page hides domain switcher completely
+    setup:
+      <<: *user_with_domains
+      state:
+        organization_extid: "{{org_extid}}"
+    target: /org/{{org_extid}}
+    action:
+      type: none
+    verify:
+      - Domain switcher is NOT visible
+      - No placeholder or disabled version shown
+      - selector: "[data-testid='domain-scope-switcher']"
+        assertion: hidden
+    priority: high
+    type: functional
+    covers: [DomainScopeSwitcher, visibility rules]
+
+  - id: TC-SS-007
+    intent: Domains list page shows interactive organization switcher
+    setup:
+      <<: *user_auth
+    target: /domains
+    action:
+      type: none
+    verify:
+      - Organization switcher is visible
+      - Switcher is interactive (can switch organizations)
+      - selector: "[data-testid='org-scope-switcher']"
+        assertion: visible
+    priority: medium
+    type: functional
+    covers: [OrganizationScopeSwitcher]
+
+  - id: TC-SS-008
+    intent: Domains list page shows interactive domain switcher
+    setup:
+      <<: *user_with_domains
+    target: /domains
+    action:
+      type: none
+    verify:
+      - Domain switcher is visible
+      - Switcher is interactive
+      - selector: "[data-testid='domain-scope-switcher']"
+        assertion: visible
+    priority: medium
+    type: functional
+    covers: [DomainScopeSwitcher]
+
+  - id: TC-SS-009
+    intent: Domain detail page shows interactive organization switcher
+    setup:
+      <<: *user_with_domains
+      state:
+        domain_extid: "{{domain_extid}}"
+    target: /domains/{{domain_extid}}/brand
+    action:
+      type: none
+    verify:
+      - Organization switcher is visible
+      - Switcher is interactive
+      - selector: "[data-testid='org-scope-switcher']"
+        assertion: visible
+    priority: medium
+    type: functional
+    covers: [OrganizationScopeSwitcher]
+
+  - id: TC-SS-010
+    intent: Domain detail page shows locked domain switcher
+    setup:
+      <<: *user_with_domains
+      state:
+        domain_extid: "{{domain_extid}}"
+    target: /domains/{{domain_extid}}/brand
+    action:
+      type: click
+      element: Domain switcher trigger
+    verify:
+      - Domain switcher is visible
+      - Current domain displayed
+      - Switcher is disabled/locked
+      - Clicking does not open dropdown
+      - selector: "[data-testid='domain-scope-switcher-trigger'][aria-disabled='true']"
+        assertion: exists
+    priority: high
+    type: functional
+    covers: [DomainScopeSwitcher, locked state]
+
+  - id: TC-SS-011
+    intent: Billing page shows locked organization switcher
+    setup:
+      <<: *user_auth
+    target: /billing/overview
+    action:
+      type: click
+      element: Organization switcher trigger
+    verify:
+      - Organization switcher is visible
+      - Shows current organization
+      - Switcher is disabled/locked
+      - Billing context tied to current organization
+      - selector: "[data-testid='org-scope-switcher-trigger'][aria-disabled='true']"
+        assertion: exists
+    priority: high
+    type: functional
+    covers: [OrganizationScopeSwitcher, billing context]
+
+  - id: TC-SS-012
+    intent: Billing page hides domain switcher
+    setup:
+      <<: *user_with_domains
+    target: /billing/overview
+    action:
+      type: none
+    verify:
+      - Domain switcher is NOT visible
+      - Billing is organization-scoped, not domain-scoped
+      - selector: "[data-testid='domain-scope-switcher']"
+        assertion: hidden
+    priority: high
+    type: functional
+    covers: [DomainScopeSwitcher, visibility rules]
+
+  - id: TC-SS-015
+    intent: Account settings page hides organization switcher
+    setup:
+      <<: *user_auth
+    target: /account
+    action:
+      type: none
+    verify:
+      - Organization switcher is NOT visible
+      - Account settings are user-scoped, not org-scoped
+      - selector: "[data-testid='org-scope-switcher']"
+        assertion: hidden
+    priority: high
+    type: functional
+    covers: [OrganizationScopeSwitcher, visibility rules]
+
+  - id: TC-SS-016
+    intent: Account settings page hides domain switcher
+    setup:
+      <<: *user_with_domains
+    target: /account
+    action:
+      type: none
+    verify:
+      - Domain switcher is NOT visible
+      - selector: "[data-testid='domain-scope-switcher']"
+        assertion: hidden
+    priority: high
+    type: functional
+    covers: [DomainScopeSwitcher, visibility rules]
+
+  # ===========================================================================
+  # SECTION 2: Switching Behavior
+  # ===========================================================================
+
+  - id: TC-SS-020
+    intent: Organization dropdown opens on click showing all user organizations
+    setup:
+      <<: *user_multi_org
+    target: /dashboard
+    action:
+      type: click
+      element: "[data-testid='org-scope-switcher-trigger']"
+    verify:
+      - Dropdown menu opens with animation
+      - Menu shows "My Organizations" header
+      - All user's organizations are listed
+      - Current organization has checkmark indicator
+      - Menu has role="menu" for accessibility
+      - selector: "[data-testid='org-scope-switcher-dropdown']"
+        assertion: visible
+      - selector: "[data-testid='org-scope-switcher-dropdown'][role='menu']"
+        assertion: exists
+    priority: high
+    type: functional
+    covers: [OrganizationScopeSwitcher, dropdown behavior]
+
+  - id: TC-SS-021
+    intent: Current organization is visually highlighted in dropdown
+    setup:
+      <<: *user_multi_org
+    target: /dashboard
+    action:
+      type: click
+      element: Organization switcher trigger
+    verify:
+      - Current organization has checkmark icon on right
+      - Current organization has background highlight
+      - Current organization has font-weight semibold
+      - Other organizations have normal styling
+    priority: high
+    type: ui
+    covers: [OrganizationScopeSwitcher, selection indicator]
+
+  - id: TC-SS-022
+    intent: Selecting different organization updates entire context
+    setup:
+      <<: *user_multi_org
+    target: /dashboard
+    action:
+      type: click
+      element: Different organization in dropdown
+    verify:
+      - Dropdown closes
+      - Switcher trigger shows new organization name
+      - Page content updates to reflect new organization context
+      - Organization-scoped data is refreshed
+      - Domain list updates for new organization
+    postconditions:
+      - organizationStore.currentOrganization updated
+      - API calls reflect new org context
+    priority: critical
+    type: functional
+    covers: [OrganizationScopeSwitcher, organizationStore, context switching]
+
+  - id: TC-SS-023
+    intent: Gear icon in dropdown navigates to organization settings
+    setup:
+      <<: *user_multi_org
+      state:
+        organization_extid: "{{org_extid}}"
+    target: /dashboard
+    action:
+      type: click
+      element: Gear/cog icon on organization row
+    verify:
+      - Gear icon appears on hover
+      - Clicking gear navigates to /org/{{org_extid}}
+      - Organization settings page loads
+      - Dropdown closes
+    priority: high
+    type: functional
+    covers: [OrganizationScopeSwitcher, settings navigation]
+    notes: Default (personal) organization may not show gear icon
+
+  - id: TC-SS-024
+    intent: Manage Organizations link navigates to organizations list
+    setup:
+      <<: *user_auth
+    target: /dashboard
+    action:
+      type: click
+      element: "[data-testid='org-scope-manage-link']"
+    verify:
+      - Navigates to /org (organizations list page)
+      - Dropdown closes
+      - Organizations management page loads
+    priority: medium
+    type: functional
+    covers: [OrganizationScopeSwitcher, navigation]
+
+  - id: TC-SS-030
+    intent: Domain dropdown opens on click showing all available domains
+    setup:
+      <<: *user_with_domains
+    target: /dashboard
+    action:
+      type: click
+      element: "[data-testid='domain-scope-switcher-trigger']"
+    verify:
+      - Dropdown menu opens with animation
+      - Menu shows domain header
+      - All available domains are listed
+      - Current domain has checkmark indicator
+      - selector: "[data-testid='domain-scope-switcher-dropdown']"
+        assertion: visible
+    priority: high
+    type: functional
+    covers: [DomainScopeSwitcher, dropdown behavior]
+
+  - id: TC-SS-031
+    intent: Selecting different domain updates scope
+    setup:
+      <<: *user_with_domains
+    target: /dashboard
+    action:
+      type: click
+      element: Different domain in dropdown
+    verify:
+      - Dropdown closes
+      - Switcher trigger shows new domain
+      - Scope indicator updates
+      - localStorage domainScope key is updated
+    postconditions:
+      - localStorage.domainScope matches selected domain
+    priority: critical
+    type: functional
+    covers: [DomainScopeSwitcher, useDomainScope, localStorage persistence]
+
+  - id: TC-SS-032
+    intent: Domain scope persists to localStorage
+    setup:
+      <<: *user_with_domains
+    target: /dashboard
+    action:
+      type: click
+      element: A domain in dropdown
+    verify:
+      - localStorage contains "domainScope" key
+      - Value matches selected domain hostname
+    priority: high
+    type: functional
+    covers: [useDomainScope, localStorage]
+
+  - id: TC-SS-033
+    intent: Add Domain link navigates to domains management
+    setup:
+      <<: *user_with_domains
+    target: /dashboard
+    action:
+      type: click
+      element: "[data-testid='domain-scope-add-link']"
+    verify:
+      - Navigates to /domains
+      - Dropdown closes
+      - Domains management page loads
+    priority: medium
+    type: functional
+    covers: [DomainScopeSwitcher, navigation]
+
+  # ===========================================================================
+  # SECTION 3: Locked State Behavior
+  # ===========================================================================
+
+  - id: TC-SS-040
+    intent: Locked organization switcher cannot be clicked
+    setup:
+      <<: *user_auth
+    target: /billing/overview
+    action:
+      type: click
+      element: Organization switcher trigger
+    verify:
+      - Switcher displays current organization name
+      - Cursor shows not-allowed
+      - Visual opacity is reduced (muted appearance)
+      - Clicking has no effect
+      - No dropdown opens
+      - selector: "[data-testid='org-scope-switcher-dropdown']"
+        assertion: hidden
+    priority: high
+    type: functional
+    covers: [OrganizationScopeSwitcher, locked state]
+
+  - id: TC-SS-041
+    intent: Locked switcher has proper ARIA attributes for accessibility
+    setup:
+      <<: *user_auth
+    target: /billing/overview
+    action:
+      type: none
+    verify:
+      - Element has aria-disabled="true" OR disabled attribute
+      - Screen readers announce element as disabled
+      - Keyboard focus behavior is appropriate
+      - selector: "[data-testid='org-scope-switcher-trigger'][aria-disabled='true']"
+        assertion: exists
+    priority: medium
+    type: accessibility
+    covers: [OrganizationScopeSwitcher, ARIA, a11y]
+
+  - id: TC-SS-042
+    intent: Locked domain switcher shows current domain without interaction
+    setup:
+      <<: *user_with_domains
+      state:
+        domain_extid: "{{domain_extid}}"
+    target: /domains/{{domain_extid}}/brand
+    action:
+      type: none
+    verify:
+      - Domain switcher is visible
+      - Shows the current domain being edited
+      - Switcher is disabled/locked
+      - User cannot switch domains while editing
+    priority: high
+    type: functional
+    covers: [DomainScopeSwitcher, locked state]
+
+  # ===========================================================================
+  # SECTION 4: Edge Cases
+  # ===========================================================================
+
+  - id: TC-SS-050
+    intent: Single organization user sees switcher with one option
+    setup:
+      auth: logged_in
+      state:
+        organizations_count: 1
+    target: /dashboard
+    action:
+      type: click
+      element: Organization switcher trigger
+    verify:
+      - Switcher is visible
+      - Dropdown shows one organization (Personal/default)
+      - Checkmark indicates current selection
+      - "Manage Organizations" link still available
+    priority: medium
+    type: edge
+    covers: [OrganizationScopeSwitcher, single org user]
+
+  - id: TC-SS-051
+    intent: User without custom domains does not see domain switcher
+    setup:
+      auth: logged_in
+      state:
+        has_custom_domains: false
+    target: /dashboard
+    action:
+      type: none
+    verify:
+      - Domain switcher is NOT visible
+      - No placeholder or disabled state shown
+      - Page layout adjusts appropriately
+      - selector: "[data-testid='domain-scope-switcher']"
+        assertion: hidden
+    priority: high
+    type: edge
+    covers: [DomainScopeSwitcher, entitlements gating]
+
+  - id: TC-SS-052
+    intent: Canonical domain shows with Personal label and home icon
+    setup:
+      <<: *user_with_domains
+    target: /dashboard
+    action:
+      type: click
+      element: Domain switcher trigger
+    verify:
+      - Canonical domain shows display_domain label
+      - Has home icon (vs globe for custom domains)
+      - Can be selected as scope
+    priority: medium
+    type: ui
+    covers: [DomainScopeSwitcher, canonical domain display]
+
+  - id: TC-SS-053
+    intent: Keyboard navigation works for switcher dropdowns
+    setup:
+      <<: *user_auth
+    target: /dashboard
+    action:
+      type: navigate
+      element: Organization switcher via keyboard
+      data:
+        steps: [Tab to switcher, Enter to open, Arrow Down, Arrow Up, Enter to select, Escape to close]
+    verify:
+      - Switcher is focusable via Tab
+      - Enter opens the dropdown
+      - Arrow keys navigate menu items
+      - Enter selects highlighted item
+      - Escape closes dropdown
+      - Focus returns to trigger after close
+    priority: high
+    type: accessibility
+    covers: [OrganizationScopeSwitcher, keyboard navigation, a11y]
+
+  - id: TC-SS-054
+    intent: Organization switch resets domain scope if domain unavailable in new org
+    setup:
+      <<: *user_full
+      state:
+        org_a_domains: [domain1.com]
+        org_b_domains: [domain2.com]
+    target: /dashboard
+    action:
+      type: click
+      element: Switch to organization B
+    verify:
+      - If new org doesn't have previously selected domain, domain scope resets
+      - Domain scope resets to canonical or first available
+      - localStorage is updated
+      - If new org has same domain, domain scope is preserved
+    postconditions:
+      - domainScope consistent with available domains
+    priority: high
+    type: edge
+    covers: [OrganizationScopeSwitcher, DomainScopeSwitcher, cross-scope consistency]
+
+  # ===========================================================================
+  # SECTION 5: State Persistence
+  # ===========================================================================
+
+  - id: TC-SS-060
+    intent: Organization selection persists across navigation
+    setup:
+      <<: *user_multi_org
+    target: /dashboard
+    action:
+      type: navigate
+      element: Navigate away and back
+      data:
+        steps: [Note current org, Navigate to /, Navigate back to /dashboard]
+    verify:
+      - Same organization is selected
+      - No flash of different organization
+      - State is maintained in store
+    priority: high
+    type: functional
+    covers: [organizationStore, state persistence]
+
+  - id: TC-SS-061
+    intent: Domain scope persists across navigation
+    setup:
+      <<: *user_with_domains
+    target: /dashboard
+    action:
+      type: navigate
+      element: Navigate to different pages and return
+    verify:
+      - Same domain scope is selected
+      - localStorage value is consistent
+      - Domain scope indicator shows correct domain
+    priority: high
+    type: functional
+    covers: [useDomainScope, state persistence]
+
+  - id: TC-SS-062
+    intent: Domain scope persists in localStorage across page reload
+    setup:
+      <<: *user_with_domains
+    target: /dashboard
+    action:
+      type: submit
+      element: Select domain then reload page
+    verify:
+      - localStorage contains domainScope key
+      - On page reload, same domain is selected
+      - Composable reads from localStorage on init
+    priority: medium
+    type: functional
+    covers: [useDomainScope, localStorage, hydration]
+
+  # ===========================================================================
+  # SECTION 6: Accessibility
+  # ===========================================================================
+
+  - id: TC-SS-070
+    intent: Organization switcher has proper ARIA labels
+    setup:
+      <<: *user_auth
+    target: /dashboard
+    action:
+      type: none
+    verify:
+      - Trigger has aria-label containing "organization"
+      - Announces current organization name
+      - Role and state are properly communicated
+    priority: medium
+    type: accessibility
+    covers: [OrganizationScopeSwitcher, ARIA]
+
+  - id: TC-SS-071
+    intent: Domain switcher has proper ARIA labels
+    setup:
+      <<: *user_with_domains
+    target: /dashboard
+    action:
+      type: none
+    verify:
+      - Trigger has aria-label
+      - Announces current domain
+      - Scope concept is communicated
+    priority: medium
+    type: accessibility
+    covers: [DomainScopeSwitcher, ARIA]
+
+  - id: TC-SS-072
+    intent: Dropdown menu has role="menu"
+    setup:
+      <<: *user_auth
+    target: /dashboard
+    action:
+      type: click
+      element: Organization switcher trigger
+    verify:
+      - Dropdown container has role="menu"
+      - Proper ARIA hierarchy for menus
+      - selector: "[data-testid='org-scope-switcher-dropdown'][role='menu']"
+        assertion: exists
+    priority: medium
+    type: accessibility
+    covers: [OrganizationScopeSwitcher, ARIA menu pattern]
+
+  - id: TC-SS-073
+    intent: Menu items have role="menuitem"
+    setup:
+      <<: *user_auth
+    target: /dashboard
+    action:
+      type: click
+      element: Organization switcher trigger
+    verify:
+      - Each selectable item has role="menuitem"
+      - Items are focusable
+      - Selected state is communicated
+    priority: medium
+    type: accessibility
+    covers: [OrganizationScopeSwitcher, ARIA menuitem pattern]
+
+  - id: TC-SS-074
+    intent: Focus is trapped within open dropdown
+    setup:
+      <<: *user_auth
+    target: /dashboard
+    action:
+      type: click
+      element: Organization switcher trigger
+    verify:
+      - Focus cycles within dropdown (focus trap)
+      - Cannot Tab out to page elements while open
+      - Escape key releases focus trap
+    priority: medium
+    type: accessibility
+    covers: [OrganizationScopeSwitcher, focus management, a11y]
