@@ -144,8 +144,8 @@ RSpec.describe 'ProcessWebhookEvent: customer.updated', :integration, :process_w
           original_updated = organization.updated
           operation.call
           organization.refresh!
-          # Updated timestamp should not change when email is same
-          expect(organization.updated).to eq(original_updated)
+          # Updated timestamp should not change when email is same (within float tolerance)
+          expect(organization.updated).to be_within(0.001).of(original_updated)
         end
       end
 
