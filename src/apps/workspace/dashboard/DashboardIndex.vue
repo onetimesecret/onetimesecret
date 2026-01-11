@@ -1,76 +1,53 @@
 <!-- src/apps/workspace/dashboard/DashboardIndex.vue -->
 
 <script setup lang="ts">
-  import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
   import RecentSecretsTable from '@/apps/secret/components/RecentSecretsTable.vue';
-  import PrivacyDefaultsBar from '@/apps/workspace/components/domains/PrivacyDefaultsBar.vue';
+  import PrivacyOptionsBar from '@/apps/workspace/components/forms/PrivacyOptionsBar.vue';
+  import WorkspaceSecretForm from '@/apps/workspace/components/forms/WorkspaceSecretForm.vue';
   import UpgradeBanner from '@/apps/workspace/dashboard/components/UpgradeBanner.vue';
   import { useDomainScope } from '@/shared/composables/useDomainScope';
-  import { useBranding } from '@/shared/composables/useBranding';
-  import { WindowService } from '@/services/window.service';
-  import type { BrandSettings } from '@/schemas/models';
-  import { computed, onMounted, watch } from 'vue';
-
-  const cust = WindowService.get('cust');
-  const isBetaEnabled = computed(() => cust?.feature_flags?.beta ?? false);
+  import { computed, ref } from 'vue';
 
   // Domain scope management
-  const { currentScope, isScopeActive } = useDomainScope();
+  const { isScopeActive } = useDomainScope();
 
-  // Get brand settings for current domain
-  const {
-    brandSettings,
-    isLoading,
-    initialize: initBranding,
-    saveBranding
-  } = useBranding(currentScope.value.domain);
+  // Form ref for accessing exposed state
+  const secretFormRef = ref<InstanceType<typeof WorkspaceSecretForm> | null>(null);
 
-  // Initialize branding on mount
-  onMounted(() => {
-    if (isScopeActive.value && !currentScope.value.isCanonical) {
-      initBranding();
-    }
-  });
+  // Computed values that read from form's exposed state
+  const currentTtl = computed(() => secretFormRef.value?.currentTtl ?? 604800);
+  const currentPassphrase = computed(() => secretFormRef.value?.currentPassphrase ?? '');
+  const isSubmitting = computed(() => secretFormRef.value?.isSubmitting ?? false);
 
-  // Re-initialize when domain scope changes
-  watch(
-    () => currentScope.value.domain,
-    () => {
-      if (isScopeActive.value && !currentScope.value.isCanonical) {
-        initBranding();
-      }
-    }
-  );
-
-  // Handle privacy defaults update
-  const handlePrivacyUpdate = async (settings: Partial<BrandSettings>) => {
-    await saveBranding(settings, currentScope.value.domain);
+  // Handlers for privacy options updates
+  const handleTtlUpdate = (value: number) => {
+    secretFormRef.value?.updateTtl(value);
   };
 
-  // Only show privacy bar for custom domains (not canonical)
-  const showPrivacyBar = computed(() =>
-    isScopeActive.value && !currentScope.value.isCanonical
-  );
+  const handlePassphraseUpdate = (value: string) => {
+    secretFormRef.value?.updatePassphrase(value);
+  };
 </script>
 
 <template>
-  <div class="container mx-auto min-w-[320px] max-w-2xl">
+  <div class="container mx-auto min-w-[320px] max-w-4xl px-4">
     <!-- Upgrade Banner (shown for free plan users when billing is enabled) -->
     <UpgradeBanner />
 
-    <!-- Privacy Defaults Bar (only shown when custom domain scope is active) -->
-    <PrivacyDefaultsBar
-      v-if="showPrivacyBar"
-      :brand-settings="brandSettings"
-      :is-loading="isLoading"
+    <!-- Privacy Options Bar (interactive chips for TTL and passphrase) -->
+    <PrivacyOptionsBar
+      v-if="isScopeActive"
+      :current-ttl="currentTtl"
+      :current-passphrase="currentPassphrase"
+      :is-submitting="isSubmitting"
       class="mb-6 rounded-lg"
-      @update="handlePrivacyUpdate" />
+      @update:ttl="handleTtlUpdate"
+      @update:passphrase="handlePassphraseUpdate" />
 
-    <SecretForm
-      class="mb-12"
-      :with-generate="true"
-      :with-recipient="true" />
+    <WorkspaceSecretForm
+      ref="secretFormRef"
+      class="mb-12" />
 
-    <RecentSecretsTable v-if="isBetaEnabled" />
+    <RecentSecretsTable :show-workspace-mode-toggle="false" />
   </div>
 </template>

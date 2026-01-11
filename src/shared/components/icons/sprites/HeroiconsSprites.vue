@@ -16,7 +16,6 @@
       <symbol
         viewBox="0 0 24 24"
         id="heroicons-arrow-trending-down-solid">
-        <!-- Icon from HeroIcons by Refactoring UI Inc - https://github.com/tailwindlabs/heroicons/blob/master/LICENSE -->
         <path
           fill="currentColor"
           fill-rule="evenodd"
@@ -26,7 +25,6 @@
       <symbol
         viewBox="0 0 24 24"
         id="heroicons-arrow-trending-up-solid">
-        <!-- Icon from HeroIcons by Refactoring UI Inc - https://github.com/tailwindlabs/heroicons/blob/master/LICENSE -->
         <path
           fill="currentColor"
           fill-rule="evenodd"
@@ -36,7 +34,6 @@
       <symbol
         viewBox="0 0 24 24"
         id="heroicons-x-circle">
-        <!-- Icon from HeroIcons by Refactoring UI Inc - https://github.com/tailwindlabs/heroicons/blob/master/LICENSE -->
         <path
           fill="none"
           stroke="currentColor"
@@ -48,7 +45,6 @@
       <symbol
         viewBox="0 0 24 24"
         id="heroicons-x-circle-solid">
-        <!-- Icon from HeroIcons by Refactoring UI Inc - https://github.com/tailwindlabs/heroicons/blob/master/LICENSE -->
         <path
           fill="currentColor"
           fill-rule="evenodd"

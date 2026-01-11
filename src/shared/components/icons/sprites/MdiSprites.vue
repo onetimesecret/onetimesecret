@@ -14,6 +14,8 @@ License: Apache License 2.0
 <template>
   <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <defs>
+    <symbol viewBox="0 0 24 24" id="mdi-pin"><path fill="currentColor" d="M14 12.41V5h1V4H8v1h1v7.41l-2 2V15h9v-.59zM17 14v2h-5v4.5l-.5 1.5l-.5-1.5V16H6v-2l2-2V6H7V3h9v3h-1v6z" /></symbol>
+    <symbol viewBox="0 0 24 24" id="mdi-pin-off"><path fill="currentColor" d="m2.79 4.46l.71-.71L20.25 20.5l-.71.71L14.33 16H12v4.5l-.5 1.5l-.5-1.5V16H6v-2l2-2V9.66zM14 12.41V5h1V4H8v1h1v2.84l-1-1V6h-.84L7 5.84V3h9v3h-1v6l2 2v1.83l-1-.99v-.43zm-5 0l-2 2V15h6.34L9 10.66z" /></symbol>
       <symbol viewBox="0 0 24 24" id="mdi-timer-outline"><path fill="currentColor" d="M12 20a7 7 0 0 1-7-7a7 7 0 0 1 7-7a7 7 0 0 1 7 7a7 7 0 0 1-7 7m7.03-12.61l1.42-1.42c-.45-.51-.9-.97-1.41-1.41L17.62 6c-1.55-1.26-3.5-2-5.62-2a9 9 0 0 0-9 9a9 9 0 0 0 9 9c5 0 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61M11 14h2V8h-2m4-7H9v2h6z" /></symbol>
       <symbol viewBox="0 0 24 24" id="mdi-pencil"><path fill="currentColor" d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83l3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75z" /></symbol>
       <symbol viewBox="0 0 24 24" id="mdi-email-outline"><path fill="currentColor" d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2zm-2 0l-8 5l-8-5zm0 12H4V8l8 5l8-5z" /></symbol>

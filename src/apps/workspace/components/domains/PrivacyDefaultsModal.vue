@@ -160,7 +160,7 @@
                     class="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/50">
                     <OIcon
                       collection="mdi"
-                      name="shield-lock-outline"
+                      name="shield-lock"
                       class="size-5 text-brand-600 dark:text-brand-400"
                       aria-hidden="true" />
                   </div>
