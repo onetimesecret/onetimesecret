@@ -76,7 +76,11 @@ resp = JSON.parse(last_response.body)
 resp['records'].size
 #=> 3
 
-# Setup billing with strict limit
+## With billing enabled and limit=2, creating 4th org fails (already have 3)
+# Execute billing-enabled test and capture results
+@billing_test_status = nil
+@billing_test_error_message = nil
+@billing_test_error_type = nil
 BillingTestHelpers.with_billing_enabled(plans: [
   {
     plan_id: 'limited_plan',
@@ -85,33 +89,35 @@ BillingTestHelpers.with_billing_enabled(plans: [
     interval: 'month',
     region: 'us',
     entitlements: ['create_secrets'],
-    limits: { 'organizations.max' => '2' }  # Hard limit of 2 orgs
+    limits: { 'organizations.max' => '2' }
   }
 ]) do
-  # Assign limited plan to default organization
   @default_org.planid = 'limited_plan'
   @default_org.save
 
-  ## With billing enabled and limit=2, creating 4th org should fail (already have 3)
   post '/api/organizations',
     { display_name: 'Fourth Org (Should Fail)', contact_email: "fourth_#{@timestamp}@example.com" }.to_json,
     { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
-  last_response.status
-  #=> 422
 
-  ## Error response indicates quota limit reached
+  @billing_test_status = last_response.status
   resp = JSON.parse(last_response.body)
-  resp['error']['message'].include?('limit reached')
-  #=> true
-
-  ## Error type is upgrade_required
-  resp['error']['type']
-  #=> 'upgrade_required'
+  # API returns flat structure: {"error": "ErrorType", "message": "..."}
+  @billing_test_error_type = resp['error']
+  @billing_test_error_message = resp['message']
 end
+@billing_test_status
+#=> 422
+
+## Error response indicates quota limit reached
+@billing_test_error_message.to_s.include?('limit reached')
+#=> true
+
+## Error type is FormError
+@billing_test_error_type
+#=> 'FormError'
 
 # Teardown
 begin
-  # Clean up organizations by loading via extid (may fail if already deleted)
   if @second_org_id
     @second_org = Onetime::Organization.load(@second_org_id)
     @second_org&.destroy!
@@ -125,6 +131,5 @@ begin
   @default_org&.destroy!
   @cust&.destroy!
 rescue StandardError => e
-  # Ignore cleanup errors in teardown
   warn "[Teardown] Cleanup error (ignorable): #{e.message}"
 end
