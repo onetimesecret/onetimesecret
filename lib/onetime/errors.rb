@@ -44,6 +44,14 @@ module Onetime
       @field      = field
       @error_type = error_type
     end
+
+    def to_h
+      {
+        error: error_type || 'FormError',
+        message: message,
+        field: field,
+      }.compact
+    end
   end
 
   class BadShrimp < Problem
