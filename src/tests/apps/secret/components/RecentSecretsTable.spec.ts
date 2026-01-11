@@ -2,55 +2,93 @@
 
 import { mount, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { createTestingPinia } from '@pinia/testing';
 
-// Mock store state
-const mockWorkspaceMode = ref(false);
-const mockHasMessages = ref(true);
-const mockConcealedMessages = ref([
-  {
-    id: 'msg-1',
-    secret_identifier: 'abc123',
-    secretLink: 'https://example.com/secret/abc123',
-    metadataLink: 'https://example.com/private/abc123',
-    clientInfo: {
-      createdAt: new Date(),
-      ttl: 604800,
-      hasPassphrase: false,
-    },
-    response: {
-      record: {
-        metadata: {
-          secret_ttl: 604800,
-          share_domain: 'example.com',
-        },
+import type { RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
+import type { ConcealedMessage } from '@/types/ui/concealed-message';
+
+// Create mock ConcealedMessage for testing
+const createMockConcealedMessage = (id: string): ConcealedMessage => ({
+  id,
+  metadata_identifier: `metadata-${id}`,
+  secret_identifier: `secret-${id}`,
+  secretLink: `https://example.com/secret/${id}`,
+  metadataLink: `https://example.com/private/${id}`,
+  clientInfo: {
+    createdAt: new Date(),
+    ttl: 604800,
+    hasPassphrase: false,
+  },
+  response: {
+    success: true,
+    record: {
+      key: `key-${id}`,
+      shortid: `short-${id}`,
+      state: 'new',
+      identifier: `id-${id}`,
+      created: new Date(),
+      updated: new Date(),
+      metadata: {
+        secret_ttl: 604800,
+        share_domain: 'example.com',
+        identifier: `metadata-${id}`,
+      },
+      secret: {
+        secret_ttl: 604800,
+        identifier: `secret-${id}`,
       },
     },
   },
-]);
+});
+
+// Create mock RecentSecretRecord from ConcealedMessage
+const createMockRecord = (id: string): RecentSecretRecord => {
+  const message = createMockConcealedMessage(id);
+  return {
+    id,
+    extid: `metadata-${id}`,
+    secretExtid: `secret-${id}`,
+    hasPassphrase: false,
+    ttl: 604800,
+    createdAt: new Date(),
+    isReceived: false,
+    isBurned: false,
+    source: 'local',
+    originalRecord: message,
+  };
+};
+
+// Mock state refs
+const mockRecords = ref<RecentSecretRecord[]>([createMockRecord('msg-1')]);
+const mockHasRecords = computed(() => mockRecords.value.length > 0);
+const mockWorkspaceMode = ref(false);
+const mockIsLoading = ref(false);
+const mockError = ref(null);
+const mockIsAuthenticated = ref(false);
 
 const mockToggleWorkspaceMode = vi.fn(() => {
   mockWorkspaceMode.value = !mockWorkspaceMode.value;
 });
 
-const mockClearMessages = vi.fn(() => {
-  mockConcealedMessages.value = [];
-  mockHasMessages.value = false;
+const mockClear = vi.fn(() => {
+  mockRecords.value = [];
 });
 
-const mockInit = vi.fn();
+const mockFetch = vi.fn();
 
-// Mock concealedMetadataStore
-vi.mock('@/shared/stores/concealedMetadataStore', () => ({
-  useConcealedMetadataStore: vi.fn(() => ({
-    workspaceMode: mockWorkspaceMode.value,
-    hasMessages: mockHasMessages.value,
-    concealedMessages: mockConcealedMessages.value,
-    isInitialized: true,
+// Mock useRecentSecrets composable
+vi.mock('@/shared/composables/useRecentSecrets', () => ({
+  useRecentSecrets: vi.fn(() => ({
+    records: mockRecords,
+    hasRecords: mockHasRecords,
+    workspaceMode: mockWorkspaceMode,
+    isLoading: mockIsLoading,
+    error: mockError,
+    isAuthenticated: mockIsAuthenticated,
     toggleWorkspaceMode: mockToggleWorkspaceMode,
-    clearMessages: mockClearMessages,
-    init: mockInit,
+    clear: mockClear,
+    fetch: mockFetch,
   })),
 }));
 
@@ -66,7 +104,7 @@ vi.mock('vue-i18n', () => ({
   })),
 }));
 
-// Stub SecretLinksTable component - must be a complete stub to avoid child rendering
+// Stub SecretLinksTable component
 const SecretLinksTableStub = {
   name: 'SecretLinksTable',
   template: '<div class="secret-links-table-stub" data-testid="secret-links-table"></div>',
@@ -75,32 +113,14 @@ const SecretLinksTableStub = {
 
 describe('RecentSecretsTable', () => {
   beforeEach(() => {
+    mockRecords.value = [createMockRecord('msg-1')];
     mockWorkspaceMode.value = false;
-    mockHasMessages.value = true;
-    mockConcealedMessages.value = [
-      {
-        id: 'msg-1',
-        secret_identifier: 'abc123',
-        secretLink: 'https://example.com/secret/abc123',
-        metadataLink: 'https://example.com/private/abc123',
-        clientInfo: {
-          createdAt: new Date(),
-          ttl: 604800,
-          hasPassphrase: false,
-        },
-        response: {
-          record: {
-            metadata: {
-              secret_ttl: 604800,
-              share_domain: 'example.com',
-            },
-          },
-        },
-      },
-    ];
+    mockIsLoading.value = false;
+    mockError.value = null;
+    mockIsAuthenticated.value = false;
     mockToggleWorkspaceMode.mockClear();
-    mockClearMessages.mockClear();
-    mockInit.mockClear();
+    mockClear.mockClear();
+    mockFetch.mockClear();
   });
 
   afterEach(() => {
@@ -108,19 +128,20 @@ describe('RecentSecretsTable', () => {
   });
 
   async function mountComponent(props = {}) {
-    // Reset modules to get fresh component with current mock state
     vi.resetModules();
 
-    // Re-mock with current state values
-    vi.doMock('@/shared/stores/concealedMetadataStore', () => ({
-      useConcealedMetadataStore: vi.fn(() => ({
-        workspaceMode: mockWorkspaceMode.value,
-        hasMessages: mockHasMessages.value,
-        concealedMessages: mockConcealedMessages.value,
-        isInitialized: true,
+    // Re-mock with current state
+    vi.doMock('@/shared/composables/useRecentSecrets', () => ({
+      useRecentSecrets: vi.fn(() => ({
+        records: mockRecords,
+        hasRecords: mockHasRecords,
+        workspaceMode: mockWorkspaceMode,
+        isLoading: mockIsLoading,
+        error: mockError,
+        isAuthenticated: mockIsAuthenticated,
         toggleWorkspaceMode: mockToggleWorkspaceMode,
-        clearMessages: mockClearMessages,
-        init: mockInit,
+        clear: mockClear,
+        fetch: mockFetch,
       })),
     }));
 
@@ -144,12 +165,20 @@ describe('RecentSecretsTable', () => {
     });
   }
 
+  describe('initialization', () => {
+    it('calls fetch on mount', async () => {
+      await mountComponent();
+      await flushPromises();
+
+      expect(mockFetch).toHaveBeenCalledOnce();
+    });
+  });
+
   describe('showWorkspaceModeToggle prop', () => {
     it('defaults to true', async () => {
       const wrapper = await mountComponent();
       await flushPromises();
 
-      // Checkbox should be visible by default
       const checkbox = wrapper.find('input[type="checkbox"]');
       expect(checkbox.exists()).toBe(true);
     });
@@ -174,7 +203,6 @@ describe('RecentSecretsTable', () => {
       const wrapper = await mountComponent({ showWorkspaceModeToggle: false });
       await flushPromises();
 
-      // The workspace mode label should not exist when toggle is hidden
       const labels = wrapper.findAll('label');
       const workspaceModeLabel = labels.find((l) =>
         l.text().includes('web.secrets.workspace_mode')
@@ -244,7 +272,7 @@ describe('RecentSecretsTable', () => {
       expect(heading.text()).toContain('web.COMMON.recent');
     });
 
-    it('shows items count when messages exist', async () => {
+    it('shows items count when records exist', async () => {
       const wrapper = await mountComponent();
       await flushPromises();
 
@@ -260,24 +288,22 @@ describe('RecentSecretsTable', () => {
       expect(dismissButton.exists()).toBe(true);
     });
 
-    it('calls clearMessages when dismiss button is clicked', async () => {
+    it('calls clear when dismiss button is clicked', async () => {
       const wrapper = await mountComponent();
       await flushPromises();
 
       const dismissButton = wrapper.find('button[type="button"]');
       await dismissButton.trigger('click');
 
-      expect(mockClearMessages).toHaveBeenCalledOnce();
+      expect(mockClear).toHaveBeenCalledOnce();
     });
 
     it('renders child table within the region container', async () => {
       const wrapper = await mountComponent();
       await flushPromises();
 
-      // The region should contain the SecretLinksTable (stubbed or real)
       const region = wrapper.find('[role="region"]');
       expect(region.exists()).toBe(true);
-      // Region should have children (the table component)
       expect(region.element.children.length).toBeGreaterThan(0);
     });
 
@@ -292,28 +318,53 @@ describe('RecentSecretsTable', () => {
   });
 
   describe('empty state', () => {
-    it('hides header controls when no messages exist', async () => {
-      mockHasMessages.value = false;
-      mockConcealedMessages.value = [];
+    it('hides header controls when no records exist', async () => {
+      mockRecords.value = [];
 
       const wrapper = await mountComponent();
       await flushPromises();
 
-      // Header section with controls should not exist
       const heading = wrapper.find('h2');
       expect(heading.exists()).toBe(false);
     });
 
     it('still renders the table container when empty', async () => {
-      mockHasMessages.value = false;
-      mockConcealedMessages.value = [];
+      mockRecords.value = [];
 
       const wrapper = await mountComponent();
       await flushPromises();
 
-      // The table region should still exist
       const region = wrapper.find('[role="region"]');
       expect(region.exists()).toBe(true);
+    });
+  });
+
+  describe('data source filtering', () => {
+    it('handles mixed source records without crashing', async () => {
+      // Add API source record (should be filtered out from concealedMessages)
+      const apiRecord: RecentSecretRecord = {
+        id: 'api-1',
+        extid: 'api-metadata-1',
+        secretExtid: 'api-secret-1',
+        hasPassphrase: true,
+        ttl: 3600,
+        createdAt: new Date(),
+        isReceived: false,
+        isBurned: false,
+        source: 'api',
+        originalRecord: {} as ConcealedMessage, // API records have MetadataRecords
+      };
+
+      mockRecords.value = [createMockRecord('local-1'), apiRecord];
+
+      const wrapper = await mountComponent();
+      await flushPromises();
+
+      // Verify component renders without error with mixed sources
+      // The SecretLinksTable stub is inside the region container
+      const region = wrapper.find('[role="region"]');
+      expect(region.exists()).toBe(true);
+      expect(region.element.children.length).toBeGreaterThan(0);
     });
   });
 });

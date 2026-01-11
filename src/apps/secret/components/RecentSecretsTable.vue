@@ -1,10 +1,11 @@
 <!-- src/apps/secret/components/RecentSecretsTable.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 import SecretLinksTable from '@/apps/secret/components/SecretLinksTable.vue';
-import { useConcealedMetadataStore } from '@/shared/stores/concealedMetadataStore';
-import { computed, ref } from 'vue';
+import { useRecentSecrets } from '@/shared/composables/useRecentSecrets';
+import type { ConcealedMessage } from '@/types/ui/concealed-message';
+import { computed, ref, onMounted } from 'vue';
 
 export interface Props {
   /** Whether to show the workspace mode toggle checkbox. Default true. */
@@ -16,30 +17,43 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const { t } = useI18n();
-const concealedMetadataStore = useConcealedMetadataStore();
+const {
+  records,
+  hasRecords,
+  workspaceMode,
+  toggleWorkspaceMode,
+  fetch,
+  clear,
+} = useRecentSecrets();
+
 const tableId = ref(`recent-secrets-${Math.random().toString(36).substring(2, 9)}`);
 
-// Initialize the concealed metadata store if not already initialized
-if (!concealedMetadataStore.isInitialized) {
-  concealedMetadataStore.init();
-}
+// Fetch records on mount
+onMounted(() => {
+  fetch();
+});
 
-// Use the store's concealed messages
-const concealedMessages = computed(() => concealedMetadataStore.concealedMessages);
+// Extract ConcealedMessage from local records for SecretLinksTable compatibility
+// SecretLinksTableRow requires the full ConcealedMessage structure
+const concealedMessages = computed<ConcealedMessage[]>(() =>
+  records.value
+    .filter((record) => record.source === 'local')
+    .map((record) => record.originalRecord as ConcealedMessage)
+);
 
 // Compute the items count
-const itemsCount = computed(() => concealedMessages.value.length);
+const itemsCount = computed(() => records.value.length);
 
 // Method to dismiss/clear all recent secrets
 const dismissAllRecents = () => {
-  concealedMetadataStore.clearMessages();
+  clear();
 };
 </script>
 
 <template>
   <section aria-labelledby="recent-secrets-heading">
     <div
-      v-if="concealedMetadataStore.hasMessages"
+      v-if="hasRecords"
       class="mb-4 flex items-center justify-between">
       <div>
         <h2
@@ -60,8 +74,8 @@ const dismissAllRecents = () => {
             :title="t('web.secrets.workspace_mode_description')">
             <input
               type="checkbox"
-              :checked="concealedMetadataStore.workspaceMode"
-              @change="concealedMetadataStore.toggleWorkspaceMode()"
+              :checked="workspaceMode"
+              @change="toggleWorkspaceMode()"
               class="size-4 rounded border-gray-300 text-brand-600
                 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700" />
             <span class="text-sm text-gray-600 dark:text-gray-300">
@@ -73,7 +87,7 @@ const dismissAllRecents = () => {
         </template>
 
         <span
-          v-if="concealedMetadataStore.hasMessages"
+          v-if="hasRecords"
           class="text-sm text-gray-500 dark:text-gray-400">
           {{ t('web.LABELS.items_count', { count: itemsCount }) }}
         </span>
