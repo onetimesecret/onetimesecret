@@ -44,7 +44,7 @@ const handleCopy = () => {
 const handleBurn = (record: RecentSecretRecord) => {
   // Here you would add logic to delete the message, e.g.,
   // through a store or service call
-  console.log('Deleting record', record.id);
+  void record; // Suppress unused variable warning until burn logic is implemented
   toastMessage.value = t('web.secrets.messageDeleted');
   showToast.value = true;
   setTimeout(() => {

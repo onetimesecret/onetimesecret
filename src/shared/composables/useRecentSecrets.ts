@@ -102,20 +102,22 @@ function transformLocalRecord(message: ConcealedMessage): RecentSecretRecord {
 function transformApiRecord(record: MetadataRecords): RecentSecretRecord {
   // Use shortid as the primary identifier; identifier is a fallback
   const id = record.shortid ?? record.identifier ?? '';
+  const secretId = record.secret_shortid ?? '';
+  const createdAt =
+    record.created instanceof Date ? record.created : new Date();
 
   return {
     id,
     extid: id,
-    shortid: record.secret_shortid ?? '',
-    secretExtid: record.secret_shortid ?? '',
+    shortid: secretId,
+    secretExtid: secretId,
     hasPassphrase: record.has_passphrase ?? false,
     ttl: record.secret_ttl ?? 0,
-    // created is already a Date from the schema transform
-    createdAt: record.created instanceof Date ? record.created : new Date(),
+    createdAt,
     shareDomain: record.share_domain ?? undefined,
     isViewed: record.is_viewed ?? false,
     isReceived: record.is_received ?? false,
-    isBurned: record.is_burned ?? record.is_destroyed ?? false,
+    isBurned: (record.is_burned ?? record.is_destroyed) ?? false,
     isExpired: record.is_expired ?? false,
     source: 'api',
     originalRecord: record,
@@ -172,9 +174,12 @@ function useApiRecentSecrets(
   const { records: storeRecords } = storeToRefs(store);
 
   // Transform API records to unified format
+  // Filter out records with missing secret_shortid to prevent broken share links
   const records = computed<RecentSecretRecord[]>(() => {
     if (!storeRecords.value) return [];
-    return storeRecords.value.map(transformApiRecord);
+    return storeRecords.value
+      .filter((record) => !!record.secret_shortid)
+      .map(transformApiRecord);
   });
 
   const hasRecords = computed(() => records.value.length > 0);
