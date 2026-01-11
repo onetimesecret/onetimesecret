@@ -3,6 +3,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
+import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import PlanChangeModal from './PlanChangeModal.vue';
@@ -297,18 +298,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
+  <BillingLayout>
     <div class="space-y-8">
-      <!-- Header -->
-      <div class="text-center">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-          {{ t('web.billing.plans.title') }}
-        </h1>
-        <p class="mt-2 text-base text-gray-600 dark:text-gray-400">
-          {{ t('web.billing.plans.subtitle') }}
-        </p>
-      </div>
-
       <!-- Billing Interval Toggle -->
       <div class="flex items-center justify-center gap-3"
 role="group"
@@ -537,5 +528,5 @@ aria-live="polite">
       @close="handlePlanChangeClose"
       @success="handlePlanChangeSuccess"
     />
-  </div>
+  </BillingLayout>
 </template>

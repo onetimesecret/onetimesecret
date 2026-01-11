@@ -133,13 +133,6 @@ onMounted(async () => {
 <template>
   <BillingLayout>
     <div class="space-y-6">
-      <!-- Header -->
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-          {{ t('web.billing.overview.title') }}
-        </h1>
-      </div>
-
       <!-- Organization Selector (if multiple orgs) -->
       <div v-if="organizations.length > 1" class="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
         <label for="org-select" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
