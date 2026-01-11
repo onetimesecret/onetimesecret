@@ -4,8 +4,7 @@
 import { useI18n } from 'vue-i18n';
 import SecretLinksTable from '@/apps/secret/components/SecretLinksTable.vue';
 import { useRecentSecrets } from '@/shared/composables/useRecentSecrets';
-import type { ConcealedMessage } from '@/types/ui/concealed-message';
-import { computed, ref, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 
 export interface Props {
   /** Whether to show the workspace mode toggle checkbox. Default true. */
@@ -32,17 +31,6 @@ const tableId = ref(`recent-secrets-${Math.random().toString(36).substring(2, 9)
 onMounted(() => {
   fetch();
 });
-
-// Extract ConcealedMessage from local records for SecretLinksTable compatibility
-// SecretLinksTableRow requires the full ConcealedMessage structure
-const concealedMessages = computed<ConcealedMessage[]>(() =>
-  records.value
-    .filter((record) => record.source === 'local')
-    .map((record) => record.originalRecord as ConcealedMessage)
-);
-
-// Compute the items count
-const itemsCount = computed(() => records.value.length);
 
 // Method to dismiss/clear all recent secrets
 const dismissAllRecents = () => {
@@ -89,7 +77,7 @@ const dismissAllRecents = () => {
         <span
           v-if="hasRecords"
           class="text-sm text-gray-500 dark:text-gray-400">
-          {{ t('web.LABELS.items_count', { count: itemsCount }) }}
+          {{ t('web.LABELS.items_count', { count: records.length }) }}
         </span>
         <button
           @click="dismissAllRecents"
@@ -121,7 +109,7 @@ const dismissAllRecents = () => {
       role="region"
       aria-live="polite">
       <SecretLinksTable
-        :concealed-messages="concealedMessages"
+        :records="records"
         :aria-labelledby="'recent-secrets-heading'" />
     </div>
   </section>

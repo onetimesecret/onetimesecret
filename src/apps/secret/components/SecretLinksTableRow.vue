@@ -1,118 +1,115 @@
 <!-- src/apps/secret/components/SecretLinksTableRow.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
-  import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { WindowService } from '@/services/window.service';
-  import { type ConcealedMessage } from '@/types/ui/concealed-message';
-  import { formatTTL } from '@/utils/formatters';
-  import { formatDistanceToNow } from 'date-fns';
-  import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import OIcon from '@/shared/components/icons/OIcon.vue';
+import { WindowService } from '@/services/window.service';
+import type { RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
+import { formatTTL } from '@/utils/formatters';
+import { formatDistanceToNow } from 'date-fns';
+import { ref, computed } from 'vue';
 
-  const { t } = useI18n();
+const { t } = useI18n();
 
-  const props = defineProps<{
-    concealedMessage: ConcealedMessage;
-    /** Row index (1-based) for visual reference */
-    index: number;
-  }>();
+const props = defineProps<{
+  record: RecentSecretRecord;
+  /** Row index (1-based) for visual reference */
+  index: number;
+}>();
 
-  const emit = defineEmits<{
-    copy: [];
-    delete: [concealedMessage: ConcealedMessage];
-  }>();
+const emit = defineEmits<{
+  copy: [];
+  delete: [record: RecentSecretRecord];
+}>();
 
-  // Track if this row's content was copied
-  const isCopied = ref(false);
+// Track if this row's content was copied
+const isCopied = ref(false);
 
-  const site_host = WindowService.get('site_host');
+const site_host = WindowService.get('site_host');
 
-  // Create shareable link with proper domain
-  const shareLink = computed(() => {
-    const record = props.concealedMessage;
-    const share_domain = record.response.record.metadata.share_domain ?? site_host;
-    return `https://${share_domain}/secret/${record.secret_identifier}`;
-  });
+// Create shareable link with proper domain
+const shareLink = computed(() => {
+  const shareDomain = props.record.shareDomain ?? site_host;
+  return `https://${shareDomain}/secret/${props.record.secretExtid}`;
+});
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(shareLink.value);
-      isCopied.value = true;
-      emit('copy');
+const handleCopy = async () => {
+  try {
+    await navigator.clipboard.writeText(shareLink.value);
+    isCopied.value = true;
+    emit('copy');
 
-      // Reset copy state after around 2 seconds
-      setTimeout(() => {
-        isCopied.value = false;
-      }, 1500);
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
-    }
-  };
+    // Reset copy state after around 2 seconds
+    setTimeout(() => {
+      isCopied.value = false;
+    }, 1500);
+  } catch (err) {
+    console.error('Failed to copy text: ', err);
+  }
+};
 
-  // Format creation date to be more readable
-  const formattedDate = computed(() => formatDistanceToNow(props.concealedMessage.clientInfo.createdAt, { addSuffix: true }));
+// Format creation date to be more readable
+const formattedDate = computed(() =>
+  formatDistanceToNow(props.record.createdAt, { addSuffix: true })
+);
 
-  // Compute security status and time remaining
-  const hasPassphrase = computed(() => props.concealedMessage.clientInfo.hasPassphrase);
+// Compute security status and time remaining
+const hasPassphrase = computed(() => props.record.hasPassphrase);
 
-  const timeRemaining = computed(() =>
-    formatTTL(props.concealedMessage.response.record.metadata.secret_ttl ?? 0)
-  );
+const timeRemaining = computed(() => formatTTL(props.record.ttl));
 
-  // Secret state computations
-  const isExpired = computed(() => props.concealedMessage.clientInfo.ttl <= 0);
-  const isBurned = computed(() => !!props.concealedMessage.response.record.metadata?.burned);
-  const isViewed = computed(() => !!props.concealedMessage.response.record.metadata?.viewed);
-  const isReceived = computed(() => !!props.concealedMessage.response.record.metadata?.received);
+// Secret state computations - use flat fields from RecentSecretRecord
+const isExpired = computed(() => props.record.isExpired || props.record.ttl <= 0);
+const isBurned = computed(() => props.record.isBurned);
+const isViewed = computed(() => props.record.isViewed);
+const isReceived = computed(() => props.record.isReceived);
 
-  // Calculate TTL percentage for background color
-  const getTtlPercentage = computed(() => {
-    // Default max TTL to 7 days (604800 seconds)
-    const maxTtl = 604800;
-    // Get current TTL
-    const currentTtl = props.concealedMessage.clientInfo.ttl;
-    return Math.floor((currentTtl / maxTtl) * 100);
-  });
+// Calculate TTL percentage for background color
+const getTtlPercentage = computed(() => {
+  // Default max TTL to 7 days (604800 seconds)
+  const maxTtl = 604800;
+  return Math.floor((props.record.ttl / maxTtl) * 100);
+});
 
-  // Background color class based on TTL percentage and state
-  const ttlBackgroundClass = computed(() => {
-    if (isExpired.value) return 'bg-gray-50/80 dark:bg-slate-800/40';
-    if (isBurned.value) return 'bg-red-50/30 dark:bg-red-900/5';
-    if (isViewed.value) return 'bg-amber-50/30 dark:bg-amber-900/5';
+// Background color class based on TTL percentage and state
+const ttlBackgroundClass = computed(() => {
+  if (isExpired.value) return 'bg-gray-50/80 dark:bg-slate-800/40';
+  if (isBurned.value) return 'bg-red-50/30 dark:bg-red-900/5';
+  if (isViewed.value) return 'bg-amber-50/30 dark:bg-amber-900/5';
 
-    const percentage = getTtlPercentage.value;
-    if (percentage > 75) return 'bg-transparent';
-    if (percentage > 50) return 'bg-emerald-50/30 dark:bg-emerald-900/10';
-    if (percentage > 25) return 'bg-amber-50/40 dark:bg-amber-900/15';
-    return 'bg-red-50/40 dark:bg-red-900/10';
-  });
+  const percentage = getTtlPercentage.value;
+  if (percentage > 75) return 'bg-transparent';
+  if (percentage > 50) return 'bg-emerald-50/30 dark:bg-emerald-900/10';
+  if (percentage > 25) return 'bg-amber-50/40 dark:bg-amber-900/15';
+  return 'bg-red-50/40 dark:bg-red-900/10';
+});
 
-  // Text status based on secret state
-  const statusClass = computed(() => {
-    if (isExpired.value) return 'text-gray-500 dark:text-gray-400';
-    if (isBurned.value) return 'text-red-600 dark:text-red-400';
-    if (isViewed.value) return 'text-amber-600 dark:text-amber-400';
-    return 'text-emerald-600 dark:text-emerald-400';
-  });
+// Text status based on secret state
+const statusClass = computed(() => {
+  if (isExpired.value) return 'text-gray-500 dark:text-gray-400';
+  if (isBurned.value) return 'text-red-600 dark:text-red-400';
+  if (isViewed.value) return 'text-amber-600 dark:text-amber-400';
+  return 'text-emerald-600 dark:text-emerald-400';
+});
 
-  // Get status label based on state and TTL percentage
-  const statusLabel = computed(() => {
-    if (isExpired.value) return t('web.STATUS.expired');
-    if (isBurned.value) return t('web.STATUS.burned');
-    if (isViewed.value) return t('web.STATUS.viewed');
-    if (isReceived.value) return t('web.STATUS.received');
+// Get status label based on state and TTL percentage
+const statusLabel = computed(() => {
+  if (isExpired.value) return t('web.STATUS.expired');
+  if (isBurned.value) return t('web.STATUS.burned');
+  if (isViewed.value) return t('web.STATUS.viewed');
+  if (isReceived.value) return t('web.STATUS.received');
 
-    const percentage = getTtlPercentage.value;
-    if (percentage <= 25) return t('web.STATUS.expiring_soon');
-    return '';
-  });
+  const percentage = getTtlPercentage.value;
+  if (percentage <= 25) return t('web.STATUS.expiring_soon');
+  return '';
+});
 
-  // Display key (truncated: first 4 + ... + last 4 chars)
-  const displayKey = computed(() => {
-    const shortid = props.concealedMessage.response.record.secret.shortid;
-    if (!shortid || shortid.length <= 6) return shortid;
-    return `${shortid.slice(0, 4)}...${shortid.slice(-4)}`;
-  });
+// Display key (truncated: first 4 + ... + last 4 chars)
+const displayKey = computed(() => {
+  const shortid = props.record.shortid;
+  if (!shortid || shortid.length <= 8) return shortid;
+  return `${shortid.slice(0, 4)}...${shortid.slice(-4)}`;
+});
 </script>
 
 <template>
@@ -147,7 +144,7 @@
             ]">
             <router-link
               v-if="!isExpired && !isBurned"
-              :to="`/receipt/${concealedMessage.metadata_identifier}`"
+              :to="`/receipt/${record.extid}`"
               class="transition-colors hover:text-gray-600 dark:hover:text-gray-300">
               {{ displayKey }}
             </router-link>

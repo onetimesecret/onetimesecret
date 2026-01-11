@@ -48,12 +48,16 @@ const createMockRecord = (id: string): RecentSecretRecord => {
   return {
     id,
     extid: `metadata-${id}`,
+    shortid: `short-${id}`,
     secretExtid: `secret-${id}`,
     hasPassphrase: false,
     ttl: 604800,
     createdAt: new Date(),
+    shareDomain: 'example.com',
+    isViewed: false,
     isReceived: false,
     isBurned: false,
+    isExpired: false,
     source: 'local',
     originalRecord: message,
   };
@@ -341,16 +345,20 @@ describe('RecentSecretsTable', () => {
 
   describe('data source filtering', () => {
     it('handles mixed source records without crashing', async () => {
-      // Add API source record (should be filtered out from concealedMessages)
+      // Add API source record
       const apiRecord: RecentSecretRecord = {
         id: 'api-1',
         extid: 'api-metadata-1',
+        shortid: 'api-short-1',
         secretExtid: 'api-secret-1',
         hasPassphrase: true,
         ttl: 3600,
         createdAt: new Date(),
+        shareDomain: 'api.example.com',
+        isViewed: true,
         isReceived: false,
         isBurned: false,
+        isExpired: false,
         source: 'api',
         originalRecord: {} as ConcealedMessage, // API records have MetadataRecords
       };

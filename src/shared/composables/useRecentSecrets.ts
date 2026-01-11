@@ -21,6 +21,8 @@ export interface RecentSecretRecord {
   id: string;
   /** External ID for URL routing (metadata identifier) */
   extid: string;
+  /** Short ID for display (truncated version) */
+  shortid: string;
   /** Secret identifier for the secret link */
   secretExtid: string;
   /** Whether the secret has a passphrase */
@@ -29,10 +31,16 @@ export interface RecentSecretRecord {
   ttl: number;
   /** Creation timestamp */
   createdAt: Date;
-  /** Whether the secret has been received/viewed */
+  /** Domain for share URL construction */
+  shareDomain?: string;
+  /** Whether the secret has been viewed */
+  isViewed: boolean;
+  /** Whether the secret has been received */
   isReceived: boolean;
   /** Whether the secret has been burned/destroyed */
   isBurned: boolean;
+  /** Whether the secret has expired */
+  isExpired: boolean;
   /** Original source data for advanced usage */
   source: 'local' | 'api';
   /** Original record for type-specific operations */
@@ -67,15 +75,22 @@ export interface UseRecentSecretsReturn {
  * Transform a ConcealedMessage (local storage) to unified RecentSecretRecord
  */
 function transformLocalRecord(message: ConcealedMessage): RecentSecretRecord {
+  // Extract shortid from response if available
+  const shortid = message.response?.record?.secret?.shortid ?? message.secret_identifier;
+
   return {
     id: message.id,
     extid: message.metadata_identifier,
+    shortid,
     secretExtid: message.secret_identifier,
     hasPassphrase: message.clientInfo.hasPassphrase,
     ttl: message.clientInfo.ttl,
     createdAt: message.clientInfo.createdAt,
+    shareDomain: message.response?.record?.metadata?.share_domain ?? undefined,
+    isViewed: false, // Local records start as not viewed
     isReceived: false, // Local records are never marked received
     isBurned: false, // Local records track this separately if needed
+    isExpired: message.clientInfo.ttl <= 0,
     source: 'local',
     originalRecord: message,
   };
@@ -91,13 +106,17 @@ function transformApiRecord(record: MetadataRecords): RecentSecretRecord {
   return {
     id,
     extid: id,
+    shortid: record.secret_shortid ?? '',
     secretExtid: record.secret_shortid ?? '',
     hasPassphrase: record.has_passphrase ?? false,
     ttl: record.secret_ttl ?? 0,
     // created is already a Date from the schema transform
     createdAt: record.created instanceof Date ? record.created : new Date(),
+    shareDomain: record.share_domain ?? undefined,
+    isViewed: record.is_viewed ?? false,
     isReceived: record.is_received ?? false,
     isBurned: record.is_burned ?? record.is_destroyed ?? false,
+    isExpired: record.is_expired ?? false,
     source: 'api',
     originalRecord: record,
   };
