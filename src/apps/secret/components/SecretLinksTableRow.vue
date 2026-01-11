@@ -107,8 +107,12 @@
     return '';
   });
 
-  // Display key (shortened for clarity)
-  const displayKey = computed(() => props.concealedMessage.response.record.secret.shortid);
+  // Display key (truncated: first 4 + ... + last 4 chars)
+  const displayKey = computed(() => {
+    const shortid = props.concealedMessage.response.record.secret.shortid;
+    if (!shortid || shortid.length <= 6) return shortid;
+    return `${shortid.slice(0, 4)}...${shortid.slice(-4)}`;
+  });
 </script>
 
 <template>
