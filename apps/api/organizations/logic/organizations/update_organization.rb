@@ -97,8 +97,17 @@ module OrganizationAPI::Logic
         @organization.save
 
         # Sync billing email to Stripe if changed and org has Stripe customer
+        # Skip if the change originated from a Stripe webhook (prevents sync loops)
         if billing_email_changed && @organization.stripe_customer_id.to_s.length.positive?
-          sync_billing_email_to_stripe(@organization, billing_email, old_billing_email)
+          if Billing::WebhookSyncFlag.skip_stripe_sync?(@organization.extid)
+            OT.info '[UpdateOrganization] Skipping Stripe sync (webhook-initiated change)',
+              {
+                org_extid: @organization.extid,
+                new_email: billing_email,
+              }
+          else
+            sync_billing_email_to_stripe(@organization, billing_email, old_billing_email)
+          end
         end
 
         OT.info "[UpdateOrganization] Updated organization #{@extid}"
