@@ -157,6 +157,7 @@ repos:
           - eslint-plugin-import@2.32.0
           - eslint-import-resolver-typescript@4.4.4
           # Tailwind CSS - beta required for flat config
+          - tailwindcss@4.1.18
           - eslint-plugin-tailwindcss@4.0.0-beta.0
           # i18n validation
           - '@intlify/eslint-plugin-vue-i18n@4.1.0'
