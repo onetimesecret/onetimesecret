@@ -38,7 +38,9 @@
 
 <template>
   <div class="homepage-container">
-    <Transition name="homepage-fade" mode="out-in">
+    <Transition
+      name="homepage-fade"
+      mode="out-in">
       <Component
         :key="componentMode + (isCustom ? '-branded' : '-standard')"
         :is="currentComponent"
@@ -49,14 +51,14 @@
 </template>
 
 <style scoped>
-/* Transition definitions */
-.homepage-fade-enter-active,
-.homepage-fade-leave-active {
-  transition: opacity 0.25s ease;
-}
+  /* Transition definitions */
+  .homepage-fade-enter-active,
+  .homepage-fade-leave-active {
+    transition: opacity 0.25s ease;
+  }
 
-.homepage-fade-enter-from,
-.homepage-fade-leave-to {
-  opacity: 0;
-}
+  .homepage-fade-enter-from,
+  .homepage-fade-leave-to {
+    opacity: 0;
+  }
 </style>

@@ -199,26 +199,23 @@
           <div
             v-show="selectedAction === 'generate-password'"
             :class="[cornerClass]"
-            class="rounded-lg border border-brand-200/50 bg-gradient-to-br from-brand-50/80 to-purple-50/40
-              shadow-[0_4px_20px_rgb(0,0,0,0.08)]
-              backdrop-blur-sm
-              dark:border-brand-700/50 dark:from-brand-900/30 dark:to-purple-900/20
-              dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)]
-              relative overflow-hidden"
+            class="relative overflow-hidden rounded-lg border border-brand-200/50 bg-gradient-to-br from-brand-50/80 to-purple-50/40 shadow-[0_4px_20px_rgb(0,0,0,0.08)] backdrop-blur-sm dark:border-brand-700/50 dark:from-brand-900/30 dark:to-purple-900/20 dark:shadow-[0_4px_20px_rgb(0,0,0,0.3)]"
             aria-labelledby="generatedPasswordHeader"
             aria-describedby="generatedPasswordDesc"
             role="region"
             ref="generatePasswordSection">
             <!-- Decorative blur orbs -->
-            <div class="absolute -top-12 -left-12 size-32 rounded-full bg-gradient-to-br from-brand-300/30 to-purple-300/20 blur-3xl pointer-events-none" aria-hidden="true"></div>
-            <div class="absolute -bottom-12 -right-12 size-32 rounded-full bg-gradient-to-br from-purple-300/30 to-brand-300/20 blur-3xl pointer-events-none" aria-hidden="true"></div>
+            <div
+              class="pointer-events-none absolute -left-12 -top-12 size-32 rounded-full bg-gradient-to-br from-brand-300/30 to-purple-300/20 blur-3xl"
+              aria-hidden="true"></div>
+            <div
+              class="pointer-events-none absolute -bottom-12 -right-12 size-32 rounded-full bg-gradient-to-br from-purple-300/30 to-brand-300/20 blur-3xl"
+              aria-hidden="true"></div>
 
-            <div class="space-y-4 p-6 pb-8 text-center relative z-10">
+            <div class="relative z-10 space-y-4 p-6 pb-8 text-center">
               <div class="flex justify-center">
-                <div class="rounded-full bg-gradient-to-br from-brand-100 to-purple-100 p-4
-                  shadow-[0_0_0_0_rgba(var(--color-brand-500),0.5)]
-                  animate-[pulse_2s_ease-in-out_infinite]
-                  dark:from-brand-900/50 dark:to-purple-900/50">
+                <div
+                  class="animate-[pulse_2s_ease-in-out_infinite] rounded-full bg-gradient-to-br from-brand-100 to-purple-100 p-4 shadow-[0_0_0_0_rgba(var(--color-brand-500),0.5)] dark:from-brand-900/50 dark:to-purple-900/50">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -261,7 +258,9 @@
                   <span
                     v-if="isPassphraseRequired"
                     class="ml-1 text-red-500"
-                    aria-label="Required">*</span>
+                    aria-label="Required"
+                    >*</span
+                  >
                 </label>
               </h3>
               <!-- Fixed height container for hints to prevent layout shifts -->
@@ -270,9 +269,14 @@
                   v-if="passphraseConfig"
                   class="text-xs text-gray-500 dark:text-gray-400">
                   <span v-if="passphraseConfig.minimum_length">
-                    {{ t('web.secrets.passphraseMinimumLength', { length: passphraseConfig.minimum_length }) }}
+                    {{
+                      t('web.secrets.passphraseMinimumLength', {
+                        length: passphraseConfig.minimum_length,
+                      })
+                    }}
                   </span>
-                  <span v-if="passphraseConfig.minimum_length && passphraseConfig.enforce_complexity">
+                  <span
+                    v-if="passphraseConfig.minimum_length && passphraseConfig.enforce_complexity">
                     •
                   </span>
                   <span v-if="passphraseConfig.enforce_complexity">
@@ -290,7 +294,12 @@
                   autocomplete="off"
                   :aria-invalid="!!getError('passphrase')"
                   :aria-errormessage="getError('passphrase') ? passphraseErrorId : undefined"
-                  :class="[cornerClass, getError('passphrase') ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20' : '']"
+                  :class="[
+                    cornerClass,
+                    getError('passphrase')
+                      ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
+                      : '',
+                  ]"
                   class="w-full border border-gray-200/60 bg-white/80 backdrop-blur-sm py-2.5 pl-5 pr-10
                     text-sm text-gray-900 transition-all duration-300 placeholder:text-gray-400
                     hover:border-gray-300/80 hover:bg-white/90
@@ -338,7 +347,12 @@
                   name="ttl"
                   :aria-invalid="!!getError('ttl')"
                   :aria-describedby="getError('ttl') ? lifetimeErrorId : undefined"
-                  :class="[cornerClass, getError('ttl') ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20' : '']"
+                  :class="[
+                    cornerClass,
+                    getError('ttl')
+                      ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
+                      : '',
+                  ]"
                   class="w-full appearance-none border border-gray-200/60
                     bg-white/80 backdrop-blur-sm py-2.5 pl-5 pr-10 text-sm text-gray-600 transition-all duration-300
                     hover:border-gray-300/80 hover:bg-white/90
@@ -401,7 +415,12 @@
                 :placeholder="t('web.COMMON.email_placeholder')"
                 :aria-invalid="!!getError('recipient')"
                 :aria-errormessage="getError('recipient') ? recipientErrorId : undefined"
-                :class="[cornerClass, getError('recipient') ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20' : '']"
+                :class="[
+                  cornerClass,
+                  getError('recipient')
+                    ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20'
+                    : '',
+                ]"
                 class="w-full border border-gray-200/60 bg-white/80 backdrop-blur-sm
                   py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400
                   transition-colors duration-200
@@ -418,15 +437,16 @@
         <!-- Pro tip Section -->
         <div
           v-if="showProTip"
-          class="flex items-start gap-3 bg-gradient-to-r from-brandcomp-50/90 to-brandcomp-100/60 backdrop-blur-sm p-5 relative overflow-hidden
-            dark:from-brandcomp-900/30 dark:to-brandcomp-800/20">
+          class="relative flex items-start gap-3 overflow-hidden bg-gradient-to-r from-brandcomp-50/90 to-brandcomp-100/60 p-5 backdrop-blur-sm dark:from-brandcomp-900/30 dark:to-brandcomp-800/20">
           <!-- Decorative blur orb -->
-          <div class="absolute -right-8 -bottom-8 size-24 rounded-full bg-brandcomp-200/40 blur-2xl pointer-events-none dark:bg-brandcomp-700/30" aria-hidden="true"></div>
+          <div
+            class="pointer-events-none absolute -bottom-8 -right-8 size-24 rounded-full bg-brandcomp-200/40 blur-2xl dark:bg-brandcomp-700/30"
+            aria-hidden="true"></div>
           <OIcon
             collection="heroicons"
             name="information-circle"
-            class="mt-0.5 size-5 shrink-0 text-brandcomp-600 dark:text-brandcomp-500 relative z-10" />
-          <p class="text-sm text-brandcomp-700 dark:text-brandcomp-300 relative z-10">
+            class="relative z-10 mt-0.5 size-5 shrink-0 text-brandcomp-600 dark:text-brandcomp-500" />
+          <p class="relative z-10 text-sm text-brandcomp-700 dark:text-brandcomp-300">
             {{ t('web.homepage.protip1') }}
           </p>
         </div>
@@ -443,15 +463,16 @@
                   {{ t('web.LABELS.creating_links_for') }}
                 </span>
                 <div
-                  class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5
-                         text-sm font-medium transition-all duration-150"
+                  class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-all duration-150"
                   :class="
                     currentScope.isCanonical
                       ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
                       : 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300'
                   "
                   role="status"
-                  :aria-label="t('web.LABELS.scope_indicator', { domain: currentScope.displayName })">
+                  :aria-label="
+                    t('web.LABELS.scope_indicator', { domain: currentScope.displayName })
+                  ">
                   <OIcon
                     collection="heroicons"
                     :name="currentScope.isCanonical ? 'user-circle' : 'building-office'"

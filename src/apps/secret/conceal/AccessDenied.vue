@@ -32,11 +32,10 @@
       <DisabledHomepageTaglines
         :tagline1="t('web.homepage.authonly.tagline1')"
         :tagline2="t('web.homepage.authonly.tagline2')"
-
         class="mb-6" />
 
       <!-- Space divider -->
-      <div class="mb-6 "></div>
+      <div class="mb-6"></div>
     </div>
   </div>
 </template>
