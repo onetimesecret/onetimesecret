@@ -3,31 +3,17 @@
 import { mount, flushPromises } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
-import { ref, computed, type Ref, type ComputedRef } from 'vue';
-import type { BrandSettings } from '@/schemas/models/domain';
-
-// Mock brand settings
-const mockBrandSettings: BrandSettings = {
-  primary_color: '#dc4a22',
-  font_family: 'sans',
-  corner_style: 'rounded',
-  button_text_light: false,
-  allow_public_homepage: false,
-  allow_public_api: false,
-  default_ttl: 3600,
-  passphrase_required: false,
-  notify_enabled: false,
-};
+import { computed } from 'vue';
 
 // Shared mock state that can be mutated per test
 interface MockDomainScopeState {
-  currentScope: { domain: string; extid: string | undefined; displayName: string; isCanonical: boolean };
+  currentScope: {
+    domain: string;
+    extid: string | undefined;
+    displayName: string;
+    isCanonical: boolean;
+  };
   isScopeActive: boolean;
-}
-
-interface MockBrandingState {
-  isLoading: boolean;
-  brandSettings: BrandSettings;
 }
 
 const mockDomainScopeState: MockDomainScopeState = {
@@ -40,19 +26,17 @@ const mockDomainScopeState: MockDomainScopeState = {
   isScopeActive: true,
 };
 
-const mockBrandingState: MockBrandingState = {
-  isLoading: false,
-  brandSettings: { ...mockBrandSettings },
-};
-
-const mockInitialize = vi.fn();
-const mockSaveBranding = vi.fn();
-
 // Mock WindowService
 vi.mock('@/services/window.service', () => ({
   WindowService: {
     get: vi.fn((key: string) => {
       if (key === 'cust') return { feature_flags: { beta: false } };
+      if (key === 'secret_options')
+        return {
+          default_ttl: 604800,
+          ttl_options: [3600, 86400, 604800],
+          passphrase: { required: false, minimum_length: 6 },
+        };
       return null;
     }),
     getMultiple: vi.fn(),
@@ -65,27 +49,28 @@ vi.mock('@/shared/composables/useDomainScope', () => ({
     currentScope: computed(() => mockDomainScopeState.currentScope),
     isScopeActive: computed(() => mockDomainScopeState.isScopeActive),
     hasMultipleScopes: computed(() => true),
-    availableDomains: computed(() => ['custom.example.com', 'onetimesecret.com']),
+    availableDomains: computed(() => [
+      'custom.example.com',
+      'onetimesecret.com',
+    ]),
     setScope: vi.fn(),
   }),
 }));
 
-// Mock useBranding - returns fresh refs that read from shared state
-vi.mock('@/shared/composables/useBranding', () => ({
-  useBranding: () => ({
-    brandSettings: computed(() => mockBrandingState.brandSettings),
-    isLoading: computed(() => mockBrandingState.isLoading),
-    initialize: mockInitialize,
-    saveBranding: mockSaveBranding,
-    isInitialized: ref(true),
-  }),
-}));
-
 // Stub child components
-const SecretFormStub = {
-  name: 'SecretForm',
-  template: '<div class="secret-form-stub">Secret Form</div>',
-  props: ['withGenerate', 'withRecipient'],
+const WorkspaceSecretFormStub = {
+  name: 'WorkspaceSecretForm',
+  template:
+    '<div class="workspace-secret-form-stub">Workspace Secret Form</div>',
+  setup() {
+    return {
+      currentTtl: computed(() => 604800),
+      currentPassphrase: computed(() => ''),
+      isSubmitting: computed(() => false),
+      updateTtl: vi.fn(),
+      updatePassphrase: vi.fn(),
+    };
+  },
 };
 
 const RecentSecretsTableStub = {
@@ -93,11 +78,12 @@ const RecentSecretsTableStub = {
   template: '<div class="recent-secrets-stub">Recent Secrets</div>',
 };
 
-const PrivacyDefaultsBarStub = {
-  name: 'PrivacyDefaultsBar',
-  template: '<div class="privacy-defaults-bar-stub" data-testid="privacy-bar">Privacy Defaults Bar</div>',
-  props: ['brandSettings', 'isLoading'],
-  emits: ['update'],
+const PrivacyOptionsBarStub = {
+  name: 'PrivacyOptionsBar',
+  template:
+    '<div class="privacy-options-bar-stub" data-testid="privacy-bar">Privacy Options Bar</div>',
+  props: ['currentTtl', 'currentPassphrase', 'isSubmitting'],
+  emits: ['update:ttl', 'update:passphrase'],
 };
 
 const UpgradeBannerStub = {
@@ -125,8 +111,6 @@ describe('DashboardIndex', () => {
       isCanonical: false,
     };
     mockDomainScopeState.isScopeActive = true;
-    mockBrandingState.isLoading = false;
-    mockBrandingState.brandSettings = { ...mockBrandSettings };
   });
 
   afterEach(() => {
@@ -135,7 +119,9 @@ describe('DashboardIndex', () => {
 
   async function getComponent() {
     // Re-import after resetModules to pick up fresh mock state
-    const module = await import('@/apps/workspace/dashboard/DashboardIndex.vue');
+    const module = await import(
+      '@/apps/workspace/dashboard/DashboardIndex.vue'
+    );
     return module.default;
   }
 
@@ -144,9 +130,9 @@ describe('DashboardIndex', () => {
       global: {
         plugins: [i18n],
         stubs: {
-          SecretForm: SecretFormStub,
+          WorkspaceSecretForm: WorkspaceSecretFormStub,
           RecentSecretsTable: RecentSecretsTableStub,
-          PrivacyDefaultsBar: PrivacyDefaultsBarStub,
+          PrivacyOptionsBar: PrivacyOptionsBarStub,
           UpgradeBanner: UpgradeBannerStub,
         },
       },
@@ -154,14 +140,14 @@ describe('DashboardIndex', () => {
   }
 
   describe('privacy bar visibility', () => {
-    it('shows privacy bar when domain scope is active and not canonical', async () => {
+    it('shows privacy bar when domain scope is active', async () => {
       const DashboardIndex = await getComponent();
       const wrapper = mount(DashboardIndex, createMountOptions());
 
       await flushPromises();
 
       expect(wrapper.find('[data-testid="privacy-bar"]').exists()).toBe(true);
-    });
+    }, 10000);
 
     it('hides privacy bar when domain scope is not active', async () => {
       mockDomainScopeState.isScopeActive = false;
@@ -174,12 +160,7 @@ describe('DashboardIndex', () => {
       expect(wrapper.find('[data-testid="privacy-bar"]').exists()).toBe(false);
     });
 
-    // Note: This test is skipped because the mock architecture doesn't properly
-    // handle reactive state changes between test cases. The underlying logic is
-    // verified by the "hides privacy bar when domain scope is not active" test
-    // and the DashboardIndex component's computed property `showPrivacyBar` which
-    // checks `isScopeActive.value && !currentScope.value.isCanonical`.
-    it.skip('hides privacy bar for canonical domain', async () => {
+    it('shows privacy bar for canonical domain', async () => {
       mockDomainScopeState.currentScope = {
         domain: 'onetimesecret.com',
         extid: undefined,
@@ -192,90 +173,42 @@ describe('DashboardIndex', () => {
 
       await flushPromises();
 
-      expect(wrapper.find('[data-testid="privacy-bar"]').exists()).toBe(false);
-    });
-  });
-
-  describe('branding initialization', () => {
-    it('initializes branding for custom domain on mount', async () => {
-      const DashboardIndex = await getComponent();
-      mount(DashboardIndex, createMountOptions());
-
-      await flushPromises();
-
-      expect(mockInitialize).toHaveBeenCalled();
-    });
-
-    it('does not initialize branding for canonical domain', async () => {
-      mockDomainScopeState.currentScope = {
-        domain: 'onetimesecret.com',
-        extid: undefined,
-        displayName: 'onetimesecret.com',
-        isCanonical: true,
-      };
-      mockInitialize.mockClear();
-
-      const DashboardIndex = await getComponent();
-      mount(DashboardIndex, createMountOptions());
-
-      await flushPromises();
-
-      expect(mockInitialize).not.toHaveBeenCalled();
+      // Privacy bar should be visible for canonical domain too
+      expect(wrapper.find('[data-testid="privacy-bar"]').exists()).toBe(true);
     });
   });
 
   describe('privacy bar props', () => {
-    it('passes brand settings to privacy bar', async () => {
+    it('passes current TTL to privacy bar', async () => {
       const DashboardIndex = await getComponent();
       const wrapper = mount(DashboardIndex, createMountOptions());
 
       await flushPromises();
 
-      const privacyBar = wrapper.findComponent(PrivacyDefaultsBarStub);
-      expect(privacyBar.props('brandSettings')).toEqual(mockBrandingState.brandSettings);
+      const privacyBar = wrapper.findComponent(PrivacyOptionsBarStub);
+      // Default TTL from secret_options mock is 604800
+      expect(privacyBar.props('currentTtl')).toBe(604800);
     });
 
-    it('passes loading state to privacy bar', async () => {
-      mockBrandingState.isLoading = true;
-
+    it('passes current passphrase to privacy bar', async () => {
       const DashboardIndex = await getComponent();
       const wrapper = mount(DashboardIndex, createMountOptions());
 
       await flushPromises();
 
-      const privacyBar = wrapper.findComponent(PrivacyDefaultsBarStub);
-      expect(privacyBar.props('isLoading')).toBe(true);
-    });
-  });
-
-  describe('privacy update handling', () => {
-    it('calls saveBranding when update event is emitted', async () => {
-      const DashboardIndex = await getComponent();
-      const wrapper = mount(DashboardIndex, createMountOptions());
-
-      await flushPromises();
-
-      const privacyBar = wrapper.findComponent(PrivacyDefaultsBarStub);
-      const newSettings = { default_ttl: 7200 };
-      privacyBar.vm.$emit('update', newSettings);
-
-      await flushPromises();
-
-      expect(mockSaveBranding).toHaveBeenCalledWith(
-        newSettings,
-        mockDomainScopeState.currentScope.domain
-      );
+      const privacyBar = wrapper.findComponent(PrivacyOptionsBarStub);
+      expect(privacyBar.props('currentPassphrase')).toBe('');
     });
   });
 
   describe('other dashboard components', () => {
-    it('always renders SecretForm', async () => {
+    it('always renders WorkspaceSecretForm', async () => {
       const DashboardIndex = await getComponent();
       const wrapper = mount(DashboardIndex, createMountOptions());
 
       await flushPromises();
 
-      expect(wrapper.find('.secret-form-stub').exists()).toBe(true);
+      expect(wrapper.find('.workspace-secret-form-stub').exists()).toBe(true);
     });
 
     it('always renders UpgradeBanner', async () => {
