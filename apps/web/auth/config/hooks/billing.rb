@@ -2,11 +2,6 @@
 #
 # frozen_string_literal: true
 
-# Require billing dependencies
-# Note: This file loads when billing is enabled, so billing app should be available
-require_relative '../../../billing/models/plan'
-require_relative '../../../billing/lib/plan_resolver'
-
 module Auth::Config::Hooks
   # Billing - Plan selection carry-through after authentication
   #
@@ -59,6 +54,17 @@ module Auth::Config::Hooks
     SESSION_KEY_INTERVAL = :billing_interval
 
     def self.configure(auth)
+      # Lazy-load billing dependencies only when actually configuring
+      # This prevents LoadError on self-hosted instances where billing is disabled
+      require_relative '../../../billing/models/plan'
+      require_relative '../../../billing/lib/plan_resolver'
+
+      # Define helper methods on the Rodauth instance
+      define_capture_method(auth)
+      define_redirect_method(auth)
+      define_build_method(auth)
+      define_billing_enabled_method(auth)
+
       # ========================================================================
       # HOOK: Before Login Attempt - Capture Plan Selection
       # ========================================================================
@@ -235,40 +241,6 @@ module Auth::Config::Hooks
     def self.define_billing_enabled_method(auth)
       auth.define_method(:billing_enabled?) do
         Onetime.conf.dig('billing', 'enabled').to_s == 'true'
-      end
-    end
-
-    # Call all define methods to register helpers
-    def self.configure(auth)
-      define_capture_method(auth)
-      define_redirect_method(auth)
-      define_build_method(auth)
-      define_billing_enabled_method(auth)
-
-      # Now configure the hooks that use these methods
-      configure_hooks(auth)
-    end
-
-    # Configure the actual hooks
-    def self.configure_hooks(auth)
-      auth.before_login_attempt do
-        capture_plan_selection
-      end
-
-      auth.before_create_account do
-        capture_plan_selection
-      end
-
-      auth.after_login do
-        add_billing_redirect_to_response if json_request?
-      end
-
-      auth.after_create_account do
-        add_billing_redirect_to_response if json_request?
-      end
-
-      auth.after_two_factor_authentication do
-        add_billing_redirect_to_response if json_request?
       end
     end
   end
