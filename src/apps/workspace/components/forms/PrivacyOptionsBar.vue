@@ -136,7 +136,7 @@
           name="shield-outline"
           class="size-5 text-gray-500 dark:text-gray-400"
           aria-hidden="true" />
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <span class="text-sm font-medium font-brand text-gray-700 dark:text-gray-300">
           {{ t('web.COMMON.secret_privacy_options') }}
         </span>
       </div>
