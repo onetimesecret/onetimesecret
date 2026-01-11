@@ -107,40 +107,6 @@ const _getMembersLimit = (plan: BillingPlan): number | string => {
 const isLoadingContent = computed(() => isLoadingPlans.value || isLoadingDefinitions.value || isLoadingOrg.value);
 
 /**
- * Tier hierarchy for inheritance (lower index = lower tier).
- * Higher tiers inherit from lower tiers, so:
- * - free: shows all its features (no base)
- * - single_team: shows "Everything in Free, plus:" + new features
- * - multi_team: shows "Everything in Single Team, plus:" + new features
- */
-const TIER_HIERARCHY = ['free', 'single_team', 'multi_team'] as const;
-
-/**
- * Get the base plan for inheritance display.
- * Higher tiers reference their immediate lower tier.
- */
-const getBasePlan = (plan: BillingPlan): BillingPlan | undefined => {
-  const tierIndex = TIER_HIERARCHY.indexOf(plan.tier as (typeof TIER_HIERARCHY)[number]);
-  if (tierIndex <= 0) return undefined; // Lowest tier (free) has no base
-
-  const baseTier = TIER_HIERARCHY[tierIndex - 1];
-  return filteredPlans.value.find(p => p.tier === baseTier && p.interval === plan.interval);
-};
-
-/**
- * Get only NEW features for this plan (excluding base plan features).
- * For lowest tier plans, shows all features.
- * Features are i18n locale keys like 'web.billing.features.custom_domains'.
- */
-const getNewFeatures = (plan: BillingPlan): string[] => {
-  const basePlan = getBasePlan(plan);
-  if (!basePlan) return plan.features; // Show all for lowest tier
-
-  // Filter out features that exist in base plan
-  return plan.features.filter(feat => !basePlan.features.includes(feat));
-};
-
-/**
  * Get the monthly price for display.
  * Uses API-provided monthly_equivalent_amount for yearly plans if available.
  */
@@ -457,14 +423,9 @@ aria-live="polite">
                 {{ t('web.billing.plans.features') }}
               </p>
 
-              <!-- Show base plan reference for higher tiers -->
-              <p v-if="getBasePlan(plan)" class="text-xs font-medium text-gray-500 dark:text-gray-400">
-                ✓ {{ t('web.billing.plans.everything_in', { plan: getBasePlan(plan)?.name }) }}
-              </p>
-
               <ul class="space-y-2">
                 <li
-                  v-for="feature in getNewFeatures(plan)"
+                  v-for="feature in plan.features"
                   :key="feature"
                   class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
                   <OIcon
