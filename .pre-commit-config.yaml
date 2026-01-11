@@ -139,6 +139,7 @@ repos:
         entry: eslint --quiet --config eslint.config.ts --fix
         language: node
         files: \.(ts|vue|mjs)$
+        exclude: ^src/tests/
         additional_dependencies:
           # Core ESLint - must match eslint.config.ts requirements
           - eslint@9.39.2
