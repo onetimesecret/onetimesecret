@@ -65,10 +65,10 @@ module Billing
 
     default_expiration Billing::Config::CATALOG_TTL  # Auto-expire after 12 hours
 
-    identifier_field :plan_id    # Computed: tier_interval_region
+    identifier_field :plan_id    # Computed: product_interval
 
     # Plan entry fields
-    field :plan_id                  # Computed: tier_interval_region (identifier)
+    field :plan_id                  # Computed: product_interval
     field :stripe_price_id          # Stripe Price ID (price_xxx)
     field :stripe_product_id        # Stripe Product ID (prod_xxx)
     field :stripe_updated_at        # Stripe's updated timestamp (for idempotency)
@@ -379,8 +379,8 @@ module Billing
         tier     = product.metadata[Metadata::FIELD_TIER]
         region   = product.metadata[Metadata::FIELD_REGION]
 
-        # Use explicit plan_id from metadata with interval appended, or compute from tier_interval_region
-        base_plan_id = product.metadata[Metadata::FIELD_PLAN_ID] || "#{tier}_#{region}"
+        # Use explicit plan_id from metadata with interval appended, or fall back to tier
+        base_plan_id = product.metadata[Metadata::FIELD_PLAN_ID] || tier
         plan_id      = "#{base_plan_id}_#{interval}ly"
 
         # Extract entitlements from product metadata
@@ -607,11 +607,15 @@ module Billing
       # Get plan by tier, interval, and region
       #
       # Searches cached plans by tier/interval/region fields instead of
-      # constructing a computed plan_id. Supports metadata-based plan IDs.
+      # direct plan_id lookup. Primarily used in tests to find plans by
+      # entitlement tier without knowing exact product names.
       #
-      # @param tier [String] plan tier (e.g., 'single_team')
+      # For production code, prefer Plan.load(plan_id) for direct O(1) lookup
+      # or find_by_stripe_price_id(price_id) when resolving from Stripe data.
+      #
+      # @param tier [String] Entitlement tier (e.g., 'single_team', 'single_identity')
       # @param interval [String] Billing interval ('monthly' or 'yearly')
-      # @param region [String] Region code (e.g., 'EU')
+      # @param region [String] Region code (e.g., 'EU', 'global')
       # @return [Plan, nil] Cached plan or nil if not found
       def get_plan(tier, interval, region = nil)
         # Normalize interval to singular form (monthly -> month)
