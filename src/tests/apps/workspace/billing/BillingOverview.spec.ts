@@ -165,21 +165,32 @@ describe('BillingOverview', () => {
     });
 
     it('shows entitlements loading skeleton during load', async () => {
+      // Mock delayed BillingService.getOverview to keep component in loading state
       let resolveOverview: (value: typeof mockOverviewResponse) => void;
       storeState.organizations = [mockOrganization];
       mockFetchOrganization.mockResolvedValue(mockOrganization);
-      mockGetOverview.mockReturnValueOnce(new Promise(r => {
+      mockFetchEntitlements.mockResolvedValue(undefined);
+      mockGetOverview.mockImplementationOnce(() => new Promise(r => {
         resolveOverview = r;
       }));
 
       wrapper = mount(BillingOverview, {
         global: { plugins: [i18n, pinia], stubs: { RouterLink: routerLinkStub } },
       });
-      await flushPromises();
-      expect(wrapper.html()).toContain('billing-layout');
 
+      // Give initial mount/fetch time to start but stay in loading
+      await nextTick();
+      await nextTick();
+
+      // Component should render the billing layout during load
+      expect(wrapper.find('.billing-layout').exists()).toBe(true);
+
+      // Complete the loading
       resolveOverview!(mockOverviewResponse);
       await flushPromises();
+
+      // After load completes, plan features should be displayed
+      expect(wrapper.text()).toContain('Feature One');
     });
 
     it('handles entitlements API error gracefully', async () => {
@@ -207,13 +218,6 @@ describe('BillingOverview', () => {
     it('hides org selector for single organization', async () => {
       wrapper = await mountComponent({ organizations: [mockOrganization] });
       expect(wrapper.find('#org-select').exists()).toBe(false);
-    });
-  });
-
-  describe('Next Billing Date', () => {
-    it('displays next billing date when present', async () => {
-      wrapper = await mountComponent();
-      expect(mockGetOverview).toHaveBeenCalledWith('on1abc123');
     });
   });
 

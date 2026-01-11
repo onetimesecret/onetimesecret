@@ -309,14 +309,15 @@ export const mockOrganizations = {
  */
 export interface MockInvoice {
   id: string;
+  number?: string;
   amount: number;
   currency: string;
-  status: 'paid' | 'open' | 'void' | 'uncollectible';
+  status: 'paid' | 'pending' | 'failed';
   created: number;
   period_start: number;
   period_end: number;
-  invoice_pdf?: string;
-  hosted_invoice_url?: string;
+  invoice_pdf?: string | null;
+  hosted_invoice_url?: string | null;
 }
 
 /**
@@ -326,6 +327,7 @@ export function createMockInvoice(overrides: Partial<MockInvoice> = {}): MockInv
   const now = Math.floor(Date.now() / 1000);
   return {
     id: 'inv_test_123',
+    number: 'INV-001',
     amount: 2900,
     currency: 'usd',
     status: 'paid',
@@ -342,17 +344,24 @@ export function createMockInvoice(overrides: Partial<MockInvoice> = {}): MockInv
  * Pre-configured invoice list
  */
 export const mockInvoices: MockInvoice[] = [
-  createMockInvoice({ id: 'inv_001' }),
+  createMockInvoice({ id: 'inv_001', number: 'INV-001', status: 'paid' }),
   createMockInvoice({
     id: 'inv_002',
+    number: 'INV-002',
+    status: 'pending',
     created: Math.floor(Date.now() / 1000) - 86400 * 60,
     period_start: Math.floor(Date.now() / 1000) - 86400 * 60,
     period_end: Math.floor(Date.now() / 1000) - 86400 * 30,
+    invoice_pdf: null,
   }),
   createMockInvoice({
     id: 'inv_003',
+    number: 'INV-003',
+    status: 'failed',
     created: Math.floor(Date.now() / 1000) - 86400 * 90,
     period_start: Math.floor(Date.now() / 1000) - 86400 * 90,
     period_end: Math.floor(Date.now() / 1000) - 86400 * 60,
+    invoice_pdf: null,
+    hosted_invoice_url: null,
   }),
 ];

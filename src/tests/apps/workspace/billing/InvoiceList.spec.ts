@@ -1,6 +1,6 @@
 // src/tests/apps/workspace/billing/InvoiceList.spec.ts
 
-import { mount, VueWrapper } from '@vue/test-utils';
+import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
 import { createPinia, setActivePinia } from 'pinia';
@@ -170,9 +170,7 @@ describe('InvoiceList', () => {
     });
 
     if (waitForLoad) {
-      await nextTick();
-      await nextTick();
-      await nextTick();
+      await flushPromises();
     }
 
     return component;
