@@ -1,79 +1,78 @@
 <!-- src/apps/secret/components/SecretLinksTable.vue -->
 
 <script setup lang="ts">
-  import { useI18n } from 'vue-i18n';
-  import OIcon from '@/shared/components/icons/OIcon.vue';
-  import ToastNotification from '@/shared/components/ui/ToastNotification.vue';
-  import { type ConcealedMessage } from '@/types/ui/concealed-message';
-  import { computed, ref, onMounted, onBeforeUnmount, provide } from 'vue';
-  //import { useSecretStore } from '@/stores/secretStore';
+import { useI18n } from 'vue-i18n';
+import OIcon from '@/shared/components/icons/OIcon.vue';
+import ToastNotification from '@/shared/components/ui/ToastNotification.vue';
+import type { RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
+import { computed, ref, onMounted, onBeforeUnmount, provide } from 'vue';
 
-  import SecretLinksTableRow from './SecretLinksTableRow.vue';
+import SecretLinksTableRow from './SecretLinksTableRow.vue';
 
-  const { t } = useI18n();
-  //const secretStore = useSecretStore();
+const { t } = useI18n();
 
-  const props = defineProps<{
-    concealedMessages: ConcealedMessage[];
-    ariaLabelledBy?: string;
-  }>();
+const props = defineProps<{
+  records: RecentSecretRecord[];
+  ariaLabelledBy?: string;
+}>();
 
-  // Toast notification state
-  const showToast = ref(false);
-  const toastMessage = ref('');
-  const refreshInterval = ref<number | null>(null);
-  const lastRefreshed = ref(new Date());
+// Toast notification state
+const showToast = ref(false);
+const toastMessage = ref('');
+const refreshInterval = ref<number | null>(null);
+const lastRefreshed = ref(new Date());
 
-  // Trigger for child components to refresh
-  const refreshTrigger = ref(0);
+// Trigger for child components to refresh
+const refreshTrigger = ref(0);
 
-  // Provide the refresh trigger to child components
-  provide('refreshTrigger', refreshTrigger);
+// Provide the refresh trigger to child components
+provide('refreshTrigger', refreshTrigger);
 
-  const hasSecrets = computed(() => props.concealedMessages.length > 0);
+const hasSecrets = computed(() => props.records.length > 0);
 
-  // Sort secrets by creation time (most recent first)
-  const sortedSecrets = computed(() => [...props.concealedMessages].sort((a, b) =>
-      // Sort by creation time, newest first
-       b.clientInfo.createdAt.getTime() - a.clientInfo.createdAt.getTime()
-    ));
+// Sort secrets by creation time (most recent first)
+const sortedSecrets = computed(() =>
+  [...props.records].sort(
+    (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+  )
+);
 
-  const handleCopy = () => {
-    // Copy feedback is now handled by the tooltip in SecretLinksTableRow
-  };
+const handleCopy = () => {
+  // Copy feedback is now handled by the tooltip in SecretLinksTableRow
+};
 
-  const handleBurn = (concealedMessage: ConcealedMessage) => {
-    // Here you would add logic to delete the message, e.g.,
-    // through a store or service call
-    console.log('Deleting message', concealedMessage.id);
-    toastMessage.value = t('web.secrets.messageDeleted');
-    showToast.value = true;
-    setTimeout(() => {
-      showToast.value = false;
-    }, 1500);
-  };
+const handleBurn = (record: RecentSecretRecord) => {
+  // Here you would add logic to delete the message, e.g.,
+  // through a store or service call
+  void record; // Suppress unused variable warning until burn logic is implemented
+  toastMessage.value = t('web.secrets.messageDeleted');
+  showToast.value = true;
+  setTimeout(() => {
+    showToast.value = false;
+  }, 1500);
+};
 
-  // Method to force refresh all statuses
-  const refreshAllStatuses = async () => {
-    lastRefreshed.value = new Date();
-    // Increment the refresh trigger to notify all child components
-    refreshTrigger.value++;
-  };
+// Method to force refresh all statuses
+const refreshAllStatuses = async () => {
+  lastRefreshed.value = new Date();
+  // Increment the refresh trigger to notify all child components
+  refreshTrigger.value++;
+};
 
-  // Set up the interval to update the "last refreshed" indicator
-  onMounted(() => {
-    refreshInterval.value = window.setInterval(() => {
-      // Auto-refresh status every 5 minutes
-      refreshAllStatuses();
-    }, 300000); // Every 5 minutes
-  });
+// Set up the interval to update the "last refreshed" indicator
+onMounted(() => {
+  refreshInterval.value = window.setInterval(() => {
+    // Auto-refresh status every 5 minutes
+    refreshAllStatuses();
+  }, 300000); // Every 5 minutes
+});
 
-  // Clean up
-  onBeforeUnmount(() => {
-    if (refreshInterval.value) {
-      clearInterval(refreshInterval.value);
-    }
-  });
+// Clean up
+onBeforeUnmount(() => {
+  if (refreshInterval.value) {
+    clearInterval(refreshInterval.value);
+  }
+});
 </script>
 
 <template>
@@ -166,9 +165,9 @@
           </thead>
           <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
             <SecretLinksTableRow
-              v-for="(concealedMessage, idx) in sortedSecrets"
-              :key="concealedMessage.id"
-              :concealed-message="concealedMessage"
+              v-for="(record, idx) in sortedSecrets"
+              :key="record.id"
+              :record="record"
               :index="sortedSecrets.length - idx"
               @copy="handleCopy"
               @delete="handleBurn" />

@@ -26,6 +26,7 @@
     DEFAULT_BUTTON_TEXT_LIGHT,
   } from '@/shared/stores/identityStore';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
+  import { useMagicKeys, whenever } from '@vueuse/core';
   import { nanoid } from 'nanoid';
   import { computed, watch } from 'vue';
   import { useRouter } from 'vue-router';
@@ -111,13 +112,15 @@
         };
         // Add the message to the store
         concealedMetadataStore.addMessage(newMessage);
-        // Selectively reset form fields to preserve share_domain
-        operations.updateField('secret', '');
-        operations.updateField('passphrase', '');
+
+        // Preserve TTL before reset (sticky setting)
+        const preservedTtl = form.ttl;
+
+        operations.reset();
         clearTextarea();
 
-        // Reset TTL to default after creation
-        operations.updateField('ttl', defaultTtl.value);
+        // Restore TTL to previous value (sticky across submissions)
+        operations.updateField('ttl', preservedTtl as number);
 
         // Emit event for parent components
         emit('created', newMessage);
@@ -155,6 +158,24 @@
 
   // Form submission
   const handleSubmit = () => submit('conceal');
+
+  // Keyboard shortcut: Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux)
+  const keys = useMagicKeys();
+  const submitShortcut = computed(
+    () => keys['Meta+Enter'].value || keys['Control+Enter'].value
+  );
+
+  whenever(submitShortcut, () => {
+    if (hasContent.value && !isSubmitting.value) {
+      handleSubmit();
+    }
+  });
+
+  // Detect Mac for keyboard shortcut hint
+  const isMac = computed(() =>
+    typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
+  );
+  const shortcutHint = computed(() => (isMac.value ? '⌘ Enter' : 'Ctrl Enter'));
 
   // Dynamic button styles based on brand color
   const buttonStyles = computed(() => {
@@ -274,13 +295,13 @@
               <!-- Domain Scope Indicator -->
               <div
                 v-if="isScopeActive"
-                class="flex items-center gap-2 text-sm">
+                class="flex items-center gap-2 text-base font-brand">
                 <span class="text-gray-600 dark:text-gray-400">
                   {{ t('web.LABELS.creating_links_for') }}
                 </span>
                 <div
                   class="inline-flex items-center gap-1.5 rounded-full px-3
-                    py-1.5 text-sm font-medium transition-all duration-150"
+                    py-1.5 text-base font-medium transition-all duration-150"
                   :class="
                     currentScope.isCanonical
                       ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
@@ -314,7 +335,7 @@
                 :style="buttonStyles"
                 :class="[cornerClass]"
                 class="inline-flex items-center justify-center gap-2 px-6 py-3
-                  text-sm font-semibold shadow-lg transition-all duration-200
+                  text-base font-semibold shadow-lg transition-all duration-200
                   hover:opacity-90 hover:shadow-xl
                   focus:outline-none focus:ring-4 focus:ring-brand-500/20
                   disabled:cursor-not-allowed disabled:opacity-50
@@ -338,6 +359,12 @@
                       : t('web.LABELS.create_link_short')
                   }}
                 </span>
+                <kbd
+                  v-if="!isSubmitting"
+                  class="ml-1.5 hidden rounded bg-white/20 px-1.5 py-0.5
+                    text-xs font-normal opacity-70 sm:inline-block">
+                  {{ shortcutHint }}
+                </kbd>
               </button>
             </div>
           </div>
