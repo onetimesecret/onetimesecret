@@ -15,36 +15,50 @@ module Billing
       # Replaces static Stripe Payment Links with dynamic Checkout Sessions
       # that include organization metadata.
       #
-      # GET /billing/plans/:tier/:billing_cycle
+      # GET /billing/plans/:product/:interval
       #
-      # @param [String] tier The selected plan tier (e.g., 'single_team', 'multi_team')
-      # @param [String] billing_cycle The chosen billing frequency ('monthly', 'yearly')
+      # @param [String] product The plan product ID (e.g., 'identity_plus_v1')
+      # @param [String] interval The billing interval ('monthly', 'yearly')
       #
       # @return [HTTP 302] Redirects to Stripe Checkout Session
       #
       def checkout_redirect
-        tier          = req.params['tier'] ||= 'single_team'
-        billing_cycle = req.params['billing_cycle'] ||= 'monthly'
+        product  = req.params['product']
+        interval = req.params['interval']
 
         # Detect region from request (future: use GeoIP)
         region = detect_region
 
         billing_logger.debug 'Plan checkout request',
           {
-            tier: tier,
-            billing_cycle: billing_cycle,
+            product: product,
+            interval: interval,
             region: region,
           }
 
-        # Get plan from cache
-        plan = ::Billing::Plan.get_plan(tier, billing_cycle, region)
+        # Resolve plan from product + interval
+        result = ::Billing::PlanResolver.resolve(product: product, interval: interval)
+
+        unless result.success?
+          billing_logger.warn 'Plan resolution failed',
+            {
+              product: product,
+              interval: interval,
+              error: result.error,
+            }
+          res.redirect '/signup'
+          return
+        end
+
+        # Get the resolved plan
+        plan = result.plan || ::Billing::Plan.load(result.plan_id)
 
         unless plan
-          billing_logger.warn 'Plan not found in cache',
+          billing_logger.warn 'Plan not found after resolution',
             {
-              tier: tier,
-              billing_cycle: billing_cycle,
-              region: region,
+              product: product,
+              interval: interval,
+              plan_id: result.plan_id,
             }
           res.redirect '/signup'
           return
@@ -94,7 +108,7 @@ module Billing
           metadata: {
             debug_info: {
               checkout_plan_id: plan.plan_id,
-              checkout_tier: tier,
+              checkout_tier: result.tier,
               checkout_region: region,
               checkout_timestamp: Time.now.iso8601,
             }.to_json,
@@ -108,8 +122,8 @@ module Billing
         billing_logger.info 'Checkout session created',
           {
             session_id: checkout_session.id,
-            tier: tier,
-            billing_cycle: billing_cycle,
+            product: product,
+            interval: interval,
             region: region,
           }
 
@@ -118,8 +132,8 @@ module Billing
         billing_logger.error 'Stripe checkout session creation failed',
           {
             exception: ex,
-            tier: tier,
-            billing_cycle: billing_cycle,
+            product: product,
+            interval: interval,
           }
         res.redirect '/signup'
       end

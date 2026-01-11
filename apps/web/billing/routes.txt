@@ -5,9 +5,9 @@
 #
 # Organization billing endpoints - subscription management
 
-# Plan selection (backward compatibility with static site)
-# These maintain the existing /plans/:tier/:billing_cycle pattern
-GET    /plans/:tier/:billing_cycle               Billing::Controllers::Plans#checkout_redirect auth=noauth
+# Plan selection checkout redirect
+# Accepts product (e.g., identity_plus_v1) + interval (monthly/yearly)
+GET    /plans/:product/:interval                 Billing::Controllers::Plans#checkout_redirect auth=noauth
 
 # Legacy welcome endpoint (redirects from Stripe Payment Links)
 # Maintained for backward compatibility
