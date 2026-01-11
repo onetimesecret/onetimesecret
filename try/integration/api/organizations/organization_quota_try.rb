@@ -112,9 +112,9 @@ end
 @billing_test_error_message.to_s.include?('limit reached')
 #=> true
 
-## Error type is FormError
+## Error type signals upgrade required (UX: show upgrade CTA)
 @billing_test_error_type
-#=> 'FormError'
+#=> 'upgrade_required'
 
 # Teardown
 begin
