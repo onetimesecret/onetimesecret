@@ -15,6 +15,14 @@ module Billing
       # Replaces static Stripe Payment Links with dynamic Checkout Sessions
       # that include organization metadata.
       #
+      # ## Checkout Session Features
+      #
+      # - Automatic Tax: Stripe Tax for EU VAT, Canadian GST/HST, etc.
+      # - VAT ID Collection: EU B2B customers can enter VAT for reverse charge
+      # - Idempotency Key: Per-customer, per-plan, per-minute to prevent duplicates
+      # - Nested JSON Metadata: Grouped debug info per Stripe best practices
+      # - Customer Reuse: Returning subscribers use existing Stripe Customer ID
+      #
       # GET /billing/plans/:product/:interval
       #
       # @param [String] product The plan product ID (e.g., 'identity_plus_v1')
@@ -81,24 +89,48 @@ module Billing
           success_url: success_url,
           cancel_url: cancel_url,
           locale: req.env['rack.locale']&.first || 'auto',
+
+          # Stripe Tax: automatic tax calculation for all regions
+          #
+          # How tax works:
+          # - EU Customers: Can enter VAT number → reverse charge applied automatically
+          # - Canadian Customers: GST/HST calculated based on province
+          # - Other Regions: Stripe Tax calculates per Dashboard configuration
+          #
+          # Dashboard prerequisites (Settings → Tax):
+          # 1. Stripe Tax enabled
+          # 2. Tax registrations added for applicable jurisdictions
+          # 3. Products have appropriate tax codes (or default tax code set)
+          #
+          automatic_tax: { enabled: true },
+          tax_id_collection: { enabled: true },  # EU B2B VAT reverse charge
         }
 
-        # Pre-fill customer email if authenticated
+        # Customer handling for authenticated users
+        # Reuse existing Stripe Customer if the user has an org with one (returning subscriber)
+        # Otherwise, Stripe creates a new customer from email prefill
         unless cust.anonymous?
-          session_params[:customer_email]      = cust.email
           session_params[:client_reference_id] = cust.extid
+
+          # Check for existing Stripe customer on user's default organization
+          default_org = cust.organization_instances.to_a.find(&:is_default)
+          if default_org&.stripe_customer_id.to_s.length.positive?
+            session_params[:customer] = default_org.stripe_customer_id
+          else
+            session_params[:customer_email] = cust.email
+          end
         end
 
-        # Add metadata for debugging (NOT source of truth - catalog is authoritative)
+        # Subscription metadata for webhook processing and debugging
         #
         # NOTE: plan_id is stored as debug_info only. The authoritative plan_id
         # is resolved from price_id via catalog lookup in webhook processing.
         # This metadata is useful for debugging subscription creation but should
         # NOT be relied upon for billing decisions.
         #
-        # JSON in metadata: Stripe explicitly supports storing structured data as
-        # JSON strings in metadata values (up to 500 chars). This approach reduces
-        # key usage (Stripe has a 50-key limit) and groups related debug info.
+        # JSON in metadata: Stripe explicitly recommends storing structured data
+        # as JSON strings in metadata values (up to 500 chars). This approach
+        # reduces key usage (Stripe has a 50-key limit) and groups related info.
         # @see https://docs.stripe.com/metadata/use-cases#store-structured-data
         #
         # @see Billing::PlanValidator.resolve_plan_id
@@ -116,8 +148,13 @@ module Billing
           },
         }
 
-        # Create Stripe Checkout Session
-        checkout_session = Stripe::Checkout::Session.create(session_params)
+        # Create Stripe Checkout Session with idempotency key
+        # Key granularity: per-customer, per-plan, per-minute (prevents duplicates on retry)
+        idempotency_key  = "checkout_#{cust.extid}_#{plan.plan_id}_#{Time.now.to_i / 60}"
+        checkout_session = Stripe::Checkout::Session.create(
+          session_params,
+          { idempotency_key: idempotency_key },
+        )
 
         billing_logger.info 'Checkout session created',
           {
