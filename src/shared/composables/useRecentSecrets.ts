@@ -8,7 +8,7 @@ import { useConcealedMetadataStore } from '@/shared/stores/concealedMetadataStor
 import { useMetadataListStore } from '@/shared/stores/metadataListStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { storeToRefs } from 'pinia';
-import { computed, ref, type ComputedRef, type Ref } from 'vue';
+import { computed, ref, watch, type ComputedRef, type Ref } from 'vue';
 
 import { AsyncHandlerOptions, useAsyncHandler } from './useAsyncHandler';
 
@@ -241,6 +241,13 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
   // Only one will be active based on auth state
   const local = useLocalRecentSecrets();
   const api = useApiRecentSecrets(wrap);
+
+  // Clear local storage on auth state changes to prevent:
+  // - Stale guest data mixing with authenticated API data on login
+  // - Old secrets lingering after logout (unsettling UX)
+  watch(isAuthenticated, () => {
+    local.clear();
+  });
 
   // Unified interface that switches based on auth state
   const records = computed<RecentSecretRecord[]>(() =>
