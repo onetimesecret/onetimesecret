@@ -10,7 +10,7 @@ import {
   setupRouterGuards,
   validateAuthentication,
 } from '@/router/guards.routes';
-import { useAuthStore, useLanguageStore } from '@/shared/stores';
+import { useAuthStore } from '@/shared/stores';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 
 const protectedRoute: RouteLocationNormalized = {
@@ -55,7 +55,7 @@ vi.mock('@/shared/composables/usePageTitle', () => ({
 describe('Router Guards', () => {
   let router: Router;
   let pinia: ReturnType<typeof createTestingPinia>;
-  let bootstrapStore: ReturnType<typeof useBootstrapStore>;
+  let _bootstrapStore: ReturnType<typeof useBootstrapStore>;
 
   beforeEach(() => {
     pinia = createTestingPinia({
@@ -73,7 +73,7 @@ describe('Router Guards', () => {
       },
     });
     setActivePinia(pinia);
-    bootstrapStore = useBootstrapStore();
+    _bootstrapStore = useBootstrapStore();
 
     router = {
       beforeEach: vi.fn(),

@@ -119,7 +119,7 @@ const handleActivateTestMode = async (planId: string) => {
     );
 
     // Refresh bootstrap store to get updated entitlements (no page reload needed)
-    await bootstrapStore.init();
+    await bootstrapStore.refresh();
     emit('close');
   } catch (err: unknown) {
     console.error('Failed to activate test mode:', err);
@@ -146,7 +146,7 @@ const handleResetToActual = async () => {
     );
 
     // Refresh bootstrap store to clear test mode (no page reload needed)
-    await bootstrapStore.init();
+    await bootstrapStore.refresh();
     emit('close');
   } catch (err: unknown) {
     console.error('Failed to reset test mode:', err);

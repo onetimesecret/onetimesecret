@@ -20,7 +20,7 @@
   const { global_banner } = storeToRefs(bootstrapStore);
 
   // Component key cannot be null or undefined
-  const globalBroadcastKey = computed(() => global_banner.value ? 'global_broadcast' : 'n/a');
+  const globalBroadcastKey = computed(() => global_banner.value ? 'globalBroadcast' : 'noBroadcast');
 
   const identityStore = useProductIdentity();
 

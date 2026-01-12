@@ -7,7 +7,6 @@ import { createTestingPinia } from '@pinia/testing';
 import { useSecretContext } from '@/shared/composables/useSecretContext';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 
 // Mock vue-i18n
 vi.mock('vue-i18n', () => ({

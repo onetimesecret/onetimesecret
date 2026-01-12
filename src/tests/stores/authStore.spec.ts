@@ -7,7 +7,7 @@ import { createApi } from '@/api';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
-import { baseBootstrap, mockCustomer as fixtureCustomer } from '../setup-bootstrap';
+import { mockCustomer as fixtureCustomer } from '../setup-bootstrap';
 
 // Create a mock Customer object that matches the actual Customer type
 const mockCustomer: Customer = {

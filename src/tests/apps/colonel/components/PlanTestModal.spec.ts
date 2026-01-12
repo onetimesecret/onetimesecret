@@ -6,7 +6,6 @@ import { createI18n } from 'vue-i18n';
 import { createTestingPinia } from '@pinia/testing';
 import PlanTestModal from '@/shared/components/modals/PlanTestModal.vue';
 import { nextTick } from 'vue';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 
 // Mock HeadlessUI components
 vi.mock('@headlessui/vue', () => ({

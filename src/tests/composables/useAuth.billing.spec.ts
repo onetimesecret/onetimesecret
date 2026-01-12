@@ -10,8 +10,6 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import { createTestingPinia } from '@pinia/testing';
-import { setActivePinia } from 'pinia';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useAuth } from '@/shared/composables/useAuth';
 import { setupTestPinia } from '../setup';
