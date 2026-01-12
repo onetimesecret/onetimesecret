@@ -47,7 +47,7 @@
   };
 
   const { isSubmitting, error, success, submitForm } = useFormSubmission({
-    url: '/api/v2/feedback',
+    url: '/api/v3/feedback',
     successMessage: t('web.LABELS.feedback_received'),
     onSuccess: () => {
       emit('feedback-sent');
