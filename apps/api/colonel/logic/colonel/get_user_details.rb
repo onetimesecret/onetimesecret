@@ -55,7 +55,7 @@ module ColonelAPI
         def scan_user_secrets
           secrets  = []
           cursor   = '0'
-          dbclient = Onetime::Secret.new.dbclient
+          dbclient = Onetime::Secret.dbclient
           pattern  = 'secret:*:object'
 
           loop do
@@ -88,7 +88,7 @@ module ColonelAPI
         def scan_user_receipts
           receipt_list = []
           cursor       = '0'
-          dbclient     = Onetime::Receipt.new.dbclient
+          dbclient     = Onetime::Receipt.dbclient
           pattern      = 'receipt:*:object'
 
           loop do

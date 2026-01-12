@@ -27,10 +27,10 @@ RSpec.describe Onetime::Secret do
     end
 
     it 'generates unique identifiers for each pair' do
-      metadata2, secret2 = create_stubbed_secret_pair(custid: customer_id)
+      receipt2, secret2 = create_stubbed_secret_pair(custid: customer_id)
 
       expect(secret.identifier).not_to eq(secret2.identifier)
-      expect(metadata.identifier).not_to eq(metadata2.identifier)
+      expect(metadata.identifier).not_to eq(receipt2.identifier)
     end
   end
 

@@ -45,7 +45,7 @@ module V1
             res.redirect res.app_path(logic.redirect_uri)
           else
             secret = logic.secret
-            json self.class.receipt_hsh(logic.metadata,
+            json self.class.receipt_hsh(logic.receipt,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end
@@ -61,11 +61,11 @@ module V1
             res.redirect res.app_path(logic.redirect_uri)
           else
             secret = logic.secret
-            json self.class.receipt_hsh(logic.metadata,
+            json self.class.receipt_hsh(logic.receipt,
                                 :value => logic.secret_value,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
-            logic.metadata.viewed!
+            logic.receipt.viewed!
           end
         end
       end
@@ -75,23 +75,23 @@ module V1
           logic = V1::Logic::Secrets::ShowReceipt.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
-          secret = logic.metadata.load_secret
+          secret = logic.receipt.load_secret
           if logic.show_secret
             secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
-            json self.class.receipt_hsh(logic.metadata,
+            json self.class.receipt_hsh(logic.receipt,
                                 :value => secret_value,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           else
-            json self.class.receipt_hsh(logic.metadata,
+            json self.class.receipt_hsh(logic.receipt,
                                 :secret_ttl => secret ? secret.current_expiration : nil,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end
-          logic.metadata.viewed!
+          logic.receipt.viewed!
         end
       end
 
-      def show_metadata_recent
+      def show_receipt_recent
         authorized(false) do
           logic = V1::Logic::Secrets::ShowReceiptList.new sess, cust, req.params, locale
           logic.raise_concerns
@@ -130,8 +130,8 @@ module V1
           logic.raise_concerns
           logic.process
           if logic.greenlighted
-            json :state           => self.class.receipt_hsh(logic.metadata),
-                :secret_shortid => logic.metadata.secret_shortid
+            json :state           => self.class.receipt_hsh(logic.receipt),
+                :secret_shortid => logic.receipt.secret_shortid
           else
             secret_not_found_response
           end
@@ -149,7 +149,7 @@ module V1
             res.redirect res.app_path(logic.redirect_uri)
           else
             secret = logic.secret
-            json self.class.receipt_hsh(logic.metadata,
+            json self.class.receipt_hsh(logic.receipt,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end

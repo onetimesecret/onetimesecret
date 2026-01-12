@@ -25,6 +25,7 @@ module Onetime::Receipt::Features
       base.safe_dump_field :secret_shortid
       base.safe_dump_field :secret_ttl, ->(m) { m.secret_ttl || -1 }
       base.safe_dump_field :metadata_ttl, ->(m) { m.lifespan }
+      base.safe_dump_field :receipt_ttl, ->(m) { m.lifespan }
       base.safe_dump_field :lifespan
       base.safe_dump_field :share_domain
       base.safe_dump_field :created

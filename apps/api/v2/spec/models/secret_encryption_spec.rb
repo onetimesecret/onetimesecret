@@ -209,7 +209,7 @@ RSpec.describe Onetime::Secret, allow_redis: false do
 
   describe 'secret lifecycle with encryption', :allow_redis do
     let(:custid) { 'test-customer' }
-    let(:metadata_key) { 'test-metadata-key' }
+    let(:receipt_key) { 'test-receipt-key' }
     let(:secret_value) { 'Top secret information' }
     let(:passphrase) { 'secure-passphrase' }
 

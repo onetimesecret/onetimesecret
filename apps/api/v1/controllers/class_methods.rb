@@ -66,7 +66,7 @@ module V1
         # so that the creator has time to keep retreiving them metadata after the
         # secret itself has expired. Otherwise there'd be no record of whether the
         # secret was seen or not.
-        metadata_ttl = md.secret_ttl&.to_i
+        receipt_ttl = md.secret_ttl&.to_i
 
         # Show the secret's actual real ttl as of now if we have it.
         secret_realttl = opts[:secret_ttl]&.to_i
@@ -75,9 +75,9 @@ module V1
         # to get the current value of the ttl for the metadata object. This is the
         # actual time left before the metadata object is deleted from the db server.
         #
-        # For the v1 API, this real value is what gets returned as "metadata_ttl". If
+        # For the v1 API, this real value is what gets returned as "receipt_ttl". If
         # you don't find that confusing, take another look through the code.
-        metadata_realttl = md.current_expiration&.to_i
+        receipt_realttl = md.current_expiration&.to_i
 
         recipient = [hsh.fetch('recipients', nil)]
           .flatten
@@ -89,8 +89,8 @@ module V1
           'custid' => hsh.fetch('custid', nil),
           'metadata_key' => hsh.fetch('key', nil),
           'secret_key' => hsh.fetch('secret_key', nil),
-          'ttl' => metadata_ttl, # static value from database hash field
-          'metadata_ttl' => metadata_realttl, # actual number of seconds left to live
+          'ttl' => receipt_ttl, # static value from database hash field
+          'metadata_ttl' => receipt_realttl, # actual number of seconds left to live
           'secret_ttl' => secret_realttl, # ditto, actual number
           'state' => hsh.key?('state') ? hsh['state'] : 'new',
           'updated' => hsh.fetch('updated', nil)&.to_i,
@@ -113,8 +113,6 @@ module V1
         ret
       end
 
-      # Alias for backward compatibility
-      alias receipt_hsh receipt_hsh
     end
   end
 end

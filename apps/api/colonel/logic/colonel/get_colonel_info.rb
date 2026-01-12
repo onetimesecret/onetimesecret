@@ -25,7 +25,7 @@ module ColonelAPI
           :recent_customers,
           :customer_count,
           :recent_customer_count,
-          :metadata_count,
+          :receipt_count,
           :secret_count,
           :secrets_created,
           :secrets_shared,
@@ -98,8 +98,8 @@ module ColonelAPI
 
         def process_statistics
           # Use O(1) ZCARD-based count via Familia instances instead of O(N) blocking KEYS
-          @metadata_count  = Onetime::Receipt.count
-          @secret_count    = Onetime::Secret.count
+          @receipt_count = Onetime::Receipt.count
+          @secret_count  = Onetime::Secret.count
           # TODO: Re-enable global statistics when Customer.global is implemented
           # @secrets_created = Onetime::Customer.global.secrets_created.to_s
           # @secrets_shared  = Onetime::Customer.global.secrets_shared.to_s
@@ -138,7 +138,7 @@ module ColonelAPI
                 session_count: session_count,
                 customer_count: customer_count,
                 recent_customer_count: recent_customer_count,
-                metadata_count: metadata_count,
+                receipt_count: receipt_count,
                 secret_count: secret_count,
                 secrets_created: secrets_created,
                 secrets_shared: secrets_shared,

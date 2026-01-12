@@ -205,7 +205,7 @@ RSpec.describe Onetime::Secret do
 
   describe 'secret lifecycle with encryption' do
     let(:custid) { "test-customer" }
-    let(:metadata_key) { "test-metadata-key" }
+    let(:metadata_key) { "test-receipt-key" }
     let(:secret_value) { "Top secret information" }
     let(:passphrase) { "secure-passphrase" }
 

@@ -10,7 +10,7 @@ module V2::Logic
       # Working variables
       attr_reader :identifier, :receipt, :secret
       # Template variables
-      attr_reader :metadata_identifier,
+      attr_reader :receipt_identifier,
         :metadata_shortid,
         :secret_identifier,
         :secret_state,
@@ -60,7 +60,7 @@ module V2::Logic
       def process # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
         @secret = @receipt.load_secret
 
-        @metadata_identifier       = receipt.identifier
+        @receipt_identifier        = receipt.identifier
         @metadata_short_identifier = receipt.shortid
         @secret_identifier         = receipt.secret_identifier
         @secret_shortid            = receipt.secret_shortid
@@ -120,7 +120,7 @@ module V2::Logic
             # records doesn't immediately load the receipt page the receipt
             # record stays in state=new allowing the next request through.
             if secret && receipt.state?(:new)
-              OT.ld "[show_receipt] m:#{metadata_identifier} s:#{secret_identifier} Decrypting for first and only creator viewing"
+              OT.ld "[show_receipt] m:#{receipt_identifier} s:#{secret_identifier} Decrypting for first and only creator viewing"
               @secret_value = secret.ciphertext.reveal { it }
             end
           end
@@ -257,8 +257,8 @@ module V2::Logic
 
       def process_uris
         @share_path    = build_path(:secret, secret_identifier)
-        @burn_path     = build_path(:private, metadata_identifier, 'burn')
-        @receipt_path  = build_path(:private, metadata_identifier)
+        @burn_path     = build_path(:private, receipt_identifier, 'burn')
+        @receipt_path  = build_path(:private, receipt_identifier)
         @metadata_path = @receipt_path # maintain public API
         @share_url     = build_url(share_domain, @share_path)
         @receipt_url   = build_url(baseuri, @receipt_path)

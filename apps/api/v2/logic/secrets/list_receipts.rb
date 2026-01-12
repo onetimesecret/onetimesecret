@@ -27,8 +27,8 @@ module V2::Logic
         @query_results = cust.receipts.rangebyscore(since, @now.to_i)
 
         # Get the safe fields for each record using optimized bulk loading
-        metadata_objects = Onetime::Receipt.load_multi(query_results).compact
-        @records         = metadata_objects.map(&:safe_dump)
+        receipt_objects = Onetime::Receipt.load_multi(query_results).compact
+        @records        = receipt_objects.map(&:safe_dump)
 
         @has_items              = records.any?
         records.sort! { |a, b| b[:updated] <=> a[:updated] }
