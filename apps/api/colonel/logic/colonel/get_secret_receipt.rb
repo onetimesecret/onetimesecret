@@ -8,7 +8,7 @@ module ColonelAPI
   module Logic
     module Colonel
       class GetSecretReceipt < ColonelAPI::Logic::Base
-        attr_reader :secret_id, :secret, :metadata, :owner
+        attr_reader :secret_id, :secret, :receipt, :owner
 
         def process_params
           @secret_id = sanitize_identifier(params['secret_id'])
@@ -23,7 +23,7 @@ module ColonelAPI
 
           # Load associated receipt
           if secret.receipt_identifier
-            @metadata = Onetime::Receipt.load(secret.receipt_identifier)
+            @receipt = Onetime::Receipt.load(secret.receipt_identifier)
           end
 
           # Load owner
@@ -53,17 +53,17 @@ module ColonelAPI
               ciphertext_length: secret.ciphertext.to_s.length,
             },
             details: {
-              metadata: if metadata
+              metadata: if receipt # maintain public API
   {
-    metadata_id: metadata.objid,
-    shortid: metadata.shortid,
-    state: metadata.state,
-    secret_ttl: metadata.secret_ttl,
-    recipients: metadata.recipients,
-    has_passphrase: metadata.has_passphrase?,
-    share_domain: metadata.share_domain,
-    created: metadata.created,
-    secret_expired: metadata.secret_expired?,
+    receipt_id: receipt.objid,
+    shortid: receipt.shortid,
+    state: receipt.state,
+    secret_ttl: receipt.secret_ttl,
+    recipients: receipt.recipients,
+    has_passphrase: receipt.has_passphrase?,
+    share_domain: receipt.share_domain,
+    created: receipt.created,
+    secret_expired: receipt.secret_expired?,
   }
 end,
               owner: if owner

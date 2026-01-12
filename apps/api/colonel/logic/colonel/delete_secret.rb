@@ -8,7 +8,7 @@ module ColonelAPI
   module Logic
     module Colonel
       class DeleteSecret < ColonelAPI::Logic::Base
-        attr_reader :secret_id, :secret, :metadata, :deleted_secret, :deleted_metadata
+        attr_reader :secret_id, :secret, :receipt, :deleted_secret, :deleted_receipt
 
         def process_params
           @secret_id = sanitize_identifier(params['secret_id'])
@@ -23,18 +23,18 @@ module ColonelAPI
 
           # Load associated receipt
           if secret.receipt_identifier
-            @metadata = Onetime::Receipt.load(secret.receipt_identifier)
+            @receipt = Onetime::Receipt.load(secret.receipt_identifier)
           end
         end
 
         def process
-          # Delete metadata first (if exists)
-          if metadata&.exists?
-            @deleted_metadata = {
-              metadata_id: metadata.objid,
-              shortid: metadata.shortid,
+          # Delete receipt first (if exists)
+          if receipt&.exists?
+            @deleted_receipt = {
+              receipt_id: receipt.objid,
+              shortid: receipt.shortid,
             }
-            metadata.destroy!
+            receipt.destroy!
           end
 
           # Delete secret
@@ -54,10 +54,10 @@ module ColonelAPI
             record: {
               deleted: true,
               secret: deleted_secret,
-              metadata: deleted_metadata,
+              metadata: deleted_receipt, # maintain public API
             },
             details: {
-              message: 'Secret and associated metadata deleted successfully',
+              message: 'Secret and associated receipt deleted successfully',
             },
           }
         end
