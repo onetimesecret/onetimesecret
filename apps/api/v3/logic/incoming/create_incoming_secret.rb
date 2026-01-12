@@ -32,7 +32,7 @@ module V3
       class CreateIncomingSecret < V3::Logic::Base
         include Onetime::LoggerMethods
 
-        attr_reader :memo, :secret_value, :recipient_email, :recipient_hash, :ttl, :passphrase, :metadata, :secret, :greenlighted
+        attr_reader :memo, :secret_value, :recipient_email, :recipient_hash, :ttl, :passphrase, :receipt, :secret, :greenlighted
 
         def process_params
           # All parameters are passed in the :secret hash like other V3 endpoints
@@ -96,7 +96,7 @@ module V3
           # Send notification email
           send_recipient_notification
 
-          @greenlighted = metadata.valid? && secret.valid?
+          @greenlighted = receipt.valid? && secret.valid?
 
           success_data
         end
@@ -105,7 +105,7 @@ module V3
           {
             success: greenlighted,
             record: {
-              metadata: metadata.safe_dump,
+              metadata: receipt.safe_dump, # maintain public API
               secret: secret.safe_dump,
             },
             details: {
@@ -127,7 +127,7 @@ module V3
 
         def create_and_encrypt_secret
           # Use Receipt.spawn_pair to create linked secret and receipt
-          @metadata, @secret = Onetime::Receipt.spawn_pair(
+          @receipt, @secret = Onetime::Receipt.spawn_pair(
             cust&.objid || 'anon',
             ttl,
             secret_value,
@@ -135,15 +135,15 @@ module V3
           )
 
           # Store incoming-specific fields
-          metadata.memo       = memo
-          metadata.recipients = recipient_email
-          metadata.save
+          receipt.memo       = memo
+          receipt.recipients = recipient_email
+          receipt.save
         end
 
         def update_customer_stats
           # Update customer stats if not anonymous
           unless cust.anonymous?
-            cust.add_receipt metadata
+            cust.add_receipt receipt
             cust.increment_field :secrets_created
           end
 
@@ -169,7 +169,7 @@ module V3
           #
           # For now, we log the event but don't send the email.
 
-          Onetime.secret_logger.info "[IncomingSecret] Secret created for #{OT::Utils.obscure_email(recipient_email)} (metadata: #{metadata.shortid})"
+          Onetime.secret_logger.info "[IncomingSecret] Secret created for #{OT::Utils.obscure_email(recipient_email)} (receipt: #{receipt.shortid})"
           Onetime.secret_logger.warn '[IncomingSecret] Email notification not sent - IncomingSecretNotification mail class not implemented'
         rescue StandardError => ex
           Onetime.secret_logger.error "[IncomingSecret] Failed to send email notification: #{ex.message}"
