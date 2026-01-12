@@ -3,6 +3,7 @@
 import { createApi } from '@/api';
 import i18n from '@/i18n';
 import { createAppRouter } from '@/router';
+import { setupRouterGuards } from '@/router/guards.routes';
 import { consumeBootstrapData, getBootstrapValue } from '@/services/bootstrap.service';
 import { loggingService } from '@/services/logging.service';
 import type { DiagnosticsConfig } from '@/types/diagnostics';
@@ -82,6 +83,11 @@ function initializeApp(app: App, options: AppInitializerOptions = {}) {
   app.use(pinia);
   app.use(errorBoundary);
   app.use(i18n);
+
+  // Set up router guards AFTER Pinia is installed.
+  // Guards use stores (usePageTitle, useAuthStore, etc.) which require Pinia.
+  setupRouterGuards(router);
+
   app.use(router);
 
   // Display startup banner

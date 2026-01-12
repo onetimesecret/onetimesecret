@@ -1,6 +1,5 @@
 // src/router/index.ts
 
-import { setupRouterGuards } from '@/router/guards.routes';
 import NotFound from '@/shared/components/errors/ErrorNotFound.vue';
 import type { Router, RouteRecordRaw } from 'vue-router';
 import { createRouter, createWebHistory } from 'vue-router';
@@ -91,29 +90,16 @@ export function createAppRouter(): Router {
   });
 
   /**
-   * router.onError() is intentionally omitted to avoid redundant error handling.
+   * Note: Router guards are set up separately via setupRouterGuards()
+   * after Pinia is installed. This is necessary because guards use
+   * Pinia stores (via usePageTitle, useAuthStore, etc.).
    *
+   * router.onError() is intentionally omitted to avoid redundant error handling.
    * Router errors are already handled by:
    * 1. Route guards via setupRouterGuards()
    * 2. Global error boundary (globalErrorBoundary.ts)
-   * 3. useAsyncHandler composable when used in navigation guards or composables.
-   *
-   * Router errors fall into two main categories:
-   * - Navigation failures: Handled by guards and classifyError()
-   * - Chunk loading failures: Caught by global error handler
-   *
-   * Adding router.onError would:
-   * - Create duplicate error handling paths
-   * - Interfere with our centralized error classification flow
-   * - Add unnecessary complexity to the error architecture
-   *
-   * For new router-related error cases, extend the existing guard or
-   * classification system rather than adding a new error handler here.
-   *
-   * Set up router guards for authentication and locale settings
+   * 3. useAsyncHandler composable when used in navigation guards
    */
-  setupRouterGuards(router);
-
   return router;
 }
 

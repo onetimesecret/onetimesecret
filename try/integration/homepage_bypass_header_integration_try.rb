@@ -8,7 +8,7 @@
 # ensure the homepage_bypass_header flag is properly passed to the frontend.
 #
 # NOTE: These tests are currently skipped because they require full Rhales
-# rendering to inject window.__ONETIME_STATE__, which isn't fully configured
+# rendering to inject window.__BOOTSTRAP_STATE__, which isn't fully configured
 # in the Rack::Test integration test environment. The unit tests in
 # try/unit/controllers/homepage_bypass_header_try.rb verify the core logic.
 #
