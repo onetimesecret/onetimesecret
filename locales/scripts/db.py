@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 """
-Database management for translation tasks.
+Database management for translation auditing and queries.
+
+The database is ephemeral and hydrated on-demand from historical JSON files.
+It exists for querying/reporting only - the source of truth is JSON.
+
+Three-tier architecture:
+- locales/translations/{locale}/*.json - Historical source of truth (flat keys)
+- src/locales/{locale}/*.json - Lean app-consumable files (nested JSON)
+- locales/db/tasks.db - Ephemeral, hydrated on-demand for queries
 
 Usage:
-    python db.py hydrate [--force]
-    python db.py dump
+    python db.py hydrate [--from-json] [--force]
     python db.py query "SELECT ..." [--hydrate] [--json]
 """
 
@@ -18,10 +25,11 @@ from typing import Any, Iterator, Optional
 
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
-DB_DIR = SCRIPT_DIR.parent / "db"
+LOCALES_DIR = SCRIPT_DIR.parent
+DB_DIR = LOCALES_DIR / "db"
 SCHEMA_FILE = DB_DIR / "schema.sql"
-TASKS_FILE = DB_DIR / "tasks.sql"
 DB_FILE = DB_DIR / "tasks.db"
+TRANSLATIONS_DIR = LOCALES_DIR / "translations"
 
 
 @contextmanager
@@ -38,18 +46,23 @@ def get_connection() -> Iterator[sqlite3.Connection]:
         conn.close()
 
 
-def hydrate(force: bool = False) -> None:
-    """Load schema.sql and tasks.sql into tasks.db.
+def hydrate_from_json(force: bool = False) -> None:
+    """Hydrate database from historical JSON files.
+
+    Creates tables from schema.sql, then walks all
+    locales/translations/{locale}/*.json files to populate the database.
 
     Args:
         force: If True, delete existing database and recreate.
-               If False, skip if database already exists.
     """
     if not SCHEMA_FILE.exists():
         raise FileNotFoundError(f"Schema file not found: {SCHEMA_FILE}")
 
-    if not TASKS_FILE.exists():
-        raise FileNotFoundError(f"Tasks file not found: {TASKS_FILE}")
+    if not TRANSLATIONS_DIR.exists():
+        raise FileNotFoundError(
+            f"Translations directory not found: {TRANSLATIONS_DIR}\n"
+            "Run bootstrap_translations.py first to create historical JSON files."
+        )
 
     if DB_FILE.exists():
         if force:
@@ -64,76 +77,84 @@ def hydrate(force: bool = False) -> None:
     DB_DIR.mkdir(parents=True, exist_ok=True)
 
     schema_sql = SCHEMA_FILE.read_text()
-    tasks_sql = TASKS_FILE.read_text()
 
     with get_connection() as conn:
         cursor = conn.cursor()
+
+        # Create tables
         try:
             cursor.executescript(schema_sql)
-            cursor.executescript(tasks_sql)
             conn.commit()
-            print(f"Created database: {DB_FILE}")
-            # Report row count
-            cursor.execute("SELECT COUNT(*) FROM translation_tasks")
-            count = cursor.fetchone()[0]
-            print(f"Loaded {count} translation tasks.")
         except sqlite3.Error as e:
-            raise RuntimeError(f"SQL error during hydrate: {e}") from e
+            raise RuntimeError(f"SQL error during schema creation: {e}") from e
 
+        # Walk translation directories
+        inserted = 0
+        locale_dirs = sorted(
+            d for d in TRANSLATIONS_DIR.iterdir()
+            if d.is_dir() and not d.name.startswith(".")
+        )
 
-def dump() -> None:
-    """Export database state back to tasks.sql.
+        for locale_dir in locale_dirs:
+            locale = locale_dir.name
+            json_files = sorted(locale_dir.glob("*.json"))
 
-    Generates INSERT statements for all rows in translation_tasks.
-    """
-    if not DB_FILE.exists():
-        raise FileNotFoundError(f"Database not found: {DB_FILE}")
+            for json_file in json_files:
+                file_name = json_file.name
+                try:
+                    with open(json_file, encoding="utf-8") as f:
+                        data = json.load(f)
+                except json.JSONDecodeError as e:
+                    print(f"Warning: Invalid JSON in {json_file}: {e}",
+                          file=sys.stderr)
+                    continue
 
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT batch, locale, file, key, english_text, translation,
-                   status, notes, created_at, completed_at
-            FROM translation_tasks
-            ORDER BY id
-        """)
-        rows = cursor.fetchall()
+                for key, entry in data.items():
+                    if not isinstance(entry, dict):
+                        continue
 
-    lines = [
-        "-- Translation tasks",
-        "-- Append INSERT statements below. This file is git-tracked.",
-        "-- Format: INSERT INTO translation_tasks "
-        "(batch, locale, file, key, english_text) VALUES (...);",
-        "",
-    ]
+                    english_text = entry.get("en", "")
+                    translation = entry.get("translation")
+                    skip = entry.get("skip", False)
+                    note = entry.get("note")
 
-    for row in rows:
-        # Build INSERT with all non-null fields
-        columns = []
-        values = []
+                    # Determine status
+                    if translation:
+                        status = "completed"
+                    elif skip:
+                        status = "skipped"
+                    else:
+                        status = "pending"
 
-        field_names = [
-            "batch", "locale", "file", "key", "english_text",
-            "translation", "status", "notes", "created_at", "completed_at"
-        ]
+                    try:
+                        cursor.execute(
+                            """
+                            INSERT INTO translation_tasks
+                            (batch, locale, file, key, english_text, translation,
+                             status, notes)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                            """,
+                            (
+                                "hydrated",
+                                locale,
+                                file_name,
+                                key,
+                                english_text,
+                                translation,
+                                status,
+                                note,
+                            ),
+                        )
+                        inserted += 1
+                    except sqlite3.IntegrityError:
+                        # Duplicate key - skip
+                        pass
 
-        for field in field_names:
-            value = row[field]
-            if value is not None:
-                columns.append(field)
-                # Escape single quotes in SQL
-                escaped = str(value).replace("'", "''")
-                values.append(f"'{escaped}'")
+            print(f"  {locale}: loaded {len(json_files)} files")
 
-        if columns:
-            cols_str = ", ".join(columns)
-            vals_str = ", ".join(values)
-            lines.append(
-                f"INSERT INTO translation_tasks ({cols_str}) VALUES ({vals_str});"
-            )
-
-    TASKS_FILE.write_text("\n".join(lines) + "\n")
-    print(f"Dumped {len(rows)} rows to {TASKS_FILE}")
+        conn.commit()
+        print(f"\nCreated database: {DB_FILE}")
+        print(f"Loaded {inserted} translation records from JSON files.")
 
 
 def query(
@@ -155,12 +176,12 @@ def query(
     """
     if not DB_FILE.exists():
         if auto_hydrate:
-            print("Database not found, hydrating...", file=sys.stderr)
-            hydrate(force=False)
+            print("Database not found, hydrating from JSON...", file=sys.stderr)
+            hydrate_from_json(force=False)
         else:
             raise FileNotFoundError(
                 f"Database not found: {DB_FILE}\n"
-                "Run 'python db.py hydrate' or use --hydrate flag."
+                "Run 'python db.py hydrate --from-json' or use --hydrate flag."
             )
 
     with get_connection() as conn:
@@ -232,16 +253,15 @@ def _print_table(rows: list[dict], description: tuple) -> None:
 def main() -> None:
     """CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="Database management for translation tasks.",
+        description="Database management for translation auditing.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python db.py hydrate              # Create database from SQL files
-    python db.py hydrate --force      # Recreate database
-    python db.py dump                 # Export to tasks.sql
+    python db.py hydrate --from-json        # Create database from JSON files
+    python db.py hydrate --from-json -f     # Recreate database
     python db.py query "SELECT * FROM translation_tasks"
     python db.py query --hydrate "SELECT * FROM translation_tasks"
-    python db.py query --json "SELECT * FROM translation_tasks WHERE status='pending'"
+    python db.py query --json "SELECT locale, status, COUNT(*) FROM translation_tasks GROUP BY locale, status"
         """,
     )
 
@@ -249,16 +269,15 @@ Examples:
 
     # hydrate subcommand
     hydrate_parser = subparsers.add_parser(
-        "hydrate", help="Load schema.sql and tasks.sql into tasks.db"
+        "hydrate", help="Create database from JSON files"
+    )
+    hydrate_parser.add_argument(
+        "--from-json", action="store_true", default=True,
+        help="Hydrate from locales/translations/*.json (default, only option)"
     )
     hydrate_parser.add_argument(
         "--force", "-f", action="store_true",
         help="Delete existing database and recreate"
-    )
-
-    # dump subcommand
-    subparsers.add_parser(
-        "dump", help="Export database state to tasks.sql"
     )
 
     # query subcommand
@@ -270,7 +289,7 @@ Examples:
     )
     query_parser.add_argument(
         "--hydrate", action="store_true",
-        help="Hydrate database if it doesn't exist"
+        help="Hydrate database from JSON if it doesn't exist"
     )
     query_parser.add_argument(
         "--json", "-j", action="store_true",
@@ -281,9 +300,7 @@ Examples:
 
     try:
         if args.command == "hydrate":
-            hydrate(force=args.force)
-        elif args.command == "dump":
-            dump()
+            hydrate_from_json(force=args.force)
         elif args.command == "query":
             query(
                 args.sql,

@@ -2,8 +2,13 @@
 """
 Execute translation tasks for a locale using Claude.
 
-Queries pending tasks from DB, builds prompts with context,
-invokes Claude (or mock), and updates task status.
+Identifies pending tasks by comparing English source with historical JSON,
+invokes Claude (or mock), and writes results to historical JSON files.
+
+Three-tier architecture:
+- locales/translations/{locale}/*.json - Historical source of truth (flat keys)
+- src/locales/{locale}/*.json - Lean app-consumable files (nested JSON)
+- locales/db/tasks.db - Ephemeral, hydrated on-demand for queries
 
 Usage:
     python run_translation.py LOCALE [OPTIONS]
@@ -16,32 +21,67 @@ Examples:
 
 import argparse
 import json
-import sqlite3
 import sys
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Any, Iterator, Optional
 
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
 LOCALES_DIR = SCRIPT_DIR.parent
-DB_DIR = LOCALES_DIR / "db"
-DB_FILE = DB_DIR / "tasks.db"
+SRC_LOCALES_DIR = LOCALES_DIR.parent / "src" / "locales"
+EN_DIR = SRC_LOCALES_DIR / "en"
+TRANSLATIONS_DIR = LOCALES_DIR / "translations"
 GUIDES_DIR = LOCALES_DIR / "guides"
 ANALYSIS_DIR = LOCALES_DIR / "analysis"
 
 
 @dataclass
 class TranslationTask:
-    """A pending translation task from the database."""
+    """A pending translation task."""
 
-    id: int
-    batch: str
-    locale: str
     file: str
     key: str
     english_text: str
+
+
+def walk_keys(obj: dict[str, Any], prefix: str = "") -> Iterator[tuple[str, str]]:
+    """Recursively walk a nested dict, yielding (key_path, value) tuples.
+
+    Skips metadata keys (prefixed with '_').
+    Only yields leaf string values.
+    """
+    for key, value in obj.items():
+        if key.startswith("_"):
+            continue
+
+        full_key = f"{prefix}.{key}" if prefix else key
+
+        if isinstance(value, dict):
+            yield from walk_keys(value, full_key)
+        elif isinstance(value, str):
+            yield (full_key, value)
+
+
+def load_json_file(file_path: Path) -> dict:
+    """Load a JSON file, returning empty dict if not found."""
+    if file_path.exists():
+        try:
+            with open(file_path, encoding="utf-8") as f:
+                return json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"Warning: Invalid JSON in {file_path}: {e}", file=sys.stderr)
+            return {}
+    return {}
+
+
+def save_json_file(file_path: Path, data: dict) -> None:
+    """Save a dictionary to a JSON file with consistent formatting."""
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.write("\n")
 
 
 def get_pending_tasks(
@@ -49,7 +89,12 @@ def get_pending_tasks(
     limit: Optional[int] = None,
     file_filter: Optional[str] = None,
 ) -> list[TranslationTask]:
-    """Query pending tasks from the database.
+    """Identify pending tasks by comparing English source with historical JSON.
+
+    A key is pending if:
+    - It exists in en/ source
+    - AND either doesn't exist in historical JSON OR has no 'translation' field
+    - AND is not marked as 'skip'
 
     Args:
         locale: Target locale code.
@@ -59,48 +104,47 @@ def get_pending_tasks(
     Returns:
         List of TranslationTask objects.
     """
-    if not DB_FILE.exists():
-        raise FileNotFoundError(
-            f"Database not found: {DB_FILE}\n"
-            "Run 'python db.py hydrate' first."
-        )
+    if not EN_DIR.exists():
+        raise FileNotFoundError(f"English directory not found: {EN_DIR}")
 
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
+    tasks: list[TranslationTask] = []
+    translations_dir = TRANSLATIONS_DIR / locale
 
-    query = """
-        SELECT id, batch, locale, file, key, english_text
-        FROM translation_tasks
-        WHERE locale = ? AND status = 'pending'
-    """
-    params: list = [locale]
-
+    # Get English JSON files
+    en_files = sorted(EN_DIR.glob("*.json"))
     if file_filter:
-        query += " AND file = ?"
-        params.append(file_filter)
+        en_files = [f for f in en_files if f.name == file_filter]
 
-    query += " ORDER BY file, id"
+    for en_file in en_files:
+        file_name = en_file.name
+        historical_file = translations_dir / file_name
 
-    if limit:
-        query += " LIMIT ?"
-        params.append(limit)
+        # Get English keys
+        en_data = load_json_file(en_file)
+        en_keys = dict(walk_keys(en_data))
 
-    cursor = conn.cursor()
-    cursor.execute(query, params)
-    rows = cursor.fetchall()
-    conn.close()
+        # Get existing historical data (may be empty)
+        historical = load_json_file(historical_file)
 
-    return [
-        TranslationTask(
-            id=row["id"],
-            batch=row["batch"],
-            locale=row["locale"],
-            file=row["file"],
-            key=row["key"],
-            english_text=row["english_text"],
-        )
-        for row in rows
-    ]
+        for key, english_text in en_keys.items():
+            entry = historical.get(key, {})
+
+            # Skip if already translated or marked skip
+            if "translation" in entry:
+                continue
+            if entry.get("skip"):
+                continue
+
+            tasks.append(TranslationTask(
+                file=file_name,
+                key=key,
+                english_text=english_text,
+            ))
+
+            if limit and len(tasks) >= limit:
+                return tasks
+
+    return tasks
 
 
 def load_guide(locale: str) -> Optional[str]:
@@ -113,8 +157,6 @@ def load_guide(locale: str) -> Optional[str]:
 
 def load_analysis(file_name: str) -> Optional[str]:
     """Load analysis for a domain file."""
-    # Map file name to analysis file
-    # e.g., auth.json -> auth.analysis.md
     base_name = file_name.replace(".json", "")
     analysis_path = ANALYSIS_DIR / f"{base_name}.analysis.md"
     if analysis_path.exists():
@@ -140,7 +182,7 @@ def build_prompt(
         Formatted prompt string.
     """
     items = [
-        {"id": t.id, "key": t.key, "english": t.english_text}
+        {"key": t.key, "english": t.english_text}
         for t in tasks
     ]
 
@@ -153,9 +195,9 @@ def build_prompt(
 4. password (login credential) vs passphrase (protects secrets)
 
 ## Output Format
-Return a JSON array with translations added. Include the id for each:
+Return a JSON array with translations added:
 [
-  {{"id": 1, "key": "example_key", "english": "Hello", "translated": "Saluton"}},
+  {{"key": "example_key", "english": "Hello", "translated": "Saluton"}},
   ...
 ]
 
@@ -184,7 +226,6 @@ def mock_translate(tasks: list[TranslationTask], locale: str) -> list[dict]:
         # Skip empty English text
         if not task.english_text.strip():
             results.append({
-                "id": task.id,
                 "key": task.key,
                 "english": task.english_text,
                 "translated": "",
@@ -194,11 +235,9 @@ def mock_translate(tasks: list[TranslationTask], locale: str) -> list[dict]:
             continue
 
         # Generate placeholder translation
-        # Format: [LOCALE] Original text
         translated = f"[{locale.upper()}] {task.english_text}"
 
         results.append({
-            "id": task.id,
             "key": task.key,
             "english": task.english_text,
             "translated": translated,
@@ -207,62 +246,31 @@ def mock_translate(tasks: list[TranslationTask], locale: str) -> list[dict]:
     return results
 
 
-def invoke_claude(prompt: str, locale: str) -> list[dict]:
+def invoke_claude(_prompt: str, _locale: str) -> list[dict]:
     """Invoke Claude to translate strings.
 
     TODO: Implement actual Claude invocation.
     For now, raises NotImplementedError.
+
+    Args:
+        _prompt: The translation prompt (unused until implemented).
+        _locale: Target locale code (unused until implemented).
     """
     raise NotImplementedError(
         "Claude invocation not yet implemented. Use --mock for testing."
     )
 
 
-def update_task_status(
-    task_id: int,
-    status: str,
-    translation: Optional[str] = None,
-    notes: Optional[str] = None,
-) -> None:
-    """Update a task's status in the database.
+def process_translations(
+    locale: str,
+    tasks: list[TranslationTask],
+    translations: list[dict],
+) -> dict[str, int]:
+    """Process translation results and write to historical JSON files.
 
     Args:
-        task_id: Task ID to update.
-        status: New status (completed, skipped, error).
-        translation: Optional translation text.
-        notes: Optional notes about the translation.
-    """
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-
-    if status == "completed":
-        cursor.execute(
-            """
-            UPDATE translation_tasks
-            SET status = ?, translation = ?, notes = ?,
-                completed_at = datetime('now')
-            WHERE id = ?
-            """,
-            (status, translation, notes, task_id),
-        )
-    else:
-        cursor.execute(
-            """
-            UPDATE translation_tasks
-            SET status = ?, notes = ?
-            WHERE id = ?
-            """,
-            (status, notes, task_id),
-        )
-
-    conn.commit()
-    conn.close()
-
-
-def process_translations(translations: list[dict]) -> dict:
-    """Process translation results and update database.
-
-    Args:
+        locale: Target locale code.
+        tasks: Original task list (for file mapping).
         translations: List of translation results from Claude/mock.
 
     Returns:
@@ -270,37 +278,61 @@ def process_translations(translations: list[dict]) -> dict:
     """
     stats = {"completed": 0, "skipped": 0, "errors": 0}
 
-    for t in translations:
-        task_id = t["id"]
+    # Build key-to-file mapping from tasks
+    key_to_file: dict[str, str] = {t.key: t.file for t in tasks}
 
-        if t.get("skipped"):
-            update_task_status(
-                task_id,
-                status="skipped",
-                notes=t.get("reason", "skipped"),
-            )
-            stats["skipped"] += 1
-        elif t.get("error"):
-            update_task_status(
-                task_id,
-                status="error",
-                notes=t.get("error"),
-            )
-            stats["errors"] += 1
-        elif t.get("translated"):
-            update_task_status(
-                task_id,
-                status="completed",
-                translation=t["translated"],
-            )
-            stats["completed"] += 1
-        else:
-            update_task_status(
-                task_id,
-                status="error",
-                notes="no_translation_returned",
-            )
-            stats["errors"] += 1
+    # Group translations by file
+    by_file: dict[str, list[dict]] = {}
+    for t in translations:
+        key = t["key"]
+        file_name = key_to_file.get(key)
+        if file_name:
+            by_file.setdefault(file_name, []).append(t)
+
+    translations_dir = TRANSLATIONS_DIR / locale
+
+    for file_name, file_translations in by_file.items():
+        historical_file = translations_dir / file_name
+
+        # Load existing historical data
+        historical = load_json_file(historical_file)
+
+        for t in file_translations:
+            key = t["key"]
+            english = t.get("english", "")
+
+            if t.get("skipped"):
+                # Mark as skipped
+                historical[key] = {
+                    "en": english,
+                    "skip": True,
+                    "note": t.get("reason", "skipped"),
+                }
+                stats["skipped"] += 1
+            elif t.get("error"):
+                # Record error but don't mark as translated
+                historical[key] = {
+                    "en": english,
+                    "note": f"error: {t.get('error')}",
+                }
+                stats["errors"] += 1
+            elif t.get("translated"):
+                # Successful translation
+                historical[key] = {
+                    "en": english,
+                    "translation": t["translated"],
+                }
+                stats["completed"] += 1
+            else:
+                # No translation returned
+                historical[key] = {
+                    "en": english,
+                    "note": "no_translation_returned",
+                }
+                stats["errors"] += 1
+
+        # Save updated historical file
+        save_json_file(historical_file, historical)
 
     return stats
 
@@ -379,7 +411,7 @@ Examples:
     if args.dry_run:
         print("\n[DRY-RUN] Would translate:")
         for task in tasks[:5]:
-            print(f"  [{task.id}] {task.key}: {task.english_text[:50]}...")
+            print(f"  {task.key}: {task.english_text[:50]}...")
         if len(tasks) > 5:
             print(f"  ... and {len(tasks) - 5} more")
         return 0
@@ -388,9 +420,6 @@ Examples:
     guide = load_guide(args.locale)
     if guide:
         print(f"Loaded export guide for {args.locale}")
-
-    # Get unique files for analysis loading
-    files = set(t.file for t in tasks)
 
     # Build prompt (for logging/debugging)
     prompt = build_prompt(args.locale, tasks, guide, None)
@@ -413,7 +442,7 @@ Examples:
 
     # Process results
     print(f"Processing {len(translations)} translations...")
-    stats = process_translations(translations)
+    stats = process_translations(args.locale, tasks, translations)
 
     print("\nResults:")
     print(f"  Completed: {stats['completed']}")
@@ -425,6 +454,9 @@ Examples:
         for t in translations[:3]:
             if t.get("translated"):
                 print(f"  {t['key']}: {t['translated'][:60]}...")
+
+    output_dir = TRANSLATIONS_DIR / args.locale
+    print(f"\nOutput: {output_dir}/")
 
     return 0
 

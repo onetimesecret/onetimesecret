@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 """
-Sync completed translations from database to src/locales JSON files.
+Sync translations from historical JSON to app-consumable JSON files.
 
-Reads completed translations from the database and writes them to
-the appropriate JSON files in src/locales/{locale}/.
+Reads from locales/translations/{locale}/*.json (historical format, flat keys)
+and writes to src/locales/{locale}/*.json (app format, nested JSON).
+
+Three-tier architecture:
+- locales/translations/{locale}/*.json - Historical source of truth (flat keys)
+- src/locales/{locale}/*.json - Lean app-consumable files (nested JSON)
+- locales/db/tasks.db - Ephemeral, hydrated on-demand for queries
+
+Only keys with a 'translation' field are synced. Keys marked 'skip' or
+pending (no translation) are excluded from app files.
 
 Usage:
     python sync_to_src.py LOCALE [OPTIONS]
@@ -16,79 +24,36 @@ Examples:
 
 import argparse
 import json
-import sqlite3
 import sys
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
 LOCALES_DIR = SCRIPT_DIR.parent
-DB_DIR = LOCALES_DIR / "db"
-DB_FILE = DB_DIR / "tasks.db"
+TRANSLATIONS_DIR = LOCALES_DIR / "translations"
 SRC_LOCALES_DIR = LOCALES_DIR.parent / "src" / "locales"
 
 
-@dataclass
-class CompletedTask:
-    """A completed translation task from the database."""
+def load_json_file(file_path: Path) -> dict:
+    """Load a JSON file, returning empty dict if not found."""
+    if file_path.exists():
+        try:
+            with open(file_path, encoding="utf-8") as f:
+                return json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"Warning: Invalid JSON in {file_path}: {e}", file=sys.stderr)
+            return {}
+    return {}
 
-    id: int
-    file: str
-    key: str
-    translation: str
 
+def save_json_file(file_path: Path, data: dict) -> None:
+    """Save a dictionary to a JSON file with consistent formatting."""
+    file_path.parent.mkdir(parents=True, exist_ok=True)
 
-def get_completed_translations(
-    locale: str,
-    file_filter: Optional[str] = None,
-) -> list[CompletedTask]:
-    """Query completed translations from the database.
-
-    Args:
-        locale: Target locale code.
-        file_filter: Optional file name to filter by.
-
-    Returns:
-        List of CompletedTask objects.
-    """
-    if not DB_FILE.exists():
-        raise FileNotFoundError(
-            f"Database not found: {DB_FILE}\n"
-            "Run 'python db.py hydrate' first."
-        )
-
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-
-    query = """
-        SELECT id, file, key, translation
-        FROM translation_tasks
-        WHERE locale = ? AND status = 'completed' AND translation IS NOT NULL
-    """
-    params: list = [locale]
-
-    if file_filter:
-        query += " AND file = ?"
-        params.append(file_filter)
-
-    query += " ORDER BY file, key"
-
-    cursor = conn.cursor()
-    cursor.execute(query, params)
-    rows = cursor.fetchall()
-    conn.close()
-
-    return [
-        CompletedTask(
-            id=row["id"],
-            file=row["file"],
-            key=row["key"],
-            translation=row["translation"],
-        )
-        for row in rows
-    ]
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.write("\n")
 
 
 def set_nested_value(obj: dict, key_path: str, value: str) -> None:
@@ -115,35 +80,38 @@ def set_nested_value(obj: dict, key_path: str, value: str) -> None:
     current[parts[-1]] = value
 
 
-def load_json_file(file_path: Path) -> dict:
-    """Load a JSON file, returning empty dict if not found."""
-    if file_path.exists():
-        try:
-            with open(file_path, encoding="utf-8") as f:
-                return json.load(f)
-        except json.JSONDecodeError as e:
-            print(f"Warning: Invalid JSON in {file_path}: {e}", file=sys.stderr)
-            return {}
-    return {}
+def get_translations_from_historical(historical: dict[str, Any]) -> dict[str, str]:
+    """Extract translations from historical format.
 
+    Only returns keys that have a 'translation' field.
+    Skips pending keys (only 'en') and skipped keys ('skip': true).
 
-def save_json_file(file_path: Path, data: dict) -> None:
-    """Save a dictionary to a JSON file with consistent formatting."""
-    # Ensure parent directory exists
-    file_path.parent.mkdir(parents=True, exist_ok=True)
+    Args:
+        historical: Historical format dict with flat keys.
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-        f.write("\n")  # Trailing newline
+    Returns:
+        Dict mapping flat key paths to translation strings.
+    """
+    translations = {}
+
+    for key, entry in historical.items():
+        if not isinstance(entry, dict):
+            continue
+
+        # Only include keys with actual translations
+        if "translation" in entry:
+            translations[key] = entry["translation"]
+
+    return translations
 
 
 def sync_locale(
     locale: str,
-    file_filter: Optional[str] = None,
+    file_filter: str | None = None,
     dry_run: bool = False,
     verbose: bool = False,
 ) -> dict[str, int]:
-    """Sync completed translations to JSON files.
+    """Sync translations from historical JSON to src/locales.
 
     Args:
         locale: Target locale code.
@@ -154,47 +122,68 @@ def sync_locale(
     Returns:
         Stats dict with counts per file.
     """
-    translations = get_completed_translations(locale, file_filter)
+    translations_dir = TRANSLATIONS_DIR / locale
+    target_dir = SRC_LOCALES_DIR / locale
 
-    if not translations:
-        print(f"No completed translations found for '{locale}'")
+    if not translations_dir.exists():
+        print(f"No translations found for '{locale}'")
+        print(f"  Expected: {translations_dir}")
         return {}
 
-    # Group by file
-    by_file: dict[str, list[CompletedTask]] = {}
-    for task in translations:
-        by_file.setdefault(task.file, []).append(task)
+    # Get historical JSON files
+    historical_files = sorted(translations_dir.glob("*.json"))
+    if file_filter:
+        historical_files = [f for f in historical_files if f.name == file_filter]
 
-    locale_dir = SRC_LOCALES_DIR / locale
+    if not historical_files:
+        print(f"No translation files found in {translations_dir}")
+        return {}
+
     stats: dict[str, int] = {}
 
-    for file_name, tasks in sorted(by_file.items()):
-        file_path = locale_dir / file_name
-        stats[file_name] = len(tasks)
+    for historical_file in historical_files:
+        file_name = historical_file.name
+        target_file = target_dir / file_name
 
-        if dry_run:
-            print(f"\n[DRY-RUN] Would update {file_name} ({len(tasks)} keys)")
-            if verbose:
-                for task in tasks[:5]:
-                    print(f"  {task.key}: {task.translation[:50]}...")
-                if len(tasks) > 5:
-                    print(f"  ... and {len(tasks) - 5} more")
+        # Load historical data
+        historical = load_json_file(historical_file)
+        if not historical:
             continue
 
-        # Load existing file (or start fresh)
-        data = load_json_file(file_path)
+        # Extract translations only
+        translations = get_translations_from_historical(historical)
+        if not translations:
+            if verbose:
+                print(f"  {file_name}: no translations yet")
+            continue
 
-        # Apply translations
-        for task in tasks:
-            set_nested_value(data, task.key, task.translation)
+        stats[file_name] = len(translations)
+
+        if dry_run:
+            print(f"\n[DRY-RUN] Would update {file_name} ({len(translations)} keys)")
+            if verbose:
+                sample = list(translations.items())[:5]
+                for key, value in sample:
+                    print(f"  {key}: {value[:50]}...")
+                if len(translations) > 5:
+                    print(f"  ... and {len(translations) - 5} more")
+            continue
+
+        # Load existing target file to preserve structure/metadata
+        target_data = load_json_file(target_file)
+
+        # Apply translations (converts flat keys to nested structure)
+        for key, translation in translations.items():
+            set_nested_value(target_data, key, translation)
 
         # Save
-        save_json_file(file_path, data)
-        print(f"Updated {file_path}: {len(tasks)} keys")
+        save_json_file(target_file, target_data)
+        print(f"Updated {target_file}: {len(translations)} keys")
 
         if verbose:
-            for task in tasks[:3]:
-                print(f"  {task.key}: {task.translation[:40]}...")
+            sample = list(translations.items())[:3]
+            for key, value in sample:
+                print(f"  {key}: {value[:40]}...")
 
     return stats
 
@@ -202,7 +191,7 @@ def sync_locale(
 def main() -> int:
     """CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="Sync completed translations to JSON files.",
+        description="Sync translations from historical JSON to src/locales.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -234,16 +223,17 @@ Examples:
 
     args = parser.parse_args()
 
-    try:
-        stats = sync_locale(
-            locale=args.locale,
-            file_filter=args.file_filter,
-            dry_run=args.dry_run,
-            verbose=args.verbose,
-        )
-    except FileNotFoundError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        return 1
+    print(f"Syncing translations for '{args.locale}'")
+    print(f"  From: {TRANSLATIONS_DIR / args.locale}")
+    print(f"  To:   {SRC_LOCALES_DIR / args.locale}")
+    print()
+
+    stats = sync_locale(
+        locale=args.locale,
+        file_filter=args.file_filter,
+        dry_run=args.dry_run,
+        verbose=args.verbose,
+    )
 
     if stats and not args.dry_run:
         total = sum(stats.values())
