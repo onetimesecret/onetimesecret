@@ -24,7 +24,9 @@ import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterator, Optional
+from typing import Optional
+
+from utils import load_json_file, save_json_file, walk_keys
 
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
@@ -43,45 +45,6 @@ class TranslationTask:
     file: str
     key: str
     english_text: str
-
-
-def walk_keys(obj: dict[str, Any], prefix: str = "") -> Iterator[tuple[str, str]]:
-    """Recursively walk a nested dict, yielding (key_path, value) tuples.
-
-    Skips metadata keys (prefixed with '_').
-    Only yields leaf string values.
-    """
-    for key, value in obj.items():
-        if key.startswith("_"):
-            continue
-
-        full_key = f"{prefix}.{key}" if prefix else key
-
-        if isinstance(value, dict):
-            yield from walk_keys(value, full_key)
-        elif isinstance(value, str):
-            yield (full_key, value)
-
-
-def load_json_file(file_path: Path) -> dict:
-    """Load a JSON file, returning empty dict if not found."""
-    if file_path.exists():
-        try:
-            with open(file_path, encoding="utf-8") as f:
-                return json.load(f)
-        except json.JSONDecodeError as e:
-            print(f"Warning: Invalid JSON in {file_path}: {e}", file=sys.stderr)
-            return {}
-    return {}
-
-
-def save_json_file(file_path: Path, data: dict) -> None:
-    """Save a dictionary to a JSON file with consistent formatting."""
-    file_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-        f.write("\n")
 
 
 def get_pending_tasks(

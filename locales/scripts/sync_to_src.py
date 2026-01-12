@@ -23,61 +23,22 @@ Examples:
 """
 
 import argparse
-import json
 import sys
 from pathlib import Path
 from typing import Any
+
+from utils import (
+    KeyPathConflictError,
+    load_json_file,
+    save_json_file,
+    set_nested_value,
+)
 
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
 LOCALES_DIR = SCRIPT_DIR.parent
 TRANSLATIONS_DIR = LOCALES_DIR / "translations"
 SRC_LOCALES_DIR = LOCALES_DIR.parent / "src" / "locales"
-
-
-def load_json_file(file_path: Path) -> dict:
-    """Load a JSON file, returning empty dict if not found."""
-    if file_path.exists():
-        try:
-            with open(file_path, encoding="utf-8") as f:
-                return json.load(f)
-        except json.JSONDecodeError as e:
-            print(f"Warning: Invalid JSON in {file_path}: {e}", file=sys.stderr)
-            return {}
-    return {}
-
-
-def save_json_file(file_path: Path, data: dict) -> None:
-    """Save a dictionary to a JSON file with consistent formatting."""
-    file_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-        f.write("\n")
-
-
-def set_nested_value(obj: dict, key_path: str, value: str) -> None:
-    """Set a value in a nested dict using dot-notation key path.
-
-    Args:
-        obj: Dictionary to modify.
-        key_path: Dot-notation path (e.g., 'web.COMMON.tagline').
-        value: Value to set.
-    """
-    parts = key_path.split(".")
-    current = obj
-
-    # Navigate/create nested structure
-    for part in parts[:-1]:
-        if part not in current:
-            current[part] = {}
-        elif not isinstance(current[part], dict):
-            # Key exists but is not a dict - overwrite
-            current[part] = {}
-        current = current[part]
-
-    # Set the final value
-    current[parts[-1]] = value
 
 
 def get_translations_from_historical(historical: dict[str, Any]) -> dict[str, str]:
@@ -174,7 +135,13 @@ def sync_locale(
 
         # Apply translations (converts flat keys to nested structure)
         for key, translation in translations.items():
-            set_nested_value(target_data, key, translation)
+            try:
+                set_nested_value(target_data, key, translation, strict=True)
+            except KeyPathConflictError as e:
+                print(f"Error in {file_name}: {e}", file=sys.stderr)
+                print("  This indicates conflicting key structures.", file=sys.stderr)
+                print("  Fix the source data before syncing.", file=sys.stderr)
+                return {}
 
         # Save
         save_json_file(target_file, target_data)

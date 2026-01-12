@@ -28,10 +28,11 @@ Output format (locales/translations/{locale}/{file}.json):
 """
 
 import argparse
-import json
 import sys
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
+
+from utils import load_json_file, save_json_file, walk_keys
 
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
@@ -39,33 +40,6 @@ LOCALES_DIR = SCRIPT_DIR.parent
 SRC_LOCALES_DIR = LOCALES_DIR.parent / "src" / "locales"
 EN_DIR = SRC_LOCALES_DIR / "en"
 TRANSLATIONS_DIR = LOCALES_DIR / "translations"
-
-
-def walk_keys(obj: dict[str, Any], prefix: str = "") -> Iterator[tuple[str, str]]:
-    """Recursively walk a nested dict, yielding (key_path, value) tuples.
-
-    Skips metadata keys (prefixed with '_').
-    Only yields leaf string values.
-
-    Args:
-        obj: Dictionary to walk.
-        prefix: Current key path prefix.
-
-    Yields:
-        Tuples of (full_key_path, string_value).
-    """
-    for key, value in obj.items():
-        # Skip metadata keys
-        if key.startswith("_"):
-            continue
-
-        full_key = f"{prefix}.{key}" if prefix else key
-
-        if isinstance(value, dict):
-            yield from walk_keys(value, full_key)
-        elif isinstance(value, str):
-            yield (full_key, value)
-        # Skip non-string, non-dict values (arrays, numbers, etc.)
 
 
 def get_keys_from_file(file_path: Path) -> dict[str, str]:
@@ -77,24 +51,8 @@ def get_keys_from_file(file_path: Path) -> dict[str, str]:
     Returns:
         Dictionary mapping dot-notation key paths to string values.
     """
-    try:
-        with open(file_path, encoding="utf-8") as f:
-            data = json.load(f)
-        return dict(walk_keys(data))
-    except json.JSONDecodeError as e:
-        print(f"Warning: Invalid JSON in {file_path}: {e}", file=sys.stderr)
-        return {}
-    except FileNotFoundError:
-        return {}
-
-
-def save_json_file(file_path: Path, data: dict) -> None:
-    """Save a dictionary to a JSON file with consistent formatting."""
-    file_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-        f.write("\n")
+    data = load_json_file(file_path)
+    return dict(walk_keys(data))
 
 
 def get_available_locales() -> list[str]:

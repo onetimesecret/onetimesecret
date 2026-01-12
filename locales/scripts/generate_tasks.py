@@ -16,13 +16,13 @@ Examples:
 """
 
 import argparse
-import json
 import sqlite3
 import sys
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Any, Iterator
+
+from utils import load_json_file, walk_keys
 
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
@@ -45,33 +45,6 @@ class TaskData:
     english_text: str
 
 
-def walk_keys(obj: dict[str, Any], prefix: str = "") -> Iterator[tuple[str, str]]:
-    """Recursively walk a nested dict, yielding (key_path, value) tuples.
-
-    Skips metadata keys (prefixed with '_').
-    Only yields leaf string values.
-
-    Args:
-        obj: Dictionary to walk.
-        prefix: Current key path prefix.
-
-    Yields:
-        Tuples of (full_key_path, string_value).
-    """
-    for key, value in obj.items():
-        # Skip metadata keys
-        if key.startswith("_"):
-            continue
-
-        full_key = f"{prefix}.{key}" if prefix else key
-
-        if isinstance(value, dict):
-            yield from walk_keys(value, full_key)
-        elif isinstance(value, str):
-            yield (full_key, value)
-        # Skip non-string, non-dict values (arrays, numbers, etc.)
-
-
 def get_keys_from_file(file_path: Path) -> dict[str, str]:
     """Load a JSON file and return a dict of key_path -> value.
 
@@ -81,15 +54,8 @@ def get_keys_from_file(file_path: Path) -> dict[str, str]:
     Returns:
         Dictionary mapping dot-notation key paths to string values.
     """
-    try:
-        with open(file_path, encoding="utf-8") as f:
-            data = json.load(f)
-        return dict(walk_keys(data))
-    except json.JSONDecodeError as e:
-        print(f"Warning: Invalid JSON in {file_path}: {e}", file=sys.stderr)
-        return {}
-    except FileNotFoundError:
-        return {}
+    data = load_json_file(file_path)
+    return dict(walk_keys(data))
 
 
 def compare_locale(
@@ -186,7 +152,11 @@ def compare_locale(
 
 
 def export_tasks_to_sql(conn: sqlite3.Connection, task_ids: list[int]) -> list[str]:
-    """Generate INSERT statements using SQLite's quote() for proper escaping.
+    """Generate INSERT statements for SQL export.
+
+    Fetches data using parameterized query, then formats SQL statements
+    using SQLite's quote() for each value individually. This separates
+    data retrieval from SQL generation for clarity and safety.
 
     Args:
         conn: Database connection.
@@ -199,21 +169,25 @@ def export_tasks_to_sql(conn: sqlite3.Connection, task_ids: list[int]) -> list[s
         return []
 
     placeholders = ",".join("?" * len(task_ids))
-    cursor = conn.execute(
-        f"""
-        SELECT 'INSERT INTO translation_tasks (batch, locale, file, key, english_text) VALUES ('
-            || quote(batch) || ', '
-            || quote(locale) || ', '
-            || quote(file) || ', '
-            || quote(key) || ', '
-            || quote(english_text) || ');'
-        FROM translation_tasks
-        WHERE id IN ({placeholders})
-        ORDER BY id
-        """,
-        task_ids,
+    query = (
+        "SELECT batch, locale, file, key, english_text "
+        "FROM translation_tasks "
+        f"WHERE id IN ({placeholders}) "
+        "ORDER BY id"
     )
-    return [row[0] for row in cursor]
+
+    statements = []
+    for row in conn.execute(query, task_ids):
+        # Use SQLite's quote() for each value individually
+        quoted = [conn.execute("SELECT quote(?)", (v,)).fetchone()[0] for v in row]
+        stmt = (
+            "INSERT INTO translation_tasks "
+            "(batch, locale, file, key, english_text) "
+            f"VALUES ({', '.join(quoted)});"
+        )
+        statements.append(stmt)
+
+    return statements
 
 
 def append_to_sql_file(statements: list[str]) -> None:
