@@ -28,7 +28,7 @@ module Core
       def init(*args); end
     end
 
-    class ExportWindow < Core::Views::BaseView
+    class BootstrapMe < Core::Views::BaseView
       use_serializers(
         ConfigSerializer,
         AuthenticationSerializer,
