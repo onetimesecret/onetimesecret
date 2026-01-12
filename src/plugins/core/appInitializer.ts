@@ -40,7 +40,7 @@ export const AppInitializer: Plugin<AppInitializerOptions> = {
  *
  * We separate this from the main plugin to interface for testing purposes.
  */
-/*eslint max-statements: ["error", 20]*/
+/*eslint max-statements: ["error", 23]*/
 function initializeApp(app: App, options: AppInitializerOptions = {}) {
   // Consume bootstrap data early, before Pinia is installed.
   // This populates the snapshot for getBootstrapValue() calls.
@@ -55,9 +55,17 @@ function initializeApp(app: App, options: AppInitializerOptions = {}) {
   const api = options.api ?? createApi();
 
   if (d9sEnabled && diagnostics) {
-    // Create plugin instances. When d9sEnabled is true, host/config are guaranteed.
+    // Fail loudly if diagnostics is enabled but host is missing
+    const host = displayDomain ?? siteHost;
+    if (!host) {
+      throw new Error(
+        '[AppInitializer] Diagnostics enabled but no host available. ' +
+        'Expected display_domain or site_host in bootstrap data.'
+      );
+    }
+
     const diagnosticsPlugin = createDiagnostics({
-      host: (displayDomain ?? siteHost) as string,
+      host,
       config: diagnostics as DiagnosticsConfig,
       router,
     });

@@ -102,13 +102,18 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     state.allowPublicHomepage = brand.allow_public_homepage ?? false;
   });
 
-  // Watch for domain config changes
-  watch(domain_strategy, (val) => { state.domainStrategy = val; });
-  watch(domains_enabled, (val) => { state.domainsEnabled = val; });
-  watch(display_domain, (val) => { state.displayDomain = val; });
-  watch(site_host, (val) => { state.siteHost = val; });
-  watch(canonical_domain, (val) => { state.canonicalDomain = val; });
-  watch(domain_id, (val) => { state.domainId = val; });
+  // Watch for domain config changes (consolidated for reduced reactive overhead)
+  watch(
+    [domain_strategy, domains_enabled, display_domain, site_host, canonical_domain, domain_id],
+    ([strategy, enabled, display, host, canonical, id]) => {
+      state.domainStrategy = strategy;
+      state.domainsEnabled = enabled;
+      state.displayDomain = display;
+      state.siteHost = host;
+      state.canonicalDomain = canonical;
+      state.domainId = id;
+    }
+  );
 
   /** Whether serving from primary domain */
   const isCanonical = computed(() => state.domainStrategy === 'canonical');

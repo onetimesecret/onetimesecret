@@ -192,7 +192,11 @@ export const useAuthStore = defineStore('auth', () => {
    * Use this for UI decisions (show user menu, hide sign-in links).
    * Derives from bootstrapStore refs for reactivity.
    */
-  const isUserPresent = computed(() => !!((isAuthenticated.value && bsCust.value) || (awaitingMfa.value && bsEmail.value)));
+  const isUserPresent = computed(() => {
+    const hasAuthenticatedCustomer = isAuthenticated.value && bsCust.value;
+    const hasMfaPendingEmail = awaitingMfa.value && bsEmail.value;
+    return !!(hasAuthenticatedCustomer || hasMfaPendingEmail);
+  });
 
   // Actions
 
