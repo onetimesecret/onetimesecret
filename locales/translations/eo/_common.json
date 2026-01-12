@@ -1,0 +1,972 @@
+{
+  "web.COMMON.broadcast": {
+    "en": "",
+    "skip": true,
+    "note": "empty source"
+  },
+  "web.COMMON.tagline": {
+    "en": "Secure links that only work once",
+    "translation": "[EO] Secure links that only work once"
+  },
+  "web.COMMON.powered_by": {
+    "en": "Powered by",
+    "translation": "[EO] Powered by"
+  },
+  "web.COMMON.website_url": {
+    "en": "https://onetimesecret.com/en",
+    "translation": "[EO] https://onetimesecret.com/en"
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "en": "Generate Password",
+    "translation": "[EO] Generate Password"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "en": "Generate Password is disabled when the form is valid",
+    "translation": "[EO] Generate Password is disabled when the form is valid"
+  },
+  "web.COMMON.email_placeholder": {
+    "en": "e.g. tom{'@'}myspace.com"
+  },
+  "web.COMMON.password_placeholder": {
+    "en": "Enter your password"
+  },
+  "web.COMMON.custom_domains_title": {
+    "en": "Custom Domains"
+  },
+  "web.COMMON.custom_domains_description": {
+    "en": "Strengthen connections and build trust with your own branded secret links."
+  },
+  "web.COMMON.get_started_button": {
+    "en": "Get Started"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "en": "Confirm your password"
+  },
+  "web.COMMON.header_settings": {
+    "en": "Settings"
+  },
+  "web.COMMON.submit_with": {
+    "en": "Submit"
+  },
+  "web.COMMON.submitting": {
+    "en": "Submitting..."
+  },
+  "web.COMMON.processing": {
+    "en": "Processing..."
+  },
+  "web.COMMON.description": {
+    "en": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time."
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "en": "Incorrect passphrase"
+  },
+  "web.COMMON.keywords": {
+    "en": "secret,password generator,share a secret,onetime"
+  },
+  "web.COMMON.button_create_secret": {
+    "en": "Create a secret link"
+  },
+  "web.COMMON.button_generate_secret": {
+    "en": "Or generate a random password"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "en": "Privacy Options"
+  },
+  "web.COMMON.secret_passphrase": {
+    "en": "Passphrase"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "en": "A word or phrase that's difficult to guess"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "en": "Recipient Address"
+  },
+  "web.COMMON.secret_placeholder": {
+    "en": "Secret content goes here..."
+  },
+  "web.COMMON.header_create_account": {
+    "en": "Create Account"
+  },
+  "web.COMMON.header_about": {
+    "en": "About"
+  },
+  "web.COMMON.header_sign_in": {
+    "en": "Sign In"
+  },
+  "web.COMMON.header_dashboard": {
+    "en": "Account"
+  },
+  "web.COMMON.header_logout": {
+    "en": "Logout"
+  },
+  "web.COMMON.secret": {
+    "en": "Secret | Secrets"
+  },
+  "web.COMMON.recent": {
+    "en": "Recent"
+  },
+  "web.COMMON.received": {
+    "en": "Received"
+  },
+  "web.COMMON.burn": {
+    "en": "Burn"
+  },
+  "web.COMMON.burned": {
+    "en": "Burned"
+  },
+  "web.COMMON.expires_in": {
+    "en": "Expires in"
+  },
+  "web.COMMON.burn_this_secret": {
+    "en": "Burn this secret"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "en": "Burning a secret will delete it before it has been read (click to confirm)"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "en": "Burning a secret is permanent and cannot be undone"
+  },
+  "web.COMMON.msg_check_email": {
+    "en": "Check your email"
+  },
+  "web.COMMON.click_to_continue": {
+    "en": "Click to reveal →"
+  },
+  "web.COMMON.click_to_verify": {
+    "en": "Continue to verify your account:"
+  },
+  "web.COMMON.error_secret": {
+    "en": "You did not provide anything to share"
+  },
+  "web.COMMON.error_passphrase": {
+    "en": "Double check that passphrase"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "en": "Enter the passphrase here"
+  },
+  "web.COMMON.view_secret": {
+    "en": "View Secret"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "en": "Careful: we will only show it once."
+  },
+  "web.COMMON.warning": {
+    "en": "Warning"
+  },
+  "web.COMMON.oops": {
+    "en": "Oops!"
+  },
+  "web.COMMON.error": {
+    "en": "Error"
+  },
+  "web.COMMON.unexpected_error": {
+    "en": "An unexpected error occurred. Please try again."
+  },
+  "web.COMMON.secret_was_truncated": {
+    "en": "The message was truncated"
+  },
+  "web.COMMON.signup_for_more": {
+    "en": "Signup for more"
+  },
+  "web.COMMON.login_to_your_account": {
+    "en": "Log in to your account"
+  },
+  "web.COMMON.sent_to": {
+    "en": "Sent to: "
+  },
+  "web.COMMON.field_email": {
+    "en": "Email"
+  },
+  "web.COMMON.field_password": {
+    "en": "Password"
+  },
+  "web.COMMON.field_password2": {
+    "en": "Confirm Password"
+  },
+  "web.COMMON.button_create_account": {
+    "en": "Create Account"
+  },
+  "web.COMMON.share_a_secret": {
+    "en": "Share a secret"
+  },
+  "web.COMMON.title_home": {
+    "en": "Home"
+  },
+  "web.COMMON.word_none": {
+    "en": "None"
+  },
+  "web.COMMON.word_burned": {
+    "en": "burned"
+  },
+  "web.COMMON.word_received": {
+    "en": "received"
+  },
+  "web.COMMON.word_confirm": {
+    "en": "Confirm"
+  },
+  "web.COMMON.word_cancel": {
+    "en": "Cancel"
+  },
+  "web.COMMON.word_continue": {
+    "en": "Continue"
+  },
+  "web.COMMON.word_done": {
+    "en": "Done"
+  },
+  "web.COMMON.back": {
+    "en": "Back"
+  },
+  "web.COMMON.feedback_text": {
+    "en": "Share your thoughts, ideas, or experiences..."
+  },
+  "web.COMMON.button_send_feedback": {
+    "en": "Send Feedback"
+  },
+  "web.COMMON.verification_sent_to": {
+    "en": "A verification was sent to"
+  },
+  "web.COMMON.autoverified_success": {
+    "en": "Account created. Please sign in."
+  },
+  "web.COMMON.signup_success_generic": {
+    "en": "If an account with this email exists, you will receive a verification email."
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "en": "Burn this secret permanently"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "en": "Please Confirm"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "en": "Are you sure you want to burn this secret? This action cannot be undone."
+  },
+  "web.COMMON.confirm_burn": {
+    "en": "Yes, burn this secret"
+  },
+  "web.COMMON.burn_security_notice": {
+    "en": "Burning a secret will delete it before it has been received."
+  },
+  "web.COMMON.share_link_securely": {
+    "en": "For security, share this link separately from other details."
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "en": "Copied to clipboard"
+  },
+  "web.COMMON.button_create_incoming": {
+    "en": "Create Incoming"
+  },
+  "web.COMMON.faq_title": {
+    "en": "F.A.Q."
+  },
+  "web.COMMON.verification_not_valid": {
+    "en": "Verification is not valid"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "en": "Cannot verify an account when you're already logged in"
+  },
+  "web.COMMON.show_password": {
+    "en": "Show password"
+  },
+  "web.COMMON.hide_password": {
+    "en": "Hide password"
+  },
+  "web.COMMON.minimum_8_characters": {
+    "en": "Password must be at least 8 characters"
+  },
+  "web.COMMON.password_requirements": {
+    "en": "Password must be at least 8 characters long"
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "en": "Passwords do not match"
+  },
+  "web.COMMON.form_field_required": {
+    "en": "This field is required"
+  },
+  "web.COMMON.form_processing": {
+    "en": "Processing your request"
+  },
+  "web.COMMON.remember_me_description": {
+    "en": "Keep me logged in for 30 days"
+  },
+  "web.COMMON.redirecting": {
+    "en": "Redirecting..."
+  },
+  "web.COMMON.continue": {
+    "en": "Continue"
+  },
+  "web.COMMON.are_you_sure": {
+    "en": "Are you sure?"
+  },
+  "web.COMMON.danger_zone": {
+    "en": "Danger Zone"
+  },
+  "web.COMMON.caution_zone": {
+    "en": "Careful Consideration Zone"
+  },
+  "web.COMMON.user_menu": {
+    "en": "User menu"
+  },
+  "web.COMMON.security": {
+    "en": "Security"
+  },
+  "web.COMMON.manage": {
+    "en": "Manage"
+  },
+  "web.COMMON.loading": {
+    "en": "Loading..."
+  },
+  "web.COMMON.save_changes": {
+    "en": "Save Changes"
+  },
+  "web.COMMON.saving": {
+    "en": "Saving..."
+  },
+  "web.COMMON.adding_ellipses": {
+    "en": "Adding"
+  },
+  "web.COMMON.e_g_example": {
+    "en": "e.g."
+  },
+  "web.COMMON.example_placeholder": {
+    "en": "e.g. {example}"
+  },
+  "web.COMMON.status": {
+    "en": "Status"
+  },
+  "web.COMMON.escape": {
+    "en": "Escape"
+  },
+  "web.COMMON.active": {
+    "en": "Active"
+  },
+  "web.COMMON.preview": {
+    "en": "Preview"
+  },
+  "web.COMMON.remove": {
+    "en": "Remove"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "en": "Press ESC to close"
+  },
+  "web.COMMON.enter": {
+    "en": "Enter"
+  },
+  "web.COMMON.important": {
+    "en": "Important"
+  },
+  "web.COMMON.language": {
+    "en": "Language"
+  },
+  "web.COMMON.theme": {
+    "en": "Theme"
+  },
+  "web.COMMON.appearance": {
+    "en": "Appearance"
+  },
+  "web.COMMON.done": {
+    "en": "Done"
+  },
+  "web.COMMON.end": {
+    "en": "End"
+  },
+  "web.COMMON.general": {
+    "en": "General"
+  },
+  "web.COMMON.note": {
+    "en": "Note"
+  },
+  "web.COMMON.monthly": {
+    "en": "Monthly"
+  },
+  "web.COMMON.yearly": {
+    "en": "Yearly"
+  },
+  "web.COMMON.go_on_then": {
+    "en": "Go on then."
+  },
+  "web.COMMON.loading_ellipses": {
+    "en": "Loading..."
+  },
+  "web.COMMON.not_received": {
+    "en": "NOT RECEIVED"
+  },
+  "web.COMMON.confirm_password": {
+    "en": "Confirm password"
+  },
+  "web.COMMON.new_password": {
+    "en": "New password"
+  },
+  "web.COMMON.email_address": {
+    "en": "Email address"
+  },
+  "web.COMMON.switch": {
+    "en": "switch"
+  },
+  "web.COMMON.features": {
+    "en": "Features"
+  },
+  "web.COMMON.not_found": {
+    "en": "Not Found"
+  },
+  "web.COMMON.emoji_x": {
+    "en": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "en": "✅"
+  },
+  "web.COMMON.supported": {
+    "en": "Supported"
+  },
+  "web.COMMON.version": {
+    "en": "Version"
+  },
+  "web.COMMON.other": {
+    "en": "Other"
+  },
+  "web.COMMON.min_width_1024px": {
+    "en": "(min-width: 1024px)"
+  },
+  "web.COMMON.ctrl_enter": {
+    "en": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "en": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "en": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "en": "Email address copied to clipboard!"
+  },
+  "web.COMMON.value": {
+    "en": "Value"
+  },
+  "web.COMMON.host": {
+    "en": "Host"
+  },
+  "web.COMMON.type": {
+    "en": "Type"
+  },
+  "web.COMMON.previous": {
+    "en": "Previous"
+  },
+  "web.COMMON.next": {
+    "en": "Next"
+  },
+  "web.COMMON.password_strength": {
+    "en": "Password Strength:"
+  },
+  "web.COMMON.great": {
+    "en": "Great"
+  },
+  "web.COMMON.pretty_good": {
+    "en": "Pretty good"
+  },
+  "web.COMMON.fair": {
+    "en": "Fair"
+  },
+  "web.COMMON.meh": {
+    "en": "Meh"
+  },
+  "web.COMMON.not_great": {
+    "en": "Not great"
+  },
+  "web.COMMON.open_options": {
+    "en": "Open options"
+  },
+  "web.COMMON.inactive": {
+    "en": "Inactive"
+  },
+  "web.COMMON.an_error_occurred": {
+    "en": "An error occurred"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "en": "Copy secret to clipboard"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "en": "Secret copied to clipboard"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "en": "Double check that passphrase"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "en": "Press the copy button below."
+  },
+  "web.LABELS.view_toggle.show": {
+    "en": "Show"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "en": "Hide"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "en": "Show More"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "en": "Show Less"
+  },
+  "web.LABELS.enable": {
+    "en": "Enable"
+  },
+  "web.LABELS.disable": {
+    "en": "Disable"
+  },
+  "web.LABELS.stats": {
+    "en": "Stats"
+  },
+  "web.LABELS.timeline": {
+    "en": "Timeline"
+  },
+  "web.LABELS.lifespan": {
+    "en": "Lifespan"
+  },
+  "web.LABELS.expiration_time": {
+    "en": "Expiration Time"
+  },
+  "web.LABELS.close": {
+    "en": "Close"
+  },
+  "web.LABELS.loading": {
+    "en": "Loading..."
+  },
+  "web.LABELS.cancel": {
+    "en": "Cancel"
+  },
+  "web.LABELS.saving": {
+    "en": "Saving..."
+  },
+  "web.LABELS.saved": {
+    "en": "Saved"
+  },
+  "web.LABELS.save": {
+    "en": "Save"
+  },
+  "web.LABELS.save_all": {
+    "en": "Save All"
+  },
+  "web.LABELS.details": {
+    "en": "Details"
+  },
+  "web.LABELS.encrypted": {
+    "en": "Encrypted"
+  },
+  "web.LABELS.secret_status": {
+    "en": "Secret Status"
+  },
+  "web.LABELS.need_help": {
+    "en": "Need help?"
+  },
+  "web.LABELS.create_new_secret": {
+    "en": "Create New Secret"
+  },
+  "web.LABELS.actions": {
+    "en": "Actions"
+  },
+  "web.LABELS.no_passphrase": {
+    "en": "No Passphrase Required"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "en": "Copy to clipboard"
+  },
+  "web.LABELS.receipts": {
+    "en": "Receipts"
+  },
+  "web.LABELS.share": {
+    "en": "Share"
+  },
+  "web.LABELS.secret_link": {
+    "en": "Secret Link"
+  },
+  "web.LABELS.dismiss": {
+    "en": "Dismiss"
+  },
+  "web.LABELS.security_details": {
+    "en": "Security Details"
+  },
+  "web.LABELS.items_count": {
+    "en": "{count} Items"
+  },
+  "web.LABELS.recipients_count": {
+    "en": "{count} Recipients"
+  },
+  "web.LABELS.view": {
+    "en": "View"
+  },
+  "web.LABELS.views": {
+    "en": "Views"
+  },
+  "web.LABELS.times_viewed": {
+    "en": "times viewed"
+  },
+  "web.LABELS.view_progress": {
+    "en": "View Progress"
+  },
+  "web.LABELS.help_section": {
+    "en": "Help Section"
+  },
+  "web.LABELS.passphrase_protected": {
+    "en": "Protected with passphrase"
+  },
+  "web.LABELS.feedback_received": {
+    "en": "Feedback received."
+  },
+  "web.LABELS.sending_ellipses": {
+    "en": "Sending..."
+  },
+  "web.LABELS.title_recent_secrets": {
+    "en": "Recent Secrets"
+  },
+  "web.LABELS.pricing": {
+    "en": "Pricing"
+  },
+  "web.LABELS.refresh": {
+    "en": "Refresh"
+  },
+  "web.LABELS.reload": {
+    "en": "Reload"
+  },
+  "web.LABELS.filter": {
+    "en": "Filter"
+  },
+  "web.LABELS.clear": {
+    "en": "Clear"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "en": "Secrets links created in this session"
+  },
+  "web.LABELS.create_link_short": {
+    "en": "Create Link"
+  },
+  "web.LABELS.create_link": {
+    "en": "Create Secret Link"
+  },
+  "web.LABELS.create_request_short": {
+    "en": "Create Request"
+  },
+  "web.LABELS.create_request": {
+    "en": "Create Request Link"
+  },
+  "web.LABELS.related_settings": {
+    "en": "Related Settings"
+  },
+  "web.LABELS.creating_links_for": {
+    "en": "Creating links for"
+  },
+  "web.LABELS.scope_indicator": {
+    "en": "Creating secrets in {domain}"
+  },
+  "web.STATUS.new": {
+    "en": "New"
+  },
+  "web.STATUS.unread": {
+    "en": "Unread"
+  },
+  "web.STATUS.viewed": {
+    "en": "Link opened"
+  },
+  "web.STATUS.received": {
+    "en": "Received"
+  },
+  "web.STATUS.burned": {
+    "en": "Burned"
+  },
+  "web.STATUS.destroyed": {
+    "en": "Destroyed"
+  },
+  "web.STATUS.expiring_soon": {
+    "en": "Expiring Soon"
+  },
+  "web.STATUS.created": {
+    "en": "Created"
+  },
+  "web.STATUS.expires": {
+    "en": "Expires"
+  },
+  "web.STATUS.expired": {
+    "en": "Expired"
+  },
+  "web.STATUS.orphaned": {
+    "en": "Orphaned"
+  },
+  "web.STATUS.secured": {
+    "en": "Secured"
+  },
+  "web.STATUS.securing": {
+    "en": "Securing"
+  },
+  "web.STATUS.copied": {
+    "en": "Copied"
+  },
+  "web.STATUS.time_remaining": {
+    "en": "Time Remaining"
+  },
+  "web.STATUS.new_description": {
+    "en": "Secret link has been created and not yet viewed"
+  },
+  "web.STATUS.unread_description": {
+    "en": "Secret link has been created and has not been viewed"
+  },
+  "web.STATUS.viewed_description": {
+    "en": "Secret link has been opened and ready to be viewed"
+  },
+  "web.STATUS.received_description": {
+    "en": "Secret has been revealed to the recipient"
+  },
+  "web.STATUS.burned_description": {
+    "en": "Secret was manually burned before being viewed"
+  },
+  "web.STATUS.destroyed_description": {
+    "en": "Secret has been permanently destroyed"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "en": "Secret will expire soon"
+  },
+  "web.STATUS.orphaned_description": {
+    "en": "Secret has been orphaned and will be destroyed soon"
+  },
+  "web.STATUS.expired_description": {
+    "en": "Secret has expired before being viewed"
+  },
+  "web.STATUS.success": {
+    "en": "Success"
+  },
+  "web.STATUS.delivered": {
+    "en": "Delivered"
+  },
+  "web.STATUS.dns_incorrect": {
+    "en": "DNS Incorrect"
+  },
+  "web.STATUS.active": {
+    "en": "Active"
+  },
+  "web.STATUS.inactive": {
+    "en": "Inactive"
+  },
+  "web.FEATURES.unlimited_views": {
+    "en": "Unlimited Views"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "en": "Trusted domain branding"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "en": "Encrypted in transit and at rest"
+  },
+  "web.UNITS.ttl.duration": {
+    "en": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "en": "day | days"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "en": "hour | hours"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "en": "minute | minutes"
+  },
+  "web.UNITS.ttl.time.second": {
+    "en": "second | seconds"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "en": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "en": "{count} {unit} remaining"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "en": "day remaining | days remaining"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "en": "hour remaining | hours remaining"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "en": "minute remaining | minutes remaining"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "en": "second remaining | seconds remaining"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "en": "---"
+  },
+  "web.UNITS.limited_views": {
+    "en": "{count} view limit"
+  },
+  "web.UNITS.days_remaining": {
+    "en": "{count} Days Left"
+  },
+  "web.UNITS.hours_remaining": {
+    "en": "{count} Hours Left"
+  },
+  "web.UNITS.minutes_remaining": {
+    "en": "{count} Minutes Left"
+  },
+  "web.TITLES.incoming": {
+    "en": "Incoming Secrets"
+  },
+  "web.TITLES.feedback": {
+    "en": "Feedback"
+  },
+  "web.TITLES.help": {
+    "en": "Help"
+  },
+  "web.TITLES.signin": {
+    "en": "Sign In"
+  },
+  "web.TITLES.signup": {
+    "en": "Create Account"
+  },
+  "web.TITLES.forgot_password": {
+    "en": "Forgot Password"
+  },
+  "web.TITLES.reset_password": {
+    "en": "Reset Password"
+  },
+  "web.TITLES.logout": {
+    "en": "Logging Out"
+  },
+  "web.TITLES.verify_account": {
+    "en": "Verify Account"
+  },
+  "web.TITLES.mfa_verify": {
+    "en": "Two-Factor Authentication"
+  },
+  "web.TITLES.email_login": {
+    "en": "Email Login"
+  },
+  "web.TITLES.accept_invitation": {
+    "en": "Accept Invitation"
+  },
+  "web.TITLES.secret": {
+    "en": "Secret"
+  },
+  "web.TITLES.metadata": {
+    "en": "Secret Details"
+  },
+  "web.TITLES.receipt": {
+    "en": "Secret Receipt"
+  },
+  "web.TITLES.burn_secret": {
+    "en": "Burn Secret"
+  },
+  "web.TITLES.dashboard": {
+    "en": "Dashboard"
+  },
+  "web.TITLES.recent": {
+    "en": "Recent Secrets"
+  },
+  "web.TITLES.domains": {
+    "en": "Custom Domains"
+  },
+  "web.TITLES.domain_add": {
+    "en": "Add Domain"
+  },
+  "web.TITLES.domain_verify": {
+    "en": "Verify Domain"
+  },
+  "web.TITLES.domain_brand": {
+    "en": "Brand Domain"
+  },
+  "web.TITLES.account": {
+    "en": "Account"
+  },
+  "web.TITLES.data_region": {
+    "en": "Data Region"
+  },
+  "web.TITLES.current_region": {
+    "en": "Current Region"
+  },
+  "web.TITLES.available_regions": {
+    "en": "Available Regions"
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "en": "Why Data Sovereignty Matters"
+  },
+  "web.TITLES.profile_settings": {
+    "en": "Profile Settings"
+  },
+  "web.TITLES.preferences_settings": {
+    "en": "Preferences"
+  },
+  "web.TITLES.privacy_settings": {
+    "en": "Privacy"
+  },
+  "web.TITLES.notification_settings": {
+    "en": "Notifications"
+  },
+  "web.TITLES.change_email": {
+    "en": "Change Email"
+  },
+  "web.TITLES.security_overview": {
+    "en": "Security"
+  },
+  "web.TITLES.change_password": {
+    "en": "Change Password"
+  },
+  "web.TITLES.mfa_settings": {
+    "en": "Two-Factor Authentication"
+  },
+  "web.TITLES.active_sessions": {
+    "en": "Active Sessions"
+  },
+  "web.TITLES.recovery_codes": {
+    "en": "Recovery Codes"
+  },
+  "web.TITLES.api_settings": {
+    "en": "API Settings"
+  },
+  "web.TITLES.advanced_settings": {
+    "en": "Advanced Settings"
+  },
+  "web.TITLES.system_settings": {
+    "en": "System Settings"
+  },
+  "web.TITLES.not_found": {
+    "en": "Page Not Found"
+  },
+  "web.TITLES.organizations_settings": {
+    "en": "Organizations"
+  },
+  "web.TITLES.organization_settings": {
+    "en": "Organization Settings"
+  },
+  "web.TITLES.pricing": {
+    "en": "Pricing"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "en": "Focus is now in the main text area"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "en": "Sharing Instructions"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "en": "Share the link with the intended recipient"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "en": "Share the passphrase separately through a secure channel"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "en": "Use a different secure channel to share sensitive information"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "en": "Always verify you're on the official Onetime Secret website. Fraudsters sometimes create fake websites that look exactly like Onetime Secret to steal your secrets. To avoid phishing attacks, check the region domain before creating new links."
+  },
+  "web.pricing.title": {
+    "en": "Simple, Transparent Pricing"
+  },
+  "web.pricing.subtitle": {
+    "en": "Choose the plan that fits your needs. All plans include unlimited secret sharing and privacy-first design."
+  },
+  "web.pricing.get_started_free": {
+    "en": "Get Started Free"
+  },
+  "web.pricing.start_trial": {
+    "en": "Get Started"
+  },
+  "web.pricing.already_have_account": {
+    "en": "Already have an account?"
+  },
+  "web.pricing.sign_in": {
+    "en": "Sign in"
+  },
+  "web.pricing.recommended_for_you": {
+    "en": "Recommended for You"
+  }
+}
