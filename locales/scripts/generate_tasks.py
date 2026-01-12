@@ -19,6 +19,7 @@ import argparse
 import json
 import sqlite3
 import sys
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 from typing import Any, Iterator
@@ -31,6 +32,17 @@ EN_DIR = SRC_LOCALES_DIR / "en"
 DB_DIR = LOCALES_DIR / "db"
 TASKS_FILE = DB_DIR / "tasks.sql"
 DB_FILE = DB_DIR / "tasks.db"
+
+
+@dataclass(frozen=True)
+class TaskData:
+    """Immutable record for a translation task."""
+
+    batch: str
+    locale: str
+    file: str
+    key: str
+    english_text: str
 
 
 def walk_keys(obj: dict[str, Any], prefix: str = "") -> Iterator[tuple[str, str]]:
@@ -106,7 +118,7 @@ def compare_locale(
     locale: str,
     batch: str,
     dry_run: bool = False,
-) -> tuple[list[str], dict[str, int]]:
+) -> tuple[list[TaskData], dict[str, int]]:
     """Compare English source with target locale and generate tasks.
 
     Args:
@@ -115,7 +127,7 @@ def compare_locale(
         dry_run: If True, only report what would be generated.
 
     Returns:
-        Tuple of (list of INSERT statements, stats dict).
+        Tuple of (list of TaskData records, stats dict).
     """
     locale_dir = SRC_LOCALES_DIR / locale
 
@@ -127,7 +139,7 @@ def compare_locale(
         print(f"Error: English directory not found: {EN_DIR}", file=sys.stderr)
         sys.exit(1)
 
-    inserts: list[str] = []
+    tasks: list[TaskData] = []
     stats = {
         "missing_files": 0,
         "missing_keys": 0,
@@ -152,8 +164,12 @@ def compare_locale(
                 print(f"MISSING FILE: {file_name} ({len(en_keys)} keys)")
 
             for key, english_text in en_keys.items():
-                inserts.append(generate_insert(
-                    batch, locale, file_name, key, english_text
+                tasks.append(TaskData(
+                    batch=batch,
+                    locale=locale,
+                    file=file_name,
+                    key=key,
+                    english_text=english_text,
                 ))
                 stats["total_tasks"] += 1
         else:
@@ -166,8 +182,12 @@ def compare_locale(
                     stats["missing_keys"] += 1
                     if dry_run:
                         print(f"MISSING KEY: {file_name}:{key}")
-                    inserts.append(generate_insert(
-                        batch, locale, file_name, key, english_text
+                    tasks.append(TaskData(
+                        batch=batch,
+                        locale=locale,
+                        file=file_name,
+                        key=key,
+                        english_text=english_text,
                     ))
                     stats["total_tasks"] += 1
                 elif locale_keys[key] == "":
@@ -175,27 +195,40 @@ def compare_locale(
                     stats["empty_translations"] += 1
                     if dry_run:
                         print(f"EMPTY VALUE: {file_name}:{key}")
-                    inserts.append(generate_insert(
-                        batch, locale, file_name, key, english_text
+                    tasks.append(TaskData(
+                        batch=batch,
+                        locale=locale,
+                        file=file_name,
+                        key=key,
+                        english_text=english_text,
                     ))
                     stats["total_tasks"] += 1
 
-    return inserts, stats
+    return tasks, stats
 
 
-def write_to_sql_file(inserts: list[str]) -> None:
-    """Append INSERT statements to tasks.sql."""
+def write_to_sql_file(tasks: list[TaskData]) -> None:
+    """Append INSERT statements to tasks.sql.
+
+    Generates escaped SQL strings for the git-tracked file.
+    """
     with open(TASKS_FILE, "a", encoding="utf-8") as f:
         f.write("\n")
-        for stmt in inserts:
+        for task in tasks:
+            stmt = generate_insert(
+                task.batch, task.locale, task.file, task.key, task.english_text
+            )
             f.write(stmt + "\n")
 
 
-def insert_into_db(inserts: list[str]) -> int:
-    """Insert tasks directly into database if it exists.
+def insert_into_db(tasks: list[TaskData]) -> int:
+    """Insert tasks directly into database using parameterized queries.
+
+    Uses parameterized queries to prevent SQL injection and ensure
+    proper escaping of all values.
 
     Args:
-        inserts: List of INSERT statements.
+        tasks: List of TaskData records to insert.
 
     Returns:
         Number of rows inserted.
@@ -207,9 +240,13 @@ def insert_into_db(inserts: list[str]) -> int:
     cursor = conn.cursor()
     inserted = 0
 
-    for stmt in inserts:
+    for task in tasks:
         try:
-            cursor.execute(stmt)
+            cursor.execute(
+                "INSERT INTO translation_tasks "
+                "(batch, locale, file, key, english_text) VALUES (?, ?, ?, ?, ?)",
+                (task.batch, task.locale, task.file, task.key, task.english_text),
+            )
             inserted += 1
         except sqlite3.IntegrityError:
             # Duplicate key - skip silently (UNIQUE constraint)
@@ -256,7 +293,7 @@ Examples:
     print(f"Batch: {args.batch}")
     print()
 
-    inserts, stats = compare_locale(
+    tasks, stats = compare_locale(
         locale=args.locale,
         batch=args.batch,
         dry_run=args.dry_run,
@@ -274,21 +311,21 @@ Examples:
         print("Dry run - no changes made.")
         return
 
-    if not inserts:
+    if not tasks:
         print()
         print("No tasks to generate.")
         return
 
-    # Write to tasks.sql
-    write_to_sql_file(inserts)
-    print(f"\nAppended {len(inserts)} INSERT statements to {TASKS_FILE}")
+    # Write to tasks.sql (uses escaped SQL strings for git-tracked file)
+    write_to_sql_file(tasks)
+    print(f"\nAppended {len(tasks)} INSERT statements to {TASKS_FILE}")
 
-    # Insert into database if it exists
+    # Insert into database if it exists (uses parameterized queries)
     if DB_FILE.exists():
-        inserted = insert_into_db(inserts)
+        inserted = insert_into_db(tasks)
         print(f"Inserted {inserted} rows into {DB_FILE}")
-        if inserted < len(inserts):
-            print(f"  ({len(inserts) - inserted} duplicates skipped)")
+        if inserted < len(tasks):
+            print(f"  ({len(tasks) - inserted} duplicates skipped)")
     else:
         print(f"Database not found ({DB_FILE}) - run 'python db.py hydrate' to create")
 

@@ -11,6 +11,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 from generate_tasks import (
+    TaskData,
     compare_locale,
     escape_sql_string,
     generate_insert,
@@ -267,15 +268,15 @@ class TestTaskGeneration:
             # Create empty tasks.sql
             gt.TASKS_FILE.write_text("")
 
-            inserts, stats = compare_locale(
+            tasks, stats = compare_locale(
                 locale="eo",
                 batch=today,
                 dry_run=True,
             )
 
-            # All generated inserts should use today's date
-            for insert in inserts:
-                assert f"'{today}'" in insert
+            # All generated tasks should use today's date
+            for task in tasks:
+                assert task.batch == today
         finally:
             gt.SRC_LOCALES_DIR = original_src_locales
             gt.EN_DIR = original_en_dir
@@ -298,14 +299,14 @@ class TestTaskGeneration:
 
             gt.TASKS_FILE.write_text("")
 
-            inserts, stats = compare_locale(
+            tasks, stats = compare_locale(
                 locale="eo",
                 batch=custom_batch,
                 dry_run=True,
             )
 
-            for insert in inserts:
-                assert f"'{custom_batch}'" in insert
+            for task in tasks:
+                assert task.batch == custom_batch
         finally:
             gt.SRC_LOCALES_DIR = original_src_locales
             gt.EN_DIR = original_en_dir
@@ -470,12 +471,24 @@ class TestWriteToSqlFile:
             gt.TASKS_FILE = tmp_path / "tasks.sql"
             gt.TASKS_FILE.write_text("-- existing content\n")
 
-            inserts = [
-                "INSERT INTO translation_tasks (batch) VALUES ('test1');",
-                "INSERT INTO translation_tasks (batch) VALUES ('test2');",
+            tasks = [
+                TaskData(
+                    batch="test1",
+                    locale="eo",
+                    file="auth.json",
+                    key="web.login",
+                    english_text="Login",
+                ),
+                TaskData(
+                    batch="test2",
+                    locale="eo",
+                    file="auth.json",
+                    key="web.logout",
+                    english_text="Logout",
+                ),
             ]
 
-            write_to_sql_file(inserts)
+            write_to_sql_file(tasks)
 
             content = gt.TASKS_FILE.read_text()
             assert "-- existing content" in content
@@ -494,7 +507,16 @@ class TestWriteToSqlFile:
             gt.TASKS_FILE = tmp_path / "new_tasks.sql"
             assert not gt.TASKS_FILE.exists()
 
-            write_to_sql_file(["INSERT INTO translation_tasks (batch) VALUES ('test');"])
+            tasks = [
+                TaskData(
+                    batch="test",
+                    locale="eo",
+                    file="auth.json",
+                    key="web.test",
+                    english_text="Test",
+                ),
+            ]
+            write_to_sql_file(tasks)
 
             assert gt.TASKS_FILE.exists()
             assert "test" in gt.TASKS_FILE.read_text()
