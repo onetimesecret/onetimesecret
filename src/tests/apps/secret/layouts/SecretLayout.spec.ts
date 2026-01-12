@@ -4,7 +4,7 @@ import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
 import { h, defineComponent } from 'vue';
-import { createPinia, setActivePinia } from 'pinia';
+import { createTestingPinia } from '@pinia/testing';
 
 // Mock vue-router
 vi.mock('vue-router', () => ({
@@ -14,16 +14,6 @@ vi.mock('vue-router', () => ({
     name: 'RouterLink',
     template: '<a :href="to"><slot /></a>',
     props: ['to'],
-  },
-}));
-
-// Mock WindowService
-vi.mock('@/services/window.service', () => ({
-  WindowService: {
-    get: vi.fn((key: string) => {
-      if (key === 'global_banner') return null;
-      return undefined;
-    }),
   },
 }));
 
@@ -198,8 +188,6 @@ describe('SecretLayout', () => {
   });
 
   beforeEach(() => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
     vi.clearAllMocks();
   });
 
@@ -220,7 +208,17 @@ describe('SecretLayout', () => {
         ...slots,
       },
       global: {
-        plugins: [i18n],
+        plugins: [
+          i18n,
+          createTestingPinia({
+            createSpy: vi.fn,
+            initialState: {
+              bootstrap: {
+                global_banner: null,
+              },
+            },
+          }),
+        ],
       },
     });
 

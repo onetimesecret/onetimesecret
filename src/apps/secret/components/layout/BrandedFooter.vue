@@ -6,8 +6,9 @@
   import JurisdictionToggle from '@/shared/components/ui/JurisdictionToggle.vue';
   import LanguageToggle from '@/shared/components/ui/LanguageToggle.vue';
   import ThemeToggle from '@/shared/components/ui/ThemeToggle.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
+  import { storeToRefs } from 'pinia';
   import type { LayoutProps } from '@/types/ui/layouts';
 
 const { t } = useI18n();
@@ -16,14 +17,15 @@ const { t } = useI18n();
 
   withDefaults(defineProps<LayoutProps>(), {});
 
-  const windowProps = WindowService.getMultiple([
-    'regions_enabled',
-    'regions',
-    'authentication',
-    'i18n_enabled',
-    'ot_version',
-    'ot_version_long',
-  ]);
+  const bootstrapStore = useBootstrapStore();
+  const {
+    regions_enabled,
+    regions,
+    authentication,
+    i18n_enabled,
+    ot_version,
+    ot_version_long,
+  } = storeToRefs(bootstrapStore);
 
 </script>
 <template>
@@ -40,24 +42,24 @@ const { t } = useI18n();
           <span
             v-if="displayVersion"
             :title="`${t('web.homepage.onetime_secret_literal')} Version`">
-            <a :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${windowProps.ot_version}`">v{{ windowProps.ot_version_long }}</a>
+            <a :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`">v{{ ot_version_long }}</a>
           </span>
         </div>
 
         <div
           v-if="displayToggles"
           class="flex items-center justify-center gap-4 md:w-auto md:justify-end">
-          <JurisdictionToggle v-if="windowProps.regions_enabled && windowProps.regions" />
+          <JurisdictionToggle v-if="regions_enabled && regions" />
 
           <ThemeToggle
             class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
             :aria-label="t('web.layout.toggle_dark_mode')" />
           <LanguageToggle
-            v-if="windowProps.i18n_enabled"
+            v-if="i18n_enabled"
             :compact="true"
             max-height="max-h-dvh" />
           <FeedbackToggle
-            v-if="displayFeedback && windowProps.authentication?.enabled"
+            v-if="displayFeedback && authentication?.enabled"
             class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
             :aria-label="t('web.layout.provide_feedback')" />
         </div>
@@ -75,7 +77,7 @@ const { t } = useI18n();
             class="text-gray-500 transition-colors duration-200 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
             :aria-label="t('web.layout.toggle_dark_mode')" />
           <LanguageToggle
-            v-if="windowProps.i18n_enabled"
+            v-if="i18n_enabled"
             :compact="true"
             max-height="max-h-dvh" />
         </div>

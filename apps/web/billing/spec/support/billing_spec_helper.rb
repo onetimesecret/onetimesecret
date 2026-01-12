@@ -220,9 +220,10 @@ RSpec.configure do |config|
     config.around(:each, type: test_type) do |example|
       if BILLING_VCR_SKIP_IN_CI && example.metadata[:stripe_sandbox_api]
         skip 'Skipping Stripe sandbox test in CI - re-record cassettes with STRIPE_API_KEY'
-      end
-      VCR.use_cassette(vcr_cassette_name(example)) do
-        example.run
+      else
+        VCR.use_cassette(vcr_cassette_name(example)) do
+          example.run
+        end
       end
     end
   end
@@ -231,9 +232,10 @@ RSpec.configure do |config|
   config.around(:each, :integration) do |example|
     if BILLING_VCR_SKIP_IN_CI && example.metadata[:stripe_sandbox_api]
       skip 'Skipping Stripe sandbox test in CI - re-record cassettes with STRIPE_API_KEY'
-    end
-    VCR.use_cassette(vcr_cassette_name(example)) do
-      example.run
+    else
+      VCR.use_cassette(vcr_cassette_name(example)) do
+        example.run
+      end
     end
   end
 

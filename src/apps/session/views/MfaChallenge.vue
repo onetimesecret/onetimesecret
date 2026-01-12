@@ -28,7 +28,6 @@
       isAuthenticated: authStore.isAuthenticated,
       isFullyAuthenticated: authStore.isFullyAuthenticated,
       awaitingMfa: authStore.awaitingMfa,
-      windowState: window.__ONETIME_STATE__,
     });
 
     // Only redirect if FULLY authenticated (not just partially with MFA pending)
@@ -69,9 +68,7 @@
       // Update auth state and navigate
       loggingService.debug('[MfaChallenge] Setting authenticated=true');
       await authStore.setAuthenticated(true);
-      loggingService.debug('[MfaChallenge] After setAuthenticated, window state:', {
-        windowState: window.__ONETIME_STATE__,
-      });
+      loggingService.debug('[MfaChallenge] After setAuthenticated - auth complete');
       router.push('/');
     } else {
       // Clear input on error

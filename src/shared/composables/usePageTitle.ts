@@ -1,7 +1,8 @@
 // src/shared/composables/usePageTitle.ts
 
 import { globalComposer } from '@/i18n';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { storeToRefs } from 'pinia';
 import { computed, watch } from 'vue';
 
 /**
@@ -41,6 +42,9 @@ export function usePageTitle() {
   // outside of component setup (e.g., in router guards).
   const { t, te } = globalComposer;
 
+  const bootstrapStore = useBootstrapStore();
+  const { display_domain } = storeToRefs(bootstrapStore);
+
   // Cache DOM elements to avoid repeated queries
   let ogTitleMeta: HTMLMetaElement | null | undefined;
   let twitterTitleMeta: HTMLMetaElement | null | undefined;
@@ -48,10 +52,7 @@ export function usePageTitle() {
   /**
    * Gets the branded app name from domain settings or defaults to APP_NAME
    */
-  const getAppName = (): string => {
-    const displayDomain = WindowService.get('display_domain');
-    return displayDomain || APP_NAME;
-  };
+  const getAppName = (): string => display_domain.value || APP_NAME;
 
   /**
    * Translates a title if it's an i18n key, otherwise returns the raw string

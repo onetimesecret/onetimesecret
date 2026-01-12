@@ -3,9 +3,8 @@
 import { mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
-import { createPinia, setActivePinia } from 'pinia';
+import { createTestingPinia } from '@pinia/testing';
 import DashboardBasic from '@/apps/workspace/dashboard/DashboardBasic.vue';
-import { WindowService } from '@/services/window.service';
 
 // Mock components
 vi.mock('@/apps/secret/components/form/SecretForm.vue', () => ({
@@ -31,31 +30,28 @@ const i18n = createI18n({
 });
 
 describe('DashboardBasic', () => {
-  let pinia: ReturnType<typeof createPinia>;
-
   beforeEach(() => {
-    pinia = createPinia();
-    setActivePinia(pinia);
     vi.clearAllMocks();
   });
 
-  const mountComponent = (custOverrides = {}) => {
-    vi.spyOn(WindowService, 'get').mockImplementation((key: string) => {
-      if (key === 'cust') {
-        return {
-          feature_flags: { beta: false },
-          ...custOverrides,
-        };
-      }
-      if (key === 'billing_enabled') {
-        return true; // Default to billing enabled
-      }
-      return undefined;
-    });
-
+  const mountComponent = (custOverrides = {}, billingEnabled = true) => {
     return mount(DashboardBasic, {
       global: {
-        plugins: [i18n, pinia],
+        plugins: [
+          i18n,
+          createTestingPinia({
+            createSpy: vi.fn,
+            initialState: {
+              bootstrap: {
+                cust: {
+                  feature_flags: { beta: false },
+                  ...custOverrides,
+                },
+                billing_enabled: billingEnabled,
+              },
+            },
+          }),
+        ],
       },
     });
   };
@@ -97,15 +93,20 @@ describe('DashboardBasic', () => {
     });
 
     it('hides RecentSecretsTable when cust is undefined', () => {
-      vi.spyOn(WindowService, 'get').mockImplementation((key: string) => {
-        if (key === 'cust') return undefined;
-        if (key === 'billing_enabled') return true;
-        return undefined;
-      });
-
       const wrapper = mount(DashboardBasic, {
         global: {
-          plugins: [i18n, pinia],
+          plugins: [
+            i18n,
+            createTestingPinia({
+              createSpy: vi.fn,
+              initialState: {
+                bootstrap: {
+                  cust: null,
+                  billing_enabled: true,
+                },
+              },
+            }),
+          ],
         },
       });
 
@@ -168,15 +169,20 @@ describe('DashboardBasic', () => {
 
   describe('Component composition', () => {
     it('renders SecretForm and RecentSecretsTable when beta enabled', () => {
-      vi.spyOn(WindowService, 'get').mockImplementation((key: string) => {
-        if (key === 'cust') return { feature_flags: { beta: true } };
-        if (key === 'billing_enabled') return true;
-        return undefined;
-      });
-
       const wrapper = mount(DashboardBasic, {
         global: {
-          plugins: [i18n, pinia],
+          plugins: [
+            i18n,
+            createTestingPinia({
+              createSpy: vi.fn,
+              initialState: {
+                bootstrap: {
+                  cust: { feature_flags: { beta: true } },
+                  billing_enabled: true,
+                },
+              },
+            }),
+          ],
         },
       });
 
@@ -185,15 +191,20 @@ describe('DashboardBasic', () => {
     });
 
     it('renders only SecretForm when beta disabled', () => {
-      vi.spyOn(WindowService, 'get').mockImplementation((key: string) => {
-        if (key === 'cust') return { feature_flags: { beta: false } };
-        if (key === 'billing_enabled') return false;
-        return undefined;
-      });
-
       const wrapper = mount(DashboardBasic, {
         global: {
-          plugins: [i18n, pinia],
+          plugins: [
+            i18n,
+            createTestingPinia({
+              createSpy: vi.fn,
+              initialState: {
+                bootstrap: {
+                  cust: { feature_flags: { beta: false } },
+                  billing_enabled: false,
+                },
+              },
+            }),
+          ],
         },
       });
 

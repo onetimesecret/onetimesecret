@@ -7,10 +7,11 @@ import {
 } from '@/shared/composables/useAsyncHandler';
 import { ConcealDataResponse } from '@/schemas/api/v3';
 import { ConcealPayload, GeneratePayload } from '@/schemas/api/v3/payloads';
-import { WindowService } from '@/services/window.service';
 import { useAuthStore } from '@/shared/stores/authStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { useSecretStore } from '@/shared/stores/secretStore';
+import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
 
 import { useSecretForm } from './useSecretForm';
@@ -40,8 +41,10 @@ type SubmitType = 'conceal' | 'generate';
 
 export function useSecretConcealer(options?: SecretConcealerOptions) {
   const authStore = useAuthStore();
+  const bootstrapStore = useBootstrapStore();
   const secretStore = useSecretStore();
   const notifications = useNotificationsStore();
+  const { secret_options } = storeToRefs(bootstrapStore);
 
   // Determine API mode: explicit option takes precedence, otherwise based on auth state
   const usePublicApi = options?.usePublicApi ?? !authStore.isAuthenticated;
@@ -81,8 +84,7 @@ export function useSecretConcealer(options?: SecretConcealerOptions) {
 
     // Add password generation options for generate type
     if (type === 'generate') {
-      const secretOptions = WindowService.get('secret_options');
-      const passwordConfig = secretOptions?.password_generation;
+      const passwordConfig = secret_options.value?.password_generation;
 
       return {
         ...basePayload,

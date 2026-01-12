@@ -3,8 +3,9 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import { useFormSubmission } from '@/shared/composables/useFormSubmission';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useCsrfStore } from '@/shared/stores/csrfStore';
+  import { storeToRefs } from 'pinia';
   import { onMounted, ref } from 'vue';
 
   const { t } = useI18n();
@@ -33,11 +34,9 @@
     userTimezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
   });
 
-  // We use this to determine whether to include the authenticity check
-  const windowProps = WindowService.getMultiple({
-    cust: null,
-    ot_version_long: '',
-  });
+  // Get customer and version info for feedback form
+  const bootstrapStore = useBootstrapStore();
+  const { cust, ot_version_long } = storeToRefs(bootstrapStore);
 
   const emit = defineEmits(['feedback-sent']);
 
@@ -48,7 +47,7 @@
   };
 
   const { isSubmitting, error, success, submitForm } = useFormSubmission({
-    url: '/api/v2/feedback',
+    url: '/api/v3/feedback',
     successMessage: t('web.LABELS.feedback_received'),
     onSuccess: () => {
       emit('feedback-sent');
@@ -96,7 +95,7 @@
               <input
                 type="hidden"
                 name="version"
-                :value="windowProps.ot_version_long" />
+                :value="ot_version_long" />
             </div>
 
             <div class="flex justify-end">
@@ -141,7 +140,7 @@
         </h3>
         <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
           <li
-            v-if="windowProps.cust && windowProps.cust.identifier !== 'anon'"
+            v-if="cust && cust.identifier !== 'anon'"
             class="flex items-center">
             <svg
               class="mr-2 size-4 text-brand-500"
@@ -154,7 +153,7 @@
                 stroke-width="2"
                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
-            {{ t('web.account.customer_id') }}: {{ windowProps.cust?.extid }}
+            {{ t('web.account.customer_id') }}: {{ cust?.extid }}
           </li>
           <li class="flex items-center">
             <svg
@@ -182,7 +181,7 @@
                 stroke-width="2"
                 d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
             </svg>
-            {{ t('web.site.website_version') }}: v{{ windowProps.ot_version_long }}
+            {{ t('web.site.website_version') }}: v{{ ot_version_long }}
           </li>
         </ul>
       </div>

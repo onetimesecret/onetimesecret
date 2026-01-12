@@ -24,7 +24,7 @@ import { DiagnosticsConfig } from '../diagnostics';
  *
  * Implementation:
  * - Backend injects data via JSON <script> tag in the HTML header
- * - Properties are added to window.__ONETIME_STATE__
+ * - Properties are added to window.__BOOTSTRAP_STATE__
  * - This declaration file enables TypeScript type checking and IDE support
  */
 
@@ -76,6 +76,10 @@ export interface UiInterface {
   footer_links?: FooterLinksConfig;
 }
 
+/**
+ * BootstrapPayload is the canonical type name for server-injected state.
+ * OnetimeWindow is preserved as an alias for backwards compatibility.
+ */
 export interface OnetimeWindow {
   apitoken?: string;
 
@@ -177,6 +181,12 @@ export interface OnetimeWindow {
 
   features: {
     markdown: boolean;
+    /** Email-based authentication (magic links) */
+    email_auth?: boolean;
+    /** WebAuthn/passkey authentication */
+    webauthn?: boolean;
+    /** @deprecated Use email_auth instead */
+    magic_links?: boolean;
   };
 
   ui: UiInterface;
@@ -196,3 +206,9 @@ export interface OnetimeWindow {
     planid?: string;
   };
 }
+
+/**
+ * BootstrapPayload is the preferred type name for server-injected state.
+ * Alias for OnetimeWindow - use either interchangeably.
+ */
+export type BootstrapPayload = OnetimeWindow;

@@ -18,7 +18,7 @@ The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeSc
 ```
 1. Page Load
    Ruby backend renders index.html template
-   Injects window.__ONETIME_STATE__ via JSON script tag
+   Injects window.__BOOTSTRAP_STATE__ via JSON script tag
    Location: apps/web/core/views.rb (VuePoint/ExportWindow)
 
 2. Vue App Initialization
@@ -35,18 +35,18 @@ The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeSc
    Location: src/plugins/pinia/autoInitPlugin.ts
    - Pinia auto-init plugin calls store.init() if available
    - Stores read from WindowService
-   - WindowService reads from window.__ONETIME_STATE__
+   - WindowService reads from window.__BOOTSTRAP_STATE__
 
 4. Component Access
    Location: src/apps/**/components/**/*.vue, src/shared/components/**/*.vue
    - Components use WindowService directly OR
    - Components use Pinia stores
-   - Both sources read from window.__ONETIME_STATE__
+   - Both sources read from window.__BOOTSTRAP_STATE__
 
 5. State Refresh (every 15 minutes)
    Location: src/shared/stores/authStore.ts
    - checkWindowStatus() fetches /window endpoint
-   - Updates entire window.__ONETIME_STATE__
+   - Updates entire window.__BOOTSTRAP_STATE__
    - Components using computed() react automatically
 ```
 
@@ -84,7 +84,7 @@ const windowProps = computed(() => WindowService.getMultiple([
 - **Triggers:**
   - Automatic: `authStore.checkWindowStatus()` timer
   - Manual: After login via `useAuth.login()`
-- **Updates:** Entire `window.__ONETIME_STATE__` including customer data, config, CSRF token
+- **Updates:** Entire `window.__BOOTSTRAP_STATE__` including customer data, config, CSRF token
 
 ## State Management (Pinia)
 
@@ -275,7 +275,7 @@ function handleClick() {
 **Location:** `src/api/index.ts`
 
 **Configuration:**
-- Base URL from `window.__ONETIME_STATE__.baseuri`
+- Base URL from `window.__BOOTSTRAP_STATE__.baseuri`
 - Axios instance with interceptors
 - CSRF token injection via `csrfStore`
 - Error handling via interceptors
@@ -307,7 +307,7 @@ const response = await $api.post('/auth/login', {
 - Hierarchical keys (e.g., `web.secrets.enterPassphrase`)
 - Loaded from `src/locales/en.json`
 - Fallback locale: `en`
-- Available locales from `window.__ONETIME_STATE__.supported_locales`
+- Available locales from `window.__BOOTSTRAP_STATE__.supported_locales`
 
 **Usage:**
 ```vue

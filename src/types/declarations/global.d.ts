@@ -1,10 +1,11 @@
 // src/types/declarations/global.d.ts
 
-import { OnetimeWindow } from './window';
+import { BootstrapPayload } from './window';
 
 declare global {
   interface Window {
-    __ONETIME_STATE__?: OnetimeWindow;
+    /** Server-injected bootstrap state (consumed by bootstrap.service.ts) */
+    __BOOTSTRAP_STATE__?: BootstrapPayload;
 
     __VUE_DEVTOOLS_GLOBAL_HOOK__?: {
       enabled: boolean;

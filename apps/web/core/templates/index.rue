@@ -1,4 +1,4 @@
-<schema lang="js-zod" version="2" window="__ONETIME_STATE__">
+<schema lang="js-zod" version="2" window="__BOOTSTRAP_STATE__">
 import { z } from 'zod';
 /**
 * After modifying the schema here, the actual JSON schemas need to be
@@ -71,9 +71,9 @@ const schema = z.object({
   nonce: z.string().nullable(),
   homepage_mode: z.string().nullable(),
 
-  // Additional fields from BaseView.render (for window.__ONETIME_STATE__)
+  // Additional fields from BaseView.render (for window.__BOOTSTRAP_STATE__)
   // Note: page_title, description, keywords, baseuri, no_cache, and vite_assets_html
-  // are template-only props and not included in window.__ONETIME_STATE__
+  // are template-only props and not included in window.__BOOTSTRAP_STATE__
 });
 </schema>
 

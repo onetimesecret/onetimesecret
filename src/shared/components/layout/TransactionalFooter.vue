@@ -7,9 +7,10 @@
   import LanguageToggle from '@/shared/components/ui/LanguageToggle.vue';
   import FooterLinks from '@/shared/components/layout/FooterLinks.vue';
   import ThemeToggle from '@/shared/components/ui/ThemeToggle.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import type { LayoutProps } from '@/types/ui/layouts';
+  import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
 
   withDefaults(defineProps<LayoutProps>(), {
@@ -21,21 +22,22 @@
   });
 
   const { t } = useI18n();
-  const windowProps = WindowService.getMultiple([
-    'regions_enabled',
-    'regions',
-    'authentication',
-    'i18n_enabled',
-    'ot_version',
-    'ot_version_long',
-    'ui',
-  ]);
+  const bootstrapStore = useBootstrapStore();
+  const {
+    regions_enabled,
+    regions,
+    authentication,
+    i18n_enabled,
+    ot_version,
+    ot_version_long,
+    ui,
+  } = storeToRefs(bootstrapStore);
 
   const { isCustom } = useProductIdentity();
 
   // Hide regions toggle on custom domains (they're tied to a specific deployment)
   const showRegionsToggle = computed(
-    () => windowProps.regions_enabled && windowProps.regions && !isCustom
+    () => regions_enabled.value && regions.value && !isCustom
   );
 </script>
 
@@ -62,7 +64,7 @@
         space-y-6 space-y-reverse md:flex-row
         md:space-y-0"
         :class="
-          displayFooterLinks && windowProps.ui?.footer_links?.enabled
+          displayFooterLinks && ui?.footer_links?.enabled
             ? 'mt-8 border-t border-gray-200 pt-8 dark:border-gray-700'
             : ''
         ">
@@ -78,9 +80,9 @@
             v-if="displayVersion"
             :title="`${t('web.homepage.onetime_secret_literal')} Version`">
             <a
-              :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${windowProps.ot_version}`"
+              :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
               :aria-label="t('web.layout.release_notes')">
-              v{{ windowProps.ot_version_long }}
+              v{{ ot_version_long }}
             </a>
           </span>
           <span
@@ -115,13 +117,13 @@
             :aria-label="t('web.layout.toggle_dark_mode')" />
 
           <LanguageToggle
-            v-if="windowProps.i18n_enabled"
+            v-if="i18n_enabled"
             :compact="true"
             max-height="max-h-dvh" />
 
           <!-- prettier-ignore-attribute class -->
           <FeedbackToggle
-            v-if="displayFeedback && windowProps.authentication?.enabled"
+            v-if="displayFeedback && authentication?.enabled"
             class="text-gray-500 transition-colors duration-200
               hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-100"
             :aria-label="t('web.layout.provide_feedback')" />

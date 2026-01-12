@@ -13,9 +13,9 @@
 <script setup lang="ts">
   import MastHead from '@/shared/components/layout/MastHead.vue';
   import ImprovedPrimaryNav from '@/shared/components/navigation/ImprovedPrimaryNav.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { LayoutProps } from '@/types/ui/layouts';
-  import { computed } from 'vue';
+  import { storeToRefs } from 'pinia';
 
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
@@ -24,7 +24,8 @@
     colonel: false,
   });
 
-  const authenticated = computed(() => WindowService.get('authenticated'));
+  const bootstrapStore = useBootstrapStore();
+  const { authenticated } = storeToRefs(bootstrapStore);
 </script>
 
 <template>

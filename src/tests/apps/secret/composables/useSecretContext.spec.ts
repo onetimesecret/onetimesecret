@@ -2,30 +2,11 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ref, nextTick } from 'vue';
-import { createPinia, setActivePinia } from 'pinia';
+import { setActivePinia } from 'pinia';
+import { createTestingPinia } from '@pinia/testing';
 import { useSecretContext } from '@/shared/composables/useSecretContext';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useProductIdentity } from '@/shared/stores/identityStore';
-import { setupTestPinia } from '../../../setup';
-import { setupWindowState } from '../../../setupWindow';
-
-// Mock WindowService for identityStore
-vi.mock('@/services/window.service', () => ({
-  WindowService: {
-    get: vi.fn((key: string) => {
-      const mockState: Record<string, any> = {
-        domain_strategy: 'canonical',
-        domains_enabled: false,
-        display_domain: 'onetime.dev',
-        site_host: 'https://onetime.dev',
-        canonical_domain: 'onetime.dev',
-        domain_id: '',
-        domain_branding: null,
-      };
-      return mockState[key];
-    }),
-  },
-}));
 
 // Mock vue-i18n
 vi.mock('vue-i18n', () => ({
@@ -34,10 +15,26 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
+// Default bootstrap state for tests
+const defaultBootstrapState = {
+  domain_strategy: 'canonical',
+  domains_enabled: false,
+  display_domain: 'onetime.dev',
+  site_host: 'https://onetime.dev',
+  canonical_domain: 'onetime.dev',
+  domain_id: '',
+  domain_branding: {},
+};
+
 describe('useSecretContext', () => {
-  beforeEach(async () => {
-    await setupTestPinia();
-    vi.stubGlobal('window', setupWindowState());
+  beforeEach(() => {
+    const pinia = createTestingPinia({
+      createSpy: vi.fn,
+      initialState: {
+        bootstrap: defaultBootstrapState,
+      },
+    });
+    setActivePinia(pinia);
   });
 
   describe('Actor Role Computation', () => {
@@ -238,19 +235,22 @@ describe('useSecretContext', () => {
       expect(theme.value.colors).toBeNull();
     });
 
-    it('returns branded mode for custom domain strategy', async () => {
-      const { WindowService } = await import('@/services/window.service');
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'domain_strategy') return 'custom';
-        if (key === 'domain_id') return 'custom-123';
-        if (key === 'domain_branding') {
-          return { primary_color: '#3b82f6' };
-        }
-        return null;
+    it('returns branded mode for custom domain strategy', () => {
+      // Re-create pinia with custom domain state
+      const pinia = createTestingPinia({
+        createSpy: vi.fn,
+        initialState: {
+          bootstrap: {
+            domain_strategy: 'custom',
+            domain_id: 'custom-123',
+            domain_branding: { primary_color: '#3b82f6' },
+            display_domain: 'custom.example.com',
+            canonical_domain: 'onetime.dev',
+          },
+        },
       });
+      setActivePinia(pinia);
 
-      // Re-create stores with new WindowService values
-      setActivePinia(createPinia());
       const _identity = useProductIdentity(); // Initialize store
 
       const { theme } = useSecretContext();

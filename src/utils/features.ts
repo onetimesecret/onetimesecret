@@ -1,9 +1,11 @@
 // src/utils/features.ts
 
+import { getBootstrapValue } from '@/services/bootstrap.service';
+
 /**
  * Feature detection utilities for checking enabled authentication methods
  * Features are configured on the backend via environment variables and
- * exposed through window.__ONETIME_STATE__
+ * exposed through window.__BOOTSTRAP_STATE__, accessed via bootstrap.service.ts
  */
 
 export interface AuthFeatures {
@@ -17,8 +19,8 @@ export interface AuthFeatures {
 export function isMagicLinksEnabled(): boolean {
   if (typeof window === 'undefined') return false;
 
-  const state = (window as any).__ONETIME_STATE__;
-  return state?.features?.magic_links === true || state?.features?.email_auth === true;
+  const features = getBootstrapValue('features');
+  return features?.magic_links === true || features?.email_auth === true;
 }
 
 /**
@@ -27,8 +29,8 @@ export function isMagicLinksEnabled(): boolean {
 export function isWebAuthnEnabled(): boolean {
   if (typeof window === 'undefined') return false;
 
-  const state = (window as any).__ONETIME_STATE__;
-  return state?.features?.webauthn === true;
+  const features = getBootstrapValue('features');
+  return features?.webauthn === true;
 }
 
 /**

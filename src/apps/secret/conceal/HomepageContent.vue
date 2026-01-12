@@ -4,16 +4,13 @@
   import HomepageTaglines from '@/apps/secret/components/conceal/HomepageTaglines.vue';
   import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
   import RecentSecretsTable from '@/apps/secret/components/RecentSecretsTable.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useConcealedMetadataStore } from '@/shared/stores/concealedMetadataStore';
+  import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
 
-  const windowProps = WindowService.getMultiple([
-    'authenticated',
-    'authentication',
-    'billing_enabled',
-    'ui',
-  ]);
+  const bootstrapStore = useBootstrapStore();
+  const { authenticated, ui } = storeToRefs(bootstrapStore);
 
   const concealedMetadataStore = useConcealedMetadataStore();
   const hasRecentSecrets = computed(() => concealedMetadataStore.hasMessages);
@@ -22,11 +19,11 @@
 <template>
   <div class="container mx-auto min-w-[320px] max-w-2xl py-4">
     <HomepageTaglines
-      v-if="!windowProps.authenticated"
+      v-if="!authenticated"
       class="mb-6" />
 
     <SecretForm
-      v-if="windowProps.ui?.enabled !== false"
+      v-if="ui?.enabled !== false"
       class="mb-12"
       :with-recipient="false"
       :with-asterisk="true"

@@ -1,15 +1,11 @@
 // src/shared/composables/usePrivacyOptions.ts
 
-import type { SecretOptions } from '@/schemas/models';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import type { SecretFormData } from './useSecretForm';
-
-interface PrivacyConfig {
-  secretOptions: SecretOptions;
-}
 
 interface LifetimeOption {
   value: number;
@@ -38,10 +34,8 @@ export function usePrivacyOptions(formOperations?: {
   updateField: <K extends keyof SecretFormData>(field: K, value: SecretFormData[K]) => void;
 }) {
   const { t } = useI18n();
-
-  const config: PrivacyConfig = {
-    secretOptions: WindowService.get('secret_options'),
-  };
+  const bootstrapStore = useBootstrapStore();
+  const { secret_options } = storeToRefs(bootstrapStore);
 
   // UI State
   const state = ref<PrivacyOptionsState>({
@@ -82,7 +76,7 @@ export function usePrivacyOptions(formOperations?: {
   const lifetimeOptions = computed<LifetimeOption[]>(() => {
     const globalTtl = 3600 * 24 * 30; // 30 days
 
-    return config.secretOptions.ttl_options
+    return secret_options.value.ttl_options
       .filter(
         (seconds): seconds is number =>
           seconds !== null && typeof seconds === 'number' && seconds <= globalTtl

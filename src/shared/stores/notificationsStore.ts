@@ -2,10 +2,10 @@
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { loggingService } from '@/services/logging.service';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { NotificationSeverity } from '@/types/ui/notifications';
 import { AxiosInstance } from 'axios';
-import { defineStore, PiniaCustomProperties } from 'pinia';
+import { defineStore, PiniaCustomProperties, storeToRefs } from 'pinia';
 import { inject, ref } from 'vue';
 
 export type NotificationPosition = 'top' | 'bottom';
@@ -55,6 +55,8 @@ export type NotificationsStore = {
 
 export const useNotificationsStore = defineStore('notifications', () => {
   const $api = inject('api') as AxiosInstance; // eslint-disable-line
+  const bootstrapStore = useBootstrapStore();
+  const { messages: bootstrapMessages } = storeToRefs(bootstrapStore);
 
   // State refs with default values
   const message = ref('');
@@ -74,7 +76,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
       loggingService.warn('API instance provided in options, ignoring.');
     }
 
-    const serverMessages = WindowService.get('messages');
+    const serverMessages = bootstrapMessages.value;
     if (!serverMessages?.length) return;
 
     // Get last error or info message

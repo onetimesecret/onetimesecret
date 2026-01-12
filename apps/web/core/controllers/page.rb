@@ -21,9 +21,9 @@ module Core
         res.finish
       end
 
-      def export_window
+      def bootstrap_me
         rack_session = req.env['rack.session']
-        session_logger.debug 'Exporting window state',
+        session_logger.debug 'Exporting bootstrap state',
           {
             session_class: rack_session.class.name,
             session_id: begin
@@ -42,7 +42,7 @@ module Core
           }
 
         # Simplified: BaseView now extracts everything from req
-        view                        = Core::Views::ExportWindow.new(req)
+        view                        = Core::Views::BootstrapMe.new(req)
         res.headers['content-type'] = 'application/json; charset=utf-8'
         res.body                    = view.serialized_data.to_json
       end

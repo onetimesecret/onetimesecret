@@ -5,8 +5,9 @@
 import OtpCodeInput from '@/apps/session/components/OtpCodeInput.vue';
 import { useMfa } from '@/shared/composables/useMfa';
 import { useClipboard } from '@/shared/composables/useClipboard';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
+import { storeToRefs } from 'pinia';
 import { ref, computed, onMounted } from 'vue';
 
 const emit = defineEmits<{
@@ -19,6 +20,9 @@ const { setupData, recoveryCodes, isLoading, error, setupMfa, enableMfa } = useM
 const notificationsStore = useNotificationsStore();
 const { copyToClipboard } = useClipboard();
 
+const bootstrapStore = useBootstrapStore();
+const { ui, email } = storeToRefs(bootstrapStore);
+
 // Simplified wizard: setup or codes
 const currentStep = ref<'setup' | 'codes'>('setup');
 // Track whether recovery codes have been saved (downloaded or copied)
@@ -29,11 +33,11 @@ const otpInputRef = ref<InstanceType<typeof OtpCodeInput> | null>(null);
 
 // Auto-load QR code on mount (without password initially)
 onMounted(async () => {
-  // Get site name and user email from window state
-  const siteName = WindowService.get('ui')?.header?.branding?.site_name || 'Onetime Secret';
-  const email = WindowService.get('email') || '';
+  // Get site name and user email from bootstrap store
+  const siteName = ui.value?.header?.branding?.site_name || 'Onetime Secret';
+  const userEmail = email.value || '';
 
-  await setupMfa(siteName, email);
+  await setupMfa(siteName, userEmail);
 });
 
 // Handle OTP code input

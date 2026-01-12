@@ -11,9 +11,10 @@
   import { useI18n } from 'vue-i18n';
   import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useMetadataListStore } from '@/shared/stores';
   import type { LayoutProps } from '@/types/ui/layouts';
+  import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
   import { useRoute } from 'vue-router';
 
@@ -27,9 +28,8 @@
 
   const { t } = useI18n();
   const route = useRoute();
-  const windowProps = WindowService.getMultiple(['ot_version', 'ot_version_long']);
-
-  const domainsEnabled = WindowService.get('domains_enabled');
+  const bootstrapStore = useBootstrapStore();
+  const { ot_version, ot_version_long, domains_enabled } = storeToRefs(bootstrapStore);
 
   // Store instances for counts
   const metadataListStore = useMetadataListStore();
@@ -73,7 +73,7 @@
       },
     ];
 
-    if (domainsEnabled) {
+    if (domains_enabled.value) {
       items.push({
         id: 'domains',
         path: '/domains',
@@ -211,11 +211,11 @@
             v-if="displayVersion"
             :title="`${t('web.homepage.onetime_secret_literal')} Version`">
             <a
-              :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${windowProps.ot_version}`"
+              :href="`https://github.com/onetimesecret/onetimesecret/releases/tag/v${ot_version}`"
               target="_blank"
               rel="noopener noreferrer"
               :aria-label="t('web.layout.release_notes')">
-              v{{ windowProps.ot_version_long }}
+              v{{ ot_version_long }}
             </a>
           </span>
           <span

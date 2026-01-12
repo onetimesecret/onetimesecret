@@ -36,19 +36,6 @@ vi.mock('@/shared/composables/usePrivacyOptions', () => ({
   })),
 }));
 
-// Mock WindowService
-vi.mock('@/services/window.service', () => ({
-  WindowService: {
-    get: vi.fn((key: string) => {
-      if (key === 'secret_options') {
-        return {
-          passphrase: { minimum_length: 6 },
-        };
-      }
-      return null;
-    }),
-  },
-}));
 
 // Mock vue-i18n
 vi.mock('vue-i18n', () => ({
@@ -85,7 +72,18 @@ describe('PrivacyOptionsBar', () => {
         ...props,
       },
       global: {
-        plugins: [createTestingPinia({ createSpy: vi.fn })],
+        plugins: [
+          createTestingPinia({
+            createSpy: vi.fn,
+            initialState: {
+              bootstrap: {
+                secret_options: {
+                  passphrase: { minimum_length: 6 },
+                },
+              },
+            },
+          }),
+        ],
         stubs: {
           OIcon: OIconStub,
           Teleport: true,
@@ -202,7 +200,18 @@ describe('PrivacyOptionsBar', () => {
           currentPassphrase: '',
         },
         global: {
-          plugins: [createTestingPinia({ createSpy: vi.fn })],
+          plugins: [
+            createTestingPinia({
+              createSpy: vi.fn,
+              initialState: {
+                bootstrap: {
+                  secret_options: {
+                    passphrase: { minimum_length: 6 },
+                  },
+                },
+              },
+            }),
+          ],
           stubs: {
             OIcon: OIconStub,
             Teleport: true,

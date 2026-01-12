@@ -22,6 +22,8 @@ import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { computed, inject, ref, watch } from 'vue';
 
+import { useBootstrapStore } from './bootstrapStore';
+
 /**
  * localStorage key for persisting selected organization across sessions.
  * Used internally by the store for persistence.
@@ -426,6 +428,28 @@ export const useOrganizationStore = defineStore('organization', () => {
     () => currentOrganization.value?.id,
     (newOrgId) => {
       persistOrgId(newOrgId ?? null);
+    }
+  );
+
+  // Watch bootstrap auth state and reset on logout
+  // This ensures organization data is cleared when the user logs out
+  //
+  // Why no `immediate: true`:
+  // - This watch handles the logout TRANSITION (authenticated → unauthenticated)
+  // - On store initialization, state is already in default/reset form
+  // - Adding `immediate` would cause unnecessary $reset() calls for anonymous users
+  //
+  // Edge cases to monitor:
+  // - If org data ever persists across page loads (e.g., localStorage caching),
+  //   consider adding `immediate: true` to clear stale data on init
+  // - Currently Pinia stores initialize fresh, so this isn't needed
+  const bootstrap = useBootstrapStore();
+  watch(
+    () => bootstrap.authenticated,
+    (authenticated) => {
+      if (!authenticated) {
+        $reset();
+      }
     }
   );
 

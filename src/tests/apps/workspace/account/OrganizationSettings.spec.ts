@@ -3,7 +3,7 @@
 import { mount, VueWrapper, flushPromises } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
-import { createPinia, setActivePinia } from 'pinia';
+import { createTestingPinia } from '@pinia/testing';
 import OrganizationSettings from '@/apps/workspace/account/settings/OrganizationSettings.vue';
 import { nextTick, ref } from 'vue';
 
@@ -54,11 +54,6 @@ vi.mock('@/services/billing.service', () => ({
       plan: null,
       usage: { teams: 0 },
     }),
-  },
-}));
-vi.mock('@/services/window.service', () => ({
-  WindowService: {
-    get: vi.fn().mockReturnValue(true),
   },
 }));
 
@@ -237,11 +232,8 @@ const routerLinkStub = {
 
 describe('OrganizationSettings', () => {
   let wrapper: VueWrapper;
-  let pinia: ReturnType<typeof createPinia>;
 
   beforeEach(() => {
-    pinia = createPinia();
-    setActivePinia(pinia);
     vi.clearAllMocks();
 
     // Default mock implementations
@@ -256,6 +248,15 @@ describe('OrganizationSettings', () => {
   });
 
   const mountComponent = async () => {
+    const pinia = createTestingPinia({
+      createSpy: vi.fn,
+      initialState: {
+        bootstrap: {
+          billing_enabled: true,
+        },
+      },
+    });
+
     wrapper = mount(OrganizationSettings, {
       global: {
         plugins: [i18n, pinia],

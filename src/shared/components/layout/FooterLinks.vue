@@ -2,15 +2,17 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { FooterLinksConfig } from '@/types/declarations/window';
+  import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
 
   const { t } = useI18n();
 
-  const windowProps = WindowService.getMultiple(['ui']);
+  const bootstrapStore = useBootstrapStore();
+  const { ui } = storeToRefs(bootstrapStore);
 
-  const footerConfig = computed((): FooterLinksConfig | null => windowProps.ui?.footer_links || null);
+  const footerConfig = computed((): FooterLinksConfig | null => ui.value?.footer_links || null);
 
   const isEnabled = computed((): boolean => footerConfig.value?.enabled === true);
 

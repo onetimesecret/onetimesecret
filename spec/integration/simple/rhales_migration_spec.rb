@@ -172,10 +172,10 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
         expect(state_data['messages']).to satisfy { |m| m.nil? || m == [] }
       end
 
-      it 'sets window variable name to __ONETIME_STATE__' do
+      it 'sets window variable name to __BOOTSTRAP_STATE__' do
         # Rhales uses data-window attribute to specify the window variable name
         # The hydration script reads this and sets window[name] = parsed JSON
-        expect(rendered_html).to include('data-window="__ONETIME_STATE__"')
+        expect(rendered_html).to include('data-window="__BOOTSTRAP_STATE__"')
       end
     end
 
@@ -251,7 +251,7 @@ RSpec.describe 'Rhales Migration Integration', type: :integration do
 
     context 'CSRF Token' do
       it 'delivers CSRF via shrimp in serialized state (not meta tag)' do
-        # CSRF is delivered via window.__ONETIME_STATE__.shrimp and X-CSRF-Token header
+        # CSRF is delivered via window.__BOOTSTRAP_STATE__.shrimp and X-CSRF-Token header
         # No meta tag - frontend reads from window state, updates from response headers
         state_script = doc.css('script[type="application/json"]').first
         state_data = JSON.parse(state_script.content)

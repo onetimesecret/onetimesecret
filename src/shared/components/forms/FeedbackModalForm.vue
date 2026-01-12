@@ -3,13 +3,16 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import { useFormSubmission } from '@/shared/composables/useFormSubmission';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useCsrfStore } from '@/shared/stores/csrfStore';
 import { useMediaQuery } from '@vueuse/core';
 import { computed, onMounted, ref } from 'vue';
+import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
   const csrfStore = useCsrfStore();
+  const bootstrapStore = useBootstrapStore();
+  const { cust, ot_version_long } = storeToRefs(bootstrapStore);
 
   export interface Props {
     enabled?: boolean;
@@ -33,14 +36,10 @@ import { computed, onMounted, ref } from 'vue';
     userTimezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
   });
 
-  // We use this to determine whether to include the authenticity check
-  const cust = WindowService.get('cust');
-  const ot_version_long = WindowService.get('ot_version_long');
-
   const emit = defineEmits(['feedback-sent']);
 
   const { isSubmitting, error, success, submitForm } = useFormSubmission({
-    url: '/api/v2/feedback',
+    url: '/api/v3/feedback',
     successMessage: t('web.LABELS.feedback_received'),
     onSuccess: (data: unknown) => {
       console.debug('Feedback sent:', data);

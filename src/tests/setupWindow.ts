@@ -12,8 +12,8 @@ export const windowMock = {
 
 export function setupWindowState(state = stateFixture) {
   // Keep any existing window state and override with new state
-  window.__ONETIME_STATE__ = {
-    ...(window.__ONETIME_STATE__ || {}),
+  window.__BOOTSTRAP_STATE__ = {
+    ...(window.__BOOTSTRAP_STATE__ || {}),
     ...state,
   } as OnetimeWindow;
   return window;
@@ -28,8 +28,8 @@ export function setupEmptyWindowState() {
     locale: 'en',
   };
 
-  window.__ONETIME_STATE__ = minimalState as OnetimeWindow;
-  // console.debug('setupEmptyWindowState', window.__ONETIME_STATE__);
+  window.__BOOTSTRAP_STATE__ = minimalState as OnetimeWindow;
+  // console.debug('setupEmptyWindowState', window.__BOOTSTRAP_STATE__);
   return window;
 }
 

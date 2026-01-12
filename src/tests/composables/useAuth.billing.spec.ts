@@ -10,8 +10,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useAuth } from '@/shared/composables/useAuth';
-import { WindowService } from '@/services/window.service';
 import { setupTestPinia } from '../setup';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import { getRouter } from 'vue-router-mock';
@@ -56,27 +56,37 @@ function createMockOrganization(overrides: Partial<Organization> = {}): Organiza
   };
 }
 
+/**
+ * Helper to set up bootstrapStore with authentication and billing configuration
+ */
+function setupBootstrapStoreState(store: ReturnType<typeof useBootstrapStore>, config: {
+  authenticated?: boolean;
+  billing_enabled?: boolean;
+  shrimp?: string;
+} = {}) {
+  store.authenticated = config.authenticated ?? true;
+  store.billing_enabled = config.billing_enabled ?? true;
+  store.shrimp = config.shrimp ?? 'test-shrimp-token';
+}
+
 describe('useAuth - Billing Redirect Safety Checks', () => {
   let axiosMock: AxiosMockAdapter;
   let router: ReturnType<typeof getRouter>;
   let mockRoute: { query: Record<string, string> };
+  let bootstrapStore: ReturnType<typeof useBootstrapStore>;
 
   beforeEach(async () => {
-    // Reset WindowService reactive state
-    WindowService._resetForTesting();
-
-    // Set up window state with billing enabled
-    (window as any).__ONETIME_STATE__ = {
-      ...(window as any).__ONETIME_STATE__,
-      authenticated: true,
-      billing_enabled: true,
-      shrimp: 'test-shrimp-token',
-    };
-    WindowService._resetForTesting();
-
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock!;
     router = getRouter();
+
+    // Get bootstrap store and set up state
+    bootstrapStore = useBootstrapStore();
+    setupBootstrapStoreState(bootstrapStore, {
+      authenticated: true,
+      billing_enabled: true,
+      shrimp: 'test-shrimp-token',
+    });
 
     // Set up mock route with query params
     mockRoute = { query: {} };
@@ -173,9 +183,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
 
   describe('handleBillingRedirect - Billing Disabled', () => {
     it('should not redirect when billing is disabled globally', async () => {
-      // Set billing_enabled to false
-      (window as any).__ONETIME_STATE__.billing_enabled = false;
-      WindowService._resetForTesting();
+      // Set billing_enabled to false via bootstrapStore
+      bootstrapStore.billing_enabled = false;
 
       setRouteQuery({ product: 'identity', interval: 'month' });
 
@@ -192,9 +201,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
     });
 
     it('should not redirect when billing_enabled is undefined', async () => {
-      // Remove billing_enabled
-      delete (window as any).__ONETIME_STATE__.billing_enabled;
-      WindowService._resetForTesting();
+      // Set billing_enabled to undefined via bootstrapStore
+      bootstrapStore.billing_enabled = undefined;
 
       setRouteQuery({ product: 'identity', interval: 'month' });
 
@@ -414,25 +422,24 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
   let axiosMock: AxiosMockAdapter;
   let router: ReturnType<typeof getRouter>;
   let mockRoute: { query: Record<string, string> };
+  let bootstrapStore: ReturnType<typeof useBootstrapStore>;
 
   function setRouteQuery(query: Record<string, string>) {
     mockRoute.query = query;
   }
 
   beforeEach(async () => {
-    WindowService._resetForTesting();
-
-    (window as any).__ONETIME_STATE__ = {
-      ...(window as any).__ONETIME_STATE__,
-      authenticated: true,
-      billing_enabled: true,
-      shrimp: 'test-shrimp-token',
-    };
-    WindowService._resetForTesting();
-
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock!;
     router = getRouter();
+
+    // Get bootstrap store and set up state
+    bootstrapStore = useBootstrapStore();
+    setupBootstrapStoreState(bootstrapStore, {
+      authenticated: true,
+      billing_enabled: true,
+      shrimp: 'test-shrimp-token',
+    });
 
     mockRoute = { query: {} };
     vi.mocked(useRouter).mockReturnValue(router);
@@ -524,25 +531,24 @@ describe('useAuth - Subscription Status Checks (Future)', () => {
   let axiosMock: AxiosMockAdapter;
   let router: ReturnType<typeof getRouter>;
   let mockRoute: { query: Record<string, string> };
+  let bootstrapStore: ReturnType<typeof useBootstrapStore>;
 
   function setRouteQuery(query: Record<string, string>) {
     mockRoute.query = query;
   }
 
   beforeEach(async () => {
-    WindowService._resetForTesting();
-
-    (window as any).__ONETIME_STATE__ = {
-      ...(window as any).__ONETIME_STATE__,
-      authenticated: true,
-      billing_enabled: true,
-      shrimp: 'test-shrimp-token',
-    };
-    WindowService._resetForTesting();
-
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock!;
     router = getRouter();
+
+    // Get bootstrap store and set up state
+    bootstrapStore = useBootstrapStore();
+    setupBootstrapStoreState(bootstrapStore, {
+      authenticated: true,
+      billing_enabled: true,
+      shrimp: 'test-shrimp-token',
+    });
 
     mockRoute = { query: {} };
     vi.mocked(useRouter).mockReturnValue(router);
@@ -655,6 +661,7 @@ describe('useAuth - Signup Flow Billing Params', () => {
   let axiosMock: AxiosMockAdapter;
   let router: ReturnType<typeof getRouter>;
   let mockRoute: { query: Record<string, string> };
+  let bootstrapStore: ReturnType<typeof useBootstrapStore>;
 
   // Helper to set route query params
   function setRouteQuery(query: Record<string, string>) {
@@ -662,19 +669,17 @@ describe('useAuth - Signup Flow Billing Params', () => {
   }
 
   beforeEach(async () => {
-    WindowService._resetForTesting();
-
-    (window as any).__ONETIME_STATE__ = {
-      ...(window as any).__ONETIME_STATE__,
-      authenticated: false,
-      billing_enabled: true,
-      shrimp: 'test-shrimp-token',
-    };
-    WindowService._resetForTesting();
-
     const setup = await setupTestPinia();
     axiosMock = setup.axiosMock!;
     router = getRouter();
+
+    // Get bootstrap store and set up state
+    bootstrapStore = useBootstrapStore();
+    setupBootstrapStoreState(bootstrapStore, {
+      authenticated: false,
+      billing_enabled: true,
+      shrimp: 'test-shrimp-token',
+    });
 
     // Set up mock route with query params
     mockRoute = { query: {} };

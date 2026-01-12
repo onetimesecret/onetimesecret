@@ -3,7 +3,7 @@
 import TransactionalFooter from '@/shared/components/layout/TransactionalFooter.vue';
 import TransactionalHeader from '@/shared/components/layout/TransactionalHeader.vue';
 import DefaultLayout from '@/shared/layouts/TransactionalLayout.vue';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import HomepageContainer from '@/apps/secret/conceal/Homepage.vue';
 import { RouteRecordRaw } from 'vue-router';
 import { SCOPE_PRESETS } from '@/types/router';
@@ -17,20 +17,20 @@ declare module 'vue-router' {
 
 // Determine which homepage component mode to use
 function determineComponentMode(): string {
-  const ui = WindowService.get('ui');
-  if (!ui?.enabled) {
+  const bootstrapStore = useBootstrapStore();
+
+  if (!bootstrapStore.ui?.enabled) {
     return 'disabled-ui';
   }
 
-  const authentication = WindowService.get('authentication');
   const hasSession = document.cookie.includes('ots-session');
-  const homepageMode = WindowService.get('homepage_mode');
 
   // Only show disabled-homepage if user has no session and one of:
   //  - auth is required
   //  - if homepage is in external mode
-  if (!hasSession && (authentication?.required || homepageMode === 'external')) {
-    console.debug('Homepage Mode disabled-homepage ' + homepageMode);
+  if (!hasSession && (bootstrapStore.authentication?.required ||
+      bootstrapStore.homepage_mode === 'external')) {
+    console.debug('Homepage Mode disabled-homepage ' + bootstrapStore.homepage_mode);
     return 'disabled-homepage';
   }
 
@@ -113,7 +113,8 @@ const routes: Array<RouteRecordRaw> = [
       scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
     beforeEnter: async (to) => {
-      const domainStrategy = WindowService.get('domain_strategy') as string;
+      const bootstrapStore = useBootstrapStore();
+      const domainStrategy = bootstrapStore.domain_strategy as string;
       const componentMode = determineComponentMode();
       const layoutProps = getLayoutPropsForMode(componentMode, domainStrategy);
       const hasSession = document.cookie.includes('ots-session');

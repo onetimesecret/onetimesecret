@@ -3,8 +3,9 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useJurisdictionStore } from '@/shared/stores/jurisdictionStore';
+import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 
 const { t } = useI18n();
@@ -12,12 +13,13 @@ const { t } = useI18n();
 import JurisdictionInfo from './JurisdictionInfo.vue';
 import JurisdictionList from './JurisdictionList.vue';
 
-const cust = WindowService.get('cust');
+const bootstrapStore = useBootstrapStore();
+const { cust } = storeToRefs(bootstrapStore);
 
 const jurisdictionStore = useJurisdictionStore();
 const currentJurisdiction = computed(() => jurisdictionStore.getCurrentJurisdiction);
 const jurisdictions = computed(() => jurisdictionStore.getAllJurisdictions);
-const customerId = computed(() => cust?.extid);
+const customerId = computed(() => cust.value?.extid);
 </script>
 
 <template>

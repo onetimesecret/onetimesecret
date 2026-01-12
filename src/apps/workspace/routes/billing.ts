@@ -1,7 +1,7 @@
 // src/apps/workspace/routes/billing.ts
 
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { RouteRecordRaw } from 'vue-router';
 
@@ -20,7 +20,8 @@ const standardLayoutProps = {
  * Redirects to dashboard if billing is disabled.
  */
 function checkBillingEnabled() {
-  const billingEnabled = WindowService.get('billing_enabled');
+  const bootstrapStore = useBootstrapStore();
+  const billingEnabled = bootstrapStore.billing_enabled;
 
   if (!billingEnabled) {
     return { name: 'Dashboard' };

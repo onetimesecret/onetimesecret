@@ -4,14 +4,16 @@
   import { useI18n } from 'vue-i18n';
   import FooterAttribution from '@/apps/secret/components/layout/SecretFooterAttribution.vue';
   import FooterControls from '@/apps/secret/components/layout/SecretFooterControls.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
   import type { LayoutProps } from '@/types/ui/layouts';
 
 const { t } = useI18n();
 
   withDefaults(defineProps<LayoutProps>(), {});
 
-  const siteHost = WindowService.get('site_host');
+  const bootstrapStore = useBootstrapStore();
+  const { site_host: siteHost } = storeToRefs(bootstrapStore);
 </script>
 <template>
   <footer

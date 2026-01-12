@@ -105,13 +105,13 @@ module Core
       # Render the view using Rhales
       #
       # Separates data into two categories:
-      # 1. Window state (serialized_data) - goes into window.__ONETIME_STATE__
+      # 1. Window state (serialized_data) - goes into window.__BOOTSTRAP_STATE__
       # 2. Template vars - used for HTML rendering only
       #
       # @param template_name [String] Optional template name (defaults to 'index')
       # @return [String] Rendered HTML
       def render(template_name = 'index')
-        # Template-only variables (NOT serialized to window.__ONETIME_STATE__)
+        # Template-only variables (NOT serialized to window.__BOOTSTRAP_STATE__)
         # These are available in templates via {{variable}} but won't reach the client
         template_vars = {
           'page_title' => view_vars['page_title'],
@@ -127,7 +127,7 @@ module Core
         }
 
         # Create Rhales view with separated data
-        # - client: Data from serializers that goes to window.__ONETIME_STATE__
+        # - client: Data from serializers that goes to window.__BOOTSTRAP_STATE__
         # - server: Template-only variables that don't get serialized to client
         rhales_view = Rhales::View.new(
           req,

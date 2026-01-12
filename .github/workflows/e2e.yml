@@ -149,9 +149,9 @@ jobs:
             exit 1
           fi
 
-          # Test that page contains expected content
+          # Test that page contains expected content (bootstrap state injection)
           homepage_content=$(curl -s ${{ env.TEST_BASE_URL }}/)
-          if ! echo "$homepage_content" | grep -qi "onetime"; then
+          if ! echo "$homepage_content" | grep -q "__BOOTSTRAP_STATE__"; then
             echo "❌ Homepage doesn't contain expected content"
             echo "Content preview: $(echo "$homepage_content" | head -c 200)..."
             exit 1

@@ -4,8 +4,9 @@
 // Focused composable for colonel test plan mode.
 // Provides a clean API for checking and displaying test mode state.
 
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
-import { WindowService } from '@/services/window.service';
 
 /**
  * Composable for colonel test plan mode state.
@@ -14,16 +15,17 @@ import { WindowService } from '@/services/window.service';
  * for testing entitlement-gated features.
  */
 export function useTestPlanMode() {
+  const bootstrapStore = useBootstrapStore();
+  const {
+    entitlement_test_planid,
+    entitlement_test_plan_name,
+    organization,
+  } = storeToRefs(bootstrapStore);
+
   /**
-   * Get test plan ID from window state
+   * Get test plan ID from bootstrap store
    */
-  const testPlanId = computed(() => {
-    try {
-      return WindowService.get('entitlement_test_planid') || null;
-    } catch {
-      return null;
-    }
-  });
+  const testPlanId = computed(() => entitlement_test_planid.value || null);
 
   /**
    * Check if test mode is active
@@ -36,27 +38,14 @@ export function useTestPlanMode() {
   });
 
   /**
-   * Get test plan name from window state
+   * Get test plan name from bootstrap store
    */
-  const testPlanName = computed(() => {
-    try {
-      return WindowService.get('entitlement_test_plan_name');
-    } catch {
-      return null;
-    }
-  });
+  const testPlanName = computed(() => entitlement_test_plan_name.value ?? null);
 
   /**
    * Get actual organization plan ID (not the test override)
    */
-  const actualPlanId = computed(() => {
-    try {
-      const org = WindowService.get('organization');
-      return org?.planid;
-    } catch {
-      return undefined;
-    }
-  });
+  const actualPlanId = computed(() => organization.value?.planid);
 
   return {
     isTestModeActive,

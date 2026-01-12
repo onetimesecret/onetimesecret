@@ -3,10 +3,11 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
 import { formatTTL } from '@/utils/formatters';
 import { formatDistanceToNow } from 'date-fns';
+import { storeToRefs } from 'pinia';
 import { ref, computed } from 'vue';
 
 const { t } = useI18n();
@@ -25,11 +26,12 @@ const emit = defineEmits<{
 // Track if this row's content was copied
 const isCopied = ref(false);
 
-const site_host = WindowService.get('site_host');
+const bootstrapStore = useBootstrapStore();
+const { site_host } = storeToRefs(bootstrapStore);
 
 // Create shareable link with proper domain
 const shareLink = computed(() => {
-  const shareDomain = props.record.shareDomain ?? site_host;
+  const shareDomain = props.record.shareDomain ?? site_host.value;
   return `https://${shareDomain}/secret/${props.record.secretExtid}`;
 });
 

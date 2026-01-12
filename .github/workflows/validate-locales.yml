@@ -2,9 +2,10 @@
 ---
 name: Validate Locale Files
 
-# Validation-focused workflow: ensures existing translations don't break.
-# Catches errors in translations that ARE present, NOT missing translations.
-# Missing key detection is handled separately by harmonization workflows.
+# Validates structural integrity of submitted translations: syntax, variable
+# preservation, format compliance, and security. Does NOT check for missing
+# keys (translations absent from locale files). Missing key detection is
+# handled separately by harmonization workflows.
 #
 # Validates:
 # 1. JSON syntax is valid

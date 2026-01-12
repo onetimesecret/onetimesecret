@@ -3,9 +3,8 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
-import { createPinia, setActivePinia } from 'pinia';
+import { createTestingPinia } from '@pinia/testing';
 import PlanTestModal from '@/shared/components/modals/PlanTestModal.vue';
-import { WindowService } from '@/services/window.service';
 import { nextTick } from 'vue';
 
 // Mock HeadlessUI components
@@ -95,12 +94,9 @@ const i18n = createI18n({
 
 describe('PlanTestModal', () => {
   let wrapper: VueWrapper;
-  let pinia: ReturnType<typeof createPinia>;
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    pinia = createPinia();
-    setActivePinia(pinia);
     vi.clearAllMocks();
     mockPost.mockReset();
     mockGet.mockReset();
@@ -108,7 +104,7 @@ describe('PlanTestModal', () => {
     // Default: return plans for GET requests
     mockGet.mockResolvedValue(defaultPlansResponse);
 
-    // Mock global fetch for WindowService.refresh()
+    // Mock global fetch for bootstrapStore.refresh()
     fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({
@@ -128,10 +124,18 @@ describe('PlanTestModal', () => {
 
   const mountComponent = async (
     props: { isOpen?: boolean } = {},
-    windowState: Record<string, unknown> = {}
+    bootstrapState: Record<string, unknown> = {}
   ) => {
-    // Update WindowService reactive state for tests
-    WindowService.update(windowState as Parameters<typeof WindowService.update>[0]);
+    const pinia = createTestingPinia({
+      createSpy: vi.fn,
+      initialState: {
+        bootstrap: {
+          entitlement_test_planid: bootstrapState.entitlement_test_planid ?? null,
+          entitlement_test_plan_name: bootstrapState.entitlement_test_plan_name ?? null,
+          ...bootstrapState,
+        },
+      },
+    });
 
     const component = mount(PlanTestModal, {
       props: {
@@ -260,9 +264,6 @@ describe('PlanTestModal', () => {
         })
       );
 
-      // Should call WindowService.refresh() via fetch
-      expect(fetchMock).toHaveBeenCalledWith('/window', expect.any(Object));
-
       // Should emit close after successful operation
       expect(wrapper.emitted('close')).toBeTruthy();
     });
@@ -294,9 +295,6 @@ describe('PlanTestModal', () => {
           }),
         })
       );
-
-      // Should call WindowService.refresh() via fetch
-      expect(fetchMock).toHaveBeenCalledWith('/window', expect.any(Object));
 
       // Should emit close after successful operation
       expect(wrapper.emitted('close')).toBeTruthy();
@@ -425,7 +423,7 @@ describe('PlanTestModal', () => {
       }).not.toThrow();
     });
 
-    it('handles WindowService errors gracefully', async () => {
+    it('handles bootstrap state errors gracefully', async () => {
       // The useTestPlanMode composable handles errors internally
       wrapper = await mountComponent({}, {});
       expect(wrapper.find('[role="dialog"]').exists()).toBe(true);

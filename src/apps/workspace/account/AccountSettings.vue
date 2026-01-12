@@ -5,13 +5,16 @@
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import { computed } from 'vue';
   import { useRoute } from 'vue-router';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
   const route = useRoute();
 
   // Check if billing is enabled
-  const billingEnabled = computed(() => WindowService.get('billing_enabled') === true);
+  const bootstrapStore = useBootstrapStore();
+  const { billing_enabled } = storeToRefs(bootstrapStore);
+  const billingEnabled = computed(() => billing_enabled.value === true);
 
   // Base tabs always shown
   const baseTabs = [

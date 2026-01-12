@@ -3,10 +3,10 @@
 import { createError } from '@/shared/composables/useAsyncHandler';
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import type { Jurisdiction, RegionsConfig } from '@/schemas/models';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { AxiosInstance } from 'axios';
 import type { PiniaCustomProperties } from 'pinia';
-import { defineStore } from 'pinia';
+import { defineStore, storeToRefs } from 'pinia';
 import { computed, inject, ref } from 'vue';
 
 /**
@@ -44,6 +44,8 @@ export type JurisdictionStore = {
 
 export const useJurisdictionStore = defineStore('jurisdiction', () => {
   const $api = inject('api') as AxiosInstance; // eslint-disable-line
+  const bootstrapStore = useBootstrapStore();
+  const { regions: bootstrapRegions } = storeToRefs(bootstrapStore);
 
   // State
   const enabled = ref(false); // originally true
@@ -69,7 +71,7 @@ export const useJurisdictionStore = defineStore('jurisdiction', () => {
     if (_initialized.value) return;
     let config: RegionsConfig | null;
 
-    config = options?.regions ?? WindowService.get('regions');
+    config = options?.regions ?? bootstrapRegions.value;
 
     if (!config) {
       enabled.value = false;

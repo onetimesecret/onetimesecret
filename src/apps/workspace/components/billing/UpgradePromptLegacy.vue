@@ -3,7 +3,8 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 
 const { t } = useI18n();
@@ -22,7 +23,9 @@ const props = withDefaults(
 );
 
 // Hide upgrade prompts when billing is disabled (self-hosted mode)
-const billingEnabled = computed(() => WindowService.get('billing_enabled') || false);
+const bootstrapStore = useBootstrapStore();
+const { billing_enabled } = storeToRefs(bootstrapStore);
+const billingEnabled = computed(() => billing_enabled.value || false);
 
 const displayMessage = computed(() => {
   if (props.message) return props.message;

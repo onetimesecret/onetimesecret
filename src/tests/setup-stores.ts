@@ -35,7 +35,7 @@ export function createSharedApiInstance(): AxiosInstance {
  * @example
  * ```ts
  * const mock = getGlobalAxiosMock();
- * mock.onGet('/api/v2/account').reply(200, { custid: 'test' });
+ * mock.onGet('/api/account/account').reply(200, { custid: 'test' });
  * ```
  */
 export function getGlobalAxiosMock(): AxiosMockAdapter {
@@ -63,7 +63,7 @@ vi.mock('vue', async () => {
 // Setup global Pinia instance and window state
 beforeEach(() => {
   // Set up window state before creating stores
-  (window as any).__ONETIME_STATE__ = {
+  (window as any).__BOOTSTRAP_STATE__ = {
     ...stateFixture,
   } as OnetimeWindow;
 

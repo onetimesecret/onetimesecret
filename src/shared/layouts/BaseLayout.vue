@@ -2,9 +2,10 @@
 
 <script setup lang="ts">
   import GlobalBroadcast from '@/shared/components/ui/GlobalBroadcast.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useProductIdentity } from '@/shared/stores/identityStore';
   import { useTheme } from '@/shared/composables/useTheme';
+  import { storeToRefs } from 'pinia';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { isColorValue } from '@/utils/color-utils';
   import { computed, onMounted } from 'vue';
@@ -15,17 +16,18 @@
   const { initializeTheme } = useTheme();
   onMounted(initializeTheme);
 
-  const globalBanner = WindowService.get('global_banner') ?? null;
+  const bootstrapStore = useBootstrapStore();
+  const { global_banner } = storeToRefs(bootstrapStore);
 
   // Component key cannot be null or undefined
-  const globalBroadcastKey = globalBanner ? 'global_broadcast' : 'n/a';
+  const globalBroadcastKey = computed(() => global_banner.value ? 'globalBroadcast' : 'noBroadcast');
 
   const identityStore = useProductIdentity();
 
   // If there's a global banner set (in redis), this will be true. The actual
   // content may not show if the feature is by displayGlobalBroadcast=false.
   // For example, custom branded pages have the feature disabled altogether.
-  const hasGlobalBanner = computed(() => !!globalBanner);
+  const hasGlobalBanner = computed(() => !!global_banner.value);
 
   // Compute primary color styles based on brand color or prop
   const primaryColorClass = computed(() => {
@@ -51,7 +53,7 @@
     <GlobalBroadcast
       v-if="displayGlobalBroadcast"
       :show="hasGlobalBanner"
-      :content="globalBanner"
+      :content="global_banner ?? null"
       :key="globalBroadcastKey"
       :expiration-days="7" />
 
