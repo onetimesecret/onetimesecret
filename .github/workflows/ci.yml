@@ -326,9 +326,9 @@ jobs:
   # TIER 3: INTEGRATION TESTS (~45-90s each, run in parallel)
   # ============================================================================
 
-  test-all-clean:
-    name: T3 · Comprehensive (test:all:clean)
-    timeout-minutes: 15
+  smoke-test:
+    name: T3 · Smoke Test
+    timeout-minutes: 10
     runs-on: *runs-on
     needs: [changes, build-assets, ruby-unit, typescript-unit]
     if: |
@@ -348,15 +348,12 @@ jobs:
       - name: Setup Ruby test environment
         uses: ./.github/actions/setup-ruby-test-env
 
-      - name: Run test:all:clean
+      - name: Run smoke test
         shell: bash
         env:
           REDIS_URL: 'redis://127.0.0.1:2121/0'
           RACK_ENV: 'test'
-        run: |
-          # Clean database non-interactively (--force skips confirmation prompt)
-          VALKEY_URL='valkey://127.0.0.1:2121/0' ruby scripts/clean_database.rb --all --force
-          pnpm test:all
+        run: pnpm test:smoke
 
   ruby-integration-simple:
     name: T3 · Ruby Integration (Simple Mode)
@@ -543,7 +540,7 @@ jobs:
       - ruby-integration-full-postgres
       - ruby-integration-disabled
       - typescript-unit
-      - test-all-clean
+      - smoke-test
     if: always()
 
     steps:
@@ -605,7 +602,7 @@ jobs:
       - ruby-integration-full-sqlite
       - ruby-integration-full-postgres
       - ruby-integration-disabled
-      - test-all-clean
+      - smoke-test
       - check-oci-image
       - aggregate-test-results
     # always() ensures this runs even if some jobs failed/skipped
