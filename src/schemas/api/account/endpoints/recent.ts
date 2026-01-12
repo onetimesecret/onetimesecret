@@ -33,10 +33,3 @@ export const receiptRecordsDetailsSchema = z.object({
 
 export type ReceiptRecords = z.infer<typeof receiptRecordsSchema>;
 export type ReceiptRecordsDetails = z.infer<typeof receiptRecordsDetailsSchema>;
-
-// Legacy aliases for backward compatibility during migration
-// TODO: Remove after all consumers have been updated
-export const metadataRecordsSchema = receiptRecordsSchema;
-export const metadataRecordsDetailsSchema = receiptRecordsDetailsSchema;
-export type MetadataRecords = ReceiptRecords;
-export type MetadataRecordsDetails = ReceiptRecordsDetails;

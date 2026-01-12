@@ -267,9 +267,9 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
       let(:org) { mock_organization(planid: 'free_test_no_api_access', entitlements: %w[create_secrets]) }
 
       it 'raises EntitlementRequired' do
-        metadata, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
+        receipt, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
-        logic = create_logic(logic_class, params: { 'identifier' => metadata.identifier }, org: org)
+        logic = create_logic(logic_class, params: { 'identifier' => receipt.identifier }, org: org)
         logic.process_params
 
         expect {
@@ -286,9 +286,9 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
       let(:org) { mock_organization(planid: 'free_test_no_api_access', entitlements: %w[create_secrets]) }
 
       it 'raises EntitlementRequired' do
-        metadata, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
+        receipt, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
-        logic = create_logic(logic_class, params: { 'identifier' => metadata.identifier, 'continue' => 'true' }, org: org)
+        logic = create_logic(logic_class, params: { 'identifier' => receipt.identifier, 'continue' => 'true' }, org: org)
         logic.process_params
 
         expect {

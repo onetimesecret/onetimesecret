@@ -134,9 +134,6 @@ export type FeedbackResponse = ResponseTypes['feedback'];
 export type ImagePropsResponse = ResponseTypes['imageProps'];
 export type ReceiptListResponse = ResponseTypes['receiptList'];
 export type ReceiptResponse = ResponseTypes['receipt'];
-// Legacy aliases for backward compatibility during migration
-export type MetadataListResponse = ReceiptListResponse;
-export type MetadataResponse = ReceiptResponse;
 export type SecretListResponse = ResponseTypes['secretList'];
 export type SecretResponse = ResponseTypes['secret'];
 export type LoginResponse = ResponseTypes['login'];

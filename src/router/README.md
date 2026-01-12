@@ -141,7 +141,7 @@ src/
 │   ├── secret/
 │   │   └── routes/
 │   │       ├── incoming.ts        # Secret creation (API-driven)
-│   │       ├── metadata.ts        # Metadata views
+│   │       ├── receipt.ts        # Metadata views
 │   │       └── secret.ts          # Secret reveal
 │   ├── session/
 │   │   └── routes.ts              # Auth routes (login, signup, etc.)

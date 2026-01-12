@@ -263,7 +263,7 @@ src/
 | `.routes.ts` | Route definitions | `secret.routes.ts` |
 | `Store.ts` | Pinia stores | `authStore.ts` |
 | `.spec.ts` | Unit tests | `useAuth.spec.ts` |
-| `.fixture.ts` | Test fixtures | `metadata.fixture.ts` |
+| `.fixture.ts` | Test fixtures | `receipt.fixture.ts` |
 | `.d.ts` | Type declarations | `window.d.ts` |
 
 ## Key Patterns

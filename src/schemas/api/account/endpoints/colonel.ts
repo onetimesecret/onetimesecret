@@ -12,13 +12,10 @@ import { transforms } from '@/schemas/transforms';
 import { z } from 'zod/v4';
 
 // Import system settings schemas from config
-import {
-  systemSettingsSchema,
-  systemSettingsDetailsSchema,
-} from '@/schemas/config/config';
+import { systemSettingsDetailsSchema, systemSettingsSchema } from '@/schemas/config/config';
 
 // Re-export for backward compatibility
-export { systemSettingsSchema, systemSettingsDetailsSchema };
+export { systemSettingsDetailsSchema, systemSettingsSchema };
 // SystemSettingsDetails type already exported from config/config.ts
 
 // ============================================================================
@@ -89,7 +86,7 @@ export const colonelSecretSchema = z.object({
   expiration: transforms.fromString.number.nullable(),
   expiration_human: z.string().nullable(),
   lifespan: transforms.fromString.number.nullable(),
-  metadata_id: z.string().nullable(),
+  receipt_id: z.string().nullable(),
   age: z.number(),
   has_ciphertext: z.boolean(),
 });
@@ -140,7 +137,7 @@ export const databaseMetricsDetailsSchema = z.object({
   model_counts: z.object({
     customers: z.number(),
     secrets: z.number(),
-    metadata: z.number(),
+    receipt: z.number(),
   }),
 });
 
@@ -241,7 +238,7 @@ export const colonelStatsDetailsSchema = z.object({
   counts: z.object({
     customer_count: transforms.fromString.number,
     emails_sent: transforms.fromString.number,
-    metadata_count: transforms.fromString.number,
+    receipt_count: transforms.fromString.number,
     secret_count: transforms.fromString.number,
     secrets_created: transforms.fromString.number,
     secrets_shared: transforms.fromString.number,
@@ -260,7 +257,7 @@ export const colonelInfoDetailsSchema = z.object({
     customer_count: transforms.fromString.number,
     emails_sent: transforms.fromString.number,
     feedback_count: transforms.fromString.number,
-    metadata_count: transforms.fromString.number,
+    receipt_count: transforms.fromString.number,
     older_feedback_count: transforms.fromString.number,
     recent_customer_count: transforms.fromString.number,
     secret_count: transforms.fromString.number,
