@@ -64,6 +64,7 @@ docker run \
   -e UPSTREAM_HOST=onetime-app \
   -e UPSTREAM_PORT=3000 \
   -e DOMAIN=secrets.example.com \
+  --restart unless-stopped \
   --detach \
   onetime-caddy:v2.10.2
 ```
