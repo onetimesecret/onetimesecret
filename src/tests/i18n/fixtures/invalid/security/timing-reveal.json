@@ -1,0 +1,9 @@
+{
+  "web": {
+    "auth": {
+      "security": {
+        "rate_limited": "Too many attempts. Wait 5 minutes and try again."
+      }
+    }
+  }
+}

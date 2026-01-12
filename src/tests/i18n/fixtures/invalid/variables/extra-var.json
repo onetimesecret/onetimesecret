@@ -1,0 +1,9 @@
+{
+  "web": {
+    "auth": {
+      "account": {
+        "session_count": "{count} active session(s) for {unknown}"
+      }
+    }
+  }
+}
