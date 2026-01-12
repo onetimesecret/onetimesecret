@@ -157,9 +157,9 @@ end
 # Tryouts is a documentation-first Ruby testing framework where tests are plain
 # Ruby code with comment expectations. These tasks mirror the RSpec structure.
 namespace :try do
-  desc 'Run unit tryouts'
+  desc 'Run unit tryouts (includes security and feature tests)'
   task :unit do
-    patterns = %w[try/unit try/system].select { |p| Dir.exist?(p) }.join(' ')
+    patterns = %w[try/unit try/system try/security try/features].select { |p| Dir.exist?(p) }.join(' ')
     sh "bundle exec tryouts --agent #{patterns}" unless patterns.empty?
   end
 
@@ -183,6 +183,7 @@ namespace :try do
         try/integration/api
         try/integration/email
         try/integration/billing
+        try/integration/colonel_role_auth_try.rb
         try/integration/homepage_bypass_header_integration_try.rb
         try/integration/homepage_mode_integration_try.rb
       ].select { |p| File.exist?(p) || Dir.exist?(p) }.join(' ')
