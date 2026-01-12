@@ -501,7 +501,18 @@ jobs:
       - *checkout-step
 
       - name: Download frontend assets
+        id: download-assets
         uses: ./.github/actions/download-frontend-assets
+        continue-on-error: true
+
+      # Build assets inline if artifact doesn't exist (OCI-only changes)
+      - name: Setup Node.js for inline build
+        if: steps.download-assets.outcome == 'failure'
+        uses: ./.github/actions/setup-node-env
+
+      - name: Build frontend assets inline
+        if: steps.download-assets.outcome == 'failure'
+        run: pnpm run build
 
       - name: Build Container image
         run: docker build -t onetime-test .
