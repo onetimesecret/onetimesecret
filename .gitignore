@@ -67,7 +67,6 @@ bin/rubocop
 support/schemas/
 tsconfig.tsbuildinfo
 *.db
-locales/db/*.db
 
 Procfile.*
 !Procfile*.example

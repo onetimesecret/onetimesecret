@@ -1,3 +1,0 @@
--- Translation tasks
--- Append INSERT statements below. This file is git-tracked.
--- Format: INSERT INTO translation_tasks (batch, locale, file, key, english_text) VALUES (...);
