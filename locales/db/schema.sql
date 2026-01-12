@@ -36,3 +36,20 @@ CREATE TABLE IF NOT EXISTS level_tasks (
 
 CREATE INDEX IF NOT EXISTS idx_level_locale_status ON level_tasks(locale, status);
 CREATE INDEX IF NOT EXISTS idx_level_file ON level_tasks(file);
+
+-- Glossary table: translation decisions and terminology for each locale
+-- Captures choices made during translation sessions for consistency
+CREATE TABLE IF NOT EXISTS glossary (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    locale TEXT NOT NULL,             -- 'eo', 'de', etc.
+    term TEXT NOT NULL,               -- English term or concept
+    translation TEXT NOT NULL,        -- Chosen translation
+    context TEXT,                     -- When to use this translation
+    alternatives TEXT,                -- Other options considered (JSON array or comma-separated)
+    notes TEXT,                       -- Reasoning, style notes
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(locale, term)
+);
+
+CREATE INDEX IF NOT EXISTS idx_glossary_locale ON glossary(locale);

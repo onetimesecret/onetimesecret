@@ -32,6 +32,7 @@ DB_FILE = DB_DIR / "tasks.db"
 def get_next_task(
     locale: str,
     file_filter: Optional[str] = None,
+    path_filter: Optional[str] = None,
     claim: bool = False,
 ) -> Optional[dict]:
     """Get the next pending task for a locale.
@@ -39,6 +40,7 @@ def get_next_task(
     Args:
         locale: Target locale code (e.g., 'eo').
         file_filter: Optional file name to filter by.
+        path_filter: Optional key path prefix to filter by (e.g., 'web.COMMON').
         claim: If True, mark the task as in_progress.
 
     Returns:
@@ -56,18 +58,24 @@ def get_next_task(
     try:
         cursor = conn.cursor()
 
-        # Build query with optional file filter
+        # Build query with optional filters
         query = """
             SELECT id, file, level_path, locale, status, keys_json,
                    translations_json, notes, created_at, updated_at
             FROM level_tasks
             WHERE locale = ? AND status = 'pending'
         """
-        params = [locale]
+        params: list = [locale]
 
         if file_filter:
             query += " AND file = ?"
             params.append(file_filter)
+
+        if path_filter:
+            # Match paths that start with the filter or equal it exactly
+            query += " AND (level_path = ? OR level_path LIKE ?)"
+            params.append(path_filter)
+            params.append(f"{path_filter}.%")
 
         query += " ORDER BY file, level_path LIMIT 1"
 
@@ -194,7 +202,7 @@ def format_task_human(task: dict) -> str:
     lines = [
         f"Task ID: {task['id']}",
         f"File: {task['file']}",
-        f"Level: {task['level_path']}",
+        f"Path: {task['level_path']}",
         f"Locale: {task['locale']}",
         f"Status: {task['status']}",
         f"Keys ({len(task.get('keys', {}))} items):",
@@ -225,6 +233,7 @@ Examples:
     python get_next_task.py eo --claim            # Claim task (mark in_progress)
     python get_next_task.py eo --json             # Output as JSON
     python get_next_task.py eo --file auth.json   # Filter by file
+    python get_next_task.py eo --filter web.COMMON  # Filter by key path prefix
     python get_next_task.py eo --stats            # Show task statistics
     python get_next_task.py eo --id 42            # Get specific task by ID
         """,
@@ -243,6 +252,11 @@ Examples:
         "--file",
         dest="file_filter",
         help="Filter tasks by file name (e.g., 'auth.json')",
+    )
+    parser.add_argument(
+        "--filter",
+        dest="path_filter",
+        help="Filter tasks by key path prefix (e.g., 'web.COMMON')",
     )
     parser.add_argument(
         "--json", "-j",
@@ -293,6 +307,7 @@ Examples:
         task = get_next_task(
             locale=args.locale,
             file_filter=args.file_filter,
+            path_filter=args.path_filter,
             claim=args.claim,
         )
 
