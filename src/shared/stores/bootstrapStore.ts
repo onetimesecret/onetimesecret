@@ -1,6 +1,5 @@
 // src/shared/stores/bootstrapStore.ts
 
-import { getBootstrapSnapshot } from '@/services/bootstrap.service';
 import type { Locale } from '@/schemas/i18n/locale';
 import type {
   AuthenticationSettings,
@@ -9,13 +8,14 @@ import type {
   RegionsConfig,
   SecretOptions,
 } from '@/schemas/models';
-import type { DiagnosticsConfig } from '@/types/diagnostics';
+import { getBootstrapSnapshot } from '@/services/bootstrap.service';
 import type {
+  BootstrapPayload,
   FooterLinksConfig,
   HeaderConfig,
-  OnetimeWindow,
   UiInterface,
 } from '@/types/declarations/bootstrap';
+import type { DiagnosticsConfig } from '@/types/diagnostics';
 import { defineStore } from 'pinia';
 import { computed, Ref, ref } from 'vue';
 import type { FallbackLocale } from 'vue-i18n';
@@ -29,7 +29,7 @@ import type { FallbackLocale } from 'vue-i18n';
  * Type-safe defaults ensure the store always has valid values even before
  * server data is hydrated.
  */
-const DEFAULTS: OnetimeWindow = {
+const DEFAULTS: BootstrapPayload = {
   // Authentication state
   authenticated: false,
   awaiting_mfa: false,
@@ -246,7 +246,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
 
   // Domain configuration
   const canonical_domain = ref<string>(DEFAULTS.canonical_domain);
-  const domain_strategy = ref<OnetimeWindow['domain_strategy']>(DEFAULTS.domain_strategy);
+  const domain_strategy = ref<BootstrapPayload['domain_strategy']>(DEFAULTS.domain_strategy);
   const domain_id = ref<string>(DEFAULTS.domain_id);
   const display_domain = ref<string>(DEFAULTS.display_domain);
   const domain_branding = ref<BrandSettings>(DEFAULTS.domain_branding);
@@ -270,21 +270,21 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   const ui = ref<UiInterface>(DEFAULTS.ui);
 
   // Features
-  const features = ref<OnetimeWindow['features']>(DEFAULTS.features);
+  const features = ref<BootstrapPayload['features']>(DEFAULTS.features);
 
   // Messages
-  const messages = ref<OnetimeWindow['messages']>(DEFAULTS.messages);
+  const messages = ref<BootstrapPayload['messages']>(DEFAULTS.messages);
 
   // Homepage and banner
-  const homepage_mode = ref<OnetimeWindow['homepage_mode']>(DEFAULTS.homepage_mode);
+  const homepage_mode = ref<BootstrapPayload['homepage_mode']>(DEFAULTS.homepage_mode);
   const global_banner = ref<string | undefined>(DEFAULTS.global_banner);
 
   // Development mode
-  const development = ref<OnetimeWindow['development']>(DEFAULTS.development);
+  const development = ref<BootstrapPayload['development']>(DEFAULTS.development);
 
   // Stripe (billing)
-  const stripe_customer = ref<OnetimeWindow['stripe_customer']>(DEFAULTS.stripe_customer);
-  const stripe_subscriptions = ref<OnetimeWindow['stripe_subscriptions']>(
+  const stripe_customer = ref<BootstrapPayload['stripe_customer']>(DEFAULTS.stripe_customer);
+  const stripe_subscriptions = ref<BootstrapPayload['stripe_subscriptions']>(
     DEFAULTS.stripe_subscriptions
   );
 
@@ -295,7 +295,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   );
 
   // Organization
-  const organization = ref<OnetimeWindow['organization']>(DEFAULTS.organization);
+  const organization = ref<BootstrapPayload['organization']>(DEFAULTS.organization);
 
   // Internal state
   const _initialized = ref(false);
@@ -322,13 +322,13 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   // HYDRATION HELPERS - Split to reduce complexity
   // ═══════════════════════════════════════════════════════════════════════════
 
-  function hydrateAuthState(data: Partial<OnetimeWindow>): void {
+  function hydrateAuthState(data: Partial<BootstrapPayload>): void {
     updateIfDefined(authenticated, data.authenticated);
     updateIfDefined(awaiting_mfa, data.awaiting_mfa);
     updateIfDefined(had_valid_session, data.had_valid_session);
   }
 
-  function hydrateUserIdentity(data: Partial<OnetimeWindow>): void {
+  function hydrateUserIdentity(data: Partial<BootstrapPayload>): void {
     updateIfDefined(cust, data.cust);
     updateIfDefined(custid, data.custid);
     updateIfDefined(email, data.email);
@@ -336,7 +336,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     updateIfDefined(apitoken, data.apitoken);
   }
 
-  function hydrateLocaleSettings(data: Partial<OnetimeWindow>): void {
+  function hydrateLocaleSettings(data: Partial<BootstrapPayload>): void {
     updateIfDefined(i18n_enabled, data.i18n_enabled);
     updateIfDefined(locale, data.locale);
     updateIfDefined(supported_locales, data.supported_locales);
@@ -344,7 +344,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     updateIfDefined(default_locale, data.default_locale);
   }
 
-  function hydrateSiteConfig(data: Partial<OnetimeWindow>): void {
+  function hydrateSiteConfig(data: Partial<BootstrapPayload>): void {
     updateIfDefined(baseuri, data.baseuri);
     updateIfDefined(frontend_host, data.frontend_host);
     updateIfDefined(site_host, data.site_host);
@@ -354,7 +354,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     updateIfDefined(shrimp, data.shrimp);
   }
 
-  function hydrateFeatureFlags(data: Partial<OnetimeWindow>): void {
+  function hydrateFeatureFlags(data: Partial<BootstrapPayload>): void {
     updateIfDefined(billing_enabled, data.billing_enabled);
     updateIfDefined(regions_enabled, data.regions_enabled);
     updateIfDefined(domains_enabled, data.domains_enabled);
@@ -362,7 +362,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     updateIfDefined(enjoyTheVue, data.enjoyTheVue);
   }
 
-  function hydrateDomainConfig(data: Partial<OnetimeWindow>): void {
+  function hydrateDomainConfig(data: Partial<BootstrapPayload>): void {
     updateIfDefined(canonical_domain, data.canonical_domain);
     updateIfDefined(domain_strategy, data.domain_strategy);
     updateIfDefined(domain_id, data.domain_id);
@@ -372,7 +372,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     updateIfDefined(custom_domains, data.custom_domains);
   }
 
-  function hydrateSettings(data: Partial<OnetimeWindow>): void {
+  function hydrateSettings(data: Partial<BootstrapPayload>): void {
     updateIfDefined(regions, data.regions);
     updateIfDefined(available_jurisdictions, data.available_jurisdictions);
     updateIfDefined(authentication, data.authentication);
@@ -382,7 +382,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     updateIfDefined(features, data.features);
   }
 
-  function hydrateDisplayAndMisc(data: Partial<OnetimeWindow>): void {
+  function hydrateDisplayAndMisc(data: Partial<BootstrapPayload>): void {
     updateIfDefined(messages, data.messages);
     updateIfDefined(homepage_mode, data.homepage_mode);
     updateIfDefined(global_banner, data.global_banner);
@@ -398,7 +398,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
    * Internal function to hydrate refs from a data snapshot.
    * Used by both init() and update().
    */
-  function hydrateFromSnapshot(data: Partial<OnetimeWindow>): void {
+  function hydrateFromSnapshot(data: Partial<BootstrapPayload>): void {
     hydrateAuthState(data);
     hydrateUserIdentity(data);
     hydrateLocaleSettings(data);
@@ -527,9 +527,9 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
    * Updates the store with new data from /bootstrap/me API response.
    * Only updates fields that are present in the data object.
    *
-   * @param data - Partial OnetimeWindow data to merge
+   * @param data - Partial BootstrapPayload data to merge
    */
-  function update(data: Partial<OnetimeWindow>): void {
+  function update(data: Partial<BootstrapPayload>): void {
     hydrateFromSnapshot(data);
 
     console.debug('[BootstrapStore.update] Updated with:', {
@@ -583,7 +583,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
       throw new Error(`[BootstrapStore] Failed to refresh state: ${response.status}`);
     }
 
-    const newState = (await response.json()) as OnetimeWindow;
+    const newState = (await response.json()) as BootstrapPayload;
     update(newState);
   }
 

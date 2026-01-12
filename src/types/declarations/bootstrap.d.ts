@@ -78,9 +78,9 @@ export interface UiInterface {
 
 /**
  * BootstrapPayload is the canonical type name for server-injected state.
- * OnetimeWindow is preserved as an alias for backwards compatibility.
+ * BootstrapPayload is preserved as an alias for backwards compatibility.
  */
-export interface OnetimeWindow {
+export interface BootstrapPayload {
   apitoken?: string;
 
   /**
@@ -209,6 +209,6 @@ export interface OnetimeWindow {
 
 /**
  * BootstrapPayload is the preferred type name for server-injected state.
- * Alias for OnetimeWindow - use either interchangeably.
+ * Alias for BootstrapPayload - use either interchangeably.
  */
-export type BootstrapPayload = OnetimeWindow;
+export type BootstrapPayload = BootstrapPayload;

@@ -1,8 +1,8 @@
 // src/tests/setupWindow.ts
 
+import { type BootstrapPayload } from '@/types/declarations/bootstrap';
 import { vi } from 'vitest';
 import { stateFixture } from './fixtures/window.fixture';
-import { type OnetimeWindow } from '@/types/declarations/bootstrap';
 
 export const windowMock = {
   // Preserve any existing window properties you need
@@ -15,7 +15,7 @@ export function setupWindowState(state = stateFixture) {
   window.__BOOTSTRAP_STATE__ = {
     ...(window.__BOOTSTRAP_STATE__ || {}),
     ...state,
-  } as OnetimeWindow;
+  } as BootstrapPayload;
   return window;
 }
 
@@ -28,7 +28,7 @@ export function setupEmptyWindowState() {
     locale: 'en',
   };
 
-  window.__BOOTSTRAP_STATE__ = minimalState as OnetimeWindow;
+  window.__BOOTSTRAP_STATE__ = minimalState as BootstrapPayload;
   // console.debug('setupEmptyWindowState', window.__BOOTSTRAP_STATE__);
   return window;
 }

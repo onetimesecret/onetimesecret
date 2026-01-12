@@ -4,21 +4,21 @@
 // Consolidates 4 distinct mock patterns into a unified approach using
 // createTestingPinia and typed fixtures.
 
-import { vi } from 'vitest';
+import type { Customer } from '@/schemas/models';
+import type { BootstrapPayload } from '@/types/declarations/bootstrap';
 import { createTestingPinia, type TestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
-import type { OnetimeWindow } from '@/types/declarations/bootstrap';
-import type { Customer } from '@/schemas/models';
+import { vi } from 'vitest';
 
 // ============================================================================
 // FIXTURES: Pre-configured bootstrap states for common test scenarios
 // ============================================================================
 
 /**
- * Base fixture with sensible defaults for all OnetimeWindow properties.
+ * Base fixture with sensible defaults for all BootstrapPayload properties.
  * Use this as a foundation and override specific properties as needed.
  */
-export const baseBootstrap: OnetimeWindow = {
+export const baseBootstrap: BootstrapPayload = {
   authenticated: false,
   awaiting_mfa: false,
   had_valid_session: false,
@@ -138,7 +138,7 @@ export const mockCustomer: Customer = {
  * Authenticated user bootstrap state.
  * User is fully authenticated with customer data.
  */
-export const authenticatedBootstrap: OnetimeWindow = {
+export const authenticatedBootstrap: BootstrapPayload = {
   ...baseBootstrap,
   authenticated: true,
   awaiting_mfa: false,
@@ -152,7 +152,7 @@ export const authenticatedBootstrap: OnetimeWindow = {
  * Anonymous user bootstrap state.
  * User is not authenticated, no customer data.
  */
-export const anonymousBootstrap: OnetimeWindow = {
+export const anonymousBootstrap: BootstrapPayload = {
   ...baseBootstrap,
   authenticated: false,
   awaiting_mfa: false,
@@ -166,7 +166,7 @@ export const anonymousBootstrap: OnetimeWindow = {
  * MFA pending bootstrap state.
  * User has passed first factor but needs to complete MFA.
  */
-export const mfaPendingBootstrap: OnetimeWindow = {
+export const mfaPendingBootstrap: BootstrapPayload = {
   ...baseBootstrap,
   authenticated: false,
   awaiting_mfa: true,
@@ -180,7 +180,7 @@ export const mfaPendingBootstrap: OnetimeWindow = {
  * Colonel (admin) user bootstrap state.
  * Authenticated user with admin privileges and test mode capabilities.
  */
-export const colonelBootstrap: OnetimeWindow = {
+export const colonelBootstrap: BootstrapPayload = {
   ...authenticatedBootstrap,
   cust: {
     ...mockCustomer,
@@ -198,7 +198,7 @@ export const colonelBootstrap: OnetimeWindow = {
  * Custom domains enabled bootstrap state.
  * Authenticated user with custom domain features enabled.
  */
-export const customDomainsBootstrap: OnetimeWindow = {
+export const customDomainsBootstrap: BootstrapPayload = {
   ...authenticatedBootstrap,
   domains_enabled: true,
   custom_domains: ['acme.example.com', 'widgets.example.com'],
@@ -208,7 +208,7 @@ export const customDomainsBootstrap: OnetimeWindow = {
  * Billing disabled bootstrap state (standalone mode).
  * For testing self-hosted/standalone deployments.
  */
-export const standaloneBootstrap: OnetimeWindow = {
+export const standaloneBootstrap: BootstrapPayload = {
   ...authenticatedBootstrap,
   billing_enabled: false,
 };
@@ -222,9 +222,9 @@ export const standaloneBootstrap: OnetimeWindow = {
  */
 export interface BootstrapMockOptions {
   /** Initial bootstrap state (defaults to anonymousBootstrap) */
-  initialState?: Partial<OnetimeWindow>;
+  initialState?: Partial<BootstrapPayload>;
   /** Base fixture to extend from (defaults to baseBootstrap) */
-  baseFixture?: OnetimeWindow;
+  baseFixture?: BootstrapPayload;
   /** Whether to stub Pinia actions (defaults to false) */
   stubActions?: boolean;
   /** Vitest spy function (defaults to vi.fn) */
@@ -238,7 +238,7 @@ export interface BootstrapMockResult {
   /** The testing Pinia instance */
   pinia: TestingPinia;
   /** Current window state (mutable for test manipulation) */
-  windowState: OnetimeWindow;
+  windowState: BootstrapPayload;
   /** WindowService mock with get/getMultiple/getState implementations */
   windowServiceMock: {
     get: ReturnType<typeof vi.fn>;
@@ -247,7 +247,7 @@ export interface BootstrapMockResult {
     update: ReturnType<typeof vi.fn>;
   };
   /** Update window state mid-test */
-  updateState: (updates: Partial<OnetimeWindow>) => void;
+  updateState: (updates: Partial<BootstrapPayload>) => void;
 }
 
 /**
@@ -279,9 +279,7 @@ export interface BootstrapMockResult {
  * updateState({ authenticated: false });
  * ```
  */
-export function setupBootstrapMock(
-  options: BootstrapMockOptions = {}
-): BootstrapMockResult {
+export function setupBootstrapMock(options: BootstrapMockOptions = {}): BootstrapMockResult {
   const {
     initialState = {},
     baseFixture = baseBootstrap,
@@ -290,37 +288,38 @@ export function setupBootstrapMock(
   } = options;
 
   // Merge base fixture with initial state
-  const windowState: OnetimeWindow = {
+  const windowState: BootstrapPayload = {
     ...baseFixture,
     ...initialState,
-  } as OnetimeWindow;
+  } as BootstrapPayload;
 
   // Create WindowService mock functions
-  const getMock = createSpy((key: keyof OnetimeWindow) => {
+  const getMock = createSpy((key: keyof BootstrapPayload) => {
     return windowState[key];
   });
 
   const getMultipleMock = createSpy(
-    <K extends keyof OnetimeWindow>(
-      input: K[] | Partial<Record<K, OnetimeWindow[K]>>
-    ): Pick<OnetimeWindow, K> => {
+    <K extends keyof BootstrapPayload>(
+      input: K[] | Partial<Record<K, BootstrapPayload[K]>>
+    ): Pick<BootstrapPayload, K> => {
       if (Array.isArray(input)) {
-        return Object.fromEntries(
-          input.map((key) => [key, windowState[key]])
-        ) as Pick<OnetimeWindow, K>;
+        return Object.fromEntries(input.map((key) => [key, windowState[key]])) as Pick<
+          BootstrapPayload,
+          K
+        >;
       }
       return Object.fromEntries(
         Object.entries(input).map(([key, defaultValue]) => [
           key,
           windowState[key as K] ?? defaultValue,
         ])
-      ) as Pick<OnetimeWindow, K>;
+      ) as Pick<BootstrapPayload, K>;
     }
   );
 
   const getStateMock = createSpy(() => windowState);
 
-  const updateMock = createSpy((updates: Partial<OnetimeWindow>) => {
+  const updateMock = createSpy((updates: Partial<BootstrapPayload>) => {
     Object.assign(windowState, updates);
   });
 
@@ -342,7 +341,7 @@ export function setupBootstrapMock(
   (window as any).__BOOTSTRAP_STATE__ = windowState;
 
   // Helper to update state mid-test
-  const updateState = (updates: Partial<OnetimeWindow>) => {
+  const updateState = (updates: Partial<BootstrapPayload>) => {
     Object.assign(windowState, updates);
     // Also update window object for direct access
     (window as any).__BOOTSTRAP_STATE__ = windowState;
@@ -408,8 +407,8 @@ export function createHoistedWindowServiceMock() {
  * ```
  */
 export function createStateOverride(
-  overrides: Partial<OnetimeWindow>
-): Partial<OnetimeWindow> {
+  overrides: Partial<BootstrapPayload>
+): Partial<BootstrapPayload> {
   return { ...overrides };
 }
 

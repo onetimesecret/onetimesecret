@@ -1,12 +1,12 @@
 // src/tests/fixtures/window.fixture.ts
 
-import { OnetimeWindow } from '@/types/declarations/bootstrap';
+import { BootstrapPayload } from '@/types/declarations/bootstrap';
 import { vi } from 'vitest';
 
 const setIntervalMock = vi.fn().mockReturnValue(123);
 const clearIntervalMock = vi.fn();
 
-export const stateFixture: OnetimeWindow = {
+export const stateFixture: BootstrapPayload = {
   setInterval: setIntervalMock,
   clearInterval: clearIntervalMock,
 
@@ -95,4 +95,4 @@ export const stateFixture: OnetimeWindow = {
 // Export the window fixture with the new structure
 export const windowFixture = {
   __BOOTSTRAP_STATE__: stateFixture,
-} as OnetimeWindow & typeof globalThis;
+} as BootstrapPayload & typeof globalThis;

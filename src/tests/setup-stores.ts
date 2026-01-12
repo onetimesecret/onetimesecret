@@ -1,12 +1,12 @@
 // src/tests/setup-stores.ts
 
-import { vi, beforeEach } from 'vitest';
+import type { BootstrapPayload } from '@/types/declarations/bootstrap';
 import { createTestingPinia } from '@pinia/testing';
-import { setActivePinia } from 'pinia';
 import axios, { AxiosInstance } from 'axios';
 import AxiosMockAdapter from 'axios-mock-adapter';
+import { setActivePinia } from 'pinia';
+import { beforeEach, vi } from 'vitest';
 import { stateFixture } from './fixtures/window.fixture';
-import type { OnetimeWindow } from '@/types/declarations/bootstrap';
 
 // Create global test API instance that will be shared across tests
 // This gets the mock adapter applied to it in individual test setups
@@ -65,7 +65,7 @@ beforeEach(() => {
   // Set up window state before creating stores
   (window as any).__BOOTSTRAP_STATE__ = {
     ...stateFixture,
-  } as OnetimeWindow;
+  } as BootstrapPayload;
 
   const pinia = createTestingPinia({
     stubActions: false,

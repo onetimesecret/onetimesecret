@@ -78,7 +78,3 @@ export function useReceiptList() {
     reset,
   };
 }
-
-// Legacy alias for backward compatibility during migration
-// TODO: Remove after all consumers have been updated
-export const useMetadataList = useReceiptList;

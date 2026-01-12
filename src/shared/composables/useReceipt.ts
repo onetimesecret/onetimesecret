@@ -109,10 +109,6 @@ export function useReceipt(receiptIdentifier: string, options?: ReceiptOptions) 
   };
 }
 
-// Legacy alias for backward compatibility during migration
-// TODO: Remove after all consumers have been updated
-export const useMetadata = useReceipt;
-export type MetadataOptions = ReceiptOptions;
 
 /**
  * Suggestions:
