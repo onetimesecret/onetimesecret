@@ -13,7 +13,7 @@ module V1::Logic
 
       def process_params
         @key = sanitize_identifier(params['key'])
-        @metadata = Onetime::Metadata.load key
+        @metadata = Onetime::Receipt.load key
         @passphrase = params['passphrase'].to_s
         @continue = [true, 'true'].include?(params['continue'])
       end

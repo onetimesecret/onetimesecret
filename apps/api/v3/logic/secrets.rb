@@ -14,7 +14,7 @@
 # - RevealSecret: guest reveal toggle
 # - BurnSecret: guest burn toggle
 # - ShowSecret: guest show toggle
-# - ShowMetadata: guest show_metadata toggle
+# - ShowReceipt: guest receipt toggle
 
 require_relative '../../v2/logic/secrets'
 require_relative 'base'
@@ -106,8 +106,8 @@ module V3
         # include ::V3::Logic::Base
       end
 
-      # List user's metadata (recent secrets - receipt/private)
-      class ListMetadata < V2::Logic::Secrets::ListMetadata
+      # List user's receipts (recent secrets - receipt/private)
+      class ListReceipts < V2::Logic::Secrets::ListReceipts
         # include ::V3::Logic::Base
       end
 
@@ -121,8 +121,8 @@ module V3
         end
       end
 
-      # Show metadata for a secret (receipt/private endpoints)
-      class ShowMetadata < V2::Logic::Secrets::ShowMetadata
+      # Show receipt for a secret (receipt/private endpoints)
+      class ShowReceipt < V2::Logic::Secrets::ShowReceipt
         include Onetime::Logic::GuestRouteGating
 
         def raise_concerns

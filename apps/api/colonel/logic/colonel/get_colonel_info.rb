@@ -98,7 +98,7 @@ module ColonelAPI
 
         def process_statistics
           # Use O(1) ZCARD-based count via Familia instances instead of O(N) blocking KEYS
-          @metadata_count  = Onetime::Metadata.count
+          @metadata_count  = Onetime::Receipt.count
           @secret_count    = Onetime::Secret.count
           # TODO: Re-enable global statistics when Customer.global is implemented
           # @secrets_created = Onetime::Customer.global.secrets_created.to_s

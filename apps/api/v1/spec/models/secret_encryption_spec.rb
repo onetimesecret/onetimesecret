@@ -214,7 +214,7 @@ RSpec.describe Onetime::Secret do
         # Use our stubbed pair instead of calling the real method
         metadata, secret = create_stubbed_secret_pair(custid: custid)
 
-        expect(metadata).to be_a(Onetime::Metadata)
+        expect(metadata).to be_a(Onetime::Receipt)
         expect(secret).to be_a(Onetime::Secret)
         expect(metadata.secret_identifier).to eq(secret.identifier)
         expect(secret.metadata_identifier).to eq(metadata.identifier)

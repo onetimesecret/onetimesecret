@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App, ComponentPublicInstance } from 'vue';
 
 import { AxiosInstance } from 'axios';
-import { mockSecretRecord, mockSecretResponse } from '../fixtures/metadata.fixture';
+import { mockSecretRecord, mockSecretResponse } from '../fixtures/receipt.fixture';
 import { setupTestPinia } from '../setup';
 import { setupWindowState } from '../setupWindow';
 

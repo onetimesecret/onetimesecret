@@ -23,7 +23,7 @@ module ColonelAPI
 
           # Load associated metadata
           if secret.metadata_identifier
-            @metadata = Onetime::Metadata.load(secret.metadata_identifier)
+            @metadata = Onetime::Receipt.load(secret.metadata_identifier)
           end
         end
 

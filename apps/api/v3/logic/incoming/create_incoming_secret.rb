@@ -127,7 +127,7 @@ module V3
 
         def create_and_encrypt_secret
           # Use Metadata.spawn_pair to create linked secret and metadata
-          @metadata, @secret = Onetime::Metadata.spawn_pair(
+          @metadata, @secret = Onetime::Receipt.spawn_pair(
             cust&.objid || 'anon',
             ttl,
             secret_value,

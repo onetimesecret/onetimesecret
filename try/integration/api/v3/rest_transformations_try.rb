@@ -10,7 +10,7 @@
 # This ensures v3/account APIs follow pure REST semantics while v2 remains unchanged.
 
 require_relative '../../../support/test_logic'
-require 'apps/api/v2/logic/secrets/list_metadata'
+require 'apps/api/v2/logic/secrets/list_receipts'
 require 'apps/api/v3/logic'
 
 OT.boot! :test
@@ -21,7 +21,7 @@ OT.boot! :test
 @strategy_result = MockStrategyResult.new(session: @session, user: @cust)
 
 ## V2 API preserves 'success' field
-@v2_logic = V2::Logic::Secrets::ListMetadata.new(@strategy_result, {})
+@v2_logic = V2::Logic::Secrets::ListReceipts.new(@strategy_result, {})
 @v2_response = @v2_logic.process
 [@v2_response.key?('success'), @v2_response['success']]
 #=> [true, true]

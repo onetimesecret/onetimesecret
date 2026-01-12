@@ -88,7 +88,7 @@ module ColonelAPI
         def scan_user_metadata
           metadata_list = []
           cursor        = '0'
-          dbclient      = Onetime::Metadata.new.dbclient
+          dbclient      = Onetime::Receipt.new.dbclient
           pattern       = 'metadata:*:object'
 
           loop do
@@ -96,7 +96,7 @@ module ColonelAPI
 
             keys.each do |key|
               objid    = key.split(':')[1]
-              metadata = Onetime::Metadata.load(objid)
+              metadata = Onetime::Receipt.load(objid)
               next unless metadata&.exists?
               next unless metadata.owner_id == user.objid
 

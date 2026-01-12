@@ -1,0 +1,808 @@
+# .github/workflows/generate-translation-request.yml
+---
+name: Generate Translation Request Package
+
+# Creates translation request packages for external translators or AI services.
+# Outputs include ZIP artifacts, GitHub Issues, and structured JSON.
+#
+# Workflow supports:
+# - Single locale, multiple locales, or all incomplete locales
+# - Scoping by untranslated keys, date range, specific files, or domain
+# - Multiple output formats for different translation workflows
+#
+# Storage strategy:
+# - GitHub Releases: Versioned, permanent storage for translation packages
+# - GitHub Issues: Per-locale tracking with progress checklist
+# - Actions Artifacts: Intermediate processing (90-day retention)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_locales:
+        description: 'Target locale(s): single (e.g., "fr_FR"), comma-separated (e.g., "de,es,ja"), or "all-incomplete"'
+        required: true
+        default: 'all-incomplete'
+        type: string
+      scope:
+        description: 'Scope of keys to include'
+        required: true
+        default: 'all-untranslated'
+        type: choice
+        options:
+          - all-untranslated
+          - changed-since-date
+          - specific-files
+          - domain
+      date_since:
+        description: 'ISO date for changed-since-date scope (e.g., "2024-01-01")'
+        required: false
+        type: string
+      files:
+        description: 'Space-separated file names for specific-files scope (e.g., "auth.json email.json")'
+        required: false
+        type: string
+      domain:
+        description: 'Domain prefix for domain scope (e.g., "web.auth" or "feature-secrets")'
+        required: false
+        type: string
+      output_format:
+        description: 'Output format(s)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - zip
+          - github-issue
+          - json
+          - all
+      create_release:
+        description: 'Create a GitHub Release for the package'
+        required: false
+        default: true
+        type: boolean
+      min_missing_keys:
+        description: 'Minimum missing keys to include a locale (0 = include all)'
+        required: false
+        default: '1'
+        type: string
+
+permissions:
+  contents: write
+  issues: write
+
+env:
+  LOCALES_DIR: src/locales
+  SCRIPTS_DIR: src/scripts/locales
+
+jobs:
+  # ============================================================================
+  # Job 1: Determine which locales need translation packages
+  # ============================================================================
+  determine-locales:
+    name: Determine Target Locales
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      locales: ${{ steps.resolve.outputs.locales }}
+      locale_count: ${{ steps.resolve.outputs.count }}
+      matrix: ${{ steps.resolve.outputs.matrix }}
+      package_id: ${{ steps.metadata.outputs.package_id }}
+      timestamp: ${{ steps.metadata.outputs.timestamp }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate package metadata
+        id: metadata
+        run: |
+          TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
+          PACKAGE_ID="translation-request-${TIMESTAMP}"
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+          echo "package_id=$PACKAGE_ID" >> $GITHUB_OUTPUT
+
+      - name: Resolve target locales
+        id: resolve
+        env:
+          TARGET_LOCALES: ${{ inputs.target_locales }}
+          MIN_MISSING: ${{ inputs.min_missing_keys }}
+        run: |
+          # Get all available locales (directories under src/locales except 'en')
+          ALL_LOCALES=$(ls -d ${LOCALES_DIR}/*/ 2>/dev/null \
+            | xargs -I{} basename {} \
+            | grep -v '^en$' \
+            | sort)
+
+          if [ "$TARGET_LOCALES" = "all-incomplete" ]; then
+            # Filter to locales with missing translations
+            RESOLVED_LOCALES=""
+            for locale in $ALL_LOCALES; do
+              # Count missing keys using audit script
+              MISSING_COUNT=$(python3 -c "
+          import json
+          import os
+          from pathlib import Path
+
+          locales_dir = Path('${LOCALES_DIR}')
+          en_dir = locales_dir / 'en'
+          locale_dir = locales_dir / '$locale'
+
+          def get_all_keys(obj, prefix=''):
+              keys = []
+              for k, v in obj.items():
+                  full_key = f'{prefix}.{k}' if prefix else k
+                  if isinstance(v, dict):
+                      keys.extend(get_all_keys(v, full_key))
+                  else:
+                      keys.append(full_key)
+              return keys
+
+          missing = 0
+          for json_file in en_dir.glob('*.json'):
+              locale_file = locale_dir / json_file.name
+              if not locale_file.exists():
+                  # Count all keys in English file as missing
+                  en_data = json.loads(json_file.read_text())
+                  missing += len(get_all_keys(en_data))
+                  continue
+
+              en_data = json.loads(json_file.read_text())
+              locale_data = json.loads(locale_file.read_text())
+
+              en_keys = set(get_all_keys(en_data))
+              locale_keys = set(get_all_keys(locale_data))
+              missing += len(en_keys - locale_keys)
+
+          print(missing)
+          " 2>/dev/null || echo "0")
+
+              if [ "$MISSING_COUNT" -ge "${MIN_MISSING:-1}" ]; then
+                RESOLVED_LOCALES="${RESOLVED_LOCALES}${locale},"
+              fi
+            done
+            # Remove trailing comma
+            RESOLVED_LOCALES="${RESOLVED_LOCALES%,}"
+          else
+            # Use provided locales (comma-separated)
+            RESOLVED_LOCALES="$TARGET_LOCALES"
+          fi
+
+          # Convert to JSON array for matrix
+          LOCALES_ARRAY=$(echo "$RESOLVED_LOCALES" | tr ',' '\n' | grep -v '^$' | jq -R . | jq -s .)
+          LOCALE_COUNT=$(echo "$LOCALES_ARRAY" | jq 'length')
+
+          # Create matrix JSON
+          MATRIX_JSON="{\"locale\": $LOCALES_ARRAY}"
+
+          echo "locales=$RESOLVED_LOCALES" >> $GITHUB_OUTPUT
+          echo "count=$LOCALE_COUNT" >> $GITHUB_OUTPUT
+          echo "matrix=$MATRIX_JSON" >> $GITHUB_OUTPUT
+
+          echo "Resolved locales: $RESOLVED_LOCALES"
+          echo "Count: $LOCALE_COUNT"
+
+  # ============================================================================
+  # Job 2: Generate translation package for each locale (parallel)
+  # ============================================================================
+  generate-package:
+    name: Generate Package (${{ matrix.locale }})
+    needs: determine-locales
+    if: needs.determine-locales.outputs.locale_count != '0'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix: ${{ fromJson(needs.determine-locales.outputs.matrix) }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate translation manifest
+        id: manifest
+        env:
+          LOCALE: ${{ matrix.locale }}
+          SCOPE: ${{ inputs.scope }}
+          DATE_SINCE: ${{ inputs.date_since }}
+          FILES: ${{ inputs.files }}
+          DOMAIN: ${{ inputs.domain }}
+          PACKAGE_ID: ${{ needs.determine-locales.outputs.package_id }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p "output/${LOCALE}"
+
+          python3 << 'PYTHON_SCRIPT'
+          import json
+          import os
+          from datetime import datetime
+          from pathlib import Path
+          import subprocess
+
+          locale = os.environ['LOCALE']
+          scope = os.environ['SCOPE']
+          date_since = os.environ.get('DATE_SINCE', '')
+          files_filter = os.environ.get('FILES', '').split()
+          domain_filter = os.environ.get('DOMAIN', '')
+          package_id = os.environ['PACKAGE_ID']
+          commit_sha = os.environ['COMMIT_SHA']
+
+          locales_dir = Path('src/locales')
+          en_dir = locales_dir / 'en'
+          locale_dir = locales_dir / locale
+          output_dir = Path(f'output/{locale}')
+
+          def get_all_keys(obj, prefix=''):
+              """Recursively get all leaf key paths from a nested dict."""
+              keys = {}
+              for k, v in obj.items():
+                  full_key = f'{prefix}.{k}' if prefix else k
+                  if isinstance(v, dict):
+                      keys.update(get_all_keys(v, full_key))
+                  else:
+                      keys[full_key] = v
+              return keys
+
+          def get_changed_files_since(date_str):
+              """Get files changed since a given date."""
+              try:
+                  result = subprocess.run(
+                      ['git', 'log', '--since', date_str, '--name-only',
+                       '--pretty=format:', '--', 'src/locales/en/*.json'],
+                      capture_output=True, text=True, check=True
+                  )
+                  files = set()
+                  for line in result.stdout.strip().split('\n'):
+                      if line and line.endswith('.json'):
+                          files.add(Path(line).name)
+                  return files
+              except subprocess.CalledProcessError:
+                  return set()
+
+          # Determine which JSON files to process
+          json_files = []
+          if scope == 'specific-files' and files_filter:
+              json_files = [f for f in files_filter if (en_dir / f).exists()]
+          elif scope == 'changed-since-date' and date_since:
+              json_files = list(get_changed_files_since(date_since))
+          else:
+              json_files = [f.name for f in en_dir.glob('*.json')]
+
+          # Build translation request manifest
+          manifest = {
+              'package_id': package_id,
+              'locale': locale,
+              'source_locale': 'en',
+              'generated_at': datetime.utcnow().isoformat() + 'Z',
+              'source_commit': commit_sha,
+              'scope': scope,
+              'scope_params': {
+                  'date_since': date_since if scope == 'changed-since-date' else None,
+                  'files': files_filter if scope == 'specific-files' else None,
+                  'domain': domain_filter if scope == 'domain' else None,
+              },
+              'files': [],
+              'statistics': {
+                  'total_keys': 0,
+                  'missing_keys': 0,
+                  'untranslated_keys': 0,
+                  'files_included': 0,
+              }
+          }
+
+          # Process each file
+          for json_file in sorted(json_files):
+              en_file = en_dir / json_file
+              locale_file = locale_dir / json_file
+
+              if not en_file.exists():
+                  continue
+
+              en_data = json.loads(en_file.read_text())
+              en_keys = get_all_keys(en_data)
+
+              if locale_file.exists():
+                  locale_data = json.loads(locale_file.read_text())
+                  locale_keys = get_all_keys(locale_data)
+              else:
+                  locale_data = {}
+                  locale_keys = {}
+
+              # Find missing/untranslated keys
+              file_manifest = {
+                  'file': json_file,
+                  'total_keys': len(en_keys),
+                  'missing_keys': [],
+                  'untranslated_keys': [],
+              }
+
+              for key, en_value in en_keys.items():
+                  # Apply domain filter if specified
+                  if scope == 'domain' and domain_filter:
+                      # Match either dot-notation domain or file prefix
+                      if not (key.startswith(domain_filter) or
+                              json_file.startswith(domain_filter.replace('.', '-'))):
+                          continue
+
+                  if key not in locale_keys:
+                      file_manifest['missing_keys'].append({
+                          'key': key,
+                          'source_text': en_value,
+                          'context': f'File: {json_file}',
+                      })
+                  elif locale_keys[key] == en_value:
+                      # Same as English - likely untranslated
+                      file_manifest['untranslated_keys'].append({
+                          'key': key,
+                          'source_text': en_value,
+                          'current_text': locale_keys[key],
+                          'context': f'File: {json_file}',
+                      })
+
+              # Only include files with work to do
+              if file_manifest['missing_keys'] or file_manifest['untranslated_keys']:
+                  manifest['files'].append(file_manifest)
+                  manifest['statistics']['total_keys'] += file_manifest['total_keys']
+                  manifest['statistics']['missing_keys'] += len(file_manifest['missing_keys'])
+                  manifest['statistics']['untranslated_keys'] += len(file_manifest['untranslated_keys'])
+                  manifest['statistics']['files_included'] += 1
+
+          # Write manifest
+          output_dir.mkdir(parents=True, exist_ok=True)
+          manifest_path = output_dir / 'manifest.json'
+          manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
+
+          # Write simplified translation request (for human translators)
+          request = {
+              'locale': locale,
+              'instructions': f'Please translate the following {manifest["statistics"]["missing_keys"]} keys from English to {locale}.',
+              'translations_needed': []
+          }
+
+          for file_info in manifest['files']:
+              for missing in file_info['missing_keys']:
+                  request['translations_needed'].append({
+                      'key': missing['key'],
+                      'file': file_info['file'],
+                      'english': missing['source_text'],
+                      'translation': '',  # To be filled by translator
+                  })
+              for untrans in file_info['untranslated_keys']:
+                  request['translations_needed'].append({
+                      'key': untrans['key'],
+                      'file': file_info['file'],
+                      'english': untrans['source_text'],
+                      'translation': '',  # To be filled by translator
+                  })
+
+          request_path = output_dir / 'translation-request.json'
+          request_path.write_text(json.dumps(request, indent=2, ensure_ascii=False))
+
+          # Write AI-optimized format (for Claude/GPT translation)
+          ai_format = {
+              'task': 'translation',
+              'source_language': 'English',
+              'target_language': locale,
+              'context': 'Web application UI strings for a secret sharing platform',
+              'guidelines': [
+                  'Preserve all template variables exactly as-is: {variable}, {0}, %{variable}',
+                  'Maintain consistent terminology across translations',
+                  'Keep translations concise - these are UI labels and messages',
+                  'Preserve HTML entities and special characters',
+                  'For pluralization, follow the target language conventions',
+              ],
+              'strings': []
+          }
+
+          for file_info in manifest['files']:
+              for missing in file_info['missing_keys']:
+                  ai_format['strings'].append({
+                      'id': f"{file_info['file']}:{missing['key']}",
+                      'source': missing['source_text'],
+                  })
+              for untrans in file_info['untranslated_keys']:
+                  ai_format['strings'].append({
+                      'id': f"{file_info['file']}:{untrans['key']}",
+                      'source': untrans['source_text'],
+                  })
+
+          ai_path = output_dir / 'ai-translation-request.json'
+          ai_path.write_text(json.dumps(ai_format, indent=2, ensure_ascii=False))
+
+          # Print summary
+          print(f"Generated manifest for {locale}:")
+          print(f"  - Files: {manifest['statistics']['files_included']}")
+          print(f"  - Missing keys: {manifest['statistics']['missing_keys']}")
+          print(f"  - Untranslated keys: {manifest['statistics']['untranslated_keys']}")
+
+          # Set outputs
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"missing_count={manifest['statistics']['missing_keys']}\n")
+              f.write(f"untranslated_count={manifest['statistics']['untranslated_keys']}\n")
+              f.write(f"files_count={manifest['statistics']['files_included']}\n")
+          PYTHON_SCRIPT
+
+      - name: Include reference files
+        env:
+          LOCALE: ${{ matrix.locale }}
+        run: |
+          # Copy English source files for reference
+          mkdir -p "output/${LOCALE}/reference/en"
+          cp -r ${LOCALES_DIR}/en/*.json "output/${LOCALE}/reference/en/"
+
+          # Copy current locale files
+          if [ -d "${LOCALES_DIR}/${LOCALE}" ]; then
+            mkdir -p "output/${LOCALE}/reference/${LOCALE}"
+            cp -r "${LOCALES_DIR}/${LOCALE}"/*.json "output/${LOCALE}/reference/${LOCALE}/" 2>/dev/null || true
+          fi
+
+          # Include translation guides
+          cp ${LOCALES_DIR}/UX-TRANSLATION-GUIDE.md "output/${LOCALE}/" 2>/dev/null || true
+          cp ${LOCALES_DIR}/SECURITY-TRANSLATION-GUIDE.md "output/${LOCALE}/" 2>/dev/null || true
+
+      - name: Create ZIP package
+        if: inputs.output_format == 'zip' || inputs.output_format == 'all'
+        env:
+          LOCALE: ${{ matrix.locale }}
+          PACKAGE_ID: ${{ needs.determine-locales.outputs.package_id }}
+        run: |
+          cd output
+          zip -r "${PACKAGE_ID}-${LOCALE}.zip" "${LOCALE}/"
+          mv "${PACKAGE_ID}-${LOCALE}.zip" ../
+          cd ..
+
+      - name: Upload locale artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: translation-package-${{ matrix.locale }}
+          path: |
+            output/${{ matrix.locale }}/
+            ${{ needs.determine-locales.outputs.package_id }}-${{ matrix.locale }}.zip
+          retention-days: 90
+
+  # ============================================================================
+  # Job 3: Aggregate packages and create release/issues
+  # ============================================================================
+  aggregate-and-publish:
+    name: Aggregate and Publish
+    needs: [determine-locales, generate-package]
+    if: always() && needs.determine-locales.outputs.locale_count != '0'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: translation-package-*
+
+      - name: Aggregate packages
+        id: aggregate
+        env:
+          PACKAGE_ID: ${{ needs.determine-locales.outputs.package_id }}
+          LOCALES: ${{ needs.determine-locales.outputs.locales }}
+        run: |
+          mkdir -p release
+
+          # Combine all locale packages into one master ZIP
+          cd artifacts
+          for dir in translation-package-*/; do
+            if [ -d "$dir" ]; then
+              # Copy individual ZIPs
+              find "$dir" -name "*.zip" -exec cp {} ../release/ \;
+            fi
+          done
+          cd ..
+
+          # Create combined package
+          cd artifacts
+          zip -r "../release/${PACKAGE_ID}-all-locales.zip" .
+          cd ..
+
+          # Generate summary JSON
+          python3 << 'PYTHON_SCRIPT'
+          import json
+          import os
+          from pathlib import Path
+
+          package_id = os.environ['PACKAGE_ID']
+          locales = os.environ['LOCALES'].split(',')
+
+          summary = {
+              'package_id': package_id,
+              'locales': [],
+              'totals': {
+                  'locales': 0,
+                  'missing_keys': 0,
+                  'untranslated_keys': 0,
+                  'files': 0,
+              }
+          }
+
+          artifacts_dir = Path('artifacts')
+          for locale in locales:
+              manifest_path = artifacts_dir / f'translation-package-{locale}' / locale / 'manifest.json'
+              if manifest_path.exists():
+                  manifest = json.loads(manifest_path.read_text())
+                  summary['locales'].append({
+                      'locale': locale,
+                      'missing_keys': manifest['statistics']['missing_keys'],
+                      'untranslated_keys': manifest['statistics']['untranslated_keys'],
+                      'files': manifest['statistics']['files_included'],
+                  })
+                  summary['totals']['locales'] += 1
+                  summary['totals']['missing_keys'] += manifest['statistics']['missing_keys']
+                  summary['totals']['untranslated_keys'] += manifest['statistics']['untranslated_keys']
+                  summary['totals']['files'] += manifest['statistics']['files_included']
+
+          Path('release/summary.json').write_text(json.dumps(summary, indent=2))
+
+          # Set outputs
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"total_missing={summary['totals']['missing_keys']}\n")
+              f.write(f"total_untranslated={summary['totals']['untranslated_keys']}\n")
+              f.write(f"total_locales={summary['totals']['locales']}\n")
+          PYTHON_SCRIPT
+
+      - name: Create GitHub Release
+        if: inputs.create_release && (inputs.output_format == 'zip' || inputs.output_format == 'all')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_ID: ${{ needs.determine-locales.outputs.package_id }}
+          TIMESTAMP: ${{ needs.determine-locales.outputs.timestamp }}
+          LOCALES: ${{ needs.determine-locales.outputs.locales }}
+          SCOPE: ${{ inputs.scope }}
+          TOTAL_MISSING: ${{ steps.aggregate.outputs.total_missing }}
+          TOTAL_LOCALES: ${{ steps.aggregate.outputs.total_locales }}
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          SERVER_URL: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          # Generate release notes
+          cat > release-notes.md << EOF
+          ## Translation Request Package
+
+          **Generated:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          **Source Commit:** ${COMMIT_SHA}
+          **Scope:** ${SCOPE}
+          **Locales:** ${TOTAL_LOCALES}
+          **Total Keys Needing Translation:** ${TOTAL_MISSING}
+
+          ### Included Locales
+
+          $(echo "$LOCALES" | tr ',' '\n' | while read locale; do echo "- \`$locale\`"; done)
+
+          ### Package Contents
+
+          Each locale package contains:
+          - \`manifest.json\` - Detailed manifest with all keys needing translation
+          - \`translation-request.json\` - Simplified format for human translators
+          - \`ai-translation-request.json\` - Optimized format for AI translation services
+          - \`reference/\` - Source English files and current locale files
+          - Translation guides (UX and Security)
+
+          ### How to Use
+
+          1. Download the package for your locale
+          2. Review \`translation-request.json\` for keys needing translation
+          3. Apply translations to the corresponding files in \`src/locales/<locale>/\`
+          4. Submit a PR referencing this release
+
+          ---
+          *Generated by [Translation Request Workflow](${SERVER_URL}/${REPOSITORY}/actions/runs/${RUN_ID})*
+          EOF
+
+          # Create release
+          gh release create "${PACKAGE_ID}" \
+            --title "Translation Request: ${TIMESTAMP}" \
+            --notes-file release-notes.md \
+            --prerelease \
+            release/*.zip release/summary.json
+
+          echo "Release created: ${PACKAGE_ID}"
+
+      - name: Create GitHub Issues (per locale)
+        if: inputs.output_format == 'github-issue' || inputs.output_format == 'all'
+        uses: actions/github-script@v7
+        env:
+          PACKAGE_ID: ${{ needs.determine-locales.outputs.package_id }}
+          SCOPE: ${{ inputs.scope }}
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const summary = JSON.parse(fs.readFileSync('release/summary.json', 'utf8'));
+            const packageId = process.env.PACKAGE_ID;
+            const scope = process.env.SCOPE;
+            const commitSha = process.env.COMMIT_SHA;
+            const runId = process.env.RUN_ID;
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
+
+            for (const localeInfo of summary.locales) {
+              const { locale, missing_keys, untranslated_keys, files } = localeInfo;
+
+              // Read the translation request for details
+              const requestPath = path.join('artifacts', `translation-package-${locale}`, locale, 'translation-request.json');
+              let request = { translations_needed: [] };
+              try {
+                request = JSON.parse(fs.readFileSync(requestPath, 'utf8'));
+              } catch (e) {
+                console.log(`Could not read request for ${locale}: ${e.message}`);
+              }
+
+              // Build issue body
+              const keysList = request.translations_needed.slice(0, 20).map(t => {
+                const truncatedEnglish = t.english.length > 100 ? t.english.substring(0, 100) + '...' : t.english;
+                return `- [ ] \`${t.key}\` (${t.file})\n  > ${truncatedEnglish}`;
+              }).join('\n');
+
+              const moreKeysNote = request.translations_needed.length > 20
+                ? `\n\n*... and ${request.translations_needed.length - 20} more keys. See full list in the attached package.*`
+                : '';
+
+              const body = `## Translation Request: \`${locale}\`
+
+            **Package ID:** \`${packageId}\`
+            **Scope:** ${scope}
+            **Generated:** ${new Date().toISOString()}
+            **Source Commit:** ${commitSha}
+
+            ### Summary
+
+            | Metric | Count |
+            |--------|-------|
+            | Missing Keys | ${missing_keys} |
+            | Untranslated Keys | ${untranslated_keys} |
+            | Files Affected | ${files} |
+
+            ### Keys Needing Translation
+
+            ${keysList}${moreKeysNote}
+
+            ### How to Contribute
+
+            1. Download the translation package from the [workflow run](${runUrl})
+            2. Translate the keys in \`translation-request.json\`
+            3. Apply translations to the corresponding files in \`src/locales/${locale}/\`
+            4. Submit a PR referencing this issue
+
+            ### Resources
+
+            - [UX Translation Guide](src/locales/UX-TRANSLATION-GUIDE.md)
+            - [Security Translation Guide](src/locales/SECURITY-TRANSLATION-GUIDE.md)
+
+            ---
+            *Auto-generated by Translation Request Workflow*`;
+
+              // Check if issue already exists for this locale/package
+              const existingIssues = await github.rest.issues.listForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: 'translation,locale:' + locale,
+                state: 'open',
+              });
+
+              if (existingIssues.data.length > 0) {
+                // Update existing issue
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: existingIssues.data[0].number,
+                  body: body,
+                });
+                console.log(`Updated issue #${existingIssues.data[0].number} for ${locale}`);
+              } else {
+                // Create new issue
+                const issue = await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: `[Translation] ${locale}: ${missing_keys} keys need translation`,
+                  body: body,
+                  labels: ['translation', `locale:${locale}`, 'help wanted'],
+                });
+                console.log(`Created issue #${issue.data.number} for ${locale}`);
+              }
+            }
+
+      - name: Upload aggregated artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: translation-packages-all
+          path: release/
+          retention-days: 90
+
+      - name: Summary
+        env:
+          PACKAGE_ID: ${{ needs.determine-locales.outputs.package_id }}
+          TOTAL_MISSING: ${{ steps.aggregate.outputs.total_missing }}
+          TOTAL_LOCALES: ${{ steps.aggregate.outputs.total_locales }}
+        run: |
+          echo "## Translation Request Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Package ID:** \`${PACKAGE_ID}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Locales Processed:** ${TOTAL_LOCALES}" >> $GITHUB_STEP_SUMMARY
+          echo "**Total Keys Needing Translation:** ${TOTAL_MISSING}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "release/summary.json" ]; then
+            echo "### Per-Locale Breakdown" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Locale | Missing | Untranslated | Files |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|---------|--------------|-------|" >> $GITHUB_STEP_SUMMARY
+            python3 -c "
+          import json
+          summary = json.load(open('release/summary.json'))
+          for loc in sorted(summary['locales'], key=lambda x: x['missing_keys'], reverse=True):
+              print(f\"| {loc['locale']} | {loc['missing_keys']} | {loc['untranslated_keys']} | {loc['files']} |\")
+          " >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # ============================================================================
+  # Job 4: Notify external services (optional integration)
+  # ============================================================================
+  notify-services:
+    name: Notify External Services
+    needs: [determine-locales, aggregate-and-publish]
+    if: always() && needs.determine-locales.outputs.locale_count != '0'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Download summary
+        uses: actions/download-artifact@v4
+        with:
+          name: translation-packages-all
+          path: release
+
+      - name: Webhook notification (if configured)
+        if: vars.TRANSLATION_WEBHOOK_URL != ''
+        env:
+          WEBHOOK_URL: ${{ vars.TRANSLATION_WEBHOOK_URL }}
+          WEBHOOK_SECRET: ${{ secrets.TRANSLATION_WEBHOOK_SECRET }}
+          PACKAGE_ID: ${{ needs.determine-locales.outputs.package_id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          # Send webhook notification to external TMS or translation service
+          PAYLOAD=$(cat release/summary.json)
+
+          curl -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-Webhook-Secret: ${WEBHOOK_SECRET}" \
+            -H "X-Package-ID: ${PACKAGE_ID}" \
+            -H "X-Repository: ${REPOSITORY}" \
+            -d "$PAYLOAD" \
+            --fail-with-body || echo "Webhook notification failed (non-fatal)"
+
+      - name: Log completion
+        env:
+          PACKAGE_ID: ${{ needs.determine-locales.outputs.package_id }}
+        run: |
+          echo "Translation request workflow completed successfully."
+          echo "Package ID: ${PACKAGE_ID}"

@@ -3,16 +3,16 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { useMetadata } from '@/shared/composables/useMetadata';
+  import { useReceipt } from '@/shared/composables/useReceipt';
   import { onMounted } from 'vue';
 
   interface Props {
-    metadataIdentifier: string;
+    receiptIdentifier: string;
   }
   const props = defineProps<Props>();
 
   const { t } = useI18n();
-  const { record, details, isLoading, passphrase, fetch, burn } = useMetadata(props.metadataIdentifier);
+  const { record, details, isLoading, passphrase, fetch, burn } = useReceipt(props.receiptIdentifier);
 
   onMounted(() => {
     fetch();
@@ -65,8 +65,8 @@
       <div class="flex flex-col gap-3 sm:flex-row">
         <!-- prettier-ignore-attribute class -->
         <router-link
-          v-if="record?.metadata_path"
-          :to="{ name: 'Receipt link', params: { metadataIdentifier: record.identifier } }"
+          v-if="record?.receipt_path"
+          :to="{ name: 'Receipt link', params: { receiptIdentifier: record.identifier } }"
           class="flex-1 rounded-lg
             bg-white px-4 py-2.5 text-center font-brand font-medium
             text-gray-700 shadow-sm transition
@@ -142,7 +142,7 @@
         </button>
         <!-- prettier-ignore-attribute class -->
         <a
-          :href="`/${record?.metadata_path}`"
+          :href="`/${record?.receipt_path}`"
           class="mx-auto block w-3/4 rounded bg-gray-200 px-4 py-2 text-center
             text-gray-700 transition duration-200 hover:bg-gray-300
             dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">

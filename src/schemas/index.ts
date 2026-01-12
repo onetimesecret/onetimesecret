@@ -60,7 +60,7 @@ export * from './errors/index';
 // Core domain models
 export * from './models/customer';
 export * from './models/feedback';
-export * from './models/metadata';
+export * from './models/receipt';
 export * from './models/secret';
 
 // Configuration schemas
@@ -82,13 +82,13 @@ export type {
 export type {
   AccountResponse,
   ApiTokenResponse,
-  MetadataResponse,
+  ReceiptResponse,
   SecretResponse,
 } from './api/v3/responses';
 
 export type { ColonelInfoDetails } from './api/account/endpoints/colonel';
 
 // Core model types
-export type { BaseModel, CustomDomain, Customer, Feedback, Metadata, Secret } from './models';
+export type { BaseModel, CustomDomain, Customer, Feedback, Receipt, Secret } from './models';
 
 export * from './i18n';

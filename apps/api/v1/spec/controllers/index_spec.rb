@@ -106,7 +106,7 @@ RSpec.xdescribe V1::Controllers::Index, type: :request do
         key: 'secret_key_123')
     end
     let(:metadata) do
-      double('Onetime::Metadata',
+      double('Onetime::Receipt',
         key: 'metadata_key_123',
         viewed!: nil)
     end

@@ -217,7 +217,7 @@ RSpec.describe Onetime::Secret, allow_redis: false do
       it 'creates linked secret and metadata objects' do
         metadata, secret = create_stubbed_onetime_secret_pair(custid: custid)
 
-        expect(metadata).to be_a(Onetime::Metadata)
+        expect(metadata).to be_a(Onetime::Receipt)
         expect(secret).to be_a(described_class)
         expect(metadata.secret_identifier).to eq(secret.identifier)
         expect(secret.metadata_identifier).to eq(metadata.identifier)

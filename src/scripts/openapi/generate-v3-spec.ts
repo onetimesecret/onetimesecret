@@ -26,7 +26,7 @@ import { concealPayloadSchema } from '@/schemas/api/v3/payloads/conceal';
 import { generatePayloadSchema } from '@/schemas/api/v3/payloads/generate';
 import { responseSchemas } from '@/schemas/api/v3/responses';
 import { secretSchema, secretDetailsSchema } from '@/schemas/models/secret';
-import { metadataSchema, metadataDetailsSchema } from '@/schemas/models/metadata';
+import { receiptSchema, receiptDetailsSchema } from '@/schemas/models/receipt';
 
 console.log('🔨 Generating OpenAPI Specification for V3 API...\n');
 
@@ -57,10 +57,10 @@ registry.register('ConcealPayload', concealPayloadSchema);
 registry.register('GeneratePayload', generatePayloadSchema);
 registry.register('Secret', secretSchema);
 registry.register('SecretDetails', secretDetailsSchema);
-registry.register('Metadata', metadataSchema);
-registry.register('MetadataDetails', metadataDetailsSchema);
+registry.register('Receipt', receiptSchema);
+registry.register('ReceiptDetails', receiptDetailsSchema);
 registry.register('SecretResponse', responseSchemas.secret);
-registry.register('MetadataResponse', responseSchemas.metadata);
+registry.register('ReceiptResponse', responseSchemas.receipt);
 registry.register('ConcealDataResponse', responseSchemas.concealData);
 
 // Error response schema
@@ -153,7 +153,7 @@ for (const route of v3Routes.routes) {
 
   // Map routes to request/response schemas
   let requestSchema: any;
-  let responseSchema: any = responseSchemas.metadata; // Default
+  let responseSchema: any = responseSchemas.receipt; // Default
 
   // POST /secret/conceal
   if (route.method === 'POST' && route.path === '/secret/conceal') {
@@ -250,7 +250,7 @@ for (const route of v3Routes.routes) {
           description: 'Recent receipts retrieved successfully',
           content: {
             'application/json': {
-              schema: z.array(responseSchemas.metadata)
+              schema: z.array(responseSchemas.receipt)
             }
           }
         },
@@ -274,7 +274,7 @@ for (const route of v3Routes.routes) {
           description: 'Recent private secrets retrieved successfully',
           content: {
             'application/json': {
-              schema: z.array(responseSchemas.metadata)
+              schema: z.array(responseSchemas.receipt)
             }
           }
         },
@@ -299,7 +299,7 @@ for (const route of v3Routes.routes) {
           description: 'Metadata retrieved successfully',
           content: {
             'application/json': {
-              schema: responseSchemas.metadata
+              schema: responseSchemas.receipt
             }
           }
         },

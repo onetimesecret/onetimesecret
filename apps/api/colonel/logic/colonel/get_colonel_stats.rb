@@ -32,7 +32,7 @@ module ColonelAPI
 
         def process_statistics
           @customer_count = Onetime::Customer.count
-          @metadata_count = Onetime::Metadata.count
+          @metadata_count = Onetime::Receipt.count
           @secret_count   = Onetime::Secret.count
         end
         private :process_statistics

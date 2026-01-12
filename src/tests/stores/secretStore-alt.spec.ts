@@ -10,7 +10,7 @@ import {
   mockSecretRecord,
   mockSecretResponse,
   mockSecretRevealed,
-} from '../fixtures/metadata.fixture';
+} from '../fixtures/receipt.fixture';
 import { setupTestPinia } from '../setup';
 import { setupWindowState, setupEmptyWindowState } from '../setupWindow';
 import AxiosMockAdapter from 'axios-mock-adapter';

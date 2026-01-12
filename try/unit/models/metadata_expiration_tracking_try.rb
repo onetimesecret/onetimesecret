@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 #
-# Unit tests for Metadata expiration tracking feature.
+# Unit tests for Receipt expiration tracking feature.
 # Tests cover:
 # - expiration_timeline sorted set operations
 # - warnings_sent set operations
@@ -21,91 +21,91 @@ OT.boot! :test
 @owner = Onetime::Customer.create!(email: "exptest_owner#{@test_suffix}@example.com")
 
 # Clear any existing test data from previous runs
-Onetime::Metadata.expiration_timeline.clear
-Onetime::Metadata.warnings_sent.clear
+Onetime::Receipt.expiration_timeline.clear
+Onetime::Receipt.warnings_sent.clear
 
-# Helper to create a test metadata with specific TTL
-def create_test_metadata(lifespan_seconds)
-  metadata, _secret = Onetime::Metadata.spawn_pair(
+# Helper to create a test receipt with specific TTL
+def create_test_receipt(lifespan_seconds)
+  receipt, _secret = Onetime::Receipt.spawn_pair(
     @owner.custid,
     lifespan_seconds,
     "test secret content #{rand(10000)}"
   )
-  metadata
+  receipt
 end
 
 # TRYOUTS
 
 ## expiration_timeline is a Familia::SortedSet
-Onetime::Metadata.expiration_timeline.class
+Onetime::Receipt.expiration_timeline.class
 #=> Familia::SortedSet
 
 ## warnings_sent is a Familia::UnsortedSet
-Onetime::Metadata.warnings_sent.class
+Onetime::Receipt.warnings_sent.class
 #=> Familia::UnsortedSet
 
 ## min_warning_ttl returns integer seconds
-Onetime::Metadata.min_warning_ttl.class
+Onetime::Receipt.min_warning_ttl.class
 #=> Integer
 
 ## min_warning_ttl defaults to 48 hours (172800 seconds) when not configured
 # Note: May vary based on test config, but should be positive
-Onetime::Metadata.min_warning_ttl > 0
+Onetime::Receipt.min_warning_ttl > 0
 #=> true
 
 ## register_for_expiration_notifications returns false for short TTL secrets
-# Create metadata with 1 hour TTL (below 48h minimum)
-short_lived = create_test_metadata(3600)
+# Create receipt with 1 hour TTL (below 48h minimum)
+short_lived = create_test_receipt(3600)
 # The method should have returned false (TTL too short)
-short_lived.secret_ttl.to_i < Onetime::Metadata.min_warning_ttl
+short_lived.secret_ttl.to_i < Onetime::Receipt.min_warning_ttl
 #=> true
 
 ## register_for_expiration_notifications returns true for long TTL secrets
-# Create metadata with 72 hour TTL (above 48h minimum)
-long_lived = create_test_metadata(259200)
+# Create receipt with 72 hour TTL (above 48h minimum)
+long_lived = create_test_receipt(259200)
 # Check it was registered
-Onetime::Metadata.expiration_timeline.member?(long_lived.identifier)
+Onetime::Receipt.expiration_timeline.member?(long_lived.identifier)
 #=> true
 
 ## expiring_within finds secrets in the time window
 # First add a test entry with known expiration
 @test_expiring_id = "test_expiring_#{rand(10000)}"
 future_time = Familia.now.to_f + 1800  # 30 minutes from now
-Onetime::Metadata.expiration_timeline.add(@test_expiring_id, future_time)
+Onetime::Receipt.expiration_timeline.add(@test_expiring_id, future_time)
 # Query for secrets expiring within 1 hour
-results = Onetime::Metadata.expiring_within(3600)
+results = Onetime::Receipt.expiring_within(3600)
 results.include?(@test_expiring_id)
 #=> true
 
 ## expiring_within excludes secrets outside the time window
 # The @test_expiring_id we added expires in 30 minutes
 # Query for secrets expiring within 10 minutes should NOT include it
-results = Onetime::Metadata.expiring_within(600)
+results = Onetime::Receipt.expiring_within(600)
 results.include?(@test_expiring_id)
 #=> false
 
-## warning_sent? returns false for new metadata
+## warning_sent? returns false for new receipt
 test_id2 = "test_warning_#{rand(10000)}"
-Onetime::Metadata.warning_sent?(test_id2)
+Onetime::Receipt.warning_sent?(test_id2)
 #=> false
 
 ## mark_warning_sent adds entry to warnings_sent set
 test_id3 = "test_mark_#{rand(10000)}"
-Onetime::Metadata.mark_warning_sent(test_id3)
-Onetime::Metadata.warning_sent?(test_id3)
+Onetime::Receipt.mark_warning_sent(test_id3)
+Onetime::Receipt.warning_sent?(test_id3)
 #=> true
 
 ## cleanup_expired_from_timeline removes old entries
 # Add an entry that "expired" 2 hours ago
 old_id = "test_old_#{rand(10000)}"
 past_time = Familia.now.to_f - 7200  # 2 hours ago
-Onetime::Metadata.expiration_timeline.add(old_id, past_time)
+Onetime::Receipt.expiration_timeline.add(old_id, past_time)
 # Verify it exists
-before_cleanup = Onetime::Metadata.expiration_timeline.member?(old_id)
+before_cleanup = Onetime::Receipt.expiration_timeline.member?(old_id)
 # Clean up entries older than 1 hour ago
-Onetime::Metadata.cleanup_expired_from_timeline(Familia.now.to_f - 3600)
+Onetime::Receipt.cleanup_expired_from_timeline(Familia.now.to_f - 3600)
 # Verify it was removed
-after_cleanup = Onetime::Metadata.expiration_timeline.member?(old_id)
+after_cleanup = Onetime::Receipt.expiration_timeline.member?(old_id)
 [before_cleanup, after_cleanup]
 #=> [true, false]
 
@@ -113,13 +113,13 @@ after_cleanup = Onetime::Metadata.expiration_timeline.member?(old_id)
 # Add a future entry
 future_id = "test_future_#{rand(10000)}"
 future_exp = Familia.now.to_f + 86400  # 24 hours from now
-Onetime::Metadata.expiration_timeline.add(future_id, future_exp)
+Onetime::Receipt.expiration_timeline.add(future_id, future_exp)
 # Clean up old entries
-Onetime::Metadata.cleanup_expired_from_timeline(Familia.now.to_f - 3600)
+Onetime::Receipt.cleanup_expired_from_timeline(Familia.now.to_f - 3600)
 # Future entry should still exist
-Onetime::Metadata.expiration_timeline.member?(future_id)
+Onetime::Receipt.expiration_timeline.member?(future_id)
 #=> true
 
 # Cleanup after tests
-Onetime::Metadata.expiration_timeline.clear
-Onetime::Metadata.warnings_sent.clear
+Onetime::Receipt.expiration_timeline.clear
+Onetime::Receipt.warnings_sent.clear

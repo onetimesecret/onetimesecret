@@ -23,18 +23,18 @@ module Onetime
           every(scheduler, '1m', first_in: '5s') do
             stats = collect_stats
             scheduler_logger.debug "[HeartbeatJob] #{Time.now.utc.iso8601} | " \
-                                   "secrets=#{stats[:secrets]} metadata=#{stats[:metadata]}"
+                                   "secrets=#{stats[:secrets]} receipts=#{stats[:receipts]}"
           end
         end
 
         def self.collect_stats
           {
             secrets: Onetime::Secret.count,
-            metadata: Onetime::Metadata.count,
+            receipts: Onetime::Receipt.count,
           }
         rescue StandardError => ex
           scheduler_logger.error "[HeartbeatJob] Failed to collect stats: #{ex.message}"
-          { secrets: -1, metadata: -1 }
+          { secrets: -1, receipts: -1 }
         end
       end
     end

@@ -265,7 +265,7 @@ module V2::Logic
       private
 
       def create_secret_pair
-        @metadata, @secret = Onetime::Metadata.spawn_pair(
+        @metadata, @secret = Onetime::Receipt.spawn_pair(
           cust&.objid, ttl, secret_value, passphrase: passphrase, domain: share_domain
         )
 

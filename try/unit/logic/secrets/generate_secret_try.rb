@@ -8,7 +8,7 @@
 # We test:
 # 1. Secret creation (ConcealSecret)
 # 2. Secret viewing (ShowSecret, RevealSecret)
-# 3. Secret metadata (ShowMetadata, ListMetadata)
+# 3. Secret receipts (ShowReceipt, ListReceipts)
 # 4. Secret deletion (BurnSecret)
 
 require_relative '../../../support/test_helpers'
@@ -25,8 +25,8 @@ OT.boot! :test, false
 @cust = Customer.create!(email: @email)
 @secret = Secret.new
 @secret.generate_id
-@metadata = Metadata.new
-@metadata.generate_id
+@receipt = Receipt.new
+@receipt.generate_id
 
 # ConcealSecret Tests
 
@@ -82,22 +82,22 @@ logic = V2::Logic::Secrets::RevealSecret.new @strategy_result_with_cust, @view_p
 [logic.identifier, logic.passphrase]
 #=> [@secret.identifier, 'testpass123']
 
-# ShowMetadata Tests
+# ShowReceipt Tests
 
-## metadata viewing
-logic = Logic::Secrets::ShowMetadata.new @strategy_result_with_cust, { 'identifier' => @metadata.identifier }
-[logic.instance_variables.include?(:@identifier), logic.instance_variables.include?(:@metadata_identifier), logic.instance_variables.include?(:@secret_identifier), logic.secret_identifier, logic.identifier]
-#=> [true, false, false, nil, @metadata.identifier]
+## receipt viewing
+logic = Logic::Secrets::ShowReceipt.new @strategy_result_with_cust, { 'identifier' => @receipt.identifier }
+[logic.instance_variables.include?(:@identifier), logic.instance_variables.include?(:@receipt_identifier), logic.instance_variables.include?(:@secret_identifier), logic.secret_identifier, logic.identifier]
+#=> [true, false, false, nil, @receipt.identifier]
 
-# ListMetadata Tests
+# ListReceipts Tests
 
 ## process_params is automatically run when params are passed (even empty hash)
-logic = Logic::Secrets::ListMetadata.new @strategy_result_with_cust, {}
+logic = Logic::Secrets::ListReceipts.new @strategy_result_with_cust, {}
 [logic.since.class, logic.now.class]
 #=> [Integer, Float]
 
-## metadata list viewing
-logic = Logic::Secrets::ListMetadata.new @strategy_result_with_cust, {}
+## receipt list viewing
+logic = Logic::Secrets::ListReceipts.new @strategy_result_with_cust, {}
 [logic.records.class, logic.since.class, logic.now.class]
 #=> [NilClass, Integer, Float]
 
@@ -111,4 +111,4 @@ logic = Logic::Secrets::BurnSecret.new @strategy_result_with_cust, @view_params
 # Cleanup test data
 @cust.delete!
 @secret.delete!
-@metadata.delete!
+@receipt.delete!

@@ -182,7 +182,7 @@ module Onetime
       def send_verification_email(_token = nil)
         msg = format("Thanks for verifying your account. We got you a secret fortune cookie!\n\n\"%s\"", OT::Utils.random_fortune)
 
-        _metadata, secret = Onetime::Metadata.spawn_pair(cust&.objid, 24.days, msg)
+        _receipt, secret = Onetime::Receipt.spawn_pair(cust&.objid, 24.days, msg)
 
         secret.verification = true
         secret.custid       = cust.custid

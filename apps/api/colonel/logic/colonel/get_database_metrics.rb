@@ -73,7 +73,7 @@ module ColonelAPI
                 # All model counts use O(1) ZCARD-based count via Familia instances
                 customers: Onetime::Customer.count,
                 secrets: Onetime::Secret.count,
-                metadata: Onetime::Metadata.count,
+                metadata: Onetime::Receipt.count,
               },
             },
           }

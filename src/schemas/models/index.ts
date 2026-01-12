@@ -17,4 +17,4 @@ export * from './secret';
  */
 export * from '../api/account/endpoints/account';
 export * from './domain/index';
-export * from './metadata';
+export * from './receipt';

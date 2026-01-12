@@ -3,7 +3,7 @@
 # frozen_string_literal: true
 
 require_relative 'models/features'
-require_relative 'models/metadata'
+require_relative 'models/receipt'
 require_relative 'models/secret'
 require_relative 'models/organization'
 require_relative 'models/organization_membership'

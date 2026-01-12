@@ -112,6 +112,9 @@ module V1
         end
         ret
       end
+
+      # Alias for backward compatibility
+      alias receipt_hsh metadata_hsh
     end
   end
 end

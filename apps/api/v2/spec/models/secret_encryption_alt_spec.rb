@@ -25,7 +25,7 @@ RSpec.describe Onetime::Secret, allow_redis: false do
 
   describe '.spawn_pair' do
     it 'creates a valid secret and metadata pair' do
-      expect(metadata).to be_a(Onetime::Metadata)
+      expect(metadata).to be_a(Onetime::Receipt)
       expect(secret).to be_a(described_class)
       expect(metadata.custid).to eq(customer_id)
       expect(secret.custid).to eq(customer_id)

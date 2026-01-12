@@ -72,7 +72,7 @@ module V1
 
       def show_metadata
         authorized(true) do
-          logic = V1::Logic::Secrets::ShowMetadata.new sess, cust, req.params, locale
+          logic = V1::Logic::Secrets::ShowReceipt.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
           secret = logic.metadata.load_secret
