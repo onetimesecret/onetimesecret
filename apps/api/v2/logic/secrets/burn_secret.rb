@@ -9,22 +9,22 @@ module V2::Logic
     class BurnSecret < V2::Logic::Base
       include Onetime::LoggerMethods
 
-      attr_reader :identifier, :passphrase, :continue, :metadata, :secret, :correct_passphrase, :greenlighted
+      attr_reader :identifier, :passphrase, :continue, :receipt, :secret, :correct_passphrase, :greenlighted
 
       def process_params
         @identifier = sanitize_identifier(params['identifier'])
-        @metadata   = Onetime::Receipt.load identifier
+        @receipt    = Onetime::Receipt.load identifier
         @passphrase = params['passphrase'].to_s
         @continue   = [true, 'true'].include?(params['continue'])
       end
 
       def raise_concerns
         require_entitlement!('api_access')
-        raise OT::MissingSecret if metadata.nil?
+        raise OT::MissingSecret if receipt.nil?
       end
 
       def process
-        potential_secret = @metadata.load_secret
+        potential_secret = @receipt.load_secret
 
         return unless potential_secret
 
@@ -35,7 +35,7 @@ module V2::Logic
 
         secret_logger.debug 'Secret burn initiated',
           {
-            metadata_identifier: metadata.identifier,
+            receipt_identifier: receipt.identifier,
             secret_identifier: potential_secret.shortid,
             viewable: viewable,
             has_passphrase: potential_secret.has_passphrase?,
@@ -54,7 +54,7 @@ module V2::Logic
           secret_logger.info 'Secret burned successfully',
             {
               secret_identifier: secret.shortid,
-              metadata_identifier: metadata.identifier,
+              receipt_identifier: receipt.identifier,
               owner_id: owner&.custid,
               user_id: cust&.custid,
               action: 'burn',
@@ -64,7 +64,7 @@ module V2::Logic
         elsif !correct_passphrase
           secret_logger.warn 'Burn failed - incorrect passphrase',
             {
-              metadata_identifier: metadata.identifier,
+              receipt_identifier: receipt.identifier,
               secret_identifier: potential_secret.shortid,
               user_id: cust&.custid,
               action: 'burn',
@@ -80,22 +80,22 @@ module V2::Logic
       end
 
       def success_data
-        # Get base metadata attributes
-        attributes = metadata.safe_dump
+        # Get base receipt attributes
+        attributes = receipt.safe_dump
 
         # Add required URL fields
         attributes.merge!(
           {
             # secret_state: 'burned',
-            natural_expiration: natural_duration(metadata.default_expiration.to_i),
-            expiration: (metadata.default_expiration.to_i + metadata.created.to_i),
-            expiration_in_seconds: metadata.default_expiration.to_i,
-            share_path: build_path(:secret, metadata.secret_identifier),
-            burn_path: build_path(:private, metadata.identifier, 'burn'),
-            metadata_path: build_path(:private, metadata.identifier),
-            share_url: build_url(baseuri, build_path(:secret, metadata.secret_identifier)),
-            metadata_url: build_url(baseuri, build_path(:private, metadata.identifier)),
-            burn_url: build_url(baseuri, build_path(:private, metadata.identifier, 'burn')),
+            natural_expiration: natural_duration(receipt.default_expiration.to_i),
+            expiration: (receipt.default_expiration.to_i + receipt.created.to_i),
+            expiration_in_seconds: receipt.default_expiration.to_i,
+            share_path: build_path(:secret, receipt.secret_identifier),
+            burn_path: build_path(:private, receipt.identifier, 'burn'),
+            metadata_path: build_path(:private, receipt.identifier), # maintain public API
+            share_url: build_url(baseuri, build_path(:secret, receipt.secret_identifier)),
+            metadata_url: build_url(baseuri, build_path(:private, receipt.identifier)), # maintain public API
+            burn_url: build_url(baseuri, build_path(:private, receipt.identifier, 'burn')),
           },
         )
 
@@ -113,9 +113,9 @@ module V2::Logic
             can_decrypt: false,
             show_secret: false,
             show_secret_link: false,
-            show_metadata_link: false,
-            show_metadata: true,
-            show_recipients: !metadata.recipients.to_s.empty?,
+            show_metadata_link: false, # maintain public API
+            show_metadata: true, # maintain public API
+            show_recipients: !receipt.recipients.to_s.empty?,
             is_orphaned: false,
           },
         }

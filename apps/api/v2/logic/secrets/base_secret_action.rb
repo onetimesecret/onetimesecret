@@ -19,7 +19,7 @@ module V2::Logic
         :recipient,
         :recipient_safe,
         :greenlighted,
-        :metadata,
+        :receipt,
         :secret,
         :share_domain,
         :custom_domain,
@@ -59,7 +59,7 @@ module V2::Logic
         {
           success: greenlighted,
           record: {
-            metadata: metadata.safe_dump,
+            metadata: receipt.safe_dump, # maintain public API
             secret: secret.safe_dump,
             share_domain: share_domain, # we return the value, but don't save it
           },
@@ -82,7 +82,7 @@ module V2::Logic
       end
 
       def redirect_uri
-        ['/receipt/', metadata.identifier].join
+        ['/receipt/', receipt.identifier].join
       end
 
       protected
@@ -265,11 +265,11 @@ module V2::Logic
       private
 
       def create_secret_pair
-        @metadata, @secret = Onetime::Receipt.spawn_pair(
+        @receipt, @secret = Onetime::Receipt.spawn_pair(
           cust&.objid, ttl, secret_value, passphrase: passphrase, domain: share_domain
         )
 
-        @greenlighted = metadata.valid? && secret.valid?
+        @greenlighted = receipt.valid? && secret.valid?
       end
 
       def handle_success
@@ -283,7 +283,7 @@ module V2::Logic
 
       def update_stats
         unless cust.anonymous?
-          cust.add_receipt metadata
+          cust.add_receipt receipt
           cust.increment_field :secrets_created
         end
         Onetime::Customer.secrets_created.increment
@@ -292,7 +292,7 @@ module V2::Logic
       def send_email_to_recipient
         return if recipient.nil? || recipient.empty?
 
-        metadata.deliver_by_email cust, locale, secret, recipient.first
+        receipt.deliver_by_email cust, locale, secret, recipient.first
       end
 
       # Determines which domain should be used for sharing.
