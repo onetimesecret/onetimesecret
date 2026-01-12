@@ -20,13 +20,29 @@ Examples:
 """
 
 import argparse
+import asyncio
 import json
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
 from utils import load_json_file, save_json_file, walk_keys
+
+# SDK imports - optional, allows --mock fallback
+try:
+    from claude_agent_sdk import (
+        AssistantMessage,
+        ClaudeAgentOptions,
+        ClaudeSDKError,
+        query,
+        ResultMessage,
+        TextBlock,
+    )
+    HAS_SDK = True
+except ImportError:
+    HAS_SDK = False
 
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
@@ -209,19 +225,129 @@ def mock_translate(tasks: list[TranslationTask], locale: str) -> list[dict]:
     return results
 
 
-def invoke_claude(_prompt: str, _locale: str) -> list[dict]:
-    """Invoke Claude to translate strings.
+def extract_json_from_response(text: str) -> list[dict]:
+    """Extract JSON array from Claude's response.
 
-    TODO: Implement actual Claude invocation.
-    For now, raises NotImplementedError.
+    Handles responses that may include markdown code blocks or extra text.
 
     Args:
-        _prompt: The translation prompt (unused until implemented).
-        _locale: Target locale code (unused until implemented).
+        text: Raw response text from Claude.
+
+    Returns:
+        Parsed list of translation dicts.
+
+    Raises:
+        ValueError: If no valid JSON array can be extracted.
     """
-    raise NotImplementedError(
-        "Claude invocation not yet implemented. Use --mock for testing."
+    # Try direct parse first
+    try:
+        result = json.loads(text.strip())
+        if isinstance(result, list):
+            return result
+    except json.JSONDecodeError:
+        pass
+
+    # Try extracting from markdown code block
+    code_block = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", text, re.DOTALL)
+    if code_block:
+        try:
+            result = json.loads(code_block.group(1).strip())
+            if isinstance(result, list):
+                return result
+        except json.JSONDecodeError:
+            pass
+
+    # Try finding JSON array pattern
+    array_match = re.search(r"\[\s*\{.*\}\s*\]", text, re.DOTALL)
+    if array_match:
+        try:
+            result = json.loads(array_match.group(0))
+            if isinstance(result, list):
+                return result
+        except json.JSONDecodeError:
+            pass
+
+    raise ValueError(f"Could not extract JSON array from response: {text[:200]}...")
+
+
+async def _invoke_claude_async(prompt: str, verbose: bool = False) -> list[dict]:
+    """Async implementation of Claude invocation.
+
+    Args:
+        prompt: The translation prompt.
+        verbose: Whether to show progress output.
+
+    Returns:
+        List of translation result dicts.
+
+    Raises:
+        RuntimeError: If SDK not available or Claude returns an error.
+    """
+    if not HAS_SDK:
+        raise RuntimeError(
+            "claude_agent_sdk not installed. Use --mock for testing, "
+            "or install with: pip install claude-agent-sdk"
+        )
+
+    options = ClaudeAgentOptions(
+        cwd=str(LOCALES_DIR),
+        allowed_tools=["Read"],  # May read guide files
+        max_turns=1,  # Single-turn translation task
     )
+
+    content_parts: list[str] = []
+    result_text = ""
+
+    try:
+        async for message in query(prompt=prompt, options=options):
+            if isinstance(message, AssistantMessage):
+                for block in message.content:
+                    if isinstance(block, TextBlock):
+                        content_parts.append(block.text)
+
+            elif isinstance(message, ResultMessage):
+                if verbose:
+                    cost = getattr(message, "cost_usd", 0) or 0
+                    duration = getattr(message, "duration_ms", 0) or 0
+                    print(f"  Cost: ${cost:.4f}, duration: {duration}ms")
+
+                if getattr(message, "is_error", False):
+                    error_msg = getattr(message, "result", "Unknown error")
+                    raise RuntimeError(f"Claude error: {error_msg}")
+
+                result_text = getattr(message, "result", "") or ""
+
+        # Use accumulated content if no result from ResultMessage
+        if not result_text and content_parts:
+            result_text = "".join(content_parts)
+
+        if not result_text:
+            raise RuntimeError("No response received from Claude")
+
+        return extract_json_from_response(result_text)
+
+    except ClaudeSDKError as e:
+        raise RuntimeError(f"Claude SDK error: {e}") from e
+
+
+def invoke_claude(prompt: str, locale: str, verbose: bool = False) -> list[dict]:
+    """Invoke Claude to translate strings.
+
+    Args:
+        prompt: The translation prompt.
+        locale: Target locale code (for error messages).
+        verbose: Whether to show progress output.
+
+    Returns:
+        List of translation result dicts with keys: key, english, translated.
+
+    Raises:
+        RuntimeError: If Claude invocation fails.
+    """
+    try:
+        return asyncio.run(_invoke_claude_async(prompt, verbose))
+    except Exception as e:
+        raise RuntimeError(f"Translation failed for {locale}: {e}") from e
 
 
 def process_translations(
@@ -398,8 +524,8 @@ Examples:
     else:
         print("Invoking Claude...")
         try:
-            translations = invoke_claude(prompt, args.locale)
-        except NotImplementedError as e:
+            translations = invoke_claude(prompt, args.locale, verbose=args.verbose)
+        except RuntimeError as e:
             print(f"Error: {e}", file=sys.stderr)
             return 1
 
