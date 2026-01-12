@@ -1,5 +1,6 @@
 """Pytest fixtures for translation service tests."""
 
+import json
 import sqlite3
 from pathlib import Path
 
@@ -70,3 +71,133 @@ def db_connection_with_data(hydrated_db_with_data: Path):
     conn.row_factory = sqlite3.Row
     yield conn
     conn.close()
+
+
+# ============================================================================
+# Locale fixtures for generate_tasks.py tests
+# ============================================================================
+
+@pytest.fixture
+def sample_en_locale(tmp_path: Path) -> Path:
+    """Create a temp directory with sample English JSON files.
+
+    Structure:
+        en/
+            auth.json - nested structure with login/signup keys
+            dashboard.json - flat structure
+    """
+    en_dir = tmp_path / "en"
+    en_dir.mkdir()
+
+    # auth.json - nested structure
+    auth_data = {
+        "web": {
+            "login": {
+                "button": "Sign In",
+                "title": "Welcome Back",
+                "_context": "Login page metadata (should be skipped)",
+            },
+            "signup": {
+                "button": "Create Account",
+                "title": "Join Us",
+            },
+        },
+    }
+    (en_dir / "auth.json").write_text(json.dumps(auth_data, indent=2))
+
+    # dashboard.json - simpler structure
+    dashboard_data = {
+        "web": {
+            "dashboard": {
+                "title": "Dashboard",
+                "welcome": "Welcome to your dashboard",
+            },
+        },
+    }
+    (en_dir / "dashboard.json").write_text(json.dumps(dashboard_data, indent=2))
+
+    return en_dir
+
+
+@pytest.fixture
+def sample_target_locale(tmp_path: Path) -> Path:
+    """Create a temp directory with partial translations.
+
+    Structure:
+        eo/
+            auth.json - partial translation (missing signup.title, empty signup.button)
+            # dashboard.json is missing entirely
+    """
+    eo_dir = tmp_path / "eo"
+    eo_dir.mkdir()
+
+    # auth.json - partial translation
+    auth_data = {
+        "web": {
+            "login": {
+                "button": "Ensaluti",
+                "title": "Bonvenon",
+            },
+            "signup": {
+                "button": "",  # Empty translation
+                # "title" is missing entirely
+            },
+        },
+    }
+    (eo_dir / "auth.json").write_text(json.dumps(auth_data, indent=2))
+
+    # Note: dashboard.json is intentionally missing
+
+    return eo_dir
+
+
+@pytest.fixture
+def mock_src_locales(tmp_path: Path) -> Path:
+    """Create a complete mock src/locales structure for testing.
+
+    Returns the base locales directory (tmp_path) which contains en/ and eo/.
+    """
+    # Create en/ directory with files
+    en_dir = tmp_path / "en"
+    en_dir.mkdir()
+
+    auth_data = {
+        "web": {
+            "login": {
+                "button": "Sign In",
+                "title": "Welcome",
+            },
+            "signup": {
+                "button": "Register",
+            },
+        },
+    }
+    (en_dir / "auth.json").write_text(json.dumps(auth_data, indent=2))
+
+    settings_data = {
+        "web": {
+            "settings": {
+                "title": "Settings",
+                "save": "Save Changes",
+            },
+        },
+    }
+    (en_dir / "settings.json").write_text(json.dumps(settings_data, indent=2))
+
+    # Create eo/ directory with partial files
+    eo_dir = tmp_path / "eo"
+    eo_dir.mkdir()
+
+    eo_auth_data = {
+        "web": {
+            "login": {
+                "button": "Ensaluti",
+                # "title" is missing
+            },
+            # "signup" section is missing entirely
+        },
+    }
+    (eo_dir / "auth.json").write_text(json.dumps(eo_auth_data, indent=2))
+    # settings.json is missing entirely
+
+    return tmp_path
