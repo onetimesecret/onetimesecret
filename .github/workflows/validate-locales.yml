@@ -2,12 +2,20 @@
 ---
 name: Validate Locale Files
 
-# Validates i18n locale files in pull requests to ensure:
+# Validation-focused workflow: ensures existing translations don't break.
+# Catches errors in translations that ARE present, NOT missing translations.
+# Missing key detection is handled separately by harmonization workflows.
+#
+# Validates:
 # 1. JSON syntax is valid
 # 2. Template variables ({var}, {0}, %{var}) match English exactly
 # 3. ERB format (email.json uses %{var} only)
 # 4. Security namespace (web.auth.security.*) has no forbidden patterns
-# 5. Key structure matches English (no orphaned/extra keys)
+# 5. No extra/orphaned keys that don't exist in English
+#
+# Out of scope (handled by harmonization):
+# - Keys present in English but missing from translations
+# - Translation completeness/coverage metrics
 #
 # Triggers on pull requests that modify locale files (src/locales/**/*.json)
 # Posts validation results as PR comment

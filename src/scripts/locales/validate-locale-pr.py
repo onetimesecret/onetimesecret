@@ -2,12 +2,21 @@
 """
 PR locale validation script - validates changed locale files in pull requests.
 
+Purpose:
+  Validation-focused: ensures existing translations don't break. This script
+  catches errors in translations that are present, NOT missing translations.
+  Missing key detection is handled separately by harmonization workflows.
+
 Validates:
 1. JSON syntax (prerequisite - fail fast)
 2. Template variables ({var}, {0}, %{var}) match English exactly
 3. ERB format (email.json must use %{var} only, not Vue {var})
 4. Security namespace (web.auth.security.*) forbidden patterns
-5. Key structure (no orphaned/extra keys vs English)
+5. Key structure (no extra/orphaned keys that don't exist in English)
+
+Out of scope (handled by harmonization):
+- Keys present in English but missing from translations
+- Translation completeness/coverage metrics
 
 Usage:
   validate-locale-pr.py                    # Validate changed files (git diff vs origin/develop)
