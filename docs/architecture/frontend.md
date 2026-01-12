@@ -3,7 +3,7 @@ labels: frontend, vue3, pinia, architecture
 ---
 # Frontend Architecture
 
-**Last Updated:** 2025-10-10
+**Last Updated:** 2026-01-11
 **Framework:** Vue 3.5 (Composition API)
 **State Management:** Pinia 3
 **Build Tool:** Vite 5.4
@@ -34,18 +34,18 @@ The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeSc
 3. Store Initialization
    Location: src/plugins/pinia/autoInitPlugin.ts
    - Pinia auto-init plugin calls store.init() if available
-   - Stores read from WindowService
-   - WindowService reads from window.__BOOTSTRAP_STATE__
+   - Stores read from bootstrapStore
+   - bootstrapStore reads from window.__BOOTSTRAP_STATE__
 
 4. Component Access
    Location: src/apps/**/components/**/*.vue, src/shared/components/**/*.vue
-   - Components use WindowService directly OR
+   - Components use bootstrapStore via storeToRefs()
    - Components use Pinia stores
    - Both sources read from window.__BOOTSTRAP_STATE__
 
 5. State Refresh (every 15 minutes)
    Location: src/shared/stores/authStore.ts
-   - checkWindowStatus() fetches /window endpoint
+   - checkWindowStatus() fetches /bootstrap/me endpoint
    - Updates entire window.__BOOTSTRAP_STATE__
    - Components using computed() react automatically
 ```
@@ -103,8 +103,12 @@ const { authenticated, cust, ui } = storeToRefs(bootstrapStore);
 
 **Store Pattern (Composition API):**
 ```typescript
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { storeToRefs } from 'pinia';
+
 export const useExampleStore = defineStore('example', () => {
   const $api = inject('api') as AxiosInstance;
+  const bootstrapStore = useBootstrapStore();
 
   // State
   const data = ref<string>('');
@@ -117,9 +121,9 @@ export const useExampleStore = defineStore('example', () => {
   function init(options?: StoreOptions) {
     if (_initialized.value) return;
 
-    // Read from window state via WindowService
-    const windowData = WindowService.get('property');
-    data.value = windowData;
+    // Read from window state via bootstrapStore
+    const { cust } = storeToRefs(bootstrapStore);
+    data.value = cust.value?.property ?? '';
 
     _initialized.value = true;
   }
@@ -225,13 +229,15 @@ router.beforeEach(async (to) => {
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { storeToRefs } from 'pinia';
 
 // i18n
 const { t } = useI18n();
 
-// Window state (reactive)
-const windowProps = computed(() => WindowService.getMultiple(['cust', 'authenticated']));
+// Bootstrap state (reactive via storeToRefs)
+const bootstrapStore = useBootstrapStore();
+const { authenticated, cust } = storeToRefs(bootstrapStore);
 
 // Local state
 const isOpen = ref(false);
@@ -256,19 +262,19 @@ function handleClick() {
 <template>
   <div v-if="props.enabled">
     <h1>{{ displayTitle }}</h1>
-    <p v-if="windowProps.authenticated">{{ windowProps.cust.email }}</p>
+    <p v-if="authenticated">{{ cust?.email }}</p>
     <button @click="handleClick">{{ t('toggle') }}</button>
   </div>
 </template>
 ```
 
 **Rules:**
--  Use `computed()` for WindowService access (reactive)
+-  Use `storeToRefs()` for bootstrapStore access (reactive)
 -  Use `$t()` for all text (i18n)
 -  Use Tailwind classes for styling
 -  Use TypeScript strict mode
 - L No hardcoded text
-- L No direct window state access (use WindowService)
+- L No direct window state access (use bootstrapStore)
 - L Max 100 characters per line
 
 ## API Client
@@ -420,14 +426,19 @@ pnpm run preview
 
 ## Key Patterns
 
-### Reactive Window State
-Use `computed()` to make window state reactive:
+### Reactive Bootstrap State
+Use `storeToRefs()` to make bootstrap state reactive:
 ```typescript
-//  Reactive - updates when window state changes
-const windowProps = computed(() => WindowService.get('cust'));
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { storeToRefs } from 'pinia';
 
-// L Static - won't update
-const windowProps = WindowService.get('cust');
+const bootstrapStore = useBootstrapStore();
+
+//  Reactive - updates when bootstrap state changes
+const { cust, authenticated } = storeToRefs(bootstrapStore);
+
+// L Static - won't update (avoid this pattern)
+const cust = bootstrapStore.cust;
 ```
 
 ### Store Initialization

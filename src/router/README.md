@@ -89,11 +89,11 @@ Key Points:
 - App.vue merges window properties with route props
 - Layouts receive combined props object
 - Child components receive subset of props
-- WindowService accessed at App.vue and some components
+- bootstrapStore accessed via Pinia
 
 ```
 Router Config                        Window Properties
-(meta.layoutProps)                   (WindowService)
+(meta.layoutProps)                   (bootstrapStore)
        │                                   │
        │                                   │
        ▼                                   ▼
