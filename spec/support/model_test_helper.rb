@@ -117,9 +117,6 @@ module ModelTestHelper
     receipt
   end
 
-  # Backward compatibility alias
-  alias create_stubbed_metadata create_stubbed_receipt
-
   # Creates a linked pair of Onetime::Secret and Onetime::Receipt
   def create_stubbed_secret_pair(attributes = {})
     # Extract and separate receipt and secret attributes
@@ -259,9 +256,6 @@ module ModelTestHelper
 
     receipt
   end
-
-  # Backward compatibility alias
-  alias create_stubbed_onetime_metadata create_stubbed_onetime_receipt
 
   # Creates a linked pair of Onetime::Secret and Onetime::Receipt
   def create_stubbed_onetime_secret_pair(attributes = {})

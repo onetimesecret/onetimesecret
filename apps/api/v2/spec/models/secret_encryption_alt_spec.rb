@@ -30,7 +30,7 @@ RSpec.describe Onetime::Secret, allow_redis: false do
       expect(metadata.custid).to eq(customer_id)
       expect(secret.custid).to eq(customer_id)
       expect(metadata.secret_identifier).to eq(secret.identifier)
-      expect(secret.metadata_identifier).to eq(metadata.identifier)
+      expect(secret.receipt_identifier).to eq(metadata.identifier)
     end
 
     it 'generates unique identifiers for each pair' do
@@ -150,8 +150,8 @@ RSpec.describe Onetime::Secret, allow_redis: false do
       lifecycle_secret.encrypt_value(secret_value)
       # Use proper Time.now.utc mocking
       allow(Time).to receive_message_chain(:now, :utc).and_return(mock_time)
-      # Make load_metadata return the related metadata object
-      allow(lifecycle_secret).to receive(:load_metadata).and_return(lifecycle_metadata)
+      # Make load_receipt return the related receipt object
+      allow(lifecycle_secret).to receive(:load_receipt).and_return(lifecycle_metadata)
     end
 
     it 'transitions from new to received' do

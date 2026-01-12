@@ -87,6 +87,5 @@ module Onetime
     def load_receipt
       Onetime::Receipt.load receipt_identifier
     end
-    alias load_metadata load_receipt # backward compatibility
   end
 end

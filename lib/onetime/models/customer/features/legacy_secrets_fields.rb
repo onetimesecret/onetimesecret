@@ -24,12 +24,10 @@ module Onetime::Customer::Features
           OT.le "[receipts_list] Error: #{ex.message} (#{key} / #{custid})"
         end.compact
       end
-      alias metadata_list receipts_list # backward compatibility
 
       def add_receipt(obj)
         receipts.add obj.identifier
       end
-      alias add_metadata add_receipt # backward compatibility
     end
   end
 end

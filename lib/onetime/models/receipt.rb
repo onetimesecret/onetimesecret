@@ -75,7 +75,6 @@ module Onetime
       # provide the receipt page even after the secret is gone.
       (secret_ttl.to_i * 2) if secret_ttl.to_i > 0
     end
-    alias metadata_ttl receipt_ttl # backward compatibility
     alias expiration_in_seconds receipt_ttl
 
     def expiration

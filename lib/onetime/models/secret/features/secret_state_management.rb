@@ -52,7 +52,7 @@ module Onetime::Secret::Features
         # we don't support going from :viewed back to something else.
         return unless state?(:new) || state?(:viewed)
 
-        md               = load_metadata
+        md               = load_receipt
         md.received! unless md.nil?
         # It's important for the state to change here, even though we're about to
         # destroy the secret. This is because the state is used to determine if
@@ -80,7 +80,7 @@ module Onetime::Secret::Features
         # we don't support going from :burned back to something else.
         return unless state?(:new) || state?(:viewed)
 
-        md               = load_metadata
+        md               = load_receipt
         md.burned! unless md.nil?
         @passphrase_temp = nil
         destroy!

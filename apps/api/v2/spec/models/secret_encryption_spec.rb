@@ -220,17 +220,17 @@ RSpec.describe Onetime::Secret, allow_redis: false do
         expect(metadata).to be_a(Onetime::Receipt)
         expect(secret).to be_a(described_class)
         expect(metadata.secret_identifier).to eq(secret.identifier)
-        expect(secret.metadata_identifier).to eq(metadata.identifier)
+        expect(secret.receipt_identifier).to eq(metadata.identifier)
         expect(metadata.custid).to eq(custid)
         expect(secret.custid).to eq(custid)
       end
     end
 
     describe 'state transitions' do
-      let(:metadata) { create_stubbed_onetime_metadata(state: 'new') }
+      let(:metadata) { create_stubbed_onetime_receipt(state: 'new') }
       let(:secret) do
         create_stubbed_onetime_secret(
-          metadata_identifier: metadata.identifier,
+          receipt_identifier: metadata.identifier,
           state: 'new',
         )
       end
@@ -239,8 +239,8 @@ RSpec.describe Onetime::Secret, allow_redis: false do
         # Setup linked objects
         metadata.secret_identifier = secret.identifier
 
-        # Mock the load_metadata method
-        allow(secret).to receive(:load_metadata).and_return(metadata)
+        # Mock the load_receipt method
+        allow(secret).to receive(:load_receipt).and_return(metadata)
 
         # Encrypt the test value
         secret.encrypt_value(secret_value)

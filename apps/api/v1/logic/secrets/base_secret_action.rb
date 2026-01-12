@@ -254,7 +254,7 @@ module V1::Logic
 
       def update_stats
         unless cust.anonymous?
-          cust.add_metadata metadata
+          cust.add_receipt metadata
           cust.increment_field :secrets_created # cust.secrets_created.increment
         end
         # TODO:
