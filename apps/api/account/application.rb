@@ -22,7 +22,7 @@ module AccountAPI
   #
   # - Account management (profile, password, API tokens)
   # - Domain management (custom domains, branding)
-  # - User's secret metadata (receipt/private endpoints)
+  # - User's secret receipts (private endpoints)
   # - Colonel/admin endpoints
   #
   # ## Architecture

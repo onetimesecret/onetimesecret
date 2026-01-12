@@ -25,7 +25,7 @@ module V3
       # @example Response
       #   {
       #     success: true,
-      #     record: { metadata: {...}, secret: {...} },
+      #     record: { receipt: {...}, secret: {...} },
       #     details: { memo: "...", recipient: "abc123..." }
       #   }
       #
@@ -105,7 +105,7 @@ module V3
           {
             success: greenlighted,
             record: {
-              metadata: receipt.safe_dump, # maintain public API
+              receipt: receipt.safe_dump,
               secret: secret.safe_dump,
             },
             details: {
@@ -161,11 +161,11 @@ module V3
           # The implementation should:
           # 1. Create OT::Mail::IncomingSecretNotification class
           # 2. Create templates/mail/incoming_secret_notification.html template
-          # 3. Call metadata.deliver_by_email with the appropriate parameters
+          # 3. Call receipt.deliver_by_email with the appropriate parameters
           #
           # Example of intended implementation:
           #   klass = OT::Mail::IncomingSecretNotification
-          #   metadata.deliver_by_email(cust, locale, secret, recipient_email, klass)
+          #   receipt.deliver_by_email(cust, locale, secret, recipient_email, klass)
           #
           # For now, we log the event but don't send the email.
 

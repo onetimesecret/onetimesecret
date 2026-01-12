@@ -5,7 +5,7 @@
 # V3 Secret Logic Classes
 #
 # Inherits from V2 logic but uses JSON-type serialization via V3::Logic::Base.
-# Includes all secret operations (create, reveal, metadata, burn).
+# Includes all secret operations (create, reveal, receipt, burn).
 # No business logic changes needed - only serialization format differs.
 #
 # Guest route gating is enforced for operations that support anonymous access:
@@ -22,8 +22,26 @@ require_relative 'base'
 module V3
   module Logic
     module Secrets
+      # V3 uses modern "receipt" terminology exclusively.
+      # This module removes the legacy "metadata" key from V2 responses.
+      module ModernResponseFormat
+        def success_data
+          data = super
+          return data unless data.is_a?(Hash)
+
+          # Remove legacy "metadata" key from record (V3 uses "receipt" only)
+          if data[:record].is_a?(Hash)
+            data[:record].delete(:metadata)
+            data[:record].delete('metadata')
+          end
+
+          data
+        end
+      end
+
       # Conceal a secret (create from user-provided value)
       class ConcealSecret < V2::Logic::Secrets::ConcealSecret
+        include ModernResponseFormat
         include Onetime::Logic::GuestRouteGating
 
         def raise_concerns
@@ -34,6 +52,7 @@ module V3
 
       # Generate a secret (create from system-generated value)
       class GenerateSecret < V2::Logic::Secrets::GenerateSecret
+        include ModernResponseFormat
         include Onetime::Logic::GuestRouteGating
 
         def raise_concerns
@@ -86,7 +105,7 @@ module V3
         end
       end
 
-      # Show secret metadata without revealing value
+      # Show secret receipt without revealing value
       class ShowSecret < V2::Logic::Secrets::ShowSecret
         include Onetime::Logic::GuestRouteGating
 
