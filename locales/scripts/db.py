@@ -12,6 +12,7 @@ Three-tier architecture:
 
 Usage:
     python db.py hydrate [--from-json] [--force]
+    python db.py migrate                           # Apply schema updates
     python db.py query "SELECT ..." [--hydrate] [--json]
 """
 
@@ -44,6 +45,61 @@ def get_connection() -> Iterator[sqlite3.Connection]:
         yield conn
     finally:
         conn.close()
+
+
+# Schema versions - add new entries when schema changes
+SCHEMA_VERSIONS = [
+    ("001", "initial_tables"),
+    ("002", "level_tasks"),
+    ("003", "glossary"),
+]
+
+
+def migrate_schema() -> None:
+    """Apply schema updates to existing database.
+
+    Runs schema.sql which uses CREATE TABLE IF NOT EXISTS,
+    so it safely adds new tables without affecting existing ones.
+    Tracks applied migrations in schema_migrations table.
+    """
+    if not SCHEMA_FILE.exists():
+        raise FileNotFoundError(f"Schema file not found: {SCHEMA_FILE}")
+
+    if not DB_FILE.exists():
+        print(f"Database does not exist: {DB_FILE}")
+        print("Use 'python db.py hydrate' to create it first.")
+        return
+
+    schema = SCHEMA_FILE.read_text(encoding="utf-8")
+
+    with get_connection() as conn:
+        # Apply schema (idempotent due to IF NOT EXISTS)
+        conn.executescript(schema)
+
+        # Check which versions are already recorded
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT version FROM schema_migrations"
+        )
+        applied = {row[0] for row in cursor.fetchall()}
+
+        # Record any missing versions
+        new_versions = []
+        for version, name in SCHEMA_VERSIONS:
+            if version not in applied:
+                cursor.execute(
+                    "INSERT INTO schema_migrations (version, name) VALUES (?, ?)",
+                    (version, name),
+                )
+                new_versions.append(f"{version}_{name}")
+
+        conn.commit()
+
+    print(f"Schema applied to: {DB_FILE}")
+    if new_versions:
+        print(f"New migrations recorded: {', '.join(new_versions)}")
+    else:
+        print("Schema is up to date.")
 
 
 def hydrate_from_json(force: bool = False) -> None:
@@ -259,6 +315,7 @@ def main() -> None:
 Examples:
     python db.py hydrate --from-json        # Create database from JSON files
     python db.py hydrate --from-json -f     # Recreate database
+    python db.py migrate                    # Apply schema updates (add new tables)
     python db.py query "SELECT * FROM translation_tasks"
     python db.py query --hydrate "SELECT * FROM translation_tasks"
     python db.py query --json "SELECT locale, status, COUNT(*) FROM translation_tasks GROUP BY locale, status"
@@ -278,6 +335,11 @@ Examples:
     hydrate_parser.add_argument(
         "--force", "-f", action="store_true",
         help="Delete existing database and recreate"
+    )
+
+    # migrate subcommand
+    subparsers.add_parser(
+        "migrate", help="Apply schema updates to existing database"
     )
 
     # query subcommand
@@ -301,6 +363,8 @@ Examples:
     try:
         if args.command == "hydrate":
             hydrate_from_json(force=args.force)
+        elif args.command == "migrate":
+            migrate_schema()
         elif args.command == "query":
             query(
                 args.sql,

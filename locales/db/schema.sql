@@ -1,3 +1,10 @@
+-- Schema version tracking
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version TEXT PRIMARY KEY,         -- e.g., '001', '002'
+    name TEXT NOT NULL,               -- Human-readable name
+    applied_at TEXT DEFAULT (datetime('now'))
+);
+
 -- Legacy per-key task table (used by hydrate_from_json for historical data)
 CREATE TABLE IF NOT EXISTS translation_tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
