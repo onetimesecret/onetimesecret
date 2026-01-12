@@ -436,21 +436,3 @@ export const mockSecretDetails = {
   display_lines: 1,
   one_liner: true,
 };
-
-// Legacy aliases for backward compatibility during migration
-export const mockMetadataRecordRaw = mockReceiptRecordRaw;
-export const mockMetadataRecord = mockReceiptRecord;
-export const mockMetadataDetailsRaw = mockReceiptDetailsRaw;
-export const mockMetadataDetails = mockReceiptDetails;
-export const mockBurnedMetadataRecordRaw = mockBurnedReceiptRecordRaw;
-export const mockBurnedMetadataRecord = mockBurnedReceiptRecord;
-export const mockBurnedMetadataDetailsRaw = mockBurnedReceiptDetailsRaw;
-export const mockBurnedMetadataDetails = mockBurnedReceiptDetails;
-export const mockReceivedMetadataRecord = mockReceivedReceiptRecord;
-export const mockReceivedMetadataDetails = mockReceivedReceiptDetails;
-export const mockOrphanedMetadataRecord = mockOrphanedReceiptRecord;
-export const mockOrphanedMetadataDetails = mockOrphanedReceiptDetails;
-export const createMetadataWithPassphrase = createReceiptWithPassphrase;
-export const mockMetadataRecentRecords = mockReceiptRecentRecords;
-export const mockMetadataRecentDetails = mockReceiptRecentDetails;
-export const mockMetadataRecent = mockReceiptRecent;

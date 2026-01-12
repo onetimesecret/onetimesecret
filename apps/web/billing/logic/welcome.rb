@@ -170,7 +170,7 @@ module Billing
             OT::Utils.random_fortune,
           )
 
-          _metadata, secret = Onetime::Metadata.spawn_pair(customer.objid, 24.days, msg)
+          _receipt, secret = Onetime::Receipt.spawn_pair(customer.objid, 24.days, msg)
 
           secret.verification = true
           secret.custid       = customer.custid

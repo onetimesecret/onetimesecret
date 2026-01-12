@@ -157,7 +157,7 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
         // Default navigation to success view
         await router.push({
           name: 'IncomingSuccess',
-          params: { metadataKey: response.record.metadata.key },
+          params: { receiptKey: response.record.metadata.key },
         });
       }
 

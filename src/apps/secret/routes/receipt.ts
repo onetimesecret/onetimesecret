@@ -62,7 +62,7 @@ const withValidatedReceiptKey = {
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/private/:receiptIdentifier',
-    name: 'Metadata link',
+    name: 'Private link',
     component: ShowReceipt,
     ...withValidatedReceiptKey,
     meta: {

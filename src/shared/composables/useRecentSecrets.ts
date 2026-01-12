@@ -4,7 +4,7 @@ import type { ApplicationError } from '@/schemas/errors';
 import type { ReceiptRecords } from '@/schemas/api/account/endpoints/recent';
 import type { ConcealedMessage } from '@/types/ui/concealed-message';
 import { useAuthStore } from '@/shared/stores/authStore';
-import { useConcealedMetadataStore } from '@/shared/stores/concealedMetadataStore';
+import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
 import { useReceiptListStore } from '@/shared/stores/receiptListStore';
 import { useNotificationsStore } from '@/shared/stores/notificationsStore';
 import { storeToRefs } from 'pinia';
@@ -80,7 +80,7 @@ function transformLocalRecord(message: ConcealedMessage): RecentSecretRecord {
 
   return {
     id: message.id,
-    extid: message.metadata_identifier,
+    extid: message.receipt_identifier,
     shortid,
     secretExtid: message.secret_identifier,
     hasPassphrase: message.clientInfo.hasPassphrase,
@@ -132,7 +132,7 @@ function transformApiRecord(record: ReceiptRecords): RecentSecretRecord {
  * Internal composable for local storage source (guests/unauthenticated users)
  */
 function useLocalRecentSecrets() {
-  const store = useConcealedMetadataStore();
+  const store = useConcealedReceiptStore();
   const { concealedMessages, workspaceMode, hasMessages } = storeToRefs(store);
 
   // Transform local messages to unified format
@@ -219,7 +219,7 @@ function useApiRecentSecrets(
  * Composable for managing recent secrets display.
  *
  * Abstracts the data source based on authentication state:
- * - Guest users: Uses sessionStorage via concealedMetadataStore
+ * - Guest users: Uses sessionStorage via concealedReceiptStore
  * - Authenticated users: Uses API via receiptListStore
  *
  * Security: When authenticated, data is always fetched from the API.

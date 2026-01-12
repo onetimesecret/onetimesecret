@@ -14,7 +14,7 @@
   import TransactionalHeader from '@/shared/components/layout/TransactionalHeader.vue';
   import BaseLayout from '@/shared/layouts/BaseLayout.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { useDomainsStore, useMetadataListStore } from '@/shared/stores';
+  import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
   import { storeToRefs } from 'pinia';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, onMounted } from 'vue';
@@ -33,13 +33,13 @@
   const { authenticated, domains_enabled: domainsEnabled } = storeToRefs(bootstrapStore);
 
   // Store instances for centralized data loading (for authenticated view)
-  const metadataListStore = useMetadataListStore();
+  const receiptListStore = useReceiptListStore();
   const domainsStore = useDomainsStore();
 
   // Load stores when authenticated (needed for workspace footer mobile nav)
   onMounted(() => {
     if (authenticated.value) {
-      metadataListStore.refreshRecords(true);
+      receiptListStore.refreshRecords(true);
       if (domainsEnabled) {
         domainsStore.refreshRecords(true);
       }

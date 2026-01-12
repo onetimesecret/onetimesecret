@@ -11,7 +11,7 @@
   import ManagementHeader from '@/shared/components/layout/ManagementHeader.vue';
   import TestModeBanner from '@/shared/components/ui/TestModeBanner.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { useDomainsStore, useMetadataListStore } from '@/shared/stores';
+  import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
   import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
   import type { ImprovedLayoutProps } from '@/types/ui/layouts';
   import { storeToRefs } from 'pinia';
@@ -33,7 +33,7 @@
   });
 
   // Store instances for centralized data loading
-  const metadataListStore = useMetadataListStore();
+  const receiptListStore = useReceiptListStore();
   const domainsStore = useDomainsStore();
   const bootstrapStore = useBootstrapStore();
   const { domains_enabled } = storeToRefs(bootstrapStore);
@@ -43,7 +43,7 @@
 
   // Centralize store refreshing to avoid duplicate API calls from header and footer
   onMounted(() => {
-    metadataListStore.refreshRecords(true);
+    receiptListStore.refreshRecords(true);
     if (domains_enabled.value) {
       domainsStore.refreshRecords(true);
     }

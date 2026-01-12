@@ -236,7 +236,7 @@ module V1::Logic
       #
       # IMPORTANT: Uses cust.objid (non-PII identifier) NOT cust.custid (email).
       # The legacy custid field stored email addresses; owner_id stores objid.
-      # See: Onetime::Receipt.spawn_pair in lib/onetime/models/metadata.rb
+      # See: Onetime::Receipt.spawn_pair in lib/onetime/models/receipt.rb
       #
       def create_secret_pair
         @metadata, @secret = Onetime::Receipt.spawn_pair(

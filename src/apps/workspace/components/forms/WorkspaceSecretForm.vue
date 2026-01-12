@@ -19,7 +19,7 @@
   import { useDomainScope } from '@/shared/composables/useDomainScope';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { useConcealedMetadataStore } from '@/shared/stores/concealedMetadataStore';
+  import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
   import { storeToRefs } from 'pinia';
   import {
     DEFAULT_CORNER_CLASS,
@@ -57,7 +57,7 @@
     (e: 'created', response: ConcealedMessage): void;
   }>();
 
-  const concealedMetadataStore = useConcealedMetadataStore();
+  const concealedReceiptStore = useConcealedReceiptStore();
 
   // Get global defaults
   const bootstrapStore = useBootstrapStore();
@@ -103,7 +103,7 @@
         if (!response) throw 'Response is missing';
         const newMessage: ConcealedMessage = {
           id: nanoid(),
-          metadata_identifier: response.record.metadata.identifier,
+          receipt_identifier: response.record.metadata.identifier,
           secret_identifier: response.record.secret.identifier,
           response,
           clientInfo: {
@@ -113,7 +113,7 @@
           },
         };
         // Add the message to the store
-        concealedMetadataStore.addMessage(newMessage);
+        concealedReceiptStore.addMessage(newMessage);
 
         // Preserve TTL before reset (sticky setting)
         const preservedTtl = form.ttl;
@@ -128,8 +128,8 @@
         emit('created', newMessage);
 
         // Navigate to receipt page if workspace mode is off
-        if (!concealedMetadataStore.workspaceMode) {
-          router.push(`/private/${newMessage.metadata_identifier}`);
+        if (!concealedReceiptStore.workspaceMode) {
+          router.push(`/private/${newMessage.receipt_identifier}`);
         }
       },
     });

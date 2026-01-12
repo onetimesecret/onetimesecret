@@ -21,9 +21,9 @@ module ColonelAPI
           @secret = Onetime::Secret.load(secret_id)
           raise_not_found('Secret not found') unless secret&.exists?
 
-          # Load associated metadata
-          if secret.metadata_identifier
-            @metadata = Onetime::Receipt.load(secret.metadata_identifier)
+          # Load associated receipt
+          if secret.receipt_identifier
+            @metadata = Onetime::Receipt.load(secret.receipt_identifier)
           end
 
           # Load owner
@@ -48,7 +48,7 @@ module ColonelAPI
               expiration: secret.expiration,
               age: secret.age,
               owner_id: secret.owner_id,
-              metadata_id: secret.metadata_identifier,
+              receipt_id: secret.receipt_identifier,
               has_ciphertext: !secret.ciphertext.to_s.empty?,
               ciphertext_length: secret.ciphertext.to_s.length,
             },

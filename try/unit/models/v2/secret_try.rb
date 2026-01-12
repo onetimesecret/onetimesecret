@@ -84,15 +84,8 @@ receipt.viewed!
 [receipt.viewed, receipt.state]
 #=> [Familia.now.to_i, 'viewed']
 
-# NOTE: The received method has been removed from the Secret model
-## Can set shared secret to viewed state
-#metadata, secret = Onetime::Metadata.spawn_pair 'anon', 3600, 'test secret'
-#metadata.save && secret.save
-#secret.received!
-# NOTE: The secret no longer keeps a reference to the metadata
-##metadata = secret.load_metadata
-#[metadata.shared, metadata.state, secret.received, secret.state]
-###=> [Familia.now.to_i, 'shared', Familia.now.to_i, 'received']
+# NOTE: The received method has been removed from the Secret model.
+# The secret no longer keeps a reference to the receipt.
 
 # NOTE: view_count functionality has been removed from Secret model
 # These tests are commented out for now

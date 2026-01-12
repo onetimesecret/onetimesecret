@@ -11,8 +11,8 @@
   const router = useRouter();
   const notifications = useNotificationsStore();
 
-  const metadataKey = computed(() => route.params.metadataKey as string);
-  const receiptUrl = computed(() => `/receipt/${metadataKey.value}`);
+  const receiptKey = computed(() => route.params.receiptKey as string);
+  const receiptUrl = computed(() => `/receipt/${receiptKey.value}`);
   const copied = ref(false);
 
   const handleCreateAnother = () => {
@@ -20,16 +20,16 @@
   };
 
   const openReceipt = () => {
-    if (metadataKey.value) {
+    if (receiptKey.value) {
       window.open(receiptUrl.value, '_blank');
     }
   };
 
   const copyToClipboard = async () => {
-    if (!metadataKey.value) return;
+    if (!receiptKey.value) return;
 
     try {
-      await navigator.clipboard.writeText(metadataKey.value);
+      await navigator.clipboard.writeText(receiptKey.value);
       copied.value = true;
       notifications.show('Reference ID copied to clipboard', 'success');
 
@@ -81,7 +81,7 @@
       <div class="px-8 py-8 sm:px-12">
         <!-- Reference ID Card -->
         <div
-          v-if="metadataKey"
+          v-if="receiptKey"
           class="mb-8">
           <label class="mb-3 block text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
             {{ t('incoming.reference_id') }}
@@ -89,7 +89,7 @@
           <div class="group relative overflow-hidden rounded-xl border-2 border-gray-200 bg-gray-50 transition-all duration-200 hover:border-gray-300 dark:border-gray-700 dark:bg-slate-900/50 dark:hover:border-gray-600">
             <div class="flex items-center justify-between gap-2 p-4">
               <code class="flex-1 select-all break-all font-mono text-sm font-medium text-gray-900 dark:text-white sm:text-base">
-                {{ metadataKey }}
+                {{ receiptKey }}
               </code>
               <div class="flex flex-shrink-0 gap-2">
                 <button

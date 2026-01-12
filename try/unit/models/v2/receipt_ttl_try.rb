@@ -1,4 +1,4 @@
-# try/unit/models/v2/metadata_ttl_try.rb
+# try/unit/models/v2/receipt_ttl_try.rb
 #
 # frozen_string_literal: true
 

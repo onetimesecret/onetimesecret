@@ -189,9 +189,3 @@ export const useReceiptStore = defineStore('receipt', () => {
     $reset,
   };
 });
-
-// Legacy alias for backward compatibility during migration
-// TODO: Remove after all consumers have been updated
-export const useMetadataStore = useReceiptStore;
-export const METADATA_STATUS = RECEIPT_STATUS;
-export type MetadataStore = ReceiptStore;

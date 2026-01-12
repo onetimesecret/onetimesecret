@@ -21,9 +21,9 @@ module ColonelAPI
           @secret = Onetime::Secret.load(secret_id)
           raise_not_found('Secret not found') unless secret&.exists?
 
-          # Load associated metadata
-          if secret.metadata_identifier
-            @metadata = Onetime::Receipt.load(secret.metadata_identifier)
+          # Load associated receipt
+          if secret.receipt_identifier
+            @metadata = Onetime::Receipt.load(secret.receipt_identifier)
           end
         end
 

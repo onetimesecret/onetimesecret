@@ -4,7 +4,7 @@ import { ConcealDataResponse } from '@/schemas/api/v3';
 
 export interface ConcealedMessage {
   id: string;
-  metadata_identifier: string;
+  receipt_identifier: string;
   secret_identifier: string;
   response: ConcealDataResponse;
   clientInfo: {

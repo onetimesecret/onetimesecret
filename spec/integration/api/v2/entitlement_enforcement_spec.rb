@@ -133,7 +133,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
 
       it 'raises EntitlementRequired in raise_concerns' do
         # Create a test secret
-        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(logic_class, params: { 'identifier' => secret.identifier }, org: org)
         logic.process_params
@@ -151,7 +151,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
       let(:org) { mock_organization(planid: 'multi_team_v1', entitlements: %w[create_secrets api_access]) }
 
       it 'does not raise EntitlementRequired' do
-        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(logic_class, params: { 'identifier' => secret.identifier }, org: org)
         logic.process_params
@@ -165,7 +165,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
       let(:org) { mock_organization(planid: 'free_v1', entitlements: %w[create_secrets api_access view_receipt]) }
 
       it 'does not raise EntitlementRequired for free users with api_access' do
-        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(logic_class, params: { 'identifier' => secret.identifier }, org: org)
         logic.process_params
@@ -177,7 +177,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
 
     context 'when no organization (anonymous request)' do
       it 'does not raise EntitlementRequired (passes through)' do
-        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(logic_class, params: { 'identifier' => secret.identifier }, org: nil)
         logic.process_params
@@ -196,7 +196,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
       let(:org) { mock_organization(planid: 'identity_v1', entitlements: %w[create_secrets custom_domains]) }
 
       it 'raises EntitlementRequired' do
-        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(logic_class, params: { 'identifier' => secret.identifier }, org: org)
         logic.process_params
@@ -213,7 +213,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
       let(:org) { mock_organization(planid: 'multi_team_v1', entitlements: %w[api_access]) }
 
       it 'does not raise EntitlementRequired' do
-        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(logic_class, params: { 'identifier' => secret.identifier }, org: org)
         logic.process_params
@@ -248,7 +248,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
       let(:org) { mock_organization(planid: 'identity_v1', entitlements: %w[create_secrets custom_domains]) }
 
       it 'raises EntitlementRequired' do
-        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(logic_class, params: { 'identifier' => secret.identifier }, org: org)
         logic.process_params
@@ -260,14 +260,14 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
     end
   end
 
-  describe 'ShowMetadata' do
-    let(:logic_class) { V2::Logic::Secrets::ShowMetadata }
+  describe 'ShowReceipt' do
+    let(:logic_class) { V2::Logic::Secrets::ShowReceipt }
 
     context 'when organization lacks api_access entitlement' do
       let(:org) { mock_organization(planid: 'free_test_no_api_access', entitlements: %w[create_secrets]) }
 
       it 'raises EntitlementRequired' do
-        metadata, _secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        metadata, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(logic_class, params: { 'identifier' => metadata.identifier }, org: org)
         logic.process_params
@@ -286,7 +286,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
       let(:org) { mock_organization(planid: 'free_test_no_api_access', entitlements: %w[create_secrets]) }
 
       it 'raises EntitlementRequired' do
-        metadata, _secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        metadata, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(logic_class, params: { 'identifier' => metadata.identifier, 'continue' => 'true' }, org: org)
         logic.process_params
@@ -302,7 +302,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
     let(:org) { mock_organization(planid: 'free_test_no_api_access', entitlements: %w[create_secrets]) }
 
     it 'includes entitlement name' do
-      _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+      _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
       logic = create_logic(V2::Logic::Secrets::ShowSecret, params: { 'identifier' => secret.identifier }, org: org)
       logic.process_params
@@ -315,7 +315,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
     end
 
     it 'includes current plan' do
-      _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+      _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
       logic = create_logic(V2::Logic::Secrets::ShowSecret, params: { 'identifier' => secret.identifier }, org: org)
       logic.process_params
@@ -329,7 +329,7 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
     end
 
     it 'includes upgrade path when available' do
-      _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+      _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
       logic = create_logic(V2::Logic::Secrets::ShowSecret, params: { 'identifier' => secret.identifier }, org: org)
       logic.process_params
@@ -347,9 +347,9 @@ RSpec.describe 'API V2 Entitlement Enforcement', type: :integration, billing: tr
     it 'V3::Logic::Secrets classes inherit from V2' do
       require 'v3/logic/secrets'
 
-      expect(V3::Logic::Secrets::ListMetadata.ancestors).to include(V2::Logic::Secrets::ListMetadata)
+      expect(V3::Logic::Secrets::ListReceipts.ancestors).to include(V2::Logic::Secrets::ListReceipts)
       expect(V3::Logic::Secrets::BurnSecret.ancestors).to include(V2::Logic::Secrets::BurnSecret)
-      expect(V3::Logic::Secrets::ShowMetadata.ancestors).to include(V2::Logic::Secrets::ShowMetadata)
+      expect(V3::Logic::Secrets::ShowReceipt.ancestors).to include(V2::Logic::Secrets::ShowReceipt)
     end
 
     it 'ConcealSecret and GenerateSecret inherit from BaseSecretAction' do

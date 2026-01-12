@@ -125,18 +125,6 @@ export function isValidReceiptState(state: string): state is ReceiptState {
   return Object.values(ReceiptState).includes(state as ReceiptState);
 }
 
-// Legacy aliases for backward compatibility during migration
-// TODO: Remove these after all consumers have been updated
-export const MetadataState = ReceiptState;
-export type MetadataState = ReceiptState;
-export const metadataStateSchema = receiptStateSchema;
-export const metadataBaseSchema = receiptBaseSchema;
-export const metadataSchema = receiptSchema;
-export const metadataDetailsSchema = receiptDetailsSchema;
-export type Metadata = Receipt;
-export type MetadataDetails = ReceiptDetails;
-export const isValidMetadataState = isValidReceiptState;
-
 /**
  * CHANGELOG
  * ═══════════════════════
@@ -164,6 +152,4 @@ export const isValidMetadataState = isValidReceiptState;
  * - metadataSchema -> receiptSchema
  * - metadataDetailsSchema -> receiptDetailsSchema
  * - isValidMetadataState -> isValidReceiptState
- *
- * Legacy aliases maintained for backward compatibility.
  */

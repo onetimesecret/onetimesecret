@@ -1,4 +1,4 @@
-# try/unit/models/metadata_expiration_tracking_try.rb
+# try/unit/models/receipt_expiration_tracking_try.rb
 #
 # frozen_string_literal: true
 

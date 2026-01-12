@@ -1,4 +1,4 @@
-// src/shared/stores/concealedMetadataStore.ts
+// src/shared/stores/concealedReceiptStore.ts
 
 import { PiniaPluginOptions } from '@/plugins/pinia';
 import { loggingService } from '@/services/logging.service';
@@ -9,9 +9,9 @@ import { computed, ref, watch } from 'vue';
 interface StoreOptions extends PiniaPluginOptions {}
 
 /**
- * Type definition for ConcealedMetadataStore.
+ * Type definition for ConcealedReceiptStore.
  */
-export type ConcealedMetadataStore = {
+export type ConcealedReceiptStore = {
   // State
   _initialized: boolean;
   concealedMessages: ConcealedMessage[];
@@ -74,11 +74,11 @@ function loadWorkspaceModePreference(): boolean {
 }
 
 /**
- * Store for managing concealed metadata records during a user session.
+ * Store for managing concealed receipt records during a user session.
  * This store persists links created during the current session so they
  * remain available when navigating between pages and browser refreshes.
  */
-export const useConcealedMetadataStore = defineStore('concealedMetadata', () => {
+export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
   // State
   const _initialized = ref(false);
   const concealedMessages = ref<ConcealedMessage[]>(loadFromStorage());
@@ -111,7 +111,7 @@ export const useConcealedMetadataStore = defineStore('concealedMetadata', () => 
   });
 
   /**
-   * Initializes the concealed metadata store.
+   * Initializes the concealed receipt store.
    * Idempotent - subsequent calls have no effect if already initialized.
    *
    * @param options Optional store options

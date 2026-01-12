@@ -1,13 +1,13 @@
 // src/schemas/api/v2/endpoints/conceal.ts
 
-import { metadataSchema, secretSchema } from '@/schemas/models';
+import { receiptSchema, secretSchema } from '@/schemas/models';
 import { z } from 'zod';
 
 /**
- * Schema for combined secret and metadata (conceal data)
+ * Schema for combined secret and receipt (conceal data)
  */
 export const concealDataSchema = z.object({
-  metadata: metadataSchema,
+  metadata: receiptSchema, // API response key remains 'metadata' for V2 compatibility
   secret: secretSchema,
   share_domain: z.string(),
 });

@@ -84,11 +84,11 @@ module V2::Logic
           burned_or_received = metadata.state?(:burned) || metadata.state?(:received)
 
           if !burned_or_received && metadata.secret_expired?
-            OT.le('[show_metadata] Metadata has expired secret. {metadata.shortid}')
+            OT.le('[show_receipt] Receipt has expired secret. {metadata.shortid}')
             metadata.secret_identifier = nil
             metadata.expired!
           elsif !burned_or_received
-            OT.le("[show_metadata] Metadata is an orphan. #{metadata.shortid}")
+            OT.le("[show_receipt] Receipt is an orphan. #{metadata.shortid}")
             metadata.secret_identifier = nil
             metadata.orphaned!
           end
@@ -118,7 +118,7 @@ module V2::Logic
             # records doesn't immediately load the metadata/reciept page the metadata
             # record stays in state=new allowing the next request through.
             if secret && metadata.state?(:new)
-              OT.ld "[show_metadata] m:#{metadata_identifier} s:#{secret_identifier} Decrypting for first and only creator viewing"
+              OT.ld "[show_receipt] m:#{metadata_identifier} s:#{secret_identifier} Decrypting for first and only creator viewing"
               @secret_value = secret.ciphertext.reveal { it }
             end
           end

@@ -361,7 +361,7 @@ describe('WorkspaceSecretForm Logic', () => {
 
       const newMessage = {
         id: 'nanoid123',
-        metadata_identifier: mockResponse.record.metadata.identifier,
+        receipt_identifier: mockResponse.record.metadata.identifier,
         secret_identifier: mockResponse.record.secret.identifier,
         response: mockResponse,
         clientInfo: {
@@ -371,7 +371,7 @@ describe('WorkspaceSecretForm Logic', () => {
         },
       };
 
-      expect(newMessage.metadata_identifier).toBe('meta123');
+      expect(newMessage.receipt_identifier).toBe('meta123');
       expect(newMessage.secret_identifier).toBe('secret456');
       expect(newMessage.clientInfo.hasPassphrase).toBe(false);
       expect(newMessage.clientInfo.ttl).toBe(604800);
