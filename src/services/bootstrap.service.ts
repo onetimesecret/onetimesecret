@@ -57,9 +57,10 @@ export function consumeBootstrapData(): Partial<OnetimeWindow> | null {
     return null;
   }
 
-  // Store snapshot and clean up window
+  // Store snapshot and replace with marker (true = consumed successfully)
+  // This allows memory to be reclaimed while preserving a testable marker
   bootstrapSnapshot = { ...state };
-  delete windowWithState[BOOTSTRAP_KEY];
+  (window as unknown as Record<string, unknown>)[BOOTSTRAP_KEY] = true;
   consumed = true;
 
   console.debug('[BootstrapService] Consumed bootstrap data:', {

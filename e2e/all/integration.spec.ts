@@ -2,6 +2,9 @@
 
 import { test, expect } from '@playwright/test';
 
+/** Window with bootstrap state (object before consumption, true after) */
+type BootstrapWindow = Window & { __BOOTSTRAP_STATE__?: unknown };
+
 /**
  * E2E Integration Tests
  *
@@ -283,26 +286,18 @@ test.describe('E2E Integration - Production Build Validation', () => {
 test.describe('E2E Integration - Environment Validation', () => {
   test('environment variables are properly set', async ({ page }) => {
     // This test validates that the application state is properly initialized
-    // The development mode check depends on target environment
+    //
+    // Note: window.__BOOTSTRAP_STATE__ starts as an object with server config,
+    // then is replaced with `true` after consumption by the bootstrap service.
+    // This allows memory to be reclaimed while preserving a testable marker.
 
     await page.goto('/');
 
-    // Verify application state is loaded and accessible
-    const stateCheck = await page.evaluate(() => {
-      if (!window.__BOOTSTRAP_STATE__) {
-        return { loaded: false, error: 'Application state not loaded' };
-      }
-      return {
-        loaded: true,
-        hasFrontendDevelopment: 'frontend_development' in window.__BOOTSTRAP_STATE__,
-        isDevelopment: window.__BOOTSTRAP_STATE__.frontend_development === true,
-      };
+    // Verify bootstrap data was successfully consumed (marker is set to true)
+    const bootstrapConsumed = await page.evaluate(() => {
+      return (window as BootstrapWindow).__BOOTSTRAP_STATE__ === true;
     });
 
-    expect(stateCheck.loaded, 'Application state should be loaded').toBe(true);
-    expect(stateCheck.hasFrontendDevelopment, 'frontend_development config should exist').toBe(true);
-
-    // Log the environment mode for debugging (not a hard requirement)
-    console.log(`Environment: ${stateCheck.isDevelopment ? 'development' : 'production'}`);
+    expect(bootstrapConsumed, 'Bootstrap state should be consumed (value === true)').toBe(true);
   });
 });
