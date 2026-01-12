@@ -22,7 +22,7 @@ module Onetime
       #       min_ttl_hours: 48      # Only warn for secrets with TTL > this
       #       batch_size: 100        # Max warnings per run (rate limiting)
       #
-      # Data structures (in Metadata):
+      # Data structures (in Receipt):
       #   - expiration_timeline: Sorted set (score = expiration timestamp)
       #   - warnings_sent: Set for deduplication
       #
@@ -75,7 +75,7 @@ module Onetime
 
           def process_expiring_secrets
             warning_window   = warning_hours * 3600
-            all_expiring_ids = Onetime::Metadata.expiring_within(warning_window)
+            all_expiring_ids = Onetime::Receipt.expiring_within(warning_window)
             total_found      = all_expiring_ids.size
 
             # Apply batch limit to prevent queue overflow
@@ -91,64 +91,64 @@ module Onetime
             processed = 0
             skipped   = 0
 
-            expiring_ids.each do |metadata_id|
+            expiring_ids.each do |receipt_id|
               # Skip if warning already sent
-              if Onetime::Metadata.warning_sent?(metadata_id)
+              if Onetime::Receipt.warning_sent?(receipt_id)
                 skipped += 1
                 next
               end
 
-              metadata = Onetime::Metadata.load(metadata_id)
-              next unless metadata&.exists?
+              receipt = Onetime::Receipt.load(receipt_id)
+              next unless receipt&.exists?
 
               # Skip anonymous secrets (no owner to notify)
-              if metadata.anonymous?
+              if receipt.anonymous?
                 skipped += 1
                 next
               end
 
-              owner = metadata.load_owner
+              owner = receipt.load_owner
               unless owner&.email
                 skipped += 1
                 next
               end
 
-              if schedule_warning_email(metadata, owner)
-                Onetime::Metadata.mark_warning_sent(metadata_id)
+              if schedule_warning_email(receipt, owner)
+                Onetime::Receipt.mark_warning_sent(receipt_id)
                 processed += 1
               end
             end
 
             # Self-cleaning: remove entries that have already expired
-            cleanup_count = Onetime::Metadata.cleanup_expired_from_timeline(Familia.now.to_f - CLEANUP_GRACE_PERIOD_SECONDS)
+            cleanup_count = Onetime::Receipt.cleanup_expired_from_timeline(Familia.now.to_f - CLEANUP_GRACE_PERIOD_SECONDS)
 
             scheduler_logger.info "[ExpirationWarningJob] Processed: #{processed}, Skipped: #{skipped}, Cleaned: #{cleanup_count}"
           end
 
           # Schedule warning email for a secret
           # @return [Boolean] true if successfully scheduled, false on failure
-          def schedule_warning_email(metadata, owner)
+          def schedule_warning_email(receipt, owner)
             # Calculate delay: send warning before actual expiration
             # (or immediately if less than the buffer time remains)
-            seconds_until_expiry = metadata.secret_expiration.to_i - Familia.now.to_i
+            seconds_until_expiry = receipt.secret_expiration.to_i - Familia.now.to_i
             delay                = [seconds_until_expiry - WARNING_BUFFER_SECONDS, 0].max
 
             Onetime::Jobs::Publisher.schedule_email(
               :expiration_warning,
               {
                 recipient: owner.email,
-                secret_key: metadata.secret_shortid,
-                expires_at: metadata.secret_expiration,
-                share_domain: metadata.share_domain,
+                secret_key: receipt.secret_shortid,
+                expires_at: receipt.secret_expiration,
+                share_domain: receipt.share_domain,
               },
               delay_seconds: delay,
             )
 
-            scheduler_logger.debug "[ExpirationWarningJob] Scheduled warning for #{metadata.identifier} " \
-                                   "(delay: #{delay}s, expires: #{metadata.secret_expiration})"
+            scheduler_logger.debug "[ExpirationWarningJob] Scheduled warning for #{receipt.identifier} " \
+                                   "(delay: #{delay}s, expires: #{receipt.secret_expiration})"
             true
           rescue StandardError => ex
-            scheduler_logger.error "[ExpirationWarningJob] Failed to schedule warning for #{metadata.identifier}: #{ex.message}"
+            scheduler_logger.error "[ExpirationWarningJob] Failed to schedule warning for #{receipt.identifier}: #{ex.message}"
             false
           end
         end

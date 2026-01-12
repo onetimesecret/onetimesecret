@@ -11,7 +11,7 @@ POST   /entitlement-test                  ColonelAPI::Logic::Colonel::SetEntitle
 
 # Secret Management
 GET    /secrets                           ColonelAPI::Logic::Colonel::ListSecrets response=json auth=sessionauth
-GET    /secrets/:secret_id                ColonelAPI::Logic::Colonel::GetSecretMetadata response=json auth=sessionauth
+GET    /secrets/:secret_id                ColonelAPI::Logic::Colonel::GetSecretReceipt response=json auth=sessionauth
 DELETE /secrets/:secret_id                ColonelAPI::Logic::Colonel::DeleteSecret response=json auth=sessionauth
 
 # User Management

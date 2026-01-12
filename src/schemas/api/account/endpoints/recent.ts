@@ -1,11 +1,11 @@
 // src/schemas/api/account/endpoints/recent.ts
 
-import { metadataBaseSchema } from '@/schemas/models';
+import { receiptBaseSchema } from '@/schemas/models';
 import { transforms } from '@/schemas/transforms';
 import { z } from 'zod';
 
-// Metadata shape in list view
-export const metadataRecordsSchema = metadataBaseSchema.merge(
+// Receipt shape in list view
+export const receiptRecordsSchema = receiptBaseSchema.merge(
   z.object({
     custid: z.string().nullish(),
     owner_id: z.string().nullish(),
@@ -22,14 +22,14 @@ export const metadataRecordsSchema = metadataBaseSchema.merge(
 );
 
 // The details for each record in list view
-export const metadataRecordsDetailsSchema = z.object({
+export const receiptRecordsDetailsSchema = z.object({
   type: z.string(), // literally the word "list"
   since: z.number(),
   now: transforms.fromString.date,
   has_items: transforms.fromString.boolean,
-  received: z.array(metadataRecordsSchema),
-  notreceived: z.array(metadataRecordsSchema),
+  received: z.array(receiptRecordsSchema),
+  notreceived: z.array(receiptRecordsSchema),
 });
 
-export type MetadataRecords = z.infer<typeof metadataRecordsSchema>;
-export type MetadataRecordsDetails = z.infer<typeof metadataRecordsDetailsSchema>;
+export type ReceiptRecords = z.infer<typeof receiptRecordsSchema>;
+export type ReceiptRecordsDetails = z.infer<typeof receiptRecordsDetailsSchema>;

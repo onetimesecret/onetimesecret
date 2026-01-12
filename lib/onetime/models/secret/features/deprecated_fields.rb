@@ -16,7 +16,7 @@ module Onetime::Secret::Features
         base.field :share_domain
         base.field :verification
         base.field :custid
-        base.field :metadata_key
+        base.field :metadata_key # do not add receipt_key; just use identifier
         base.field :truncated # boolean
         base.field :secret_key
       end

@@ -22,7 +22,7 @@ require_relative 'colonel/set_entitlement_test'
 
 # Secret management
 require_relative 'colonel/list_secrets'
-require_relative 'colonel/get_secret_metadata'
+require_relative 'colonel/get_secret_receipt'
 require_relative 'colonel/delete_secret'
 
 # User management

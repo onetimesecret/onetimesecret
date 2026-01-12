@@ -9,23 +9,25 @@ const autoInitPlugin = () =>
         /* mock implementation */
       },
     })) as unknown as PiniaPlugin;
+import { createTestingPinia, TestingPinia } from '@pinia/testing';
+import axios, { AxiosInstance } from 'axios';
+import AxiosMockAdapter from 'axios-mock-adapter';
+import type { PiniaPluginContext } from 'pinia';
+import { PiniaPlugin, setActivePinia } from 'pinia';
+import { afterEach, beforeEach, vi } from 'vitest';
+import type { ComponentPublicInstance } from 'vue';
+import { createApp, h } from 'vue';
+import { createI18n } from 'vue-i18n';
 import { createSharedApiInstance } from './setup-stores';
 
 // Use the shared axios instance that works with AxiosMockAdapter
 const createApi = (): AxiosInstance => createSharedApiInstance();
-import type { PiniaPluginContext } from 'pinia';
-import { createI18n } from 'vue-i18n';
-import { createTestingPinia, TestingPinia } from '@pinia/testing';
-import { vi, beforeEach, afterEach } from 'vitest';
-import { createApp, h } from 'vue';
-import type { ComponentPublicInstance } from 'vue';
-import { setActivePinia } from 'pinia';
 
-//import type { OnetimeWindow } from '@/types/declarations/window';
+//import type { BootstrapPayload } from '@/types/declarations/window';
 
 // De
-// fine minimal OnetimeWindow interface for testing purposes
-interface OnetimeWindow {
+// fine minimal BootstrapPayload interface for testing purposes
+interface BootstrapPayload {
   shrimp?: string;
   authenticated?: boolean;
   baseuri?: string;
@@ -35,9 +37,6 @@ interface OnetimeWindow {
   default_locale?: string;
   [key: string]: any;
 }
-import axios, { AxiosInstance } from 'axios';
-import AxiosMockAdapter from 'axios-mock-adapter';
-import { PiniaPlugin } from 'pinia';
 
 // Mock global objects that JSDOM doesn't support
 global.fetch = vi.fn();
@@ -80,7 +79,7 @@ export interface SetupTestPiniaOptions {
   /** Whether to mount the app to activate Vue context (default: true) */
   mountApp?: boolean;
   /** Initial window state (default: stateFixture) */
-  windowState?: OnetimeWindow;
+  windowState?: BootstrapPayload;
 }
 
 /**

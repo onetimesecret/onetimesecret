@@ -6,10 +6,10 @@
   import EmptyState from '@/shared/components/ui/EmptyState.vue';
   import ErrorDisplay from '@/shared/components/ui/ErrorDisplay.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import SecretMetadataTable from '@/apps/secret/components/SecretMetadataTable.vue';
+  import SecretReceiptTable from '@/apps/secret/components/SecretReceiptTable.vue';
   import ToastNotification from '@/shared/components/ui/ToastNotification.vue';
-  import { useMetadataList } from '@/shared/composables/useMetadataList';
-  import { MetadataRecords } from '@/schemas/api/account/endpoints/recent';
+  import { useReceiptList } from '@/shared/composables/useReceiptList';
+  import { ReceiptRecords } from '@/schemas/api/account/endpoints/recent';
   import { onMounted, computed, ref, onBeforeUnmount } from 'vue';
 
   // Define props
@@ -17,7 +17,7 @@
   defineProps<Props>();
 
   const { t } = useI18n(); // auto-import
-  const { details, recordCount, isLoading, refreshRecords, error } = useMetadataList();
+  const { details, recordCount, isLoading, refreshRecords, error } = useReceiptList();
 
   const sectionId = ref(`dashboard-recent-${Math.random().toString(36).substring(2, 9)}`);
   const lastRefreshed = ref(new Date());
@@ -35,14 +35,14 @@
     if (details.value) {
       return details.value.received;
     }
-    return [] as MetadataRecords[];
+    return [] as ReceiptRecords[];
   });
 
   const notReceivedItems = computed(() => {
     if (details.value) {
       return details.value.notreceived;
     }
-    return [] as MetadataRecords[];
+    return [] as ReceiptRecords[];
   });
 
   // Method to force refresh
@@ -128,7 +128,7 @@
         <div
           role="region"
           aria-live="polite">
-          <SecretMetadataTable
+          <SecretReceiptTable
             v-if="recordCount > 0"
             :not-received="notReceivedItems"
             :received="receivedItems"

@@ -86,12 +86,12 @@ module ModelTestHelper
     secret
   end
 
-  # Factory method for Onetime::Metadata
-  def create_stubbed_metadata(attributes = {})
-    metadata = Onetime::Metadata.new
+  # Factory method for Onetime::Receipt
+  def create_stubbed_receipt(attributes = {})
+    receipt = Onetime::Receipt.new
 
     # Default attributes
-    # Note: Metadata uses objid/identifier (auto-generated), not 'key'
+    # Note: Receipt uses objid/identifier (auto-generated), not 'key'
     # secret_identifier is the current field (secret_key is deprecated)
     default_attrs = {
       state: "new",
@@ -102,43 +102,43 @@ module ModelTestHelper
     # Apply attributes
     merged_attrs = default_attrs.merge(attributes)
     merged_attrs.each do |attr, value|
-      metadata.instance_variable_set(:"@#{attr}", value)
+      receipt.instance_variable_set(:"@#{attr}", value)
     end
 
     # Stub persistence methods
-    allow(metadata).to receive(:save).and_return(true)
-    allow(metadata).to receive(:exists?).and_return(true)
-    allow(metadata).to receive(:destroy!).and_return(true)
+    allow(receipt).to receive(:save).and_return(true)
+    allow(receipt).to receive(:exists?).and_return(true)
+    allow(receipt).to receive(:destroy!).and_return(true)
 
     # Stub field setters
-    allow(metadata).to receive(:secret_identifier!).and_return(true)
-    allow(metadata).to receive(:state!).and_return(true)
+    allow(receipt).to receive(:secret_identifier!).and_return(true)
+    allow(receipt).to receive(:state!).and_return(true)
 
-    metadata
+    receipt
   end
 
-  # Creates a linked pair of Onetime::Secret and Onetime::Metadata
+  # Creates a linked pair of Onetime::Secret and Onetime::Receipt
   def create_stubbed_secret_pair(attributes = {})
-    # Extract and separate metadata and secret attributes
-    metadata_attrs = {}
+    # Extract and separate receipt and secret attributes
+    receipt_attrs = {}
     secret_attrs = {}
     attributes.each do |key, value|
-      metadata_attrs[key] = value
+      receipt_attrs[key] = value
       secret_attrs[key] = value
     end
 
     # Create the objects first (identifiers are auto-generated)
-    metadata = create_stubbed_metadata(metadata_attrs)
+    receipt = create_stubbed_receipt(receipt_attrs)
     secret = create_stubbed_secret(secret_attrs)
 
     # Now link them using their auto-generated identifiers
-    metadata.instance_variable_set(:@secret_identifier, secret.identifier)
-    secret.instance_variable_set(:@metadata_identifier, metadata.identifier)
+    receipt.instance_variable_set(:@secret_identifier, secret.identifier)
+    secret.instance_variable_set(:@receipt_identifier, receipt.identifier)
 
     # Link them
-    allow(secret).to receive(:load_metadata).and_return(metadata)
+    allow(secret).to receive(:load_receipt).and_return(receipt)
 
-    [metadata, secret]
+    [receipt, secret]
   end
   # Factory method to create a fully stubbed Onetime::Secret instance
   def create_stubbed_onetime_secret(attributes = {})
@@ -220,12 +220,12 @@ module ModelTestHelper
     secret
   end
 
-  # Factory method for Onetime::Metadata
-  def create_stubbed_onetime_metadata(attributes = {})
-    metadata = Onetime::Metadata.new
+  # Factory method for Onetime::Receipt
+  def create_stubbed_onetime_receipt(attributes = {})
+    receipt = Onetime::Receipt.new
 
     # Default attributes
-    # Note: Metadata uses objid/identifier (auto-generated), not 'key'
+    # Note: Receipt uses objid/identifier (auto-generated), not 'key'
     # secret_identifier is the current field (secret_key is deprecated)
     default_attrs = {
       state: "new",
@@ -236,49 +236,49 @@ module ModelTestHelper
     # Apply attributes
     merged_attrs = default_attrs.merge(attributes)
     merged_attrs.each do |attr, value|
-      metadata.instance_variable_set(:"@#{attr}", value)
+      receipt.instance_variable_set(:"@#{attr}", value)
     end
 
     # Stub persistence methods
-    allow(metadata).to receive(:save).and_return(true)
-    allow(metadata).to receive(:exists?).and_return(true)
-    allow(metadata).to receive(:destroy!).and_return(true)
+    allow(receipt).to receive(:save).and_return(true)
+    allow(receipt).to receive(:exists?).and_return(true)
+    allow(receipt).to receive(:destroy!).and_return(true)
 
     # Stub field setters
-    allow(metadata).to receive(:secret_identifier!).and_return(true)
-    allow(metadata).to receive(:state!).and_return(true)
-    allow(metadata).to receive(:passphrase!).and_return(true)
+    allow(receipt).to receive(:secret_identifier!).and_return(true)
+    allow(receipt).to receive(:state!).and_return(true)
+    allow(receipt).to receive(:passphrase!).and_return(true)
 
     # Implement has_passphrase? behavior
-    allow(metadata).to receive(:has_passphrase?).and_wrap_original do |original|
-      !metadata.passphrase.to_s.empty?
+    allow(receipt).to receive(:has_passphrase?).and_wrap_original do |original|
+      !receipt.passphrase.to_s.empty?
     end
 
-    metadata
+    receipt
   end
 
-  # Creates a linked pair of Onetime::Secret and Onetime::Metadata
+  # Creates a linked pair of Onetime::Secret and Onetime::Receipt
   def create_stubbed_onetime_secret_pair(attributes = {})
-    # Extract and separate metadata and secret attributes
-    metadata_attrs = {}
+    # Extract and separate receipt and secret attributes
+    receipt_attrs = {}
     secret_attrs = {}
     attributes.each do |key, value|
-      metadata_attrs[key] = value
+      receipt_attrs[key] = value
       secret_attrs[key] = value
     end
 
     # Create the objects first (identifiers are auto-generated)
-    metadata = create_stubbed_onetime_metadata(metadata_attrs)
+    receipt = create_stubbed_onetime_receipt(receipt_attrs)
     secret = create_stubbed_onetime_secret(secret_attrs)
 
     # Now link them using their auto-generated identifiers
-    metadata.instance_variable_set(:@secret_identifier, secret.identifier)
-    secret.instance_variable_set(:@metadata_identifier, metadata.identifier)
+    receipt.instance_variable_set(:@secret_identifier, secret.identifier)
+    secret.instance_variable_set(:@receipt_identifier, receipt.identifier)
 
     # Link them
-    allow(secret).to receive(:load_metadata).and_return(metadata)
+    allow(secret).to receive(:load_receipt).and_return(receipt)
 
-    [metadata, secret]
+    [receipt, secret]
   end
 end
 

@@ -95,8 +95,8 @@ describe('useAuth - Billing Redirect Safety Checks', () => {
     vi.mocked(useRouter).mockReturnValue(router);
     vi.mocked(useRoute).mockReturnValue(mockRoute as any);
 
-    // Mock the /window endpoint used by authStore.setAuthenticated
-    axiosMock.onGet('/window').reply(200, {
+    // Mock the /bootstrap/me endpoint used by authStore.setAuthenticated
+    axiosMock.onGet('/bootstrap/me').reply(200, {
       authenticated: true,
       billing_enabled: true,
       shrimp: 'new-shrimp-token',
@@ -445,8 +445,8 @@ describe('useAuth - Billing Redirect Valid Flag (Future)', () => {
     vi.mocked(useRouter).mockReturnValue(router);
     vi.mocked(useRoute).mockReturnValue(mockRoute as any);
 
-    // Mock the /window endpoint
-    axiosMock.onGet('/window').reply(200, {
+    // Mock the /bootstrap/me endpoint
+    axiosMock.onGet('/bootstrap/me').reply(200, {
       authenticated: true,
       billing_enabled: true,
       shrimp: 'new-shrimp-token',
@@ -554,8 +554,8 @@ describe('useAuth - Subscription Status Checks (Future)', () => {
     vi.mocked(useRouter).mockReturnValue(router);
     vi.mocked(useRoute).mockReturnValue(mockRoute as any);
 
-    // Mock the /window endpoint
-    axiosMock.onGet('/window').reply(200, {
+    // Mock the /bootstrap/me endpoint
+    axiosMock.onGet('/bootstrap/me').reply(200, {
       authenticated: true,
       billing_enabled: true,
       shrimp: 'new-shrimp-token',

@@ -1,6 +1,6 @@
 // src/utils/status.ts
 
-import { MetadataState, isValidMetadataState } from '@/schemas/models';
+import { ReceiptState, isValidReceiptState } from '@/schemas/models';
 import type { Composer } from 'vue-i18n';
 
 export type DisplayStatus =
@@ -23,16 +23,16 @@ export type DisplayStatus =
  *    which combines state with time).
  */
 export function getDisplayStatus(
-  state: MetadataState,
+  state: ReceiptState,
   expiresIn?: number
 ): DisplayStatus {
-  if (!state || !isValidMetadataState(state)) {
+  if (!state || !isValidReceiptState(state)) {
     return 'orphaned';
   }
 
   // Check expiring soon first (if active)
   if (
-    state === MetadataState.NEW &&
+    state === ReceiptState.NEW &&
     typeof expiresIn === 'number' &&
     expiresIn < 1800
   ) {
@@ -40,20 +40,20 @@ export function getDisplayStatus(
   }
 
   switch (state) {
-    case MetadataState.NEW:
-    case MetadataState.SHARED:
+    case ReceiptState.NEW:
+    case ReceiptState.SHARED:
       return 'new'; // Secret created/shared but not accessed
 
-    case MetadataState.VIEWED:
+    case ReceiptState.VIEWED:
       return 'viewed'; // Secret accessed but not revealed
 
-    case MetadataState.RECEIVED:
+    case ReceiptState.RECEIVED:
       return 'received'; // Secret revealed/decrypted
 
-    case MetadataState.BURNED:
+    case ReceiptState.BURNED:
       return 'burned';
 
-    // case MetadataState.ORPHANED:
+    // case ReceiptState.ORPHANED:
     //   return 'orphaned'; // Secret in invalid state
 
     default:

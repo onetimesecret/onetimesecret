@@ -50,10 +50,10 @@ export const incomingSecretPayloadSchema = z.object({
 export type IncomingSecretPayload = z.infer<typeof incomingSecretPayloadSchema>;
 
 /**
- * Schema for metadata object in the response
+ * Schema for receipt record in the response
  * Note: Many fields can be null from the API, use .nullish() to accept both null and undefined
  */
-const metadataRecordSchema = z.object({
+const receiptRecordSchema = z.object({
   identifier: z.string(),
   key: z.string(),
   custid: z.string().nullish(),
@@ -65,7 +65,7 @@ const metadataRecordSchema = z.object({
   recipients: z.string().nullish(),
   // Additional fields from actual API response
   secret_ttl: z.number().nullish(),
-  metadata_ttl: z.number().nullish(),
+  receipt_ttl: z.number().nullish(),
   lifespan: z.number().nullish(),
   share_domain: z.string().nullish(),
   created: z.number().nullish(),
@@ -104,6 +104,8 @@ const secretRecordSchema = z.object({
 /**
  * Schema for incoming secret creation response
  * Matches the actual V3 API response format
+ *
+ * Note: V3 API uses modern "receipt" terminology exclusively.
  */
 export const incomingSecretResponseSchema = z.object({
   success: z.boolean(),
@@ -111,7 +113,7 @@ export const incomingSecretResponseSchema = z.object({
   shrimp: z.string().nullish(),
   custid: z.string().nullish(),
   record: z.object({
-    metadata: metadataRecordSchema,
+    receipt: receiptRecordSchema,
     secret: secretRecordSchema,
   }),
   details: z

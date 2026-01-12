@@ -29,7 +29,7 @@ MockStrategyResult = Data.define(:session, :user, :authenticated?)
 
 @email = "tryouts+42+#{Familia.now.to_i}@onetimesecret.com"
 @cust = Onetime::Customer.create!(email: @email)
-@metadata, @secret = Onetime::Metadata.spawn_pair(
+@metadata, @secret = Onetime::Receipt.spawn_pair(
   @cust.identifier,
   3600,
   "This is a secret message"

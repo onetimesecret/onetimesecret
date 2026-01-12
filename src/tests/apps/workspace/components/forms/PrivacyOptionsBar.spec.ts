@@ -11,9 +11,9 @@ const mockToggleWorkspaceMode = vi.fn(() => {
   mockWorkspaceMode.value = !mockWorkspaceMode.value;
 });
 
-// Mock concealedMetadataStore
-vi.mock('@/shared/stores/concealedMetadataStore', () => ({
-  useConcealedMetadataStore: vi.fn(() => ({
+// Mock concealedReceiptStore
+vi.mock('@/shared/stores/concealedReceiptStore', () => ({
+  useConcealedReceiptStore: vi.fn(() => ({
     workspaceMode: mockWorkspaceMode.value,
     toggleWorkspaceMode: mockToggleWorkspaceMode,
   })),
@@ -184,8 +184,8 @@ describe('PrivacyOptionsBar', () => {
       vi.resetModules();
 
       // Update mock to return true for workspaceMode
-      vi.doMock('@/shared/stores/concealedMetadataStore', () => ({
-        useConcealedMetadataStore: vi.fn(() => ({
+      vi.doMock('@/shared/stores/concealedReceiptStore', () => ({
+        useConcealedReceiptStore: vi.fn(() => ({
           workspaceMode: true,
           toggleWorkspaceMode: mockToggleWorkspaceMode,
         })),

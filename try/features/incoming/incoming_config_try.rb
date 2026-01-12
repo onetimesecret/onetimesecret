@@ -43,7 +43,7 @@ OT.lookup_incoming_recipient('unknown_hash_123')
 #=> nil
 
 ## Can access memo field on Metadata model
-metadata = Onetime::Metadata.new
+metadata = Onetime::Receipt.new
 metadata.memo = 'Test memo'
 metadata.memo
 #=> 'Test memo'

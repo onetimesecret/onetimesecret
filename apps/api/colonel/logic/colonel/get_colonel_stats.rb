@@ -10,7 +10,7 @@ module ColonelAPI
       class GetColonelStats < ColonelAPI::Logic::Base
         attr_reader :session_count,
           :customer_count,
-          :metadata_count,
+          :receipt_count,
           :secret_count,
           :secrets_created,
           :secrets_shared,
@@ -32,7 +32,7 @@ module ColonelAPI
 
         def process_statistics
           @customer_count = Onetime::Customer.count
-          @metadata_count = Onetime::Metadata.count
+          @receipt_count  = Onetime::Receipt.count
           @secret_count   = Onetime::Secret.count
         end
         private :process_statistics
@@ -44,7 +44,7 @@ module ColonelAPI
               counts: {
                 session_count: session_count,
                 customer_count: customer_count,
-                metadata_count: metadata_count,
+                receipt_count: receipt_count,
                 secret_count: secret_count,
                 secrets_created: secrets_created,
                 secrets_shared: secrets_shared,

@@ -1,10 +1,10 @@
 // src/schemas/api/v3/payloads/conceal.ts
 
-// NOTE: We may want to import some details from the metadata and secret schemas
-// since they are obviously highly correleated with the conceal payload. For now,
+// NOTE: We may want to import some details from the receipt and secret schemas
+// since they are obviously highly correlated with the conceal payload. For now,
 // we will keep this simple and just define the payload schema here and keep it
-// compacetic via diligence and testing.
-//import { metadataSchema, secretSchema } from '@/schemas/models';
+// copacetic via diligence and testing.
+//import { receiptSchema, secretSchema } from '@/schemas/models';
 
 import { z } from 'zod';
 

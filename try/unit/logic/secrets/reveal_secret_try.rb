@@ -7,7 +7,7 @@
 # They cover:
 #
 # 1. Creating and initializing a RevealSecret logic with various arguments
-# 2. Testing the visibility of different elements based on metadata state and user authentication
+# 2. Testing the visibility of different elements based on receipt state and user authentication
 # 3. Verifying the correct generation of URIs and paths
 # 4. Checking the handling of secret values and their display properties
 #
@@ -21,19 +21,19 @@ OT.boot! :test, false
 @email = generate_unique_test_email("reveal_secret")
 @cust = Onetime::Customer.create!(email: @email)
 
-# Define a lambda to create and return a new metadata instance
-# Uses Metadata.spawn_pair which properly encrypts content
-@create_metadata = lambda {
-  metadata, _secret = Onetime::Metadata.spawn_pair(
+# Define a lambda to create and return a new receipt instance
+# Uses Receipt.spawn_pair which properly encrypts content
+@create_receipt = lambda {
+  receipt, _secret = Onetime::Receipt.spawn_pair(
     @cust.custid,
     3600,
     "This is a secret message"
   )
-  metadata
+  receipt
 }
 
-# Use the lambda to create a metadata instance
-@metadata = @create_metadata.call
+# Use the lambda to create a receipt instance
+@receipt = @create_receipt.call
 
 # Mock request object
 class MockRequest
@@ -59,10 +59,10 @@ logic.success_data
 #=> nil
 
 ## success_data returns correct structure when secret is viewable
-metadata = @create_metadata.call
-secret = metadata.load_secret
+receipt = @create_receipt.call
+secret = receipt.load_secret
 params = {
-  'identifier' => metadata.secret_identifier
+  'identifier' => receipt.secret_identifier
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 ret = logic.success_data
@@ -75,7 +75,7 @@ logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 [logic.site['host'], logic.authentication['enabled'], logic.domains_enabled]
 #=> ["127.0.0.1:3000", true, false]
 
-## Raises an exception when there's no metadata (no metadata param)
+## Raises an exception when there's no receipt (no receipt param)
 params = {}
 logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 logic.process_params
@@ -86,7 +86,7 @@ rescue Onetime::MissingSecret
 end
 #=> true
 
-## Raises an exception when there's no metadata (invalid metadata param)
+## Raises an exception when there's no receipt (invalid receipt param)
 params = {
   'identifier' => 'bogus'
 }
@@ -101,7 +101,7 @@ end
 
 ## Raises an exception when there's no secret
 params = {
-  'identifier' => @metadata.identifier
+  'identifier' => @receipt.identifier
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 begin
@@ -112,11 +112,11 @@ end
 #=> true
 
 ## Raises an exception when there's no viewable secret
-metadata = @create_metadata.call
-secret = metadata.load_secret
+receipt = @create_receipt.call
+secret = receipt.load_secret
 secret.received!
 params = {
-  'identifier' => metadata.secret_identifier
+  'identifier' => receipt.secret_identifier
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 begin
@@ -126,10 +126,10 @@ rescue Onetime::MissingSecret
 end
 #=> true
 
-## Share domain is site.host by default (same as metadata)
-metadata = @create_metadata.call
+## Share domain is site.host by default (same as receipt)
+receipt = @create_receipt.call
 params = {
-  'identifier' => metadata.secret_identifier
+  'identifier' => receipt.secret_identifier
 }
 @this_logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 @this_logic.process
@@ -137,11 +137,11 @@ params = {
 #=> "https://127.0.0.1:3000"
 
 ## Share domain is still site.host even when the secret has it set if domains is disabled
-metadata = @create_metadata.call
-secret = metadata.load_secret
+receipt = @create_receipt.call
+secret = receipt.load_secret
 secret.share_domain! "example.com"
 params = {
-  'identifier' => metadata.secret_identifier
+  'identifier' => receipt.secret_identifier
 }
 @this_logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 @this_logic.process
@@ -149,11 +149,11 @@ params = {
 #=> ["https://127.0.0.1:3000", false]
 
 ## Share domain is processed correctly when the secret has it set
-metadata = @create_metadata.call
-secret = metadata.load_secret
+receipt = @create_receipt.call
+secret = receipt.load_secret
 secret.share_domain! "example.com"
 params = {
-  'identifier' => metadata.secret_identifier
+  'identifier' => receipt.secret_identifier
 }
 @this_logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 @this_logic.instance_variable_set(:@domains_enabled, true)
@@ -177,9 +177,9 @@ logic.one_liner
 #=> nil
 
 ## Cannot determine if secret is a one-liner when the logic.show_secret is false, even if the secret itself is viewable
-metadata = @create_metadata.call
+receipt = @create_receipt.call
 params = {
-  'identifier' => metadata.secret_identifier
+  'identifier' => receipt.secret_identifier
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 logic.raise_concerns
@@ -191,9 +191,9 @@ logic.process
 ## continue (even though viewable? now reports false b/c logic.process has
 ## been run successfully and can never be run again -- as far as its concerned
 ## the secret has been received).
-metadata = @create_metadata.call
+receipt = @create_receipt.call
 params = {
-  'identifier' => metadata.secret_identifier,
+  'identifier' => receipt.secret_identifier,
   'continue' => true
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
@@ -203,10 +203,10 @@ logic.process
 #=> [false, true, true, false]
 
 ## Correctly determines if secret is a one-liner if the secret is readable
-metadata = @create_metadata.call
-secret = metadata.load_secret
+receipt = @create_receipt.call
+secret = receipt.load_secret
 params = {
-  'identifier' => metadata.secret_identifier
+  'identifier' => receipt.secret_identifier
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
 secret.received!
@@ -217,9 +217,9 @@ logic.process
 ## Correctly determines if secret is NOT a one-liner (see note above
 ## about why logic.secret.viewable? reports false after running process).
 multiline_content = "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
-metadata, _secret = Onetime::Metadata.spawn_pair(@cust.custid, 3600, multiline_content)
+receipt, _secret = Onetime::Receipt.spawn_pair(@cust.custid, 3600, multiline_content)
 params = {
-  'identifier' => metadata.secret_identifier,
+  'identifier' => receipt.secret_identifier,
   'continue' => true
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
@@ -229,9 +229,9 @@ logic.process
 
 ## Correctly determines display lines for multi-line secrets
 multiline_content = "Line 1\nLine 2\nLine 3\nLine4\nLine5\nLine6"
-metadata, _secret = Onetime::Metadata.spawn_pair(@cust.custid, 3600, multiline_content)
+receipt, _secret = Onetime::Receipt.spawn_pair(@cust.custid, 3600, multiline_content)
 params = {
-  'identifier' => metadata.secret_identifier,
+  'identifier' => receipt.secret_identifier,
   'continue' => true
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
@@ -240,10 +240,10 @@ logic.display_lines
 #=> 9
 
 ## Correctly handles a secret without a passphrase
-metadata = @create_metadata.call
-secret = metadata.load_secret
+receipt = @create_receipt.call
+secret = receipt.load_secret
 params = {
-  'identifier' => metadata.secret_identifier,
+  'identifier' => receipt.secret_identifier,
   'continue' => true
 }
 logic = V2::Logic::Secrets::RevealSecret.new(@strategy_result, params, 'en')
@@ -252,12 +252,12 @@ logic.process
 #=> [false, false, true]
 
 ## Correctly handles a secret with an incorrect passphrase
-metadata = @create_metadata.call
-secret = metadata.load_secret
+receipt = @create_receipt.call
+secret = receipt.load_secret
 secret.update_passphrase('correct_pass')
 secret.save
 params = {
-  'identifier' => metadata.secret_identifier,
+  'identifier' => receipt.secret_identifier,
   'passphrase' => 'wrong_pass',
   'continue' => true
 }
@@ -270,12 +270,12 @@ end
 #=> [true, false, false, "Incorrect passphrase"]
 
 ## Correctly handles a secret with an incorrect passphrase (explicit locale)
-metadata = @create_metadata.call
-secret = metadata.load_secret
+receipt = @create_receipt.call
+secret = receipt.load_secret
 secret.update_passphrase('correct_pass')
 secret.save
 params = {
-  'identifier' => metadata.secret_identifier,
+  'identifier' => receipt.secret_identifier,
   'passphrase' => 'wrong_pass',
   'continue' => true
 }
@@ -288,12 +288,12 @@ end
 #=> [true, false, false, "Incorrect passphrase"]
 
 ## Correctly handles a secret with a correct passphrase
-metadata = @create_metadata.call
-secret = metadata.load_secret
+receipt = @create_receipt.call
+secret = receipt.load_secret
 secret.update_passphrase('correct_pass')
 secret.save
 params = {
-  'identifier' => metadata.secret_identifier,
+  'identifier' => receipt.secret_identifier,
   'passphrase' => 'correct_pass',
   'continue' => true
 }
@@ -303,5 +303,5 @@ logic.process
 #=> [true, true, true]
 
 # Teardown
-@metadata.destroy!
+@receipt.destroy!
 @cust.destroy!

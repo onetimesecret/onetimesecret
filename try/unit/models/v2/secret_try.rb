@@ -26,7 +26,7 @@ OT.boot! :test, true
 
 ## Can create Secret
 s = Onetime::Secret.new :private
-[s.class, s.dbclient.connection[:db], s.metadata_identifier]
+[s.class, s.dbclient.connection[:db], s.receipt_identifier]
 #=> [Onetime::Secret, 0, nil]
 
 ## Keys are always unique for Secrets
@@ -48,51 +48,44 @@ unique_values.size
 #=> @iterations
 
 ## Generate a pair
-@metadata, @secret = Onetime::Metadata.spawn_pair 'anon', 3600, 'test secret'
-[@metadata.nil?, @secret.nil?]
+@receipt, @secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+[@receipt.nil?, @secret.nil?]
 #=> [false, false]
 
-## Private metadata key matches
-p [@secret.metadata_identifier, @metadata.identifier]
-[@secret.metadata_identifier.nil?, @secret.metadata_identifier == @metadata.identifier]
+## Private receipt key matches
+p [@secret.receipt_identifier, @receipt.identifier]
+[@secret.receipt_identifier.nil?, @secret.receipt_identifier == @receipt.identifier]
 #=> [false, true]
 
 ## Shared secret key matches
-p [@secret.identifier, @metadata.secret_identifier]
-[@metadata.secret_identifier.nil?, @metadata.secret_identifier == @secret.identifier]
+p [@secret.identifier, @receipt.secret_identifier]
+[@receipt.secret_identifier.nil?, @receipt.secret_identifier == @secret.identifier]
 #=> [false, true]
 
 ## Kinds are correct
-[@metadata.class, @secret.class]
-#=> [Onetime::Metadata, Onetime::Secret]
+[@receipt.class, @secret.class]
+#=> [Onetime::Receipt, Onetime::Secret]
 
 ## Can save a secret and check existence
-metadata, secret = Onetime::Metadata.spawn_pair 'anon', 3600, 'test secret'
-[metadata.save, metadata.exists?]
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+[receipt.save, receipt.exists?]
 #=> [true, true]
 
 ## A secret can be destroyed using Familia's destroy! method
-metadata, secret = Onetime::Metadata.spawn_pair 'anon', 3600, 'test secret'
-metadata.save
-metadata.destroy!
-!metadata.exists?
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.save
+receipt.destroy!
+!receipt.exists?
 #=> true
 
 ## Can set private secret to viewed state
-metadata, secret = Onetime::Metadata.spawn_pair 'anon', 3600, 'test secret'
-metadata.viewed!
-[metadata.viewed, metadata.state]
+receipt, secret = Onetime::Receipt.spawn_pair 'anon', 3600, 'test secret'
+receipt.viewed!
+[receipt.viewed, receipt.state]
 #=> [Familia.now.to_i, 'viewed']
 
-# NOTE: The received method has been removed from the Secret model
-## Can set shared secret to viewed state
-#metadata, secret = Onetime::Metadata.spawn_pair 'anon', 3600, 'test secret'
-#metadata.save && secret.save
-#secret.received!
-# NOTE: The secret no longer keeps a reference to the metadata
-##metadata = secret.load_metadata
-#[metadata.shared, metadata.state, secret.received, secret.state]
-###=> [Familia.now.to_i, 'shared', Familia.now.to_i, 'received']
+# NOTE: The received method has been removed from the Secret model.
+# The secret no longer keeps a reference to the receipt.
 
 # NOTE: view_count functionality has been removed from Secret model
 # These tests are commented out for now

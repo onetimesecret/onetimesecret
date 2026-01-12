@@ -11,7 +11,7 @@ import type { ConcealedMessage } from '@/types/ui/concealed-message';
 // Create mock ConcealedMessage for testing
 const createMockConcealedMessage = (id: string): ConcealedMessage => ({
   id,
-  metadata_identifier: `metadata-${id}`,
+  receipt_identifier: `metadata-${id}`,
   secret_identifier: `secret-${id}`,
   secretLink: `https://example.com/secret/${id}`,
   metadataLink: `https://example.com/private/${id}`,

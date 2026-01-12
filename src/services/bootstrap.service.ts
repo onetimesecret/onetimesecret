@@ -1,6 +1,6 @@
 // src/services/bootstrap.service.ts
 
-import type { OnetimeWindow } from '@/types/declarations/window';
+import type { BootstrapPayload } from '@/types/declarations/bootstrap';
 
 /**
  * Bootstrap Service - Pre-Pinia State Access
@@ -24,7 +24,7 @@ import type { OnetimeWindow } from '@/types/declarations/window';
 const BOOTSTRAP_KEY = '__BOOTSTRAP_STATE__' as const;
 
 // Internal storage after consumption
-let bootstrapSnapshot: Partial<OnetimeWindow> | null = null;
+let bootstrapSnapshot: Partial<BootstrapPayload> | null = null;
 let consumed = false;
 
 /**
@@ -36,7 +36,7 @@ let consumed = false;
  *
  * @returns The bootstrap data snapshot, or null if already consumed or unavailable
  */
-export function consumeBootstrapData(): Partial<OnetimeWindow> | null {
+export function consumeBootstrapData(): Partial<BootstrapPayload> | null {
   if (consumed) {
     console.debug('[BootstrapService] Data already consumed');
     return bootstrapSnapshot;
@@ -48,7 +48,7 @@ export function consumeBootstrapData(): Partial<OnetimeWindow> | null {
     return null;
   }
 
-  const windowWithState = window as Window & { [BOOTSTRAP_KEY]?: OnetimeWindow };
+  const windowWithState = window as Window & { [BOOTSTRAP_KEY]?: BootstrapPayload };
   const state = windowWithState[BOOTSTRAP_KEY];
 
   if (!state) {
@@ -79,20 +79,20 @@ export function consumeBootstrapData(): Partial<OnetimeWindow> | null {
  * Pre-consumption: reads from window.__BOOTSTRAP_STATE__
  * Post-consumption: reads from internal snapshot
  *
- * @param key - The OnetimeWindow property to retrieve
+ * @param key - The BootstrapPayload property to retrieve
  * @returns The value or undefined if not found
  */
-export function getBootstrapValue<K extends keyof OnetimeWindow>(
+export function getBootstrapValue<K extends keyof BootstrapPayload>(
   key: K
-): OnetimeWindow[K] | undefined {
+): BootstrapPayload[K] | undefined {
   // If already consumed, use snapshot
   if (consumed && bootstrapSnapshot) {
-    return bootstrapSnapshot[key] as OnetimeWindow[K] | undefined;
+    return bootstrapSnapshot[key] as BootstrapPayload[K] | undefined;
   }
 
   // Pre-consumption: read directly from window
   if (typeof window !== 'undefined') {
-    const windowWithState = window as Window & { [BOOTSTRAP_KEY]?: OnetimeWindow };
+    const windowWithState = window as Window & { [BOOTSTRAP_KEY]?: BootstrapPayload };
     const state = windowWithState[BOOTSTRAP_KEY];
     if (state) {
       return state[key];
@@ -110,7 +110,7 @@ export function getBootstrapValue<K extends keyof OnetimeWindow>(
  *
  * @returns The full bootstrap data snapshot, or null if unavailable
  */
-export function getBootstrapSnapshot(): Partial<OnetimeWindow> | null {
+export function getBootstrapSnapshot(): Partial<BootstrapPayload> | null {
   if (!consumed) {
     return consumeBootstrapData();
   }

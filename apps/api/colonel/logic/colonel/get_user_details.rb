@@ -8,7 +8,7 @@ module ColonelAPI
   module Logic
     module Colonel
       class GetUserDetails < ColonelAPI::Logic::Base
-        attr_reader :user_id, :user, :user_secrets, :user_metadata, :organizations
+        attr_reader :user_id, :user, :user_secrets, :user_receipts, :organizations
 
         def process_params
           @user_id = sanitize_identifier(params['user_id'])
@@ -26,8 +26,8 @@ module ColonelAPI
           # Get all secrets owned by this user using non-blocking SCAN
           @user_secrets = scan_user_secrets
 
-          # Get all metadata owned by this user using non-blocking SCAN
-          @user_metadata = scan_user_metadata
+          # Get all receipts owned by this user using non-blocking SCAN
+          @user_receipts = scan_user_receipts
 
           # Get user's organizations (if they participate in any)
           @organizations = []
@@ -55,7 +55,7 @@ module ColonelAPI
         def scan_user_secrets
           secrets  = []
           cursor   = '0'
-          dbclient = Onetime::Secret.new.dbclient
+          dbclient = Onetime::Secret.dbclient
           pattern  = 'secret:*:object'
 
           loop do
@@ -83,36 +83,36 @@ module ColonelAPI
           secrets
         end
 
-        # Scan metadata owned by user using non-blocking Redis SCAN
+        # Scan receipts owned by user using non-blocking Redis SCAN
         # Replaces blocking KEYS operation
-        def scan_user_metadata
-          metadata_list = []
-          cursor        = '0'
-          dbclient      = Onetime::Metadata.new.dbclient
-          pattern       = 'metadata:*:object'
+        def scan_user_receipts
+          receipt_list = []
+          cursor       = '0'
+          dbclient     = Onetime::Receipt.dbclient
+          pattern      = 'receipt:*:object'
 
           loop do
             cursor, keys = dbclient.scan(cursor, match: pattern, count: 100)
 
             keys.each do |key|
-              objid    = key.split(':')[1]
-              metadata = Onetime::Metadata.load(objid)
-              next unless metadata&.exists?
-              next unless metadata.owner_id == user.objid
+              objid   = key.split(':')[1]
+              receipt = Onetime::Receipt.load(objid)
+              next unless receipt&.exists?
+              next unless receipt.owner_id == user.objid
 
-              metadata_list << {
-                metadata_id: metadata.objid,
-                shortid: metadata.shortid,
-                state: metadata.state,
-                created: metadata.created,
+              receipt_list << {
+                receipt_id: receipt.objid,
+                shortid: receipt.shortid,
+                state: receipt.state,
+                created: receipt.created,
               }
             end
 
-            break if metadata_list.size >= 10_000
+            break if receipt_list.size >= 10_000
             break if cursor == '0'
           end
 
-          metadata_list
+          receipt_list
         end
 
         def success_data
@@ -134,9 +134,9 @@ module ColonelAPI
                 count: user_secrets.size,
                 items: user_secrets,
               },
-              metadata: {
-                count: user_metadata.size,
-                items: user_metadata,
+              receipts: {
+                count: user_receipts.size,
+                items: user_receipts,
               },
               organizations: organizations,
               stats: {

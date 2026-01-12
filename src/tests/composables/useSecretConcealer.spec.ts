@@ -40,8 +40,8 @@ describe('useSecretConcealer', () => {
   describe('lifecycle', () => {
     beforeEach(() => {
       const store = {
-        conceal: vi.fn().mockResolvedValue({ record: { metadata: { key: 'test' } } }),
-        generate: vi.fn().mockResolvedValue({ record: { metadata: { key: 'test' } } }),
+        conceal: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
+        generate: vi.fn().mockResolvedValue({ record: { receipt: { key: 'test' } } }),
         setApiMode: vi.fn(),
       };
       vi.mocked(useSecretStore).mockReturnValue(store);
@@ -58,8 +58,8 @@ describe('useSecretConcealer', () => {
   describe('form submission', () => {
     const mockResponse = {
       record: {
-        metadata: {
-          key: 'test-metadata-key',
+        receipt: {
+          identifier: 'test-receipt-key',
         },
       },
     };
@@ -77,8 +77,8 @@ describe('useSecretConcealer', () => {
       const { submit, isSubmitting } = useSecretConcealer({
         onSuccess: async (response) => {
           mockRouter.push({
-            name: 'Metadata link',
-            params: { metadataIdentifier: response.record.metadata.identifier },
+            name: 'Receipt link',
+            params: { receiptIdentifier: response.record.receipt.identifier },
           });
         },
       });
@@ -89,8 +89,8 @@ describe('useSecretConcealer', () => {
       // Verify
       expect(isSubmitting.value).toBe(false);
       expect(mockRouter.push).toHaveBeenCalledWith({
-        name: 'Metadata link',
-        params: { metadataIdentifier: 'test-metadata-key' },
+        name: 'Receipt link',
+        params: { receiptIdentifier: 'test-receipt-key' },
       });
     });
 

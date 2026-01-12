@@ -21,8 +21,8 @@ import {
   queueMetricsDetailsSchema,
 } from '@/schemas/api/account/endpoints/colonel';
 import {
-  metadataRecordsDetailsSchema,
-  metadataRecordsSchema,
+  receiptRecordsDetailsSchema,
+  receiptRecordsSchema,
 } from '@/schemas/api/account/endpoints/recent';
 import {
   loginResponseSchema,
@@ -45,7 +45,7 @@ import {
 } from '@/schemas/models';
 import { brandSettingschema, imagePropsSchema } from '@/schemas/models/domain/brand';
 import { feedbackDetailsSchema, feedbackSchema } from '@/schemas/models/feedback';
-import { metadataDetailsSchema, metadataSchema } from '@/schemas/models/metadata';
+import { receiptDetailsSchema, receiptSchema } from '@/schemas/models/receipt';
 import { secretDetailsSchema, secretSchema } from '@/schemas/models/secret';
 import { z } from 'zod';
 
@@ -81,12 +81,12 @@ export const responseSchemas = {
   feedback: createApiResponseSchema(feedbackSchema, feedbackDetailsSchema),
   imageProps: createApiResponseSchema(imagePropsSchema),
   jurisdiction: createApiResponseSchema(jurisdictionSchema, jurisdictionDetailsSchema),
-  metadata: createApiResponseSchema(metadataSchema, metadataDetailsSchema),
+  receipt: createApiResponseSchema(receiptSchema, receiptDetailsSchema),
   secret: createApiResponseSchema(secretSchema, secretDetailsSchema),
 
   // List responses
   customDomainList: createApiListResponseSchema(customDomainSchema, customDomainDetailsSchema),
-  metadataList: createApiListResponseSchema(metadataRecordsSchema, metadataRecordsDetailsSchema),
+  receiptList: createApiListResponseSchema(receiptRecordsSchema, receiptRecordsDetailsSchema),
   secretList: createApiListResponseSchema(secretResponsesSchema),
 
   // Special responses
@@ -132,8 +132,8 @@ export type CustomDomainResponse = ResponseTypes['customDomain'];
 export type CustomerResponse = ResponseTypes['customer'];
 export type FeedbackResponse = ResponseTypes['feedback'];
 export type ImagePropsResponse = ResponseTypes['imageProps'];
-export type MetadataListResponse = ResponseTypes['metadataList'];
-export type MetadataResponse = ResponseTypes['metadata'];
+export type ReceiptListResponse = ResponseTypes['receiptList'];
+export type ReceiptResponse = ResponseTypes['receipt'];
 export type SecretListResponse = ResponseTypes['secretList'];
 export type SecretResponse = ResponseTypes['secret'];
 export type LoginResponse = ResponseTypes['login'];

@@ -3,11 +3,11 @@
 import type { RouteRecordRaw } from 'vue-router';
 
 import incomingRoutes from './incoming';
-import metadataRoutes from './metadata';
+import receiptRoutes from './receipt';
 import secretRoutes from './secret';
 
 const routes: RouteRecordRaw[] = [
-  ...metadataRoutes,
+  ...receiptRoutes,
   ...secretRoutes,
   ...incomingRoutes,
 ];

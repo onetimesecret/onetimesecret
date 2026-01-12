@@ -75,7 +75,7 @@ module ColonelAPI
                 created: secret.created,
                 expiration: secret.expiration,
                 lifespan: secret.lifespan,
-                metadata_id: secret.metadata_identifier,
+                receipt_id: secret.receipt_identifier,
                 age: secret.age,
                 has_ciphertext: !secret.ciphertext.to_s.empty?,
               }

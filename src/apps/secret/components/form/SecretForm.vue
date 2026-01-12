@@ -9,7 +9,7 @@
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { useConcealedMetadataStore } from '@/shared/stores/concealedMetadataStore';
+  import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
   import {
     DEFAULT_BUTTON_TEXT_LIGHT,
     DEFAULT_CORNER_CLASS,
@@ -56,7 +56,7 @@
   }>();
 
   const router = useRouter();
-  const concealedMetadataStore = useConcealedMetadataStore();
+  const concealedReceiptStore = useConcealedReceiptStore();
   const showProTip = ref(props.withAsterisk);
 
   // Get passphrase configuration for UI hints
@@ -83,7 +83,7 @@
       if (!response) throw 'Response is missing';
       const newMessage: ConcealedMessage = {
         id: nanoid(),
-        metadata_identifier: response.record.metadata.identifier,
+        receipt_identifier: response.record.receipt.identifier,
         secret_identifier: response.record.secret.identifier,
         response,
         clientInfo: {
@@ -93,7 +93,7 @@
         },
       };
       // Add the message to the store
-      concealedMetadataStore.addMessage(newMessage);
+      concealedReceiptStore.addMessage(newMessage);
       operations.reset();
       secretContentInput.value?.clearTextarea(); // Clear textarea
 
@@ -102,7 +102,7 @@
 
       // In workspace mode, stay on page; otherwise navigate to receipt
       if (!props.workspaceMode) {
-        router.push(`/receipt/${response.record.metadata.identifier}`);
+        router.push(`/receipt/${response.record.receipt.identifier}`);
       }
     },
   });

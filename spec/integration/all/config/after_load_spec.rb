@@ -51,7 +51,7 @@ RSpec.describe "Onetime boot configuration process", type: :integration do
       allow(Familia).to receive(:with_isolated_dbclient).and_yield(redis_double)
 
       # Mock V2 model Redis connections
-      allow(Onetime::Metadata).to receive(:dbclient).and_return(redis_double)
+      allow(Onetime::Receipt).to receive(:dbclient).and_return(redis_double)
       allow(Onetime::Customer).to receive(:values).and_return(double('Values', element_count: 0))
 
       # Mock system settings

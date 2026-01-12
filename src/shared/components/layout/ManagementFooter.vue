@@ -15,7 +15,7 @@
   import FooterLinks from '@/shared/components/layout/FooterLinks.vue';
   import ThemeToggle from '@/shared/components/ui/ThemeToggle.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { useDomainsStore, useMetadataListStore } from '@/shared/stores';
+  import { useDomainsStore, useReceiptListStore } from '@/shared/stores';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
@@ -44,7 +44,7 @@
   } = storeToRefs(bootstrapStore);
 
   // Store instances for counts
-  const metadataListStore = useMetadataListStore();
+  const receiptListStore = useReceiptListStore();
   const domainsStore = useDomainsStore();
 
   interface NavItem {
@@ -57,7 +57,7 @@
 
   // Computed counts (data loaded by parent ImprovedLayout)
   const counts = computed(() => ({
-    metadata: metadataListStore.count,
+    receipts: receiptListStore.count,
     domains: domainsStore.count,
   }));
 
@@ -75,7 +75,7 @@
         path: '/recent',
         label: t('web.LABELS.title_recent_secrets'),
         icon: 'clock',
-        count: counts.value.metadata,
+        count: counts.value.receipts,
       }
     ];
 

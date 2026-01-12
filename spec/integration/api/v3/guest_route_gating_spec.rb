@@ -89,7 +89,7 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
   # @param reveal [Boolean] Per-operation toggle for reveal
   # @param burn [Boolean] Per-operation toggle for burn
   # @param show [Boolean] Per-operation toggle for show (ShowSecret)
-  # @param receipt [Boolean] Per-operation toggle for receipt (ShowMetadata)
+  # @param receipt [Boolean] Per-operation toggle for receipt (ShowReceipt)
   def stub_guest_routes_config(enabled: true, conceal: true, generate: true, reveal: true, burn: true, show: true, receipt: true)
     config = {
       'enabled' => enabled,
@@ -222,7 +222,7 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       before { stub_guest_routes_config(enabled: true, reveal: false) }
 
       it 'raises GuestRoutesDisabled with operation-specific code' do
-        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(logic_class, params: { 'identifier' => secret.identifier })
         logic.process_params
@@ -237,7 +237,7 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       before { stub_guest_routes_config(enabled: true, reveal: true) }
 
       it 'does not raise GuestRoutesDisabled' do
-        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(logic_class, params: { 'identifier' => secret.identifier })
         logic.process_params
@@ -255,9 +255,9 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       before { stub_guest_routes_config(enabled: true, burn: false) }
 
       it 'raises GuestRoutesDisabled with operation-specific code' do
-        metadata, _secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        receipt, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
-        logic = create_logic(logic_class, params: { 'identifier' => metadata.identifier })
+        logic = create_logic(logic_class, params: { 'identifier' => receipt.identifier })
         logic.process_params
 
         error = raises_guest_routes_disabled?(logic)
@@ -270,9 +270,9 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       before { stub_guest_routes_config(enabled: true, burn: true) }
 
       it 'does not raise GuestRoutesDisabled' do
-        metadata, _secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        receipt, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
-        logic = create_logic(logic_class, params: { 'identifier' => metadata.identifier })
+        logic = create_logic(logic_class, params: { 'identifier' => receipt.identifier })
         logic.process_params
 
         error = raises_guest_routes_disabled?(logic)
@@ -288,7 +288,7 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       before { stub_guest_routes_config(enabled: true, show: false) }
 
       it 'raises GuestRoutesDisabled with operation-specific code' do
-        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(logic_class, params: { 'identifier' => secret.identifier })
         logic.process_params
@@ -304,7 +304,7 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       before { stub_guest_routes_config(enabled: true, show: true) }
 
       it 'does not raise GuestRoutesDisabled' do
-        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(logic_class, params: { 'identifier' => secret.identifier })
         logic.process_params
@@ -318,7 +318,7 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       before { stub_guest_routes_config(enabled: false) }
 
       it 'raises GuestRoutesDisabled with global error code' do
-        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(logic_class, params: { 'identifier' => secret.identifier })
         logic.process_params
@@ -330,16 +330,16 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
     end
   end
 
-  describe 'ShowMetadata' do
-    let(:logic_class) { V3::Logic::Secrets::ShowMetadata }
+  describe 'ShowReceipt' do
+    let(:logic_class) { V3::Logic::Secrets::ShowReceipt }
 
     context 'when receipt specifically disabled' do
       before { stub_guest_routes_config(enabled: true, receipt: false) }
 
       it 'raises GuestRoutesDisabled with operation-specific code' do
-        metadata, _secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        receipt, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
-        logic = create_logic(logic_class, params: { 'identifier' => metadata.identifier })
+        logic = create_logic(logic_class, params: { 'identifier' => receipt.identifier })
         logic.process_params
 
         error = raises_guest_routes_disabled?(logic)
@@ -353,9 +353,9 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       before { stub_guest_routes_config(enabled: true, receipt: true) }
 
       it 'does not raise GuestRoutesDisabled' do
-        metadata, _secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        receipt, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
-        logic = create_logic(logic_class, params: { 'identifier' => metadata.identifier })
+        logic = create_logic(logic_class, params: { 'identifier' => receipt.identifier })
         logic.process_params
 
         error = raises_guest_routes_disabled?(logic)
@@ -504,7 +504,7 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       end
 
       it 'allows guest reveal (still enabled)' do
-        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(V3::Logic::Secrets::RevealSecret,
           params: { 'identifier' => secret.identifier },
@@ -516,10 +516,10 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       end
 
       it 'allows guest burn (still enabled)' do
-        metadata, _secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        metadata, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(V3::Logic::Secrets::BurnSecret,
-          params: { 'identifier' => metadata.identifier },
+          params: { 'identifier' => receipt.identifier },
         )
         logic.process_params
 
@@ -528,7 +528,7 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       end
 
       it 'blocks guest show' do
-        _meta, secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        _meta, secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
         logic = create_logic(V3::Logic::Secrets::ShowSecret,
           params: { 'identifier' => secret.identifier },
@@ -541,10 +541,10 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       end
 
       it 'allows guest receipt (still enabled)' do
-        metadata, _secret = Onetime::Metadata.spawn_pair(nil, 3600, 'test value')
+        metadata, _secret = Onetime::Receipt.spawn_pair(nil, 3600, 'test value')
 
-        logic = create_logic(V3::Logic::Secrets::ShowMetadata,
-          params: { 'identifier' => metadata.identifier },
+        logic = create_logic(V3::Logic::Secrets::ShowReceipt,
+          params: { 'identifier' => receipt.identifier },
         )
         logic.process_params
 
@@ -575,8 +575,8 @@ RSpec.describe 'API V3 Guest Route Gating', type: :integration do
       expect(V3::Logic::Secrets::ShowSecret.ancestors).to include(Onetime::Logic::GuestRouteGating)
     end
 
-    it 'V3::Logic::Secrets::ShowMetadata includes GuestRouteGating' do
-      expect(V3::Logic::Secrets::ShowMetadata.ancestors).to include(Onetime::Logic::GuestRouteGating)
+    it 'V3::Logic::Secrets::ShowReceipt includes GuestRouteGating' do
+      expect(V3::Logic::Secrets::ShowReceipt.ancestors).to include(Onetime::Logic::GuestRouteGating)
     end
 
     it 'V2 classes do NOT include GuestRouteGating' do

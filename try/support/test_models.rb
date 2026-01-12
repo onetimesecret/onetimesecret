@@ -24,7 +24,8 @@ TestVersion = Onetime
 # Map commonly used models to top-level constants for cleaner test code
 Customer = TestVersion::Customer # e.g. Onetime::Customer
 CustomDomain = TestVersion::CustomDomain
-Metadata = TestVersion::Metadata
+Receipt = TestVersion::Receipt
+Metadata = Receipt # Legacy alias for backward compatibility
 Secret = TestVersion::Secret
 Feedback = TestVersion::Feedback
 Organization = TestVersion::Organization

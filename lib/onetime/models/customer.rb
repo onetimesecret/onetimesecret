@@ -80,7 +80,7 @@ module Onetime
     feature :legacy_encrypted_fields
     feature :legacy_secrets_fields
 
-    sorted_set :metadata
+    sorted_set :receipts
     hashkey :feature_flags # To turn on allow_public_homepage column in domains table
 
     # Used to track the current and most recently created password reset secret.

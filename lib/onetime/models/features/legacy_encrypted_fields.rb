@@ -22,30 +22,30 @@ module Onetime
         end
 
         module ClassMethods
-          # DEPRECATED: Use Onetime::Metadata.spawn_pair instead.
+          # DEPRECATED: Use Onetime::Receipt.spawn_pair instead.
           #
           # This method stores the custid parameter in the `custid` field, which
           # historically contained email addresses (PII). New code should use
-          # Metadata.spawn_pair which stores the owner's objid in `owner_id`.
+          # Receipt.spawn_pair which stores the owner's objid in `owner_id`.
           #
           # @param custid [String] Customer identifier (historically email, now objid)
-          # @return [Array<Metadata, Secret>] The linked metadata/secret pair
-          # @deprecated Use {Onetime::Metadata.spawn_pair} with objid instead
+          # @return [Array<Receipt, Secret>] The linked receipt/secret pair
+          # @deprecated Use {Onetime::Receipt.spawn_pair} with objid instead
           #
           def legacy_spawn_pair(custid)
-            OT.info '[DEPRECATED] legacy_spawn_pair called - use Metadata.spawn_pair with objid instead'
+            OT.info '[DEPRECATED] legacy_spawn_pair called - use Receipt.spawn_pair with objid instead'
 
-            secret   = Onetime::Secret.create!
-            metadata = Onetime::Metadata.create!(custid: custid)
+            secret  = Onetime::Secret.create!
+            receipt = Onetime::Receipt.create!(custid: custid)
 
             # TODO: Use Familia transaction
-            metadata.secret_identifier = secret.identifier
-            metadata.save
+            receipt.secret_identifier = secret.identifier
+            receipt.save
 
-            secret.metadata_identifier = metadata.identifier
+            secret.receipt_identifier = receipt.identifier
             secret.save
 
-            [metadata, secret]
+            [receipt, secret]
           end
 
           def encryption_key *entropy
@@ -115,7 +115,7 @@ module Onetime
                             end
               v_decrypted.dup.force_encoding('utf-8') # Hacky fix for https://github.com/onetimesecret/onetimesecret/issues/37
             rescue OpenSSL::Cipher::CipherError => ex
-              OT.le "[decrypted_value] m:#{metadata_identifier} s:#{identifier} CipherError #{ex.message}"
+              OT.le "[decrypted_value] r:#{receipt_identifier} s:#{identifier} CipherError #{ex.message}"
               # Try fallback global secrets for mode 2 (current encryption)
               if encryption_mode == 2 && has_fallback_secrets?
                 fallback_result = try_fallback_secrets(v_encrypted, opts)
@@ -125,7 +125,7 @@ module Onetime
               # If all secrets fail, try nil secret if allowed
               allow_nil = OT.conf['experimental'].fetch('allow_nil_global_secret', false)
               if allow_nil
-                OT.li "[decrypted_value] m:#{metadata_identifier} s:#{identifier} Trying nil global secret"
+                OT.li "[decrypted_value] r:#{receipt_identifier} s:#{identifier} Trying nil global secret"
                 decryption_options = opts.merge(key: encryption_key_v2_with_nil)
                 return v_encrypted.decrypt(decryption_options)
               end
@@ -146,17 +146,17 @@ module Onetime
             return nil unless has_fallback_secrets?
 
             rotated_secrets = OT.conf['experimental'].fetch('rotated_secrets', [])
-            OT.ld "[try_fallback_secrets] m:#{metadata_identifier} s:#{identifier} Trying rotated secrets (#{rotated_secrets.length})"
+            OT.ld "[try_fallback_secrets] r:#{receipt_identifier} s:#{identifier} Trying rotated secrets (#{rotated_secrets.length})"
             rotated_secrets.each_with_index do |fallback_secret, index|
               # Generate key using the fallback secret
               encryption_key = Onetime::Secret.encryption_key(fallback_secret, identifier, passphrase_temp)
               result         = encrypted_value.decrypt(opts.merge(key: encryption_key))
               result         = result.dup.force_encoding('utf-8')
-              OT.li "[try_fallback_secrets] m:#{metadata_identifier} s:#{identifier} Success (index #{index})"
+              OT.li "[try_fallback_secrets] r:#{receipt_identifier} s:#{identifier} Success (index #{index})"
               return result
             rescue OpenSSL::Cipher::CipherError
               # Continue to next secret if this one fails
-              OT.ld "[try_fallback_secrets] m:#{metadata_identifier} s:#{identifier} Failed (index #{index})"
+              OT.ld "[try_fallback_secrets] r:#{receipt_identifier} s:#{identifier} Failed (index #{index})"
               next
             end
             nil # Return nil if all fallback secrets fail

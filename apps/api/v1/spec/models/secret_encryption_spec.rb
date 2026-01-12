@@ -205,7 +205,7 @@ RSpec.describe Onetime::Secret do
 
   describe 'secret lifecycle with encryption' do
     let(:custid) { "test-customer" }
-    let(:metadata_key) { "test-metadata-key" }
+    let(:metadata_key) { "test-receipt-key" }
     let(:secret_value) { "Top secret information" }
     let(:passphrase) { "secure-passphrase" }
 
@@ -214,28 +214,28 @@ RSpec.describe Onetime::Secret do
         # Use our stubbed pair instead of calling the real method
         metadata, secret = create_stubbed_secret_pair(custid: custid)
 
-        expect(metadata).to be_a(Onetime::Metadata)
+        expect(metadata).to be_a(Onetime::Receipt)
         expect(secret).to be_a(Onetime::Secret)
         expect(metadata.secret_identifier).to eq(secret.identifier)
-        expect(secret.metadata_identifier).to eq(metadata.identifier)
+        expect(secret.receipt_identifier).to eq(metadata.identifier)
         expect(metadata.custid).to eq(custid)
         expect(secret.custid).to eq(custid)
       end
     end
 
     describe 'state transitions' do
-      let(:metadata) { create_stubbed_metadata(state: "new") }
+      let(:receipt) { create_stubbed_receipt(state: "new") }
       let(:secret) { create_stubbed_secret(
-        metadata_identifier: metadata.identifier,
+        receipt_identifier: receipt.identifier,
         state: "new"
       )}
 
       before do
         # Setup linked objects
-        metadata.secret_identifier = secret.identifier
+        receipt.secret_identifier = secret.identifier
 
-        # Mock the load_metadata method
-        allow(secret).to receive(:load_metadata).and_return(metadata)
+        # Mock the load_receipt method
+        allow(secret).to receive(:load_receipt).and_return(receipt)
 
         # Encrypt the test value
         secret.encrypt_value(secret_value)
@@ -248,7 +248,7 @@ RSpec.describe Onetime::Secret do
         expect(secret.instance_variable_get(:@value)).to be_nil
         expect(secret.instance_variable_get(:@passphrase_temp)).to be_nil
         expect(secret.state).to eq("received")
-        expect(metadata.state).to eq("received")
+        expect(receipt.state).to eq("received")
         expect(secret).to have_received(:destroy!)
       end
 
@@ -276,7 +276,7 @@ RSpec.describe Onetime::Secret do
 
         expect(secret.instance_variable_get(:@passphrase_temp)).to be_nil
         expect(secret.state).to eq("new") # State doesn't change because destroy! is mocked
-        expect(metadata.state).to eq("burned")
+        expect(receipt.state).to eq("burned")
         expect(secret).to have_received(:destroy!)
       end
     end

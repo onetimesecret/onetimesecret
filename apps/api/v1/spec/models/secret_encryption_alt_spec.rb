@@ -13,24 +13,24 @@ RSpec.describe Onetime::Secret do
   let(:passphrase) { "secure-passphrase" }
 
   let(:secret_pair) { create_stubbed_secret_pair(custid: customer_id, token: token) }
-  let(:metadata) { secret_pair[0] }
+  let(:receipt) { secret_pair[0] }
   let(:secret) { secret_pair[1] }
 
   describe '.spawn_pair' do
-    it 'creates a valid secret and metadata pair' do
-      expect(metadata).to be_a(Onetime::Metadata)
+    it 'creates a valid secret and receipt pair' do
+      expect(receipt).to be_a(Onetime::Receipt)
       expect(secret).to be_a(described_class)
-      expect(metadata.custid).to eq(customer_id)
+      expect(receipt.custid).to eq(customer_id)
       expect(secret.custid).to eq(customer_id)
-      expect(metadata.secret_identifier).to eq(secret.identifier)
-      expect(secret.metadata_identifier).to eq(metadata.identifier)
+      expect(receipt.secret_identifier).to eq(secret.identifier)
+      expect(secret.receipt_identifier).to eq(receipt.identifier)
     end
 
     it 'generates unique identifiers for each pair' do
-      metadata2, secret2 = create_stubbed_secret_pair(custid: customer_id)
+      receipt2, secret2 = create_stubbed_secret_pair(custid: customer_id)
 
       expect(secret.identifier).not_to eq(secret2.identifier)
-      expect(metadata.identifier).not_to eq(metadata2.identifier)
+      expect(receipt.identifier).not_to eq(receipt2.identifier)
     end
   end
 
@@ -123,7 +123,7 @@ RSpec.describe Onetime::Secret do
 
   describe 'lifecycle state transitions' do
     let(:lifecycle_secret) { secret_pair[1] }
-    let(:lifecycle_metadata) { secret_pair[0] }
+    let(:lifecycle_receipt) { secret_pair[0] }
 
     # Fix: Create a proper time mock that responds to both to_i and to_f
     let(:mock_time) { instance_double(Time, to_i: 1000, to_f: 1000.0) }
@@ -132,8 +132,8 @@ RSpec.describe Onetime::Secret do
       lifecycle_secret.encrypt_value(secret_value)
       # Fix: Use proper Time.now.utc mocking
       allow(Time).to receive_message_chain(:now, :utc).and_return(mock_time)
-      # Make load_metadata return the related metadata object
-      allow(lifecycle_secret).to receive(:load_metadata).and_return(lifecycle_metadata)
+      # Make load_receipt return the related receipt object
+      allow(lifecycle_secret).to receive(:load_receipt).and_return(lifecycle_receipt)
     end
 
     it 'transitions from new to received' do
@@ -142,33 +142,33 @@ RSpec.describe Onetime::Secret do
       lifecycle_secret.received!
 
       expect(lifecycle_secret.state).to eq('received')
-      expect(lifecycle_metadata.state).to eq('received')
+      expect(lifecycle_receipt.state).to eq('received')
       expect(lifecycle_secret.instance_variable_get(:@value)).to be_nil
     end
 
     it 'transitions from new to burned' do
       lifecycle_secret.burned!
 
-      expect(lifecycle_metadata.state).to eq('burned')
+      expect(lifecycle_receipt.state).to eq('burned')
       expect(lifecycle_secret.instance_variable_get(:@passphrase_temp)).to be_nil
       expect(lifecycle_secret).to have_received(:destroy!)
     end
 
     it 'prevents expired! when not yet expired' do
-      allow(lifecycle_metadata).to receive(:secret_expired?).and_return(false)
+      allow(lifecycle_receipt).to receive(:secret_expired?).and_return(false)
 
-      lifecycle_metadata.expired!
+      lifecycle_receipt.expired!
 
-      expect(lifecycle_metadata.state).not_to eq('expired')
+      expect(lifecycle_receipt.state).not_to eq('expired')
     end
 
     it 'allows expired! when truly expired' do
-      allow(lifecycle_metadata).to receive(:secret_expired?).and_return(true)
+      allow(lifecycle_receipt).to receive(:secret_expired?).and_return(true)
 
-      lifecycle_metadata.expired!
+      lifecycle_receipt.expired!
 
-      expect(lifecycle_metadata.state).to eq('expired')
-      expect(lifecycle_metadata.secret_key).to eq('')
+      expect(lifecycle_receipt.state).to eq('expired')
+      expect(lifecycle_receipt.secret_key).to eq('')
     end
   end
 end

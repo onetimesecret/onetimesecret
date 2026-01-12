@@ -29,8 +29,8 @@ module Onetime
 
     field :state
     field :lifespan
-    field :metadata_identifier
-    field :metadata_shortid
+    field :receipt_identifier
+    field :receipt_shortid
     field :owner_id
 
     encrypted_field :ciphertext
@@ -84,8 +84,8 @@ module Onetime
       verification.to_s == 'true'
     end
 
-    def load_metadata
-      Onetime::Metadata.load metadata_identifier
+    def load_receipt
+      Onetime::Receipt.load receipt_identifier
     end
   end
 end

@@ -17,16 +17,16 @@ module Onetime::Customer::Features
     end
 
     module InstanceMethods
-      def metadata_list
-        metadata.revmembers.collect do |key|
-          Onetime::Metadata.load(key)
+      def receipts_list
+        receipts.revmembers.collect do |key|
+          Onetime::Receipt.load(key)
         rescue Onetime::RecordNotFound => ex
-          OT.le "[metadata_list] Error: #{ex.message} (#{key} / #{custid})"
+          OT.le "[receipts_list] Error: #{ex.message} (#{key} / #{custid})"
         end.compact
       end
 
-      def add_metadata(obj)
-        metadata.add obj.identifier
+      def add_receipt(obj)
+        receipts.add obj.identifier
       end
     end
   end

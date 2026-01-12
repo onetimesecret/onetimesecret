@@ -67,12 +67,12 @@ RSpec.describe 'Admin Interface', type: :integration do
 
   # Helper to create secrets through the API
   def create_secret_via_api(content: 'test secret', owner_id: nil)
-    metadata, secret = Onetime::Metadata.spawn_pair(
+    receipt, secret = Onetime::Receipt.spawn_pair(
       owner_id || regular_user.objid,
       7 * 86400, # 7 days
       content
     )
-    { metadata: metadata, secret: secret }
+    { receipt: receipt, secret: secret }
   end
 
   describe 'Authentication & Authorization' do
@@ -177,7 +177,7 @@ RSpec.describe 'Admin Interface', type: :integration do
         body = JSON.parse(last_response.body)
 
         expect(body['details']['metadata']).not_to be_nil
-        expect(body['details']['metadata']['metadata_id']).to eq(secret_pair[:metadata].objid)
+        expect(body['details']['metadata']['receipt_id']).to eq(secret_pair[:receipt].objid)
       end
 
       it 'includes owner information' do
@@ -217,12 +217,12 @@ RSpec.describe 'Admin Interface', type: :integration do
 
       it 'deletes associated metadata (cascade)' do
         secret_id = secret_pair[:secret].objid
-        metadata_id = secret_pair[:metadata].objid
+        receipt_id = secret_pair[:receipt].objid
 
         delete "/api/colonel/secrets/#{secret_id}"
 
         # Verify metadata is also gone
-        reloaded_metadata = Onetime::Metadata.load(metadata_id)
+        reloaded_metadata = Onetime::Receipt.load(receipt_id)
         expect(reloaded_metadata).to be_nil
       end
 
@@ -525,7 +525,7 @@ RSpec.describe 'Admin Interface', type: :integration do
       secret_pair = create_secret_via_api
 
       secret_id = secret_pair[:secret].objid
-      metadata_id = secret_pair[:metadata].objid
+      receipt_id = secret_pair[:receipt].objid
 
       # Delete through admin panel
       delete "/api/colonel/secrets/#{secret_id}"
@@ -533,7 +533,7 @@ RSpec.describe 'Admin Interface', type: :integration do
 
       # Verify actually gone from database
       expect(Onetime::Secret.load(secret_id)).to be_nil
-      expect(Onetime::Metadata.load(metadata_id)).to be_nil
+      expect(Onetime::Receipt.load(receipt_id)).to be_nil
     end
 
     it 'TEST 3: Change user plan, verify in database' do

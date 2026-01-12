@@ -11,7 +11,7 @@ import {
   mockSecretRecord,
   mockSecretResponse,
   mockSecretRevealed,
-} from '../../fixtures/metadata.fixture';
+} from '../../fixtures/receipt.fixture';
 
 describe('secretStore', () => {
   let axiosMock: AxiosMockAdapter | null;

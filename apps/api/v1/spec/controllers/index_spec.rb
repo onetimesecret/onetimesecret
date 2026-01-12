@@ -106,8 +106,8 @@ RSpec.xdescribe V1::Controllers::Index, type: :request do
         key: 'secret_key_123')
     end
     let(:metadata) do
-      double('Onetime::Metadata',
-        key: 'metadata_key_123',
+      double('Onetime::Receipt',
+        key: 'receipt_key_123',
         viewed!: nil)
     end
 
@@ -119,8 +119,8 @@ RSpec.xdescribe V1::Controllers::Index, type: :request do
       allow(logic).to receive(:process)
       allow(logic).to receive(:secret).and_return(secret)
       allow(logic).to receive(:metadata).and_return(metadata)
-      allow(described_class).to receive(:metadata_hsh).and_return({
-        key: 'metadata_key_123',
+      allow(described_class).to receive(:receipt_hsh).and_return({
+        key: 'receipt_key_123',
         secret_ttl: 3600,
         passphrase_required: false
       })
@@ -129,7 +129,7 @@ RSpec.xdescribe V1::Controllers::Index, type: :request do
     it 'processes share request and returns metadata' do
       expect(app).to receive(:json).with(
         hash_including(
-          key: 'metadata_key_123',
+          key: 'receipt_key_123',
           secret_ttl: 3600,
           passphrase_required: false,
         ),
