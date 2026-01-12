@@ -8,7 +8,7 @@ module V2::Logic
 
     class ShowReceipt < V2::Logic::Base
       # Working variables
-      attr_reader :identifier, :metadata, :secret
+      attr_reader :identifier, :receipt, :secret
       # Template variables
       attr_reader :metadata_identifier,
         :metadata_shortid,
@@ -47,21 +47,21 @@ module V2::Logic
 
       def process_params
         @identifier = sanitize_identifier(params['identifier'])
-        @metadata   = Onetime::Receipt.load identifier
+        @receipt    = Onetime::Receipt.load identifier
       end
 
       def raise_concerns
         require_entitlement!('api_access')
-        raise OT::MissingSecret, "identifier: #{identifier}" if metadata.nil?
+        raise OT::MissingSecret, "identifier: #{identifier}" if receipt.nil?
       end
 
       def process # rubocop:disable Metrics/MethodLength,Metrics/PerceivedComplexity
-        @secret = @metadata.load_secret
+        @secret = @receipt.load_secret
 
-        @metadata_identifier       = metadata.identifier
-        @metadata_short_identifier = metadata.shortid
-        @secret_identifier         = metadata.secret_identifier
-        @secret_shortid            = metadata.secret_shortid
+        @metadata_identifier       = receipt.identifier
+        @metadata_short_identifier = receipt.shortid
+        @secret_identifier         = receipt.secret_identifier
+        @secret_shortid            = receipt.secret_shortid
 
         # Default the recipients to an empty string. When a Familia::Horreum
         # object is loaded, the fields that have no values (or that don't
@@ -69,37 +69,37 @@ module V2::Logic
         # But for a newly instantiated object, the fields will have a value
         # of nil. Later on, we rely on being able to check for emptiness
         # like: `@recipients.empty?`.
-        @recipients = metadata.recipients.to_s
+        @recipients = receipt.recipients.to_s
 
         @no_cache = true
 
-        @natural_expiration    = metadata.secret_natural_duration
-        @expiration            = metadata.secret_expiration
-        @expiration_in_seconds = metadata.secret_ttl
+        @natural_expiration    = receipt.secret_natural_duration
+        @expiration            = receipt.secret_expiration
+        @expiration_in_seconds = receipt.secret_ttl
 
-        secret = metadata.load_secret
+        secret = receipt.load_secret
 
         if secret.nil?
 
-          burned_or_received = metadata.state?(:burned) || metadata.state?(:received)
+          burned_or_received = receipt.state?(:burned) || receipt.state?(:received)
 
-          if !burned_or_received && metadata.secret_expired?
-            OT.le('[show_receipt] Receipt has expired secret. {metadata.shortid}')
-            metadata.secret_identifier = nil
-            metadata.expired!
+          if !burned_or_received && receipt.secret_expired?
+            OT.le("[show_receipt] Receipt has expired secret. #{receipt.shortid}")
+            receipt.secret_identifier = nil
+            receipt.expired!
           elsif !burned_or_received
-            OT.le("[show_receipt] Receipt is an orphan. #{metadata.shortid}")
-            metadata.secret_identifier = nil
-            metadata.orphaned!
+            OT.le("[show_receipt] Receipt is an orphan. #{receipt.shortid}")
+            receipt.secret_identifier = nil
+            receipt.orphaned!
           end
 
-          @is_received  = metadata.state?(:received)
-          @is_burned    = metadata.state?(:burned)
-          @is_expired   = metadata.state?(:expired)
-          @is_orphaned  = metadata.state?(:orphaned)
+          @is_received  = receipt.state?(:received)
+          @is_burned    = receipt.state?(:burned)
+          @is_expired   = receipt.state?(:expired)
+          @is_orphaned  = receipt.state?(:orphaned)
           @is_destroyed = @is_burned || @is_received || @is_expired || @is_orphaned
 
-          metadata.secret_identifier! nil if is_destroyed && metadata.secret_identifier
+          receipt.secret_identifier! nil if is_destroyed && receipt.secret_identifier
         else
           @secret_state   = secret.state
           @secret_realttl = secret.current_expiration
@@ -110,14 +110,14 @@ module V2::Logic
             @can_decrypt    = secret.can_decrypt?
             # If we can't decrypt the secret (i.e. if we can't access it) then
             # then we leave secret_value nil. We do this so that after creating
-            # a secret we can show the received contents on the "/receipt/metadata_identifier"
+            # a secret we can show the received contents on the "/receipt/receipt_identifier"
             # page one time. Particularly for generated passwords which are not
             # shown any other time.
             #
-            # TODO: There's a bug here. If the UI that created this secret+metadata
-            # records doesn't immediately load the metadata/reciept page the metadata
+            # TODO: There's a bug here. If the UI that created this secret+receipt
+            # records doesn't immediately load the receipt page the receipt
             # record stays in state=new allowing the next request through.
-            if secret && metadata.state?(:new)
+            if secret && receipt.state?(:new)
               OT.ld "[show_receipt] m:#{metadata_identifier} s:#{secret_identifier} Decrypting for first and only creator viewing"
               @secret_value = secret.ciphertext.reveal { it }
             end
@@ -128,51 +128,51 @@ module V2::Logic
         #
         # It will be true if:
         #   1. The secret is not nil (i.e., a secret exists), AND
-        #   2. The metadata state is NOT in any of these states: viewed,
+        #   2. The receipt state is NOT in any of these states: viewed,
         #      received, or burned
         #
-        @show_secret = !secret.nil? && !has_passphrase && !(metadata.state?(:viewed) || metadata.state?(:received) || metadata.state?(:burned) || metadata.state?(:orphaned))
+        @show_secret = !secret.nil? && !has_passphrase && !(receipt.state?(:viewed) || receipt.state?(:received) || receipt.state?(:burned) || receipt.state?(:orphaned))
 
         # The secret link is shown only when appropriate, considering the
         # state, ownership, and recipient information.
         #
         # It will be true if ALL of these conditions are met:
-        #   1. The metadata state is NOT received or burned, AND
+        #   1. The receipt state is NOT received or burned, AND
         #   2. The secret is showable (@show_secret is true), AND
         #   3. There are no recipients specified (@recipients is nil)
         #
-        @show_secret_link = !(metadata.state?(:received) || metadata.state?(:burned) || metadata.state?(:orphaned)) &&
+        @show_secret_link = !(receipt.state?(:received) || receipt.state?(:burned) || receipt.state?(:orphaned)) &&
                             @show_secret &&
                             @recipients.empty?
 
-        # A simple check to show the metadata link only for newly
+        # A simple check to show the receipt link only for newly
         # created secrets.
         #
-        @show_metadata_link = metadata.state?(:new)
+        @show_metadata_link = receipt.state?(:new)
 
-        # Allow the metadata to be shown if it hasn't been viewed yet OR
+        # Allow the receipt to be shown if it hasn't been viewed yet OR
         # if the current user owns it (regardless of its viewed state).
         #
         # It will be true if EITHER of these conditions are met:
-        #   1. The metadata state is NOT 'viewed', OR
-        #   2. The current customer is the owner of the metadata
+        #   1. The receipt state is NOT 'viewed', OR
+        #   2. The current customer is the owner of the receipt
         #
-        @show_metadata = !metadata.state?(:viewed) || metadata.owner?(cust)
+        @show_metadata = !receipt.state?(:viewed) || receipt.owner?(cust)
 
-        # Recipient information is only displayed when the metadata is
+        # Recipient information is only displayed when the receipt is
         # visible and there are actually recipients to show.
         #
         # It will be true if BOTH of these conditions are met:
-        #   1. The metadata should be shown (@show_metadata is true), AND
+        #   1. The receipt should be shown (@show_metadata is true), AND
         #   2. There are recipients specified (@recipients is not empty)
         #
         @show_recipients = @show_metadata && !@recipients.empty?
 
         domain = if domains_enabled
-                   if metadata.share_domain.to_s.empty?
+                   if receipt.share_domain.to_s.empty?
                      site_host
                    else
-                     metadata.share_domain
+                     receipt.share_domain
                    end
                  else
                    site_host
@@ -182,12 +182,12 @@ module V2::Logic
         OT.ld "[process] Set @share_domain: #{@share_domain}"
         process_uris
 
-        # Dump the metadata attributes before marking as viewed
+        # Dump the receipt attributes before marking as viewed
         @metadata_attributes = _metadata_attributes
 
-        # We mark the metadata record viewed so that we can support showing the
-        # secret link on the metadata page, just the one time.
-        metadata.viewed! if metadata.state?(:new)
+        # We mark the receipt record viewed so that we can support showing the
+        # secret link on the receipt page, just the one time.
+        receipt.viewed! if receipt.state?(:new)
 
         success_data
       end
@@ -208,8 +208,8 @@ module V2::Logic
       private
 
       def _metadata_attributes
-        # Start with safe metadata attributes
-        attributes = metadata.safe_dump
+        # Start with safe receipt attributes
+        attributes = receipt.safe_dump
 
         # Only include the secret's identifying key when necessary
         attributes[:secret_identifier] = secret_identifier if show_secret

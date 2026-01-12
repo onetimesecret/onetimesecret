@@ -29,7 +29,7 @@
   // Create shareable link for an item
   const getShareLink = (item: ReceiptRecords) => {
     const share_domain = item.share_domain ?? site_host.value;
-    return `https://${share_domain}/secret/${item.identifier}`;
+    return `https://${share_domain}/secret/${item.secret_shortid}`;
   };
 
   // Handle copying link to clipboard

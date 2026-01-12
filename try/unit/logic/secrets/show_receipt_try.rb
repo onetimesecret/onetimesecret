@@ -169,7 +169,7 @@ params = {
 }
 logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
 logic.process
-[logic.metadata.state, logic.show_secret_link]
+[logic.receipt.state, logic.show_secret_link]
 #=> ["viewed", false]
 
 ## Shows secret link when viewed for the first time (i.e. processed)
@@ -179,7 +179,7 @@ params = {
 }
 logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
 logic.process
-[logic.metadata.state, logic.show_secret_link]
+[logic.receipt.state, logic.show_secret_link]
 #=> ["viewed", true]
 
 ## Doesn't show secret link when for the second time though
@@ -190,7 +190,7 @@ params = {
 logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
 logic.process
 logic.process
-[logic.metadata.state, logic.show_secret_link]
+[logic.receipt.state, logic.show_secret_link]
 #=> ["viewed", false]
 
 ## Hides secret link when receipt is in received state
@@ -201,7 +201,7 @@ params = {
 }
 logic = Logic::Secrets::ShowReceipt.new(@strategy_result, params, 'en')
 logic.process
-[logic.metadata.state, logic.show_secret_link]
+[logic.receipt.state, logic.show_secret_link]
 #=> ["received", false]
 
 ## Asking the logic about whether the secret value is a single line returns nil when no secret
