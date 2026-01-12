@@ -107,6 +107,14 @@ export default [
     },
     rules: {
       'no-undef': 'error', // Prevent usage of undeclared variables
+      // Prevent direct access to bootstrap state - use bootstrapStore instead
+      'no-restricted-globals': [
+        'error',
+        {
+          name: '__BOOTSTRAP_STATE__',
+          message: 'Use bootstrapStore instead of direct window access',
+        },
+      ],
       // Enforce consistent import ordering
       'import/order': [
         'warn',
