@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "en": "Color Picker",
+    "translation": "Bộ chọn màu"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "en": "Current {0}: {1}. Click to cycle through options.",
+    "translation": "{0} hiện tại: {1}. Nhấp để chuyển đổi qua các tùy chọn."
+  },
+  "web.branding.use_setting": {
+    "en": "Use setting",
+    "translation": "Sử dụng cài đặt"
+  },
+  "web.branding.font_family": {
+    "en": "Font Family",
+    "translation": "Phông chữ"
+  },
+  "web.branding.corner_style": {
+    "en": "Corner Style",
+    "translation": "Kiểu góc"
+  },
+  "web.branding.brand_color": {
+    "en": "Brand Color",
+    "translation": "Màu thương hiệu"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "en": "Preview of recipient's view when accessing your secure link",
+    "translation": "Xem trước giao diện người nhận khi truy cập liên kết an toàn của bạn"
+  },
+  "web.branding.preview_and_customize": {
+    "en": "Preview & Customize",
+    "translation": "Xem trước & Tùy chỉnh"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "en": "Switch to Safari browser view",
+    "translation": "Chuyển sang chế độ xem trình duyệt Safari"
+  },
+  "web.branding.microsoft_edge": {
+    "en": "Microsoft Edge",
+    "translation": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "en": "Maximize window",
+    "translation": "Phóng to cửa sổ"
+  },
+  "web.branding.minimize_window": {
+    "en": "Minimize window",
+    "translation": "Thu nhỏ cửa sổ"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "en": "Switch to Edge browser view",
+    "translation": "Chuyển sang chế độ xem trình duyệt Edge"
+  },
+  "web.branding.charactercount_500_characters": {
+    "en": "{0}/500 characters",
+    "translation": "{0}/500 ký tự"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "en": "Use your phone to scan the QR code",
+    "translation": "Sử dụng điện thoại của bạn để quét mã QR"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "en": "Contact onboarding{'@'}example.com with any questions",
+    "translation": "Liên hệ onboarding{'@'}example.com nếu có câu hỏi"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "en": "These instructions will be shown to recipients before they reveal the secret content",
+    "translation": "Hướng dẫn này sẽ được hiển thị cho người nhận trước khi họ xem nội dung bí mật"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "en": "These instructions will be shown to recipients after they reveal the secret",
+    "translation": "Hướng dẫn này sẽ được hiển thị cho người nhận sau khi họ xem bí mật"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "en": "Pre-reveal Instructions",
+    "translation": "Hướng dẫn trước khi xem"
+  },
+  "web.branding.post_reveal_instructions": {
+    "en": "Post-reveal Instructions",
+    "translation": "Hướng dẫn sau khi xem"
+  },
+  "web.branding.instructions": {
+    "en": "Instructions",
+    "translation": "Hướng dẫn"
+  },
+  "web.branding.logo_controls": {
+    "en": "Logo controls",
+    "translation": "Điều khiển logo"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "en": "Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG",
+    "translation": "Nhấp để tải lên logo. Kích thước đề xuất: 128x128 pixel. Kích thước tệp tối đa: 1MB. Định dạng được hỗ trợ: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "en": "Upload logo",
+    "translation": "Tải lên logo"
+  },
+  "web.branding.loading_preview": {
+    "en": "Loading preview...",
+    "translation": "Đang tải xem trước..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "en": "Preview how recipients will see your secrets by testing the \"View Secret\" button",
+    "translation": "Xem trước cách người nhận sẽ thấy bí mật của bạn bằng cách thử nghiệm nút \"Xem bí mật\""
+  },
+  "web.branding.eye_icon": {
+    "en": "Eye icon",
+    "translation": "Biểu tượng mắt"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "en": "Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)",
+    "translation": "Nhấp vào hình ảnh xem trước bên dưới để cập nhật logo của bạn (tối thiểu 128x128 pixel được đề xuất, tối đa 1MB)"
+  },
+  "web.branding.image_icon": {
+    "en": "Image icon",
+    "translation": "Biểu tượng hình ảnh"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "en": "Use the controls above to customize brand color, styles, and recipient instructions",
+    "translation": "Sử dụng các điều khiển ở trên để tùy chỉnh màu thương hiệu, kiểu dáng và hướng dẫn cho người nhận"
+  },
+  "web.branding.customization_icon": {
+    "en": "Customization icon",
+    "translation": "Biểu tượng tùy chỉnh"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "en": "You have unsaved changes. Are you sure?",
+    "translation": "Bạn có thay đổi chưa lưu. Bạn có chắc chắn không?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "en": "Failed to load brand settings",
+    "translation": "Không thể tải cài đặt thương hiệu"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Đây là bản xem trước tương tác về cách người nhận sẽ thấy tin nhắn an toàn của bạn. Bạn có thể: - Tùy chỉnh màu sắc và phông chữ bằng các điều khiển ở trên - Tải lên logo (tối thiểu 128x128 pixel được đề xuất, tối đa 1MB) - Kiểm tra xem trước bằng nút \"Xem bí mật\""
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Đây là bản xem trước tương tác về cách người nhận sẽ thấy tin nhắn an toàn của bạn. Bạn có thể: - Tùy chỉnh màu sắc và phông chữ bằng các điều khiển ở trên - Tải lên logo (tối thiểu 128x128 pixel được đề xuất, tối đa 1MB) - Kiểm tra xem trước bằng nút \"Xem bí mật\""
+  },
+  "web.branding.default_logo_icon": {
+    "en": "Japanese kanji '秘' (himitsu) meaning 'secret' or 'confidential'",
+    "translation": "Chữ Hán Nhật '秘' (himitsu) có nghĩa là 'bí mật' hoặc 'bảo mật'"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "en": "Powered by Onetime Secret",
+    "translation": "Được hỗ trợ bởi Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "en": "{0} Logo",
+    "translation": "Logo {0}"
+  },
+  "web.branding.edge": {
+    "en": "Edge",
+    "translation": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "en": "Switch to Edge preview",
+    "translation": "Chuyển sang xem trước Edge"
+  },
+  "web.branding.safari": {
+    "en": "Safari",
+    "translation": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "en": "Switch to Safari preview",
+    "translation": "Chuyển sang xem trước Safari"
+  }
+}

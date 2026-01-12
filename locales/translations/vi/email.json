@@ -1,0 +1,594 @@
+{
+  "email.incomingsupport.subject": {
+    "en": "[Ticket: %s]",
+    "translation": "[Phiếu yêu cầu: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "en": "A customer has sent the following info",
+    "translation": "Có một khách hàng đã gởi thông tin sau"
+  },
+  "email.secret_link.subject": {
+    "en": "%{sender_email} sent you a secret",
+    "translation": "%{sender_email} đã gửi cho bạn một bí mật"
+  },
+  "email.secret_link.sent_you_secret": {
+    "en": "sent you a secret:",
+    "translation": "đã gửi cho bạn một bí mật:"
+  },
+  "email.secret_link.important_label": {
+    "en": "Important:",
+    "translation": "Quan trọng:"
+  },
+  "email.secret_link.link_works_once": {
+    "en": "This link will only work once. After viewing, the secret will be permanently deleted.",
+    "translation": "Liên kết này chỉ hoạt động một lần. Sau khi xem, bí mật sẽ bị xóa vĩnh viễn."
+  },
+  "email.secret_link.sent_via": {
+    "en": "Sent via",
+    "translation": "Đã gửi qua"
+  },
+  "email.welcome.subject": {
+    "en": "Welcome to %{product_name} - Please verify your email",
+    "translation": "Chào mừng đến với %{product_name} - Vui lòng xác minh email của bạn"
+  },
+  "email.welcome.title": {
+    "en": "Welcome to %{product_name}!",
+    "translation": "Chào mừng đến với %{product_name}!"
+  },
+  "email.welcome.verify_prompt": {
+    "en": "Please verify your email address by clicking the link below:",
+    "translation": "Vui lòng xác minh địa chỉ email của bạn bằng cách nhấp vào liên kết bên dưới:"
+  },
+  "email.welcome.verify_button": {
+    "en": "Verify Email Address",
+    "translation": "Xác minh địa chỉ email"
+  },
+  "email.welcome.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Hoặc sao chép và dán liên kết này:"
+  },
+  "email.welcome.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.welcome.postscript": {
+    "en": "P.S. This email was sent to %{email_address}. If you did not create an account, you can safely ignore this message.",
+    "translation": "Tái bút: Email này đã được gửi đến %{email_address}."
+  },
+  "email.password_request.subject": {
+    "en": "Reset your password (%{display_domain})",
+    "translation": "Đặt lại mật khẩu của bạn (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "en": "Reset Your Password",
+    "translation": "Đặt lại mật khẩu của bạn"
+  },
+  "email.password_request.request_notice": {
+    "en": "We received a request to reset your password for %{product_name}.",
+    "translation": "Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu của bạn cho %{product_name}."
+  },
+  "email.password_request.reset_button": {
+    "en": "Reset Password",
+    "translation": "Đặt lại mật khẩu"
+  },
+  "email.password_request.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Hoặc sao chép và dán liên kết này:"
+  },
+  "email.password_request.ignore_notice": {
+    "en": "If you did not request a password reset, you can safely ignore this email.",
+    "translation": "Nếu bạn không yêu cầu đặt lại mật khẩu, bạn có thể bỏ qua email này một cách an toàn."
+  },
+  "email.password_request.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.password_request.postscript": {
+    "en": "P.S. This email was sent to %{email_address}.",
+    "translation": "Tái bút: Email này đã được gửi đến %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "en": "Sign in to %{display_domain}",
+    "translation": "Đăng nhập vào %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "en": "Sign In with Magic Link",
+    "translation": "Đăng nhập bằng liên kết ma thuật"
+  },
+  "email.magic_link.request_notice": {
+    "en": "You requested a login link for your %{product_name} account.",
+    "translation": "Bạn đã yêu cầu liên kết đăng nhập cho tài khoản %{product_name} của bạn."
+  },
+  "email.magic_link.login_button": {
+    "en": "Sign In",
+    "translation": "Đăng nhập"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Hoặc sao chép và dán liên kết này:"
+  },
+  "email.magic_link.expiration_notice": {
+    "en": "This link will expire in 15 minutes.",
+    "translation": "Liên kết này sẽ hết hạn sau 15 phút."
+  },
+  "email.magic_link.ignore_notice": {
+    "en": "If you did not request this link, you can safely ignore this email.",
+    "translation": "Nếu bạn không yêu cầu liên kết này, bạn có thể bỏ qua email này."
+  },
+  "email.magic_link.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "en": "P.S. This email was sent to %{email_address}.",
+    "translation": "Tái bút: Email này đã được gửi đến %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "en": "You've received a secret message",
+    "translation": "Bạn đã nhận được một tin nhắn bí mật"
+  },
+  "email.incoming_secret.received_message": {
+    "en": "You've received a secure message:",
+    "translation": "Bạn đã nhận được một tin nhắn bảo mật:"
+  },
+  "email.incoming_secret.memo_label": {
+    "en": "Memo:",
+    "translation": "Ghi chú:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "en": "Someone has sent you a secure message through %{display_domain}.",
+    "translation": "Ai đó đã gửi cho bạn một tin nhắn bảo mật qua %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "en": "To view this secret, click the link below:",
+    "translation": "Để xem bí mật này, hãy nhấp vào liên kết bên dưới:"
+  },
+  "email.incoming_secret.important_label": {
+    "en": "Important:",
+    "translation": "Quan trọng:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "en": "This link will only work once. After viewing, the secret will be permanently deleted.",
+    "translation": "Liên kết này chỉ hoạt động một lần. Sau khi xem, bí mật sẽ bị xóa vĩnh viễn."
+  },
+  "email.incoming_secret.sent_via": {
+    "en": "Sent via",
+    "translation": "Đã gửi qua"
+  },
+  "email.secret_revealed.subject": {
+    "en": "Your secret was viewed",
+    "translation": "Bí mật của bạn đã được xem"
+  },
+  "email.secret_revealed.title": {
+    "en": "Your Secret Was Viewed",
+    "translation": "Bí mật của bạn đã được xem"
+  },
+  "email.secret_revealed.viewed_on": {
+    "en": "Your secret was viewed on %{date}.",
+    "translation": "Bí mật của bạn đã được xem vào %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "en": "Secret ID:",
+    "translation": "ID bí mật:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "en": "This is an automated notification. No action is required.",
+    "translation": "Đây là thông báo tự động. Không cần thực hiện hành động nào."
+  },
+  "email.secret_revealed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "en": "Manage notification preferences",
+    "translation": "Quản lý tùy chọn thông báo"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "en": "To manage your notification preferences:",
+    "translation": "Để quản lý tùy chọn thông báo của bạn:"
+  },
+  "email.expiration_warning.subject": {
+    "en": "Your secret link will expire soon",
+    "translation": "Liên kết bí mật của bạn sẽ hết hạn sớm"
+  },
+  "email.expiration_warning.expires_in": {
+    "en": "Your secret link will expire in %{time_remaining}",
+    "translation": "Liên kết bí mật của bạn sẽ hết hạn trong %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "en": "View your secret before it expires",
+    "translation": "Xem bí mật của bạn trước khi hết hạn"
+  },
+  "email.expiration_warning.reminder_label": {
+    "en": "Reminder:",
+    "translation": "Nhắc nhở:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "en": "After expiration, the secret will be permanently deleted and cannot be recovered.",
+    "translation": "Sau khi hết hạn, bí mật sẽ bị xóa vĩnh viễn và không thể khôi phục."
+  },
+  "email.expiration_warning.sent_via": {
+    "en": "Sent via",
+    "translation": "Đã gửi qua"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "en": "View it before it's gone:",
+    "translation": "Xem nó trước khi nó biến mất:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "en": "After expiration, the secret will be permanently deleted.",
+    "translation": "Sau khi hết hạn, bí mật sẽ bị xóa vĩnh viễn."
+  },
+  "email.feedback_email.subject": {
+    "en": "Feedback on %{date} via %{display_domain} (%{strategy})",
+    "translation": "Phản hồi vào %{date} qua %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "en": "User Feedback",
+    "translation": "Phản hồi người dùng"
+  },
+  "email.feedback_email.from_label": {
+    "en": "From:",
+    "translation": "Từ:"
+  },
+  "email.feedback_email.domain_label": {
+    "en": "Domain:",
+    "translation": "Tên miền:"
+  },
+  "email.feedback_email.strategy_label": {
+    "en": "Strategy:",
+    "translation": "Chiến lược:"
+  },
+  "email.feedback_email.message_label": {
+    "en": "Message:",
+    "translation": "Tin nhắn:"
+  },
+  "email.feedback_email.signature": {
+    "en": "Secret Support",
+    "translation": "Delano"
+  },
+  "email.organization_invitation.subject": {
+    "en": "You've been invited to join %{organization_name}",
+    "translation": "Bạn đã được mời tham gia %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "en": "You've been invited to join %{organization_name}!",
+    "translation": "Bạn đã được mời tham gia %{organization_name}!"
+  },
+  "email.organization_invitation.body": {
+    "en": "%{inviter_email} has invited you to join \"%{organization_name}\" as %{role_description}.",
+    "translation": "%{inviter_email} đã mời bạn tham gia \"%{organization_name}\" với vai trò %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "en": "Accept Invitation",
+    "translation": "Chấp nhận lời mời"
+  },
+  "email.organization_invitation.link_instruction": {
+    "en": "Or copy and paste this link:",
+    "translation": "Hoặc sao chép và dán liên kết này:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "en": "This invitation will expire in %{days} days.",
+    "translation": "Lời mời này sẽ hết hạn sau %{days} ngày."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "en": "If you don't want to join, you can simply ignore this email or decline the invitation.",
+    "translation": "Nếu bạn không muốn tham gia, bạn có thể bỏ qua email này hoặc từ chối lời mời."
+  },
+  "email.organization_invitation.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "en": "P.S. This email was sent to %{invited_email}. If you weren't expecting this invitation, you can safely ignore this message.",
+    "translation": "Tái bút: Email này đã được gửi đến %{invited_email}. Nếu bạn không mong đợi lời mời này, bạn có thể bỏ qua email này một cách an toàn."
+  },
+  "email.organization_invitation.roles.member": {
+    "en": "a member",
+    "translation": "thành viên"
+  },
+  "email.organization_invitation.roles.admin": {
+    "en": "an administrator",
+    "translation": "quản trị viên"
+  },
+  "email.password_changed.subject": {
+    "en": "Your password was changed (%{display_domain})",
+    "translation": "Mật khẩu của bạn đã được thay đổi (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "en": "Your Password Was Changed",
+    "translation": "Mật khẩu của bạn đã được thay đổi"
+  },
+  "email.password_changed.body": {
+    "en": "Your password for %{product_name} was changed on %{date} at %{time}.",
+    "translation": "Mật khẩu cho tài khoản %{product_name} của bạn đã được thay đổi vào %{date} lúc %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "en": "If you did not make this change, please secure your account immediately by resetting your password and contacting support.",
+    "translation": "Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản của bạn ngay lập tức bằng cách đặt lại mật khẩu và liên hệ với bộ phận hỗ trợ."
+  },
+  "email.password_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.email_changed.subject": {
+    "en": "Your email address was changed (%{display_domain})",
+    "translation": "Địa chỉ email của bạn đã được thay đổi (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "en": "Your Email Address Was Changed",
+    "translation": "Địa chỉ email của bạn đã được thay đổi"
+  },
+  "email.email_changed.body": {
+    "en": "The email address for your %{product_name} account was changed to %{new_email_masked} on %{date}.",
+    "translation": "Địa chỉ email cho tài khoản %{product_name} của bạn đã được thay đổi thành %{new_email_masked} vào %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "en": "If you did not make this change, please contact support immediately as your account may be compromised.",
+    "translation": "Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ với bộ phận hỗ trợ ngay lập tức vì tài khoản của bạn có thể đã bị xâm phạm."
+  },
+  "email.email_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "en": "Verify your new email address (%{display_domain})",
+    "translation": "Xác minh địa chỉ email mới của bạn (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "en": "Verify Your New Email Address",
+    "translation": "Xác minh địa chỉ email mới của bạn"
+  },
+  "email.email_change_confirmation.body": {
+    "en": "Please verify this email address to complete the change for your %{product_name} account.",
+    "translation": "Vui lòng xác minh địa chỉ email này để hoàn tất thay đổi cho tài khoản %{product_name} của bạn."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "en": "Verify Email Address",
+    "translation": "Xác minh địa chỉ email"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Hoặc sao chép và dán liên kết này:"
+  },
+  "email.email_change_confirmation.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "en": "Two-factor authentication enabled (%{display_domain})",
+    "translation": "Xác thực hai yếu tố đã được bật (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "en": "Two-Factor Authentication Enabled",
+    "translation": "Xác thực hai yếu tố đã được bật"
+  },
+  "email.mfa_enabled.body": {
+    "en": "Two-factor authentication was enabled for your %{product_name} account on %{date}.",
+    "translation": "Xác thực hai yếu tố đã được bật cho tài khoản %{product_name} của bạn vào %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "en": "Your account is now more secure. You will need to enter a verification code from your authenticator app when signing in.",
+    "translation": "Tài khoản của bạn hiện an toàn hơn. Bạn sẽ cần nhập mã xác minh từ ứng dụng xác thực khi đăng nhập."
+  },
+  "email.mfa_enabled.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "en": "Two-factor authentication disabled (%{display_domain})",
+    "translation": "Xác thực hai yếu tố đã bị tắt (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "en": "Two-Factor Authentication Disabled",
+    "translation": "Xác thực hai yếu tố đã bị tắt"
+  },
+  "email.mfa_disabled.body": {
+    "en": "Two-factor authentication was disabled for your %{product_name} account on %{date}.",
+    "translation": "Xác thực hai yếu tố đã bị tắt cho tài khoản %{product_name} của bạn vào %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "en": "Your account is now less secure. If you did not make this change, please secure your account immediately.",
+    "translation": "Tài khoản của bạn hiện kém an toàn hơn. Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản của bạn ngay lập tức."
+  },
+  "email.mfa_disabled.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "en": "New sign-in to your account (%{display_domain})",
+    "translation": "Đăng nhập mới vào tài khoản của bạn (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "en": "New Sign-In Detected",
+    "translation": "Phát hiện đăng nhập mới"
+  },
+  "email.new_login_alert.body": {
+    "en": "A new sign-in to your %{product_name} account was detected on %{date} at %{time}.",
+    "translation": "Đã phát hiện một đăng nhập mới vào tài khoản %{product_name} của bạn vào %{date} lúc %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "en": "Device:",
+    "translation": "Thiết bị:"
+  },
+  "email.new_login_alert.location_label": {
+    "en": "Location:",
+    "translation": "Vị trí:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "en": "IP Address:",
+    "translation": "Địa chỉ IP:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "en": "If this wasn't you, your account may be compromised.",
+    "translation": "Nếu không phải bạn, tài khoản của bạn có thể đã bị xâm phạm."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "en": "Secure Your Account",
+    "translation": "Bảo mật tài khoản của bạn"
+  },
+  "email.new_login_alert.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.member_removed.subject": {
+    "en": "You've been removed from %{organization_name}",
+    "translation": "Bạn đã bị xóa khỏi %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "en": "You've Been Removed from %{organization_name}",
+    "translation": "Bạn đã bị xóa khỏi %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "en": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+    "translation": "Bạn đã bị xóa khỏi tổ chức \"%{organization_name}\" trên %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.role_changed.subject": {
+    "en": "Your role was changed in %{organization_name}",
+    "translation": "Vai trò của bạn đã được thay đổi trong %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "en": "Your Role Was Changed",
+    "translation": "Vai trò của bạn đã được thay đổi"
+  },
+  "email.role_changed.body": {
+    "en": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+    "translation": "Vai trò của bạn trong \"%{organization_name}\" đã được thay đổi từ %{old_role} thành %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "en": "Organization \"%{organization_name}\" was deleted",
+    "translation": "Tổ chức \"%{organization_name}\" đã bị xóa"
+  },
+  "email.organization_deleted.title": {
+    "en": "Organization Deleted",
+    "translation": "Tổ chức đã bị xóa"
+  },
+  "email.organization_deleted.body": {
+    "en": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+    "translation": "Tổ chức \"%{organization_name}\" đã bị xóa khỏi %{product_name}. Tất cả dữ liệu liên quan đã được xóa."
+  },
+  "email.organization_deleted.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "en": "Payment receipt for %{product_name}",
+    "translation": "Biên lai thanh toán cho %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "en": "Payment Receipt",
+    "translation": "Biên lai thanh toán"
+  },
+  "email.payment_receipt.body": {
+    "en": "Thank you for your payment. Here are your payment details:",
+    "translation": "Cảm ơn bạn đã thanh toán. Dưới đây là chi tiết thanh toán của bạn:"
+  },
+  "email.payment_receipt.amount_label": {
+    "en": "Amount:",
+    "translation": "Số tiền:"
+  },
+  "email.payment_receipt.date_label": {
+    "en": "Date:",
+    "translation": "Ngày:"
+  },
+  "email.payment_receipt.plan_label": {
+    "en": "Plan:",
+    "translation": "Gói:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "en": "View Invoice",
+    "translation": "Xem hóa đơn"
+  },
+  "email.payment_receipt.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "en": "Payment failed for %{product_name}",
+    "translation": "Thanh toán thất bại cho %{product_name}"
+  },
+  "email.payment_failed.title": {
+    "en": "Payment Failed",
+    "translation": "Thanh toán thất bại"
+  },
+  "email.payment_failed.body": {
+    "en": "We were unable to process your payment for %{product_name}. Please update your payment method to avoid service interruption.",
+    "translation": "Chúng tôi không thể xử lý thanh toán của bạn cho %{product_name}. Vui lòng cập nhật phương thức thanh toán để tránh gián đoạn dịch vụ."
+  },
+  "email.payment_failed.update_payment_button": {
+    "en": "Update Payment Method",
+    "translation": "Cập nhật phương thức thanh toán"
+  },
+  "email.payment_failed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "en": "Your %{product_name} trial expires in %{days_remaining} days",
+    "translation": "Bản dùng thử %{product_name} của bạn sẽ hết hạn sau %{days_remaining} ngày"
+  },
+  "email.trial_expiring.title": {
+    "en": "Your Trial Is Ending Soon",
+    "translation": "Bản dùng thử của bạn sắp kết thúc"
+  },
+  "email.trial_expiring.body": {
+    "en": "Your free trial of %{product_name} will expire in %{days_remaining} days. Upgrade now to keep access to all features.",
+    "translation": "Bản dùng thử miễn phí %{product_name} của bạn sẽ hết hạn sau %{days_remaining} ngày. Nâng cấp ngay để giữ quyền truy cập vào tất cả các tính năng."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "en": "Upgrade Now",
+    "translation": "Nâng cấp ngay"
+  },
+  "email.trial_expiring.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "en": "Your %{product_name} subscription was changed",
+    "translation": "Gói đăng ký %{product_name} của bạn đã được thay đổi"
+  },
+  "email.subscription_changed.title": {
+    "en": "Subscription Changed",
+    "translation": "Gói đăng ký đã được thay đổi"
+  },
+  "email.subscription_changed.body": {
+    "en": "Your %{product_name} subscription has been changed from %{old_plan} to %{new_plan}.",
+    "translation": "Gói đăng ký %{product_name} của bạn đã được thay đổi từ %{old_plan} sang %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "en": "This change is effective %{date}.",
+    "translation": "Thay đổi này có hiệu lực từ %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.common.greeting": {
+    "en": "Hello,",
+    "translation": "Xin chào,"
+  },
+  "email.common.thanks": {
+    "en": "Thanks,",
+    "translation": "Cảm ơn,"
+  },
+  "email.common.unsubscribe": {
+    "en": "Unsubscribe",
+    "translation": "Hủy đăng ký"
+  },
+  "email.common.view_in_browser": {
+    "en": "View in browser",
+    "translation": "Xem trong trình duyệt"
+  },
+  "email.common.onetime_secret": {
+    "en": "Onetime Secret",
+    "translation": "Onetime Secret"
+  }
+}

@@ -1,0 +1,594 @@
+{
+  "email.incomingsupport.subject": {
+    "en": "[Ticket: %s]",
+    "translation": "[Bilet: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "en": "A customer has sent the following info",
+    "translation": "Bir müşteri şu bilgileri gönderdi"
+  },
+  "email.secret_link.subject": {
+    "en": "%{sender_email} sent you a secret",
+    "translation": "%{sender_email} size bir gizli mesaj gönderdi"
+  },
+  "email.secret_link.sent_you_secret": {
+    "en": "sent you a secret:",
+    "translation": "size bir gizli mesaj gönderdi:"
+  },
+  "email.secret_link.important_label": {
+    "en": "Important:",
+    "translation": "Önemli:"
+  },
+  "email.secret_link.link_works_once": {
+    "en": "This link will only work once. After viewing, the secret will be permanently deleted.",
+    "translation": "Bu bağlantı yalnızca bir kez çalışır. Görüntülendikten sonra gizli mesaj kalıcı olarak silinecektir."
+  },
+  "email.secret_link.sent_via": {
+    "en": "Sent via",
+    "translation": "Gönderen"
+  },
+  "email.welcome.subject": {
+    "en": "Welcome to %{product_name} - Please verify your email",
+    "translation": "Onetime Secret hesabınızı doğrulayın"
+  },
+  "email.welcome.title": {
+    "en": "Welcome to %{product_name}!",
+    "translation": "%{product_name} organizasyonuna katılmaya davet edildiniz!"
+  },
+  "email.welcome.verify_prompt": {
+    "en": "Please verify your email address by clicking the link below:",
+    "translation": "Lütfen aşağıdaki bağlantıya tıklayarak e-posta adresinizi doğrulayın:"
+  },
+  "email.welcome.verify_button": {
+    "en": "Verify Email Address",
+    "translation": "E-posta Adresini Doğrula"
+  },
+  "email.welcome.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Veya bu bağlantıyı kopyalayıp yapıştırın:"
+  },
+  "email.welcome.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.welcome.postscript": {
+    "en": "P.S. This email was sent to %{email_address}. If you did not create an account, you can safely ignore this message.",
+    "translation": "Not: Bu e-posta %{email_address} adresine gönderildi. Bu daveti beklemiyorsanız, bu mesajı güvenle görmezden gelebilirsiniz."
+  },
+  "email.password_request.subject": {
+    "en": "Reset your password (%{display_domain})",
+    "translation": "Parolanızı sıfırlayın (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "en": "Reset Your Password",
+    "translation": "Parolanızı Sıfırlayın"
+  },
+  "email.password_request.request_notice": {
+    "en": "We received a request to reset your password for %{product_name}.",
+    "translation": "%{product_name} için parolanızı sıfırlama talebi aldık."
+  },
+  "email.password_request.reset_button": {
+    "en": "Reset Password",
+    "translation": "Parolayı Sıfırla"
+  },
+  "email.password_request.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Veya bu bağlantıyı kopyalayıp yapıştırın:"
+  },
+  "email.password_request.ignore_notice": {
+    "en": "If you did not request a password reset, you can safely ignore this email.",
+    "translation": "Parola sıfırlama talebinde bulunmadıysanız, bu e-postayı güvenle görmezden gelebilirsiniz."
+  },
+  "email.password_request.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.password_request.postscript": {
+    "en": "P.S. This email was sent to %{email_address}.",
+    "translation": "Not: Bu e-posta %{email_address} adresine gönderildi."
+  },
+  "email.magic_link.subject": {
+    "en": "Sign in to %{display_domain}",
+    "translation": "%{display_domain} için giriş yap"
+  },
+  "email.magic_link.title": {
+    "en": "Sign In with Magic Link",
+    "translation": "Sihirli Bağlantı ile Giriş Yap"
+  },
+  "email.magic_link.request_notice": {
+    "en": "You requested a login link for your %{product_name} account.",
+    "translation": "%{product_name} hesabınız için bir giriş bağlantısı talep ettiniz."
+  },
+  "email.magic_link.login_button": {
+    "en": "Sign In",
+    "translation": "Giriş Yap"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Veya bu bağlantıyı kopyalayıp yapıştırın:"
+  },
+  "email.magic_link.expiration_notice": {
+    "en": "This link will expire in 15 minutes.",
+    "translation": "Bu bağlantının süresi 15 dakika içinde dolacaktır."
+  },
+  "email.magic_link.ignore_notice": {
+    "en": "If you did not request this link, you can safely ignore this email.",
+    "translation": "Bu bağlantıyı siz talep etmediyseniz, bu e-postayı güvenle görmezden gelebilirsiniz."
+  },
+  "email.magic_link.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "en": "P.S. This email was sent to %{email_address}.",
+    "translation": "Not: Bu e-posta %{email_address} adresine gönderilmiştir."
+  },
+  "email.incoming_secret.subject": {
+    "en": "You've received a secret message",
+    "translation": "Gizli bir mesaj aldınız"
+  },
+  "email.incoming_secret.received_message": {
+    "en": "You've received a secure message:",
+    "translation": "Güvenli bir mesaj aldınız:"
+  },
+  "email.incoming_secret.memo_label": {
+    "en": "Memo:",
+    "translation": "Not:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "en": "Someone has sent you a secure message through %{display_domain}.",
+    "translation": "Biri size %{display_domain} üzerinden güvenli bir mesaj gönderdi."
+  },
+  "email.incoming_secret.view_instructions": {
+    "en": "To view this secret, click the link below:",
+    "translation": "Bu gizli mesajı görüntülemek için aşağıdaki bağlantıya tıklayın:"
+  },
+  "email.incoming_secret.important_label": {
+    "en": "Important:",
+    "translation": "Önemli:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "en": "This link will only work once. After viewing, the secret will be permanently deleted.",
+    "translation": "Bu bağlantı yalnızca bir kez çalışır. Görüntülendikten sonra gizli mesaj kalıcı olarak silinecektir."
+  },
+  "email.incoming_secret.sent_via": {
+    "en": "Sent via",
+    "translation": "Gönderen"
+  },
+  "email.secret_revealed.subject": {
+    "en": "Your secret was viewed",
+    "translation": "Gizli mesajınız görüntülendi"
+  },
+  "email.secret_revealed.title": {
+    "en": "Your Secret Was Viewed",
+    "translation": "Gizli Mesajınız Görüntülendi"
+  },
+  "email.secret_revealed.viewed_on": {
+    "en": "Your secret was viewed on %{date}.",
+    "translation": "Gizli mesajınız %{date} tarihinde görüntülendi."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "en": "Secret ID:",
+    "translation": "Gizli Mesaj ID:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "en": "This is an automated notification. No action is required.",
+    "translation": "Bu otomatik bir bildirimdir. Herhangi bir işlem yapmanız gerekmemektedir."
+  },
+  "email.secret_revealed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "en": "Manage notification preferences",
+    "translation": "Bildirim tercihlerini yönet"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "en": "To manage your notification preferences:",
+    "translation": "Bildirim tercihlerinizi yönetmek için:"
+  },
+  "email.expiration_warning.subject": {
+    "en": "Your secret link will expire soon",
+    "translation": "Gizli mesaj bağlantınızın süresi yakında dolacak"
+  },
+  "email.expiration_warning.expires_in": {
+    "en": "Your secret link will expire in %{time_remaining}",
+    "translation": "Gizli mesaj bağlantınızın süresi %{time_remaining} içinde dolacak"
+  },
+  "email.expiration_warning.view_button": {
+    "en": "View your secret before it expires",
+    "translation": "Süresi dolmadan önce gizli mesajınızı görüntüleyin"
+  },
+  "email.expiration_warning.reminder_label": {
+    "en": "Reminder:",
+    "translation": "Hatırlatma:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "en": "After expiration, the secret will be permanently deleted and cannot be recovered.",
+    "translation": "Süre dolduktan sonra gizli mesaj kalıcı olarak silinecek ve kurtarılamayacaktır."
+  },
+  "email.expiration_warning.sent_via": {
+    "en": "Sent via",
+    "translation": "Gönderen"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "en": "View it before it's gone:",
+    "translation": "Kaybetmeden önce görüntüleyin:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "en": "After expiration, the secret will be permanently deleted.",
+    "translation": "Süre dolduktan sonra gizli mesaj kalıcı olarak silinecektir."
+  },
+  "email.feedback_email.subject": {
+    "en": "Feedback on %{date} via %{display_domain} (%{strategy})",
+    "translation": "%{date} tarihinde %{display_domain} üzerinden geri bildirim (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "en": "User Feedback",
+    "translation": "Kullanıcı Geri Bildirimi"
+  },
+  "email.feedback_email.from_label": {
+    "en": "From:",
+    "translation": "Kimden:"
+  },
+  "email.feedback_email.domain_label": {
+    "en": "Domain:",
+    "translation": "Alan Adı:"
+  },
+  "email.feedback_email.strategy_label": {
+    "en": "Strategy:",
+    "translation": "Strateji:"
+  },
+  "email.feedback_email.message_label": {
+    "en": "Message:",
+    "translation": "Mesaj:"
+  },
+  "email.feedback_email.signature": {
+    "en": "Secret Support",
+    "translation": "Secret Destek"
+  },
+  "email.organization_invitation.subject": {
+    "en": "You've been invited to join %{organization_name}",
+    "translation": "%{organization_name} organizasyonuna katılmaya davet edildiniz"
+  },
+  "email.organization_invitation.title": {
+    "en": "You've been invited to join %{organization_name}!",
+    "translation": "%{organization_name} organizasyonuna katılmaya davet edildiniz!"
+  },
+  "email.organization_invitation.body": {
+    "en": "%{inviter_email} has invited you to join \"%{organization_name}\" as %{role_description}.",
+    "translation": "%{inviter_email}, sizi \"%{organization_name}\" organizasyonuna %{role_description} olarak katılmaya davet etti."
+  },
+  "email.organization_invitation.accept_button": {
+    "en": "Accept Invitation",
+    "translation": "Daveti Kabul Et"
+  },
+  "email.organization_invitation.link_instruction": {
+    "en": "Or copy and paste this link:",
+    "translation": "Veya bu bağlantıyı kopyalayıp yapıştırın:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "en": "This invitation will expire in %{days} days.",
+    "translation": "Bu davet %{days} gün içinde sona erecektir."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "en": "If you don't want to join, you can simply ignore this email or decline the invitation.",
+    "translation": "Katılmak istemiyorsanız, bu e-postayı yok sayabilir veya daveti reddedebilirsiniz."
+  },
+  "email.organization_invitation.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "en": "P.S. This email was sent to %{invited_email}. If you weren't expecting this invitation, you can safely ignore this message.",
+    "translation": "Not: Bu e-posta %{invited_email} adresine gönderildi. Bu daveti beklemiyorsanız, bu mesajı güvenle görmezden gelebilirsiniz."
+  },
+  "email.organization_invitation.roles.member": {
+    "en": "a member",
+    "translation": "bir üye"
+  },
+  "email.organization_invitation.roles.admin": {
+    "en": "an administrator",
+    "translation": "bir yönetici"
+  },
+  "email.password_changed.subject": {
+    "en": "Your password was changed (%{display_domain})",
+    "translation": "Parolanız değiştirildi (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "en": "Your Password Was Changed",
+    "translation": "Parolanız Değiştirildi"
+  },
+  "email.password_changed.body": {
+    "en": "Your password for %{product_name} was changed on %{date} at %{time}.",
+    "translation": "%{product_name} için parolanız %{date} tarihinde saat %{time}'de değiştirildi."
+  },
+  "email.password_changed.security_notice": {
+    "en": "If you did not make this change, please secure your account immediately by resetting your password and contacting support.",
+    "translation": "Bu değişikliği siz yapmadıysanız, lütfen hemen parolanızı sıfırlayarak ve destek ile iletişime geçerek hesabınızı güvenli hale getirin."
+  },
+  "email.password_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.email_changed.subject": {
+    "en": "Your email address was changed (%{display_domain})",
+    "translation": "E-posta adresiniz değiştirildi (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "en": "Your Email Address Was Changed",
+    "translation": "E-posta Adresiniz Değiştirildi"
+  },
+  "email.email_changed.body": {
+    "en": "The email address for your %{product_name} account was changed to %{new_email_masked} on %{date}.",
+    "translation": "%{product_name} hesabınızın e-posta adresi %{date} tarihinde %{new_email_masked} olarak değiştirildi."
+  },
+  "email.email_changed.security_notice": {
+    "en": "If you did not make this change, please contact support immediately as your account may be compromised.",
+    "translation": "Bu değişikliği siz yapmadıysanız, hesabınız tehlikede olabilir, lütfen hemen destek ile iletişime geçin."
+  },
+  "email.email_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "en": "Verify your new email address (%{display_domain})",
+    "translation": "Yeni e-posta adresinizi doğrulayın (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "en": "Verify Your New Email Address",
+    "translation": "Yeni E-posta Adresinizi Doğrulayın"
+  },
+  "email.email_change_confirmation.body": {
+    "en": "Please verify this email address to complete the change for your %{product_name} account.",
+    "translation": "%{product_name} hesabınız için değişikliği tamamlamak üzere lütfen bu e-posta adresini doğrulayın."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "en": "Verify Email Address",
+    "translation": "E-posta Adresini Doğrula"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Veya bu bağlantıyı kopyalayıp yapıştırın:"
+  },
+  "email.email_change_confirmation.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "en": "Two-factor authentication enabled (%{display_domain})",
+    "translation": "İki faktörlü kimlik doğrulama etkinleştirildi (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "en": "Two-Factor Authentication Enabled",
+    "translation": "İki Faktörlü Kimlik Doğrulama Etkinleştirildi"
+  },
+  "email.mfa_enabled.body": {
+    "en": "Two-factor authentication was enabled for your %{product_name} account on %{date}.",
+    "translation": "%{product_name} hesabınız için iki faktörlü kimlik doğrulama %{date} tarihinde etkinleştirildi."
+  },
+  "email.mfa_enabled.security_notice": {
+    "en": "Your account is now more secure. You will need to enter a verification code from your authenticator app when signing in.",
+    "translation": "Hesabınız artık daha güvenli. Giriş yaparken kimlik doğrulama uygulamanızdan bir doğrulama kodu girmeniz gerekecek."
+  },
+  "email.mfa_enabled.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "en": "Two-factor authentication disabled (%{display_domain})",
+    "translation": "İki faktörlü kimlik doğrulama devre dışı bırakıldı (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "en": "Two-Factor Authentication Disabled",
+    "translation": "İki Faktörlü Kimlik Doğrulama Devre Dışı Bırakıldı"
+  },
+  "email.mfa_disabled.body": {
+    "en": "Two-factor authentication was disabled for your %{product_name} account on %{date}.",
+    "translation": "%{product_name} hesabınız için iki faktörlü kimlik doğrulama %{date} tarihinde devre dışı bırakıldı."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "en": "Your account is now less secure. If you did not make this change, please secure your account immediately.",
+    "translation": "Hesabınız artık daha az güvenli. Bu değişikliği siz yapmadıysanız, lütfen hesabınızı hemen güvenli hale getirin."
+  },
+  "email.mfa_disabled.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "en": "New sign-in to your account (%{display_domain})",
+    "translation": "Hesabınıza yeni giriş yapıldı (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "en": "New Sign-In Detected",
+    "translation": "Yeni Giriş Tespit Edildi"
+  },
+  "email.new_login_alert.body": {
+    "en": "A new sign-in to your %{product_name} account was detected on %{date} at %{time}.",
+    "translation": "%{product_name} hesabınıza %{date} tarihinde saat %{time}'de yeni bir giriş tespit edildi."
+  },
+  "email.new_login_alert.device_label": {
+    "en": "Device:",
+    "translation": "Cihaz:"
+  },
+  "email.new_login_alert.location_label": {
+    "en": "Location:",
+    "translation": "Konum:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "en": "IP Address:",
+    "translation": "IP Adresi:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "en": "If this wasn't you, your account may be compromised.",
+    "translation": "Bu siz değilseniz, hesabınız tehlikede olabilir."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "en": "Secure Your Account",
+    "translation": "Hesabınızı Güvenli Hale Getirin"
+  },
+  "email.new_login_alert.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.member_removed.subject": {
+    "en": "You've been removed from %{organization_name}",
+    "translation": "%{organization_name} organizasyonundan çıkarıldınız"
+  },
+  "email.member_removed.title": {
+    "en": "You've Been Removed from %{organization_name}",
+    "translation": "%{organization_name} Organizasyonundan Çıkarıldınız"
+  },
+  "email.member_removed.body": {
+    "en": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+    "translation": "%{product_name} üzerindeki \"%{organization_name}\" organizasyonundan çıkarıldınız."
+  },
+  "email.member_removed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.role_changed.subject": {
+    "en": "Your role was changed in %{organization_name}",
+    "translation": "%{organization_name} organizasyonundaki rolünüz değiştirildi"
+  },
+  "email.role_changed.title": {
+    "en": "Your Role Was Changed",
+    "translation": "Rolünüz Değiştirildi"
+  },
+  "email.role_changed.body": {
+    "en": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+    "translation": "\"%{organization_name}\" organizasyonundaki rolünüz %{old_role} yetkisinden %{new_role} yetkisine değiştirildi."
+  },
+  "email.role_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "en": "Organization \"%{organization_name}\" was deleted",
+    "translation": "\"%{organization_name}\" organizasyonu silindi"
+  },
+  "email.organization_deleted.title": {
+    "en": "Organization Deleted",
+    "translation": "Organizasyon Silindi"
+  },
+  "email.organization_deleted.body": {
+    "en": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+    "translation": "\"%{organization_name}\" organizasyonu %{product_name} üzerinden silindi. İlişkili tüm veriler kaldırıldı."
+  },
+  "email.organization_deleted.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "en": "Payment receipt for %{product_name}",
+    "translation": "%{product_name} için ödeme makbuzu"
+  },
+  "email.payment_receipt.title": {
+    "en": "Payment Receipt",
+    "translation": "Ödeme Makbuzu"
+  },
+  "email.payment_receipt.body": {
+    "en": "Thank you for your payment. Here are your payment details:",
+    "translation": "Ödemeniz için teşekkür ederiz. Ödeme detaylarınız:"
+  },
+  "email.payment_receipt.amount_label": {
+    "en": "Amount:",
+    "translation": "Tutar:"
+  },
+  "email.payment_receipt.date_label": {
+    "en": "Date:",
+    "translation": "Tarih:"
+  },
+  "email.payment_receipt.plan_label": {
+    "en": "Plan:",
+    "translation": "Plan:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "en": "View Invoice",
+    "translation": "Faturayı Görüntüle"
+  },
+  "email.payment_receipt.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "en": "Payment failed for %{product_name}",
+    "translation": "%{product_name} için ödeme başarısız oldu"
+  },
+  "email.payment_failed.title": {
+    "en": "Payment Failed",
+    "translation": "Ödeme Başarısız Oldu"
+  },
+  "email.payment_failed.body": {
+    "en": "We were unable to process your payment for %{product_name}. Please update your payment method to avoid service interruption.",
+    "translation": "%{product_name} için ödemenizi işleyemedik. Hizmet kesintisini önlemek için lütfen ödeme yönteminizi güncelleyin."
+  },
+  "email.payment_failed.update_payment_button": {
+    "en": "Update Payment Method",
+    "translation": "Ödeme Yöntemini Güncelle"
+  },
+  "email.payment_failed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "en": "Your %{product_name} trial expires in %{days_remaining} days",
+    "translation": "%{product_name} deneme süreniz %{days_remaining} gün içinde sona erecek"
+  },
+  "email.trial_expiring.title": {
+    "en": "Your Trial Is Ending Soon",
+    "translation": "Deneme Süreniz Yakında Sona Eriyor"
+  },
+  "email.trial_expiring.body": {
+    "en": "Your free trial of %{product_name} will expire in %{days_remaining} days. Upgrade now to keep access to all features.",
+    "translation": "%{product_name} ücretsiz deneme süreniz %{days_remaining} gün içinde sona erecek. Tüm özelliklere erişimi sürdürmek için şimdi yükseltin."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "en": "Upgrade Now",
+    "translation": "Şimdi Yükselt"
+  },
+  "email.trial_expiring.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "en": "Your %{product_name} subscription was changed",
+    "translation": "%{product_name} aboneliğiniz değiştirildi"
+  },
+  "email.subscription_changed.title": {
+    "en": "Subscription Changed",
+    "translation": "Abonelik Değiştirildi"
+  },
+  "email.subscription_changed.body": {
+    "en": "Your %{product_name} subscription has been changed from %{old_plan} to %{new_plan}.",
+    "translation": "%{product_name} aboneliğiniz %{old_plan} planından %{new_plan} planına değiştirildi."
+  },
+  "email.subscription_changed.effective_date": {
+    "en": "This change is effective %{date}.",
+    "translation": "Bu değişiklik %{date} tarihinde yürürlüğe girecek."
+  },
+  "email.subscription_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.common.greeting": {
+    "en": "Hello,",
+    "translation": "Merhaba,"
+  },
+  "email.common.thanks": {
+    "en": "Thanks,",
+    "translation": "Teşekkürler,"
+  },
+  "email.common.unsubscribe": {
+    "en": "Unsubscribe",
+    "translation": "Abonelikten çık"
+  },
+  "email.common.view_in_browser": {
+    "en": "View in browser",
+    "translation": "Tarayıcıda görüntüle"
+  },
+  "email.common.onetime_secret": {
+    "en": "Onetime Secret",
+    "translation": "Onetime Secret"
+  }
+}

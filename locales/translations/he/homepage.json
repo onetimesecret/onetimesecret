@@ -1,0 +1,186 @@
+{
+  "web.homepage.tagline1": {
+    "en": "Paste a password, secret message or private link below.",
+    "translation": "הדביקו סיסמה, הודעה סודית או קישור פרטי למטה."
+  },
+  "web.homepage.tagline2": {
+    "en": "Keep sensitive info out of your email and chat logs.",
+    "translation": "שמרו מידע רגיש מחוץ לדואר האלקטרוני ולוגי הצ'אט שלכם."
+  },
+  "web.homepage.secret_hint": {
+    "en": "* A secret link only works once and then disappears forever.",
+    "translation": "* קישור סודי עובד רק פעם אחת ואז נעלם לעד."
+  },
+  "web.homepage.secret_form_more_text1": {
+    "en": "Sign up for a",
+    "translation": "הירשמו ל"
+  },
+  "web.homepage.secret_form_more_text2": {
+    "en": "free account",
+    "translation": "חשבון חינם"
+  },
+  "web.homepage.secret_form_more_text3": {
+    "en": "and be able to send the secret by email.",
+    "translation": "ותוכלו לשלוח את הסוד בדואר אלקטרוני."
+  },
+  "web.homepage.cta_title": {
+    "en": "Increase trust & share with confidence",
+    "translation": "הגדילו אמון ושתפו בביטחון"
+  },
+  "web.homepage.cta_subtitle": {
+    "en": "Elevate your brand and share with confidence",
+    "translation": "העלו את המותג שלכם ושתפו בביטחון"
+  },
+  "web.homepage.cta_feature1": {
+    "en": "Unlimited custom domains",
+    "translation": "דומיינים מותאמים אישית בלתי מוגבלים"
+  },
+  "web.homepage.cta_feature2": {
+    "en": "Unlimited secret sharing",
+    "translation": "שיתוף סודות בלתי מוגבל"
+  },
+  "web.homepage.cta_feature3": {
+    "en": "Increase customer trust and engagement",
+    "translation": "הגדלת אמון ומעורבות לקוחות"
+  },
+  "web.homepage.explore_premium_plans": {
+    "en": "With Custom Domains",
+    "translation": "עם דומיינים מותאמים אישית"
+  },
+  "web.homepage.need_free_account": {
+    "en": "Just getting started? Send emails with a free account.",
+    "translation": "רק מתחילים? שלחו הודעות דואר אלקטרוני עם חשבון חינם."
+  },
+  "web.homepage.sign_up_free": {
+    "en": "Free Sign-up",
+    "translation": "הרשמה חינם"
+  },
+  "web.homepage.visit_onetime_secret_home": {
+    "en": "Visit Onetime Secret homepage",
+    "translation": "ביקור בדף הבית של Onetime Secret"
+  },
+  "web.homepage.password_generation_title": {
+    "en": "Password Generator",
+    "translation": "מחולל סיסמאות"
+  },
+  "web.homepage.password_generation_description": {
+    "en": " Click \"Generate Password\" to create a secure random password that you can share.",
+    "translation": " לחצו על \"יצירת סיסמה\" כדי ליצור סיסמה אקראית מאובטחת שניתן לשתף."
+  },
+  "web.homepage.protip1": {
+    "en": "Your message will self-destruct after being viewed. The link can only be accessed once.",
+    "translation": "ההודעה שלכם תהרס אוטומטית לאחר הצפייה. ניתן לגשת לקישור רק פעם אחת."
+  },
+  "web.homepage.authonly.tagline2": {
+    "en": "Secure messaging service is for internal use only.",
+    "translation": "שירות ההודעות המאובטח הוא לשימוש פנימי בלבד."
+  },
+  "web.homepage.authonly.tagline1": {
+    "en": "If you have an account, please log in to continue.",
+    "translation": "אם יש לכם חשבון, אנא התחברו כדי להמשיך."
+  },
+  "web.homepage.disabled.tagline2": {
+    "en": "This service is setup for internal use only.",
+    "translation": "שירות זה מוגדר לשימוש פנימי בלבד."
+  },
+  "web.homepage.disabled.tagline1": {
+    "en": "User interface and login capabilities are not available.",
+    "translation": "ממשק משתמש ויכולות התחברות אינם זמינים."
+  },
+  "web.homepage.link_preview": {
+    "en": "Link Preview",
+    "translation": "תצוגה מקדימה של קישור"
+  },
+  "web.homepage.meets_and_exceeds_compliance_standards": {
+    "en": "Meets and exceeds compliance standards",
+    "translation": "עומד ועולה על תקני ציות"
+  },
+  "web.homepage.secure_your_brand_build_customer_trust_etc": {
+    "en": "Secure your brand, build customer trust with links from your domain.",
+    "translation": "אבטחו את המותג שלכם, בנו אמון לקוחות עם קישורים מהדומיין שלכם."
+  },
+  "web.homepage.a_trusted_way_to_share_sensitive_information_etc": {
+    "en": "A trusted way to share sensitive information that self-destructs after being viewed.",
+    "translation": "דרך מהימנה לשתף מידע רגיש שמשמיד את עצמו לאחר צפייה."
+  },
+  "web.homepage.secure_links": {
+    "en": "Secure Links",
+    "translation": "קישורים מאובטחים"
+  },
+  "web.homepage.about_onetime_secret_0": {
+    "en": "About Onetime Secret",
+    "translation": "אודות Onetime Secret"
+  },
+  "web.homepage.log_in_to_onetime_secret": {
+    "en": "Log in to Onetime Secret",
+    "translation": "התחברות ל-Onetime Secret"
+  },
+  "web.homepage.about_onetime_secret": {
+    "en": "About Onetime Secret",
+    "translation": "אודות Onetime Secret"
+  },
+  "web.homepage.signup_individual_and_business_plans": {
+    "en": "Signup - Individual and Business plans",
+    "translation": "הרשמה - תוכניות פרטיות ועסקיות"
+  },
+  "web.homepage.tagline_signed": {
+    "en": "Signed",
+    "translation": "חתום"
+  },
+  "web.homepage.tagline_sealed": {
+    "en": "Sealed",
+    "translation": "אטום"
+  },
+  "web.homepage.tagline_delivered": {
+    "en": "Delivered",
+    "translation": "נמסר"
+  },
+  "web.homepage.onetime_secret": {
+    "en": "Onetime Secret",
+    "translation": "Onetime Secret"
+  },
+  "web.homepage.onetime_secret_literal": {
+    "en": "Onetime Secret",
+    "translation": "Onetime Secret"
+  },
+  "web.homepage.one_time_secret_literal": {
+    "en": "One-Time Secret",
+    "translation": "One-Time Secret"
+  },
+  "web.homepage.onetime_secret_homepage": {
+    "en": "Onetime Secret Homepage",
+    "translation": "דף הבית של Onetime Secret"
+  },
+  "web.homepage.send_sensitive_information_that_can_only_be_viewed_once": {
+    "en": "Send sensitive information that can only be viewed once",
+    "translation": "שלחו מידע רגיש שניתן לצפות בו פעם אחת בלבד"
+  },
+  "web.homepage.create_a_secure_link": {
+    "en": "Create a secure link",
+    "translation": "יצירת קישור מאובטח"
+  },
+  "web.homepage.now_with_custom_domains": {
+    "en": "Now with custom domains",
+    "translation": "כעת עם דומיינים מותאמים אישית"
+  },
+  "web.homepage.this_is_a_private_instance_only_authorized_team_": {
+    "en": "This is a private instance. Only authorized team members can generate new secure links.",
+    "translation": "זהו מופע פרטי. רק חברי צוות מורשים יכולים ליצור קישורים מאובטחים חדשים."
+  },
+  "web.homepage.welcome_to_onetime_secret": {
+    "en": "Welcome to Onetime Secret.",
+    "translation": "ברוכים הבאים ל-Onetime Secret."
+  },
+  "web.homepage.onetime_secret_helps_us_share_sensitive_informat": {
+    "en": "Onetime Secret helps us share sensitive information securely while maintaining our professional facade.",
+    "translation": "Onetime Secret עוזר לנו לשתף מידע רגיש בצורה מאובטחת תוך שמירה על החזות המקצועית שלנו."
+  },
+  "web.homepage.information_shared_through_this_service_can_only": {
+    "en": "Information shared through this service can only be accessed once. Once viewed, the content is permanently deleted to ensure confidentiality.",
+    "translation": "מידע המשותף דרך שירות זה ניתן לגישה פעם אחת בלבד. ברגע שנצפה, התוכן נמחק לצמיתות כדי להבטיח סודיות."
+  },
+  "web.homepage.welcome_to_the_global_broadcast": {
+    "en": "Welcome to the Global Broadcast!",
+    "translation": "ברוכים הבאים לשידור הגלובלי!"
+  }
+}

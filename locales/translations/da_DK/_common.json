@@ -1,0 +1,1276 @@
+{
+  "web.COMMON.broadcast": {
+    "en": "",
+    "skip": true,
+    "note": "empty source"
+  },
+  "web.COMMON.tagline": {
+    "en": "Secure links that only work once",
+    "translation": ""
+  },
+  "web.COMMON.powered_by": {
+    "en": "Powered by",
+    "translation": ""
+  },
+  "web.COMMON.website_url": {
+    "en": "https://onetimesecret.com/en",
+    "translation": ""
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "en": "Generate Password",
+    "translation": "Generer adgangskode"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "en": "Generate Password is disabled when the form is valid",
+    "translation": "Generer adgangskode er deaktiveret, når formularen er korrekt udfyldt"
+  },
+  "web.COMMON.email_placeholder": {
+    "en": "e.g. tom{'@'}myspace.com",
+    "translation": "f.eks. jens{'@'}eksempel.dk"
+  },
+  "web.COMMON.password_placeholder": {
+    "en": "Enter your password",
+    "translation": "Indtast din adgangskode"
+  },
+  "web.COMMON.custom_domains_title": {
+    "en": "Custom Domains",
+    "translation": "Brugerdefinerede domæner"
+  },
+  "web.COMMON.custom_domains_description": {
+    "en": "Strengthen connections and build trust with your own branded secret links.",
+    "translation": "Styrk og opbyg tillid med dine egne brandede links."
+  },
+  "web.COMMON.get_started_button": {
+    "en": "Get Started",
+    "translation": "Kom i gang"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "en": "Confirm your password",
+    "translation": "Bekræft din adgangskode"
+  },
+  "web.COMMON.header_settings": {
+    "en": "Settings",
+    "translation": "Indstillinger"
+  },
+  "web.COMMON.submit_with": {
+    "en": "Submit",
+    "translation": "Send"
+  },
+  "web.COMMON.submitting": {
+    "en": "Submitting...",
+    "translation": "Behandler"
+  },
+  "web.COMMON.processing": {
+    "en": "Processing...",
+    "translation": "Behandler..."
+  },
+  "web.COMMON.description": {
+    "en": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
+    "translation": "Hold følsomme oplysninger ude af dine chats og e-mails. Del et sikkert link, der kun virker én gang."
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "en": "Incorrect passphrase",
+    "translation": "Forkert adgangssætning"
+  },
+  "web.COMMON.keywords": {
+    "en": "secret,password generator,share a secret,onetime",
+    "translation": "adgangskode, adgangskode generator, del en adgangskode, éngangs"
+  },
+  "web.COMMON.button_create_secret": {
+    "en": "Create a secret link",
+    "translation": "Opret et sikkert link"
+  },
+  "web.COMMON.button_generate_secret": {
+    "en": "Or generate a random password",
+    "translation": "Eller generer en tilfældig adgangskode"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "en": "Privacy Options",
+    "translation": "Privatlivsindstillinger"
+  },
+  "web.COMMON.secret_passphrase": {
+    "en": "Passphrase",
+    "translation": "Kode"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "en": "A word or phrase that's difficult to guess",
+    "translation": "Et ord eller en sætning, der er svær at gætte"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "en": "Recipient Address",
+    "translation": "Modtagers e-mail adresse"
+  },
+  "web.COMMON.secret_placeholder": {
+    "en": "Secret content goes here...",
+    "translation": "Beskedens indhold skrives her..."
+  },
+  "web.COMMON.header_create_account": {
+    "en": "Create Account",
+    "translation": "Opret konto"
+  },
+  "web.COMMON.header_about": {
+    "en": "About",
+    "translation": "Om"
+  },
+  "web.COMMON.header_sign_in": {
+    "en": "Sign In",
+    "translation": "Log ind"
+  },
+  "web.COMMON.header_dashboard": {
+    "en": "Account",
+    "translation": "Konto"
+  },
+  "web.COMMON.header_logout": {
+    "en": "Logout",
+    "translation": "Log ud"
+  },
+  "web.COMMON.secret": {
+    "en": "Secret | Secrets",
+    "translation": "Besked"
+  },
+  "web.COMMON.recent": {
+    "en": "Recent",
+    "translation": "Seneste"
+  },
+  "web.COMMON.received": {
+    "en": "Received",
+    "translation": "Modtaget"
+  },
+  "web.COMMON.burn": {
+    "en": "Burn",
+    "translation": "Brænd"
+  },
+  "web.COMMON.burned": {
+    "en": "Burned",
+    "translation": "Brændt"
+  },
+  "web.COMMON.expires_in": {
+    "en": "Expires in",
+    "translation": "Udløber om"
+  },
+  "web.COMMON.burn_this_secret": {
+    "en": "Burn this secret",
+    "translation": "Brænd denne besked"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "en": "Burning a secret will delete it before it has been read (click to confirm)",
+    "translation": "At brænde en besked vil slette den, før den er blevet læst (klik for at bekræfte)"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "en": "Burning a secret is permanent and cannot be undone",
+    "translation": "At brænde en besked er permanent og kan ikke fortrydes"
+  },
+  "web.COMMON.msg_check_email": {
+    "en": "Check your email",
+    "translation": "Tjek din e-mail"
+  },
+  "web.COMMON.click_to_continue": {
+    "en": "Click to reveal →",
+    "translation": "Klik for at fortsætte →"
+  },
+  "web.COMMON.click_to_verify": {
+    "en": "Continue to verify your account:",
+    "translation": "Fortsæt for at bekræfte din konto:"
+  },
+  "web.COMMON.error_secret": {
+    "en": "You did not provide anything to share",
+    "translation": "Du har ikke angivet noget at dele"
+  },
+  "web.COMMON.error_passphrase": {
+    "en": "Double check that passphrase",
+    "translation": "Tjek koden igen"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "en": "Enter the passphrase here",
+    "translation": "Indtast koden her"
+  },
+  "web.COMMON.view_secret": {
+    "en": "View Secret",
+    "translation": "Se beskeden"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "en": "Careful: we will only show it once.",
+    "translation": "Bemærk: vi viser den kun én gang."
+  },
+  "web.COMMON.warning": {
+    "en": "Warning",
+    "translation": "Advarsel"
+  },
+  "web.COMMON.oops": {
+    "en": "Oops!",
+    "translation": "Ups!"
+  },
+  "web.COMMON.error": {
+    "en": "Error",
+    "translation": "Fejl"
+  },
+  "web.COMMON.unexpected_error": {
+    "en": "An unexpected error occurred. Please try again.",
+    "translation": ""
+  },
+  "web.COMMON.secret_was_truncated": {
+    "en": "The message was truncated",
+    "translation": "Beskeden blev afkortet, fordi den var slut"
+  },
+  "web.COMMON.signup_for_more": {
+    "en": "Signup for more",
+    "translation": "Tilmeld dig for flere muligheder"
+  },
+  "web.COMMON.login_to_your_account": {
+    "en": "Log in to your account",
+    "translation": "Log ind på din konto"
+  },
+  "web.COMMON.sent_to": {
+    "en": "Sent to: ",
+    "translation": "Sendt til: "
+  },
+  "web.COMMON.field_email": {
+    "en": "Email",
+    "translation": "E-mail"
+  },
+  "web.COMMON.field_password": {
+    "en": "Password",
+    "translation": "Adgangskode"
+  },
+  "web.COMMON.field_password2": {
+    "en": "Confirm Password",
+    "translation": "Bekræft adgangskode"
+  },
+  "web.COMMON.button_create_account": {
+    "en": "Create Account",
+    "translation": "Opret konto"
+  },
+  "web.COMMON.share_a_secret": {
+    "en": "Share a secret",
+    "translation": "Del en besked"
+  },
+  "web.COMMON.title_home": {
+    "en": "Home",
+    "translation": "Hjem"
+  },
+  "web.COMMON.word_none": {
+    "en": "None",
+    "translation": "Ingen"
+  },
+  "web.COMMON.word_burned": {
+    "en": "burned",
+    "translation": "brændt"
+  },
+  "web.COMMON.word_received": {
+    "en": "received",
+    "translation": "modtaget"
+  },
+  "web.COMMON.word_confirm": {
+    "en": "Confirm",
+    "translation": "Bekræft"
+  },
+  "web.COMMON.word_cancel": {
+    "en": "Cancel",
+    "translation": "Annuller"
+  },
+  "web.COMMON.word_continue": {
+    "en": "Continue",
+    "translation": ""
+  },
+  "web.COMMON.word_done": {
+    "en": "Done",
+    "translation": "Udført"
+  },
+  "web.COMMON.back": {
+    "en": "Back",
+    "translation": "Tilbage"
+  },
+  "web.COMMON.feedback_text": {
+    "en": "Share your thoughts, ideas, or experiences...",
+    "translation": "Del dine tanker, ideer eller kommentarer..."
+  },
+  "web.COMMON.button_send_feedback": {
+    "en": "Send Feedback",
+    "translation": "Send feedback"
+  },
+  "web.COMMON.verification_sent_to": {
+    "en": "A verification was sent to",
+    "translation": "En bekræftelse blev sendt til"
+  },
+  "web.COMMON.autoverified_success": {
+    "en": "Account created. Please sign in.",
+    "translation": ""
+  },
+  "web.COMMON.signup_success_generic": {
+    "en": "If an account with this email exists, you will receive a verification email.",
+    "translation": ""
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "en": "Burn this secret permanently",
+    "translation": "Brænd denne hemmelighed permanent"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "en": "Please Confirm",
+    "translation": "Bekræft venligst"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "en": "Are you sure you want to burn this secret? This action cannot be undone.",
+    "translation": "Er du sikker på, at du vil brænde denne hemmelighed? Denne handling kan ikke fortrydes."
+  },
+  "web.COMMON.confirm_burn": {
+    "en": "Yes, burn this secret",
+    "translation": "Ja, brænd denne hemmelighed"
+  },
+  "web.COMMON.burn_security_notice": {
+    "en": "Burning a secret will delete it before it has been received.",
+    "translation": "Hvis du brænder en hemmelighed, slettes den, før den er modtaget."
+  },
+  "web.COMMON.share_link_securely": {
+    "en": "For security, share this link separately from other details.",
+    "translation": "Af sikkerhedshensyn skal du dele dette link separat fra andre detaljer."
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "en": "Copied to clipboard",
+    "translation": "Kopieret til udklipsholder"
+  },
+  "web.COMMON.button_create_incoming": {
+    "en": "Create Incoming",
+    "translation": ""
+  },
+  "web.COMMON.faq_title": {
+    "en": "F.A.Q.",
+    "translation": "F.A.Q."
+  },
+  "web.COMMON.verification_not_valid": {
+    "en": "Verification is not valid",
+    "translation": "Bekræftelsen er ikke gyldig"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "en": "Cannot verify an account when you're already logged in",
+    "translation": "Kan ikke verificere en konto, når du allerede er logget ind"
+  },
+  "web.COMMON.show_password": {
+    "en": "Show password",
+    "translation": ""
+  },
+  "web.COMMON.hide_password": {
+    "en": "Hide password",
+    "translation": ""
+  },
+  "web.COMMON.minimum_8_characters": {
+    "en": "Password must be at least 8 characters",
+    "translation": ""
+  },
+  "web.COMMON.password_requirements": {
+    "en": "Password must be at least 8 characters long",
+    "translation": ""
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "en": "Passwords do not match",
+    "translation": ""
+  },
+  "web.COMMON.form_field_required": {
+    "en": "This field is required",
+    "translation": ""
+  },
+  "web.COMMON.form_processing": {
+    "en": "Processing your request",
+    "translation": ""
+  },
+  "web.COMMON.remember_me_description": {
+    "en": "Keep me logged in for 30 days",
+    "translation": ""
+  },
+  "web.COMMON.redirecting": {
+    "en": "Redirecting...",
+    "translation": ""
+  },
+  "web.COMMON.continue": {
+    "en": "Continue",
+    "translation": "Fortsæt"
+  },
+  "web.COMMON.are_you_sure": {
+    "en": "Are you sure?",
+    "translation": ""
+  },
+  "web.COMMON.danger_zone": {
+    "en": "Danger Zone",
+    "translation": ""
+  },
+  "web.COMMON.caution_zone": {
+    "en": "Careful Consideration Zone",
+    "translation": ""
+  },
+  "web.COMMON.user_menu": {
+    "en": "User menu",
+    "translation": ""
+  },
+  "web.COMMON.security": {
+    "en": "Security",
+    "translation": "Sikkerhed"
+  },
+  "web.COMMON.manage": {
+    "en": "Manage",
+    "translation": ""
+  },
+  "web.COMMON.loading": {
+    "en": "Loading...",
+    "translation": "Indlæser ..."
+  },
+  "web.COMMON.save_changes": {
+    "en": "Save Changes",
+    "translation": ""
+  },
+  "web.COMMON.saving": {
+    "en": "Saving...",
+    "translation": "Gemmer..."
+  },
+  "web.COMMON.adding_ellipses": {
+    "en": "Adding",
+    "translation": "Tilføjelse"
+  },
+  "web.COMMON.e_g_example": {
+    "en": "e.g.",
+    "translation": "e.g."
+  },
+  "web.COMMON.example_placeholder": {
+    "en": "e.g. {example}",
+    "translation": "f.eks. {example}"
+  },
+  "web.COMMON.status": {
+    "en": "Status",
+    "translation": "Status"
+  },
+  "web.COMMON.escape": {
+    "en": "Escape",
+    "translation": "Escape"
+  },
+  "web.COMMON.active": {
+    "en": "Active",
+    "translation": "Aktiv"
+  },
+  "web.COMMON.preview": {
+    "en": "Preview",
+    "translation": "Forhåndsvisning"
+  },
+  "web.COMMON.remove": {
+    "en": "Remove",
+    "translation": "Fjern"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "en": "Press ESC to close",
+    "translation": "Tryk på ESC for at lukke"
+  },
+  "web.COMMON.enter": {
+    "en": "Enter",
+    "translation": "Enter"
+  },
+  "web.COMMON.important": {
+    "en": "Important",
+    "translation": "Vigtigt"
+  },
+  "web.COMMON.language": {
+    "en": "Language",
+    "translation": "Sprog"
+  },
+  "web.COMMON.theme": {
+    "en": "Theme",
+    "translation": "Tema"
+  },
+  "web.COMMON.appearance": {
+    "en": "Appearance",
+    "translation": "Udseende"
+  },
+  "web.COMMON.done": {
+    "en": "Done",
+    "translation": "Udført"
+  },
+  "web.COMMON.end": {
+    "en": "End",
+    "translation": "Slut"
+  },
+  "web.COMMON.general": {
+    "en": "General",
+    "translation": "Generelt"
+  },
+  "web.COMMON.note": {
+    "en": "Note",
+    "translation": "Bemærkning"
+  },
+  "web.COMMON.monthly": {
+    "en": "Monthly",
+    "translation": "Månedlig"
+  },
+  "web.COMMON.yearly": {
+    "en": "Yearly",
+    "translation": "Årligt"
+  },
+  "web.COMMON.go_on_then": {
+    "en": "Go on then.",
+    "translation": "Gå videre derefter."
+  },
+  "web.COMMON.loading_ellipses": {
+    "en": "Loading...",
+    "translation": "Indlæser ..."
+  },
+  "web.COMMON.not_received": {
+    "en": "NOT RECEIVED",
+    "translation": "IKKE MODTAGET"
+  },
+  "web.COMMON.confirm_password": {
+    "en": "Confirm password",
+    "translation": "Bekræft adgangskode"
+  },
+  "web.COMMON.new_password": {
+    "en": "New password",
+    "translation": "Ny adgangskode"
+  },
+  "web.COMMON.email_address": {
+    "en": "Email address",
+    "translation": "E-mail-adresse"
+  },
+  "web.COMMON.switch": {
+    "en": "switch",
+    "translation": "switch"
+  },
+  "web.COMMON.features": {
+    "en": "Features",
+    "translation": "Funktioner"
+  },
+  "web.COMMON.not_found": {
+    "en": "Not Found",
+    "translation": "Ikke fundet"
+  },
+  "web.COMMON.emoji_x": {
+    "en": "❌",
+    "translation": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "en": "✅",
+    "translation": "✅"
+  },
+  "web.COMMON.supported": {
+    "en": "Supported",
+    "translation": "Understøttet"
+  },
+  "web.COMMON.version": {
+    "en": "Version",
+    "translation": "Version"
+  },
+  "web.COMMON.other": {
+    "en": "Other",
+    "translation": "Andet"
+  },
+  "web.COMMON.min_width_1024px": {
+    "en": "(min-width: 1024px)",
+    "translation": "(min-width: 1024px)"
+  },
+  "web.COMMON.ctrl_enter": {
+    "en": "Ctrl + Enter",
+    "translation": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "en": "⌘ + Enter",
+    "translation": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "en": "Mac",
+    "translation": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "en": "Email address copied to clipboard!",
+    "translation": "E-mail-adresse kopieret til udklipsholder!"
+  },
+  "web.COMMON.value": {
+    "en": "Value",
+    "translation": "Værdi"
+  },
+  "web.COMMON.host": {
+    "en": "Host",
+    "translation": "Host"
+  },
+  "web.COMMON.type": {
+    "en": "Type",
+    "translation": "Type"
+  },
+  "web.COMMON.previous": {
+    "en": "Previous",
+    "translation": "Forrige"
+  },
+  "web.COMMON.next": {
+    "en": "Next",
+    "translation": "Næste"
+  },
+  "web.COMMON.password_strength": {
+    "en": "Password Strength:",
+    "translation": "Adgangskodestyrke:"
+  },
+  "web.COMMON.great": {
+    "en": "Great",
+    "translation": "Fremragende"
+  },
+  "web.COMMON.pretty_good": {
+    "en": "Pretty good",
+    "translation": "Temmelig god"
+  },
+  "web.COMMON.fair": {
+    "en": "Fair",
+    "translation": "Rimelig"
+  },
+  "web.COMMON.meh": {
+    "en": "Meh",
+    "translation": "Måske"
+  },
+  "web.COMMON.not_great": {
+    "en": "Not great",
+    "translation": "Ikke fantastisk"
+  },
+  "web.COMMON.open_options": {
+    "en": "Open options",
+    "translation": "Åbne muligheder"
+  },
+  "web.COMMON.inactive": {
+    "en": "Inactive",
+    "translation": "Inaktiv"
+  },
+  "web.COMMON.an_error_occurred": {
+    "en": "An error occurred",
+    "translation": "Der opstod en fejl"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "en": "Copy secret to clipboard",
+    "translation": "Kopier hemmelighed til udklipsholder"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "en": "Secret copied to clipboard",
+    "translation": "Hemmelighed kopieret til udklipsholder"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "en": "Double check that passphrase",
+    "translation": "Dobbelttjek den passphrase"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "en": "Press the copy button below.",
+    "translation": "Tryk på kopiknappen nedenfor."
+  },
+  "web.LABELS.view_toggle.show": {
+    "en": "Show",
+    "translation": "Vis"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "en": "Hide",
+    "translation": "Skjul"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "en": "Show More",
+    "translation": "Vis mere"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "en": "Show Less",
+    "translation": "Vis mindre"
+  },
+  "web.LABELS.enable": {
+    "en": "Enable",
+    "translation": "Aktiver"
+  },
+  "web.LABELS.disable": {
+    "en": "Disable",
+    "translation": "Deaktiver"
+  },
+  "web.LABELS.stats": {
+    "en": "Stats",
+    "translation": "Statistik"
+  },
+  "web.LABELS.timeline": {
+    "en": "Timeline",
+    "translation": "Tidslinje"
+  },
+  "web.LABELS.lifespan": {
+    "en": "Lifespan",
+    "translation": "Levetid"
+  },
+  "web.LABELS.expiration_time": {
+    "en": "Expiration Time",
+    "translation": "Udløbstid"
+  },
+  "web.LABELS.close": {
+    "en": "Close",
+    "translation": "Luk"
+  },
+  "web.LABELS.loading": {
+    "en": "Loading...",
+    "translation": "Indlæser ..."
+  },
+  "web.LABELS.cancel": {
+    "en": "Cancel",
+    "translation": "Annuller"
+  },
+  "web.LABELS.saving": {
+    "en": "Saving...",
+    "translation": "Gemmer..."
+  },
+  "web.LABELS.saved": {
+    "en": "Saved",
+    "translation": "Gemt"
+  },
+  "web.LABELS.save": {
+    "en": "Save",
+    "translation": "Gem"
+  },
+  "web.LABELS.save_all": {
+    "en": "Save All",
+    "translation": "Gem alle"
+  },
+  "web.LABELS.details": {
+    "en": "Details",
+    "translation": "Detaljer"
+  },
+  "web.LABELS.encrypted": {
+    "en": "Encrypted",
+    "translation": "Krypteret"
+  },
+  "web.LABELS.secret_status": {
+    "en": "Secret Status",
+    "translation": "Hemmelig status"
+  },
+  "web.LABELS.need_help": {
+    "en": "Need help?",
+    "translation": "Brug for hjælp?"
+  },
+  "web.LABELS.create_new_secret": {
+    "en": "Create New Secret",
+    "translation": "Opret ny hemmelighed"
+  },
+  "web.LABELS.actions": {
+    "en": "Actions",
+    "translation": "Handlinger"
+  },
+  "web.LABELS.no_passphrase": {
+    "en": "No Passphrase Required",
+    "translation": "Ingen adgangssætning påkrævet"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "en": "Copy to clipboard",
+    "translation": "Kopier til udklipsholder"
+  },
+  "web.LABELS.receipts": {
+    "en": "Receipts",
+    "translation": "Kvitteringer"
+  },
+  "web.LABELS.share": {
+    "en": "Share",
+    "translation": "Del"
+  },
+  "web.LABELS.secret_link": {
+    "en": "Secret Link",
+    "translation": "Hemmeligt link"
+  },
+  "web.LABELS.dismiss": {
+    "en": "Dismiss",
+    "translation": "Afvis"
+  },
+  "web.LABELS.security_details": {
+    "en": "Security Details",
+    "translation": "Sikkerhedsdetaljer"
+  },
+  "web.LABELS.items_count": {
+    "en": "{count} Items",
+    "translation": "{count} Elementer"
+  },
+  "web.LABELS.recipients_count": {
+    "en": "{count} Recipients",
+    "translation": "{count} Modtagere"
+  },
+  "web.LABELS.view": {
+    "en": "View",
+    "translation": "Se"
+  },
+  "web.LABELS.views": {
+    "en": "Views",
+    "translation": "Visninger"
+  },
+  "web.LABELS.times_viewed": {
+    "en": "times viewed",
+    "translation": "gange set"
+  },
+  "web.LABELS.view_progress": {
+    "en": "View Progress",
+    "translation": "Vis fremskridt"
+  },
+  "web.LABELS.help_section": {
+    "en": "Help Section",
+    "translation": "Hjælpesektion"
+  },
+  "web.LABELS.passphrase_protected": {
+    "en": "Protected with passphrase",
+    "translation": "Beskyttet med adgangssætning"
+  },
+  "web.LABELS.feedback_received": {
+    "en": "Feedback received.",
+    "translation": "Feedback modtaget."
+  },
+  "web.LABELS.sending_ellipses": {
+    "en": "Sending...",
+    "translation": "Sender ..."
+  },
+  "web.LABELS.title_recent_secrets": {
+    "en": "Recent Secrets",
+    "translation": "Seneste hemmeligheder"
+  },
+  "web.LABELS.pricing": {
+    "en": "Pricing",
+    "translation": "Priser"
+  },
+  "web.LABELS.refresh": {
+    "en": "Refresh",
+    "translation": "Opdater"
+  },
+  "web.LABELS.reload": {
+    "en": "Reload",
+    "translation": "Genindlæs"
+  },
+  "web.LABELS.filter": {
+    "en": "Filter"
+  },
+  "web.LABELS.clear": {
+    "en": "Clear"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "en": "Secrets links created in this session",
+    "translation": "Hemmelige links oprettet i denne session"
+  },
+  "web.LABELS.create_link_short": {
+    "en": "Create Link",
+    "translation": "Opret link"
+  },
+  "web.LABELS.create_link": {
+    "en": "Create Secret Link",
+    "translation": "Opret hemmeligt link"
+  },
+  "web.LABELS.create_request_short": {
+    "en": "Create Request",
+    "translation": "Opret anmodning"
+  },
+  "web.LABELS.create_request": {
+    "en": "Create Request Link",
+    "translation": "Opret link til anmodning"
+  },
+  "web.LABELS.related_settings": {
+    "en": "Related Settings",
+    "translation": ""
+  },
+  "web.LABELS.creating_links_for": {
+    "en": "Creating links for",
+    "translation": "Opretter links til"
+  },
+  "web.LABELS.scope_indicator": {
+    "en": "Creating secrets in {domain}",
+    "translation": "Opretter beskeder i {domain}"
+  },
+  "web.STATUS.new": {
+    "en": "New",
+    "translation": "Ny"
+  },
+  "web.STATUS.unread": {
+    "en": "Unread",
+    "translation": "Ulæst"
+  },
+  "web.STATUS.viewed": {
+    "en": "Link opened",
+    "translation": "Link åbnet"
+  },
+  "web.STATUS.received": {
+    "en": "Received",
+    "translation": "Modtaget"
+  },
+  "web.STATUS.burned": {
+    "en": "Burned",
+    "translation": "Brændt"
+  },
+  "web.STATUS.destroyed": {
+    "en": "Destroyed",
+    "translation": "Destrueret"
+  },
+  "web.STATUS.expiring_soon": {
+    "en": "Expiring Soon",
+    "translation": "Udløber snart"
+  },
+  "web.STATUS.created": {
+    "en": "Created",
+    "translation": "Oprettet"
+  },
+  "web.STATUS.expires": {
+    "en": "Expires",
+    "translation": "Udløber"
+  },
+  "web.STATUS.expired": {
+    "en": "Expired",
+    "translation": "Udløbet"
+  },
+  "web.STATUS.orphaned": {
+    "en": "Orphaned",
+    "translation": "Forældreløs"
+  },
+  "web.STATUS.secured": {
+    "en": "Secured",
+    "translation": "Sikret"
+  },
+  "web.STATUS.securing": {
+    "en": "Securing",
+    "translation": "Sikring"
+  },
+  "web.STATUS.copied": {
+    "en": "Copied",
+    "translation": "Kopieret"
+  },
+  "web.STATUS.time_remaining": {
+    "en": "Time Remaining",
+    "translation": "Resterende tid"
+  },
+  "web.STATUS.new_description": {
+    "en": "Secret link has been created and not yet viewed",
+    "translation": "Hemmeligt link er oprettet og endnu ikke set"
+  },
+  "web.STATUS.unread_description": {
+    "en": "Secret link has been created and has not been viewed",
+    "translation": "Hemmeligt link er oprettet og er ikke blevet set"
+  },
+  "web.STATUS.viewed_description": {
+    "en": "Secret link has been opened and ready to be viewed",
+    "translation": "Hemmeligt link er blevet åbnet og klar til at blive set"
+  },
+  "web.STATUS.received_description": {
+    "en": "Secret has been revealed to the recipient",
+    "translation": "Hemmelighed er blevet afsløret for modtageren"
+  },
+  "web.STATUS.burned_description": {
+    "en": "Secret was manually burned before being viewed",
+    "translation": "Hemmeligheden blev brændt manuelt, før den blev vist"
+  },
+  "web.STATUS.destroyed_description": {
+    "en": "Secret has been permanently destroyed",
+    "translation": "Hemmeligheden er blevet destrueret permanent"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "en": "Secret will expire soon",
+    "translation": "Hemmeligheden udløber snart"
+  },
+  "web.STATUS.orphaned_description": {
+    "en": "Secret has been orphaned and will be destroyed soon",
+    "translation": "Hemmeligheden er blevet forældreløs og vil snart blive ødelagt"
+  },
+  "web.STATUS.expired_description": {
+    "en": "Secret has expired before being viewed",
+    "translation": "Hemmeligheden er udløbet, før den blev vist"
+  },
+  "web.STATUS.success": {
+    "en": "Success",
+    "translation": "Succes"
+  },
+  "web.STATUS.delivered": {
+    "en": "Delivered",
+    "translation": "Leveret"
+  },
+  "web.STATUS.dns_incorrect": {
+    "en": "DNS Incorrect",
+    "translation": "DNS Forkert"
+  },
+  "web.STATUS.active": {
+    "en": "Active",
+    "translation": "Aktiv"
+  },
+  "web.STATUS.inactive": {
+    "en": "Inactive",
+    "translation": "Inactive"
+  },
+  "web.FEATURES.unlimited_views": {
+    "en": "Unlimited Views",
+    "translation": "Ubegrænsede visninger"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "en": "Trusted domain branding",
+    "translation": "Trusted domain branding"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "en": "Encrypted in transit and at rest",
+    "translation": "Krypteret i transit og i hvile"
+  },
+  "web.UNITS.ttl.duration": {
+    "en": "{count} {unit}",
+    "translation": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "en": "day | days",
+    "translation": "dag | dage"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "en": "hour | hours",
+    "translation": "time | timer"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "en": "minute | minutes",
+    "translation": "minut | minutter"
+  },
+  "web.UNITS.ttl.time.second": {
+    "en": "second | seconds",
+    "translation": "sekund | sekunder"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "en": "---",
+    "translation": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "en": "{count} {unit} remaining",
+    "translation": "{count} {unit}"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "en": "day remaining | days remaining",
+    "translation": "dag tilbage | dage tilbage"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "en": "hour remaining | hours remaining",
+    "translation": "time tilbage | timer tilbage"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "en": "minute remaining | minutes remaining",
+    "translation": "resterende minut | resterende minutter"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "en": "second remaining | seconds remaining",
+    "translation": "resterende sekund | resterende sekunder"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "en": "---",
+    "translation": "---"
+  },
+  "web.UNITS.limited_views": {
+    "en": "{count} view limit",
+    "translation": "{count} visningsgrænse"
+  },
+  "web.UNITS.days_remaining": {
+    "en": "{count} Days Left",
+    "translation": "{count} Dage tilbage"
+  },
+  "web.UNITS.hours_remaining": {
+    "en": "{count} Hours Left",
+    "translation": "{count} timer tilbage"
+  },
+  "web.UNITS.minutes_remaining": {
+    "en": "{count} Minutes Left",
+    "translation": "{count} Minutter tilbage"
+  },
+  "web.TITLES.incoming": {
+    "en": "Incoming Secrets",
+    "translation": ""
+  },
+  "web.TITLES.feedback": {
+    "en": "Feedback",
+    "translation": ""
+  },
+  "web.TITLES.help": {
+    "en": "Help"
+  },
+  "web.TITLES.signin": {
+    "en": "Sign In",
+    "translation": ""
+  },
+  "web.TITLES.signup": {
+    "en": "Create Account",
+    "translation": ""
+  },
+  "web.TITLES.forgot_password": {
+    "en": "Forgot Password",
+    "translation": ""
+  },
+  "web.TITLES.reset_password": {
+    "en": "Reset Password",
+    "translation": ""
+  },
+  "web.TITLES.logout": {
+    "en": "Logging Out",
+    "translation": ""
+  },
+  "web.TITLES.verify_account": {
+    "en": "Verify Account",
+    "translation": ""
+  },
+  "web.TITLES.mfa_verify": {
+    "en": "Two-Factor Authentication",
+    "translation": ""
+  },
+  "web.TITLES.email_login": {
+    "en": "Email Login",
+    "translation": ""
+  },
+  "web.TITLES.accept_invitation": {
+    "en": "Accept Invitation",
+    "translation": "Accepter invitation"
+  },
+  "web.TITLES.secret": {
+    "en": "Secret",
+    "translation": ""
+  },
+  "web.TITLES.metadata": {
+    "en": "Secret Details",
+    "translation": ""
+  },
+  "web.TITLES.receipt": {
+    "en": "Secret Receipt",
+    "translation": ""
+  },
+  "web.TITLES.burn_secret": {
+    "en": "Burn Secret",
+    "translation": ""
+  },
+  "web.TITLES.dashboard": {
+    "en": "Dashboard",
+    "translation": ""
+  },
+  "web.TITLES.recent": {
+    "en": "Recent Secrets",
+    "translation": ""
+  },
+  "web.TITLES.domains": {
+    "en": "Custom Domains",
+    "translation": ""
+  },
+  "web.TITLES.domain_add": {
+    "en": "Add Domain",
+    "translation": ""
+  },
+  "web.TITLES.domain_verify": {
+    "en": "Verify Domain",
+    "translation": ""
+  },
+  "web.TITLES.domain_brand": {
+    "en": "Brand Domain",
+    "translation": ""
+  },
+  "web.TITLES.account": {
+    "en": "Account",
+    "translation": ""
+  },
+  "web.TITLES.data_region": {
+    "en": "Data Region",
+    "translation": ""
+  },
+  "web.TITLES.current_region": {
+    "en": "Current Region",
+    "translation": ""
+  },
+  "web.TITLES.available_regions": {
+    "en": "Available Regions",
+    "translation": ""
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "en": "Why Data Sovereignty Matters",
+    "translation": ""
+  },
+  "web.TITLES.profile_settings": {
+    "en": "Profile Settings",
+    "translation": ""
+  },
+  "web.TITLES.preferences_settings": {
+    "en": "Preferences",
+    "translation": ""
+  },
+  "web.TITLES.privacy_settings": {
+    "en": "Privacy",
+    "translation": ""
+  },
+  "web.TITLES.notification_settings": {
+    "en": "Notifications",
+    "translation": "Notifikationer"
+  },
+  "web.TITLES.change_email": {
+    "en": "Change Email",
+    "translation": ""
+  },
+  "web.TITLES.security_overview": {
+    "en": "Security",
+    "translation": ""
+  },
+  "web.TITLES.change_password": {
+    "en": "Change Password",
+    "translation": ""
+  },
+  "web.TITLES.mfa_settings": {
+    "en": "Two-Factor Authentication",
+    "translation": ""
+  },
+  "web.TITLES.active_sessions": {
+    "en": "Active Sessions",
+    "translation": ""
+  },
+  "web.TITLES.recovery_codes": {
+    "en": "Recovery Codes",
+    "translation": ""
+  },
+  "web.TITLES.api_settings": {
+    "en": "API Settings",
+    "translation": ""
+  },
+  "web.TITLES.advanced_settings": {
+    "en": "Advanced Settings",
+    "translation": ""
+  },
+  "web.TITLES.system_settings": {
+    "en": "System Settings",
+    "translation": ""
+  },
+  "web.TITLES.not_found": {
+    "en": "Page Not Found",
+    "translation": ""
+  },
+  "web.TITLES.organizations_settings": {
+    "en": "Organizations",
+    "translation": ""
+  },
+  "web.TITLES.organization_settings": {
+    "en": "Organization Settings",
+    "translation": ""
+  },
+  "web.TITLES.pricing": {
+    "en": "Pricing"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "en": "Focus is now in the main text area",
+    "translation": "Fokus er nu i hovedtekstområdet"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "en": "Sharing Instructions",
+    "translation": "Delingsinstruktioner"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "en": "Share the link with the intended recipient",
+    "translation": "Del linket med den tiltænkte modtager"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "en": "Share the passphrase separately through a secure channel",
+    "translation": "Del adgangssætningen separat via en sikker kanal"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "en": "Use a different secure channel to share sensitive information",
+    "translation": "Brug en anden sikker kanal til at dele følsomme oplysninger"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "en": "Always verify you're on the official Onetime Secret website. Fraudsters sometimes create fake websites that look exactly like Onetime Secret to steal your secrets. To avoid phishing attacks, check the region domain before creating new links.",
+    "translation": ""
+  },
+  "web.pricing.title": {
+    "en": "Simple, Transparent Pricing"
+  },
+  "web.pricing.subtitle": {
+    "en": "Choose the plan that fits your needs. All plans include unlimited secret sharing and privacy-first design."
+  },
+  "web.pricing.get_started_free": {
+    "en": "Get Started Free"
+  },
+  "web.pricing.start_trial": {
+    "en": "Get Started"
+  },
+  "web.pricing.already_have_account": {
+    "en": "Already have an account?"
+  },
+  "web.pricing.sign_in": {
+    "en": "Sign in"
+  },
+  "web.pricing.recommended_for_you": {
+    "en": "Recommended for You"
+  }
+}

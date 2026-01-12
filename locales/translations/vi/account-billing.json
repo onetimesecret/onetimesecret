@@ -1,0 +1,646 @@
+{
+  "web.billing.upgrade.required": {
+    "en": "Upgrade Required",
+    "translation": "Yêu cầu nâng cấp"
+  },
+  "web.billing.upgrade.viewPlans": {
+    "en": "View Plans",
+    "translation": "Xem gói"
+  },
+  "web.billing.upgrade.needTeams": {
+    "en": "Team management requires Identity Plus or higher",
+    "translation": "Quản lý nhóm yêu cầu Identity Plus hoặc cao hơn"
+  },
+  "web.billing.upgrade.needCustomDomains": {
+    "en": "Custom domains require Identity Plus or higher",
+    "translation": "Tên miền tùy chỉnh yêu cầu Identity Plus hoặc cao hơn"
+  },
+  "web.billing.upgrade.needApiAccess": {
+    "en": "API access requires Identity Plus or higher",
+    "translation": "Truy cập API yêu cầu gói Multi-Team hoặc cao hơn"
+  },
+  "web.billing.upgrade.needAuditLogs": {
+    "en": "Audit logs require Multi-Team plan or higher",
+    "translation": "Nhật ký kiểm toán yêu cầu gói Multi-Team hoặc cao hơn"
+  },
+  "web.billing.manage_subscription_and_billing": {
+    "en": "Manage your subscription, organizations, and billing settings",
+    "translation": "Quản lý đăng ký, tổ chức và cài đặt thanh toán của bạn"
+  },
+  "web.billing.overview.title": {
+    "en": "Billing Overview",
+    "translation": "Tổng quan thanh toán"
+  },
+  "web.billing.overview.description": {
+    "en": "View and manage your subscription and payment details",
+    "translation": "Xem và quản lý chi tiết đăng ký và thanh toán của bạn"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "en": "Billing for this organization"
+  },
+  "web.billing.overview.current_plan": {
+    "en": "Current Plan",
+    "translation": "Gói hiện tại"
+  },
+  "web.billing.overview.plan_features": {
+    "en": "Plan Features",
+    "translation": "Tính năng gói"
+  },
+  "web.billing.overview.payment_method": {
+    "en": "Payment Method",
+    "translation": "Phương thức thanh toán"
+  },
+  "web.billing.overview.next_billing_date": {
+    "en": "Next Billing Date",
+    "translation": "Ngày thanh toán tiếp theo"
+  },
+  "web.billing.overview.quick_actions": {
+    "en": "Quick Actions",
+    "translation": "Hành động nhanh"
+  },
+  "web.billing.overview.manage_billing": {
+    "en": "Manage Billing",
+    "translation": "Quản lý thanh toán"
+  },
+  "web.billing.overview.view_invoices": {
+    "en": "View Invoices",
+    "translation": "Xem hóa đơn"
+  },
+  "web.billing.overview.upgrade_plan": {
+    "en": "Upgrade Plan",
+    "translation": "Nâng cấp gói"
+  },
+  "web.billing.overview.change_plan": {
+    "en": "Change Plan",
+    "translation": "Thay đổi gói"
+  },
+  "web.billing.overview.no_payment_method": {
+    "en": "No payment method on file",
+    "translation": "Không có phương thức thanh toán trong hồ sơ"
+  },
+  "web.billing.overview.no_upcoming_billing": {
+    "en": "No upcoming billing",
+    "translation": "Không có thanh toán sắp tới"
+  },
+  "web.billing.overview.days_remaining": {
+    "en": "days remaining",
+    "translation": "ngày còn lại"
+  },
+  "web.billing.overview.billing_on": {
+    "en": "Billing on {date}",
+    "translation": "Thanh toán vào {date}"
+  },
+  "web.billing.overview.view_plans_action": {
+    "en": "View Plans",
+    "translation": "Xem gói"
+  },
+  "web.billing.overview.view_plans_description": {
+    "en": "Compare and upgrade",
+    "translation": "So sánh và nâng cấp"
+  },
+  "web.billing.overview.view_invoices_action": {
+    "en": "View Invoices",
+    "translation": "Xem hóa đơn"
+  },
+  "web.billing.overview.view_invoices_description": {
+    "en": "Download history",
+    "translation": "Tải lịch sử"
+  },
+  "web.billing.overview.manage_billing_action": {
+    "en": "Manage Billing",
+    "translation": "Quản lý thanh toán"
+  },
+  "web.billing.overview.manage_billing_description": {
+    "en": "Update payment info",
+    "translation": "Cập nhật thông tin thanh toán"
+  },
+  "web.billing.overview.no_organizations_title": {
+    "en": "No Organizations",
+    "translation": "Không có tổ chức"
+  },
+  "web.billing.overview.no_organizations_description": {
+    "en": "Create an organization to manage your billing and subscription",
+    "translation": "Tạo tổ chức để quản lý thanh toán và đăng ký của bạn"
+  },
+  "web.billing.overview.upgrade_success": {
+    "en": "Your plan has been upgraded successfully"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "en": "Your new plan is now active. Thank you for your purchase."
+  },
+  "web.billing.overview.entitlements.create_secrets": {
+    "en": "Create Secrets",
+    "translation": "Tạo bí mật"
+  },
+  "web.billing.overview.entitlements.view_receipt": {
+    "en": "View Receipts",
+    "translation": "Xem Hóa đơn"
+  },
+  "web.billing.overview.entitlements.api_access": {
+    "en": "API Access",
+    "translation": "Truy cập API"
+  },
+  "web.billing.overview.entitlements.custom_domains": {
+    "en": "Custom Domains",
+    "translation": "Tên miền tùy chỉnh"
+  },
+  "web.billing.overview.entitlements.custom_privacy_defaults": {
+    "en": "Custom Privacy Defaults",
+    "translation": "Mặc định quyền riêng tư tùy chỉnh"
+  },
+  "web.billing.overview.entitlements.extended_default_expiration": {
+    "en": "Extended Default Expiration",
+    "translation": "Thời hạn mặc định mở rộng"
+  },
+  "web.billing.overview.entitlements.custom_mail_defaults": {
+    "en": "Custom Mail Defaults",
+    "translation": "Mặc định email tùy chỉnh"
+  },
+  "web.billing.overview.entitlements.custom_branding": {
+    "en": "Custom Branding",
+    "translation": "Thương hiệu tùy chỉnh"
+  },
+  "web.billing.overview.entitlements.branded_homepage": {
+    "en": "Branded Homepage",
+    "translation": "Trang chủ có thương hiệu"
+  },
+  "web.billing.overview.entitlements.incoming_secrets": {
+    "en": "Incoming Secrets",
+    "translation": "Bí mật đến"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "en": "Manage Organizations",
+    "translation": "Quản lý tổ chức"
+  },
+  "web.billing.overview.entitlements.manage_teams": {
+    "en": "Manage Teams",
+    "translation": "Quản lý nhóm"
+  },
+  "web.billing.overview.entitlements.manage_members": {
+    "en": "Manage Members",
+    "translation": "Quản lý thành viên"
+  },
+  "web.billing.overview.entitlements.audit_logs": {
+    "en": "Audit Logs",
+    "translation": "Nhật ký kiểm toán"
+  },
+  "web.billing.overview.entitlements.sso": {
+    "en": "Single Sign-On",
+    "translation": "Đăng nhập một lần"
+  },
+  "web.billing.overview.entitlements.priority_support": {
+    "en": "Priority Support",
+    "translation": "Hỗ trợ ưu tiên"
+  },
+  "web.billing.overview.entitlements.sla": {
+    "en": "Service Level Agreement",
+    "translation": "Thỏa thuận mức dịch vụ"
+  },
+  "web.billing.overview.entitlements_load_error": {
+    "en": "Could not load feature details",
+    "translation": "Không thể tải chi tiết tính năng"
+  },
+  "web.billing.overview.no_entitlements": {
+    "en": "No features available",
+    "translation": "Không có tính năng khả dụng"
+  },
+  "web.billing.features.create_secrets": {
+    "en": "Create & Share Secrets"
+  },
+  "web.billing.features.api_access": {
+    "en": "API Access"
+  },
+  "web.billing.features.custom_domains": {
+    "en": "Custom Domains"
+  },
+  "web.billing.features.custom_branding": {
+    "en": "Custom Branding"
+  },
+  "web.billing.features.branded_homepage": {
+    "en": "Branded Homepage"
+  },
+  "web.billing.features.manage_teams": {
+    "en": "Team Management"
+  },
+  "web.billing.features.manage_members": {
+    "en": "Member Management"
+  },
+  "web.billing.features.audit_logs": {
+    "en": "Audit Logs"
+  },
+  "web.billing.features.sso": {
+    "en": "Single Sign-On (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "en": "Priority Support"
+  },
+  "web.billing.features.sla": {
+    "en": "Service Level Agreement"
+  },
+  "web.billing.plans.title": {
+    "en": "Select a Plan",
+    "translation": "Chọn gói"
+  },
+  "web.billing.plans.choose_plan": {
+    "en": "Choose the plan that fits your needs",
+    "translation": "Chọn gói phù hợp với nhu cầu của bạn"
+  },
+  "web.billing.plans.subtitle": {
+    "en": "Choose the perfect plan for your organization",
+    "translation": "Chọn gói hoàn hảo cho tổ chức của bạn"
+  },
+  "web.billing.plans.current": {
+    "en": "Current Plan",
+    "translation": "Gói hiện tại"
+  },
+  "web.billing.plans.current_badge": {
+    "en": "Current",
+    "translation": "Current"
+  },
+  "web.billing.plans.upgrade": {
+    "en": "Upgrade",
+    "translation": "Nâng cấp"
+  },
+  "web.billing.plans.downgrade": {
+    "en": "Downgrade",
+    "translation": "Hạ cấp"
+  },
+  "web.billing.plans.monthly": {
+    "en": "Monthly",
+    "translation": "Hàng tháng"
+  },
+  "web.billing.plans.yearly": {
+    "en": "Yearly",
+    "translation": "Hàng năm"
+  },
+  "web.billing.plans.per_month": {
+    "en": "/month",
+    "translation": "mỗi tháng"
+  },
+  "web.billing.plans.save_yearly": {
+    "en": "Save {percent}% with yearly billing",
+    "translation": "Tiết kiệm {percent}% với thanh toán hàng năm"
+  },
+  "web.billing.plans.free_plan": {
+    "en": "Free",
+    "translation": "Miễn phí"
+  },
+  "web.billing.plans.single_team_plan": {
+    "en": "Single Team",
+    "translation": "Nhóm đơn"
+  },
+  "web.billing.plans.multi_team_plan": {
+    "en": "Multi Team",
+    "translation": "Nhiều nhóm"
+  },
+  "web.billing.plans.individual_account": {
+    "en": "Individual Account",
+    "translation": "Tài khoản Cá nhân"
+  },
+  "web.billing.plans.team_account": {
+    "en": "Team Account",
+    "translation": "Tài khoản Nhóm"
+  },
+  "web.billing.plans.multi_team_account": {
+    "en": "Organization Account",
+    "translation": "Tài khoản Tổ chức"
+  },
+  "web.billing.plans.features": {
+    "en": "Features",
+    "translation": "Tính năng"
+  },
+  "web.billing.plans.unlimited_secrets": {
+    "en": "Unlimited secrets",
+    "translation": "Bí mật không giới hạn"
+  },
+  "web.billing.plans.api_access": {
+    "en": "API access",
+    "translation": "Truy cập API"
+  },
+  "web.billing.plans.priority_support": {
+    "en": "Priority support",
+    "translation": "Hỗ trợ ưu tiên"
+  },
+  "web.billing.plans.select_plan": {
+    "en": "Select Plan",
+    "translation": "Chọn gói"
+  },
+  "web.billing.plans.contact_sales": {
+    "en": "Contact Sales",
+    "translation": "Liên hệ bán hàng"
+  },
+  "web.billing.plans.custom_needs_title": {
+    "en": "Have questions or need something custom?",
+    "translation": "Có câu hỏi hoặc cần giải pháp tùy chỉnh?"
+  },
+  "web.billing.plans.custom_needs_description": {
+    "en": "We'd love to hear from you. Let us know what you're looking for.",
+    "translation": "Chúng tôi rất muốn nghe từ bạn. Hãy cho chúng tôi biết bạn đang tìm kiếm gì."
+  },
+  "web.billing.plans.teams_limit": {
+    "en": "{count} team | {count} teams",
+    "translation": "{count} nhóm"
+  },
+  "web.billing.plans.members_limit": {
+    "en": "{count} member per team | {count} members per team",
+    "translation": "{count} thành viên mỗi nhóm"
+  },
+  "web.billing.plans.unlimited_teams": {
+    "en": "Unlimited teams",
+    "translation": "Số lượng nhóm không giới hạn"
+  },
+  "web.billing.plans.unlimited_members": {
+    "en": "Unlimited members per team",
+    "translation": "Số lượng thành viên mỗi nhóm không giới hạn"
+  },
+  "web.billing.plans.most_popular": {
+    "en": "Most Popular",
+    "translation": "Most Popular"
+  },
+  "web.billing.plans.suggested": {
+    "en": "Suggested",
+    "translation": "Suggested"
+  },
+  "web.billing.plans.everything_in": {
+    "en": "Everything in {plan}, plus:",
+    "translation": "Everything in {plan}, plus:"
+  },
+  "web.billing.plans.no_plans_available": {
+    "en": "No {interval} plans available at this time.",
+    "translation": "No {interval} plans available at this time."
+  },
+  "web.billing.plans.change_immediate": {
+    "en": "Your plan will change immediately.",
+    "translation": "Your plan will change immediately."
+  },
+  "web.billing.plans.current_plan_label": {
+    "en": "Current plan:",
+    "translation": "Current plan:"
+  },
+  "web.billing.plans.new_plan_label": {
+    "en": "New plan:",
+    "translation": "New plan:"
+  },
+  "web.billing.plans.credit_label": {
+    "en": "Credit for unused time:",
+    "translation": "Credit for unused time:"
+  },
+  "web.billing.plans.due_today": {
+    "en": "Due today:"
+  },
+  "web.billing.plans.next_billing": {
+    "en": "Next billing ({date}):"
+  },
+  "web.billing.plans.next_invoice": {
+    "en": "Next invoice",
+    "translation": "Next invoice"
+  },
+  "web.billing.plans.limits_update_notice": {
+    "en": "Your feature limits will update immediately after the plan change.",
+    "translation": "Your feature limits will update immediately after the plan change."
+  },
+  "web.billing.plans.change_failed": {
+    "en": "Plan change failed. Please try again.",
+    "translation": "Plan change failed. Please try again."
+  },
+  "web.billing.plans.confirm_upgrade": {
+    "en": "Confirm Upgrade",
+    "translation": "Confirm Upgrade"
+  },
+  "web.billing.plans.confirm_downgrade": {
+    "en": "Confirm Downgrade",
+    "translation": "Confirm Downgrade"
+  },
+  "web.billing.plans.upgrade_to": {
+    "en": "Upgrade to {plan}?",
+    "translation": "Nâng cấp lên"
+  },
+  "web.billing.plans.downgrade_to": {
+    "en": "Downgrade to {plan}?",
+    "translation": "Downgrade to {plan}?"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "en": "How your credit applies:"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "en": "Next bill amount:"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "en": "Credit applied:"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "en": "Amount due at next billing:"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "en": "Remaining account credit:"
+  },
+  "web.billing.plans.credit_future_note": {
+    "en": "Applied to future invoices"
+  },
+  "web.billing.invoices.title": {
+    "en": "Billing History",
+    "translation": "Lịch sử thanh toán"
+  },
+  "web.billing.invoices.view_history": {
+    "en": "View your billing history and download invoices",
+    "translation": "Xem lịch sử thanh toán và tải hóa đơn của bạn"
+  },
+  "web.billing.invoices.invoice_date": {
+    "en": "Date",
+    "translation": "Ngày"
+  },
+  "web.billing.invoices.invoice_amount": {
+    "en": "Amount",
+    "translation": "Số tiền"
+  },
+  "web.billing.invoices.invoice_status": {
+    "en": "Status",
+    "translation": "Trạng thái"
+  },
+  "web.billing.invoices.invoice_download": {
+    "en": "Download",
+    "translation": "Tải xuống"
+  },
+  "web.billing.invoices.no_invoices": {
+    "en": "No invoices yet",
+    "translation": "Chưa có hóa đơn"
+  },
+  "web.billing.invoices.paid": {
+    "en": "Paid",
+    "translation": "Đã thanh toán"
+  },
+  "web.billing.invoices.pending": {
+    "en": "Pending",
+    "translation": "Đang chờ"
+  },
+  "web.billing.invoices.failed": {
+    "en": "Failed",
+    "translation": "Thất bại"
+  },
+  "web.billing.invoices.load_error": {
+    "en": "Failed to load invoices",
+    "translation": "Không thể tải hóa đơn"
+  },
+  "web.billing.notices.org_managed": {
+    "en": "Billing is managed by {orgName}",
+    "translation": "Thanh toán cho nhóm này được quản lý bởi {orgName}"
+  },
+  "web.billing.notices.view_org_billing": {
+    "en": "View organization billing",
+    "translation": "Xem thanh toán tổ chức"
+  },
+  "web.billing.limits.members_reached": {
+    "en": "You've reached the member limit for this team",
+    "translation": "Bạn đã đạt giới hạn thành viên cho nhóm này"
+  },
+  "web.billing.limits.members_upgrade": {
+    "en": "Upgrade to add more members",
+    "translation": "Nâng cấp để thêm thành viên"
+  },
+  "web.billing.subscription.title": {
+    "en": "Subscription",
+    "translation": "Đăng ký"
+  },
+  "web.billing.subscription.status": {
+    "en": "Subscription Status",
+    "translation": "Trạng thái đăng ký"
+  },
+  "web.billing.subscription.active": {
+    "en": "Active",
+    "translation": "Hoạt động"
+  },
+  "web.billing.subscription.inactive": {
+    "en": "Inactive",
+    "translation": "Không hoạt động"
+  },
+  "web.billing.subscription.past_due": {
+    "en": "Past Due",
+    "translation": "Quá hạn"
+  },
+  "web.billing.subscription.canceled": {
+    "en": "Canceled",
+    "translation": "Đã hủy"
+  },
+  "web.billing.subscription.catalog_name": {
+    "en": "Plan",
+    "translation": "Gói"
+  },
+  "web.billing.subscription.team_usage": {
+    "en": "Team Usage"
+  },
+  "web.billing.subscription.teams_used": {
+    "en": "{used} of {limit} teams"
+  },
+  "web.billing.portal.title": {
+    "en": "Billing Portal",
+    "translation": "Cổng thanh toán"
+  },
+  "web.billing.portal.description": {
+    "en": "Manage your subscription, payment methods, and billing history",
+    "translation": "Quản lý đăng ký, phương thức thanh toán và lịch sử thanh toán của bạn"
+  },
+  "web.billing.portal.open_portal": {
+    "en": "Open Billing Portal",
+    "translation": "Mở cổng thanh toán"
+  },
+  "web.billing.portal.redirecting": {
+    "en": "Redirecting to billing portal...",
+    "translation": "Đang chuyển hướng đến cổng thanh toán..."
+  },
+  "web.billing.start_today": {
+    "en": "Start today",
+    "translation": "Bắt đầu ngay hôm nay"
+  },
+  "web.billing.start_today_with_identity_plus": {
+    "en": "Start today with Identity Plus",
+    "translation": "Bắt đầu ngay hôm nay với Identity Plus"
+  },
+  "web.billing.per_month": {
+    "en": "per month",
+    "translation": "mỗi tháng"
+  },
+  "web.billing.full_api_access": {
+    "en": "Full API access",
+    "translation": "Truy cập API đầy đủ"
+  },
+  "web.billing.privacy_first_design": {
+    "en": "Privacy-first design",
+    "translation": "Thiết kế ưu tiên quyền riêng tư"
+  },
+  "web.billing.identity_plus": {
+    "en": "Identity Plus",
+    "translation": "Identity Plus"
+  },
+  "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
+    "en": "Click this lightning bolt to upgrade for custom domains",
+    "translation": "Nhấp vào biểu tượng tia chớp này để nâng cấp cho tên miền tùy chỉnh"
+  },
+  "web.billing.maybe_later": {
+    "en": "Maybe Later",
+    "translation": "Để sau"
+  },
+  "web.billing.upgrade_account": {
+    "en": "Upgrade account",
+    "translation": "Nâng cấp tài khoản"
+  },
+  "web.billing.upgrade_to_identity_plus": {
+    "en": "Upgrade to Identity Plus",
+    "translation": "Nâng cấp lên Identity Plus"
+  },
+  "web.billing.upgrade_for_teams": {
+    "en": "Upgrade for Teams",
+    "translation": "Nâng cấp cho nhóm"
+  },
+  "web.billing.benefits_of": {
+    "en": "Benefits of",
+    "translation": "Lợi ích của"
+  },
+  "web.billing.t_benefits_of_identity_plus": {
+    "en": "{0}: Identity Plus",
+    "translation": "{0}: Identity Plus"
+  },
+  "web.billing.upgrade_to": {
+    "en": "Upgrade to",
+    "translation": "Nâng cấp lên"
+  },
+  "web.billing.upgrade_for_yourdomain": {
+    "en": "Upgrade for secrets.yourdomain.com",
+    "translation": "Nâng cấp cho secrets.yourdomain.com"
+  },
+  "web.billing.includes_all_features_and_unlimited_sharing_capa": {
+    "en": "All plans include privacy features and unlimited sharing capacity",
+    "translation": "Tất cả gói đều bao gồm tính năng quyền riêng tư và khả năng chia sẻ không giới hạn"
+  },
+  "web.billing.includes_all_data_locality_options": {
+    "en": "All plans include choice of data locality: {0} regions",
+    "translation": "Tất cả gói đều bao gồm lựa chọn vị trí dữ liệu: {0} khu vực"
+  },
+  "web.billing.get_started": {
+    "en": "Get started",
+    "translation": "Bắt đầu"
+  },
+  "web.billing.frequency_value_annually_annual_monthly_subscrip": {
+    "en": "{0} subscription",
+    "translation": "Đăng ký {0}"
+  },
+  "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
+    "en": "Elevate your secure sharing with custom domains, unlimited capacity, and enterprise-grade features.",
+    "translation": "Nâng cao chia sẻ an toàn của bạn với tên miền tùy chỉnh, dung lượng không giới hạn và các tính năng cấp doanh nghiệp."
+  },
+  "web.billing.payment_frequency": {
+    "en": "Payment frequency",
+    "translation": "Tần suất thanh toán"
+  },
+  "web.billing.secure_your_brand_and_build_customer_trust_with_": {
+    "en": "Secure your brand and build customer trust with links from your domain. Perfect for businesses that value privacy and professionalism.",
+    "translation": "Bảo mật thương hiệu của bạn và xây dựng lòng tin khách hàng với liên kết từ tên miền của bạn. Hoàn hảo cho các doanh nghiệp coi trọng quyền riêng tư và tính chuyên nghiệp."
+  },
+  "web.billing.secure_links_stronger_connections": {
+    "en": "Secure Links, Stronger Connections",
+    "translation": "Liên kết an toàn, kết nối mạnh mẽ hơn"
+  },
+  "web.billing.identity_tier_not_found_in_product_tiers": {
+    "en": "Identity tier not found in product tiers",
+    "translation": "Không tìm thấy cấp độ Identity trong các cấp sản phẩm"
+  }
+}

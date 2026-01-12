@@ -1,0 +1,134 @@
+{
+  "incoming.page_title": {
+    "en": "Send a Secret",
+    "translation": "שלח סוד"
+  },
+  "incoming.page_description": {
+    "en": "Share sensitive information securely with our support team",
+    "translation": "שתף מידע רגיש בצורה מאובטחת עם צוות התמיכה שלנו"
+  },
+  "incoming.loading_config": {
+    "en": "Loading...",
+    "translation": "טוען..."
+  },
+  "incoming.config_error_title": {
+    "en": "Failed to load configuration",
+    "translation": "טעינת התצורה נכשלה"
+  },
+  "incoming.feature_disabled_title": {
+    "en": "Feature Not Available",
+    "translation": "התכונה אינה זמינה"
+  },
+  "incoming.feature_disabled_description": {
+    "en": "This feature is currently disabled. Please contact support for assistance.",
+    "translation": "תכונה זו מושבתת כרגע. אנא פנה לתמיכה לקבלת סיוע."
+  },
+  "incoming.memo_label": {
+    "en": "Memo",
+    "translation": "תזכורת"
+  },
+  "incoming.memo_placeholder": {
+    "en": "Brief description (e.g., Password reset request)",
+    "translation": "תיאור קצר (לדוגמה: בקשה לאיפוס סיסמה)"
+  },
+  "incoming.memo_hint": {
+    "en": "Help us route your message to the right person",
+    "translation": "עזור לנו לנתב את ההודעה שלך לאדם הנכון"
+  },
+  "incoming.recipient_label": {
+    "en": "Send to",
+    "translation": "שלח אל"
+  },
+  "incoming.recipient_placeholder": {
+    "en": "Select a recipient",
+    "translation": "בחר נמען"
+  },
+  "incoming.recipient_aria_label": {
+    "en": "Select a recipient for this secret",
+    "translation": "בחר נמען עבור סוד זה"
+  },
+  "incoming.recipient_hint": {
+    "en": "Choose who will receive this secure message",
+    "translation": "בחר מי יקבל הודעה מאובטחת זו"
+  },
+  "incoming.no_recipients_available": {
+    "en": "No recipients are available",
+    "translation": "אין נמענים זמינים"
+  },
+  "incoming.secret_content_label": {
+    "en": "Secret Information",
+    "translation": "מידע סודי"
+  },
+  "incoming.secret_content_placeholder": {
+    "en": "Paste sensitive information here (passwords, keys, etc.)",
+    "translation": "הדבק כאן מידע רגיש (סיסמאות, מפתחות וכו')"
+  },
+  "incoming.secret_content_hint": {
+    "en": "This information will be encrypted and only viewable once",
+    "translation": "מידע זה יוצפן וניתן יהיה לצפות בו פעם אחת בלבד"
+  },
+  "incoming.submit_button": {
+    "en": "Send Secret",
+    "translation": "שלח סוד"
+  },
+  "incoming.submit_secret": {
+    "en": "Send Secret",
+    "translation": "שלח סוד"
+  },
+  "incoming.submitting_button": {
+    "en": "Sending...",
+    "translation": "שולח..."
+  },
+  "incoming.submitting": {
+    "en": "Sending...",
+    "translation": "שולח..."
+  },
+  "incoming.reset_button": {
+    "en": "Clear Form",
+    "translation": "נקה טופס"
+  },
+  "incoming.reset_form": {
+    "en": "Clear Form",
+    "translation": "נקה טופס"
+  },
+  "incoming.success_title": {
+    "en": "Sent Successfully",
+    "translation": "נשלח בהצלחה"
+  },
+  "incoming.success_description": {
+    "en": "Your secure message has been delivered.",
+    "translation": "ההודעה המאובטחת שלך נמסרה."
+  },
+  "incoming.reference_id": {
+    "en": "Reference ID",
+    "translation": "מזהה אסמכתא"
+  },
+  "incoming.success_info_title": {
+    "en": "What happens next?",
+    "translation": "מה קורה עכשיו?"
+  },
+  "incoming.success_info_description": {
+    "en": "The recipient will be able to view this secret only once. After they view it, the secret will be permanently deleted.",
+    "translation": "הנמען יוכל לצפות בסוד זה פעם אחת בלבד. לאחר הצפייה, הסוד יימחק לצמיתות."
+  },
+  "incoming.create_another": {
+    "en": "Send Another Secret",
+    "translation": "שלח סוד נוסף"
+  },
+  "incoming.tagline1": {
+    "en": "Share sensitive information securely",
+    "translation": "שתף מידע רגיש בצורה מאובטחת"
+  },
+  "incoming.tagline2": {
+    "en": "Keep passwords and private data out of email and chat logs",
+    "translation": "שמור על סיסמאות ונתונים פרטיים מחוץ לאימיילים ויומני צ'אט"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "en": "Save your {receipt} for your records.",
+    "translation": "שמור את <a href='{receiptUrl}'>האישור</a> שלך לרישומים שלך."
+  },
+  "incoming.receipt_link_text": {
+    "en": "receipt",
+    "translation": "קבלה"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "web.dashboard.title_received": {
+    "en": "Received",
+    "translation": "Modtaget"
+  },
+  "web.dashboard.title_not_received": {
+    "en": "Not Received",
+    "translation": "Ikke modtaget"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "en": "No recent secrets",
+    "translation": "Ingen nylige beskeder"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "en": "Get started by creating your first secret.",
+    "translation": "Kom i gang med at oprette din første hemmelighed."
+  },
+  "web.dashboard.fetch_error_title": {
+    "en": "Unable to load data",
+    "translation": "Kunne ikke indlæse hold"
+  },
+  "web.dashboard.fetch_error_description": {
+    "en": "There was a problem loading your data. Please try again.",
+    "translation": "Der opstod et problem ved indlæsning af dine hold. Prøv venligst igen."
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "web.dashboard.title_received": {
+    "en": "Received",
+    "translation": "已接收"
+  },
+  "web.dashboard.title_not_received": {
+    "en": "Not Received",
+    "translation": "未接收"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "en": "No recent secrets",
+    "translation": "无最近内容"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "en": "Get started by creating your first secret.",
+    "translation": "创建您的第一个内容来开始使用。"
+  },
+  "web.dashboard.fetch_error_title": {
+    "en": "Unable to load data",
+    "translation": "无法加载团队"
+  },
+  "web.dashboard.fetch_error_description": {
+    "en": "There was a problem loading your data. Please try again.",
+    "translation": "加载您的团队时出现问题。请重试。"
+  }
+}

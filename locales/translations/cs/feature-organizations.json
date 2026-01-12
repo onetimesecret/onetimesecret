@@ -1,0 +1,531 @@
+{
+  "web.organizations.title": {
+    "en": "Organizations",
+    "translation": "Organizace"
+  },
+  "web.organizations.organization": {
+    "en": "Organization",
+    "translation": "Organizace"
+  },
+  "web.organizations.organization_plural": {
+    "en": "Organizations",
+    "translation": "Organizace"
+  },
+  "web.organizations.organizations_description": {
+    "en": "Manage your organizations",
+    "translation": "Spravuj své organizace"
+  },
+  "web.organizations.my_organizations": {
+    "en": "Organizations",
+    "translation": "Moje organizace"
+  },
+  "web.organizations.manage_organizations": {
+    "en": "Manage Organizations",
+    "translation": "Spravovat organizace"
+  },
+  "web.organizations.new_organization": {
+    "en": "New Organization",
+    "translation": "Nová organizace"
+  },
+  "web.organizations.no_organizations": {
+    "en": "No organizations yet",
+    "translation": "Zatím žádné organizace"
+  },
+  "web.organizations.no_organizations_description": {
+    "en": "Organizations provide unified billing and administration. Get started by creating your first organization.",
+    "translation": "Organizace ti umožňují spravovat více týmů s jednotnou fakturací a administrací. Začni vytvořením své první organizace."
+  },
+  "web.organizations.no_description": {
+    "en": "No description provided",
+    "translation": "Nebyl poskytnut žádný popis"
+  },
+  "web.organizations.default": {
+    "en": "Default",
+    "translation": "Výchozí"
+  },
+  "web.organizations.create_organization": {
+    "en": "Create Organization",
+    "translation": "Vytvořit organizaci"
+  },
+  "web.organizations.create_first_organization": {
+    "en": "Create First Organization",
+    "translation": "Vytvořit první organizaci"
+  },
+  "web.organizations.create_organization_description": {
+    "en": "Create a new organization",
+    "translation": "Vytvoř novou organizaci pro seskupení svých týmů"
+  },
+  "web.organizations.create": {
+    "en": "Create",
+    "translation": "Vytvořit"
+  },
+  "web.organizations.create_error": {
+    "en": "Failed to create organization",
+    "translation": "Vytvoření organizace se nezdařilo"
+  },
+  "web.organizations.organization_name": {
+    "en": "Organization Name",
+    "translation": "Název organizace"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "en": "e.g. Acme Corporation",
+    "translation": "např. Acme Corporation"
+  },
+  "web.organizations.display_name": {
+    "en": "Organization Name",
+    "translation": "Název organizace"
+  },
+  "web.organizations.description": {
+    "en": "Description",
+    "translation": "Popis"
+  },
+  "web.organizations.description_placeholder": {
+    "en": "What is this organization for?",
+    "translation": "K čemu je tato organizace?"
+  },
+  "web.organizations.contact_email": {
+    "en": "Billing Email",
+    "translation": "Fakturační e-mail"
+  },
+  "web.organizations.contact_email_help": {
+    "en": "Primary contact for billing and administrative notifications",
+    "translation": "Primární kontakt pro fakturaci a administrativní oznámení"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "en": "Billing and subscription management is handled through your primary workspace. Visit your main workspace settings to manage payment methods and invoices.",
+    "translation": "Fakturace a správa předplatného je řízena přes tvůj primární pracovní prostor. Navštiv nastavení svého hlavního pracovního prostoru pro správu platebních metod a faktur."
+  },
+  "web.organizations.select_organization": {
+    "en": "Select an organization",
+    "translation": "Vyber organizaci"
+  },
+  "web.organizations.switcher_locked": {
+    "en": "Organization switching not available on this page",
+    "translation": "Přepínání organizací není na této stránce dostupné"
+  },
+  "web.organizations.not_found": {
+    "en": "Organization not found",
+    "translation": "Organizace nebyla nalezena"
+  },
+  "web.organizations.load_error": {
+    "en": "Failed to load organization",
+    "translation": "Načtení organizace se nezdařilo"
+  },
+  "web.organizations.fetch_organization_error": {
+    "en": "Failed to load organization",
+    "translation": "Načtení organizace se nezdařilo"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "en": "Failed to load organizations",
+    "translation": "Načtení organizací se nezdařilo"
+  },
+  "web.organizations.organization_information": {
+    "en": "Organization Information",
+    "translation": "Informace o organizaci"
+  },
+  "web.organizations.created": {
+    "en": "Created",
+    "translation": "Vytvořeno"
+  },
+  "web.organizations.last_updated": {
+    "en": "Last Updated",
+    "translation": "Naposledy aktualizováno"
+  },
+  "web.organizations.organization_settings": {
+    "en": "Organization Settings",
+    "translation": "Nastavení organizace"
+  },
+  "web.organizations.organization_settings_description": {
+    "en": "Update your organization name and description",
+    "translation": "Aktualizuj název a popis své organizace"
+  },
+  "web.organizations.general_settings": {
+    "en": "General Settings",
+    "translation": "Obecná nastavení"
+  },
+  "web.organizations.billing_settings": {
+    "en": "Billing & Subscription",
+    "translation": "Fakturace a předplatné"
+  },
+  "web.organizations.save_changes": {
+    "en": "Save Changes",
+    "translation": "Uložit změny"
+  },
+  "web.organizations.update_success": {
+    "en": "Organization updated successfully",
+    "translation": "Organizace úspěšně aktualizována"
+  },
+  "web.organizations.update_error": {
+    "en": "Failed to update organization",
+    "translation": "Aktualizace organizace se nezdařila"
+  },
+  "web.organizations.billing_email_updated": {
+    "en": "Billing email updated successfully"
+  },
+  "web.organizations.billing_coming_soon": {
+    "en": "Billing Integration Coming Soon",
+    "translation": "Integrace fakturace již brzy"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "en": "Unified billing and subscription management will be available in a future release.",
+    "translation": "Jednotná fakturace a správa předplatného pro všechny týmy v této organizaci bude k dispozici v budoucí verzi."
+  },
+  "web.organizations.about_title": {
+    "en": "About Organizations",
+    "translation": "O organizacích"
+  },
+  "web.organizations.about_description": {
+    "en": "Organizations provide unified billing and administration for centralized management.",
+    "translation": "Organizace poskytují jednotnou fakturaci a administraci pro více týmů. Jsou volitelné - týmy mohou existovat samostatně nebo být seskupeny pod organizací pro centralizovanou správu."
+  },
+  "web.organizations.single_user_info_title": {
+    "en": "Manage Your Organization",
+    "translation": "Spravuj svou organizaci"
+  },
+  "web.organizations.single_user_info_description": {
+    "en": "Update your company name and organization details here. This information helps personalize your account and can be used for branding features in the future.",
+    "translation": "Zde aktualizuj název své společnosti a podrobnosti o organizaci. Tyto informace pomáhají personalizovat tvůj účet a mohou být v budoucnu použity pro brandingové funkce."
+  },
+  "web.organizations.getting_started_title": {
+    "en": "Getting Started with Organizations",
+    "translation": "Začínáme s organizacemi"
+  },
+  "web.organizations.getting_started_description": {
+    "en": "Create your first organization to manage your company information and prepare for future branding features.",
+    "translation": "Vytvoř svou první organizaci pro správu informací o společnosti a přípravu na budoucí týmovou spolupráci a brandingové funkce."
+  },
+  "web.organizations.page_description": {
+    "en": "Manage your organizations and team members",
+    "translation": "Spravovat vaše organizace a členy týmu"
+  },
+  "web.organizations.tabs.general": {
+    "en": "Settings",
+    "translation": "Obecné"
+  },
+  "web.organizations.tabs.company_branding": {
+    "en": "Company Branding",
+    "translation": "Firemní branding"
+  },
+  "web.organizations.tabs.members": {
+    "en": "Team",
+    "translation": "Tým"
+  },
+  "web.organizations.tabs.billing": {
+    "en": "Billing",
+    "translation": "Fakturace"
+  },
+  "web.organizations.danger_zone": {
+    "en": "Danger Zone",
+    "translation": "Nebezpečná zóna"
+  },
+  "web.organizations.delete_organization": {
+    "en": "Delete Organization",
+    "translation": "Smazat organizaci"
+  },
+  "web.organizations.delete_organization_warning": {
+    "en": "This will permanently delete the organization. This action cannot be undone.",
+    "translation": "Tím trvale smažeš organizaci a všechny přidružené týmy. Tuto akci nelze vrátit zpět."
+  },
+  "web.organizations.delete": {
+    "en": "Delete",
+    "translation": "Smazat"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "en": "Delete Organization",
+    "translation": "Smazat organizaci"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "en": "Are you sure you want to delete {name}? This action cannot be undone.",
+    "translation": "Opravdu chceš smazat {name}? Tuto akci nelze vrátit zpět."
+  },
+  "web.organizations.delete_error": {
+    "en": "Failed to delete organization",
+    "translation": "Smazání organizace se nezdařilo"
+  },
+  "web.organizations.members.title": {
+    "en": "Members",
+    "translation": "Členové"
+  },
+  "web.organizations.members.description": {
+    "en": "Manage organization members and their roles",
+    "translation": "Spravuj členy organizace a jejich role"
+  },
+  "web.organizations.members.current_members": {
+    "en": "Current Members",
+    "translation": "Aktuální členové"
+  },
+  "web.organizations.members.member": {
+    "en": "Member",
+    "translation": "Člen"
+  },
+  "web.organizations.members.member_singular": {
+    "en": "member",
+    "translation": "member"
+  },
+  "web.organizations.members.member_plural": {
+    "en": "members",
+    "translation": "members"
+  },
+  "web.organizations.members.name": {
+    "en": "Name",
+    "translation": "Jméno"
+  },
+  "web.organizations.members.email": {
+    "en": "Email",
+    "translation": "E-mail"
+  },
+  "web.organizations.members.role": {
+    "en": "Role",
+    "translation": "Role"
+  },
+  "web.organizations.members.joined": {
+    "en": "Joined",
+    "translation": "Připojil se"
+  },
+  "web.organizations.members.actions": {
+    "en": "Actions",
+    "translation": "Akce"
+  },
+  "web.organizations.members.no_members": {
+    "en": "No members yet. Invite team members to get started.",
+    "translation": "Nebyli nalezeni žádní členové"
+  },
+  "web.organizations.members.no_members_description": {
+    "en": "This organization has no members yet.",
+    "translation": "Tato organizace zatím nemá žádné členy."
+  },
+  "web.organizations.members.role_updated": {
+    "en": "Member role updated successfully",
+    "translation": "Role člena byla úspěšně aktualizována"
+  },
+  "web.organizations.members.role_update_error": {
+    "en": "Failed to update member role",
+    "translation": "Nepodařilo se aktualizovat roli člena"
+  },
+  "web.organizations.members.member_removed": {
+    "en": "Member removed from organization",
+    "translation": "Člen byl odebrán z organizace"
+  },
+  "web.organizations.members.member_remove_error": {
+    "en": "Failed to remove member",
+    "translation": "Nepodařilo se odebrat člena"
+  },
+  "web.organizations.members.remove_member_title": {
+    "en": "Remove Member",
+    "translation": "Odebrat člena"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "en": "Are you sure you want to remove {name} from this organization?",
+    "translation": "Opravdu chceš odebrat {name} z této organizace?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "en": "You cannot change your own role",
+    "translation": "Nemůžeš změnit svou vlastní roli"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "en": "You cannot remove yourself from the organization",
+    "translation": "Nemůžeš se odebrat z organizace"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "en": "You cannot remove the organization owner",
+    "translation": "Nemůžeš odebrat vlastníka organizace"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "en": "You do not have permission to manage members",
+    "translation": "Nemáš oprávnění ke správě členů"
+  },
+  "web.organizations.members.roles.owner": {
+    "en": "Owner",
+    "translation": "Vlastník"
+  },
+  "web.organizations.members.roles.admin": {
+    "en": "Admin",
+    "translation": "Administrátor"
+  },
+  "web.organizations.members.roles.member": {
+    "en": "Member",
+    "translation": "Člen"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "en": "Full access to all organization settings and members",
+    "translation": "Plný přístup ke všem nastavením organizace a členům"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "en": "Can manage members and most organization settings",
+    "translation": "Může spravovat členy a většinu nastavení organizace"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "en": "Basic access to organization resources",
+    "translation": "Základní přístup ke zdrojům organizace"
+  },
+  "web.organizations.invitations.title": {
+    "en": "Organization Invitations",
+    "translation": "Pozvánky do organizace"
+  },
+  "web.organizations.invitations.invite_member": {
+    "en": "Invite Member",
+    "translation": "Pozvat člena"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "en": "Invite New Member",
+    "translation": "Pozvat nového člena"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "en": "Pending Invitations",
+    "translation": "Čekající pozvánky"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "en": "No pending invitations",
+    "translation": "Žádné čekající pozvánky"
+  },
+  "web.organizations.invitations.email_address": {
+    "en": "Email Address",
+    "translation": "E-mailová adresa"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "en": "member@example.com",
+    "translation": "clen@example.com"
+  },
+  "web.organizations.invitations.role": {
+    "en": "Role",
+    "translation": "Role"
+  },
+  "web.organizations.invitations.send_invite": {
+    "en": "Send Invitation",
+    "translation": "Odeslat pozvánku"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "en": "Invitation sent successfully",
+    "translation": "Pozvánka byla úspěšně odeslána"
+  },
+  "web.organizations.invitations.invite_error": {
+    "en": "Failed to send invitation",
+    "translation": "Nepodařilo se odeslat pozvánku"
+  },
+  "web.organizations.invitations.resend": {
+    "en": "Resend",
+    "translation": "Poslat znovu"
+  },
+  "web.organizations.invitations.revoke": {
+    "en": "Revoke",
+    "translation": "Zrušit"
+  },
+  "web.organizations.invitations.resend_success": {
+    "en": "Invitation resent successfully",
+    "translation": "Pozvánka byla znovu odeslána"
+  },
+  "web.organizations.invitations.resend_error": {
+    "en": "Failed to resend invitation",
+    "translation": "Nepodařilo se znovu odeslat pozvánku"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "en": "Invitation revoked successfully",
+    "translation": "Pozvánka byla zrušena"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "en": "Failed to revoke invitation",
+    "translation": "Nepodařilo se zrušit pozvánku"
+  },
+  "web.organizations.invitations.invited_by": {
+    "en": "Invited by",
+    "translation": "Pozval"
+  },
+  "web.organizations.invitations.invited_at": {
+    "en": "Invited",
+    "translation": "Pozváno"
+  },
+  "web.organizations.invitations.expires_at": {
+    "en": "Expires",
+    "translation": "Vyprší"
+  },
+  "web.organizations.invitations.resent_count": {
+    "en": "Resent {count} time",
+    "translation": "Odesláno znovu {count}krát"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "en": "Resent {count} times",
+    "translation": "Odesláno znovu {count}krát"
+  },
+  "web.organizations.invitations.status.pending": {
+    "en": "Pending",
+    "translation": "Čekající"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "en": "Accepted",
+    "translation": "Přijato"
+  },
+  "web.organizations.invitations.status.declined": {
+    "en": "Declined",
+    "translation": "Odmítnuto"
+  },
+  "web.organizations.invitations.status.expired": {
+    "en": "Expired",
+    "translation": "Vypršelo"
+  },
+  "web.organizations.invitations.roles.member": {
+    "en": "Member",
+    "translation": "Člen"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "en": "Admin",
+    "translation": "Administrátor"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "en": "Accept Invitation",
+    "translation": "Přijmout pozvánku"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "en": "Decline Invitation",
+    "translation": "Odmítnout pozvánku"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "en": "Invitation Details",
+    "translation": "Podrobnosti pozvánky"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "en": "You've been invited to join",
+    "translation": "Byl jsi pozván do"
+  },
+  "web.organizations.invitations.invited_as": {
+    "en": "You've been invited as a",
+    "translation": "Byl jsi pozván jako"
+  },
+  "web.organizations.invitations.accept_success": {
+    "en": "Invitation accepted successfully",
+    "translation": "Pozvánka byla úspěšně přijata"
+  },
+  "web.organizations.invitations.accept_error": {
+    "en": "Failed to accept invitation",
+    "translation": "Nepodařilo se přijmout pozvánku"
+  },
+  "web.organizations.invitations.decline_success": {
+    "en": "Invitation declined",
+    "translation": "Pozvánka byla odmítnuta"
+  },
+  "web.organizations.invitations.decline_error": {
+    "en": "Failed to decline invitation",
+    "translation": "Nepodařilo se odmítnout pozvánku"
+  },
+  "web.organizations.invitations.expired_message": {
+    "en": "This invitation has expired",
+    "translation": "Platnost této pozvánky vypršela"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "en": "Invalid or expired invitation",
+    "translation": "Neplatná nebo vypršelá pozvánka"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "en": "Please sign in to accept this invitation",
+    "translation": "Pro přijetí této pozvánky se prosím přihlas"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "en": "Loading invitation details",
+    "translation": "Načítám podrobnosti pozvánky"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "en": "Upgrade your plan to invite team members"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "en": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization."
+  }
+}

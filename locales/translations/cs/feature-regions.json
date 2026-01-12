@@ -1,0 +1,142 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "en": "Data Sovereignty & Regional Isolation",
+    "translation": "Datová suverenita a regionální izolace"
+  },
+  "web.regions.data_sovereignty_description": {
+    "en": "Your data resides exclusively in your chosen region and is never transferred across regions",
+    "translation": "Tvá data se nacházejí výhradně ve tvém zvoleném regionu a nikdy nejsou přenášena mezi regiony"
+  },
+  "web.regions.separate_environments_explanation": {
+    "en": "Each region operates as a completely independent environment with its own infrastructure, encryption keys, and data storage",
+    "translation": "Každý region funguje jako zcela nezávislé prostředí s vlastní infrastrukturou, šifrovacími klíči a úložištěm dat"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "en": "We maintain a strict policy: customer data is never transferred between regions under any circumstances",
+    "translation": "Dodržujeme přísnou politiku: zákaznická data nejsou nikdy za žádných okolností přenášena mezi regiony"
+  },
+  "web.regions.switching_creates_new_account": {
+    "en": "Important: Switching to a different region creates a new account. Your data stays in your original region.",
+    "translation": "Důležité: Přepnutí do jiného regionu vytvoří nový účet. Tvá data zůstanou v původním regionu."
+  },
+  "web.regions.your_region": {
+    "en": "Your Region",
+    "translation": "Tvůj region"
+  },
+  "web.regions.your_current_region": {
+    "en": "Your Current Region",
+    "translation": "Tvůj současný region"
+  },
+  "web.regions.active": {
+    "en": "Active",
+    "translation": "Aktivní"
+  },
+  "web.regions.explore_other_regions": {
+    "en": "Explore other available regions",
+    "translation": "Prozkoumat další dostupné regiony"
+  },
+  "web.regions.why_it_matters": {
+    "en": "Why Data Sovereignty Matters",
+    "translation": "Proč je datová suverenita důležitá"
+  },
+  "web.regions.trust_title": {
+    "en": "Transparency & Control",
+    "translation": "Transparentnost a kontrola"
+  },
+  "web.regions.trust_description": {
+    "en": "Know exactly where your data resides and which laws govern its protection.",
+    "translation": "Přesně víš, kde se tvá data nacházejí a které zákony chrání jejich ochranu."
+  },
+  "web.regions.privacy_title": {
+    "en": "Privacy Rights",
+    "translation": "Práva na soukromí"
+  },
+  "web.regions.privacy_description": {
+    "en": "Ensure your personal information is handled according to your country's privacy laws and regulations, preventing unauthorized access or misuse.",
+    "translation": "Zajisti, aby tvé osobní údaje byly zpracovávány v souladu s pravidly soukromí tvé země, což zabrání neoprávněnému přístupu nebo zneužití."
+  },
+  "web.regions.compliance_title": {
+    "en": "Regulatory Compliance",
+    "translation": "Regulační soulad"
+  },
+  "web.regions.compliance_description": {
+    "en": "Meet GDPR, HIPAA, CCPA, and other regional data protection requirements",
+    "translation": "Splň požadavky GDPR, HIPAA, CCPA a dalších regionálních předpisů o ochraně dat"
+  },
+  "web.regions.performance_title": {
+    "en": "Faster Access",
+    "translation": "Rychlejší přístup"
+  },
+  "web.regions.performance_description": {
+    "en": "Data stored closer to you means lower latency and better performance.",
+    "translation": "Data uložená blíže k tobě znamenají nižší latenci a lepší výkon."
+  },
+  "web.regions.regions": {
+    "en": "Regions",
+    "translation": "Regiony"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "en": "contact our compliance team",
+    "translation": "kontaktuj náš tým pro soulad"
+  },
+  "web.regions.review_our_documentation": {
+    "en": "review our documentation",
+    "translation": "přečti si naši dokumentaci"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "en": "Your account and data are protected under the laws of",
+    "translation": "Tvůj účet a data jsou chráněny podle zákonů"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "en": "Your regulatory framework is determined by your access domain:",
+    "translation": "Tvůj regulační rámec je určen tvou přístupovou doménou:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "en": "Each region is completely separate with its own infrastructure, when possible with its own local hosting provider. You can create accounts in multiple regions, but no data is shared between them.",
+    "translation": "Každý region je zcela oddělený s vlastní infrastrukturou, pokud možno s vlastním lokálním poskytovatelem hostingu. Můžeš vytvářet účty ve více regionech, ale žádná data mezi nimi nejsou sdílena."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "en": "For details on regulations and protections that apply to your account,",
+    "translation": "Pro podrobnosti o předpisech a ochraně, které se vztahují na tvůj účet,"
+  },
+  "web.regions.current": {
+    "en": "Current",
+    "translation": "Aktuální"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "en": "{0} {1}",
+    "translation": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "en": "Available Regions",
+    "translation": "Dostupné regiony"
+  },
+  "web.regions.jurisdiction": {
+    "en": "Jurisdiction",
+    "translation": "Jurisdikce"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "en": "Data center location: {0}",
+    "translation": "Umístění datového centra: {0}"
+  },
+  "web.regions.data_region": {
+    "en": "Data Region",
+    "translation": "Datový region"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "en": "Unknown Jurisdiction",
+    "translation": "Neznámá jurisdikce"
+  },
+  "web.regions.serving_you_from_the": {
+    "en": "Serving you from",
+    "translation": "Obsluhujeme tě z"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "en": "Continue to {0}",
+    "translation": "Pokračovat na {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "en": "Current jurisdiction:",
+    "translation": "Aktuální jurisdikce:"
+  }
+}

@@ -1,0 +1,531 @@
+{
+  "web.organizations.title": {
+    "en": "Organizations",
+    "translation": "Organització"
+  },
+  "web.organizations.organization": {
+    "en": "Organization",
+    "translation": "Organització"
+  },
+  "web.organizations.organization_plural": {
+    "en": "Organizations",
+    "translation": "Organitzacions"
+  },
+  "web.organizations.organizations_description": {
+    "en": "Manage your organizations",
+    "translation": "Gestiona les teves organitzacions"
+  },
+  "web.organizations.my_organizations": {
+    "en": "Organizations",
+    "translation": "Les meves organitzacions"
+  },
+  "web.organizations.manage_organizations": {
+    "en": "Manage Organizations",
+    "translation": "Gestionar organitzacions"
+  },
+  "web.organizations.new_organization": {
+    "en": "New Organization",
+    "translation": "Organització nova"
+  },
+  "web.organizations.no_organizations": {
+    "en": "No organizations yet",
+    "translation": "Encara no hi ha organitzacions"
+  },
+  "web.organizations.no_organizations_description": {
+    "en": "Organizations provide unified billing and administration. Get started by creating your first organization.",
+    "translation": "Les organitzacions et permeten gestionar diversos equips amb facturació i administració unificades. Comença creant la teva primera organització."
+  },
+  "web.organizations.no_description": {
+    "en": "No description provided",
+    "translation": "No s'ha proporcionat cap descripció"
+  },
+  "web.organizations.default": {
+    "en": "Default",
+    "translation": "Per defecte"
+  },
+  "web.organizations.create_organization": {
+    "en": "Create Organization",
+    "translation": "Crea una organització"
+  },
+  "web.organizations.create_first_organization": {
+    "en": "Create First Organization",
+    "translation": "Crea la primera organització"
+  },
+  "web.organizations.create_organization_description": {
+    "en": "Create a new organization",
+    "translation": "Crea una organització nova per agrupar els teus equips"
+  },
+  "web.organizations.create": {
+    "en": "Create",
+    "translation": "Crea"
+  },
+  "web.organizations.create_error": {
+    "en": "Failed to create organization",
+    "translation": "No s'ha pogut crear l'organització"
+  },
+  "web.organizations.organization_name": {
+    "en": "Organization Name",
+    "translation": "Nom de l'organització"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "en": "e.g. Acme Corporation",
+    "translation": "p. ex. Acme Corporation"
+  },
+  "web.organizations.display_name": {
+    "en": "Organization Name",
+    "translation": "Nom de l'organització"
+  },
+  "web.organizations.description": {
+    "en": "Description",
+    "translation": "Descripció"
+  },
+  "web.organizations.description_placeholder": {
+    "en": "What is this organization for?",
+    "translation": "Per a què és aquesta organització?"
+  },
+  "web.organizations.contact_email": {
+    "en": "Billing Email",
+    "translation": "Correu electrònic de facturació"
+  },
+  "web.organizations.contact_email_help": {
+    "en": "Primary contact for billing and administrative notifications",
+    "translation": "Contacte principal per a notificacions de facturació i administratives"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "en": "Billing and subscription management is handled through your primary workspace. Visit your main workspace settings to manage payment methods and invoices.",
+    "translation": "La gestió de facturació i subscripció es fa a través del teu espai de treball principal. Visita la configuració del teu espai de treball principal per gestionar els mètodes de pagament i les factures."
+  },
+  "web.organizations.select_organization": {
+    "en": "Select an organization",
+    "translation": "Selecciona una organització"
+  },
+  "web.organizations.switcher_locked": {
+    "en": "Organization switching not available on this page",
+    "translation": "El canvi d'organització no està disponible en aquesta pàgina"
+  },
+  "web.organizations.not_found": {
+    "en": "Organization not found",
+    "translation": "Organització no trobada"
+  },
+  "web.organizations.load_error": {
+    "en": "Failed to load organization",
+    "translation": "No s'ha pogut carregar l'organització"
+  },
+  "web.organizations.fetch_organization_error": {
+    "en": "Failed to load organization",
+    "translation": "No s'ha pogut carregar l'organització"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "en": "Failed to load organizations",
+    "translation": "No s'han pogut carregar les organitzacions"
+  },
+  "web.organizations.organization_information": {
+    "en": "Organization Information",
+    "translation": "Informació de l'organització"
+  },
+  "web.organizations.created": {
+    "en": "Created",
+    "translation": "Creada"
+  },
+  "web.organizations.last_updated": {
+    "en": "Last Updated",
+    "translation": "Última actualització"
+  },
+  "web.organizations.organization_settings": {
+    "en": "Organization Settings",
+    "translation": "Configuració de l'organització"
+  },
+  "web.organizations.organization_settings_description": {
+    "en": "Update your organization name and description",
+    "translation": "Actualitza el nom i la descripció de la teva organització"
+  },
+  "web.organizations.general_settings": {
+    "en": "General Settings",
+    "translation": "Configuració general"
+  },
+  "web.organizations.billing_settings": {
+    "en": "Billing & Subscription",
+    "translation": "Facturació i subscripció"
+  },
+  "web.organizations.save_changes": {
+    "en": "Save Changes",
+    "translation": "Desa els canvis"
+  },
+  "web.organizations.update_success": {
+    "en": "Organization updated successfully",
+    "translation": "Organització actualitzada correctament"
+  },
+  "web.organizations.update_error": {
+    "en": "Failed to update organization",
+    "translation": "No s'ha pogut actualitzar l'organització"
+  },
+  "web.organizations.billing_email_updated": {
+    "en": "Billing email updated successfully"
+  },
+  "web.organizations.billing_coming_soon": {
+    "en": "Billing Integration Coming Soon",
+    "translation": "Integració de facturació pròximament"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "en": "Unified billing and subscription management will be available in a future release.",
+    "translation": "La gestió de facturació i subscripció unificada per a tots els equips d'aquesta organització estarà disponible en una versió futura."
+  },
+  "web.organizations.about_title": {
+    "en": "About Organizations",
+    "translation": "Sobre les organitzacions"
+  },
+  "web.organizations.about_description": {
+    "en": "Organizations provide unified billing and administration for centralized management.",
+    "translation": "Les organitzacions proporcionen facturació i administració unificades per a diversos equips. Són opcionals: els equips poden existir independentment o agrupar-se sota una organització per a una gestió centralitzada."
+  },
+  "web.organizations.single_user_info_title": {
+    "en": "Manage Your Organization",
+    "translation": "Gestiona la teva organització"
+  },
+  "web.organizations.single_user_info_description": {
+    "en": "Update your company name and organization details here. This information helps personalize your account and can be used for branding features in the future.",
+    "translation": "Actualitza el nom de la teva empresa i els detalls de l'organització aquí. Aquesta informació ajuda a personalitzar el teu compte i es pot utilitzar per a funcions de marca en el futur."
+  },
+  "web.organizations.getting_started_title": {
+    "en": "Getting Started with Organizations",
+    "translation": "Com començar amb les organitzacions"
+  },
+  "web.organizations.getting_started_description": {
+    "en": "Create your first organization to manage your company information and prepare for future branding features.",
+    "translation": "Crea la teva primera organització per gestionar la informació de la teva empresa i preparar-te per a futures funcions de col·laboració en equip i marca."
+  },
+  "web.organizations.page_description": {
+    "en": "Manage your organizations and team members",
+    "translation": "Gestioneu les vostres organitzacions i membres de l'equip"
+  },
+  "web.organizations.tabs.general": {
+    "en": "Settings",
+    "translation": "General"
+  },
+  "web.organizations.tabs.company_branding": {
+    "en": "Company Branding",
+    "translation": "Marca de l'empresa"
+  },
+  "web.organizations.tabs.members": {
+    "en": "Team",
+    "translation": "Equip"
+  },
+  "web.organizations.tabs.billing": {
+    "en": "Billing",
+    "translation": "Facturació"
+  },
+  "web.organizations.danger_zone": {
+    "en": "Danger Zone",
+    "translation": "Zona de perill"
+  },
+  "web.organizations.delete_organization": {
+    "en": "Delete Organization",
+    "translation": "Suprimeix l'organització"
+  },
+  "web.organizations.delete_organization_warning": {
+    "en": "This will permanently delete the organization. This action cannot be undone.",
+    "translation": "Això suprimirà permanentment l'organització i tots els equips associats. Aquesta acció no es pot desfer."
+  },
+  "web.organizations.delete": {
+    "en": "Delete",
+    "translation": "Suprimeix"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "en": "Delete Organization",
+    "translation": "Suprimeix l'organització"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "en": "Are you sure you want to delete {name}? This action cannot be undone.",
+    "translation": "Estàs segur que vols suprimir {name}? Aquesta acció no es pot desfer."
+  },
+  "web.organizations.delete_error": {
+    "en": "Failed to delete organization",
+    "translation": "No s'ha pogut suprimir l'organització"
+  },
+  "web.organizations.members.title": {
+    "en": "Members",
+    "translation": "Membres"
+  },
+  "web.organizations.members.description": {
+    "en": "Manage organization members and their roles",
+    "translation": "Gestiona els membres de l'organització i els seus rols"
+  },
+  "web.organizations.members.current_members": {
+    "en": "Current Members",
+    "translation": "Membres actuals"
+  },
+  "web.organizations.members.member": {
+    "en": "Member",
+    "translation": "Membre"
+  },
+  "web.organizations.members.member_singular": {
+    "en": "member",
+    "translation": "member"
+  },
+  "web.organizations.members.member_plural": {
+    "en": "members",
+    "translation": "members"
+  },
+  "web.organizations.members.name": {
+    "en": "Name",
+    "translation": "Nom"
+  },
+  "web.organizations.members.email": {
+    "en": "Email",
+    "translation": "Correu electrònic"
+  },
+  "web.organizations.members.role": {
+    "en": "Role",
+    "translation": "Rol"
+  },
+  "web.organizations.members.joined": {
+    "en": "Joined",
+    "translation": "S'ha unit"
+  },
+  "web.organizations.members.actions": {
+    "en": "Actions",
+    "translation": "Accions"
+  },
+  "web.organizations.members.no_members": {
+    "en": "No members yet. Invite team members to get started.",
+    "translation": "No s'han trobat membres"
+  },
+  "web.organizations.members.no_members_description": {
+    "en": "This organization has no members yet.",
+    "translation": "Aquesta organització encara no té membres."
+  },
+  "web.organizations.members.role_updated": {
+    "en": "Member role updated successfully",
+    "translation": "Rol del membre actualitzat correctament"
+  },
+  "web.organizations.members.role_update_error": {
+    "en": "Failed to update member role",
+    "translation": "No s'ha pogut actualitzar el rol del membre"
+  },
+  "web.organizations.members.member_removed": {
+    "en": "Member removed from organization",
+    "translation": "Membre eliminat de l'organització"
+  },
+  "web.organizations.members.member_remove_error": {
+    "en": "Failed to remove member",
+    "translation": "No s'ha pogut eliminar el membre"
+  },
+  "web.organizations.members.remove_member_title": {
+    "en": "Remove Member",
+    "translation": "Elimina el membre"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "en": "Are you sure you want to remove {name} from this organization?",
+    "translation": "Estàs segur que vols eliminar {name} d'aquesta organització?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "en": "You cannot change your own role",
+    "translation": "No pots canviar el teu propi rol"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "en": "You cannot remove yourself from the organization",
+    "translation": "No pots eliminar-te de l'organització"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "en": "You cannot remove the organization owner",
+    "translation": "No pots eliminar el propietari de l'organització"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "en": "You do not have permission to manage members",
+    "translation": "No tens permís per gestionar els membres"
+  },
+  "web.organizations.members.roles.owner": {
+    "en": "Owner",
+    "translation": "Propietari"
+  },
+  "web.organizations.members.roles.admin": {
+    "en": "Admin",
+    "translation": "Administrador"
+  },
+  "web.organizations.members.roles.member": {
+    "en": "Member",
+    "translation": "Membre"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "en": "Full access to all organization settings and members",
+    "translation": "Accés complet a tota la configuració de l'organització i als membres"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "en": "Can manage members and most organization settings",
+    "translation": "Pot gestionar els membres i la majoria de la configuració de l'organització"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "en": "Basic access to organization resources",
+    "translation": "Accés bàsic als recursos de l'organització"
+  },
+  "web.organizations.invitations.title": {
+    "en": "Organization Invitations",
+    "translation": "Invitacions de l'organització"
+  },
+  "web.organizations.invitations.invite_member": {
+    "en": "Invite Member",
+    "translation": "Convida un membre"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "en": "Invite New Member",
+    "translation": "Convida un membre nou"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "en": "Pending Invitations",
+    "translation": "Invitacions pendents"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "en": "No pending invitations",
+    "translation": "No hi ha invitacions pendents"
+  },
+  "web.organizations.invitations.email_address": {
+    "en": "Email Address",
+    "translation": "Adreça de correu electrònic"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "en": "member@example.com",
+    "translation": "membre@exemple.com"
+  },
+  "web.organizations.invitations.role": {
+    "en": "Role",
+    "translation": "Rol"
+  },
+  "web.organizations.invitations.send_invite": {
+    "en": "Send Invitation",
+    "translation": "Envia la invitació"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "en": "Invitation sent successfully",
+    "translation": "Invitació enviada correctament"
+  },
+  "web.organizations.invitations.invite_error": {
+    "en": "Failed to send invitation",
+    "translation": "No s'ha pogut enviar la invitació"
+  },
+  "web.organizations.invitations.resend": {
+    "en": "Resend",
+    "translation": "Reenvia"
+  },
+  "web.organizations.invitations.revoke": {
+    "en": "Revoke",
+    "translation": "Revoca"
+  },
+  "web.organizations.invitations.resend_success": {
+    "en": "Invitation resent successfully",
+    "translation": "Invitació reenviada correctament"
+  },
+  "web.organizations.invitations.resend_error": {
+    "en": "Failed to resend invitation",
+    "translation": "No s'ha pogut reenviar la invitació"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "en": "Invitation revoked successfully",
+    "translation": "Invitació revocada correctament"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "en": "Failed to revoke invitation",
+    "translation": "No s'ha pogut revocar la invitació"
+  },
+  "web.organizations.invitations.invited_by": {
+    "en": "Invited by",
+    "translation": "Convidat per"
+  },
+  "web.organizations.invitations.invited_at": {
+    "en": "Invited",
+    "translation": "Convidat"
+  },
+  "web.organizations.invitations.expires_at": {
+    "en": "Expires",
+    "translation": "Caduca"
+  },
+  "web.organizations.invitations.resent_count": {
+    "en": "Resent {count} time",
+    "translation": "Reenviat {count} vegada"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "en": "Resent {count} times",
+    "translation": "Reenviat {count} vegades"
+  },
+  "web.organizations.invitations.status.pending": {
+    "en": "Pending",
+    "translation": "Pendent"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "en": "Accepted",
+    "translation": "Acceptada"
+  },
+  "web.organizations.invitations.status.declined": {
+    "en": "Declined",
+    "translation": "Rebutjada"
+  },
+  "web.organizations.invitations.status.expired": {
+    "en": "Expired",
+    "translation": "Caducada"
+  },
+  "web.organizations.invitations.roles.member": {
+    "en": "Member",
+    "translation": "Membre"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "en": "Admin",
+    "translation": "Administrador"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "en": "Accept Invitation",
+    "translation": "Accepta la invitació"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "en": "Decline Invitation",
+    "translation": "Rebutja la invitació"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "en": "Invitation Details",
+    "translation": "Detalls de la invitació"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "en": "You've been invited to join",
+    "translation": "Has estat convidat a unir-te a"
+  },
+  "web.organizations.invitations.invited_as": {
+    "en": "You've been invited as a",
+    "translation": "Has estat convidat com a"
+  },
+  "web.organizations.invitations.accept_success": {
+    "en": "Invitation accepted successfully",
+    "translation": "Invitació acceptada correctament"
+  },
+  "web.organizations.invitations.accept_error": {
+    "en": "Failed to accept invitation",
+    "translation": "No s'ha pogut acceptar la invitació"
+  },
+  "web.organizations.invitations.decline_success": {
+    "en": "Invitation declined",
+    "translation": "Invitació rebutjada"
+  },
+  "web.organizations.invitations.decline_error": {
+    "en": "Failed to decline invitation",
+    "translation": "No s'ha pogut rebutjar la invitació"
+  },
+  "web.organizations.invitations.expired_message": {
+    "en": "This invitation has expired",
+    "translation": "Aquesta invitació ha caducat"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "en": "Invalid or expired invitation",
+    "translation": "Invitació no vàlida o caducada"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "en": "Please sign in to accept this invitation",
+    "translation": "Inicia sessió per acceptar aquesta invitació"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "en": "Loading invitation details",
+    "translation": "Carregant els detalls de la invitació"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "en": "Upgrade your plan to invite team members"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "en": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization."
+  }
+}

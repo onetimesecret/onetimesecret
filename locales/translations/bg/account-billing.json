@@ -1,0 +1,667 @@
+{
+  "web.billing.upgrade.required": {
+    "en": "Upgrade Required",
+    "translation": "Необходимо е надграждане"
+  },
+  "web.billing.upgrade.viewPlans": {
+    "en": "View Plans",
+    "translation": "Вижте плановете"
+  },
+  "web.billing.upgrade.needTeams": {
+    "en": "Team management requires Identity Plus or higher",
+    "translation": "Управлението на екипи изисква план Identity Plus или по-висок"
+  },
+  "web.billing.upgrade.needCustomDomains": {
+    "en": "Custom domains require Identity Plus or higher",
+    "translation": "Персонализираните домейни изискват план Identity Plus или по-висок"
+  },
+  "web.billing.upgrade.needApiAccess": {
+    "en": "API access requires Identity Plus or higher",
+    "translation": "Достъпът до API изисква план Multi-Team или по-висок"
+  },
+  "web.billing.upgrade.needAuditLogs": {
+    "en": "Audit logs require Multi-Team plan or higher",
+    "translation": "Одитните записи изискват план Multi-Team или по-висок"
+  },
+  "web.billing.manage_subscription_and_billing": {
+    "en": "Manage your subscription, organizations, and billing settings",
+    "translation": "Управлявайте вашия абонамент, организации и настройки за фактуриране"
+  },
+  "web.billing.overview.title": {
+    "en": "Billing Overview",
+    "translation": "Общ преглед на фактурирането"
+  },
+  "web.billing.overview.description": {
+    "en": "View and manage your subscription and payment details",
+    "translation": "Преглед и управление на вашия абонамент и данни за плащане"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "en": "Billing for this organization"
+  },
+  "web.billing.overview.current_plan": {
+    "en": "Current Plan",
+    "translation": "Текущ план"
+  },
+  "web.billing.overview.plan_features": {
+    "en": "Plan Features",
+    "translation": "Функции на плана"
+  },
+  "web.billing.overview.payment_method": {
+    "en": "Payment Method",
+    "translation": "Метод на плащане"
+  },
+  "web.billing.overview.next_billing_date": {
+    "en": "Next Billing Date",
+    "translation": "Следваща дата на фактуриране"
+  },
+  "web.billing.overview.quick_actions": {
+    "en": "Quick Actions",
+    "translation": "Бързи действия"
+  },
+  "web.billing.overview.manage_billing": {
+    "en": "Manage Billing",
+    "translation": "Управление на фактурирането"
+  },
+  "web.billing.overview.view_invoices": {
+    "en": "View Invoices",
+    "translation": "Преглед на фактури"
+  },
+  "web.billing.overview.upgrade_plan": {
+    "en": "Upgrade Plan",
+    "translation": "Надградете плана"
+  },
+  "web.billing.overview.change_plan": {
+    "en": "Change Plan",
+    "translation": "Промяна на плана"
+  },
+  "web.billing.overview.no_payment_method": {
+    "en": "No payment method on file",
+    "translation": "Няма записан метод на плащане"
+  },
+  "web.billing.overview.no_upcoming_billing": {
+    "en": "No upcoming billing",
+    "translation": "Няма предстоящо фактуриране"
+  },
+  "web.billing.overview.days_remaining": {
+    "en": "days remaining",
+    "translation": "дни остават"
+  },
+  "web.billing.overview.billing_on": {
+    "en": "Billing on {date}",
+    "translation": "Фактуриране на {date}"
+  },
+  "web.billing.overview.view_plans_action": {
+    "en": "View Plans",
+    "translation": "Вижте плановете"
+  },
+  "web.billing.overview.view_plans_description": {
+    "en": "Compare and upgrade",
+    "translation": "Сравнете и надградете"
+  },
+  "web.billing.overview.view_invoices_action": {
+    "en": "View Invoices",
+    "translation": "Преглед на фактури"
+  },
+  "web.billing.overview.view_invoices_description": {
+    "en": "Download history",
+    "translation": "Изтеглете историята"
+  },
+  "web.billing.overview.manage_billing_action": {
+    "en": "Manage Billing",
+    "translation": "Управление на фактурирането"
+  },
+  "web.billing.overview.manage_billing_description": {
+    "en": "Update payment info",
+    "translation": "Актуализирайте информацията за плащане"
+  },
+  "web.billing.overview.no_organizations_title": {
+    "en": "No Organizations",
+    "translation": "Няма организации"
+  },
+  "web.billing.overview.no_organizations_description": {
+    "en": "Create an organization to manage your billing and subscription",
+    "translation": "Създайте организация за управление на вашето фактуриране и абонамент"
+  },
+  "web.billing.overview.upgrade_success": {
+    "en": "Your plan has been upgraded successfully"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "en": "Your new plan is now active. Thank you for your purchase."
+  },
+  "web.billing.overview.entitlements.create_secrets": {
+    "en": "Create Secrets",
+    "translation": "Създаване на тайни"
+  },
+  "web.billing.overview.entitlements.view_receipt": {
+    "en": "View Receipts",
+    "translation": "Преглед на разписки"
+  },
+  "web.billing.overview.entitlements.api_access": {
+    "en": "API Access",
+    "translation": "Достъп до API"
+  },
+  "web.billing.overview.entitlements.custom_domains": {
+    "en": "Custom Domains",
+    "translation": "Персонализирани домейни"
+  },
+  "web.billing.overview.entitlements.custom_privacy_defaults": {
+    "en": "Custom Privacy Defaults",
+    "translation": "Персонализирани настройки за поверителност"
+  },
+  "web.billing.overview.entitlements.extended_default_expiration": {
+    "en": "Extended Default Expiration",
+    "translation": "Удължено време на изтичане по подразбиране"
+  },
+  "web.billing.overview.entitlements.custom_mail_defaults": {
+    "en": "Custom Mail Defaults",
+    "translation": "Персонализирани настройки за имейл"
+  },
+  "web.billing.overview.entitlements.custom_branding": {
+    "en": "Custom Branding",
+    "translation": "Персонализирано брандиране"
+  },
+  "web.billing.overview.entitlements.branded_homepage": {
+    "en": "Branded Homepage",
+    "translation": "Брандирана начална страница"
+  },
+  "web.billing.overview.entitlements.incoming_secrets": {
+    "en": "Incoming Secrets",
+    "translation": "Входящи тайни"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "en": "Manage Organizations",
+    "translation": "Управление на организации"
+  },
+  "web.billing.overview.entitlements.manage_teams": {
+    "en": "Manage Teams",
+    "translation": "Управление на екипи"
+  },
+  "web.billing.overview.entitlements.manage_members": {
+    "en": "Manage Members",
+    "translation": "Управление на членове"
+  },
+  "web.billing.overview.entitlements.audit_logs": {
+    "en": "Audit Logs",
+    "translation": "Одитни записи"
+  },
+  "web.billing.overview.entitlements.sso": {
+    "en": "Single Sign-On",
+    "translation": "Единен вход (SSO)"
+  },
+  "web.billing.overview.entitlements.priority_support": {
+    "en": "Priority Support",
+    "translation": "Приоритетна поддръжка"
+  },
+  "web.billing.overview.entitlements.sla": {
+    "en": "Service Level Agreement",
+    "translation": "Споразумение за ниво на услугата (SLA)"
+  },
+  "web.billing.overview.entitlements_load_error": {
+    "en": "Could not load feature details",
+    "translation": "Неуспешно зареждане на детайли за функции"
+  },
+  "web.billing.overview.no_entitlements": {
+    "en": "No features available",
+    "translation": "Няма налични функции"
+  },
+  "web.billing.features.create_secrets": {
+    "en": "Create & Share Secrets",
+    "translation": "Създаване и споделяне на тайни"
+  },
+  "web.billing.features.api_access": {
+    "en": "API Access",
+    "translation": "API достъп"
+  },
+  "web.billing.features.custom_domains": {
+    "en": "Custom Domains",
+    "translation": "Персонализирани домейни"
+  },
+  "web.billing.features.custom_branding": {
+    "en": "Custom Branding",
+    "translation": "Персонализирана марка"
+  },
+  "web.billing.features.branded_homepage": {
+    "en": "Branded Homepage",
+    "translation": "Брандирана начална страница"
+  },
+  "web.billing.features.manage_teams": {
+    "en": "Team Management",
+    "translation": "Управление на екипи"
+  },
+  "web.billing.features.manage_members": {
+    "en": "Member Management",
+    "translation": "Управление на членове"
+  },
+  "web.billing.features.audit_logs": {
+    "en": "Audit Logs",
+    "translation": "Журнали за одит"
+  },
+  "web.billing.features.sso": {
+    "en": "Single Sign-On (SSO)",
+    "translation": "Единен вход (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "en": "Priority Support",
+    "translation": "Приоритетна поддръжка"
+  },
+  "web.billing.features.sla": {
+    "en": "Service Level Agreement",
+    "translation": "Споразумение за ниво на обслужване"
+  },
+  "web.billing.plans.title": {
+    "en": "Select a Plan",
+    "translation": "Изберете план"
+  },
+  "web.billing.plans.choose_plan": {
+    "en": "Choose the plan that fits your needs",
+    "translation": "Изберете плана, който отговаря на вашите нужди"
+  },
+  "web.billing.plans.subtitle": {
+    "en": "Choose the perfect plan for your organization",
+    "translation": "Изберете перфектния план за вашата организация"
+  },
+  "web.billing.plans.current": {
+    "en": "Current Plan",
+    "translation": "Текущ план"
+  },
+  "web.billing.plans.current_badge": {
+    "en": "Current",
+    "translation": "Текущ"
+  },
+  "web.billing.plans.upgrade": {
+    "en": "Upgrade",
+    "translation": "Надграждане"
+  },
+  "web.billing.plans.downgrade": {
+    "en": "Downgrade",
+    "translation": "Понижаване"
+  },
+  "web.billing.plans.monthly": {
+    "en": "Monthly",
+    "translation": "Месечно"
+  },
+  "web.billing.plans.yearly": {
+    "en": "Yearly",
+    "translation": "Годишно"
+  },
+  "web.billing.plans.per_month": {
+    "en": "/month",
+    "translation": "на месец"
+  },
+  "web.billing.plans.save_yearly": {
+    "en": "Save {percent}% with yearly billing",
+    "translation": "Спестете {percent}% с годишно фактуриране"
+  },
+  "web.billing.plans.free_plan": {
+    "en": "Free",
+    "translation": "Безплатен"
+  },
+  "web.billing.plans.single_team_plan": {
+    "en": "Single Team",
+    "translation": "Единичен екип"
+  },
+  "web.billing.plans.multi_team_plan": {
+    "en": "Multi Team",
+    "translation": "Множество екипи"
+  },
+  "web.billing.plans.individual_account": {
+    "en": "Individual Account",
+    "translation": "Индивидуален акаунт"
+  },
+  "web.billing.plans.team_account": {
+    "en": "Team Account",
+    "translation": "Екипен акаунт"
+  },
+  "web.billing.plans.multi_team_account": {
+    "en": "Organization Account",
+    "translation": "Организационен акаунт"
+  },
+  "web.billing.plans.features": {
+    "en": "Features",
+    "translation": "Функции"
+  },
+  "web.billing.plans.unlimited_secrets": {
+    "en": "Unlimited secrets",
+    "translation": "Неограничени тайни"
+  },
+  "web.billing.plans.api_access": {
+    "en": "API access",
+    "translation": "Достъп до API"
+  },
+  "web.billing.plans.priority_support": {
+    "en": "Priority support",
+    "translation": "Приоритетна поддръжка"
+  },
+  "web.billing.plans.select_plan": {
+    "en": "Select Plan",
+    "translation": "Изберете план"
+  },
+  "web.billing.plans.contact_sales": {
+    "en": "Contact Sales",
+    "translation": "Свържете се с отдел продажби"
+  },
+  "web.billing.plans.custom_needs_title": {
+    "en": "Have questions or need something custom?",
+    "translation": "Имате въпроси или се нуждаете от нещо персонализирано?"
+  },
+  "web.billing.plans.custom_needs_description": {
+    "en": "We'd love to hear from you. Let us know what you're looking for.",
+    "translation": "Ще се радваме да чуем от вас. Кажете ни какво търсите."
+  },
+  "web.billing.plans.teams_limit": {
+    "en": "{count} team | {count} teams",
+    "translation": "{count} екип | {count} екипа"
+  },
+  "web.billing.plans.members_limit": {
+    "en": "{count} member per team | {count} members per team",
+    "translation": "{count} член на екип | {count} члена на екип"
+  },
+  "web.billing.plans.unlimited_teams": {
+    "en": "Unlimited teams",
+    "translation": "Неограничени екипи"
+  },
+  "web.billing.plans.unlimited_members": {
+    "en": "Unlimited members per team",
+    "translation": "Неограничени членове на екип"
+  },
+  "web.billing.plans.most_popular": {
+    "en": "Most Popular",
+    "translation": "Най-популярен"
+  },
+  "web.billing.plans.suggested": {
+    "en": "Suggested",
+    "translation": "Препоръчан"
+  },
+  "web.billing.plans.everything_in": {
+    "en": "Everything in {plan}, plus:",
+    "translation": "Всичко от {plan}, плюс:"
+  },
+  "web.billing.plans.no_plans_available": {
+    "en": "No {interval} plans available at this time.",
+    "translation": "В момента няма налични {interval} планове."
+  },
+  "web.billing.plans.change_immediate": {
+    "en": "Your plan will change immediately.",
+    "translation": "Вашият план ще се промени незабавно."
+  },
+  "web.billing.plans.current_plan_label": {
+    "en": "Current plan:",
+    "translation": "Текущ план:"
+  },
+  "web.billing.plans.new_plan_label": {
+    "en": "New plan:",
+    "translation": "Нов план:"
+  },
+  "web.billing.plans.credit_label": {
+    "en": "Credit for unused time:",
+    "translation": "Кредит за неизползвано време:"
+  },
+  "web.billing.plans.due_today": {
+    "en": "Due today:",
+    "translation": "Дължимо днес:"
+  },
+  "web.billing.plans.next_billing": {
+    "en": "Next billing ({date}):",
+    "translation": "Следващо фактуриране ({date}):"
+  },
+  "web.billing.plans.next_invoice": {
+    "en": "Next invoice",
+    "translation": "Следваща фактура"
+  },
+  "web.billing.plans.limits_update_notice": {
+    "en": "Your feature limits will update immediately after the plan change.",
+    "translation": "Вашите лимити на функции ще се актуализират незабавно след промяната на плана."
+  },
+  "web.billing.plans.change_failed": {
+    "en": "Plan change failed. Please try again.",
+    "translation": "Промяната на плана е неуспешна. Моля, опитайте отново."
+  },
+  "web.billing.plans.confirm_upgrade": {
+    "en": "Confirm Upgrade",
+    "translation": "Потвърдете надграждането"
+  },
+  "web.billing.plans.confirm_downgrade": {
+    "en": "Confirm Downgrade",
+    "translation": "Потвърдете понижаването"
+  },
+  "web.billing.plans.upgrade_to": {
+    "en": "Upgrade to {plan}?",
+    "translation": "Надгради до"
+  },
+  "web.billing.plans.downgrade_to": {
+    "en": "Downgrade to {plan}?",
+    "translation": "Понижение до {plan}?"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "en": "How your credit applies:",
+    "translation": "Как се прилага кредитът ви:"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "en": "Next bill amount:",
+    "translation": "Сума на следващата фактура:"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "en": "Credit applied:",
+    "translation": "Приложен кредит:"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "en": "Amount due at next billing:",
+    "translation": "Дължима сума при следващо фактуриране:"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "en": "Remaining account credit:",
+    "translation": "Оставащ кредит по сметката:"
+  },
+  "web.billing.plans.credit_future_note": {
+    "en": "Applied to future invoices",
+    "translation": "Прилага се към бъдещи фактури"
+  },
+  "web.billing.invoices.title": {
+    "en": "Billing History",
+    "translation": "История на фактурирането"
+  },
+  "web.billing.invoices.view_history": {
+    "en": "View your billing history and download invoices",
+    "translation": "Преглед на вашата история на фактуриране и изтегляне на фактури"
+  },
+  "web.billing.invoices.invoice_date": {
+    "en": "Date",
+    "translation": "Дата"
+  },
+  "web.billing.invoices.invoice_amount": {
+    "en": "Amount",
+    "translation": "Сума"
+  },
+  "web.billing.invoices.invoice_status": {
+    "en": "Status",
+    "translation": "Състояние"
+  },
+  "web.billing.invoices.invoice_download": {
+    "en": "Download",
+    "translation": "Изтегляне"
+  },
+  "web.billing.invoices.no_invoices": {
+    "en": "No invoices yet",
+    "translation": "Все още няма фактури"
+  },
+  "web.billing.invoices.paid": {
+    "en": "Paid",
+    "translation": "Платена"
+  },
+  "web.billing.invoices.pending": {
+    "en": "Pending",
+    "translation": "В очакване"
+  },
+  "web.billing.invoices.failed": {
+    "en": "Failed",
+    "translation": "Неуспешна"
+  },
+  "web.billing.invoices.load_error": {
+    "en": "Failed to load invoices",
+    "translation": "Неуспешно зареждане на фактурите"
+  },
+  "web.billing.notices.org_managed": {
+    "en": "Billing is managed by {orgName}",
+    "translation": "Фактурирането за този екип се управлява от {orgName}"
+  },
+  "web.billing.notices.view_org_billing": {
+    "en": "View organization billing",
+    "translation": "Преглед на фактурирането на организацията"
+  },
+  "web.billing.limits.members_reached": {
+    "en": "You've reached the member limit for this team",
+    "translation": "Достигнахте лимита на членовете за този екип"
+  },
+  "web.billing.limits.members_upgrade": {
+    "en": "Upgrade to add more members",
+    "translation": "Надградете, за да добавите повече членове"
+  },
+  "web.billing.subscription.title": {
+    "en": "Subscription",
+    "translation": "Абонамент"
+  },
+  "web.billing.subscription.status": {
+    "en": "Subscription Status",
+    "translation": "Състояние на абонамента"
+  },
+  "web.billing.subscription.active": {
+    "en": "Active",
+    "translation": "Активен"
+  },
+  "web.billing.subscription.inactive": {
+    "en": "Inactive",
+    "translation": "Неактивен"
+  },
+  "web.billing.subscription.past_due": {
+    "en": "Past Due",
+    "translation": "Просрочен"
+  },
+  "web.billing.subscription.canceled": {
+    "en": "Canceled",
+    "translation": "Отменен"
+  },
+  "web.billing.subscription.catalog_name": {
+    "en": "Plan",
+    "translation": "План"
+  },
+  "web.billing.subscription.team_usage": {
+    "en": "Team Usage",
+    "translation": "Използване на екипи"
+  },
+  "web.billing.subscription.teams_used": {
+    "en": "{used} of {limit} teams",
+    "translation": "{used} от {limit} екипа"
+  },
+  "web.billing.portal.title": {
+    "en": "Billing Portal",
+    "translation": "Портал за фактуриране"
+  },
+  "web.billing.portal.description": {
+    "en": "Manage your subscription, payment methods, and billing history",
+    "translation": "Управлявайте вашия абонамент, методи на плащане и история на фактурирането"
+  },
+  "web.billing.portal.open_portal": {
+    "en": "Open Billing Portal",
+    "translation": "Отворете портала за фактуриране"
+  },
+  "web.billing.portal.redirecting": {
+    "en": "Redirecting to billing portal...",
+    "translation": "Пренасочване към портала за фактуриране..."
+  },
+  "web.billing.start_today": {
+    "en": "Start today",
+    "translation": "Започнете днес"
+  },
+  "web.billing.start_today_with_identity_plus": {
+    "en": "Start today with Identity Plus",
+    "translation": "Започнете днес с Identity Plus"
+  },
+  "web.billing.per_month": {
+    "en": "per month",
+    "translation": "на месец"
+  },
+  "web.billing.full_api_access": {
+    "en": "Full API access",
+    "translation": "Пълен API достъп"
+  },
+  "web.billing.privacy_first_design": {
+    "en": "Privacy-first design",
+    "translation": "Дизайн с приоритет на поверителността"
+  },
+  "web.billing.identity_plus": {
+    "en": "Identity Plus",
+    "translation": "Identity Plus"
+  },
+  "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
+    "en": "Click this lightning bolt to upgrade for custom domains",
+    "translation": "Кликнете върху тази светкавица, за да надстроите за персонализирани домейни"
+  },
+  "web.billing.maybe_later": {
+    "en": "Maybe Later",
+    "translation": "Може би по-късно"
+  },
+  "web.billing.upgrade_account": {
+    "en": "Upgrade account",
+    "translation": "Надграждане на акаунт"
+  },
+  "web.billing.upgrade_to_identity_plus": {
+    "en": "Upgrade to Identity Plus",
+    "translation": "Надградете до Identity Plus"
+  },
+  "web.billing.upgrade_for_teams": {
+    "en": "Upgrade for Teams",
+    "translation": "Надграждане за екипи"
+  },
+  "web.billing.benefits_of": {
+    "en": "Benefits of",
+    "translation": "Предимства на"
+  },
+  "web.billing.t_benefits_of_identity_plus": {
+    "en": "{0}: Identity Plus",
+    "translation": "{0}: Identity Plus"
+  },
+  "web.billing.upgrade_to": {
+    "en": "Upgrade to",
+    "translation": "Надгради до"
+  },
+  "web.billing.upgrade_for_yourdomain": {
+    "en": "Upgrade for secrets.yourdomain.com",
+    "translation": "Надгради за secrets.yourdomain.com"
+  },
+  "web.billing.includes_all_features_and_unlimited_sharing_capa": {
+    "en": "All plans include privacy features and unlimited sharing capacity",
+    "translation": "Всички планове включват функции за поверителност и неограничена възможност за споделяне"
+  },
+  "web.billing.includes_all_data_locality_options": {
+    "en": "All plans include choice of data locality: {0} regions",
+    "translation": "Всички планове включват избор на локалност на данните: {0} региони"
+  },
+  "web.billing.get_started": {
+    "en": "Get started",
+    "translation": "Започнете"
+  },
+  "web.billing.frequency_value_annually_annual_monthly_subscrip": {
+    "en": "{0} subscription",
+    "translation": "{0} абонамент"
+  },
+  "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
+    "en": "Elevate your secure sharing with custom domains, unlimited capacity, and enterprise-grade features.",
+    "translation": "Повишете сигурното споделяне с персонализирани домейни, неограничени възможности и корпоративни функции."
+  },
+  "web.billing.payment_frequency": {
+    "en": "Payment frequency",
+    "translation": "Честота на плащанията"
+  },
+  "web.billing.secure_your_brand_and_build_customer_trust_with_": {
+    "en": "Secure your brand and build customer trust with links from your domain. Perfect for businesses that value privacy and professionalism.",
+    "translation": "Защитете вашата марка и изградете доверие у клиентите чрез връзки от вашия домейн. Идеално за компании, които ценят поверителността и професионализма."
+  },
+  "web.billing.secure_links_stronger_connections": {
+    "en": "Secure Links, Stronger Connections",
+    "translation": "Сигурни връзки, по-силни връзки"
+  },
+  "web.billing.identity_tier_not_found_in_product_tiers": {
+    "en": "Identity tier not found in product tiers",
+    "translation": "Нивото на идентичност не е намерено в продуктовите нива"
+  }
+}

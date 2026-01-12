@@ -1,0 +1,26 @@
+{
+  "web.dashboard.title_received": {
+    "en": "Received",
+    "translation": "Kua Tae"
+  },
+  "web.dashboard.title_not_received": {
+    "en": "Not Received",
+    "translation": "Kāore i Tae"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "en": "No recent secrets",
+    "translation": "Kāore he karere huna tata"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "en": "Get started by creating your first secret.",
+    "translation": "Tīmatahia mā te waihanga i tō karere huna tuatahi."
+  },
+  "web.dashboard.fetch_error_title": {
+    "en": "Unable to load data",
+    "translation": "Kāore i taea te uta i ngā rōpū"
+  },
+  "web.dashboard.fetch_error_description": {
+    "en": "There was a problem loading your data. Please try again.",
+    "translation": "He raruraru i te wā e uta ana i ō rōpū. Tēnā koa whakamātau anō."
+  }
+}

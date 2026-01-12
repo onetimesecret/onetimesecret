@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "en": "Color Picker",
+    "translation": "Výběr barvy"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "en": "Current {0}: {1}. Click to cycle through options.",
+    "translation": "Aktuální {0}: {1}. Klikni pro procházení možností."
+  },
+  "web.branding.use_setting": {
+    "en": "Use setting",
+    "translation": "Použít nastavení"
+  },
+  "web.branding.font_family": {
+    "en": "Font Family",
+    "translation": "Rodina písma"
+  },
+  "web.branding.corner_style": {
+    "en": "Corner Style",
+    "translation": "Styl rohů"
+  },
+  "web.branding.brand_color": {
+    "en": "Brand Color",
+    "translation": "Barva značky"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "en": "Preview of recipient's view when accessing your secure link",
+    "translation": "Náhled zobrazení příjemce při přístupu k tvému zabezpečenému odkazu"
+  },
+  "web.branding.preview_and_customize": {
+    "en": "Preview & Customize",
+    "translation": "Náhled a přizpůsobení"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "en": "Switch to Safari browser view",
+    "translation": "Přepnout na zobrazení prohlížeče Safari"
+  },
+  "web.branding.microsoft_edge": {
+    "en": "Microsoft Edge",
+    "translation": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "en": "Maximize window",
+    "translation": "Maximalizovat okno"
+  },
+  "web.branding.minimize_window": {
+    "en": "Minimize window",
+    "translation": "Minimalizovat okno"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "en": "Switch to Edge browser view",
+    "translation": "Přepnout na zobrazení prohlížeče Edge"
+  },
+  "web.branding.charactercount_500_characters": {
+    "en": "{0}/500 characters",
+    "translation": "{0}/500 znaků"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "en": "Use your phone to scan the QR code",
+    "translation": "Naskenuj QR kód pomocí svého telefonu"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "en": "Contact onboarding{'@'}example.com with any questions",
+    "translation": "Kontaktuj onboarding{'@'}example.com s jakýmikoli dotazy"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "en": "These instructions will be shown to recipients before they reveal the secret content",
+    "translation": "Tyto pokyny budou zobrazeny příjemcům před tím, než odhalí obsah tajemství"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "en": "These instructions will be shown to recipients after they reveal the secret",
+    "translation": "Tyto pokyny budou zobrazeny příjemcům po odhalení tajemství"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "en": "Pre-reveal Instructions",
+    "translation": "Pokyny před odhalením"
+  },
+  "web.branding.post_reveal_instructions": {
+    "en": "Post-reveal Instructions",
+    "translation": "Pokyny po odhalení"
+  },
+  "web.branding.instructions": {
+    "en": "Instructions",
+    "translation": "Pokyny"
+  },
+  "web.branding.logo_controls": {
+    "en": "Logo controls",
+    "translation": "Ovládání loga"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "en": "Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG",
+    "translation": "Klikni pro nahrání loga. Doporučená velikost: 128x128 pixelů. Maximální velikost souboru: 1MB. Podporované formáty: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "en": "Upload logo",
+    "translation": "Nahrát logo"
+  },
+  "web.branding.loading_preview": {
+    "en": "Loading preview...",
+    "translation": "Načítám náhled..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "en": "Preview how recipients will see your secrets by testing the \"View Secret\" button",
+    "translation": "Náhled toho, jak příjemci uvidí tvá tajemství, otestováním tlačítka \"Zobrazit tajemství\""
+  },
+  "web.branding.eye_icon": {
+    "en": "Eye icon",
+    "translation": "Ikona oka"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "en": "Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)",
+    "translation": "Klikni na náhledový obrázek níže pro aktualizaci svého loga (doporučeno minimálně 128x128 pixelů, max 1MB)"
+  },
+  "web.branding.image_icon": {
+    "en": "Image icon",
+    "translation": "Ikona obrázku"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "en": "Use the controls above to customize brand color, styles, and recipient instructions",
+    "translation": "Použij ovládací prvky výše pro přizpůsobení barvy značky, stylů a pokynů pro příjemce"
+  },
+  "web.branding.customization_icon": {
+    "en": "Customization icon",
+    "translation": "Ikona přizpůsobení"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "en": "You have unsaved changes. Are you sure?",
+    "translation": "Máš neuložené změny. Jsi si jistý?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "en": "Failed to load brand settings",
+    "translation": "Načtení nastavení značky se nezdařilo"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Toto je interaktivní náhled toho, jak příjemci uvidí tvé zabezpečené zprávy. Můžeš: - Přizpůsobit barvy a písma pomocí ovládacích prvků výše - Nahrát logo (doporučeno minimálně 128x128 pixelů, max 1MB) - Otestovat náhled pomocí tlačítka \"Zobrazit tajemství\""
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Toto je interaktivní náhled toho, jak příjemci uvidí tvé zabezpečené zprávy. Můžeš: - Přizpůsobit barvy a písma pomocí ovládacích prvků výše - Nahrát logo (doporučeno minimálně 128x128 pixelů, max 1MB) - Otestovat náhled pomocí tlačítka \"Zobrazit tajemství\""
+  },
+  "web.branding.default_logo_icon": {
+    "en": "Japanese kanji '秘' (himitsu) meaning 'secret' or 'confidential'",
+    "translation": "Japonské kanji '秘' (himitsu) znamenající 'tajemství' nebo 'důvěrné'"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "en": "Powered by Onetime Secret",
+    "translation": "Poháněno Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "en": "{0} Logo",
+    "translation": "Logo {0}"
+  },
+  "web.branding.edge": {
+    "en": "Edge",
+    "translation": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "en": "Switch to Edge preview",
+    "translation": "Přepnout na náhled Edge"
+  },
+  "web.branding.safari": {
+    "en": "Safari",
+    "translation": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "en": "Switch to Safari preview",
+    "translation": "Přepnout na náhled Safari"
+  }
+}

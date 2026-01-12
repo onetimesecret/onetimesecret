@@ -1,0 +1,388 @@
+{
+  "web.domains.learn_more_dns": {
+    "en": "Learn more about DNS configuration",
+    "translation": "Meer informatie over DNS-configuratie"
+  },
+  "web.domains.view_domain_verification_status": {
+    "en": "View domain verification status",
+    "translation": "Bekijk domeinverificatiestatus"
+  },
+  "web.domains.domain_already_in_organization": {
+    "en": "This domain is already registered in your organization",
+    "translation": "Dit domein is al geregistreerd in je organisatie"
+  },
+  "web.domains.domain_in_other_organization": {
+    "en": "This domain is already registered to another organization. Please contact support if you believe this is an error.",
+    "translation": "Dit domein is al geregistreerd bij een andere organisatie. Neem contact op met ondersteuning als je denkt dat dit een fout is."
+  },
+  "web.domains.domain_claimed_successfully": {
+    "en": "Domain successfully claimed and added to your organization",
+    "translation": "Domein succesvol geclaimd en toegevoegd aan je organisatie"
+  },
+  "web.domains.privacy_defaults_title": {
+    "en": "Privacy Defaults",
+    "translation": "Privacy-standaarden"
+  },
+  "web.domains.privacy_defaults_description": {
+    "en": "Set default privacy options for secrets created under this domain. These settings will be pre-filled when creating new secrets.",
+    "translation": "Stel standaard privacy-opties in voor berichten die onder dit domein worden aangemaakt. Deze instellingen worden vooraf ingevuld bij het aanmaken van nieuwe berichten."
+  },
+  "web.domains.privacy_defaults": {
+    "en": "Privacy Defaults",
+    "translation": "Privacy-standaarden"
+  },
+  "web.domains.privacy_defaults_icon": {
+    "en": "Privacy defaults icon",
+    "translation": "Privacy-standaarden pictogram"
+  },
+  "web.domains.default_ttl_label": {
+    "en": "Default Time-to-Live",
+    "translation": "Standaard levensduur"
+  },
+  "web.domains.default_ttl_hint": {
+    "en": "How long secrets should remain accessible by default",
+    "translation": "Hoe lang berichten standaard toegankelijk moeten blijven"
+  },
+  "web.domains.passphrase_required_label": {
+    "en": "Require passphrase",
+    "translation": "Wachtwoordzin vereist"
+  },
+  "web.domains.passphrase_required_hint": {
+    "en": "Make passphrase mandatory for all secrets in this domain",
+    "translation": "Maak wachtwoordzin verplicht voor alle berichten in dit domein"
+  },
+  "web.domains.notify_enabled_label": {
+    "en": "Enable notifications",
+    "translation": "Meldingen inschakelen"
+  },
+  "web.domains.notify_enabled_hint": {
+    "en": "Enable email notifications by default when secrets are viewed",
+    "translation": "Schakel standaard e-mailmeldingen in wanneer berichten worden bekeken"
+  },
+  "web.domains.use_global_default": {
+    "en": "Use global default",
+    "translation": "Algemene standaard gebruiken"
+  },
+  "web.domains.global_default": {
+    "en": "Global",
+    "translation": "Algemeen"
+  },
+  "web.domains.required": {
+    "en": "Required",
+    "translation": "Vereist"
+  },
+  "web.domains.optional": {
+    "en": "Optional",
+    "translation": "Optioneel"
+  },
+  "web.domains.enabled": {
+    "en": "Enabled",
+    "translation": "Ingeschakeld"
+  },
+  "web.domains.disabled": {
+    "en": "Disabled",
+    "translation": "Uitgeschakeld"
+  },
+  "web.domains.custom": {
+    "en": "Custom",
+    "translation": "Aangepast"
+  },
+  "web.domains.edit_defaults": {
+    "en": "Edit Defaults",
+    "translation": "Standaarden bewerken"
+  },
+  "web.domains.ttl_short": {
+    "en": "TTL",
+    "translation": "Levensduur"
+  },
+  "web.domains.passphrase_short": {
+    "en": "Passphrase",
+    "translation": "Wachtwoordzin"
+  },
+  "web.domains.notify_short": {
+    "en": "Notifications",
+    "translation": "Meldingen"
+  },
+  "web.domains.scope_switch_label": {
+    "en": "Switch domain scope",
+    "translation": "Domeinbereik wisselen"
+  },
+  "web.domains.switcher_locked": {
+    "en": "Domain switching not available on this page",
+    "translation": "Domain switching not available on this page"
+  },
+  "web.domains.scope_list_label": {
+    "en": "Available domains",
+    "translation": "Beschikbare domeinen"
+  },
+  "web.domains.scope_header": {
+    "en": "Domains",
+    "translation": "Domeinen"
+  },
+  "web.domains.add_domain": {
+    "en": "Add domain",
+    "translation": "Domein toevoegen"
+  },
+  "web.domains.domain_settings": {
+    "en": "Domain settings",
+    "translation": "Domain settings"
+  },
+  "web.domains.canonical_no_settings": {
+    "en": "Default domain has no settings page",
+    "translation": "Default domain has no settings page"
+  },
+  "web.domains.please_enter_a_domain_name": {
+    "en": "Please enter a {0} domain name",
+    "translation": "Voer een {0} domeinnaam in"
+  },
+  "web.domains.domain_name": {
+    "en": "Domain name",
+    "translation": "Domeinnaam"
+  },
+  "web.domains.control_whether_users_can_create_secret_links": {
+    "en": "Control whether users can create secret links from your domain's homepage",
+    "translation": "Bepaal of gebruikers geheime links kunnen maken vanaf de homepage van uw domein"
+  },
+  "web.domains.homepage_access": {
+    "en": "Homepage Access",
+    "translation": "Homepage toegang"
+  },
+  "web.domains.and_status": {
+    "en": "& Status",
+    "translation": "& Status"
+  },
+  "web.domains.domain": {
+    "en": "Domain",
+    "translation": "Domein"
+  },
+  "web.domains.manage_and_configure_your_verified_custom_domains": {
+    "en": "Manage and configure your verified custom domains",
+    "translation": "Beheer en configureer uw geverifieerde aangepaste domeinen"
+  },
+  "web.domains.domains": {
+    "en": "Domains",
+    "translation": "Domeinen"
+  },
+  "web.domains.last_monitored": {
+    "en": "Last Monitored",
+    "translation": "Laatst gecontroleerd"
+  },
+  "web.domains.ssl_status": {
+    "en": "SSL Status",
+    "translation": "SSL status"
+  },
+  "web.domains.ssl_renews": {
+    "en": "SSL Renews",
+    "translation": "SSL vernieuwt"
+  },
+  "web.domains.dns_record": {
+    "en": "DNS Record",
+    "translation": "DNS record"
+  },
+  "web.domains.target_address": {
+    "en": "Target Address",
+    "translation": "Doeladres"
+  },
+  "web.domains.domain_status": {
+    "en": "Domain Status",
+    "translation": "Domeinstatus"
+  },
+  "web.domains.custom_domains_count": {
+    "en": "Custom domains count",
+    "translation": "Aantal aangepaste domeinen"
+  },
+  "web.domains.custom_domain": {
+    "en": "Custom Domain",
+    "translation": "Aangepast domein"
+  },
+  "web.domains.open_domain_in_new_tab": {
+    "en": "Open domain in new tab",
+    "translation": "Open domein in nieuw tabblad"
+  },
+  "web.domains.back_to_domains": {
+    "en": "Back to Domains",
+    "translation": "Terug naar domeinen"
+  },
+  "web.domains.return_to_domains_list": {
+    "en": "Return to domains list",
+    "translation": "Terug naar domeinenlijst"
+  },
+  "web.domains.verify_domain": {
+    "en": "Verify Domain",
+    "translation": "Domein verifiëren"
+  },
+  "web.domains.manage_brand": {
+    "en": "Manage Brand",
+    "translation": "Merk beheren"
+  },
+  "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
+    "en": "Added {0}",
+    "translation": "Toegevoegd {0}"
+  },
+  "web.domains.add_your_domain": {
+    "en": "Add your domain",
+    "translation": "Voeg uw domein toe"
+  },
+  "web.domains.get_started_by_adding_a_custom_domain": {
+    "en": "Get started by adding a custom domain.",
+    "translation": "Begin door een aangepast domein toe te voegen."
+  },
+  "web.domains.no_domains_found": {
+    "en": "No domains found.",
+    "translation": "Geen domeinen gevonden."
+  },
+  "web.domains.loading_domain_information": {
+    "en": "Loading domain information...",
+    "translation": "Domein informatie laden..."
+  },
+  "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
+    "en": "In order to connect your domain, you'll need to have a CNAME record in your DNS that points",
+    "translation": "Om uw domein te verbinden, moet u een CNAME-record in uw DNS hebben dat verwijst"
+  },
+  "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
+    "en": "If you already have a CNAME record for that address, please change it to point at",
+    "translation": "Als u al een CNAME-record heeft voor dat adres, wijzig het dan om te verwijzen naar"
+  },
+  "web.domains.a_cname_record_is_not_allowed_instead_youll_need": {
+    "en": "), a CNAME record is not allowed. Instead, you'll need to create an A record. Details on how to do this are provided further down the page.",
+    "translation": "), is een CNAME-record niet toegestaan. In plaats daarvan moet u een A-record maken. Details over hoe u dit kunt doen, worden verderop op de pagina gegeven."
+  },
+  "web.domains.and_remove_any_other_a_aaaa_or_cname_records_for": {
+    "en": "and remove any other A, AAAA, or CNAME records for that exact address.",
+    "translation": "en verwijder alle andere A-, AAAA- of CNAME-records voor dat exacte adres."
+  },
+  "web.domains.youll_need_to_complete_these_steps": {
+    "en": ", you'll need to complete these steps.",
+    "translation": ", moet u deze stappen voltooien."
+  },
+  "web.domains.before_we_can_activate_links_for": {
+    "en": "Before we can activate links for",
+    "translation": "Voordat we links kunnen activeren voor"
+  },
+  "web.domains.please_note_that_for_apex_domains": {
+    "en": "Please note that for apex domains (e.g.,",
+    "translation": "Let op dat voor apex-domeinen (bijv.,"
+  },
+  "web.domains.verify_your_domain": {
+    "en": "Verify your domain",
+    "translation": "Verifieer uw domein"
+  },
+  "web.domains.secrets_example_dot_com": {
+    "en": "secrets.example.com",
+    "translation": "berichten.voorbeeld.com"
+  },
+  "web.domains.customize_your_domain_branding": {
+    "en": "Customize your domain branding",
+    "translation": "Pas uw domeinbranding aan"
+  },
+  "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
+    "en": "It may take a few minutes for your SSL certificate to take effect.",
+    "translation": "Het kan enkele minuten duren voordat uw SSL-certificaat van kracht wordt."
+  },
+  "web.domains.dns_changes_can_take_as_little_as_60_seconds_or_": {
+    "en": "DNS changes can take as little as 60 seconds -- or up to 24 hours -- to take effect.",
+    "translation": "DNS-wijzigingen kunnen zo weinig als 60 seconden - of tot 24 uur - duren om van kracht te worden."
+  },
+  "web.domains.3_wait_for_propagation": {
+    "en": "3. Wait for propagation",
+    "translation": "3. Wacht op verspreiding"
+  },
+  "web.domains.value_2": {
+    "en": "Value",
+    "translation": "Waarde"
+  },
+  "web.domains.value_1": {
+    "en": "Value",
+    "translation": "Waarde"
+  },
+  "web.domains.host_1": {
+    "en": "Host",
+    "translation": "Host"
+  },
+  "web.domains.type_2": {
+    "en": "Type",
+    "translation": "Type"
+  },
+  "web.domains.type_1": {
+    "en": "Type",
+    "translation": "Type"
+  },
+  "web.domains.2_create_the_cname_record": {
+    "en": "2. Create the CNAME record",
+    "translation": "2. Maak het CNAME-record"
+  },
+  "web.domains.value_0": {
+    "en": "Value",
+    "translation": "Waarde"
+  },
+  "web.domains.host_0": {
+    "en": "Host",
+    "translation": "Host"
+  },
+  "web.domains.type_0": {
+    "en": "Type",
+    "translation": "Type"
+  },
+  "web.domains.2_create_the_a_record": {
+    "en": "2. Create the A record",
+    "translation": "2. Maak het A-record"
+  },
+  "web.domains.add_this_hostname_to_your_dns_configuration": {
+    "en": "Add this hostname to your DNS configuration:",
+    "translation": "Voeg deze hostnaam toe aan uw DNS-configuratie:"
+  },
+  "web.domains.1_create_a_txt_record": {
+    "en": "1. Create a TXT record",
+    "translation": "1. Maak een TXT-record"
+  },
+  "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
+    "en": "Follow these steps to verify domain ownership and elevate your online presence:",
+    "translation": "Volg deze stappen om domeineigendom te verifiëren en uw online aanwezigheid te verbeteren:"
+  },
+  "web.domains.domain_verification_steps": {
+    "en": "Domain Verification Steps",
+    "translation": "Domeinverificatiestappen"
+  },
+  "web.domains.domain_verification_initiated_successfully": {
+    "en": "Domain verification initiated successfully.",
+    "translation": "Domeinverificatie succesvol gestart."
+  },
+  "web.domains.are_you_sure_you_want_to_remove_this_domain": {
+    "en": "Are you sure you want to remove this domain? This action cannot be undone.",
+    "translation": "Weet u zeker dat u dit domein wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+  },
+  "web.domains.remove_domain": {
+    "en": "Remove Domain",
+    "translation": "Domein verwijderen"
+  },
+  "web.domains.domain_removed_successfully": {
+    "en": "Domain removed successfully",
+    "translation": "Domein succesvol verwijderd"
+  },
+  "web.domains.failed_to_add_domain": {
+    "en": "Failed to add domain",
+    "translation": "Domein toevoegen mislukt"
+  },
+  "web.domains.domain_added_successfully": {
+    "en": "Domain added successfully",
+    "translation": "Domein succesvol toegevoegd"
+  },
+  "web.domains.passphrase_set": {
+    "en": "Protected"
+  },
+  "web.domains.manage_domains": {
+    "en": "Manage Domains"
+  },
+  "web.domains.global_defaults": {
+    "en": "Global Defaults"
+  },
+  "web.domains.edit_ttl": {
+    "en": "Edit time-to-live setting"
+  },
+  "web.domains.edit_passphrase": {
+    "en": "Edit passphrase requirement"
+  },
+  "web.domains.edit_notify": {
+    "en": "Edit notification setting"
+  }
+}

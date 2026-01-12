@@ -1,0 +1,594 @@
+{
+  "email.incomingsupport.subject": {
+    "en": "[Ticket: %s]",
+    "translation": "[Αίτημα Υποστήριξης: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "en": "A customer has sent the following info",
+    "translation": "Ένας πελάτης έστειλε τις παρακάτω πληροφορίες"
+  },
+  "email.secret_link.subject": {
+    "en": "%{sender_email} sent you a secret",
+    "translation": "Ο/Η %{sender_email} σας έστειλε ένα μυστικό"
+  },
+  "email.secret_link.sent_you_secret": {
+    "en": "sent you a secret:",
+    "translation": "σας έστειλε ένα μυστικό:"
+  },
+  "email.secret_link.important_label": {
+    "en": "Important:",
+    "translation": "Σημαντικό:"
+  },
+  "email.secret_link.link_works_once": {
+    "en": "This link will only work once. After viewing, the secret will be permanently deleted.",
+    "translation": "Αυτός ο σύνδεσμος λειτουργεί μόνο μία φορά. Μετά την προβολή, το μυστικό θα διαγραφεί οριστικά."
+  },
+  "email.secret_link.sent_via": {
+    "en": "Sent via",
+    "translation": "Απεστάλη μέσω"
+  },
+  "email.welcome.subject": {
+    "en": "Welcome to %{product_name} - Please verify your email",
+    "translation": "Εξακρίβωση του Onetime Secret λογαριασμού σας"
+  },
+  "email.welcome.title": {
+    "en": "Welcome to %{product_name}!",
+    "translation": "Έχετε προσκληθεί να συμμετάσχετε στο %{product_name}!"
+  },
+  "email.welcome.verify_prompt": {
+    "en": "Please verify your email address by clicking the link below:",
+    "translation": "Παρακαλώ επαληθεύστε τη διεύθυνση email σας κάνοντας κλικ στον παρακάτω σύνδεσμο:"
+  },
+  "email.welcome.verify_button": {
+    "en": "Verify Email Address",
+    "translation": "Επαλήθευση Διεύθυνσης Email"
+  },
+  "email.welcome.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:"
+  },
+  "email.welcome.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.welcome.postscript": {
+    "en": "P.S. This email was sent to %{email_address}. If you did not create an account, you can safely ignore this message.",
+    "translation": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address}. Εάν δεν περιμένατε αυτήν την πρόσκληση, μπορείτε να αγνοήσετε αυτό το μήνυμα."
+  },
+  "email.password_request.subject": {
+    "en": "Reset your password (%{display_domain})",
+    "translation": "Επαναφορά του κωδικού πρόσβασής σας (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "en": "Reset Your Password",
+    "translation": "Επαναφορά Κωδικού Πρόσβασης"
+  },
+  "email.password_request.request_notice": {
+    "en": "We received a request to reset your password for %{product_name}.",
+    "translation": "Λάβαμε αίτημα επαναφοράς του κωδικού πρόσβασής σας για το %{product_name}."
+  },
+  "email.password_request.reset_button": {
+    "en": "Reset Password",
+    "translation": "Επαναφορά Κωδικού Πρόσβασης"
+  },
+  "email.password_request.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:"
+  },
+  "email.password_request.ignore_notice": {
+    "en": "If you did not request a password reset, you can safely ignore this email.",
+    "translation": "Αν δεν ζητήσατε επαναφορά κωδικού πρόσβασης, μπορείτε να αγνοήσετε αυτό το email."
+  },
+  "email.password_request.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.password_request.postscript": {
+    "en": "P.S. This email was sent to %{email_address}.",
+    "translation": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "en": "Sign in to %{display_domain}",
+    "translation": "Σύνδεση στο %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "en": "Sign In with Magic Link",
+    "translation": "Σύνδεση με Μαγικό Σύνδεσμο"
+  },
+  "email.magic_link.request_notice": {
+    "en": "You requested a login link for your %{product_name} account.",
+    "translation": "Ζητήσατε έναν σύνδεσμο σύνδεσης για τον λογαριασμό σας στο %{product_name}."
+  },
+  "email.magic_link.login_button": {
+    "en": "Sign In",
+    "translation": "Σύνδεση"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:"
+  },
+  "email.magic_link.expiration_notice": {
+    "en": "This link will expire in 15 minutes.",
+    "translation": "Αυτός ο σύνδεσμος θα λήξει σε 15 λεπτά."
+  },
+  "email.magic_link.ignore_notice": {
+    "en": "If you did not request this link, you can safely ignore this email.",
+    "translation": "Εάν δεν ζητήσατε αυτόν τον σύνδεσμο, μπορείτε να αγνοήσετε αυτό το μήνυμα."
+  },
+  "email.magic_link.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "en": "P.S. This email was sent to %{email_address}.",
+    "translation": "Υ.Γ. Αυτό το μήνυμα εστάλη στη διεύθυνση %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "en": "You've received a secret message",
+    "translation": "Λάβατε ένα μυστικό μήνυμα"
+  },
+  "email.incoming_secret.received_message": {
+    "en": "You've received a secure message:",
+    "translation": "Λάβατε ένα ασφαλές μήνυμα:"
+  },
+  "email.incoming_secret.memo_label": {
+    "en": "Memo:",
+    "translation": "Σημείωση:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "en": "Someone has sent you a secure message through %{display_domain}.",
+    "translation": "Κάποιος σας έστειλε ένα ασφαλές μήνυμα μέσω %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "en": "To view this secret, click the link below:",
+    "translation": "Για να δείτε αυτό το μυστικό, κάντε κλικ στον παρακάτω σύνδεσμο:"
+  },
+  "email.incoming_secret.important_label": {
+    "en": "Important:",
+    "translation": "Σημαντικό:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "en": "This link will only work once. After viewing, the secret will be permanently deleted.",
+    "translation": "Αυτός ο σύνδεσμος λειτουργεί μόνο μία φορά. Μετά την προβολή, το μυστικό θα διαγραφεί οριστικά."
+  },
+  "email.incoming_secret.sent_via": {
+    "en": "Sent via",
+    "translation": "Απεστάλη μέσω"
+  },
+  "email.secret_revealed.subject": {
+    "en": "Your secret was viewed",
+    "translation": "Το μυστικό σας προβλήθηκε"
+  },
+  "email.secret_revealed.title": {
+    "en": "Your Secret Was Viewed",
+    "translation": "Το Μυστικό Σας Προβλήθηκε"
+  },
+  "email.secret_revealed.viewed_on": {
+    "en": "Your secret was viewed on %{date}.",
+    "translation": "Το μυστικό σας προβλήθηκε στις %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "en": "Secret ID:",
+    "translation": "Αναγνωριστικό Μυστικού:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "en": "This is an automated notification. No action is required.",
+    "translation": "Αυτή είναι μια αυτοματοποιημένη ειδοποίηση. Δεν απαιτείται καμία ενέργεια."
+  },
+  "email.secret_revealed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "en": "Manage notification preferences",
+    "translation": "Διαχείριση προτιμήσεων ειδοποιήσεων"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "en": "To manage your notification preferences:",
+    "translation": "Για να διαχειριστείτε τις προτιμήσεις ειδοποιήσεών σας:"
+  },
+  "email.expiration_warning.subject": {
+    "en": "Your secret link will expire soon",
+    "translation": "Ο σύνδεσμος του μυστικού σας λήγει σύντομα"
+  },
+  "email.expiration_warning.expires_in": {
+    "en": "Your secret link will expire in %{time_remaining}",
+    "translation": "Ο σύνδεσμος του μυστικού σας θα λήξει σε %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "en": "View your secret before it expires",
+    "translation": "Δείτε το μυστικό σας πριν λήξει"
+  },
+  "email.expiration_warning.reminder_label": {
+    "en": "Reminder:",
+    "translation": "Υπενθύμιση:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "en": "After expiration, the secret will be permanently deleted and cannot be recovered.",
+    "translation": "Μετά τη λήξη, το μυστικό θα διαγραφεί οριστικά και δεν θα μπορεί να ανακτηθεί."
+  },
+  "email.expiration_warning.sent_via": {
+    "en": "Sent via",
+    "translation": "Απεστάλη μέσω"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "en": "View it before it's gone:",
+    "translation": "Δείτε το πριν χαθεί:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "en": "After expiration, the secret will be permanently deleted.",
+    "translation": "Μετά τη λήξη, το μυστικό θα διαγραφεί οριστικά."
+  },
+  "email.feedback_email.subject": {
+    "en": "Feedback on %{date} via %{display_domain} (%{strategy})",
+    "translation": "Σχόλια στις %{date} μέσω %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "en": "User Feedback",
+    "translation": "Σχόλια Χρήστη"
+  },
+  "email.feedback_email.from_label": {
+    "en": "From:",
+    "translation": "Από:"
+  },
+  "email.feedback_email.domain_label": {
+    "en": "Domain:",
+    "translation": "Τομέας:"
+  },
+  "email.feedback_email.strategy_label": {
+    "en": "Strategy:",
+    "translation": "Στρατηγική:"
+  },
+  "email.feedback_email.message_label": {
+    "en": "Message:",
+    "translation": "Μήνυμα:"
+  },
+  "email.feedback_email.signature": {
+    "en": "Secret Support",
+    "translation": "Υποστήριξη Secret"
+  },
+  "email.organization_invitation.subject": {
+    "en": "You've been invited to join %{organization_name}",
+    "translation": "Έχετε προσκληθεί να συμμετάσχετε στο %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "en": "You've been invited to join %{organization_name}!",
+    "translation": "Έχετε προσκληθεί να συμμετάσχετε στο %{organization_name}!"
+  },
+  "email.organization_invitation.body": {
+    "en": "%{inviter_email} has invited you to join \"%{organization_name}\" as %{role_description}.",
+    "translation": "Ο χρήστης %{inviter_email} σας προσκάλεσε να συμμετάσχετε στο \"%{organization_name}\" ως %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "en": "Accept Invitation",
+    "translation": "Αποδοχή Πρόσκλησης"
+  },
+  "email.organization_invitation.link_instruction": {
+    "en": "Or copy and paste this link:",
+    "translation": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "en": "This invitation will expire in %{days} days.",
+    "translation": "Αυτή η πρόσκληση θα λήξει σε %{days} ημέρες."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "en": "If you don't want to join, you can simply ignore this email or decline the invitation.",
+    "translation": "Εάν δεν θέλετε να συμμετάσχετε, μπορείτε απλά να αγνοήσετε αυτό το email ή να απορρίψετε την πρόσκληση."
+  },
+  "email.organization_invitation.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "en": "P.S. This email was sent to %{invited_email}. If you weren't expecting this invitation, you can safely ignore this message.",
+    "translation": "Υ.Γ. Αυτό το email στάλθηκε στο %{invited_email}. Εάν δεν περιμένατε αυτήν την πρόσκληση, μπορείτε να αγνοήσετε αυτό το μήνυμα."
+  },
+  "email.organization_invitation.roles.member": {
+    "en": "a member",
+    "translation": "μέλος"
+  },
+  "email.organization_invitation.roles.admin": {
+    "en": "an administrator",
+    "translation": "διαχειριστής"
+  },
+  "email.password_changed.subject": {
+    "en": "Your password was changed (%{display_domain})",
+    "translation": "Ο κωδικός πρόσβασής σας άλλαξε (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "en": "Your Password Was Changed",
+    "translation": "Ο Κωδικός Πρόσβασής Σας Άλλαξε"
+  },
+  "email.password_changed.body": {
+    "en": "Your password for %{product_name} was changed on %{date} at %{time}.",
+    "translation": "Ο κωδικός πρόσβασής σας για το %{product_name} άλλαξε στις %{date} στις %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "en": "If you did not make this change, please secure your account immediately by resetting your password and contacting support.",
+    "translation": "Αν δεν κάνατε εσείς αυτή την αλλαγή, παρακαλώ ασφαλίστε τον λογαριασμό σας άμεσα επαναφέροντας τον κωδικό πρόσβασής σας και επικοινωνώντας με την υποστήριξη."
+  },
+  "email.password_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.email_changed.subject": {
+    "en": "Your email address was changed (%{display_domain})",
+    "translation": "Η διεύθυνση email σας άλλαξε (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "en": "Your Email Address Was Changed",
+    "translation": "Η Διεύθυνση Email Σας Άλλαξε"
+  },
+  "email.email_changed.body": {
+    "en": "The email address for your %{product_name} account was changed to %{new_email_masked} on %{date}.",
+    "translation": "Η διεύθυνση email για τον λογαριασμό σας στο %{product_name} άλλαξε σε %{new_email_masked} στις %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "en": "If you did not make this change, please contact support immediately as your account may be compromised.",
+    "translation": "Αν δεν κάνατε εσείς αυτή την αλλαγή, παρακαλώ επικοινωνήστε άμεσα με την υποστήριξη καθώς ο λογαριασμός σας ενδέχεται να έχει παραβιαστεί."
+  },
+  "email.email_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "en": "Verify your new email address (%{display_domain})",
+    "translation": "Επαληθεύστε τη νέα διεύθυνση email σας (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "en": "Verify Your New Email Address",
+    "translation": "Επαλήθευση Νέας Διεύθυνσης Email"
+  },
+  "email.email_change_confirmation.body": {
+    "en": "Please verify this email address to complete the change for your %{product_name} account.",
+    "translation": "Παρακαλώ επαληθεύστε αυτή τη διεύθυνση email για να ολοκληρώσετε την αλλαγή για τον λογαριασμό σας στο %{product_name}."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "en": "Verify Email Address",
+    "translation": "Επαλήθευση Διεύθυνσης Email"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:"
+  },
+  "email.email_change_confirmation.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "en": "Two-factor authentication enabled (%{display_domain})",
+    "translation": "Ενεργοποιήθηκε η ταυτοποίηση δύο παραγόντων (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "en": "Two-Factor Authentication Enabled",
+    "translation": "Ενεργοποιήθηκε η Ταυτοποίηση Δύο Παραγόντων"
+  },
+  "email.mfa_enabled.body": {
+    "en": "Two-factor authentication was enabled for your %{product_name} account on %{date}.",
+    "translation": "Η ταυτοποίηση δύο παραγόντων ενεργοποιήθηκε για τον λογαριασμό σας στο %{product_name} στις %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "en": "Your account is now more secure. You will need to enter a verification code from your authenticator app when signing in.",
+    "translation": "Ο λογαριασμός σας είναι πλέον πιο ασφαλής. Θα χρειαστεί να εισαγάγετε έναν κωδικό επαλήθευσης από την εφαρμογή ταυτοποίησής σας κατά τη σύνδεση."
+  },
+  "email.mfa_enabled.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "en": "Two-factor authentication disabled (%{display_domain})",
+    "translation": "Απενεργοποιήθηκε η ταυτοποίηση δύο παραγόντων (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "en": "Two-Factor Authentication Disabled",
+    "translation": "Απενεργοποιήθηκε η Ταυτοποίηση Δύο Παραγόντων"
+  },
+  "email.mfa_disabled.body": {
+    "en": "Two-factor authentication was disabled for your %{product_name} account on %{date}.",
+    "translation": "Η ταυτοποίηση δύο παραγόντων απενεργοποιήθηκε για τον λογαριασμό σας στο %{product_name} στις %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "en": "Your account is now less secure. If you did not make this change, please secure your account immediately.",
+    "translation": "Ο λογαριασμός σας είναι πλέον λιγότερο ασφαλής. Αν δεν κάνατε εσείς αυτή την αλλαγή, παρακαλώ ασφαλίστε τον λογαριασμό σας άμεσα."
+  },
+  "email.mfa_disabled.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "en": "New sign-in to your account (%{display_domain})",
+    "translation": "Νέα σύνδεση στον λογαριασμό σας (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "en": "New Sign-In Detected",
+    "translation": "Εντοπίστηκε Νέα Σύνδεση"
+  },
+  "email.new_login_alert.body": {
+    "en": "A new sign-in to your %{product_name} account was detected on %{date} at %{time}.",
+    "translation": "Εντοπίστηκε νέα σύνδεση στον λογαριασμό σας στο %{product_name} στις %{date} στις %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "en": "Device:",
+    "translation": "Συσκευή:"
+  },
+  "email.new_login_alert.location_label": {
+    "en": "Location:",
+    "translation": "Τοποθεσία:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "en": "IP Address:",
+    "translation": "Διεύθυνση IP:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "en": "If this wasn't you, your account may be compromised.",
+    "translation": "Αν δεν ήσασταν εσείς, ο λογαριασμός σας ενδέχεται να έχει παραβιαστεί."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "en": "Secure Your Account",
+    "translation": "Ασφαλίστε τον Λογαριασμό Σας"
+  },
+  "email.new_login_alert.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.member_removed.subject": {
+    "en": "You've been removed from %{organization_name}",
+    "translation": "Αφαιρεθήκατε από το %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "en": "You've Been Removed from %{organization_name}",
+    "translation": "Αφαιρεθήκατε από το %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "en": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+    "translation": "Αφαιρεθήκατε από τον οργανισμό \"%{organization_name}\" στο %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.role_changed.subject": {
+    "en": "Your role was changed in %{organization_name}",
+    "translation": "Ο ρόλος σας άλλαξε στο %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "en": "Your Role Was Changed",
+    "translation": "Ο Ρόλος Σας Άλλαξε"
+  },
+  "email.role_changed.body": {
+    "en": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+    "translation": "Ο ρόλος σας στο \"%{organization_name}\" άλλαξε από %{old_role} σε %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "en": "Organization \"%{organization_name}\" was deleted",
+    "translation": "Ο οργανισμός \"%{organization_name}\" διαγράφηκε"
+  },
+  "email.organization_deleted.title": {
+    "en": "Organization Deleted",
+    "translation": "Ο Οργανισμός Διαγράφηκε"
+  },
+  "email.organization_deleted.body": {
+    "en": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+    "translation": "Ο οργανισμός \"%{organization_name}\" διαγράφηκε από το %{product_name}. Όλα τα σχετικά δεδομένα έχουν αφαιρεθεί."
+  },
+  "email.organization_deleted.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "en": "Payment receipt for %{product_name}",
+    "translation": "Απόδειξη πληρωμής για το %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "en": "Payment Receipt",
+    "translation": "Απόδειξη Πληρωμής"
+  },
+  "email.payment_receipt.body": {
+    "en": "Thank you for your payment. Here are your payment details:",
+    "translation": "Σας ευχαριστούμε για την πληρωμή σας. Ακολουθούν τα στοιχεία πληρωμής σας:"
+  },
+  "email.payment_receipt.amount_label": {
+    "en": "Amount:",
+    "translation": "Ποσό:"
+  },
+  "email.payment_receipt.date_label": {
+    "en": "Date:",
+    "translation": "Ημερομηνία:"
+  },
+  "email.payment_receipt.plan_label": {
+    "en": "Plan:",
+    "translation": "Πρόγραμμα:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "en": "View Invoice",
+    "translation": "Προβολή Τιμολογίου"
+  },
+  "email.payment_receipt.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "en": "Payment failed for %{product_name}",
+    "translation": "Η πληρωμή απέτυχε για το %{product_name}"
+  },
+  "email.payment_failed.title": {
+    "en": "Payment Failed",
+    "translation": "Η Πληρωμή Απέτυχε"
+  },
+  "email.payment_failed.body": {
+    "en": "We were unable to process your payment for %{product_name}. Please update your payment method to avoid service interruption.",
+    "translation": "Δεν μπορέσαμε να επεξεργαστούμε την πληρωμή σας για το %{product_name}. Παρακαλώ ενημερώστε τον τρόπο πληρωμής σας για να αποφύγετε διακοπή υπηρεσίας."
+  },
+  "email.payment_failed.update_payment_button": {
+    "en": "Update Payment Method",
+    "translation": "Ενημέρωση Τρόπου Πληρωμής"
+  },
+  "email.payment_failed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "en": "Your %{product_name} trial expires in %{days_remaining} days",
+    "translation": "Η δοκιμαστική περίοδός σας για το %{product_name} λήγει σε %{days_remaining} ημέρες"
+  },
+  "email.trial_expiring.title": {
+    "en": "Your Trial Is Ending Soon",
+    "translation": "Η Δοκιμαστική Περίοδός Σας Λήγει Σύντομα"
+  },
+  "email.trial_expiring.body": {
+    "en": "Your free trial of %{product_name} will expire in %{days_remaining} days. Upgrade now to keep access to all features.",
+    "translation": "Η δωρεάν δοκιμαστική περίοδός σας για το %{product_name} θα λήξει σε %{days_remaining} ημέρες. Κάντε αναβάθμιση τώρα για να διατηρήσετε πρόσβαση σε όλες τις λειτουργίες."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "en": "Upgrade Now",
+    "translation": "Αναβάθμιση Τώρα"
+  },
+  "email.trial_expiring.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "en": "Your %{product_name} subscription was changed",
+    "translation": "Η συνδρομή σας στο %{product_name} άλλαξε"
+  },
+  "email.subscription_changed.title": {
+    "en": "Subscription Changed",
+    "translation": "Η Συνδρομή Άλλαξε"
+  },
+  "email.subscription_changed.body": {
+    "en": "Your %{product_name} subscription has been changed from %{old_plan} to %{new_plan}.",
+    "translation": "Η συνδρομή σας στο %{product_name} άλλαξε από %{old_plan} σε %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "en": "This change is effective %{date}.",
+    "translation": "Αυτή η αλλαγή ισχύει από %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.common.greeting": {
+    "en": "Hello,",
+    "translation": "Γεια σας,"
+  },
+  "email.common.thanks": {
+    "en": "Thanks,",
+    "translation": "Ευχαριστούμε,"
+  },
+  "email.common.unsubscribe": {
+    "en": "Unsubscribe",
+    "translation": "Κατάργηση εγγραφής"
+  },
+  "email.common.view_in_browser": {
+    "en": "View in browser",
+    "translation": "Προβολή στο πρόγραμμα περιήγησης"
+  },
+  "email.common.onetime_secret": {
+    "en": "Onetime Secret",
+    "translation": "Onetime Secret"
+  }
+}

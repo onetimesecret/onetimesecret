@@ -1,0 +1,1276 @@
+{
+  "web.COMMON.broadcast": {
+    "en": "",
+    "skip": true,
+    "note": "empty source"
+  },
+  "web.COMMON.tagline": {
+    "en": "Secure links that only work once",
+    "translation": "Безопасные ссылки, которые работают только один раз"
+  },
+  "web.COMMON.powered_by": {
+    "en": "Powered by",
+    "translation": "При поддержке"
+  },
+  "web.COMMON.website_url": {
+    "en": "https://onetimesecret.com/en",
+    "translation": "https://onetimesecret.com/ru"
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "en": "Generate Password",
+    "translation": "Сгенерировать пароль"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "en": "Generate Password is disabled when the form is valid",
+    "translation": "Генерация пароля отключена, когда форма заполнена"
+  },
+  "web.COMMON.email_placeholder": {
+    "en": "e.g. tom{'@'}myspace.com",
+    "translation": "например tom{'@'}myspace.com"
+  },
+  "web.COMMON.password_placeholder": {
+    "en": "Enter your password",
+    "translation": "Введите ваш пароль"
+  },
+  "web.COMMON.custom_domains_title": {
+    "en": "Custom Domains",
+    "translation": "Пользовательские домены"
+  },
+  "web.COMMON.custom_domains_description": {
+    "en": "Strengthen connections and build trust with your own branded secret links.",
+    "translation": "Укрепляйте связи и завоёвывайте доверие с помощью фирменных ссылок на секреты."
+  },
+  "web.COMMON.get_started_button": {
+    "en": "Get Started",
+    "translation": "Начать"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "en": "Confirm your password",
+    "translation": "Подтвердите ваш пароль"
+  },
+  "web.COMMON.header_settings": {
+    "en": "Settings",
+    "translation": "Настройки"
+  },
+  "web.COMMON.submit_with": {
+    "en": "Submit",
+    "translation": "Отправить"
+  },
+  "web.COMMON.submitting": {
+    "en": "Submitting...",
+    "translation": "Отправка..."
+  },
+  "web.COMMON.processing": {
+    "en": "Processing...",
+    "translation": "Обработка..."
+  },
+  "web.COMMON.description": {
+    "en": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
+    "translation": "Не пересылайте конфиденциальную информацию через беседы и эл-почту. Поделитесь ссылкой на тайну, доступную только один раз."
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "en": "Incorrect passphrase",
+    "translation": "Неверная кодовая фраза"
+  },
+  "web.COMMON.keywords": {
+    "en": "secret,password generator,share a secret,onetime",
+    "translation": "тайна,генератор паролей,поделиться тайной,одноразовый"
+  },
+  "web.COMMON.button_create_secret": {
+    "en": "Create a secret link",
+    "translation": "Создать ссылку на тайну"
+  },
+  "web.COMMON.button_generate_secret": {
+    "en": "Or generate a random password",
+    "translation": "Или сгенерировать одноразовый пароль"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "en": "Privacy Options",
+    "translation": "Настройки приватности"
+  },
+  "web.COMMON.secret_passphrase": {
+    "en": "Passphrase",
+    "translation": "Пароль"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "en": "A word or phrase that's difficult to guess",
+    "translation": "Слово или фраза, которую сложно угадать"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "en": "Recipient Address",
+    "translation": "Адрес получателя"
+  },
+  "web.COMMON.secret_placeholder": {
+    "en": "Secret content goes here...",
+    "translation": "Введите тайное содержимое сюда..."
+  },
+  "web.COMMON.header_create_account": {
+    "en": "Create Account",
+    "translation": "Создать учётную запись"
+  },
+  "web.COMMON.header_about": {
+    "en": "About",
+    "translation": "О нас"
+  },
+  "web.COMMON.header_sign_in": {
+    "en": "Sign In",
+    "translation": "Войти"
+  },
+  "web.COMMON.header_dashboard": {
+    "en": "Account",
+    "translation": "Учётная запись"
+  },
+  "web.COMMON.header_logout": {
+    "en": "Logout",
+    "translation": "Выйти"
+  },
+  "web.COMMON.secret": {
+    "en": "Secret | Secrets",
+    "translation": "Секрет"
+  },
+  "web.COMMON.recent": {
+    "en": "Recent",
+    "translation": "Недавние"
+  },
+  "web.COMMON.received": {
+    "en": "Received",
+    "translation": "Получено"
+  },
+  "web.COMMON.burn": {
+    "en": "Burn",
+    "translation": "Удалить окончательно"
+  },
+  "web.COMMON.burned": {
+    "en": "Burned",
+    "translation": "Окончательно удалено"
+  },
+  "web.COMMON.expires_in": {
+    "en": "Expires in",
+    "translation": "Истекает через"
+  },
+  "web.COMMON.burn_this_secret": {
+    "en": "Burn this secret",
+    "translation": "Окончательно удалить этот секрет"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "en": "Burning a secret will delete it before it has been read (click to confirm)",
+    "translation": "Окончательное удаление секрета удалит его до прочтения (нажмите здесь, чтобы подтвердить)"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "en": "Burning a secret is permanent and cannot be undone",
+    "translation": "Окончательное удаление секрета не может быть отменено"
+  },
+  "web.COMMON.msg_check_email": {
+    "en": "Check your email",
+    "translation": "Проверьте вашу эл-почту"
+  },
+  "web.COMMON.click_to_continue": {
+    "en": "Click to reveal →",
+    "translation": "Щёлкните для продолжения →"
+  },
+  "web.COMMON.click_to_verify": {
+    "en": "Continue to verify your account:",
+    "translation": "Продолжить, чтобы подтвердить вашу учётную запись:"
+  },
+  "web.COMMON.error_secret": {
+    "en": "You did not provide anything to share",
+    "translation": "Вы не предоставили ничего, чем можно поделиться"
+  },
+  "web.COMMON.error_passphrase": {
+    "en": "Double check that passphrase",
+    "translation": "Перепроверить этот пароль"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "en": "Enter the passphrase here",
+    "translation": "Введите пароль"
+  },
+  "web.COMMON.view_secret": {
+    "en": "View Secret",
+    "translation": "Посмотреть сообщение"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "en": "Careful: we will only show it once.",
+    "translation": "внимание: оно будет показано только раз."
+  },
+  "web.COMMON.warning": {
+    "en": "Warning",
+    "translation": "Внимание"
+  },
+  "web.COMMON.oops": {
+    "en": "Oops!",
+    "translation": "Ой!"
+  },
+  "web.COMMON.error": {
+    "en": "Error",
+    "translation": "Ошибка"
+  },
+  "web.COMMON.unexpected_error": {
+    "en": "An unexpected error occurred. Please try again.",
+    "translation": "Произошла непредвиденная ошибка. Пожалуйста, попробуйте снова."
+  },
+  "web.COMMON.secret_was_truncated": {
+    "en": "The message was truncated",
+    "translation": "Это сообщение было урезано, так как оно закончилось"
+  },
+  "web.COMMON.signup_for_more": {
+    "en": "Signup for more",
+    "translation": "Подпишитесь для дополнительных возможностей"
+  },
+  "web.COMMON.login_to_your_account": {
+    "en": "Log in to your account",
+    "translation": "Войдите в свою учётную запись"
+  },
+  "web.COMMON.sent_to": {
+    "en": "Sent to: ",
+    "translation": "Отправить: "
+  },
+  "web.COMMON.field_email": {
+    "en": "Email",
+    "translation": "эл-почта"
+  },
+  "web.COMMON.field_password": {
+    "en": "Password",
+    "translation": "Пароль"
+  },
+  "web.COMMON.field_password2": {
+    "en": "Confirm Password",
+    "translation": "Подтвердите пароль"
+  },
+  "web.COMMON.button_create_account": {
+    "en": "Create Account",
+    "translation": "Создать учётную запись"
+  },
+  "web.COMMON.share_a_secret": {
+    "en": "Share a secret",
+    "translation": "Поделиться тайной"
+  },
+  "web.COMMON.title_home": {
+    "en": "Home",
+    "translation": "Домашняя"
+  },
+  "web.COMMON.word_none": {
+    "en": "None",
+    "translation": "Ничего"
+  },
+  "web.COMMON.word_burned": {
+    "en": "burned",
+    "translation": "окончательно удалено"
+  },
+  "web.COMMON.word_received": {
+    "en": "received",
+    "translation": "получено"
+  },
+  "web.COMMON.word_confirm": {
+    "en": "Confirm",
+    "translation": "Подтвердить"
+  },
+  "web.COMMON.word_cancel": {
+    "en": "Cancel",
+    "translation": "Отменить"
+  },
+  "web.COMMON.word_continue": {
+    "en": "Continue",
+    "translation": "Продолжить"
+  },
+  "web.COMMON.word_done": {
+    "en": "Done",
+    "translation": "Готово"
+  },
+  "web.COMMON.back": {
+    "en": "Back",
+    "translation": "Назад"
+  },
+  "web.COMMON.feedback_text": {
+    "en": "Share your thoughts, ideas, or experiences...",
+    "translation": "Есть вопрос или комментарий?"
+  },
+  "web.COMMON.button_send_feedback": {
+    "en": "Send Feedback",
+    "translation": "Отправить отзыв"
+  },
+  "web.COMMON.verification_sent_to": {
+    "en": "A verification was sent to",
+    "translation": "Подтвреждение было отправлено на"
+  },
+  "web.COMMON.autoverified_success": {
+    "en": "Account created. Please sign in.",
+    "translation": "Учётная запись создана. Пожалуйста, войдите."
+  },
+  "web.COMMON.signup_success_generic": {
+    "en": "If an account with this email exists, you will receive a verification email.",
+    "translation": "Если учётная запись с этим адресом существует, вы получите письмо для подтверждения."
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "en": "Burn this secret permanently",
+    "translation": "Окончательно удалить этот секрет"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "en": "Please Confirm",
+    "translation": "Пожалуйста, подтвердите"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "en": "Are you sure you want to burn this secret? This action cannot be undone.",
+    "translation": "Вы уверены, что хотите окончательно удалить этот секрет? Это действие не может быть отменено."
+  },
+  "web.COMMON.confirm_burn": {
+    "en": "Yes, burn this secret",
+    "translation": "Да, окончательно удалить этот секрет"
+  },
+  "web.COMMON.burn_security_notice": {
+    "en": "Burning a secret will delete it before it has been received.",
+    "translation": "Окончательное удаление секрета удалит его до того, как он будет получен."
+  },
+  "web.COMMON.share_link_securely": {
+    "en": "For security, share this link separately from other details.",
+    "translation": "Для безопасности делитесь этой ссылкой отдельно от других деталей."
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "en": "Copied to clipboard",
+    "translation": "Скопировано в буфер обмена"
+  },
+  "web.COMMON.button_create_incoming": {
+    "en": "Create Incoming",
+    "translation": "Создать входящий запрос"
+  },
+  "web.COMMON.faq_title": {
+    "en": "F.A.Q.",
+    "translation": "Часто задаваемые вопросы"
+  },
+  "web.COMMON.verification_not_valid": {
+    "en": "Verification is not valid",
+    "translation": "Подтверждение недействительно"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "en": "Cannot verify an account when you're already logged in",
+    "translation": "Невозможно подтвердить учётную запись, когда вы уже вошли в систему"
+  },
+  "web.COMMON.show_password": {
+    "en": "Show password",
+    "translation": "Показать пароль"
+  },
+  "web.COMMON.hide_password": {
+    "en": "Hide password",
+    "translation": "Скрыть пароль"
+  },
+  "web.COMMON.minimum_8_characters": {
+    "en": "Password must be at least 8 characters",
+    "translation": "Пароль должен содержать не менее 8 символов"
+  },
+  "web.COMMON.password_requirements": {
+    "en": "Password must be at least 8 characters long",
+    "translation": "Пароль должен содержать не менее 8 символов"
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "en": "Passwords do not match",
+    "translation": "Пароли не совпадают"
+  },
+  "web.COMMON.form_field_required": {
+    "en": "This field is required",
+    "translation": "Это поле обязательно для заполнения"
+  },
+  "web.COMMON.form_processing": {
+    "en": "Processing your request",
+    "translation": "Обработка вашего запроса"
+  },
+  "web.COMMON.remember_me_description": {
+    "en": "Keep me logged in for 30 days",
+    "translation": "Оставаться в системе 30 дней"
+  },
+  "web.COMMON.redirecting": {
+    "en": "Redirecting...",
+    "translation": "Перенаправление..."
+  },
+  "web.COMMON.continue": {
+    "en": "Continue",
+    "translation": "Продолжить"
+  },
+  "web.COMMON.are_you_sure": {
+    "en": "Are you sure?",
+    "translation": "Вы уверены?"
+  },
+  "web.COMMON.danger_zone": {
+    "en": "Danger Zone",
+    "translation": "Опасная зона"
+  },
+  "web.COMMON.caution_zone": {
+    "en": "Careful Consideration Zone",
+    "translation": "Зона внимательного рассмотрения"
+  },
+  "web.COMMON.user_menu": {
+    "en": "User menu",
+    "translation": "Меню пользователя"
+  },
+  "web.COMMON.security": {
+    "en": "Security",
+    "translation": "Безопасность"
+  },
+  "web.COMMON.manage": {
+    "en": "Manage",
+    "translation": "Управление"
+  },
+  "web.COMMON.loading": {
+    "en": "Loading...",
+    "translation": "Загрузка..."
+  },
+  "web.COMMON.save_changes": {
+    "en": "Save Changes",
+    "translation": "Сохранить изменения"
+  },
+  "web.COMMON.saving": {
+    "en": "Saving...",
+    "translation": "Сохранение..."
+  },
+  "web.COMMON.adding_ellipses": {
+    "en": "Adding",
+    "translation": "Добавление"
+  },
+  "web.COMMON.e_g_example": {
+    "en": "e.g.",
+    "translation": "напр."
+  },
+  "web.COMMON.example_placeholder": {
+    "en": "e.g. {example}",
+    "translation": "напр. {example}"
+  },
+  "web.COMMON.status": {
+    "en": "Status",
+    "translation": "Статус"
+  },
+  "web.COMMON.escape": {
+    "en": "Escape",
+    "translation": "Escape"
+  },
+  "web.COMMON.active": {
+    "en": "Active",
+    "translation": "Активный"
+  },
+  "web.COMMON.preview": {
+    "en": "Preview",
+    "translation": "Предпросмотр"
+  },
+  "web.COMMON.remove": {
+    "en": "Remove",
+    "translation": "Удалить"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "en": "Press ESC to close",
+    "translation": "Нажмите ESC для закрытия"
+  },
+  "web.COMMON.enter": {
+    "en": "Enter",
+    "translation": "Ввод"
+  },
+  "web.COMMON.important": {
+    "en": "Important",
+    "translation": "Важно"
+  },
+  "web.COMMON.language": {
+    "en": "Language",
+    "translation": "Язык"
+  },
+  "web.COMMON.theme": {
+    "en": "Theme",
+    "translation": "Тема"
+  },
+  "web.COMMON.appearance": {
+    "en": "Appearance",
+    "translation": "Внешний вид"
+  },
+  "web.COMMON.done": {
+    "en": "Done",
+    "translation": "Готово"
+  },
+  "web.COMMON.end": {
+    "en": "End",
+    "translation": "Конец"
+  },
+  "web.COMMON.general": {
+    "en": "General",
+    "translation": "Общие"
+  },
+  "web.COMMON.note": {
+    "en": "Note",
+    "translation": "Примечание"
+  },
+  "web.COMMON.monthly": {
+    "en": "Monthly",
+    "translation": "Ежемесячно"
+  },
+  "web.COMMON.yearly": {
+    "en": "Yearly",
+    "translation": "Ежегодно"
+  },
+  "web.COMMON.go_on_then": {
+    "en": "Go on then.",
+    "translation": "Тогда продолжайте."
+  },
+  "web.COMMON.loading_ellipses": {
+    "en": "Loading...",
+    "translation": "Загрузка..."
+  },
+  "web.COMMON.not_received": {
+    "en": "NOT RECEIVED",
+    "translation": "НЕ ПОЛУЧЕНО"
+  },
+  "web.COMMON.confirm_password": {
+    "en": "Confirm password",
+    "translation": "Подтвердите пароль"
+  },
+  "web.COMMON.new_password": {
+    "en": "New password",
+    "translation": "Новый пароль"
+  },
+  "web.COMMON.email_address": {
+    "en": "Email address",
+    "translation": "Адрес электронной почты"
+  },
+  "web.COMMON.switch": {
+    "en": "switch",
+    "translation": "переключить"
+  },
+  "web.COMMON.features": {
+    "en": "Features",
+    "translation": "Функции"
+  },
+  "web.COMMON.not_found": {
+    "en": "Not Found",
+    "translation": "Не найдено"
+  },
+  "web.COMMON.emoji_x": {
+    "en": "❌",
+    "translation": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "en": "✅",
+    "translation": "✅"
+  },
+  "web.COMMON.supported": {
+    "en": "Supported",
+    "translation": "Поддерживается"
+  },
+  "web.COMMON.version": {
+    "en": "Version",
+    "translation": "Версия"
+  },
+  "web.COMMON.other": {
+    "en": "Other",
+    "translation": "Другое"
+  },
+  "web.COMMON.min_width_1024px": {
+    "en": "(min-width: 1024px)",
+    "translation": "(минимальная ширина: 1024px)"
+  },
+  "web.COMMON.ctrl_enter": {
+    "en": "Ctrl + Enter",
+    "translation": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "en": "⌘ + Enter",
+    "translation": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "en": "Mac",
+    "translation": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "en": "Email address copied to clipboard!",
+    "translation": "Адрес электронной почты скопирован в буфер обмена"
+  },
+  "web.COMMON.value": {
+    "en": "Value",
+    "translation": "Значение"
+  },
+  "web.COMMON.host": {
+    "en": "Host",
+    "translation": "Хост"
+  },
+  "web.COMMON.type": {
+    "en": "Type",
+    "translation": "Тип"
+  },
+  "web.COMMON.previous": {
+    "en": "Previous",
+    "translation": "Предыдущий"
+  },
+  "web.COMMON.next": {
+    "en": "Next",
+    "translation": "Следующий"
+  },
+  "web.COMMON.password_strength": {
+    "en": "Password Strength:",
+    "translation": "Надёжность пароля:"
+  },
+  "web.COMMON.great": {
+    "en": "Great",
+    "translation": "Отлично"
+  },
+  "web.COMMON.pretty_good": {
+    "en": "Pretty good",
+    "translation": "Довольно хорошо"
+  },
+  "web.COMMON.fair": {
+    "en": "Fair",
+    "translation": "Удовлетворительно"
+  },
+  "web.COMMON.meh": {
+    "en": "Meh",
+    "translation": "Так себе"
+  },
+  "web.COMMON.not_great": {
+    "en": "Not great",
+    "translation": "Не очень"
+  },
+  "web.COMMON.open_options": {
+    "en": "Open options",
+    "translation": "Открыть параметры"
+  },
+  "web.COMMON.inactive": {
+    "en": "Inactive",
+    "translation": "Неактивный"
+  },
+  "web.COMMON.an_error_occurred": {
+    "en": "An error occurred",
+    "translation": "Произошла ошибка"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "en": "Copy secret to clipboard",
+    "translation": "Скопировать секрет в буфер обмена"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "en": "Secret copied to clipboard",
+    "translation": "Секрет скопирован в буфер обмена"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "en": "Double check that passphrase",
+    "translation": "Внимательно проверьте эту кодовую фразу"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "en": "Press the copy button below.",
+    "translation": "Нажмите кнопку копирования ниже."
+  },
+  "web.LABELS.view_toggle.show": {
+    "en": "Show",
+    "translation": "Показать"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "en": "Hide",
+    "translation": "Скрыть"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "en": "Show More",
+    "translation": "Показать больше"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "en": "Show Less",
+    "translation": "Показать меньше"
+  },
+  "web.LABELS.enable": {
+    "en": "Enable",
+    "translation": "Включить"
+  },
+  "web.LABELS.disable": {
+    "en": "Disable",
+    "translation": "Отключить"
+  },
+  "web.LABELS.stats": {
+    "en": "Stats",
+    "translation": "Статистика"
+  },
+  "web.LABELS.timeline": {
+    "en": "Timeline",
+    "translation": "Временная шкала"
+  },
+  "web.LABELS.lifespan": {
+    "en": "Lifespan",
+    "translation": "Срок действия"
+  },
+  "web.LABELS.expiration_time": {
+    "en": "Expiration Time",
+    "translation": "Время истечения"
+  },
+  "web.LABELS.close": {
+    "en": "Close",
+    "translation": "Закрыть"
+  },
+  "web.LABELS.loading": {
+    "en": "Loading...",
+    "translation": "Загрузка..."
+  },
+  "web.LABELS.cancel": {
+    "en": "Cancel",
+    "translation": "Отменить"
+  },
+  "web.LABELS.saving": {
+    "en": "Saving...",
+    "translation": "Сохранение..."
+  },
+  "web.LABELS.saved": {
+    "en": "Saved",
+    "translation": "Сохранено"
+  },
+  "web.LABELS.save": {
+    "en": "Save",
+    "translation": "Сохранить"
+  },
+  "web.LABELS.save_all": {
+    "en": "Save All",
+    "translation": "Сохранить всё"
+  },
+  "web.LABELS.details": {
+    "en": "Details",
+    "translation": "Подробности"
+  },
+  "web.LABELS.encrypted": {
+    "en": "Encrypted",
+    "translation": "Зашифровано"
+  },
+  "web.LABELS.secret_status": {
+    "en": "Secret Status",
+    "translation": "Статус секрета"
+  },
+  "web.LABELS.need_help": {
+    "en": "Need help?",
+    "translation": "Нужна помощь?"
+  },
+  "web.LABELS.create_new_secret": {
+    "en": "Create New Secret",
+    "translation": "Создать новый секрет"
+  },
+  "web.LABELS.actions": {
+    "en": "Actions",
+    "translation": "Действия"
+  },
+  "web.LABELS.no_passphrase": {
+    "en": "No Passphrase Required",
+    "translation": "Кодовая фраза не требуется"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "en": "Copy to clipboard",
+    "translation": "Копировать в буфер обмена"
+  },
+  "web.LABELS.receipts": {
+    "en": "Receipts",
+    "translation": "Квитанции"
+  },
+  "web.LABELS.share": {
+    "en": "Share",
+    "translation": "Поделиться"
+  },
+  "web.LABELS.secret_link": {
+    "en": "Secret Link",
+    "translation": "Ссылка на секрет"
+  },
+  "web.LABELS.dismiss": {
+    "en": "Dismiss",
+    "translation": "Закрыть"
+  },
+  "web.LABELS.security_details": {
+    "en": "Security Details",
+    "translation": "Детали безопасности"
+  },
+  "web.LABELS.items_count": {
+    "en": "{count} Items",
+    "translation": "{count} элементов"
+  },
+  "web.LABELS.recipients_count": {
+    "en": "{count} Recipients",
+    "translation": "{count} получателей"
+  },
+  "web.LABELS.view": {
+    "en": "View",
+    "translation": "Просмотр"
+  },
+  "web.LABELS.views": {
+    "en": "Views",
+    "translation": "Просмотры"
+  },
+  "web.LABELS.times_viewed": {
+    "en": "times viewed",
+    "translation": "просмотров"
+  },
+  "web.LABELS.view_progress": {
+    "en": "View Progress",
+    "translation": "Прогресс просмотра"
+  },
+  "web.LABELS.help_section": {
+    "en": "Help Section",
+    "translation": "Раздел помощи"
+  },
+  "web.LABELS.passphrase_protected": {
+    "en": "Protected with passphrase",
+    "translation": "Защищено кодовой фразой"
+  },
+  "web.LABELS.feedback_received": {
+    "en": "Feedback received.",
+    "translation": "Отзыв получен."
+  },
+  "web.LABELS.sending_ellipses": {
+    "en": "Sending...",
+    "translation": "Отправка..."
+  },
+  "web.LABELS.title_recent_secrets": {
+    "en": "Recent Secrets",
+    "translation": "Недавние секреты"
+  },
+  "web.LABELS.pricing": {
+    "en": "Pricing",
+    "translation": "Тарифы"
+  },
+  "web.LABELS.refresh": {
+    "en": "Refresh",
+    "translation": "Обновить"
+  },
+  "web.LABELS.reload": {
+    "en": "Reload",
+    "translation": "Перезагрузить"
+  },
+  "web.LABELS.filter": {
+    "en": "Filter"
+  },
+  "web.LABELS.clear": {
+    "en": "Clear"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "en": "Secrets links created in this session",
+    "translation": "Ссылки на секреты, созданные в этом сеансе"
+  },
+  "web.LABELS.create_link_short": {
+    "en": "Create Link",
+    "translation": "Создать ссылку"
+  },
+  "web.LABELS.create_link": {
+    "en": "Create Secret Link",
+    "translation": "Создать ссылку на секрет"
+  },
+  "web.LABELS.create_request_short": {
+    "en": "Create Request",
+    "translation": "Создать запрос"
+  },
+  "web.LABELS.create_request": {
+    "en": "Create Request Link",
+    "translation": "Создать ссылку для запроса"
+  },
+  "web.LABELS.related_settings": {
+    "en": "Related Settings",
+    "translation": "Связанные настройки"
+  },
+  "web.LABELS.creating_links_for": {
+    "en": "Creating links for",
+    "translation": "Создание ссылок для"
+  },
+  "web.LABELS.scope_indicator": {
+    "en": "Creating secrets in {domain}",
+    "translation": "Создание секретов в {domain}"
+  },
+  "web.STATUS.new": {
+    "en": "New",
+    "translation": "Новый"
+  },
+  "web.STATUS.unread": {
+    "en": "Unread",
+    "translation": "Непрочитано"
+  },
+  "web.STATUS.viewed": {
+    "en": "Link opened",
+    "translation": "Ссылка открыта"
+  },
+  "web.STATUS.received": {
+    "en": "Received",
+    "translation": "Получено"
+  },
+  "web.STATUS.burned": {
+    "en": "Burned",
+    "translation": "Окончательно удалено"
+  },
+  "web.STATUS.destroyed": {
+    "en": "Destroyed",
+    "translation": "Уничтожено"
+  },
+  "web.STATUS.expiring_soon": {
+    "en": "Expiring Soon",
+    "translation": "Скоро истекает"
+  },
+  "web.STATUS.created": {
+    "en": "Created",
+    "translation": "Создано"
+  },
+  "web.STATUS.expires": {
+    "en": "Expires",
+    "translation": "Истекает"
+  },
+  "web.STATUS.expired": {
+    "en": "Expired",
+    "translation": "Истёк"
+  },
+  "web.STATUS.orphaned": {
+    "en": "Orphaned",
+    "translation": "Осиротевший"
+  },
+  "web.STATUS.secured": {
+    "en": "Secured",
+    "translation": "Защищено"
+  },
+  "web.STATUS.securing": {
+    "en": "Securing",
+    "translation": "Защита"
+  },
+  "web.STATUS.copied": {
+    "en": "Copied",
+    "translation": "Скопировано"
+  },
+  "web.STATUS.time_remaining": {
+    "en": "Time Remaining",
+    "translation": "Осталось времени"
+  },
+  "web.STATUS.new_description": {
+    "en": "Secret link has been created and not yet viewed",
+    "translation": "Ссылка на секрет создана и ещё не просмотрена"
+  },
+  "web.STATUS.unread_description": {
+    "en": "Secret link has been created and has not been viewed",
+    "translation": "Ссылка на секрет создана и не была просмотрена"
+  },
+  "web.STATUS.viewed_description": {
+    "en": "Secret link has been opened and ready to be viewed",
+    "translation": "Ссылка на секрет открыта и готова к просмотру"
+  },
+  "web.STATUS.received_description": {
+    "en": "Secret has been revealed to the recipient",
+    "translation": "Секрет раскрыт получателю"
+  },
+  "web.STATUS.burned_description": {
+    "en": "Secret was manually burned before being viewed",
+    "translation": "Секрет был вручную окончательно удалён до просмотра"
+  },
+  "web.STATUS.destroyed_description": {
+    "en": "Secret has been permanently destroyed",
+    "translation": "Секрет был безвозвратно уничтожен"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "en": "Secret will expire soon",
+    "translation": "Срок действия секрета скоро истечёт"
+  },
+  "web.STATUS.orphaned_description": {
+    "en": "Secret has been orphaned and will be destroyed soon",
+    "translation": "Секрет осиротел и скоро будет уничтожен"
+  },
+  "web.STATUS.expired_description": {
+    "en": "Secret has expired before being viewed",
+    "translation": "Срок действия секрета истёк до просмотра"
+  },
+  "web.STATUS.success": {
+    "en": "Success",
+    "translation": "Успешно"
+  },
+  "web.STATUS.delivered": {
+    "en": "Delivered",
+    "translation": "Доставлено"
+  },
+  "web.STATUS.dns_incorrect": {
+    "en": "DNS Incorrect",
+    "translation": "DNS неверен"
+  },
+  "web.STATUS.active": {
+    "en": "Active",
+    "translation": "Активный"
+  },
+  "web.STATUS.inactive": {
+    "en": "Inactive",
+    "translation": "Неактивный"
+  },
+  "web.FEATURES.unlimited_views": {
+    "en": "Unlimited Views",
+    "translation": "Неограниченные просмотры"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "en": "Trusted domain branding",
+    "translation": "Брендинг доверенного домена"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "en": "Encrypted in transit and at rest",
+    "translation": "Зашифровано при передаче и хранении"
+  },
+  "web.UNITS.ttl.duration": {
+    "en": "{count} {unit}",
+    "translation": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "en": "day | days",
+    "translation": "день | дня | дней"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "en": "hour | hours",
+    "translation": "час | часа | часов"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "en": "minute | minutes",
+    "translation": "минута | минуты | минут"
+  },
+  "web.UNITS.ttl.time.second": {
+    "en": "second | seconds",
+    "translation": "секунда | секунды | секунд"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "en": "---",
+    "translation": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "en": "{count} {unit} remaining",
+    "translation": "осталось {count} {unit}"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "en": "day remaining | days remaining",
+    "translation": "остался день | осталось дня | осталось дней"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "en": "hour remaining | hours remaining",
+    "translation": "остался час | осталось часа | осталось часов"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "en": "minute remaining | minutes remaining",
+    "translation": "осталась минута | осталось минуты | осталось минут"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "en": "second remaining | seconds remaining",
+    "translation": "осталась секунда | осталось секунды | осталось секунд"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "en": "---",
+    "translation": "---"
+  },
+  "web.UNITS.limited_views": {
+    "en": "{count} view limit",
+    "translation": "лимит {count} просмотров"
+  },
+  "web.UNITS.days_remaining": {
+    "en": "{count} Days Left",
+    "translation": "Осталось {count} дней"
+  },
+  "web.UNITS.hours_remaining": {
+    "en": "{count} Hours Left",
+    "translation": "Осталось {count} часов"
+  },
+  "web.UNITS.minutes_remaining": {
+    "en": "{count} Minutes Left",
+    "translation": "Осталось {count} минут"
+  },
+  "web.TITLES.incoming": {
+    "en": "Incoming Secrets",
+    "translation": "Входящие секреты"
+  },
+  "web.TITLES.feedback": {
+    "en": "Feedback",
+    "translation": "Обратная связь"
+  },
+  "web.TITLES.help": {
+    "en": "Help"
+  },
+  "web.TITLES.signin": {
+    "en": "Sign In",
+    "translation": "Войти"
+  },
+  "web.TITLES.signup": {
+    "en": "Create Account",
+    "translation": "Создать учётную запись"
+  },
+  "web.TITLES.forgot_password": {
+    "en": "Forgot Password",
+    "translation": "Забыли пароль"
+  },
+  "web.TITLES.reset_password": {
+    "en": "Reset Password",
+    "translation": "Сброс пароля"
+  },
+  "web.TITLES.logout": {
+    "en": "Logging Out",
+    "translation": "Выход из системы"
+  },
+  "web.TITLES.verify_account": {
+    "en": "Verify Account",
+    "translation": "Подтвердить учётную запись"
+  },
+  "web.TITLES.mfa_verify": {
+    "en": "Two-Factor Authentication",
+    "translation": "Двухфакторная аутентификация"
+  },
+  "web.TITLES.email_login": {
+    "en": "Email Login",
+    "translation": "Вход через электронную почту"
+  },
+  "web.TITLES.accept_invitation": {
+    "en": "Accept Invitation",
+    "translation": "Принять приглашение"
+  },
+  "web.TITLES.secret": {
+    "en": "Secret",
+    "translation": "Секрет"
+  },
+  "web.TITLES.metadata": {
+    "en": "Secret Details",
+    "translation": "Детали секрета"
+  },
+  "web.TITLES.receipt": {
+    "en": "Secret Receipt",
+    "translation": "Квитанция секрета"
+  },
+  "web.TITLES.burn_secret": {
+    "en": "Burn Secret",
+    "translation": "Окончательное удаление секрета"
+  },
+  "web.TITLES.dashboard": {
+    "en": "Dashboard",
+    "translation": "Панель управления"
+  },
+  "web.TITLES.recent": {
+    "en": "Recent Secrets",
+    "translation": "Недавние"
+  },
+  "web.TITLES.domains": {
+    "en": "Custom Domains",
+    "translation": "Пользовательские домены"
+  },
+  "web.TITLES.domain_add": {
+    "en": "Add Domain",
+    "translation": "Добавить домен"
+  },
+  "web.TITLES.domain_verify": {
+    "en": "Verify Domain",
+    "translation": "Проверить домен"
+  },
+  "web.TITLES.domain_brand": {
+    "en": "Brand Domain",
+    "translation": "Брендинг домена"
+  },
+  "web.TITLES.account": {
+    "en": "Account",
+    "translation": "Настройки учётной записи"
+  },
+  "web.TITLES.data_region": {
+    "en": "Data Region",
+    "translation": "Регион данных"
+  },
+  "web.TITLES.current_region": {
+    "en": "Current Region",
+    "translation": "Текущий регион"
+  },
+  "web.TITLES.available_regions": {
+    "en": "Available Regions",
+    "translation": "Доступные регионы"
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "en": "Why Data Sovereignty Matters",
+    "translation": "Почему важен суверенитет данных"
+  },
+  "web.TITLES.profile_settings": {
+    "en": "Profile Settings",
+    "translation": "Настройки профиля"
+  },
+  "web.TITLES.preferences_settings": {
+    "en": "Preferences",
+    "translation": "Предпочтения"
+  },
+  "web.TITLES.privacy_settings": {
+    "en": "Privacy",
+    "translation": "Конфиденциальность"
+  },
+  "web.TITLES.notification_settings": {
+    "en": "Notifications",
+    "translation": "Уведомления"
+  },
+  "web.TITLES.change_email": {
+    "en": "Change Email",
+    "translation": "Изменить электронную почту"
+  },
+  "web.TITLES.security_overview": {
+    "en": "Security",
+    "translation": "Безопасность"
+  },
+  "web.TITLES.change_password": {
+    "en": "Change Password",
+    "translation": "Изменить пароль"
+  },
+  "web.TITLES.mfa_settings": {
+    "en": "Two-Factor Authentication",
+    "translation": "Двухфакторная аутентификация"
+  },
+  "web.TITLES.active_sessions": {
+    "en": "Active Sessions",
+    "translation": "Активные сеансы"
+  },
+  "web.TITLES.recovery_codes": {
+    "en": "Recovery Codes",
+    "translation": "Коды восстановления"
+  },
+  "web.TITLES.api_settings": {
+    "en": "API Settings",
+    "translation": "Настройки API"
+  },
+  "web.TITLES.advanced_settings": {
+    "en": "Advanced Settings",
+    "translation": "Расширенные настройки"
+  },
+  "web.TITLES.system_settings": {
+    "en": "System Settings",
+    "translation": "Системные настройки"
+  },
+  "web.TITLES.not_found": {
+    "en": "Page Not Found",
+    "translation": "Страница не найдена"
+  },
+  "web.TITLES.organizations_settings": {
+    "en": "Organizations",
+    "translation": "Организации"
+  },
+  "web.TITLES.organization_settings": {
+    "en": "Organization Settings",
+    "translation": "Настройки организации"
+  },
+  "web.TITLES.pricing": {
+    "en": "Pricing"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "en": "Focus is now in the main text area",
+    "translation": "Фокус находится в основной текстовой области"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "en": "Sharing Instructions",
+    "translation": "Инструкции по обмену"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "en": "Share the link with the intended recipient",
+    "translation": "Поделитесь ссылкой с предполагаемым получателем"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "en": "Share the passphrase separately through a secure channel",
+    "translation": "Поделитесь кодовой фразой отдельно через безопасный канал"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "en": "Use a different secure channel to share sensitive information",
+    "translation": "Используйте другой безопасный канал для обмена конфиденциальной информацией"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "en": "Always verify you're on the official Onetime Secret website. Fraudsters sometimes create fake websites that look exactly like Onetime Secret to steal your secrets. To avoid phishing attacks, check the region domain before creating new links.",
+    "translation": "Всегда проверяйте, что вы находитесь на официальном сайте Onetime Secret. Мошенники иногда создают поддельные сайты, которые выглядят точно так же, как Onetime Secret, чтобы украсть ваши секреты. Чтобы избежать фишинговых атак, проверьте доменное имя региона перед созданием новых ссылок."
+  },
+  "web.pricing.title": {
+    "en": "Simple, Transparent Pricing"
+  },
+  "web.pricing.subtitle": {
+    "en": "Choose the plan that fits your needs. All plans include unlimited secret sharing and privacy-first design."
+  },
+  "web.pricing.get_started_free": {
+    "en": "Get Started Free"
+  },
+  "web.pricing.start_trial": {
+    "en": "Get Started"
+  },
+  "web.pricing.already_have_account": {
+    "en": "Already have an account?"
+  },
+  "web.pricing.sign_in": {
+    "en": "Sign in"
+  },
+  "web.pricing.recommended_for_you": {
+    "en": "Recommended for You"
+  }
+}

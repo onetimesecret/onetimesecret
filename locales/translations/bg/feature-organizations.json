@@ -1,0 +1,533 @@
+{
+  "web.organizations.title": {
+    "en": "Organizations",
+    "translation": "Организация"
+  },
+  "web.organizations.organization": {
+    "en": "Organization",
+    "translation": "Организация"
+  },
+  "web.organizations.organization_plural": {
+    "en": "Organizations",
+    "translation": "Организации"
+  },
+  "web.organizations.organizations_description": {
+    "en": "Manage your organizations",
+    "translation": "Управлявайте вашите организации"
+  },
+  "web.organizations.my_organizations": {
+    "en": "Organizations",
+    "translation": "Моите организации"
+  },
+  "web.organizations.manage_organizations": {
+    "en": "Manage Organizations",
+    "translation": "Управление на организации"
+  },
+  "web.organizations.new_organization": {
+    "en": "New Organization",
+    "translation": "Нова организация"
+  },
+  "web.organizations.no_organizations": {
+    "en": "No organizations yet",
+    "translation": "Все още няма организации"
+  },
+  "web.organizations.no_organizations_description": {
+    "en": "Organizations provide unified billing and administration. Get started by creating your first organization.",
+    "translation": "Организациите ви позволяват да управлявате множество екипи с унифицирано фактуриране и администриране. Започнете, като създадете първата си организация."
+  },
+  "web.organizations.no_description": {
+    "en": "No description provided",
+    "translation": "Не е предоставено описание"
+  },
+  "web.organizations.default": {
+    "en": "Default",
+    "translation": "По подразбиране"
+  },
+  "web.organizations.create_organization": {
+    "en": "Create Organization",
+    "translation": "Създай организация"
+  },
+  "web.organizations.create_first_organization": {
+    "en": "Create First Organization",
+    "translation": "Създай първа организация"
+  },
+  "web.organizations.create_organization_description": {
+    "en": "Create a new organization",
+    "translation": "Създайте нова организация за групиране на вашите екипи"
+  },
+  "web.organizations.create": {
+    "en": "Create",
+    "translation": "Създай"
+  },
+  "web.organizations.create_error": {
+    "en": "Failed to create organization",
+    "translation": "Неуспешно създаване на организация"
+  },
+  "web.organizations.organization_name": {
+    "en": "Organization Name",
+    "translation": "Име на организацията"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "en": "e.g. Acme Corporation",
+    "translation": "напр. Акме Корпорейшън"
+  },
+  "web.organizations.display_name": {
+    "en": "Organization Name",
+    "translation": "Име на организацията"
+  },
+  "web.organizations.description": {
+    "en": "Description",
+    "translation": "Описание"
+  },
+  "web.organizations.description_placeholder": {
+    "en": "What is this organization for?",
+    "translation": "За какво е тази организация?"
+  },
+  "web.organizations.contact_email": {
+    "en": "Billing Email",
+    "translation": "Имейл за фактуриране"
+  },
+  "web.organizations.contact_email_help": {
+    "en": "Primary contact for billing and administrative notifications",
+    "translation": "Основна контакт за фактуриране и административни известия"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "en": "Billing and subscription management is handled through your primary workspace. Visit your main workspace settings to manage payment methods and invoices.",
+    "translation": "Управлението на фактуриране и абонамент се извършва чрез основното ви работно пространство. Посетете настройките на основното си работно пространство, за да управлявате методи на плащане и фактури."
+  },
+  "web.organizations.select_organization": {
+    "en": "Select an organization",
+    "translation": "Изберете организация"
+  },
+  "web.organizations.switcher_locked": {
+    "en": "Organization switching not available on this page",
+    "translation": "Превключването на организация не е налично на тази страница"
+  },
+  "web.organizations.not_found": {
+    "en": "Organization not found",
+    "translation": "Организацията не е намерена"
+  },
+  "web.organizations.load_error": {
+    "en": "Failed to load organization",
+    "translation": "Неуспешно зареждане на организация"
+  },
+  "web.organizations.fetch_organization_error": {
+    "en": "Failed to load organization",
+    "translation": "Неуспешно зареждане на организация"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "en": "Failed to load organizations",
+    "translation": "Неуспешно зареждане на организации"
+  },
+  "web.organizations.organization_information": {
+    "en": "Organization Information",
+    "translation": "Информация за организацията"
+  },
+  "web.organizations.created": {
+    "en": "Created",
+    "translation": "Създадена"
+  },
+  "web.organizations.last_updated": {
+    "en": "Last Updated",
+    "translation": "Последна актуализация"
+  },
+  "web.organizations.organization_settings": {
+    "en": "Organization Settings",
+    "translation": "Настройки на организацията"
+  },
+  "web.organizations.organization_settings_description": {
+    "en": "Update your organization name and description",
+    "translation": "Актуализирайте името и описанието на вашата организация"
+  },
+  "web.organizations.general_settings": {
+    "en": "General Settings",
+    "translation": "Общи настройки"
+  },
+  "web.organizations.billing_settings": {
+    "en": "Billing & Subscription",
+    "translation": "Фактуриране и абонамент"
+  },
+  "web.organizations.save_changes": {
+    "en": "Save Changes",
+    "translation": "Запази промените"
+  },
+  "web.organizations.update_success": {
+    "en": "Organization updated successfully",
+    "translation": "Организацията е актуализирана успешно"
+  },
+  "web.organizations.update_error": {
+    "en": "Failed to update organization",
+    "translation": "Неуспешна актуализация на организацията"
+  },
+  "web.organizations.billing_email_updated": {
+    "en": "Billing email updated successfully"
+  },
+  "web.organizations.billing_coming_soon": {
+    "en": "Billing Integration Coming Soon",
+    "translation": "Интеграция за фактуриране очаквайте скоро"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "en": "Unified billing and subscription management will be available in a future release.",
+    "translation": "Унифицирано фактуриране и управление на абонаменти за всички екипи в тази организация ще бъдат налични в бъдещо издание."
+  },
+  "web.organizations.about_title": {
+    "en": "About Organizations",
+    "translation": "За организациите"
+  },
+  "web.organizations.about_description": {
+    "en": "Organizations provide unified billing and administration for centralized management.",
+    "translation": "Организациите предоставят унифицирано фактуриране и администриране за множество екипи. Те са опционални - екипите могат да съществуват независимо или да бъдат групирани под организация за централизирано управление."
+  },
+  "web.organizations.single_user_info_title": {
+    "en": "Manage Your Organization",
+    "translation": "Управлявайте вашата организация"
+  },
+  "web.organizations.single_user_info_description": {
+    "en": "Update your company name and organization details here. This information helps personalize your account and can be used for branding features in the future.",
+    "translation": "Актуализирайте името на вашата компания и детайлите за организацията тук. Тази информация помага за персонализиране на вашия акаунт и може да се използва за функции за брандиране в бъдеще."
+  },
+  "web.organizations.getting_started_title": {
+    "en": "Getting Started with Organizations",
+    "translation": "Първи стъпки с организациите"
+  },
+  "web.organizations.getting_started_description": {
+    "en": "Create your first organization to manage your company information and prepare for future branding features.",
+    "translation": "Създайте първата си организация, за да управлявате информацията за вашата компания и да се подготвите за бъдещи функции за сътрудничество в екип и брандиране."
+  },
+  "web.organizations.page_description": {
+    "en": "Manage your organizations and team members",
+    "translation": "Управлявайте вашите организации и членове на екипа"
+  },
+  "web.organizations.tabs.general": {
+    "en": "Settings",
+    "translation": "Общи"
+  },
+  "web.organizations.tabs.company_branding": {
+    "en": "Company Branding",
+    "translation": "Корпоративен брандинг"
+  },
+  "web.organizations.tabs.members": {
+    "en": "Team",
+    "translation": "Екип"
+  },
+  "web.organizations.tabs.billing": {
+    "en": "Billing",
+    "translation": "Фактуриране"
+  },
+  "web.organizations.danger_zone": {
+    "en": "Danger Zone",
+    "translation": "Опасна зона"
+  },
+  "web.organizations.delete_organization": {
+    "en": "Delete Organization",
+    "translation": "Изтрий организация"
+  },
+  "web.organizations.delete_organization_warning": {
+    "en": "This will permanently delete the organization. This action cannot be undone.",
+    "translation": "Това ще изтрие перманентно организацията и всички свързани екипи. Това действие не може да бъде отменено."
+  },
+  "web.organizations.delete": {
+    "en": "Delete",
+    "translation": "Изтрий"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "en": "Delete Organization",
+    "translation": "Изтрий организация"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "en": "Are you sure you want to delete {name}? This action cannot be undone.",
+    "translation": "Сигурни ли сте, че искате да изтриете {name}? Това действие не може да бъде отменено."
+  },
+  "web.organizations.delete_error": {
+    "en": "Failed to delete organization",
+    "translation": "Неуспешно изтриване на организация"
+  },
+  "web.organizations.members.title": {
+    "en": "Members",
+    "translation": "Членове"
+  },
+  "web.organizations.members.description": {
+    "en": "Manage organization members and their roles",
+    "translation": "Управление на членове на организацията и техните роли"
+  },
+  "web.organizations.members.current_members": {
+    "en": "Current Members",
+    "translation": "Текущи членове"
+  },
+  "web.organizations.members.member": {
+    "en": "Member",
+    "translation": "Член"
+  },
+  "web.organizations.members.member_singular": {
+    "en": "member",
+    "translation": "member"
+  },
+  "web.organizations.members.member_plural": {
+    "en": "members",
+    "translation": "members"
+  },
+  "web.organizations.members.name": {
+    "en": "Name",
+    "translation": "Име"
+  },
+  "web.organizations.members.email": {
+    "en": "Email",
+    "translation": "Имейл"
+  },
+  "web.organizations.members.role": {
+    "en": "Role",
+    "translation": "Роля"
+  },
+  "web.organizations.members.joined": {
+    "en": "Joined",
+    "translation": "Присъединил се"
+  },
+  "web.organizations.members.actions": {
+    "en": "Actions",
+    "translation": "Действия"
+  },
+  "web.organizations.members.no_members": {
+    "en": "No members yet. Invite team members to get started.",
+    "translation": "Не са намерени членове"
+  },
+  "web.organizations.members.no_members_description": {
+    "en": "This organization has no members yet.",
+    "translation": "Тази организация все още няма членове."
+  },
+  "web.organizations.members.role_updated": {
+    "en": "Member role updated successfully",
+    "translation": "Ролята на члена е актуализирана успешно"
+  },
+  "web.organizations.members.role_update_error": {
+    "en": "Failed to update member role",
+    "translation": "Неуспешна актуализация на ролята на члена"
+  },
+  "web.organizations.members.member_removed": {
+    "en": "Member removed from organization",
+    "translation": "Членът е премахнат от организацията"
+  },
+  "web.organizations.members.member_remove_error": {
+    "en": "Failed to remove member",
+    "translation": "Неуспешно премахване на член"
+  },
+  "web.organizations.members.remove_member_title": {
+    "en": "Remove Member",
+    "translation": "Премахни член"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "en": "Are you sure you want to remove {name} from this organization?",
+    "translation": "Сигурни ли сте, че искате да премахнете {name} от тази организация?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "en": "You cannot change your own role",
+    "translation": "Не можете да промените собствената си роля"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "en": "You cannot remove yourself from the organization",
+    "translation": "Не можете да премахнете себе си от организацията"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "en": "You cannot remove the organization owner",
+    "translation": "Не можете да премахнете собственика на организацията"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "en": "You do not have permission to manage members",
+    "translation": "Нямате права да управлявате членове"
+  },
+  "web.organizations.members.roles.owner": {
+    "en": "Owner",
+    "translation": "Собственик"
+  },
+  "web.organizations.members.roles.admin": {
+    "en": "Admin",
+    "translation": "Администратор"
+  },
+  "web.organizations.members.roles.member": {
+    "en": "Member",
+    "translation": "Член"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "en": "Full access to all organization settings and members",
+    "translation": "Пълен достъп до всички настройки на организацията и членове"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "en": "Can manage members and most organization settings",
+    "translation": "Може да управлява членове и повечето настройки на организацията"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "en": "Basic access to organization resources",
+    "translation": "Основен достъп до ресурсите на организацията"
+  },
+  "web.organizations.invitations.title": {
+    "en": "Organization Invitations",
+    "translation": "Покани за организацията"
+  },
+  "web.organizations.invitations.invite_member": {
+    "en": "Invite Member",
+    "translation": "Покани член"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "en": "Invite New Member",
+    "translation": "Покани нов член"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "en": "Pending Invitations",
+    "translation": "Чакащи покани"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "en": "No pending invitations",
+    "translation": "Няма чакащи покани"
+  },
+  "web.organizations.invitations.email_address": {
+    "en": "Email Address",
+    "translation": "Имейл адрес"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "en": "member@example.com",
+    "translation": "член@example.com"
+  },
+  "web.organizations.invitations.role": {
+    "en": "Role",
+    "translation": "Роля"
+  },
+  "web.organizations.invitations.send_invite": {
+    "en": "Send Invitation",
+    "translation": "Изпрати покана"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "en": "Invitation sent successfully",
+    "translation": "Поканата е изпратена успешно"
+  },
+  "web.organizations.invitations.invite_error": {
+    "en": "Failed to send invitation",
+    "translation": "Неуспешно изпращане на покана"
+  },
+  "web.organizations.invitations.resend": {
+    "en": "Resend",
+    "translation": "Изпрати отново"
+  },
+  "web.organizations.invitations.revoke": {
+    "en": "Revoke",
+    "translation": "Оттегли"
+  },
+  "web.organizations.invitations.resend_success": {
+    "en": "Invitation resent successfully",
+    "translation": "Поканата е изпратена отново успешно"
+  },
+  "web.organizations.invitations.resend_error": {
+    "en": "Failed to resend invitation",
+    "translation": "Неуспешно повторно изпращане на покана"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "en": "Invitation revoked successfully",
+    "translation": "Поканата е оттеглена успешно"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "en": "Failed to revoke invitation",
+    "translation": "Неуспешно оттегляне на покана"
+  },
+  "web.organizations.invitations.invited_by": {
+    "en": "Invited by",
+    "translation": "Поканен от"
+  },
+  "web.organizations.invitations.invited_at": {
+    "en": "Invited",
+    "translation": "Поканен"
+  },
+  "web.organizations.invitations.expires_at": {
+    "en": "Expires",
+    "translation": "Изтича"
+  },
+  "web.organizations.invitations.resent_count": {
+    "en": "Resent {count} time",
+    "translation": "Изпратена отново {count} път"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "en": "Resent {count} times",
+    "translation": "Изпратена отново {count} пъти"
+  },
+  "web.organizations.invitations.status.pending": {
+    "en": "Pending",
+    "translation": "Чакаща"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "en": "Accepted",
+    "translation": "Приета"
+  },
+  "web.organizations.invitations.status.declined": {
+    "en": "Declined",
+    "translation": "Отхвърлена"
+  },
+  "web.organizations.invitations.status.expired": {
+    "en": "Expired",
+    "translation": "Изтекла"
+  },
+  "web.organizations.invitations.roles.member": {
+    "en": "Member",
+    "translation": "Член"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "en": "Admin",
+    "translation": "Администратор"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "en": "Accept Invitation",
+    "translation": "Приемане на покана"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "en": "Decline Invitation",
+    "translation": "Отхвърляне на покана"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "en": "Invitation Details",
+    "translation": "Детайли за поканата"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "en": "You've been invited to join",
+    "translation": "Поканени сте да се присъедините към"
+  },
+  "web.organizations.invitations.invited_as": {
+    "en": "You've been invited as a",
+    "translation": "Поканени сте като"
+  },
+  "web.organizations.invitations.accept_success": {
+    "en": "Invitation accepted successfully",
+    "translation": "Поканата е приета успешно"
+  },
+  "web.organizations.invitations.accept_error": {
+    "en": "Failed to accept invitation",
+    "translation": "Неуспешно приемане на покана"
+  },
+  "web.organizations.invitations.decline_success": {
+    "en": "Invitation declined",
+    "translation": "Поканата е отхвърлена"
+  },
+  "web.organizations.invitations.decline_error": {
+    "en": "Failed to decline invitation",
+    "translation": "Неуспешно отхвърляне на покана"
+  },
+  "web.organizations.invitations.expired_message": {
+    "en": "This invitation has expired",
+    "translation": "Тази покана е изтекла"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "en": "Invalid or expired invitation",
+    "translation": "Невалидна или изтекла покана"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "en": "Please sign in to accept this invitation",
+    "translation": "Моля, влезте, за да приемете тази покана"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "en": "Loading invitation details",
+    "translation": "Зареждане на детайли за поканата"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "en": "Upgrade your plan to invite team members",
+    "translation": "Надградете плана си, за да поканите членове на екипа"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "en": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization.",
+    "translation": "Поканите за членове на екипа изискват план с управление на екипи. Надградете, за да добавите сътрудници към организацията си."
+  }
+}

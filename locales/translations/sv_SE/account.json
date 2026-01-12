@@ -1,0 +1,630 @@
+{
+  "web.account.settings": {
+    "en": "Settings",
+    "translation": "Inställningar"
+  },
+  "web.account.change_password": {
+    "en": "Change Password",
+    "translation": "Ändra lösenord"
+  },
+  "web.account.close_account": {
+    "en": "Close Account",
+    "translation": "Stäng konto"
+  },
+  "web.account.verify_account": {
+    "en": "Verify Account",
+    "translation": "Verifiera konto"
+  },
+  "web.account.subscription_title": {
+    "en": "Subscription",
+    "translation": "Prenumeration"
+  },
+  "web.account.manage_subscription": {
+    "en": "Manage Subscription",
+    "translation": "Hantera prenumeration"
+  },
+  "web.account.customer_information": {
+    "en": "Customer Information",
+    "translation": "Kundinformation"
+  },
+  "web.account.customer_since": {
+    "en": "Customer since:",
+    "translation": "Kund sedan:"
+  },
+  "web.account.email": {
+    "en": "Email:",
+    "translation": "E-post:"
+  },
+  "web.account.region": {
+    "en": "Region",
+    "translation": "Region:"
+  },
+  "web.account.account_balance": {
+    "en": "Balance:",
+    "translation": "Kontosaldo:"
+  },
+  "web.account.default_payment_method": {
+    "en": "Default Payment Method",
+    "translation": "Standardbetalningsmetod"
+  },
+  "web.account.card_ending": {
+    "en": "ending in",
+    "translation": "slutar på"
+  },
+  "web.account.subscriptions_title": {
+    "en": "Subscriptions",
+    "translation": "Prenumerationer"
+  },
+  "web.account.quantity": {
+    "en": "Quantity:",
+    "translation": "Antal:"
+  },
+  "web.account.next_billing_date": {
+    "en": "Next billing date:",
+    "translation": "Nästa faktureringsdatum:"
+  },
+  "web.account.changePassword.username": {
+    "en": "Username",
+    "translation": "Användarnamn"
+  },
+  "web.account.changePassword.currentPassword": {
+    "en": "Current Password",
+    "translation": "Nuvarande lösenord"
+  },
+  "web.account.changePassword.newPassword": {
+    "en": "New Password",
+    "translation": "Nytt lösenord"
+  },
+  "web.account.changePassword.confirmPassword": {
+    "en": "Confirm",
+    "translation": "Bekräfta"
+  },
+  "web.account.changePassword.updatePassword": {
+    "en": "Update Password",
+    "translation": "Uppdatera lösenord"
+  },
+  "web.account.changePassword.updating": {
+    "en": "Updating...",
+    "translation": "Uppdaterar..."
+  },
+  "web.account.timezone": {
+    "en": "Timezone",
+    "translation": "Tidszon"
+  },
+  "web.account.customer_id": {
+    "en": "Customer ID",
+    "translation": "Kund-ID"
+  },
+  "web.account.account_id_customerid": {
+    "en": "Account ID",
+    "translation": "Konto-ID"
+  },
+  "web.account.created_windowprops_cust_secrets_created_secrets": {
+    "en": "Created {0} secrets since {1}.",
+    "translation": "Skapat {0} hemligheter sedan {1}."
+  },
+  "web.account.delete_account": {
+    "en": "Delete Account",
+    "translation": "Ta bort konto"
+  },
+  "web.account.api_key": {
+    "en": "API Key",
+    "translation": "API-nyckel"
+  },
+  "web.account.account_type_windowprops_plan_options_name": {
+    "en": "Account type: {0}",
+    "translation": "Kontotyp: {0}"
+  },
+  "web.account.your_account": {
+    "en": "Your Account",
+    "translation": "Ditt konto"
+  },
+  "web.account.support_details": {
+    "en": "Support Details",
+    "translation": "Supportdetaljer"
+  },
+  "web.account.back_to_details": {
+    "en": "Back to Details",
+    "translation": "Tillbaka till detaljer"
+  },
+  "web.account.customer_id_cust_custid": {
+    "en": "Customer ID: {0}",
+    "translation": "Kund-ID: {0}"
+  },
+  "web.account.token_generated": {
+    "en": "Token generated.",
+    "translation": "Token genererad."
+  },
+  "web.account.keep_this_token_secure_it_provides_full_access_t": {
+    "en": "🔐 Keep this token secure! It provides full access to your account.",
+    "translation": "🔐 Håll denna token säker! Den ger full åtkomst till ditt konto."
+  },
+  "web.account.confirm_with_your_password": {
+    "en": "Confirm with your password",
+    "translation": "Bekräfta med ditt lösenord"
+  },
+  "web.account.are_you_sure_you_want_to_permanently_delete_your": {
+    "en": "Are you sure you want to permanently delete your account? This action cannot be undone.",
+    "translation": "Är du säker på att du vill ta bort ditt konto permanent? Denna åtgärd kan inte ångras."
+  },
+  "web.account.confirm_account_deletion": {
+    "en": "Confirm Account Deletion",
+    "translation": "Bekräfta borttagning av konto"
+  },
+  "web.account.deleting_cust_custid": {
+    "en": "Deleting {0}",
+    "translation": "Tar bort {0}"
+  },
+  "web.account.permanently_delete_account": {
+    "en": "Permanently Delete Account",
+    "translation": "Ta bort konto permanent"
+  },
+  "web.account.permanent_and_non_reversible": {
+    "en": "permanent and non-reversible.",
+    "translation": "permanent och oåterkallelig."
+  },
+  "web.account.deleting_your_account_is": {
+    "en": "Deleting your account is",
+    "translation": "Att ta bort ditt konto är"
+  },
+  "web.account.burn_them_before_continuing": {
+    "en": "burn them before continuing",
+    "translation": "bränn dem innan du fortsätter"
+  },
+  "web.account.any_secrets_you_wish_to_remove": {
+    "en": "Any secrets you wish to remove,",
+    "translation": "Eventuella hemligheter du vill ta bort,"
+  },
+  "web.account.secrets_will_remain_active_until_they_expire": {
+    "en": "Secrets will remain active until they expire.",
+    "translation": "Hemligheter förblir aktiva tills de går ut."
+  },
+  "web.account.please_be_advised": {
+    "en": "Please be advised:",
+    "translation": "Vänligen observera:"
+  },
+  "web.account.account_deleted_successfully": {
+    "en": "Account deleted successfully.",
+    "translation": "Konto borttaget."
+  },
+  "web.account.deactivate": {
+    "en": "Deactivate",
+    "translation": "Inaktivera"
+  },
+  "web.account.are_you_sure_you_want_to_deactivate_your_account": {
+    "en": "Are you sure you want to deactivate your account? All of your data will be permanently removed from our servers forever. This action cannot be undone.",
+    "translation": "Är du säker på att du vill inaktivera ditt konto? All din data kommer att tas bort permanent från våra servrar för alltid. Denna åtgärd kan inte ångras."
+  },
+  "web.account.deactivate_account": {
+    "en": "Deactivate account",
+    "translation": "Inaktivera konto"
+  },
+  "web.settings.title": {
+    "en": "Settings",
+    "translation": "Inställningar"
+  },
+  "web.settings.description": {
+    "en": "Manage your account settings and preferences",
+    "translation": "Hantera dina kontoinställningar och preferenser"
+  },
+  "web.settings.manage_your_account_settings_and_preferences": {
+    "en": "Manage your account settings and preferences",
+    "translation": "Hantera dina kontoinställningar och preferenser"
+  },
+  "web.settings.back_to_dashboard": {
+    "en": "Back to Dashboard"
+  },
+  "web.settings.sections.account": {
+    "en": "Account"
+  },
+  "web.settings.sections.billing": {
+    "en": "Billing"
+  },
+  "web.settings.sections.advanced": {
+    "en": "Advanced"
+  },
+  "web.settings.general": {
+    "en": "General",
+    "translation": "Allmänt"
+  },
+  "web.settings.preferences": {
+    "en": "Preferences",
+    "translation": "Preferenser"
+  },
+  "web.settings.appearance": {
+    "en": "Appearance",
+    "translation": "Utseende"
+  },
+  "web.settings.theme.title": {
+    "en": "Theme",
+    "translation": "Tema"
+  },
+  "web.settings.theme.description": {
+    "en": "Choose light or dark theme",
+    "translation": "Anpassa utseendet på applikationen"
+  },
+  "web.settings.theme.choose_light_or_dark_theme": {
+    "en": "Choose light or dark theme",
+    "translation": "Välj ljust eller mörkt tema"
+  },
+  "web.settings.language.title": {
+    "en": "Language",
+    "translation": "Språk"
+  },
+  "web.settings.language.description": {
+    "en": "Select your preferred language",
+    "translation": "Välj ditt föredragna språk"
+  },
+  "web.settings.language.select_your_preferred_language": {
+    "en": "Select your preferred language",
+    "translation": "Välj ditt föredragna språk"
+  },
+  "web.settings.security_settings_description": {
+    "en": "Manage authentication and account security",
+    "translation": "Hantera lösenord, tvåfaktorsautentisering och sessioner"
+  },
+  "web.settings.profile_settings_description": {
+    "en": "Manage your account information",
+    "translation": "Uppdatera din profilinformation"
+  },
+  "web.settings.profile.title": {
+    "en": "Profile",
+    "translation": "Profil"
+  },
+  "web.settings.profile.change_email": {
+    "en": "Change Email",
+    "translation": "Ändra e-post"
+  },
+  "web.settings.profile.current_email": {
+    "en": "Current Email",
+    "translation": "Nuvarande e-post"
+  },
+  "web.settings.profile.current_password": {
+    "en": "Current Password",
+    "translation": "Nuvarande lösenord"
+  },
+  "web.settings.profile.new_email": {
+    "en": "New Email",
+    "translation": "Ny e-post"
+  },
+  "web.settings.profile.enter_password_to_confirm": {
+    "en": "Enter your current password",
+    "translation": "Ange lösenord för att bekräfta"
+  },
+  "web.settings.profile.password_required_for_security": {
+    "en": "Your password is required for security purposes",
+    "translation": "Lösenord krävs av säkerhetsskäl"
+  },
+  "web.settings.profile.verification_email_notice": {
+    "en": "A verification email will be sent to the new address",
+    "translation": "Ett verifieringsmeddelande skickas till din nya e-post"
+  },
+  "web.settings.profile.update_email": {
+    "en": "Update Email",
+    "translation": "Uppdatera e-post"
+  },
+  "web.settings.profile.change_email_description": {
+    "en": "Update the email address associated with your account",
+    "translation": "Ändra e-postadressen kopplad till ditt konto"
+  },
+  "web.settings.profile.all_fields_required": {
+    "en": "All fields are required",
+    "translation": "Alla fält är obligatoriska"
+  },
+  "web.settings.profile.invalid_email": {
+    "en": "Please enter a valid email address",
+    "translation": "Ogiltig e-postadress"
+  },
+  "web.settings.profile.email_same_as_current": {
+    "en": "New email must be different from current email",
+    "translation": "Ny e-post är samma som nuvarande"
+  },
+  "web.settings.profile.email_change_success": {
+    "en": "Email updated successfully. Please check your inbox to verify your new email address.",
+    "translation": "E-post ändrad. Kontrollera din inkorg för verifiering."
+  },
+  "web.settings.profile.email_change_error": {
+    "en": "Failed to update email. Please try again.",
+    "translation": "Kunde inte ändra e-post"
+  },
+  "web.settings.sessions.title": {
+    "en": "Active Sessions",
+    "translation": "Sessioner"
+  },
+  "web.settings.sessions.description": {
+    "en": "Manage your active sessions",
+    "translation": "Hantera dina aktiva inloggningar"
+  },
+  "web.settings.sessions.manage_active_sessions": {
+    "en": "Manage your active sessions",
+    "translation": "Hantera aktiva sessioner"
+  },
+  "web.settings.password.title": {
+    "en": "Password",
+    "translation": "Lösenord"
+  },
+  "web.settings.password.description": {
+    "en": "Update your account password",
+    "translation": "Uppdatera ditt kontolösenord"
+  },
+  "web.settings.password.update_account_password": {
+    "en": "Update your account password",
+    "translation": "Uppdatera kontolösenord"
+  },
+  "web.settings.delete_account.title": {
+    "en": "Delete Account",
+    "translation": "Ta bort konto"
+  },
+  "web.settings.delete_account.description": {
+    "en": "Permanently delete your account and all data",
+    "translation": "Ta bort ditt konto permanent"
+  },
+  "web.settings.delete_account.permanently_delete_your_account": {
+    "en": "Permanently delete your account and all data",
+    "translation": "Ta bort ditt konto permanent"
+  },
+  "web.settings.security.security_score": {
+    "en": "Security Score",
+    "translation": "Säkerhetspoäng"
+  },
+  "web.settings.security.score_description": {
+    "en": "Your overall account security health",
+    "translation": "Din kontosäkerhetsstatus"
+  },
+  "web.settings.security.excellent": {
+    "en": "Excellent",
+    "translation": "Utmärkt"
+  },
+  "web.settings.security.good": {
+    "en": "Good",
+    "translation": "Bra"
+  },
+  "web.settings.security.fair": {
+    "en": "Fair",
+    "translation": "Hyfsad"
+  },
+  "web.settings.security.weak": {
+    "en": "Weak",
+    "translation": "Svag"
+  },
+  "web.settings.security.improve_security": {
+    "en": "Improve your security",
+    "translation": "Förbättra säkerhet"
+  },
+  "web.settings.security.enable_mfa_recommendation": {
+    "en": "Enable two-factor authentication for stronger protection",
+    "translation": "Aktivera tvåfaktorsautentisering för bättre skydd"
+  },
+  "web.settings.security.generate_recovery_codes_recommendation": {
+    "en": "Generate recovery codes as a backup",
+    "translation": "Generera återställningskoder för nödsituationer"
+  },
+  "web.settings.security.configured": {
+    "en": "Configured",
+    "translation": "Konfigurerad"
+  },
+  "web.settings.security.change": {
+    "en": "Change",
+    "translation": "Ändra"
+  },
+  "web.settings.security.manage": {
+    "en": "Manage",
+    "translation": "Hantera"
+  },
+  "web.settings.security.enable": {
+    "en": "Enable",
+    "translation": "Aktivera"
+  },
+  "web.settings.security.codes_available": {
+    "en": "{0} codes available",
+    "translation": "{count} koder tillgängliga"
+  },
+  "web.settings.security.no_codes": {
+    "en": "No codes generated",
+    "translation": "Inga koder genererade"
+  },
+  "web.settings.security.active_sessions": {
+    "en": "{0} active session | {0} active sessions",
+    "translation": "Aktiva sessioner"
+  },
+  "web.settings.security.best_practices": {
+    "en": "Security Best Practices",
+    "translation": "Bästa praxis"
+  },
+  "web.settings.security.use_strong_unique_password": {
+    "en": "Use a strong, unique password for your account",
+    "translation": "Använd ett starkt, unikt lösenord"
+  },
+  "web.settings.security.enable_mfa_for_protection": {
+    "en": "Enable two-factor authentication for additional protection",
+    "translation": "Aktivera tvåfaktorsautentisering för skydd"
+  },
+  "web.settings.security.save_recovery_codes_safely": {
+    "en": "Save your recovery codes in a secure location",
+    "translation": "Spara återställningskoder säkert"
+  },
+  "web.settings.security.review_sessions_regularly": {
+    "en": "Review and revoke unused sessions regularly",
+    "translation": "Granska sessioner regelbundet"
+  },
+  "web.settings.security.view_details": {
+    "en": "View details",
+    "translation": "Visa detaljer"
+  },
+  "web.settings.api.title": {
+    "en": "API & Integrations",
+    "translation": "API"
+  },
+  "web.settings.api.description": {
+    "en": "Manage API keys and integrations",
+    "translation": "Hantera API-åtkomst och nycklar"
+  },
+  "web.settings.api.manage_api_keys": {
+    "en": "Manage API keys and integrations",
+    "translation": "Hantera API-nycklar"
+  },
+  "web.settings.api.documentation": {
+    "en": "API Documentation",
+    "translation": "Dokumentation"
+  },
+  "web.settings.api.documentation_description": {
+    "en": "Learn how to integrate Onetime Secret into your applications",
+    "translation": "Lär dig hur du använder vårt API"
+  },
+  "web.settings.api.rest_api_reference": {
+    "en": "REST API Reference",
+    "translation": "REST API-referens"
+  },
+  "web.settings.api.complete_api_documentation": {
+    "en": "Complete API documentation and endpoints",
+    "translation": "Komplett API-dokumentation"
+  },
+  "web.settings.api.code_examples": {
+    "en": "Code Examples",
+    "translation": "Kodexempel"
+  },
+  "web.settings.api.example_code_and_libraries": {
+    "en": "Example code and client libraries",
+    "translation": "Exempelkod och bibliotek"
+  },
+  "web.settings.api.security_best_practices": {
+    "en": "Security Best Practices",
+    "translation": "Säkerhetspraxis"
+  },
+  "web.settings.api.never_commit_api_keys": {
+    "en": "Never commit API keys to version control",
+    "translation": "Committa aldrig API-nycklar till källkod"
+  },
+  "web.settings.api.use_environment_variables": {
+    "en": "Use environment variables to store API keys",
+    "translation": "Använd miljövariabler för nycklar"
+  },
+  "web.settings.api.rotate_keys_regularly": {
+    "en": "Rotate API keys regularly for security",
+    "translation": "Rotera nycklar regelbundet"
+  },
+  "web.settings.api.use_https_only": {
+    "en": "Always use HTTPS when making API requests",
+    "translation": "Använd endast HTTPS"
+  },
+  "web.settings.api.monitor_api_usage": {
+    "en": "Monitor your API usage and set up alerts",
+    "translation": "Övervaka API-användning"
+  },
+  "web.settings.api.important_notice": {
+    "en": "Important Notice",
+    "translation": "Viktigt meddelande"
+  },
+  "web.settings.api.regenerating_key_warning": {
+    "en": "Regenerating your API key will invalidate the current key. Update all applications using the old key.",
+    "translation": "Att generera en ny nyckel ogiltigförklarar den befintliga nyckeln"
+  },
+  "web.settings.privacy.title": {
+    "en": "Privacy Settings",
+    "translation": "Integritet"
+  },
+  "web.settings.privacy.manage_privacy_settings": {
+    "en": "Manage your privacy preferences",
+    "translation": "Hantera sekretessinställningar"
+  },
+  "web.settings.privacy.your_privacy": {
+    "en": "Your Privacy",
+    "translation": "Din integritet"
+  },
+  "web.settings.privacy.non_negotiable": {
+    "en": "Non-Negotiable",
+    "translation": "Icke-förhandlingsbar"
+  },
+  "web.settings.privacy.not_a_setting": {
+    "en": "Not a setting",
+    "translation": "Inte en inställning"
+  },
+  "web.settings.privacy.no_analytics_statement": {
+    "en": "No analytics. No tracking. Period.",
+    "translation": "Vi använder ingen spårning eller analys"
+  },
+  "web.settings.privacy.explanation": {
+    "en": "This isn't a setting because there's nothing to turn on or off. Your privacy is built into how we operate.",
+    "translation": "Din integritet är vår prioritet. Vi samlar inte in personlig data utöver vad som krävs för tjänsten."
+  },
+  "web.settings.notifications.title": {
+    "en": "Notification Settings",
+    "translation": "Aviseringsinställningar"
+  },
+  "web.settings.notifications.description": {
+    "en": "Manage how you receive notifications",
+    "translation": "Hantera hur du får aviseringar"
+  },
+  "web.settings.notifications.error_updating": {
+    "en": "Failed to update notification preference. Please try again.",
+    "translation": "Kunde inte uppdatera aviseringsinställningen. Försök igen."
+  },
+  "web.settings.notifications.reveal_notifications.title": {
+    "en": "Secret Reveal Notifications",
+    "translation": "Aviseringar när hemligheter visas"
+  },
+  "web.settings.notifications.reveal_notifications.description": {
+    "en": "Receive an email when someone views your secret",
+    "translation": "Få ett e-postmeddelande när någon visar din hemlighet"
+  },
+  "web.settings.notifications.reveal_notifications.help": {
+    "en": "You'll be notified each time a recipient reveals one of your secrets",
+    "translation": "Du får en avisering varje gång en mottagare visar en av dina hemligheter"
+  },
+  "web.settings.notifications.privacy_note": {
+    "en": "Notification emails include only the timestamp and secret ID. Viewer information is never included.",
+    "translation": "Aviseringar via e-post innehåller endast tidsstämpeln och hemlighetens ID. Information om vem som visade hemligheten inkluderas aldrig."
+  },
+  "web.settings.caution.title": {
+    "en": "Careful Consideration Zone",
+    "translation": "Försiktighet"
+  },
+  "web.settings.caution.description": {
+    "en": "Advanced settings and data management",
+    "translation": "Känsliga kontoinställningar"
+  },
+  "web.settings.caution.data_export": {
+    "en": "Data Export",
+    "translation": "Dataexport"
+  },
+  "web.settings.caution.export_your_data": {
+    "en": "Export your account data",
+    "translation": "Exportera din data"
+  },
+  "web.settings.caution.export_description": {
+    "en": "Request a complete copy of your account data in machine-readable format",
+    "translation": "Ladda ner en kopia av din kontodata"
+  },
+  "web.settings.caution.request_data_export": {
+    "en": "Request Data Export",
+    "translation": "Begär dataexport"
+  },
+  "web.settings.caution.export_info": {
+    "en": "Export Processing Time",
+    "translation": "Exportinformation"
+  },
+  "web.settings.caution.export_info_description": {
+    "en": "Exports are processed within 24 hours and sent to your email address",
+    "translation": "Exporten inkluderar din kontoinformation och metadata"
+  },
+  "web.settings.caution.deletion_warning_title": {
+    "en": "Deleting your account will:",
+    "translation": "Varning om borttagning"
+  },
+  "web.settings.caution.deletion_warning_secrets": {
+    "en": "Permanently delete all your secrets",
+    "translation": "Aktiva hemligheter förblir tillgängliga tills de går ut"
+  },
+  "web.settings.caution.deletion_warning_metadata": {
+    "en": "Remove all secret metadata and history",
+    "translation": "All metadata kommer att raderas"
+  },
+  "web.settings.caution.deletion_warning_api_keys": {
+    "en": "Invalidate all API keys",
+    "translation": "Alla API-nycklar kommer att ogiltigförklaras"
+  },
+  "web.settings.caution.deletion_warning_irreversible": {
+    "en": "This action cannot be undone",
+    "translation": "Denna åtgärd är permanent och kan inte ångras"
+  }
+}

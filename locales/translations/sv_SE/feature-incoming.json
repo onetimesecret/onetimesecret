@@ -1,0 +1,134 @@
+{
+  "incoming.page_title": {
+    "en": "Send a Secret",
+    "translation": "Skicka en hemlighet"
+  },
+  "incoming.page_description": {
+    "en": "Share sensitive information securely with our support team",
+    "translation": "Dela känslig information säkert med vårt supportteam"
+  },
+  "incoming.loading_config": {
+    "en": "Loading...",
+    "translation": "Laddar..."
+  },
+  "incoming.config_error_title": {
+    "en": "Failed to load configuration",
+    "translation": "Kunde inte ladda konfigurationen"
+  },
+  "incoming.feature_disabled_title": {
+    "en": "Feature Not Available",
+    "translation": "Funktionen är inte tillgänglig"
+  },
+  "incoming.feature_disabled_description": {
+    "en": "This feature is currently disabled. Please contact support for assistance.",
+    "translation": "Denna funktion är för närvarande inaktiverad. Kontakta support för hjälp."
+  },
+  "incoming.memo_label": {
+    "en": "Memo",
+    "translation": "Anteckning"
+  },
+  "incoming.memo_placeholder": {
+    "en": "Brief description (e.g., Password reset request)",
+    "translation": "Kort beskrivning (t.ex. Begäran om återställning av lösenord)"
+  },
+  "incoming.memo_hint": {
+    "en": "Help us route your message to the right person",
+    "translation": "Hjälp oss att dirigera ditt meddelande till rätt person"
+  },
+  "incoming.recipient_label": {
+    "en": "Send to",
+    "translation": "Skicka till"
+  },
+  "incoming.recipient_placeholder": {
+    "en": "Select a recipient",
+    "translation": "Välj mottagare"
+  },
+  "incoming.recipient_aria_label": {
+    "en": "Select a recipient for this secret",
+    "translation": "Välj en mottagare för denna hemlighet"
+  },
+  "incoming.recipient_hint": {
+    "en": "Choose who will receive this secure message",
+    "translation": "Välj vem som ska ta emot detta säkra meddelande"
+  },
+  "incoming.no_recipients_available": {
+    "en": "No recipients are available",
+    "translation": "Inga mottagare tillgängliga"
+  },
+  "incoming.secret_content_label": {
+    "en": "Secret Information",
+    "translation": "Konfidentiell information"
+  },
+  "incoming.secret_content_placeholder": {
+    "en": "Paste sensitive information here (passwords, keys, etc.)",
+    "translation": "Klistra in känslig information här (lösenord, nycklar, etc.)"
+  },
+  "incoming.secret_content_hint": {
+    "en": "This information will be encrypted and only viewable once",
+    "translation": "Denna information kommer att krypteras och endast vara synlig en gång"
+  },
+  "incoming.submit_button": {
+    "en": "Send Secret",
+    "translation": "Skicka hemlighet"
+  },
+  "incoming.submit_secret": {
+    "en": "Send Secret",
+    "translation": "Skicka hemlighet"
+  },
+  "incoming.submitting_button": {
+    "en": "Sending...",
+    "translation": "Skickar..."
+  },
+  "incoming.submitting": {
+    "en": "Sending...",
+    "translation": "Skickar..."
+  },
+  "incoming.reset_button": {
+    "en": "Clear Form",
+    "translation": "Rensa formulär"
+  },
+  "incoming.reset_form": {
+    "en": "Clear Form",
+    "translation": "Rensa formulär"
+  },
+  "incoming.success_title": {
+    "en": "Sent Successfully",
+    "translation": "Skickat"
+  },
+  "incoming.success_description": {
+    "en": "Your secure message has been delivered.",
+    "translation": "Ditt säkra meddelande har levererats."
+  },
+  "incoming.reference_id": {
+    "en": "Reference ID",
+    "translation": "Referens-ID"
+  },
+  "incoming.success_info_title": {
+    "en": "What happens next?",
+    "translation": "Vad händer nu?"
+  },
+  "incoming.success_info_description": {
+    "en": "The recipient will be able to view this secret only once. After they view it, the secret will be permanently deleted.",
+    "translation": "Mottagaren kommer att kunna se denna hemlighet endast en gång. Efter visning kommer hemligheten att raderas permanent."
+  },
+  "incoming.create_another": {
+    "en": "Send Another Secret",
+    "translation": "Skicka en till hemlighet"
+  },
+  "incoming.tagline1": {
+    "en": "Share sensitive information securely",
+    "translation": "Dela känslig information säkert"
+  },
+  "incoming.tagline2": {
+    "en": "Keep passwords and private data out of email and chat logs",
+    "translation": "Håll lösenord och privata data utanför e-post och chattloggar"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "en": "Save your {receipt} for your records.",
+    "translation": "Spara ditt <a href='{receiptUrl}'>kvitto</a> för dina register."
+  },
+  "incoming.receipt_link_text": {
+    "en": "receipt",
+    "translation": "kvitto"
+  }
+}

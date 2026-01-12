@@ -1,0 +1,142 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "en": "Data Sovereignty & Regional Isolation",
+    "translation": "Sobirania de dades i aïllament regional"
+  },
+  "web.regions.data_sovereignty_description": {
+    "en": "Your data resides exclusively in your chosen region and is never transferred across regions",
+    "translation": "Les teves dades resideixen exclusivament a la regió que has triat i mai es transfereixen entre regions"
+  },
+  "web.regions.separate_environments_explanation": {
+    "en": "Each region operates as a completely independent environment with its own infrastructure, encryption keys, and data storage",
+    "translation": "Cada regió funciona com un entorn completament independent amb la seva pròpia infraestructura, claus de xifratge i emmagatzematge de dades"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "en": "We maintain a strict policy: customer data is never transferred between regions under any circumstances",
+    "translation": "Mantenim una política estricta: les dades dels clients mai es transfereixen entre regions sota cap circumstància"
+  },
+  "web.regions.switching_creates_new_account": {
+    "en": "Important: Switching to a different region creates a new account. Your data stays in your original region.",
+    "translation": "Important: canviar a una regió diferent crea un compte nou. Les teves dades es queden a la teva regió original."
+  },
+  "web.regions.your_region": {
+    "en": "Your Region",
+    "translation": "La teva regió"
+  },
+  "web.regions.your_current_region": {
+    "en": "Your Current Region",
+    "translation": "La teva regió actual"
+  },
+  "web.regions.active": {
+    "en": "Active",
+    "translation": "Activa"
+  },
+  "web.regions.explore_other_regions": {
+    "en": "Explore other available regions",
+    "translation": "Explora altres regions disponibles"
+  },
+  "web.regions.why_it_matters": {
+    "en": "Why Data Sovereignty Matters",
+    "translation": "Per què importa la sobirania de dades"
+  },
+  "web.regions.trust_title": {
+    "en": "Transparency & Control",
+    "translation": "Transparència i control"
+  },
+  "web.regions.trust_description": {
+    "en": "Know exactly where your data resides and which laws govern its protection.",
+    "translation": "Sap exactament on resideixen les teves dades i quines lleis en regulen la protecció."
+  },
+  "web.regions.privacy_title": {
+    "en": "Privacy Rights",
+    "translation": "Drets de privadesa"
+  },
+  "web.regions.privacy_description": {
+    "en": "Ensure your personal information is handled according to your country's privacy laws and regulations, preventing unauthorized access or misuse.",
+    "translation": "Assegura't que la teva informació personal es tracta d'acord amb les lleis de privadesa del teu país i les regulacions, evitant l'accés o l'ús no autoritzats."
+  },
+  "web.regions.compliance_title": {
+    "en": "Regulatory Compliance",
+    "translation": "Compliment normatiu"
+  },
+  "web.regions.compliance_description": {
+    "en": "Meet GDPR, HIPAA, CCPA, and other regional data protection requirements",
+    "translation": "Compleix amb el GDPR, HIPAA, CCPA i altres requisits de protecció de dades regionals"
+  },
+  "web.regions.performance_title": {
+    "en": "Faster Access",
+    "translation": "Accés més ràpid"
+  },
+  "web.regions.performance_description": {
+    "en": "Data stored closer to you means lower latency and better performance.",
+    "translation": "Les dades emmagatzemades més a prop teu signifiquen menor latència i millor rendiment."
+  },
+  "web.regions.regions": {
+    "en": "Regions",
+    "translation": "Regions"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "en": "contact our compliance team",
+    "translation": "contacta amb el nostre equip de compliment"
+  },
+  "web.regions.review_our_documentation": {
+    "en": "review our documentation",
+    "translation": "revisa la nostra documentació"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "en": "Your account and data are protected under the laws of",
+    "translation": "El teu compte i les teves dades estan protegits sota les lleis de"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "en": "Your regulatory framework is determined by your access domain:",
+    "translation": "El teu marc normatiu està determinat pel teu domini d'accés:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "en": "Each region is completely separate with its own infrastructure, when possible with its own local hosting provider. You can create accounts in multiple regions, but no data is shared between them.",
+    "translation": "Cada regió és completament independent amb la seva pròpia infraestructura, quan és possible amb el seu propi proveïdor d'allotjament local. Pots crear comptes a diverses regions, però no es comparteixen dades entre elles."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "en": "For details on regulations and protections that apply to your account,",
+    "translation": "Per obtenir detalls sobre les regulacions i proteccions que s'apliquen al teu compte,"
+  },
+  "web.regions.current": {
+    "en": "Current",
+    "translation": "Actual"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "en": "{0} {1}",
+    "translation": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "en": "Available Regions",
+    "translation": "Regions disponibles"
+  },
+  "web.regions.jurisdiction": {
+    "en": "Jurisdiction",
+    "translation": "Jurisdicció"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "en": "Data center location: {0}",
+    "translation": "Ubicació del centre de dades: {0}"
+  },
+  "web.regions.data_region": {
+    "en": "Data Region",
+    "translation": "Regió de dades"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "en": "Unknown Jurisdiction",
+    "translation": "Jurisdicció desconeguda"
+  },
+  "web.regions.serving_you_from_the": {
+    "en": "Serving you from",
+    "translation": "Servint-te des de"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "en": "Continue to {0}",
+    "translation": "Continua a {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "en": "Current jurisdiction:",
+    "translation": "Jurisdicció actual:"
+  }
+}

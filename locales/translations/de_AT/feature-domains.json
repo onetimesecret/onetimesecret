@@ -1,0 +1,388 @@
+{
+  "web.domains.learn_more_dns": {
+    "en": "Learn more about DNS configuration",
+    "translation": "Mehr über DNS-Konfiguration erfahren"
+  },
+  "web.domains.view_domain_verification_status": {
+    "en": "View domain verification status",
+    "translation": "Bereichs-Verifizierungsstatus anzeigen"
+  },
+  "web.domains.domain_already_in_organization": {
+    "en": "This domain is already registered in your organization",
+    "translation": "Dieser Bereich ist bereits in Ihrer Organisation registriert"
+  },
+  "web.domains.domain_in_other_organization": {
+    "en": "This domain is already registered to another organization. Please contact support if you believe this is an error.",
+    "translation": "Dieser Bereich ist bereits für eine andere Organisation registriert. Bitte kontaktieren Sie den Support, falls Sie glauben, dass dies ein Fehler ist."
+  },
+  "web.domains.domain_claimed_successfully": {
+    "en": "Domain successfully claimed and added to your organization",
+    "translation": "Bereich erfolgreich beansprucht und zu Ihrer Organisation hinzugefügt"
+  },
+  "web.domains.privacy_defaults_title": {
+    "en": "Privacy Defaults",
+    "translation": "Datenschutzeinstellungen"
+  },
+  "web.domains.privacy_defaults_description": {
+    "en": "Set default privacy options for secrets created under this domain. These settings will be pre-filled when creating new secrets.",
+    "translation": "Legen Sie Standard-Datenschutzoptionen für Geheimnisse fest, die unter diesem Bereich erstellt werden. Diese Einstellungen werden beim Erstellen neuer Geheimnisse vorausgefüllt."
+  },
+  "web.domains.privacy_defaults": {
+    "en": "Privacy Defaults",
+    "translation": "Datenschutzeinstellungen"
+  },
+  "web.domains.privacy_defaults_icon": {
+    "en": "Privacy defaults icon",
+    "translation": "Symbol für Datenschutzeinstellungen"
+  },
+  "web.domains.default_ttl_label": {
+    "en": "Default Time-to-Live",
+    "translation": "Standard-Lebensdauer"
+  },
+  "web.domains.default_ttl_hint": {
+    "en": "How long secrets should remain accessible by default",
+    "translation": "Wie lange Geheimnisse standardmäßig zugänglich bleiben sollen"
+  },
+  "web.domains.passphrase_required_label": {
+    "en": "Require passphrase",
+    "translation": "Sicherheitsphrase erforderlich"
+  },
+  "web.domains.passphrase_required_hint": {
+    "en": "Make passphrase mandatory for all secrets in this domain",
+    "translation": "Sicherheitsphrase für alle Geheimnisse in diesem Bereich obligatorisch machen"
+  },
+  "web.domains.notify_enabled_label": {
+    "en": "Enable notifications",
+    "translation": "Benachrichtigungen aktivieren"
+  },
+  "web.domains.notify_enabled_hint": {
+    "en": "Enable email notifications by default when secrets are viewed",
+    "translation": "E-Mail-Benachrichtigungen standardmäßig aktivieren, wenn Geheimnisse angezeigt werden"
+  },
+  "web.domains.use_global_default": {
+    "en": "Use global default",
+    "translation": "Globale Standardeinstellung verwenden"
+  },
+  "web.domains.global_default": {
+    "en": "Global",
+    "translation": "Global"
+  },
+  "web.domains.required": {
+    "en": "Required",
+    "translation": "Erforderlich"
+  },
+  "web.domains.optional": {
+    "en": "Optional",
+    "translation": "Optional"
+  },
+  "web.domains.enabled": {
+    "en": "Enabled",
+    "translation": "Aktiviert"
+  },
+  "web.domains.disabled": {
+    "en": "Disabled",
+    "translation": "Deaktiviert"
+  },
+  "web.domains.custom": {
+    "en": "Custom",
+    "translation": "Benutzerdefiniert"
+  },
+  "web.domains.edit_defaults": {
+    "en": "Edit Defaults",
+    "translation": "Einstellungen bearbeiten"
+  },
+  "web.domains.ttl_short": {
+    "en": "TTL",
+    "translation": "Lebensdauer"
+  },
+  "web.domains.passphrase_short": {
+    "en": "Passphrase",
+    "translation": "Sicherheitsphrase"
+  },
+  "web.domains.notify_short": {
+    "en": "Notifications",
+    "translation": "Benachrichtigungen"
+  },
+  "web.domains.scope_switch_label": {
+    "en": "Switch domain scope",
+    "translation": "Bereichsumfang wechseln"
+  },
+  "web.domains.switcher_locked": {
+    "en": "Domain switching not available on this page",
+    "translation": "Domain-Wechsel auf dieser Seite nicht verfügbar"
+  },
+  "web.domains.scope_list_label": {
+    "en": "Available domains",
+    "translation": "Verfügbare Bereiche"
+  },
+  "web.domains.scope_header": {
+    "en": "Domains",
+    "translation": "Bereiche"
+  },
+  "web.domains.add_domain": {
+    "en": "Add domain",
+    "translation": "Bereich hinzufügen"
+  },
+  "web.domains.domain_settings": {
+    "en": "Domain settings",
+    "translation": "Domain-Einstellungen"
+  },
+  "web.domains.canonical_no_settings": {
+    "en": "Default domain has no settings page",
+    "translation": "Standard-Domain hat keine Einstellungsseite"
+  },
+  "web.domains.please_enter_a_domain_name": {
+    "en": "Please enter a {0} domain name",
+    "translation": "Bitte geben Sie einen {0} Bereichnamen ein"
+  },
+  "web.domains.domain_name": {
+    "en": "Domain name",
+    "translation": "Domänenname"
+  },
+  "web.domains.control_whether_users_can_create_secret_links": {
+    "en": "Control whether users can create secret links from your domain's homepage",
+    "translation": "Kontrollieren Sie, ob Benutzer geheime Links von der Homepage Ihrer Bereich erstellen können"
+  },
+  "web.domains.homepage_access": {
+    "en": "Homepage Access",
+    "translation": "Homepage Zugang"
+  },
+  "web.domains.and_status": {
+    "en": "& Status",
+    "translation": "&amp; Zustand"
+  },
+  "web.domains.domain": {
+    "en": "Domain",
+    "translation": "Bereich"
+  },
+  "web.domains.manage_and_configure_your_verified_custom_domains": {
+    "en": "Manage and configure your verified custom domains",
+    "translation": "Verwalten und konfigurieren Sie Ihre verifizierten benutzerdefinierten Bereiche"
+  },
+  "web.domains.domains": {
+    "en": "Domains",
+    "translation": "Bereiche"
+  },
+  "web.domains.last_monitored": {
+    "en": "Last Monitored",
+    "translation": "Zuletzt überwacht"
+  },
+  "web.domains.ssl_status": {
+    "en": "SSL Status",
+    "translation": "TLS-Sicherheitszustand"
+  },
+  "web.domains.ssl_renews": {
+    "en": "SSL Renews",
+    "translation": "Sicherheitszertifikat erneuert"
+  },
+  "web.domains.dns_record": {
+    "en": "DNS Record",
+    "translation": "Namensserver-Eintrag"
+  },
+  "web.domains.target_address": {
+    "en": "Target Address",
+    "translation": "Zieladresse"
+  },
+  "web.domains.domain_status": {
+    "en": "Domain Status",
+    "translation": "Zustand des Bereichs"
+  },
+  "web.domains.custom_domains_count": {
+    "en": "Custom domains count",
+    "translation": "Benutzerdefinierte Domänen zählen"
+  },
+  "web.domains.custom_domain": {
+    "en": "Custom Domain",
+    "translation": "Benutzerdefinierter Bereich"
+  },
+  "web.domains.open_domain_in_new_tab": {
+    "en": "Open domain in new tab",
+    "translation": "Bereich in neuer Registerkarte öffnen"
+  },
+  "web.domains.back_to_domains": {
+    "en": "Back to Domains",
+    "translation": "Zurück zu Bereiche"
+  },
+  "web.domains.return_to_domains_list": {
+    "en": "Return to domains list",
+    "translation": "Zurück zur Liste der Bereiche"
+  },
+  "web.domains.verify_domain": {
+    "en": "Verify Domain",
+    "translation": "Domäne verifizieren"
+  },
+  "web.domains.manage_brand": {
+    "en": "Manage Brand",
+    "translation": "Marke verwalten"
+  },
+  "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
+    "en": "Added {0}",
+    "translation": "Hinzugefügt {0}"
+  },
+  "web.domains.add_your_domain": {
+    "en": "Add your domain",
+    "translation": "Fügen Sie Ihre Bereich hinzu"
+  },
+  "web.domains.get_started_by_adding_a_custom_domain": {
+    "en": "Get started by adding a custom domain.",
+    "translation": "Beginnen Sie mit dem Hinzufügen einer benutzerdefinierten Bereich."
+  },
+  "web.domains.no_domains_found": {
+    "en": "No domains found.",
+    "translation": "Keine Domänen gefunden."
+  },
+  "web.domains.loading_domain_information": {
+    "en": "Loading domain information...",
+    "translation": "Laden der Domäneninformationen..."
+  },
+  "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
+    "en": "In order to connect your domain, you'll need to have a CNAME record in your DNS that points",
+    "translation": "Um Ihre Bereich zu verbinden, benötigen Sie einen CNAME-Eintrag in Ihrem Namensserver-Datensatz, der auf"
+  },
+  "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
+    "en": "If you already have a CNAME record for that address, please change it to point at",
+    "translation": "Wenn Sie bereits einen CNAME-Eintrag für diese Adresse haben, ändern Sie ihn bitte so, dass er auf"
+  },
+  "web.domains.a_cname_record_is_not_allowed_instead_youll_need": {
+    "en": "), a CNAME record is not allowed. Instead, you'll need to create an A record. Details on how to do this are provided further down the page.",
+    "translation": "), ist ein CNAME-Eintrag nicht zulässig. Stattdessen müssen Sie einen A-Eintrag erstellen. Einzelheiten dazu finden Sie weiter unten auf der Seite."
+  },
+  "web.domains.and_remove_any_other_a_aaaa_or_cname_records_for": {
+    "en": "and remove any other A, AAAA, or CNAME records for that exact address.",
+    "translation": "und entfernen Sie alle anderen A-, AAAA- oder CNAME-Einträge für genau diese Adresse."
+  },
+  "web.domains.youll_need_to_complete_these_steps": {
+    "en": ", you'll need to complete these steps.",
+    "translation": "müssen Sie die folgenden Schritte ausführen."
+  },
+  "web.domains.before_we_can_activate_links_for": {
+    "en": "Before we can activate links for",
+    "translation": "Bevor wir Links aktivieren können für"
+  },
+  "web.domains.please_note_that_for_apex_domains": {
+    "en": "Please note that for apex domains (e.g.,",
+    "translation": "Bitte beachten Sie, dass bei Apex-Domänen (z. B.,"
+  },
+  "web.domains.verify_your_domain": {
+    "en": "Verify your domain",
+    "translation": "Überprüfen Sie Ihre Bereich"
+  },
+  "web.domains.secrets_example_dot_com": {
+    "en": "secrets.example.com",
+    "translation": "geheimnisse.beispiel.de"
+  },
+  "web.domains.customize_your_domain_branding": {
+    "en": "Customize your domain branding",
+    "translation": "Passen Sie Ihr Bereich-Branding an"
+  },
+  "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
+    "en": "It may take a few minutes for your SSL certificate to take effect.",
+    "translation": "Es kann ein paar Minuten dauern, bis Ihr TLS-Sicherheitszertifikat wirksam wird."
+  },
+  "web.domains.dns_changes_can_take_as_little_as_60_seconds_or_": {
+    "en": "DNS changes can take as little as 60 seconds -- or up to 24 hours -- to take effect.",
+    "translation": "Namensserver-Änderungen können innerhalb von 60 Sekunden - oder bis zu 24 Stunden - wirksam werden."
+  },
+  "web.domains.3_wait_for_propagation": {
+    "en": "3. Wait for propagation",
+    "translation": "3. Warten auf Ausbreitung"
+  },
+  "web.domains.value_2": {
+    "en": "Value",
+    "translation": "Wert"
+  },
+  "web.domains.value_1": {
+    "en": "Value",
+    "translation": "Wert"
+  },
+  "web.domains.host_1": {
+    "en": "Host",
+    "translation": "Gastgeber"
+  },
+  "web.domains.type_2": {
+    "en": "Type",
+    "translation": "Typ"
+  },
+  "web.domains.type_1": {
+    "en": "Type",
+    "translation": "Typ"
+  },
+  "web.domains.2_create_the_cname_record": {
+    "en": "2. Create the CNAME record",
+    "translation": "2. Erstellen Sie den CNAME-Eintrag"
+  },
+  "web.domains.value_0": {
+    "en": "Value",
+    "translation": "Wert"
+  },
+  "web.domains.host_0": {
+    "en": "Host",
+    "translation": "Gastgeber"
+  },
+  "web.domains.type_0": {
+    "en": "Type",
+    "translation": "Typ"
+  },
+  "web.domains.2_create_the_a_record": {
+    "en": "2. Create the A record",
+    "translation": "2. Erstellen Sie den A-Eintrag"
+  },
+  "web.domains.add_this_hostname_to_your_dns_configuration": {
+    "en": "Add this hostname to your DNS configuration:",
+    "translation": "Fügen Sie diesen Hostnamen zu Ihrer Namensserver-Konfiguration hinzu:"
+  },
+  "web.domains.1_create_a_txt_record": {
+    "en": "1. Create a TXT record",
+    "translation": "1. Einen TXT-Datensatz erstellen"
+  },
+  "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
+    "en": "Follow these steps to verify domain ownership and elevate your online presence:",
+    "translation": "Befolgen Sie diese Schritte, um die Bereichinhaberschaft zu überprüfen und Ihre Online-Präsenz zu verbessern:"
+  },
+  "web.domains.domain_verification_steps": {
+    "en": "Domain Verification Steps",
+    "translation": "Schritte der Domänenüberprüfung"
+  },
+  "web.domains.domain_verification_initiated_successfully": {
+    "en": "Domain verification initiated successfully.",
+    "translation": "Die Domänenüberprüfung wurde erfolgreich eingeleitet."
+  },
+  "web.domains.are_you_sure_you_want_to_remove_this_domain": {
+    "en": "Are you sure you want to remove this domain? This action cannot be undone.",
+    "translation": "Sind Sie sicher, dass Sie diese Domäne entfernen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+  },
+  "web.domains.remove_domain": {
+    "en": "Remove Domain",
+    "translation": "Bereich entfernen"
+  },
+  "web.domains.domain_removed_successfully": {
+    "en": "Domain removed successfully",
+    "translation": "Bereich erfolgreich entfernt"
+  },
+  "web.domains.failed_to_add_domain": {
+    "en": "Failed to add domain",
+    "translation": "Domäne kann nicht hinzugefügt werden"
+  },
+  "web.domains.domain_added_successfully": {
+    "en": "Domain added successfully",
+    "translation": "Bereich erfolgreich hinzugefügt"
+  },
+  "web.domains.passphrase_set": {
+    "en": "Protected"
+  },
+  "web.domains.manage_domains": {
+    "en": "Manage Domains"
+  },
+  "web.domains.global_defaults": {
+    "en": "Global Defaults"
+  },
+  "web.domains.edit_ttl": {
+    "en": "Edit time-to-live setting"
+  },
+  "web.domains.edit_passphrase": {
+    "en": "Edit passphrase requirement"
+  },
+  "web.domains.edit_notify": {
+    "en": "Edit notification setting"
+  }
+}

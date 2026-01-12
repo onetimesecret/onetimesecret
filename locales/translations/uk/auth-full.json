@@ -1,0 +1,539 @@
+{
+  "web.auth.mfa_required": {
+    "en": "MFA verification required",
+    "translation": "Потрібна перевірка MFA"
+  },
+  "web.auth.mfa_verification_required": {
+    "en": "MFA verification required to access your account",
+    "translation": "Для доступу до вашого облікового запису потрібна перевірка MFA"
+  },
+  "web.auth.complete_mfa_verification": {
+    "en": "Complete MFA Verification",
+    "translation": "Завершити перевірку MFA"
+  },
+  "web.auth.security.authentication_failed": {
+    "en": "Authentication failed. Please verify your credentials and try again.",
+    "translation": "Не вдалося автентифікуватись. Будь ласка, перевірте ваші облікові дані та спробуйте ще раз."
+  },
+  "web.auth.security.rate_limited": {
+    "en": "Too many attempts. Please try again later.",
+    "translation": "Занадто багато спроб. Будь ласка, спробуйте пізніше."
+  },
+  "web.auth.security.session_expired": {
+    "en": "Session expired. Please log in again.",
+    "translation": "Термін сесії закінчився. Будь ласка, увійдіть знову."
+  },
+  "web.auth.security.recovery_code_not_found": {
+    "en": "Recovery code not found. Please verify you entered it correctly.",
+    "translation": "Код відновлення не знайдено. Будь ласка, перевірте, що ви ввели його правильно."
+  },
+  "web.auth.security.recovery_code_used": {
+    "en": "This recovery code has already been used. Each code can only be used once.",
+    "translation": "Цей код відновлення вже використано. Кожен код можна використати лише один раз."
+  },
+  "web.auth.security.network_error": {
+    "en": "Network error. Please check your connection and try again.",
+    "translation": "Помилка мережі. Будь ласка, перевірте ваше з'єднання та спробуйте ще раз."
+  },
+  "web.auth.security.internal_error": {
+    "en": "An error occurred. Please try again.",
+    "translation": "Сталася помилка. Будь ласка, спробуйте ще раз."
+  },
+  "web.auth.methods.password": {
+    "en": "Password",
+    "translation": "Пароль"
+  },
+  "web.auth.methods.magicLink": {
+    "en": "Email Link",
+    "translation": "Посилання електронною поштою"
+  },
+  "web.auth.methods.webauthn": {
+    "en": "Biometric",
+    "translation": "Біометрія"
+  },
+  "web.auth.magicLink.title": {
+    "en": "Sign in with Email",
+    "translation": "Увійти через електронну пошту"
+  },
+  "web.auth.magicLink.description": {
+    "en": "We'll send you a secure login link",
+    "translation": "Ми надішлемо вам безпечне посилання для входу"
+  },
+  "web.auth.magicLink.emailPlaceholder": {
+    "en": "Enter your email",
+    "translation": "Введіть вашу електронну пошту"
+  },
+  "web.auth.magicLink.sendLink": {
+    "en": "Send Login Link",
+    "translation": "Надіслати посилання для входу"
+  },
+  "web.auth.magicLink.checkEmail": {
+    "en": "Check your email",
+    "translation": "Перевірте вашу електронну пошту"
+  },
+  "web.auth.magicLink.sentTo": {
+    "en": "We sent a login link to {email}",
+    "translation": "Ми надіслали посилання для входу на {email}"
+  },
+  "web.auth.magicLink.linkExpiresIn": {
+    "en": "This link will expire in 15 minutes",
+    "translation": "Термін дії цього посилання закінчиться через 15 хвилин"
+  },
+  "web.auth.magicLink.tryDifferentEmail": {
+    "en": "Try a different email",
+    "translation": "Спробувати іншу електронну пошту"
+  },
+  "web.auth.magicLink.noPasswordNeeded": {
+    "en": "No password needed — just click the link in your email",
+    "translation": "Пароль не потрібен — просто натисніть посилання у вашій електронній пошті"
+  },
+  "web.auth.magicLink.networkError": {
+    "en": "Network error. Please try again.",
+    "translation": "Помилка мережі. Будь ласка, спробуйте ще раз."
+  },
+  "web.auth.magicLink.requestFailed": {
+    "en": "Failed to send login link. Please try again.",
+    "translation": "Не вдалося надіслати посилання для входу. Будь ласка, спробуйте ще раз."
+  },
+  "web.auth.magicLink.invalidLink": {
+    "en": "Invalid or missing login link",
+    "translation": "Недійсне або відсутнє посилання для входу"
+  },
+  "web.auth.magicLink.loginFailed": {
+    "en": "Login failed. Please try again.",
+    "translation": "Не вдалося увійти. Будь ласка, спробуйте ще раз."
+  },
+  "web.auth.magicLink.signingYouIn": {
+    "en": "Signing you in...",
+    "translation": "Виконується вхід..."
+  },
+  "web.auth.magicLink.pleaseWait": {
+    "en": "Please wait while we verify your link",
+    "translation": "Будь ласка, зачекайте, поки ми перевіряємо ваше посилання"
+  },
+  "web.auth.magicLink.error": {
+    "en": "Authentication Error",
+    "translation": "Помилка автентифікації"
+  },
+  "web.auth.magicLink.back_to_signin": {
+    "en": "Back to Sign In",
+    "translation": "Назад до входу"
+  },
+  "web.auth.webauthn.signIn": {
+    "en": "Sign in with Face ID / Touch ID",
+    "translation": "Увійти через Face ID / Touch ID"
+  },
+  "web.auth.webauthn.setup": {
+    "en": "Set up biometric login",
+    "translation": "Налаштувати біометричний вхід"
+  },
+  "web.auth.webauthn.notSupported": {
+    "en": "Biometric authentication is not supported in this browser",
+    "translation": "Біометрична автентифікація не підтримується в цьому браузері"
+  },
+  "web.auth.webauthn.requiresModernBrowser": {
+    "en": "Please use a modern browser that supports WebAuthn (Chrome, Safari, Firefox, or Edge)",
+    "translation": "Будь ласка, використовуйте сучасний браузер, що підтримує WebAuthn (Chrome, Safari, Firefox або Edge)"
+  },
+  "web.auth.webauthn.setupSuccess": {
+    "en": "Biometric login has been enabled",
+    "translation": "Біометричний вхід увімкнено"
+  },
+  "web.auth.webauthn.setupFailed": {
+    "en": "Failed to set up biometric login",
+    "translation": "Не вдалося налаштувати біометричний вхід"
+  },
+  "web.auth.webauthn.authFailed": {
+    "en": "Biometric authentication failed. Please try again.",
+    "translation": "Біометрична автентифікація не вдалася. Будь ласка, спробуйте ще раз."
+  },
+  "web.auth.webauthn.cancelled": {
+    "en": "Authentication was cancelled",
+    "translation": "Автентифікацію скасовано"
+  },
+  "web.auth.webauthn.processing": {
+    "en": "Authenticating...",
+    "translation": "Автентифікація..."
+  },
+  "web.auth.webauthn.description": {
+    "en": "Use your fingerprint, face, or security key to sign in",
+    "translation": "Використовуйте ваш відбиток пальця, обличчя або ключ безпеки для входу"
+  },
+  "web.auth.webauthn.supportedMethods": {
+    "en": "Supports Face ID, Touch ID, Windows Hello, and security keys",
+    "translation": "Підтримує Face ID, Touch ID, Windows Hello та ключі безпеки"
+  },
+  "web.auth.lockout.attempts_remaining": {
+    "en": "Warning: {count} login attempt(s) remaining",
+    "translation": "Попередження: залишилось {count} спроб(и) входу"
+  },
+  "web.auth.lockout.account_locked": {
+    "en": "Account locked due to too many failed login attempts",
+    "translation": "Обліковий запис заблоковано через занадто багато невдалих спроб входу"
+  },
+  "web.auth.lockout.locked_until": {
+    "en": "Your account is locked until {time}",
+    "translation": "Ваш обліковий запис заблоковано до {time}"
+  },
+  "web.auth.lockout.contact_support": {
+    "en": "Contact support if you need immediate access",
+    "translation": "Зв'яжіться з підтримкою, якщо вам потрібен негайний доступ"
+  },
+  "web.auth.lockout.try_password_reset": {
+    "en": "You can reset your password instead",
+    "translation": "Ви можете натомість скинути ваш пароль"
+  },
+  "web.auth.sessions.title": {
+    "en": "Active Sessions",
+    "translation": "Активні сесії"
+  },
+  "web.auth.sessions.current": {
+    "en": "Current Session",
+    "translation": "Поточна сесія"
+  },
+  "web.auth.sessions.other": {
+    "en": "Other Sessions",
+    "translation": "Інші сесії"
+  },
+  "web.auth.sessions.device": {
+    "en": "Device",
+    "translation": "Пристрій"
+  },
+  "web.auth.sessions.location": {
+    "en": "Location",
+    "translation": "Місцезнаходження"
+  },
+  "web.auth.sessions.ip_address": {
+    "en": "IP Address",
+    "translation": "IP-адреса"
+  },
+  "web.auth.sessions.last_active": {
+    "en": "Last Active",
+    "translation": "Остання активність"
+  },
+  "web.auth.sessions.created": {
+    "en": "Created",
+    "translation": "Створено"
+  },
+  "web.auth.sessions.remove": {
+    "en": "Remove",
+    "translation": "Видалити"
+  },
+  "web.auth.sessions.remove_all": {
+    "en": "Logout All Other Sessions",
+    "translation": "Вийти з усіх інших сесій"
+  },
+  "web.auth.sessions.confirm_remove": {
+    "en": "Are you sure you want to remove this session?",
+    "translation": "Ви впевнені, що хочете видалити цю сесію?"
+  },
+  "web.auth.sessions.confirm_remove_all": {
+    "en": "This will log you out from all other devices. Are you sure?",
+    "translation": "Це виведе вас з усіх інших пристроїв. Ви впевнені?"
+  },
+  "web.auth.sessions.no_sessions": {
+    "en": "No other active sessions",
+    "translation": "Немає інших активних сесій"
+  },
+  "web.auth.sessions.removed_success": {
+    "en": "Session removed successfully",
+    "translation": "Сесію успішно видалено"
+  },
+  "web.auth.sessions.removed_all_success": {
+    "en": "All other sessions have been logged out",
+    "translation": "Усі інші сесії вийшли з системи"
+  },
+  "web.auth.sessions.link_title": {
+    "en": "Active Sessions",
+    "translation": "Активні сесії"
+  },
+  "web.auth.mfa.title": {
+    "en": "Two-Factor Authentication",
+    "translation": "Двофакторна автентифікація"
+  },
+  "web.auth.mfa.enabled": {
+    "en": "Two-factor authentication is enabled",
+    "translation": "Двофакторну автентифікацію увімкнено"
+  },
+  "web.auth.mfa.disabled": {
+    "en": "Two-factor authentication is disabled",
+    "translation": "Двофакторну автентифікацію вимкнено"
+  },
+  "web.auth.mfa.enable": {
+    "en": "Enable Two-Factor Authentication",
+    "translation": "Увімкнути двофакторну автентифікацію"
+  },
+  "web.auth.mfa.disable": {
+    "en": "Disable Two-Factor Authentication",
+    "translation": "Вимкнути двофакторну автентифікацію"
+  },
+  "web.auth.mfa.setup_title": {
+    "en": "Set Up Two-Factor Authentication",
+    "translation": "Налаштувати двофакторну автентифікацію"
+  },
+  "web.auth.mfa.setup_description": {
+    "en": "Add an extra layer of security to your account",
+    "translation": "Додайте додатковий рівень безпеки до вашого облікового запису"
+  },
+  "web.auth.mfa.step_scan": {
+    "en": "1. Scan QR Code",
+    "translation": "1. Сканувати QR-код"
+  },
+  "web.auth.mfa.step_verify": {
+    "en": "2. Verify Setup",
+    "translation": "2. Підтвердити налаштування"
+  },
+  "web.auth.mfa.scan_qr": {
+    "en": "Scan this QR code with your authenticator app",
+    "translation": "Відскануйте цей QR-код за допомогою вашого додатку автентифікації"
+  },
+  "web.auth.mfa.manual_entry": {
+    "en": "Or enter this code manually",
+    "translation": "Або введіть цей код вручну"
+  },
+  "web.auth.mfa.verify_code": {
+    "en": "Enter the 6-digit code from your app",
+    "translation": "Введіть 6-значний код з вашого додатку"
+  },
+  "web.auth.mfa.enter_code": {
+    "en": "Enter authentication code",
+    "translation": "Введіть код автентифікації"
+  },
+  "web.auth.mfa.verify": {
+    "en": "Verify and Enable",
+    "translation": "Перевірити та увімкнути"
+  },
+  "web.auth.mfa.verify_login": {
+    "en": "Verify"
+  },
+  "web.auth.mfa.code_required": {
+    "en": "Authentication code is required",
+    "translation": "Код автентифікації обов'язковий"
+  },
+  "web.auth.mfa.invalid_code": {
+    "en": "Invalid code. Codes expire every 30 seconds. Try the latest code from your authenticator app.",
+    "translation": "Недійсний код. Коди закінчуються кожні 30 секунд. Спробуйте останній код з вашого додатку автентифікації."
+  },
+  "web.auth.mfa.success_enabled": {
+    "en": "Two-factor authentication has been enabled",
+    "translation": "Двофакторну автентифікацію увімкнено"
+  },
+  "web.auth.mfa.success_disabled": {
+    "en": "Two-factor authentication has been disabled",
+    "translation": "Двофакторну автентифікацію вимкнено"
+  },
+  "web.auth.mfa.require_password": {
+    "en": "Enter your password to disable 2FA",
+    "translation": "Введіть ваш пароль, щоб вимкнути 2FA"
+  },
+  "web.auth.mfa.password_confirmation": {
+    "en": "Password",
+    "translation": "Пароль"
+  },
+  "web.auth.mfa.password_reason": {
+    "en": "Confirm your identity to modify two-factor authentication settings",
+    "translation": "Підтвердіть свою особу, щоб змінити налаштування двофакторної автентифікації"
+  },
+  "web.auth.mfa.last_used": {
+    "en": "Last used: {time}",
+    "translation": "Останнє використання: {time}"
+  },
+  "web.auth.mfa.never_used": {
+    "en": "Never used",
+    "translation": "Ніколи не використовувалось"
+  },
+  "web.auth.mfa.use_recovery_code": {
+    "en": "Use a recovery code instead",
+    "translation": "Використати код відновлення"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "en": "Use recovery code"
+  },
+  "web.auth.mfa.back_to_code": {
+    "en": "Back to authentication code",
+    "translation": "Назад до коду автентифікації"
+  },
+  "web.auth.mfa.cancel": {
+    "en": "Cancel and return to sign in",
+    "translation": "Скасувати і повернутись до входу"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "en": "Cancel sign in"
+  },
+  "web.auth.mfa.loading_status": {
+    "en": "Loading MFA status...",
+    "translation": "Завантаження статусу MFA..."
+  },
+  "web.auth.mfa.protected_description": {
+    "en": "Your account is protected with two-factor authentication",
+    "translation": "Ваш обліковий запис захищено двофакторною автентифікацією"
+  },
+  "web.auth.mfa.enable_description": {
+    "en": "Protect your account with an additional layer of security",
+    "translation": "Захистіть ваш обліковий запис додатковим рівнем безпеки"
+  },
+  "web.auth.mfa.benefit_unauthorized": {
+    "en": "Prevent unauthorized access even if your password is compromised",
+    "translation": "Запобігайте несанкціонованому доступу, навіть якщо ваш пароль скомпрометовано"
+  },
+  "web.auth.mfa.benefit_apps": {
+    "en": "Works with Google Authenticator, Authy, and other TOTP apps",
+    "translation": "Працює з Google Authenticator, Authy та іншими TOTP-додатками"
+  },
+  "web.auth.mfa.benefit_recovery": {
+    "en": "Backup recovery codes for emergency access",
+    "translation": "Резервні коди відновлення для екстреного доступу"
+  },
+  "web.auth.mfa.password_placeholder": {
+    "en": "Enter your password",
+    "translation": "Введіть ваш пароль"
+  },
+  "web.auth.mfa.disabling": {
+    "en": "Disabling...",
+    "translation": "Вимкнення..."
+  },
+  "web.auth.mfa.disable_button": {
+    "en": "Disable 2FA",
+    "translation": "Вимкнути 2FA"
+  },
+  "web.auth.mfa.generating_qr": {
+    "en": "Generating QR code...",
+    "translation": "Генерування QR-коду..."
+  },
+  "web.auth.mfa.supported_apps": {
+    "en": "Use Google Authenticator, Authy, or any TOTP app",
+    "translation": "Використовуйте Google Authenticator, Authy або будь-який TOTP-додаток"
+  },
+  "web.auth.mfa.continue_verification": {
+    "en": "Continue to Verification",
+    "translation": "Продовжити до перевірки"
+  },
+  "web.auth.mfa.enter_code_description": {
+    "en": "Enter the 6-digit code from your authenticator app",
+    "translation": "Введіть 6-значний код з вашого додатку автентифікації"
+  },
+  "web.auth.mfa.enable_and_continue": {
+    "en": "Enable MFA",
+    "translation": "Увімкнути MFA"
+  },
+  "web.auth.mfa.complete_setup": {
+    "en": "Complete Setup",
+    "translation": "Завершити налаштування"
+  },
+  "web.auth.mfa.enter_recovery_code": {
+    "en": "Enter one of your recovery codes",
+    "translation": "Введіть один з ваших кодів відновлення"
+  },
+  "web.auth.mfa.recovery_code_label": {
+    "en": "Recovery Code",
+    "translation": "Код відновлення"
+  },
+  "web.auth.mfa.recovery_code_placeholder": {
+    "en": "Enter recovery code",
+    "translation": "Введіть код відновлення"
+  },
+  "web.auth.mfa.verify_recovery_code": {
+    "en": "Verify Recovery Code",
+    "translation": "Перевірити код відновлення"
+  },
+  "web.auth.mfa.six_digit_code": {
+    "en": "Enter 6-digit authentication code",
+    "translation": "Введіть 6-значний код автентифікації"
+  },
+  "web.auth.mfa.recovery_code_mode_active": {
+    "en": "Recovery code mode active",
+    "translation": "Режим коду відновлення активний"
+  },
+  "web.auth.mfa.otp_mode_active": {
+    "en": "Authentication code mode active",
+    "translation": "Режим коду автентифікації активний"
+  },
+  "web.auth.mfa.enter_all_digits": {
+    "en": "Please enter all 6 digits to continue",
+    "translation": "Будь ласка, введіть всі 6 цифр для продовження"
+  },
+  "web.auth.mfa.digit_of_count": {
+    "en": "Digit {current} of {total}",
+    "translation": "Цифра {current} з {total}"
+  },
+  "web.auth.recovery_codes.title": {
+    "en": "Recovery Codes",
+    "translation": "Коди відновлення"
+  },
+  "web.auth.recovery_codes.description": {
+    "en": "Save these codes in a safe place. Each can be used once if you lose access to your authenticator.",
+    "translation": "Збережіть ці коди в безпечному місці. Кожен може бути використаний один раз, якщо ви втратите доступ до вашого автентифікатора."
+  },
+  "web.auth.recovery_codes.warning": {
+    "en": "These codes will only be shown once",
+    "translation": "Ці коди будуть показані лише один раз"
+  },
+  "web.auth.recovery_codes.save_required": {
+    "en": "You must download or copy your recovery codes before completing setup.",
+    "translation": "Ви повинні завантажити або скопіювати коди відновлення перед завершенням налаштування."
+  },
+  "web.auth.recovery_codes.generate_new": {
+    "en": "Generate New Codes",
+    "translation": "Згенерувати нові коди"
+  },
+  "web.auth.recovery_codes.regenerate": {
+    "en": "Regenerate Codes",
+    "translation": "Згенерувати нові коди"
+  },
+  "web.auth.recovery_codes.generate_new_warning": {
+    "en": "This will invalidate all existing recovery codes",
+    "translation": "Це зробить недійсними всі існуючі коди відновлення"
+  },
+  "web.auth.recovery_codes.download": {
+    "en": "Download Codes",
+    "translation": "Завантажити коди"
+  },
+  "web.auth.recovery_codes.downloaded": {
+    "en": "Recovery codes downloaded",
+    "translation": "Коди відновлення завантажено"
+  },
+  "web.auth.recovery_codes.print": {
+    "en": "Print Codes",
+    "translation": "Роздрукувати коди"
+  },
+  "web.auth.recovery_codes.copy": {
+    "en": "Copy All Codes",
+    "translation": "Копіювати всі коди"
+  },
+  "web.auth.recovery_codes.copied": {
+    "en": "Codes copied to clipboard",
+    "translation": "Коди скопійовано в буфер обміну"
+  },
+  "web.auth.recovery_codes.copy_failed": {
+    "en": "Failed to copy codes to clipboard",
+    "translation": "Не вдалося скопіювати коди в буфер обміну"
+  },
+  "web.auth.recovery_codes.code_used": {
+    "en": "Used",
+    "translation": "Використано"
+  },
+  "web.auth.recovery_codes.code_unused": {
+    "en": "Unused",
+    "translation": "Не використано"
+  },
+  "web.auth.recovery_codes.remaining": {
+    "en": "{count} of {limit} recovery codes remaining",
+    "translation": "Залишилось {count} кодів відновлення"
+  },
+  "web.auth.recovery_codes.usage_hint": {
+    "en": "Each code can only be used once. Regenerate codes if you're running low.",
+    "translation": "Кожен код можна використати лише один раз. Згенеруйте нові коди, якщо їх залишилось мало."
+  },
+  "web.auth.recovery_codes.none_remaining": {
+    "en": "No recovery codes remaining",
+    "translation": "Кодів відновлення не залишилось"
+  },
+  "web.auth.recovery_codes.generate_success": {
+    "en": "New recovery codes have been generated",
+    "translation": "Нові коди відновлення згенеровано"
+  },
+  "web.auth.recovery_codes.link_title": {
+    "en": "Recovery Codes",
+    "translation": "Коди відновлення"
+  }
+}

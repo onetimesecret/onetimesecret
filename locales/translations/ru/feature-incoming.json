@@ -1,0 +1,134 @@
+{
+  "incoming.page_title": {
+    "en": "Send a Secret",
+    "translation": "Отправить секрет"
+  },
+  "incoming.page_description": {
+    "en": "Share sensitive information securely with our support team",
+    "translation": "Безопасно поделитесь конфиденциальной информацией с нашей службой поддержки"
+  },
+  "incoming.loading_config": {
+    "en": "Loading...",
+    "translation": "Загрузка..."
+  },
+  "incoming.config_error_title": {
+    "en": "Failed to load configuration",
+    "translation": "Не удалось загрузить конфигурацию"
+  },
+  "incoming.feature_disabled_title": {
+    "en": "Feature Not Available",
+    "translation": "Функция недоступна"
+  },
+  "incoming.feature_disabled_description": {
+    "en": "This feature is currently disabled. Please contact support for assistance.",
+    "translation": "Эта функция в настоящее время отключена. Обратитесь в службу поддержки за помощью."
+  },
+  "incoming.memo_label": {
+    "en": "Memo",
+    "translation": "Заметка"
+  },
+  "incoming.memo_placeholder": {
+    "en": "Brief description (e.g., Password reset request)",
+    "translation": "Краткое описание (например, Запрос на сброс пароля)"
+  },
+  "incoming.memo_hint": {
+    "en": "Help us route your message to the right person",
+    "translation": "Помогите нам направить ваше сообщение нужному человеку"
+  },
+  "incoming.recipient_label": {
+    "en": "Send to",
+    "translation": "Отправить"
+  },
+  "incoming.recipient_placeholder": {
+    "en": "Select a recipient",
+    "translation": "Выберите получателя"
+  },
+  "incoming.recipient_aria_label": {
+    "en": "Select a recipient for this secret",
+    "translation": "Выберите получателя для этого секрета"
+  },
+  "incoming.recipient_hint": {
+    "en": "Choose who will receive this secure message",
+    "translation": "Выберите, кто получит это защищенное сообщение"
+  },
+  "incoming.no_recipients_available": {
+    "en": "No recipients are available",
+    "translation": "Нет доступных получателей"
+  },
+  "incoming.secret_content_label": {
+    "en": "Secret Information",
+    "translation": "Конфиденциальная информация"
+  },
+  "incoming.secret_content_placeholder": {
+    "en": "Paste sensitive information here (passwords, keys, etc.)",
+    "translation": "Вставьте сюда конфиденциальную информацию (пароли, ключи и т.д.)"
+  },
+  "incoming.secret_content_hint": {
+    "en": "This information will be encrypted and only viewable once",
+    "translation": "Эта информация будет зашифрована и доступна для просмотра только один раз"
+  },
+  "incoming.submit_button": {
+    "en": "Send Secret",
+    "translation": "Отправить секрет"
+  },
+  "incoming.submit_secret": {
+    "en": "Send Secret",
+    "translation": "Отправить секрет"
+  },
+  "incoming.submitting_button": {
+    "en": "Sending...",
+    "translation": "Отправка..."
+  },
+  "incoming.submitting": {
+    "en": "Sending...",
+    "translation": "Отправка..."
+  },
+  "incoming.reset_button": {
+    "en": "Clear Form",
+    "translation": "Очистить форму"
+  },
+  "incoming.reset_form": {
+    "en": "Clear Form",
+    "translation": "Очистить форму"
+  },
+  "incoming.success_title": {
+    "en": "Sent Successfully",
+    "translation": "Успешно отправлено"
+  },
+  "incoming.success_description": {
+    "en": "Your secure message has been delivered.",
+    "translation": "Ваше защищенное сообщение доставлено."
+  },
+  "incoming.reference_id": {
+    "en": "Reference ID",
+    "translation": "Идентификатор ссылки"
+  },
+  "incoming.success_info_title": {
+    "en": "What happens next?",
+    "translation": "Что дальше?"
+  },
+  "incoming.success_info_description": {
+    "en": "The recipient will be able to view this secret only once. After they view it, the secret will be permanently deleted.",
+    "translation": "Получатель сможет просмотреть этот секрет только один раз. После просмотра секрет будет безвозвратно удален."
+  },
+  "incoming.create_another": {
+    "en": "Send Another Secret",
+    "translation": "Отправить еще один секрет"
+  },
+  "incoming.tagline1": {
+    "en": "Share sensitive information securely",
+    "translation": "Безопасно делитесь конфиденциальной информацией"
+  },
+  "incoming.tagline2": {
+    "en": "Keep passwords and private data out of email and chat logs",
+    "translation": "Держите пароли и личные данные вне электронной почты и журналов чатов"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "en": "Save your {receipt} for your records.",
+    "translation": "Сохраните <a href='{receiptUrl}'>квитанцию</a> для своих записей."
+  },
+  "incoming.receipt_link_text": {
+    "en": "receipt",
+    "translation": "квитанцию"
+  }
+}

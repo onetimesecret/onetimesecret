@@ -1,0 +1,388 @@
+{
+  "web.domains.learn_more_dns": {
+    "en": "Learn more about DNS configuration",
+    "translation": "Més informació sobre la configuració de DNS"
+  },
+  "web.domains.view_domain_verification_status": {
+    "en": "View domain verification status",
+    "translation": "Mostra l'estat de verificació del domini"
+  },
+  "web.domains.domain_already_in_organization": {
+    "en": "This domain is already registered in your organization",
+    "translation": "Aquest domini ja està registrat a la teva organització"
+  },
+  "web.domains.domain_in_other_organization": {
+    "en": "This domain is already registered to another organization. Please contact support if you believe this is an error.",
+    "translation": "Aquest domini ja està registrat a una altra organització. Contacta amb l'assistència tècnica si creus que això és un error."
+  },
+  "web.domains.domain_claimed_successfully": {
+    "en": "Domain successfully claimed and added to your organization",
+    "translation": "Domini reclamat i afegit correctament a la teva organització"
+  },
+  "web.domains.privacy_defaults_title": {
+    "en": "Privacy Defaults",
+    "translation": "Valors predeterminats de privadesa"
+  },
+  "web.domains.privacy_defaults_description": {
+    "en": "Set default privacy options for secrets created under this domain. These settings will be pre-filled when creating new secrets.",
+    "translation": "Configura les opcions de privadesa predeterminades per als secrets creats sota aquest domini. Aquests paràmetres s'emplenaran prèviament en crear secrets nous."
+  },
+  "web.domains.privacy_defaults": {
+    "en": "Privacy Defaults",
+    "translation": "Valors predeterminats de privadesa"
+  },
+  "web.domains.privacy_defaults_icon": {
+    "en": "Privacy defaults icon",
+    "translation": "Icona de valors predeterminats de privadesa"
+  },
+  "web.domains.default_ttl_label": {
+    "en": "Default Time-to-Live",
+    "translation": "Temps de vida predeterminat"
+  },
+  "web.domains.default_ttl_hint": {
+    "en": "How long secrets should remain accessible by default",
+    "translation": "Quant temps haurien de romandre accessibles els secrets per defecte"
+  },
+  "web.domains.passphrase_required_label": {
+    "en": "Require passphrase",
+    "translation": "Requereix frase de contrasenya"
+  },
+  "web.domains.passphrase_required_hint": {
+    "en": "Make passphrase mandatory for all secrets in this domain",
+    "translation": "Fes obligatòria la frase de contrasenya per a tots els secrets d'aquest domini"
+  },
+  "web.domains.notify_enabled_label": {
+    "en": "Enable notifications",
+    "translation": "Activa les notificacions"
+  },
+  "web.domains.notify_enabled_hint": {
+    "en": "Enable email notifications by default when secrets are viewed",
+    "translation": "Activa les notificacions per correu electrònic per defecte quan es visualitzen els secrets"
+  },
+  "web.domains.use_global_default": {
+    "en": "Use global default",
+    "translation": "Utilitza el valor global predeterminat"
+  },
+  "web.domains.global_default": {
+    "en": "Global",
+    "translation": "Global"
+  },
+  "web.domains.required": {
+    "en": "Required",
+    "translation": "Obligatori"
+  },
+  "web.domains.optional": {
+    "en": "Optional",
+    "translation": "Opcional"
+  },
+  "web.domains.enabled": {
+    "en": "Enabled",
+    "translation": "Activat"
+  },
+  "web.domains.disabled": {
+    "en": "Disabled",
+    "translation": "Desactivat"
+  },
+  "web.domains.custom": {
+    "en": "Custom",
+    "translation": "Personalitzat"
+  },
+  "web.domains.edit_defaults": {
+    "en": "Edit Defaults",
+    "translation": "Edita els valors predeterminats"
+  },
+  "web.domains.ttl_short": {
+    "en": "TTL",
+    "translation": "TTL"
+  },
+  "web.domains.passphrase_short": {
+    "en": "Passphrase",
+    "translation": "Frase de contrasenya"
+  },
+  "web.domains.notify_short": {
+    "en": "Notifications",
+    "translation": "Notificacions"
+  },
+  "web.domains.scope_switch_label": {
+    "en": "Switch domain scope",
+    "translation": "Canvia l'àmbit del domini"
+  },
+  "web.domains.switcher_locked": {
+    "en": "Domain switching not available on this page",
+    "translation": "El canvi de domini no està disponible en aquesta pàgina"
+  },
+  "web.domains.scope_list_label": {
+    "en": "Available domains",
+    "translation": "Dominis disponibles"
+  },
+  "web.domains.scope_header": {
+    "en": "Domains",
+    "translation": "Dominis"
+  },
+  "web.domains.add_domain": {
+    "en": "Add domain",
+    "translation": "Afegeix un domini"
+  },
+  "web.domains.domain_settings": {
+    "en": "Domain settings",
+    "translation": "Configuració del domini"
+  },
+  "web.domains.canonical_no_settings": {
+    "en": "Default domain has no settings page",
+    "translation": "El domini per defecte no té pàgina de configuració"
+  },
+  "web.domains.please_enter_a_domain_name": {
+    "en": "Please enter a {0} domain name",
+    "translation": "Introdueix un nom de domini {0}"
+  },
+  "web.domains.domain_name": {
+    "en": "Domain name",
+    "translation": "Nom de domini"
+  },
+  "web.domains.control_whether_users_can_create_secret_links": {
+    "en": "Control whether users can create secret links from your domain's homepage",
+    "translation": "Controla si els usuaris poden crear enllaços de secrets des de la pàgina inicial del teu domini"
+  },
+  "web.domains.homepage_access": {
+    "en": "Homepage Access",
+    "translation": "Accés a la pàgina inicial"
+  },
+  "web.domains.and_status": {
+    "en": "& Status",
+    "translation": "i estat"
+  },
+  "web.domains.domain": {
+    "en": "Domain",
+    "translation": "Domini"
+  },
+  "web.domains.manage_and_configure_your_verified_custom_domains": {
+    "en": "Manage and configure your verified custom domains",
+    "translation": "Gestiona i configura els teus dominis personalitzats verificats"
+  },
+  "web.domains.domains": {
+    "en": "Domains",
+    "translation": "Dominis"
+  },
+  "web.domains.last_monitored": {
+    "en": "Last Monitored",
+    "translation": "Última supervisió"
+  },
+  "web.domains.ssl_status": {
+    "en": "SSL Status",
+    "translation": "Estat SSL"
+  },
+  "web.domains.ssl_renews": {
+    "en": "SSL Renews",
+    "translation": "SSL es renova"
+  },
+  "web.domains.dns_record": {
+    "en": "DNS Record",
+    "translation": "Registre DNS"
+  },
+  "web.domains.target_address": {
+    "en": "Target Address",
+    "translation": "Adreça de destinació"
+  },
+  "web.domains.domain_status": {
+    "en": "Domain Status",
+    "translation": "Estat del domini"
+  },
+  "web.domains.custom_domains_count": {
+    "en": "Custom domains count",
+    "translation": "Recompte de dominis personalitzats"
+  },
+  "web.domains.custom_domain": {
+    "en": "Custom Domain",
+    "translation": "Domini personalitzat"
+  },
+  "web.domains.open_domain_in_new_tab": {
+    "en": "Open domain in new tab",
+    "translation": "Obre el domini en una pestanya nova"
+  },
+  "web.domains.back_to_domains": {
+    "en": "Back to Domains",
+    "translation": "Torna als dominis"
+  },
+  "web.domains.return_to_domains_list": {
+    "en": "Return to domains list",
+    "translation": "Torna a la llista de dominis"
+  },
+  "web.domains.verify_domain": {
+    "en": "Verify Domain",
+    "translation": "Verifica el domini"
+  },
+  "web.domains.manage_brand": {
+    "en": "Manage Brand",
+    "translation": "Gestiona la marca"
+  },
+  "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
+    "en": "Added {0}",
+    "translation": "Afegit {0}"
+  },
+  "web.domains.add_your_domain": {
+    "en": "Add your domain",
+    "translation": "Afegeix el teu domini"
+  },
+  "web.domains.get_started_by_adding_a_custom_domain": {
+    "en": "Get started by adding a custom domain.",
+    "translation": "Comença afegint un domini personalitzat."
+  },
+  "web.domains.no_domains_found": {
+    "en": "No domains found.",
+    "translation": "No s'han trobat dominis."
+  },
+  "web.domains.loading_domain_information": {
+    "en": "Loading domain information...",
+    "translation": "Carregant la informació del domini..."
+  },
+  "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
+    "en": "In order to connect your domain, you'll need to have a CNAME record in your DNS that points",
+    "translation": "Per connectar el teu domini, hauràs de tenir un registre CNAME al teu DNS que apunti"
+  },
+  "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
+    "en": "If you already have a CNAME record for that address, please change it to point at",
+    "translation": "Si ja tens un registre CNAME per a aquesta adreça, canvia'l perquè apunti a"
+  },
+  "web.domains.a_cname_record_is_not_allowed_instead_youll_need": {
+    "en": "), a CNAME record is not allowed. Instead, you'll need to create an A record. Details on how to do this are provided further down the page.",
+    "translation": "), no es permet un registre CNAME. En canvi, hauràs de crear un registre A. Els detalls sobre com fer-ho es proporcionen més avall a la pàgina."
+  },
+  "web.domains.and_remove_any_other_a_aaaa_or_cname_records_for": {
+    "en": "and remove any other A, AAAA, or CNAME records for that exact address.",
+    "translation": "i elimina qualsevol altre registre A, AAAA o CNAME per a aquesta adreça exacta."
+  },
+  "web.domains.youll_need_to_complete_these_steps": {
+    "en": ", you'll need to complete these steps.",
+    "translation": ", hauràs de completar aquests passos."
+  },
+  "web.domains.before_we_can_activate_links_for": {
+    "en": "Before we can activate links for",
+    "translation": "Abans que puguem activar els enllaços per a"
+  },
+  "web.domains.please_note_that_for_apex_domains": {
+    "en": "Please note that for apex domains (e.g.,",
+    "translation": "Tingues en compte que per als dominis apex (p. ex.,"
+  },
+  "web.domains.verify_your_domain": {
+    "en": "Verify your domain",
+    "translation": "Verifica el teu domini"
+  },
+  "web.domains.secrets_example_dot_com": {
+    "en": "secrets.example.com",
+    "translation": "secrets.exemple.com"
+  },
+  "web.domains.customize_your_domain_branding": {
+    "en": "Customize your domain branding",
+    "translation": "Personalitza la marca del teu domini"
+  },
+  "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
+    "en": "It may take a few minutes for your SSL certificate to take effect.",
+    "translation": "Pot trigar uns minuts perquè el teu certificat SSL entri en vigor."
+  },
+  "web.domains.dns_changes_can_take_as_little_as_60_seconds_or_": {
+    "en": "DNS changes can take as little as 60 seconds -- or up to 24 hours -- to take effect.",
+    "translation": "Els canvis de DNS poden trigar tan poc com 60 segons -- o fins a 24 hores -- a entrar en vigor."
+  },
+  "web.domains.3_wait_for_propagation": {
+    "en": "3. Wait for propagation",
+    "translation": "3. Espera la propagació"
+  },
+  "web.domains.value_2": {
+    "en": "Value",
+    "translation": "Valor"
+  },
+  "web.domains.value_1": {
+    "en": "Value",
+    "translation": "Valor"
+  },
+  "web.domains.host_1": {
+    "en": "Host",
+    "translation": "Host"
+  },
+  "web.domains.type_2": {
+    "en": "Type",
+    "translation": "Tipus"
+  },
+  "web.domains.type_1": {
+    "en": "Type",
+    "translation": "Tipus"
+  },
+  "web.domains.2_create_the_cname_record": {
+    "en": "2. Create the CNAME record",
+    "translation": "2. Crea el registre CNAME"
+  },
+  "web.domains.value_0": {
+    "en": "Value",
+    "translation": "Valor"
+  },
+  "web.domains.host_0": {
+    "en": "Host",
+    "translation": "Host"
+  },
+  "web.domains.type_0": {
+    "en": "Type",
+    "translation": "Tipus"
+  },
+  "web.domains.2_create_the_a_record": {
+    "en": "2. Create the A record",
+    "translation": "2. Crea el registre A"
+  },
+  "web.domains.add_this_hostname_to_your_dns_configuration": {
+    "en": "Add this hostname to your DNS configuration:",
+    "translation": "Afegeix aquest nom d'host a la teva configuració de DNS:"
+  },
+  "web.domains.1_create_a_txt_record": {
+    "en": "1. Create a TXT record",
+    "translation": "1. Crea un registre TXT"
+  },
+  "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
+    "en": "Follow these steps to verify domain ownership and elevate your online presence:",
+    "translation": "Segueix aquests passos per verificar la propietat del domini i elevar la teva presència en línia:"
+  },
+  "web.domains.domain_verification_steps": {
+    "en": "Domain Verification Steps",
+    "translation": "Passos de verificació del domini"
+  },
+  "web.domains.domain_verification_initiated_successfully": {
+    "en": "Domain verification initiated successfully.",
+    "translation": "Verificació del domini iniciada correctament."
+  },
+  "web.domains.are_you_sure_you_want_to_remove_this_domain": {
+    "en": "Are you sure you want to remove this domain? This action cannot be undone.",
+    "translation": "Estàs segur que vols eliminar aquest domini? Aquesta acció no es pot desfer."
+  },
+  "web.domains.remove_domain": {
+    "en": "Remove Domain",
+    "translation": "Elimina el domini"
+  },
+  "web.domains.domain_removed_successfully": {
+    "en": "Domain removed successfully",
+    "translation": "Domini eliminat correctament"
+  },
+  "web.domains.failed_to_add_domain": {
+    "en": "Failed to add domain",
+    "translation": "No s'ha pogut afegir el domini"
+  },
+  "web.domains.domain_added_successfully": {
+    "en": "Domain added successfully",
+    "translation": "Domini afegit correctament"
+  },
+  "web.domains.passphrase_set": {
+    "en": "Protected"
+  },
+  "web.domains.manage_domains": {
+    "en": "Manage Domains"
+  },
+  "web.domains.global_defaults": {
+    "en": "Global Defaults"
+  },
+  "web.domains.edit_ttl": {
+    "en": "Edit time-to-live setting"
+  },
+  "web.domains.edit_passphrase": {
+    "en": "Edit passphrase requirement"
+  },
+  "web.domains.edit_notify": {
+    "en": "Edit notification setting"
+  }
+}

@@ -1,0 +1,531 @@
+{
+  "web.organizations.title": {
+    "en": "Organizations",
+    "translation": "组织"
+  },
+  "web.organizations.organization": {
+    "en": "Organization",
+    "translation": "组织"
+  },
+  "web.organizations.organization_plural": {
+    "en": "Organizations",
+    "translation": "组织"
+  },
+  "web.organizations.organizations_description": {
+    "en": "Manage your organizations",
+    "translation": "管理您的组织"
+  },
+  "web.organizations.my_organizations": {
+    "en": "Organizations",
+    "translation": "我的组织"
+  },
+  "web.organizations.manage_organizations": {
+    "en": "Manage Organizations",
+    "translation": "管理组织"
+  },
+  "web.organizations.new_organization": {
+    "en": "New Organization",
+    "translation": "新组织"
+  },
+  "web.organizations.no_organizations": {
+    "en": "No organizations yet",
+    "translation": "暂无组织"
+  },
+  "web.organizations.no_organizations_description": {
+    "en": "Organizations provide unified billing and administration. Get started by creating your first organization.",
+    "translation": "组织允许您使用统一的账单和管理来管理多个团队。创建您的第一个组织来开始使用。"
+  },
+  "web.organizations.no_description": {
+    "en": "No description provided",
+    "translation": "未提供描述"
+  },
+  "web.organizations.default": {
+    "en": "Default",
+    "translation": "默认"
+  },
+  "web.organizations.create_organization": {
+    "en": "Create Organization",
+    "translation": "创建组织"
+  },
+  "web.organizations.create_first_organization": {
+    "en": "Create First Organization",
+    "translation": "创建第一个组织"
+  },
+  "web.organizations.create_organization_description": {
+    "en": "Create a new organization",
+    "translation": "创建新组织以组合您的团队"
+  },
+  "web.organizations.create": {
+    "en": "Create",
+    "translation": "创建"
+  },
+  "web.organizations.create_error": {
+    "en": "Failed to create organization",
+    "translation": "创建组织失败"
+  },
+  "web.organizations.organization_name": {
+    "en": "Organization Name",
+    "translation": "组织名称"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "en": "e.g. Acme Corporation",
+    "translation": "例如：Acme 公司"
+  },
+  "web.organizations.display_name": {
+    "en": "Organization Name",
+    "translation": "组织名称"
+  },
+  "web.organizations.description": {
+    "en": "Description",
+    "translation": "描述"
+  },
+  "web.organizations.description_placeholder": {
+    "en": "What is this organization for?",
+    "translation": "此组织用于什么？"
+  },
+  "web.organizations.contact_email": {
+    "en": "Billing Email",
+    "translation": "账单邮箱"
+  },
+  "web.organizations.contact_email_help": {
+    "en": "Primary contact for billing and administrative notifications",
+    "translation": "账单和管理通知的主要联系方式"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "en": "Billing and subscription management is handled through your primary workspace. Visit your main workspace settings to manage payment methods and invoices.",
+    "translation": "账单和订阅管理通过您的主要工作区处理。访问主要工作区设置来管理付款方式和发票。"
+  },
+  "web.organizations.select_organization": {
+    "en": "Select an organization",
+    "translation": "选择组织"
+  },
+  "web.organizations.switcher_locked": {
+    "en": "Organization switching not available on this page",
+    "translation": "此页面不支持切换组织"
+  },
+  "web.organizations.not_found": {
+    "en": "Organization not found",
+    "translation": "未找到组织"
+  },
+  "web.organizations.load_error": {
+    "en": "Failed to load organization",
+    "translation": "加载组织失败"
+  },
+  "web.organizations.fetch_organization_error": {
+    "en": "Failed to load organization",
+    "translation": "加载组织失败"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "en": "Failed to load organizations",
+    "translation": "加载组织失败"
+  },
+  "web.organizations.organization_information": {
+    "en": "Organization Information",
+    "translation": "组织信息"
+  },
+  "web.organizations.created": {
+    "en": "Created",
+    "translation": "创建时间"
+  },
+  "web.organizations.last_updated": {
+    "en": "Last Updated",
+    "translation": "最后更新"
+  },
+  "web.organizations.organization_settings": {
+    "en": "Organization Settings",
+    "translation": "组织设置"
+  },
+  "web.organizations.organization_settings_description": {
+    "en": "Update your organization name and description",
+    "translation": "更新您的组织名称和描述"
+  },
+  "web.organizations.general_settings": {
+    "en": "General Settings",
+    "translation": "常规设置"
+  },
+  "web.organizations.billing_settings": {
+    "en": "Billing & Subscription",
+    "translation": "账单与订阅"
+  },
+  "web.organizations.save_changes": {
+    "en": "Save Changes",
+    "translation": "保存更改"
+  },
+  "web.organizations.update_success": {
+    "en": "Organization updated successfully",
+    "translation": "组织更新成功"
+  },
+  "web.organizations.update_error": {
+    "en": "Failed to update organization",
+    "translation": "更新组织失败"
+  },
+  "web.organizations.billing_email_updated": {
+    "en": "Billing email updated successfully"
+  },
+  "web.organizations.billing_coming_soon": {
+    "en": "Billing Integration Coming Soon",
+    "translation": "账单集成即将推出"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "en": "Unified billing and subscription management will be available in a future release.",
+    "translation": "此组织中所有团队的统一账单和订阅管理将在未来版本中提供。"
+  },
+  "web.organizations.about_title": {
+    "en": "About Organizations",
+    "translation": "关于组织"
+  },
+  "web.organizations.about_description": {
+    "en": "Organizations provide unified billing and administration for centralized management.",
+    "translation": "组织为多个团队提供统一的账单和管理。它们是可选的 - 团队可以独立存在，也可以归入组织进行集中管理。"
+  },
+  "web.organizations.single_user_info_title": {
+    "en": "Manage Your Organization",
+    "translation": "管理您的组织"
+  },
+  "web.organizations.single_user_info_description": {
+    "en": "Update your company name and organization details here. This information helps personalize your account and can be used for branding features in the future.",
+    "translation": "在此更新您的公司名称和组织详情。此信息有助于个性化您的账户，并可用于未来的品牌功能。"
+  },
+  "web.organizations.getting_started_title": {
+    "en": "Getting Started with Organizations",
+    "translation": "开始使用组织"
+  },
+  "web.organizations.getting_started_description": {
+    "en": "Create your first organization to manage your company information and prepare for future branding features.",
+    "translation": "创建您的第一个组织以管理您的公司信息，并为未来的团队协作和品牌功能做准备。"
+  },
+  "web.organizations.page_description": {
+    "en": "Manage your organizations and team members",
+    "translation": "管理您的组织和团队成员"
+  },
+  "web.organizations.tabs.general": {
+    "en": "Settings",
+    "translation": "常规"
+  },
+  "web.organizations.tabs.company_branding": {
+    "en": "Company Branding",
+    "translation": "公司品牌"
+  },
+  "web.organizations.tabs.members": {
+    "en": "Team",
+    "translation": "团队"
+  },
+  "web.organizations.tabs.billing": {
+    "en": "Billing",
+    "translation": "账单"
+  },
+  "web.organizations.danger_zone": {
+    "en": "Danger Zone",
+    "translation": "危险区域"
+  },
+  "web.organizations.delete_organization": {
+    "en": "Delete Organization",
+    "translation": "删除组织"
+  },
+  "web.organizations.delete_organization_warning": {
+    "en": "This will permanently delete the organization. This action cannot be undone.",
+    "translation": "这将永久删除该组织和所有关联的团队。此操作无法撤销。"
+  },
+  "web.organizations.delete": {
+    "en": "Delete",
+    "translation": "删除"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "en": "Delete Organization",
+    "translation": "删除组织"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "en": "Are you sure you want to delete {name}? This action cannot be undone.",
+    "translation": "您确定要删除 {name} 吗？此操作无法撤销。"
+  },
+  "web.organizations.delete_error": {
+    "en": "Failed to delete organization",
+    "translation": "删除组织失败"
+  },
+  "web.organizations.members.title": {
+    "en": "Members",
+    "translation": "成员"
+  },
+  "web.organizations.members.description": {
+    "en": "Manage organization members and their roles",
+    "translation": "管理组织成员及其角色"
+  },
+  "web.organizations.members.current_members": {
+    "en": "Current Members",
+    "translation": "当前成员"
+  },
+  "web.organizations.members.member": {
+    "en": "Member",
+    "translation": "成员"
+  },
+  "web.organizations.members.member_singular": {
+    "en": "member",
+    "translation": "名成员"
+  },
+  "web.organizations.members.member_plural": {
+    "en": "members",
+    "translation": "名成员"
+  },
+  "web.organizations.members.name": {
+    "en": "Name",
+    "translation": "姓名"
+  },
+  "web.organizations.members.email": {
+    "en": "Email",
+    "translation": "邮箱"
+  },
+  "web.organizations.members.role": {
+    "en": "Role",
+    "translation": "角色"
+  },
+  "web.organizations.members.joined": {
+    "en": "Joined",
+    "translation": "加入时间"
+  },
+  "web.organizations.members.actions": {
+    "en": "Actions",
+    "translation": "操作"
+  },
+  "web.organizations.members.no_members": {
+    "en": "No members yet. Invite team members to get started.",
+    "translation": "未找到成员"
+  },
+  "web.organizations.members.no_members_description": {
+    "en": "This organization has no members yet.",
+    "translation": "此组织暂无成员。"
+  },
+  "web.organizations.members.role_updated": {
+    "en": "Member role updated successfully",
+    "translation": "成员角色更新成功"
+  },
+  "web.organizations.members.role_update_error": {
+    "en": "Failed to update member role",
+    "translation": "更新成员角色失败"
+  },
+  "web.organizations.members.member_removed": {
+    "en": "Member removed from organization",
+    "translation": "成员已从组织中移除"
+  },
+  "web.organizations.members.member_remove_error": {
+    "en": "Failed to remove member",
+    "translation": "移除成员失败"
+  },
+  "web.organizations.members.remove_member_title": {
+    "en": "Remove Member",
+    "translation": "移除成员"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "en": "Are you sure you want to remove {name} from this organization?",
+    "translation": "您确定要将 {name} 从此组织中移除吗？"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "en": "You cannot change your own role",
+    "translation": "您不能更改自己的角色"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "en": "You cannot remove yourself from the organization",
+    "translation": "您不能将自己从组织中移除"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "en": "You cannot remove the organization owner",
+    "translation": "您不能移除组织所有者"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "en": "You do not have permission to manage members",
+    "translation": "您没有管理成员的权限"
+  },
+  "web.organizations.members.roles.owner": {
+    "en": "Owner",
+    "translation": "所有者"
+  },
+  "web.organizations.members.roles.admin": {
+    "en": "Admin",
+    "translation": "管理员"
+  },
+  "web.organizations.members.roles.member": {
+    "en": "Member",
+    "translation": "成员"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "en": "Full access to all organization settings and members",
+    "translation": "完全访问所有组织设置和成员"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "en": "Can manage members and most organization settings",
+    "translation": "可以管理成员和大部分组织设置"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "en": "Basic access to organization resources",
+    "translation": "基本访问组织资源"
+  },
+  "web.organizations.invitations.title": {
+    "en": "Organization Invitations",
+    "translation": "组织邀请"
+  },
+  "web.organizations.invitations.invite_member": {
+    "en": "Invite Member",
+    "translation": "邀请成员"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "en": "Invite New Member",
+    "translation": "邀请新成员"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "en": "Pending Invitations",
+    "translation": "待处理邀请"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "en": "No pending invitations",
+    "translation": "暂无待处理邀请"
+  },
+  "web.organizations.invitations.email_address": {
+    "en": "Email Address",
+    "translation": "邮箱地址"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "en": "member@example.com",
+    "translation": "member@example.com"
+  },
+  "web.organizations.invitations.role": {
+    "en": "Role",
+    "translation": "角色"
+  },
+  "web.organizations.invitations.send_invite": {
+    "en": "Send Invitation",
+    "translation": "发送邀请"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "en": "Invitation sent successfully",
+    "translation": "邀请发送成功"
+  },
+  "web.organizations.invitations.invite_error": {
+    "en": "Failed to send invitation",
+    "translation": "发送邀请失败"
+  },
+  "web.organizations.invitations.resend": {
+    "en": "Resend",
+    "translation": "重新发送"
+  },
+  "web.organizations.invitations.revoke": {
+    "en": "Revoke",
+    "translation": "撤销"
+  },
+  "web.organizations.invitations.resend_success": {
+    "en": "Invitation resent successfully",
+    "translation": "邀请重新发送成功"
+  },
+  "web.organizations.invitations.resend_error": {
+    "en": "Failed to resend invitation",
+    "translation": "重新发送邀请失败"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "en": "Invitation revoked successfully",
+    "translation": "邀请撤销成功"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "en": "Failed to revoke invitation",
+    "translation": "撤销邀请失败"
+  },
+  "web.organizations.invitations.invited_by": {
+    "en": "Invited by",
+    "translation": "邀请人"
+  },
+  "web.organizations.invitations.invited_at": {
+    "en": "Invited",
+    "translation": "邀请时间"
+  },
+  "web.organizations.invitations.expires_at": {
+    "en": "Expires",
+    "translation": "过期时间"
+  },
+  "web.organizations.invitations.resent_count": {
+    "en": "Resent {count} time",
+    "translation": "已重发 {count} 次"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "en": "Resent {count} times",
+    "translation": "已重发 {count} 次"
+  },
+  "web.organizations.invitations.status.pending": {
+    "en": "Pending",
+    "translation": "待处理"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "en": "Accepted",
+    "translation": "已接受"
+  },
+  "web.organizations.invitations.status.declined": {
+    "en": "Declined",
+    "translation": "已拒绝"
+  },
+  "web.organizations.invitations.status.expired": {
+    "en": "Expired",
+    "translation": "已过期"
+  },
+  "web.organizations.invitations.roles.member": {
+    "en": "Member",
+    "translation": "成员"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "en": "Admin",
+    "translation": "管理员"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "en": "Accept Invitation",
+    "translation": "接受邀请"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "en": "Decline Invitation",
+    "translation": "拒绝邀请"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "en": "Invitation Details",
+    "translation": "邀请详情"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "en": "You've been invited to join",
+    "translation": "您已被邀请加入"
+  },
+  "web.organizations.invitations.invited_as": {
+    "en": "You've been invited as a",
+    "translation": "您被邀请担任"
+  },
+  "web.organizations.invitations.accept_success": {
+    "en": "Invitation accepted successfully",
+    "translation": "邀请接受成功"
+  },
+  "web.organizations.invitations.accept_error": {
+    "en": "Failed to accept invitation",
+    "translation": "接受邀请失败"
+  },
+  "web.organizations.invitations.decline_success": {
+    "en": "Invitation declined",
+    "translation": "邀请已拒绝"
+  },
+  "web.organizations.invitations.decline_error": {
+    "en": "Failed to decline invitation",
+    "translation": "拒绝邀请失败"
+  },
+  "web.organizations.invitations.expired_message": {
+    "en": "This invitation has expired",
+    "translation": "此邀请已过期"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "en": "Invalid or expired invitation",
+    "translation": "无效或已过期的邀请"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "en": "Please sign in to accept this invitation",
+    "translation": "请登录以接受此邀请"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "en": "Loading invitation details",
+    "translation": "加载邀请详情中"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "en": "Upgrade your plan to invite team members"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "en": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization."
+  }
+}

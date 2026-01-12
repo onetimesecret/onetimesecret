@@ -1,0 +1,1276 @@
+{
+  "web.COMMON.broadcast": {
+    "en": "",
+    "skip": true,
+    "note": "empty source"
+  },
+  "web.COMMON.tagline": {
+    "en": "Secure links that only work once",
+    "translation": ""
+  },
+  "web.COMMON.powered_by": {
+    "en": "Powered by",
+    "translation": ""
+  },
+  "web.COMMON.website_url": {
+    "en": "https://onetimesecret.com/en",
+    "translation": ""
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "en": "Generate Password",
+    "translation": "Parola Oluştur"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "en": "Generate Password is disabled when the form is valid",
+    "translation": "Form geçerli olduğunda Parola Oluştur devre dışı bırakılır"
+  },
+  "web.COMMON.email_placeholder": {
+    "en": "e.g. tom{'@'}myspace.com",
+    "translation": "örn. ali{'@'}ornek.com"
+  },
+  "web.COMMON.password_placeholder": {
+    "en": "Enter your password",
+    "translation": "Parolanızı girin"
+  },
+  "web.COMMON.custom_domains_title": {
+    "en": "Custom Domains",
+    "translation": "Özel Alan Adları"
+  },
+  "web.COMMON.custom_domains_description": {
+    "en": "Strengthen connections and build trust with your own branded secret links.",
+    "translation": "Kendi markalı gizli bağlantılarınızla bağlantıları güçlendirin ve güven oluşturun."
+  },
+  "web.COMMON.get_started_button": {
+    "en": "Get Started",
+    "translation": "Başla"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "en": "Confirm your password",
+    "translation": "Parolanızı doğrulayın"
+  },
+  "web.COMMON.header_settings": {
+    "en": "Settings",
+    "translation": "Ayarlar"
+  },
+  "web.COMMON.submit_with": {
+    "en": "Submit",
+    "translation": "Gönder"
+  },
+  "web.COMMON.submitting": {
+    "en": "Submitting...",
+    "translation": "Gönderiliyor..."
+  },
+  "web.COMMON.processing": {
+    "en": "Processing...",
+    "translation": "İşleniyor..."
+  },
+  "web.COMMON.description": {
+    "en": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
+    "translation": "Hassas bilgilerinizi sohbet geçmişinizde veya e-postalarınızda saklamayın. Sadece tek seferlik gizli bir link ile paylaşın."
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "en": "Incorrect passphrase",
+    "translation": "Hatalı parola"
+  },
+  "web.COMMON.keywords": {
+    "en": "secret,password generator,share a secret,onetime",
+    "translation": "gizli,parola oluşturucu,sır paylaş,tek seferlik"
+  },
+  "web.COMMON.button_create_secret": {
+    "en": "Create a secret link",
+    "translation": "Gizli link yarat"
+  },
+  "web.COMMON.button_generate_secret": {
+    "en": "Or generate a random password",
+    "translation": "Veya rastgele parola oluştur"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "en": "Privacy Options",
+    "translation": "Gizlilik Ayarları"
+  },
+  "web.COMMON.secret_passphrase": {
+    "en": "Passphrase",
+    "translation": "Parola"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "en": "A word or phrase that's difficult to guess",
+    "translation": "Tahmin edilmesi zor bir kelime veya cümle"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "en": "Recipient Address",
+    "translation": "Alıcı Adresi"
+  },
+  "web.COMMON.secret_placeholder": {
+    "en": "Secret content goes here...",
+    "translation": "Gizli içerik..."
+  },
+  "web.COMMON.header_create_account": {
+    "en": "Create Account",
+    "translation": "Hesap Oluştur"
+  },
+  "web.COMMON.header_about": {
+    "en": "About",
+    "translation": "Hakkında"
+  },
+  "web.COMMON.header_sign_in": {
+    "en": "Sign In",
+    "translation": "Giriş Yap"
+  },
+  "web.COMMON.header_dashboard": {
+    "en": "Account",
+    "translation": "Hesabım"
+  },
+  "web.COMMON.header_logout": {
+    "en": "Logout",
+    "translation": "Çıkış"
+  },
+  "web.COMMON.secret": {
+    "en": "Secret | Secrets",
+    "translation": "Gizli Mesaj"
+  },
+  "web.COMMON.recent": {
+    "en": "Recent",
+    "translation": "Son"
+  },
+  "web.COMMON.received": {
+    "en": "Received",
+    "translation": "Alınan"
+  },
+  "web.COMMON.burn": {
+    "en": "Burn",
+    "translation": "Yak"
+  },
+  "web.COMMON.burned": {
+    "en": "Burned",
+    "translation": "Yakılan"
+  },
+  "web.COMMON.expires_in": {
+    "en": "Expires in",
+    "translation": "Kalan zaman"
+  },
+  "web.COMMON.burn_this_secret": {
+    "en": "Burn this secret",
+    "translation": "Bu gizli mesajı yak"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "en": "Burning a secret will delete it before it has been read (click to confirm)",
+    "translation": "Gizli mesajı yakmak onu okunmadan önce siler (onaylamak için tıkla)"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "en": "Burning a secret is permanent and cannot be undone",
+    "translation": "Gizli mesajı yakmak kalıcıdır ve geri alınamaz"
+  },
+  "web.COMMON.msg_check_email": {
+    "en": "Check your email",
+    "translation": "E-postanı kontrol et"
+  },
+  "web.COMMON.click_to_continue": {
+    "en": "Click to reveal →",
+    "translation": "Devam etmek için tıkla →"
+  },
+  "web.COMMON.click_to_verify": {
+    "en": "Continue to verify your account:",
+    "translation": "Hesabını doğrulamak için devam et:"
+  },
+  "web.COMMON.error_secret": {
+    "en": "You did not provide anything to share",
+    "translation": "Paylaşılacak birşey yazmadın"
+  },
+  "web.COMMON.error_passphrase": {
+    "en": "Double check that passphrase",
+    "translation": "Yanlış parola"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "en": "Enter the passphrase here",
+    "translation": "Parolayı buraya yaz"
+  },
+  "web.COMMON.view_secret": {
+    "en": "View Secret",
+    "translation": "Gizli Mesajı Görüntüle"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "en": "Careful: we will only show it once.",
+    "translation": "dikkat: sadece bir defa gösterilecek."
+  },
+  "web.COMMON.warning": {
+    "en": "Warning",
+    "translation": "Uyarı"
+  },
+  "web.COMMON.oops": {
+    "en": "Oops!",
+    "translation": "Eyvah!"
+  },
+  "web.COMMON.error": {
+    "en": "Error",
+    "translation": "Hata"
+  },
+  "web.COMMON.unexpected_error": {
+    "en": "An unexpected error occurred. Please try again.",
+    "translation": ""
+  },
+  "web.COMMON.secret_was_truncated": {
+    "en": "The message was truncated",
+    "translation": "Fazla uzun olduğu için mesaj kısaltıldı"
+  },
+  "web.COMMON.signup_for_more": {
+    "en": "Signup for more",
+    "translation": "Daha fazlası için kaydol"
+  },
+  "web.COMMON.login_to_your_account": {
+    "en": "Log in to your account",
+    "translation": "Hesabına giriş yap"
+  },
+  "web.COMMON.sent_to": {
+    "en": "Sent to: ",
+    "translation": "Alıcı(lar): "
+  },
+  "web.COMMON.field_email": {
+    "en": "Email",
+    "translation": "E-posta"
+  },
+  "web.COMMON.field_password": {
+    "en": "Password",
+    "translation": "Parola"
+  },
+  "web.COMMON.field_password2": {
+    "en": "Confirm Password",
+    "translation": "Parolayı Doğrula"
+  },
+  "web.COMMON.button_create_account": {
+    "en": "Create Account",
+    "translation": "Hesap Oluştur"
+  },
+  "web.COMMON.share_a_secret": {
+    "en": "Share a secret",
+    "translation": "Gizli Mesaj paylaş"
+  },
+  "web.COMMON.title_home": {
+    "en": "Home",
+    "translation": "Ana Sayfa"
+  },
+  "web.COMMON.word_none": {
+    "en": "None",
+    "translation": "Hiç"
+  },
+  "web.COMMON.word_burned": {
+    "en": "burned",
+    "translation": "yakılan"
+  },
+  "web.COMMON.word_received": {
+    "en": "received",
+    "translation": "alınan"
+  },
+  "web.COMMON.word_confirm": {
+    "en": "Confirm",
+    "translation": "Onayla"
+  },
+  "web.COMMON.word_cancel": {
+    "en": "Cancel",
+    "translation": "İptal"
+  },
+  "web.COMMON.word_continue": {
+    "en": "Continue",
+    "translation": ""
+  },
+  "web.COMMON.word_done": {
+    "en": "Done",
+    "translation": "Tamamlandı"
+  },
+  "web.COMMON.back": {
+    "en": "Back",
+    "translation": "Geri"
+  },
+  "web.COMMON.feedback_text": {
+    "en": "Share your thoughts, ideas, or experiences...",
+    "translation": "Sorunuz veya yorumunuz mu var?"
+  },
+  "web.COMMON.button_send_feedback": {
+    "en": "Send Feedback",
+    "translation": "Geribildirim Yolla"
+  },
+  "web.COMMON.verification_sent_to": {
+    "en": "A verification was sent to",
+    "translation": "Doğrulama mesajı gönderilen adres"
+  },
+  "web.COMMON.autoverified_success": {
+    "en": "Account created. Please sign in.",
+    "translation": ""
+  },
+  "web.COMMON.signup_success_generic": {
+    "en": "If an account with this email exists, you will receive a verification email.",
+    "translation": ""
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "en": "Burn this secret permanently",
+    "translation": "Bu gizli mesajı kalıcı olarak yak"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "en": "Please Confirm",
+    "translation": "Lütfen Onaylayın"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "en": "Are you sure you want to burn this secret? This action cannot be undone.",
+    "translation": "Bu gizli mesajı yakmak istediğinizden emin misiniz? Bu işlem geri alınamaz."
+  },
+  "web.COMMON.confirm_burn": {
+    "en": "Yes, burn this secret",
+    "translation": "Evet, bu gizli mesajı yak"
+  },
+  "web.COMMON.burn_security_notice": {
+    "en": "Burning a secret will delete it before it has been received.",
+    "translation": "Bir gizli mesajı yakmak, alınmadan önce onu silecektir."
+  },
+  "web.COMMON.share_link_securely": {
+    "en": "For security, share this link separately from other details.",
+    "translation": "Güvenlik için, bu bağlantıyı diğer ayrıntılardan ayrı olarak paylaşın."
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "en": "Copied to clipboard",
+    "translation": "Panoya kopyalandı"
+  },
+  "web.COMMON.button_create_incoming": {
+    "en": "Create Incoming",
+    "translation": ""
+  },
+  "web.COMMON.faq_title": {
+    "en": "F.A.Q.",
+    "translation": "S.S.S."
+  },
+  "web.COMMON.verification_not_valid": {
+    "en": "Verification is not valid",
+    "translation": "Doğrulama geçerli değil"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "en": "Cannot verify an account when you're already logged in",
+    "translation": "Zaten giriş yapmış durumdayken bir hesap doğrulanamaz"
+  },
+  "web.COMMON.show_password": {
+    "en": "Show password",
+    "translation": ""
+  },
+  "web.COMMON.hide_password": {
+    "en": "Hide password",
+    "translation": ""
+  },
+  "web.COMMON.minimum_8_characters": {
+    "en": "Password must be at least 8 characters",
+    "translation": ""
+  },
+  "web.COMMON.password_requirements": {
+    "en": "Password must be at least 8 characters long",
+    "translation": ""
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "en": "Passwords do not match",
+    "translation": ""
+  },
+  "web.COMMON.form_field_required": {
+    "en": "This field is required",
+    "translation": ""
+  },
+  "web.COMMON.form_processing": {
+    "en": "Processing your request",
+    "translation": ""
+  },
+  "web.COMMON.remember_me_description": {
+    "en": "Keep me logged in for 30 days",
+    "translation": ""
+  },
+  "web.COMMON.redirecting": {
+    "en": "Redirecting...",
+    "translation": ""
+  },
+  "web.COMMON.continue": {
+    "en": "Continue",
+    "translation": "Devam Et"
+  },
+  "web.COMMON.are_you_sure": {
+    "en": "Are you sure?",
+    "translation": ""
+  },
+  "web.COMMON.danger_zone": {
+    "en": "Danger Zone",
+    "translation": ""
+  },
+  "web.COMMON.caution_zone": {
+    "en": "Careful Consideration Zone",
+    "translation": ""
+  },
+  "web.COMMON.user_menu": {
+    "en": "User menu",
+    "translation": ""
+  },
+  "web.COMMON.security": {
+    "en": "Security",
+    "translation": "Güvenlik"
+  },
+  "web.COMMON.manage": {
+    "en": "Manage",
+    "translation": ""
+  },
+  "web.COMMON.loading": {
+    "en": "Loading...",
+    "translation": "Yükleniyor..."
+  },
+  "web.COMMON.save_changes": {
+    "en": "Save Changes",
+    "translation": ""
+  },
+  "web.COMMON.saving": {
+    "en": "Saving...",
+    "translation": "Kaydediliyor..."
+  },
+  "web.COMMON.adding_ellipses": {
+    "en": "Adding",
+    "translation": "Ekleniyor"
+  },
+  "web.COMMON.e_g_example": {
+    "en": "e.g.",
+    "translation": "örn."
+  },
+  "web.COMMON.example_placeholder": {
+    "en": "e.g. {example}",
+    "translation": "örn. {example}"
+  },
+  "web.COMMON.status": {
+    "en": "Status",
+    "translation": "Durum"
+  },
+  "web.COMMON.escape": {
+    "en": "Escape",
+    "translation": "Çıkış"
+  },
+  "web.COMMON.active": {
+    "en": "Active",
+    "translation": "Aktif"
+  },
+  "web.COMMON.preview": {
+    "en": "Preview",
+    "translation": "Önizleme"
+  },
+  "web.COMMON.remove": {
+    "en": "Remove",
+    "translation": "Kaldır"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "en": "Press ESC to close",
+    "translation": "Kapatmak için ESC tuşuna basın"
+  },
+  "web.COMMON.enter": {
+    "en": "Enter",
+    "translation": "Giriş"
+  },
+  "web.COMMON.important": {
+    "en": "Important",
+    "translation": "Önemli"
+  },
+  "web.COMMON.language": {
+    "en": "Language",
+    "translation": "Dil"
+  },
+  "web.COMMON.theme": {
+    "en": "Theme",
+    "translation": "Tema"
+  },
+  "web.COMMON.appearance": {
+    "en": "Appearance",
+    "translation": "Görünüm"
+  },
+  "web.COMMON.done": {
+    "en": "Done",
+    "translation": "Bitti"
+  },
+  "web.COMMON.end": {
+    "en": "End",
+    "translation": "Son"
+  },
+  "web.COMMON.general": {
+    "en": "General",
+    "translation": "Genel"
+  },
+  "web.COMMON.note": {
+    "en": "Note",
+    "translation": "Not"
+  },
+  "web.COMMON.monthly": {
+    "en": "Monthly",
+    "translation": "Aylık"
+  },
+  "web.COMMON.yearly": {
+    "en": "Yearly",
+    "translation": "Yıllık"
+  },
+  "web.COMMON.go_on_then": {
+    "en": "Go on then.",
+    "translation": "Devam et o zaman."
+  },
+  "web.COMMON.loading_ellipses": {
+    "en": "Loading...",
+    "translation": "Yükleniyor..."
+  },
+  "web.COMMON.not_received": {
+    "en": "NOT RECEIVED",
+    "translation": "ALINMADI"
+  },
+  "web.COMMON.confirm_password": {
+    "en": "Confirm password",
+    "translation": "Şifreyi onayla"
+  },
+  "web.COMMON.new_password": {
+    "en": "New password",
+    "translation": "Yeni Şifre"
+  },
+  "web.COMMON.email_address": {
+    "en": "Email address",
+    "translation": "E-posta adresi"
+  },
+  "web.COMMON.switch": {
+    "en": "switch",
+    "translation": "değiştir"
+  },
+  "web.COMMON.features": {
+    "en": "Features",
+    "translation": "Özellikler"
+  },
+  "web.COMMON.not_found": {
+    "en": "Not Found",
+    "translation": "Bulunamadı"
+  },
+  "web.COMMON.emoji_x": {
+    "en": "❌",
+    "translation": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "en": "✅",
+    "translation": "✅"
+  },
+  "web.COMMON.supported": {
+    "en": "Supported",
+    "translation": "Desteklenen"
+  },
+  "web.COMMON.version": {
+    "en": "Version",
+    "translation": "Sürüm"
+  },
+  "web.COMMON.other": {
+    "en": "Other",
+    "translation": "Diğer"
+  },
+  "web.COMMON.min_width_1024px": {
+    "en": "(min-width: 1024px)",
+    "translation": "(min-genişlik: 1024 piksel)"
+  },
+  "web.COMMON.ctrl_enter": {
+    "en": "Ctrl + Enter",
+    "translation": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "en": "⌘ + Enter",
+    "translation": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "en": "Mac",
+    "translation": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "en": "Email address copied to clipboard!",
+    "translation": "E-posta adresi panoya kopyalandı!"
+  },
+  "web.COMMON.value": {
+    "en": "Value",
+    "translation": "Değer"
+  },
+  "web.COMMON.host": {
+    "en": "Host",
+    "translation": "Ana Bilgisayar"
+  },
+  "web.COMMON.type": {
+    "en": "Type",
+    "translation": "Tür"
+  },
+  "web.COMMON.previous": {
+    "en": "Previous",
+    "translation": "Önceki"
+  },
+  "web.COMMON.next": {
+    "en": "Next",
+    "translation": "Sonraki"
+  },
+  "web.COMMON.password_strength": {
+    "en": "Password Strength:",
+    "translation": "Şifre Gücü:"
+  },
+  "web.COMMON.great": {
+    "en": "Great",
+    "translation": "Harika"
+  },
+  "web.COMMON.pretty_good": {
+    "en": "Pretty good",
+    "translation": "Oldukça iyi"
+  },
+  "web.COMMON.fair": {
+    "en": "Fair",
+    "translation": "Orta"
+  },
+  "web.COMMON.meh": {
+    "en": "Meh",
+    "translation": "Eh"
+  },
+  "web.COMMON.not_great": {
+    "en": "Not great",
+    "translation": "Pek iyi değil"
+  },
+  "web.COMMON.open_options": {
+    "en": "Open options",
+    "translation": "Seçenekleri aç"
+  },
+  "web.COMMON.inactive": {
+    "en": "Inactive",
+    "translation": "Etkin değil"
+  },
+  "web.COMMON.an_error_occurred": {
+    "en": "An error occurred",
+    "translation": "Bir hata oluştu"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "en": "Copy secret to clipboard",
+    "translation": "Mesajı panoya kopyala"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "en": "Secret copied to clipboard",
+    "translation": "Mesaj panoya kopyalandı"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "en": "Double check that passphrase",
+    "translation": "Parolayı iki kez kontrol edin"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "en": "Press the copy button below.",
+    "translation": "Aşağıdaki kopyala düğmesine basın."
+  },
+  "web.LABELS.view_toggle.show": {
+    "en": "Show",
+    "translation": "Göster"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "en": "Hide",
+    "translation": "Gizle"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "en": "Show More",
+    "translation": "Daha Fazla Göster"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "en": "Show Less",
+    "translation": "Daha Az Göster"
+  },
+  "web.LABELS.enable": {
+    "en": "Enable",
+    "translation": "Etkinleştir"
+  },
+  "web.LABELS.disable": {
+    "en": "Disable",
+    "translation": "Devre Dışı Bırak"
+  },
+  "web.LABELS.stats": {
+    "en": "Stats",
+    "translation": "İstatistikler"
+  },
+  "web.LABELS.timeline": {
+    "en": "Timeline",
+    "translation": "Zaman Çizelgesi"
+  },
+  "web.LABELS.lifespan": {
+    "en": "Lifespan",
+    "translation": "Yaşam Süresi"
+  },
+  "web.LABELS.expiration_time": {
+    "en": "Expiration Time",
+    "translation": "Son Kullanma Tarihi"
+  },
+  "web.LABELS.close": {
+    "en": "Close",
+    "translation": "Kapat"
+  },
+  "web.LABELS.loading": {
+    "en": "Loading...",
+    "translation": "Yükleniyor..."
+  },
+  "web.LABELS.cancel": {
+    "en": "Cancel",
+    "translation": "İptal"
+  },
+  "web.LABELS.saving": {
+    "en": "Saving...",
+    "translation": "Kaydediliyor..."
+  },
+  "web.LABELS.saved": {
+    "en": "Saved",
+    "translation": "Kaydedildi"
+  },
+  "web.LABELS.save": {
+    "en": "Save",
+    "translation": "Kaydet"
+  },
+  "web.LABELS.save_all": {
+    "en": "Save All",
+    "translation": "Tümünü Kaydet"
+  },
+  "web.LABELS.details": {
+    "en": "Details",
+    "translation": "Ayrıntılar"
+  },
+  "web.LABELS.encrypted": {
+    "en": "Encrypted",
+    "translation": "Şifrelenmiş"
+  },
+  "web.LABELS.secret_status": {
+    "en": "Secret Status",
+    "translation": "Gizli Mesaj Durumu"
+  },
+  "web.LABELS.need_help": {
+    "en": "Need help?",
+    "translation": "Yardıma mı ihtiyacınız var?"
+  },
+  "web.LABELS.create_new_secret": {
+    "en": "Create New Secret",
+    "translation": "Yeni Gizli Mesaj Oluştur"
+  },
+  "web.LABELS.actions": {
+    "en": "Actions",
+    "translation": "İşlemler"
+  },
+  "web.LABELS.no_passphrase": {
+    "en": "No Passphrase Required",
+    "translation": "Parola Gerekmiyor"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "en": "Copy to clipboard",
+    "translation": "Panoya kopyala"
+  },
+  "web.LABELS.receipts": {
+    "en": "Receipts",
+    "translation": "Makbuzlar"
+  },
+  "web.LABELS.share": {
+    "en": "Share",
+    "translation": "Paylaş"
+  },
+  "web.LABELS.secret_link": {
+    "en": "Secret Link",
+    "translation": "Gizli Bağlantı"
+  },
+  "web.LABELS.dismiss": {
+    "en": "Dismiss",
+    "translation": "Kapat"
+  },
+  "web.LABELS.security_details": {
+    "en": "Security Details",
+    "translation": "Güvenlik Ayrıntıları"
+  },
+  "web.LABELS.items_count": {
+    "en": "{count} Items",
+    "translation": "{count} Öğe"
+  },
+  "web.LABELS.recipients_count": {
+    "en": "{count} Recipients",
+    "translation": "{count} Alıcı"
+  },
+  "web.LABELS.view": {
+    "en": "View",
+    "translation": "Görüntüle"
+  },
+  "web.LABELS.views": {
+    "en": "Views",
+    "translation": "Görüntülemeler"
+  },
+  "web.LABELS.times_viewed": {
+    "en": "times viewed",
+    "translation": "kez görüntülendi"
+  },
+  "web.LABELS.view_progress": {
+    "en": "View Progress",
+    "translation": "Görüntüleme İlerleme Durumu"
+  },
+  "web.LABELS.help_section": {
+    "en": "Help Section",
+    "translation": "Yardım Bölümü"
+  },
+  "web.LABELS.passphrase_protected": {
+    "en": "Protected with passphrase",
+    "translation": "Parola ile korunuyor"
+  },
+  "web.LABELS.feedback_received": {
+    "en": "Feedback received.",
+    "translation": "Geribildirim alındı."
+  },
+  "web.LABELS.sending_ellipses": {
+    "en": "Sending...",
+    "translation": "Gönderiliyor..."
+  },
+  "web.LABELS.title_recent_secrets": {
+    "en": "Recent Secrets",
+    "translation": "Son Gizli Mesajlar"
+  },
+  "web.LABELS.pricing": {
+    "en": "Pricing",
+    "translation": "Fiyatlandırma"
+  },
+  "web.LABELS.refresh": {
+    "en": "Refresh",
+    "translation": "Yenile"
+  },
+  "web.LABELS.reload": {
+    "en": "Reload",
+    "translation": "Yeniden Yükle"
+  },
+  "web.LABELS.filter": {
+    "en": "Filter"
+  },
+  "web.LABELS.clear": {
+    "en": "Clear"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "en": "Secrets links created in this session",
+    "translation": "Bu oturumda oluşturulan gizli bağlantılar"
+  },
+  "web.LABELS.create_link_short": {
+    "en": "Create Link",
+    "translation": "Bağlantı Oluştur"
+  },
+  "web.LABELS.create_link": {
+    "en": "Create Secret Link",
+    "translation": "Gizli Bağlantı Oluştur"
+  },
+  "web.LABELS.create_request_short": {
+    "en": "Create Request",
+    "translation": "İstek Oluştur"
+  },
+  "web.LABELS.create_request": {
+    "en": "Create Request Link",
+    "translation": "İstek Bağlantısı Oluştur"
+  },
+  "web.LABELS.related_settings": {
+    "en": "Related Settings",
+    "translation": ""
+  },
+  "web.LABELS.creating_links_for": {
+    "en": "Creating links for",
+    "translation": "Şunun için bağlantılar oluşturuluyor"
+  },
+  "web.LABELS.scope_indicator": {
+    "en": "Creating secrets in {domain}",
+    "translation": "{domain} içinde sırlar oluşturuluyor"
+  },
+  "web.STATUS.new": {
+    "en": "New",
+    "translation": "Yeni"
+  },
+  "web.STATUS.unread": {
+    "en": "Unread",
+    "translation": "Okunmadı"
+  },
+  "web.STATUS.viewed": {
+    "en": "Link opened",
+    "translation": "Bağlantı açıldı"
+  },
+  "web.STATUS.received": {
+    "en": "Received",
+    "translation": "Alındı"
+  },
+  "web.STATUS.burned": {
+    "en": "Burned",
+    "translation": "Yakıldı"
+  },
+  "web.STATUS.destroyed": {
+    "en": "Destroyed",
+    "translation": "İmha edildi"
+  },
+  "web.STATUS.expiring_soon": {
+    "en": "Expiring Soon",
+    "translation": "Yakında sona erecek"
+  },
+  "web.STATUS.created": {
+    "en": "Created",
+    "translation": "Oluşturuldu"
+  },
+  "web.STATUS.expires": {
+    "en": "Expires",
+    "translation": "Sona eriyor"
+  },
+  "web.STATUS.expired": {
+    "en": "Expired",
+    "translation": "Süresi doldu"
+  },
+  "web.STATUS.orphaned": {
+    "en": "Orphaned",
+    "translation": "Sahipsiz"
+  },
+  "web.STATUS.secured": {
+    "en": "Secured",
+    "translation": "Güvenli"
+  },
+  "web.STATUS.securing": {
+    "en": "Securing",
+    "translation": "Güvenli hale getiriliyor"
+  },
+  "web.STATUS.copied": {
+    "en": "Copied",
+    "translation": "Kopyalandı"
+  },
+  "web.STATUS.time_remaining": {
+    "en": "Time Remaining",
+    "translation": "Kalan süre"
+  },
+  "web.STATUS.new_description": {
+    "en": "Secret link has been created and not yet viewed",
+    "translation": "Gizli bağlantı oluşturuldu ve henüz görüntülenmedi"
+  },
+  "web.STATUS.unread_description": {
+    "en": "Secret link has been created and has not been viewed",
+    "translation": "Gizli bağlantı oluşturuldu ve görüntülenmedi"
+  },
+  "web.STATUS.viewed_description": {
+    "en": "Secret link has been opened and ready to be viewed",
+    "translation": "Gizli bağlantı açıldı ve görüntülenmeye hazır"
+  },
+  "web.STATUS.received_description": {
+    "en": "Secret has been revealed to the recipient",
+    "translation": "Gizli mesaj alıcıya gösterildi"
+  },
+  "web.STATUS.burned_description": {
+    "en": "Secret was manually burned before being viewed",
+    "translation": "Gizli mesaj görüntülenmeden önce manuel olarak yakıldı"
+  },
+  "web.STATUS.destroyed_description": {
+    "en": "Secret has been permanently destroyed",
+    "translation": "Gizli mesaj kalıcı olarak imha edildi"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "en": "Secret will expire soon",
+    "translation": "Gizli mesaj yakında sona erecek"
+  },
+  "web.STATUS.orphaned_description": {
+    "en": "Secret has been orphaned and will be destroyed soon",
+    "translation": "Gizli mesaj sahipsiz kaldı ve yakında imha edilecek"
+  },
+  "web.STATUS.expired_description": {
+    "en": "Secret has expired before being viewed",
+    "translation": "Gizli mesajın süresi görüntülenmeden önce doldu"
+  },
+  "web.STATUS.success": {
+    "en": "Success",
+    "translation": "Başarılı"
+  },
+  "web.STATUS.delivered": {
+    "en": "Delivered",
+    "translation": "Teslim edildi"
+  },
+  "web.STATUS.dns_incorrect": {
+    "en": "DNS Incorrect",
+    "translation": "DNS Yanlış"
+  },
+  "web.STATUS.active": {
+    "en": "Active",
+    "translation": "Aktif"
+  },
+  "web.STATUS.inactive": {
+    "en": "Inactive",
+    "translation": "Pasif"
+  },
+  "web.FEATURES.unlimited_views": {
+    "en": "Unlimited Views",
+    "translation": "Sınırsız Görüntüleme"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "en": "Trusted domain branding",
+    "translation": "Güvenilir alan adı markalaması"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "en": "Encrypted in transit and at rest",
+    "translation": "Aktarım sırasında ve saklanırken şifrelenir"
+  },
+  "web.UNITS.ttl.duration": {
+    "en": "{count} {unit}",
+    "translation": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "en": "day | days",
+    "translation": "gün | gün"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "en": "hour | hours",
+    "translation": "saat | saat"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "en": "minute | minutes",
+    "translation": "dakika | dakika"
+  },
+  "web.UNITS.ttl.time.second": {
+    "en": "second | seconds",
+    "translation": "saniye | saniye"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "en": "---",
+    "translation": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "en": "{count} {unit} remaining",
+    "translation": "Kalan {count} {unit}"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "en": "day remaining | days remaining",
+    "translation": "gün kaldı | gün kaldı"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "en": "hour remaining | hours remaining",
+    "translation": "saat kaldı | saat kaldı"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "en": "minute remaining | minutes remaining",
+    "translation": "dakika kaldı | dakika kaldı"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "en": "second remaining | seconds remaining",
+    "translation": "saniye kaldı | saniye kaldı"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "en": "---",
+    "translation": "---"
+  },
+  "web.UNITS.limited_views": {
+    "en": "{count} view limit",
+    "translation": "{count} görüntüleme sınırı"
+  },
+  "web.UNITS.days_remaining": {
+    "en": "{count} Days Left",
+    "translation": "{count} Gün Kaldı"
+  },
+  "web.UNITS.hours_remaining": {
+    "en": "{count} Hours Left",
+    "translation": "{count} Saat Kaldı"
+  },
+  "web.UNITS.minutes_remaining": {
+    "en": "{count} Minutes Left",
+    "translation": "{count} Dakika Kaldı"
+  },
+  "web.TITLES.incoming": {
+    "en": "Incoming Secrets",
+    "translation": ""
+  },
+  "web.TITLES.feedback": {
+    "en": "Feedback",
+    "translation": ""
+  },
+  "web.TITLES.help": {
+    "en": "Help"
+  },
+  "web.TITLES.signin": {
+    "en": "Sign In",
+    "translation": ""
+  },
+  "web.TITLES.signup": {
+    "en": "Create Account",
+    "translation": ""
+  },
+  "web.TITLES.forgot_password": {
+    "en": "Forgot Password",
+    "translation": ""
+  },
+  "web.TITLES.reset_password": {
+    "en": "Reset Password",
+    "translation": ""
+  },
+  "web.TITLES.logout": {
+    "en": "Logging Out",
+    "translation": ""
+  },
+  "web.TITLES.verify_account": {
+    "en": "Verify Account",
+    "translation": ""
+  },
+  "web.TITLES.mfa_verify": {
+    "en": "Two-Factor Authentication",
+    "translation": ""
+  },
+  "web.TITLES.email_login": {
+    "en": "Email Login",
+    "translation": ""
+  },
+  "web.TITLES.accept_invitation": {
+    "en": "Accept Invitation",
+    "translation": "Daveti Kabul Et"
+  },
+  "web.TITLES.secret": {
+    "en": "Secret",
+    "translation": ""
+  },
+  "web.TITLES.metadata": {
+    "en": "Secret Details",
+    "translation": ""
+  },
+  "web.TITLES.receipt": {
+    "en": "Secret Receipt",
+    "translation": ""
+  },
+  "web.TITLES.burn_secret": {
+    "en": "Burn Secret",
+    "translation": ""
+  },
+  "web.TITLES.dashboard": {
+    "en": "Dashboard",
+    "translation": ""
+  },
+  "web.TITLES.recent": {
+    "en": "Recent Secrets",
+    "translation": ""
+  },
+  "web.TITLES.domains": {
+    "en": "Custom Domains",
+    "translation": ""
+  },
+  "web.TITLES.domain_add": {
+    "en": "Add Domain",
+    "translation": ""
+  },
+  "web.TITLES.domain_verify": {
+    "en": "Verify Domain",
+    "translation": ""
+  },
+  "web.TITLES.domain_brand": {
+    "en": "Brand Domain",
+    "translation": ""
+  },
+  "web.TITLES.account": {
+    "en": "Account",
+    "translation": ""
+  },
+  "web.TITLES.data_region": {
+    "en": "Data Region",
+    "translation": ""
+  },
+  "web.TITLES.current_region": {
+    "en": "Current Region",
+    "translation": ""
+  },
+  "web.TITLES.available_regions": {
+    "en": "Available Regions",
+    "translation": ""
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "en": "Why Data Sovereignty Matters",
+    "translation": ""
+  },
+  "web.TITLES.profile_settings": {
+    "en": "Profile Settings",
+    "translation": ""
+  },
+  "web.TITLES.preferences_settings": {
+    "en": "Preferences",
+    "translation": ""
+  },
+  "web.TITLES.privacy_settings": {
+    "en": "Privacy",
+    "translation": ""
+  },
+  "web.TITLES.notification_settings": {
+    "en": "Notifications",
+    "translation": "Bildirimler"
+  },
+  "web.TITLES.change_email": {
+    "en": "Change Email",
+    "translation": ""
+  },
+  "web.TITLES.security_overview": {
+    "en": "Security",
+    "translation": ""
+  },
+  "web.TITLES.change_password": {
+    "en": "Change Password",
+    "translation": ""
+  },
+  "web.TITLES.mfa_settings": {
+    "en": "Two-Factor Authentication",
+    "translation": ""
+  },
+  "web.TITLES.active_sessions": {
+    "en": "Active Sessions",
+    "translation": ""
+  },
+  "web.TITLES.recovery_codes": {
+    "en": "Recovery Codes",
+    "translation": ""
+  },
+  "web.TITLES.api_settings": {
+    "en": "API Settings",
+    "translation": ""
+  },
+  "web.TITLES.advanced_settings": {
+    "en": "Advanced Settings",
+    "translation": ""
+  },
+  "web.TITLES.system_settings": {
+    "en": "System Settings",
+    "translation": ""
+  },
+  "web.TITLES.not_found": {
+    "en": "Page Not Found",
+    "translation": ""
+  },
+  "web.TITLES.organizations_settings": {
+    "en": "Organizations",
+    "translation": ""
+  },
+  "web.TITLES.organization_settings": {
+    "en": "Organization Settings",
+    "translation": ""
+  },
+  "web.TITLES.pricing": {
+    "en": "Pricing"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "en": "Focus is now in the main text area",
+    "translation": "Odak şimdi ana metin alanında"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "en": "Sharing Instructions",
+    "translation": "Paylaşım Talimatları"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "en": "Share the link with the intended recipient",
+    "translation": "Bağlantıyı hedeflenen alıcı ile paylaşın"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "en": "Share the passphrase separately through a secure channel",
+    "translation": "Parolayı güvenli bir kanal üzerinden ayrıca paylaşın"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "en": "Use a different secure channel to share sensitive information",
+    "translation": "Hassas bilgileri paylaşmak için farklı bir güvenli kanal kullanın"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "en": "Always verify you're on the official Onetime Secret website. Fraudsters sometimes create fake websites that look exactly like Onetime Secret to steal your secrets. To avoid phishing attacks, check the region domain before creating new links.",
+    "translation": ""
+  },
+  "web.pricing.title": {
+    "en": "Simple, Transparent Pricing"
+  },
+  "web.pricing.subtitle": {
+    "en": "Choose the plan that fits your needs. All plans include unlimited secret sharing and privacy-first design."
+  },
+  "web.pricing.get_started_free": {
+    "en": "Get Started Free"
+  },
+  "web.pricing.start_trial": {
+    "en": "Get Started"
+  },
+  "web.pricing.already_have_account": {
+    "en": "Already have an account?"
+  },
+  "web.pricing.sign_in": {
+    "en": "Sign in"
+  },
+  "web.pricing.recommended_for_you": {
+    "en": "Recommended for You"
+  }
+}

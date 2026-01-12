@@ -1,0 +1,531 @@
+{
+  "web.organizations.title": {
+    "en": "Organizations",
+    "translation": ""
+  },
+  "web.organizations.organization": {
+    "en": "Organization",
+    "translation": ""
+  },
+  "web.organizations.organization_plural": {
+    "en": "Organizations",
+    "translation": ""
+  },
+  "web.organizations.organizations_description": {
+    "en": "Manage your organizations",
+    "translation": ""
+  },
+  "web.organizations.my_organizations": {
+    "en": "Organizations",
+    "translation": ""
+  },
+  "web.organizations.manage_organizations": {
+    "en": "Manage Organizations",
+    "translation": "Manage Organizations"
+  },
+  "web.organizations.new_organization": {
+    "en": "New Organization",
+    "translation": ""
+  },
+  "web.organizations.no_organizations": {
+    "en": "No organizations yet",
+    "translation": ""
+  },
+  "web.organizations.no_organizations_description": {
+    "en": "Organizations provide unified billing and administration. Get started by creating your first organization.",
+    "translation": ""
+  },
+  "web.organizations.no_description": {
+    "en": "No description provided",
+    "translation": ""
+  },
+  "web.organizations.default": {
+    "en": "Default",
+    "translation": ""
+  },
+  "web.organizations.create_organization": {
+    "en": "Create Organization",
+    "translation": ""
+  },
+  "web.organizations.create_first_organization": {
+    "en": "Create First Organization",
+    "translation": ""
+  },
+  "web.organizations.create_organization_description": {
+    "en": "Create a new organization",
+    "translation": ""
+  },
+  "web.organizations.create": {
+    "en": "Create",
+    "translation": ""
+  },
+  "web.organizations.create_error": {
+    "en": "Failed to create organization",
+    "translation": ""
+  },
+  "web.organizations.organization_name": {
+    "en": "Organization Name",
+    "translation": ""
+  },
+  "web.organizations.organization_name_placeholder": {
+    "en": "e.g. Acme Corporation",
+    "translation": ""
+  },
+  "web.organizations.display_name": {
+    "en": "Organization Name",
+    "translation": ""
+  },
+  "web.organizations.description": {
+    "en": "Description",
+    "translation": ""
+  },
+  "web.organizations.description_placeholder": {
+    "en": "What is this organization for?",
+    "translation": ""
+  },
+  "web.organizations.contact_email": {
+    "en": "Billing Email",
+    "translation": ""
+  },
+  "web.organizations.contact_email_help": {
+    "en": "Primary contact for billing and administrative notifications",
+    "translation": ""
+  },
+  "web.organizations.billing_managed_by_default": {
+    "en": "Billing and subscription management is handled through your primary workspace. Visit your main workspace settings to manage payment methods and invoices.",
+    "translation": "Faturalama ve abonelik yönetimi birincil çalışma alanınız üzerinden yapılır. Ödeme yöntemlerini ve faturaları yönetmek için ana çalışma alanı ayarlarınızı ziyaret edin."
+  },
+  "web.organizations.select_organization": {
+    "en": "Select an organization",
+    "translation": ""
+  },
+  "web.organizations.switcher_locked": {
+    "en": "Organization switching not available on this page",
+    "translation": "Organization switching not available on this page"
+  },
+  "web.organizations.not_found": {
+    "en": "Organization not found",
+    "translation": ""
+  },
+  "web.organizations.load_error": {
+    "en": "Failed to load organization",
+    "translation": ""
+  },
+  "web.organizations.fetch_organization_error": {
+    "en": "Failed to load organization",
+    "translation": ""
+  },
+  "web.organizations.fetch_organizations_error": {
+    "en": "Failed to load organizations",
+    "translation": ""
+  },
+  "web.organizations.organization_information": {
+    "en": "Organization Information",
+    "translation": ""
+  },
+  "web.organizations.created": {
+    "en": "Created",
+    "translation": ""
+  },
+  "web.organizations.last_updated": {
+    "en": "Last Updated",
+    "translation": ""
+  },
+  "web.organizations.organization_settings": {
+    "en": "Organization Settings",
+    "translation": ""
+  },
+  "web.organizations.organization_settings_description": {
+    "en": "Update your organization name and description",
+    "translation": ""
+  },
+  "web.organizations.general_settings": {
+    "en": "General Settings",
+    "translation": ""
+  },
+  "web.organizations.billing_settings": {
+    "en": "Billing & Subscription",
+    "translation": ""
+  },
+  "web.organizations.save_changes": {
+    "en": "Save Changes",
+    "translation": ""
+  },
+  "web.organizations.update_success": {
+    "en": "Organization updated successfully",
+    "translation": ""
+  },
+  "web.organizations.update_error": {
+    "en": "Failed to update organization",
+    "translation": ""
+  },
+  "web.organizations.billing_email_updated": {
+    "en": "Billing email updated successfully"
+  },
+  "web.organizations.billing_coming_soon": {
+    "en": "Billing Integration Coming Soon",
+    "translation": ""
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "en": "Unified billing and subscription management will be available in a future release.",
+    "translation": ""
+  },
+  "web.organizations.about_title": {
+    "en": "About Organizations",
+    "translation": ""
+  },
+  "web.organizations.about_description": {
+    "en": "Organizations provide unified billing and administration for centralized management.",
+    "translation": ""
+  },
+  "web.organizations.single_user_info_title": {
+    "en": "Manage Your Organization",
+    "translation": ""
+  },
+  "web.organizations.single_user_info_description": {
+    "en": "Update your company name and organization details here. This information helps personalize your account and can be used for branding features in the future.",
+    "translation": ""
+  },
+  "web.organizations.getting_started_title": {
+    "en": "Getting Started with Organizations",
+    "translation": ""
+  },
+  "web.organizations.getting_started_description": {
+    "en": "Create your first organization to manage your company information and prepare for future branding features.",
+    "translation": ""
+  },
+  "web.organizations.page_description": {
+    "en": "Manage your organizations and team members",
+    "translation": "Manage your organizations and team members"
+  },
+  "web.organizations.tabs.general": {
+    "en": "Settings",
+    "translation": ""
+  },
+  "web.organizations.tabs.company_branding": {
+    "en": "Company Branding",
+    "translation": ""
+  },
+  "web.organizations.tabs.members": {
+    "en": "Team",
+    "translation": "Team"
+  },
+  "web.organizations.tabs.billing": {
+    "en": "Billing",
+    "translation": ""
+  },
+  "web.organizations.danger_zone": {
+    "en": "Danger Zone",
+    "translation": ""
+  },
+  "web.organizations.delete_organization": {
+    "en": "Delete Organization",
+    "translation": ""
+  },
+  "web.organizations.delete_organization_warning": {
+    "en": "This will permanently delete the organization. This action cannot be undone.",
+    "translation": ""
+  },
+  "web.organizations.delete": {
+    "en": "Delete",
+    "translation": ""
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "en": "Delete Organization",
+    "translation": ""
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "en": "Are you sure you want to delete {name}? This action cannot be undone.",
+    "translation": ""
+  },
+  "web.organizations.delete_error": {
+    "en": "Failed to delete organization",
+    "translation": ""
+  },
+  "web.organizations.members.title": {
+    "en": "Members",
+    "translation": "Üyeler"
+  },
+  "web.organizations.members.description": {
+    "en": "Manage organization members and their roles",
+    "translation": "Organizasyon üyelerini ve rollerini yönetin"
+  },
+  "web.organizations.members.current_members": {
+    "en": "Current Members",
+    "translation": "Current Members"
+  },
+  "web.organizations.members.member": {
+    "en": "Member",
+    "translation": "Üye"
+  },
+  "web.organizations.members.member_singular": {
+    "en": "member",
+    "translation": "member"
+  },
+  "web.organizations.members.member_plural": {
+    "en": "members",
+    "translation": "members"
+  },
+  "web.organizations.members.name": {
+    "en": "Name",
+    "translation": "Ad"
+  },
+  "web.organizations.members.email": {
+    "en": "Email",
+    "translation": "E-posta"
+  },
+  "web.organizations.members.role": {
+    "en": "Role",
+    "translation": "Rol"
+  },
+  "web.organizations.members.joined": {
+    "en": "Joined",
+    "translation": "Katıldı"
+  },
+  "web.organizations.members.actions": {
+    "en": "Actions",
+    "translation": "İşlemler"
+  },
+  "web.organizations.members.no_members": {
+    "en": "No members yet. Invite team members to get started.",
+    "translation": "Üye bulunamadı"
+  },
+  "web.organizations.members.no_members_description": {
+    "en": "This organization has no members yet.",
+    "translation": "Bu organizasyonun henüz üyesi yok."
+  },
+  "web.organizations.members.role_updated": {
+    "en": "Member role updated successfully",
+    "translation": "Üye rolü başarıyla güncellendi"
+  },
+  "web.organizations.members.role_update_error": {
+    "en": "Failed to update member role",
+    "translation": "Üye rolü güncellenemedi"
+  },
+  "web.organizations.members.member_removed": {
+    "en": "Member removed from organization",
+    "translation": "Üye organizasyondan kaldırıldı"
+  },
+  "web.organizations.members.member_remove_error": {
+    "en": "Failed to remove member",
+    "translation": "Üye kaldırılamadı"
+  },
+  "web.organizations.members.remove_member_title": {
+    "en": "Remove Member",
+    "translation": "Üyeyi Kaldır"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "en": "Are you sure you want to remove {name} from this organization?",
+    "translation": "{name} adlı üyeyi bu organizasyondan kaldırmak istediğinizden emin misiniz?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "en": "You cannot change your own role",
+    "translation": "Kendi rolünüzü değiştiremezsiniz"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "en": "You cannot remove yourself from the organization",
+    "translation": "Kendinizi organizasyondan kaldıramazsınız"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "en": "You cannot remove the organization owner",
+    "translation": "Organizasyon sahibini kaldıramazsınız"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "en": "You do not have permission to manage members",
+    "translation": "Üyeleri yönetme izniniz yok"
+  },
+  "web.organizations.members.roles.owner": {
+    "en": "Owner",
+    "translation": "Sahip"
+  },
+  "web.organizations.members.roles.admin": {
+    "en": "Admin",
+    "translation": "Yönetici"
+  },
+  "web.organizations.members.roles.member": {
+    "en": "Member",
+    "translation": "Üye"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "en": "Full access to all organization settings and members",
+    "translation": "Tüm organizasyon ayarlarına ve üyelere tam erişim"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "en": "Can manage members and most organization settings",
+    "translation": "Üyeleri ve çoğu organizasyon ayarını yönetebilir"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "en": "Basic access to organization resources",
+    "translation": "Organizasyon kaynaklarına temel erişim"
+  },
+  "web.organizations.invitations.title": {
+    "en": "Organization Invitations",
+    "translation": "Organizasyon Davetleri"
+  },
+  "web.organizations.invitations.invite_member": {
+    "en": "Invite Member",
+    "translation": "Üye Davet Et"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "en": "Invite New Member",
+    "translation": "Yeni Üye Davet Et"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "en": "Pending Invitations",
+    "translation": "Bekleyen Davetler"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "en": "No pending invitations",
+    "translation": "Bekleyen davet yok"
+  },
+  "web.organizations.invitations.email_address": {
+    "en": "Email Address",
+    "translation": "E-posta Adresi"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "en": "member@example.com",
+    "translation": "uye@example.com"
+  },
+  "web.organizations.invitations.role": {
+    "en": "Role",
+    "translation": "Rol"
+  },
+  "web.organizations.invitations.send_invite": {
+    "en": "Send Invitation",
+    "translation": "Davet Gönder"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "en": "Invitation sent successfully",
+    "translation": "Davet başarıyla gönderildi"
+  },
+  "web.organizations.invitations.invite_error": {
+    "en": "Failed to send invitation",
+    "translation": "Davet gönderilemedi"
+  },
+  "web.organizations.invitations.resend": {
+    "en": "Resend",
+    "translation": "Yeniden Gönder"
+  },
+  "web.organizations.invitations.revoke": {
+    "en": "Revoke",
+    "translation": "İptal Et"
+  },
+  "web.organizations.invitations.resend_success": {
+    "en": "Invitation resent successfully",
+    "translation": "Davet yeniden gönderildi"
+  },
+  "web.organizations.invitations.resend_error": {
+    "en": "Failed to resend invitation",
+    "translation": "Davet yeniden gönderilemedi"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "en": "Invitation revoked successfully",
+    "translation": "Davet iptal edildi"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "en": "Failed to revoke invitation",
+    "translation": "Davet iptal edilemedi"
+  },
+  "web.organizations.invitations.invited_by": {
+    "en": "Invited by",
+    "translation": "Davet eden"
+  },
+  "web.organizations.invitations.invited_at": {
+    "en": "Invited",
+    "translation": "Davet tarihi"
+  },
+  "web.organizations.invitations.expires_at": {
+    "en": "Expires",
+    "translation": "Sona erme"
+  },
+  "web.organizations.invitations.resent_count": {
+    "en": "Resent {count} time",
+    "translation": "{count} kez yeniden gönderildi"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "en": "Resent {count} times",
+    "translation": "{count} kez yeniden gönderildi"
+  },
+  "web.organizations.invitations.status.pending": {
+    "en": "Pending",
+    "translation": "Bekliyor"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "en": "Accepted",
+    "translation": "Kabul edildi"
+  },
+  "web.organizations.invitations.status.declined": {
+    "en": "Declined",
+    "translation": "Reddedildi"
+  },
+  "web.organizations.invitations.status.expired": {
+    "en": "Expired",
+    "translation": "Süresi doldu"
+  },
+  "web.organizations.invitations.roles.member": {
+    "en": "Member",
+    "translation": "Üye"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "en": "Admin",
+    "translation": "Yönetici"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "en": "Accept Invitation",
+    "translation": "Daveti Kabul Et"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "en": "Decline Invitation",
+    "translation": "Daveti Reddet"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "en": "Invitation Details",
+    "translation": "Davet Detayları"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "en": "You've been invited to join",
+    "translation": "Katılmaya davet edildiniz"
+  },
+  "web.organizations.invitations.invited_as": {
+    "en": "You've been invited as a",
+    "translation": "Şu rol ile davet edildiniz"
+  },
+  "web.organizations.invitations.accept_success": {
+    "en": "Invitation accepted successfully",
+    "translation": "Davet başarıyla kabul edildi"
+  },
+  "web.organizations.invitations.accept_error": {
+    "en": "Failed to accept invitation",
+    "translation": "Davet kabul edilemedi"
+  },
+  "web.organizations.invitations.decline_success": {
+    "en": "Invitation declined",
+    "translation": "Davet reddedildi"
+  },
+  "web.organizations.invitations.decline_error": {
+    "en": "Failed to decline invitation",
+    "translation": "Davet reddedilemedi"
+  },
+  "web.organizations.invitations.expired_message": {
+    "en": "This invitation has expired",
+    "translation": "Bu davetin süresi doldu"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "en": "Invalid or expired invitation",
+    "translation": "Geçersiz veya süresi dolmuş davet"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "en": "Please sign in to accept this invitation",
+    "translation": "Bu daveti kabul etmek için lütfen giriş yapın"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "en": "Loading invitation details",
+    "translation": "Davet detayları yükleniyor"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "en": "Upgrade your plan to invite team members"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "en": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization."
+  }
+}

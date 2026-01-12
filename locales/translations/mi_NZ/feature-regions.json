@@ -1,0 +1,142 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "en": "Data Sovereignty & Regional Isolation",
+    "translation": "Mana Motuhake Raraunga me te Motuhake Rohe"
+  },
+  "web.regions.data_sovereignty_description": {
+    "en": "Your data resides exclusively in your chosen region and is never transferred across regions",
+    "translation": "Ka noho ō raraunga i tō rohe i kōwhiria e koe anake, ā, kāore e tukuna ki ngā rohe kē"
+  },
+  "web.regions.separate_environments_explanation": {
+    "en": "Each region operates as a completely independent environment with its own infrastructure, encryption keys, and data storage",
+    "translation": "Ka mahi ia rohe hei taiao motuhake tino me ōna ake hanganga, kī whakamuhumuhu, me te rokiroki raraunga"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "en": "We maintain a strict policy: customer data is never transferred between regions under any circumstances",
+    "translation": "Kei a mātou tētahi kaupapa here mārō: kāore e tukuna ngā raraunga kiritaki i waenga i ngā rohe i raro i ngā āhuatanga katoa"
+  },
+  "web.regions.switching_creates_new_account": {
+    "en": "Important: Switching to a different region creates a new account. Your data stays in your original region.",
+    "translation": "Nui te take: Ko te huri ki tētahi rohe kē ka hanga i tētahi pūkete hou. Ka noho ō raraunga i tō rohe taketake."
+  },
+  "web.regions.your_region": {
+    "en": "Your Region",
+    "translation": "Tō Rohe"
+  },
+  "web.regions.your_current_region": {
+    "en": "Your Current Region",
+    "translation": "Tō Rohe o Nāianei"
+  },
+  "web.regions.active": {
+    "en": "Active",
+    "translation": "Hohe"
+  },
+  "web.regions.explore_other_regions": {
+    "en": "Explore other available regions",
+    "translation": "Tūhuratia ngā rohe kē e wātea ana"
+  },
+  "web.regions.why_it_matters": {
+    "en": "Why Data Sovereignty Matters",
+    "translation": "He Aha Te Take o te Mana Motuhake Raraunga"
+  },
+  "web.regions.trust_title": {
+    "en": "Transparency & Control",
+    "translation": "Māramatanga me te Mana"
+  },
+  "web.regions.trust_description": {
+    "en": "Know exactly where your data resides and which laws govern its protection.",
+    "translation": "Mōhio tika ki te wāhi e noho ana ō raraunga me ngā ture e whakahaere ana i tōna tiaki."
+  },
+  "web.regions.privacy_title": {
+    "en": "Privacy Rights",
+    "translation": "Ngā Tika Matatapu"
+  },
+  "web.regions.privacy_description": {
+    "en": "Ensure your personal information is handled according to your country's privacy laws and regulations, preventing unauthorized access or misuse.",
+    "translation": "Whakaū ka whakahaerea ō mōhiohio whaiaro e ai ki ngā ture me ngā ture matatapu o tō whenua, hei ārai i te urunga kore mana, te kino whakamahi rānei."
+  },
+  "web.regions.compliance_title": {
+    "en": "Regulatory Compliance",
+    "translation": "Whakaū Ture"
+  },
+  "web.regions.compliance_description": {
+    "en": "Meet GDPR, HIPAA, CCPA, and other regional data protection requirements",
+    "translation": "Whakatutuki i ngā whakaritenga tiaki raraunga rohe pērā i GDPR, HIPAA, CCPA, me ētahi atu"
+  },
+  "web.regions.performance_title": {
+    "en": "Faster Access",
+    "translation": "Urunga Tere Ake"
+  },
+  "web.regions.performance_description": {
+    "en": "Data stored closer to you means lower latency and better performance.",
+    "translation": "Ko ngā raraunga kua rokirokihia tata ki a koe, ka iti ake te wā takaroa, ka pai ake te mahi."
+  },
+  "web.regions.regions": {
+    "en": "Regions",
+    "translation": "Ngā Rohe"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "en": "contact our compliance team",
+    "translation": "whakapā atu ki tō mātou rōpū tūtohu"
+  },
+  "web.regions.review_our_documentation": {
+    "en": "review our documentation",
+    "translation": "arotake i ā mātou tuhinga"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "en": "Your account and data are protected under the laws of",
+    "translation": "Ka tiakina tō pūkete me ō raraunga i raro i ngā ture me ngā whakaritenga o"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "en": "Your regulatory framework is determined by your access domain:",
+    "translation": "Ka whakaritea tēnei anga whakahaere e tō rohe uru:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "en": "Each region is completely separate with its own infrastructure, when possible with its own local hosting provider. You can create accounts in multiple regions, but no data is shared between them.",
+    "translation": "Ka pupuri ia mana whakahaere i ngā tūtohutanga ture motuhake me te mana whakahaere raraunga. Ahakoa ka taea e koe te waihanga pūkete i ngā mana whakahaere maha, ka noho ture motuhake tonu me te kore tuari raraunga i waenga i ngā rohe whakahaere."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "en": "For details on regulations and protections that apply to your account,",
+    "translation": "Ki te mārama ki ngā ture motuhake me ngā whakamarumaru e hāngai ana ki tō pūkete, tēnā"
+  },
+  "web.regions.current": {
+    "en": "Current",
+    "translation": "O Nāianei"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "en": "{0} {1}",
+    "translation": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "en": "Available Regions",
+    "translation": "Ngā Rohe E Wātea Ana"
+  },
+  "web.regions.jurisdiction": {
+    "en": "Jurisdiction",
+    "translation": "Mana Whakahaere"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "en": "Data center location: {0}",
+    "translation": "Wāhi pokapū raraunga: {0}"
+  },
+  "web.regions.data_region": {
+    "en": "Data Region",
+    "translation": "Rohe Raraunga"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "en": "Unknown Jurisdiction",
+    "translation": "Mana Whakahaere Tē Mōhiotia"
+  },
+  "web.regions.serving_you_from_the": {
+    "en": "Serving you from",
+    "translation": "E manaaki ana i a koe mai i te"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "en": "Continue to {0}",
+    "translation": "Haere tonu ki {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "en": "Current jurisdiction:",
+    "translation": "Mana whakahaere o nāianei:"
+  }
+}

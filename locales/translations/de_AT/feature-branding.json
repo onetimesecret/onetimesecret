@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "en": "Color Picker",
+    "translation": "Farbwähler"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "en": "Current {0}: {1}. Click to cycle through options.",
+    "translation": "Aktuell {0}: {1}. Klicken Sie, um die Optionen zu durchlaufen."
+  },
+  "web.branding.use_setting": {
+    "en": "Use setting",
+    "translation": "Einstellung verwenden"
+  },
+  "web.branding.font_family": {
+    "en": "Font Family",
+    "translation": "Schriftfamilie"
+  },
+  "web.branding.corner_style": {
+    "en": "Corner Style",
+    "translation": "Ecke Stil"
+  },
+  "web.branding.brand_color": {
+    "en": "Brand Color",
+    "translation": "Marke Farbe"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "en": "Preview of recipient's view when accessing your secure link",
+    "translation": "Vorschau auf die geheime Link-Seite für Empfänger"
+  },
+  "web.branding.preview_and_customize": {
+    "en": "Preview & Customize",
+    "translation": "Vorschau & Anpassen"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "en": "Switch to Safari browser view",
+    "translation": "Zur Safari-Browser-Ansicht wechseln"
+  },
+  "web.branding.microsoft_edge": {
+    "en": "Microsoft Edge",
+    "translation": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "en": "Maximize window",
+    "translation": "Fenster maximieren"
+  },
+  "web.branding.minimize_window": {
+    "en": "Minimize window",
+    "translation": "Fenster minimieren"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "en": "Switch to Edge browser view",
+    "translation": "Zur Edge-Browser-Ansicht wechseln"
+  },
+  "web.branding.charactercount_500_characters": {
+    "en": "{0}/500 characters",
+    "translation": "{0}/500 Zeichen"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "en": "Use your phone to scan the QR code",
+    "translation": "Scannen Sie mit Ihrem Handy den QR-Kennung"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "en": "Contact onboarding{'@'}example.com with any questions",
+    "translation": "Kontaktieren Sie onboarding{'@'}example.com bei Fragen"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "en": "These instructions will be shown to recipients before they reveal the secret content",
+    "translation": "Diese Anweisungen werden den Empfängern angezeigt, bevor sie den geheimen Inhalt preisgeben"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "en": "These instructions will be shown to recipients after they reveal the secret",
+    "translation": "Diese Anweisungen werden den Empfängern angezeigt, nachdem sie das Geheimnis enthüllt haben."
+  },
+  "web.branding.pre_reveal_instructions": {
+    "en": "Pre-reveal Instructions",
+    "translation": "Anweisungen vor der Enthüllung"
+  },
+  "web.branding.post_reveal_instructions": {
+    "en": "Post-reveal Instructions",
+    "translation": "Anweisungen nach der Enthüllung"
+  },
+  "web.branding.instructions": {
+    "en": "Instructions",
+    "translation": "Anweisungen"
+  },
+  "web.branding.logo_controls": {
+    "en": "Logo controls",
+    "translation": "Logo-Kontrollen"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "en": "Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG",
+    "translation": "Klicken Sie, um ein Logo hochzuladen. Empfohlene Größe: 128x128 Pixel. Maximale Dateigröße: 1MB. Unterstützte Formate: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "en": "Upload logo",
+    "translation": "Logo hochladen"
+  },
+  "web.branding.loading_preview": {
+    "en": "Loading preview...",
+    "translation": "Vorschau laden..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "en": "Preview how recipients will see your secrets by testing the \"View Secret\" button",
+    "translation": "Zeigen Sie in einer Vorschau an, wie die Empfänger Ihre Geheimnisse sehen werden, indem Sie die Schaltfläche \"Geheimnis anzeigen\" testen"
+  },
+  "web.branding.eye_icon": {
+    "en": "Eye icon",
+    "translation": "Augen-Symbol"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "en": "Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)",
+    "translation": "Klicken Sie auf das Vorschaubild unten, um Ihr Logo zu aktualisieren (mindestens 128x128 Pixel empfohlen, maximal 1 MB)"
+  },
+  "web.branding.image_icon": {
+    "en": "Image icon",
+    "translation": "Bild-Symbol"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "en": "Use the controls above to customize brand color, styles, and recipient instructions",
+    "translation": "Verwenden Sie die Steuerelemente oben, um Markenfarben, Stile und Empfängeranweisungen anzupassen"
+  },
+  "web.branding.customization_icon": {
+    "en": "Customization icon",
+    "translation": "Anpassungssymbol"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "en": "You have unsaved changes. Are you sure?",
+    "translation": "Sie haben ungespeicherte Änderungen. Sind Sie sicher?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "en": "Failed to load brand settings",
+    "translation": "Markeneinstellungen konnten nicht geladen werden"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Dies ist eine interaktive Vorschau darauf, wie die Empfänger Ihre sicheren Nachrichten sehen werden. Sie können: - Farben und Schriftarten mit den obigen Steuerelementen anpassen - ein Logo hochladen (mindestens 128x128 Pixel empfohlen, maximal 1 MB) - die Vorschau mit der Schaltfläche \"Geheimnis anzeigen\" testen"
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Dies ist eine interaktive Vorschau darauf, wie die Empfänger Ihre sicheren Nachrichten sehen werden. Sie können: - Farben und Schriftarten mit den obigen Steuerelementen anpassen - ein Logo hochladen (mindestens 128x128 Pixel empfohlen, maximal 1 MB) - die Vorschau mit der Schaltfläche \"Geheimnis anzeigen\" testen"
+  },
+  "web.branding.default_logo_icon": {
+    "en": "Japanese kanji '秘' (himitsu) meaning 'secret' or 'confidential'",
+    "translation": "Standard-Logosymbol"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "en": "Powered by Onetime Secret",
+    "translation": "Angetrieben von Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "en": "{0} Logo",
+    "translation": "{0}-Logo"
+  },
+  "web.branding.edge": {
+    "en": "Edge",
+    "translation": "Kante"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "en": "Switch to Edge preview",
+    "translation": "Zur Edge-Vorschau wechseln"
+  },
+  "web.branding.safari": {
+    "en": "Safari",
+    "translation": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "en": "Switch to Safari preview",
+    "translation": "Zur Safari-Vorschau wechseln"
+  }
+}

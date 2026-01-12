@@ -1,0 +1,78 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "en": "Why is this secret unavailable?",
+    "translation": "Pourquoi ce secret n'est-il pas disponible?"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "en": "Secrets are designed to be viewed only once. This link may have already been accessed, expired, or been manually deleted by the sender.",
+    "translation": "Les secrets sont conçus pour être consultés une seule fois. Ce lien a peut-être déjà été accédé, est expiré ou a été supprimé manuellement par l'expéditeur."
+  },
+  "web.errors.what_should_i_do_now": {
+    "en": "What should I do now?",
+    "translation": "Que dois-je faire maintenant?"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "en": "Contact the person who sent you this link and ask them to create a new secret. Let them know you weren't able to access the original information.",
+    "translation": "Contactez la personne qui vous a envoyé ce lien et demandez-lui d'en créer un nouveau. Faites-lui savoir que vous n'avez pas pu accéder à l'information originale."
+  },
+  "web.errors.warning_dismissed": {
+    "en": "Warning dismissed",
+    "translation": "Avertissement rejeté"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "en": "Dismiss truncation warning",
+    "translation": "Rejeter l'avertissement de troncature"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "en": "Oops! The page you are looking for doesn't exist or has been moved.",
+    "translation": "Oups ! La page que vous recherchez n'existe pas ou a été déplacée."
+  },
+  "web.errors.404_page_not_found_0": {
+    "en": "404 - Page Not Found",
+    "translation": "404 - Page non trouvée"
+  },
+  "web.errors.404_page_not_found": {
+    "en": "404 - Page Not Found",
+    "translation": "404 - Page non trouvée"
+  },
+  "web.errors.dismiss_warning": {
+    "en": "Dismiss warning",
+    "translation": "Rejeter l'avertissement"
+  },
+  "web.errors.dismiss_notification": {
+    "en": "Dismiss notification",
+    "translation": "Rejeter la notification"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "en": "If you're unsure what to do next, please follow up with the person who sent you this link for more information.",
+    "translation": "Si vous n'êtes pas sûr de la marche à suivre, veuillez contacter la personne qui vous a envoyé ce lien pour plus d'informations."
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "en": "Information shared through our service can only be accessed once. Once viewed, the content is permanently deleted from our servers to ensure confidentiality. This approach helps protect your sensitive data by limiting its exposure and preventing unauthorized access.",
+    "translation": "Les informations partagées par le biais de notre service ne peuvent être consultées qu'une seule fois. Une fois consulté, le contenu est définitivement supprimé de nos serveurs afin de garantir la confidentialité. Cette approche permet de protéger vos données sensibles en limitant leur exposition et en empêchant tout accès non autorisé."
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "en": "We're sorry, but an unexpected error occurred while processing your request. Our team has been notified and we're working to fix it.",
+    "translation": "Nous sommes désolés, mais une erreur inattendue s'est produite lors du traitement de votre demande. Notre équipe en a été informée et nous travaillons à sa résolution."
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "en": "{0} Something went wrong",
+    "translation": "{0} Quelque chose s'est mal passé"
+  },
+  "web.errors.go_share_a_secret": {
+    "en": "Go share a secret!",
+    "translation": "Allez partager un secret !"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "en": "The page you're looking for doesn't exist or has been moved. Don't worry, it happens to the best of us!",
+    "translation": "La page que vous recherchez n'existe pas ou a été déplacée. Ne vous inquiétez pas, cela arrive aux meilleurs d'entre nous !"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "en": "{0} 404",
+    "translation": "{0} 404"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "en": "Unable to load data due to data format issues. Please try again later.",
+    "translation": "Impossible de charger les données en raison d'un problème de format. Veuillez réessayer plus tard."
+  }
+}

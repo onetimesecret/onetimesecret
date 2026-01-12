@@ -1,0 +1,329 @@
+{
+  "web.footer.api_docs": {
+    "en": "API Docs",
+    "translation": "APIドキュメント"
+  },
+  "web.footer.branding_guide": {
+    "en": "Branding Guide",
+    "translation": "ブランディングガイド"
+  },
+  "web.footer.customize": {
+    "en": "Customize",
+    "translation": "カスタマイズ"
+  },
+  "web.footer.plans": {
+    "en": "Plans",
+    "translation": "プラン"
+  },
+  "web.footer.security": {
+    "en": "Security",
+    "translation": "セキュリティ"
+  },
+  "web.footer.learn_about_our_security_measures": {
+    "en": "Learn about our security measures",
+    "translation": "セキュリティ対策について学ぶ"
+  },
+  "web.footer.view_our_terms_and_conditions": {
+    "en": "View our Terms and Conditions",
+    "translation": "利用規約を表示"
+  },
+  "web.footer.terms": {
+    "en": "Terms",
+    "translation": "利用規約"
+  },
+  "web.footer.privacy": {
+    "en": "Privacy",
+    "translation": "プライバシー"
+  },
+  "web.footer.contact": {
+    "en": "Contact",
+    "translation": "お問い合わせ"
+  },
+  "web.footer.support": {
+    "en": "Support",
+    "translation": "サポート"
+  },
+  "web.footer.legals": {
+    "en": "Legals",
+    "translation": "法的情報"
+  },
+  "web.footer.read_our_privacy_policy": {
+    "en": "Read our Privacy Policy",
+    "translation": "プライバシーポリシーを読む"
+  },
+  "web.footer.check_our_service_status": {
+    "en": "Check our service status",
+    "translation": "サービスステータスを確認"
+  },
+  "web.footer.explore_our_api_documentation": {
+    "en": "Explore our API documentation",
+    "translation": "APIドキュメントを探索"
+  },
+  "web.footer.docs": {
+    "en": "Docs",
+    "translation": "ドキュメント"
+  },
+  "web.footer.access_our_documentation": {
+    "en": "Access our documentation",
+    "translation": "ドキュメントにアクセス"
+  },
+  "web.footer.view_our_source_code_on_github": {
+    "en": "View our source code on GitHub",
+    "translation": "GitHubでソースコードを表示"
+  },
+  "web.footer.resources": {
+    "en": "Resources",
+    "translation": "リソース"
+  },
+  "web.footer.blog": {
+    "en": "Blog",
+    "translation": "ブログ"
+  },
+  "web.footer.read_our_latest_blog_posts": {
+    "en": "Read our latest blog posts",
+    "translation": "最新のブログ投稿を読む"
+  },
+  "web.footer.view_our_subscription_pricing": {
+    "en": "View our subscription pricing",
+    "translation": "サブスクリプション価格を表示"
+  },
+  "web.footer.learn_about_our_company": {
+    "en": "Learn about our company",
+    "translation": "会社について学ぶ"
+  },
+  "web.footer.company": {
+    "en": "Company",
+    "translation": "会社"
+  },
+  "web.navigation.billing": {
+    "en": "Billing",
+    "translation": "請求"
+  },
+  "web.navigation.billingOverview": {
+    "en": "Overview",
+    "translation": "概要"
+  },
+  "web.navigation.organizations": {
+    "en": "Organizations",
+    "translation": "組織"
+  },
+  "web.site.website_version": {
+    "en": "Website Version",
+    "translation": "サイトバージョン"
+  },
+  "web.meta.were_making_onetime_secret_available_in_multiple": {
+    "en": "We're making {onetime-secret} available in multiple languages. Since this is a new feature, you may encounter translation errors or awkward phrasing. Your feedback helps us improve - if you spot any issues, please {send-feedback}",
+    "translation": "私たちは{onetime-secret}を複数の言語で提供しています。これは新機能のため、翻訳エラーや不自然な表現に遭遇する可能性があります。あなたのフィードバックは私たちの改善に役立ちます - 問題を見つけた場合は、{send-feedback}してください"
+  },
+  "web.meta.translations_are_new_spotted_an_error": {
+    "en": "Translations are new. Spotted an error? {send-feedback}",
+    "translation": "翻訳は新しい機能です。エラーを見つけましたか？{send-feedback}"
+  },
+  "web.meta.we_recently_added_translations": {
+    "en": "We recently added translations. Spotted an error? {send-feedback}",
+    "translation": "最近翻訳を追加しました。エラーを見つけましたか？{send-feedback}"
+  },
+  "web.meta.privacy_and_security_should_be_accessible": {
+    "en": "Privacy and security should be accessible to everyone, regardless of language. We're adding translations to help both our users and their message recipients better understand how to safely use and access secure messages and links. Since this is a new feature, you might encounter some translation errors or unclear instructions. To help us improve the clarity and accuracy of our translations, especially for critical security-related content, please {send-feedback} if you spot any issues",
+    "translation": "プライバシーとセキュリティは言語に関係なく、すべての人がアクセスできるべきです。私たちは、ユーザーとメッセージ受信者の両方が安全なメッセージやリンクの使用方法と理解をより良くするために翻訳を追加しています。これは新機能のため、翻訳エラーや不明確な指示に遭遇する可能性があります。特に重要なセキュリティ関連のコンテンツの明確さと正確さを向上させるため、問題を見つけた場合は{send-feedback}してください"
+  },
+  "web.help.learn_more": {
+    "en": "Learn more",
+    "translation": "詳細を見る"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.title": {
+    "en": "What am I looking at?",
+    "translation": "これは何ですか？"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.description": {
+    "en": "You're viewing a secure message that was shared with you through Onetime Secret. This content is displayed only once and then permanently deleted from our servers.",
+    "translation": "Onetime Secretを通じて共有された安全なメッセージを閲覧しています。このコンテンツは一度だけ表示され、その後サーバーから完全に削除されます。"
+  },
+  "web.help.secret_view_faq.can_i_view_again.title": {
+    "en": "Can I view this secret again later?",
+    "translation": "このシークレットを後でもう一度見ることはできますか？"
+  },
+  "web.help.secret_view_faq.can_i_view_again.description": {
+    "en": "No. For security reasons, this secret is only viewable once. After closing this page, the content will be permanently deleted and cannot be recovered by anyone, including us.",
+    "translation": "いいえ。セキュリティ上の理由から、このシークレットは一度だけ閲覧可能です。このページを閉じると、コンテンツは完全に削除され、私たちを含め誰も復元することはできません。"
+  },
+  "web.help.secret_view_faq.how_to_copy.title": {
+    "en": "How do I save this information?",
+    "translation": "この情報を保存するにはどうすればよいですか？"
+  },
+  "web.help.secret_view_faq.how_to_copy.description": {
+    "en": "Use the 'Copy to Clipboard' button to copy the entire secret. For longer secrets, make sure to verify you've copied the complete content before leaving this page.",
+    "translation": "「クリップボードにコピー」ボタンを使用して、シークレット全体をコピーします。長いシークレットの場合は、このページを離れる前に完全なコンテンツをコピーしたことを確認してください。"
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.title": {
+    "en": "Is my viewing of this secret tracked?",
+    "translation": "このシークレットの閲覧は追跡されていますか？"
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.description": {
+    "en": "The sender will be notified that their secret was viewed, but we don't track who viewed it or from what location. Your privacy is protected.",
+    "translation": "送信者にはシークレットが閲覧されたことが通知されますが、誰が閲覧したか、どこから閲覧したかは追跡していません。あなたのプライバシーは保護されています。"
+  },
+  "web.help.secret_view_faq.one_time_warning": {
+    "en": "Once you leave or refresh this page, this secret will be permanently deleted and cannot be recovered by anyone.",
+    "translation": "このページを離れるか更新すると、このシークレットは完全に削除され、誰も復元することはできません。"
+  },
+  "web.layout.go_back_to_previous_page": {
+    "en": "Go back to previous page",
+    "translation": "前のページに戻る"
+  },
+  "web.layout.site_footer": {
+    "en": "Site footer",
+    "translation": "サイト フッター"
+  },
+  "web.layout.toggle_dark_mode": {
+    "en": "Toggle dark mode",
+    "translation": "ダークモードを切り替える"
+  },
+  "web.layout.provide_feedback": {
+    "en": "Provide feedback",
+    "translation": "フィードバックを提供"
+  },
+  "web.layout.company_logo": {
+    "en": "Company logo",
+    "translation": "会社ロゴ"
+  },
+  "web.layout.brand_logo": {
+    "en": "Brand logo",
+    "translation": "ブランドロゴ"
+  },
+  "web.layout.dashboard_navigation": {
+    "en": "Dashboard Navigation",
+    "translation": "ダッシュボード ナビゲーション"
+  },
+  "web.layout.mobile_navigation": {
+    "en": "Mobile Navigation",
+    "translation": "モバイルナビゲーション"
+  },
+  "web.layout.main_navigation": {
+    "en": "Main Navigation",
+    "translation": "メイン ナビゲーション"
+  },
+  "web.layout.mobile_nav_item_count": {
+    "en": "{count} items",
+    "translation": "{count}項目"
+  },
+  "web.layout.release_notes": {
+    "en": "Release Notes",
+    "translation": "リリースノート"
+  },
+  "web.layout.loading_settings_content": {
+    "en": "Loading settings content...",
+    "translation": "設定コンテンツを読み込み中..."
+  },
+  "web.layout.settings_sections_0": {
+    "en": "Settings sections",
+    "translation": "設定セクション"
+  },
+  "web.layout.close_settings": {
+    "en": "Close settings",
+    "translation": "設定を閉じる"
+  },
+  "web.layout.settings_sections": {
+    "en": "Settings sections",
+    "translation": "設定セクション"
+  },
+  "web.layout.customize_your_app_preferences_and_settings": {
+    "en": "Customize your app preferences and settings",
+    "translation": "アプリの設定と環境設定をカスタマイズする"
+  },
+  "web.layout.return_home": {
+    "en": "Return home",
+    "translation": "ホームに戻る"
+  },
+  "web.layout.return_to_home_page": {
+    "en": "Return to home page",
+    "translation": "ホームページに戻る"
+  },
+  "web.layout.return_to_home": {
+    "en": "Return to Home",
+    "translation": "ホームに戻る"
+  },
+  "web.layout.view_privacy_policy": {
+    "en": "View Privacy Policy",
+    "translation": "プライバシーポリシーを表示"
+  },
+  "web.layout.view_terms_of_service": {
+    "en": "View Terms of Service",
+    "translation": "利用規約を表示"
+  },
+  "web.layout.visit_onetime_secret_homepage": {
+    "en": "Visit Onetime Secret homepage",
+    "translation": "Onetime Secretホームページにアクセス"
+  },
+  "web.layout.footer_navigation": {
+    "en": "Footer navigation",
+    "translation": "フッターナビゲーション"
+  },
+  "web.layout.terms_of_service": {
+    "en": "Terms of Service",
+    "translation": "利用規約"
+  },
+  "web.layout.privacy_policy": {
+    "en": "Privacy Policy",
+    "translation": "プライバシーポリシー"
+  },
+  "web.layout.icon_library": {
+    "en": "Icon Library",
+    "translation": "アイコンライブラリ"
+  },
+  "web.layout.google_material": {
+    "en": "Google Material",
+    "translation": "Google Material"
+  },
+  "web.layout.material_design_icons": {
+    "en": "Material Design Icons",
+    "translation": "Material Design Icons"
+  },
+  "web.layout.heroicons": {
+    "en": "Heroicons",
+    "translation": "Heroicons"
+  },
+  "web.layout.carbon": {
+    "en": "Carbon",
+    "translation": "Carbon"
+  },
+  "web.layout.font_awesome_6": {
+    "en": "Font Awesome 6",
+    "translation": "Font Awesome 6"
+  },
+  "web.layout.view_source_on_github": {
+    "en": "View source on GitHub",
+    "translation": "GitHubでソースを表示"
+  },
+  "web.layout.website_version_v_ot_version": {
+    "en": "Website Version: v{0}",
+    "translation": "ウェブサイトバージョン: v{0}"
+  },
+  "web.layout.current_language_is_currentlocal": {
+    "en": "Change language. Current language is {0}",
+    "translation": "言語を変更。現在の言語は{0}です"
+  },
+  "web.layout.language_changed_to_newlocale": {
+    "en": "Language changed to {0}",
+    "translation": "言語が{0}に変更されました"
+  },
+  "web.layout.reset_to_default_language": {
+    "en": "Reset to {0}"
+  },
+  "web.layout.switch_to_blank_mode": {
+    "en": "Switch to {0} mode",
+    "translation": "{0}モードに切り替え"
+  },
+  "web.layout.blank_mode_enabled": {
+    "en": "{0} mode enabled",
+    "translation": "{0}モードが有効になりました"
+  },
+  "web.layout.workspace": {
+    "en": "Workspace",
+    "translation": "ワークスペース"
+  },
+  "web.layout.workspace_context": {
+    "en": "Workspace context",
+    "translation": "ワークスペースコンテキスト"
+  }
+}

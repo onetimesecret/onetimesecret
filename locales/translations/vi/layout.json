@@ -1,0 +1,329 @@
+{
+  "web.footer.api_docs": {
+    "en": "API Docs",
+    "translation": "Tài liệu API"
+  },
+  "web.footer.branding_guide": {
+    "en": "Branding Guide",
+    "translation": "Hướng dẫn thương hiệu"
+  },
+  "web.footer.customize": {
+    "en": "Customize",
+    "translation": "Tùy chỉnh"
+  },
+  "web.footer.plans": {
+    "en": "Plans",
+    "translation": "Gói dịch vụ"
+  },
+  "web.footer.security": {
+    "en": "Security",
+    "translation": "Bảo mật"
+  },
+  "web.footer.learn_about_our_security_measures": {
+    "en": "Learn about our security measures",
+    "translation": "Tìm hiểu về các biện pháp bảo mật của chúng tôi"
+  },
+  "web.footer.view_our_terms_and_conditions": {
+    "en": "View our Terms and Conditions",
+    "translation": "Xem Điều khoản và Điều kiện của chúng tôi"
+  },
+  "web.footer.terms": {
+    "en": "Terms",
+    "translation": "Điều khoản"
+  },
+  "web.footer.privacy": {
+    "en": "Privacy",
+    "translation": "Quyền riêng tư"
+  },
+  "web.footer.contact": {
+    "en": "Contact",
+    "translation": "Liên hệ"
+  },
+  "web.footer.support": {
+    "en": "Support",
+    "translation": "Hỗ trợ"
+  },
+  "web.footer.legals": {
+    "en": "Legals",
+    "translation": "Pháp lý"
+  },
+  "web.footer.read_our_privacy_policy": {
+    "en": "Read our Privacy Policy",
+    "translation": "Đọc Chính sách quyền riêng tư của chúng tôi"
+  },
+  "web.footer.check_our_service_status": {
+    "en": "Check our service status",
+    "translation": "Kiểm tra trạng thái dịch vụ của chúng tôi"
+  },
+  "web.footer.explore_our_api_documentation": {
+    "en": "Explore our API documentation",
+    "translation": "Khám phá tài liệu API của chúng tôi"
+  },
+  "web.footer.docs": {
+    "en": "Docs",
+    "translation": "Tài liệu"
+  },
+  "web.footer.access_our_documentation": {
+    "en": "Access our documentation",
+    "translation": "Truy cập tài liệu của chúng tôi"
+  },
+  "web.footer.view_our_source_code_on_github": {
+    "en": "View our source code on GitHub",
+    "translation": "Xem mã nguồn của chúng tôi trên GitHub"
+  },
+  "web.footer.resources": {
+    "en": "Resources",
+    "translation": "Tài nguyên"
+  },
+  "web.footer.blog": {
+    "en": "Blog",
+    "translation": "Blog"
+  },
+  "web.footer.read_our_latest_blog_posts": {
+    "en": "Read our latest blog posts",
+    "translation": "Đọc các bài blog mới nhất của chúng tôi"
+  },
+  "web.footer.view_our_subscription_pricing": {
+    "en": "View our subscription pricing",
+    "translation": "Xem bảng giá đăng ký của chúng tôi"
+  },
+  "web.footer.learn_about_our_company": {
+    "en": "Learn about our company",
+    "translation": "Tìm hiểu về công ty của chúng tôi"
+  },
+  "web.footer.company": {
+    "en": "Company",
+    "translation": "Công ty"
+  },
+  "web.navigation.billing": {
+    "en": "Billing",
+    "translation": "Thanh toán"
+  },
+  "web.navigation.billingOverview": {
+    "en": "Overview",
+    "translation": "Tổng quan"
+  },
+  "web.navigation.organizations": {
+    "en": "Organizations",
+    "translation": "Tổ chức"
+  },
+  "web.site.website_version": {
+    "en": "Website Version",
+    "translation": "Phiên bản trang web"
+  },
+  "web.meta.were_making_onetime_secret_available_in_multiple": {
+    "en": "We're making {onetime-secret} available in multiple languages. Since this is a new feature, you may encounter translation errors or awkward phrasing. Your feedback helps us improve - if you spot any issues, please {send-feedback}",
+    "translation": "Chúng tôi đang cung cấp {onetime-secret} bằng nhiều ngôn ngữ. Vì đây là tính năng mới, bạn có thể gặp lỗi dịch thuật hoặc cách diễn đạt không tự nhiên. Phản hồi của bạn giúp chúng tôi cải thiện - nếu bạn phát hiện bất kỳ vấn đề nào, vui lòng {send-feedback}"
+  },
+  "web.meta.translations_are_new_spotted_an_error": {
+    "en": "Translations are new. Spotted an error? {send-feedback}",
+    "translation": "Bản dịch còn mới. Phát hiện lỗi? {send-feedback}"
+  },
+  "web.meta.we_recently_added_translations": {
+    "en": "We recently added translations. Spotted an error? {send-feedback}",
+    "translation": "Chúng tôi vừa thêm bản dịch. Phát hiện lỗi? {send-feedback}"
+  },
+  "web.meta.privacy_and_security_should_be_accessible": {
+    "en": "Privacy and security should be accessible to everyone, regardless of language. We're adding translations to help both our users and their message recipients better understand how to safely use and access secure messages and links. Since this is a new feature, you might encounter some translation errors or unclear instructions. To help us improve the clarity and accuracy of our translations, especially for critical security-related content, please {send-feedback} if you spot any issues",
+    "translation": "Quyền riêng tư và bảo mật nên được tiếp cận bởi mọi người, bất kể ngôn ngữ. Chúng tôi đang thêm bản dịch để giúp cả người dùng và người nhận tin nhắn của họ hiểu rõ hơn về cách sử dụng và truy cập tin nhắn và liên kết an toàn một cách an toàn. Vì đây là tính năng mới, bạn có thể gặp một số lỗi dịch thuật hoặc hướng dẫn không rõ ràng. Để giúp chúng tôi cải thiện độ rõ ràng và chính xác của bản dịch, đặc biệt là nội dung quan trọng liên quan đến bảo mật, vui lòng {send-feedback} nếu bạn phát hiện bất kỳ vấn đề nào"
+  },
+  "web.help.learn_more": {
+    "en": "Learn more",
+    "translation": "Tìm hiểu thêm"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.title": {
+    "en": "What am I looking at?",
+    "translation": "Tôi đang xem gì?"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.description": {
+    "en": "You're viewing a secure message that was shared with you through Onetime Secret. This content is displayed only once and then permanently deleted from our servers.",
+    "translation": "Bạn đang xem một tin nhắn an toàn đã được chia sẻ với bạn qua Onetime Secret. Nội dung này chỉ hiển thị một lần và sau đó bị xóa vĩnh viễn khỏi máy chủ của chúng tôi."
+  },
+  "web.help.secret_view_faq.can_i_view_again.title": {
+    "en": "Can I view this secret again later?",
+    "translation": "Tôi có thể xem lại bí mật này sau không?"
+  },
+  "web.help.secret_view_faq.can_i_view_again.description": {
+    "en": "No. For security reasons, this secret is only viewable once. After closing this page, the content will be permanently deleted and cannot be recovered by anyone, including us.",
+    "translation": "Không. Vì lý do bảo mật, bí mật này chỉ có thể xem một lần. Sau khi đóng trang này, nội dung sẽ bị xóa vĩnh viễn và không thể khôi phục bởi bất kỳ ai, kể cả chúng tôi."
+  },
+  "web.help.secret_view_faq.how_to_copy.title": {
+    "en": "How do I save this information?",
+    "translation": "Làm cách nào để lưu thông tin này?"
+  },
+  "web.help.secret_view_faq.how_to_copy.description": {
+    "en": "Use the 'Copy to Clipboard' button to copy the entire secret. For longer secrets, make sure to verify you've copied the complete content before leaving this page.",
+    "translation": "Sử dụng nút 'Sao chép vào Clipboard' để sao chép toàn bộ bí mật. Đối với bí mật dài hơn, hãy đảm bảo xác minh rằng bạn đã sao chép toàn bộ nội dung trước khi rời khỏi trang này."
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.title": {
+    "en": "Is my viewing of this secret tracked?",
+    "translation": "Việc tôi xem bí mật này có bị theo dõi không?"
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.description": {
+    "en": "The sender will be notified that their secret was viewed, but we don't track who viewed it or from what location. Your privacy is protected.",
+    "translation": "Người gửi sẽ được thông báo rằng bí mật của họ đã được xem, nhưng chúng tôi không theo dõi ai đã xem hoặc từ vị trí nào. Quyền riêng tư của bạn được bảo vệ."
+  },
+  "web.help.secret_view_faq.one_time_warning": {
+    "en": "Once you leave or refresh this page, this secret will be permanently deleted and cannot be recovered by anyone.",
+    "translation": "Sau khi bạn rời khỏi hoặc làm mới trang này, bí mật này sẽ bị xóa vĩnh viễn và không thể khôi phục bởi bất kỳ ai."
+  },
+  "web.layout.go_back_to_previous_page": {
+    "en": "Go back to previous page",
+    "translation": "Quay lại trang trước"
+  },
+  "web.layout.site_footer": {
+    "en": "Site footer",
+    "translation": "Chân trang"
+  },
+  "web.layout.toggle_dark_mode": {
+    "en": "Toggle dark mode",
+    "translation": "Chuyển đổi chế độ tối"
+  },
+  "web.layout.provide_feedback": {
+    "en": "Provide feedback",
+    "translation": "Cung cấp phản hồi"
+  },
+  "web.layout.company_logo": {
+    "en": "Company logo",
+    "translation": "Logo công ty"
+  },
+  "web.layout.brand_logo": {
+    "en": "Brand logo",
+    "translation": "Logo thương hiệu"
+  },
+  "web.layout.dashboard_navigation": {
+    "en": "Dashboard Navigation",
+    "translation": "Điều hướng bảng điều khiển"
+  },
+  "web.layout.mobile_navigation": {
+    "en": "Mobile Navigation",
+    "translation": "Điều hướng di động"
+  },
+  "web.layout.main_navigation": {
+    "en": "Main Navigation",
+    "translation": "Điều hướng chính"
+  },
+  "web.layout.mobile_nav_item_count": {
+    "en": "{count} items",
+    "translation": "{count} mục"
+  },
+  "web.layout.release_notes": {
+    "en": "Release Notes",
+    "translation": "Ghi chú phát hành"
+  },
+  "web.layout.loading_settings_content": {
+    "en": "Loading settings content...",
+    "translation": "Đang tải nội dung cài đặt..."
+  },
+  "web.layout.settings_sections_0": {
+    "en": "Settings sections",
+    "translation": "Các phần cài đặt"
+  },
+  "web.layout.close_settings": {
+    "en": "Close settings",
+    "translation": "Đóng cài đặt"
+  },
+  "web.layout.settings_sections": {
+    "en": "Settings sections",
+    "translation": "Các phần cài đặt"
+  },
+  "web.layout.customize_your_app_preferences_and_settings": {
+    "en": "Customize your app preferences and settings",
+    "translation": "Tùy chỉnh tùy chọn và cài đặt ứng dụng của bạn"
+  },
+  "web.layout.return_home": {
+    "en": "Return home",
+    "translation": "Trở về trang chủ"
+  },
+  "web.layout.return_to_home_page": {
+    "en": "Return to home page",
+    "translation": "Trở về trang chủ"
+  },
+  "web.layout.return_to_home": {
+    "en": "Return to Home",
+    "translation": "Trở về trang chủ"
+  },
+  "web.layout.view_privacy_policy": {
+    "en": "View Privacy Policy",
+    "translation": "Xem chính sách quyền riêng tư"
+  },
+  "web.layout.view_terms_of_service": {
+    "en": "View Terms of Service",
+    "translation": "Xem điều khoản dịch vụ"
+  },
+  "web.layout.visit_onetime_secret_homepage": {
+    "en": "Visit Onetime Secret homepage",
+    "translation": "Truy cập trang chủ Onetime Secret"
+  },
+  "web.layout.footer_navigation": {
+    "en": "Footer navigation",
+    "translation": "Điều hướng chân trang"
+  },
+  "web.layout.terms_of_service": {
+    "en": "Terms of Service",
+    "translation": "Điều khoản dịch vụ"
+  },
+  "web.layout.privacy_policy": {
+    "en": "Privacy Policy",
+    "translation": "Chính sách quyền riêng tư"
+  },
+  "web.layout.icon_library": {
+    "en": "Icon Library",
+    "translation": "Thư viện biểu tượng"
+  },
+  "web.layout.google_material": {
+    "en": "Google Material",
+    "translation": "Google Material"
+  },
+  "web.layout.material_design_icons": {
+    "en": "Material Design Icons",
+    "translation": "Material Design Icons"
+  },
+  "web.layout.heroicons": {
+    "en": "Heroicons",
+    "translation": "Heroicons"
+  },
+  "web.layout.carbon": {
+    "en": "Carbon",
+    "translation": "Carbon"
+  },
+  "web.layout.font_awesome_6": {
+    "en": "Font Awesome 6",
+    "translation": "Font Awesome 6"
+  },
+  "web.layout.view_source_on_github": {
+    "en": "View source on GitHub",
+    "translation": "Xem mã nguồn trên GitHub"
+  },
+  "web.layout.website_version_v_ot_version": {
+    "en": "Website Version: v{0}",
+    "translation": "Phiên bản trang web: v{0}"
+  },
+  "web.layout.current_language_is_currentlocal": {
+    "en": "Change language. Current language is {0}",
+    "translation": "Thay đổi ngôn ngữ. Ngôn ngữ hiện tại là {0}"
+  },
+  "web.layout.language_changed_to_newlocale": {
+    "en": "Language changed to {0}",
+    "translation": "Đã thay đổi ngôn ngữ sang {0}"
+  },
+  "web.layout.reset_to_default_language": {
+    "en": "Reset to {0}"
+  },
+  "web.layout.switch_to_blank_mode": {
+    "en": "Switch to {0} mode",
+    "translation": "Chuyển sang chế độ {0}"
+  },
+  "web.layout.blank_mode_enabled": {
+    "en": "{0} mode enabled",
+    "translation": "Đã bật chế độ {0}"
+  },
+  "web.layout.workspace": {
+    "en": "Workspace",
+    "translation": "Không gian làm việc"
+  },
+  "web.layout.workspace_context": {
+    "en": "Workspace context",
+    "translation": "Ngữ cảnh không gian làm việc"
+  }
+}

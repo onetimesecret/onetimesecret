@@ -1,0 +1,557 @@
+{
+  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
+    "en": "{0}/{1}/{2} [{3}]",
+    "translation": "{0}/{1}/{2} [{3}]"
+  },
+  "web.colonel.customer_verified_verified_not_verified_0": {
+    "en": "`+customer.verified ? `verified` : `not verified",
+    "translation": "`+customer.verified ? `verified` : `not verified"
+  },
+  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
+    "en": "Customers ({0} of {1})",
+    "translation": "Stranke ({0} od {1})"
+  },
+  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
+    "en": "User Feedback (Total: {0})",
+    "translation": "Povratne informacije uporabnikov (Skupaj: {0})"
+  },
+  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
+    "en": "Metadata / Secrets: {0}/{1} ({2}/{3}/{4} total)",
+    "translation": "Metapodatki / Skrivnosti: {0}/{1} ({2}/{3}/{4} skupaj)"
+  },
+  "web.colonel.secrets_details_counts_secret_count_0": {
+    "en": "Secrets ({0})",
+    "translation": "Skrivnosti ({0})"
+  },
+  "web.colonel.active_in_the_past_5_minutes_0": {
+    "en": "(active in the past 5 minutes)",
+    "translation": "(aktivno v zadnjih 5 minutah)"
+  },
+  "web.colonel.configEditorTitle": {
+    "en": "Settings",
+    "translation": "Nastavitve"
+  },
+  "web.colonel.configEditorDescription": {
+    "en": "Edit system configuration settings. Changes apply immediately after saving.",
+    "translation": "Uredite sistemske konfiguracijske nastavitve. Spremembe se uveljavijo takoj po shranjevanju."
+  },
+  "web.colonel.invalidJson": {
+    "en": "Invalid JSON in {section} section",
+    "translation": "Neveljaven JSON v razdelku {section}"
+  },
+  "web.colonel.validationError": {
+    "en": "Validation error",
+    "translation": "Napaka pri preverjanju"
+  },
+  "web.colonel.errorFetchingConfig": {
+    "en": "Error loading configuration",
+    "translation": "Napaka pri nalaganju konfiguracije"
+  },
+  "web.colonel.errorSavingConfig": {
+    "en": "Error saving configuration",
+    "translation": "Napaka pri shranjevanju konfiguracije"
+  },
+  "web.colonel.configSaved": {
+    "en": "Configuration saved successfully",
+    "translation": "Konfiguracija uspešno shranjena"
+  },
+  "web.colonel.mustBeObject": {
+    "en": "Configuration must be a JSON object",
+    "translation": "Konfiguracija mora biti objekt JSON"
+  },
+  "web.colonel.multipleSectionsInvalid": {
+    "en": "Multiple sections have validation errors: {sections}",
+    "translation": "Več razdelkov ima napake pri preverjanju: {sections}"
+  },
+  "web.colonel.sectionHasError": {
+    "en": "{section} has validation errors: {error}",
+    "translation": "{section} ima napake pri preverjanju: {error}"
+  },
+  "web.colonel.sectionSaved": {
+    "en": "{section} saved successfully",
+    "translation": "{section} uspešno shranjen"
+  },
+  "web.colonel.saveSection": {
+    "en": "Save {section}",
+    "translation": "Shrani {section}"
+  },
+  "web.colonel.saveAll": {
+    "en": "Save All",
+    "translation": "Shrani vse"
+  },
+  "web.colonel.unsavedChanges": {
+    "en": "Unsaved changes",
+    "translation": "Neshranjene spremembe"
+  },
+  "web.colonel.schemaValidationError": {
+    "en": "Schema validation error: {message} ({path})",
+    "translation": "Napaka pri preverjanju sheme: {message} ({path})"
+  },
+  "web.colonel.unknownValidationError": {
+    "en": "Unknown validation error: {error}",
+    "translation": "Neznana napaka pri preverjanju: {error}"
+  },
+  "web.colonel.sectionEffectivelyEmpty": {
+    "en": "{section} section has no configured values",
+    "translation": "Razdelek {section} nima nastavljenih vrednosti"
+  },
+  "web.colonel.dashboard": {
+    "en": "Dashboard",
+    "translation": "Nadzorna plošča"
+  },
+  "web.colonel.admin": {
+    "en": "Admin",
+    "translation": "Admin"
+  },
+  "web.colonel.activity": {
+    "en": "Activity",
+    "translation": "Aktivnost"
+  },
+  "web.colonel.accounts": {
+    "en": "Accounts",
+    "translation": "Računi"
+  },
+  "web.colonel.users": {
+    "en": "Users",
+    "translation": "Uporabniki"
+  },
+  "web.colonel.usersDescription": {
+    "en": "Manage user accounts and permissions",
+    "translation": "Upravljajte uporabniške račune in dovoljenja"
+  },
+  "web.colonel.domains": {
+    "en": "Domains",
+    "translation": "Domene"
+  },
+  "web.colonel.settings": {
+    "en": "Settings",
+    "translation": "Nastavitve"
+  },
+  "web.colonel.system": {
+    "en": "System",
+    "translation": "Sistem"
+  },
+  "web.colonel.welcome": {
+    "en": "Welcome to Colonel",
+    "translation": "Dobrodošli v Colonel"
+  },
+  "web.colonel.welcomeDesc": {
+    "en": "Administrative control panel for OneTimeSecret",
+    "translation": "Administrativna nadzorna plošča za OneTimeSecret"
+  },
+  "web.colonel.quickActions": {
+    "en": "Quick Actions",
+    "translation": "Hitra dejanja"
+  },
+  "web.colonel.recentActivity": {
+    "en": "Recent Activity",
+    "translation": "Nedavna aktivnost"
+  },
+  "web.colonel.viewAll": {
+    "en": "View All",
+    "translation": "Prikaži vse"
+  },
+  "web.colonel.activityPlaceholder": {
+    "en": "Activity data will be displayed here",
+    "translation": "Podatki o aktivnosti bodo prikazani tukaj"
+  },
+  "web.colonel.stats.totalSecrets": {
+    "en": "Total Secrets",
+    "translation": "Skupaj skrivnosti"
+  },
+  "web.colonel.stats.activeUsers": {
+    "en": "Active Users",
+    "translation": "Aktivni uporabniki"
+  },
+  "web.colonel.stats.secretsToday": {
+    "en": "Secrets Today",
+    "translation": "Skrivnosti danes"
+  },
+  "web.colonel.stats.secretsCreated": {
+    "en": "Secrets Created",
+    "translation": "Ustvarjene skrivnosti"
+  },
+  "web.colonel.stats.secretsShared": {
+    "en": "Secrets Shared",
+    "translation": "Deljene skrivnosti"
+  },
+  "web.colonel.stats.totalCustomers": {
+    "en": "Total Users",
+    "translation": "Skupaj strank"
+  },
+  "web.colonel.stats.emailsSent": {
+    "en": "Emails Sent",
+    "translation": "Poslane e-pošte"
+  },
+  "web.colonel.stats.systemHealth": {
+    "en": "System Health",
+    "translation": "Zdravje sistema"
+  },
+  "web.colonel.stats.healthy": {
+    "en": "Healthy",
+    "translation": "Zdravo"
+  },
+  "web.colonel.actions.viewActivity": {
+    "en": "View Activity",
+    "translation": "Prikaži aktivnost"
+  },
+  "web.colonel.actions.viewActivityDesc": {
+    "en": "Monitor system activity and usage",
+    "translation": "Spremljajte sistemsko aktivnost in uporabo"
+  },
+  "web.colonel.actions.manageAccounts": {
+    "en": "Manage Accounts",
+    "translation": "Upravljaj račune"
+  },
+  "web.colonel.actions.manageAccountsDesc": {
+    "en": "User account administration",
+    "translation": "Administracija uporabniških računov"
+  },
+  "web.colonel.actions.configureDomains": {
+    "en": "Configure Domains",
+    "translation": "Konfiguriraj domene"
+  },
+  "web.colonel.actions.configureDomainsDesc": {
+    "en": "Domain and DNS settings",
+    "translation": "Nastavitve domene in DNS"
+  },
+  "web.colonel.actions.systemSettings": {
+    "en": "System Settings",
+    "translation": "Sistemske nastavitve"
+  },
+  "web.colonel.actions.systemSettingsDesc": {
+    "en": "Application configuration",
+    "translation": "Konfiguracija aplikacije"
+  },
+  "web.colonel.backgroundJobs": {
+    "en": "Background Jobs",
+    "translation": "Opravila v ozadju"
+  },
+  "web.colonel.queueStatus": {
+    "en": "Queue Status",
+    "translation": "Status čakalne vrste"
+  },
+  "web.colonel.queueName": {
+    "en": "Queue",
+    "translation": "Čakalna vrsta"
+  },
+  "web.colonel.pendingMessages": {
+    "en": "Pending",
+    "translation": "V čakanju"
+  },
+  "web.colonel.consumers": {
+    "en": "Consumers",
+    "translation": "Porabniki"
+  },
+  "web.colonel.processingRate": {
+    "en": "Rate/sec",
+    "translation": "Hitrost/sek"
+  },
+  "web.colonel.connectionStatus": {
+    "en": "Connection Status",
+    "translation": "Status povezave"
+  },
+  "web.colonel.workerHealth": {
+    "en": "Worker Health",
+    "translation": "Zdravje delavcev"
+  },
+  "web.colonel.activeWorkers": {
+    "en": "active workers",
+    "translation": "aktivnih delavcev"
+  },
+  "web.colonel.noQueueData": {
+    "en": "No queue data available",
+    "translation": "Ni podatkov o čakalni vrsti"
+  },
+  "web.colonel.loadingQueueData": {
+    "en": "Loading queue data...",
+    "translation": "Nalaganje podatkov o čakalni vrsti..."
+  },
+  "web.colonel.testPlanMode": {
+    "en": "Test Plan Mode",
+    "translation": "Način testiranja paketa"
+  },
+  "web.colonel.testingAsPlan": {
+    "en": "Testing as {planName}",
+    "translation": "Testiranje kot {planName}"
+  },
+  "web.colonel.clickToReset": {
+    "en": "Click to reset",
+    "translation": "Kliknite za ponastavitev"
+  },
+  "web.colonel.selectTestPlan": {
+    "en": "Select a plan to test",
+    "translation": "Izberite paket za testiranje"
+  },
+  "web.colonel.resetToActual": {
+    "en": "Reset to actual plan",
+    "translation": "Ponastavi na dejanski paket"
+  },
+  "web.colonel.currentActualPlan": {
+    "en": "Current plan",
+    "translation": "Trenutni paket"
+  },
+  "web.colonel.availablePlans": {
+    "en": "Available plans",
+    "translation": "Razpoložljivi paketi"
+  },
+  "web.colonel.activateTestMode": {
+    "en": "Activate test mode",
+    "translation": "Aktiviraj testni način"
+  },
+  "web.colonel.testModeActive": {
+    "en": "Test mode active",
+    "translation": "Testni način aktiven"
+  },
+  "web.colonel.testModeDescription": {
+    "en": "Test your application with different plan entitlements. Changes are temporary and affect only your session.",
+    "translation": "Testirajte svojo aplikacijo z različnimi pravicami paketov. Spremembe so začasne in vplivajo samo na vašo sejo."
+  },
+  "web.colonel.warningTestMode": {
+    "en": "You are testing with {planName} entitlements (temporary session override).",
+    "translation": "Testirate s pravicami paketa {planName} (začasno preglasitev seje)."
+  },
+  "web.colonel.organizations.title": {
+    "en": "Organizations"
+  },
+  "web.colonel.organizations.description": {
+    "en": "Monitor org billing sync health"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "en": "Billing Health Monitor"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "en": "{count} organizations"
+  },
+  "web.colonel.organizations.needAttention": {
+    "en": "{count} need attention"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "en": "{count} unknown"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "en": "No organizations found"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "en": "Sync Status"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "en": "Subscription"
+  },
+  "web.colonel.organizations.filters.all": {
+    "en": "All"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "en": "Potentially Stale"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "en": "Unknown"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "en": "Synced"
+  },
+  "web.colonel.organizations.filters.active": {
+    "en": "Active"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "en": "Trialing"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "en": "Past Due"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "en": "Canceled"
+  },
+  "web.colonel.organizations.columns.account": {
+    "en": "Account"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "en": "Billing"
+  },
+  "web.colonel.organizations.columns.status": {
+    "en": "Status"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "en": "Usage"
+  },
+  "web.colonel.organizations.columns.created": {
+    "en": "Created"
+  },
+  "web.colonel.organizations.columns.details": {
+    "en": "Details"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "en": "Owner"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "en": "Plan"
+  },
+  "web.colonel.organizations.columns.members": {
+    "en": "Members"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "en": "Domains"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "en": "Subscription"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "en": "Default Workspace"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "en": "Has Billing"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "en": "Organizations Billing Admin"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "en": "Manage organizations and monitor billing sync health ({total} total)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "en": "No organizations found"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "en": "potentially stale"
+  },
+  "web.colonel.organizations.status.stale": {
+    "en": "Stale"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "en": "Unknown"
+  },
+  "web.colonel.organizations.status.active": {
+    "en": "active"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "en": "Investigate"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "en": "Checking..."
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "en": "Customer"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "en": "Subscription"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "en": "Org ID"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "en": "Investigation failed"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "en": "Investigation Result"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "en": "Verified Synced"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "en": "Mismatch Found"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "en": "Unable to Compare"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "en": "Stripe Subscription Details"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "en": "Status"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "en": "Product"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "en": "Resolved Plan"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "en": "Price ID"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "en": "Local"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "en": "Stripe"
+  },
+  "web.colonel.organizations.usage.members": {
+    "en": "{count} members"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "en": "{count} domains"
+  },
+  "web.colonel.secrets.title": {
+    "en": "Secrets"
+  },
+  "web.colonel.secrets.description": {
+    "en": "View and manage all secrets"
+  },
+  "web.colonel.bannedIps.title": {
+    "en": "Banned IPs"
+  },
+  "web.colonel.bannedIps.description": {
+    "en": "Manage IP ban list"
+  },
+  "web.colonel.usageExport.title": {
+    "en": "Usage Export"
+  },
+  "web.colonel.usageExport.description": {
+    "en": "Export usage data and statistics"
+  },
+  "web.colonel.systemSettings.title": {
+    "en": "System"
+  },
+  "web.colonel.systemSettings.description": {
+    "en": "System settings, databases, and configuration"
+  },
+  "web.colonel.customDomains.title": {
+    "en": "Custom Domains"
+  },
+  "web.colonel.customDomains.description": {
+    "en": "Manage custom domains and branding"
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "en": "When you submit feedback, we'll see:"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "en": "Send feedback"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "en": "Sending..."
+  },
+  "web.colonel.titles.index": {
+    "en": "Administration"
+  },
+  "web.colonel.titles.users": {
+    "en": "User Management"
+  },
+  "web.colonel.titles.secrets": {
+    "en": "Secret Management"
+  },
+  "web.colonel.titles.domains": {
+    "en": "Custom Domains"
+  },
+  "web.colonel.titles.system": {
+    "en": "System"
+  },
+  "web.colonel.titles.maindb": {
+    "en": "Main Database"
+  },
+  "web.colonel.titles.authdb": {
+    "en": "Auth Database"
+  },
+  "web.colonel.titles.bannedIps": {
+    "en": "Banned IPs"
+  },
+  "web.colonel.titles.usage": {
+    "en": "Usage Export"
+  },
+  "web.colonel.titles.info": {
+    "en": "System Information"
+  },
+  "web.colonel.titles.organizations": {
+    "en": "Organizations"
+  },
+  "web.colonel.titles.redis": {
+    "en": "Redis"
+  }
+}

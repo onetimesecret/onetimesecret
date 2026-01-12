@@ -1,0 +1,134 @@
+{
+  "incoming.page_title": {
+    "en": "Send a Secret",
+    "translation": "Enviar um segredo"
+  },
+  "incoming.page_description": {
+    "en": "Share sensitive information securely with our support team",
+    "translation": "Partilhe informações sensíveis de forma segura com a nossa equipa de suporte"
+  },
+  "incoming.loading_config": {
+    "en": "Loading...",
+    "translation": "A carregar..."
+  },
+  "incoming.config_error_title": {
+    "en": "Failed to load configuration",
+    "translation": "Falha ao carregar a configuração"
+  },
+  "incoming.feature_disabled_title": {
+    "en": "Feature Not Available",
+    "translation": "Funcionalidade não disponível"
+  },
+  "incoming.feature_disabled_description": {
+    "en": "This feature is currently disabled. Please contact support for assistance.",
+    "translation": "Esta funcionalidade está atualmente desativada. Contacte o suporte para obter assistência."
+  },
+  "incoming.memo_label": {
+    "en": "Memo",
+    "translation": "Nota"
+  },
+  "incoming.memo_placeholder": {
+    "en": "Brief description (e.g., Password reset request)",
+    "translation": "Breve descrição (ex. Pedido de redefinição de palavra-passe)"
+  },
+  "incoming.memo_hint": {
+    "en": "Help us route your message to the right person",
+    "translation": "Ajude-nos a encaminhar a sua mensagem para a pessoa certa"
+  },
+  "incoming.recipient_label": {
+    "en": "Send to",
+    "translation": "Enviar para"
+  },
+  "incoming.recipient_placeholder": {
+    "en": "Select a recipient",
+    "translation": "Selecionar um destinatário"
+  },
+  "incoming.recipient_aria_label": {
+    "en": "Select a recipient for this secret",
+    "translation": "Selecione um destinatário para este segredo"
+  },
+  "incoming.recipient_hint": {
+    "en": "Choose who will receive this secure message",
+    "translation": "Escolha quem receberá esta mensagem segura"
+  },
+  "incoming.no_recipients_available": {
+    "en": "No recipients are available",
+    "translation": "Nenhum destinatário disponível"
+  },
+  "incoming.secret_content_label": {
+    "en": "Secret Information",
+    "translation": "Informações confidenciais"
+  },
+  "incoming.secret_content_placeholder": {
+    "en": "Paste sensitive information here (passwords, keys, etc.)",
+    "translation": "Cole aqui as informações sensíveis (palavras-passe, chaves, etc.)"
+  },
+  "incoming.secret_content_hint": {
+    "en": "This information will be encrypted and only viewable once",
+    "translation": "Estas informações serão encriptadas e visualizáveis apenas uma vez"
+  },
+  "incoming.submit_button": {
+    "en": "Send Secret",
+    "translation": "Enviar segredo"
+  },
+  "incoming.submit_secret": {
+    "en": "Send Secret",
+    "translation": "Enviar segredo"
+  },
+  "incoming.submitting_button": {
+    "en": "Sending...",
+    "translation": "A enviar..."
+  },
+  "incoming.submitting": {
+    "en": "Sending...",
+    "translation": "A enviar..."
+  },
+  "incoming.reset_button": {
+    "en": "Clear Form",
+    "translation": "Limpar formulário"
+  },
+  "incoming.reset_form": {
+    "en": "Clear Form",
+    "translation": "Limpar formulário"
+  },
+  "incoming.success_title": {
+    "en": "Sent Successfully",
+    "translation": "Enviado com sucesso"
+  },
+  "incoming.success_description": {
+    "en": "Your secure message has been delivered.",
+    "translation": "A sua mensagem segura foi entregue."
+  },
+  "incoming.reference_id": {
+    "en": "Reference ID",
+    "translation": "ID de referência"
+  },
+  "incoming.success_info_title": {
+    "en": "What happens next?",
+    "translation": "O que acontece agora?"
+  },
+  "incoming.success_info_description": {
+    "en": "The recipient will be able to view this secret only once. After they view it, the secret will be permanently deleted.",
+    "translation": "O destinatário poderá visualizar este segredo apenas uma vez. Após a visualização, o segredo será permanentemente eliminado."
+  },
+  "incoming.create_another": {
+    "en": "Send Another Secret",
+    "translation": "Enviar outro segredo"
+  },
+  "incoming.tagline1": {
+    "en": "Share sensitive information securely",
+    "translation": "Partilhe informações sensíveis de forma segura"
+  },
+  "incoming.tagline2": {
+    "en": "Keep passwords and private data out of email and chat logs",
+    "translation": "Mantenha palavras-passe e dados privados fora de e-mails e registos de chat"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "en": "Save your {receipt} for your records.",
+    "translation": "Guarde o seu <a href='{receiptUrl}'>recibo</a> para os seus registos."
+  },
+  "incoming.receipt_link_text": {
+    "en": "receipt",
+    "translation": "recibo"
+  }
+}

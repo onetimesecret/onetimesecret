@@ -1,0 +1,646 @@
+{
+  "web.billing.upgrade.required": {
+    "en": "Upgrade Required",
+    "translation": "Atualização Necessária"
+  },
+  "web.billing.upgrade.viewPlans": {
+    "en": "View Plans",
+    "translation": "Ver Planos"
+  },
+  "web.billing.upgrade.needTeams": {
+    "en": "Team management requires Identity Plus or higher",
+    "translation": "Gerenciamento de equipes requer Identity Plus ou superior"
+  },
+  "web.billing.upgrade.needCustomDomains": {
+    "en": "Custom domains require Identity Plus or higher",
+    "translation": "Domínios personalizados exigem Identity Plus ou superior"
+  },
+  "web.billing.upgrade.needApiAccess": {
+    "en": "API access requires Identity Plus or higher",
+    "translation": "Acesso à API exige plano Multi-Team ou superior"
+  },
+  "web.billing.upgrade.needAuditLogs": {
+    "en": "Audit logs require Multi-Team plan or higher",
+    "translation": "Logs de auditoria exigem plano Multi-Team ou superior"
+  },
+  "web.billing.manage_subscription_and_billing": {
+    "en": "Manage your subscription, organizations, and billing settings",
+    "translation": "Gerencie sua assinatura, organizações e configurações de cobrança"
+  },
+  "web.billing.overview.title": {
+    "en": "Billing Overview",
+    "translation": "Visão Geral de Cobrança"
+  },
+  "web.billing.overview.description": {
+    "en": "View and manage your subscription and payment details",
+    "translation": "Visualize e gerencie sua assinatura e detalhes de pagamento"
+  },
+  "web.billing.overview.billing_for_organization": {
+    "en": "Billing for this organization"
+  },
+  "web.billing.overview.current_plan": {
+    "en": "Current Plan",
+    "translation": "Plano Atual"
+  },
+  "web.billing.overview.plan_features": {
+    "en": "Plan Features",
+    "translation": "Recursos do Plano"
+  },
+  "web.billing.overview.payment_method": {
+    "en": "Payment Method",
+    "translation": "Método de Pagamento"
+  },
+  "web.billing.overview.next_billing_date": {
+    "en": "Next Billing Date",
+    "translation": "Próxima Data de Cobrança"
+  },
+  "web.billing.overview.quick_actions": {
+    "en": "Quick Actions",
+    "translation": "Ações Rápidas"
+  },
+  "web.billing.overview.manage_billing": {
+    "en": "Manage Billing",
+    "translation": "Gerenciar Cobrança"
+  },
+  "web.billing.overview.view_invoices": {
+    "en": "View Invoices",
+    "translation": "Ver Faturas"
+  },
+  "web.billing.overview.upgrade_plan": {
+    "en": "Upgrade Plan",
+    "translation": "Atualizar Plano"
+  },
+  "web.billing.overview.change_plan": {
+    "en": "Change Plan",
+    "translation": "Alterar Plano"
+  },
+  "web.billing.overview.no_payment_method": {
+    "en": "No payment method on file",
+    "translation": "Nenhum método de pagamento cadastrado"
+  },
+  "web.billing.overview.no_upcoming_billing": {
+    "en": "No upcoming billing",
+    "translation": "Sem cobrança próxima"
+  },
+  "web.billing.overview.days_remaining": {
+    "en": "days remaining",
+    "translation": "dias restantes"
+  },
+  "web.billing.overview.billing_on": {
+    "en": "Billing on {date}",
+    "translation": "Cobrança em {date}"
+  },
+  "web.billing.overview.view_plans_action": {
+    "en": "View Plans",
+    "translation": "Ver Planos"
+  },
+  "web.billing.overview.view_plans_description": {
+    "en": "Compare and upgrade",
+    "translation": "Comparar e atualizar"
+  },
+  "web.billing.overview.view_invoices_action": {
+    "en": "View Invoices",
+    "translation": "Ver Faturas"
+  },
+  "web.billing.overview.view_invoices_description": {
+    "en": "Download history",
+    "translation": "Baixar histórico"
+  },
+  "web.billing.overview.manage_billing_action": {
+    "en": "Manage Billing",
+    "translation": "Gerenciar Cobrança"
+  },
+  "web.billing.overview.manage_billing_description": {
+    "en": "Update payment info",
+    "translation": "Atualizar informações de pagamento"
+  },
+  "web.billing.overview.no_organizations_title": {
+    "en": "No Organizations",
+    "translation": "Sem Organizações"
+  },
+  "web.billing.overview.no_organizations_description": {
+    "en": "Create an organization to manage your billing and subscription",
+    "translation": "Crie uma organização para gerenciar sua cobrança e assinatura"
+  },
+  "web.billing.overview.upgrade_success": {
+    "en": "Your plan has been upgraded successfully"
+  },
+  "web.billing.overview.upgrade_success_description": {
+    "en": "Your new plan is now active. Thank you for your purchase."
+  },
+  "web.billing.overview.entitlements.create_secrets": {
+    "en": "Create Secrets",
+    "translation": "Criar Mensagens Confidenciais"
+  },
+  "web.billing.overview.entitlements.view_receipt": {
+    "en": "View Receipts",
+    "translation": "Ver Recibos"
+  },
+  "web.billing.overview.entitlements.api_access": {
+    "en": "API Access",
+    "translation": "Acesso à API"
+  },
+  "web.billing.overview.entitlements.custom_domains": {
+    "en": "Custom Domains",
+    "translation": "Domínios Personalizados"
+  },
+  "web.billing.overview.entitlements.custom_privacy_defaults": {
+    "en": "Custom Privacy Defaults",
+    "translation": "Padrões de Privacidade Personalizados"
+  },
+  "web.billing.overview.entitlements.extended_default_expiration": {
+    "en": "Extended Default Expiration",
+    "translation": "Expiração Padrão Estendida"
+  },
+  "web.billing.overview.entitlements.custom_mail_defaults": {
+    "en": "Custom Mail Defaults",
+    "translation": "Padrões de E-mail Personalizados"
+  },
+  "web.billing.overview.entitlements.custom_branding": {
+    "en": "Custom Branding",
+    "translation": "Marca Personalizada"
+  },
+  "web.billing.overview.entitlements.branded_homepage": {
+    "en": "Branded Homepage",
+    "translation": "Página Inicial com Marca"
+  },
+  "web.billing.overview.entitlements.incoming_secrets": {
+    "en": "Incoming Secrets",
+    "translation": "Segredos Recebidos"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "en": "Manage Organizations",
+    "translation": "Gerenciar Organizações"
+  },
+  "web.billing.overview.entitlements.manage_teams": {
+    "en": "Manage Teams",
+    "translation": "Gerenciar Equipes"
+  },
+  "web.billing.overview.entitlements.manage_members": {
+    "en": "Manage Members",
+    "translation": "Gerenciar Membros"
+  },
+  "web.billing.overview.entitlements.audit_logs": {
+    "en": "Audit Logs",
+    "translation": "Logs de Auditoria"
+  },
+  "web.billing.overview.entitlements.sso": {
+    "en": "Single Sign-On",
+    "translation": "Login Único (SSO)"
+  },
+  "web.billing.overview.entitlements.priority_support": {
+    "en": "Priority Support",
+    "translation": "Suporte Prioritário"
+  },
+  "web.billing.overview.entitlements.sla": {
+    "en": "Service Level Agreement",
+    "translation": "Acordo de Nível de Serviço (SLA)"
+  },
+  "web.billing.overview.entitlements_load_error": {
+    "en": "Could not load feature details",
+    "translation": "Não foi possível carregar os detalhes dos recursos"
+  },
+  "web.billing.overview.no_entitlements": {
+    "en": "No features available",
+    "translation": "Nenhum recurso disponível"
+  },
+  "web.billing.features.create_secrets": {
+    "en": "Create & Share Secrets"
+  },
+  "web.billing.features.api_access": {
+    "en": "API Access"
+  },
+  "web.billing.features.custom_domains": {
+    "en": "Custom Domains"
+  },
+  "web.billing.features.custom_branding": {
+    "en": "Custom Branding"
+  },
+  "web.billing.features.branded_homepage": {
+    "en": "Branded Homepage"
+  },
+  "web.billing.features.manage_teams": {
+    "en": "Team Management"
+  },
+  "web.billing.features.manage_members": {
+    "en": "Member Management"
+  },
+  "web.billing.features.audit_logs": {
+    "en": "Audit Logs"
+  },
+  "web.billing.features.sso": {
+    "en": "Single Sign-On (SSO)"
+  },
+  "web.billing.features.priority_support": {
+    "en": "Priority Support"
+  },
+  "web.billing.features.sla": {
+    "en": "Service Level Agreement"
+  },
+  "web.billing.plans.title": {
+    "en": "Select a Plan",
+    "translation": "Selecione um Plano"
+  },
+  "web.billing.plans.choose_plan": {
+    "en": "Choose the plan that fits your needs",
+    "translation": "Escolha o plano que se adapta às suas necessidades"
+  },
+  "web.billing.plans.subtitle": {
+    "en": "Choose the perfect plan for your organization",
+    "translation": "Escolha o plano perfeito para sua organização"
+  },
+  "web.billing.plans.current": {
+    "en": "Current Plan",
+    "translation": "Plano Atual"
+  },
+  "web.billing.plans.current_badge": {
+    "en": "Current",
+    "translation": "Atual"
+  },
+  "web.billing.plans.upgrade": {
+    "en": "Upgrade",
+    "translation": "Atualizar"
+  },
+  "web.billing.plans.downgrade": {
+    "en": "Downgrade",
+    "translation": "Rebaixar"
+  },
+  "web.billing.plans.monthly": {
+    "en": "Monthly",
+    "translation": "Mensal"
+  },
+  "web.billing.plans.yearly": {
+    "en": "Yearly",
+    "translation": "Anual"
+  },
+  "web.billing.plans.per_month": {
+    "en": "/month",
+    "translation": "por mês"
+  },
+  "web.billing.plans.save_yearly": {
+    "en": "Save {percent}% with yearly billing",
+    "translation": "Economize {percent}% com cobrança anual"
+  },
+  "web.billing.plans.free_plan": {
+    "en": "Free",
+    "translation": "Gratuito"
+  },
+  "web.billing.plans.single_team_plan": {
+    "en": "Single Team",
+    "translation": "Equipe Única"
+  },
+  "web.billing.plans.multi_team_plan": {
+    "en": "Multi Team",
+    "translation": "Várias Equipes"
+  },
+  "web.billing.plans.individual_account": {
+    "en": "Individual Account",
+    "translation": "Conta Individual"
+  },
+  "web.billing.plans.team_account": {
+    "en": "Team Account",
+    "translation": "Conta de Equipe"
+  },
+  "web.billing.plans.multi_team_account": {
+    "en": "Organization Account",
+    "translation": "Conta de Organização"
+  },
+  "web.billing.plans.features": {
+    "en": "Features",
+    "translation": "Recursos"
+  },
+  "web.billing.plans.unlimited_secrets": {
+    "en": "Unlimited secrets",
+    "translation": "Mensagens confidenciais ilimitadas"
+  },
+  "web.billing.plans.api_access": {
+    "en": "API access",
+    "translation": "Acesso à API"
+  },
+  "web.billing.plans.priority_support": {
+    "en": "Priority support",
+    "translation": "Suporte prioritário"
+  },
+  "web.billing.plans.select_plan": {
+    "en": "Select Plan",
+    "translation": "Selecionar Plano"
+  },
+  "web.billing.plans.contact_sales": {
+    "en": "Contact Sales",
+    "translation": "Contatar Vendas"
+  },
+  "web.billing.plans.custom_needs_title": {
+    "en": "Have questions or need something custom?",
+    "translation": "Tem dúvidas ou precisa de algo personalizado?"
+  },
+  "web.billing.plans.custom_needs_description": {
+    "en": "We'd love to hear from you. Let us know what you're looking for.",
+    "translation": "Adoraríamos ouvir você. Nos conte o que você está procurando."
+  },
+  "web.billing.plans.teams_limit": {
+    "en": "{count} team | {count} teams",
+    "translation": "{count} equipe | {count} equipes"
+  },
+  "web.billing.plans.members_limit": {
+    "en": "{count} member per team | {count} members per team",
+    "translation": "{count} membro por equipe | {count} membros por equipe"
+  },
+  "web.billing.plans.unlimited_teams": {
+    "en": "Unlimited teams",
+    "translation": "Equipes ilimitadas"
+  },
+  "web.billing.plans.unlimited_members": {
+    "en": "Unlimited members per team",
+    "translation": "Membros ilimitados por equipe"
+  },
+  "web.billing.plans.most_popular": {
+    "en": "Most Popular",
+    "translation": "Mais Popular"
+  },
+  "web.billing.plans.suggested": {
+    "en": "Suggested",
+    "translation": "Sugerido"
+  },
+  "web.billing.plans.everything_in": {
+    "en": "Everything in {plan}, plus:",
+    "translation": "Tudo do {plan}, mais:"
+  },
+  "web.billing.plans.no_plans_available": {
+    "en": "No {interval} plans available at this time.",
+    "translation": "Nenhum plano {interval} disponível no momento."
+  },
+  "web.billing.plans.change_immediate": {
+    "en": "Your plan will change immediately.",
+    "translation": "Seu plano será alterado imediatamente."
+  },
+  "web.billing.plans.current_plan_label": {
+    "en": "Current plan:",
+    "translation": "Plano atual:"
+  },
+  "web.billing.plans.new_plan_label": {
+    "en": "New plan:",
+    "translation": "Novo plano:"
+  },
+  "web.billing.plans.credit_label": {
+    "en": "Credit for unused time:",
+    "translation": "Crédito por tempo não utilizado:"
+  },
+  "web.billing.plans.due_today": {
+    "en": "Due today:"
+  },
+  "web.billing.plans.next_billing": {
+    "en": "Next billing ({date}):"
+  },
+  "web.billing.plans.next_invoice": {
+    "en": "Next invoice",
+    "translation": "Próxima fatura"
+  },
+  "web.billing.plans.limits_update_notice": {
+    "en": "Your feature limits will update immediately after the plan change.",
+    "translation": "Seus limites de recursos serão atualizados imediatamente após a mudança de plano."
+  },
+  "web.billing.plans.change_failed": {
+    "en": "Plan change failed. Please try again.",
+    "translation": "Falha ao alterar o plano. Tente novamente."
+  },
+  "web.billing.plans.confirm_upgrade": {
+    "en": "Confirm Upgrade",
+    "translation": "Confirmar Upgrade"
+  },
+  "web.billing.plans.confirm_downgrade": {
+    "en": "Confirm Downgrade",
+    "translation": "Confirmar Downgrade"
+  },
+  "web.billing.plans.upgrade_to": {
+    "en": "Upgrade to {plan}?",
+    "translation": "Atualizar para"
+  },
+  "web.billing.plans.downgrade_to": {
+    "en": "Downgrade to {plan}?",
+    "translation": "Fazer downgrade para {plan}?"
+  },
+  "web.billing.plans.credit_applies_heading": {
+    "en": "How your credit applies:"
+  },
+  "web.billing.plans.next_bill_amount": {
+    "en": "Next bill amount:"
+  },
+  "web.billing.plans.credit_applied_to_bill": {
+    "en": "Credit applied:"
+  },
+  "web.billing.plans.amount_due_next_billing": {
+    "en": "Amount due at next billing:"
+  },
+  "web.billing.plans.remaining_account_credit": {
+    "en": "Remaining account credit:"
+  },
+  "web.billing.plans.credit_future_note": {
+    "en": "Applied to future invoices"
+  },
+  "web.billing.invoices.title": {
+    "en": "Billing History",
+    "translation": "Histórico de Cobrança"
+  },
+  "web.billing.invoices.view_history": {
+    "en": "View your billing history and download invoices",
+    "translation": "Visualize seu histórico de cobrança e baixe faturas"
+  },
+  "web.billing.invoices.invoice_date": {
+    "en": "Date",
+    "translation": "Data"
+  },
+  "web.billing.invoices.invoice_amount": {
+    "en": "Amount",
+    "translation": "Valor"
+  },
+  "web.billing.invoices.invoice_status": {
+    "en": "Status",
+    "translation": "Status"
+  },
+  "web.billing.invoices.invoice_download": {
+    "en": "Download",
+    "translation": "Baixar"
+  },
+  "web.billing.invoices.no_invoices": {
+    "en": "No invoices yet",
+    "translation": "Ainda sem faturas"
+  },
+  "web.billing.invoices.paid": {
+    "en": "Paid",
+    "translation": "Pago"
+  },
+  "web.billing.invoices.pending": {
+    "en": "Pending",
+    "translation": "Pendente"
+  },
+  "web.billing.invoices.failed": {
+    "en": "Failed",
+    "translation": "Falhou"
+  },
+  "web.billing.invoices.load_error": {
+    "en": "Failed to load invoices",
+    "translation": "Falha ao carregar faturas"
+  },
+  "web.billing.notices.org_managed": {
+    "en": "Billing is managed by {orgName}",
+    "translation": "A cobrança desta equipe é gerenciada por {orgName}"
+  },
+  "web.billing.notices.view_org_billing": {
+    "en": "View organization billing",
+    "translation": "Ver cobrança da organização"
+  },
+  "web.billing.limits.members_reached": {
+    "en": "You've reached the member limit for this team",
+    "translation": "Você atingiu o limite de membros para esta equipe"
+  },
+  "web.billing.limits.members_upgrade": {
+    "en": "Upgrade to add more members",
+    "translation": "Atualize para adicionar mais membros"
+  },
+  "web.billing.subscription.title": {
+    "en": "Subscription",
+    "translation": "Assinatura"
+  },
+  "web.billing.subscription.status": {
+    "en": "Subscription Status",
+    "translation": "Status da Assinatura"
+  },
+  "web.billing.subscription.active": {
+    "en": "Active",
+    "translation": "Ativo"
+  },
+  "web.billing.subscription.inactive": {
+    "en": "Inactive",
+    "translation": "Inativo"
+  },
+  "web.billing.subscription.past_due": {
+    "en": "Past Due",
+    "translation": "Vencido"
+  },
+  "web.billing.subscription.canceled": {
+    "en": "Canceled",
+    "translation": "Cancelado"
+  },
+  "web.billing.subscription.catalog_name": {
+    "en": "Plan",
+    "translation": "Plano"
+  },
+  "web.billing.subscription.team_usage": {
+    "en": "Team Usage"
+  },
+  "web.billing.subscription.teams_used": {
+    "en": "{used} of {limit} teams"
+  },
+  "web.billing.portal.title": {
+    "en": "Billing Portal",
+    "translation": "Portal de Cobrança"
+  },
+  "web.billing.portal.description": {
+    "en": "Manage your subscription, payment methods, and billing history",
+    "translation": "Gerencie sua assinatura, métodos de pagamento e histórico de cobrança"
+  },
+  "web.billing.portal.open_portal": {
+    "en": "Open Billing Portal",
+    "translation": "Abrir Portal de Cobrança"
+  },
+  "web.billing.portal.redirecting": {
+    "en": "Redirecting to billing portal...",
+    "translation": "Redirecionando para o portal de cobrança..."
+  },
+  "web.billing.start_today": {
+    "en": "Start today",
+    "translation": "Comece hoje"
+  },
+  "web.billing.start_today_with_identity_plus": {
+    "en": "Start today with Identity Plus",
+    "translation": "Comece hoje com Identity Plus"
+  },
+  "web.billing.per_month": {
+    "en": "per month",
+    "translation": "por mês"
+  },
+  "web.billing.full_api_access": {
+    "en": "Full API access",
+    "translation": "Acesso completo à API"
+  },
+  "web.billing.privacy_first_design": {
+    "en": "Privacy-first design",
+    "translation": "Design focado em privacidade"
+  },
+  "web.billing.identity_plus": {
+    "en": "Identity Plus",
+    "translation": "Identity Plus"
+  },
+  "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
+    "en": "Click this lightning bolt to upgrade for custom domains",
+    "translation": "Clique neste raio para atualizar para domínios personalizados"
+  },
+  "web.billing.maybe_later": {
+    "en": "Maybe Later",
+    "translation": "Talvez mais tarde"
+  },
+  "web.billing.upgrade_account": {
+    "en": "Upgrade account",
+    "translation": "Atualizar conta"
+  },
+  "web.billing.upgrade_to_identity_plus": {
+    "en": "Upgrade to Identity Plus",
+    "translation": "Atualizar para Identity Plus"
+  },
+  "web.billing.upgrade_for_teams": {
+    "en": "Upgrade for Teams",
+    "translation": "Upgrade para equipes"
+  },
+  "web.billing.benefits_of": {
+    "en": "Benefits of",
+    "translation": "Benefícios de"
+  },
+  "web.billing.t_benefits_of_identity_plus": {
+    "en": "{0}: Identity Plus",
+    "translation": "{0}: Identity Plus"
+  },
+  "web.billing.upgrade_to": {
+    "en": "Upgrade to",
+    "translation": "Atualizar para"
+  },
+  "web.billing.upgrade_for_yourdomain": {
+    "en": "Upgrade for secrets.yourdomain.com",
+    "translation": "Atualizar para secrets.yourdomain.com"
+  },
+  "web.billing.includes_all_features_and_unlimited_sharing_capa": {
+    "en": "All plans include privacy features and unlimited sharing capacity",
+    "translation": "Todos os planos incluem recursos de privacidade e capacidade de compartilhamento ilimitada"
+  },
+  "web.billing.includes_all_data_locality_options": {
+    "en": "All plans include choice of data locality: {0} regions",
+    "translation": "Todos os planos incluem escolha de localidade de dados: {0} regiões"
+  },
+  "web.billing.get_started": {
+    "en": "Get started",
+    "translation": "Começar"
+  },
+  "web.billing.frequency_value_annually_annual_monthly_subscrip": {
+    "en": "{0} subscription",
+    "translation": "Assinatura {0}"
+  },
+  "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
+    "en": "Elevate your secure sharing with custom domains, unlimited capacity, and enterprise-grade features.",
+    "translation": "Eleve seu compartilhamento seguro com domínios personalizados, capacidade ilimitada e recursos de nível empresarial."
+  },
+  "web.billing.payment_frequency": {
+    "en": "Payment frequency",
+    "translation": "Frequência de pagamento"
+  },
+  "web.billing.secure_your_brand_and_build_customer_trust_with_": {
+    "en": "Secure your brand and build customer trust with links from your domain. Perfect for businesses that value privacy and professionalism.",
+    "translation": "Proteja sua marca e construa a confiança do cliente com links do seu domínio. Perfeito para empresas que valorizam privacidade e profissionalismo."
+  },
+  "web.billing.secure_links_stronger_connections": {
+    "en": "Secure Links, Stronger Connections",
+    "translation": "Links Seguros, Conexões Mais Fortes"
+  },
+  "web.billing.identity_tier_not_found_in_product_tiers": {
+    "en": "Identity tier not found in product tiers",
+    "translation": "Nível Identity não encontrado nos níveis de produto"
+  }
+}

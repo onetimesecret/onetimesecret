@@ -1,0 +1,1276 @@
+{
+  "web.COMMON.broadcast": {
+    "en": "",
+    "skip": true,
+    "note": "empty source"
+  },
+  "web.COMMON.tagline": {
+    "en": "Secure links that only work once",
+    "translation": "Links seguros que funcionam apenas uma vez"
+  },
+  "web.COMMON.powered_by": {
+    "en": "Powered by",
+    "translation": "Desenvolvido por"
+  },
+  "web.COMMON.website_url": {
+    "en": "https://onetimesecret.com/en",
+    "translation": "https://onetimesecret.com/pt-br"
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "en": "Generate Password",
+    "translation": "Gerar Senha"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "en": "Generate Password is disabled when the form is valid",
+    "translation": "Gerar Senha está desativado quando o formulário é válido"
+  },
+  "web.COMMON.email_placeholder": {
+    "en": "e.g. tom{'@'}myspace.com",
+    "translation": "ex. tom{'@'}myspace.com"
+  },
+  "web.COMMON.password_placeholder": {
+    "en": "Enter your password",
+    "translation": "Digite sua senha"
+  },
+  "web.COMMON.custom_domains_title": {
+    "en": "Custom Domains",
+    "translation": "Domínios Personalizados"
+  },
+  "web.COMMON.custom_domains_description": {
+    "en": "Strengthen connections and build trust with your own branded secret links.",
+    "translation": "Fortaleça conexões e construa confiança com seus próprios links secretos personalizados."
+  },
+  "web.COMMON.get_started_button": {
+    "en": "Get Started",
+    "translation": "Começar"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "en": "Confirm your password",
+    "translation": "Confirme sua senha"
+  },
+  "web.COMMON.header_settings": {
+    "en": "Settings",
+    "translation": "Configurações"
+  },
+  "web.COMMON.submit_with": {
+    "en": "Submit",
+    "translation": "Enviar"
+  },
+  "web.COMMON.submitting": {
+    "en": "Submitting...",
+    "translation": "Enviando..."
+  },
+  "web.COMMON.processing": {
+    "en": "Processing...",
+    "translation": "Processando..."
+  },
+  "web.COMMON.description": {
+    "en": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
+    "translation": "Mantenha dados sensíveis fora de seus emails ou logs de conversa. Compartilhe um link secreto que fica disponível somente uma vez."
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "en": "Incorrect passphrase",
+    "translation": "Senha mestre incorreta"
+  },
+  "web.COMMON.keywords": {
+    "en": "secret,password generator,share a secret,onetime",
+    "translation": "segredo,gerador de senha,compartilhar um segredo,único"
+  },
+  "web.COMMON.button_create_secret": {
+    "en": "Create a secret link",
+    "translation": "Criar link secreto"
+  },
+  "web.COMMON.button_generate_secret": {
+    "en": "Or generate a random password",
+    "translation": "Ou gerar uma senha aleatória"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "en": "Privacy Options",
+    "translation": "Opções de Privacidade"
+  },
+  "web.COMMON.secret_passphrase": {
+    "en": "Passphrase",
+    "translation": "Senha mestre"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "en": "A word or phrase that's difficult to guess",
+    "translation": "Uma palavra ou frase que seja difícil de adivinhar"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "en": "Recipient Address",
+    "translation": "Endereço do Destinatário"
+  },
+  "web.COMMON.secret_placeholder": {
+    "en": "Secret content goes here...",
+    "translation": "Conteúdo do segredo deve vir aqui..."
+  },
+  "web.COMMON.header_create_account": {
+    "en": "Create Account",
+    "translation": "Criar Conta"
+  },
+  "web.COMMON.header_about": {
+    "en": "About",
+    "translation": "Sobre"
+  },
+  "web.COMMON.header_sign_in": {
+    "en": "Sign In",
+    "translation": "Entrar"
+  },
+  "web.COMMON.header_dashboard": {
+    "en": "Account",
+    "translation": "Conta"
+  },
+  "web.COMMON.header_logout": {
+    "en": "Logout",
+    "translation": "Sair"
+  },
+  "web.COMMON.secret": {
+    "en": "Secret | Secrets",
+    "translation": "Segredo"
+  },
+  "web.COMMON.recent": {
+    "en": "Recent",
+    "translation": "Recente"
+  },
+  "web.COMMON.received": {
+    "en": "Received",
+    "translation": "Recebido"
+  },
+  "web.COMMON.burn": {
+    "en": "Burn",
+    "translation": "Remover"
+  },
+  "web.COMMON.burned": {
+    "en": "Burned",
+    "translation": "Removido"
+  },
+  "web.COMMON.expires_in": {
+    "en": "Expires in",
+    "translation": "Expira em"
+  },
+  "web.COMMON.burn_this_secret": {
+    "en": "Burn this secret",
+    "translation": "Remover este segredo"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "en": "Burning a secret will delete it before it has been read (click to confirm)",
+    "translation": "Remover um segredo irá apagá-lo antes de ser lido (clique para confirmar)"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "en": "Burning a secret is permanent and cannot be undone",
+    "translation": "Remover um segredo é permanente e não pode ser desfeito"
+  },
+  "web.COMMON.msg_check_email": {
+    "en": "Check your email",
+    "translation": "Verifique seu email"
+  },
+  "web.COMMON.click_to_continue": {
+    "en": "Click to reveal →",
+    "translation": "Clique para continuar →"
+  },
+  "web.COMMON.click_to_verify": {
+    "en": "Continue to verify your account:",
+    "translation": "Continue para verificar sua conta:"
+  },
+  "web.COMMON.error_secret": {
+    "en": "You did not provide anything to share",
+    "translation": "Você não forneceu nada para compartilhar"
+  },
+  "web.COMMON.error_passphrase": {
+    "en": "Double check that passphrase",
+    "translation": "Verifique a senha mestre"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "en": "Enter the passphrase here",
+    "translation": "Entre a senha mestre aqui"
+  },
+  "web.COMMON.view_secret": {
+    "en": "View Secret",
+    "translation": "Ver segredo"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "en": "Careful: we will only show it once.",
+    "translation": "cuidado: só será mostrado uma vez."
+  },
+  "web.COMMON.warning": {
+    "en": "Warning",
+    "translation": "Atenção"
+  },
+  "web.COMMON.oops": {
+    "en": "Oops!",
+    "translation": "Oops!"
+  },
+  "web.COMMON.error": {
+    "en": "Error",
+    "translation": "Erro"
+  },
+  "web.COMMON.unexpected_error": {
+    "en": "An unexpected error occurred. Please try again.",
+    "translation": "Ocorreu um erro inesperado. Por favor, tente novamente."
+  },
+  "web.COMMON.secret_was_truncated": {
+    "en": "The message was truncated",
+    "translation": "A mensagem foi cortada porque tinha mais de"
+  },
+  "web.COMMON.signup_for_more": {
+    "en": "Signup for more",
+    "translation": "Cadastre-se para usar mais"
+  },
+  "web.COMMON.login_to_your_account": {
+    "en": "Log in to your account",
+    "translation": "Entrar na sua conta"
+  },
+  "web.COMMON.sent_to": {
+    "en": "Sent to: ",
+    "translation": "Enviar para: "
+  },
+  "web.COMMON.field_email": {
+    "en": "Email",
+    "translation": "Email"
+  },
+  "web.COMMON.field_password": {
+    "en": "Password",
+    "translation": "Senha"
+  },
+  "web.COMMON.field_password2": {
+    "en": "Confirm Password",
+    "translation": "Confirmar Senha"
+  },
+  "web.COMMON.button_create_account": {
+    "en": "Create Account",
+    "translation": "Criar Conta"
+  },
+  "web.COMMON.share_a_secret": {
+    "en": "Share a secret",
+    "translation": "Compartilhar um segredo"
+  },
+  "web.COMMON.title_home": {
+    "en": "Home",
+    "translation": "Início"
+  },
+  "web.COMMON.word_none": {
+    "en": "None",
+    "translation": "Nenhum"
+  },
+  "web.COMMON.word_burned": {
+    "en": "burned",
+    "translation": "removido"
+  },
+  "web.COMMON.word_received": {
+    "en": "received",
+    "translation": "recebido"
+  },
+  "web.COMMON.word_confirm": {
+    "en": "Confirm",
+    "translation": "Confirmar"
+  },
+  "web.COMMON.word_cancel": {
+    "en": "Cancel",
+    "translation": "Cancelar"
+  },
+  "web.COMMON.word_continue": {
+    "en": "Continue",
+    "translation": "Continue"
+  },
+  "web.COMMON.word_done": {
+    "en": "Done",
+    "translation": "Concluído"
+  },
+  "web.COMMON.back": {
+    "en": "Back",
+    "translation": "Voltar"
+  },
+  "web.COMMON.feedback_text": {
+    "en": "Share your thoughts, ideas, or experiences...",
+    "translation": "Tem uma pergunta ou comentário?"
+  },
+  "web.COMMON.button_send_feedback": {
+    "en": "Send Feedback",
+    "translation": "Enviar Feedback"
+  },
+  "web.COMMON.verification_sent_to": {
+    "en": "A verification was sent to",
+    "translation": "Uma verificação foi enviada para"
+  },
+  "web.COMMON.autoverified_success": {
+    "en": "Account created. Please sign in.",
+    "translation": "Conta criada. Por favor, entre."
+  },
+  "web.COMMON.signup_success_generic": {
+    "en": "If an account with this email exists, you will receive a verification email.",
+    "translation": "Se uma conta com este e-mail existe, você receberá um e-mail de verificação."
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "en": "Burn this secret permanently",
+    "translation": "Remover este segredo permanentemente"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "en": "Please Confirm",
+    "translation": "Por favor, confirme"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "en": "Are you sure you want to burn this secret? This action cannot be undone.",
+    "translation": "Tem certeza de que deseja remover este segredo? Esta ação não pode ser desfeita."
+  },
+  "web.COMMON.confirm_burn": {
+    "en": "Yes, burn this secret",
+    "translation": "Sim, remover este segredo"
+  },
+  "web.COMMON.burn_security_notice": {
+    "en": "Burning a secret will delete it before it has been received.",
+    "translation": "Remover um segredo irá apagá-lo antes de ser recebido."
+  },
+  "web.COMMON.share_link_securely": {
+    "en": "For security, share this link separately from other details.",
+    "translation": "Por segurança, compartilhe este link separadamente de outros detalhes."
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "en": "Copied to clipboard",
+    "translation": "Copiado para a área de transferência"
+  },
+  "web.COMMON.button_create_incoming": {
+    "en": "Create Incoming",
+    "translation": "Criar Entrada"
+  },
+  "web.COMMON.faq_title": {
+    "en": "F.A.Q.",
+    "translation": "F.A.Q."
+  },
+  "web.COMMON.verification_not_valid": {
+    "en": "Verification is not valid",
+    "translation": "A verificação não é válida"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "en": "Cannot verify an account when you're already logged in",
+    "translation": "Não é possível verificar uma conta quando você já está conectado"
+  },
+  "web.COMMON.show_password": {
+    "en": "Show password",
+    "translation": "Mostrar senha"
+  },
+  "web.COMMON.hide_password": {
+    "en": "Hide password",
+    "translation": "Ocultar senha"
+  },
+  "web.COMMON.minimum_8_characters": {
+    "en": "Password must be at least 8 characters",
+    "translation": "A senha deve ter pelo menos 8 caracteres"
+  },
+  "web.COMMON.password_requirements": {
+    "en": "Password must be at least 8 characters long",
+    "translation": "A senha deve ter pelo menos 8 caracteres"
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "en": "Passwords do not match",
+    "translation": "As senhas não coincidem"
+  },
+  "web.COMMON.form_field_required": {
+    "en": "This field is required",
+    "translation": "Este campo é obrigatório"
+  },
+  "web.COMMON.form_processing": {
+    "en": "Processing your request",
+    "translation": "Processando sua solicitação"
+  },
+  "web.COMMON.remember_me_description": {
+    "en": "Keep me logged in for 30 days",
+    "translation": "Manter conectado por 30 dias"
+  },
+  "web.COMMON.redirecting": {
+    "en": "Redirecting...",
+    "translation": "Redirecionando..."
+  },
+  "web.COMMON.continue": {
+    "en": "Continue",
+    "translation": "Continuar"
+  },
+  "web.COMMON.are_you_sure": {
+    "en": "Are you sure?",
+    "translation": "Tem certeza?"
+  },
+  "web.COMMON.danger_zone": {
+    "en": "Danger Zone",
+    "translation": "Zona de Perigo"
+  },
+  "web.COMMON.caution_zone": {
+    "en": "Careful Consideration Zone",
+    "translation": "Zona de Consideração Cuidadosa"
+  },
+  "web.COMMON.user_menu": {
+    "en": "User menu",
+    "translation": "Menu do usuário"
+  },
+  "web.COMMON.security": {
+    "en": "Security",
+    "translation": "Segurança"
+  },
+  "web.COMMON.manage": {
+    "en": "Manage",
+    "translation": "Gerenciar"
+  },
+  "web.COMMON.loading": {
+    "en": "Loading...",
+    "translation": "Carregando..."
+  },
+  "web.COMMON.save_changes": {
+    "en": "Save Changes",
+    "translation": "Salvar Alterações"
+  },
+  "web.COMMON.saving": {
+    "en": "Saving...",
+    "translation": "Salvando..."
+  },
+  "web.COMMON.adding_ellipses": {
+    "en": "Adding",
+    "translation": "Adicionando..."
+  },
+  "web.COMMON.e_g_example": {
+    "en": "e.g.",
+    "translation": "ex."
+  },
+  "web.COMMON.example_placeholder": {
+    "en": "e.g. {example}",
+    "translation": "ex. {example}"
+  },
+  "web.COMMON.status": {
+    "en": "Status",
+    "translation": "Status"
+  },
+  "web.COMMON.escape": {
+    "en": "Escape",
+    "translation": "Sair"
+  },
+  "web.COMMON.active": {
+    "en": "Active",
+    "translation": "Ativo"
+  },
+  "web.COMMON.preview": {
+    "en": "Preview",
+    "translation": "Pré-visualizar"
+  },
+  "web.COMMON.remove": {
+    "en": "Remove",
+    "translation": "Remover"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "en": "Press ESC to close",
+    "translation": "Pressione ESC para fechar"
+  },
+  "web.COMMON.enter": {
+    "en": "Enter",
+    "translation": "Entrar"
+  },
+  "web.COMMON.important": {
+    "en": "Important",
+    "translation": "Importante"
+  },
+  "web.COMMON.language": {
+    "en": "Language",
+    "translation": "Idioma"
+  },
+  "web.COMMON.theme": {
+    "en": "Theme",
+    "translation": "Tema"
+  },
+  "web.COMMON.appearance": {
+    "en": "Appearance",
+    "translation": "Aparência"
+  },
+  "web.COMMON.done": {
+    "en": "Done",
+    "translation": "Concluído"
+  },
+  "web.COMMON.end": {
+    "en": "End",
+    "translation": "Fim"
+  },
+  "web.COMMON.general": {
+    "en": "General",
+    "translation": "Geral"
+  },
+  "web.COMMON.note": {
+    "en": "Note",
+    "translation": "Nota"
+  },
+  "web.COMMON.monthly": {
+    "en": "Monthly",
+    "translation": "Mensal"
+  },
+  "web.COMMON.yearly": {
+    "en": "Yearly",
+    "translation": "Anual"
+  },
+  "web.COMMON.go_on_then": {
+    "en": "Go on then.",
+    "translation": "Prossiga."
+  },
+  "web.COMMON.loading_ellipses": {
+    "en": "Loading...",
+    "translation": "Carregando..."
+  },
+  "web.COMMON.not_received": {
+    "en": "NOT RECEIVED",
+    "translation": "NÃO RECEBIDO"
+  },
+  "web.COMMON.confirm_password": {
+    "en": "Confirm password",
+    "translation": "Confirmar senha"
+  },
+  "web.COMMON.new_password": {
+    "en": "New password",
+    "translation": "Nova senha"
+  },
+  "web.COMMON.email_address": {
+    "en": "Email address",
+    "translation": "Endereço de e-mail"
+  },
+  "web.COMMON.switch": {
+    "en": "switch",
+    "translation": "alternar"
+  },
+  "web.COMMON.features": {
+    "en": "Features",
+    "translation": "Recursos"
+  },
+  "web.COMMON.not_found": {
+    "en": "Not Found",
+    "translation": "Não Encontrado"
+  },
+  "web.COMMON.emoji_x": {
+    "en": "❌",
+    "translation": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "en": "✅",
+    "translation": "✅"
+  },
+  "web.COMMON.supported": {
+    "en": "Supported",
+    "translation": "Suportado"
+  },
+  "web.COMMON.version": {
+    "en": "Version",
+    "translation": "Versão"
+  },
+  "web.COMMON.other": {
+    "en": "Other",
+    "translation": "Outro"
+  },
+  "web.COMMON.min_width_1024px": {
+    "en": "(min-width: 1024px)",
+    "translation": "(largura mínima: 1024px)"
+  },
+  "web.COMMON.ctrl_enter": {
+    "en": "Ctrl + Enter",
+    "translation": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "en": "⌘ + Enter",
+    "translation": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "en": "Mac",
+    "translation": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "en": "Email address copied to clipboard!",
+    "translation": "Endereço de e-mail copiado para a área de transferência!"
+  },
+  "web.COMMON.value": {
+    "en": "Value",
+    "translation": "Valor"
+  },
+  "web.COMMON.host": {
+    "en": "Host",
+    "translation": "Host"
+  },
+  "web.COMMON.type": {
+    "en": "Type",
+    "translation": "Tipo"
+  },
+  "web.COMMON.previous": {
+    "en": "Previous",
+    "translation": "Anterior"
+  },
+  "web.COMMON.next": {
+    "en": "Next",
+    "translation": "Próximo"
+  },
+  "web.COMMON.password_strength": {
+    "en": "Password Strength:",
+    "translation": "Força da Senha:"
+  },
+  "web.COMMON.great": {
+    "en": "Great",
+    "translation": "Ótima"
+  },
+  "web.COMMON.pretty_good": {
+    "en": "Pretty good",
+    "translation": "Muito boa"
+  },
+  "web.COMMON.fair": {
+    "en": "Fair",
+    "translation": "Razoável"
+  },
+  "web.COMMON.meh": {
+    "en": "Meh",
+    "translation": "Mais ou menos"
+  },
+  "web.COMMON.not_great": {
+    "en": "Not great",
+    "translation": "Não muito boa"
+  },
+  "web.COMMON.open_options": {
+    "en": "Open options",
+    "translation": "Abrir opções"
+  },
+  "web.COMMON.inactive": {
+    "en": "Inactive",
+    "translation": "Inativo"
+  },
+  "web.COMMON.an_error_occurred": {
+    "en": "An error occurred",
+    "translation": "Ocorreu um erro"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "en": "Copy secret to clipboard",
+    "translation": "Copiar mensagem confidencial para a área de transferência"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "en": "Secret copied to clipboard",
+    "translation": "Mensagem confidencial copiada para a área de transferência"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "en": "Double check that passphrase",
+    "translation": "Verifique novamente essa frase secreta"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "en": "Press the copy button below.",
+    "translation": "Pressione o botão de copiar abaixo."
+  },
+  "web.LABELS.view_toggle.show": {
+    "en": "Show",
+    "translation": "Mostrar"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "en": "Hide",
+    "translation": "Ocultar"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "en": "Show More",
+    "translation": "Mostrar Mais"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "en": "Show Less",
+    "translation": "Mostrar Menos"
+  },
+  "web.LABELS.enable": {
+    "en": "Enable",
+    "translation": "Ativar"
+  },
+  "web.LABELS.disable": {
+    "en": "Disable",
+    "translation": "Desativar"
+  },
+  "web.LABELS.stats": {
+    "en": "Stats",
+    "translation": "Estatísticas"
+  },
+  "web.LABELS.timeline": {
+    "en": "Timeline",
+    "translation": "Linha do Tempo"
+  },
+  "web.LABELS.lifespan": {
+    "en": "Lifespan",
+    "translation": "Tempo de Vida"
+  },
+  "web.LABELS.expiration_time": {
+    "en": "Expiration Time",
+    "translation": "Hora de Expiração"
+  },
+  "web.LABELS.close": {
+    "en": "Close",
+    "translation": "Fechar"
+  },
+  "web.LABELS.loading": {
+    "en": "Loading...",
+    "translation": "Carregando..."
+  },
+  "web.LABELS.cancel": {
+    "en": "Cancel",
+    "translation": "Cancelar"
+  },
+  "web.LABELS.saving": {
+    "en": "Saving...",
+    "translation": "Salvando..."
+  },
+  "web.LABELS.saved": {
+    "en": "Saved",
+    "translation": "Salvo"
+  },
+  "web.LABELS.save": {
+    "en": "Save",
+    "translation": "Salvar"
+  },
+  "web.LABELS.save_all": {
+    "en": "Save All",
+    "translation": "Salvar Tudo"
+  },
+  "web.LABELS.details": {
+    "en": "Details",
+    "translation": "Detalhes"
+  },
+  "web.LABELS.encrypted": {
+    "en": "Encrypted",
+    "translation": "Criptografado"
+  },
+  "web.LABELS.secret_status": {
+    "en": "Secret Status",
+    "translation": "Status do Segredo"
+  },
+  "web.LABELS.need_help": {
+    "en": "Need help?",
+    "translation": "Precisa de ajuda?"
+  },
+  "web.LABELS.create_new_secret": {
+    "en": "Create New Secret",
+    "translation": "Criar Novo Segredo"
+  },
+  "web.LABELS.actions": {
+    "en": "Actions",
+    "translation": "Ações"
+  },
+  "web.LABELS.no_passphrase": {
+    "en": "No Passphrase Required",
+    "translation": "Nenhuma Senha Mestre Necessária"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "en": "Copy to clipboard",
+    "translation": "Copiar para a área de transferência"
+  },
+  "web.LABELS.receipts": {
+    "en": "Receipts",
+    "translation": "Recibos"
+  },
+  "web.LABELS.share": {
+    "en": "Share",
+    "translation": "Compartilhar"
+  },
+  "web.LABELS.secret_link": {
+    "en": "Secret Link",
+    "translation": "Link Secreto"
+  },
+  "web.LABELS.dismiss": {
+    "en": "Dismiss",
+    "translation": "Dispensar"
+  },
+  "web.LABELS.security_details": {
+    "en": "Security Details",
+    "translation": "Detalhes de Segurança"
+  },
+  "web.LABELS.items_count": {
+    "en": "{count} Items",
+    "translation": "{count} Item | {count} Itens"
+  },
+  "web.LABELS.recipients_count": {
+    "en": "{count} Recipients",
+    "translation": "{count} Destinatário | {count} Destinatários"
+  },
+  "web.LABELS.view": {
+    "en": "View",
+    "translation": "Visualizar"
+  },
+  "web.LABELS.views": {
+    "en": "Views",
+    "translation": "Visualizações"
+  },
+  "web.LABELS.times_viewed": {
+    "en": "times viewed",
+    "translation": "vezes visualizado"
+  },
+  "web.LABELS.view_progress": {
+    "en": "View Progress",
+    "translation": "Progresso da Visualização"
+  },
+  "web.LABELS.help_section": {
+    "en": "Help Section",
+    "translation": "Seção de Ajuda"
+  },
+  "web.LABELS.passphrase_protected": {
+    "en": "Protected with passphrase",
+    "translation": "Protegido com senha mestre"
+  },
+  "web.LABELS.feedback_received": {
+    "en": "Feedback received.",
+    "translation": "Feedback recebido."
+  },
+  "web.LABELS.sending_ellipses": {
+    "en": "Sending...",
+    "translation": "Enviando..."
+  },
+  "web.LABELS.title_recent_secrets": {
+    "en": "Recent Secrets",
+    "translation": "Segredos Recentes"
+  },
+  "web.LABELS.pricing": {
+    "en": "Pricing",
+    "translation": "Preços"
+  },
+  "web.LABELS.refresh": {
+    "en": "Refresh",
+    "translation": "Atualizar"
+  },
+  "web.LABELS.reload": {
+    "en": "Reload",
+    "translation": "Recarregar"
+  },
+  "web.LABELS.filter": {
+    "en": "Filter"
+  },
+  "web.LABELS.clear": {
+    "en": "Clear"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "en": "Secrets links created in this session",
+    "translation": "Links secretos criados nesta sessão"
+  },
+  "web.LABELS.create_link_short": {
+    "en": "Create Link",
+    "translation": "Criar Link"
+  },
+  "web.LABELS.create_link": {
+    "en": "Create Secret Link",
+    "translation": "Criar Link Confidencial"
+  },
+  "web.LABELS.create_request_short": {
+    "en": "Create Request",
+    "translation": "Criar Solicitação"
+  },
+  "web.LABELS.create_request": {
+    "en": "Create Request Link",
+    "translation": "Criar Link de Solicitação"
+  },
+  "web.LABELS.related_settings": {
+    "en": "Related Settings",
+    "translation": "Configurações Relacionadas"
+  },
+  "web.LABELS.creating_links_for": {
+    "en": "Creating links for",
+    "translation": "Criando links para"
+  },
+  "web.LABELS.scope_indicator": {
+    "en": "Creating secrets in {domain}",
+    "translation": "Criando segredos em {domain}"
+  },
+  "web.STATUS.new": {
+    "en": "New",
+    "translation": "Novo"
+  },
+  "web.STATUS.unread": {
+    "en": "Unread",
+    "translation": "Não lido"
+  },
+  "web.STATUS.viewed": {
+    "en": "Link opened",
+    "translation": "Visualizado"
+  },
+  "web.STATUS.received": {
+    "en": "Received",
+    "translation": "Recebido"
+  },
+  "web.STATUS.burned": {
+    "en": "Burned",
+    "translation": "Removido"
+  },
+  "web.STATUS.destroyed": {
+    "en": "Destroyed",
+    "translation": "Destruído"
+  },
+  "web.STATUS.expiring_soon": {
+    "en": "Expiring Soon",
+    "translation": "Expirando em breve"
+  },
+  "web.STATUS.created": {
+    "en": "Created",
+    "translation": "Criado"
+  },
+  "web.STATUS.expires": {
+    "en": "Expires",
+    "translation": "Expira"
+  },
+  "web.STATUS.expired": {
+    "en": "Expired",
+    "translation": "Expirado"
+  },
+  "web.STATUS.orphaned": {
+    "en": "Orphaned",
+    "translation": "Abandonado"
+  },
+  "web.STATUS.secured": {
+    "en": "Secured",
+    "translation": "Protegido"
+  },
+  "web.STATUS.securing": {
+    "en": "Securing",
+    "translation": "Protegendo"
+  },
+  "web.STATUS.copied": {
+    "en": "Copied",
+    "translation": "Copiado"
+  },
+  "web.STATUS.time_remaining": {
+    "en": "Time Remaining",
+    "translation": "Tempo restante"
+  },
+  "web.STATUS.new_description": {
+    "en": "Secret link has been created and not yet viewed",
+    "translation": "O link secreto foi criado e ainda não foi visualizado"
+  },
+  "web.STATUS.unread_description": {
+    "en": "Secret link has been created and has not been viewed",
+    "translation": "O link secreto foi criado e não foi visualizado"
+  },
+  "web.STATUS.viewed_description": {
+    "en": "Secret link has been opened and ready to be viewed",
+    "translation": "O link secreto foi acessado e o conteúdo está pronto para ser visualizado."
+  },
+  "web.STATUS.received_description": {
+    "en": "Secret has been revealed to the recipient",
+    "translation": "O segredo foi revelado ao destinatário"
+  },
+  "web.STATUS.burned_description": {
+    "en": "Secret was manually burned before being viewed",
+    "translation": "O segredo foi removido manualmente antes de ser visualizado"
+  },
+  "web.STATUS.destroyed_description": {
+    "en": "Secret has been permanently destroyed",
+    "translation": "O segredo foi permanentemente destruído"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "en": "Secret will expire soon",
+    "translation": "O segredo irá expirar em breve"
+  },
+  "web.STATUS.orphaned_description": {
+    "en": "Secret has been orphaned and will be destroyed soon",
+    "translation": "O segredo foi abandonado e será destruído em breve"
+  },
+  "web.STATUS.expired_description": {
+    "en": "Secret has expired before being viewed",
+    "translation": "O segredo expirou antes de ser visualizado"
+  },
+  "web.STATUS.success": {
+    "en": "Success",
+    "translation": "Sucesso"
+  },
+  "web.STATUS.delivered": {
+    "en": "Delivered",
+    "translation": "Entregue"
+  },
+  "web.STATUS.dns_incorrect": {
+    "en": "DNS Incorrect",
+    "translation": "DNS Incorreto"
+  },
+  "web.STATUS.active": {
+    "en": "Active",
+    "translation": "Ativo"
+  },
+  "web.STATUS.inactive": {
+    "en": "Inactive",
+    "translation": "Inativo"
+  },
+  "web.FEATURES.unlimited_views": {
+    "en": "Unlimited Views",
+    "translation": "Visualizações ilimitadas"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "en": "Trusted domain branding",
+    "translation": "Marca de domínio confiável"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "en": "Encrypted in transit and at rest",
+    "translation": "Criptografado em trânsito e em repouso"
+  },
+  "web.UNITS.ttl.duration": {
+    "en": "{count} {unit}",
+    "translation": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "en": "day | days",
+    "translation": "dia | dias"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "en": "hour | hours",
+    "translation": "hora | horas"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "en": "minute | minutes",
+    "translation": "minuto | minutos"
+  },
+  "web.UNITS.ttl.time.second": {
+    "en": "second | seconds",
+    "translation": "segundo | segundos"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "en": "---",
+    "translation": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "en": "{count} {unit} remaining",
+    "translation": "{count} {unit} restantes"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "en": "day remaining | days remaining",
+    "translation": "dia restante | dias restantes"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "en": "hour remaining | hours remaining",
+    "translation": "hora restante | horas restantes"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "en": "minute remaining | minutes remaining",
+    "translation": "minuto restante | minutos restantes"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "en": "second remaining | seconds remaining",
+    "translation": "segundo restante | segundos restantes"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "en": "---",
+    "translation": "---"
+  },
+  "web.UNITS.limited_views": {
+    "en": "{count} view limit",
+    "translation": "limite de {count} visualização | limite de {count} visualizações"
+  },
+  "web.UNITS.days_remaining": {
+    "en": "{count} Days Left",
+    "translation": "{count} Dia Restante | {count} Dias Restantes"
+  },
+  "web.UNITS.hours_remaining": {
+    "en": "{count} Hours Left",
+    "translation": "{count} Hora Restante | {count} Horas Restantes"
+  },
+  "web.UNITS.minutes_remaining": {
+    "en": "{count} Minutes Left",
+    "translation": "{count} Minuto Restante | {count} Minutos Restantes"
+  },
+  "web.TITLES.incoming": {
+    "en": "Incoming Secrets",
+    "translation": "Mensagens Confidenciais Recebidas"
+  },
+  "web.TITLES.feedback": {
+    "en": "Feedback",
+    "translation": "Feedback"
+  },
+  "web.TITLES.help": {
+    "en": "Help"
+  },
+  "web.TITLES.signin": {
+    "en": "Sign In",
+    "translation": "Entrar"
+  },
+  "web.TITLES.signup": {
+    "en": "Create Account",
+    "translation": "Criar Conta"
+  },
+  "web.TITLES.forgot_password": {
+    "en": "Forgot Password",
+    "translation": "Esqueceu a Senha"
+  },
+  "web.TITLES.reset_password": {
+    "en": "Reset Password",
+    "translation": "Redefinir Senha"
+  },
+  "web.TITLES.logout": {
+    "en": "Logging Out",
+    "translation": "Saindo"
+  },
+  "web.TITLES.verify_account": {
+    "en": "Verify Account",
+    "translation": "Verificar Conta"
+  },
+  "web.TITLES.mfa_verify": {
+    "en": "Two-Factor Authentication",
+    "translation": "Autenticação de Dois Fatores"
+  },
+  "web.TITLES.email_login": {
+    "en": "Email Login",
+    "translation": "Login por E-mail"
+  },
+  "web.TITLES.accept_invitation": {
+    "en": "Accept Invitation",
+    "translation": "Aceitar Convite"
+  },
+  "web.TITLES.secret": {
+    "en": "Secret",
+    "translation": "Mensagem Confidencial"
+  },
+  "web.TITLES.metadata": {
+    "en": "Secret Details",
+    "translation": "Detalhes da Mensagem Confidencial"
+  },
+  "web.TITLES.receipt": {
+    "en": "Secret Receipt",
+    "translation": "Recibo da Mensagem Confidencial"
+  },
+  "web.TITLES.burn_secret": {
+    "en": "Burn Secret",
+    "translation": "Queimar Mensagem Confidencial"
+  },
+  "web.TITLES.dashboard": {
+    "en": "Dashboard",
+    "translation": "Painel"
+  },
+  "web.TITLES.recent": {
+    "en": "Recent Secrets",
+    "translation": "Recente"
+  },
+  "web.TITLES.domains": {
+    "en": "Custom Domains",
+    "translation": "Domínios Personalizados"
+  },
+  "web.TITLES.domain_add": {
+    "en": "Add Domain",
+    "translation": "Adicionar Domínio"
+  },
+  "web.TITLES.domain_verify": {
+    "en": "Verify Domain",
+    "translation": "Verificar Domínio"
+  },
+  "web.TITLES.domain_brand": {
+    "en": "Brand Domain",
+    "translation": "Marcar Domínio"
+  },
+  "web.TITLES.account": {
+    "en": "Account",
+    "translation": "Configurações da Conta"
+  },
+  "web.TITLES.data_region": {
+    "en": "Data Region",
+    "translation": "Região de Dados"
+  },
+  "web.TITLES.current_region": {
+    "en": "Current Region",
+    "translation": "Região Atual"
+  },
+  "web.TITLES.available_regions": {
+    "en": "Available Regions",
+    "translation": "Regiões Disponíveis"
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "en": "Why Data Sovereignty Matters",
+    "translation": "Por Que a Soberania de Dados Importa"
+  },
+  "web.TITLES.profile_settings": {
+    "en": "Profile Settings",
+    "translation": "Configurações do Perfil"
+  },
+  "web.TITLES.preferences_settings": {
+    "en": "Preferences",
+    "translation": "Preferências"
+  },
+  "web.TITLES.privacy_settings": {
+    "en": "Privacy",
+    "translation": "Privacidade"
+  },
+  "web.TITLES.notification_settings": {
+    "en": "Notifications",
+    "translation": "Notificações"
+  },
+  "web.TITLES.change_email": {
+    "en": "Change Email",
+    "translation": "Alterar E-mail"
+  },
+  "web.TITLES.security_overview": {
+    "en": "Security",
+    "translation": "Segurança"
+  },
+  "web.TITLES.change_password": {
+    "en": "Change Password",
+    "translation": "Alterar Senha"
+  },
+  "web.TITLES.mfa_settings": {
+    "en": "Two-Factor Authentication",
+    "translation": "Autenticação de Dois Fatores"
+  },
+  "web.TITLES.active_sessions": {
+    "en": "Active Sessions",
+    "translation": "Sessões Ativas"
+  },
+  "web.TITLES.recovery_codes": {
+    "en": "Recovery Codes",
+    "translation": "Códigos de Recuperação"
+  },
+  "web.TITLES.api_settings": {
+    "en": "API Settings",
+    "translation": "Configurações de API"
+  },
+  "web.TITLES.advanced_settings": {
+    "en": "Advanced Settings",
+    "translation": "Configurações Avançadas"
+  },
+  "web.TITLES.system_settings": {
+    "en": "System Settings",
+    "translation": "Configurações do Sistema"
+  },
+  "web.TITLES.not_found": {
+    "en": "Page Not Found",
+    "translation": "Página Não Encontrada"
+  },
+  "web.TITLES.organizations_settings": {
+    "en": "Organizations",
+    "translation": "Organizações"
+  },
+  "web.TITLES.organization_settings": {
+    "en": "Organization Settings",
+    "translation": "Configurações da Organização"
+  },
+  "web.TITLES.pricing": {
+    "en": "Pricing"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "en": "Focus is now in the main text area",
+    "translation": "O foco agora está na área de texto principal"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "en": "Sharing Instructions",
+    "translation": "Instruções de Compartilhamento"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "en": "Share the link with the intended recipient",
+    "translation": "Compartilhe o link com o destinatário pretendido"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "en": "Share the passphrase separately through a secure channel",
+    "translation": "Compartilhe a senha mestre separadamente através de um canal seguro"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "en": "Use a different secure channel to share sensitive information",
+    "translation": "Use um canal seguro diferente para compartilhar informações sensíveis"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "en": "Always verify you're on the official Onetime Secret website. Fraudsters sometimes create fake websites that look exactly like Onetime Secret to steal your secrets. To avoid phishing attacks, check the region domain before creating new links.",
+    "translation": "Sempre verifique se você está no site oficial do Onetime Secret. Fraudadores às vezes criam sites falsos que parecem exatamente com o Onetime Secret para roubar suas mensagens confidenciais. Para evitar ataques de phishing, verifique o domínio da região antes de criar novos links."
+  },
+  "web.pricing.title": {
+    "en": "Simple, Transparent Pricing"
+  },
+  "web.pricing.subtitle": {
+    "en": "Choose the plan that fits your needs. All plans include unlimited secret sharing and privacy-first design."
+  },
+  "web.pricing.get_started_free": {
+    "en": "Get Started Free"
+  },
+  "web.pricing.start_trial": {
+    "en": "Get Started"
+  },
+  "web.pricing.already_have_account": {
+    "en": "Already have an account?"
+  },
+  "web.pricing.sign_in": {
+    "en": "Sign in"
+  },
+  "web.pricing.recommended_for_you": {
+    "en": "Recommended for You"
+  }
+}

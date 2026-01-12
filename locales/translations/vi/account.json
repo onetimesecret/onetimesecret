@@ -1,0 +1,630 @@
+{
+  "web.account.settings": {
+    "en": "Settings",
+    "translation": "Cài đặt"
+  },
+  "web.account.change_password": {
+    "en": "Change Password",
+    "translation": "Thay đổi mật khẩu"
+  },
+  "web.account.close_account": {
+    "en": "Close Account",
+    "translation": "Đóng tài khoản"
+  },
+  "web.account.verify_account": {
+    "en": "Verify Account",
+    "translation": "Xác minh tài khoản"
+  },
+  "web.account.subscription_title": {
+    "en": "Subscription",
+    "translation": "Đăng ký"
+  },
+  "web.account.manage_subscription": {
+    "en": "Manage Subscription",
+    "translation": "Quản lý đăng ký"
+  },
+  "web.account.customer_information": {
+    "en": "Customer Information",
+    "translation": "Thông tin khách hàng"
+  },
+  "web.account.customer_since": {
+    "en": "Customer since:",
+    "translation": "Khách hàng từ:"
+  },
+  "web.account.email": {
+    "en": "Email:",
+    "translation": "Email:"
+  },
+  "web.account.region": {
+    "en": "Region",
+    "translation": "Khu vực"
+  },
+  "web.account.account_balance": {
+    "en": "Balance:",
+    "translation": "Số dư:"
+  },
+  "web.account.default_payment_method": {
+    "en": "Default Payment Method",
+    "translation": "Phương thức thanh toán mặc định"
+  },
+  "web.account.card_ending": {
+    "en": "ending in",
+    "translation": "kết thúc bằng"
+  },
+  "web.account.subscriptions_title": {
+    "en": "Subscriptions",
+    "translation": "Đăng ký"
+  },
+  "web.account.quantity": {
+    "en": "Quantity:",
+    "translation": "Số lượng:"
+  },
+  "web.account.next_billing_date": {
+    "en": "Next billing date:",
+    "translation": "Ngày thanh toán tiếp theo:"
+  },
+  "web.account.changePassword.username": {
+    "en": "Username",
+    "translation": "Tên người dùng"
+  },
+  "web.account.changePassword.currentPassword": {
+    "en": "Current Password",
+    "translation": "Mật khẩu hiện tại"
+  },
+  "web.account.changePassword.newPassword": {
+    "en": "New Password",
+    "translation": "Mật khẩu mới"
+  },
+  "web.account.changePassword.confirmPassword": {
+    "en": "Confirm",
+    "translation": "Xác nhận"
+  },
+  "web.account.changePassword.updatePassword": {
+    "en": "Update Password",
+    "translation": "Cập nhật mật khẩu"
+  },
+  "web.account.changePassword.updating": {
+    "en": "Updating...",
+    "translation": "Đang cập nhật..."
+  },
+  "web.account.timezone": {
+    "en": "Timezone",
+    "translation": "Múi giờ"
+  },
+  "web.account.customer_id": {
+    "en": "Customer ID",
+    "translation": "ID khách hàng"
+  },
+  "web.account.account_id_customerid": {
+    "en": "Account ID",
+    "translation": "ID tài khoản"
+  },
+  "web.account.created_windowprops_cust_secrets_created_secrets": {
+    "en": "Created {0} secrets since {1}.",
+    "translation": "Đã tạo {0} bí mật kể từ {1}."
+  },
+  "web.account.delete_account": {
+    "en": "Delete Account",
+    "translation": "Xóa tài khoản"
+  },
+  "web.account.api_key": {
+    "en": "API Key",
+    "translation": "Khóa API"
+  },
+  "web.account.account_type_windowprops_plan_options_name": {
+    "en": "Account type: {0}",
+    "translation": "Loại tài khoản: {0}"
+  },
+  "web.account.your_account": {
+    "en": "Your Account",
+    "translation": "Tài khoản của bạn"
+  },
+  "web.account.support_details": {
+    "en": "Support Details",
+    "translation": "Chi tiết hỗ trợ"
+  },
+  "web.account.back_to_details": {
+    "en": "Back to Details",
+    "translation": "Quay lại chi tiết"
+  },
+  "web.account.customer_id_cust_custid": {
+    "en": "Customer ID: {0}",
+    "translation": "ID khách hàng: {0}"
+  },
+  "web.account.token_generated": {
+    "en": "Token generated.",
+    "translation": "Đã tạo token."
+  },
+  "web.account.keep_this_token_secure_it_provides_full_access_t": {
+    "en": "🔐 Keep this token secure! It provides full access to your account.",
+    "translation": "🔐 Giữ token này an toàn! Nó cung cấp quyền truy cập đầy đủ vào tài khoản của bạn."
+  },
+  "web.account.confirm_with_your_password": {
+    "en": "Confirm with your password",
+    "translation": "Xác nhận bằng mật khẩu của bạn"
+  },
+  "web.account.are_you_sure_you_want_to_permanently_delete_your": {
+    "en": "Are you sure you want to permanently delete your account? This action cannot be undone.",
+    "translation": "Bạn có chắc chắn muốn xóa vĩnh viễn tài khoản của mình không? Hành động này không thể hoàn tác."
+  },
+  "web.account.confirm_account_deletion": {
+    "en": "Confirm Account Deletion",
+    "translation": "Xác nhận xóa tài khoản"
+  },
+  "web.account.deleting_cust_custid": {
+    "en": "Deleting {0}",
+    "translation": "Đang xóa {0}"
+  },
+  "web.account.permanently_delete_account": {
+    "en": "Permanently Delete Account",
+    "translation": "Xóa tài khoản vĩnh viễn"
+  },
+  "web.account.permanent_and_non_reversible": {
+    "en": "permanent and non-reversible.",
+    "translation": "vĩnh viễn và không thể hoàn tác."
+  },
+  "web.account.deleting_your_account_is": {
+    "en": "Deleting your account is",
+    "translation": "Xóa tài khoản của bạn là"
+  },
+  "web.account.burn_them_before_continuing": {
+    "en": "burn them before continuing",
+    "translation": "xóa vĩnh viễn chúng trước khi tiếp tục"
+  },
+  "web.account.any_secrets_you_wish_to_remove": {
+    "en": "Any secrets you wish to remove,",
+    "translation": "Bất kỳ bí mật nào bạn muốn xóa,"
+  },
+  "web.account.secrets_will_remain_active_until_they_expire": {
+    "en": "Secrets will remain active until they expire.",
+    "translation": "Bí mật sẽ vẫn hoạt động cho đến khi hết hạn."
+  },
+  "web.account.please_be_advised": {
+    "en": "Please be advised:",
+    "translation": "Vui lòng lưu ý:"
+  },
+  "web.account.account_deleted_successfully": {
+    "en": "Account deleted successfully.",
+    "translation": "Đã xóa tài khoản thành công."
+  },
+  "web.account.deactivate": {
+    "en": "Deactivate",
+    "translation": "Vô hiệu hóa"
+  },
+  "web.account.are_you_sure_you_want_to_deactivate_your_account": {
+    "en": "Are you sure you want to deactivate your account? All of your data will be permanently removed from our servers forever. This action cannot be undone.",
+    "translation": "Bạn có chắc chắn muốn vô hiệu hóa tài khoản của mình không? Tất cả dữ liệu của bạn sẽ bị xóa vĩnh viễn khỏi máy chủ của chúng tôi mãi mãi. Hành động này không thể hoàn tác."
+  },
+  "web.account.deactivate_account": {
+    "en": "Deactivate account",
+    "translation": "Vô hiệu hóa tài khoản"
+  },
+  "web.settings.title": {
+    "en": "Settings",
+    "translation": "Cài đặt"
+  },
+  "web.settings.description": {
+    "en": "Manage your account settings and preferences",
+    "translation": "Quản lý cài đặt và tùy chọn tài khoản của bạn"
+  },
+  "web.settings.manage_your_account_settings_and_preferences": {
+    "en": "Manage your account settings and preferences",
+    "translation": "Quản lý cài đặt và tùy chọn tài khoản của bạn"
+  },
+  "web.settings.back_to_dashboard": {
+    "en": "Back to Dashboard"
+  },
+  "web.settings.sections.account": {
+    "en": "Account"
+  },
+  "web.settings.sections.billing": {
+    "en": "Billing"
+  },
+  "web.settings.sections.advanced": {
+    "en": "Advanced"
+  },
+  "web.settings.general": {
+    "en": "General",
+    "translation": "Chung"
+  },
+  "web.settings.preferences": {
+    "en": "Preferences",
+    "translation": "Tùy chọn"
+  },
+  "web.settings.appearance": {
+    "en": "Appearance",
+    "translation": "Giao diện"
+  },
+  "web.settings.theme.title": {
+    "en": "Theme",
+    "translation": "Chủ đề"
+  },
+  "web.settings.theme.description": {
+    "en": "Choose light or dark theme",
+    "translation": "Chọn chủ đề sáng hoặc tối"
+  },
+  "web.settings.theme.choose_light_or_dark_theme": {
+    "en": "Choose light or dark theme",
+    "translation": "Chọn chủ đề sáng hoặc tối"
+  },
+  "web.settings.language.title": {
+    "en": "Language",
+    "translation": "Ngôn ngữ"
+  },
+  "web.settings.language.description": {
+    "en": "Select your preferred language",
+    "translation": "Chọn ngôn ngữ ưa thích của bạn"
+  },
+  "web.settings.language.select_your_preferred_language": {
+    "en": "Select your preferred language",
+    "translation": "Chọn ngôn ngữ ưa thích của bạn"
+  },
+  "web.settings.security_settings_description": {
+    "en": "Manage authentication and account security",
+    "translation": "Quản lý xác thực và bảo mật tài khoản"
+  },
+  "web.settings.profile_settings_description": {
+    "en": "Manage your account information",
+    "translation": "Quản lý thông tin tài khoản của bạn"
+  },
+  "web.settings.profile.title": {
+    "en": "Profile",
+    "translation": "Hồ sơ"
+  },
+  "web.settings.profile.change_email": {
+    "en": "Change Email",
+    "translation": "Thay đổi email"
+  },
+  "web.settings.profile.current_email": {
+    "en": "Current Email",
+    "translation": "Email hiện tại"
+  },
+  "web.settings.profile.current_password": {
+    "en": "Current Password",
+    "translation": "Mật khẩu hiện tại"
+  },
+  "web.settings.profile.new_email": {
+    "en": "New Email",
+    "translation": "Email mới"
+  },
+  "web.settings.profile.enter_password_to_confirm": {
+    "en": "Enter your current password",
+    "translation": "Nhập mật khẩu hiện tại của bạn"
+  },
+  "web.settings.profile.password_required_for_security": {
+    "en": "Your password is required for security purposes",
+    "translation": "Mật khẩu của bạn là bắt buộc cho mục đích bảo mật"
+  },
+  "web.settings.profile.verification_email_notice": {
+    "en": "A verification email will be sent to the new address",
+    "translation": "Email xác minh sẽ được gửi đến địa chỉ mới"
+  },
+  "web.settings.profile.update_email": {
+    "en": "Update Email",
+    "translation": "Cập nhật email"
+  },
+  "web.settings.profile.change_email_description": {
+    "en": "Update the email address associated with your account",
+    "translation": "Cập nhật địa chỉ email liên kết với tài khoản của bạn"
+  },
+  "web.settings.profile.all_fields_required": {
+    "en": "All fields are required",
+    "translation": "Tất cả các trường là bắt buộc"
+  },
+  "web.settings.profile.invalid_email": {
+    "en": "Please enter a valid email address",
+    "translation": "Vui lòng nhập địa chỉ email hợp lệ"
+  },
+  "web.settings.profile.email_same_as_current": {
+    "en": "New email must be different from current email",
+    "translation": "Email mới phải khác với email hiện tại"
+  },
+  "web.settings.profile.email_change_success": {
+    "en": "Email updated successfully. Please check your inbox to verify your new email address.",
+    "translation": "Email đã được cập nhật thành công. Vui lòng kiểm tra hộp thư để xác minh địa chỉ email mới của bạn."
+  },
+  "web.settings.profile.email_change_error": {
+    "en": "Failed to update email. Please try again.",
+    "translation": "Không thể cập nhật email. Vui lòng thử lại."
+  },
+  "web.settings.sessions.title": {
+    "en": "Active Sessions",
+    "translation": "Phiên hoạt động"
+  },
+  "web.settings.sessions.description": {
+    "en": "Manage your active sessions",
+    "translation": "Quản lý các phiên hoạt động của bạn"
+  },
+  "web.settings.sessions.manage_active_sessions": {
+    "en": "Manage your active sessions",
+    "translation": "Quản lý các phiên hoạt động của bạn"
+  },
+  "web.settings.password.title": {
+    "en": "Password",
+    "translation": "Mật khẩu"
+  },
+  "web.settings.password.description": {
+    "en": "Update your account password",
+    "translation": "Cập nhật mật khẩu tài khoản của bạn"
+  },
+  "web.settings.password.update_account_password": {
+    "en": "Update your account password",
+    "translation": "Cập nhật mật khẩu tài khoản của bạn"
+  },
+  "web.settings.delete_account.title": {
+    "en": "Delete Account",
+    "translation": "Xóa tài khoản"
+  },
+  "web.settings.delete_account.description": {
+    "en": "Permanently delete your account and all data",
+    "translation": "Xóa vĩnh viễn tài khoản và tất cả dữ liệu của bạn"
+  },
+  "web.settings.delete_account.permanently_delete_your_account": {
+    "en": "Permanently delete your account and all data",
+    "translation": "Xóa vĩnh viễn tài khoản và tất cả dữ liệu của bạn"
+  },
+  "web.settings.security.security_score": {
+    "en": "Security Score",
+    "translation": "Điểm bảo mật"
+  },
+  "web.settings.security.score_description": {
+    "en": "Your overall account security health",
+    "translation": "Tình trạng bảo mật tài khoản tổng thể của bạn"
+  },
+  "web.settings.security.excellent": {
+    "en": "Excellent",
+    "translation": "Xuất sắc"
+  },
+  "web.settings.security.good": {
+    "en": "Good",
+    "translation": "Tốt"
+  },
+  "web.settings.security.fair": {
+    "en": "Fair",
+    "translation": "Khá"
+  },
+  "web.settings.security.weak": {
+    "en": "Weak",
+    "translation": "Yếu"
+  },
+  "web.settings.security.improve_security": {
+    "en": "Improve your security",
+    "translation": "Cải thiện bảo mật của bạn"
+  },
+  "web.settings.security.enable_mfa_recommendation": {
+    "en": "Enable two-factor authentication for stronger protection",
+    "translation": "Bật xác thực hai yếu tố để bảo vệ mạnh mẽ hơn"
+  },
+  "web.settings.security.generate_recovery_codes_recommendation": {
+    "en": "Generate recovery codes as a backup",
+    "translation": "Tạo mã khôi phục làm bản sao lưu"
+  },
+  "web.settings.security.configured": {
+    "en": "Configured",
+    "translation": "Đã cấu hình"
+  },
+  "web.settings.security.change": {
+    "en": "Change",
+    "translation": "Thay đổi"
+  },
+  "web.settings.security.manage": {
+    "en": "Manage",
+    "translation": "Quản lý"
+  },
+  "web.settings.security.enable": {
+    "en": "Enable",
+    "translation": "Bật"
+  },
+  "web.settings.security.codes_available": {
+    "en": "{0} codes available",
+    "translation": "{0} mã khả dụng"
+  },
+  "web.settings.security.no_codes": {
+    "en": "No codes generated",
+    "translation": "Chưa tạo mã"
+  },
+  "web.settings.security.active_sessions": {
+    "en": "{0} active session | {0} active sessions",
+    "translation": "{0} phiên hoạt động"
+  },
+  "web.settings.security.best_practices": {
+    "en": "Security Best Practices",
+    "translation": "Thực hành bảo mật tốt nhất"
+  },
+  "web.settings.security.use_strong_unique_password": {
+    "en": "Use a strong, unique password for your account",
+    "translation": "Sử dụng mật khẩu mạnh và duy nhất cho tài khoản của bạn"
+  },
+  "web.settings.security.enable_mfa_for_protection": {
+    "en": "Enable two-factor authentication for additional protection",
+    "translation": "Bật xác thực hai yếu tố để bảo vệ bổ sung"
+  },
+  "web.settings.security.save_recovery_codes_safely": {
+    "en": "Save your recovery codes in a secure location",
+    "translation": "Lưu mã khôi phục của bạn ở vị trí an toàn"
+  },
+  "web.settings.security.review_sessions_regularly": {
+    "en": "Review and revoke unused sessions regularly",
+    "translation": "Xem xét và thu hồi các phiên không sử dụng thường xuyên"
+  },
+  "web.settings.security.view_details": {
+    "en": "View details",
+    "translation": "Xem chi tiết"
+  },
+  "web.settings.api.title": {
+    "en": "API & Integrations",
+    "translation": "API & Tích hợp"
+  },
+  "web.settings.api.description": {
+    "en": "Manage API keys and integrations",
+    "translation": "Quản lý khóa API và tích hợp"
+  },
+  "web.settings.api.manage_api_keys": {
+    "en": "Manage API keys and integrations",
+    "translation": "Quản lý khóa API và tích hợp"
+  },
+  "web.settings.api.documentation": {
+    "en": "API Documentation",
+    "translation": "Tài liệu API"
+  },
+  "web.settings.api.documentation_description": {
+    "en": "Learn how to integrate Onetime Secret into your applications",
+    "translation": "Tìm hiểu cách tích hợp Onetime Secret vào ứng dụng của bạn"
+  },
+  "web.settings.api.rest_api_reference": {
+    "en": "REST API Reference",
+    "translation": "Tài liệu tham khảo REST API"
+  },
+  "web.settings.api.complete_api_documentation": {
+    "en": "Complete API documentation and endpoints",
+    "translation": "Tài liệu API đầy đủ và các endpoint"
+  },
+  "web.settings.api.code_examples": {
+    "en": "Code Examples",
+    "translation": "Ví dụ mã"
+  },
+  "web.settings.api.example_code_and_libraries": {
+    "en": "Example code and client libraries",
+    "translation": "Mã ví dụ và thư viện client"
+  },
+  "web.settings.api.security_best_practices": {
+    "en": "Security Best Practices",
+    "translation": "Thực hành bảo mật tốt nhất"
+  },
+  "web.settings.api.never_commit_api_keys": {
+    "en": "Never commit API keys to version control",
+    "translation": "Không bao giờ commit khóa API vào quản lý phiên bản"
+  },
+  "web.settings.api.use_environment_variables": {
+    "en": "Use environment variables to store API keys",
+    "translation": "Sử dụng biến môi trường để lưu trữ khóa API"
+  },
+  "web.settings.api.rotate_keys_regularly": {
+    "en": "Rotate API keys regularly for security",
+    "translation": "Xoay khóa API thường xuyên để bảo mật"
+  },
+  "web.settings.api.use_https_only": {
+    "en": "Always use HTTPS when making API requests",
+    "translation": "Luôn sử dụng HTTPS khi thực hiện yêu cầu API"
+  },
+  "web.settings.api.monitor_api_usage": {
+    "en": "Monitor your API usage and set up alerts",
+    "translation": "Giám sát việc sử dụng API của bạn và thiết lập cảnh báo"
+  },
+  "web.settings.api.important_notice": {
+    "en": "Important Notice",
+    "translation": "Thông báo quan trọng"
+  },
+  "web.settings.api.regenerating_key_warning": {
+    "en": "Regenerating your API key will invalidate the current key. Update all applications using the old key.",
+    "translation": "Tạo lại khóa API của bạn sẽ làm vô hiệu khóa hiện tại. Cập nhật tất cả ứng dụng sử dụng khóa cũ."
+  },
+  "web.settings.privacy.title": {
+    "en": "Privacy Settings",
+    "translation": "Cài đặt quyền riêng tư"
+  },
+  "web.settings.privacy.manage_privacy_settings": {
+    "en": "Manage your privacy preferences",
+    "translation": "Quản lý tùy chọn quyền riêng tư của bạn"
+  },
+  "web.settings.privacy.your_privacy": {
+    "en": "Your Privacy",
+    "translation": "Quyền riêng tư của bạn"
+  },
+  "web.settings.privacy.non_negotiable": {
+    "en": "Non-Negotiable",
+    "translation": "Không thể thương lượng"
+  },
+  "web.settings.privacy.not_a_setting": {
+    "en": "Not a setting",
+    "translation": "Không phải là cài đặt"
+  },
+  "web.settings.privacy.no_analytics_statement": {
+    "en": "No analytics. No tracking. Period.",
+    "translation": "Không phân tích. Không theo dõi. Chấm hết."
+  },
+  "web.settings.privacy.explanation": {
+    "en": "This isn't a setting because there's nothing to turn on or off. Your privacy is built into how we operate.",
+    "translation": "Đây không phải là cài đặt vì không có gì để bật hoặc tắt. Quyền riêng tư của bạn được tích hợp vào cách chúng tôi hoạt động."
+  },
+  "web.settings.notifications.title": {
+    "en": "Notification Settings",
+    "translation": "Cài đặt thông báo"
+  },
+  "web.settings.notifications.description": {
+    "en": "Manage how you receive notifications",
+    "translation": "Quản lý cách bạn nhận thông báo"
+  },
+  "web.settings.notifications.error_updating": {
+    "en": "Failed to update notification preference. Please try again.",
+    "translation": "Không thể cập nhật tùy chọn thông báo. Vui lòng thử lại."
+  },
+  "web.settings.notifications.reveal_notifications.title": {
+    "en": "Secret Reveal Notifications",
+    "translation": "Thông báo khi bí mật được xem"
+  },
+  "web.settings.notifications.reveal_notifications.description": {
+    "en": "Receive an email when someone views your secret",
+    "translation": "Nhận email khi ai đó xem bí mật của bạn"
+  },
+  "web.settings.notifications.reveal_notifications.help": {
+    "en": "You'll be notified each time a recipient reveals one of your secrets",
+    "translation": "Bạn sẽ nhận thông báo mỗi khi người nhận xem một trong các bí mật của bạn"
+  },
+  "web.settings.notifications.privacy_note": {
+    "en": "Notification emails include only the timestamp and secret ID. Viewer information is never included.",
+    "translation": "Email thông báo chỉ bao gồm dấu thời gian và ID bí mật. Thông tin về người xem không bao giờ được bao gồm."
+  },
+  "web.settings.caution.title": {
+    "en": "Careful Consideration Zone",
+    "translation": "Vùng cân nhắc cẩn thận"
+  },
+  "web.settings.caution.description": {
+    "en": "Advanced settings and data management",
+    "translation": "Cài đặt nâng cao và quản lý dữ liệu"
+  },
+  "web.settings.caution.data_export": {
+    "en": "Data Export",
+    "translation": "Xuất dữ liệu"
+  },
+  "web.settings.caution.export_your_data": {
+    "en": "Export your account data",
+    "translation": "Xuất dữ liệu tài khoản của bạn"
+  },
+  "web.settings.caution.export_description": {
+    "en": "Request a complete copy of your account data in machine-readable format",
+    "translation": "Yêu cầu bản sao đầy đủ dữ liệu tài khoản của bạn ở định dạng máy có thể đọc"
+  },
+  "web.settings.caution.request_data_export": {
+    "en": "Request Data Export",
+    "translation": "Yêu cầu xuất dữ liệu"
+  },
+  "web.settings.caution.export_info": {
+    "en": "Export Processing Time",
+    "translation": "Thời gian xử lý xuất"
+  },
+  "web.settings.caution.export_info_description": {
+    "en": "Exports are processed within 24 hours and sent to your email address",
+    "translation": "Xuất được xử lý trong vòng 24 giờ và gửi đến địa chỉ email của bạn"
+  },
+  "web.settings.caution.deletion_warning_title": {
+    "en": "Deleting your account will:",
+    "translation": "Xóa tài khoản của bạn sẽ:"
+  },
+  "web.settings.caution.deletion_warning_secrets": {
+    "en": "Permanently delete all your secrets",
+    "translation": "Xóa vĩnh viễn tất cả bí mật của bạn"
+  },
+  "web.settings.caution.deletion_warning_metadata": {
+    "en": "Remove all secret metadata and history",
+    "translation": "Xóa tất cả siêu dữ liệu và lịch sử bí mật"
+  },
+  "web.settings.caution.deletion_warning_api_keys": {
+    "en": "Invalidate all API keys",
+    "translation": "Vô hiệu hóa tất cả khóa API"
+  },
+  "web.settings.caution.deletion_warning_irreversible": {
+    "en": "This action cannot be undone",
+    "translation": "Hành động này không thể hoàn tác"
+  }
+}

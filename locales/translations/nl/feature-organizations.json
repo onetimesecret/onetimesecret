@@ -1,0 +1,531 @@
+{
+  "web.organizations.title": {
+    "en": "Organizations",
+    "translation": "Organisatie"
+  },
+  "web.organizations.organization": {
+    "en": "Organization",
+    "translation": "Organisatie"
+  },
+  "web.organizations.organization_plural": {
+    "en": "Organizations",
+    "translation": "Organisaties"
+  },
+  "web.organizations.organizations_description": {
+    "en": "Manage your organizations",
+    "translation": "Beheer je organisaties"
+  },
+  "web.organizations.my_organizations": {
+    "en": "Organizations",
+    "translation": "Mijn organisaties"
+  },
+  "web.organizations.manage_organizations": {
+    "en": "Manage Organizations",
+    "translation": "Manage Organizations"
+  },
+  "web.organizations.new_organization": {
+    "en": "New Organization",
+    "translation": "Nieuwe organisatie"
+  },
+  "web.organizations.no_organizations": {
+    "en": "No organizations yet",
+    "translation": "Nog geen organisaties"
+  },
+  "web.organizations.no_organizations_description": {
+    "en": "Organizations provide unified billing and administration. Get started by creating your first organization.",
+    "translation": "Organisaties stellen je in staat om meerdere teams te beheren met uniforme facturering en administratie. Begin met het aanmaken van je eerste organisatie"
+  },
+  "web.organizations.no_description": {
+    "en": "No description provided",
+    "translation": "Geen beschrijving opgegeven"
+  },
+  "web.organizations.default": {
+    "en": "Default",
+    "translation": "Standaard"
+  },
+  "web.organizations.create_organization": {
+    "en": "Create Organization",
+    "translation": "Organisatie aanmaken"
+  },
+  "web.organizations.create_first_organization": {
+    "en": "Create First Organization",
+    "translation": "Eerste organisatie aanmaken"
+  },
+  "web.organizations.create_organization_description": {
+    "en": "Create a new organization",
+    "translation": "Maak een nieuwe organisatie aan om je teams te groeperen"
+  },
+  "web.organizations.create": {
+    "en": "Create",
+    "translation": "Aanmaken"
+  },
+  "web.organizations.create_error": {
+    "en": "Failed to create organization",
+    "translation": "Kon organisatie niet aanmaken"
+  },
+  "web.organizations.organization_name": {
+    "en": "Organization Name",
+    "translation": "Organisatienaam"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "en": "e.g. Acme Corporation",
+    "translation": "bijv. Acme Corporation"
+  },
+  "web.organizations.display_name": {
+    "en": "Organization Name",
+    "translation": "Organisatienaam"
+  },
+  "web.organizations.description": {
+    "en": "Description",
+    "translation": "Beschrijving"
+  },
+  "web.organizations.description_placeholder": {
+    "en": "What is this organization for?",
+    "translation": "Waarvoor is deze organisatie?"
+  },
+  "web.organizations.contact_email": {
+    "en": "Billing Email",
+    "translation": "Facturatie e-mail"
+  },
+  "web.organizations.contact_email_help": {
+    "en": "Primary contact for billing and administrative notifications",
+    "translation": "Primair contact voor facturering en administratieve meldingen"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "en": "Billing and subscription management is handled through your primary workspace. Visit your main workspace settings to manage payment methods and invoices.",
+    "translation": "Facturering en abonnementsbeheer worden via je primaire werkruimte afgehandeld. Bezoek je hoofdwerkruimte-instellingen om betaalmethoden en facturen te beheren."
+  },
+  "web.organizations.select_organization": {
+    "en": "Select an organization",
+    "translation": "Selecteer een organisatie"
+  },
+  "web.organizations.switcher_locked": {
+    "en": "Organization switching not available on this page",
+    "translation": "Organization switching not available on this page"
+  },
+  "web.organizations.not_found": {
+    "en": "Organization not found",
+    "translation": "Organisatie niet gevonden"
+  },
+  "web.organizations.load_error": {
+    "en": "Failed to load organization",
+    "translation": "Kon organisatie niet laden"
+  },
+  "web.organizations.fetch_organization_error": {
+    "en": "Failed to load organization",
+    "translation": "Kon organisatie niet laden"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "en": "Failed to load organizations",
+    "translation": "Kon organisaties niet laden"
+  },
+  "web.organizations.organization_information": {
+    "en": "Organization Information",
+    "translation": "Organisatie-informatie"
+  },
+  "web.organizations.created": {
+    "en": "Created",
+    "translation": "Aangemaakt"
+  },
+  "web.organizations.last_updated": {
+    "en": "Last Updated",
+    "translation": "Laatst bijgewerkt"
+  },
+  "web.organizations.organization_settings": {
+    "en": "Organization Settings",
+    "translation": "Organisatie-instellingen"
+  },
+  "web.organizations.organization_settings_description": {
+    "en": "Update your organization name and description",
+    "translation": "Werk je organisatienaam en beschrijving bij"
+  },
+  "web.organizations.general_settings": {
+    "en": "General Settings",
+    "translation": "Algemene instellingen"
+  },
+  "web.organizations.billing_settings": {
+    "en": "Billing & Subscription",
+    "translation": "Facturering en abonnement"
+  },
+  "web.organizations.save_changes": {
+    "en": "Save Changes",
+    "translation": "Wijzigingen opslaan"
+  },
+  "web.organizations.update_success": {
+    "en": "Organization updated successfully",
+    "translation": "Organisatie succesvol bijgewerkt"
+  },
+  "web.organizations.update_error": {
+    "en": "Failed to update organization",
+    "translation": "Kon organisatie niet bijwerken"
+  },
+  "web.organizations.billing_email_updated": {
+    "en": "Billing email updated successfully"
+  },
+  "web.organizations.billing_coming_soon": {
+    "en": "Billing Integration Coming Soon",
+    "translation": "Facturering-integratie komt eraan"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "en": "Unified billing and subscription management will be available in a future release.",
+    "translation": "Uniform facturerings- en abonnementsbeheer voor alle teams in deze organisatie komt in een toekomstige versie"
+  },
+  "web.organizations.about_title": {
+    "en": "About Organizations",
+    "translation": "Over organisaties"
+  },
+  "web.organizations.about_description": {
+    "en": "Organizations provide unified billing and administration for centralized management.",
+    "translation": "Organisaties bieden uniforme facturering en administratie voor meerdere teams. Ze zijn optioneel: teams kunnen onafhankelijk bestaan of gegroepeerd worden onder een organisatie voor gecentraliseerd beheer"
+  },
+  "web.organizations.single_user_info_title": {
+    "en": "Manage Your Organization",
+    "translation": "Beheer je organisatie"
+  },
+  "web.organizations.single_user_info_description": {
+    "en": "Update your company name and organization details here. This information helps personalize your account and can be used for branding features in the future.",
+    "translation": "Werk hier je bedrijfsnaam en organisatiegegevens bij. Deze informatie helpt je account te personaliseren en kan in de toekomst worden gebruikt voor branding-functies"
+  },
+  "web.organizations.getting_started_title": {
+    "en": "Getting Started with Organizations",
+    "translation": "Aan de slag met organisaties"
+  },
+  "web.organizations.getting_started_description": {
+    "en": "Create your first organization to manage your company information and prepare for future branding features.",
+    "translation": "Maak je eerste organisatie aan om je bedrijfsinformatie te beheren en je voor te bereiden op toekomstige teamsamenwerkings- en branding-functies"
+  },
+  "web.organizations.page_description": {
+    "en": "Manage your organizations and team members",
+    "translation": "Manage your organizations and team members"
+  },
+  "web.organizations.tabs.general": {
+    "en": "Settings",
+    "translation": "Algemeen"
+  },
+  "web.organizations.tabs.company_branding": {
+    "en": "Company Branding",
+    "translation": "Bedrijfsbranding"
+  },
+  "web.organizations.tabs.members": {
+    "en": "Team",
+    "translation": "Team"
+  },
+  "web.organizations.tabs.billing": {
+    "en": "Billing",
+    "translation": "Facturering"
+  },
+  "web.organizations.danger_zone": {
+    "en": "Danger Zone",
+    "translation": "Gevaarlijke zone"
+  },
+  "web.organizations.delete_organization": {
+    "en": "Delete Organization",
+    "translation": "Organisatie verwijderen"
+  },
+  "web.organizations.delete_organization_warning": {
+    "en": "This will permanently delete the organization. This action cannot be undone.",
+    "translation": "Dit zal de organisatie en alle gekoppelde teams permanent verwijderen. Deze actie kan niet ongedaan worden gemaakt"
+  },
+  "web.organizations.delete": {
+    "en": "Delete",
+    "translation": "Verwijderen"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "en": "Delete Organization",
+    "translation": "Organisatie verwijderen"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "en": "Are you sure you want to delete {name}? This action cannot be undone.",
+    "translation": "Weet je zeker dat je {name} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt"
+  },
+  "web.organizations.delete_error": {
+    "en": "Failed to delete organization",
+    "translation": "Kon organisatie niet verwijderen"
+  },
+  "web.organizations.members.title": {
+    "en": "Members",
+    "translation": "Leden"
+  },
+  "web.organizations.members.description": {
+    "en": "Manage organization members and their roles",
+    "translation": "Beheer organisatieleden en hun rollen"
+  },
+  "web.organizations.members.current_members": {
+    "en": "Current Members",
+    "translation": "Current Members"
+  },
+  "web.organizations.members.member": {
+    "en": "Member",
+    "translation": "Lid"
+  },
+  "web.organizations.members.member_singular": {
+    "en": "member",
+    "translation": "member"
+  },
+  "web.organizations.members.member_plural": {
+    "en": "members",
+    "translation": "members"
+  },
+  "web.organizations.members.name": {
+    "en": "Name",
+    "translation": "Naam"
+  },
+  "web.organizations.members.email": {
+    "en": "Email",
+    "translation": "E-mail"
+  },
+  "web.organizations.members.role": {
+    "en": "Role",
+    "translation": "Rol"
+  },
+  "web.organizations.members.joined": {
+    "en": "Joined",
+    "translation": "Toegetreden"
+  },
+  "web.organizations.members.actions": {
+    "en": "Actions",
+    "translation": "Acties"
+  },
+  "web.organizations.members.no_members": {
+    "en": "No members yet. Invite team members to get started.",
+    "translation": "Geen leden gevonden"
+  },
+  "web.organizations.members.no_members_description": {
+    "en": "This organization has no members yet.",
+    "translation": "Deze organisatie heeft nog geen leden."
+  },
+  "web.organizations.members.role_updated": {
+    "en": "Member role updated successfully",
+    "translation": "Rol van lid succesvol bijgewerkt"
+  },
+  "web.organizations.members.role_update_error": {
+    "en": "Failed to update member role",
+    "translation": "Rol van lid bijwerken mislukt"
+  },
+  "web.organizations.members.member_removed": {
+    "en": "Member removed from organization",
+    "translation": "Lid verwijderd uit organisatie"
+  },
+  "web.organizations.members.member_remove_error": {
+    "en": "Failed to remove member",
+    "translation": "Lid verwijderen mislukt"
+  },
+  "web.organizations.members.remove_member_title": {
+    "en": "Remove Member",
+    "translation": "Lid verwijderen"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "en": "Are you sure you want to remove {name} from this organization?",
+    "translation": "Weet je zeker dat je {name} uit deze organisatie wilt verwijderen?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "en": "You cannot change your own role",
+    "translation": "Je kunt je eigen rol niet wijzigen"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "en": "You cannot remove yourself from the organization",
+    "translation": "Je kunt jezelf niet uit de organisatie verwijderen"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "en": "You cannot remove the organization owner",
+    "translation": "Je kunt de eigenaar van de organisatie niet verwijderen"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "en": "You do not have permission to manage members",
+    "translation": "Je hebt geen toestemming om leden te beheren"
+  },
+  "web.organizations.members.roles.owner": {
+    "en": "Owner",
+    "translation": "Eigenaar"
+  },
+  "web.organizations.members.roles.admin": {
+    "en": "Admin",
+    "translation": "Beheerder"
+  },
+  "web.organizations.members.roles.member": {
+    "en": "Member",
+    "translation": "Lid"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "en": "Full access to all organization settings and members",
+    "translation": "Volledige toegang tot alle organisatie-instellingen en leden"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "en": "Can manage members and most organization settings",
+    "translation": "Kan leden en de meeste organisatie-instellingen beheren"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "en": "Basic access to organization resources",
+    "translation": "Basistoegang tot organisatiebronnen"
+  },
+  "web.organizations.invitations.title": {
+    "en": "Organization Invitations",
+    "translation": "Organisatie-uitnodigingen"
+  },
+  "web.organizations.invitations.invite_member": {
+    "en": "Invite Member",
+    "translation": "Lid uitnodigen"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "en": "Invite New Member",
+    "translation": "Nieuw lid uitnodigen"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "en": "Pending Invitations",
+    "translation": "Openstaande uitnodigingen"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "en": "No pending invitations",
+    "translation": "Geen openstaande uitnodigingen"
+  },
+  "web.organizations.invitations.email_address": {
+    "en": "Email Address",
+    "translation": "E-mailadres"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "en": "member@example.com",
+    "translation": "lid@voorbeeld.com"
+  },
+  "web.organizations.invitations.role": {
+    "en": "Role",
+    "translation": "Rol"
+  },
+  "web.organizations.invitations.send_invite": {
+    "en": "Send Invitation",
+    "translation": "Uitnodiging versturen"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "en": "Invitation sent successfully",
+    "translation": "Uitnodiging succesvol verstuurd"
+  },
+  "web.organizations.invitations.invite_error": {
+    "en": "Failed to send invitation",
+    "translation": "Uitnodiging versturen mislukt"
+  },
+  "web.organizations.invitations.resend": {
+    "en": "Resend",
+    "translation": "Opnieuw versturen"
+  },
+  "web.organizations.invitations.revoke": {
+    "en": "Revoke",
+    "translation": "Intrekken"
+  },
+  "web.organizations.invitations.resend_success": {
+    "en": "Invitation resent successfully",
+    "translation": "Uitnodiging opnieuw verstuurd"
+  },
+  "web.organizations.invitations.resend_error": {
+    "en": "Failed to resend invitation",
+    "translation": "Uitnodiging opnieuw versturen mislukt"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "en": "Invitation revoked successfully",
+    "translation": "Uitnodiging succesvol ingetrokken"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "en": "Failed to revoke invitation",
+    "translation": "Uitnodiging intrekken mislukt"
+  },
+  "web.organizations.invitations.invited_by": {
+    "en": "Invited by",
+    "translation": "Uitgenodigd door"
+  },
+  "web.organizations.invitations.invited_at": {
+    "en": "Invited",
+    "translation": "Uitgenodigd"
+  },
+  "web.organizations.invitations.expires_at": {
+    "en": "Expires",
+    "translation": "Verloopt"
+  },
+  "web.organizations.invitations.resent_count": {
+    "en": "Resent {count} time",
+    "translation": "{count} keer opnieuw verstuurd"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "en": "Resent {count} times",
+    "translation": "{count} keer opnieuw verstuurd"
+  },
+  "web.organizations.invitations.status.pending": {
+    "en": "Pending",
+    "translation": "In behandeling"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "en": "Accepted",
+    "translation": "Geaccepteerd"
+  },
+  "web.organizations.invitations.status.declined": {
+    "en": "Declined",
+    "translation": "Afgewezen"
+  },
+  "web.organizations.invitations.status.expired": {
+    "en": "Expired",
+    "translation": "Verlopen"
+  },
+  "web.organizations.invitations.roles.member": {
+    "en": "Member",
+    "translation": "Lid"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "en": "Admin",
+    "translation": "Beheerder"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "en": "Accept Invitation",
+    "translation": "Uitnodiging accepteren"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "en": "Decline Invitation",
+    "translation": "Uitnodiging afwijzen"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "en": "Invitation Details",
+    "translation": "Uitnodigingsdetails"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "en": "You've been invited to join",
+    "translation": "Je bent uitgenodigd om lid te worden van"
+  },
+  "web.organizations.invitations.invited_as": {
+    "en": "You've been invited as a",
+    "translation": "Je bent uitgenodigd als"
+  },
+  "web.organizations.invitations.accept_success": {
+    "en": "Invitation accepted successfully",
+    "translation": "Uitnodiging succesvol geaccepteerd"
+  },
+  "web.organizations.invitations.accept_error": {
+    "en": "Failed to accept invitation",
+    "translation": "Uitnodiging accepteren mislukt"
+  },
+  "web.organizations.invitations.decline_success": {
+    "en": "Invitation declined",
+    "translation": "Uitnodiging afgewezen"
+  },
+  "web.organizations.invitations.decline_error": {
+    "en": "Failed to decline invitation",
+    "translation": "Uitnodiging afwijzen mislukt"
+  },
+  "web.organizations.invitations.expired_message": {
+    "en": "This invitation has expired",
+    "translation": "Deze uitnodiging is verlopen"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "en": "Invalid or expired invitation",
+    "translation": "Ongeldige of verlopen uitnodiging"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "en": "Please sign in to accept this invitation",
+    "translation": "Log in om deze uitnodiging te accepteren"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "en": "Loading invitation details",
+    "translation": "Uitnodigingsdetails laden"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "en": "Upgrade your plan to invite team members"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "en": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization."
+  }
+}

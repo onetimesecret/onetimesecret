@@ -1,0 +1,539 @@
+{
+  "web.auth.mfa_required": {
+    "en": "MFA verification required",
+    "translation": "Wymagana weryfikacja MFA"
+  },
+  "web.auth.mfa_verification_required": {
+    "en": "MFA verification required to access your account",
+    "translation": "Weryfikacja MFA wymagana do uzyskania dostępu do konta"
+  },
+  "web.auth.complete_mfa_verification": {
+    "en": "Complete MFA Verification",
+    "translation": "Ukończ weryfikację MFA"
+  },
+  "web.auth.security.authentication_failed": {
+    "en": "Authentication failed. Please verify your credentials and try again.",
+    "translation": "Uwierzytelnianie nie powiodło się. Zweryfikuj swoje dane uwierzytelniające i spróbuj ponownie."
+  },
+  "web.auth.security.rate_limited": {
+    "en": "Too many attempts. Please try again later.",
+    "translation": "Zbyt wiele prób. Spróbuj ponownie później."
+  },
+  "web.auth.security.session_expired": {
+    "en": "Session expired. Please log in again.",
+    "translation": "Sesja wygasła. Zaloguj się ponownie."
+  },
+  "web.auth.security.recovery_code_not_found": {
+    "en": "Recovery code not found. Please verify you entered it correctly.",
+    "translation": "Kod odzyskiwania nie został znaleziony. Sprawdź, czy wprowadziłeś go poprawnie."
+  },
+  "web.auth.security.recovery_code_used": {
+    "en": "This recovery code has already been used. Each code can only be used once.",
+    "translation": "Ten kod odzyskiwania został już użyty. Każdy kod może zostać użyty tylko raz."
+  },
+  "web.auth.security.network_error": {
+    "en": "Network error. Please check your connection and try again.",
+    "translation": "Błąd sieci. Sprawdź połączenie i spróbuj ponownie."
+  },
+  "web.auth.security.internal_error": {
+    "en": "An error occurred. Please try again.",
+    "translation": "Wystąpił błąd. Spróbuj ponownie."
+  },
+  "web.auth.methods.password": {
+    "en": "Password",
+    "translation": "Hasło"
+  },
+  "web.auth.methods.magicLink": {
+    "en": "Email Link",
+    "translation": "Link e-mail"
+  },
+  "web.auth.methods.webauthn": {
+    "en": "Biometric",
+    "translation": "Biometria"
+  },
+  "web.auth.magicLink.title": {
+    "en": "Sign in with Email",
+    "translation": "Zaloguj się za pomocą e-mail"
+  },
+  "web.auth.magicLink.description": {
+    "en": "We'll send you a secure login link",
+    "translation": "Wyślemy Ci bezpieczny link logowania"
+  },
+  "web.auth.magicLink.emailPlaceholder": {
+    "en": "Enter your email",
+    "translation": "Wprowadź swój e-mail"
+  },
+  "web.auth.magicLink.sendLink": {
+    "en": "Send Login Link",
+    "translation": "Wyślij link logowania"
+  },
+  "web.auth.magicLink.checkEmail": {
+    "en": "Check your email",
+    "translation": "Sprawdź swoją skrzynkę e-mail"
+  },
+  "web.auth.magicLink.sentTo": {
+    "en": "We sent a login link to {email}",
+    "translation": "Wysłaliśmy link logowania na {email}"
+  },
+  "web.auth.magicLink.linkExpiresIn": {
+    "en": "This link will expire in 15 minutes",
+    "translation": "Ten link wygaśnie za 15 minut"
+  },
+  "web.auth.magicLink.tryDifferentEmail": {
+    "en": "Try a different email",
+    "translation": "Wypróbuj inny e-mail"
+  },
+  "web.auth.magicLink.noPasswordNeeded": {
+    "en": "No password needed — just click the link in your email",
+    "translation": "Nie potrzebujesz hasła — wystarczy kliknąć link w e-mailu"
+  },
+  "web.auth.magicLink.networkError": {
+    "en": "Network error. Please try again.",
+    "translation": "Błąd sieci. Spróbuj ponownie."
+  },
+  "web.auth.magicLink.requestFailed": {
+    "en": "Failed to send login link. Please try again.",
+    "translation": "Nie udało się wysłać linku logowania. Spróbuj ponownie."
+  },
+  "web.auth.magicLink.invalidLink": {
+    "en": "Invalid or missing login link",
+    "translation": "Nieprawidłowy lub brakujący link logowania"
+  },
+  "web.auth.magicLink.loginFailed": {
+    "en": "Login failed. Please try again.",
+    "translation": "Logowanie nie powiodło się. Spróbuj ponownie."
+  },
+  "web.auth.magicLink.signingYouIn": {
+    "en": "Signing you in...",
+    "translation": "Logowanie..."
+  },
+  "web.auth.magicLink.pleaseWait": {
+    "en": "Please wait while we verify your link",
+    "translation": "Poczekaj, weryfikujemy Twój link"
+  },
+  "web.auth.magicLink.error": {
+    "en": "Authentication Error",
+    "translation": "Błąd uwierzytelniania"
+  },
+  "web.auth.magicLink.back_to_signin": {
+    "en": "Back to Sign In",
+    "translation": "Wróć do logowania"
+  },
+  "web.auth.webauthn.signIn": {
+    "en": "Sign in with Face ID / Touch ID",
+    "translation": "Zaloguj się za pomocą Face ID / Touch ID"
+  },
+  "web.auth.webauthn.setup": {
+    "en": "Set up biometric login",
+    "translation": "Skonfiguruj logowanie biometryczne"
+  },
+  "web.auth.webauthn.notSupported": {
+    "en": "Biometric authentication is not supported in this browser",
+    "translation": "Uwierzytelnianie biometryczne nie jest obsługiwane w tej przeglądarce"
+  },
+  "web.auth.webauthn.requiresModernBrowser": {
+    "en": "Please use a modern browser that supports WebAuthn (Chrome, Safari, Firefox, or Edge)",
+    "translation": "Użyj nowoczesnej przeglądarki obsługującej WebAuthn (Chrome, Safari, Firefox lub Edge)"
+  },
+  "web.auth.webauthn.setupSuccess": {
+    "en": "Biometric login has been enabled",
+    "translation": "Logowanie biometryczne zostało włączone"
+  },
+  "web.auth.webauthn.setupFailed": {
+    "en": "Failed to set up biometric login",
+    "translation": "Nie udało się skonfigurować logowania biometrycznego"
+  },
+  "web.auth.webauthn.authFailed": {
+    "en": "Biometric authentication failed. Please try again.",
+    "translation": "Uwierzytelnianie biometryczne nie powiodło się. Spróbuj ponownie."
+  },
+  "web.auth.webauthn.cancelled": {
+    "en": "Authentication was cancelled",
+    "translation": "Uwierzytelnianie zostało anulowane"
+  },
+  "web.auth.webauthn.processing": {
+    "en": "Authenticating...",
+    "translation": "Uwierzytelnianie..."
+  },
+  "web.auth.webauthn.description": {
+    "en": "Use your fingerprint, face, or security key to sign in",
+    "translation": "Użyj odcisku palca, twarzy lub klucza bezpieczeństwa do logowania"
+  },
+  "web.auth.webauthn.supportedMethods": {
+    "en": "Supports Face ID, Touch ID, Windows Hello, and security keys",
+    "translation": "Obsługuje Face ID, Touch ID, Windows Hello i klucze bezpieczeństwa"
+  },
+  "web.auth.lockout.attempts_remaining": {
+    "en": "Warning: {count} login attempt(s) remaining",
+    "translation": "Ostrzeżenie: pozostało {count} prób logowania"
+  },
+  "web.auth.lockout.account_locked": {
+    "en": "Account locked due to too many failed login attempts",
+    "translation": "Konto zablokowane z powodu zbyt wielu nieudanych prób logowania"
+  },
+  "web.auth.lockout.locked_until": {
+    "en": "Your account is locked until {time}",
+    "translation": "Twoje konto jest zablokowane do {time}"
+  },
+  "web.auth.lockout.contact_support": {
+    "en": "Contact support if you need immediate access",
+    "translation": "Skontaktuj się z pomocą techniczną, jeśli potrzebujesz natychmiastowego dostępu"
+  },
+  "web.auth.lockout.try_password_reset": {
+    "en": "You can reset your password instead",
+    "translation": "Możesz zamiast tego zresetować hasło"
+  },
+  "web.auth.sessions.title": {
+    "en": "Active Sessions",
+    "translation": "Aktywne sesje"
+  },
+  "web.auth.sessions.current": {
+    "en": "Current Session",
+    "translation": "Bieżąca sesja"
+  },
+  "web.auth.sessions.other": {
+    "en": "Other Sessions",
+    "translation": "Inne sesje"
+  },
+  "web.auth.sessions.device": {
+    "en": "Device",
+    "translation": "Urządzenie"
+  },
+  "web.auth.sessions.location": {
+    "en": "Location",
+    "translation": "Lokalizacja"
+  },
+  "web.auth.sessions.ip_address": {
+    "en": "IP Address",
+    "translation": "Adres IP"
+  },
+  "web.auth.sessions.last_active": {
+    "en": "Last Active",
+    "translation": "Ostatnia aktywność"
+  },
+  "web.auth.sessions.created": {
+    "en": "Created",
+    "translation": "Utworzono"
+  },
+  "web.auth.sessions.remove": {
+    "en": "Remove",
+    "translation": "Usuń"
+  },
+  "web.auth.sessions.remove_all": {
+    "en": "Logout All Other Sessions",
+    "translation": "Wyloguj wszystkie inne sesje"
+  },
+  "web.auth.sessions.confirm_remove": {
+    "en": "Are you sure you want to remove this session?",
+    "translation": "Czy na pewno chcesz usunąć tę sesję?"
+  },
+  "web.auth.sessions.confirm_remove_all": {
+    "en": "This will log you out from all other devices. Are you sure?",
+    "translation": "Spowoduje to wylogowanie ze wszystkich innych urządzeń. Czy na pewno?"
+  },
+  "web.auth.sessions.no_sessions": {
+    "en": "No other active sessions",
+    "translation": "Brak innych aktywnych sesji"
+  },
+  "web.auth.sessions.removed_success": {
+    "en": "Session removed successfully",
+    "translation": "Sesja usunięta pomyślnie"
+  },
+  "web.auth.sessions.removed_all_success": {
+    "en": "All other sessions have been logged out",
+    "translation": "Wszystkie inne sesje zostały wylogowane"
+  },
+  "web.auth.sessions.link_title": {
+    "en": "Active Sessions",
+    "translation": "Aktywne sesje"
+  },
+  "web.auth.mfa.title": {
+    "en": "Two-Factor Authentication",
+    "translation": "Uwierzytelnianie dwuskładnikowe"
+  },
+  "web.auth.mfa.enabled": {
+    "en": "Two-factor authentication is enabled",
+    "translation": "Uwierzytelnianie dwuskładnikowe jest włączone"
+  },
+  "web.auth.mfa.disabled": {
+    "en": "Two-factor authentication is disabled",
+    "translation": "Uwierzytelnianie dwuskładnikowe jest wyłączone"
+  },
+  "web.auth.mfa.enable": {
+    "en": "Enable Two-Factor Authentication",
+    "translation": "Włącz uwierzytelnianie dwuskładnikowe"
+  },
+  "web.auth.mfa.disable": {
+    "en": "Disable Two-Factor Authentication",
+    "translation": "Wyłącz uwierzytelnianie dwuskładnikowe"
+  },
+  "web.auth.mfa.setup_title": {
+    "en": "Set Up Two-Factor Authentication",
+    "translation": "Skonfiguruj uwierzytelnianie dwuskładnikowe"
+  },
+  "web.auth.mfa.setup_description": {
+    "en": "Add an extra layer of security to your account",
+    "translation": "Dodaj dodatkową warstwę bezpieczeństwa do swojego konta"
+  },
+  "web.auth.mfa.step_scan": {
+    "en": "1. Scan QR Code",
+    "translation": "1. Zeskanuj kod QR"
+  },
+  "web.auth.mfa.step_verify": {
+    "en": "2. Verify Setup",
+    "translation": "2. Zweryfikuj konfigurację"
+  },
+  "web.auth.mfa.scan_qr": {
+    "en": "Scan this QR code with your authenticator app",
+    "translation": "Zeskanuj ten kod QR za pomocą aplikacji uwierzytelniającej"
+  },
+  "web.auth.mfa.manual_entry": {
+    "en": "Or enter this code manually",
+    "translation": "Lub wprowadź ten kod ręcznie"
+  },
+  "web.auth.mfa.verify_code": {
+    "en": "Enter the 6-digit code from your app",
+    "translation": "Wprowadź 6-cyfrowy kod z aplikacji"
+  },
+  "web.auth.mfa.enter_code": {
+    "en": "Enter authentication code",
+    "translation": "Wprowadź kod uwierzytelniający"
+  },
+  "web.auth.mfa.verify": {
+    "en": "Verify and Enable",
+    "translation": "Zweryfikuj i włącz"
+  },
+  "web.auth.mfa.verify_login": {
+    "en": "Verify"
+  },
+  "web.auth.mfa.code_required": {
+    "en": "Authentication code is required",
+    "translation": "Kod uwierzytelniający jest wymagany"
+  },
+  "web.auth.mfa.invalid_code": {
+    "en": "Invalid code. Codes expire every 30 seconds. Try the latest code from your authenticator app.",
+    "translation": "Nieprawidłowy kod. Kody wygasają co 30 sekund. Wypróbuj najnowszy kod z aplikacji uwierzytelniającej."
+  },
+  "web.auth.mfa.success_enabled": {
+    "en": "Two-factor authentication has been enabled",
+    "translation": "Uwierzytelnianie dwuskładnikowe zostało włączone"
+  },
+  "web.auth.mfa.success_disabled": {
+    "en": "Two-factor authentication has been disabled",
+    "translation": "Uwierzytelnianie dwuskładnikowe zostało wyłączone"
+  },
+  "web.auth.mfa.require_password": {
+    "en": "Enter your password to disable 2FA",
+    "translation": "Wprowadź hasło, aby wyłączyć 2FA"
+  },
+  "web.auth.mfa.password_confirmation": {
+    "en": "Password",
+    "translation": "Hasło"
+  },
+  "web.auth.mfa.password_reason": {
+    "en": "Confirm your identity to modify two-factor authentication settings",
+    "translation": "Potwierdź swoją tożsamość, aby zmodyfikować ustawienia uwierzytelniania dwuskładnikowego"
+  },
+  "web.auth.mfa.last_used": {
+    "en": "Last used: {time}",
+    "translation": "Ostatnio użyte: {time}"
+  },
+  "web.auth.mfa.never_used": {
+    "en": "Never used",
+    "translation": "Nigdy nie użyte"
+  },
+  "web.auth.mfa.use_recovery_code": {
+    "en": "Use a recovery code instead",
+    "translation": "Zamiast tego użyj kodu odzyskiwania"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "en": "Use recovery code"
+  },
+  "web.auth.mfa.back_to_code": {
+    "en": "Back to authentication code",
+    "translation": "Wróć do kodu uwierzytelniającego"
+  },
+  "web.auth.mfa.cancel": {
+    "en": "Cancel and return to sign in",
+    "translation": "Anuluj i wróć do logowania"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "en": "Cancel sign in"
+  },
+  "web.auth.mfa.loading_status": {
+    "en": "Loading MFA status...",
+    "translation": "Ładowanie statusu MFA..."
+  },
+  "web.auth.mfa.protected_description": {
+    "en": "Your account is protected with two-factor authentication",
+    "translation": "Twoje konto jest chronione uwierzytelnianiem dwuskładnikowym"
+  },
+  "web.auth.mfa.enable_description": {
+    "en": "Protect your account with an additional layer of security",
+    "translation": "Chroń swoje konto dodatkową warstwą bezpieczeństwa"
+  },
+  "web.auth.mfa.benefit_unauthorized": {
+    "en": "Prevent unauthorized access even if your password is compromised",
+    "translation": "Zapobiegaj nieautoryzowanemu dostępowi, nawet jeśli Twoje hasło zostanie skompromitowane"
+  },
+  "web.auth.mfa.benefit_apps": {
+    "en": "Works with Google Authenticator, Authy, and other TOTP apps",
+    "translation": "Działa z Google Authenticator, Authy i innymi aplikacjami TOTP"
+  },
+  "web.auth.mfa.benefit_recovery": {
+    "en": "Backup recovery codes for emergency access",
+    "translation": "Zapasowe kody odzyskiwania na wypadek awarii"
+  },
+  "web.auth.mfa.password_placeholder": {
+    "en": "Enter your password",
+    "translation": "Wprowadź swoje hasło"
+  },
+  "web.auth.mfa.disabling": {
+    "en": "Disabling...",
+    "translation": "Wyłączanie..."
+  },
+  "web.auth.mfa.disable_button": {
+    "en": "Disable 2FA",
+    "translation": "Wyłącz 2FA"
+  },
+  "web.auth.mfa.generating_qr": {
+    "en": "Generating QR code...",
+    "translation": "Generowanie kodu QR..."
+  },
+  "web.auth.mfa.supported_apps": {
+    "en": "Use Google Authenticator, Authy, or any TOTP app",
+    "translation": "Użyj Google Authenticator, Authy lub dowolnej aplikacji TOTP"
+  },
+  "web.auth.mfa.continue_verification": {
+    "en": "Continue to Verification",
+    "translation": "Kontynuuj do weryfikacji"
+  },
+  "web.auth.mfa.enter_code_description": {
+    "en": "Enter the 6-digit code from your authenticator app",
+    "translation": "Wprowadź 6-cyfrowy kod z aplikacji uwierzytelniającej"
+  },
+  "web.auth.mfa.enable_and_continue": {
+    "en": "Enable MFA",
+    "translation": "Włącz MFA"
+  },
+  "web.auth.mfa.complete_setup": {
+    "en": "Complete Setup",
+    "translation": "Ukończ konfigurację"
+  },
+  "web.auth.mfa.enter_recovery_code": {
+    "en": "Enter one of your recovery codes",
+    "translation": "Wprowadź jeden z kodów odzyskiwania"
+  },
+  "web.auth.mfa.recovery_code_label": {
+    "en": "Recovery Code",
+    "translation": "Kod odzyskiwania"
+  },
+  "web.auth.mfa.recovery_code_placeholder": {
+    "en": "Enter recovery code",
+    "translation": "Wprowadź kod odzyskiwania"
+  },
+  "web.auth.mfa.verify_recovery_code": {
+    "en": "Verify Recovery Code",
+    "translation": "Zweryfikuj kod odzyskiwania"
+  },
+  "web.auth.mfa.six_digit_code": {
+    "en": "Enter 6-digit authentication code",
+    "translation": "Wprowadź 6-cyfrowy kod uwierzytelniający"
+  },
+  "web.auth.mfa.recovery_code_mode_active": {
+    "en": "Recovery code mode active",
+    "translation": "Tryb kodu odzyskiwania aktywny"
+  },
+  "web.auth.mfa.otp_mode_active": {
+    "en": "Authentication code mode active",
+    "translation": "Tryb kodu uwierzytelniającego aktywny"
+  },
+  "web.auth.mfa.enter_all_digits": {
+    "en": "Please enter all 6 digits to continue",
+    "translation": "Wprowadź wszystkie 6 cyfr, aby kontynuować"
+  },
+  "web.auth.mfa.digit_of_count": {
+    "en": "Digit {current} of {total}",
+    "translation": "Cyfra {current} z {total}"
+  },
+  "web.auth.recovery_codes.title": {
+    "en": "Recovery Codes",
+    "translation": "Kody odzyskiwania"
+  },
+  "web.auth.recovery_codes.description": {
+    "en": "Save these codes in a safe place. Each can be used once if you lose access to your authenticator.",
+    "translation": "Zapisz te kody w bezpiecznym miejscu. Każdy może zostać użyty raz, jeśli stracisz dostęp do aplikacji uwierzytelniającej."
+  },
+  "web.auth.recovery_codes.warning": {
+    "en": "These codes will only be shown once",
+    "translation": "Te kody będą wyświetlone tylko raz"
+  },
+  "web.auth.recovery_codes.save_required": {
+    "en": "You must download or copy your recovery codes before completing setup.",
+    "translation": "Musisz pobrać lub skopiować kody odzyskiwania przed zakończeniem konfiguracji."
+  },
+  "web.auth.recovery_codes.generate_new": {
+    "en": "Generate New Codes",
+    "translation": "Wygeneruj nowe kody"
+  },
+  "web.auth.recovery_codes.regenerate": {
+    "en": "Regenerate Codes",
+    "translation": "Wygeneruj ponownie kody"
+  },
+  "web.auth.recovery_codes.generate_new_warning": {
+    "en": "This will invalidate all existing recovery codes",
+    "translation": "To unieważni wszystkie istniejące kody odzyskiwania"
+  },
+  "web.auth.recovery_codes.download": {
+    "en": "Download Codes",
+    "translation": "Pobierz kody"
+  },
+  "web.auth.recovery_codes.downloaded": {
+    "en": "Recovery codes downloaded",
+    "translation": "Pobrano kody odzyskiwania"
+  },
+  "web.auth.recovery_codes.print": {
+    "en": "Print Codes",
+    "translation": "Wydrukuj kody"
+  },
+  "web.auth.recovery_codes.copy": {
+    "en": "Copy All Codes",
+    "translation": "Kopiuj wszystkie kody"
+  },
+  "web.auth.recovery_codes.copied": {
+    "en": "Codes copied to clipboard",
+    "translation": "Kody skopiowane do schowka"
+  },
+  "web.auth.recovery_codes.copy_failed": {
+    "en": "Failed to copy codes to clipboard",
+    "translation": "Nie udało się skopiować kodów do schowka"
+  },
+  "web.auth.recovery_codes.code_used": {
+    "en": "Used",
+    "translation": "Użyty"
+  },
+  "web.auth.recovery_codes.code_unused": {
+    "en": "Unused",
+    "translation": "Nieużyty"
+  },
+  "web.auth.recovery_codes.remaining": {
+    "en": "{count} of {limit} recovery codes remaining",
+    "translation": "Pozostało {count} kodów odzyskiwania"
+  },
+  "web.auth.recovery_codes.usage_hint": {
+    "en": "Each code can only be used once. Regenerate codes if you're running low.",
+    "translation": "Każdy kod może zostać użyty tylko raz. Wygeneruj nowe kody, gdy się kończą."
+  },
+  "web.auth.recovery_codes.none_remaining": {
+    "en": "No recovery codes remaining",
+    "translation": "Brak pozostałych kodów odzyskiwania"
+  },
+  "web.auth.recovery_codes.generate_success": {
+    "en": "New recovery codes have been generated",
+    "translation": "Wygenerowano nowe kody odzyskiwania"
+  },
+  "web.auth.recovery_codes.link_title": {
+    "en": "Recovery Codes",
+    "translation": "Kody odzyskiwania"
+  }
+}

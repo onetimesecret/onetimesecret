@@ -1,0 +1,594 @@
+{
+  "email.incomingsupport.subject": {
+    "en": "[Ticket: %s]",
+    "translation": "[Билет: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "en": "A customer has sent the following info",
+    "translation": "Клиент изпрати следната информация"
+  },
+  "email.secret_link.subject": {
+    "en": "%{sender_email} sent you a secret",
+    "translation": "%{sender_email} ви изпрати тайна"
+  },
+  "email.secret_link.sent_you_secret": {
+    "en": "sent you a secret:",
+    "translation": "ви изпрати тайна:"
+  },
+  "email.secret_link.important_label": {
+    "en": "Important:",
+    "translation": "Важно:"
+  },
+  "email.secret_link.link_works_once": {
+    "en": "This link will only work once. After viewing, the secret will be permanently deleted.",
+    "translation": "Тази връзка работи само веднъж. След преглед, тайната ще бъде изтрита безвъзвратно."
+  },
+  "email.secret_link.sent_via": {
+    "en": "Sent via",
+    "translation": "Изпратено чрез"
+  },
+  "email.welcome.subject": {
+    "en": "Welcome to %{product_name} - Please verify your email",
+    "translation": "Потвърдете вашия Onetime Secret акаунт"
+  },
+  "email.welcome.title": {
+    "en": "Welcome to %{product_name}!",
+    "translation": "Поканени сте да се присъедините към %{product_name}!"
+  },
+  "email.welcome.verify_prompt": {
+    "en": "Please verify your email address by clicking the link below:",
+    "translation": "Моля, потвърдете вашия имейл адрес, като щракнете на връзката по-долу:"
+  },
+  "email.welcome.verify_button": {
+    "en": "Verify Email Address",
+    "translation": "Потвърдете имейл адреса"
+  },
+  "email.welcome.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Или копирайте и поставете тази връзка:"
+  },
+  "email.welcome.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.welcome.postscript": {
+    "en": "P.S. This email was sent to %{email_address}. If you did not create an account, you can safely ignore this message.",
+    "translation": "P.S. Този имейл е изпратен до %{email_address}. Ако не сте очаквали тази покана, можете спокойно да игнорирате това съобщение."
+  },
+  "email.password_request.subject": {
+    "en": "Reset your password (%{display_domain})",
+    "translation": "Нулирайте паролата си (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "en": "Reset Your Password",
+    "translation": "Нулирайте паролата си"
+  },
+  "email.password_request.request_notice": {
+    "en": "We received a request to reset your password for %{product_name}.",
+    "translation": "Получихме заявка за нулиране на паролата ви за %{product_name}."
+  },
+  "email.password_request.reset_button": {
+    "en": "Reset Password",
+    "translation": "Нулиране на парола"
+  },
+  "email.password_request.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Или копирайте и поставете тази връзка:"
+  },
+  "email.password_request.ignore_notice": {
+    "en": "If you did not request a password reset, you can safely ignore this email.",
+    "translation": "Ако не сте заявили нулиране на парола, можете спокойно да игнорирате този имейл."
+  },
+  "email.password_request.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.password_request.postscript": {
+    "en": "P.S. This email was sent to %{email_address}.",
+    "translation": "P.S. Този имейл беше изпратен до %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "en": "Sign in to %{display_domain}",
+    "translation": "Влезте в %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "en": "Sign In with Magic Link",
+    "translation": "Вход с магическа връзка"
+  },
+  "email.magic_link.request_notice": {
+    "en": "You requested a login link for your %{product_name} account.",
+    "translation": "Поискахте връзка за вход в акаунта си в %{product_name}."
+  },
+  "email.magic_link.login_button": {
+    "en": "Sign In",
+    "translation": "Вход"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Или копирайте и поставете тази връзка:"
+  },
+  "email.magic_link.expiration_notice": {
+    "en": "This link will expire in 15 minutes.",
+    "translation": "Тази връзка ще изтече след 15 минути."
+  },
+  "email.magic_link.ignore_notice": {
+    "en": "If you did not request this link, you can safely ignore this email.",
+    "translation": "Ако не сте поискали тази връзка, можете спокойно да игнорирате този имейл."
+  },
+  "email.magic_link.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "en": "P.S. This email was sent to %{email_address}.",
+    "translation": "P.S. Този имейл беше изпратен до %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "en": "You've received a secret message",
+    "translation": "Получихте тайно съобщение"
+  },
+  "email.incoming_secret.received_message": {
+    "en": "You've received a secure message:",
+    "translation": "Получихте защитено съобщение:"
+  },
+  "email.incoming_secret.memo_label": {
+    "en": "Memo:",
+    "translation": "Бележка:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "en": "Someone has sent you a secure message through %{display_domain}.",
+    "translation": "Някой ви изпрати защитено съобщение чрез %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "en": "To view this secret, click the link below:",
+    "translation": "За да прегледате тази тайна, щракнете на връзката по-долу:"
+  },
+  "email.incoming_secret.important_label": {
+    "en": "Important:",
+    "translation": "Важно:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "en": "This link will only work once. After viewing, the secret will be permanently deleted.",
+    "translation": "Тази връзка работи само веднъж. След преглед, тайната ще бъде изтрита безвъзвратно."
+  },
+  "email.incoming_secret.sent_via": {
+    "en": "Sent via",
+    "translation": "Изпратено чрез"
+  },
+  "email.secret_revealed.subject": {
+    "en": "Your secret was viewed",
+    "translation": "Вашата тайна беше прегледана"
+  },
+  "email.secret_revealed.title": {
+    "en": "Your Secret Was Viewed",
+    "translation": "Вашата тайна беше прегледана"
+  },
+  "email.secret_revealed.viewed_on": {
+    "en": "Your secret was viewed on %{date}.",
+    "translation": "Вашата тайна беше прегледана на %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "en": "Secret ID:",
+    "translation": "ID на тайна:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "en": "This is an automated notification. No action is required.",
+    "translation": "Това е автоматично известие. Не се изисква действие."
+  },
+  "email.secret_revealed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "en": "Manage notification preferences",
+    "translation": "Управление на настройките за известия"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "en": "To manage your notification preferences:",
+    "translation": "За да управлявате настройките си за известия:"
+  },
+  "email.expiration_warning.subject": {
+    "en": "Your secret link will expire soon",
+    "translation": "Вашата връзка за тайната скоро ще изтече"
+  },
+  "email.expiration_warning.expires_in": {
+    "en": "Your secret link will expire in %{time_remaining}",
+    "translation": "Вашата връзка за тайната ще изтече след %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "en": "View your secret before it expires",
+    "translation": "Прегледайте тайната си преди да изтече"
+  },
+  "email.expiration_warning.reminder_label": {
+    "en": "Reminder:",
+    "translation": "Напомняне:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "en": "After expiration, the secret will be permanently deleted and cannot be recovered.",
+    "translation": "След изтичане, тайната ще бъде изтрита безвъзвратно и няма да може да бъде възстановена."
+  },
+  "email.expiration_warning.sent_via": {
+    "en": "Sent via",
+    "translation": "Изпратено чрез"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "en": "View it before it's gone:",
+    "translation": "Прегледайте я преди да изчезне:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "en": "After expiration, the secret will be permanently deleted.",
+    "translation": "След изтичане, тайната ще бъде изтрита безвъзвратно."
+  },
+  "email.feedback_email.subject": {
+    "en": "Feedback on %{date} via %{display_domain} (%{strategy})",
+    "translation": "Обратна връзка на %{date} чрез %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "en": "User Feedback",
+    "translation": "Обратна връзка от потребител"
+  },
+  "email.feedback_email.from_label": {
+    "en": "From:",
+    "translation": "От:"
+  },
+  "email.feedback_email.domain_label": {
+    "en": "Domain:",
+    "translation": "Домейн:"
+  },
+  "email.feedback_email.strategy_label": {
+    "en": "Strategy:",
+    "translation": "Стратегия:"
+  },
+  "email.feedback_email.message_label": {
+    "en": "Message:",
+    "translation": "Съобщение:"
+  },
+  "email.feedback_email.signature": {
+    "en": "Secret Support",
+    "translation": "Поддръжка на Secret"
+  },
+  "email.organization_invitation.subject": {
+    "en": "You've been invited to join %{organization_name}",
+    "translation": "Поканени сте да се присъедините към %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "en": "You've been invited to join %{organization_name}!",
+    "translation": "Поканени сте да се присъедините към %{organization_name}!"
+  },
+  "email.organization_invitation.body": {
+    "en": "%{inviter_email} has invited you to join \"%{organization_name}\" as %{role_description}.",
+    "translation": "%{inviter_email} ви покани да се присъедините към \"%{organization_name}\" като %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "en": "Accept Invitation",
+    "translation": "Приемане на покана"
+  },
+  "email.organization_invitation.link_instruction": {
+    "en": "Or copy and paste this link:",
+    "translation": "Или копирайте и поставете тази връзка:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "en": "This invitation will expire in %{days} days.",
+    "translation": "Тази покана ще изтече след %{days} дни."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "en": "If you don't want to join, you can simply ignore this email or decline the invitation.",
+    "translation": "Ако не искате да се присъедините, можете просто да игнорирате този имейл или да отхвърлите поканата."
+  },
+  "email.organization_invitation.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "en": "P.S. This email was sent to %{invited_email}. If you weren't expecting this invitation, you can safely ignore this message.",
+    "translation": "P.S. Този имейл е изпратен до %{invited_email}. Ако не сте очаквали тази покана, можете спокойно да игнорирате това съобщение."
+  },
+  "email.organization_invitation.roles.member": {
+    "en": "a member",
+    "translation": "член"
+  },
+  "email.organization_invitation.roles.admin": {
+    "en": "an administrator",
+    "translation": "администратор"
+  },
+  "email.password_changed.subject": {
+    "en": "Your password was changed (%{display_domain})",
+    "translation": "Вашата парола беше променена (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "en": "Your Password Was Changed",
+    "translation": "Вашата парола беше променена"
+  },
+  "email.password_changed.body": {
+    "en": "Your password for %{product_name} was changed on %{date} at %{time}.",
+    "translation": "Вашата парола за %{product_name} беше променена на %{date} в %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "en": "If you did not make this change, please secure your account immediately by resetting your password and contacting support.",
+    "translation": "Ако не сте направили тази промяна, моля, защитете акаунта си незабавно, като нулирате паролата си и се свържете с поддръжката."
+  },
+  "email.password_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.email_changed.subject": {
+    "en": "Your email address was changed (%{display_domain})",
+    "translation": "Вашият имейл адрес беше променен (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "en": "Your Email Address Was Changed",
+    "translation": "Вашият имейл адрес беше променен"
+  },
+  "email.email_changed.body": {
+    "en": "The email address for your %{product_name} account was changed to %{new_email_masked} on %{date}.",
+    "translation": "Имейл адресът за вашия акаунт в %{product_name} беше променен на %{new_email_masked} на %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "en": "If you did not make this change, please contact support immediately as your account may be compromised.",
+    "translation": "Ако не сте направили тази промяна, моля, свържете се с поддръжката незабавно, тъй като акаунтът ви може да е компрометиран."
+  },
+  "email.email_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "en": "Verify your new email address (%{display_domain})",
+    "translation": "Потвърдете новия си имейл адрес (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "en": "Verify Your New Email Address",
+    "translation": "Потвърдете новия си имейл адрес"
+  },
+  "email.email_change_confirmation.body": {
+    "en": "Please verify this email address to complete the change for your %{product_name} account.",
+    "translation": "Моля, потвърдете този имейл адрес, за да завършите промяната за вашия акаунт в %{product_name}."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "en": "Verify Email Address",
+    "translation": "Потвърдете имейл адреса"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Или копирайте и поставете тази връзка:"
+  },
+  "email.email_change_confirmation.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "en": "Two-factor authentication enabled (%{display_domain})",
+    "translation": "Двуфакторната автентикация е активирана (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "en": "Two-Factor Authentication Enabled",
+    "translation": "Двуфакторната автентикация е активирана"
+  },
+  "email.mfa_enabled.body": {
+    "en": "Two-factor authentication was enabled for your %{product_name} account on %{date}.",
+    "translation": "Двуфакторната автентикация беше активирана за вашия акаунт в %{product_name} на %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "en": "Your account is now more secure. You will need to enter a verification code from your authenticator app when signing in.",
+    "translation": "Вашият акаунт вече е по-защитен. Ще трябва да въведете код за потвърждение от вашето приложение за автентикация при влизане."
+  },
+  "email.mfa_enabled.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "en": "Two-factor authentication disabled (%{display_domain})",
+    "translation": "Двуфакторната автентикация е деактивирана (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "en": "Two-Factor Authentication Disabled",
+    "translation": "Двуфакторната автентикация е деактивирана"
+  },
+  "email.mfa_disabled.body": {
+    "en": "Two-factor authentication was disabled for your %{product_name} account on %{date}.",
+    "translation": "Двуфакторната автентикация беше деактивирана за вашия акаунт в %{product_name} на %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "en": "Your account is now less secure. If you did not make this change, please secure your account immediately.",
+    "translation": "Вашият акаунт вече е по-малко защитен. Ако не сте направили тази промяна, моля, защитете акаунта си незабавно."
+  },
+  "email.mfa_disabled.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "en": "New sign-in to your account (%{display_domain})",
+    "translation": "Ново влизане в акаунта ви (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "en": "New Sign-In Detected",
+    "translation": "Засечено е ново влизане"
+  },
+  "email.new_login_alert.body": {
+    "en": "A new sign-in to your %{product_name} account was detected on %{date} at %{time}.",
+    "translation": "Засечено е ново влизане във вашия акаунт в %{product_name} на %{date} в %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "en": "Device:",
+    "translation": "Устройство:"
+  },
+  "email.new_login_alert.location_label": {
+    "en": "Location:",
+    "translation": "Местоположение:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "en": "IP Address:",
+    "translation": "IP адрес:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "en": "If this wasn't you, your account may be compromised.",
+    "translation": "Ако това не сте вие, вашият акаунт може да е компрометиран."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "en": "Secure Your Account",
+    "translation": "Защитете акаунта си"
+  },
+  "email.new_login_alert.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.member_removed.subject": {
+    "en": "You've been removed from %{organization_name}",
+    "translation": "Премахнати сте от %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "en": "You've Been Removed from %{organization_name}",
+    "translation": "Премахнати сте от %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "en": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+    "translation": "Премахнати сте от организацията \"%{organization_name}\" в %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.role_changed.subject": {
+    "en": "Your role was changed in %{organization_name}",
+    "translation": "Вашата роля беше променена в %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "en": "Your Role Was Changed",
+    "translation": "Вашата роля беше променена"
+  },
+  "email.role_changed.body": {
+    "en": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+    "translation": "Вашата роля в \"%{organization_name}\" беше променена от %{old_role} на %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "en": "Organization \"%{organization_name}\" was deleted",
+    "translation": "Организацията \"%{organization_name}\" беше изтрита"
+  },
+  "email.organization_deleted.title": {
+    "en": "Organization Deleted",
+    "translation": "Организацията е изтрита"
+  },
+  "email.organization_deleted.body": {
+    "en": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+    "translation": "Организацията \"%{organization_name}\" беше изтрита от %{product_name}. Всички свързани данни са премахнати."
+  },
+  "email.organization_deleted.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "en": "Payment receipt for %{product_name}",
+    "translation": "Разписка за плащане за %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "en": "Payment Receipt",
+    "translation": "Разписка за плащане"
+  },
+  "email.payment_receipt.body": {
+    "en": "Thank you for your payment. Here are your payment details:",
+    "translation": "Благодарим ви за плащането. Ето детайлите за плащането:"
+  },
+  "email.payment_receipt.amount_label": {
+    "en": "Amount:",
+    "translation": "Сума:"
+  },
+  "email.payment_receipt.date_label": {
+    "en": "Date:",
+    "translation": "Дата:"
+  },
+  "email.payment_receipt.plan_label": {
+    "en": "Plan:",
+    "translation": "План:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "en": "View Invoice",
+    "translation": "Преглед на фактура"
+  },
+  "email.payment_receipt.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "en": "Payment failed for %{product_name}",
+    "translation": "Плащането за %{product_name} е неуспешно"
+  },
+  "email.payment_failed.title": {
+    "en": "Payment Failed",
+    "translation": "Плащането е неуспешно"
+  },
+  "email.payment_failed.body": {
+    "en": "We were unable to process your payment for %{product_name}. Please update your payment method to avoid service interruption.",
+    "translation": "Не успяхме да обработим плащането ви за %{product_name}. Моля, актуализирайте метода си на плащане, за да избегнете прекъсване на услугата."
+  },
+  "email.payment_failed.update_payment_button": {
+    "en": "Update Payment Method",
+    "translation": "Актуализиране на метода на плащане"
+  },
+  "email.payment_failed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "en": "Your %{product_name} trial expires in %{days_remaining} days",
+    "translation": "Вашият пробен период за %{product_name} изтича след %{days_remaining} дни"
+  },
+  "email.trial_expiring.title": {
+    "en": "Your Trial Is Ending Soon",
+    "translation": "Вашият пробен период скоро изтича"
+  },
+  "email.trial_expiring.body": {
+    "en": "Your free trial of %{product_name} will expire in %{days_remaining} days. Upgrade now to keep access to all features.",
+    "translation": "Вашият безплатен пробен период за %{product_name} ще изтече след %{days_remaining} дни. Надградете сега, за да запазите достъп до всички функции."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "en": "Upgrade Now",
+    "translation": "Надградете сега"
+  },
+  "email.trial_expiring.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "en": "Your %{product_name} subscription was changed",
+    "translation": "Вашият абонамент за %{product_name} беше променен"
+  },
+  "email.subscription_changed.title": {
+    "en": "Subscription Changed",
+    "translation": "Абонаментът е променен"
+  },
+  "email.subscription_changed.body": {
+    "en": "Your %{product_name} subscription has been changed from %{old_plan} to %{new_plan}.",
+    "translation": "Вашият абонамент за %{product_name} беше променен от %{old_plan} на %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "en": "This change is effective %{date}.",
+    "translation": "Тази промяна влиза в сила на %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.common.greeting": {
+    "en": "Hello,",
+    "translation": "Здравейте,"
+  },
+  "email.common.thanks": {
+    "en": "Thanks,",
+    "translation": "Благодарим,"
+  },
+  "email.common.unsubscribe": {
+    "en": "Unsubscribe",
+    "translation": "Отписване"
+  },
+  "email.common.view_in_browser": {
+    "en": "View in browser",
+    "translation": "Преглед в браузъра"
+  },
+  "email.common.onetime_secret": {
+    "en": "Onetime Secret",
+    "translation": "Onetime Secret"
+  }
+}

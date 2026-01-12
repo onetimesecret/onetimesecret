@@ -1,0 +1,1276 @@
+{
+  "web.COMMON.broadcast": {
+    "en": "",
+    "skip": true,
+    "note": "empty source"
+  },
+  "web.COMMON.tagline": {
+    "en": "Secure links that only work once",
+    "translation": "Liên kết an toàn chỉ hoạt động một lần"
+  },
+  "web.COMMON.powered_by": {
+    "en": "Powered by",
+    "translation": "Được hỗ trợ bởi"
+  },
+  "web.COMMON.website_url": {
+    "en": "https://onetimesecret.com/en",
+    "translation": "https://onetimesecret.com/vi"
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "en": "Generate Password",
+    "translation": "Tạo mật khẩu"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "en": "Generate Password is disabled when the form is valid",
+    "translation": "Tạo mật khẩu bị vô hiệu hóa khi biểu mẫu hợp lệ"
+  },
+  "web.COMMON.email_placeholder": {
+    "en": "e.g. tom{'@'}myspace.com",
+    "translation": "ví dụ tom{'@'}myspace.com"
+  },
+  "web.COMMON.password_placeholder": {
+    "en": "Enter your password",
+    "translation": "Nhập mật khẩu của bạn"
+  },
+  "web.COMMON.custom_domains_title": {
+    "en": "Custom Domains",
+    "translation": "Tên miền tùy chỉnh"
+  },
+  "web.COMMON.custom_domains_description": {
+    "en": "Strengthen connections and build trust with your own branded secret links.",
+    "translation": "Tăng cường kết nối và xây dựng lòng tin với liên kết bí mật mang thương hiệu của bạn."
+  },
+  "web.COMMON.get_started_button": {
+    "en": "Get Started",
+    "translation": "Bắt đầu"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "en": "Confirm your password",
+    "translation": "Xác nhận mật khẩu của bạn"
+  },
+  "web.COMMON.header_settings": {
+    "en": "Settings",
+    "translation": "Cài đặt"
+  },
+  "web.COMMON.submit_with": {
+    "en": "Submit",
+    "translation": "Gửi"
+  },
+  "web.COMMON.submitting": {
+    "en": "Submitting...",
+    "translation": "Đang gửi..."
+  },
+  "web.COMMON.processing": {
+    "en": "Processing...",
+    "translation": "Đang xử lý..."
+  },
+  "web.COMMON.description": {
+    "en": "Keep sensitive information out of your chat logs and email. Share a secret link that is available only one time.",
+    "translation": "Giữ thông tin nhạy cảm ra khỏi nhật ký trò chuyện và email của bạn. Chia sẻ liên kết bí mật chỉ khả dụng một lần."
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "en": "Incorrect passphrase",
+    "translation": "Cụm mật khẩu không đúng"
+  },
+  "web.COMMON.keywords": {
+    "en": "secret,password generator,share a secret,onetime",
+    "translation": "bí mật,tạo mật khẩu,chia sẻ bí mật,onetime"
+  },
+  "web.COMMON.button_create_secret": {
+    "en": "Create a secret link",
+    "translation": "Tạo liên kết bí mật"
+  },
+  "web.COMMON.button_generate_secret": {
+    "en": "Or generate a random password",
+    "translation": "Hoặc tạo mật khẩu ngẫu nhiên"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "en": "Privacy Options",
+    "translation": "Tùy chọn quyền riêng tư"
+  },
+  "web.COMMON.secret_passphrase": {
+    "en": "Passphrase",
+    "translation": "Cụm mật khẩu"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "en": "A word or phrase that's difficult to guess",
+    "translation": "Một từ hoặc cụm từ khó đoán"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "en": "Recipient Address",
+    "translation": "Địa chỉ người nhận"
+  },
+  "web.COMMON.secret_placeholder": {
+    "en": "Secret content goes here...",
+    "translation": "Nội dung bí mật ở đây..."
+  },
+  "web.COMMON.header_create_account": {
+    "en": "Create Account",
+    "translation": "Tạo tài khoản"
+  },
+  "web.COMMON.header_about": {
+    "en": "About",
+    "translation": "Giới thiệu"
+  },
+  "web.COMMON.header_sign_in": {
+    "en": "Sign In",
+    "translation": "Đăng nhập"
+  },
+  "web.COMMON.header_dashboard": {
+    "en": "Account",
+    "translation": "Tài khoản"
+  },
+  "web.COMMON.header_logout": {
+    "en": "Logout",
+    "translation": "Đăng xuất"
+  },
+  "web.COMMON.secret": {
+    "en": "Secret | Secrets",
+    "translation": "Bí mật"
+  },
+  "web.COMMON.recent": {
+    "en": "Recent",
+    "translation": "Gần đây"
+  },
+  "web.COMMON.received": {
+    "en": "Received",
+    "translation": "Đã nhận"
+  },
+  "web.COMMON.burn": {
+    "en": "Burn",
+    "translation": "Xóa vĩnh viễn"
+  },
+  "web.COMMON.burned": {
+    "en": "Burned",
+    "translation": "Đã xóa vĩnh viễn"
+  },
+  "web.COMMON.expires_in": {
+    "en": "Expires in",
+    "translation": "Hết hạn sau"
+  },
+  "web.COMMON.burn_this_secret": {
+    "en": "Burn this secret",
+    "translation": "Xóa vĩnh viễn bí mật này"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "en": "Burning a secret will delete it before it has been read (click to confirm)",
+    "translation": "Xóa vĩnh viễn bí mật sẽ xóa nó trước khi được đọc (nhấp để xác nhận)"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "en": "Burning a secret is permanent and cannot be undone",
+    "translation": "Xóa vĩnh viễn bí mật là không thể hoàn tác"
+  },
+  "web.COMMON.msg_check_email": {
+    "en": "Check your email",
+    "translation": "Kiểm tra email của bạn"
+  },
+  "web.COMMON.click_to_continue": {
+    "en": "Click to reveal →",
+    "translation": "Nhấp để hiển thị →"
+  },
+  "web.COMMON.click_to_verify": {
+    "en": "Continue to verify your account:",
+    "translation": "Tiếp tục để xác minh tài khoản của bạn:"
+  },
+  "web.COMMON.error_secret": {
+    "en": "You did not provide anything to share",
+    "translation": "Bạn chưa cung cấp gì để chia sẻ"
+  },
+  "web.COMMON.error_passphrase": {
+    "en": "Double check that passphrase",
+    "translation": "Kiểm tra lại cụm mật khẩu đó"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "en": "Enter the passphrase here",
+    "translation": "Nhập cụm mật khẩu ở đây"
+  },
+  "web.COMMON.view_secret": {
+    "en": "View Secret",
+    "translation": "Xem bí mật"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "en": "Careful: we will only show it once.",
+    "translation": "Cẩn thận: chúng tôi chỉ hiển thị một lần."
+  },
+  "web.COMMON.warning": {
+    "en": "Warning",
+    "translation": "Cảnh báo"
+  },
+  "web.COMMON.oops": {
+    "en": "Oops!",
+    "translation": "Rất tiếc!"
+  },
+  "web.COMMON.error": {
+    "en": "Error",
+    "translation": "Lỗi"
+  },
+  "web.COMMON.unexpected_error": {
+    "en": "An unexpected error occurred. Please try again.",
+    "translation": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
+  },
+  "web.COMMON.secret_was_truncated": {
+    "en": "The message was truncated",
+    "translation": "Tin nhắn đã được cắt ngắn"
+  },
+  "web.COMMON.signup_for_more": {
+    "en": "Signup for more",
+    "translation": "Đăng ký để có thêm"
+  },
+  "web.COMMON.login_to_your_account": {
+    "en": "Log in to your account",
+    "translation": "Đăng nhập vào tài khoản của bạn"
+  },
+  "web.COMMON.sent_to": {
+    "en": "Sent to: ",
+    "translation": "Đã gửi tới: "
+  },
+  "web.COMMON.field_email": {
+    "en": "Email",
+    "translation": "Email"
+  },
+  "web.COMMON.field_password": {
+    "en": "Password",
+    "translation": "Mật khẩu"
+  },
+  "web.COMMON.field_password2": {
+    "en": "Confirm Password",
+    "translation": "Xác nhận mật khẩu"
+  },
+  "web.COMMON.button_create_account": {
+    "en": "Create Account",
+    "translation": "Tạo tài khoản"
+  },
+  "web.COMMON.share_a_secret": {
+    "en": "Share a secret",
+    "translation": "Chia sẻ bí mật"
+  },
+  "web.COMMON.title_home": {
+    "en": "Home",
+    "translation": "Trang chủ"
+  },
+  "web.COMMON.word_none": {
+    "en": "None",
+    "translation": "Không có"
+  },
+  "web.COMMON.word_burned": {
+    "en": "burned",
+    "translation": "đã xóa vĩnh viễn"
+  },
+  "web.COMMON.word_received": {
+    "en": "received",
+    "translation": "đã nhận"
+  },
+  "web.COMMON.word_confirm": {
+    "en": "Confirm",
+    "translation": "Xác nhận"
+  },
+  "web.COMMON.word_cancel": {
+    "en": "Cancel",
+    "translation": "Hủy"
+  },
+  "web.COMMON.word_continue": {
+    "en": "Continue",
+    "translation": "Tiếp tục"
+  },
+  "web.COMMON.word_done": {
+    "en": "Done",
+    "translation": "Xong"
+  },
+  "web.COMMON.back": {
+    "en": "Back",
+    "translation": "Quay lại"
+  },
+  "web.COMMON.feedback_text": {
+    "en": "Share your thoughts, ideas, or experiences...",
+    "translation": "Chia sẻ suy nghĩ, ý tưởng hoặc trải nghiệm của bạn..."
+  },
+  "web.COMMON.button_send_feedback": {
+    "en": "Send Feedback",
+    "translation": "Gửi phản hồi"
+  },
+  "web.COMMON.verification_sent_to": {
+    "en": "A verification was sent to",
+    "translation": "Xác minh đã được gửi tới"
+  },
+  "web.COMMON.autoverified_success": {
+    "en": "Account created. Please sign in.",
+    "translation": "Tài khoản đã được tạo. Vui lòng đăng nhập."
+  },
+  "web.COMMON.signup_success_generic": {
+    "en": "If an account with this email exists, you will receive a verification email.",
+    "translation": "Nếu tài khoản với email này tồn tại, bạn sẽ nhận được email xác minh."
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "en": "Burn this secret permanently",
+    "translation": "Xóa vĩnh viễn bí mật này"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "en": "Please Confirm",
+    "translation": "Vui lòng xác nhận"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "en": "Are you sure you want to burn this secret? This action cannot be undone.",
+    "translation": "Bạn có chắc chắn muốn xóa vĩnh viễn bí mật này? Hành động này không thể hoàn tác."
+  },
+  "web.COMMON.confirm_burn": {
+    "en": "Yes, burn this secret",
+    "translation": "Có, xóa vĩnh viễn bí mật này"
+  },
+  "web.COMMON.burn_security_notice": {
+    "en": "Burning a secret will delete it before it has been received.",
+    "translation": "Xóa vĩnh viễn bí mật sẽ xóa nó trước khi được nhận."
+  },
+  "web.COMMON.share_link_securely": {
+    "en": "For security, share this link separately from other details.",
+    "translation": "Để bảo mật, chia sẻ liên kết này riêng biệt với các chi tiết khác."
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "en": "Copied to clipboard",
+    "translation": "Đã sao chép vào clipboard"
+  },
+  "web.COMMON.button_create_incoming": {
+    "en": "Create Incoming",
+    "translation": "Tạo yêu cầu nhận"
+  },
+  "web.COMMON.faq_title": {
+    "en": "F.A.Q.",
+    "translation": "Câu hỏi thường gặp"
+  },
+  "web.COMMON.verification_not_valid": {
+    "en": "Verification is not valid",
+    "translation": "Xác minh không hợp lệ"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "en": "Cannot verify an account when you're already logged in",
+    "translation": "Không thể xác minh tài khoản khi bạn đã đăng nhập"
+  },
+  "web.COMMON.show_password": {
+    "en": "Show password",
+    "translation": "Hiện mật khẩu"
+  },
+  "web.COMMON.hide_password": {
+    "en": "Hide password",
+    "translation": "Ẩn mật khẩu"
+  },
+  "web.COMMON.minimum_8_characters": {
+    "en": "Password must be at least 8 characters",
+    "translation": "Mật khẩu phải có ít nhất 8 ký tự"
+  },
+  "web.COMMON.password_requirements": {
+    "en": "Password must be at least 8 characters long",
+    "translation": "Mật khẩu phải dài ít nhất 8 ký tự"
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "en": "Passwords do not match",
+    "translation": "Mật khẩu không khớp"
+  },
+  "web.COMMON.form_field_required": {
+    "en": "This field is required",
+    "translation": "Trường này là bắt buộc"
+  },
+  "web.COMMON.form_processing": {
+    "en": "Processing your request",
+    "translation": "Đang xử lý yêu cầu của bạn"
+  },
+  "web.COMMON.remember_me_description": {
+    "en": "Keep me logged in for 30 days",
+    "translation": "Giữ tôi đăng nhập trong 30 ngày"
+  },
+  "web.COMMON.redirecting": {
+    "en": "Redirecting...",
+    "translation": "Đang chuyển hướng..."
+  },
+  "web.COMMON.continue": {
+    "en": "Continue",
+    "translation": "Tiếp tục"
+  },
+  "web.COMMON.are_you_sure": {
+    "en": "Are you sure?",
+    "translation": "Bạn có chắc chắn?"
+  },
+  "web.COMMON.danger_zone": {
+    "en": "Danger Zone",
+    "translation": "Vùng nguy hiểm"
+  },
+  "web.COMMON.caution_zone": {
+    "en": "Careful Consideration Zone",
+    "translation": "Vùng cân nhắc cẩn thận"
+  },
+  "web.COMMON.user_menu": {
+    "en": "User menu",
+    "translation": "Menu người dùng"
+  },
+  "web.COMMON.security": {
+    "en": "Security",
+    "translation": "Bảo mật"
+  },
+  "web.COMMON.manage": {
+    "en": "Manage",
+    "translation": "Quản lý"
+  },
+  "web.COMMON.loading": {
+    "en": "Loading...",
+    "translation": "Đang tải..."
+  },
+  "web.COMMON.save_changes": {
+    "en": "Save Changes",
+    "translation": "Lưu thay đổi"
+  },
+  "web.COMMON.saving": {
+    "en": "Saving...",
+    "translation": "Đang lưu..."
+  },
+  "web.COMMON.adding_ellipses": {
+    "en": "Adding",
+    "translation": "Đang thêm..."
+  },
+  "web.COMMON.e_g_example": {
+    "en": "e.g.",
+    "translation": "ví dụ:"
+  },
+  "web.COMMON.example_placeholder": {
+    "en": "e.g. {example}",
+    "translation": "ví dụ: {example}"
+  },
+  "web.COMMON.status": {
+    "en": "Status",
+    "translation": "Trạng thái"
+  },
+  "web.COMMON.escape": {
+    "en": "Escape",
+    "translation": "Escape"
+  },
+  "web.COMMON.active": {
+    "en": "Active",
+    "translation": "Hoạt động"
+  },
+  "web.COMMON.preview": {
+    "en": "Preview",
+    "translation": "Xem trước"
+  },
+  "web.COMMON.remove": {
+    "en": "Remove",
+    "translation": "Xóa"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "en": "Press ESC to close",
+    "translation": "Nhấn ESC để đóng"
+  },
+  "web.COMMON.enter": {
+    "en": "Enter",
+    "translation": "Enter"
+  },
+  "web.COMMON.important": {
+    "en": "Important",
+    "translation": "Quan trọng"
+  },
+  "web.COMMON.language": {
+    "en": "Language",
+    "translation": "Ngôn ngữ"
+  },
+  "web.COMMON.theme": {
+    "en": "Theme",
+    "translation": "Giao diện"
+  },
+  "web.COMMON.appearance": {
+    "en": "Appearance",
+    "translation": "Giao diện"
+  },
+  "web.COMMON.done": {
+    "en": "Done",
+    "translation": "Xong"
+  },
+  "web.COMMON.end": {
+    "en": "End",
+    "translation": "Kết thúc"
+  },
+  "web.COMMON.general": {
+    "en": "General",
+    "translation": "Chung"
+  },
+  "web.COMMON.note": {
+    "en": "Note",
+    "translation": "Lưu ý"
+  },
+  "web.COMMON.monthly": {
+    "en": "Monthly",
+    "translation": "Hàng tháng"
+  },
+  "web.COMMON.yearly": {
+    "en": "Yearly",
+    "translation": "Hàng năm"
+  },
+  "web.COMMON.go_on_then": {
+    "en": "Go on then.",
+    "translation": "Tiếp tục đi."
+  },
+  "web.COMMON.loading_ellipses": {
+    "en": "Loading...",
+    "translation": "Đang tải..."
+  },
+  "web.COMMON.not_received": {
+    "en": "NOT RECEIVED",
+    "translation": "CHƯA NHẬN"
+  },
+  "web.COMMON.confirm_password": {
+    "en": "Confirm password",
+    "translation": "Xác nhận mật khẩu"
+  },
+  "web.COMMON.new_password": {
+    "en": "New password",
+    "translation": "Mật khẩu mới"
+  },
+  "web.COMMON.email_address": {
+    "en": "Email address",
+    "translation": "Địa chỉ email"
+  },
+  "web.COMMON.switch": {
+    "en": "switch",
+    "translation": "chuyển"
+  },
+  "web.COMMON.features": {
+    "en": "Features",
+    "translation": "Tính năng"
+  },
+  "web.COMMON.not_found": {
+    "en": "Not Found",
+    "translation": "Không tìm thấy"
+  },
+  "web.COMMON.emoji_x": {
+    "en": "❌",
+    "translation": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "en": "✅",
+    "translation": "✅"
+  },
+  "web.COMMON.supported": {
+    "en": "Supported",
+    "translation": "Được hỗ trợ"
+  },
+  "web.COMMON.version": {
+    "en": "Version",
+    "translation": "Phiên bản"
+  },
+  "web.COMMON.other": {
+    "en": "Other",
+    "translation": "Khác"
+  },
+  "web.COMMON.min_width_1024px": {
+    "en": "(min-width: 1024px)",
+    "translation": "(chiều rộng tối thiểu: 1024px)"
+  },
+  "web.COMMON.ctrl_enter": {
+    "en": "Ctrl + Enter",
+    "translation": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "en": "⌘ + Enter",
+    "translation": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "en": "Mac",
+    "translation": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "en": "Email address copied to clipboard!",
+    "translation": "Đã sao chép địa chỉ email vào clipboard!"
+  },
+  "web.COMMON.value": {
+    "en": "Value",
+    "translation": "Giá trị"
+  },
+  "web.COMMON.host": {
+    "en": "Host",
+    "translation": "Máy chủ"
+  },
+  "web.COMMON.type": {
+    "en": "Type",
+    "translation": "Loại"
+  },
+  "web.COMMON.previous": {
+    "en": "Previous",
+    "translation": "Trước"
+  },
+  "web.COMMON.next": {
+    "en": "Next",
+    "translation": "Tiếp"
+  },
+  "web.COMMON.password_strength": {
+    "en": "Password Strength:",
+    "translation": "Độ mạnh mật khẩu:"
+  },
+  "web.COMMON.great": {
+    "en": "Great",
+    "translation": "Tuyệt vời"
+  },
+  "web.COMMON.pretty_good": {
+    "en": "Pretty good",
+    "translation": "Khá tốt"
+  },
+  "web.COMMON.fair": {
+    "en": "Fair",
+    "translation": "Khá"
+  },
+  "web.COMMON.meh": {
+    "en": "Meh",
+    "translation": "Tạm được"
+  },
+  "web.COMMON.not_great": {
+    "en": "Not great",
+    "translation": "Chưa tốt"
+  },
+  "web.COMMON.open_options": {
+    "en": "Open options",
+    "translation": "Mở tùy chọn"
+  },
+  "web.COMMON.inactive": {
+    "en": "Inactive",
+    "translation": "Không hoạt động"
+  },
+  "web.COMMON.an_error_occurred": {
+    "en": "An error occurred",
+    "translation": "Đã xảy ra lỗi"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "en": "Copy secret to clipboard",
+    "translation": "Sao chép bí mật vào clipboard"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "en": "Secret copied to clipboard",
+    "translation": "Đã sao chép bí mật vào clipboard"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "en": "Double check that passphrase",
+    "translation": "Kiểm tra lại cụm mật khẩu đó"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "en": "Press the copy button below.",
+    "translation": "Nhấn nút sao chép bên dưới."
+  },
+  "web.LABELS.view_toggle.show": {
+    "en": "Show",
+    "translation": "Hiển thị"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "en": "Hide",
+    "translation": "Ẩn"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "en": "Show More",
+    "translation": "Hiển thị thêm"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "en": "Show Less",
+    "translation": "Ẩn bớt"
+  },
+  "web.LABELS.enable": {
+    "en": "Enable",
+    "translation": "Bật"
+  },
+  "web.LABELS.disable": {
+    "en": "Disable",
+    "translation": "Tắt"
+  },
+  "web.LABELS.stats": {
+    "en": "Stats",
+    "translation": "Thống kê"
+  },
+  "web.LABELS.timeline": {
+    "en": "Timeline",
+    "translation": "Dòng thời gian"
+  },
+  "web.LABELS.lifespan": {
+    "en": "Lifespan",
+    "translation": "Thời gian tồn tại"
+  },
+  "web.LABELS.expiration_time": {
+    "en": "Expiration Time",
+    "translation": "Thời gian hết hạn"
+  },
+  "web.LABELS.close": {
+    "en": "Close",
+    "translation": "Đóng"
+  },
+  "web.LABELS.loading": {
+    "en": "Loading...",
+    "translation": "Đang tải..."
+  },
+  "web.LABELS.cancel": {
+    "en": "Cancel",
+    "translation": "Hủy"
+  },
+  "web.LABELS.saving": {
+    "en": "Saving...",
+    "translation": "Đang lưu..."
+  },
+  "web.LABELS.saved": {
+    "en": "Saved",
+    "translation": "Đã lưu"
+  },
+  "web.LABELS.save": {
+    "en": "Save",
+    "translation": "Lưu"
+  },
+  "web.LABELS.save_all": {
+    "en": "Save All",
+    "translation": "Lưu tất cả"
+  },
+  "web.LABELS.details": {
+    "en": "Details",
+    "translation": "Chi tiết"
+  },
+  "web.LABELS.encrypted": {
+    "en": "Encrypted",
+    "translation": "Đã mã hóa"
+  },
+  "web.LABELS.secret_status": {
+    "en": "Secret Status",
+    "translation": "Trạng thái bí mật"
+  },
+  "web.LABELS.need_help": {
+    "en": "Need help?",
+    "translation": "Cần trợ giúp?"
+  },
+  "web.LABELS.create_new_secret": {
+    "en": "Create New Secret",
+    "translation": "Tạo bí mật mới"
+  },
+  "web.LABELS.actions": {
+    "en": "Actions",
+    "translation": "Hành động"
+  },
+  "web.LABELS.no_passphrase": {
+    "en": "No Passphrase Required",
+    "translation": "Không yêu cầu cụm mật khẩu"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "en": "Copy to clipboard",
+    "translation": "Sao chép vào clipboard"
+  },
+  "web.LABELS.receipts": {
+    "en": "Receipts",
+    "translation": "Biên nhận"
+  },
+  "web.LABELS.share": {
+    "en": "Share",
+    "translation": "Chia sẻ"
+  },
+  "web.LABELS.secret_link": {
+    "en": "Secret Link",
+    "translation": "Liên kết bí mật"
+  },
+  "web.LABELS.dismiss": {
+    "en": "Dismiss",
+    "translation": "Bỏ qua"
+  },
+  "web.LABELS.security_details": {
+    "en": "Security Details",
+    "translation": "Chi tiết bảo mật"
+  },
+  "web.LABELS.items_count": {
+    "en": "{count} Items",
+    "translation": "{count} mục"
+  },
+  "web.LABELS.recipients_count": {
+    "en": "{count} Recipients",
+    "translation": "{count} người nhận"
+  },
+  "web.LABELS.view": {
+    "en": "View",
+    "translation": "Xem"
+  },
+  "web.LABELS.views": {
+    "en": "Views",
+    "translation": "Lượt xem"
+  },
+  "web.LABELS.times_viewed": {
+    "en": "times viewed",
+    "translation": "lần xem"
+  },
+  "web.LABELS.view_progress": {
+    "en": "View Progress",
+    "translation": "Tiến độ xem"
+  },
+  "web.LABELS.help_section": {
+    "en": "Help Section",
+    "translation": "Phần trợ giúp"
+  },
+  "web.LABELS.passphrase_protected": {
+    "en": "Protected with passphrase",
+    "translation": "Được bảo vệ bằng cụm mật khẩu"
+  },
+  "web.LABELS.feedback_received": {
+    "en": "Feedback received.",
+    "translation": "Đã nhận phản hồi."
+  },
+  "web.LABELS.sending_ellipses": {
+    "en": "Sending...",
+    "translation": "Đang gửi..."
+  },
+  "web.LABELS.title_recent_secrets": {
+    "en": "Recent Secrets",
+    "translation": "Bí mật gần đây"
+  },
+  "web.LABELS.pricing": {
+    "en": "Pricing",
+    "translation": "Bảng giá"
+  },
+  "web.LABELS.refresh": {
+    "en": "Refresh",
+    "translation": "Làm mới"
+  },
+  "web.LABELS.reload": {
+    "en": "Reload",
+    "translation": "Tải lại"
+  },
+  "web.LABELS.filter": {
+    "en": "Filter"
+  },
+  "web.LABELS.clear": {
+    "en": "Clear"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "en": "Secrets links created in this session",
+    "translation": "Liên kết bí mật được tạo trong phiên này"
+  },
+  "web.LABELS.create_link_short": {
+    "en": "Create Link",
+    "translation": "Tạo liên kết"
+  },
+  "web.LABELS.create_link": {
+    "en": "Create Secret Link",
+    "translation": "Tạo liên kết bí mật"
+  },
+  "web.LABELS.create_request_short": {
+    "en": "Create Request",
+    "translation": "Tạo yêu cầu"
+  },
+  "web.LABELS.create_request": {
+    "en": "Create Request Link",
+    "translation": "Tạo liên kết yêu cầu"
+  },
+  "web.LABELS.related_settings": {
+    "en": "Related Settings",
+    "translation": "Cài đặt liên quan"
+  },
+  "web.LABELS.creating_links_for": {
+    "en": "Creating links for",
+    "translation": "Đang tạo liên kết cho"
+  },
+  "web.LABELS.scope_indicator": {
+    "en": "Creating secrets in {domain}",
+    "translation": "Đang tạo bí mật trong {domain}"
+  },
+  "web.STATUS.new": {
+    "en": "New",
+    "translation": "Mới"
+  },
+  "web.STATUS.unread": {
+    "en": "Unread",
+    "translation": "Chưa đọc"
+  },
+  "web.STATUS.viewed": {
+    "en": "Link opened",
+    "translation": "Đã mở liên kết"
+  },
+  "web.STATUS.received": {
+    "en": "Received",
+    "translation": "Đã nhận"
+  },
+  "web.STATUS.burned": {
+    "en": "Burned",
+    "translation": "Đã xóa vĩnh viễn"
+  },
+  "web.STATUS.destroyed": {
+    "en": "Destroyed",
+    "translation": "Đã hủy"
+  },
+  "web.STATUS.expiring_soon": {
+    "en": "Expiring Soon",
+    "translation": "Sắp hết hạn"
+  },
+  "web.STATUS.created": {
+    "en": "Created",
+    "translation": "Đã tạo"
+  },
+  "web.STATUS.expires": {
+    "en": "Expires",
+    "translation": "Hết hạn"
+  },
+  "web.STATUS.expired": {
+    "en": "Expired",
+    "translation": "Đã hết hạn"
+  },
+  "web.STATUS.orphaned": {
+    "en": "Orphaned",
+    "translation": "Đã mồ côi"
+  },
+  "web.STATUS.secured": {
+    "en": "Secured",
+    "translation": "Đã bảo mật"
+  },
+  "web.STATUS.securing": {
+    "en": "Securing",
+    "translation": "Đang bảo mật"
+  },
+  "web.STATUS.copied": {
+    "en": "Copied",
+    "translation": "Đã sao chép"
+  },
+  "web.STATUS.time_remaining": {
+    "en": "Time Remaining",
+    "translation": "Thời gian còn lại"
+  },
+  "web.STATUS.new_description": {
+    "en": "Secret link has been created and not yet viewed",
+    "translation": "Liên kết bí mật đã được tạo và chưa được xem"
+  },
+  "web.STATUS.unread_description": {
+    "en": "Secret link has been created and has not been viewed",
+    "translation": "Liên kết bí mật đã được tạo và chưa được xem"
+  },
+  "web.STATUS.viewed_description": {
+    "en": "Secret link has been opened and ready to be viewed",
+    "translation": "Liên kết bí mật đã được mở và sẵn sàng xem"
+  },
+  "web.STATUS.received_description": {
+    "en": "Secret has been revealed to the recipient",
+    "translation": "Bí mật đã được tiết lộ cho người nhận"
+  },
+  "web.STATUS.burned_description": {
+    "en": "Secret was manually burned before being viewed",
+    "translation": "Bí mật đã được xóa vĩnh viễn thủ công trước khi được xem"
+  },
+  "web.STATUS.destroyed_description": {
+    "en": "Secret has been permanently destroyed",
+    "translation": "Bí mật đã được hủy vĩnh viễn"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "en": "Secret will expire soon",
+    "translation": "Bí mật sẽ sớm hết hạn"
+  },
+  "web.STATUS.orphaned_description": {
+    "en": "Secret has been orphaned and will be destroyed soon",
+    "translation": "Bí mật đã bị mồ côi và sẽ sớm bị hủy"
+  },
+  "web.STATUS.expired_description": {
+    "en": "Secret has expired before being viewed",
+    "translation": "Bí mật đã hết hạn trước khi được xem"
+  },
+  "web.STATUS.success": {
+    "en": "Success",
+    "translation": "Thành công"
+  },
+  "web.STATUS.delivered": {
+    "en": "Delivered",
+    "translation": "Đã gửi"
+  },
+  "web.STATUS.dns_incorrect": {
+    "en": "DNS Incorrect",
+    "translation": "DNS không chính xác"
+  },
+  "web.STATUS.active": {
+    "en": "Active",
+    "translation": "Hoạt động"
+  },
+  "web.STATUS.inactive": {
+    "en": "Inactive",
+    "translation": "Không hoạt động"
+  },
+  "web.FEATURES.unlimited_views": {
+    "en": "Unlimited Views",
+    "translation": "Xem không giới hạn"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "en": "Trusted domain branding",
+    "translation": "Thương hiệu tên miền đáng tin cậy"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "en": "Encrypted in transit and at rest",
+    "translation": "Mã hóa khi truyền và khi lưu trữ"
+  },
+  "web.UNITS.ttl.duration": {
+    "en": "{count} {unit}",
+    "translation": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "en": "day | days",
+    "translation": "ngày"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "en": "hour | hours",
+    "translation": "giờ"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "en": "minute | minutes",
+    "translation": "phút"
+  },
+  "web.UNITS.ttl.time.second": {
+    "en": "second | seconds",
+    "translation": "giây"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "en": "---",
+    "translation": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "en": "{count} {unit} remaining",
+    "translation": "còn {count} {unit}"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "en": "day remaining | days remaining",
+    "translation": "ngày"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "en": "hour remaining | hours remaining",
+    "translation": "giờ"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "en": "minute remaining | minutes remaining",
+    "translation": "phút"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "en": "second remaining | seconds remaining",
+    "translation": "giây"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "en": "---",
+    "translation": "---"
+  },
+  "web.UNITS.limited_views": {
+    "en": "{count} view limit",
+    "translation": "giới hạn {count} lượt xem"
+  },
+  "web.UNITS.days_remaining": {
+    "en": "{count} Days Left",
+    "translation": "Còn {count} ngày"
+  },
+  "web.UNITS.hours_remaining": {
+    "en": "{count} Hours Left",
+    "translation": "Còn {count} giờ"
+  },
+  "web.UNITS.minutes_remaining": {
+    "en": "{count} Minutes Left",
+    "translation": "Còn {count} phút"
+  },
+  "web.TITLES.incoming": {
+    "en": "Incoming Secrets",
+    "translation": "Bí mật đến"
+  },
+  "web.TITLES.feedback": {
+    "en": "Feedback",
+    "translation": "Phản hồi"
+  },
+  "web.TITLES.help": {
+    "en": "Help"
+  },
+  "web.TITLES.signin": {
+    "en": "Sign In",
+    "translation": "Đăng nhập"
+  },
+  "web.TITLES.signup": {
+    "en": "Create Account",
+    "translation": "Tạo tài khoản"
+  },
+  "web.TITLES.forgot_password": {
+    "en": "Forgot Password",
+    "translation": "Quên mật khẩu"
+  },
+  "web.TITLES.reset_password": {
+    "en": "Reset Password",
+    "translation": "Đặt lại mật khẩu"
+  },
+  "web.TITLES.logout": {
+    "en": "Logging Out",
+    "translation": "Đang đăng xuất"
+  },
+  "web.TITLES.verify_account": {
+    "en": "Verify Account",
+    "translation": "Xác minh tài khoản"
+  },
+  "web.TITLES.mfa_verify": {
+    "en": "Two-Factor Authentication",
+    "translation": "Xác thực hai yếu tố"
+  },
+  "web.TITLES.email_login": {
+    "en": "Email Login",
+    "translation": "Đăng nhập bằng email"
+  },
+  "web.TITLES.accept_invitation": {
+    "en": "Accept Invitation",
+    "translation": "Chấp nhận lời mời"
+  },
+  "web.TITLES.secret": {
+    "en": "Secret",
+    "translation": "Bí mật"
+  },
+  "web.TITLES.metadata": {
+    "en": "Secret Details",
+    "translation": "Chi tiết bí mật"
+  },
+  "web.TITLES.receipt": {
+    "en": "Secret Receipt",
+    "translation": "Biên nhận bí mật"
+  },
+  "web.TITLES.burn_secret": {
+    "en": "Burn Secret",
+    "translation": "Xóa vĩnh viễn bí mật"
+  },
+  "web.TITLES.dashboard": {
+    "en": "Dashboard",
+    "translation": "Bảng điều khiển"
+  },
+  "web.TITLES.recent": {
+    "en": "Recent Secrets",
+    "translation": "Bí mật gần đây"
+  },
+  "web.TITLES.domains": {
+    "en": "Custom Domains",
+    "translation": "Tên miền tùy chỉnh"
+  },
+  "web.TITLES.domain_add": {
+    "en": "Add Domain",
+    "translation": "Thêm tên miền"
+  },
+  "web.TITLES.domain_verify": {
+    "en": "Verify Domain",
+    "translation": "Xác minh tên miền"
+  },
+  "web.TITLES.domain_brand": {
+    "en": "Brand Domain",
+    "translation": "Thương hiệu tên miền"
+  },
+  "web.TITLES.account": {
+    "en": "Account",
+    "translation": "Cài đặt tài khoản"
+  },
+  "web.TITLES.data_region": {
+    "en": "Data Region",
+    "translation": "Khu vực dữ liệu"
+  },
+  "web.TITLES.current_region": {
+    "en": "Current Region",
+    "translation": "Khu vực hiện tại"
+  },
+  "web.TITLES.available_regions": {
+    "en": "Available Regions",
+    "translation": "Khu vực khả dụng"
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "en": "Why Data Sovereignty Matters",
+    "translation": "Tại sao chủ quyền dữ liệu quan trọng"
+  },
+  "web.TITLES.profile_settings": {
+    "en": "Profile Settings",
+    "translation": "Cài đặt hồ sơ"
+  },
+  "web.TITLES.preferences_settings": {
+    "en": "Preferences",
+    "translation": "Tùy chọn"
+  },
+  "web.TITLES.privacy_settings": {
+    "en": "Privacy",
+    "translation": "Quyền riêng tư"
+  },
+  "web.TITLES.notification_settings": {
+    "en": "Notifications",
+    "translation": "Thông báo"
+  },
+  "web.TITLES.change_email": {
+    "en": "Change Email",
+    "translation": "Thay đổi email"
+  },
+  "web.TITLES.security_overview": {
+    "en": "Security",
+    "translation": "Bảo mật"
+  },
+  "web.TITLES.change_password": {
+    "en": "Change Password",
+    "translation": "Thay đổi mật khẩu"
+  },
+  "web.TITLES.mfa_settings": {
+    "en": "Two-Factor Authentication",
+    "translation": "Xác thực hai yếu tố"
+  },
+  "web.TITLES.active_sessions": {
+    "en": "Active Sessions",
+    "translation": "Phiên hoạt động"
+  },
+  "web.TITLES.recovery_codes": {
+    "en": "Recovery Codes",
+    "translation": "Mã khôi phục"
+  },
+  "web.TITLES.api_settings": {
+    "en": "API Settings",
+    "translation": "Cài đặt API"
+  },
+  "web.TITLES.advanced_settings": {
+    "en": "Advanced Settings",
+    "translation": "Cài đặt nâng cao"
+  },
+  "web.TITLES.system_settings": {
+    "en": "System Settings",
+    "translation": "Cài đặt hệ thống"
+  },
+  "web.TITLES.not_found": {
+    "en": "Page Not Found",
+    "translation": "Không tìm thấy trang"
+  },
+  "web.TITLES.organizations_settings": {
+    "en": "Organizations",
+    "translation": "Tổ chức"
+  },
+  "web.TITLES.organization_settings": {
+    "en": "Organization Settings",
+    "translation": "Cài đặt tổ chức"
+  },
+  "web.TITLES.pricing": {
+    "en": "Pricing"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "en": "Focus is now in the main text area",
+    "translation": "Con trỏ hiện đang ở vùng văn bản chính"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "en": "Sharing Instructions",
+    "translation": "Hướng dẫn chia sẻ"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "en": "Share the link with the intended recipient",
+    "translation": "Chia sẻ liên kết với người nhận dự định"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "en": "Share the passphrase separately through a secure channel",
+    "translation": "Chia sẻ cụm mật khẩu riêng biệt qua kênh an toàn"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "en": "Use a different secure channel to share sensitive information",
+    "translation": "Sử dụng kênh an toàn khác để chia sẻ thông tin nhạy cảm"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "en": "Always verify you're on the official Onetime Secret website. Fraudsters sometimes create fake websites that look exactly like Onetime Secret to steal your secrets. To avoid phishing attacks, check the region domain before creating new links.",
+    "translation": "Luôn xác minh bạn đang ở trang web chính thức của Onetime Secret. Kẻ lừa đảo đôi khi tạo trang web giả trông giống hệt Onetime Secret để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo, kiểm tra tên miền khu vực trước khi tạo liên kết mới."
+  },
+  "web.pricing.title": {
+    "en": "Simple, Transparent Pricing"
+  },
+  "web.pricing.subtitle": {
+    "en": "Choose the plan that fits your needs. All plans include unlimited secret sharing and privacy-first design."
+  },
+  "web.pricing.get_started_free": {
+    "en": "Get Started Free"
+  },
+  "web.pricing.start_trial": {
+    "en": "Get Started"
+  },
+  "web.pricing.already_have_account": {
+    "en": "Already have an account?"
+  },
+  "web.pricing.sign_in": {
+    "en": "Sign in"
+  },
+  "web.pricing.recommended_for_you": {
+    "en": "Recommended for You"
+  }
+}

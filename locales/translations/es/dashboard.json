@@ -1,0 +1,26 @@
+{
+  "web.dashboard.title_received": {
+    "en": "Received",
+    "translation": "Recibido"
+  },
+  "web.dashboard.title_not_received": {
+    "en": "Not Received",
+    "translation": "No recibido"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "en": "No recent secrets",
+    "translation": "No hay secretos recientes"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "en": "Get started by creating your first secret.",
+    "translation": "Empieza creando tu primer secreto."
+  },
+  "web.dashboard.fetch_error_title": {
+    "en": "Unable to load data",
+    "translation": "No se pudieron cargar los equipos"
+  },
+  "web.dashboard.fetch_error_description": {
+    "en": "There was a problem loading your data. Please try again.",
+    "translation": "Hubo un problema al cargar tus equipos. Por favor, inténtalo de nuevo."
+  }
+}

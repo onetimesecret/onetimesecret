@@ -1,0 +1,134 @@
+{
+  "incoming.page_title": {
+    "en": "Send a Secret",
+    "translation": "シークレットを送信"
+  },
+  "incoming.page_description": {
+    "en": "Share sensitive information securely with our support team",
+    "translation": "サポートチームと機密情報を安全に共有する"
+  },
+  "incoming.loading_config": {
+    "en": "Loading...",
+    "translation": "読み込み中..."
+  },
+  "incoming.config_error_title": {
+    "en": "Failed to load configuration",
+    "translation": "設定の読み込みに失敗しました"
+  },
+  "incoming.feature_disabled_title": {
+    "en": "Feature Not Available",
+    "translation": "機能が利用できません"
+  },
+  "incoming.feature_disabled_description": {
+    "en": "This feature is currently disabled. Please contact support for assistance.",
+    "translation": "この機能は現在無効になっています。サポートにお問い合わせください。"
+  },
+  "incoming.memo_label": {
+    "en": "Memo",
+    "translation": "メモ"
+  },
+  "incoming.memo_placeholder": {
+    "en": "Brief description (e.g., Password reset request)",
+    "translation": "簡単な説明(例:パスワードリセット依頼)"
+  },
+  "incoming.memo_hint": {
+    "en": "Help us route your message to the right person",
+    "translation": "メッセージを適切な担当者に転送するためにご協力ください"
+  },
+  "incoming.recipient_label": {
+    "en": "Send to",
+    "translation": "送信先"
+  },
+  "incoming.recipient_placeholder": {
+    "en": "Select a recipient",
+    "translation": "受信者を選択"
+  },
+  "incoming.recipient_aria_label": {
+    "en": "Select a recipient for this secret",
+    "translation": "このシークレットの受信者を選択してください"
+  },
+  "incoming.recipient_hint": {
+    "en": "Choose who will receive this secure message",
+    "translation": "この安全なメッセージを受信する人を選択してください"
+  },
+  "incoming.no_recipients_available": {
+    "en": "No recipients are available",
+    "translation": "利用可能な受信者がありません"
+  },
+  "incoming.secret_content_label": {
+    "en": "Secret Information",
+    "translation": "機密情報"
+  },
+  "incoming.secret_content_placeholder": {
+    "en": "Paste sensitive information here (passwords, keys, etc.)",
+    "translation": "機密情報をここに貼り付けてください(パスワード、キーなど)"
+  },
+  "incoming.secret_content_hint": {
+    "en": "This information will be encrypted and only viewable once",
+    "translation": "この情報は暗号化され、一度だけ閲覧可能です"
+  },
+  "incoming.submit_button": {
+    "en": "Send Secret",
+    "translation": "シークレットを送信"
+  },
+  "incoming.submit_secret": {
+    "en": "Send Secret",
+    "translation": "シークレットを送信"
+  },
+  "incoming.submitting_button": {
+    "en": "Sending...",
+    "translation": "送信中..."
+  },
+  "incoming.submitting": {
+    "en": "Sending...",
+    "translation": "送信中..."
+  },
+  "incoming.reset_button": {
+    "en": "Clear Form",
+    "translation": "フォームをクリア"
+  },
+  "incoming.reset_form": {
+    "en": "Clear Form",
+    "translation": "フォームをクリア"
+  },
+  "incoming.success_title": {
+    "en": "Sent Successfully",
+    "translation": "送信に成功しました"
+  },
+  "incoming.success_description": {
+    "en": "Your secure message has been delivered.",
+    "translation": "安全なメッセージが配信されました。"
+  },
+  "incoming.reference_id": {
+    "en": "Reference ID",
+    "translation": "参照ID"
+  },
+  "incoming.success_info_title": {
+    "en": "What happens next?",
+    "translation": "次に何が起こりますか?"
+  },
+  "incoming.success_info_description": {
+    "en": "The recipient will be able to view this secret only once. After they view it, the secret will be permanently deleted.",
+    "translation": "受信者はこのシークレットを一度だけ閲覧できます。閲覧後、シークレットは完全に削除されます。"
+  },
+  "incoming.create_another": {
+    "en": "Send Another Secret",
+    "translation": "別のシークレットを送信"
+  },
+  "incoming.tagline1": {
+    "en": "Share sensitive information securely",
+    "translation": "機密情報を安全に共有"
+  },
+  "incoming.tagline2": {
+    "en": "Keep passwords and private data out of email and chat logs",
+    "translation": "パスワードや個人データをメールやチャットログから守りましょう"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "en": "Save your {receipt} for your records.",
+    "translation": "記録のために<a href='{receiptUrl}'>受領書</a>を保存してください。"
+  },
+  "incoming.receipt_link_text": {
+    "en": "receipt",
+    "translation": "receipt"
+  }
+}

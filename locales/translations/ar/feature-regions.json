@@ -1,0 +1,142 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "en": "Data Sovereignty & Regional Isolation",
+    "translation": "السيادة على البيانات والعزل الإقليمي"
+  },
+  "web.regions.data_sovereignty_description": {
+    "en": "Your data resides exclusively in your chosen region and is never transferred across regions",
+    "translation": "تتواجد بياناتك حصرياً في المنطقة التي اخترتها ولا يتم نقلها أبداً بين المناطق"
+  },
+  "web.regions.separate_environments_explanation": {
+    "en": "Each region operates as a completely independent environment with its own infrastructure, encryption keys, and data storage",
+    "translation": "تعمل كل منطقة كبيئة مستقلة تماماً بها بنيتها التحتية الخاصة، ومفاتيح التشفير، وتخزين البيانات"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "en": "We maintain a strict policy: customer data is never transferred between regions under any circumstances",
+    "translation": "نحافظ على سياسة صارمة: بيانات العملاء لا يتم نقلها أبداً بين المناطق تحت أي ظرف"
+  },
+  "web.regions.switching_creates_new_account": {
+    "en": "Important: Switching to a different region creates a new account. Your data stays in your original region.",
+    "translation": "مهم: التبديل إلى منطقة مختلفة ينشئ حساباً جديداً. تبقى بياناتك في منطقتك الأصلية."
+  },
+  "web.regions.your_region": {
+    "en": "Your Region",
+    "translation": "منطقتك"
+  },
+  "web.regions.your_current_region": {
+    "en": "Your Current Region",
+    "translation": "منطقتك الحالية"
+  },
+  "web.regions.active": {
+    "en": "Active",
+    "translation": "نشط"
+  },
+  "web.regions.explore_other_regions": {
+    "en": "Explore other available regions",
+    "translation": "استكشف المناطق المتاحة الأخرى"
+  },
+  "web.regions.why_it_matters": {
+    "en": "Why Data Sovereignty Matters",
+    "translation": "لماذا تهم السيادة على البيانات"
+  },
+  "web.regions.trust_title": {
+    "en": "Transparency & Control",
+    "translation": "الشفافية والسيطرة"
+  },
+  "web.regions.trust_description": {
+    "en": "Know exactly where your data resides and which laws govern its protection.",
+    "translation": "اعرف بالضبط أين تتواجد بياناتك وأي قوانين تحكم حمايتها."
+  },
+  "web.regions.privacy_title": {
+    "en": "Privacy Rights",
+    "translation": "حقوق الخصوصية"
+  },
+  "web.regions.privacy_description": {
+    "en": "Ensure your personal information is handled according to your country's privacy laws and regulations, preventing unauthorized access or misuse.",
+    "translation": "تأكد من معالجة معلوماتك الشخصية وفقاً لقوانين الخصوصية في بلدك، مما يمنع الوصول غير المصرح به أو سوء الاستخدام."
+  },
+  "web.regions.compliance_title": {
+    "en": "Regulatory Compliance",
+    "translation": "الامتثال التنظيمي"
+  },
+  "web.regions.compliance_description": {
+    "en": "Meet GDPR, HIPAA, CCPA, and other regional data protection requirements",
+    "translation": "استوفِ متطلبات GDPR و HIPAA و CCPA وغيرها من متطلبات حماية البيانات الإقليمية"
+  },
+  "web.regions.performance_title": {
+    "en": "Faster Access",
+    "translation": "وصول أسرع"
+  },
+  "web.regions.performance_description": {
+    "en": "Data stored closer to you means lower latency and better performance.",
+    "translation": "تخزين البيانات بالقرب منك يعني زمن انتقال أقل وأداء أفضل."
+  },
+  "web.regions.regions": {
+    "en": "Regions",
+    "translation": "المناطق"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "en": "contact our compliance team",
+    "translation": "اتصل بفريق الامتثال لدينا"
+  },
+  "web.regions.review_our_documentation": {
+    "en": "review our documentation",
+    "translation": "راجع وثائقنا"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "en": "Your account and data are protected under the laws of",
+    "translation": "حسابك وبياناتك محمية بموجب قوانين"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "en": "Your regulatory framework is determined by your access domain:",
+    "translation": "يتم تحديد إطارك التنظيمي من خلال نطاق الوصول الخاص بك:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "en": "Each region is completely separate with its own infrastructure, when possible with its own local hosting provider. You can create accounts in multiple regions, but no data is shared between them.",
+    "translation": "كل منطقة منفصلة تماماً مع بنيتها التحتية الخاصة، عندما يكون ذلك ممكناً مع موفر استضافة محلي خاص بها. يمكنك إنشاء حسابات في مناطق متعددة، ولكن لا تتم مشاركة أي بيانات بينها."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "en": "For details on regulations and protections that apply to your account,",
+    "translation": "للحصول على تفاصيل حول اللوائح والحماية المطبقة على حسابك،"
+  },
+  "web.regions.current": {
+    "en": "Current",
+    "translation": "الحالي"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "en": "{0} {1}",
+    "translation": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "en": "Available Regions",
+    "translation": "المناطق المتاحة"
+  },
+  "web.regions.jurisdiction": {
+    "en": "Jurisdiction",
+    "translation": "الولاية القضائية"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "en": "Data center location: {0}",
+    "translation": "موقع مركز البيانات: {0}"
+  },
+  "web.regions.data_region": {
+    "en": "Data Region",
+    "translation": "منطقة البيانات"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "en": "Unknown Jurisdiction",
+    "translation": "ولاية قضائية غير معروفة"
+  },
+  "web.regions.serving_you_from_the": {
+    "en": "Serving you from",
+    "translation": "نخدمك من"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "en": "Continue to {0}",
+    "translation": "المتابعة إلى {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "en": "Current jurisdiction:",
+    "translation": "الولاية القضائية الحالية:"
+  }
+}

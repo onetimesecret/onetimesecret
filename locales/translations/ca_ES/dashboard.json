@@ -1,0 +1,26 @@
+{
+  "web.dashboard.title_received": {
+    "en": "Received",
+    "translation": "Rebut"
+  },
+  "web.dashboard.title_not_received": {
+    "en": "Not Received",
+    "translation": "no s'ha rebut"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "en": "No recent secrets",
+    "translation": "No hi ha secrets recents"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "en": "Get started by creating your first secret.",
+    "translation": "Comença creant el teu primer secret."
+  },
+  "web.dashboard.fetch_error_title": {
+    "en": "Unable to load data",
+    "translation": "No s'han pogut carregar els equips"
+  },
+  "web.dashboard.fetch_error_description": {
+    "en": "There was a problem loading your data. Please try again.",
+    "translation": "Hi ha hagut un problema en carregar els teus equips. Si us plau, torna-ho a provar."
+  }
+}

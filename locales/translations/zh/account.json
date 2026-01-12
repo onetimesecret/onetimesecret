@@ -1,0 +1,630 @@
+{
+  "web.account.settings": {
+    "en": "Settings",
+    "translation": "设置"
+  },
+  "web.account.change_password": {
+    "en": "Change Password",
+    "translation": "更改密码"
+  },
+  "web.account.close_account": {
+    "en": "Close Account",
+    "translation": "关闭账户"
+  },
+  "web.account.verify_account": {
+    "en": "Verify Account",
+    "translation": "验证账户"
+  },
+  "web.account.subscription_title": {
+    "en": "Subscription",
+    "translation": "订阅"
+  },
+  "web.account.manage_subscription": {
+    "en": "Manage Subscription",
+    "translation": "管理订阅"
+  },
+  "web.account.customer_information": {
+    "en": "Customer Information",
+    "translation": "客户信息"
+  },
+  "web.account.customer_since": {
+    "en": "Customer since:",
+    "translation": "客户自："
+  },
+  "web.account.email": {
+    "en": "Email:",
+    "translation": "邮箱："
+  },
+  "web.account.region": {
+    "en": "Region",
+    "translation": "区域"
+  },
+  "web.account.account_balance": {
+    "en": "Balance:",
+    "translation": "余额："
+  },
+  "web.account.default_payment_method": {
+    "en": "Default Payment Method",
+    "translation": "默认付款方式"
+  },
+  "web.account.card_ending": {
+    "en": "ending in",
+    "translation": "尾号"
+  },
+  "web.account.subscriptions_title": {
+    "en": "Subscriptions",
+    "translation": "订阅"
+  },
+  "web.account.quantity": {
+    "en": "Quantity:",
+    "translation": "数量："
+  },
+  "web.account.next_billing_date": {
+    "en": "Next billing date:",
+    "translation": "下次账单日期："
+  },
+  "web.account.changePassword.username": {
+    "en": "Username",
+    "translation": "用户名"
+  },
+  "web.account.changePassword.currentPassword": {
+    "en": "Current Password",
+    "translation": "当前密码"
+  },
+  "web.account.changePassword.newPassword": {
+    "en": "New Password",
+    "translation": "新密码"
+  },
+  "web.account.changePassword.confirmPassword": {
+    "en": "Confirm",
+    "translation": "确认"
+  },
+  "web.account.changePassword.updatePassword": {
+    "en": "Update Password",
+    "translation": "更新密码"
+  },
+  "web.account.changePassword.updating": {
+    "en": "Updating...",
+    "translation": "更新中"
+  },
+  "web.account.timezone": {
+    "en": "Timezone",
+    "translation": "时区"
+  },
+  "web.account.customer_id": {
+    "en": "Customer ID",
+    "translation": "客户 ID"
+  },
+  "web.account.account_id_customerid": {
+    "en": "Account ID",
+    "translation": "账户 ID"
+  },
+  "web.account.created_windowprops_cust_secrets_created_secrets": {
+    "en": "Created {0} secrets since {1}.",
+    "translation": "自 {1} 以来已创建 {0} 条内容。"
+  },
+  "web.account.delete_account": {
+    "en": "Delete Account",
+    "translation": "删除账户"
+  },
+  "web.account.api_key": {
+    "en": "API Key",
+    "translation": "API 密钥"
+  },
+  "web.account.account_type_windowprops_plan_options_name": {
+    "en": "Account type: {0}",
+    "translation": "账户类型：{0}"
+  },
+  "web.account.your_account": {
+    "en": "Your Account",
+    "translation": "您的账户"
+  },
+  "web.account.support_details": {
+    "en": "Support Details",
+    "translation": "支持详情"
+  },
+  "web.account.back_to_details": {
+    "en": "Back to Details",
+    "translation": "返回详情"
+  },
+  "web.account.customer_id_cust_custid": {
+    "en": "Customer ID: {0}",
+    "translation": "客户 ID：{0}"
+  },
+  "web.account.token_generated": {
+    "en": "Token generated.",
+    "translation": "令牌已生成。"
+  },
+  "web.account.keep_this_token_secure_it_provides_full_access_t": {
+    "en": "🔐 Keep this token secure! It provides full access to your account.",
+    "translation": "🔐 请妥善保管此令牌。它提供对您账户的完全访问权限。"
+  },
+  "web.account.confirm_with_your_password": {
+    "en": "Confirm with your password",
+    "translation": "使用您的密码确认"
+  },
+  "web.account.are_you_sure_you_want_to_permanently_delete_your": {
+    "en": "Are you sure you want to permanently delete your account? This action cannot be undone.",
+    "translation": "您确定要永久删除您的账户吗？此操作无法撤销。"
+  },
+  "web.account.confirm_account_deletion": {
+    "en": "Confirm Account Deletion",
+    "translation": "确认账户删除"
+  },
+  "web.account.deleting_cust_custid": {
+    "en": "Deleting {0}",
+    "translation": "正在删除 {0}"
+  },
+  "web.account.permanently_delete_account": {
+    "en": "Permanently Delete Account",
+    "translation": "永久删除账户"
+  },
+  "web.account.permanent_and_non_reversible": {
+    "en": "permanent and non-reversible.",
+    "translation": "永久且不可逆。"
+  },
+  "web.account.deleting_your_account_is": {
+    "en": "Deleting your account is",
+    "translation": "删除您的账户是"
+  },
+  "web.account.burn_them_before_continuing": {
+    "en": "burn them before continuing",
+    "translation": "在继续之前销毁它们"
+  },
+  "web.account.any_secrets_you_wish_to_remove": {
+    "en": "Any secrets you wish to remove,",
+    "translation": "您希望删除的任何内容，"
+  },
+  "web.account.secrets_will_remain_active_until_they_expire": {
+    "en": "Secrets will remain active until they expire.",
+    "translation": "内容将保持活跃直到过期。"
+  },
+  "web.account.please_be_advised": {
+    "en": "Please be advised:",
+    "translation": "请注意："
+  },
+  "web.account.account_deleted_successfully": {
+    "en": "Account deleted successfully.",
+    "translation": "账户已成功删除。"
+  },
+  "web.account.deactivate": {
+    "en": "Deactivate",
+    "translation": "停用"
+  },
+  "web.account.are_you_sure_you_want_to_deactivate_your_account": {
+    "en": "Are you sure you want to deactivate your account? All of your data will be permanently removed from our servers forever. This action cannot be undone.",
+    "translation": "您确定要停用您的账户吗？您的所有数据将从我们的服务器上永久删除。此操作无法撤销。"
+  },
+  "web.account.deactivate_account": {
+    "en": "Deactivate account",
+    "translation": "停用账户"
+  },
+  "web.settings.title": {
+    "en": "Settings",
+    "translation": "设置"
+  },
+  "web.settings.description": {
+    "en": "Manage your account settings and preferences",
+    "translation": "管理您的账户设置和偏好"
+  },
+  "web.settings.manage_your_account_settings_and_preferences": {
+    "en": "Manage your account settings and preferences",
+    "translation": "管理您的账户设置和偏好"
+  },
+  "web.settings.back_to_dashboard": {
+    "en": "Back to Dashboard"
+  },
+  "web.settings.sections.account": {
+    "en": "Account"
+  },
+  "web.settings.sections.billing": {
+    "en": "Billing"
+  },
+  "web.settings.sections.advanced": {
+    "en": "Advanced"
+  },
+  "web.settings.general": {
+    "en": "General",
+    "translation": "常规"
+  },
+  "web.settings.preferences": {
+    "en": "Preferences",
+    "translation": "偏好设置"
+  },
+  "web.settings.appearance": {
+    "en": "Appearance",
+    "translation": "外观"
+  },
+  "web.settings.theme.title": {
+    "en": "Theme",
+    "translation": "主题"
+  },
+  "web.settings.theme.description": {
+    "en": "Choose light or dark theme",
+    "translation": "选择明亮或暗黑主题"
+  },
+  "web.settings.theme.choose_light_or_dark_theme": {
+    "en": "Choose light or dark theme",
+    "translation": "选择明亮或暗黑主题"
+  },
+  "web.settings.language.title": {
+    "en": "Language",
+    "translation": "语言"
+  },
+  "web.settings.language.description": {
+    "en": "Select your preferred language",
+    "translation": "选择您的首选语言"
+  },
+  "web.settings.language.select_your_preferred_language": {
+    "en": "Select your preferred language",
+    "translation": "选择您的首选语言"
+  },
+  "web.settings.security_settings_description": {
+    "en": "Manage authentication and account security",
+    "translation": "管理认证和账户安全"
+  },
+  "web.settings.profile_settings_description": {
+    "en": "Manage your account information",
+    "translation": "管理您的账户信息"
+  },
+  "web.settings.profile.title": {
+    "en": "Profile",
+    "translation": "个人资料"
+  },
+  "web.settings.profile.change_email": {
+    "en": "Change Email",
+    "translation": "更改邮箱"
+  },
+  "web.settings.profile.current_email": {
+    "en": "Current Email",
+    "translation": "当前邮箱"
+  },
+  "web.settings.profile.current_password": {
+    "en": "Current Password",
+    "translation": "当前密码"
+  },
+  "web.settings.profile.new_email": {
+    "en": "New Email",
+    "translation": "新邮箱"
+  },
+  "web.settings.profile.enter_password_to_confirm": {
+    "en": "Enter your current password",
+    "translation": "输入您的当前密码"
+  },
+  "web.settings.profile.password_required_for_security": {
+    "en": "Your password is required for security purposes",
+    "translation": "出于安全目的需要您的密码"
+  },
+  "web.settings.profile.verification_email_notice": {
+    "en": "A verification email will be sent to the new address",
+    "translation": "验证邮件将发送到新地址"
+  },
+  "web.settings.profile.update_email": {
+    "en": "Update Email",
+    "translation": "更新邮箱"
+  },
+  "web.settings.profile.change_email_description": {
+    "en": "Update the email address associated with your account",
+    "translation": "更新与您的账户关联的邮箱地址"
+  },
+  "web.settings.profile.all_fields_required": {
+    "en": "All fields are required",
+    "translation": "所有字段均为必填项"
+  },
+  "web.settings.profile.invalid_email": {
+    "en": "Please enter a valid email address",
+    "translation": "请输入有效的邮箱地址"
+  },
+  "web.settings.profile.email_same_as_current": {
+    "en": "New email must be different from current email",
+    "translation": "新邮箱必须与当前邮箱不同"
+  },
+  "web.settings.profile.email_change_success": {
+    "en": "Email updated successfully. Please check your inbox to verify your new email address.",
+    "translation": "邮箱更新成功。请查看收件箱以验证新邮箱地址。"
+  },
+  "web.settings.profile.email_change_error": {
+    "en": "Failed to update email. Please try again.",
+    "translation": "更新邮箱失败。请重试。"
+  },
+  "web.settings.sessions.title": {
+    "en": "Active Sessions",
+    "translation": "活跃会话"
+  },
+  "web.settings.sessions.description": {
+    "en": "Manage your active sessions",
+    "translation": "管理您的活跃会话"
+  },
+  "web.settings.sessions.manage_active_sessions": {
+    "en": "Manage your active sessions",
+    "translation": "管理您的活跃会话"
+  },
+  "web.settings.password.title": {
+    "en": "Password",
+    "translation": "密码"
+  },
+  "web.settings.password.description": {
+    "en": "Update your account password",
+    "translation": "更新您的账户密码"
+  },
+  "web.settings.password.update_account_password": {
+    "en": "Update your account password",
+    "translation": "更新您的账户密码"
+  },
+  "web.settings.delete_account.title": {
+    "en": "Delete Account",
+    "translation": "删除账户"
+  },
+  "web.settings.delete_account.description": {
+    "en": "Permanently delete your account and all data",
+    "translation": "永久删除您的账户和所有数据"
+  },
+  "web.settings.delete_account.permanently_delete_your_account": {
+    "en": "Permanently delete your account and all data",
+    "translation": "永久删除您的账户和所有数据"
+  },
+  "web.settings.security.security_score": {
+    "en": "Security Score",
+    "translation": "安全评分"
+  },
+  "web.settings.security.score_description": {
+    "en": "Your overall account security health",
+    "translation": "您的整体账户安全健康状况"
+  },
+  "web.settings.security.excellent": {
+    "en": "Excellent",
+    "translation": "优秀"
+  },
+  "web.settings.security.good": {
+    "en": "Good",
+    "translation": "良好"
+  },
+  "web.settings.security.fair": {
+    "en": "Fair",
+    "translation": "一般"
+  },
+  "web.settings.security.weak": {
+    "en": "Weak",
+    "translation": "较弱"
+  },
+  "web.settings.security.improve_security": {
+    "en": "Improve your security",
+    "translation": "提升您的安全性"
+  },
+  "web.settings.security.enable_mfa_recommendation": {
+    "en": "Enable two-factor authentication for stronger protection",
+    "translation": "启用双因素认证以获得更强保护"
+  },
+  "web.settings.security.generate_recovery_codes_recommendation": {
+    "en": "Generate recovery codes as a backup",
+    "translation": "生成恢复代码作为备份"
+  },
+  "web.settings.security.configured": {
+    "en": "Configured",
+    "translation": "已配置"
+  },
+  "web.settings.security.change": {
+    "en": "Change",
+    "translation": "更改"
+  },
+  "web.settings.security.manage": {
+    "en": "Manage",
+    "translation": "管理"
+  },
+  "web.settings.security.enable": {
+    "en": "Enable",
+    "translation": "启用"
+  },
+  "web.settings.security.codes_available": {
+    "en": "{0} codes available",
+    "translation": "{0} 个可用代码"
+  },
+  "web.settings.security.no_codes": {
+    "en": "No codes generated",
+    "translation": "未生成代码"
+  },
+  "web.settings.security.active_sessions": {
+    "en": "{0} active session | {0} active sessions",
+    "translation": "{0} 个活跃会话"
+  },
+  "web.settings.security.best_practices": {
+    "en": "Security Best Practices",
+    "translation": "安全最佳实践"
+  },
+  "web.settings.security.use_strong_unique_password": {
+    "en": "Use a strong, unique password for your account",
+    "translation": "为您的账户使用强而独特的密码"
+  },
+  "web.settings.security.enable_mfa_for_protection": {
+    "en": "Enable two-factor authentication for additional protection",
+    "translation": "启用双因素认证以获得额外保护"
+  },
+  "web.settings.security.save_recovery_codes_safely": {
+    "en": "Save your recovery codes in a secure location",
+    "translation": "将恢复代码保存在安全位置"
+  },
+  "web.settings.security.review_sessions_regularly": {
+    "en": "Review and revoke unused sessions regularly",
+    "translation": "定期审查和撤销未使用的会话"
+  },
+  "web.settings.security.view_details": {
+    "en": "View details",
+    "translation": "查看详情"
+  },
+  "web.settings.api.title": {
+    "en": "API & Integrations",
+    "translation": "API 与集成"
+  },
+  "web.settings.api.description": {
+    "en": "Manage API keys and integrations",
+    "translation": "管理 API 密钥和集成"
+  },
+  "web.settings.api.manage_api_keys": {
+    "en": "Manage API keys and integrations",
+    "translation": "管理 API 密钥和集成"
+  },
+  "web.settings.api.documentation": {
+    "en": "API Documentation",
+    "translation": "API 文档"
+  },
+  "web.settings.api.documentation_description": {
+    "en": "Learn how to integrate Onetime Secret into your applications",
+    "translation": "了解如何将 Onetime Secret 集成到您的应用程序中"
+  },
+  "web.settings.api.rest_api_reference": {
+    "en": "REST API Reference",
+    "translation": "REST API 参考"
+  },
+  "web.settings.api.complete_api_documentation": {
+    "en": "Complete API documentation and endpoints",
+    "translation": "完整的 API 文档和端点"
+  },
+  "web.settings.api.code_examples": {
+    "en": "Code Examples",
+    "translation": "代码示例"
+  },
+  "web.settings.api.example_code_and_libraries": {
+    "en": "Example code and client libraries",
+    "translation": "示例代码和客户端库"
+  },
+  "web.settings.api.security_best_practices": {
+    "en": "Security Best Practices",
+    "translation": "安全最佳实践"
+  },
+  "web.settings.api.never_commit_api_keys": {
+    "en": "Never commit API keys to version control",
+    "translation": "永不将 API 密钥提交到版本控制"
+  },
+  "web.settings.api.use_environment_variables": {
+    "en": "Use environment variables to store API keys",
+    "translation": "使用环境变量存储 API 密钥"
+  },
+  "web.settings.api.rotate_keys_regularly": {
+    "en": "Rotate API keys regularly for security",
+    "translation": "定期轮换 API 密钥以确保安全"
+  },
+  "web.settings.api.use_https_only": {
+    "en": "Always use HTTPS when making API requests",
+    "translation": "发出 API 请求时始终使用 HTTPS"
+  },
+  "web.settings.api.monitor_api_usage": {
+    "en": "Monitor your API usage and set up alerts",
+    "translation": "监控您的 API 使用情况并设置警报"
+  },
+  "web.settings.api.important_notice": {
+    "en": "Important Notice",
+    "translation": "重要提示"
+  },
+  "web.settings.api.regenerating_key_warning": {
+    "en": "Regenerating your API key will invalidate the current key. Update all applications using the old key.",
+    "translation": "重新生成 API 密钥将使当前密钥失效。请更新所有使用旧密钥的应用程序。"
+  },
+  "web.settings.privacy.title": {
+    "en": "Privacy Settings",
+    "translation": "隐私设置"
+  },
+  "web.settings.privacy.manage_privacy_settings": {
+    "en": "Manage your privacy preferences",
+    "translation": "管理您的隐私偏好"
+  },
+  "web.settings.privacy.your_privacy": {
+    "en": "Your Privacy",
+    "translation": "您的隐私"
+  },
+  "web.settings.privacy.non_negotiable": {
+    "en": "Non-Negotiable",
+    "translation": "不可协商"
+  },
+  "web.settings.privacy.not_a_setting": {
+    "en": "Not a setting",
+    "translation": "这不是一项设置"
+  },
+  "web.settings.privacy.no_analytics_statement": {
+    "en": "No analytics. No tracking. Period.",
+    "translation": "无分析。无跟踪。就是这样。"
+  },
+  "web.settings.privacy.explanation": {
+    "en": "This isn't a setting because there's nothing to turn on or off. Your privacy is built into how we operate.",
+    "translation": "这不是一项设置，因为没有什么可以打开或关闭。您的隐私已内置于我们的运营方式中。"
+  },
+  "web.settings.notifications.title": {
+    "en": "Notification Settings",
+    "translation": "通知设置"
+  },
+  "web.settings.notifications.description": {
+    "en": "Manage how you receive notifications",
+    "translation": "管理您接收通知的方式"
+  },
+  "web.settings.notifications.error_updating": {
+    "en": "Failed to update notification preference. Please try again.",
+    "translation": "更新通知偏好失败。请重试。"
+  },
+  "web.settings.notifications.reveal_notifications.title": {
+    "en": "Secret Reveal Notifications",
+    "translation": "内容查看通知"
+  },
+  "web.settings.notifications.reveal_notifications.description": {
+    "en": "Receive an email when someone views your secret",
+    "translation": "当有人查看您的内容时收到邮件通知"
+  },
+  "web.settings.notifications.reveal_notifications.help": {
+    "en": "You'll be notified each time a recipient reveals one of your secrets",
+    "translation": "每当收件人查看您的内容时，您将收到通知"
+  },
+  "web.settings.notifications.privacy_note": {
+    "en": "Notification emails include only the timestamp and secret ID. Viewer information is never included.",
+    "translation": "通知邮件仅包含时间戳和内容 ID。绝不包含查看者信息。"
+  },
+  "web.settings.caution.title": {
+    "en": "Careful Consideration Zone",
+    "translation": "谨慎操作区域"
+  },
+  "web.settings.caution.description": {
+    "en": "Advanced settings and data management",
+    "translation": "高级设置和数据管理"
+  },
+  "web.settings.caution.data_export": {
+    "en": "Data Export",
+    "translation": "数据导出"
+  },
+  "web.settings.caution.export_your_data": {
+    "en": "Export your account data",
+    "translation": "导出您的账户数据"
+  },
+  "web.settings.caution.export_description": {
+    "en": "Request a complete copy of your account data in machine-readable format",
+    "translation": "请求以机器可读格式提供您账户数据的完整副本"
+  },
+  "web.settings.caution.request_data_export": {
+    "en": "Request Data Export",
+    "translation": "请求数据导出"
+  },
+  "web.settings.caution.export_info": {
+    "en": "Export Processing Time",
+    "translation": "导出处理时间"
+  },
+  "web.settings.caution.export_info_description": {
+    "en": "Exports are processed within 24 hours and sent to your email address",
+    "translation": "导出将在 24 小时内处理并发送到您的邮箱地址"
+  },
+  "web.settings.caution.deletion_warning_title": {
+    "en": "Deleting your account will:",
+    "translation": "删除您的账户将："
+  },
+  "web.settings.caution.deletion_warning_secrets": {
+    "en": "Permanently delete all your secrets",
+    "translation": "永久删除您的所有内容"
+  },
+  "web.settings.caution.deletion_warning_metadata": {
+    "en": "Remove all secret metadata and history",
+    "translation": "删除所有内容元数据和历史记录"
+  },
+  "web.settings.caution.deletion_warning_api_keys": {
+    "en": "Invalidate all API keys",
+    "translation": "使所有 API 密钥失效"
+  },
+  "web.settings.caution.deletion_warning_irreversible": {
+    "en": "This action cannot be undone",
+    "translation": "此操作无法撤销"
+  }
+}

@@ -5,24 +5,19 @@
     "note": "empty source"
   },
   "web.COMMON.tagline": {
-    "en": "Secure links that only work once",
-    "translation": "[EO] Secure links that only work once"
+    "en": "Secure links that only work once"
   },
   "web.COMMON.powered_by": {
-    "en": "Powered by",
-    "translation": "[EO] Powered by"
+    "en": "Powered by"
   },
   "web.COMMON.website_url": {
-    "en": "https://onetimesecret.com/en",
-    "translation": "[EO] https://onetimesecret.com/en"
+    "en": "https://onetimesecret.com/en"
   },
   "web.COMMON.button_generate_secret_short": {
-    "en": "Generate Password",
-    "translation": "[EO] Generate Password"
+    "en": "Generate Password"
   },
   "web.COMMON.generate_password_disabled": {
-    "en": "Generate Password is disabled when the form is valid",
-    "translation": "[EO] Generate Password is disabled when the form is valid"
+    "en": "Generate Password is disabled when the form is valid"
   },
   "web.COMMON.email_placeholder": {
     "en": "e.g. tom{'@'}myspace.com"

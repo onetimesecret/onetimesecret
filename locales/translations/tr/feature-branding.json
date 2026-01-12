@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "en": "Color Picker",
+    "translation": "Renk Seçici"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "en": "Current {0}: {1}. Click to cycle through options.",
+    "translation": "Mevcut {0}: {1}. Seçenekler arasında geçiş yapmak için tıklayın."
+  },
+  "web.branding.use_setting": {
+    "en": "Use setting",
+    "translation": "Ayarı kullan"
+  },
+  "web.branding.font_family": {
+    "en": "Font Family",
+    "translation": "Yazı Tipi Ailesi"
+  },
+  "web.branding.corner_style": {
+    "en": "Corner Style",
+    "translation": "Köşe Stili"
+  },
+  "web.branding.brand_color": {
+    "en": "Brand Color",
+    "translation": "Marka Rengi"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "en": "Preview of recipient's view when accessing your secure link",
+    "translation": "Alıcının güvenli bağlantınıza eriştiğinde göreceği görünümün önizlemesi"
+  },
+  "web.branding.preview_and_customize": {
+    "en": "Preview & Customize",
+    "translation": "Önizle ve Özelleştir"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "en": "Switch to Safari browser view",
+    "translation": "Safari tarayıcı görünümüne geç"
+  },
+  "web.branding.microsoft_edge": {
+    "en": "Microsoft Edge",
+    "translation": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "en": "Maximize window",
+    "translation": "Pencereyi büyüt"
+  },
+  "web.branding.minimize_window": {
+    "en": "Minimize window",
+    "translation": "Pencereyi küçült"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "en": "Switch to Edge browser view",
+    "translation": "Edge tarayıcı görünümüne geç"
+  },
+  "web.branding.charactercount_500_characters": {
+    "en": "{0}/500 characters",
+    "translation": "{0}/500 karakter"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "en": "Use your phone to scan the QR code",
+    "translation": "QR kodunu taramak için telefonunuzu kullanın"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "en": "Contact onboarding{'@'}example.com with any questions",
+    "translation": "Sorularınız için onboarding{'@'}example.com ile iletişime geçin"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "en": "These instructions will be shown to recipients before they reveal the secret content",
+    "translation": "Bu talimatlar, alıcılara mesaj içeriğini açmadan önce gösterilecektir"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "en": "These instructions will be shown to recipients after they reveal the secret",
+    "translation": "Bu talimatlar, alıcılara mesajı açtıktan sonra gösterilecektir"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "en": "Pre-reveal Instructions",
+    "translation": "Açma Öncesi Talimatlar"
+  },
+  "web.branding.post_reveal_instructions": {
+    "en": "Post-reveal Instructions",
+    "translation": "Açma Sonrası Talimatlar"
+  },
+  "web.branding.instructions": {
+    "en": "Instructions",
+    "translation": "Talimatlar"
+  },
+  "web.branding.logo_controls": {
+    "en": "Logo controls",
+    "translation": "Logo kontrolleri"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "en": "Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG",
+    "translation": "Logo yüklemek için tıklayın. Önerilen boyut: 128x128 piksel. Maksimum dosya boyutu: 1MB. Desteklenen formatlar: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "en": "Upload logo",
+    "translation": "Logo yükle"
+  },
+  "web.branding.loading_preview": {
+    "en": "Loading preview...",
+    "translation": "Önizleme yükleniyor..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "en": "Preview how recipients will see your secrets by testing the \"View Secret\" button",
+    "translation": "\"Mesajı Görüntüle\" düğmesini test ederek alıcıların mesajlarınızı nasıl göreceğini önizleyin"
+  },
+  "web.branding.eye_icon": {
+    "en": "Eye icon",
+    "translation": "Göz simgesi"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "en": "Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)",
+    "translation": "Logonuzu güncellemek için aşağıdaki önizleme resmine tıklayın (minimum 128x128 piksel önerilir, 1MB maks)"
+  },
+  "web.branding.image_icon": {
+    "en": "Image icon",
+    "translation": "Resim simgesi"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "en": "Use the controls above to customize brand color, styles, and recipient instructions",
+    "translation": "Marka rengini, stillerini ve alıcı talimatlarını özelleştirmek için yukarıdaki kontrolleri kullanın"
+  },
+  "web.branding.customization_icon": {
+    "en": "Customization icon",
+    "translation": "Özelleştirme simgesi"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "en": "You have unsaved changes. Are you sure?",
+    "translation": "Kaydedilmemiş değişiklikleriniz var. Emin misiniz?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "en": "Failed to load brand settings",
+    "translation": "Marka ayarları yüklenemedi"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Bu, alıcıların güvenli mesajlarınızı nasıl göreceğinin etkileşimli bir önizlemesidir. Şunları yapabilirsiniz: - Yukarıdaki kontrolleri kullanarak renkleri ve yazı tiplerini özelleştirin - Bir logo yükleyin (minimum 128x128 piksel önerilir, 1MB maks) - \"Mesajı Görüntüle\" düğmesini kullanarak önizlemeyi test edin"
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Bu, alıcıların güvenli mesajlarınızı nasıl göreceğinin etkileşimli bir önizlemesidir. Şunları yapabilirsiniz: - Yukarıdaki kontrolleri kullanarak renkleri ve yazı tiplerini özelleştirin - Bir logo yükleyin (minimum 128x128 piksel önerilir, 1MB maks) - \"Mesajı Görüntüle\" düğmesini kullanarak önizlemeyi test edin"
+  },
+  "web.branding.default_logo_icon": {
+    "en": "Japanese kanji '秘' (himitsu) meaning 'secret' or 'confidential'",
+    "translation": "Varsayılan logo simgesi"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "en": "Powered by Onetime Secret",
+    "translation": "Onetime Secret tarafından desteklenmektedir"
+  },
+  "web.branding.heading_logo": {
+    "en": "{0} Logo",
+    "translation": "{0} Logosu"
+  },
+  "web.branding.edge": {
+    "en": "Edge",
+    "translation": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "en": "Switch to Edge preview",
+    "translation": "Edge önizlemesine geç"
+  },
+  "web.branding.safari": {
+    "en": "Safari",
+    "translation": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "en": "Switch to Safari preview",
+    "translation": "Safari önizlemesine geç"
+  }
+}

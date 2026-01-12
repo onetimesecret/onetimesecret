@@ -1,0 +1,26 @@
+{
+  "web.dashboard.title_received": {
+    "en": "Received",
+    "translation": "התקבל"
+  },
+  "web.dashboard.title_not_received": {
+    "en": "Not Received",
+    "translation": "לא התקבל"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "en": "No recent secrets",
+    "translation": "אין סודות אחרונים"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "en": "Get started by creating your first secret.",
+    "translation": "התחילו על ידי יצירת הסוד הראשון שלכם."
+  },
+  "web.dashboard.fetch_error_title": {
+    "en": "Unable to load data",
+    "translation": "לא ניתן לטעון את הצוותים"
+  },
+  "web.dashboard.fetch_error_description": {
+    "en": "There was a problem loading your data. Please try again.",
+    "translation": "אירעה בעיה בטעינת הצוותים שלך. אנא נסה שוב."
+  }
+}

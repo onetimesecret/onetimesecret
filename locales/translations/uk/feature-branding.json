@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "en": "Color Picker",
+    "translation": "Вибір кольору"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "en": "Current {0}: {1}. Click to cycle through options.",
+    "translation": "Поточний {0}: {1}. Натисніть, щоб перемикати опції."
+  },
+  "web.branding.use_setting": {
+    "en": "Use setting",
+    "translation": "Використовувати налаштування"
+  },
+  "web.branding.font_family": {
+    "en": "Font Family",
+    "translation": "Сімейство шрифтів"
+  },
+  "web.branding.corner_style": {
+    "en": "Corner Style",
+    "translation": "Стиль кутів"
+  },
+  "web.branding.brand_color": {
+    "en": "Brand Color",
+    "translation": "Колір бренду"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "en": "Preview of recipient's view when accessing your secure link",
+    "translation": "Попередній перегляд сторінки секретного посилання для одержувачів"
+  },
+  "web.branding.preview_and_customize": {
+    "en": "Preview & Customize",
+    "translation": "Перегляд та налаштування"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "en": "Switch to Safari browser view",
+    "translation": "Перемкнути на вигляд браузера Safari"
+  },
+  "web.branding.microsoft_edge": {
+    "en": "Microsoft Edge",
+    "translation": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "en": "Maximize window",
+    "translation": "Розгорнути вікно"
+  },
+  "web.branding.minimize_window": {
+    "en": "Minimize window",
+    "translation": "Згорнути вікно"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "en": "Switch to Edge browser view",
+    "translation": "Перемкнути на вигляд браузера Edge"
+  },
+  "web.branding.charactercount_500_characters": {
+    "en": "{0}/500 characters",
+    "translation": "{0}/500 символів"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "en": "Use your phone to scan the QR code",
+    "translation": "Використовуйте телефон, щоб відсканувати QR-код"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "en": "Contact onboarding{'@'}example.com with any questions",
+    "translation": "З будь-якими питаннями звертайтеся до onboarding{'@'}example.com"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "en": "These instructions will be shown to recipients before they reveal the secret content",
+    "translation": "Ці інструкції будуть показані одержувачам перед тим, як вони відкриють вміст секрету"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "en": "These instructions will be shown to recipients after they reveal the secret",
+    "translation": "Ці інструкції будуть показані одержувачам після того, як вони відкриють секрет"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "en": "Pre-reveal Instructions",
+    "translation": "Інструкції перед відкриттям"
+  },
+  "web.branding.post_reveal_instructions": {
+    "en": "Post-reveal Instructions",
+    "translation": "Інструкції після відкриття"
+  },
+  "web.branding.instructions": {
+    "en": "Instructions",
+    "translation": "Інструкції"
+  },
+  "web.branding.logo_controls": {
+    "en": "Logo controls",
+    "translation": "Керування логотипом"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "en": "Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG",
+    "translation": "Натисніть, щоб завантажити логотип. Рекомендований розмір: 128x128 пікселів. Максимальний розмір файлу: 1 МБ. Підтримувані формати: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "en": "Upload logo",
+    "translation": "Завантажити логотип"
+  },
+  "web.branding.loading_preview": {
+    "en": "Loading preview...",
+    "translation": "Завантаження попереднього перегляду..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "en": "Preview how recipients will see your secrets by testing the \"View Secret\" button",
+    "translation": "Перегляньте, як одержувачі бачитимуть ваші секрети, протестувавши кнопку \"Переглянути секрет\""
+  },
+  "web.branding.eye_icon": {
+    "en": "Eye icon",
+    "translation": "Іконка ока"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "en": "Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)",
+    "translation": "Натисніть на зображення попереднього перегляду нижче, щоб оновити логотип (рекомендований мінімальний розмір 128x128 пікселів, макс. 1 МБ)"
+  },
+  "web.branding.image_icon": {
+    "en": "Image icon",
+    "translation": "Іконка зображення"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "en": "Use the controls above to customize brand color, styles, and recipient instructions",
+    "translation": "Використовуйте елементи керування вище, щоб налаштувати колір бренду, стилі та інструкції для одержувачів"
+  },
+  "web.branding.customization_icon": {
+    "en": "Customization icon",
+    "translation": "Іконка налаштування"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "en": "You have unsaved changes. Are you sure?",
+    "translation": "У вас є незбережені зміни. Ви впевнені?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "en": "Failed to load brand settings",
+    "translation": "Не вдалося завантажити налаштування бренду"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Це інтерактивний попередній перегляд того, як одержувачі бачитимуть ваші безпечні повідомлення. Ви можете: - Налаштувати кольори та шрифти за допомогою елементів керування вище - Завантажити логотип (рекомендований мінімальний розмір 128x128 пікселів, макс. 1 МБ) - Протестувати попередній перегляд за допомогою кнопки \"Переглянути секрет\""
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Це інтерактивний попередній перегляд того, як одержувачі бачитимуть ваші безпечні повідомлення. Ви можете: - Налаштувати кольори та шрифти за допомогою елементів керування вище - Завантажити логотип (рекомендований мінімальний розмір 128x128 пікселів, макс. 1 МБ) - Протестувати попередній перегляд за допомогою кнопки \"Переглянути секрет\""
+  },
+  "web.branding.default_logo_icon": {
+    "en": "Japanese kanji '秘' (himitsu) meaning 'secret' or 'confidential'",
+    "translation": "Іконка логотипу за замовчуванням"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "en": "Powered by Onetime Secret",
+    "translation": "Працює на Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "en": "{0} Logo",
+    "translation": "Логотип {0}"
+  },
+  "web.branding.edge": {
+    "en": "Edge",
+    "translation": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "en": "Switch to Edge preview",
+    "translation": "Перемкнути на попередній перегляд Edge"
+  },
+  "web.branding.safari": {
+    "en": "Safari",
+    "translation": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "en": "Switch to Safari preview",
+    "translation": "Перемкнути на попередній перегляд Safari"
+  }
+}

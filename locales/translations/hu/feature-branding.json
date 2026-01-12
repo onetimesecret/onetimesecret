@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "en": "Color Picker",
+    "translation": "Színválasztó"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "en": "Current {0}: {1}. Click to cycle through options.",
+    "translation": "Jelenlegi {0}: {1}. Kattintson a lehetőségek között való váltáshoz."
+  },
+  "web.branding.use_setting": {
+    "en": "Use setting",
+    "translation": "Beállítás használata"
+  },
+  "web.branding.font_family": {
+    "en": "Font Family",
+    "translation": "Betűtípus család"
+  },
+  "web.branding.corner_style": {
+    "en": "Corner Style",
+    "translation": "Sarok stílus"
+  },
+  "web.branding.brand_color": {
+    "en": "Brand Color",
+    "translation": "Márka szín"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "en": "Preview of recipient's view when accessing your secure link",
+    "translation": "A címzettek nézetének előnézete a biztonságos hivatkozás elérésekor"
+  },
+  "web.branding.preview_and_customize": {
+    "en": "Preview & Customize",
+    "translation": "Előnézet és testreszabás"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "en": "Switch to Safari browser view",
+    "translation": "Váltás Safari böngésző nézetre"
+  },
+  "web.branding.microsoft_edge": {
+    "en": "Microsoft Edge",
+    "translation": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "en": "Maximize window",
+    "translation": "Ablak maximalizálása"
+  },
+  "web.branding.minimize_window": {
+    "en": "Minimize window",
+    "translation": "Ablak minimalizálása"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "en": "Switch to Edge browser view",
+    "translation": "Váltás Edge böngésző nézetre"
+  },
+  "web.branding.charactercount_500_characters": {
+    "en": "{0}/500 characters",
+    "translation": "{0}/500 karakter"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "en": "Use your phone to scan the QR code",
+    "translation": "Használja telefonját a QR kód beolvasásához"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "en": "Contact onboarding{'@'}example.com with any questions",
+    "translation": "Lépjen kapcsolatba az onboarding{'@'}pelda.hu címmel bármilyen kérdéssel"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "en": "These instructions will be shown to recipients before they reveal the secret content",
+    "translation": "Ezek az utasítások megjelennek a címzetteknek, mielőtt felfednék a titok tartalmát"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "en": "These instructions will be shown to recipients after they reveal the secret",
+    "translation": "Ezek az utasítások megjelennek a címzetteknek, miután felfedték a titkot"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "en": "Pre-reveal Instructions",
+    "translation": "Felfedés előtti utasítások"
+  },
+  "web.branding.post_reveal_instructions": {
+    "en": "Post-reveal Instructions",
+    "translation": "Felfedés utáni utasítások"
+  },
+  "web.branding.instructions": {
+    "en": "Instructions",
+    "translation": "Utasítások"
+  },
+  "web.branding.logo_controls": {
+    "en": "Logo controls",
+    "translation": "Logó vezérlők"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "en": "Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG",
+    "translation": "Kattintson logó feltöltéséhez. Javasolt méret: 128x128 pixel. Maximális fájlméret: 1MB. Támogatott formátumok: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "en": "Upload logo",
+    "translation": "Logó feltöltése"
+  },
+  "web.branding.loading_preview": {
+    "en": "Loading preview...",
+    "translation": "Előnézet betöltése..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "en": "Preview how recipients will see your secrets by testing the \"View Secret\" button",
+    "translation": "Előnézet, hogyan fogják a címzettek látni titkait a \"Titok megtekintése\" gomb tesztelésével"
+  },
+  "web.branding.eye_icon": {
+    "en": "Eye icon",
+    "translation": "Szem ikon"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "en": "Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)",
+    "translation": "Kattintson az alábbi előnézeti képre logója frissítéséhez (minimum 128x128 pixel javasolt, maximum 1MB)"
+  },
+  "web.branding.image_icon": {
+    "en": "Image icon",
+    "translation": "Kép ikon"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "en": "Use the controls above to customize brand color, styles, and recipient instructions",
+    "translation": "Használja a fenti vezérlőket a márka szín, stílus és címzett utasítások testreszabásához"
+  },
+  "web.branding.customization_icon": {
+    "en": "Customization icon",
+    "translation": "Testreszabás ikon"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "en": "You have unsaved changes. Are you sure?",
+    "translation": "Nem mentett változtatásai vannak. Biztos benne?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "en": "Failed to load brand settings",
+    "translation": "Nem sikerült betölteni a márka beállításokat"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Ez egy interaktív előnézet arról, hogyan fogják a címzettek látni biztonságos üzeneteit. Lehetőségei: - Színek és betűtípusok testreszabása a fenti vezérlőkkel - Logó feltöltése (minimum 128x128 pixel javasolt, maximum 1MB) - Előnézet tesztelése a \"Titok megtekintése\" gombbal"
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Ez egy interaktív előnézet arról, hogyan fogják a címzettek látni biztonságos üzeneteit. Lehetőségei: - Színek és betűtípusok testreszabása a fenti vezérlőkkel - Logó feltöltése (minimum 128x128 pixel javasolt, maximum 1MB) - Előnézet tesztelése a \"Titok megtekintése\" gombbal"
+  },
+  "web.branding.default_logo_icon": {
+    "en": "Japanese kanji '秘' (himitsu) meaning 'secret' or 'confidential'",
+    "translation": "Japán kanji '秘' (himitsu) jelentése 'titok' vagy 'bizalmas'"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "en": "Powered by Onetime Secret",
+    "translation": "Szolgáltató: Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "en": "{0} Logo",
+    "translation": "{0} logó"
+  },
+  "web.branding.edge": {
+    "en": "Edge",
+    "translation": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "en": "Switch to Edge preview",
+    "translation": "Váltás Edge előnézetre"
+  },
+  "web.branding.safari": {
+    "en": "Safari",
+    "translation": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "en": "Switch to Safari preview",
+    "translation": "Váltás Safari előnézetre"
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "web.translations.welcomes_contributors_for_both_existing_and_new_": {
+    "en": "welcomes contributors for both existing and new languages.",
+    "translation": "기존 및 새로운 언어 모두에 대한 기여자를 환영합니다."
+  },
+  "web.translations.our_github_project": {
+    "en": "our GitHub project",
+    "translation": "저희 GitHub 프로젝트"
+  },
+  "web.translations.if_youre_interested_in_translation": {
+    "en": "If you're interested in translation,",
+    "translation": "번역에 관심이 있으시다면,"
+  },
+  "web.translations.whove_helped_with_translations_as_we_continue_to": {
+    "en": "who've helped with translations as we continue to develop new features.",
+    "translation": "새로운 기능을 계속 개발함에 따라 번역을 도와주신 분들에게 감사드립니다."
+  },
+  "web.translations.25_contributors": {
+    "en": "25+ contributors",
+    "translation": "25명 이상의 기여자들"
+  },
+  "web.translations.were_grateful_to_the": {
+    "en": "We're grateful to the",
+    "translation": "저희는 다음에 감사드립니다"
+  },
+  "web.translations.as_we_add_new_features_our_translations_graduall": {
+    "en": "As we add new features, our translations gradually need updates to stay current. This affects both onetimesecret.com and thousands of self-hosted installations worldwide.",
+    "translation": "새로운 기능을 추가함에 따라 번역은 점차 업데이트가 필요합니다. 이는 onetimesecret.com과 전 세계 수천 개의 자체 호스팅 설치에 모두 영향을 미칩니다."
+  },
+  "web.translations.remember_to_include_your_email_if_youre_not_logg": {
+    "en": "- remember to include your email if you're not logged in. Every translation helps more people communicate securely.",
+    "translation": "- 로그인하지 않은 경우 이메일을 포함하는 것을 잊지 마세요. 모든 번역은 더 많은 사람들이 안전하게 소통하는 데 도움이 됩니다."
+  },
+  "web.translations.reach_out_to_us": {
+    "en": "Reach out to us",
+    "translation": "문의하기"
+  },
+  "web.translations.have_questions": {
+    "en": "Have questions?",
+    "translation": "질문이 있으신가요?"
+  },
+  "web.translations.send_translations_by_email_to": {
+    "en": "Send translations by email to",
+    "translation": "번역을 이메일로 보내기"
+  },
+  "web.translations.english_template": {
+    "en": "English template",
+    "translation": "영어 템플릿"
+  },
+  "web.translations.start_a_new_translation_from_our": {
+    "en": "Start a new translation from our",
+    "translation": "다음에서 새 번역 시작하기"
+  },
+  "web.translations.update_a_language_directly_through_our_github_pr": {
+    "en": "Update a language directly through our GitHub project",
+    "translation": "GitHub 프로젝트를 통해 직접 언어 업데이트"
+  },
+  "web.translations.review_existing_translations_using_the_language_": {
+    "en": "Review existing translations using the language selector above",
+    "translation": "위의 언어 선택기를 사용하여 기존 번역 검토"
+  },
+  "web.translations.ready_to_help_some_ways_to_contribute": {
+    "en": "Ready to help? Some ways to contribute:",
+    "translation": "도움을 줄 준비가 되셨나요? 기여할 수 있는 몇 가지 방법:"
+  },
+  "web.translations.the_following_people_have_donated_their_time_to_": {
+    "en": "The following people have donated their time to help expand the reach of Onetime Secret:",
+    "translation": "다음 분들이 Onetime Secret의 도달 범위를 확장하는 데 시간을 기부해 주셨습니다:"
+  },
+  "web.translations.translations": {
+    "en": "Translations",
+    "translation": "번역"
+  },
+  "web.translations.fork_on_github_and_submit_a_pr": {
+    "en": "Fork on GitHub and Submit a PR",
+    "translation": "GitHub에서 포크하고 PR 제출하기"
+  },
+  "web.translations.your_language_skills_can_help_expand_access_to_s": {
+    "en": "Your language skills can help expand access to secure communication.",
+    "translation": "귀하의 언어 능력은 보안 통신에 대한 접근성을 확장하는 데 도움이 될 수 있습니다."
+  },
+  "web.translations.thanks_to_our_community_we_support_over_20_langu": {
+    "en": "Thanks to our community, we support over 20 languages today. However, with our rapid development pace, many translations need updates to stay current. This affects both onetimesecret.com and the thousands of self-hosted installations worldwide.",
+    "translation": "커뮤니티 덕분에 현재 20개 이상의 언어를 지원하고 있습니다. 그러나 빠른 개발 속도로 인해 많은 번역이 최신 상태를 유지하기 위해 업데이트가 필요합니다. 이는 onetimesecret.com과 전 세계 수천 개의 자체 호스팅 설치에 모두 영향을 미칩니다."
+  },
+  "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
+    "en": "Since 2012, Onetime Secret has provided a secure way to share sensitive information worldwide. With users across regions where English isn't the primary language, accurate translations are essential for making secure communication accessible to everyone.",
+    "translation": "2012년부터 Onetime Secret은 전 세계적으로 민감한 정보를 안전하게 공유하는 방법을 제공해 왔습니다. 영어가 주요 언어가 아닌 지역의 사용자들이 있어, 정확한 번역은 모든 사람이 안전한 통신에 접근할 수 있도록 하는 데 필수적입니다."
+  },
+  "web.translations.help_secure_communication_go_global": {
+    "en": "Help Secure Communication Go Global",
+    "translation": "안전한 통신이 글로벌하게 되도록 도와주세요"
+  }
+}

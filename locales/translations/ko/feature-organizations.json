@@ -1,0 +1,531 @@
+{
+  "web.organizations.title": {
+    "en": "Organizations",
+    "translation": "조직"
+  },
+  "web.organizations.organization": {
+    "en": "Organization",
+    "translation": "조직"
+  },
+  "web.organizations.organization_plural": {
+    "en": "Organizations",
+    "translation": "조직"
+  },
+  "web.organizations.organizations_description": {
+    "en": "Manage your organizations",
+    "translation": "조직을 관리합니다"
+  },
+  "web.organizations.my_organizations": {
+    "en": "Organizations",
+    "translation": "내 조직"
+  },
+  "web.organizations.manage_organizations": {
+    "en": "Manage Organizations",
+    "translation": "조직 관리"
+  },
+  "web.organizations.new_organization": {
+    "en": "New Organization",
+    "translation": "새 조직"
+  },
+  "web.organizations.no_organizations": {
+    "en": "No organizations yet",
+    "translation": "아직 조직이 없습니다"
+  },
+  "web.organizations.no_organizations_description": {
+    "en": "Organizations provide unified billing and administration. Get started by creating your first organization.",
+    "translation": "조직을 사용하면 통합 결제 및 관리로 여러 팀을 관리할 수 있습니다. 첫 번째 조직을 생성하여 시작하세요."
+  },
+  "web.organizations.no_description": {
+    "en": "No description provided",
+    "translation": "설명이 제공되지 않았습니다"
+  },
+  "web.organizations.default": {
+    "en": "Default",
+    "translation": "기본"
+  },
+  "web.organizations.create_organization": {
+    "en": "Create Organization",
+    "translation": "조직 생성"
+  },
+  "web.organizations.create_first_organization": {
+    "en": "Create First Organization",
+    "translation": "첫 번째 조직 생성"
+  },
+  "web.organizations.create_organization_description": {
+    "en": "Create a new organization",
+    "translation": "팀을 그룹화할 새 조직을 생성합니다"
+  },
+  "web.organizations.create": {
+    "en": "Create",
+    "translation": "생성"
+  },
+  "web.organizations.create_error": {
+    "en": "Failed to create organization",
+    "translation": "조직 생성에 실패했습니다"
+  },
+  "web.organizations.organization_name": {
+    "en": "Organization Name",
+    "translation": "조직 이름"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "en": "e.g. Acme Corporation",
+    "translation": "예: Acme Corporation"
+  },
+  "web.organizations.display_name": {
+    "en": "Organization Name",
+    "translation": "조직 이름"
+  },
+  "web.organizations.description": {
+    "en": "Description",
+    "translation": "설명"
+  },
+  "web.organizations.description_placeholder": {
+    "en": "What is this organization for?",
+    "translation": "이 조직은 무엇을 위한 것인가요?"
+  },
+  "web.organizations.contact_email": {
+    "en": "Billing Email",
+    "translation": "결제 이메일"
+  },
+  "web.organizations.contact_email_help": {
+    "en": "Primary contact for billing and administrative notifications",
+    "translation": "결제 및 관리 알림을 위한 기본 연락처"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "en": "Billing and subscription management is handled through your primary workspace. Visit your main workspace settings to manage payment methods and invoices.",
+    "translation": "결제 및 구독 관리는 기본 워크스페이스를 통해 처리됩니다. 결제 수단 및 송장을 관리하려면 메인 워크스페이스 설정을 방문하세요."
+  },
+  "web.organizations.select_organization": {
+    "en": "Select an organization",
+    "translation": "조직 선택"
+  },
+  "web.organizations.switcher_locked": {
+    "en": "Organization switching not available on this page",
+    "translation": "이 페이지에서는 조직 전환을 사용할 수 없습니다"
+  },
+  "web.organizations.not_found": {
+    "en": "Organization not found",
+    "translation": "조직을 찾을 수 없습니다"
+  },
+  "web.organizations.load_error": {
+    "en": "Failed to load organization",
+    "translation": "조직을 불러오지 못했습니다"
+  },
+  "web.organizations.fetch_organization_error": {
+    "en": "Failed to load organization",
+    "translation": "조직을 불러오지 못했습니다"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "en": "Failed to load organizations",
+    "translation": "조직을 불러오지 못했습니다"
+  },
+  "web.organizations.organization_information": {
+    "en": "Organization Information",
+    "translation": "조직 정보"
+  },
+  "web.organizations.created": {
+    "en": "Created",
+    "translation": "생성됨"
+  },
+  "web.organizations.last_updated": {
+    "en": "Last Updated",
+    "translation": "마지막 업데이트"
+  },
+  "web.organizations.organization_settings": {
+    "en": "Organization Settings",
+    "translation": "조직 설정"
+  },
+  "web.organizations.organization_settings_description": {
+    "en": "Update your organization name and description",
+    "translation": "조직 이름 및 설명을 업데이트합니다"
+  },
+  "web.organizations.general_settings": {
+    "en": "General Settings",
+    "translation": "일반 설정"
+  },
+  "web.organizations.billing_settings": {
+    "en": "Billing & Subscription",
+    "translation": "결제 및 구독"
+  },
+  "web.organizations.save_changes": {
+    "en": "Save Changes",
+    "translation": "변경사항 저장"
+  },
+  "web.organizations.update_success": {
+    "en": "Organization updated successfully",
+    "translation": "조직이 성공적으로 업데이트되었습니다"
+  },
+  "web.organizations.update_error": {
+    "en": "Failed to update organization",
+    "translation": "조직 업데이트에 실패했습니다"
+  },
+  "web.organizations.billing_email_updated": {
+    "en": "Billing email updated successfully"
+  },
+  "web.organizations.billing_coming_soon": {
+    "en": "Billing Integration Coming Soon",
+    "translation": "결제 통합 곧 제공"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "en": "Unified billing and subscription management will be available in a future release.",
+    "translation": "이 조직의 모든 팀에 대한 통합 결제 및 구독 관리가 향후 릴리스에서 제공될 예정입니다."
+  },
+  "web.organizations.about_title": {
+    "en": "About Organizations",
+    "translation": "조직 소개"
+  },
+  "web.organizations.about_description": {
+    "en": "Organizations provide unified billing and administration for centralized management.",
+    "translation": "조직은 여러 팀에 대한 통합 결제 및 관리를 제공합니다. 선택 사항입니다 - 팀은 독립적으로 존재하거나 중앙 집중식 관리를 위해 조직 아래에 그룹화될 수 있습니다."
+  },
+  "web.organizations.single_user_info_title": {
+    "en": "Manage Your Organization",
+    "translation": "조직 관리"
+  },
+  "web.organizations.single_user_info_description": {
+    "en": "Update your company name and organization details here. This information helps personalize your account and can be used for branding features in the future.",
+    "translation": "여기에서 회사 이름 및 조직 세부정보를 업데이트합니다. 이 정보는 계정을 개인화하는 데 도움이 되며 향후 브랜딩 기능에 사용될 수 있습니다."
+  },
+  "web.organizations.getting_started_title": {
+    "en": "Getting Started with Organizations",
+    "translation": "조직 시작하기"
+  },
+  "web.organizations.getting_started_description": {
+    "en": "Create your first organization to manage your company information and prepare for future branding features.",
+    "translation": "첫 번째 조직을 생성하여 회사 정보를 관리하고 향후 팀 협업 및 브랜딩 기능을 준비하세요."
+  },
+  "web.organizations.page_description": {
+    "en": "Manage your organizations and team members",
+    "translation": "조직 및 팀 멤버 관리"
+  },
+  "web.organizations.tabs.general": {
+    "en": "Settings",
+    "translation": "일반"
+  },
+  "web.organizations.tabs.company_branding": {
+    "en": "Company Branding",
+    "translation": "회사 브랜딩"
+  },
+  "web.organizations.tabs.members": {
+    "en": "Team",
+    "translation": "팀"
+  },
+  "web.organizations.tabs.billing": {
+    "en": "Billing",
+    "translation": "결제"
+  },
+  "web.organizations.danger_zone": {
+    "en": "Danger Zone",
+    "translation": "위험 구역"
+  },
+  "web.organizations.delete_organization": {
+    "en": "Delete Organization",
+    "translation": "조직 삭제"
+  },
+  "web.organizations.delete_organization_warning": {
+    "en": "This will permanently delete the organization. This action cannot be undone.",
+    "translation": "조직과 관련된 모든 팀이 영구적으로 삭제됩니다. 이 작업은 취소할 수 없습니다."
+  },
+  "web.organizations.delete": {
+    "en": "Delete",
+    "translation": "삭제"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "en": "Delete Organization",
+    "translation": "조직 삭제"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "en": "Are you sure you want to delete {name}? This action cannot be undone.",
+    "translation": "{name}을(를) 삭제하시겠습니까? 이 작업은 취소할 수 없습니다."
+  },
+  "web.organizations.delete_error": {
+    "en": "Failed to delete organization",
+    "translation": "조직 삭제에 실패했습니다"
+  },
+  "web.organizations.members.title": {
+    "en": "Members",
+    "translation": "구성원"
+  },
+  "web.organizations.members.description": {
+    "en": "Manage organization members and their roles",
+    "translation": "조직 구성원 및 역할 관리"
+  },
+  "web.organizations.members.current_members": {
+    "en": "Current Members",
+    "translation": "현재 멤버"
+  },
+  "web.organizations.members.member": {
+    "en": "Member",
+    "translation": "구성원"
+  },
+  "web.organizations.members.member_singular": {
+    "en": "member",
+    "translation": "member"
+  },
+  "web.organizations.members.member_plural": {
+    "en": "members",
+    "translation": "members"
+  },
+  "web.organizations.members.name": {
+    "en": "Name",
+    "translation": "이름"
+  },
+  "web.organizations.members.email": {
+    "en": "Email",
+    "translation": "이메일"
+  },
+  "web.organizations.members.role": {
+    "en": "Role",
+    "translation": "역할"
+  },
+  "web.organizations.members.joined": {
+    "en": "Joined",
+    "translation": "가입일"
+  },
+  "web.organizations.members.actions": {
+    "en": "Actions",
+    "translation": "작업"
+  },
+  "web.organizations.members.no_members": {
+    "en": "No members yet. Invite team members to get started.",
+    "translation": "구성원이 없습니다"
+  },
+  "web.organizations.members.no_members_description": {
+    "en": "This organization has no members yet.",
+    "translation": "이 조직에는 아직 구성원이 없습니다."
+  },
+  "web.organizations.members.role_updated": {
+    "en": "Member role updated successfully",
+    "translation": "구성원 역할이 성공적으로 업데이트되었습니다"
+  },
+  "web.organizations.members.role_update_error": {
+    "en": "Failed to update member role",
+    "translation": "구성원 역할 업데이트에 실패했습니다"
+  },
+  "web.organizations.members.member_removed": {
+    "en": "Member removed from organization",
+    "translation": "구성원이 조직에서 제거되었습니다"
+  },
+  "web.organizations.members.member_remove_error": {
+    "en": "Failed to remove member",
+    "translation": "구성원 제거에 실패했습니다"
+  },
+  "web.organizations.members.remove_member_title": {
+    "en": "Remove Member",
+    "translation": "구성원 제거"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "en": "Are you sure you want to remove {name} from this organization?",
+    "translation": "정말 {name}을(를) 이 조직에서 제거하시겠습니까?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "en": "You cannot change your own role",
+    "translation": "자신의 역할은 변경할 수 없습니다"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "en": "You cannot remove yourself from the organization",
+    "translation": "자신을 조직에서 제거할 수 없습니다"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "en": "You cannot remove the organization owner",
+    "translation": "조직 소유자를 제거할 수 없습니다"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "en": "You do not have permission to manage members",
+    "translation": "구성원을 관리할 권한이 없습니다"
+  },
+  "web.organizations.members.roles.owner": {
+    "en": "Owner",
+    "translation": "소유자"
+  },
+  "web.organizations.members.roles.admin": {
+    "en": "Admin",
+    "translation": "관리자"
+  },
+  "web.organizations.members.roles.member": {
+    "en": "Member",
+    "translation": "구성원"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "en": "Full access to all organization settings and members",
+    "translation": "모든 조직 설정 및 구성원에 대한 전체 접근 권한"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "en": "Can manage members and most organization settings",
+    "translation": "구성원 및 대부분의 조직 설정 관리 가능"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "en": "Basic access to organization resources",
+    "translation": "조직 리소스에 대한 기본 접근 권한"
+  },
+  "web.organizations.invitations.title": {
+    "en": "Organization Invitations",
+    "translation": "조직 초대"
+  },
+  "web.organizations.invitations.invite_member": {
+    "en": "Invite Member",
+    "translation": "구성원 초대"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "en": "Invite New Member",
+    "translation": "새 구성원 초대"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "en": "Pending Invitations",
+    "translation": "대기 중인 초대"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "en": "No pending invitations",
+    "translation": "대기 중인 초대 없음"
+  },
+  "web.organizations.invitations.email_address": {
+    "en": "Email Address",
+    "translation": "이메일 주소"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "en": "member@example.com",
+    "translation": "member@example.com"
+  },
+  "web.organizations.invitations.role": {
+    "en": "Role",
+    "translation": "역할"
+  },
+  "web.organizations.invitations.send_invite": {
+    "en": "Send Invitation",
+    "translation": "초대 보내기"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "en": "Invitation sent successfully",
+    "translation": "초대가 성공적으로 전송되었습니다"
+  },
+  "web.organizations.invitations.invite_error": {
+    "en": "Failed to send invitation",
+    "translation": "초대 전송에 실패했습니다"
+  },
+  "web.organizations.invitations.resend": {
+    "en": "Resend",
+    "translation": "재전송"
+  },
+  "web.organizations.invitations.revoke": {
+    "en": "Revoke",
+    "translation": "취소"
+  },
+  "web.organizations.invitations.resend_success": {
+    "en": "Invitation resent successfully",
+    "translation": "초대가 성공적으로 재전송되었습니다"
+  },
+  "web.organizations.invitations.resend_error": {
+    "en": "Failed to resend invitation",
+    "translation": "초대 재전송에 실패했습니다"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "en": "Invitation revoked successfully",
+    "translation": "초대가 성공적으로 취소되었습니다"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "en": "Failed to revoke invitation",
+    "translation": "초대 취소에 실패했습니다"
+  },
+  "web.organizations.invitations.invited_by": {
+    "en": "Invited by",
+    "translation": "초대자"
+  },
+  "web.organizations.invitations.invited_at": {
+    "en": "Invited",
+    "translation": "초대일"
+  },
+  "web.organizations.invitations.expires_at": {
+    "en": "Expires",
+    "translation": "만료일"
+  },
+  "web.organizations.invitations.resent_count": {
+    "en": "Resent {count} time",
+    "translation": "{count}회 재전송됨"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "en": "Resent {count} times",
+    "translation": "{count}회 재전송됨"
+  },
+  "web.organizations.invitations.status.pending": {
+    "en": "Pending",
+    "translation": "대기 중"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "en": "Accepted",
+    "translation": "수락됨"
+  },
+  "web.organizations.invitations.status.declined": {
+    "en": "Declined",
+    "translation": "거절됨"
+  },
+  "web.organizations.invitations.status.expired": {
+    "en": "Expired",
+    "translation": "만료됨"
+  },
+  "web.organizations.invitations.roles.member": {
+    "en": "Member",
+    "translation": "구성원"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "en": "Admin",
+    "translation": "관리자"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "en": "Accept Invitation",
+    "translation": "초대 수락"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "en": "Decline Invitation",
+    "translation": "초대 거부"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "en": "Invitation Details",
+    "translation": "초대 세부정보"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "en": "You've been invited to join",
+    "translation": "다음에 초대되었습니다"
+  },
+  "web.organizations.invitations.invited_as": {
+    "en": "You've been invited as a",
+    "translation": "다음으로 초대되었습니다"
+  },
+  "web.organizations.invitations.accept_success": {
+    "en": "Invitation accepted successfully",
+    "translation": "초대가 성공적으로 수락되었습니다"
+  },
+  "web.organizations.invitations.accept_error": {
+    "en": "Failed to accept invitation",
+    "translation": "초대 수락에 실패했습니다"
+  },
+  "web.organizations.invitations.decline_success": {
+    "en": "Invitation declined",
+    "translation": "초대가 거부되었습니다"
+  },
+  "web.organizations.invitations.decline_error": {
+    "en": "Failed to decline invitation",
+    "translation": "초대 거부에 실패했습니다"
+  },
+  "web.organizations.invitations.expired_message": {
+    "en": "This invitation has expired",
+    "translation": "이 초대는 만료되었습니다"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "en": "Invalid or expired invitation",
+    "translation": "유효하지 않거나 만료된 초대"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "en": "Please sign in to accept this invitation",
+    "translation": "이 초대를 수락하려면 로그인하세요"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "en": "Loading invitation details",
+    "translation": "초대 세부정보 로딩 중"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "en": "Upgrade your plan to invite team members"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "en": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization."
+  }
+}

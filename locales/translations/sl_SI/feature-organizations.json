@@ -1,0 +1,531 @@
+{
+  "web.organizations.title": {
+    "en": "Organizations",
+    "translation": "Organizacija"
+  },
+  "web.organizations.organization": {
+    "en": "Organization",
+    "translation": "Organizacija"
+  },
+  "web.organizations.organization_plural": {
+    "en": "Organizations",
+    "translation": "Organizacije"
+  },
+  "web.organizations.organizations_description": {
+    "en": "Manage your organizations",
+    "translation": "Upravljajte svoje organizacije"
+  },
+  "web.organizations.my_organizations": {
+    "en": "Organizations",
+    "translation": "Moje organizacije"
+  },
+  "web.organizations.manage_organizations": {
+    "en": "Manage Organizations",
+    "translation": "Manage Organizations"
+  },
+  "web.organizations.new_organization": {
+    "en": "New Organization",
+    "translation": "Nova organizacija"
+  },
+  "web.organizations.no_organizations": {
+    "en": "No organizations yet",
+    "translation": "Še ni organizacij"
+  },
+  "web.organizations.no_organizations_description": {
+    "en": "Organizations provide unified billing and administration. Get started by creating your first organization.",
+    "translation": "Organizacije vam omogočajo upravljanje več ekip z enotnimi plačili in administracijo. Začnite z ustvarjanjem svoje prve organizacije."
+  },
+  "web.organizations.no_description": {
+    "en": "No description provided",
+    "translation": "Opis ni podan"
+  },
+  "web.organizations.default": {
+    "en": "Default",
+    "translation": "Privzeto"
+  },
+  "web.organizations.create_organization": {
+    "en": "Create Organization",
+    "translation": "Ustvari organizacijo"
+  },
+  "web.organizations.create_first_organization": {
+    "en": "Create First Organization",
+    "translation": "Ustvari prvo organizacijo"
+  },
+  "web.organizations.create_organization_description": {
+    "en": "Create a new organization",
+    "translation": "Ustvarite novo organizacijo za združevanje svojih ekip"
+  },
+  "web.organizations.create": {
+    "en": "Create",
+    "translation": "Ustvari"
+  },
+  "web.organizations.create_error": {
+    "en": "Failed to create organization",
+    "translation": "Ustvarjanje organizacije ni uspelo"
+  },
+  "web.organizations.organization_name": {
+    "en": "Organization Name",
+    "translation": "Ime organizacije"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "en": "e.g. Acme Corporation",
+    "translation": "npr. Podjetje Acme"
+  },
+  "web.organizations.display_name": {
+    "en": "Organization Name",
+    "translation": "Ime organizacije"
+  },
+  "web.organizations.description": {
+    "en": "Description",
+    "translation": "Opis"
+  },
+  "web.organizations.description_placeholder": {
+    "en": "What is this organization for?",
+    "translation": "Čemu je namenjena ta organizacija?"
+  },
+  "web.organizations.contact_email": {
+    "en": "Billing Email",
+    "translation": "E-pošta za plačila"
+  },
+  "web.organizations.contact_email_help": {
+    "en": "Primary contact for billing and administrative notifications",
+    "translation": "Glavni kontakt za obvestila o plačilih in administraciji"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "en": "Billing and subscription management is handled through your primary workspace. Visit your main workspace settings to manage payment methods and invoices.",
+    "translation": "Plačila in naročnina se upravljajo preko vašega primarnega delovnega prostora. Obiščite nastavitve glavnega delovnega prostora za upravljanje načinov plačila in računov."
+  },
+  "web.organizations.select_organization": {
+    "en": "Select an organization",
+    "translation": "Izberite organizacijo"
+  },
+  "web.organizations.switcher_locked": {
+    "en": "Organization switching not available on this page",
+    "translation": "Organization switching not available on this page"
+  },
+  "web.organizations.not_found": {
+    "en": "Organization not found",
+    "translation": "Organizacija ni bila najdena"
+  },
+  "web.organizations.load_error": {
+    "en": "Failed to load organization",
+    "translation": "Nalaganje organizacije ni uspelo"
+  },
+  "web.organizations.fetch_organization_error": {
+    "en": "Failed to load organization",
+    "translation": "Nalaganje organizacije ni uspelo"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "en": "Failed to load organizations",
+    "translation": "Nalaganje organizacij ni uspelo"
+  },
+  "web.organizations.organization_information": {
+    "en": "Organization Information",
+    "translation": "Informacije o organizaciji"
+  },
+  "web.organizations.created": {
+    "en": "Created",
+    "translation": "Ustvarjeno"
+  },
+  "web.organizations.last_updated": {
+    "en": "Last Updated",
+    "translation": "Nazadnje posodobljeno"
+  },
+  "web.organizations.organization_settings": {
+    "en": "Organization Settings",
+    "translation": "Nastavitve organizacije"
+  },
+  "web.organizations.organization_settings_description": {
+    "en": "Update your organization name and description",
+    "translation": "Posodobite ime in opis svoje organizacije"
+  },
+  "web.organizations.general_settings": {
+    "en": "General Settings",
+    "translation": "Splošne nastavitve"
+  },
+  "web.organizations.billing_settings": {
+    "en": "Billing & Subscription",
+    "translation": "Plačila in naročnina"
+  },
+  "web.organizations.save_changes": {
+    "en": "Save Changes",
+    "translation": "Shrani spremembe"
+  },
+  "web.organizations.update_success": {
+    "en": "Organization updated successfully",
+    "translation": "Organizacija uspešno posodobljena"
+  },
+  "web.organizations.update_error": {
+    "en": "Failed to update organization",
+    "translation": "Posodobitev organizacije ni uspela"
+  },
+  "web.organizations.billing_email_updated": {
+    "en": "Billing email updated successfully"
+  },
+  "web.organizations.billing_coming_soon": {
+    "en": "Billing Integration Coming Soon",
+    "translation": "Integracija plačil bo kmalu na voljo"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "en": "Unified billing and subscription management will be available in a future release.",
+    "translation": "Enotno plačilo in upravljanje naročnin za vse ekipe v tej organizaciji bo na voljo v prihodnji izdaji."
+  },
+  "web.organizations.about_title": {
+    "en": "About Organizations",
+    "translation": "O organizacijah"
+  },
+  "web.organizations.about_description": {
+    "en": "Organizations provide unified billing and administration for centralized management.",
+    "translation": "Organizacije zagotavljajo enotno plačilo in administracijo za več ekip. So izbirne - ekipe lahko obstajajo neodvisno ali so združene v organizaciji za centralizirano upravljanje."
+  },
+  "web.organizations.single_user_info_title": {
+    "en": "Manage Your Organization",
+    "translation": "Upravljajte svojo organizacijo"
+  },
+  "web.organizations.single_user_info_description": {
+    "en": "Update your company name and organization details here. This information helps personalize your account and can be used for branding features in the future.",
+    "translation": "Tukaj posodobite ime svojega podjetja in podrobnosti organizacije. Te informacije pomagajo personalizirati vaš račun in jih lahko uporabite za prihodnje funkcije blagovne znamke."
+  },
+  "web.organizations.getting_started_title": {
+    "en": "Getting Started with Organizations",
+    "translation": "Začnite z organizacijami"
+  },
+  "web.organizations.getting_started_description": {
+    "en": "Create your first organization to manage your company information and prepare for future branding features.",
+    "translation": "Ustvarite svojo prvo organizacijo za upravljanje informacij o svojem podjetju in pripravo na prihodnje sodelovanje ekip ter funkcije blagovne znamke."
+  },
+  "web.organizations.page_description": {
+    "en": "Manage your organizations and team members",
+    "translation": "Manage your organizations and team members"
+  },
+  "web.organizations.tabs.general": {
+    "en": "Settings",
+    "translation": "Splošno"
+  },
+  "web.organizations.tabs.company_branding": {
+    "en": "Company Branding",
+    "translation": "Blagovna znamka podjetja"
+  },
+  "web.organizations.tabs.members": {
+    "en": "Team",
+    "translation": "Team"
+  },
+  "web.organizations.tabs.billing": {
+    "en": "Billing",
+    "translation": "Plačila"
+  },
+  "web.organizations.danger_zone": {
+    "en": "Danger Zone",
+    "translation": "Nevarno območje"
+  },
+  "web.organizations.delete_organization": {
+    "en": "Delete Organization",
+    "translation": "Izbriši organizacijo"
+  },
+  "web.organizations.delete_organization_warning": {
+    "en": "This will permanently delete the organization. This action cannot be undone.",
+    "translation": "To bo trajno izbrisalo organizacijo in vse povezane ekipe. Tega dejanja ni mogoče razveljaviti."
+  },
+  "web.organizations.delete": {
+    "en": "Delete",
+    "translation": "Izbriši"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "en": "Delete Organization",
+    "translation": "Izbriši organizacijo"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "en": "Are you sure you want to delete {name}? This action cannot be undone.",
+    "translation": "Ali ste prepričani, da želite izbrisati {name}? Tega dejanja ni mogoče razveljaviti."
+  },
+  "web.organizations.delete_error": {
+    "en": "Failed to delete organization",
+    "translation": "Brisanje organizacije ni uspelo"
+  },
+  "web.organizations.members.title": {
+    "en": "Members",
+    "translation": "Člani"
+  },
+  "web.organizations.members.description": {
+    "en": "Manage organization members and their roles",
+    "translation": "Upravljajte člane organizacije in njihove vloge"
+  },
+  "web.organizations.members.current_members": {
+    "en": "Current Members",
+    "translation": "Current Members"
+  },
+  "web.organizations.members.member": {
+    "en": "Member",
+    "translation": "Član"
+  },
+  "web.organizations.members.member_singular": {
+    "en": "member",
+    "translation": "member"
+  },
+  "web.organizations.members.member_plural": {
+    "en": "members",
+    "translation": "members"
+  },
+  "web.organizations.members.name": {
+    "en": "Name",
+    "translation": "Ime"
+  },
+  "web.organizations.members.email": {
+    "en": "Email",
+    "translation": "E-pošta"
+  },
+  "web.organizations.members.role": {
+    "en": "Role",
+    "translation": "Vloga"
+  },
+  "web.organizations.members.joined": {
+    "en": "Joined",
+    "translation": "Pridružen"
+  },
+  "web.organizations.members.actions": {
+    "en": "Actions",
+    "translation": "Dejanja"
+  },
+  "web.organizations.members.no_members": {
+    "en": "No members yet. Invite team members to get started.",
+    "translation": "Ni najdenih članov"
+  },
+  "web.organizations.members.no_members_description": {
+    "en": "This organization has no members yet.",
+    "translation": "Ta organizacija še nima članov."
+  },
+  "web.organizations.members.role_updated": {
+    "en": "Member role updated successfully",
+    "translation": "Vloga člana uspešno posodobljena"
+  },
+  "web.organizations.members.role_update_error": {
+    "en": "Failed to update member role",
+    "translation": "Posodobitev vloge člana ni uspela"
+  },
+  "web.organizations.members.member_removed": {
+    "en": "Member removed from organization",
+    "translation": "Član odstranjen iz organizacije"
+  },
+  "web.organizations.members.member_remove_error": {
+    "en": "Failed to remove member",
+    "translation": "Odstranjevanje člana ni uspelo"
+  },
+  "web.organizations.members.remove_member_title": {
+    "en": "Remove Member",
+    "translation": "Odstrani člana"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "en": "Are you sure you want to remove {name} from this organization?",
+    "translation": "Ali ste prepričani, da želite odstraniti {name} iz te organizacije?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "en": "You cannot change your own role",
+    "translation": "Ne morete spremeniti svoje lastne vloge"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "en": "You cannot remove yourself from the organization",
+    "translation": "Ne morete odstraniti sebe iz organizacije"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "en": "You cannot remove the organization owner",
+    "translation": "Ne morete odstraniti lastnika organizacije"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "en": "You do not have permission to manage members",
+    "translation": "Nimate dovoljenja za upravljanje članov"
+  },
+  "web.organizations.members.roles.owner": {
+    "en": "Owner",
+    "translation": "Lastnik"
+  },
+  "web.organizations.members.roles.admin": {
+    "en": "Admin",
+    "translation": "Administrator"
+  },
+  "web.organizations.members.roles.member": {
+    "en": "Member",
+    "translation": "Član"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "en": "Full access to all organization settings and members",
+    "translation": "Poln dostop do vseh nastavitev organizacije in članov"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "en": "Can manage members and most organization settings",
+    "translation": "Lahko upravlja člane in večino nastavitev organizacije"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "en": "Basic access to organization resources",
+    "translation": "Osnovni dostop do virov organizacije"
+  },
+  "web.organizations.invitations.title": {
+    "en": "Organization Invitations",
+    "translation": "Povabila organizacije"
+  },
+  "web.organizations.invitations.invite_member": {
+    "en": "Invite Member",
+    "translation": "Povabi člana"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "en": "Invite New Member",
+    "translation": "Povabi novega člana"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "en": "Pending Invitations",
+    "translation": "Čakajoča povabila"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "en": "No pending invitations",
+    "translation": "Ni čakajočih povabil"
+  },
+  "web.organizations.invitations.email_address": {
+    "en": "Email Address",
+    "translation": "E-poštni naslov"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "en": "member@example.com",
+    "translation": "clan@primer.com"
+  },
+  "web.organizations.invitations.role": {
+    "en": "Role",
+    "translation": "Vloga"
+  },
+  "web.organizations.invitations.send_invite": {
+    "en": "Send Invitation",
+    "translation": "Pošlji povabilo"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "en": "Invitation sent successfully",
+    "translation": "Povabilo uspešno poslano"
+  },
+  "web.organizations.invitations.invite_error": {
+    "en": "Failed to send invitation",
+    "translation": "Pošiljanje povabila ni uspelo"
+  },
+  "web.organizations.invitations.resend": {
+    "en": "Resend",
+    "translation": "Ponovno pošlji"
+  },
+  "web.organizations.invitations.revoke": {
+    "en": "Revoke",
+    "translation": "Prekliči"
+  },
+  "web.organizations.invitations.resend_success": {
+    "en": "Invitation resent successfully",
+    "translation": "Povabilo ponovno poslano"
+  },
+  "web.organizations.invitations.resend_error": {
+    "en": "Failed to resend invitation",
+    "translation": "Ponovno pošiljanje povabila ni uspelo"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "en": "Invitation revoked successfully",
+    "translation": "Povabilo preklicano"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "en": "Failed to revoke invitation",
+    "translation": "Preklic povabila ni uspel"
+  },
+  "web.organizations.invitations.invited_by": {
+    "en": "Invited by",
+    "translation": "Povabil/-a"
+  },
+  "web.organizations.invitations.invited_at": {
+    "en": "Invited",
+    "translation": "Povabljen"
+  },
+  "web.organizations.invitations.expires_at": {
+    "en": "Expires",
+    "translation": "Poteče"
+  },
+  "web.organizations.invitations.resent_count": {
+    "en": "Resent {count} time",
+    "translation": "Ponovno poslano {count}-krat"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "en": "Resent {count} times",
+    "translation": "Ponovno poslano {count}-krat"
+  },
+  "web.organizations.invitations.status.pending": {
+    "en": "Pending",
+    "translation": "Čakanje"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "en": "Accepted",
+    "translation": "Sprejeto"
+  },
+  "web.organizations.invitations.status.declined": {
+    "en": "Declined",
+    "translation": "Zavrnjeno"
+  },
+  "web.organizations.invitations.status.expired": {
+    "en": "Expired",
+    "translation": "Poteklo"
+  },
+  "web.organizations.invitations.roles.member": {
+    "en": "Member",
+    "translation": "Član"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "en": "Admin",
+    "translation": "Administrator"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "en": "Accept Invitation",
+    "translation": "Sprejmi povabilo"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "en": "Decline Invitation",
+    "translation": "Zavrni povabilo"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "en": "Invitation Details",
+    "translation": "Podrobnosti povabila"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "en": "You've been invited to join",
+    "translation": "Povabljeni ste k pridružitvi"
+  },
+  "web.organizations.invitations.invited_as": {
+    "en": "You've been invited as a",
+    "translation": "Povabljeni ste kot"
+  },
+  "web.organizations.invitations.accept_success": {
+    "en": "Invitation accepted successfully",
+    "translation": "Povabilo uspešno sprejeto"
+  },
+  "web.organizations.invitations.accept_error": {
+    "en": "Failed to accept invitation",
+    "translation": "Sprejem povabila ni uspel"
+  },
+  "web.organizations.invitations.decline_success": {
+    "en": "Invitation declined",
+    "translation": "Povabilo zavrnjeno"
+  },
+  "web.organizations.invitations.decline_error": {
+    "en": "Failed to decline invitation",
+    "translation": "Zavrnitev povabila ni uspela"
+  },
+  "web.organizations.invitations.expired_message": {
+    "en": "This invitation has expired",
+    "translation": "To povabilo je poteklo"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "en": "Invalid or expired invitation",
+    "translation": "Neveljavno ali poteklo povabilo"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "en": "Please sign in to accept this invitation",
+    "translation": "Za sprejem povabila se prijavite"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "en": "Loading invitation details",
+    "translation": "Nalaganje podrobnosti povabila"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "en": "Upgrade your plan to invite team members"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "en": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization."
+  }
+}

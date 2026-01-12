@@ -1,0 +1,78 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "en": "Why is this secret unavailable?",
+    "translation": "Hvorfor er denne hemmelighed ikke tilgængelig?"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "en": "Secrets are designed to be viewed only once. This link may have already been accessed, expired, or been manually deleted by the sender.",
+    "translation": "Hemmeligheder er designet til kun at blive set én gang. Dette link kan allerede være blevet brugt, være udløbet eller være blevet slettet manuelt af afsenderen."
+  },
+  "web.errors.what_should_i_do_now": {
+    "en": "What should I do now?",
+    "translation": "Hvad skal jeg gøre nu?"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "en": "Contact the person who sent you this link and ask them to create a new secret. Let them know you weren't able to access the original information.",
+    "translation": "Kontakt den person, der har sendt dig dette link, og bed vedkommende om at oprette en ny hemmelighed. Fortæl dem, at du ikke kunne få adgang til de oprindelige oplysninger."
+  },
+  "web.errors.warning_dismissed": {
+    "en": "Warning dismissed",
+    "translation": "Advarsel afvist"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "en": "Dismiss truncation warning",
+    "translation": "Afvis trunkeringsadvarsel"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "en": "Oops! The page you are looking for doesn't exist or has been moved.",
+    "translation": "Ups! Den side, du leder efter, findes ikke eller er blevet flyttet."
+  },
+  "web.errors.404_page_not_found_0": {
+    "en": "404 - Page Not Found",
+    "translation": "404 - Siden blev ikke fundet"
+  },
+  "web.errors.404_page_not_found": {
+    "en": "404 - Page Not Found",
+    "translation": "404 - Side ikke fundet"
+  },
+  "web.errors.dismiss_warning": {
+    "en": "Dismiss warning",
+    "translation": "Advarsel om afskedigelse"
+  },
+  "web.errors.dismiss_notification": {
+    "en": "Dismiss notification",
+    "translation": "Afskedigelsesmeddelelse"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "en": "If you're unsure what to do next, please follow up with the person who sent you this link for more information.",
+    "translation": "Hvis du er usikker på, hvad du skal gøre nu, så følg op med den person, der har sendt dig dette link, for at få flere oplysninger."
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "en": "Information shared through our service can only be accessed once. Once viewed, the content is permanently deleted from our servers to ensure confidentiality. This approach helps protect your sensitive data by limiting its exposure and preventing unauthorized access.",
+    "translation": "Oplysninger, der deles via vores tjeneste, kan kun tilgås én gang. Når indholdet er set, slettes det permanent fra vores servere for at sikre fortrolighed. Denne tilgang hjælper med at beskytte dine følsomme data ved at begrænse deres eksponering og forhindre uautoriseret adgang."
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "en": "We're sorry, but an unexpected error occurred while processing your request. Our team has been notified and we're working to fix it.",
+    "translation": "Vi beklager, men der opstod en uventet fejl under behandlingen af din anmodning. Vores team har fået besked, og vi arbejder på at løse det."
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "en": "{0} Something went wrong",
+    "translation": "{0} Noget gik galt"
+  },
+  "web.errors.go_share_a_secret": {
+    "en": "Go share a secret!",
+    "translation": "Gå ind og del en hemmelighed!"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "en": "The page you're looking for doesn't exist or has been moved. Don't worry, it happens to the best of us!",
+    "translation": "Den side, du leder efter, findes ikke eller er blevet flyttet. Bare rolig, det sker for de bedste af os!"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "en": "{0} 404",
+    "translation": "{0} 404"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "en": "Unable to load data due to data format issues. Please try again later.",
+    "translation": "Kan ikke indlæse data på grund af problemer med dataformatet. Prøv venligst igen senere."
+  }
+}

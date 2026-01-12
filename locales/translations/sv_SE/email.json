@@ -1,0 +1,594 @@
+{
+  "email.incomingsupport.subject": {
+    "en": "[Ticket: %s]",
+    "translation": "[Ärende: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "en": "A customer has sent the following info",
+    "translation": "En kund har skickat följande information"
+  },
+  "email.secret_link.subject": {
+    "en": "%{sender_email} sent you a secret",
+    "translation": "%{sender_email} skickade en hemlighet till dig"
+  },
+  "email.secret_link.sent_you_secret": {
+    "en": "sent you a secret:",
+    "translation": "skickade en hemlighet till dig:"
+  },
+  "email.secret_link.important_label": {
+    "en": "Important:",
+    "translation": "Viktigt:"
+  },
+  "email.secret_link.link_works_once": {
+    "en": "This link will only work once. After viewing, the secret will be permanently deleted.",
+    "translation": "Denna länk fungerar bara en gång. Efter visning raderas hemligheten permanent."
+  },
+  "email.secret_link.sent_via": {
+    "en": "Sent via",
+    "translation": "Skickat via"
+  },
+  "email.welcome.subject": {
+    "en": "Welcome to %{product_name} - Please verify your email",
+    "translation": "Verifiera ditt Onetime Secret-konto"
+  },
+  "email.welcome.title": {
+    "en": "Welcome to %{product_name}!",
+    "translation": "Du har blivit inbjuden att gå med i %{product_name}!"
+  },
+  "email.welcome.verify_prompt": {
+    "en": "Please verify your email address by clicking the link below:",
+    "translation": "Vänligen verifiera din e-postadress genom att klicka på länken nedan:"
+  },
+  "email.welcome.verify_button": {
+    "en": "Verify Email Address",
+    "translation": "Verifiera e-postadress"
+  },
+  "email.welcome.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Eller kopiera och klistra in denna länk:"
+  },
+  "email.welcome.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.welcome.postscript": {
+    "en": "P.S. This email was sent to %{email_address}. If you did not create an account, you can safely ignore this message.",
+    "translation": "P.S. Detta e-postmeddelande skickades till %{email_address}. Om du inte förväntade dig denna inbjudan kan du ignorera detta meddelande."
+  },
+  "email.password_request.subject": {
+    "en": "Reset your password (%{display_domain})",
+    "translation": "Återställ ditt lösenord (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "en": "Reset Your Password",
+    "translation": "Återställ ditt lösenord"
+  },
+  "email.password_request.request_notice": {
+    "en": "We received a request to reset your password for %{product_name}.",
+    "translation": "Vi har mottagit en begäran om att återställa ditt lösenord för %{product_name}."
+  },
+  "email.password_request.reset_button": {
+    "en": "Reset Password",
+    "translation": "Återställ lösenord"
+  },
+  "email.password_request.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Eller kopiera och klistra in denna länk:"
+  },
+  "email.password_request.ignore_notice": {
+    "en": "If you did not request a password reset, you can safely ignore this email.",
+    "translation": "Om du inte begärde en lösenordsåterställning kan du ignorera detta e-postmeddelande."
+  },
+  "email.password_request.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.password_request.postscript": {
+    "en": "P.S. This email was sent to %{email_address}.",
+    "translation": "P.S. Detta e-postmeddelande skickades till %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "en": "Sign in to %{display_domain}",
+    "translation": "Logga in på %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "en": "Sign In with Magic Link",
+    "translation": "Logga in med magisk länk"
+  },
+  "email.magic_link.request_notice": {
+    "en": "You requested a login link for your %{product_name} account.",
+    "translation": "Du begärde en inloggningslänk för ditt %{product_name}-konto."
+  },
+  "email.magic_link.login_button": {
+    "en": "Sign In",
+    "translation": "Logga in"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Eller kopiera och klistra in denna länk:"
+  },
+  "email.magic_link.expiration_notice": {
+    "en": "This link will expire in 15 minutes.",
+    "translation": "Denna länk går ut om 15 minuter."
+  },
+  "email.magic_link.ignore_notice": {
+    "en": "If you did not request this link, you can safely ignore this email.",
+    "translation": "Om du inte begärde denna länk kan du ignorera detta e-postmeddelande."
+  },
+  "email.magic_link.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "en": "P.S. This email was sent to %{email_address}.",
+    "translation": "P.S. Detta e-postmeddelande skickades till %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "en": "You've received a secret message",
+    "translation": "Du har fått ett hemligt meddelande"
+  },
+  "email.incoming_secret.received_message": {
+    "en": "You've received a secure message:",
+    "translation": "Du har fått ett säkert meddelande:"
+  },
+  "email.incoming_secret.memo_label": {
+    "en": "Memo:",
+    "translation": "Anteckning:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "en": "Someone has sent you a secure message through %{display_domain}.",
+    "translation": "Någon har skickat dig ett säkert meddelande via %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "en": "To view this secret, click the link below:",
+    "translation": "Klicka på länken nedan för att visa hemligheten:"
+  },
+  "email.incoming_secret.important_label": {
+    "en": "Important:",
+    "translation": "Viktigt:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "en": "This link will only work once. After viewing, the secret will be permanently deleted.",
+    "translation": "Denna länk fungerar bara en gång. Efter visning raderas hemligheten permanent."
+  },
+  "email.incoming_secret.sent_via": {
+    "en": "Sent via",
+    "translation": "Skickat via"
+  },
+  "email.secret_revealed.subject": {
+    "en": "Your secret was viewed",
+    "translation": "Din hemlighet har visats"
+  },
+  "email.secret_revealed.title": {
+    "en": "Your Secret Was Viewed",
+    "translation": "Din hemlighet har visats"
+  },
+  "email.secret_revealed.viewed_on": {
+    "en": "Your secret was viewed on %{date}.",
+    "translation": "Din hemlighet visades den %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "en": "Secret ID:",
+    "translation": "Hemlighets-ID:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "en": "This is an automated notification. No action is required.",
+    "translation": "Detta är en automatisk avisering. Ingen åtgärd krävs."
+  },
+  "email.secret_revealed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "en": "Manage notification preferences",
+    "translation": "Hantera aviseringsinställningar"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "en": "To manage your notification preferences:",
+    "translation": "För att hantera dina aviseringsinställningar:"
+  },
+  "email.expiration_warning.subject": {
+    "en": "Your secret link will expire soon",
+    "translation": "Din hemliga länk går snart ut"
+  },
+  "email.expiration_warning.expires_in": {
+    "en": "Your secret link will expire in %{time_remaining}",
+    "translation": "Din hemliga länk går ut om %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "en": "View your secret before it expires",
+    "translation": "Visa din hemlighet innan den går ut"
+  },
+  "email.expiration_warning.reminder_label": {
+    "en": "Reminder:",
+    "translation": "Påminnelse:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "en": "After expiration, the secret will be permanently deleted and cannot be recovered.",
+    "translation": "Efter utgångsdatumet raderas hemligheten permanent och kan inte återställas."
+  },
+  "email.expiration_warning.sent_via": {
+    "en": "Sent via",
+    "translation": "Skickat via"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "en": "View it before it's gone:",
+    "translation": "Visa den innan den försvinner:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "en": "After expiration, the secret will be permanently deleted.",
+    "translation": "Efter utgångsdatumet raderas hemligheten permanent."
+  },
+  "email.feedback_email.subject": {
+    "en": "Feedback on %{date} via %{display_domain} (%{strategy})",
+    "translation": "Feedback den %{date} via %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "en": "User Feedback",
+    "translation": "Användarfeedback"
+  },
+  "email.feedback_email.from_label": {
+    "en": "From:",
+    "translation": "Från:"
+  },
+  "email.feedback_email.domain_label": {
+    "en": "Domain:",
+    "translation": "Domän:"
+  },
+  "email.feedback_email.strategy_label": {
+    "en": "Strategy:",
+    "translation": "Strategi:"
+  },
+  "email.feedback_email.message_label": {
+    "en": "Message:",
+    "translation": "Meddelande:"
+  },
+  "email.feedback_email.signature": {
+    "en": "Secret Support",
+    "translation": "Secret Support"
+  },
+  "email.organization_invitation.subject": {
+    "en": "You've been invited to join %{organization_name}",
+    "translation": "Du har blivit inbjuden att gå med i %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "en": "You've been invited to join %{organization_name}!",
+    "translation": "Du har blivit inbjuden att gå med i %{organization_name}!"
+  },
+  "email.organization_invitation.body": {
+    "en": "%{inviter_email} has invited you to join \"%{organization_name}\" as %{role_description}.",
+    "translation": "%{inviter_email} har bjudit in dig att gå med i \"%{organization_name}\" som %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "en": "Accept Invitation",
+    "translation": "Acceptera inbjudan"
+  },
+  "email.organization_invitation.link_instruction": {
+    "en": "Or copy and paste this link:",
+    "translation": "Eller kopiera och klistra in denna länk:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "en": "This invitation will expire in %{days} days.",
+    "translation": "Denna inbjudan upphör att gälla om %{days} dagar."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "en": "If you don't want to join, you can simply ignore this email or decline the invitation.",
+    "translation": "Om du inte vill gå med kan du helt enkelt ignorera detta e-postmeddelande eller avböja inbjudan."
+  },
+  "email.organization_invitation.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "en": "P.S. This email was sent to %{invited_email}. If you weren't expecting this invitation, you can safely ignore this message.",
+    "translation": "P.S. Detta e-postmeddelande skickades till %{invited_email}. Om du inte förväntade dig denna inbjudan kan du ignorera detta meddelande."
+  },
+  "email.organization_invitation.roles.member": {
+    "en": "a member",
+    "translation": "en medlem"
+  },
+  "email.organization_invitation.roles.admin": {
+    "en": "an administrator",
+    "translation": "en administratör"
+  },
+  "email.password_changed.subject": {
+    "en": "Your password was changed (%{display_domain})",
+    "translation": "Ditt lösenord har ändrats (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "en": "Your Password Was Changed",
+    "translation": "Ditt lösenord har ändrats"
+  },
+  "email.password_changed.body": {
+    "en": "Your password for %{product_name} was changed on %{date} at %{time}.",
+    "translation": "Ditt lösenord för %{product_name} ändrades den %{date} kl. %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "en": "If you did not make this change, please secure your account immediately by resetting your password and contacting support.",
+    "translation": "Om du inte gjorde denna ändring, vänligen säkra ditt konto omedelbart genom att återställa ditt lösenord och kontakta supporten."
+  },
+  "email.password_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.email_changed.subject": {
+    "en": "Your email address was changed (%{display_domain})",
+    "translation": "Din e-postadress har ändrats (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "en": "Your Email Address Was Changed",
+    "translation": "Din e-postadress har ändrats"
+  },
+  "email.email_changed.body": {
+    "en": "The email address for your %{product_name} account was changed to %{new_email_masked} on %{date}.",
+    "translation": "E-postadressen för ditt %{product_name}-konto ändrades till %{new_email_masked} den %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "en": "If you did not make this change, please contact support immediately as your account may be compromised.",
+    "translation": "Om du inte gjorde denna ändring, vänligen kontakta supporten omedelbart eftersom ditt konto kan ha komprometterats."
+  },
+  "email.email_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "en": "Verify your new email address (%{display_domain})",
+    "translation": "Verifiera din nya e-postadress (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "en": "Verify Your New Email Address",
+    "translation": "Verifiera din nya e-postadress"
+  },
+  "email.email_change_confirmation.body": {
+    "en": "Please verify this email address to complete the change for your %{product_name} account.",
+    "translation": "Vänligen verifiera denna e-postadress för att slutföra ändringen av ditt %{product_name}-konto."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "en": "Verify Email Address",
+    "translation": "Verifiera e-postadress"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "en": "Or copy and paste this link:",
+    "translation": "Eller kopiera och klistra in denna länk:"
+  },
+  "email.email_change_confirmation.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "en": "Two-factor authentication enabled (%{display_domain})",
+    "translation": "Tvåfaktorsautentisering aktiverad (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "en": "Two-Factor Authentication Enabled",
+    "translation": "Tvåfaktorsautentisering aktiverad"
+  },
+  "email.mfa_enabled.body": {
+    "en": "Two-factor authentication was enabled for your %{product_name} account on %{date}.",
+    "translation": "Tvåfaktorsautentisering aktiverades för ditt %{product_name}-konto den %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "en": "Your account is now more secure. You will need to enter a verification code from your authenticator app when signing in.",
+    "translation": "Ditt konto är nu säkrare. Du kommer att behöva ange en verifieringskod från din autentiseringsapp vid inloggning."
+  },
+  "email.mfa_enabled.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "en": "Two-factor authentication disabled (%{display_domain})",
+    "translation": "Tvåfaktorsautentisering inaktiverad (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "en": "Two-Factor Authentication Disabled",
+    "translation": "Tvåfaktorsautentisering inaktiverad"
+  },
+  "email.mfa_disabled.body": {
+    "en": "Two-factor authentication was disabled for your %{product_name} account on %{date}.",
+    "translation": "Tvåfaktorsautentisering inaktiverades för ditt %{product_name}-konto den %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "en": "Your account is now less secure. If you did not make this change, please secure your account immediately.",
+    "translation": "Ditt konto är nu mindre säkert. Om du inte gjorde denna ändring, vänligen säkra ditt konto omedelbart."
+  },
+  "email.mfa_disabled.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "en": "New sign-in to your account (%{display_domain})",
+    "translation": "Ny inloggning till ditt konto (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "en": "New Sign-In Detected",
+    "translation": "Ny inloggning upptäckt"
+  },
+  "email.new_login_alert.body": {
+    "en": "A new sign-in to your %{product_name} account was detected on %{date} at %{time}.",
+    "translation": "En ny inloggning till ditt %{product_name}-konto upptäcktes den %{date} kl. %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "en": "Device:",
+    "translation": "Enhet:"
+  },
+  "email.new_login_alert.location_label": {
+    "en": "Location:",
+    "translation": "Plats:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "en": "IP Address:",
+    "translation": "IP-adress:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "en": "If this wasn't you, your account may be compromised.",
+    "translation": "Om det inte var du kan ditt konto ha komprometterats."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "en": "Secure Your Account",
+    "translation": "Säkra ditt konto"
+  },
+  "email.new_login_alert.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.member_removed.subject": {
+    "en": "You've been removed from %{organization_name}",
+    "translation": "Du har tagits bort från %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "en": "You've Been Removed from %{organization_name}",
+    "translation": "Du har tagits bort från %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "en": "You have been removed from the organization \"%{organization_name}\" on %{product_name}.",
+    "translation": "Du har tagits bort från organisationen \"%{organization_name}\" på %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.role_changed.subject": {
+    "en": "Your role was changed in %{organization_name}",
+    "translation": "Din roll har ändrats i %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "en": "Your Role Was Changed",
+    "translation": "Din roll har ändrats"
+  },
+  "email.role_changed.body": {
+    "en": "Your role in \"%{organization_name}\" has been changed from %{old_role} to %{new_role}.",
+    "translation": "Din roll i \"%{organization_name}\" har ändrats från %{old_role} till %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "en": "Organization \"%{organization_name}\" was deleted",
+    "translation": "Organisationen \"%{organization_name}\" har raderats"
+  },
+  "email.organization_deleted.title": {
+    "en": "Organization Deleted",
+    "translation": "Organisation raderad"
+  },
+  "email.organization_deleted.body": {
+    "en": "The organization \"%{organization_name}\" has been deleted from %{product_name}. All associated data has been removed.",
+    "translation": "Organisationen \"%{organization_name}\" har raderats från %{product_name}. All tillhörande data har tagits bort."
+  },
+  "email.organization_deleted.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "en": "Payment receipt for %{product_name}",
+    "translation": "Betalningskvitto för %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "en": "Payment Receipt",
+    "translation": "Betalningskvitto"
+  },
+  "email.payment_receipt.body": {
+    "en": "Thank you for your payment. Here are your payment details:",
+    "translation": "Tack för din betalning. Här är dina betalningsuppgifter:"
+  },
+  "email.payment_receipt.amount_label": {
+    "en": "Amount:",
+    "translation": "Belopp:"
+  },
+  "email.payment_receipt.date_label": {
+    "en": "Date:",
+    "translation": "Datum:"
+  },
+  "email.payment_receipt.plan_label": {
+    "en": "Plan:",
+    "translation": "Plan:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "en": "View Invoice",
+    "translation": "Visa faktura"
+  },
+  "email.payment_receipt.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "en": "Payment failed for %{product_name}",
+    "translation": "Betalning misslyckades för %{product_name}"
+  },
+  "email.payment_failed.title": {
+    "en": "Payment Failed",
+    "translation": "Betalning misslyckades"
+  },
+  "email.payment_failed.body": {
+    "en": "We were unable to process your payment for %{product_name}. Please update your payment method to avoid service interruption.",
+    "translation": "Vi kunde inte behandla din betalning för %{product_name}. Vänligen uppdatera din betalningsmetod för att undvika avbrott i tjänsten."
+  },
+  "email.payment_failed.update_payment_button": {
+    "en": "Update Payment Method",
+    "translation": "Uppdatera betalningsmetod"
+  },
+  "email.payment_failed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "en": "Your %{product_name} trial expires in %{days_remaining} days",
+    "translation": "Din %{product_name}-provperiod går ut om %{days_remaining} dagar"
+  },
+  "email.trial_expiring.title": {
+    "en": "Your Trial Is Ending Soon",
+    "translation": "Din provperiod går snart ut"
+  },
+  "email.trial_expiring.body": {
+    "en": "Your free trial of %{product_name} will expire in %{days_remaining} days. Upgrade now to keep access to all features.",
+    "translation": "Din kostnadsfria provperiod av %{product_name} går ut om %{days_remaining} dagar. Uppgradera nu för att behålla tillgång till alla funktioner."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "en": "Upgrade Now",
+    "translation": "Uppgradera nu"
+  },
+  "email.trial_expiring.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "en": "Your %{product_name} subscription was changed",
+    "translation": "Din %{product_name}-prenumeration har ändrats"
+  },
+  "email.subscription_changed.title": {
+    "en": "Subscription Changed",
+    "translation": "Prenumeration ändrad"
+  },
+  "email.subscription_changed.body": {
+    "en": "Your %{product_name} subscription has been changed from %{old_plan} to %{new_plan}.",
+    "translation": "Din %{product_name}-prenumeration har ändrats från %{old_plan} till %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "en": "This change is effective %{date}.",
+    "translation": "Denna ändring träder i kraft %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "email.common.greeting": {
+    "en": "Hello,",
+    "translation": "Hej,"
+  },
+  "email.common.thanks": {
+    "en": "Thanks,",
+    "translation": "Tack,"
+  },
+  "email.common.unsubscribe": {
+    "en": "Unsubscribe",
+    "translation": "Avprenumerera"
+  },
+  "email.common.view_in_browser": {
+    "en": "View in browser",
+    "translation": "Visa i webbläsare"
+  },
+  "email.common.onetime_secret": {
+    "en": "Onetime Secret",
+    "translation": "Onetime Secret"
+  }
+}

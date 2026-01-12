@@ -1,0 +1,78 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "en": "Why is this secret unavailable?",
+    "translation": "He aha tēnei karere huna kāore e wātea?"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "en": "Secrets are designed to be viewed only once. This link may have already been accessed, expired, or been manually deleted by the sender.",
+    "translation": "Kua hoahoatia ngā karere huna kia kitea kotahi noa te wā. Kua urunga pea tēnei hononga, kua pau, kua mukua ā-ringa rānei e te kaituku."
+  },
+  "web.errors.what_should_i_do_now": {
+    "en": "What should I do now?",
+    "translation": "Me aha au ināianei?"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "en": "Contact the person who sent you this link and ask them to create a new secret. Let them know you weren't able to access the original information.",
+    "translation": "Whakapā atu ki te tangata nāna i tuku tēnei hononga, ā, tonoa ki te waihanga i tētahi karere huna hou. Kia mōhio rātou kāore koe i taea te uru ki ngā mōhiohio taketake."
+  },
+  "web.errors.warning_dismissed": {
+    "en": "Warning dismissed",
+    "translation": "Kua whakakorehia te whakatūpato"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "en": "Dismiss truncation warning",
+    "translation": "Whakakore i te whakatūpato poroa"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "en": "Oops! The page you are looking for doesn't exist or has been moved.",
+    "translation": "Auē! Kāore te whārangi e rapu ana koe i te tīari, kua nekehia rānei."
+  },
+  "web.errors.404_page_not_found_0": {
+    "en": "404 - Page Not Found",
+    "translation": "404 - Kāore i Kitea te Whārangi"
+  },
+  "web.errors.404_page_not_found": {
+    "en": "404 - Page Not Found",
+    "translation": "404 - Kāore i Kitea te Whārangi"
+  },
+  "web.errors.dismiss_warning": {
+    "en": "Dismiss warning",
+    "translation": "Whakakore whakatūpato"
+  },
+  "web.errors.dismiss_notification": {
+    "en": "Dismiss notification",
+    "translation": "Whakakore whakamōhiotanga"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "en": "If you're unsure what to do next, please follow up with the person who sent you this link for more information.",
+    "translation": "Mēnā kāore koe e tino mōhio me aha koe ā muri ake nei, tēnā whai ake ki te tangata nāna i tuku tēnei hononga mō ētahi atu mōhiohio."
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "en": "Information shared through our service can only be accessed once. Once viewed, the content is permanently deleted from our servers to ensure confidentiality. This approach helps protect your sensitive data by limiting its exposure and preventing unauthorized access.",
+    "translation": "Ko ngā mōhiohio i tuari mā tā mātou ratonga ka taea te uru kotahi anake. Ka tirohia ana, ka mukua pūmautia te ihirangi mai i ā mātou tūmau hei whakaū i te noho muna. Ka āwhina tēnei huarahi ki te tiaki i ō raraunga tairongo mā te whakawhāiti i tōna whakaaturanga me te ārai i te urunga whakaaetia-kore."
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "en": "We're sorry, but an unexpected error occurred while processing your request. Our team has been notified and we're working to fix it.",
+    "translation": "E whakapāha ana mātou, engari i puta he hapa ohorere i te wā o te tukatuka i tō tono. Kua whakamōhiotia tō mātou rōpū, ā, kei te mahi mātou ki te whakatika."
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "en": "{0} Something went wrong",
+    "translation": "{0} Kua hē tētahi mea"
+  },
+  "web.errors.go_share_a_secret": {
+    "en": "Go share a secret!",
+    "translation": "Haere tuari i tētahi karere huna!"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "en": "The page you're looking for doesn't exist or has been moved. Don't worry, it happens to the best of us!",
+    "translation": "Kāore te whārangi e rapu ana koe i te tīari, kua nekehia rānei. Kaua e māharahara, ka pā tēnei ki te pai rawa o tātou!"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "en": "{0} 404",
+    "translation": "{0} 404"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "en": "Unable to load data due to data format issues. Please try again later.",
+    "translation": "Kāore e taea te uta raraunga nā ngā take whakatakotoranga raraunga. Tēnā ngana anō ā muri ake."
+  }
+}

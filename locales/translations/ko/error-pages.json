@@ -1,0 +1,78 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "en": "Why is this secret unavailable?",
+    "translation": "이 비밀 메시지를 사용할 수 없는 이유는 무엇인가요?"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "en": "Secrets are designed to be viewed only once. This link may have already been accessed, expired, or been manually deleted by the sender.",
+    "translation": "비밀 메시지는 단 한 번만 볼 수 있도록 설계되었습니다. 이 링크는 이미 접근되었거나, 만료되었거나, 발신자에 의해 수동으로 삭제되었을 수 있습니다."
+  },
+  "web.errors.what_should_i_do_now": {
+    "en": "What should I do now?",
+    "translation": "이제 어떻게 해야 하나요?"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "en": "Contact the person who sent you this link and ask them to create a new secret. Let them know you weren't able to access the original information.",
+    "translation": "이 링크를 보낸 사람에게 연락하여 새 비밀 메시지를 만들어 달라고 요청하세요. 원본 정보에 접근할 수 없었다고 알려주세요."
+  },
+  "web.errors.warning_dismissed": {
+    "en": "Warning dismissed",
+    "translation": "경고 해제됨"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "en": "Dismiss truncation warning",
+    "translation": "잘림 경고 해제"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "en": "Oops! The page you are looking for doesn't exist or has been moved.",
+    "translation": "죄송합니다! 찾고 계신 페이지가 존재하지 않거나 이동되었습니다."
+  },
+  "web.errors.404_page_not_found_0": {
+    "en": "404 - Page Not Found",
+    "translation": "404 - 페이지를 찾을 수 없음"
+  },
+  "web.errors.404_page_not_found": {
+    "en": "404 - Page Not Found",
+    "translation": "404 - 페이지를 찾을 수 없음"
+  },
+  "web.errors.dismiss_warning": {
+    "en": "Dismiss warning",
+    "translation": "경고 해제"
+  },
+  "web.errors.dismiss_notification": {
+    "en": "Dismiss notification",
+    "translation": "알림 해제"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "en": "If you're unsure what to do next, please follow up with the person who sent you this link for more information.",
+    "translation": "다음에 무엇을 할지 확실하지 않다면, 더 많은 정보를 위해 이 링크를 보낸 사람에게 문의하세요."
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "en": "Information shared through our service can only be accessed once. Once viewed, the content is permanently deleted from our servers to ensure confidentiality. This approach helps protect your sensitive data by limiting its exposure and preventing unauthorized access.",
+    "translation": "저희 서비스를 통해 공유된 정보는 단 한 번만 접근할 수 있습니다. 열람 후에는 기밀성을 보장하기 위해 내용이 서버에서 영구적으로 삭제됩니다. 이 접근 방식은 노출을 제한하고 무단 접근을 방지함으로써 민감한 데이터를 보호하는 데 도움이 됩니다."
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "en": "We're sorry, but an unexpected error occurred while processing your request. Our team has been notified and we're working to fix it.",
+    "translation": "요청을 처리하는 동안 예기치 않은 오류가 발생했습니다. 저희 팀에 알림이 갔으며 문제를 해결하기 위해 노력하고 있습니다."
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "en": "{0} Something went wrong",
+    "translation": "{0} 문제가 발생했습니다"
+  },
+  "web.errors.go_share_a_secret": {
+    "en": "Go share a secret!",
+    "translation": "비밀 메시지를 공유하세요!"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "en": "The page you're looking for doesn't exist or has been moved. Don't worry, it happens to the best of us!",
+    "translation": "찾고 계신 페이지가 존재하지 않거나 이동되었습니다. 걱정하지 마세요, 누구에게나 일어날 수 있는 일입니다!"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "en": "{0} 404",
+    "translation": "{0} 404"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "en": "Unable to load data due to data format issues. Please try again later.",
+    "translation": "데이터 형식 문제로 데이터를 로드할 수 없습니다. 나중에 다시 시도하세요."
+  }
+}

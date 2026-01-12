@@ -1,0 +1,142 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "en": "Data Sovereignty & Regional Isolation",
+    "translation": "データ主権 & リージョン分離"
+  },
+  "web.regions.data_sovereignty_description": {
+    "en": "Your data resides exclusively in your chosen region and is never transferred across regions",
+    "translation": "データは選択したリージョンにのみ存在し、リージョン間で転送されることはありません"
+  },
+  "web.regions.separate_environments_explanation": {
+    "en": "Each region operates as a completely independent environment with its own infrastructure, encryption keys, and data storage",
+    "translation": "各リージョンは、独自のインフラストラクチャ、暗号化キー、データストレージを持つ完全に独立した環境として運用されます"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "en": "We maintain a strict policy: customer data is never transferred between regions under any circumstances",
+    "translation": "私たちは厳格なポリシーを維持しています: 顧客データはいかなる状況でもリージョン間で転送されません"
+  },
+  "web.regions.switching_creates_new_account": {
+    "en": "Important: Switching to a different region creates a new account. Your data stays in your original region.",
+    "translation": "重要: 別のリージョンに切り替えると、新しいアカウントが作成されます。データは元のリージョンに残ります。"
+  },
+  "web.regions.your_region": {
+    "en": "Your Region",
+    "translation": "あなたのリージョン"
+  },
+  "web.regions.your_current_region": {
+    "en": "Your Current Region",
+    "translation": "現在のリージョン"
+  },
+  "web.regions.active": {
+    "en": "Active",
+    "translation": "アクティブ"
+  },
+  "web.regions.explore_other_regions": {
+    "en": "Explore other available regions",
+    "translation": "他の利用可能なリージョンを探索"
+  },
+  "web.regions.why_it_matters": {
+    "en": "Why Data Sovereignty Matters",
+    "translation": "データ主権が重要な理由"
+  },
+  "web.regions.trust_title": {
+    "en": "Transparency & Control",
+    "translation": "透明性 & コントロール"
+  },
+  "web.regions.trust_description": {
+    "en": "Know exactly where your data resides and which laws govern its protection.",
+    "translation": "データがどこにあるか、どの法律がその保護を管理しているかを正確に把握できます。"
+  },
+  "web.regions.privacy_title": {
+    "en": "Privacy Rights",
+    "translation": "プライバシー権"
+  },
+  "web.regions.privacy_description": {
+    "en": "Ensure your personal information is handled according to your country's privacy laws and regulations, preventing unauthorized access or misuse.",
+    "translation": "個人情報が国のプライバシー法と規制に従って処理され、不正アクセスや誤用を防ぎます。"
+  },
+  "web.regions.compliance_title": {
+    "en": "Regulatory Compliance",
+    "translation": "規制準拠"
+  },
+  "web.regions.compliance_description": {
+    "en": "Meet GDPR, HIPAA, CCPA, and other regional data protection requirements",
+    "translation": "GDPR、HIPAA、CCPA、その他の地域データ保護要件を満たします"
+  },
+  "web.regions.performance_title": {
+    "en": "Faster Access",
+    "translation": "高速アクセス"
+  },
+  "web.regions.performance_description": {
+    "en": "Data stored closer to you means lower latency and better performance.",
+    "translation": "データが近くに保存されるため、レイテンシが低く、パフォーマンスが向上します。"
+  },
+  "web.regions.regions": {
+    "en": "Regions",
+    "translation": "地域"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "en": "contact our compliance team",
+    "translation": "コンプライアンスチームに連絡する"
+  },
+  "web.regions.review_our_documentation": {
+    "en": "review our documentation",
+    "translation": "ドキュメントを確認する"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "en": "Your account and data are protected under the laws of",
+    "translation": "あなたのアカウントとデータは次の法律と規制の下で保護されています"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "en": "Your regulatory framework is determined by your access domain:",
+    "translation": "この規制フレームワークは、アクセスドメインによって決定されます："
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "en": "Each region is completely separate with its own infrastructure, when possible with its own local hosting provider. You can create accounts in multiple regions, but no data is shared between them.",
+    "translation": "各管轄区域は、別々の法的コンプライアンスとデータガバナンスを維持しています。複数の管轄区域でアカウントを作成することはできますが、それらは法的に区別されており、規制区域間でデータの共有はありません。"
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "en": "For details on regulations and protections that apply to your account,",
+    "translation": "あなたのアカウントに適用される特定の規制と保護を理解するには、"
+  },
+  "web.regions.current": {
+    "en": "Current",
+    "translation": "現在"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "en": "{0} {1}",
+    "translation": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "en": "Available Regions",
+    "translation": "利用可能な地域"
+  },
+  "web.regions.jurisdiction": {
+    "en": "Jurisdiction",
+    "translation": "管轄区域"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "en": "Data center location: {0}",
+    "translation": "データセンターの場所: {0}"
+  },
+  "web.regions.data_region": {
+    "en": "Data Region",
+    "translation": "データ地域"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "en": "Unknown Jurisdiction",
+    "translation": "不明な管轄区域"
+  },
+  "web.regions.serving_you_from_the": {
+    "en": "Serving you from",
+    "translation": "サービス提供元："
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "en": "Continue to {0}",
+    "translation": "{0}に進む"
+  },
+  "web.regions.current_jurisdiction": {
+    "en": "Current jurisdiction:",
+    "translation": "現在の管轄区域："
+  }
+}

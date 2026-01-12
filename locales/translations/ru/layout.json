@@ -1,0 +1,329 @@
+{
+  "web.footer.api_docs": {
+    "en": "API Docs",
+    "translation": "Документация API"
+  },
+  "web.footer.branding_guide": {
+    "en": "Branding Guide",
+    "translation": "Руководство по бренду"
+  },
+  "web.footer.customize": {
+    "en": "Customize",
+    "translation": "Настроить"
+  },
+  "web.footer.plans": {
+    "en": "Plans",
+    "translation": "Тарифы"
+  },
+  "web.footer.security": {
+    "en": "Security",
+    "translation": "Безопасность"
+  },
+  "web.footer.learn_about_our_security_measures": {
+    "en": "Learn about our security measures",
+    "translation": "Узнайте о наших мерах безопасности"
+  },
+  "web.footer.view_our_terms_and_conditions": {
+    "en": "View our Terms and Conditions",
+    "translation": "Просмотрите наши Условия использования"
+  },
+  "web.footer.terms": {
+    "en": "Terms",
+    "translation": "Условия"
+  },
+  "web.footer.privacy": {
+    "en": "Privacy",
+    "translation": "Конфиденциальность"
+  },
+  "web.footer.contact": {
+    "en": "Contact",
+    "translation": "Контакты"
+  },
+  "web.footer.support": {
+    "en": "Support",
+    "translation": "Поддержка"
+  },
+  "web.footer.legals": {
+    "en": "Legals",
+    "translation": "Юридическая информация"
+  },
+  "web.footer.read_our_privacy_policy": {
+    "en": "Read our Privacy Policy",
+    "translation": "Прочитайте нашу Политику конфиденциальности"
+  },
+  "web.footer.check_our_service_status": {
+    "en": "Check our service status",
+    "translation": "Проверьте статус нашего сервиса"
+  },
+  "web.footer.explore_our_api_documentation": {
+    "en": "Explore our API documentation",
+    "translation": "Изучите нашу документацию API"
+  },
+  "web.footer.docs": {
+    "en": "Docs",
+    "translation": "Документация"
+  },
+  "web.footer.access_our_documentation": {
+    "en": "Access our documentation",
+    "translation": "Получите доступ к нашей документации"
+  },
+  "web.footer.view_our_source_code_on_github": {
+    "en": "View our source code on GitHub",
+    "translation": "Просмотрите наш исходный код на GitHub"
+  },
+  "web.footer.resources": {
+    "en": "Resources",
+    "translation": "Ресурсы"
+  },
+  "web.footer.blog": {
+    "en": "Blog",
+    "translation": "Блог"
+  },
+  "web.footer.read_our_latest_blog_posts": {
+    "en": "Read our latest blog posts",
+    "translation": "Прочитайте наши последние публикации в блоге"
+  },
+  "web.footer.view_our_subscription_pricing": {
+    "en": "View our subscription pricing",
+    "translation": "Просмотрите тарифы на подписку"
+  },
+  "web.footer.learn_about_our_company": {
+    "en": "Learn about our company",
+    "translation": "Узнайте о нашей компании"
+  },
+  "web.footer.company": {
+    "en": "Company",
+    "translation": "Компания"
+  },
+  "web.navigation.billing": {
+    "en": "Billing",
+    "translation": "Счета"
+  },
+  "web.navigation.billingOverview": {
+    "en": "Overview",
+    "translation": "Обзор"
+  },
+  "web.navigation.organizations": {
+    "en": "Organizations",
+    "translation": "Организации"
+  },
+  "web.site.website_version": {
+    "en": "Website Version",
+    "translation": "Версия сайта"
+  },
+  "web.meta.were_making_onetime_secret_available_in_multiple": {
+    "en": "We're making {onetime-secret} available in multiple languages. Since this is a new feature, you may encounter translation errors or awkward phrasing. Your feedback helps us improve - if you spot any issues, please {send-feedback}",
+    "translation": "Мы делаем {onetime-secret} доступным на нескольких языках. Поскольку это новая функция, вы можете столкнуться с ошибками перевода или неловкими формулировками. Ваш отзыв помогает нам улучшаться - если вы заметили какие-либо проблемы, пожалуйста, {send-feedback}"
+  },
+  "web.meta.translations_are_new_spotted_an_error": {
+    "en": "Translations are new. Spotted an error? {send-feedback}",
+    "translation": "Переводы новые. Заметили ошибку? {send-feedback}"
+  },
+  "web.meta.we_recently_added_translations": {
+    "en": "We recently added translations. Spotted an error? {send-feedback}",
+    "translation": "Мы недавно добавили переводы. Заметили ошибку? {send-feedback}"
+  },
+  "web.meta.privacy_and_security_should_be_accessible": {
+    "en": "Privacy and security should be accessible to everyone, regardless of language. We're adding translations to help both our users and their message recipients better understand how to safely use and access secure messages and links. Since this is a new feature, you might encounter some translation errors or unclear instructions. To help us improve the clarity and accuracy of our translations, especially for critical security-related content, please {send-feedback} if you spot any issues",
+    "translation": "Конфиденциальность и безопасность должны быть доступны каждому, независимо от языка. Мы добавляем переводы, чтобы помочь как нашим пользователям, так и получателям их сообщений лучше понять, как безопасно использовать и получать доступ к защищённым сообщениям и ссылкам. Поскольку это новая функция, вы можете столкнуться с некоторыми ошибками перевода или неясными инструкциями. Чтобы помочь нам улучшить ясность и точность наших переводов, особенно для критически важного контента, связанного с безопасностью, пожалуйста, {send-feedback}, если вы заметите какие-либо проблемы"
+  },
+  "web.help.learn_more": {
+    "en": "Learn more",
+    "translation": "Узнать больше"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.title": {
+    "en": "What am I looking at?",
+    "translation": "Что я вижу?"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.description": {
+    "en": "You're viewing a secure message that was shared with you through Onetime Secret. This content is displayed only once and then permanently deleted from our servers.",
+    "translation": "Вы просматриваете безопасное сообщение, которым поделились с вами через Onetime Secret. Это содержимое отображается только один раз, а затем навсегда удаляется с наших серверов."
+  },
+  "web.help.secret_view_faq.can_i_view_again.title": {
+    "en": "Can I view this secret again later?",
+    "translation": "Могу ли я посмотреть этот секрет снова позже?"
+  },
+  "web.help.secret_view_faq.can_i_view_again.description": {
+    "en": "No. For security reasons, this secret is only viewable once. After closing this page, the content will be permanently deleted and cannot be recovered by anyone, including us.",
+    "translation": "Нет. По соображениям безопасности этот секрет можно просмотреть только один раз. После закрытия этой страницы содержимое будет навсегда удалено и не может быть восстановлено кем-либо, включая нас."
+  },
+  "web.help.secret_view_faq.how_to_copy.title": {
+    "en": "How do I save this information?",
+    "translation": "Как мне сохранить эту информацию?"
+  },
+  "web.help.secret_view_faq.how_to_copy.description": {
+    "en": "Use the 'Copy to Clipboard' button to copy the entire secret. For longer secrets, make sure to verify you've copied the complete content before leaving this page.",
+    "translation": "Используйте кнопку «Копировать в буфер обмена», чтобы скопировать весь секрет. Для длинных секретов убедитесь, что вы скопировали полное содержимое, прежде чем покинуть эту страницу."
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.title": {
+    "en": "Is my viewing of this secret tracked?",
+    "translation": "Отслеживается ли мой просмотр этого секрета?"
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.description": {
+    "en": "The sender will be notified that their secret was viewed, but we don't track who viewed it or from what location. Your privacy is protected.",
+    "translation": "Отправителю будет сообщено, что его секрет был просмотрен, но мы не отслеживаем, кто его просмотрел или из какого места. Ваша конфиденциальность защищена."
+  },
+  "web.help.secret_view_faq.one_time_warning": {
+    "en": "Once you leave or refresh this page, this secret will be permanently deleted and cannot be recovered by anyone.",
+    "translation": "После того, как вы покинете или обновите эту страницу, этот секрет будет навсегда удалён и не может быть восстановлен кем-либо."
+  },
+  "web.layout.go_back_to_previous_page": {
+    "en": "Go back to previous page",
+    "translation": "Вернуться на предыдущую страницу"
+  },
+  "web.layout.site_footer": {
+    "en": "Site footer",
+    "translation": "Нижний колонтитул сайта"
+  },
+  "web.layout.toggle_dark_mode": {
+    "en": "Toggle dark mode",
+    "translation": "Переключить тёмный режим"
+  },
+  "web.layout.provide_feedback": {
+    "en": "Provide feedback",
+    "translation": "Оставить отзыв"
+  },
+  "web.layout.company_logo": {
+    "en": "Company logo",
+    "translation": "Логотип компании"
+  },
+  "web.layout.brand_logo": {
+    "en": "Brand logo",
+    "translation": "Логотип бренда"
+  },
+  "web.layout.dashboard_navigation": {
+    "en": "Dashboard Navigation",
+    "translation": "Навигация панели управления"
+  },
+  "web.layout.mobile_navigation": {
+    "en": "Mobile Navigation",
+    "translation": "Мобильная навигация"
+  },
+  "web.layout.main_navigation": {
+    "en": "Main Navigation",
+    "translation": "Главная навигация"
+  },
+  "web.layout.mobile_nav_item_count": {
+    "en": "{count} items",
+    "translation": "{count} элементов"
+  },
+  "web.layout.release_notes": {
+    "en": "Release Notes",
+    "translation": "Примечания к выпуску"
+  },
+  "web.layout.loading_settings_content": {
+    "en": "Loading settings content...",
+    "translation": "Загрузка содержимого настроек..."
+  },
+  "web.layout.settings_sections_0": {
+    "en": "Settings sections",
+    "translation": "Разделы настроек"
+  },
+  "web.layout.close_settings": {
+    "en": "Close settings",
+    "translation": "Закрыть настройки"
+  },
+  "web.layout.settings_sections": {
+    "en": "Settings sections",
+    "translation": "Разделы настроек"
+  },
+  "web.layout.customize_your_app_preferences_and_settings": {
+    "en": "Customize your app preferences and settings",
+    "translation": "Настройте Ваши предпочтения и параметры приложения"
+  },
+  "web.layout.return_home": {
+    "en": "Return home",
+    "translation": "Вернуться на главную"
+  },
+  "web.layout.return_to_home_page": {
+    "en": "Return to home page",
+    "translation": "Вернуться на главную страницу"
+  },
+  "web.layout.return_to_home": {
+    "en": "Return to Home",
+    "translation": "Вернуться на главную"
+  },
+  "web.layout.view_privacy_policy": {
+    "en": "View Privacy Policy",
+    "translation": "Просмотреть политику конфиденциальности"
+  },
+  "web.layout.view_terms_of_service": {
+    "en": "View Terms of Service",
+    "translation": "Просмотреть условия использования"
+  },
+  "web.layout.visit_onetime_secret_homepage": {
+    "en": "Visit Onetime Secret homepage",
+    "translation": "Посетить главную страницу Onetime Secret"
+  },
+  "web.layout.footer_navigation": {
+    "en": "Footer navigation",
+    "translation": "Навигация по нижнему колонтитулу"
+  },
+  "web.layout.terms_of_service": {
+    "en": "Terms of Service",
+    "translation": "Условия использования"
+  },
+  "web.layout.privacy_policy": {
+    "en": "Privacy Policy",
+    "translation": "Политика конфиденциальности"
+  },
+  "web.layout.icon_library": {
+    "en": "Icon Library",
+    "translation": "Библиотека значков"
+  },
+  "web.layout.google_material": {
+    "en": "Google Material",
+    "translation": "Google Material"
+  },
+  "web.layout.material_design_icons": {
+    "en": "Material Design Icons",
+    "translation": "Material Design Icons"
+  },
+  "web.layout.heroicons": {
+    "en": "Heroicons",
+    "translation": "Heroicons"
+  },
+  "web.layout.carbon": {
+    "en": "Carbon",
+    "translation": "Carbon"
+  },
+  "web.layout.font_awesome_6": {
+    "en": "Font Awesome 6",
+    "translation": "Font Awesome 6"
+  },
+  "web.layout.view_source_on_github": {
+    "en": "View source on GitHub",
+    "translation": "Просмотреть исходный код на GitHub"
+  },
+  "web.layout.website_version_v_ot_version": {
+    "en": "Website Version: v{0}",
+    "translation": "Версия сайта: v{0}"
+  },
+  "web.layout.current_language_is_currentlocal": {
+    "en": "Change language. Current language is {0}",
+    "translation": "Изменить язык. Текущий язык: {0}"
+  },
+  "web.layout.language_changed_to_newlocale": {
+    "en": "Language changed to {0}",
+    "translation": "Язык изменён на {0}"
+  },
+  "web.layout.reset_to_default_language": {
+    "en": "Reset to {0}"
+  },
+  "web.layout.switch_to_blank_mode": {
+    "en": "Switch to {0} mode",
+    "translation": "Переключиться в режим {0}"
+  },
+  "web.layout.blank_mode_enabled": {
+    "en": "{0} mode enabled",
+    "translation": "Режим {0} включён"
+  },
+  "web.layout.workspace": {
+    "en": "Workspace",
+    "translation": "Рабочее пространство"
+  },
+  "web.layout.workspace_context": {
+    "en": "Workspace context",
+    "translation": "Контекст рабочего пространства"
+  }
+}

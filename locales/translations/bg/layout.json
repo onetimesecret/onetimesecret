@@ -1,0 +1,329 @@
+{
+  "web.footer.api_docs": {
+    "en": "API Docs",
+    "translation": "API документация"
+  },
+  "web.footer.branding_guide": {
+    "en": "Branding Guide",
+    "translation": "Ръководство за брандиране"
+  },
+  "web.footer.customize": {
+    "en": "Customize",
+    "translation": "Персонализирай"
+  },
+  "web.footer.plans": {
+    "en": "Plans",
+    "translation": "Планове"
+  },
+  "web.footer.security": {
+    "en": "Security",
+    "translation": "Сигурност"
+  },
+  "web.footer.learn_about_our_security_measures": {
+    "en": "Learn about our security measures",
+    "translation": "Научете повече за нашите мерки за сигурност"
+  },
+  "web.footer.view_our_terms_and_conditions": {
+    "en": "View our Terms and Conditions",
+    "translation": "Прегледайте нашите Общи условия"
+  },
+  "web.footer.terms": {
+    "en": "Terms",
+    "translation": "Условия"
+  },
+  "web.footer.privacy": {
+    "en": "Privacy",
+    "translation": "Поверителност"
+  },
+  "web.footer.contact": {
+    "en": "Contact",
+    "translation": "Контакт"
+  },
+  "web.footer.support": {
+    "en": "Support",
+    "translation": "Поддръжка"
+  },
+  "web.footer.legals": {
+    "en": "Legals",
+    "translation": "Правни документи"
+  },
+  "web.footer.read_our_privacy_policy": {
+    "en": "Read our Privacy Policy",
+    "translation": "Прочетете нашата Политика за поверителност"
+  },
+  "web.footer.check_our_service_status": {
+    "en": "Check our service status",
+    "translation": "Проверете състоянието на нашата услуга"
+  },
+  "web.footer.explore_our_api_documentation": {
+    "en": "Explore our API documentation",
+    "translation": "Разгледайте нашата API документация"
+  },
+  "web.footer.docs": {
+    "en": "Docs",
+    "translation": "Документация"
+  },
+  "web.footer.access_our_documentation": {
+    "en": "Access our documentation",
+    "translation": "Достъп до нашата документация"
+  },
+  "web.footer.view_our_source_code_on_github": {
+    "en": "View our source code on GitHub",
+    "translation": "Прегледайте нашия изходен код в GitHub"
+  },
+  "web.footer.resources": {
+    "en": "Resources",
+    "translation": "Ресурси"
+  },
+  "web.footer.blog": {
+    "en": "Blog",
+    "translation": "Блог"
+  },
+  "web.footer.read_our_latest_blog_posts": {
+    "en": "Read our latest blog posts",
+    "translation": "Прочетете нашите последни блог публикации"
+  },
+  "web.footer.view_our_subscription_pricing": {
+    "en": "View our subscription pricing",
+    "translation": "Прегледайте нашите цени за абонаменти"
+  },
+  "web.footer.learn_about_our_company": {
+    "en": "Learn about our company",
+    "translation": "Научете повече за нашата компания"
+  },
+  "web.footer.company": {
+    "en": "Company",
+    "translation": "Компания"
+  },
+  "web.navigation.billing": {
+    "en": "Billing",
+    "translation": "Фактуриране"
+  },
+  "web.navigation.billingOverview": {
+    "en": "Overview",
+    "translation": "Общ преглед"
+  },
+  "web.navigation.organizations": {
+    "en": "Organizations",
+    "translation": "Организации"
+  },
+  "web.site.website_version": {
+    "en": "Website Version",
+    "translation": "Версия на уебсайта"
+  },
+  "web.meta.were_making_onetime_secret_available_in_multiple": {
+    "en": "We're making {onetime-secret} available in multiple languages. Since this is a new feature, you may encounter translation errors or awkward phrasing. Your feedback helps us improve - if you spot any issues, please {send-feedback}",
+    "translation": "Правим {onetime-secret} достъпен на множество езици. Тъй като това е нова функция, може да срещнете грешки в превода или неловки формулировки. Вашата обратна връзка ни помага да се подобрим - ако забележите някакви проблеми, моля {send-feedback}"
+  },
+  "web.meta.translations_are_new_spotted_an_error": {
+    "en": "Translations are new. Spotted an error? {send-feedback}",
+    "translation": "Преводите са нови. Забелязахте грешка? {send-feedback}"
+  },
+  "web.meta.we_recently_added_translations": {
+    "en": "We recently added translations. Spotted an error? {send-feedback}",
+    "translation": "Наскоро добавихме преводи. Забелязахте грешка? {send-feedback}"
+  },
+  "web.meta.privacy_and_security_should_be_accessible": {
+    "en": "Privacy and security should be accessible to everyone, regardless of language. We're adding translations to help both our users and their message recipients better understand how to safely use and access secure messages and links. Since this is a new feature, you might encounter some translation errors or unclear instructions. To help us improve the clarity and accuracy of our translations, especially for critical security-related content, please {send-feedback} if you spot any issues",
+    "translation": "Поверителността и сигурността трябва да бъдат достъпни за всички, независимо от езика. Добавяме преводи, за да помогнем както на нашите потребители, така и на получателите на техните съобщения да разберат по-добре как безопасно да използват и достъпват сигурни съобщения и връзки. Тъй като това е нова функция, може да срещнете грешки в превода или неясни инструкции. За да ни помогнете да подобрим яснотата и точността на нашите преводи, особено за критично съдържание, свързано със сигурността, моля {send-feedback}, ако забележите някакви проблеми"
+  },
+  "web.help.learn_more": {
+    "en": "Learn more",
+    "translation": "Научете повече"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.title": {
+    "en": "What am I looking at?",
+    "translation": "Какво гледам?"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.description": {
+    "en": "You're viewing a secure message that was shared with you through Onetime Secret. This content is displayed only once and then permanently deleted from our servers.",
+    "translation": "Преглеждате сигурно съобщение, споделено с вас чрез Onetime Secret. Съдържанието се показва само веднъж, след което се изтрива перманентно от нашите сървъри."
+  },
+  "web.help.secret_view_faq.can_i_view_again.title": {
+    "en": "Can I view this secret again later?",
+    "translation": "Мога ли да го видя отново по-късно?"
+  },
+  "web.help.secret_view_faq.can_i_view_again.description": {
+    "en": "No. For security reasons, this secret is only viewable once. After closing this page, the content will be permanently deleted and cannot be recovered by anyone, including us.",
+    "translation": "Не. От съображения за сигурност, тази тайна е видима само веднъж. След затварянето на тази страница, съдържанието ще бъде перманентно изтрито и няма да може да бъде възстановено от никого, включително от нас."
+  },
+  "web.help.secret_view_faq.how_to_copy.title": {
+    "en": "How do I save this information?",
+    "translation": "Как да запазя тази информация?"
+  },
+  "web.help.secret_view_faq.how_to_copy.description": {
+    "en": "Use the 'Copy to Clipboard' button to copy the entire secret. For longer secrets, make sure to verify you've copied the complete content before leaving this page.",
+    "translation": "Използвайте бутона 'Копирай в клипборда', за да копирате цялата тайна. За по-дълги тайни, уверете се, че сте копирали пълното съдържание, преди да напуснете тази страница."
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.title": {
+    "en": "Is my viewing of this secret tracked?",
+    "translation": "Записва ли се прегледът ми на тази тайна?"
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.description": {
+    "en": "The sender will be notified that their secret was viewed, but we don't track who viewed it or from what location. Your privacy is protected.",
+    "translation": "Изпращачът ще бъде уведомен, че неговата тайна е била прегледана, но ние не записваме кой я е прегледал или от коя локация. Вашата поверителност е защитена."
+  },
+  "web.help.secret_view_faq.one_time_warning": {
+    "en": "Once you leave or refresh this page, this secret will be permanently deleted and cannot be recovered by anyone.",
+    "translation": "След като напуснете или обновите тази страница, тази тайна ще бъде перманентно изтрита и няма да може да бъде възстановена от никого."
+  },
+  "web.layout.go_back_to_previous_page": {
+    "en": "Go back to previous page",
+    "translation": "Върни се на предишната страница"
+  },
+  "web.layout.site_footer": {
+    "en": "Site footer",
+    "translation": "Долен колонтитул на сайта"
+  },
+  "web.layout.toggle_dark_mode": {
+    "en": "Toggle dark mode",
+    "translation": "Превключване на тъмен режим"
+  },
+  "web.layout.provide_feedback": {
+    "en": "Provide feedback",
+    "translation": "Предоставете обратна връзка"
+  },
+  "web.layout.company_logo": {
+    "en": "Company logo",
+    "translation": "Лого на компанията"
+  },
+  "web.layout.brand_logo": {
+    "en": "Brand logo",
+    "translation": "Лого на марката"
+  },
+  "web.layout.dashboard_navigation": {
+    "en": "Dashboard Navigation",
+    "translation": "Навигация в таблото за управление"
+  },
+  "web.layout.mobile_navigation": {
+    "en": "Mobile Navigation",
+    "translation": "Мобилна навигация"
+  },
+  "web.layout.main_navigation": {
+    "en": "Main Navigation",
+    "translation": "Основна навигация"
+  },
+  "web.layout.mobile_nav_item_count": {
+    "en": "{count} items",
+    "translation": "{count} елемента"
+  },
+  "web.layout.release_notes": {
+    "en": "Release Notes",
+    "translation": "Бележки за версията"
+  },
+  "web.layout.loading_settings_content": {
+    "en": "Loading settings content...",
+    "translation": "Зареждане на съдържанието на настройките..."
+  },
+  "web.layout.settings_sections_0": {
+    "en": "Settings sections",
+    "translation": "Секции с настройки"
+  },
+  "web.layout.close_settings": {
+    "en": "Close settings",
+    "translation": "Затвори настройките"
+  },
+  "web.layout.settings_sections": {
+    "en": "Settings sections",
+    "translation": "Секции с настройки"
+  },
+  "web.layout.customize_your_app_preferences_and_settings": {
+    "en": "Customize your app preferences and settings",
+    "translation": "Персонализирайте предпочитанията и настройките на вашето приложение"
+  },
+  "web.layout.return_home": {
+    "en": "Return home",
+    "translation": "Върни се у дома"
+  },
+  "web.layout.return_to_home_page": {
+    "en": "Return to home page",
+    "translation": "Върни се на началната страница"
+  },
+  "web.layout.return_to_home": {
+    "en": "Return to Home",
+    "translation": "Върни се към дома"
+  },
+  "web.layout.view_privacy_policy": {
+    "en": "View Privacy Policy",
+    "translation": "Преглед на политиката за поверителност"
+  },
+  "web.layout.view_terms_of_service": {
+    "en": "View Terms of Service",
+    "translation": "Преглед на условията за ползване"
+  },
+  "web.layout.visit_onetime_secret_homepage": {
+    "en": "Visit Onetime Secret homepage",
+    "translation": "Посетете началната страница на Onetime Secret"
+  },
+  "web.layout.footer_navigation": {
+    "en": "Footer navigation",
+    "translation": "Навигация в долния колонтитул"
+  },
+  "web.layout.terms_of_service": {
+    "en": "Terms of Service",
+    "translation": "Условия за ползване"
+  },
+  "web.layout.privacy_policy": {
+    "en": "Privacy Policy",
+    "translation": "Политика за поверителност"
+  },
+  "web.layout.icon_library": {
+    "en": "Icon Library",
+    "translation": "Библиотека с икони"
+  },
+  "web.layout.google_material": {
+    "en": "Google Material",
+    "translation": "Google Material"
+  },
+  "web.layout.material_design_icons": {
+    "en": "Material Design Icons",
+    "translation": "Material Design икони"
+  },
+  "web.layout.heroicons": {
+    "en": "Heroicons",
+    "translation": "Heroicons"
+  },
+  "web.layout.carbon": {
+    "en": "Carbon",
+    "translation": "Carbon"
+  },
+  "web.layout.font_awesome_6": {
+    "en": "Font Awesome 6",
+    "translation": "Font Awesome 6"
+  },
+  "web.layout.view_source_on_github": {
+    "en": "View source on GitHub",
+    "translation": "Преглед на изходния код в GitHub"
+  },
+  "web.layout.website_version_v_ot_version": {
+    "en": "Website Version: v{0}",
+    "translation": "Версия на уебсайта: v{0}"
+  },
+  "web.layout.current_language_is_currentlocal": {
+    "en": "Change language. Current language is {0}",
+    "translation": "Промени езика. Текущият език е {0}"
+  },
+  "web.layout.language_changed_to_newlocale": {
+    "en": "Language changed to {0}",
+    "translation": "Езикът е променен на {0}"
+  },
+  "web.layout.reset_to_default_language": {
+    "en": "Reset to {0}"
+  },
+  "web.layout.switch_to_blank_mode": {
+    "en": "Switch to {0} mode",
+    "translation": "Превключете към {0} режим"
+  },
+  "web.layout.blank_mode_enabled": {
+    "en": "{0} mode enabled",
+    "translation": "{0} режим е активиран"
+  },
+  "web.layout.workspace": {
+    "en": "Workspace",
+    "translation": "Работно пространство"
+  },
+  "web.layout.workspace_context": {
+    "en": "Workspace context",
+    "translation": "Контекст на работното пространство"
+  }
+}

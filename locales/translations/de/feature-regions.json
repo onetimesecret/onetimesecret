@@ -1,0 +1,142 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "en": "Data Sovereignty & Regional Isolation",
+    "translation": "Datensouveränität & regionale Isolation"
+  },
+  "web.regions.data_sovereignty_description": {
+    "en": "Your data resides exclusively in your chosen region and is never transferred across regions",
+    "translation": "Deine Daten befinden sich ausschließlich in deiner gewählten Region und werden niemals über Regionen hinweg übertragen"
+  },
+  "web.regions.separate_environments_explanation": {
+    "en": "Each region operates as a completely independent environment with its own infrastructure, encryption keys, and data storage",
+    "translation": "Jede Region funktioniert als vollständig unabhängige Umgebung mit eigener Infrastruktur, Verschlüsselungsschlüsseln und Datenspeicherung"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "en": "We maintain a strict policy: customer data is never transferred between regions under any circumstances",
+    "translation": "Wir pflegen eine strikte Richtlinie: Kundendaten werden unter keinen Umständen zwischen Regionen übertragen"
+  },
+  "web.regions.switching_creates_new_account": {
+    "en": "Important: Switching to a different region creates a new account. Your data stays in your original region.",
+    "translation": "Wichtig: Der Wechsel zu einer anderen Region erstellt ein neues Konto. Deine Daten bleiben in deiner ursprünglichen Region."
+  },
+  "web.regions.your_region": {
+    "en": "Your Region",
+    "translation": "Deine Region"
+  },
+  "web.regions.your_current_region": {
+    "en": "Your Current Region",
+    "translation": "Deine aktuelle Region"
+  },
+  "web.regions.active": {
+    "en": "Active",
+    "translation": "Aktiv"
+  },
+  "web.regions.explore_other_regions": {
+    "en": "Explore other available regions",
+    "translation": "Erkunde andere verfügbare Regionen"
+  },
+  "web.regions.why_it_matters": {
+    "en": "Why Data Sovereignty Matters",
+    "translation": "Warum Datensouveränität wichtig ist"
+  },
+  "web.regions.trust_title": {
+    "en": "Transparency & Control",
+    "translation": "Transparenz & Kontrolle"
+  },
+  "web.regions.trust_description": {
+    "en": "Know exactly where your data resides and which laws govern its protection.",
+    "translation": "Wisse genau, wo sich deine Daten befinden und welche Gesetze ihren Schutz regeln."
+  },
+  "web.regions.privacy_title": {
+    "en": "Privacy Rights",
+    "translation": "Datenschutzrechte"
+  },
+  "web.regions.privacy_description": {
+    "en": "Ensure your personal information is handled according to your country's privacy laws and regulations, preventing unauthorized access or misuse.",
+    "translation": "Stelle sicher, dass deine persönlichen Informationen gemäß den Datenschutzgesetzen und -vorschriften deines Landes behandelt werden, um unbefugten Zugriff oder Missbrauch zu verhindern."
+  },
+  "web.regions.compliance_title": {
+    "en": "Regulatory Compliance",
+    "translation": "Einhaltung gesetzlicher Vorschriften"
+  },
+  "web.regions.compliance_description": {
+    "en": "Meet GDPR, HIPAA, CCPA, and other regional data protection requirements",
+    "translation": "Erfülle DSGVO, HIPAA, CCPA und andere regionale Datenschutzanforderungen"
+  },
+  "web.regions.performance_title": {
+    "en": "Faster Access",
+    "translation": "Schnellerer Zugriff"
+  },
+  "web.regions.performance_description": {
+    "en": "Data stored closer to you means lower latency and better performance.",
+    "translation": "Daten, die näher bei dir gespeichert sind, bedeuten geringere Latenz und bessere Leistung."
+  },
+  "web.regions.regions": {
+    "en": "Regions",
+    "translation": "Regionen"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "en": "contact our compliance team",
+    "translation": "kontaktiere unser Compliance-Team"
+  },
+  "web.regions.review_our_documentation": {
+    "en": "review our documentation",
+    "translation": "unsere Dokumentation überprüfen"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "en": "Your account and data are protected under the laws of",
+    "translation": "Dein Konto und deine Daten sind gemäß den Gesetzen und Vorschriften von"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "en": "Your regulatory framework is determined by your access domain:",
+    "translation": "Dieser regulatorische Rahmen wird durch deine Zugriffsdomain bestimmt:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "en": "Each region is completely separate with its own infrastructure, when possible with its own local hosting provider. You can create accounts in multiple regions, but no data is shared between them.",
+    "translation": "Jede Gerichtsbarkeit unterhält separate rechtliche Compliance und Datenverwaltung. Obwohl du Konten in mehreren Gerichtsbarkeiten erstellen kannst, bleiben sie rechtlich getrennt ohne Datenaustausch zwischen regulatorischen Zonen."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "en": "For details on regulations and protections that apply to your account,",
+    "translation": "Um die spezifischen Vorschriften und Schutzmaßnahmen zu verstehen, die für dein Konto gelten, bitte"
+  },
+  "web.regions.current": {
+    "en": "Current",
+    "translation": "Aktuell"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "en": "{0} {1}",
+    "translation": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "en": "Available Regions",
+    "translation": "Verfügbare Regionen"
+  },
+  "web.regions.jurisdiction": {
+    "en": "Jurisdiction",
+    "translation": "Gerichtsbarkeit"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "en": "Data center location: {0}",
+    "translation": "Rechenzentrumsstandort: {0}"
+  },
+  "web.regions.data_region": {
+    "en": "Data Region",
+    "translation": "Datenregion"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "en": "Unknown Jurisdiction",
+    "translation": "Unbekannte Gerichtsbarkeit"
+  },
+  "web.regions.serving_you_from_the": {
+    "en": "Serving you from",
+    "translation": "Wir bedienen dich von"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "en": "Continue to {0}",
+    "translation": "Weiter zu {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "en": "Current jurisdiction:",
+    "translation": "Aktuelle Gerichtsbarkeit:"
+  }
+}

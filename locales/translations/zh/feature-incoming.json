@@ -1,0 +1,134 @@
+{
+  "incoming.page_title": {
+    "en": "Send a Secret",
+    "translation": "发送机密"
+  },
+  "incoming.page_description": {
+    "en": "Share sensitive information securely with our support team",
+    "translation": "安全地与我们的支持团队共享敏感信息"
+  },
+  "incoming.loading_config": {
+    "en": "Loading...",
+    "translation": "加载中..."
+  },
+  "incoming.config_error_title": {
+    "en": "Failed to load configuration",
+    "translation": "加载配置失败"
+  },
+  "incoming.feature_disabled_title": {
+    "en": "Feature Not Available",
+    "translation": "功能不可用"
+  },
+  "incoming.feature_disabled_description": {
+    "en": "This feature is currently disabled. Please contact support for assistance.",
+    "translation": "此功能当前已禁用。请联系支持团队寻求帮助。"
+  },
+  "incoming.memo_label": {
+    "en": "Memo",
+    "translation": "备注"
+  },
+  "incoming.memo_placeholder": {
+    "en": "Brief description (e.g., Password reset request)",
+    "translation": "简要描述(例如:密码重置请求)"
+  },
+  "incoming.memo_hint": {
+    "en": "Help us route your message to the right person",
+    "translation": "帮助我们将您的消息发送给正确的人"
+  },
+  "incoming.recipient_label": {
+    "en": "Send to",
+    "translation": "发送至"
+  },
+  "incoming.recipient_placeholder": {
+    "en": "Select a recipient",
+    "translation": "选择收件人"
+  },
+  "incoming.recipient_aria_label": {
+    "en": "Select a recipient for this secret",
+    "translation": "为此机密选择收件人"
+  },
+  "incoming.recipient_hint": {
+    "en": "Choose who will receive this secure message",
+    "translation": "选择谁将收到此安全消息"
+  },
+  "incoming.no_recipients_available": {
+    "en": "No recipients are available",
+    "translation": "没有可用的收件人"
+  },
+  "incoming.secret_content_label": {
+    "en": "Secret Information",
+    "translation": "机密信息"
+  },
+  "incoming.secret_content_placeholder": {
+    "en": "Paste sensitive information here (passwords, keys, etc.)",
+    "translation": "在此粘贴敏感信息(密码、密钥等)"
+  },
+  "incoming.secret_content_hint": {
+    "en": "This information will be encrypted and only viewable once",
+    "translation": "此信息将被加密,仅可查看一次"
+  },
+  "incoming.submit_button": {
+    "en": "Send Secret",
+    "translation": "发送机密"
+  },
+  "incoming.submit_secret": {
+    "en": "Send Secret",
+    "translation": "发送机密"
+  },
+  "incoming.submitting_button": {
+    "en": "Sending...",
+    "translation": "发送中..."
+  },
+  "incoming.submitting": {
+    "en": "Sending...",
+    "translation": "发送中..."
+  },
+  "incoming.reset_button": {
+    "en": "Clear Form",
+    "translation": "清除表单"
+  },
+  "incoming.reset_form": {
+    "en": "Clear Form",
+    "translation": "清除表单"
+  },
+  "incoming.success_title": {
+    "en": "Sent Successfully",
+    "translation": "发送成功"
+  },
+  "incoming.success_description": {
+    "en": "Your secure message has been delivered.",
+    "translation": "您的安全消息已送达。"
+  },
+  "incoming.reference_id": {
+    "en": "Reference ID",
+    "translation": "参考编号"
+  },
+  "incoming.success_info_title": {
+    "en": "What happens next?",
+    "translation": "接下来会发生什么?"
+  },
+  "incoming.success_info_description": {
+    "en": "The recipient will be able to view this secret only once. After they view it, the secret will be permanently deleted.",
+    "translation": "收件人只能查看此机密一次。查看后,机密将被永久删除。"
+  },
+  "incoming.create_another": {
+    "en": "Send Another Secret",
+    "translation": "发送另一个机密"
+  },
+  "incoming.tagline1": {
+    "en": "Share sensitive information securely",
+    "translation": "安全地共享敏感信息"
+  },
+  "incoming.tagline2": {
+    "en": "Keep passwords and private data out of email and chat logs",
+    "translation": "将密码和私密数据远离电子邮件和聊天记录"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "en": "Save your {receipt} for your records.",
+    "translation": "保存您的<a href='{receiptUrl}'>收据</a>以备记录。"
+  },
+  "incoming.receipt_link_text": {
+    "en": "receipt",
+    "translation": "receipt"
+  }
+}

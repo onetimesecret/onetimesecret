@@ -1,0 +1,62 @@
+{
+  "web.feedback.your_feedback": {
+    "en": "Your feedback",
+    "translation": "Τα σχόλιά σας"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "en": "All feedback welcome!",
+    "translation": "Όλα τα σχόλια είναι ευπρόσδεκτα!"
+  },
+  "web.feedback.help_us_improve": {
+    "en": "Help us improve",
+    "translation": "Βοηθήστε μας να βελτιωθούμε"
+  },
+  "web.feedback.close_feedback_modal": {
+    "en": "Close feedback modal",
+    "translation": "Κλείσιμο παραθύρου σχολίων"
+  },
+  "web.feedback.share_your_feedback": {
+    "en": "Share your feedback",
+    "translation": "Μοιραστείτε τα σχόλιά σας"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "en": "Delano Mandelbaum",
+    "translation": "Delano Mandelbaum"
+  },
+  "web.feedback.delano": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "web.feedback.help_content_goes_here": {
+    "en": "Help content goes here.",
+    "translation": "Το περιεχόμενο βοήθειας πηγαίνει εδώ."
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "en": "Thanks for helping Onetime Secret improve. It means a lot.",
+    "translation": "Ευχαριστούμε που βοηθάτε το Onetime Secret να βελτιωθεί. Σημαίνει πολλά."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "en": "We've built this tool to help you share sensitive info securely, and your real-world experiences are crucial for focusing our efforts. It helps us figure out what to work on next and how to make the service better for everyone.",
+    "translation": "Έχουμε δημιουργήσει αυτό το εργαλείο για να σας βοηθήσουμε να μοιράζεστε ευαίσθητες πληροφορίες με ασφάλεια, και οι πραγματικές σας εμπειρίες είναι κρίσιμες για την εστίαση των προσπαθειών μας. Μας βοηθά να καταλάβουμε πάνω σε τι να δουλέψουμε στη συνέχεια και πώς να κάνουμε την υπηρεσία καλύτερη για όλους."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "en": "Hey there, thanks for stopping by our feedback page. Your input isn't just welcome - it's crucial.",
+    "translation": "Γεια σας, ευχαριστούμε που περάσατε από τη σελίδα σχολίων μας. Η συμβολή σας δεν είναι απλώς ευπρόσδεκτη - είναι κρίσιμη."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "en": "A note from Delano, founder of Onetime Secret",
+    "translation": "Μια σημείωση από τον Delano, ιδρυτή του Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "en": "Open feedback form",
+    "translation": "Άνοιγμα φόρμας σχολίων"
+  },
+  "web.feedback.enter_your_feedback": {
+    "en": "Enter your feedback",
+    "translation": "Εισαγάγετε τα σχόλιά σας"
+  },
+  "web.feedback.send_feedback": {
+    "en": "Send feedback",
+    "translation": "Αποστολή σχολίων"
+  }
+}

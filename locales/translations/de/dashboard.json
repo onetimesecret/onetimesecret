@@ -1,0 +1,26 @@
+{
+  "web.dashboard.title_received": {
+    "en": "Received",
+    "translation": "Empfangen"
+  },
+  "web.dashboard.title_not_received": {
+    "en": "Not Received",
+    "translation": "Nicht empfangen"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "en": "No recent secrets",
+    "translation": "Keine kürzlich erstellten Geheimnisse"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "en": "Get started by creating your first secret.",
+    "translation": "Lege los, indem du dein erstes Geheimnis erstellst."
+  },
+  "web.dashboard.fetch_error_title": {
+    "en": "Unable to load data",
+    "translation": "Teams konnten nicht geladen werden"
+  },
+  "web.dashboard.fetch_error_description": {
+    "en": "There was a problem loading your data. Please try again.",
+    "translation": "Beim Laden deiner Teams ist ein Problem aufgetreten. Bitte versuche es erneut."
+  }
+}

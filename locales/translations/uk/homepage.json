@@ -1,0 +1,186 @@
+{
+  "web.homepage.tagline1": {
+    "en": "Paste a password, secret message or private link below.",
+    "translation": "Вставте пароль, секретне повідомлення або приватне посилання нижче."
+  },
+  "web.homepage.tagline2": {
+    "en": "Keep sensitive info out of your email and chat logs.",
+    "translation": "Тримайте конфіденційну інформацію поза вашою електронною поштою та журналами чату."
+  },
+  "web.homepage.secret_hint": {
+    "en": "* A secret link only works once and then disappears forever.",
+    "translation": "* Секретне посилання працює лише один раз, а потім зникає назавжди."
+  },
+  "web.homepage.secret_form_more_text1": {
+    "en": "Sign up for a",
+    "translation": "Зареєструйтеся для"
+  },
+  "web.homepage.secret_form_more_text2": {
+    "en": "free account",
+    "translation": "безкоштовного облікового запису"
+  },
+  "web.homepage.secret_form_more_text3": {
+    "en": "and be able to send the secret by email.",
+    "translation": "і зможете надсилати секрет електронною поштою."
+  },
+  "web.homepage.cta_title": {
+    "en": "Increase trust & share with confidence",
+    "translation": "Використовуйте власний домен"
+  },
+  "web.homepage.cta_subtitle": {
+    "en": "Elevate your brand and share with confidence",
+    "translation": "Підніміть свій бренд та діліться з впевненістю"
+  },
+  "web.homepage.cta_feature1": {
+    "en": "Unlimited custom domains",
+    "translation": "Ваш власний налаштований домен"
+  },
+  "web.homepage.cta_feature2": {
+    "en": "Unlimited secret sharing",
+    "translation": "Необмежений обмін секретами"
+  },
+  "web.homepage.cta_feature3": {
+    "en": "Increase customer trust and engagement",
+    "translation": "Розширені налаштування конфіденційності"
+  },
+  "web.homepage.explore_premium_plans": {
+    "en": "With Custom Domains",
+    "translation": "Дослідіть преміум-плани"
+  },
+  "web.homepage.need_free_account": {
+    "en": "Just getting started? Send emails with a free account.",
+    "translation": "Тільки починаєте?"
+  },
+  "web.homepage.sign_up_free": {
+    "en": "Free Sign-up",
+    "translation": "Створити безкоштовний обліковий запис"
+  },
+  "web.homepage.visit_onetime_secret_home": {
+    "en": "Visit Onetime Secret homepage",
+    "translation": "Відвідати домашню сторінку Onetime Secret"
+  },
+  "web.homepage.password_generation_title": {
+    "en": "Password Generator",
+    "translation": "Генератор паролів"
+  },
+  "web.homepage.password_generation_description": {
+    "en": " Click \"Generate Password\" to create a secure random password that you can share.",
+    "translation": " Натисніть \"Згенерувати пароль\", щоб створити безпечний випадковий пароль, яким ви зможете поділитися."
+  },
+  "web.homepage.protip1": {
+    "en": "Your message will self-destruct after being viewed. The link can only be accessed once.",
+    "translation": "Ваше повідомлення самознищиться після перегляду. Доступ до посилання можливий лише один раз."
+  },
+  "web.homepage.authonly.tagline2": {
+    "en": "Secure messaging service is for internal use only.",
+    "translation": "Служба безпечного обміну повідомленнями призначена лише для внутрішнього використання."
+  },
+  "web.homepage.authonly.tagline1": {
+    "en": "If you have an account, please log in to continue.",
+    "translation": "Якщо у вас є обліковий запис, увійдіть, щоб продовжити."
+  },
+  "web.homepage.disabled.tagline2": {
+    "en": "This service is setup for internal use only.",
+    "translation": "Цей сервіс налаштовано лише для внутрішнього використання."
+  },
+  "web.homepage.disabled.tagline1": {
+    "en": "User interface and login capabilities are not available.",
+    "translation": "Інтерфейс користувача та можливості входу недоступні."
+  },
+  "web.homepage.link_preview": {
+    "en": "Link Preview",
+    "translation": "Попередній перегляд посилання"
+  },
+  "web.homepage.meets_and_exceeds_compliance_standards": {
+    "en": "Meets and exceeds compliance standards",
+    "translation": "Відповідає та перевищує стандарти відповідності"
+  },
+  "web.homepage.secure_your_brand_build_customer_trust_etc": {
+    "en": "Secure your brand, build customer trust with links from your domain.",
+    "translation": "Захистіть свій бренд, будуйте довіру клієнтів за допомогою посилань з вашого домену."
+  },
+  "web.homepage.a_trusted_way_to_share_sensitive_information_etc": {
+    "en": "A trusted way to share sensitive information that self-destructs after being viewed.",
+    "translation": "Надійний спосіб обміну конфіденційною інформацією, яка самознищується після перегляду."
+  },
+  "web.homepage.secure_links": {
+    "en": "Secure Links",
+    "translation": "Безпечні посилання"
+  },
+  "web.homepage.about_onetime_secret_0": {
+    "en": "About Onetime Secret",
+    "translation": "Про Onetime Secret"
+  },
+  "web.homepage.log_in_to_onetime_secret": {
+    "en": "Log in to Onetime Secret",
+    "translation": "Увійти в Onetime Secret"
+  },
+  "web.homepage.about_onetime_secret": {
+    "en": "About Onetime Secret",
+    "translation": "Про Onetime Secret"
+  },
+  "web.homepage.signup_individual_and_business_plans": {
+    "en": "Signup - Individual and Business plans",
+    "translation": "Реєстрація - Індивідуальні та бізнес-плани"
+  },
+  "web.homepage.tagline_signed": {
+    "en": "Signed",
+    "translation": "Підписано"
+  },
+  "web.homepage.tagline_sealed": {
+    "en": "Sealed",
+    "translation": "Запечатано"
+  },
+  "web.homepage.tagline_delivered": {
+    "en": "Delivered",
+    "translation": "Доставлено"
+  },
+  "web.homepage.onetime_secret": {
+    "en": "Onetime Secret",
+    "translation": "Onetime Secret"
+  },
+  "web.homepage.onetime_secret_literal": {
+    "en": "Onetime Secret",
+    "translation": "Onetime Secret"
+  },
+  "web.homepage.one_time_secret_literal": {
+    "en": "One-Time Secret",
+    "translation": "One-Time Secret"
+  },
+  "web.homepage.onetime_secret_homepage": {
+    "en": "Onetime Secret Homepage",
+    "translation": "Домашня сторінка Onetime Secret"
+  },
+  "web.homepage.send_sensitive_information_that_can_only_be_viewed_once": {
+    "en": "Send sensitive information that can only be viewed once",
+    "translation": "Надсилайте конфіденційну інформацію, яку можна переглянути лише один раз"
+  },
+  "web.homepage.create_a_secure_link": {
+    "en": "Create a secure link",
+    "translation": "Створити безпечне посилання"
+  },
+  "web.homepage.now_with_custom_domains": {
+    "en": "Now with custom domains",
+    "translation": "Тепер з власними доменами"
+  },
+  "web.homepage.this_is_a_private_instance_only_authorized_team_": {
+    "en": "This is a private instance. Only authorized team members can generate new secure links.",
+    "translation": "Це приватний екземпляр. Тільки авторизовані члени команди можуть генерувати нові безпечні посилання."
+  },
+  "web.homepage.welcome_to_onetime_secret": {
+    "en": "Welcome to Onetime Secret.",
+    "translation": "Ласкаво просимо до Onetime Secret."
+  },
+  "web.homepage.onetime_secret_helps_us_share_sensitive_informat": {
+    "en": "Onetime Secret helps us share sensitive information securely while maintaining our professional facade.",
+    "translation": "Onetime Secret допомагає нам безпечно ділитися конфіденційною інформацією, зберігаючи при цьому наш професійний імідж."
+  },
+  "web.homepage.information_shared_through_this_service_can_only": {
+    "en": "Information shared through this service can only be accessed once. Once viewed, the content is permanently deleted to ensure confidentiality.",
+    "translation": "Інформація, передана через цей сервіс, може бути доступна лише один раз. Після перегляду вміст назавжди видаляється для забезпечення конфіденційності."
+  },
+  "web.homepage.welcome_to_the_global_broadcast": {
+    "en": "Welcome to the Global Broadcast!",
+    "translation": "Ласкаво просимо до Глобального мовлення."
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "web.homepage.tagline1": {
+    "en": "Paste a password, secret message or private link below.",
+    "translation": "Whakapiri he kupuhipa, karere huna, hononga tūmataiti rānei ki raro."
+  },
+  "web.homepage.tagline2": {
+    "en": "Keep sensitive info out of your email and chat logs.",
+    "translation": "Puritia ngā mōhiohio tairongo kei waho i tō īmēra me ō rārangi kōrerorero."
+  },
+  "web.homepage.secret_hint": {
+    "en": "* A secret link only works once and then disappears forever.",
+    "translation": "* Ka mahi kotahi noa te hononga karere huna, kātahi ka ngaro mō ake tonu atu."
+  },
+  "web.homepage.secret_form_more_text1": {
+    "en": "Sign up for a",
+    "translation": "Waitohu mō tētahi"
+  },
+  "web.homepage.secret_form_more_text2": {
+    "en": "free account",
+    "translation": "pūkete koreutu"
+  },
+  "web.homepage.secret_form_more_text3": {
+    "en": "and be able to send the secret by email.",
+    "translation": "ā, ka taea te tuku i te karere huna mā te īmēra."
+  },
+  "web.homepage.cta_title": {
+    "en": "Increase trust & share with confidence",
+    "translation": "Whakanui i te whakawhirinaki me te tuari i te māia"
+  },
+  "web.homepage.cta_subtitle": {
+    "en": "Elevate your brand and share with confidence",
+    "translation": "Whakapiki i tō waitohu me te tuari i te māia"
+  },
+  "web.homepage.cta_feature1": {
+    "en": "Unlimited custom domains",
+    "translation": "Ngā rohe ritenga mutunga kore"
+  },
+  "web.homepage.cta_feature2": {
+    "en": "Unlimited secret sharing",
+    "translation": "Tuari karere huna mutunga kore"
+  },
+  "web.homepage.cta_feature3": {
+    "en": "Increase customer trust and engagement",
+    "translation": "Whakapiki i te whakawhirinaki me te whai wāhi o ngā kiritaki"
+  },
+  "web.homepage.explore_premium_plans": {
+    "en": "With Custom Domains",
+    "translation": "Me ngā Rohe Ritenga"
+  },
+  "web.homepage.need_free_account": {
+    "en": "Just getting started? Send emails with a free account.",
+    "translation": "Kātahi anō ka tīmata? Tukua ngā īmēra ki tētahi pūkete koreutu."
+  },
+  "web.homepage.sign_up_free": {
+    "en": "Free Sign-up",
+    "translation": "Waitohu Koreutu"
+  },
+  "web.homepage.visit_onetime_secret_home": {
+    "en": "Visit Onetime Secret homepage",
+    "translation": "Toro ki te whārangi matua o Onetime Secret"
+  },
+  "web.homepage.password_generation_title": {
+    "en": "Password Generator",
+    "translation": "Waihanga Kupuhipa"
+  },
+  "web.homepage.password_generation_description": {
+    "en": " Click \"Generate Password\" to create a secure random password that you can share.",
+    "translation": "Pāwhiri \"Waihanga Kupuhipa\" hei hanga i tētahi kupuhipa matapōkere haumaru ka taea e koe te tuari."
+  },
+  "web.homepage.protip1": {
+    "en": "Your message will self-destruct after being viewed. The link can only be accessed once.",
+    "translation": "Ka whakangaromia-anō tō karere whai muri i te tirohanga. Ka taea te uru ki te hononga kotahi anake te wā."
+  },
+  "web.homepage.authonly.tagline2": {
+    "en": "Secure messaging service is for internal use only.",
+    "translation": "Ko tēnei ratonga mō te whakamahi ā-rohe anake."
+  },
+  "web.homepage.authonly.tagline1": {
+    "en": "If you have an account, please log in to continue.",
+    "translation": "Ki te whai pūkenga koe, tēnā whakauru mai kia haere tonu."
+  },
+  "web.homepage.disabled.tagline2": {
+    "en": "This service is setup for internal use only.",
+    "translation": "Kua whakaritea tēnei ratonga mō te whakamahi ā-rohe anake."
+  },
+  "web.homepage.disabled.tagline1": {
+    "en": "User interface and login capabilities are not available.",
+    "translation": "Kāore e wātea te atanga kaiwhakamahi me ngā āheinga whakauru."
+  },
+  "web.homepage.link_preview": {
+    "en": "Link Preview",
+    "translation": "Arokite Hononga"
+  },
+  "web.homepage.meets_and_exceeds_compliance_standards": {
+    "en": "Meets and exceeds compliance standards",
+    "translation": "Ka tutuki, ka nui atu hoki i ngā paerewa tūtohu"
+  },
+  "web.homepage.secure_your_brand_build_customer_trust_etc": {
+    "en": "Secure your brand, build customer trust with links from your domain.",
+    "translation": "Tiaki i tō waitohu, whakaritea te whakawhirinaki kiritaki me ngā hononga mai i tō rohe."
+  },
+  "web.homepage.a_trusted_way_to_share_sensitive_information_etc": {
+    "en": "A trusted way to share sensitive information that self-destructs after being viewed.",
+    "translation": "He huarahi pono ki te tuari i ngā mōhiohio tairongo e whakangaromia-anō whai muri i te tirohanga."
+  },
+  "web.homepage.secure_links": {
+    "en": "Secure Links",
+    "translation": "Ngā Hononga Haumaru"
+  },
+  "web.homepage.about_onetime_secret_0": {
+    "en": "About Onetime Secret",
+    "translation": "Mō Onetime Secret"
+  },
+  "web.homepage.log_in_to_onetime_secret": {
+    "en": "Log in to Onetime Secret",
+    "translation": "Takiuru ki Onetime Secret"
+  },
+  "web.homepage.about_onetime_secret": {
+    "en": "About Onetime Secret",
+    "translation": "Mō Onetime Secret"
+  },
+  "web.homepage.signup_individual_and_business_plans": {
+    "en": "Signup - Individual and Business plans",
+    "translation": "Waitohu - Ngā mahere takitahi me te pakihi"
+  },
+  "web.homepage.tagline_signed": {
+    "en": "Signed",
+    "translation": "Kua Hainatia"
+  },
+  "web.homepage.tagline_sealed": {
+    "en": "Sealed",
+    "translation": "Kua Hīritia"
+  },
+  "web.homepage.tagline_delivered": {
+    "en": "Delivered",
+    "translation": "Kua Tukuna"
+  },
+  "web.homepage.onetime_secret": {
+    "en": "Onetime Secret",
+    "translation": "Onetime Secret"
+  },
+  "web.homepage.onetime_secret_literal": {
+    "en": "Onetime Secret",
+    "translation": "Onetime Secret"
+  },
+  "web.homepage.one_time_secret_literal": {
+    "en": "One-Time Secret",
+    "translation": "One-Time Secret"
+  },
+  "web.homepage.onetime_secret_homepage": {
+    "en": "Onetime Secret Homepage",
+    "translation": "Whārangi Matua Onetime Secret"
+  },
+  "web.homepage.send_sensitive_information_that_can_only_be_viewed_once": {
+    "en": "Send sensitive information that can only be viewed once",
+    "translation": "Tukuna ngā mōhiohio tairongo ka kitea kotahi anake"
+  },
+  "web.homepage.create_a_secure_link": {
+    "en": "Create a secure link",
+    "translation": "Waihanga hononga haumaru"
+  },
+  "web.homepage.now_with_custom_domains": {
+    "en": "Now with custom domains",
+    "translation": "Ināianei me ngā rohe ritenga"
+  },
+  "web.homepage.this_is_a_private_instance_only_authorized_team_": {
+    "en": "This is a private instance. Only authorized team members can generate new secure links.",
+    "translation": "He tauira tūmataiti tēnei. Ko ngā mema rōpū whakaaetia anake ka taea te waihanga i ngā hononga haumaru hou."
+  },
+  "web.homepage.welcome_to_onetime_secret": {
+    "en": "Welcome to Onetime Secret.",
+    "translation": "Nau mai ki Onetime Secret."
+  },
+  "web.homepage.onetime_secret_helps_us_share_sensitive_informat": {
+    "en": "Onetime Secret helps us share sensitive information securely while maintaining our professional facade.",
+    "translation": "Ka āwhina a Onetime Secret i a mātou ki te tuari i ngā mōhiohio tairongo i runga i te haumaru me te pupuri tonu i tō mātou kanohi ngaio."
+  },
+  "web.homepage.information_shared_through_this_service_can_only": {
+    "en": "Information shared through this service can only be accessed once. Once viewed, the content is permanently deleted to ensure confidentiality.",
+    "translation": "Ko ngā mōhiohio i tuari mā tēnei ratonga ka taea te uru kotahi anake. Ka tirohia ana, ka mukua pūmautia te ihirangi hei whakaū i te noho muna."
+  },
+  "web.homepage.welcome_to_the_global_broadcast": {
+    "en": "Welcome to the Global Broadcast!",
+    "translation": "Nau mai ki te Pāhō Ao-Whānui!"
+  }
+}

@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "en": "Color Picker",
+    "translation": "Kaiwhiriwhiri Tae"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "en": "Current {0}: {1}. Click to cycle through options.",
+    "translation": "Ko te {0} o nāianei: {1}. Pāwhiri ki te huri i ngā kōwhiringa."
+  },
+  "web.branding.use_setting": {
+    "en": "Use setting",
+    "translation": "Whakamahi tautuhinga"
+  },
+  "web.branding.font_family": {
+    "en": "Font Family",
+    "translation": "Whānau Momotuhi"
+  },
+  "web.branding.corner_style": {
+    "en": "Corner Style",
+    "translation": "Kāhua Kokonga"
+  },
+  "web.branding.brand_color": {
+    "en": "Brand Color",
+    "translation": "Tae Waitohu"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "en": "Preview of recipient's view when accessing your secure link",
+    "translation": "Arokite o te tirohanga a te kaiwhiwhi ina urunga ki tō hononga haumaru"
+  },
+  "web.branding.preview_and_customize": {
+    "en": "Preview & Customize",
+    "translation": "Arokite & Whakarite"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "en": "Switch to Safari browser view",
+    "translation": "Takahuri ki te tirohanga pūtirotiro Safari"
+  },
+  "web.branding.microsoft_edge": {
+    "en": "Microsoft Edge",
+    "translation": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "en": "Maximize window",
+    "translation": "Whakanui matapihi"
+  },
+  "web.branding.minimize_window": {
+    "en": "Minimize window",
+    "translation": "Whakaiti matapihi"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "en": "Switch to Edge browser view",
+    "translation": "Takahuri ki te tirohanga pūtirotiro Edge"
+  },
+  "web.branding.charactercount_500_characters": {
+    "en": "{0}/500 characters",
+    "translation": "{0}/500 ngā pūāhua"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "en": "Use your phone to scan the QR code",
+    "translation": "Whakamahia tō waea ki te matawai i te waehere QR"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "en": "Contact onboarding{'@'}example.com with any questions",
+    "translation": "Whakapā atu ki te onboarding{'@'}example.com me ngā pātai katoa"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "en": "These instructions will be shown to recipients before they reveal the secret content",
+    "translation": "Ka whakaatuhia ēnei tohutohu ki ngā kaiwhiwhi i mua i te whakaatu i te ihirangi karere huna"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "en": "These instructions will be shown to recipients after they reveal the secret",
+    "translation": "Ka whakaatuhia ēnei tohutohu ki ngā kaiwhiwhi whai muri i te whakaatu i te karere huna"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "en": "Pre-reveal Instructions",
+    "translation": "Ngā Tohutohu I-Mua-I-Te-Whakaatu"
+  },
+  "web.branding.post_reveal_instructions": {
+    "en": "Post-reveal Instructions",
+    "translation": "Ngā Tohutohu Whai-Muri-O-Te-Whakaatu"
+  },
+  "web.branding.instructions": {
+    "en": "Instructions",
+    "translation": "Ngā Tohutohu"
+  },
+  "web.branding.logo_controls": {
+    "en": "Logo controls",
+    "translation": "Ngā tohuhau tohu"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "en": "Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG",
+    "translation": "Pāwhiri ki te tukuake i tētahi tohu. Rahinga tūtohu: 128x128 ngā pika. Rahi kōnae mōrahi: 1MB. Ngā whakatakotoranga tautokona: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "en": "Upload logo",
+    "translation": "Tukuake tohu"
+  },
+  "web.branding.loading_preview": {
+    "en": "Loading preview...",
+    "translation": "Kei te uta arokite..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "en": "Preview how recipients will see your secrets by testing the \"View Secret\" button",
+    "translation": "Titiro tīpako ka pēhea te kitenga o ō karere huna e ngā kaiwhiwhi mā te whakamātau i te pātene \"Tirohia te Karere Huna\""
+  },
+  "web.branding.eye_icon": {
+    "en": "Eye icon",
+    "translation": "Tohu karu"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "en": "Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)",
+    "translation": "Pāwhiri te awhiata arokite i raro nei ki te whakahou i tō tohu (tūtohu 128x128 ngā pika, 1MB max)"
+  },
+  "web.branding.image_icon": {
+    "en": "Image icon",
+    "translation": "Tohu whakaahua"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "en": "Use the controls above to customize brand color, styles, and recipient instructions",
+    "translation": "Whakamahia ngā tohutoro i runga ake ki te whakarite i te tae waitohu, ngā kāhua, me ngā tohutohu kaiwhiwhi"
+  },
+  "web.branding.customization_icon": {
+    "en": "Customization icon",
+    "translation": "Tohu whakaritea"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "en": "You have unsaved changes. Are you sure?",
+    "translation": "He whakarerekētanga tiaki-kore āu. E tino hiahia ana koe?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "en": "Failed to load brand settings",
+    "translation": "I rahua te uta i ngā tautuhinga waitohu"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "He arokite pāhekoheko tēnei o te pēhea e kite ai ngā kaiwhiwhi i ō karere haumaru. Ka taea e koe te: - Whakarite i ngā tae me ngā momotuhi mā ngā tohutoro i runga ake - Tukuake i tētahi tohu (tūtohu 128x128 ngā pika, 1MB max) - Whakamātau i te arokite mā te pātene \"Tirohia te Karere Huna\""
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "He arokite pāhekoheko tēnei o te pēhea e kite ai ngā kaiwhiwhi i ō karere haumaru. Ka taea e koe te: - Whakarite i ngā tae me ngā momotuhi mā ngā tohutoro i runga ake - Tukuake i tētahi tohu (tūtohu 128x128 ngā pika, 1MB max) - Whakamātau i te arokite mā te pātene \"Tirohia te Karere Huna\""
+  },
+  "web.branding.default_logo_icon": {
+    "en": "Japanese kanji '秘' (himitsu) meaning 'secret' or 'confidential'",
+    "translation": "Tohu tohu taunoa"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "en": "Powered by Onetime Secret",
+    "translation": "Powered by Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "en": "{0} Logo",
+    "translation": "Tohu {0}"
+  },
+  "web.branding.edge": {
+    "en": "Edge",
+    "translation": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "en": "Switch to Edge preview",
+    "translation": "Takahuri ki te arokite Edge"
+  },
+  "web.branding.safari": {
+    "en": "Safari",
+    "translation": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "en": "Switch to Safari preview",
+    "translation": "Takahuri ki te arokite Safari"
+  }
+}

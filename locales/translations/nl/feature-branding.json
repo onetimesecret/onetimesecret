@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "en": "Color Picker",
+    "translation": "Kleurkiezer"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "en": "Current {0}: {1}. Click to cycle through options.",
+    "translation": "Huidige {0}: {1}. Klik om door opties te bladeren."
+  },
+  "web.branding.use_setting": {
+    "en": "Use setting",
+    "translation": "Gebruik instelling"
+  },
+  "web.branding.font_family": {
+    "en": "Font Family",
+    "translation": "Lettertype"
+  },
+  "web.branding.corner_style": {
+    "en": "Corner Style",
+    "translation": "Hoekstijl"
+  },
+  "web.branding.brand_color": {
+    "en": "Brand Color",
+    "translation": "Merkkleur"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "en": "Preview of recipient's view when accessing your secure link",
+    "translation": "Voorbeeld van de geheime linkpagina voor ontvangers"
+  },
+  "web.branding.preview_and_customize": {
+    "en": "Preview & Customize",
+    "translation": "Voorbeeld & Aanpassen"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "en": "Switch to Safari browser view",
+    "translation": "Schakel naar Safari browserweergave"
+  },
+  "web.branding.microsoft_edge": {
+    "en": "Microsoft Edge",
+    "translation": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "en": "Maximize window",
+    "translation": "Venster maximaliseren"
+  },
+  "web.branding.minimize_window": {
+    "en": "Minimize window",
+    "translation": "Venster minimaliseren"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "en": "Switch to Edge browser view",
+    "translation": "Schakel naar Edge browserweergave"
+  },
+  "web.branding.charactercount_500_characters": {
+    "en": "{0}/500 characters",
+    "translation": "{0}/500 tekens"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "en": "Use your phone to scan the QR code",
+    "translation": "Gebruik uw telefoon om de QR-code te scannen"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "en": "Contact onboarding{'@'}example.com with any questions",
+    "translation": "Neem contact op met onboarding{'@'}example.com bij vragen"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "en": "These instructions will be shown to recipients before they reveal the secret content",
+    "translation": "Deze instructies worden aan ontvangers getoond voordat ze de geheime inhoud bekijken"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "en": "These instructions will be shown to recipients after they reveal the secret",
+    "translation": "Deze instructies worden aan ontvangers getoond nadat ze het geheim hebben onthuld"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "en": "Pre-reveal Instructions",
+    "translation": "Instructies vóór onthulling"
+  },
+  "web.branding.post_reveal_instructions": {
+    "en": "Post-reveal Instructions",
+    "translation": "Instructies na onthulling"
+  },
+  "web.branding.instructions": {
+    "en": "Instructions",
+    "translation": "Instructies"
+  },
+  "web.branding.logo_controls": {
+    "en": "Logo controls",
+    "translation": "Logo-instellingen"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "en": "Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG",
+    "translation": "Klik om een logo te uploaden. Aanbevolen grootte: 128x128 pixels. Maximale bestandsgrootte: 1MB. Ondersteunde formaten: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "en": "Upload logo",
+    "translation": "Logo uploaden"
+  },
+  "web.branding.loading_preview": {
+    "en": "Loading preview...",
+    "translation": "Voorbeeld laden..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "en": "Preview how recipients will see your secrets by testing the \"View Secret\" button",
+    "translation": "Bekijk hoe ontvangers uw berichten zullen zien door de knop \"Bericht bekijken\" te testen"
+  },
+  "web.branding.eye_icon": {
+    "en": "Eye icon",
+    "translation": "Oog icoon"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "en": "Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)",
+    "translation": "Klik op de voorbeeldafbeelding hieronder om uw logo bij te werken (minimaal 128x128 pixels aanbevolen, 1MB max)"
+  },
+  "web.branding.image_icon": {
+    "en": "Image icon",
+    "translation": "Afbeelding icoon"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "en": "Use the controls above to customize brand color, styles, and recipient instructions",
+    "translation": "Gebruik de besturingselementen hierboven om merkkleur, stijlen en instructies voor ontvangers aan te passen"
+  },
+  "web.branding.customization_icon": {
+    "en": "Customization icon",
+    "translation": "Aanpassingsicoon"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "en": "You have unsaved changes. Are you sure?",
+    "translation": "U heeft niet-opgeslagen wijzigingen. Weet u het zeker?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "en": "Failed to load brand settings",
+    "translation": "Laden van merkinstellingen mislukt"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Dit is een interactief voorbeeld van hoe ontvangers uw beveiligde berichten zullen zien. U kunt: - Kleuren en lettertypen aanpassen met de besturingselementen hierboven - Een logo uploaden (minimaal 128x128 pixels aanbevolen, 1MB max) - Het voorbeeld testen met de knop \"Bericht bekijken\""
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Dit is een interactief voorbeeld van hoe ontvangers uw beveiligde berichten zullen zien. U kunt: - Kleuren en lettertypen aanpassen met de besturingselementen hierboven - Een logo uploaden (minimaal 128x128 pixels aanbevolen, 1MB max) - Het voorbeeld testen met de knop \"Bericht bekijken\""
+  },
+  "web.branding.default_logo_icon": {
+    "en": "Japanese kanji '秘' (himitsu) meaning 'secret' or 'confidential'",
+    "translation": "Standaard logo icoon"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "en": "Powered by Onetime Secret",
+    "translation": "Aangedreven door Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "en": "{0} Logo",
+    "translation": "{0} Logo"
+  },
+  "web.branding.edge": {
+    "en": "Edge",
+    "translation": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "en": "Switch to Edge preview",
+    "translation": "Schakel naar Edge-voorbeeld"
+  },
+  "web.branding.safari": {
+    "en": "Safari",
+    "translation": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "en": "Switch to Safari preview",
+    "translation": "Schakel naar Safari-voorbeeld"
+  }
+}

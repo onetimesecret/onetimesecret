@@ -1,0 +1,329 @@
+{
+  "web.footer.api_docs": {
+    "en": "API Docs",
+    "translation": "API 文档"
+  },
+  "web.footer.branding_guide": {
+    "en": "Branding Guide",
+    "translation": "品牌指南"
+  },
+  "web.footer.customize": {
+    "en": "Customize",
+    "translation": "自定义"
+  },
+  "web.footer.plans": {
+    "en": "Plans",
+    "translation": "套餐"
+  },
+  "web.footer.security": {
+    "en": "Security",
+    "translation": "安全"
+  },
+  "web.footer.learn_about_our_security_measures": {
+    "en": "Learn about our security measures",
+    "translation": "了解我们的安全措施"
+  },
+  "web.footer.view_our_terms_and_conditions": {
+    "en": "View our Terms and Conditions",
+    "translation": "查看我们的条款和条件"
+  },
+  "web.footer.terms": {
+    "en": "Terms",
+    "translation": "条款"
+  },
+  "web.footer.privacy": {
+    "en": "Privacy",
+    "translation": "隐私"
+  },
+  "web.footer.contact": {
+    "en": "Contact",
+    "translation": "联系"
+  },
+  "web.footer.support": {
+    "en": "Support",
+    "translation": "支持"
+  },
+  "web.footer.legals": {
+    "en": "Legals",
+    "translation": "法律"
+  },
+  "web.footer.read_our_privacy_policy": {
+    "en": "Read our Privacy Policy",
+    "translation": "阅读我们的隐私政策"
+  },
+  "web.footer.check_our_service_status": {
+    "en": "Check our service status",
+    "translation": "检查我们的服务状态"
+  },
+  "web.footer.explore_our_api_documentation": {
+    "en": "Explore our API documentation",
+    "translation": "探索我们的 API 文档"
+  },
+  "web.footer.docs": {
+    "en": "Docs",
+    "translation": "文档"
+  },
+  "web.footer.access_our_documentation": {
+    "en": "Access our documentation",
+    "translation": "访问我们的文档"
+  },
+  "web.footer.view_our_source_code_on_github": {
+    "en": "View our source code on GitHub",
+    "translation": "在 GitHub 上查看我们的源代码"
+  },
+  "web.footer.resources": {
+    "en": "Resources",
+    "translation": "资源"
+  },
+  "web.footer.blog": {
+    "en": "Blog",
+    "translation": "博客"
+  },
+  "web.footer.read_our_latest_blog_posts": {
+    "en": "Read our latest blog posts",
+    "translation": "阅读我们的最新博客文章"
+  },
+  "web.footer.view_our_subscription_pricing": {
+    "en": "View our subscription pricing",
+    "translation": "查看我们的订阅定价"
+  },
+  "web.footer.learn_about_our_company": {
+    "en": "Learn about our company",
+    "translation": "了解我们的公司"
+  },
+  "web.footer.company": {
+    "en": "Company",
+    "translation": "公司"
+  },
+  "web.navigation.billing": {
+    "en": "Billing",
+    "translation": "账单"
+  },
+  "web.navigation.billingOverview": {
+    "en": "Overview",
+    "translation": "概览"
+  },
+  "web.navigation.organizations": {
+    "en": "Organizations",
+    "translation": "组织"
+  },
+  "web.site.website_version": {
+    "en": "Website Version",
+    "translation": "网站版本"
+  },
+  "web.meta.were_making_onetime_secret_available_in_multiple": {
+    "en": "We're making {onetime-secret} available in multiple languages. Since this is a new feature, you may encounter translation errors or awkward phrasing. Your feedback helps us improve - if you spot any issues, please {send-feedback}",
+    "translation": "我们正在使 {onetime-secret} 支持多种语言。由于这是一项新功能，您可能会遇到翻译错误或措辞不当的情况。您的反馈有助于我们改进 - 如果您发现任何问题，请{send-feedback}"
+  },
+  "web.meta.translations_are_new_spotted_an_error": {
+    "en": "Translations are new. Spotted an error? {send-feedback}",
+    "translation": "翻译是新功能。发现错误？{send-feedback}"
+  },
+  "web.meta.we_recently_added_translations": {
+    "en": "We recently added translations. Spotted an error? {send-feedback}",
+    "translation": "我们最近添加了翻译。发现错误？{send-feedback}"
+  },
+  "web.meta.privacy_and_security_should_be_accessible": {
+    "en": "Privacy and security should be accessible to everyone, regardless of language. We're adding translations to help both our users and their message recipients better understand how to safely use and access secure messages and links. Since this is a new feature, you might encounter some translation errors or unclear instructions. To help us improve the clarity and accuracy of our translations, especially for critical security-related content, please {send-feedback} if you spot any issues",
+    "translation": "无论语言如何，隐私和安全都应该人人可及。我们正在添加翻译，以帮助我们的用户和他们的消息接收者更好地理解如何安全地使用和访问安全消息和链接。由于这是一项新功能，您可能会遇到一些翻译错误或不清楚的说明。为了帮助我们提高翻译的清晰度和准确性，特别是对于关键的安全相关内容，如果您发现任何问题，请{send-feedback}"
+  },
+  "web.help.learn_more": {
+    "en": "Learn more",
+    "translation": "了解更多"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.title": {
+    "en": "What am I looking at?",
+    "translation": "我在查看什么？"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.description": {
+    "en": "You're viewing a secure message that was shared with you through Onetime Secret. This content is displayed only once and then permanently deleted from our servers.",
+    "translation": "您正在查看通过 Onetime Secret 与您分享的安全消息。此内容仅显示一次，然后从我们的服务器永久删除。"
+  },
+  "web.help.secret_view_faq.can_i_view_again.title": {
+    "en": "Can I view this secret again later?",
+    "translation": "我以后可以再次查看此内容吗？"
+  },
+  "web.help.secret_view_faq.can_i_view_again.description": {
+    "en": "No. For security reasons, this secret is only viewable once. After closing this page, the content will be permanently deleted and cannot be recovered by anyone, including us.",
+    "translation": "不可以。出于安全原因，此内容仅可查看一次。关闭此页面后，内容将被永久删除，任何人（包括我们）都无法恢复。"
+  },
+  "web.help.secret_view_faq.how_to_copy.title": {
+    "en": "How do I save this information?",
+    "translation": "如何保存此信息？"
+  },
+  "web.help.secret_view_faq.how_to_copy.description": {
+    "en": "Use the 'Copy to Clipboard' button to copy the entire secret. For longer secrets, make sure to verify you've copied the complete content before leaving this page.",
+    "translation": "使用\"复制\"按钮复制整个内容。对于较长的内容，请确保在离开此页面之前验证您已复制完整内容。"
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.title": {
+    "en": "Is my viewing of this secret tracked?",
+    "translation": "我查看此内容的行为会被跟踪吗？"
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.description": {
+    "en": "The sender will be notified that their secret was viewed, but we don't track who viewed it or from what location. Your privacy is protected.",
+    "translation": "发送者将收到其内容已被查看的通知，但我们不会跟踪谁查看了它或从哪个位置查看。您的隐私受到保护。"
+  },
+  "web.help.secret_view_faq.one_time_warning": {
+    "en": "Once you leave or refresh this page, this secret will be permanently deleted and cannot be recovered by anyone.",
+    "translation": "一旦您离开或刷新此页面，此内容将被永久删除，任何人都无法恢复。"
+  },
+  "web.layout.go_back_to_previous_page": {
+    "en": "Go back to previous page",
+    "translation": "返回上一页"
+  },
+  "web.layout.site_footer": {
+    "en": "Site footer",
+    "translation": "网站页脚"
+  },
+  "web.layout.toggle_dark_mode": {
+    "en": "Toggle dark mode",
+    "translation": "切换暗黑模式"
+  },
+  "web.layout.provide_feedback": {
+    "en": "Provide feedback",
+    "translation": "提供反馈"
+  },
+  "web.layout.company_logo": {
+    "en": "Company logo",
+    "translation": "公司徽标"
+  },
+  "web.layout.brand_logo": {
+    "en": "Brand logo",
+    "translation": "品牌徽标"
+  },
+  "web.layout.dashboard_navigation": {
+    "en": "Dashboard Navigation",
+    "translation": "仪表板导航"
+  },
+  "web.layout.mobile_navigation": {
+    "en": "Mobile Navigation",
+    "translation": "移动导航"
+  },
+  "web.layout.main_navigation": {
+    "en": "Main Navigation",
+    "translation": "主导航"
+  },
+  "web.layout.mobile_nav_item_count": {
+    "en": "{count} items",
+    "translation": "{count} 项"
+  },
+  "web.layout.release_notes": {
+    "en": "Release Notes",
+    "translation": "发布说明"
+  },
+  "web.layout.loading_settings_content": {
+    "en": "Loading settings content...",
+    "translation": "加载设置内容中"
+  },
+  "web.layout.settings_sections_0": {
+    "en": "Settings sections",
+    "translation": "设置部分"
+  },
+  "web.layout.close_settings": {
+    "en": "Close settings",
+    "translation": "关闭设置"
+  },
+  "web.layout.settings_sections": {
+    "en": "Settings sections",
+    "translation": "设置部分"
+  },
+  "web.layout.customize_your_app_preferences_and_settings": {
+    "en": "Customize your app preferences and settings",
+    "translation": "自定义您的应用偏好设置和设置"
+  },
+  "web.layout.return_home": {
+    "en": "Return home",
+    "translation": "返回首页"
+  },
+  "web.layout.return_to_home_page": {
+    "en": "Return to home page",
+    "translation": "返回主页"
+  },
+  "web.layout.return_to_home": {
+    "en": "Return to Home",
+    "translation": "返回首页"
+  },
+  "web.layout.view_privacy_policy": {
+    "en": "View Privacy Policy",
+    "translation": "查看隐私政策"
+  },
+  "web.layout.view_terms_of_service": {
+    "en": "View Terms of Service",
+    "translation": "查看服务条款"
+  },
+  "web.layout.visit_onetime_secret_homepage": {
+    "en": "Visit Onetime Secret homepage",
+    "translation": "访问 Onetime Secret 主页"
+  },
+  "web.layout.footer_navigation": {
+    "en": "Footer navigation",
+    "translation": "页脚导航"
+  },
+  "web.layout.terms_of_service": {
+    "en": "Terms of Service",
+    "translation": "服务条款"
+  },
+  "web.layout.privacy_policy": {
+    "en": "Privacy Policy",
+    "translation": "隐私政策"
+  },
+  "web.layout.icon_library": {
+    "en": "Icon Library",
+    "translation": "图标库"
+  },
+  "web.layout.google_material": {
+    "en": "Google Material",
+    "translation": "Google Material"
+  },
+  "web.layout.material_design_icons": {
+    "en": "Material Design Icons",
+    "translation": "Material Design Icons"
+  },
+  "web.layout.heroicons": {
+    "en": "Heroicons",
+    "translation": "Heroicons"
+  },
+  "web.layout.carbon": {
+    "en": "Carbon",
+    "translation": "Carbon"
+  },
+  "web.layout.font_awesome_6": {
+    "en": "Font Awesome 6",
+    "translation": "Font Awesome 6"
+  },
+  "web.layout.view_source_on_github": {
+    "en": "View source on GitHub",
+    "translation": "在 GitHub 上查看源代码"
+  },
+  "web.layout.website_version_v_ot_version": {
+    "en": "Website Version: v{0}",
+    "translation": "网站版本：v{0}"
+  },
+  "web.layout.current_language_is_currentlocal": {
+    "en": "Change language. Current language is {0}",
+    "translation": "更改语言。当前语言是 {0}"
+  },
+  "web.layout.language_changed_to_newlocale": {
+    "en": "Language changed to {0}",
+    "translation": "语言已更改为 {0}"
+  },
+  "web.layout.reset_to_default_language": {
+    "en": "Reset to {0}"
+  },
+  "web.layout.switch_to_blank_mode": {
+    "en": "Switch to {0} mode",
+    "translation": "切换到 {0} 模式"
+  },
+  "web.layout.blank_mode_enabled": {
+    "en": "{0} mode enabled",
+    "translation": "{0} 模式已启用"
+  },
+  "web.layout.workspace": {
+    "en": "Workspace",
+    "translation": "工作区"
+  },
+  "web.layout.workspace_context": {
+    "en": "Workspace context",
+    "translation": "工作区上下文"
+  }
+}

@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "en": "Color Picker",
+    "translation": "منتقي الألوان"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "en": "Current {0}: {1}. Click to cycle through options.",
+    "translation": "{0} الحالي: {1}. انقر للتنقل بين الخيارات."
+  },
+  "web.branding.use_setting": {
+    "en": "Use setting",
+    "translation": "استخدام الإعداد"
+  },
+  "web.branding.font_family": {
+    "en": "Font Family",
+    "translation": "عائلة الخط"
+  },
+  "web.branding.corner_style": {
+    "en": "Corner Style",
+    "translation": "نمط الزوايا"
+  },
+  "web.branding.brand_color": {
+    "en": "Brand Color",
+    "translation": "لون العلامة التجارية"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "en": "Preview of recipient's view when accessing your secure link",
+    "translation": "معاينة عرض المستلم عند الوصول إلى رابطك الآمن"
+  },
+  "web.branding.preview_and_customize": {
+    "en": "Preview & Customize",
+    "translation": "معاينة وتخصيص"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "en": "Switch to Safari browser view",
+    "translation": "التبديل إلى عرض متصفح Safari"
+  },
+  "web.branding.microsoft_edge": {
+    "en": "Microsoft Edge",
+    "translation": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "en": "Maximize window",
+    "translation": "تكبير النافذة"
+  },
+  "web.branding.minimize_window": {
+    "en": "Minimize window",
+    "translation": "تصغير النافذة"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "en": "Switch to Edge browser view",
+    "translation": "التبديل إلى عرض متصفح Edge"
+  },
+  "web.branding.charactercount_500_characters": {
+    "en": "{0}/500 characters",
+    "translation": "{0}/500 حرف"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "en": "Use your phone to scan the QR code",
+    "translation": "استخدم هاتفك لمسح رمز QR"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "en": "Contact onboarding{'@'}example.com with any questions",
+    "translation": "تواصل مع onboarding{'@'}example.com لأي استفسارات"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "en": "These instructions will be shown to recipients before they reveal the secret content",
+    "translation": "ستُعرض هذه التعليمات للمستلمين قبل الكشف عن محتوى السر"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "en": "These instructions will be shown to recipients after they reveal the secret",
+    "translation": "ستُعرض هذه التعليمات للمستلمين بعد الكشف عن السر"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "en": "Pre-reveal Instructions",
+    "translation": "تعليمات ما قبل الكشف"
+  },
+  "web.branding.post_reveal_instructions": {
+    "en": "Post-reveal Instructions",
+    "translation": "تعليمات ما بعد الكشف"
+  },
+  "web.branding.instructions": {
+    "en": "Instructions",
+    "translation": "التعليمات"
+  },
+  "web.branding.logo_controls": {
+    "en": "Logo controls",
+    "translation": "عناصر التحكم في الشعار"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "en": "Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG",
+    "translation": "انقر لتحميل شعار. الحجم الموصى به: 128×128 بكسل. الحد الأقصى لحجم الملف: 1 ميجابايت. التنسيقات المدعومة: PNG، JPG، SVG"
+  },
+  "web.branding.upload_logo": {
+    "en": "Upload logo",
+    "translation": "تحميل شعار"
+  },
+  "web.branding.loading_preview": {
+    "en": "Loading preview...",
+    "translation": "جارٍ تحميل المعاينة..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "en": "Preview how recipients will see your secrets by testing the \"View Secret\" button",
+    "translation": "معاينة كيف سيرى المستلمون أسرارك باختبار زر \"عرض السر\""
+  },
+  "web.branding.eye_icon": {
+    "en": "Eye icon",
+    "translation": "أيقونة العين"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "en": "Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)",
+    "translation": "انقر على صورة المعاينة أدناه لتحديث شعارك (الحد الأدنى الموصى به 128×128 بكسل، الحد الأقصى 1 ميجابايت)"
+  },
+  "web.branding.image_icon": {
+    "en": "Image icon",
+    "translation": "أيقونة الصورة"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "en": "Use the controls above to customize brand color, styles, and recipient instructions",
+    "translation": "استخدم عناصر التحكم أعلاه لتخصيص لون العلامة التجارية والأنماط وتعليمات المستلم"
+  },
+  "web.branding.customization_icon": {
+    "en": "Customization icon",
+    "translation": "أيقونة التخصيص"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "en": "You have unsaved changes. Are you sure?",
+    "translation": "لديك تغييرات غير محفوظة. هل أنت متأكد؟"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "en": "Failed to load brand settings",
+    "translation": "فشل تحميل إعدادات العلامة التجارية"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "هذه معاينة تفاعلية لكيفية رؤية المستلمين لرسائلك الآمنة. يمكنك: - تخصيص الألوان والخطوط باستخدام عناصر التحكم أعلاه - تحميل شعار (الحد الأدنى الموصى به 128×128 بكسل، الحد الأقصى 1 ميجابايت) - اختبار المعاينة باستخدام زر \"عرض السر\""
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "هذه معاينة تفاعلية لكيفية رؤية المستلمين لرسائلك الآمنة. يمكنك: - تخصيص الألوان والخطوط باستخدام عناصر التحكم أعلاه - تحميل شعار (الحد الأدنى الموصى به 128×128 بكسل، الحد الأقصى 1 ميجابايت) - اختبار المعاينة باستخدام زر \"عرض السر\""
+  },
+  "web.branding.default_logo_icon": {
+    "en": "Japanese kanji '秘' (himitsu) meaning 'secret' or 'confidential'",
+    "translation": "الكانجي الياباني '秘' (هيميتسو) بمعنى 'سري' أو 'سري'"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "en": "Powered by Onetime Secret",
+    "translation": "مدعوم بواسطة Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "en": "{0} Logo",
+    "translation": "شعار {0}"
+  },
+  "web.branding.edge": {
+    "en": "Edge",
+    "translation": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "en": "Switch to Edge preview",
+    "translation": "التبديل إلى معاينة Edge"
+  },
+  "web.branding.safari": {
+    "en": "Safari",
+    "translation": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "en": "Switch to Safari preview",
+    "translation": "التبديل إلى معاينة Safari"
+  }
+}

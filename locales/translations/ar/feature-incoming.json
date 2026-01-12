@@ -1,0 +1,134 @@
+{
+  "incoming.page_title": {
+    "en": "Send a Secret",
+    "translation": "إرسال سر"
+  },
+  "incoming.page_description": {
+    "en": "Share sensitive information securely with our support team",
+    "translation": "شارك المعلومات الحساسة بشكل آمن مع فريق الدعم لدينا"
+  },
+  "incoming.loading_config": {
+    "en": "Loading...",
+    "translation": "جاري التحميل..."
+  },
+  "incoming.config_error_title": {
+    "en": "Failed to load configuration",
+    "translation": "فشل تحميل التكوين"
+  },
+  "incoming.feature_disabled_title": {
+    "en": "Feature Not Available",
+    "translation": "الميزة غير متاحة"
+  },
+  "incoming.feature_disabled_description": {
+    "en": "This feature is currently disabled. Please contact support for assistance.",
+    "translation": "هذه الميزة معطلة حاليًا. يرجى الاتصال بالدعم للحصول على المساعدة."
+  },
+  "incoming.memo_label": {
+    "en": "Memo",
+    "translation": "مذكرة"
+  },
+  "incoming.memo_placeholder": {
+    "en": "Brief description (e.g., Password reset request)",
+    "translation": "وصف مختصر (مثل: طلب إعادة تعيين كلمة المرور)"
+  },
+  "incoming.memo_hint": {
+    "en": "Help us route your message to the right person",
+    "translation": "ساعدنا في توجيه رسالتك إلى الشخص المناسب"
+  },
+  "incoming.recipient_label": {
+    "en": "Send to",
+    "translation": "إرسال إلى"
+  },
+  "incoming.recipient_placeholder": {
+    "en": "Select a recipient",
+    "translation": "اختر مستلمًا"
+  },
+  "incoming.recipient_aria_label": {
+    "en": "Select a recipient for this secret",
+    "translation": "اختر مستلمًا لهذا السر"
+  },
+  "incoming.recipient_hint": {
+    "en": "Choose who will receive this secure message",
+    "translation": "اختر من سيستقبل هذه الرسالة الآمنة"
+  },
+  "incoming.no_recipients_available": {
+    "en": "No recipients are available",
+    "translation": "لا يوجد مستلمون متاحون"
+  },
+  "incoming.secret_content_label": {
+    "en": "Secret Information",
+    "translation": "معلومات سرية"
+  },
+  "incoming.secret_content_placeholder": {
+    "en": "Paste sensitive information here (passwords, keys, etc.)",
+    "translation": "الصق المعلومات الحساسة هنا (كلمات المرور، المفاتيح، إلخ)"
+  },
+  "incoming.secret_content_hint": {
+    "en": "This information will be encrypted and only viewable once",
+    "translation": "سيتم تشفير هذه المعلومات ويمكن عرضها مرة واحدة فقط"
+  },
+  "incoming.submit_button": {
+    "en": "Send Secret",
+    "translation": "إرسال السر"
+  },
+  "incoming.submit_secret": {
+    "en": "Send Secret",
+    "translation": "إرسال السر"
+  },
+  "incoming.submitting_button": {
+    "en": "Sending...",
+    "translation": "جاري الإرسال..."
+  },
+  "incoming.submitting": {
+    "en": "Sending...",
+    "translation": "جاري الإرسال..."
+  },
+  "incoming.reset_button": {
+    "en": "Clear Form",
+    "translation": "مسح النموذج"
+  },
+  "incoming.reset_form": {
+    "en": "Clear Form",
+    "translation": "مسح النموذج"
+  },
+  "incoming.success_title": {
+    "en": "Sent Successfully",
+    "translation": "تم الإرسال بنجاح"
+  },
+  "incoming.success_description": {
+    "en": "Your secure message has been delivered.",
+    "translation": "تم تسليم رسالتك الآمنة."
+  },
+  "incoming.reference_id": {
+    "en": "Reference ID",
+    "translation": "معرف المرجع"
+  },
+  "incoming.success_info_title": {
+    "en": "What happens next?",
+    "translation": "ماذا يحدث بعد ذلك؟"
+  },
+  "incoming.success_info_description": {
+    "en": "The recipient will be able to view this secret only once. After they view it, the secret will be permanently deleted.",
+    "translation": "سيتمكن المستلم من عرض هذا السر مرة واحدة فقط. بعد العرض، سيتم حذف السر نهائيًا."
+  },
+  "incoming.create_another": {
+    "en": "Send Another Secret",
+    "translation": "إرسال سر آخر"
+  },
+  "incoming.tagline1": {
+    "en": "Share sensitive information securely",
+    "translation": "شارك المعلومات الحساسة بشكل آمن"
+  },
+  "incoming.tagline2": {
+    "en": "Keep passwords and private data out of email and chat logs",
+    "translation": "احتفظ بكلمات المرور والبيانات الخاصة بعيدًا عن البريد الإلكتروني وسجلات الدردشة"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "en": "Save your {receipt} for your records.",
+    "translation": "احفظ <a href='{receiptUrl}'>إيصالك</a> لسجلاتك."
+  },
+  "incoming.receipt_link_text": {
+    "en": "receipt",
+    "translation": "الإيصال"
+  }
+}

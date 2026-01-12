@@ -1,0 +1,186 @@
+{
+  "web.homepage.tagline1": {
+    "en": "Paste a password, secret message or private link below.",
+    "translation": "Indsæt en adgangskode, besked eller privat link nedenfor."
+  },
+  "web.homepage.tagline2": {
+    "en": "Keep sensitive info out of your email and chat logs.",
+    "translation": "Hold følsomme oplysninger ude af dine e-mails og chats."
+  },
+  "web.homepage.secret_hint": {
+    "en": "* A secret link only works once and then disappears forever.",
+    "translation": "* Et sikkert link virker kun én gang og forsvinder derefter for altid."
+  },
+  "web.homepage.secret_form_more_text1": {
+    "en": "Sign up for a",
+    "translation": "Tilmeld dig for en"
+  },
+  "web.homepage.secret_form_more_text2": {
+    "en": "free account",
+    "translation": "gratis konto"
+  },
+  "web.homepage.secret_form_more_text3": {
+    "en": "and be able to send the secret by email.",
+    "translation": "og få mulighed for at sende sikre links via e-mail."
+  },
+  "web.homepage.cta_title": {
+    "en": "Increase trust & share with confidence",
+    "translation": "Øg tilliden & del sikkert"
+  },
+  "web.homepage.cta_subtitle": {
+    "en": "Elevate your brand and share with confidence",
+    "translation": "Styrk dit brand og del med selvtillid"
+  },
+  "web.homepage.cta_feature1": {
+    "en": "Unlimited custom domains",
+    "translation": "Ubegrænsede brugerdefinerede domæner"
+  },
+  "web.homepage.cta_feature2": {
+    "en": "Unlimited secret sharing",
+    "translation": "Ubegrænset deling af beskeder"
+  },
+  "web.homepage.cta_feature3": {
+    "en": "Increase customer trust and engagement",
+    "translation": "Øg kundetillid og engagement"
+  },
+  "web.homepage.explore_premium_plans": {
+    "en": "With Custom Domains",
+    "translation": "Med brugerdefinerede domæner"
+  },
+  "web.homepage.need_free_account": {
+    "en": "Just getting started? Send emails with a free account.",
+    "translation": "Lige begyndt? Send e-mails med en gratis konto."
+  },
+  "web.homepage.sign_up_free": {
+    "en": "Free Sign-up",
+    "translation": "Gratis tilmelding"
+  },
+  "web.homepage.visit_onetime_secret_home": {
+    "en": "Visit Onetime Secret homepage",
+    "translation": "Besøg Onetimes hemmelige hjemmeside"
+  },
+  "web.homepage.password_generation_title": {
+    "en": "Password Generator",
+    "translation": "Adgangskodegenerator"
+  },
+  "web.homepage.password_generation_description": {
+    "en": " Click \"Generate Password\" to create a secure random password that you can share.",
+    "translation": "Klik på \"Generate Password\" for at oprette en sikker, tilfældig adgangskode, som du kan dele."
+  },
+  "web.homepage.protip1": {
+    "en": "Your message will self-destruct after being viewed. The link can only be accessed once.",
+    "translation": "Din besked vil ødelægge sig selv, når den er blevet set. Linket kan kun tilgås én gang."
+  },
+  "web.homepage.authonly.tagline2": {
+    "en": "Secure messaging service is for internal use only.",
+    "translation": "Den sikre beskedtjeneste er kun til intern brug."
+  },
+  "web.homepage.authonly.tagline1": {
+    "en": "If you have an account, please log in to continue.",
+    "translation": "Hvis du har en konto, skal du logge ind for at fortsætte."
+  },
+  "web.homepage.disabled.tagline2": {
+    "en": "This service is setup for internal use only.",
+    "translation": "Denne tjeneste er kun sat op til intern brug."
+  },
+  "web.homepage.disabled.tagline1": {
+    "en": "User interface and login capabilities are not available.",
+    "translation": "Brugergrænseflade og login-funktioner er ikke tilgængelige."
+  },
+  "web.homepage.link_preview": {
+    "en": "Link Preview",
+    "translation": "Forhåndsvisning af link"
+  },
+  "web.homepage.meets_and_exceeds_compliance_standards": {
+    "en": "Meets and exceeds compliance standards",
+    "translation": "Opfylder og overgår overholdelsesstandarder"
+  },
+  "web.homepage.secure_your_brand_build_customer_trust_etc": {
+    "en": "Secure your brand, build customer trust with links from your domain.",
+    "translation": "Sikre dit brand, opbyg kundernes tillid med links fra dit domæne."
+  },
+  "web.homepage.a_trusted_way_to_share_sensitive_information_etc": {
+    "en": "A trusted way to share sensitive information that self-destructs after being viewed.",
+    "translation": "En pålidelig måde at dele følsomme oplysninger på, som selvdestruerer, når de er blevet set."
+  },
+  "web.homepage.secure_links": {
+    "en": "Secure Links",
+    "translation": "Sikre links"
+  },
+  "web.homepage.about_onetime_secret_0": {
+    "en": "About Onetime Secret",
+    "translation": "Om Onetime Secret"
+  },
+  "web.homepage.log_in_to_onetime_secret": {
+    "en": "Log in to Onetime Secret",
+    "translation": "Log ind på Onetime Secret"
+  },
+  "web.homepage.about_onetime_secret": {
+    "en": "About Onetime Secret",
+    "translation": "Om Onetime Secret"
+  },
+  "web.homepage.signup_individual_and_business_plans": {
+    "en": "Signup - Individual and Business plans",
+    "translation": "Tilmelding - Individuelle planer og forretningsplaner"
+  },
+  "web.homepage.tagline_signed": {
+    "en": "Signed",
+    "translation": "Underskrevet"
+  },
+  "web.homepage.tagline_sealed": {
+    "en": "Sealed",
+    "translation": "Forseglet"
+  },
+  "web.homepage.tagline_delivered": {
+    "en": "Delivered",
+    "translation": "Leveret"
+  },
+  "web.homepage.onetime_secret": {
+    "en": "Onetime Secret",
+    "translation": "Onetime Secret"
+  },
+  "web.homepage.onetime_secret_literal": {
+    "en": "Onetime Secret",
+    "translation": "Onetime Secret"
+  },
+  "web.homepage.one_time_secret_literal": {
+    "en": "One-Time Secret",
+    "translation": ""
+  },
+  "web.homepage.onetime_secret_homepage": {
+    "en": "Onetime Secret Homepage",
+    "translation": "Onetime Secret-hjemmeside"
+  },
+  "web.homepage.send_sensitive_information_that_can_only_be_viewed_once": {
+    "en": "Send sensitive information that can only be viewed once",
+    "translation": "Send følsomme oplysninger, der kun kan ses én gang"
+  },
+  "web.homepage.create_a_secure_link": {
+    "en": "Create a secure link",
+    "translation": "Opret et sikkert link"
+  },
+  "web.homepage.now_with_custom_domains": {
+    "en": "Now with custom domains",
+    "translation": "Nu med brugerdefinerede domæner"
+  },
+  "web.homepage.this_is_a_private_instance_only_authorized_team_": {
+    "en": "This is a private instance. Only authorized team members can generate new secure links.",
+    "translation": "Dette er en privat instans. Kun autoriserede teammedlemmer kan generere nye sikre links."
+  },
+  "web.homepage.welcome_to_onetime_secret": {
+    "en": "Welcome to Onetime Secret.",
+    "translation": "Velkommen til Onetime Secret."
+  },
+  "web.homepage.onetime_secret_helps_us_share_sensitive_informat": {
+    "en": "Onetime Secret helps us share sensitive information securely while maintaining our professional facade.",
+    "translation": "Onetime Secret hjælper os med at dele følsomme oplysninger sikkert, mens vi bevarer vores professionelle facade."
+  },
+  "web.homepage.information_shared_through_this_service_can_only": {
+    "en": "Information shared through this service can only be accessed once. Once viewed, the content is permanently deleted to ensure confidentiality.",
+    "translation": "Oplysninger, der deles via denne tjeneste, kan kun tilgås én gang. Når indholdet er set, slettes det permanent for at sikre fortrolighed."
+  },
+  "web.homepage.welcome_to_the_global_broadcast": {
+    "en": "Welcome to the Global Broadcast!",
+    "translation": "Velkommen til den globale udsendelse!"
+  }
+}

@@ -15,11 +15,13 @@ pending (no translation) are excluded from app files.
 
 Usage:
     python sync_to_src.py LOCALE [OPTIONS]
+    python sync_to_src.py --all [OPTIONS]
 
 Examples:
     python sync_to_src.py eo --dry-run
     python sync_to_src.py eo --file auth.json
     python sync_to_src.py eo
+    python sync_to_src.py --all
 """
 
 import argparse
@@ -165,12 +167,20 @@ Examples:
     python sync_to_src.py eo --dry-run
     python sync_to_src.py eo --file auth.json
     python sync_to_src.py eo
+    python sync_to_src.py --all
+    python sync_to_src.py --all --dry-run
         """,
     )
 
     parser.add_argument(
         "locale",
+        nargs="?",
         help="Target locale code (e.g., 'eo', 'de')",
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Sync all locales in translations directory",
     )
     parser.add_argument(
         "--file",
@@ -190,21 +200,61 @@ Examples:
 
     args = parser.parse_args()
 
-    print(f"Syncing translations for '{args.locale}'")
-    print(f"  From: {TRANSLATIONS_DIR / args.locale}")
-    print(f"  To:   {SRC_LOCALES_DIR / args.locale}")
-    print()
+    # Validate arguments
+    if not args.locale and not args.all:
+        parser.error("Either LOCALE or --all must be specified")
+    if args.locale and args.all:
+        parser.error("Cannot specify both LOCALE and --all")
 
-    stats = sync_locale(
-        locale=args.locale,
-        file_filter=args.file_filter,
-        dry_run=args.dry_run,
-        verbose=args.verbose,
-    )
+    # Determine which locales to sync
+    if args.all:
+        locale_dirs = sorted([d.name for d in TRANSLATIONS_DIR.iterdir() if d.is_dir()])
+        if not locale_dirs:
+            print(f"No locale directories found in {TRANSLATIONS_DIR}")
+            return 1
+        print(f"Syncing {len(locale_dirs)} locales: {', '.join(locale_dirs[:5])}{'...' if len(locale_dirs) > 5 else ''}")
+        print()
+    else:
+        locale_dirs = [args.locale]
 
-    if stats and not args.dry_run:
-        total = sum(stats.values())
-        print(f"\nSynced {total} translations across {len(stats)} files")
+    all_stats: dict[str, dict[str, int]] = {}
+
+    for locale in locale_dirs:
+        if args.all:
+            print(f"\n{'='*60}")
+            print(f"Locale: {locale}")
+            print(f"{'='*60}")
+
+        print(f"Syncing translations for '{locale}'")
+        print(f"  From: {TRANSLATIONS_DIR / locale}")
+        print(f"  To:   {SRC_LOCALES_DIR / locale}")
+        print()
+
+        stats = sync_locale(
+            locale=locale,
+            file_filter=args.file_filter,
+            dry_run=args.dry_run,
+            verbose=args.verbose,
+        )
+
+        if stats:
+            all_stats[locale] = stats
+            if not args.dry_run and not args.all:
+                total = sum(stats.values())
+                print(f"\nSynced {total} translations across {len(stats)} files")
+
+    # Summary for --all mode
+    if args.all and all_stats and not args.dry_run:
+        print(f"\n{'='*60}")
+        print("Summary")
+        print(f"{'='*60}")
+        grand_total = 0
+        for locale, stats in sorted(all_stats.items()):
+            locale_total = sum(stats.values())
+            grand_total += locale_total
+            print(f"  {locale}: {locale_total} keys across {len(stats)} files")
+        print(f"{'='*60}")
+        print(f"Total: {grand_total} keys across {len(all_stats)} locales")
 
     return 0
 

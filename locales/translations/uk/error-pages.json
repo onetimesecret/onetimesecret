@@ -1,0 +1,78 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "en": "Why is this secret unavailable?",
+    "translation": "Чому цей секрет недоступний?"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "en": "Secrets are designed to be viewed only once. This link may have already been accessed, expired, or been manually deleted by the sender.",
+    "translation": "Секрети призначені для перегляду лише один раз. Можливо, це посилання вже було використано, термін його дії закінчився, або його було вручну видалено відправником."
+  },
+  "web.errors.what_should_i_do_now": {
+    "en": "What should I do now?",
+    "translation": "Що мені робити тепер?"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "en": "Contact the person who sent you this link and ask them to create a new secret. Let them know you weren't able to access the original information.",
+    "translation": "Зв'яжіться з людиною, яка надіслала вам це посилання, і попросіть її створити новий секрет. Повідомте їй, що ви не змогли отримати доступ до початкової інформації."
+  },
+  "web.errors.warning_dismissed": {
+    "en": "Warning dismissed",
+    "translation": "Попередження закрито"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "en": "Dismiss truncation warning",
+    "translation": "Закрити попередження про скорочення"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "en": "Oops! The page you are looking for doesn't exist or has been moved.",
+    "translation": "Ой! Сторінка, яку ви шукаєте, не існує або була переміщена."
+  },
+  "web.errors.404_page_not_found_0": {
+    "en": "404 - Page Not Found",
+    "translation": "404 - Сторінку не знайдено"
+  },
+  "web.errors.404_page_not_found": {
+    "en": "404 - Page Not Found",
+    "translation": "404 - Сторінку не знайдено"
+  },
+  "web.errors.dismiss_warning": {
+    "en": "Dismiss warning",
+    "translation": "Закрити попередження"
+  },
+  "web.errors.dismiss_notification": {
+    "en": "Dismiss notification",
+    "translation": "Закрити сповіщення"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "en": "If you're unsure what to do next, please follow up with the person who sent you this link for more information.",
+    "translation": "Якщо ви не впевнені, що робити далі, будь ласка, зв'яжіться з людиною, яка надіслала вам це посилання, для отримання додаткової інформації."
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "en": "Information shared through our service can only be accessed once. Once viewed, the content is permanently deleted from our servers to ensure confidentiality. This approach helps protect your sensitive data by limiting its exposure and preventing unauthorized access.",
+    "translation": "Інформація, передана через наш сервіс, може бути доступна лише один раз. Після перегляду вміст назавжди видаляється з наших серверів для забезпечення конфіденційності. Такий підхід допомагає захистити ваші конфіденційні дані, обмежуючи їх розкриття та запобігаючи несанкціонованому доступу."
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "en": "We're sorry, but an unexpected error occurred while processing your request. Our team has been notified and we're working to fix it.",
+    "translation": "Вибачте, але під час обробки вашого запиту сталася неочікувана помилка. Наша команда сповіщена, і ми працюємо над її виправленням."
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "en": "{0} Something went wrong",
+    "translation": "{0} Щось пішло не так"
+  },
+  "web.errors.go_share_a_secret": {
+    "en": "Go share a secret!",
+    "translation": "Йдіть ділитися секретом!"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "en": "The page you're looking for doesn't exist or has been moved. Don't worry, it happens to the best of us!",
+    "translation": "Сторінка, яку ви шукаєте, не існує або була переміщена. Не хвилюйтеся, це трапляється з найкращими!"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "en": "{0} 404",
+    "translation": "{0} 404"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "en": "Unable to load data due to data format issues. Please try again later.",
+    "translation": "Не вдалося завантажити дані через проблеми з форматом даних. Будь ласка, спробуйте пізніше."
+  }
+}

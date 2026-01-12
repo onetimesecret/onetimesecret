@@ -1,0 +1,531 @@
+{
+  "web.organizations.title": {
+    "en": "Organizations",
+    "translation": "Organisation"
+  },
+  "web.organizations.organization": {
+    "en": "Organization",
+    "translation": "Organisation"
+  },
+  "web.organizations.organization_plural": {
+    "en": "Organizations",
+    "translation": "Organisations"
+  },
+  "web.organizations.organizations_description": {
+    "en": "Manage your organizations",
+    "translation": "Gérer vos organisations"
+  },
+  "web.organizations.my_organizations": {
+    "en": "Organizations",
+    "translation": "Mes organisations"
+  },
+  "web.organizations.manage_organizations": {
+    "en": "Manage Organizations",
+    "translation": "Gérer les organisations"
+  },
+  "web.organizations.new_organization": {
+    "en": "New Organization",
+    "translation": "Nouvelle organisation"
+  },
+  "web.organizations.no_organizations": {
+    "en": "No organizations yet",
+    "translation": "Aucune organisation pour le moment"
+  },
+  "web.organizations.no_organizations_description": {
+    "en": "Organizations provide unified billing and administration. Get started by creating your first organization.",
+    "translation": "Les organisations permettent de gérer plusieurs équipes avec facturation et administration unifiées. Commencez en créant votre première organisation."
+  },
+  "web.organizations.no_description": {
+    "en": "No description provided",
+    "translation": "Aucune description fournie"
+  },
+  "web.organizations.default": {
+    "en": "Default",
+    "translation": "Par défaut"
+  },
+  "web.organizations.create_organization": {
+    "en": "Create Organization",
+    "translation": "Créer une organisation"
+  },
+  "web.organizations.create_first_organization": {
+    "en": "Create First Organization",
+    "translation": "Créer la première organisation"
+  },
+  "web.organizations.create_organization_description": {
+    "en": "Create a new organization",
+    "translation": "Créer une nouvelle organisation pour regrouper vos équipes"
+  },
+  "web.organizations.create": {
+    "en": "Create",
+    "translation": "Créer"
+  },
+  "web.organizations.create_error": {
+    "en": "Failed to create organization",
+    "translation": "Échec de la création de l'organisation"
+  },
+  "web.organizations.organization_name": {
+    "en": "Organization Name",
+    "translation": "Nom de l'organisation"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "en": "e.g. Acme Corporation",
+    "translation": "par ex. Acme Corporation"
+  },
+  "web.organizations.display_name": {
+    "en": "Organization Name",
+    "translation": "Nom de l'organisation"
+  },
+  "web.organizations.description": {
+    "en": "Description",
+    "translation": "Description"
+  },
+  "web.organizations.description_placeholder": {
+    "en": "What is this organization for?",
+    "translation": "À quoi sert cette organisation ?"
+  },
+  "web.organizations.contact_email": {
+    "en": "Billing Email",
+    "translation": "E-mail de facturation"
+  },
+  "web.organizations.contact_email_help": {
+    "en": "Primary contact for billing and administrative notifications",
+    "translation": "Contact principal pour les notifications de facturation et administratives"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "en": "Billing and subscription management is handled through your primary workspace. Visit your main workspace settings to manage payment methods and invoices.",
+    "translation": "La gestion de la facturation et des abonnements s'effectue via votre espace de travail principal. Rendez-vous dans les paramètres de votre espace de travail principal pour gérer les moyens de paiement et les factures."
+  },
+  "web.organizations.select_organization": {
+    "en": "Select an organization",
+    "translation": "Sélectionner une organisation"
+  },
+  "web.organizations.switcher_locked": {
+    "en": "Organization switching not available on this page",
+    "translation": "Le changement d'organisation n'est pas disponible sur cette page"
+  },
+  "web.organizations.not_found": {
+    "en": "Organization not found",
+    "translation": "Organisation introuvable"
+  },
+  "web.organizations.load_error": {
+    "en": "Failed to load organization",
+    "translation": "Échec du chargement de l'organisation"
+  },
+  "web.organizations.fetch_organization_error": {
+    "en": "Failed to load organization",
+    "translation": "Échec du chargement de l'organisation"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "en": "Failed to load organizations",
+    "translation": "Échec du chargement des organisations"
+  },
+  "web.organizations.organization_information": {
+    "en": "Organization Information",
+    "translation": "Informations sur l'organisation"
+  },
+  "web.organizations.created": {
+    "en": "Created",
+    "translation": "Créée"
+  },
+  "web.organizations.last_updated": {
+    "en": "Last Updated",
+    "translation": "Dernière mise à jour"
+  },
+  "web.organizations.organization_settings": {
+    "en": "Organization Settings",
+    "translation": "Paramètres de l'organisation"
+  },
+  "web.organizations.organization_settings_description": {
+    "en": "Update your organization name and description",
+    "translation": "Mettre à jour le nom et la description de votre organisation"
+  },
+  "web.organizations.general_settings": {
+    "en": "General Settings",
+    "translation": "Paramètres généraux"
+  },
+  "web.organizations.billing_settings": {
+    "en": "Billing & Subscription",
+    "translation": "Facturation et abonnement"
+  },
+  "web.organizations.save_changes": {
+    "en": "Save Changes",
+    "translation": "Enregistrer les modifications"
+  },
+  "web.organizations.update_success": {
+    "en": "Organization updated successfully",
+    "translation": "Organisation mise à jour avec succès"
+  },
+  "web.organizations.update_error": {
+    "en": "Failed to update organization",
+    "translation": "Échec de la mise à jour de l'organisation"
+  },
+  "web.organizations.billing_email_updated": {
+    "en": "Billing email updated successfully"
+  },
+  "web.organizations.billing_coming_soon": {
+    "en": "Billing Integration Coming Soon",
+    "translation": "Intégration de la facturation à venir"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "en": "Unified billing and subscription management will be available in a future release.",
+    "translation": "La gestion unifiée de la facturation et des abonnements pour toutes les équipes de cette organisation sera disponible dans une version future."
+  },
+  "web.organizations.about_title": {
+    "en": "About Organizations",
+    "translation": "À propos des organisations"
+  },
+  "web.organizations.about_description": {
+    "en": "Organizations provide unified billing and administration for centralized management.",
+    "translation": "Les organisations fournissent une facturation et une administration unifiées pour plusieurs équipes. Elles sont facultatives. Les équipes peuvent exister indépendamment ou être regroupées sous une organisation pour une gestion centralisée."
+  },
+  "web.organizations.single_user_info_title": {
+    "en": "Manage Your Organization",
+    "translation": "Gérer votre organisation"
+  },
+  "web.organizations.single_user_info_description": {
+    "en": "Update your company name and organization details here. This information helps personalize your account and can be used for branding features in the future.",
+    "translation": "Mettez à jour le nom de votre société et les détails de votre organisation ici. Ces informations aident à personnaliser votre compte et peuvent être utilisées pour les fonctionnalités de marque à l'avenir."
+  },
+  "web.organizations.getting_started_title": {
+    "en": "Getting Started with Organizations",
+    "translation": "Débuter avec les organisations"
+  },
+  "web.organizations.getting_started_description": {
+    "en": "Create your first organization to manage your company information and prepare for future branding features.",
+    "translation": "Créez votre première organisation pour gérer les informations de votre société et préparer la collaboration d'équipe et les fonctionnalités de marque futures."
+  },
+  "web.organizations.page_description": {
+    "en": "Manage your organizations and team members",
+    "translation": "Gérez vos organisations et les membres de votre équipe"
+  },
+  "web.organizations.tabs.general": {
+    "en": "Settings",
+    "translation": "Général"
+  },
+  "web.organizations.tabs.company_branding": {
+    "en": "Company Branding",
+    "translation": "Marque de l'entreprise"
+  },
+  "web.organizations.tabs.members": {
+    "en": "Team",
+    "translation": "Équipe"
+  },
+  "web.organizations.tabs.billing": {
+    "en": "Billing",
+    "translation": "Facturation"
+  },
+  "web.organizations.danger_zone": {
+    "en": "Danger Zone",
+    "translation": "Zone dangereuse"
+  },
+  "web.organizations.delete_organization": {
+    "en": "Delete Organization",
+    "translation": "Supprimer l'organisation"
+  },
+  "web.organizations.delete_organization_warning": {
+    "en": "This will permanently delete the organization. This action cannot be undone.",
+    "translation": "Ceci supprimera définitivement l'organisation et toutes les équipes associées. Cette action est irréversible."
+  },
+  "web.organizations.delete": {
+    "en": "Delete",
+    "translation": "Supprimer"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "en": "Delete Organization",
+    "translation": "Supprimer l'organisation"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "en": "Are you sure you want to delete {name}? This action cannot be undone.",
+    "translation": "Êtes-vous sûr de vouloir supprimer {name} ? Cette action est irréversible."
+  },
+  "web.organizations.delete_error": {
+    "en": "Failed to delete organization",
+    "translation": "Échec de la suppression de l'organisation"
+  },
+  "web.organizations.members.title": {
+    "en": "Members",
+    "translation": "Membres"
+  },
+  "web.organizations.members.description": {
+    "en": "Manage organization members and their roles",
+    "translation": "Gérer les membres de l'organisation et leurs rôles"
+  },
+  "web.organizations.members.current_members": {
+    "en": "Current Members",
+    "translation": "Membres actuels"
+  },
+  "web.organizations.members.member": {
+    "en": "Member",
+    "translation": "Membre"
+  },
+  "web.organizations.members.member_singular": {
+    "en": "member",
+    "translation": "member"
+  },
+  "web.organizations.members.member_plural": {
+    "en": "members",
+    "translation": "members"
+  },
+  "web.organizations.members.name": {
+    "en": "Name",
+    "translation": "Nom"
+  },
+  "web.organizations.members.email": {
+    "en": "Email",
+    "translation": "E-mail"
+  },
+  "web.organizations.members.role": {
+    "en": "Role",
+    "translation": "Rôle"
+  },
+  "web.organizations.members.joined": {
+    "en": "Joined",
+    "translation": "Inscrit le"
+  },
+  "web.organizations.members.actions": {
+    "en": "Actions",
+    "translation": "Actions"
+  },
+  "web.organizations.members.no_members": {
+    "en": "No members yet. Invite team members to get started.",
+    "translation": "Aucun membre trouvé"
+  },
+  "web.organizations.members.no_members_description": {
+    "en": "This organization has no members yet.",
+    "translation": "Cette organisation n'a pas encore de membres."
+  },
+  "web.organizations.members.role_updated": {
+    "en": "Member role updated successfully",
+    "translation": "Rôle du membre mis à jour avec succès"
+  },
+  "web.organizations.members.role_update_error": {
+    "en": "Failed to update member role",
+    "translation": "Échec de la mise à jour du rôle du membre"
+  },
+  "web.organizations.members.member_removed": {
+    "en": "Member removed from organization",
+    "translation": "Membre retiré de l'organisation"
+  },
+  "web.organizations.members.member_remove_error": {
+    "en": "Failed to remove member",
+    "translation": "Échec du retrait du membre"
+  },
+  "web.organizations.members.remove_member_title": {
+    "en": "Remove Member",
+    "translation": "Retirer le membre"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "en": "Are you sure you want to remove {name} from this organization?",
+    "translation": "Êtes-vous sûr de vouloir retirer {name} de cette organisation ?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "en": "You cannot change your own role",
+    "translation": "Vous ne pouvez pas modifier votre propre rôle"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "en": "You cannot remove yourself from the organization",
+    "translation": "Vous ne pouvez pas vous retirer de l'organisation"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "en": "You cannot remove the organization owner",
+    "translation": "Vous ne pouvez pas retirer le propriétaire de l'organisation"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "en": "You do not have permission to manage members",
+    "translation": "Vous n'avez pas la permission de gérer les membres"
+  },
+  "web.organizations.members.roles.owner": {
+    "en": "Owner",
+    "translation": "Propriétaire"
+  },
+  "web.organizations.members.roles.admin": {
+    "en": "Admin",
+    "translation": "Administrateur"
+  },
+  "web.organizations.members.roles.member": {
+    "en": "Member",
+    "translation": "Membre"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "en": "Full access to all organization settings and members",
+    "translation": "Accès complet à tous les paramètres et membres de l'organisation"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "en": "Can manage members and most organization settings",
+    "translation": "Peut gérer les membres et la plupart des paramètres de l'organisation"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "en": "Basic access to organization resources",
+    "translation": "Accès de base aux ressources de l'organisation"
+  },
+  "web.organizations.invitations.title": {
+    "en": "Organization Invitations",
+    "translation": "Invitations à l'organisation"
+  },
+  "web.organizations.invitations.invite_member": {
+    "en": "Invite Member",
+    "translation": "Inviter un membre"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "en": "Invite New Member",
+    "translation": "Inviter un nouveau membre"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "en": "Pending Invitations",
+    "translation": "Invitations en attente"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "en": "No pending invitations",
+    "translation": "Aucune invitation en attente"
+  },
+  "web.organizations.invitations.email_address": {
+    "en": "Email Address",
+    "translation": "Adresse e-mail"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "en": "member@example.com",
+    "translation": "membre@exemple.com"
+  },
+  "web.organizations.invitations.role": {
+    "en": "Role",
+    "translation": "Rôle"
+  },
+  "web.organizations.invitations.send_invite": {
+    "en": "Send Invitation",
+    "translation": "Envoyer l'invitation"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "en": "Invitation sent successfully",
+    "translation": "Invitation envoyée avec succès"
+  },
+  "web.organizations.invitations.invite_error": {
+    "en": "Failed to send invitation",
+    "translation": "Échec de l'envoi de l'invitation"
+  },
+  "web.organizations.invitations.resend": {
+    "en": "Resend",
+    "translation": "Renvoyer"
+  },
+  "web.organizations.invitations.revoke": {
+    "en": "Revoke",
+    "translation": "Révoquer"
+  },
+  "web.organizations.invitations.resend_success": {
+    "en": "Invitation resent successfully",
+    "translation": "Invitation renvoyée avec succès"
+  },
+  "web.organizations.invitations.resend_error": {
+    "en": "Failed to resend invitation",
+    "translation": "Échec du renvoi de l'invitation"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "en": "Invitation revoked successfully",
+    "translation": "Invitation révoquée avec succès"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "en": "Failed to revoke invitation",
+    "translation": "Échec de la révocation de l'invitation"
+  },
+  "web.organizations.invitations.invited_by": {
+    "en": "Invited by",
+    "translation": "Invité par"
+  },
+  "web.organizations.invitations.invited_at": {
+    "en": "Invited",
+    "translation": "Invité le"
+  },
+  "web.organizations.invitations.expires_at": {
+    "en": "Expires",
+    "translation": "Expire le"
+  },
+  "web.organizations.invitations.resent_count": {
+    "en": "Resent {count} time",
+    "translation": "Renvoyée {count} fois"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "en": "Resent {count} times",
+    "translation": "Renvoyée {count} fois"
+  },
+  "web.organizations.invitations.status.pending": {
+    "en": "Pending",
+    "translation": "En attente"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "en": "Accepted",
+    "translation": "Acceptée"
+  },
+  "web.organizations.invitations.status.declined": {
+    "en": "Declined",
+    "translation": "Refusée"
+  },
+  "web.organizations.invitations.status.expired": {
+    "en": "Expired",
+    "translation": "Expirée"
+  },
+  "web.organizations.invitations.roles.member": {
+    "en": "Member",
+    "translation": "Membre"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "en": "Admin",
+    "translation": "Administrateur"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "en": "Accept Invitation",
+    "translation": "Accepter l'invitation"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "en": "Decline Invitation",
+    "translation": "Refuser l'invitation"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "en": "Invitation Details",
+    "translation": "Détails de l'invitation"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "en": "You've been invited to join",
+    "translation": "Vous avez été invité à rejoindre"
+  },
+  "web.organizations.invitations.invited_as": {
+    "en": "You've been invited as a",
+    "translation": "Vous avez été invité en tant que"
+  },
+  "web.organizations.invitations.accept_success": {
+    "en": "Invitation accepted successfully",
+    "translation": "Invitation acceptée avec succès"
+  },
+  "web.organizations.invitations.accept_error": {
+    "en": "Failed to accept invitation",
+    "translation": "Échec de l'acceptation de l'invitation"
+  },
+  "web.organizations.invitations.decline_success": {
+    "en": "Invitation declined",
+    "translation": "Invitation refusée"
+  },
+  "web.organizations.invitations.decline_error": {
+    "en": "Failed to decline invitation",
+    "translation": "Échec du refus de l'invitation"
+  },
+  "web.organizations.invitations.expired_message": {
+    "en": "This invitation has expired",
+    "translation": "Cette invitation a expiré"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "en": "Invalid or expired invitation",
+    "translation": "Invitation invalide ou expirée"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "en": "Please sign in to accept this invitation",
+    "translation": "Veuillez vous connecter pour accepter cette invitation"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "en": "Loading invitation details",
+    "translation": "Chargement des détails de l'invitation"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "en": "Upgrade your plan to invite team members"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "en": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization."
+  }
+}

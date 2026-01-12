@@ -1,0 +1,531 @@
+{
+  "web.organizations.title": {
+    "en": "Organizations",
+    "translation": "Organisationer"
+  },
+  "web.organizations.organization": {
+    "en": "Organization",
+    "translation": "Organisation"
+  },
+  "web.organizations.organization_plural": {
+    "en": "Organizations",
+    "translation": "Organisationer"
+  },
+  "web.organizations.organizations_description": {
+    "en": "Manage your organizations",
+    "translation": "Hantera dina organisationer och teammedlemmar"
+  },
+  "web.organizations.my_organizations": {
+    "en": "Organizations",
+    "translation": "Mina organisationer"
+  },
+  "web.organizations.manage_organizations": {
+    "en": "Manage Organizations",
+    "translation": "Hantera organisationer"
+  },
+  "web.organizations.new_organization": {
+    "en": "New Organization",
+    "translation": "Ny organisation"
+  },
+  "web.organizations.no_organizations": {
+    "en": "No organizations yet",
+    "translation": "Inga organisationer"
+  },
+  "web.organizations.no_organizations_description": {
+    "en": "Organizations provide unified billing and administration. Get started by creating your first organization.",
+    "translation": "Du har inte skapat några organisationer ännu"
+  },
+  "web.organizations.no_description": {
+    "en": "No description provided",
+    "translation": "Ingen beskrivning"
+  },
+  "web.organizations.default": {
+    "en": "Default",
+    "translation": "Standard"
+  },
+  "web.organizations.create_organization": {
+    "en": "Create Organization",
+    "translation": "Skapa organisation"
+  },
+  "web.organizations.create_first_organization": {
+    "en": "Create First Organization",
+    "translation": "Skapa din första organisation"
+  },
+  "web.organizations.create_organization_description": {
+    "en": "Create a new organization",
+    "translation": "Organisationer hjälper dig att hantera team och fakturering"
+  },
+  "web.organizations.create": {
+    "en": "Create",
+    "translation": "Skapa"
+  },
+  "web.organizations.create_error": {
+    "en": "Failed to create organization",
+    "translation": "Kunde inte skapa organisation"
+  },
+  "web.organizations.organization_name": {
+    "en": "Organization Name",
+    "translation": "Organisationsnamn"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "en": "e.g. Acme Corporation",
+    "translation": "Ange organisationsnamn"
+  },
+  "web.organizations.display_name": {
+    "en": "Organization Name",
+    "translation": "Visningsnamn"
+  },
+  "web.organizations.description": {
+    "en": "Description",
+    "translation": "Beskrivning"
+  },
+  "web.organizations.description_placeholder": {
+    "en": "What is this organization for?",
+    "translation": "Kort beskrivning av organisationen"
+  },
+  "web.organizations.contact_email": {
+    "en": "Billing Email",
+    "translation": "Kontakt-e-post"
+  },
+  "web.organizations.contact_email_help": {
+    "en": "Primary contact for billing and administrative notifications",
+    "translation": "E-post för faktureringsaviseringar"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "en": "Billing and subscription management is handled through your primary workspace. Visit your main workspace settings to manage payment methods and invoices.",
+    "translation": "Fakturering och prenumerationshantering hanteras via din primära arbetsyta. Besök inställningarna för din huvudarbetsyta för att hantera betalningsmetoder och fakturor."
+  },
+  "web.organizations.select_organization": {
+    "en": "Select an organization",
+    "translation": "Välj organisation"
+  },
+  "web.organizations.switcher_locked": {
+    "en": "Organization switching not available on this page",
+    "translation": "Organisationsbyte är inte tillgängligt på denna sida"
+  },
+  "web.organizations.not_found": {
+    "en": "Organization not found",
+    "translation": "Organisation hittades inte"
+  },
+  "web.organizations.load_error": {
+    "en": "Failed to load organization",
+    "translation": "Kunde inte ladda organisation"
+  },
+  "web.organizations.fetch_organization_error": {
+    "en": "Failed to load organization",
+    "translation": "Kunde inte hämta organisation"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "en": "Failed to load organizations",
+    "translation": "Kunde inte hämta organisationer"
+  },
+  "web.organizations.organization_information": {
+    "en": "Organization Information",
+    "translation": "Organisationsinformation"
+  },
+  "web.organizations.created": {
+    "en": "Created",
+    "translation": "Skapad"
+  },
+  "web.organizations.last_updated": {
+    "en": "Last Updated",
+    "translation": "Senast uppdaterad"
+  },
+  "web.organizations.organization_settings": {
+    "en": "Organization Settings",
+    "translation": "Organisationsinställningar"
+  },
+  "web.organizations.organization_settings_description": {
+    "en": "Update your organization name and description",
+    "translation": "Hantera inställningar för din organisation"
+  },
+  "web.organizations.general_settings": {
+    "en": "General Settings",
+    "translation": "Allmänna inställningar"
+  },
+  "web.organizations.billing_settings": {
+    "en": "Billing & Subscription",
+    "translation": "Faktureringsinställningar"
+  },
+  "web.organizations.save_changes": {
+    "en": "Save Changes",
+    "translation": "Spara ändringar"
+  },
+  "web.organizations.update_success": {
+    "en": "Organization updated successfully",
+    "translation": "Organisation uppdaterad"
+  },
+  "web.organizations.update_error": {
+    "en": "Failed to update organization",
+    "translation": "Kunde inte uppdatera organisation"
+  },
+  "web.organizations.billing_email_updated": {
+    "en": "Billing email updated successfully"
+  },
+  "web.organizations.billing_coming_soon": {
+    "en": "Billing Integration Coming Soon",
+    "translation": "Fakturering kommer snart"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "en": "Unified billing and subscription management will be available in a future release.",
+    "translation": "Teamfakturering kommer snart att finnas tillgänglig"
+  },
+  "web.organizations.about_title": {
+    "en": "About Organizations",
+    "translation": "Om organisationer"
+  },
+  "web.organizations.about_description": {
+    "en": "Organizations provide unified billing and administration for centralized management.",
+    "translation": "Organisationer låter dig hantera team, fakturering och delad konfiguration"
+  },
+  "web.organizations.single_user_info_title": {
+    "en": "Manage Your Organization",
+    "translation": "Enskild användare"
+  },
+  "web.organizations.single_user_info_description": {
+    "en": "Update your company name and organization details here. This information helps personalize your account and can be used for branding features in the future.",
+    "translation": "Du kan skapa en organisation för att börja samarbeta med ditt team"
+  },
+  "web.organizations.getting_started_title": {
+    "en": "Getting Started with Organizations",
+    "translation": "Kom igång"
+  },
+  "web.organizations.getting_started_description": {
+    "en": "Create your first organization to manage your company information and prepare for future branding features.",
+    "translation": "Skapa din första organisation för att låsa upp teamfunktioner"
+  },
+  "web.organizations.page_description": {
+    "en": "Manage your organizations and team members",
+    "translation": "Hantera dina organisationer och teammedlemmar"
+  },
+  "web.organizations.tabs.general": {
+    "en": "Settings",
+    "translation": "Allmänt"
+  },
+  "web.organizations.tabs.company_branding": {
+    "en": "Company Branding",
+    "translation": "Företagsvarumärke"
+  },
+  "web.organizations.tabs.members": {
+    "en": "Team",
+    "translation": "Team"
+  },
+  "web.organizations.tabs.billing": {
+    "en": "Billing",
+    "translation": "Fakturering"
+  },
+  "web.organizations.danger_zone": {
+    "en": "Danger Zone",
+    "translation": "Farlig zon"
+  },
+  "web.organizations.delete_organization": {
+    "en": "Delete Organization",
+    "translation": "Ta bort organisation"
+  },
+  "web.organizations.delete_organization_warning": {
+    "en": "This will permanently delete the organization. This action cannot be undone.",
+    "translation": "Att ta bort en organisation är permanent och kan inte ångras"
+  },
+  "web.organizations.delete": {
+    "en": "Delete",
+    "translation": "Ta bort"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "en": "Delete Organization",
+    "translation": "Bekräfta borttagning"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "en": "Are you sure you want to delete {name}? This action cannot be undone.",
+    "translation": "Är du säker på att du vill ta bort denna organisation? Alla teammedlemmar kommer att förlora åtkomst."
+  },
+  "web.organizations.delete_error": {
+    "en": "Failed to delete organization",
+    "translation": "Kunde inte ta bort organisation"
+  },
+  "web.organizations.members.title": {
+    "en": "Members",
+    "translation": "Medlemmar"
+  },
+  "web.organizations.members.description": {
+    "en": "Manage organization members and their roles",
+    "translation": "Hantera organisationsmedlemmar och deras roller"
+  },
+  "web.organizations.members.current_members": {
+    "en": "Current Members",
+    "translation": "Nuvarande medlemmar"
+  },
+  "web.organizations.members.member": {
+    "en": "Member",
+    "translation": "Medlem"
+  },
+  "web.organizations.members.member_singular": {
+    "en": "member",
+    "translation": "medlem"
+  },
+  "web.organizations.members.member_plural": {
+    "en": "members",
+    "translation": "medlemmar"
+  },
+  "web.organizations.members.name": {
+    "en": "Name",
+    "translation": "Namn"
+  },
+  "web.organizations.members.email": {
+    "en": "Email",
+    "translation": "E-post"
+  },
+  "web.organizations.members.role": {
+    "en": "Role",
+    "translation": "Roll"
+  },
+  "web.organizations.members.joined": {
+    "en": "Joined",
+    "translation": "Gick med"
+  },
+  "web.organizations.members.actions": {
+    "en": "Actions",
+    "translation": "Åtgärder"
+  },
+  "web.organizations.members.no_members": {
+    "en": "No members yet. Invite team members to get started.",
+    "translation": "Inga medlemmar hittades"
+  },
+  "web.organizations.members.no_members_description": {
+    "en": "This organization has no members yet.",
+    "translation": "Denna organisation har inga medlemmar ännu."
+  },
+  "web.organizations.members.role_updated": {
+    "en": "Member role updated successfully",
+    "translation": "Medlemsrollen uppdaterades"
+  },
+  "web.organizations.members.role_update_error": {
+    "en": "Failed to update member role",
+    "translation": "Kunde inte uppdatera medlemsroll"
+  },
+  "web.organizations.members.member_removed": {
+    "en": "Member removed from organization",
+    "translation": "Medlem borttagen från organisationen"
+  },
+  "web.organizations.members.member_remove_error": {
+    "en": "Failed to remove member",
+    "translation": "Kunde inte ta bort medlem"
+  },
+  "web.organizations.members.remove_member_title": {
+    "en": "Remove Member",
+    "translation": "Ta bort medlem"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "en": "Are you sure you want to remove {name} from this organization?",
+    "translation": "Är du säker på att du vill ta bort {name} från denna organisation?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "en": "You cannot change your own role",
+    "translation": "Du kan inte ändra din egen roll"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "en": "You cannot remove yourself from the organization",
+    "translation": "Du kan inte ta bort dig själv från organisationen"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "en": "You cannot remove the organization owner",
+    "translation": "Du kan inte ta bort organisationens ägare"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "en": "You do not have permission to manage members",
+    "translation": "Du har inte behörighet att hantera medlemmar"
+  },
+  "web.organizations.members.roles.owner": {
+    "en": "Owner",
+    "translation": "Ägare"
+  },
+  "web.organizations.members.roles.admin": {
+    "en": "Admin",
+    "translation": "Administratör"
+  },
+  "web.organizations.members.roles.member": {
+    "en": "Member",
+    "translation": "Medlem"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "en": "Full access to all organization settings and members",
+    "translation": "Full åtkomst till alla organisationsinställningar och medlemmar"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "en": "Can manage members and most organization settings",
+    "translation": "Kan hantera medlemmar och de flesta organisationsinställningar"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "en": "Basic access to organization resources",
+    "translation": "Grundläggande åtkomst till organisationens resurser"
+  },
+  "web.organizations.invitations.title": {
+    "en": "Organization Invitations",
+    "translation": "Organisationsinbjudningar"
+  },
+  "web.organizations.invitations.invite_member": {
+    "en": "Invite Member",
+    "translation": "Bjud in medlem"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "en": "Invite New Member",
+    "translation": "Bjud in ny medlem"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "en": "Pending Invitations",
+    "translation": "Väntande inbjudningar"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "en": "No pending invitations",
+    "translation": "Inga väntande inbjudningar"
+  },
+  "web.organizations.invitations.email_address": {
+    "en": "Email Address",
+    "translation": "E-postadress"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "en": "member@example.com",
+    "translation": "medlem@example.com"
+  },
+  "web.organizations.invitations.role": {
+    "en": "Role",
+    "translation": "Roll"
+  },
+  "web.organizations.invitations.send_invite": {
+    "en": "Send Invitation",
+    "translation": "Skicka inbjudan"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "en": "Invitation sent successfully",
+    "translation": "Inbjudan skickad"
+  },
+  "web.organizations.invitations.invite_error": {
+    "en": "Failed to send invitation",
+    "translation": "Kunde inte skicka inbjudan"
+  },
+  "web.organizations.invitations.resend": {
+    "en": "Resend",
+    "translation": "Skicka igen"
+  },
+  "web.organizations.invitations.revoke": {
+    "en": "Revoke",
+    "translation": "Återkalla"
+  },
+  "web.organizations.invitations.resend_success": {
+    "en": "Invitation resent successfully",
+    "translation": "Inbjudan skickades igen"
+  },
+  "web.organizations.invitations.resend_error": {
+    "en": "Failed to resend invitation",
+    "translation": "Kunde inte skicka inbjudan igen"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "en": "Invitation revoked successfully",
+    "translation": "Inbjudan återkallades"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "en": "Failed to revoke invitation",
+    "translation": "Kunde inte återkalla inbjudan"
+  },
+  "web.organizations.invitations.invited_by": {
+    "en": "Invited by",
+    "translation": "Inbjuden av"
+  },
+  "web.organizations.invitations.invited_at": {
+    "en": "Invited",
+    "translation": "Inbjuden"
+  },
+  "web.organizations.invitations.expires_at": {
+    "en": "Expires",
+    "translation": "Upphör"
+  },
+  "web.organizations.invitations.resent_count": {
+    "en": "Resent {count} time",
+    "translation": "Skickades igen {count} gång"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "en": "Resent {count} times",
+    "translation": "Skickades igen {count} gånger"
+  },
+  "web.organizations.invitations.status.pending": {
+    "en": "Pending",
+    "translation": "Väntande"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "en": "Accepted",
+    "translation": "Accepterad"
+  },
+  "web.organizations.invitations.status.declined": {
+    "en": "Declined",
+    "translation": "Avböjd"
+  },
+  "web.organizations.invitations.status.expired": {
+    "en": "Expired",
+    "translation": "Upphörd"
+  },
+  "web.organizations.invitations.roles.member": {
+    "en": "Member",
+    "translation": "Medlem"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "en": "Admin",
+    "translation": "Administratör"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "en": "Accept Invitation",
+    "translation": "Acceptera inbjudan"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "en": "Decline Invitation",
+    "translation": "Avböj inbjudan"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "en": "Invitation Details",
+    "translation": "Inbjudningsdetaljer"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "en": "You've been invited to join",
+    "translation": "Du har blivit inbjuden att gå med i"
+  },
+  "web.organizations.invitations.invited_as": {
+    "en": "You've been invited as a",
+    "translation": "Du har blivit inbjuden som"
+  },
+  "web.organizations.invitations.accept_success": {
+    "en": "Invitation accepted successfully",
+    "translation": "Inbjudan accepterades"
+  },
+  "web.organizations.invitations.accept_error": {
+    "en": "Failed to accept invitation",
+    "translation": "Kunde inte acceptera inbjudan"
+  },
+  "web.organizations.invitations.decline_success": {
+    "en": "Invitation declined",
+    "translation": "Inbjudan avböjdes"
+  },
+  "web.organizations.invitations.decline_error": {
+    "en": "Failed to decline invitation",
+    "translation": "Kunde inte avböja inbjudan"
+  },
+  "web.organizations.invitations.expired_message": {
+    "en": "This invitation has expired",
+    "translation": "Denna inbjudan har upphört"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "en": "Invalid or expired invitation",
+    "translation": "Ogiltig eller upphörd inbjudan"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "en": "Please sign in to accept this invitation",
+    "translation": "Vänligen logga in för att acceptera denna inbjudan"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "en": "Loading invitation details",
+    "translation": "Laddar inbjudningsdetaljer"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "en": "Upgrade your plan to invite team members"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "en": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization."
+  }
+}

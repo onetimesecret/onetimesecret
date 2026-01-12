@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "en": "Color Picker",
+    "translation": "Selector de color"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "en": "Current {0}: {1}. Click to cycle through options.",
+    "translation": "{0} actual: {1}. Fes clic per recórrer les opcions."
+  },
+  "web.branding.use_setting": {
+    "en": "Use setting",
+    "translation": "Utilitza la configuració"
+  },
+  "web.branding.font_family": {
+    "en": "Font Family",
+    "translation": "Família de tipus de lletra"
+  },
+  "web.branding.corner_style": {
+    "en": "Corner Style",
+    "translation": "Estil de cantonada"
+  },
+  "web.branding.brand_color": {
+    "en": "Brand Color",
+    "translation": "Color de la marca"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "en": "Preview of recipient's view when accessing your secure link",
+    "translation": "Vista prèvia de la visualització del destinatari en accedir al teu enllaç segur"
+  },
+  "web.branding.preview_and_customize": {
+    "en": "Preview & Customize",
+    "translation": "Vista prèvia i personalitza"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "en": "Switch to Safari browser view",
+    "translation": "Canvia a la vista del navegador Safari"
+  },
+  "web.branding.microsoft_edge": {
+    "en": "Microsoft Edge",
+    "translation": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "en": "Maximize window",
+    "translation": "Maximitza la finestra"
+  },
+  "web.branding.minimize_window": {
+    "en": "Minimize window",
+    "translation": "Minimitza la finestra"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "en": "Switch to Edge browser view",
+    "translation": "Canvia a la vista del navegador Edge"
+  },
+  "web.branding.charactercount_500_characters": {
+    "en": "{0}/500 characters",
+    "translation": "{0}/500 caràcters"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "en": "Use your phone to scan the QR code",
+    "translation": "Utilitza el teu telèfon per escanejar el codi QR"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "en": "Contact onboarding{'@'}example.com with any questions",
+    "translation": "Contacta amb onboarding{'@'}exemple.com per a qualsevol pregunta"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "en": "These instructions will be shown to recipients before they reveal the secret content",
+    "translation": "Aquestes instruccions es mostraran als destinataris abans que revelin el contingut secret"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "en": "These instructions will be shown to recipients after they reveal the secret",
+    "translation": "Aquestes instruccions es mostraran als destinataris després que revelin el secret"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "en": "Pre-reveal Instructions",
+    "translation": "Instruccions de pre-revelació"
+  },
+  "web.branding.post_reveal_instructions": {
+    "en": "Post-reveal Instructions",
+    "translation": "Instruccions de post-revelació"
+  },
+  "web.branding.instructions": {
+    "en": "Instructions",
+    "translation": "Instruccions"
+  },
+  "web.branding.logo_controls": {
+    "en": "Logo controls",
+    "translation": "Controls del logotip"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "en": "Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG",
+    "translation": "Fes clic per carregar un logotip. Mida recomanada: 128x128 píxels. Mida màxima de fitxer: 1 MB. Formats compatibles: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "en": "Upload logo",
+    "translation": "Carrega el logotip"
+  },
+  "web.branding.loading_preview": {
+    "en": "Loading preview...",
+    "translation": "Carregant la vista prèvia..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "en": "Preview how recipients will see your secrets by testing the \"View Secret\" button",
+    "translation": "Vista prèvia de com els destinataris veuran els teus secrets provant el botó \"Visualitza el secret\""
+  },
+  "web.branding.eye_icon": {
+    "en": "Eye icon",
+    "translation": "Icona d'ull"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "en": "Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)",
+    "translation": "Fes clic a la imatge de vista prèvia de sota per actualitzar el teu logotip (mínim 128x128 píxels recomanat, 1 MB màx.)"
+  },
+  "web.branding.image_icon": {
+    "en": "Image icon",
+    "translation": "Icona d'imatge"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "en": "Use the controls above to customize brand color, styles, and recipient instructions",
+    "translation": "Utilitza els controls de sobre per personalitzar el color de la marca, els estils i les instruccions per als destinataris"
+  },
+  "web.branding.customization_icon": {
+    "en": "Customization icon",
+    "translation": "Icona de personalització"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "en": "You have unsaved changes. Are you sure?",
+    "translation": "Tens canvis sense desar. Estàs segur?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "en": "Failed to load brand settings",
+    "translation": "No s'ha pogut carregar la configuració de la marca"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Aquesta és una vista prèvia interactiva de com els destinataris veuran els teus missatges segurs. Pots: - Personalitzar colors i tipus de lletra utilitzant els controls de sobre - Carregar un logotip (mínim 128x128 píxels recomanat, 1 MB màx.) - Provar la vista prèvia utilitzant el botó \"Visualitza el secret\""
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "Aquesta és una vista prèvia interactiva de com els destinataris veuran els teus missatges segurs. Pots: - Personalitzar colors i tipus de lletra utilitzant els controls de sobre - Carregar un logotip (mínim 128x128 píxels recomanat, 1 MB màx.) - Provar la vista prèvia utilitzant el botó \"Visualitza el secret\""
+  },
+  "web.branding.default_logo_icon": {
+    "en": "Japanese kanji '秘' (himitsu) meaning 'secret' or 'confidential'",
+    "translation": "Kanji japonès '秘' (himitsu) que significa 'secret' o 'confidencial'"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "en": "Powered by Onetime Secret",
+    "translation": "Impulsat per Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "en": "{0} Logo",
+    "translation": "Logotip de {0}"
+  },
+  "web.branding.edge": {
+    "en": "Edge",
+    "translation": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "en": "Switch to Edge preview",
+    "translation": "Canvia a la vista prèvia d'Edge"
+  },
+  "web.branding.safari": {
+    "en": "Safari",
+    "translation": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "en": "Switch to Safari preview",
+    "translation": "Canvia a la vista prèvia de Safari"
+  }
+}

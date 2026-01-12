@@ -1,0 +1,170 @@
+{
+  "web.branding.color_picker": {
+    "en": "Color Picker",
+    "translation": "Izbirnik barv"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "en": "Current {0}: {1}. Click to cycle through options.",
+    "translation": "Trenutna {0}: {1}. Kliknite za kroženje po možnostih."
+  },
+  "web.branding.use_setting": {
+    "en": "Use setting",
+    "translation": "Uporabi nastavitev"
+  },
+  "web.branding.font_family": {
+    "en": "Font Family",
+    "translation": "Družina pisave"
+  },
+  "web.branding.corner_style": {
+    "en": "Corner Style",
+    "translation": "Slog kotov"
+  },
+  "web.branding.brand_color": {
+    "en": "Brand Color",
+    "translation": "Barva blagovne znamke"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "en": "Preview of recipient's view when accessing your secure link",
+    "translation": "Predogled pogleda prejemnika pri dostopu do vaše varne povezave"
+  },
+  "web.branding.preview_and_customize": {
+    "en": "Preview & Customize",
+    "translation": "Predogled in prilagoditev"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "en": "Switch to Safari browser view",
+    "translation": "Preklopi na pogled brskalnika Safari"
+  },
+  "web.branding.microsoft_edge": {
+    "en": "Microsoft Edge",
+    "translation": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "en": "Maximize window",
+    "translation": "Maksimiziraj okno"
+  },
+  "web.branding.minimize_window": {
+    "en": "Minimize window",
+    "translation": "Minimiziraj okno"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "en": "Switch to Edge browser view",
+    "translation": "Preklopi na pogled brskalnika Edge"
+  },
+  "web.branding.charactercount_500_characters": {
+    "en": "{0}/500 characters",
+    "translation": "{0}/500 znakov"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "en": "Use your phone to scan the QR code",
+    "translation": "Uporabite telefon za skeniranje QR kode"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "en": "Contact onboarding{'@'}example.com with any questions",
+    "translation": "Kontaktirajte onboarding{'@'}primer.si z vprašanji"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "en": "These instructions will be shown to recipients before they reveal the secret content",
+    "translation": "Ta navodila bodo prikazana prejemnikom, preden razkrijejo vsebino skrivnosti"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "en": "These instructions will be shown to recipients after they reveal the secret",
+    "translation": "Ta navodila bodo prikazana prejemnikom po tem, ko razkrijejo skrivnost"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "en": "Pre-reveal Instructions",
+    "translation": "Navodila pred razkritjem"
+  },
+  "web.branding.post_reveal_instructions": {
+    "en": "Post-reveal Instructions",
+    "translation": "Navodila po razkritju"
+  },
+  "web.branding.instructions": {
+    "en": "Instructions",
+    "translation": "Navodila"
+  },
+  "web.branding.logo_controls": {
+    "en": "Logo controls",
+    "translation": "Kontrole logotipa"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "en": "Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG",
+    "translation": "Kliknite za nalaganje logotipa. Priporočena velikost: 128x128 slikovnih točk. Največja velikost datoteke: 1MB. Podprti formati: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "en": "Upload logo",
+    "translation": "Naloži logotip"
+  },
+  "web.branding.loading_preview": {
+    "en": "Loading preview...",
+    "translation": "Nalagam predogled..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "en": "Preview how recipients will see your secrets by testing the \"View Secret\" button",
+    "translation": "Predoglejte, kako bodo prejemniki videli vaše skrivnosti, s testiranjem gumba \"Prikaži skrivnost\""
+  },
+  "web.branding.eye_icon": {
+    "en": "Eye icon",
+    "translation": "Ikona očesa"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "en": "Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)",
+    "translation": "Kliknite spodnjo sliko predogleda za posodobitev logotipa (priporočeno najmanj 128x128 slikovnih točk, največ 1MB)"
+  },
+  "web.branding.image_icon": {
+    "en": "Image icon",
+    "translation": "Ikona slike"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "en": "Use the controls above to customize brand color, styles, and recipient instructions",
+    "translation": "Uporabite zgornje kontrole za prilagoditev barve blagovne znamke, slogov in navodil prejemnikom"
+  },
+  "web.branding.customization_icon": {
+    "en": "Customization icon",
+    "translation": "Ikona prilagoditve"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "en": "You have unsaved changes. Are you sure?",
+    "translation": "Imate neshranjene spremembe. Ali ste prepričani?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "en": "Failed to load brand settings",
+    "translation": "Nalaganje nastavitev blagovne znamke ni uspelo"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "To je interaktiven predogled tega, kako bodo prejemniki videli vaša varna sporočila. Lahko: - Prilagodite barve in pisave z zgornjimi kontrolami - Naložite logotip (priporočeno najmanj 128x128 slikovnih točk, največ 1MB) - Testirajte predogled z gumbom \"Prikaži skrivnost\""
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "en": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button",
+    "translation": "To je interaktiven predogled tega, kako bodo prejemniki videli vaša varna sporočila. Lahko: - Prilagodite barve in pisave z zgornjimi kontrolami - Naložite logotip (priporočeno najmanj 128x128 slikovnih točk, največ 1MB) - Testirajte predogled z gumbom \"Prikaži skrivnost\""
+  },
+  "web.branding.default_logo_icon": {
+    "en": "Japanese kanji '秘' (himitsu) meaning 'secret' or 'confidential'",
+    "translation": "Japonski kanji '秘' (himitsu) pomeni 'skrivnost' ali 'zaupno'"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "en": "Powered by Onetime Secret",
+    "translation": "Poganja Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "en": "{0} Logo",
+    "translation": "{0} logotip"
+  },
+  "web.branding.edge": {
+    "en": "Edge",
+    "translation": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "en": "Switch to Edge preview",
+    "translation": "Preklopi na predogled Edge"
+  },
+  "web.branding.safari": {
+    "en": "Safari",
+    "translation": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "en": "Switch to Safari preview",
+    "translation": "Preklopi na predogled Safari"
+  }
+}

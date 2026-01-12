@@ -1,0 +1,630 @@
+{
+  "web.account.settings": {
+    "en": "Settings",
+    "translation": "Configuración"
+  },
+  "web.account.change_password": {
+    "en": "Change Password",
+    "translation": "Cambiar Contraseña"
+  },
+  "web.account.close_account": {
+    "en": "Close Account",
+    "translation": "Cerrar Cuenta"
+  },
+  "web.account.verify_account": {
+    "en": "Verify Account",
+    "translation": "Verificar Cuenta"
+  },
+  "web.account.subscription_title": {
+    "en": "Subscription",
+    "translation": "Suscripción"
+  },
+  "web.account.manage_subscription": {
+    "en": "Manage Subscription",
+    "translation": "Gestionar Suscripción"
+  },
+  "web.account.customer_information": {
+    "en": "Customer Information",
+    "translation": "Información del Cliente"
+  },
+  "web.account.customer_since": {
+    "en": "Customer since:",
+    "translation": "Cliente desde:"
+  },
+  "web.account.email": {
+    "en": "Email:",
+    "translation": "Correo electrónico:"
+  },
+  "web.account.region": {
+    "en": "Region",
+    "translation": "Región"
+  },
+  "web.account.account_balance": {
+    "en": "Balance:",
+    "translation": "Saldo de la cuenta:"
+  },
+  "web.account.default_payment_method": {
+    "en": "Default Payment Method",
+    "translation": "Método de Pago Predeterminado"
+  },
+  "web.account.card_ending": {
+    "en": "ending in",
+    "translation": "terminada en"
+  },
+  "web.account.subscriptions_title": {
+    "en": "Subscriptions",
+    "translation": "Suscripciones"
+  },
+  "web.account.quantity": {
+    "en": "Quantity:",
+    "translation": "Cantidad:"
+  },
+  "web.account.next_billing_date": {
+    "en": "Next billing date:",
+    "translation": "Próxima fecha de facturación:"
+  },
+  "web.account.changePassword.username": {
+    "en": "Username",
+    "translation": "Nombre de usuario"
+  },
+  "web.account.changePassword.currentPassword": {
+    "en": "Current Password",
+    "translation": "Contraseña Actual"
+  },
+  "web.account.changePassword.newPassword": {
+    "en": "New Password",
+    "translation": "Nueva Contraseña"
+  },
+  "web.account.changePassword.confirmPassword": {
+    "en": "Confirm",
+    "translation": "Confirmar"
+  },
+  "web.account.changePassword.updatePassword": {
+    "en": "Update Password",
+    "translation": "Actualizar Contraseña"
+  },
+  "web.account.changePassword.updating": {
+    "en": "Updating...",
+    "translation": "Actualizando..."
+  },
+  "web.account.timezone": {
+    "en": "Timezone",
+    "translation": "Zona Horaria"
+  },
+  "web.account.customer_id": {
+    "en": "Customer ID",
+    "translation": "ID de Cliente"
+  },
+  "web.account.account_id_customerid": {
+    "en": "Account ID",
+    "translation": "ID de Cuenta"
+  },
+  "web.account.created_windowprops_cust_secrets_created_secrets": {
+    "en": "Created {0} secrets since {1}.",
+    "translation": "Creados {0} secretos desde {1}."
+  },
+  "web.account.delete_account": {
+    "en": "Delete Account",
+    "translation": "Eliminar Cuenta"
+  },
+  "web.account.api_key": {
+    "en": "API Key",
+    "translation": "Clave API"
+  },
+  "web.account.account_type_windowprops_plan_options_name": {
+    "en": "Account type: {0}",
+    "translation": "Tipo de cuenta: {0}"
+  },
+  "web.account.your_account": {
+    "en": "Your Account",
+    "translation": "Tu Cuenta"
+  },
+  "web.account.support_details": {
+    "en": "Support Details",
+    "translation": "Detalles de Soporte"
+  },
+  "web.account.back_to_details": {
+    "en": "Back to Details",
+    "translation": "Volver a Detalles"
+  },
+  "web.account.customer_id_cust_custid": {
+    "en": "Customer ID: {0}",
+    "translation": "ID de Cliente: {0}"
+  },
+  "web.account.token_generated": {
+    "en": "Token generated.",
+    "translation": "Token generado."
+  },
+  "web.account.keep_this_token_secure_it_provides_full_access_t": {
+    "en": "🔐 Keep this token secure! It provides full access to your account.",
+    "translation": "🔐 ¡Mantén este token seguro! Proporciona acceso completo a tu cuenta."
+  },
+  "web.account.confirm_with_your_password": {
+    "en": "Confirm with your password",
+    "translation": "Confirma con tu contraseña"
+  },
+  "web.account.are_you_sure_you_want_to_permanently_delete_your": {
+    "en": "Are you sure you want to permanently delete your account? This action cannot be undone.",
+    "translation": "¿Estás seguro de que quieres eliminar permanentemente tu cuenta? Esta acción no se puede deshacer."
+  },
+  "web.account.confirm_account_deletion": {
+    "en": "Confirm Account Deletion",
+    "translation": "Confirmar Eliminación de Cuenta"
+  },
+  "web.account.deleting_cust_custid": {
+    "en": "Deleting {0}",
+    "translation": "Eliminando {0}"
+  },
+  "web.account.permanently_delete_account": {
+    "en": "Permanently Delete Account",
+    "translation": "Eliminar Cuenta Permanentemente"
+  },
+  "web.account.permanent_and_non_reversible": {
+    "en": "permanent and non-reversible.",
+    "translation": "permanente y no reversible."
+  },
+  "web.account.deleting_your_account_is": {
+    "en": "Deleting your account is",
+    "translation": "Eliminar tu cuenta es"
+  },
+  "web.account.burn_them_before_continuing": {
+    "en": "burn them before continuing",
+    "translation": "destrúyelos antes de continuar"
+  },
+  "web.account.any_secrets_you_wish_to_remove": {
+    "en": "Any secrets you wish to remove,",
+    "translation": "Cualquier secreto que desees eliminar,"
+  },
+  "web.account.secrets_will_remain_active_until_they_expire": {
+    "en": "Secrets will remain active until they expire.",
+    "translation": "Los secretos permanecerán activos hasta que expiren."
+  },
+  "web.account.please_be_advised": {
+    "en": "Please be advised:",
+    "translation": "Ten en cuenta:"
+  },
+  "web.account.account_deleted_successfully": {
+    "en": "Account deleted successfully.",
+    "translation": "Cuenta eliminada con éxito."
+  },
+  "web.account.deactivate": {
+    "en": "Deactivate",
+    "translation": "Desactivar"
+  },
+  "web.account.are_you_sure_you_want_to_deactivate_your_account": {
+    "en": "Are you sure you want to deactivate your account? All of your data will be permanently removed from our servers forever. This action cannot be undone.",
+    "translation": "¿Estás seguro de que quieres desactivar tu cuenta? Todos tus datos serán eliminados permanentemente de nuestros servidores para siempre. Esta acción no se puede deshacer."
+  },
+  "web.account.deactivate_account": {
+    "en": "Deactivate account",
+    "translation": "Desactivar cuenta"
+  },
+  "web.settings.title": {
+    "en": "Settings",
+    "translation": "Configuración"
+  },
+  "web.settings.description": {
+    "en": "Manage your account settings and preferences",
+    "translation": "Gestiona tu configuración de cuenta y preferencias"
+  },
+  "web.settings.manage_your_account_settings_and_preferences": {
+    "en": "Manage your account settings and preferences",
+    "translation": "Gestiona tu configuración de cuenta y preferencias"
+  },
+  "web.settings.back_to_dashboard": {
+    "en": "Back to Dashboard"
+  },
+  "web.settings.sections.account": {
+    "en": "Account"
+  },
+  "web.settings.sections.billing": {
+    "en": "Billing"
+  },
+  "web.settings.sections.advanced": {
+    "en": "Advanced"
+  },
+  "web.settings.general": {
+    "en": "General",
+    "translation": "General"
+  },
+  "web.settings.preferences": {
+    "en": "Preferences",
+    "translation": "Preferencias"
+  },
+  "web.settings.appearance": {
+    "en": "Appearance",
+    "translation": "Apariencia"
+  },
+  "web.settings.theme.title": {
+    "en": "Theme",
+    "translation": "Tema"
+  },
+  "web.settings.theme.description": {
+    "en": "Choose light or dark theme",
+    "translation": "Elige tema claro u oscuro"
+  },
+  "web.settings.theme.choose_light_or_dark_theme": {
+    "en": "Choose light or dark theme",
+    "translation": "Elige tema claro u oscuro"
+  },
+  "web.settings.language.title": {
+    "en": "Language",
+    "translation": "Idioma"
+  },
+  "web.settings.language.description": {
+    "en": "Select your preferred language",
+    "translation": "Selecciona tu idioma preferido"
+  },
+  "web.settings.language.select_your_preferred_language": {
+    "en": "Select your preferred language",
+    "translation": "Selecciona tu idioma preferido"
+  },
+  "web.settings.security_settings_description": {
+    "en": "Manage authentication and account security",
+    "translation": "Gestiona la autenticación y seguridad de la cuenta"
+  },
+  "web.settings.profile_settings_description": {
+    "en": "Manage your account information",
+    "translation": "Gestiona la información de tu cuenta"
+  },
+  "web.settings.profile.title": {
+    "en": "Profile",
+    "translation": "Perfil"
+  },
+  "web.settings.profile.change_email": {
+    "en": "Change Email",
+    "translation": "Cambiar Correo Electrónico"
+  },
+  "web.settings.profile.current_email": {
+    "en": "Current Email",
+    "translation": "Correo Electrónico Actual"
+  },
+  "web.settings.profile.current_password": {
+    "en": "Current Password",
+    "translation": "Contraseña Actual"
+  },
+  "web.settings.profile.new_email": {
+    "en": "New Email",
+    "translation": "Nuevo Correo Electrónico"
+  },
+  "web.settings.profile.enter_password_to_confirm": {
+    "en": "Enter your current password",
+    "translation": "Introduce tu contraseña actual"
+  },
+  "web.settings.profile.password_required_for_security": {
+    "en": "Your password is required for security purposes",
+    "translation": "Tu contraseña es requerida por motivos de seguridad"
+  },
+  "web.settings.profile.verification_email_notice": {
+    "en": "A verification email will be sent to the new address",
+    "translation": "Se enviará un correo de verificación a la nueva dirección"
+  },
+  "web.settings.profile.update_email": {
+    "en": "Update Email",
+    "translation": "Actualizar Correo Electrónico"
+  },
+  "web.settings.profile.change_email_description": {
+    "en": "Update the email address associated with your account",
+    "translation": "Actualiza la dirección de correo electrónico asociada con tu cuenta"
+  },
+  "web.settings.profile.all_fields_required": {
+    "en": "All fields are required",
+    "translation": "Todos los campos son obligatorios"
+  },
+  "web.settings.profile.invalid_email": {
+    "en": "Please enter a valid email address",
+    "translation": "Por favor, introduce una dirección de correo electrónico válida"
+  },
+  "web.settings.profile.email_same_as_current": {
+    "en": "New email must be different from current email",
+    "translation": "El nuevo correo electrónico debe ser diferente del actual"
+  },
+  "web.settings.profile.email_change_success": {
+    "en": "Email updated successfully. Please check your inbox to verify your new email address.",
+    "translation": "Correo electrónico actualizado con éxito. Por favor, revisa tu bandeja de entrada para verificar tu nueva dirección de correo."
+  },
+  "web.settings.profile.email_change_error": {
+    "en": "Failed to update email. Please try again.",
+    "translation": "Error al actualizar el correo electrónico. Por favor, inténtalo de nuevo."
+  },
+  "web.settings.sessions.title": {
+    "en": "Active Sessions",
+    "translation": "Sesiones Activas"
+  },
+  "web.settings.sessions.description": {
+    "en": "Manage your active sessions",
+    "translation": "Gestiona tus sesiones activas"
+  },
+  "web.settings.sessions.manage_active_sessions": {
+    "en": "Manage your active sessions",
+    "translation": "Gestiona tus sesiones activas"
+  },
+  "web.settings.password.title": {
+    "en": "Password",
+    "translation": "Contraseña"
+  },
+  "web.settings.password.description": {
+    "en": "Update your account password",
+    "translation": "Actualiza la contraseña de tu cuenta"
+  },
+  "web.settings.password.update_account_password": {
+    "en": "Update your account password",
+    "translation": "Actualiza la contraseña de tu cuenta"
+  },
+  "web.settings.delete_account.title": {
+    "en": "Delete Account",
+    "translation": "Eliminar Cuenta"
+  },
+  "web.settings.delete_account.description": {
+    "en": "Permanently delete your account and all data",
+    "translation": "Elimina permanentemente tu cuenta y todos los datos"
+  },
+  "web.settings.delete_account.permanently_delete_your_account": {
+    "en": "Permanently delete your account and all data",
+    "translation": "Elimina permanentemente tu cuenta y todos los datos"
+  },
+  "web.settings.security.security_score": {
+    "en": "Security Score",
+    "translation": "Puntuación de Seguridad"
+  },
+  "web.settings.security.score_description": {
+    "en": "Your overall account security health",
+    "translation": "Estado general de seguridad de tu cuenta"
+  },
+  "web.settings.security.excellent": {
+    "en": "Excellent",
+    "translation": "Excelente"
+  },
+  "web.settings.security.good": {
+    "en": "Good",
+    "translation": "Bueno"
+  },
+  "web.settings.security.fair": {
+    "en": "Fair",
+    "translation": "Regular"
+  },
+  "web.settings.security.weak": {
+    "en": "Weak",
+    "translation": "Débil"
+  },
+  "web.settings.security.improve_security": {
+    "en": "Improve your security",
+    "translation": "Mejora tu seguridad"
+  },
+  "web.settings.security.enable_mfa_recommendation": {
+    "en": "Enable two-factor authentication for stronger protection",
+    "translation": "Activa la autenticación de dos factores para mayor protección"
+  },
+  "web.settings.security.generate_recovery_codes_recommendation": {
+    "en": "Generate recovery codes as a backup",
+    "translation": "Genera códigos de recuperación como respaldo"
+  },
+  "web.settings.security.configured": {
+    "en": "Configured",
+    "translation": "Configurado"
+  },
+  "web.settings.security.change": {
+    "en": "Change",
+    "translation": "Cambiar"
+  },
+  "web.settings.security.manage": {
+    "en": "Manage",
+    "translation": "Gestionar"
+  },
+  "web.settings.security.enable": {
+    "en": "Enable",
+    "translation": "Activar"
+  },
+  "web.settings.security.codes_available": {
+    "en": "{0} codes available",
+    "translation": "{0} códigos disponibles"
+  },
+  "web.settings.security.no_codes": {
+    "en": "No codes generated",
+    "translation": "No se han generado códigos"
+  },
+  "web.settings.security.active_sessions": {
+    "en": "{0} active session | {0} active sessions",
+    "translation": "{0} sesión activa | {0} sesiones activas"
+  },
+  "web.settings.security.best_practices": {
+    "en": "Security Best Practices",
+    "translation": "Mejores Prácticas de Seguridad"
+  },
+  "web.settings.security.use_strong_unique_password": {
+    "en": "Use a strong, unique password for your account",
+    "translation": "Usa una contraseña fuerte y única para tu cuenta"
+  },
+  "web.settings.security.enable_mfa_for_protection": {
+    "en": "Enable two-factor authentication for additional protection",
+    "translation": "Activa la autenticación de dos factores para protección adicional"
+  },
+  "web.settings.security.save_recovery_codes_safely": {
+    "en": "Save your recovery codes in a secure location",
+    "translation": "Guarda tus códigos de recuperación en un lugar seguro"
+  },
+  "web.settings.security.review_sessions_regularly": {
+    "en": "Review and revoke unused sessions regularly",
+    "translation": "Revisa y revoca sesiones no utilizadas regularmente"
+  },
+  "web.settings.security.view_details": {
+    "en": "View details",
+    "translation": "Ver detalles"
+  },
+  "web.settings.api.title": {
+    "en": "API & Integrations",
+    "translation": "API e Integraciones"
+  },
+  "web.settings.api.description": {
+    "en": "Manage API keys and integrations",
+    "translation": "Gestiona claves de API e integraciones"
+  },
+  "web.settings.api.manage_api_keys": {
+    "en": "Manage API keys and integrations",
+    "translation": "Gestiona claves de API e integraciones"
+  },
+  "web.settings.api.documentation": {
+    "en": "API Documentation",
+    "translation": "Documentación de API"
+  },
+  "web.settings.api.documentation_description": {
+    "en": "Learn how to integrate Onetime Secret into your applications",
+    "translation": "Aprende cómo integrar Onetime Secret en tus aplicaciones"
+  },
+  "web.settings.api.rest_api_reference": {
+    "en": "REST API Reference",
+    "translation": "Referencia de API REST"
+  },
+  "web.settings.api.complete_api_documentation": {
+    "en": "Complete API documentation and endpoints",
+    "translation": "Documentación completa de API y endpoints"
+  },
+  "web.settings.api.code_examples": {
+    "en": "Code Examples",
+    "translation": "Ejemplos de Código"
+  },
+  "web.settings.api.example_code_and_libraries": {
+    "en": "Example code and client libraries",
+    "translation": "Código de ejemplo y bibliotecas de cliente"
+  },
+  "web.settings.api.security_best_practices": {
+    "en": "Security Best Practices",
+    "translation": "Mejores Prácticas de Seguridad"
+  },
+  "web.settings.api.never_commit_api_keys": {
+    "en": "Never commit API keys to version control",
+    "translation": "Nunca envíes claves de API al control de versiones"
+  },
+  "web.settings.api.use_environment_variables": {
+    "en": "Use environment variables to store API keys",
+    "translation": "Usa variables de entorno para almacenar claves de API"
+  },
+  "web.settings.api.rotate_keys_regularly": {
+    "en": "Rotate API keys regularly for security",
+    "translation": "Rota las claves de API regularmente por seguridad"
+  },
+  "web.settings.api.use_https_only": {
+    "en": "Always use HTTPS when making API requests",
+    "translation": "Siempre usa HTTPS al realizar solicitudes de API"
+  },
+  "web.settings.api.monitor_api_usage": {
+    "en": "Monitor your API usage and set up alerts",
+    "translation": "Monitorea el uso de tu API y configura alertas"
+  },
+  "web.settings.api.important_notice": {
+    "en": "Important Notice",
+    "translation": "Aviso Importante"
+  },
+  "web.settings.api.regenerating_key_warning": {
+    "en": "Regenerating your API key will invalidate the current key. Update all applications using the old key.",
+    "translation": "Regenerar tu clave de API invalidará la clave actual. Actualiza todas las aplicaciones que usen la clave antigua."
+  },
+  "web.settings.privacy.title": {
+    "en": "Privacy Settings",
+    "translation": "Configuración de Privacidad"
+  },
+  "web.settings.privacy.manage_privacy_settings": {
+    "en": "Manage your privacy preferences",
+    "translation": "Gestiona tus preferencias de privacidad"
+  },
+  "web.settings.privacy.your_privacy": {
+    "en": "Your Privacy",
+    "translation": "Tu Privacidad"
+  },
+  "web.settings.privacy.non_negotiable": {
+    "en": "Non-Negotiable",
+    "translation": "No Negociable"
+  },
+  "web.settings.privacy.not_a_setting": {
+    "en": "Not a setting",
+    "translation": "No es una configuración"
+  },
+  "web.settings.privacy.no_analytics_statement": {
+    "en": "No analytics. No tracking. Period.",
+    "translation": "Sin análisis. Sin rastreo. Punto."
+  },
+  "web.settings.privacy.explanation": {
+    "en": "This isn't a setting because there's nothing to turn on or off. Your privacy is built into how we operate.",
+    "translation": "Esto no es una configuración porque no hay nada que activar o desactivar. Tu privacidad está integrada en cómo operamos."
+  },
+  "web.settings.notifications.title": {
+    "en": "Notification Settings",
+    "translation": "Configuración de Notificaciones"
+  },
+  "web.settings.notifications.description": {
+    "en": "Manage how you receive notifications",
+    "translation": "Gestiona cómo recibes las notificaciones"
+  },
+  "web.settings.notifications.error_updating": {
+    "en": "Failed to update notification preference. Please try again.",
+    "translation": "Error al actualizar la preferencia de notificaciones. Por favor, inténtalo de nuevo."
+  },
+  "web.settings.notifications.reveal_notifications.title": {
+    "en": "Secret Reveal Notifications",
+    "translation": "Notificaciones de Visualización de Secretos"
+  },
+  "web.settings.notifications.reveal_notifications.description": {
+    "en": "Receive an email when someone views your secret",
+    "translation": "Recibe un correo electrónico cuando alguien vea tu secreto"
+  },
+  "web.settings.notifications.reveal_notifications.help": {
+    "en": "You'll be notified each time a recipient reveals one of your secrets",
+    "translation": "Serás notificado cada vez que un destinatario visualice uno de tus secretos"
+  },
+  "web.settings.notifications.privacy_note": {
+    "en": "Notification emails include only the timestamp and secret ID. Viewer information is never included.",
+    "translation": "Los correos de notificación solo incluyen la marca de tiempo y el ID del secreto. La información del visualizador nunca se incluye."
+  },
+  "web.settings.caution.title": {
+    "en": "Careful Consideration Zone",
+    "translation": "Zona de Consideración Cuidadosa"
+  },
+  "web.settings.caution.description": {
+    "en": "Advanced settings and data management",
+    "translation": "Configuración avanzada y gestión de datos"
+  },
+  "web.settings.caution.data_export": {
+    "en": "Data Export",
+    "translation": "Exportación de Datos"
+  },
+  "web.settings.caution.export_your_data": {
+    "en": "Export your account data",
+    "translation": "Exporta los datos de tu cuenta"
+  },
+  "web.settings.caution.export_description": {
+    "en": "Request a complete copy of your account data in machine-readable format",
+    "translation": "Solicita una copia completa de los datos de tu cuenta en formato legible por máquina"
+  },
+  "web.settings.caution.request_data_export": {
+    "en": "Request Data Export",
+    "translation": "Solicitar Exportación de Datos"
+  },
+  "web.settings.caution.export_info": {
+    "en": "Export Processing Time",
+    "translation": "Tiempo de Procesamiento de Exportación"
+  },
+  "web.settings.caution.export_info_description": {
+    "en": "Exports are processed within 24 hours and sent to your email address",
+    "translation": "Las exportaciones se procesan en un plazo de 24 horas y se envían a tu dirección de correo electrónico"
+  },
+  "web.settings.caution.deletion_warning_title": {
+    "en": "Deleting your account will:",
+    "translation": "Eliminar tu cuenta hará:"
+  },
+  "web.settings.caution.deletion_warning_secrets": {
+    "en": "Permanently delete all your secrets",
+    "translation": "Eliminar permanentemente todos tus secretos"
+  },
+  "web.settings.caution.deletion_warning_metadata": {
+    "en": "Remove all secret metadata and history",
+    "translation": "Eliminar todos los metadatos e historial de secretos"
+  },
+  "web.settings.caution.deletion_warning_api_keys": {
+    "en": "Invalidate all API keys",
+    "translation": "Invalidar todas las claves de API"
+  },
+  "web.settings.caution.deletion_warning_irreversible": {
+    "en": "This action cannot be undone",
+    "translation": "Esta acción no se puede deshacer"
+  }
+}

@@ -1,0 +1,539 @@
+{
+  "web.auth.mfa_required": {
+    "en": "MFA verification required",
+    "translation": "MFA-verificatie vereist"
+  },
+  "web.auth.mfa_verification_required": {
+    "en": "MFA verification required to access your account",
+    "translation": "MFA-verificatie vereist om toegang te krijgen tot je account"
+  },
+  "web.auth.complete_mfa_verification": {
+    "en": "Complete MFA Verification",
+    "translation": "MFA-verificatie voltooien"
+  },
+  "web.auth.security.authentication_failed": {
+    "en": "Authentication failed. Please verify your credentials and try again.",
+    "translation": "Authenticatie mislukt. Controleer je inloggegevens en probeer het opnieuw."
+  },
+  "web.auth.security.rate_limited": {
+    "en": "Too many attempts. Please try again later.",
+    "translation": "Te veel pogingen. Probeer het later opnieuw."
+  },
+  "web.auth.security.session_expired": {
+    "en": "Session expired. Please log in again.",
+    "translation": "Sessie verlopen. Log opnieuw in."
+  },
+  "web.auth.security.recovery_code_not_found": {
+    "en": "Recovery code not found. Please verify you entered it correctly.",
+    "translation": "Herstelcode niet gevonden. Controleer of je deze correct hebt ingevoerd."
+  },
+  "web.auth.security.recovery_code_used": {
+    "en": "This recovery code has already been used. Each code can only be used once.",
+    "translation": "Deze herstelcode is al gebruikt. Elke code kan slechts één keer worden gebruikt."
+  },
+  "web.auth.security.network_error": {
+    "en": "Network error. Please check your connection and try again.",
+    "translation": "Netwerkfout. Controleer je verbinding en probeer het opnieuw."
+  },
+  "web.auth.security.internal_error": {
+    "en": "An error occurred. Please try again.",
+    "translation": "Er is een fout opgetreden. Probeer het opnieuw."
+  },
+  "web.auth.methods.password": {
+    "en": "Password",
+    "translation": "Wachtwoord"
+  },
+  "web.auth.methods.magicLink": {
+    "en": "Email Link",
+    "translation": "E-maillink"
+  },
+  "web.auth.methods.webauthn": {
+    "en": "Biometric",
+    "translation": "Biometrisch"
+  },
+  "web.auth.magicLink.title": {
+    "en": "Sign in with Email",
+    "translation": "Inloggen met e-mail"
+  },
+  "web.auth.magicLink.description": {
+    "en": "We'll send you a secure login link",
+    "translation": "We sturen je een beveiligde inloglink"
+  },
+  "web.auth.magicLink.emailPlaceholder": {
+    "en": "Enter your email",
+    "translation": "Voer je e-mailadres in"
+  },
+  "web.auth.magicLink.sendLink": {
+    "en": "Send Login Link",
+    "translation": "Inloglink verzenden"
+  },
+  "web.auth.magicLink.checkEmail": {
+    "en": "Check your email",
+    "translation": "Controleer je e-mail"
+  },
+  "web.auth.magicLink.sentTo": {
+    "en": "We sent a login link to {email}",
+    "translation": "We hebben een inloglink verzonden naar {email}"
+  },
+  "web.auth.magicLink.linkExpiresIn": {
+    "en": "This link will expire in 15 minutes",
+    "translation": "Deze link verloopt over 15 minuten"
+  },
+  "web.auth.magicLink.tryDifferentEmail": {
+    "en": "Try a different email",
+    "translation": "Probeer een ander e-mailadres"
+  },
+  "web.auth.magicLink.noPasswordNeeded": {
+    "en": "No password needed — just click the link in your email",
+    "translation": "Geen wachtwoord nodig — klik gewoon op de link in je e-mail"
+  },
+  "web.auth.magicLink.networkError": {
+    "en": "Network error. Please try again.",
+    "translation": "Netwerkfout. Probeer het opnieuw."
+  },
+  "web.auth.magicLink.requestFailed": {
+    "en": "Failed to send login link. Please try again.",
+    "translation": "Verzenden van inloglink mislukt. Probeer het opnieuw."
+  },
+  "web.auth.magicLink.invalidLink": {
+    "en": "Invalid or missing login link",
+    "translation": "Ongeldige of ontbrekende inloglink"
+  },
+  "web.auth.magicLink.loginFailed": {
+    "en": "Login failed. Please try again.",
+    "translation": "Inloggen mislukt. Probeer het opnieuw."
+  },
+  "web.auth.magicLink.signingYouIn": {
+    "en": "Signing you in...",
+    "translation": "Je wordt ingelogd..."
+  },
+  "web.auth.magicLink.pleaseWait": {
+    "en": "Please wait while we verify your link",
+    "translation": "Een moment geduld terwijl we je link verifiëren"
+  },
+  "web.auth.magicLink.error": {
+    "en": "Authentication Error",
+    "translation": "Authenticatiefout"
+  },
+  "web.auth.magicLink.back_to_signin": {
+    "en": "Back to Sign In",
+    "translation": "Terug naar inloggen"
+  },
+  "web.auth.webauthn.signIn": {
+    "en": "Sign in with Face ID / Touch ID",
+    "translation": "Inloggen met Face ID / Touch ID"
+  },
+  "web.auth.webauthn.setup": {
+    "en": "Set up biometric login",
+    "translation": "Biometrisch inloggen instellen"
+  },
+  "web.auth.webauthn.notSupported": {
+    "en": "Biometric authentication is not supported in this browser",
+    "translation": "Biometrische authenticatie wordt niet ondersteund in deze browser"
+  },
+  "web.auth.webauthn.requiresModernBrowser": {
+    "en": "Please use a modern browser that supports WebAuthn (Chrome, Safari, Firefox, or Edge)",
+    "translation": "Gebruik een moderne browser die WebAuthn ondersteunt (Chrome, Safari, Firefox of Edge)"
+  },
+  "web.auth.webauthn.setupSuccess": {
+    "en": "Biometric login has been enabled",
+    "translation": "Biometrisch inloggen is ingeschakeld"
+  },
+  "web.auth.webauthn.setupFailed": {
+    "en": "Failed to set up biometric login",
+    "translation": "Instellen van biometrisch inloggen mislukt"
+  },
+  "web.auth.webauthn.authFailed": {
+    "en": "Biometric authentication failed. Please try again.",
+    "translation": "Biometrische authenticatie mislukt. Probeer het opnieuw."
+  },
+  "web.auth.webauthn.cancelled": {
+    "en": "Authentication was cancelled",
+    "translation": "Authenticatie is geannuleerd"
+  },
+  "web.auth.webauthn.processing": {
+    "en": "Authenticating...",
+    "translation": "Authenticeren..."
+  },
+  "web.auth.webauthn.description": {
+    "en": "Use your fingerprint, face, or security key to sign in",
+    "translation": "Gebruik je vingerafdruk, gezicht of beveiligingssleutel om in te loggen"
+  },
+  "web.auth.webauthn.supportedMethods": {
+    "en": "Supports Face ID, Touch ID, Windows Hello, and security keys",
+    "translation": "Ondersteunt Face ID, Touch ID, Windows Hello en beveiligingssleutels"
+  },
+  "web.auth.lockout.attempts_remaining": {
+    "en": "Warning: {count} login attempt(s) remaining",
+    "translation": "Waarschuwing: {count} inlogpoging(en) resterend"
+  },
+  "web.auth.lockout.account_locked": {
+    "en": "Account locked due to too many failed login attempts",
+    "translation": "Account vergrendeld vanwege te veel mislukte inlogpogingen"
+  },
+  "web.auth.lockout.locked_until": {
+    "en": "Your account is locked until {time}",
+    "translation": "Je account is vergrendeld tot {time}"
+  },
+  "web.auth.lockout.contact_support": {
+    "en": "Contact support if you need immediate access",
+    "translation": "Neem contact op met ondersteuning als je direct toegang nodig hebt"
+  },
+  "web.auth.lockout.try_password_reset": {
+    "en": "You can reset your password instead",
+    "translation": "Je kunt in plaats daarvan je wachtwoord resetten"
+  },
+  "web.auth.sessions.title": {
+    "en": "Active Sessions",
+    "translation": "Actieve sessies"
+  },
+  "web.auth.sessions.current": {
+    "en": "Current Session",
+    "translation": "Huidige sessie"
+  },
+  "web.auth.sessions.other": {
+    "en": "Other Sessions",
+    "translation": "Andere sessies"
+  },
+  "web.auth.sessions.device": {
+    "en": "Device",
+    "translation": "Apparaat"
+  },
+  "web.auth.sessions.location": {
+    "en": "Location",
+    "translation": "Locatie"
+  },
+  "web.auth.sessions.ip_address": {
+    "en": "IP Address",
+    "translation": "IP-adres"
+  },
+  "web.auth.sessions.last_active": {
+    "en": "Last Active",
+    "translation": "Laatst actief"
+  },
+  "web.auth.sessions.created": {
+    "en": "Created",
+    "translation": "Aangemaakt"
+  },
+  "web.auth.sessions.remove": {
+    "en": "Remove",
+    "translation": "Verwijderen"
+  },
+  "web.auth.sessions.remove_all": {
+    "en": "Logout All Other Sessions",
+    "translation": "Uitloggen van alle andere sessies"
+  },
+  "web.auth.sessions.confirm_remove": {
+    "en": "Are you sure you want to remove this session?",
+    "translation": "Weet je zeker dat je deze sessie wilt verwijderen?"
+  },
+  "web.auth.sessions.confirm_remove_all": {
+    "en": "This will log you out from all other devices. Are you sure?",
+    "translation": "Hiermee log je uit van alle andere apparaten. Weet je het zeker?"
+  },
+  "web.auth.sessions.no_sessions": {
+    "en": "No other active sessions",
+    "translation": "Geen andere actieve sessies"
+  },
+  "web.auth.sessions.removed_success": {
+    "en": "Session removed successfully",
+    "translation": "Sessie succesvol verwijderd"
+  },
+  "web.auth.sessions.removed_all_success": {
+    "en": "All other sessions have been logged out",
+    "translation": "Alle andere sessies zijn uitgelogd"
+  },
+  "web.auth.sessions.link_title": {
+    "en": "Active Sessions",
+    "translation": "Actieve sessies"
+  },
+  "web.auth.mfa.title": {
+    "en": "Two-Factor Authentication",
+    "translation": "Tweefactorauthenticatie"
+  },
+  "web.auth.mfa.enabled": {
+    "en": "Two-factor authentication is enabled",
+    "translation": "Tweefactorauthenticatie is ingeschakeld"
+  },
+  "web.auth.mfa.disabled": {
+    "en": "Two-factor authentication is disabled",
+    "translation": "Tweefactorauthenticatie is uitgeschakeld"
+  },
+  "web.auth.mfa.enable": {
+    "en": "Enable Two-Factor Authentication",
+    "translation": "Tweefactorauthenticatie inschakelen"
+  },
+  "web.auth.mfa.disable": {
+    "en": "Disable Two-Factor Authentication",
+    "translation": "Tweefactorauthenticatie uitschakelen"
+  },
+  "web.auth.mfa.setup_title": {
+    "en": "Set Up Two-Factor Authentication",
+    "translation": "Tweefactorauthenticatie instellen"
+  },
+  "web.auth.mfa.setup_description": {
+    "en": "Add an extra layer of security to your account",
+    "translation": "Voeg een extra beveiligingslaag toe aan je account"
+  },
+  "web.auth.mfa.step_scan": {
+    "en": "1. Scan QR Code",
+    "translation": "1. Scan QR-code"
+  },
+  "web.auth.mfa.step_verify": {
+    "en": "2. Verify Setup",
+    "translation": "2. Verificatie instellen"
+  },
+  "web.auth.mfa.scan_qr": {
+    "en": "Scan this QR code with your authenticator app",
+    "translation": "Scan deze QR-code met je authenticator-app"
+  },
+  "web.auth.mfa.manual_entry": {
+    "en": "Or enter this code manually",
+    "translation": "Of voer deze code handmatig in"
+  },
+  "web.auth.mfa.verify_code": {
+    "en": "Enter the 6-digit code from your app",
+    "translation": "Voer de 6-cijferige code uit je app in"
+  },
+  "web.auth.mfa.enter_code": {
+    "en": "Enter authentication code",
+    "translation": "Voer authenticatiecode in"
+  },
+  "web.auth.mfa.verify": {
+    "en": "Verify and Enable",
+    "translation": "Verifiëren en inschakelen"
+  },
+  "web.auth.mfa.verify_login": {
+    "en": "Verify"
+  },
+  "web.auth.mfa.code_required": {
+    "en": "Authentication code is required",
+    "translation": "Authenticatiecode is verplicht"
+  },
+  "web.auth.mfa.invalid_code": {
+    "en": "Invalid code. Codes expire every 30 seconds. Try the latest code from your authenticator app.",
+    "translation": "Ongeldige code. Codes verlopen elke 30 seconden. Probeer de laatste code uit je authenticator-app."
+  },
+  "web.auth.mfa.success_enabled": {
+    "en": "Two-factor authentication has been enabled",
+    "translation": "Tweefactorauthenticatie is ingeschakeld"
+  },
+  "web.auth.mfa.success_disabled": {
+    "en": "Two-factor authentication has been disabled",
+    "translation": "Tweefactorauthenticatie is uitgeschakeld"
+  },
+  "web.auth.mfa.require_password": {
+    "en": "Enter your password to disable 2FA",
+    "translation": "Voer je wachtwoord in om 2FA uit te schakelen"
+  },
+  "web.auth.mfa.password_confirmation": {
+    "en": "Password",
+    "translation": "Wachtwoord"
+  },
+  "web.auth.mfa.password_reason": {
+    "en": "Confirm your identity to modify two-factor authentication settings",
+    "translation": "Bevestig je identiteit om tweefactorauthenticatie-instellingen te wijzigen"
+  },
+  "web.auth.mfa.last_used": {
+    "en": "Last used: {time}",
+    "translation": "Laatst gebruikt: {time}"
+  },
+  "web.auth.mfa.never_used": {
+    "en": "Never used",
+    "translation": "Nooit gebruikt"
+  },
+  "web.auth.mfa.use_recovery_code": {
+    "en": "Use a recovery code instead",
+    "translation": "Gebruik in plaats daarvan een herstelcode"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "en": "Use recovery code"
+  },
+  "web.auth.mfa.back_to_code": {
+    "en": "Back to authentication code",
+    "translation": "Terug naar authenticatiecode"
+  },
+  "web.auth.mfa.cancel": {
+    "en": "Cancel and return to sign in",
+    "translation": "Annuleren en terug naar inloggen"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "en": "Cancel sign in"
+  },
+  "web.auth.mfa.loading_status": {
+    "en": "Loading MFA status...",
+    "translation": "MFA-status laden..."
+  },
+  "web.auth.mfa.protected_description": {
+    "en": "Your account is protected with two-factor authentication",
+    "translation": "Je account is beveiligd met tweefactorauthenticatie"
+  },
+  "web.auth.mfa.enable_description": {
+    "en": "Protect your account with an additional layer of security",
+    "translation": "Bescherm je account met een extra beveiligingslaag"
+  },
+  "web.auth.mfa.benefit_unauthorized": {
+    "en": "Prevent unauthorized access even if your password is compromised",
+    "translation": "Voorkom ongeautoriseerde toegang zelfs als je wachtwoord gecompromitteerd is"
+  },
+  "web.auth.mfa.benefit_apps": {
+    "en": "Works with Google Authenticator, Authy, and other TOTP apps",
+    "translation": "Werkt met Google Authenticator, Authy en andere TOTP-apps"
+  },
+  "web.auth.mfa.benefit_recovery": {
+    "en": "Backup recovery codes for emergency access",
+    "translation": "Back-up herstelcodes voor noodtoegang"
+  },
+  "web.auth.mfa.password_placeholder": {
+    "en": "Enter your password",
+    "translation": "Voer je wachtwoord in"
+  },
+  "web.auth.mfa.disabling": {
+    "en": "Disabling...",
+    "translation": "Uitschakelen..."
+  },
+  "web.auth.mfa.disable_button": {
+    "en": "Disable 2FA",
+    "translation": "2FA uitschakelen"
+  },
+  "web.auth.mfa.generating_qr": {
+    "en": "Generating QR code...",
+    "translation": "QR-code genereren..."
+  },
+  "web.auth.mfa.supported_apps": {
+    "en": "Use Google Authenticator, Authy, or any TOTP app",
+    "translation": "Gebruik Google Authenticator, Authy of een andere TOTP-app"
+  },
+  "web.auth.mfa.continue_verification": {
+    "en": "Continue to Verification",
+    "translation": "Doorgaan naar verificatie"
+  },
+  "web.auth.mfa.enter_code_description": {
+    "en": "Enter the 6-digit code from your authenticator app",
+    "translation": "Voer de 6-cijferige code uit je authenticator-app in"
+  },
+  "web.auth.mfa.enable_and_continue": {
+    "en": "Enable MFA",
+    "translation": "MFA inschakelen"
+  },
+  "web.auth.mfa.complete_setup": {
+    "en": "Complete Setup",
+    "translation": "Setup voltooien"
+  },
+  "web.auth.mfa.enter_recovery_code": {
+    "en": "Enter one of your recovery codes",
+    "translation": "Voer een van je herstelcodes in"
+  },
+  "web.auth.mfa.recovery_code_label": {
+    "en": "Recovery Code",
+    "translation": "Herstelcode"
+  },
+  "web.auth.mfa.recovery_code_placeholder": {
+    "en": "Enter recovery code",
+    "translation": "Voer herstelcode in"
+  },
+  "web.auth.mfa.verify_recovery_code": {
+    "en": "Verify Recovery Code",
+    "translation": "Herstelcode verifiëren"
+  },
+  "web.auth.mfa.six_digit_code": {
+    "en": "Enter 6-digit authentication code",
+    "translation": "Voer 6-cijferige authenticatiecode in"
+  },
+  "web.auth.mfa.recovery_code_mode_active": {
+    "en": "Recovery code mode active",
+    "translation": "Herstelcodemodus actief"
+  },
+  "web.auth.mfa.otp_mode_active": {
+    "en": "Authentication code mode active",
+    "translation": "Authenticatiecodemodus actief"
+  },
+  "web.auth.mfa.enter_all_digits": {
+    "en": "Please enter all 6 digits to continue",
+    "translation": "Voer alle 6 cijfers in om door te gaan"
+  },
+  "web.auth.mfa.digit_of_count": {
+    "en": "Digit {current} of {total}",
+    "translation": "Cijfer {current} van {total}"
+  },
+  "web.auth.recovery_codes.title": {
+    "en": "Recovery Codes",
+    "translation": "Herstelcodes"
+  },
+  "web.auth.recovery_codes.description": {
+    "en": "Save these codes in a safe place. Each can be used once if you lose access to your authenticator.",
+    "translation": "Bewaar deze codes op een veilige plaats. Elke code kan één keer worden gebruikt als je de toegang tot je authenticator verliest."
+  },
+  "web.auth.recovery_codes.warning": {
+    "en": "These codes will only be shown once",
+    "translation": "Deze codes worden slechts één keer getoond"
+  },
+  "web.auth.recovery_codes.save_required": {
+    "en": "You must download or copy your recovery codes before completing setup.",
+    "translation": "Je moet je herstelcodes downloaden of kopiëren voordat je de setup voltooit."
+  },
+  "web.auth.recovery_codes.generate_new": {
+    "en": "Generate New Codes",
+    "translation": "Nieuwe codes genereren"
+  },
+  "web.auth.recovery_codes.regenerate": {
+    "en": "Regenerate Codes",
+    "translation": "Codes opnieuw genereren"
+  },
+  "web.auth.recovery_codes.generate_new_warning": {
+    "en": "This will invalidate all existing recovery codes",
+    "translation": "Dit maakt alle bestaande herstelcodes ongeldig"
+  },
+  "web.auth.recovery_codes.download": {
+    "en": "Download Codes",
+    "translation": "Codes downloaden"
+  },
+  "web.auth.recovery_codes.downloaded": {
+    "en": "Recovery codes downloaded",
+    "translation": "Herstelcodes gedownload"
+  },
+  "web.auth.recovery_codes.print": {
+    "en": "Print Codes",
+    "translation": "Codes afdrukken"
+  },
+  "web.auth.recovery_codes.copy": {
+    "en": "Copy All Codes",
+    "translation": "Alle codes kopiëren"
+  },
+  "web.auth.recovery_codes.copied": {
+    "en": "Codes copied to clipboard",
+    "translation": "Codes gekopieerd naar klembord"
+  },
+  "web.auth.recovery_codes.copy_failed": {
+    "en": "Failed to copy codes to clipboard",
+    "translation": "Kopiëren naar klembord mislukt"
+  },
+  "web.auth.recovery_codes.code_used": {
+    "en": "Used",
+    "translation": "Gebruikt"
+  },
+  "web.auth.recovery_codes.code_unused": {
+    "en": "Unused",
+    "translation": "Ongebruikt"
+  },
+  "web.auth.recovery_codes.remaining": {
+    "en": "{count} of {limit} recovery codes remaining",
+    "translation": "{count} herstelcode(s) resterend"
+  },
+  "web.auth.recovery_codes.usage_hint": {
+    "en": "Each code can only be used once. Regenerate codes if you're running low.",
+    "translation": "Elke code kan slechts één keer worden gebruikt. Genereer nieuwe codes als je bijna op bent."
+  },
+  "web.auth.recovery_codes.none_remaining": {
+    "en": "No recovery codes remaining",
+    "translation": "Geen herstelcodes resterend"
+  },
+  "web.auth.recovery_codes.generate_success": {
+    "en": "New recovery codes have been generated",
+    "translation": "Nieuwe herstelcodes zijn gegenereerd"
+  },
+  "web.auth.recovery_codes.link_title": {
+    "en": "Recovery Codes",
+    "translation": "Herstelcodes"
+  }
+}

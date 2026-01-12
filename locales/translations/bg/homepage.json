@@ -1,0 +1,186 @@
+{
+  "web.homepage.tagline1": {
+    "en": "Paste a password, secret message or private link below.",
+    "translation": "Поставете парола, тайно съобщение или лична връзка долу."
+  },
+  "web.homepage.tagline2": {
+    "en": "Keep sensitive info out of your email and chat logs.",
+    "translation": "Пазете чувствителна информация далеч от чатове и имейли."
+  },
+  "web.homepage.secret_hint": {
+    "en": "* A secret link only works once and then disappears forever.",
+    "translation": "* Тайната връзка работи само един път и после изчезва завинаги."
+  },
+  "web.homepage.secret_form_more_text1": {
+    "en": "Sign up for a",
+    "translation": "Регистрирайте се за"
+  },
+  "web.homepage.secret_form_more_text2": {
+    "en": "free account",
+    "translation": "безплатен акаунт"
+  },
+  "web.homepage.secret_form_more_text3": {
+    "en": "and be able to send the secret by email.",
+    "translation": "за да зададете пароли за по-добра защита, както и допълнителни опции за поверителност. Дори ще ви изпратим връзката по имейл, ако искате."
+  },
+  "web.homepage.cta_title": {
+    "en": "Increase trust & share with confidence",
+    "translation": "Използвайте персонализиран домейн"
+  },
+  "web.homepage.cta_subtitle": {
+    "en": "Elevate your brand and share with confidence",
+    "translation": "Издигнете вашата марка и споделяйте с увереност"
+  },
+  "web.homepage.cta_feature1": {
+    "en": "Unlimited custom domains",
+    "translation": "Вашият собствен персонализиран домейн"
+  },
+  "web.homepage.cta_feature2": {
+    "en": "Unlimited secret sharing",
+    "translation": "Неограничено споделяне на тайни"
+  },
+  "web.homepage.cta_feature3": {
+    "en": "Increase customer trust and engagement",
+    "translation": "Разширени контроли за поверителност"
+  },
+  "web.homepage.explore_premium_plans": {
+    "en": "With Custom Domains",
+    "translation": "Разгледайте премиум плановете"
+  },
+  "web.homepage.need_free_account": {
+    "en": "Just getting started? Send emails with a free account.",
+    "translation": "Тъкмо започвате?"
+  },
+  "web.homepage.sign_up_free": {
+    "en": "Free Sign-up",
+    "translation": "Създайте безплатен акаунт"
+  },
+  "web.homepage.visit_onetime_secret_home": {
+    "en": "Visit Onetime Secret homepage",
+    "translation": "Посетете началната страница на Onetime Secret"
+  },
+  "web.homepage.password_generation_title": {
+    "en": "Password Generator",
+    "translation": "Генератор на пароли"
+  },
+  "web.homepage.password_generation_description": {
+    "en": " Click \"Generate Password\" to create a secure random password that you can share.",
+    "translation": " Кликнете \"Генерирай парола\", за да създадете сигурна случайна парола, която можете да споделите."
+  },
+  "web.homepage.protip1": {
+    "en": "Your message will self-destruct after being viewed. The link can only be accessed once.",
+    "translation": "Вашето съобщение ще се самоунищожи след преглед. Връзката може да бъде достъпена само веднъж."
+  },
+  "web.homepage.authonly.tagline2": {
+    "en": "Secure messaging service is for internal use only.",
+    "translation": "Тази услуга е предназначена само за вътрешна употреба."
+  },
+  "web.homepage.authonly.tagline1": {
+    "en": "If you have an account, please log in to continue.",
+    "translation": "Ако имате акаунт, моля, влезте, за да продължите."
+  },
+  "web.homepage.disabled.tagline2": {
+    "en": "This service is setup for internal use only.",
+    "translation": "Тази услуга е настроена само за вътрешна употреба."
+  },
+  "web.homepage.disabled.tagline1": {
+    "en": "User interface and login capabilities are not available.",
+    "translation": "Потребителският интерфейс и възможностите за вход не са налични."
+  },
+  "web.homepage.link_preview": {
+    "en": "Link Preview",
+    "translation": "Преглед на връзка"
+  },
+  "web.homepage.meets_and_exceeds_compliance_standards": {
+    "en": "Meets and exceeds compliance standards",
+    "translation": "Отговаря и надхвърля стандартите за съответствие"
+  },
+  "web.homepage.secure_your_brand_build_customer_trust_etc": {
+    "en": "Secure your brand, build customer trust with links from your domain.",
+    "translation": "Защитете вашата марка, изградете доверие у клиентите с връзки от вашия домейн."
+  },
+  "web.homepage.a_trusted_way_to_share_sensitive_information_etc": {
+    "en": "A trusted way to share sensitive information that self-destructs after being viewed.",
+    "translation": "Доверен начин за споделяне на чувствителна информация, която се самоунищожава след преглед."
+  },
+  "web.homepage.secure_links": {
+    "en": "Secure Links",
+    "translation": "Сигурни връзки"
+  },
+  "web.homepage.about_onetime_secret_0": {
+    "en": "About Onetime Secret",
+    "translation": "За Onetime Secret"
+  },
+  "web.homepage.log_in_to_onetime_secret": {
+    "en": "Log in to Onetime Secret",
+    "translation": "Вход в Onetime Secret"
+  },
+  "web.homepage.about_onetime_secret": {
+    "en": "About Onetime Secret",
+    "translation": "За Onetime Secret"
+  },
+  "web.homepage.signup_individual_and_business_plans": {
+    "en": "Signup - Individual and Business plans",
+    "translation": "Регистрация - Индивидуални и бизнес планове"
+  },
+  "web.homepage.tagline_signed": {
+    "en": "Signed",
+    "translation": "Подписано"
+  },
+  "web.homepage.tagline_sealed": {
+    "en": "Sealed",
+    "translation": "Запечатано"
+  },
+  "web.homepage.tagline_delivered": {
+    "en": "Delivered",
+    "translation": "Доставено"
+  },
+  "web.homepage.onetime_secret": {
+    "en": "Onetime Secret",
+    "translation": "Onetime Secret"
+  },
+  "web.homepage.onetime_secret_literal": {
+    "en": "Onetime Secret",
+    "translation": "Onetime Secret"
+  },
+  "web.homepage.one_time_secret_literal": {
+    "en": "One-Time Secret",
+    "translation": "One-Time Secret"
+  },
+  "web.homepage.onetime_secret_homepage": {
+    "en": "Onetime Secret Homepage",
+    "translation": "Начална страница на Onetime Secret"
+  },
+  "web.homepage.send_sensitive_information_that_can_only_be_viewed_once": {
+    "en": "Send sensitive information that can only be viewed once",
+    "translation": "Изпратете чувствителна информация, която може да бъде прегледана само веднъж"
+  },
+  "web.homepage.create_a_secure_link": {
+    "en": "Create a secure link",
+    "translation": "Създайте сигурна връзка"
+  },
+  "web.homepage.now_with_custom_domains": {
+    "en": "Now with custom domains",
+    "translation": "Сега с персонализирани домейни"
+  },
+  "web.homepage.this_is_a_private_instance_only_authorized_team_": {
+    "en": "This is a private instance. Only authorized team members can generate new secure links.",
+    "translation": "Това е частна инсталация. Само оторизирани членове на екипа могат да генерират нови сигурни връзки."
+  },
+  "web.homepage.welcome_to_onetime_secret": {
+    "en": "Welcome to Onetime Secret.",
+    "translation": "Добре дошли в Onetime Secret."
+  },
+  "web.homepage.onetime_secret_helps_us_share_sensitive_informat": {
+    "en": "Onetime Secret helps us share sensitive information securely while maintaining our professional facade.",
+    "translation": "Onetime Secret ни помага да споделяме чувствителна информация сигурно, докато поддържаме нашата професионална фасада."
+  },
+  "web.homepage.information_shared_through_this_service_can_only": {
+    "en": "Information shared through this service can only be accessed once. Once viewed, the content is permanently deleted to ensure confidentiality.",
+    "translation": "Информацията, споделена чрез тази услуга, може да бъде достъпна само веднъж. След преглед, съдържанието е перманентно изтрито, за да се осигури конфиденциалност."
+  },
+  "web.homepage.welcome_to_the_global_broadcast": {
+    "en": "Welcome to the Global Broadcast!",
+    "translation": "Добре дошли в глобалното излъчване!"
+  }
+}

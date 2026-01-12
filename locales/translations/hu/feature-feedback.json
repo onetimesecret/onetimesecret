@@ -1,0 +1,62 @@
+{
+  "web.feedback.your_feedback": {
+    "en": "Your feedback",
+    "translation": "Az Ön visszajelzése"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "en": "All feedback welcome!",
+    "translation": "Minden visszajelzést szívesen fogadunk!"
+  },
+  "web.feedback.help_us_improve": {
+    "en": "Help us improve",
+    "translation": "Segítsen nekünk fejlődni"
+  },
+  "web.feedback.close_feedback_modal": {
+    "en": "Close feedback modal",
+    "translation": "Visszajelzés ablak bezárása"
+  },
+  "web.feedback.share_your_feedback": {
+    "en": "Share your feedback",
+    "translation": "Ossza meg visszajelzését"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "en": "Delano Mandelbaum",
+    "translation": "Delano Mandelbaum"
+  },
+  "web.feedback.delano": {
+    "en": "Delano",
+    "translation": "Delano"
+  },
+  "web.feedback.help_content_goes_here": {
+    "en": "Help content goes here.",
+    "translation": "Súgó tartalom itt jelenik meg."
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "en": "Thanks for helping Onetime Secret improve. It means a lot.",
+    "translation": "Köszönjük, hogy segít az Onetime Secret fejlesztésében. Sokat jelent."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "en": "We've built this tool to help you share sensitive info securely, and your real-world experiences are crucial for focusing our efforts. It helps us figure out what to work on next and how to make the service better for everyone.",
+    "translation": "Ezt az eszközt azért hoztuk létre, hogy segítsünk biztonságosan megosztani érzékeny információkat, és valós tapasztalatai kulcsfontosságúak erőfeszítéseink fókuszálásához. Segít megértenünk, min dolgozzunk tovább, és hogyan tegyük jobbá a szolgáltatást mindenki számára."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "en": "Hey there, thanks for stopping by our feedback page. Your input isn't just welcome - it's crucial.",
+    "translation": "Szia, köszönjük, hogy felkereste visszajelzési oldalunkat. Észrevételei nem csak szívesen látottak - létfontosságúak."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "en": "A note from Delano, founder of Onetime Secret",
+    "translation": "Üzenet Delanótól, az Onetime Secret alapítójától"
+  },
+  "web.feedback.open_feedback_form": {
+    "en": "Open feedback form",
+    "translation": "Visszajelzési űrlap megnyitása"
+  },
+  "web.feedback.enter_your_feedback": {
+    "en": "Enter your feedback",
+    "translation": "Adja meg visszajelzését"
+  },
+  "web.feedback.send_feedback": {
+    "en": "Send feedback",
+    "translation": "Visszajelzés küldése"
+  }
+}
