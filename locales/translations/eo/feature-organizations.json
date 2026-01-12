@@ -1,401 +1,534 @@
 {
   "web.organizations.title": {
-    "en": "Organizations"
+    "en": "Organizations",
+    "translation": "Organizoj"
   },
   "web.organizations.organization": {
-    "en": "Organization"
+    "en": "Organization",
+    "translation": "Organizo"
   },
   "web.organizations.organization_plural": {
-    "en": "Organizations"
+    "en": "Organizations",
+    "translation": "Organizoj"
   },
   "web.organizations.organizations_description": {
-    "en": "Manage your organizations"
+    "en": "Manage your organizations",
+    "translation": "Administru viajn organizojn"
   },
   "web.organizations.my_organizations": {
-    "en": "Organizations"
+    "en": "Organizations",
+    "translation": "Organizoj"
   },
   "web.organizations.manage_organizations": {
-    "en": "Manage Organizations"
+    "en": "Manage Organizations",
+    "translation": "Administri Organizojn"
   },
   "web.organizations.new_organization": {
-    "en": "New Organization"
+    "en": "New Organization",
+    "translation": "Nova Organizo"
   },
   "web.organizations.no_organizations": {
-    "en": "No organizations yet"
+    "en": "No organizations yet",
+    "translation": "Ankoraŭ neniuj organizoj"
   },
   "web.organizations.no_organizations_description": {
-    "en": "Organizations provide unified billing and administration. Get started by creating your first organization."
+    "en": "Organizations provide unified billing and administration. Get started by creating your first organization.",
+    "translation": "Organizoj provizas unuigitan fakturon kaj administradon. Komencu kreante vian unuan organizon."
   },
   "web.organizations.no_description": {
-    "en": "No description provided"
+    "en": "No description provided",
+    "translation": "Neniu priskribo provizita"
   },
   "web.organizations.default": {
-    "en": "Default"
+    "en": "Default",
+    "translation": "Defaŭlta"
   },
   "web.organizations.create_organization": {
-    "en": "Create Organization"
+    "en": "Create Organization",
+    "translation": "Krei Organizon"
   },
   "web.organizations.create_first_organization": {
-    "en": "Create First Organization"
+    "en": "Create First Organization",
+    "translation": "Krei Unuan Organizon"
   },
   "web.organizations.create_organization_description": {
-    "en": "Create a new organization"
+    "en": "Create a new organization",
+    "translation": "Krei novan organizon"
   },
   "web.organizations.create": {
-    "en": "Create"
+    "en": "Create",
+    "translation": "Krei"
   },
   "web.organizations.create_error": {
-    "en": "Failed to create organization"
+    "en": "Failed to create organization",
+    "translation": "Malsukcesis krei organizon"
   },
   "web.organizations.organization_name": {
-    "en": "Organization Name"
+    "en": "Organization Name",
+    "translation": "Organiza Nomo"
   },
   "web.organizations.organization_name_placeholder": {
-    "en": "e.g. Acme Corporation"
+    "en": "e.g. Acme Corporation",
+    "translation": "ekz. Akme Korporacio"
   },
   "web.organizations.display_name": {
-    "en": "Organization Name"
+    "en": "Organization Name",
+    "translation": "Organiza Nomo"
   },
   "web.organizations.description": {
-    "en": "Description"
+    "en": "Description",
+    "translation": "Priskribo"
   },
   "web.organizations.description_placeholder": {
-    "en": "What is this organization for?"
+    "en": "What is this organization for?",
+    "translation": "Por kio estas ĉi tiu organizo?"
   },
   "web.organizations.contact_email": {
-    "en": "Billing Email"
+    "en": "Billing Email",
+    "translation": "Faktura Retpoŝtadreso"
   },
   "web.organizations.contact_email_help": {
-    "en": "Primary contact for billing and administrative notifications"
+    "en": "Primary contact for billing and administrative notifications",
+    "translation": "Ĉefa kontakto por fakturaj kaj administraj sciigoj"
   },
   "web.organizations.billing_managed_by_default": {
-    "en": "Billing and subscription management is handled through your primary workspace. Visit your main workspace settings to manage payment methods and invoices."
+    "en": "Billing and subscription management is handled through your primary workspace. Visit your main workspace settings to manage payment methods and invoices.",
+    "translation": "Fakturado kaj abonadministrado estas faritaj tra via ĉefa laborspaco. Vizitu viajn ĉefajn laborspacajn agordojn por administri pagmetodojn kaj fakturojn."
   },
   "web.organizations.select_organization": {
-    "en": "Select an organization"
+    "en": "Select an organization",
+    "translation": "Elektu organizon"
   },
   "web.organizations.switcher_locked": {
-    "en": "Organization switching not available on this page"
+    "en": "Organization switching not available on this page",
+    "translation": "Organiza ŝanĝado ne disponebla sur ĉi tiu paĝo"
   },
   "web.organizations.not_found": {
-    "en": "Organization not found"
+    "en": "Organization not found",
+    "translation": "Organizo ne trovita"
   },
   "web.organizations.load_error": {
-    "en": "Failed to load organization"
+    "en": "Failed to load organization",
+    "translation": "Malsukcesis ŝargi organizon"
   },
   "web.organizations.fetch_organization_error": {
-    "en": "Failed to load organization"
+    "en": "Failed to load organization",
+    "translation": "Malsukcesis ŝargi organizon"
   },
   "web.organizations.fetch_organizations_error": {
-    "en": "Failed to load organizations"
+    "en": "Failed to load organizations",
+    "translation": "Malsukcesis ŝargi organizojn"
   },
   "web.organizations.organization_information": {
-    "en": "Organization Information"
+    "en": "Organization Information",
+    "translation": "Organiza Informo"
   },
   "web.organizations.created": {
-    "en": "Created"
+    "en": "Created",
+    "translation": "Kreita"
   },
   "web.organizations.last_updated": {
-    "en": "Last Updated"
+    "en": "Last Updated",
+    "translation": "Laste Ĝisdatigita"
   },
   "web.organizations.organization_settings": {
-    "en": "Organization Settings"
+    "en": "Organization Settings",
+    "translation": "Organizaj Agordoj"
   },
   "web.organizations.organization_settings_description": {
-    "en": "Update your organization name and description"
+    "en": "Update your organization name and description",
+    "translation": "Ĝisdatigu vian organizan nomon kaj priskribon"
   },
   "web.organizations.general_settings": {
-    "en": "General Settings"
+    "en": "General Settings",
+    "translation": "Ĝeneralaj Agordoj"
   },
   "web.organizations.billing_settings": {
-    "en": "Billing & Subscription"
+    "en": "Billing & Subscription",
+    "translation": "Fakturado kaj Abono"
   },
   "web.organizations.save_changes": {
-    "en": "Save Changes"
+    "en": "Save Changes",
+    "translation": "Konservi Ŝanĝojn"
   },
   "web.organizations.update_success": {
-    "en": "Organization updated successfully"
+    "en": "Organization updated successfully",
+    "translation": "Organizo sukcese ĝisdatigita"
   },
   "web.organizations.update_error": {
-    "en": "Failed to update organization"
+    "en": "Failed to update organization",
+    "translation": "Malsukcesis ĝisdatigi organizon"
   },
   "web.organizations.billing_email_updated": {
-    "en": "Billing email updated successfully"
+    "en": "Billing email updated successfully",
+    "translation": "Faktura retpoŝtadreso sukcese ĝisdatigita"
   },
   "web.organizations.billing_coming_soon": {
-    "en": "Billing Integration Coming Soon"
+    "en": "Billing Integration Coming Soon",
+    "translation": "Faktura Integriĝo Baldaŭ Venos"
   },
   "web.organizations.billing_coming_soon_description": {
-    "en": "Unified billing and subscription management will be available in a future release."
+    "en": "Unified billing and subscription management will be available in a future release.",
+    "translation": "Unuigita fakturado kaj abonadministrado disponeblos en estonta eldono."
   },
   "web.organizations.about_title": {
-    "en": "About Organizations"
+    "en": "About Organizations",
+    "translation": "Pri Organizoj"
   },
   "web.organizations.about_description": {
-    "en": "Organizations provide unified billing and administration for centralized management."
+    "en": "Organizations provide unified billing and administration for centralized management.",
+    "translation": "Organizoj provizas unuigitan fakturon kaj administradon por centralizita administrado."
   },
   "web.organizations.single_user_info_title": {
-    "en": "Manage Your Organization"
+    "en": "Manage Your Organization",
+    "translation": "Administru Vian Organizon"
   },
   "web.organizations.single_user_info_description": {
-    "en": "Update your company name and organization details here. This information helps personalize your account and can be used for branding features in the future."
+    "en": "Update your company name and organization details here. This information helps personalize your account and can be used for branding features in the future.",
+    "translation": "Ĝisdatigu vian firman nomon kaj organizajn detalojn ĉi tie. Ĉi tiu informo helpas personecigi vian konton kaj povas esti uzata por markaj funkcioj estonte."
   },
   "web.organizations.getting_started_title": {
-    "en": "Getting Started with Organizations"
+    "en": "Getting Started with Organizations",
+    "translation": "Komenci kun Organizoj"
   },
   "web.organizations.getting_started_description": {
-    "en": "Create your first organization to manage your company information and prepare for future branding features."
+    "en": "Create your first organization to manage your company information and prepare for future branding features.",
+    "translation": "Kreu vian unuan organizon por administri vian firman informon kaj prepariĝi por estontaj markaj funkcioj."
   },
   "web.organizations.page_description": {
-    "en": "Manage your organizations and team members"
+    "en": "Manage your organizations and team members",
+    "translation": "Administru viajn organizojn kaj teamanojn"
   },
   "web.organizations.tabs.general": {
-    "en": "Settings"
+    "en": "Settings",
+    "translation": "Agordoj"
   },
   "web.organizations.tabs.company_branding": {
-    "en": "Company Branding"
+    "en": "Company Branding",
+    "translation": "Firma Markado"
   },
   "web.organizations.tabs.members": {
-    "en": "Team"
+    "en": "Team",
+    "translation": "Teamo"
   },
   "web.organizations.tabs.billing": {
-    "en": "Billing"
+    "en": "Billing",
+    "translation": "Fakturado"
   },
   "web.organizations.danger_zone": {
-    "en": "Danger Zone"
+    "en": "Danger Zone",
+    "translation": "Danĝera Zono"
   },
   "web.organizations.delete_organization": {
-    "en": "Delete Organization"
+    "en": "Delete Organization",
+    "translation": "Forigi Organizon"
   },
   "web.organizations.delete_organization_warning": {
-    "en": "This will permanently delete the organization. This action cannot be undone."
+    "en": "This will permanently delete the organization. This action cannot be undone.",
+    "translation": "Ĉi tio porĉiam forigos la organizon. Ĉi tiu ago ne povas esti malfari."
   },
   "web.organizations.delete": {
-    "en": "Delete"
+    "en": "Delete",
+    "translation": "Forigi"
   },
   "web.organizations.delete_organization_confirm_title": {
-    "en": "Delete Organization"
+    "en": "Delete Organization",
+    "translation": "Forigi Organizon"
   },
   "web.organizations.delete_organization_confirm_message": {
-    "en": "Are you sure you want to delete {name}? This action cannot be undone."
+    "en": "Are you sure you want to delete {name}? This action cannot be undone.",
+    "translation": "Ĉu vi certas, ke vi volas forigi {name}? Ĉi tiu ago ne povas esti malfari."
   },
   "web.organizations.delete_error": {
-    "en": "Failed to delete organization"
+    "en": "Failed to delete organization",
+    "translation": "Malsukcesis forigi organizon"
   },
   "web.organizations.members.title": {
-    "en": "Members"
+    "en": "Members",
+    "translation": "Membroj"
   },
   "web.organizations.members.description": {
-    "en": "Manage organization members and their roles"
+    "en": "Manage organization members and their roles",
+    "translation": "Administru organizajn membrojn kaj iliajn rolojn"
   },
   "web.organizations.members.current_members": {
-    "en": "Current Members"
+    "en": "Current Members",
+    "translation": "Nunaj Membroj"
   },
   "web.organizations.members.member": {
-    "en": "Member"
+    "en": "Member",
+    "translation": "Membro"
   },
   "web.organizations.members.member_singular": {
-    "en": "member"
+    "en": "member",
+    "translation": "membro"
   },
   "web.organizations.members.member_plural": {
-    "en": "members"
+    "en": "members",
+    "translation": "membroj"
   },
   "web.organizations.members.name": {
-    "en": "Name"
+    "en": "Name",
+    "translation": "Nomo"
   },
   "web.organizations.members.email": {
-    "en": "Email"
+    "en": "Email",
+    "translation": "Retpoŝto"
   },
   "web.organizations.members.role": {
-    "en": "Role"
+    "en": "Role",
+    "translation": "Rolo"
   },
   "web.organizations.members.joined": {
-    "en": "Joined"
+    "en": "Joined",
+    "translation": "Aliĝis"
   },
   "web.organizations.members.actions": {
-    "en": "Actions"
+    "en": "Actions",
+    "translation": "Agoj"
   },
   "web.organizations.members.no_members": {
-    "en": "No members yet. Invite team members to get started."
+    "en": "No members yet. Invite team members to get started.",
+    "translation": "Ankoraŭ neniuj membroj. Invitu teamanojn por komenci."
   },
   "web.organizations.members.no_members_description": {
-    "en": "This organization has no members yet."
+    "en": "This organization has no members yet.",
+    "translation": "Ĉi tiu organizo ankoraŭ ne havas membrojn."
   },
   "web.organizations.members.role_updated": {
-    "en": "Member role updated successfully"
+    "en": "Member role updated successfully",
+    "translation": "Membro-rolo sukcese ĝisdatigita"
   },
   "web.organizations.members.role_update_error": {
-    "en": "Failed to update member role"
+    "en": "Failed to update member role",
+    "translation": "Malsukcesis ĝisdatigi membro-rolon"
   },
   "web.organizations.members.member_removed": {
-    "en": "Member removed from organization"
+    "en": "Member removed from organization",
+    "translation": "Membro forigita el organizo"
   },
   "web.organizations.members.member_remove_error": {
-    "en": "Failed to remove member"
+    "en": "Failed to remove member",
+    "translation": "Malsukcesis forigi membron"
   },
   "web.organizations.members.remove_member_title": {
-    "en": "Remove Member"
+    "en": "Remove Member",
+    "translation": "Forigi Membron"
   },
   "web.organizations.members.remove_member_confirm": {
-    "en": "Are you sure you want to remove {name} from this organization?"
+    "en": "Are you sure you want to remove {name} from this organization?",
+    "translation": "Ĉu vi certas, ke vi volas forigi {name} el ĉi tiu organizo?"
   },
   "web.organizations.members.cannot_change_own_role": {
-    "en": "You cannot change your own role"
+    "en": "You cannot change your own role",
+    "translation": "Vi ne povas ŝanĝi vian propran rolon"
   },
   "web.organizations.members.cannot_remove_self": {
-    "en": "You cannot remove yourself from the organization"
+    "en": "You cannot remove yourself from the organization",
+    "translation": "Vi ne povas forigi vin mem el la organizo"
   },
   "web.organizations.members.cannot_remove_owner": {
-    "en": "You cannot remove the organization owner"
+    "en": "You cannot remove the organization owner",
+    "translation": "Vi ne povas forigi la posedanton de la organizo"
   },
   "web.organizations.members.insufficient_permissions": {
-    "en": "You do not have permission to manage members"
+    "en": "You do not have permission to manage members",
+    "translation": "Vi ne havas permeson administri membrojn"
   },
   "web.organizations.members.roles.owner": {
-    "en": "Owner"
+    "en": "Owner",
+    "translation": "Posedanto"
   },
   "web.organizations.members.roles.admin": {
-    "en": "Admin"
+    "en": "Admin",
+    "translation": "Administranto"
   },
   "web.organizations.members.roles.member": {
-    "en": "Member"
+    "en": "Member",
+    "translation": "Membro"
   },
   "web.organizations.members.role_descriptions.owner": {
-    "en": "Full access to all organization settings and members"
+    "en": "Full access to all organization settings and members",
+    "translation": "Plena aliro al ĉiuj organizaj agordoj kaj membroj"
   },
   "web.organizations.members.role_descriptions.admin": {
-    "en": "Can manage members and most organization settings"
+    "en": "Can manage members and most organization settings",
+    "translation": "Povas administri membrojn kaj plej multajn organizajn agordojn"
   },
   "web.organizations.members.role_descriptions.member": {
-    "en": "Basic access to organization resources"
+    "en": "Basic access to organization resources",
+    "translation": "Baza aliro al organizaj rimedoj"
   },
   "web.organizations.invitations.title": {
-    "en": "Organization Invitations"
+    "en": "Organization Invitations",
+    "translation": "Organizaj Invitoj"
   },
   "web.organizations.invitations.invite_member": {
-    "en": "Invite Member"
+    "en": "Invite Member",
+    "translation": "Inviti Membron"
   },
   "web.organizations.invitations.invite_new_member": {
-    "en": "Invite New Member"
+    "en": "Invite New Member",
+    "translation": "Inviti Novan Membron"
   },
   "web.organizations.invitations.pending_invitations": {
-    "en": "Pending Invitations"
+    "en": "Pending Invitations",
+    "translation": "Atendantaj Invitoj"
   },
   "web.organizations.invitations.no_pending_invitations": {
-    "en": "No pending invitations"
+    "en": "No pending invitations",
+    "translation": "Neniuj atendantaj invitoj"
   },
   "web.organizations.invitations.email_address": {
-    "en": "Email Address"
+    "en": "Email Address",
+    "translation": "Retpoŝta Adreso"
   },
   "web.organizations.invitations.email_placeholder": {
-    "en": "member@example.com"
+    "en": "member@example.com",
+    "translation": "membro@ekzemplo.com"
   },
   "web.organizations.invitations.role": {
-    "en": "Role"
+    "en": "Role",
+    "translation": "Rolo"
   },
   "web.organizations.invitations.send_invite": {
-    "en": "Send Invitation"
+    "en": "Send Invitation",
+    "translation": "Sendi Inviton"
   },
   "web.organizations.invitations.invite_sent": {
-    "en": "Invitation sent successfully"
+    "en": "Invitation sent successfully",
+    "translation": "Invito sukcese sendita"
   },
   "web.organizations.invitations.invite_error": {
-    "en": "Failed to send invitation"
+    "en": "Failed to send invitation",
+    "translation": "Malsukcesis sendi inviton"
   },
   "web.organizations.invitations.resend": {
-    "en": "Resend"
+    "en": "Resend",
+    "translation": "Resendi"
   },
   "web.organizations.invitations.revoke": {
-    "en": "Revoke"
+    "en": "Revoke",
+    "translation": "Revoki"
   },
   "web.organizations.invitations.resend_success": {
-    "en": "Invitation resent successfully"
+    "en": "Invitation resent successfully",
+    "translation": "Invito sukcese resendita"
   },
   "web.organizations.invitations.resend_error": {
-    "en": "Failed to resend invitation"
+    "en": "Failed to resend invitation",
+    "translation": "Malsukcesis resendi inviton"
   },
   "web.organizations.invitations.revoke_success": {
-    "en": "Invitation revoked successfully"
+    "en": "Invitation revoked successfully",
+    "translation": "Invito sukcese revokita"
   },
   "web.organizations.invitations.revoke_error": {
-    "en": "Failed to revoke invitation"
+    "en": "Failed to revoke invitation",
+    "translation": "Malsukcesis revoki inviton"
   },
   "web.organizations.invitations.invited_by": {
-    "en": "Invited by"
+    "en": "Invited by",
+    "translation": "Invitita de"
   },
   "web.organizations.invitations.invited_at": {
-    "en": "Invited"
+    "en": "Invited",
+    "translation": "Invitita"
   },
   "web.organizations.invitations.expires_at": {
-    "en": "Expires"
+    "en": "Expires",
+    "translation": "Eksvalidiĝas"
   },
   "web.organizations.invitations.resent_count": {
-    "en": "Resent {count} time"
+    "en": "Resent {count} time",
+    "translation": "Resendita {count} fojon"
   },
   "web.organizations.invitations.resent_count_plural": {
-    "en": "Resent {count} times"
+    "en": "Resent {count} times",
+    "translation": "Resendita {count} fojojn"
   },
   "web.organizations.invitations.status.pending": {
-    "en": "Pending"
+    "en": "Pending",
+    "translation": "Atendanta"
   },
   "web.organizations.invitations.status.accepted": {
-    "en": "Accepted"
+    "en": "Accepted",
+    "translation": "Akceptita"
   },
   "web.organizations.invitations.status.declined": {
-    "en": "Declined"
+    "en": "Declined",
+    "translation": "Malakceptita"
   },
   "web.organizations.invitations.status.expired": {
-    "en": "Expired"
+    "en": "Expired",
+    "translation": "Eksvalidiĝinta"
   },
   "web.organizations.invitations.roles.member": {
-    "en": "Member"
+    "en": "Member",
+    "translation": "Membro"
   },
   "web.organizations.invitations.roles.admin": {
-    "en": "Admin"
+    "en": "Admin",
+    "translation": "Administranto"
   },
   "web.organizations.invitations.accept_invitation": {
-    "en": "Accept Invitation"
+    "en": "Accept Invitation",
+    "translation": "Akcepti Inviton"
   },
   "web.organizations.invitations.decline_invitation": {
-    "en": "Decline Invitation"
+    "en": "Decline Invitation",
+    "translation": "Malakcepti Inviton"
   },
   "web.organizations.invitations.invitation_details": {
-    "en": "Invitation Details"
+    "en": "Invitation Details",
+    "translation": "Invit-Detaloj"
   },
   "web.organizations.invitations.you_are_invited": {
-    "en": "You've been invited to join"
+    "en": "You've been invited to join",
+    "translation": "Vi estas invitita aliĝi al"
   },
   "web.organizations.invitations.invited_as": {
-    "en": "You've been invited as a"
+    "en": "You've been invited as a",
+    "translation": "Vi estas invitita kiel"
   },
   "web.organizations.invitations.accept_success": {
-    "en": "Invitation accepted successfully"
+    "en": "Invitation accepted successfully",
+    "translation": "Invito sukcese akceptita"
   },
   "web.organizations.invitations.accept_error": {
-    "en": "Failed to accept invitation"
+    "en": "Failed to accept invitation",
+    "translation": "Malsukcesis akcepti inviton"
   },
   "web.organizations.invitations.decline_success": {
-    "en": "Invitation declined"
+    "en": "Invitation declined",
+    "translation": "Invito malakceptita"
   },
   "web.organizations.invitations.decline_error": {
-    "en": "Failed to decline invitation"
+    "en": "Failed to decline invitation",
+    "translation": "Malsukcesis malakcepti inviton"
   },
   "web.organizations.invitations.expired_message": {
-    "en": "This invitation has expired"
+    "en": "This invitation has expired",
+    "translation": "Ĉi tiu invito eksvalidiĝis"
   },
   "web.organizations.invitations.invalid_token": {
-    "en": "Invalid or expired invitation"
+    "en": "Invalid or expired invitation",
+    "translation": "Nevalida aŭ eksvalidiĝinta invito"
   },
   "web.organizations.invitations.must_sign_in": {
-    "en": "Please sign in to accept this invitation"
+    "en": "Please sign in to accept this invitation",
+    "translation": "Bonvolu ensaluti por akcepti ĉi tiun inviton"
   },
   "web.organizations.invitations.loading_invitation": {
-    "en": "Loading invitation details"
+    "en": "Loading invitation details",
+    "translation": "Ŝargante invit-detalojn"
   },
   "web.organizations.invitations.upgrade_to_invite": {
-    "en": "Upgrade your plan to invite team members"
+    "en": "Upgrade your plan to invite team members",
+    "translation": "Ĝisdatigu vian planon por inviti teamanojn"
   },
   "web.organizations.invitations.upgrade_prompt": {
-    "en": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization."
+    "en": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization.",
+    "translation": "Teamanaj invitoj postulas planon kun teamadministrado. Ĝisdatigu por aldoni kunlaborantojn al via organizo."
   }
 }

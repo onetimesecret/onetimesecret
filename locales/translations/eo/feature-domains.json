@@ -1,296 +1,394 @@
 {
   "web.domains.learn_more_dns": {
-    "en": "Learn more about DNS configuration"
+    "en": "Learn more about DNS configuration",
+    "translation": "Lernu pli pri DNS-agordo"
   },
   "web.domains.view_domain_verification_status": {
-    "en": "View domain verification status"
+    "en": "View domain verification status",
+    "translation": "Vidi domajnan kontrolstaton"
   },
   "web.domains.domain_already_in_organization": {
-    "en": "This domain is already registered in your organization"
+    "en": "This domain is already registered in your organization",
+    "translation": "Ĉi tiu domajno jam estas registrita en via organizo"
   },
   "web.domains.domain_in_other_organization": {
-    "en": "This domain is already registered to another organization. Please contact support if you believe this is an error."
+    "en": "This domain is already registered to another organization. Please contact support if you believe this is an error.",
+    "translation": "Ĉi tiu domajno jam estas registrita al alia organizo. Bonvolu kontakti subtenon se vi kredas ke tio estas eraro."
   },
   "web.domains.domain_claimed_successfully": {
-    "en": "Domain successfully claimed and added to your organization"
+    "en": "Domain successfully claimed and added to your organization",
+    "translation": "Domajno sukcese postulita kaj aldonita al via organizo"
   },
   "web.domains.privacy_defaults_title": {
-    "en": "Privacy Defaults"
+    "en": "Privacy Defaults",
+    "translation": "Privatecaj Defaŭltoj"
   },
   "web.domains.privacy_defaults_description": {
-    "en": "Set default privacy options for secrets created under this domain. These settings will be pre-filled when creating new secrets."
+    "en": "Set default privacy options for secrets created under this domain. These settings will be pre-filled when creating new secrets.",
+    "translation": "Agordi defaŭltajn privatecajn opciojn por sekretoj kreitaj sub ĉi tiu domajno. Ĉi tiuj agordoj estos antaŭplenigitaj kiam kreante novajn sekretojn."
   },
   "web.domains.privacy_defaults": {
-    "en": "Privacy Defaults"
+    "en": "Privacy Defaults",
+    "translation": "Privatecaj Defaŭltoj"
   },
   "web.domains.privacy_defaults_icon": {
-    "en": "Privacy defaults icon"
+    "en": "Privacy defaults icon",
+    "translation": "Privatecaj defaŭltoj ikono"
   },
   "web.domains.default_ttl_label": {
-    "en": "Default Time-to-Live"
+    "en": "Default Time-to-Live",
+    "translation": "Defaŭlta Vivdaŭro"
   },
   "web.domains.default_ttl_hint": {
-    "en": "How long secrets should remain accessible by default"
+    "en": "How long secrets should remain accessible by default",
+    "translation": "Kiom longe sekretoj devus resti alireblaj defaŭlte"
   },
   "web.domains.passphrase_required_label": {
-    "en": "Require passphrase"
+    "en": "Require passphrase",
+    "translation": "Postuli pasfrazon"
   },
   "web.domains.passphrase_required_hint": {
-    "en": "Make passphrase mandatory for all secrets in this domain"
+    "en": "Make passphrase mandatory for all secrets in this domain",
+    "translation": "Igi pasfrazon deviga por ĉiuj sekretoj en ĉi tiu domajno"
   },
   "web.domains.notify_enabled_label": {
-    "en": "Enable notifications"
+    "en": "Enable notifications",
+    "translation": "Ebligi sciigojn"
   },
   "web.domains.notify_enabled_hint": {
-    "en": "Enable email notifications by default when secrets are viewed"
+    "en": "Enable email notifications by default when secrets are viewed",
+    "translation": "Defaŭlte ebligi retpoŝtajn sciigojn kiam sekretoj estas viditaj"
   },
   "web.domains.use_global_default": {
-    "en": "Use global default"
+    "en": "Use global default",
+    "translation": "Uzi ĝeneralan defaŭlton"
   },
   "web.domains.global_default": {
-    "en": "Global"
+    "en": "Global",
+    "translation": "Ĝenerala"
   },
   "web.domains.required": {
-    "en": "Required"
+    "en": "Required",
+    "translation": "Deviga"
   },
   "web.domains.optional": {
-    "en": "Optional"
+    "en": "Optional",
+    "translation": "Nedeviga"
   },
   "web.domains.enabled": {
-    "en": "Enabled"
+    "en": "Enabled",
+    "translation": "Ebligita"
   },
   "web.domains.disabled": {
-    "en": "Disabled"
+    "en": "Disabled",
+    "translation": "Malebligita"
   },
   "web.domains.custom": {
-    "en": "Custom"
+    "en": "Custom",
+    "translation": "Propra"
   },
   "web.domains.edit_defaults": {
-    "en": "Edit Defaults"
+    "en": "Edit Defaults",
+    "translation": "Redakti Defaŭltojn"
   },
   "web.domains.ttl_short": {
-    "en": "TTL"
+    "en": "TTL",
+    "translation": "VD"
   },
   "web.domains.passphrase_short": {
-    "en": "Passphrase"
+    "en": "Passphrase",
+    "translation": "Pasfrazo"
   },
   "web.domains.notify_short": {
-    "en": "Notifications"
+    "en": "Notifications",
+    "translation": "Sciigoj"
   },
   "web.domains.scope_switch_label": {
-    "en": "Switch domain scope"
+    "en": "Switch domain scope",
+    "translation": "Ŝanĝi domajnan amplekson"
   },
   "web.domains.switcher_locked": {
-    "en": "Domain switching not available on this page"
+    "en": "Domain switching not available on this page",
+    "translation": "Domajnoŝanĝado ne disponeblas sur ĉi tiu paĝo"
   },
   "web.domains.scope_list_label": {
-    "en": "Available domains"
+    "en": "Available domains",
+    "translation": "Disponeblaj domajnoj"
   },
   "web.domains.scope_header": {
-    "en": "Domains"
+    "en": "Domains",
+    "translation": "Domajnoj"
   },
   "web.domains.add_domain": {
-    "en": "Add domain"
+    "en": "Add domain",
+    "translation": "Aldoni domajnon"
   },
   "web.domains.domain_settings": {
-    "en": "Domain settings"
+    "en": "Domain settings",
+    "translation": "Domajnaj agordoj"
   },
   "web.domains.canonical_no_settings": {
-    "en": "Default domain has no settings page"
+    "en": "Default domain has no settings page",
+    "translation": "Defaŭlta domajno ne havas agordpaĝon"
   },
   "web.domains.please_enter_a_domain_name": {
-    "en": "Please enter a {0} domain name"
+    "en": "Please enter a {0} domain name",
+    "translation": "Bonvolu enigi {0} domajnnomon"
   },
   "web.domains.domain_name": {
-    "en": "Domain name"
+    "en": "Domain name",
+    "translation": "Domajnnomo"
   },
   "web.domains.control_whether_users_can_create_secret_links": {
-    "en": "Control whether users can create secret links from your domain's homepage"
+    "en": "Control whether users can create secret links from your domain's homepage",
+    "translation": "Kontroli ĉu uzantoj povas krei sekretligilojn de la hejmpaĝo de via domajno"
   },
   "web.domains.homepage_access": {
-    "en": "Homepage Access"
+    "en": "Homepage Access",
+    "translation": "Hejmpaĝa Aliro"
   },
   "web.domains.and_status": {
-    "en": "& Status"
+    "en": "& Status",
+    "translation": "& Stato"
   },
   "web.domains.domain": {
-    "en": "Domain"
+    "en": "Domain",
+    "translation": "Domajno"
   },
   "web.domains.manage_and_configure_your_verified_custom_domains": {
-    "en": "Manage and configure your verified custom domains"
+    "en": "Manage and configure your verified custom domains",
+    "translation": "Administri kaj agordi viajn kontrolitajn proprajn domajnojn"
   },
   "web.domains.domains": {
-    "en": "Domains"
+    "en": "Domains",
+    "translation": "Domajnoj"
   },
   "web.domains.last_monitored": {
-    "en": "Last Monitored"
+    "en": "Last Monitored",
+    "translation": "Laste Monitorita"
   },
   "web.domains.ssl_status": {
-    "en": "SSL Status"
+    "en": "SSL Status",
+    "translation": "SSL-Stato"
   },
   "web.domains.ssl_renews": {
-    "en": "SSL Renews"
+    "en": "SSL Renews",
+    "translation": "SSL-Renovigo"
   },
   "web.domains.dns_record": {
-    "en": "DNS Record"
+    "en": "DNS Record",
+    "translation": "DNS-Registro"
   },
   "web.domains.target_address": {
-    "en": "Target Address"
+    "en": "Target Address",
+    "translation": "Cela Adreso"
   },
   "web.domains.domain_status": {
-    "en": "Domain Status"
+    "en": "Domain Status",
+    "translation": "Domajnostato"
   },
   "web.domains.custom_domains_count": {
-    "en": "Custom domains count"
+    "en": "Custom domains count",
+    "translation": "Nombro de propraj domajnoj"
   },
   "web.domains.custom_domain": {
-    "en": "Custom Domain"
+    "en": "Custom Domain",
+    "translation": "Propra Domajno"
   },
   "web.domains.open_domain_in_new_tab": {
-    "en": "Open domain in new tab"
+    "en": "Open domain in new tab",
+    "translation": "Malfermi domajnon en nova langeto"
   },
   "web.domains.back_to_domains": {
-    "en": "Back to Domains"
+    "en": "Back to Domains",
+    "translation": "Reen al Domajnoj"
   },
   "web.domains.return_to_domains_list": {
-    "en": "Return to domains list"
+    "en": "Return to domains list",
+    "translation": "Reveni al domajnlisto"
   },
   "web.domains.verify_domain": {
-    "en": "Verify Domain"
+    "en": "Verify Domain",
+    "translation": "Kontroli Domajnon"
   },
   "web.domains.manage_brand": {
-    "en": "Manage Brand"
+    "en": "Manage Brand",
+    "translation": "Administri Markon"
   },
   "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
-    "en": "Added {0}"
+    "en": "Added {0}",
+    "translation": "Aldonita {0}"
   },
   "web.domains.add_your_domain": {
-    "en": "Add your domain"
+    "en": "Add your domain",
+    "translation": "Aldoni vian domajnon"
   },
   "web.domains.get_started_by_adding_a_custom_domain": {
-    "en": "Get started by adding a custom domain."
+    "en": "Get started by adding a custom domain.",
+    "translation": "Komencu per aldono de propra domajno."
   },
   "web.domains.no_domains_found": {
-    "en": "No domains found."
+    "en": "No domains found.",
+    "translation": "Neniuj domajnoj trovitaj."
   },
   "web.domains.loading_domain_information": {
-    "en": "Loading domain information..."
+    "en": "Loading domain information...",
+    "translation": "Ŝargante domajnan informon..."
   },
   "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
-    "en": "In order to connect your domain, you'll need to have a CNAME record in your DNS that points"
+    "en": "In order to connect your domain, you'll need to have a CNAME record in your DNS that points",
+    "translation": "Por konekti vian domajnon, vi bezonos havi CNAME-registron en via DNS kiu indikas"
   },
   "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
-    "en": "If you already have a CNAME record for that address, please change it to point at"
+    "en": "If you already have a CNAME record for that address, please change it to point at",
+    "translation": "Se vi jam havas CNAME-registron por tiu adreso, bonvolu ŝanĝi ĝin por indiki al"
   },
   "web.domains.a_cname_record_is_not_allowed_instead_youll_need": {
-    "en": "), a CNAME record is not allowed. Instead, you'll need to create an A record. Details on how to do this are provided further down the page."
+    "en": "), a CNAME record is not allowed. Instead, you'll need to create an A record. Details on how to do this are provided further down the page.",
+    "translation": "), CNAME-registro ne estas permesita. Anstataŭe, vi bezonos krei A-registron. Detaloj pri kiel fari ĉi tion estas provizitaj pli malsupre sur la paĝo."
   },
   "web.domains.and_remove_any_other_a_aaaa_or_cname_records_for": {
-    "en": "and remove any other A, AAAA, or CNAME records for that exact address."
+    "en": "and remove any other A, AAAA, or CNAME records for that exact address.",
+    "translation": "kaj forigi ajnajn aliajn A, AAAA, aŭ CNAME-registrojn por tiu preciza adreso."
   },
   "web.domains.youll_need_to_complete_these_steps": {
-    "en": ", you'll need to complete these steps."
+    "en": ", you'll need to complete these steps.",
+    "translation": ", vi bezonos kompletigi ĉi tiujn paŝojn."
   },
   "web.domains.before_we_can_activate_links_for": {
-    "en": "Before we can activate links for"
+    "en": "Before we can activate links for",
+    "translation": "Antaŭ ol ni povas aktivigi ligilojn por"
   },
   "web.domains.please_note_that_for_apex_domains": {
-    "en": "Please note that for apex domains (e.g.,"
+    "en": "Please note that for apex domains (e.g.,",
+    "translation": "Bonvolu noti ke por apeksaj domajnoj (ekz.,"
   },
   "web.domains.verify_your_domain": {
-    "en": "Verify your domain"
+    "en": "Verify your domain",
+    "translation": "Kontrolu vian domajnon"
   },
   "web.domains.secrets_example_dot_com": {
-    "en": "secrets.example.com"
+    "en": "secrets.example.com",
+    "translation": "sekretoj.ekzemplo.com"
   },
   "web.domains.customize_your_domain_branding": {
-    "en": "Customize your domain branding"
+    "en": "Customize your domain branding",
+    "translation": "Personecigi vian domajnan markadon"
   },
   "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
-    "en": "It may take a few minutes for your SSL certificate to take effect."
+    "en": "It may take a few minutes for your SSL certificate to take effect.",
+    "translation": "Povas daŭri kelkajn minutojn ĝis via SSL-atestilo efektiviĝos."
   },
   "web.domains.dns_changes_can_take_as_little_as_60_seconds_or_": {
-    "en": "DNS changes can take as little as 60 seconds -- or up to 24 hours -- to take effect."
+    "en": "DNS changes can take as little as 60 seconds -- or up to 24 hours -- to take effect.",
+    "translation": "DNS-ŝanĝoj povas daŭri nur 60 sekundojn -- aŭ ĝis 24 horojn -- por efektiviĝi."
   },
   "web.domains.3_wait_for_propagation": {
-    "en": "3. Wait for propagation"
+    "en": "3. Wait for propagation",
+    "translation": "3. Atendu disvastiĝon"
   },
   "web.domains.value_2": {
-    "en": "Value"
+    "en": "Value",
+    "translation": "Valoro"
   },
   "web.domains.value_1": {
-    "en": "Value"
+    "en": "Value",
+    "translation": "Valoro"
   },
   "web.domains.host_1": {
-    "en": "Host"
+    "en": "Host",
+    "translation": "Gastiganto"
   },
   "web.domains.type_2": {
-    "en": "Type"
+    "en": "Type",
+    "translation": "Tipo"
   },
   "web.domains.type_1": {
-    "en": "Type"
+    "en": "Type",
+    "translation": "Tipo"
   },
   "web.domains.2_create_the_cname_record": {
-    "en": "2. Create the CNAME record"
+    "en": "2. Create the CNAME record",
+    "translation": "2. Kreu la CNAME-registron"
   },
   "web.domains.value_0": {
-    "en": "Value"
+    "en": "Value",
+    "translation": "Valoro"
   },
   "web.domains.host_0": {
-    "en": "Host"
+    "en": "Host",
+    "translation": "Gastiganto"
   },
   "web.domains.type_0": {
-    "en": "Type"
+    "en": "Type",
+    "translation": "Tipo"
   },
   "web.domains.2_create_the_a_record": {
-    "en": "2. Create the A record"
+    "en": "2. Create the A record",
+    "translation": "2. Kreu la A-registron"
   },
   "web.domains.add_this_hostname_to_your_dns_configuration": {
-    "en": "Add this hostname to your DNS configuration:"
+    "en": "Add this hostname to your DNS configuration:",
+    "translation": "Aldonu ĉi tiun gastigantnomon al via DNS-agordo:"
   },
   "web.domains.1_create_a_txt_record": {
-    "en": "1. Create a TXT record"
+    "en": "1. Create a TXT record",
+    "translation": "1. Kreu TXT-registron"
   },
   "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
-    "en": "Follow these steps to verify domain ownership and elevate your online presence:"
+    "en": "Follow these steps to verify domain ownership and elevate your online presence:",
+    "translation": "Sekvu ĉi tiujn paŝojn por kontroli domajnan posedon kaj plibonigi vian interretan ĉeeston:"
   },
   "web.domains.domain_verification_steps": {
-    "en": "Domain Verification Steps"
+    "en": "Domain Verification Steps",
+    "translation": "Domajnaj Kontrolpaŝoj"
   },
   "web.domains.domain_verification_initiated_successfully": {
-    "en": "Domain verification initiated successfully."
+    "en": "Domain verification initiated successfully.",
+    "translation": "Domajnkontrolo sukcese komenciĝis."
   },
   "web.domains.are_you_sure_you_want_to_remove_this_domain": {
-    "en": "Are you sure you want to remove this domain? This action cannot be undone."
+    "en": "Are you sure you want to remove this domain? This action cannot be undone.",
+    "translation": "Ĉu vi certas ke vi volas forigi ĉi tiun domajnon? Ĉi tiu ago ne povas esti malfarita."
   },
   "web.domains.remove_domain": {
-    "en": "Remove Domain"
+    "en": "Remove Domain",
+    "translation": "Forigi Domajnon"
   },
   "web.domains.domain_removed_successfully": {
-    "en": "Domain removed successfully"
+    "en": "Domain removed successfully",
+    "translation": "Domajno sukcese forigita"
   },
   "web.domains.failed_to_add_domain": {
-    "en": "Failed to add domain"
+    "en": "Failed to add domain",
+    "translation": "Malsukcesis aldoni domajnon"
   },
   "web.domains.domain_added_successfully": {
-    "en": "Domain added successfully"
+    "en": "Domain added successfully",
+    "translation": "Domajno sukcese aldonita"
   },
   "web.domains.passphrase_set": {
-    "en": "Protected"
+    "en": "Protected",
+    "translation": "Protektita"
   },
   "web.domains.manage_domains": {
-    "en": "Manage Domains"
+    "en": "Manage Domains",
+    "translation": "Administri Domajnojn"
   },
   "web.domains.global_defaults": {
-    "en": "Global Defaults"
+    "en": "Global Defaults",
+    "translation": "Ĝeneralaj Defaŭltoj"
   },
   "web.domains.edit_ttl": {
-    "en": "Edit time-to-live setting"
+    "en": "Edit time-to-live setting",
+    "translation": "Redakti vivdaŭran agordon"
   },
   "web.domains.edit_passphrase": {
-    "en": "Edit passphrase requirement"
+    "en": "Edit passphrase requirement",
+    "translation": "Redakti pasfrazan postulon"
   },
   "web.domains.edit_notify": {
-    "en": "Edit notification setting"
+    "en": "Edit notification setting",
+    "translation": "Redakti sciigan agordon"
   }
 }
