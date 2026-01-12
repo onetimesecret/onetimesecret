@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS translation_tasks (
     key TEXT NOT NULL,                -- 'web.auth.security.rate_limited'
     english_text TEXT NOT NULL,
     translation TEXT,
-    status TEXT DEFAULT 'pending',    -- pending | completed | skipped | error
+    status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'completed', 'skipped', 'error')),
     notes TEXT,                       -- translator notes, errors
     created_at TEXT DEFAULT (datetime('now')),
     completed_at TEXT,
