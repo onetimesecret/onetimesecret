@@ -22,6 +22,8 @@ import { AxiosInstance } from 'axios';
 import { defineStore } from 'pinia';
 import { computed, inject, ref, watch } from 'vue';
 
+import { useBootstrapStore } from './bootstrapStore';
+
 /**
  * localStorage key for persisting selected organization across sessions.
  * Used internally by the store for persistence.
@@ -426,6 +428,18 @@ export const useOrganizationStore = defineStore('organization', () => {
     () => currentOrganization.value?.id,
     (newOrgId) => {
       persistOrgId(newOrgId ?? null);
+    }
+  );
+
+  // Watch bootstrap auth state and reset on logout
+  // This ensures organization data is cleared when the user logs out
+  const bootstrap = useBootstrapStore();
+  watch(
+    () => bootstrap.authenticated,
+    (authenticated) => {
+      if (!authenticated) {
+        $reset();
+      }
     }
   );
 
