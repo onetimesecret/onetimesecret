@@ -19,7 +19,7 @@ on:
         default: false
         type: boolean
   pull_request:
-    branches: [develop, main]
+    branches: [develop, main, 'rel/*']
     paths:
       - 'Dockerfile'
       - 'src/**'
@@ -29,8 +29,6 @@ on:
       - 'pnpm-lock.yaml'
       - 'vite.config.ts'
       - '.github/workflows/**'
-  push:
-    branches: [develop]
 
 permissions:
   contents: read
