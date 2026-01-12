@@ -14,7 +14,7 @@ import { useBootstrapStore } from './bootstrapStore';
  * ═══════════════════════════════════════════════════════════════════════════════
  *
  * This store manages client-side authentication state and coordinates with
- * the server via the /window endpoint. It works in concert with:
+ * the server via the /bootstrap/me endpoint. It works in concert with:
  *
  * - useAuth composable: Handles auth operations (login, logout, signup)
  * - useMfa composable: Handles MFA setup and verification
@@ -50,7 +50,7 @@ import { useBootstrapStore } from './bootstrapStore';
  *
  * State is stored in bootstrapStore which is the single source of truth.
  *
- * When refreshing state from /window endpoint:
+ * When refreshing state from /bootstrap/me endpoint:
  * - ALWAYS use bootstrapStore.update() to update state
  * - All computed properties derive from bootstrapStore refs
  *
@@ -70,7 +70,7 @@ import { useBootstrapStore } from './bootstrapStore';
  * 2. Random jitter (±90 seconds) to prevent synchronized client requests
  *    across multiple browser sessions, reducing server load spikes
  *
- * The /window endpoint provides complete state refresh including:
+ * The /bootstrap/me endpoint provides complete state refresh including:
  * - Authentication status (authenticated, awaiting_mfa)
  * - Customer data and entitlements
  * - CSRF token (shrimp) refresh
@@ -83,7 +83,7 @@ export const AUTH_CHECK_CONFIG = {
   INTERVAL: 15 * 60 * 1000,
   JITTER: 90 * 1000,
   MAX_FAILURES: 3,
-  ENDPOINT: '/window',
+  ENDPOINT: '/bootstrap/me',
 } as const;
 
 interface StoreOptions extends PiniaPluginOptions {}
@@ -215,7 +215,7 @@ export const useAuthStore = defineStore('auth', () => {
       authenticatedType: typeof inputValue,
       hadValidSession,
       storedAuthState,
-      windowStateExists: typeof window !== 'undefined' && !!window.__BOOTSTRAP_STATE__,
+      bootstrapInitialized: bootstrapStore.isInitialized,
     });
 
     // Detect if this might be an error page masquerading as unauthenticated:

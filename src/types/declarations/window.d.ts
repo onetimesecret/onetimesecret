@@ -76,6 +76,10 @@ export interface UiInterface {
   footer_links?: FooterLinksConfig;
 }
 
+/**
+ * BootstrapPayload is the canonical type name for server-injected state.
+ * OnetimeWindow is preserved as an alias for backwards compatibility.
+ */
 export interface OnetimeWindow {
   apitoken?: string;
 
@@ -202,3 +206,9 @@ export interface OnetimeWindow {
     planid?: string;
   };
 }
+
+/**
+ * BootstrapPayload is the preferred type name for server-injected state.
+ * Alias for OnetimeWindow - use either interchangeably.
+ */
+export type BootstrapPayload = OnetimeWindow;

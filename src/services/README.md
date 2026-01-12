@@ -37,6 +37,12 @@ const { authenticated, locale, cust } = storeToRefs(bootstrap);
 await bootstrap.refresh();
 ```
 
+## API Endpoint
+
+The bootstrap state is refreshed via `/bootstrap/me` endpoint. This
+endpoint returns the current user's authentication state, configuration, and
+feature flags.
+
 ## Migration Notes
 
 The `WindowService` (`window.service.ts`) was deprecated and removed as part of
@@ -47,6 +53,9 @@ should now go through:
 2. `bootstrapStore.ts` - For reactive Pinia access (Phase 1)
 
 Direct access to `window.__BOOTSTRAP_STATE__` is prohibited by ESLint rule.
+The ESLint configuration includes exceptions for:
+- `bootstrap.service.ts` (the only authorized accessor)
+- Type declaration files (`global.d.ts`, `window.d.ts`)
 
 ## Service vs. Utility
 

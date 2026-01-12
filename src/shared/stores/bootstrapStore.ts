@@ -502,7 +502,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   }
 
   /**
-   * Updates the store with new data from /window API response.
+   * Updates the store with new data from /bootstrap/me API response.
    * Only updates fields that are present in the data object.
    *
    * @param data - Partial OnetimeWindow data to merge
@@ -538,7 +538,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
   }
 
   /**
-   * Refreshes state from the /window API endpoint.
+   * Refreshes state from the /bootstrap/me API endpoint.
    * Use this to sync state with the server after actions that change server state.
    *
    * @returns Promise that resolves when state is refreshed
@@ -549,7 +549,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
       throw new Error('[BootstrapStore] Cannot refresh: window is not defined');
     }
 
-    const response = await fetch('/window', {
+    const response = await fetch('/bootstrap/me', {
       method: 'GET',
       credentials: 'same-origin',
       headers: {

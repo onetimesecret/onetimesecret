@@ -115,6 +115,17 @@ export default [
           message: 'Use bootstrapStore instead of direct window access',
         },
       ],
+      // Prevent window.__BOOTSTRAP_STATE__ access pattern
+      // Allowed only in: bootstrap.service.ts, global.d.ts, window.d.ts
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'MemberExpression[object.name="window"][property.name="__BOOTSTRAP_STATE__"]',
+          message:
+            'Direct window.__BOOTSTRAP_STATE__ access is prohibited. ' +
+            'Use bootstrapStore or bootstrap.service.ts instead.',
+        },
+      ],
       // Enforce consistent import ordering
       'import/order': [
         'warn',
@@ -411,6 +422,22 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
       // Allow empty interfaces in declaration files
       '@typescript-eslint/no-empty-interface': 'off',
+    },
+  },
+
+  /**
+   * Bootstrap State Access Exception
+   * These files are allowed to access window.__BOOTSTRAP_STATE__ directly
+   */
+  {
+    files: [
+      'src/services/bootstrap.service.ts',
+      'src/types/declarations/global.d.ts',
+      'src/types/declarations/window.d.ts',
+    ],
+    rules: {
+      'no-restricted-syntax': 'off',
+      'no-restricted-globals': 'off',
     },
   },
 

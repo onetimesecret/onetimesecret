@@ -108,7 +108,6 @@ function handleMfaAccess(
     awaitingMfa,
     isAuthenticated,
     isFullyAuthenticated,
-    windowState: window.__BOOTSTRAP_STATE__,
   });
 
   // Redirect to MFA verification if awaiting second factor
