@@ -2,6 +2,10 @@
 #
 # frozen_string_literal: true
 
+# CRITICAL: Set RACK_ENV before anything else loads.
+# This ensures ConfigResolver uses test configs (spec/*.test.yaml) not production configs.
+ENV['RACK_ENV'] ||= 'test'
+
 # Debugging helpers for tests
 #
 # To debug tests with IRB console (debugger):
