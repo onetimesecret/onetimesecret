@@ -38,7 +38,10 @@ module Onetime
         # Register expected errors with status codes and log levels
         router.register_error_handler(Onetime::RecordNotFound, status: 404, log_level: :info)
         router.register_error_handler(Onetime::MissingSecret, status: 404, log_level: :info)
-        router.register_error_handler(Onetime::FormError, status: 422, log_level: :info)
+        # Form errors return 422 with error type and field info
+        router.register_error_handler(Onetime::FormError, status: 422, log_level: :info) do |error, _req|
+          error.to_h
+        end
         router.register_error_handler(Onetime::Forbidden, status: 403, log_level: :warn)
 
         # Entitlement errors return 403 with upgrade path info

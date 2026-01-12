@@ -2,7 +2,9 @@
 #
 # frozen_string_literal: true
 
-require 'spec/spec_helper.rb'
+require_relative '../../../../../try/support/test_helpers'
+
+OT.boot! :test
 
 # Note: These tests verify domain repair model behavior.
 # The DomainsRepairCommand CLI is tested via integration tests.

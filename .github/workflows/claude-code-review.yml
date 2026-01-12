@@ -40,6 +40,9 @@ jobs:
         with:
           fetch-depth: 1
 
+      # Note: This workflow has been observed to fail with "null is not an object
+      # (evaluating 'c.body')". Deleting PR comments before/during execution may
+      # be related. Re-run after comment activity settles.
       - name: Run Claude Code Review
         id: claude-review
         uses: anthropics/claude-code-action@beta

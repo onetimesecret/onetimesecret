@@ -172,7 +172,8 @@ module Onetime
       end
 
       # Remove all member participations
-      list_members.each do |member|
+      # Use .compact to handle already-destroyed members (stale objids in set)
+      list_members.compact.each do |member|
         remove_members_instance(member)
       end
 

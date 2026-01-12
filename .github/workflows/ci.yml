@@ -30,16 +30,12 @@ name: CI
 # - Set in Settings → Secrets and variables → Actions → Variables
 
 on:
-  push:
-    branches:
-      - fix/*
-      - rel/*
   pull_request:
     branches:
       - main
       - develop
-      - feature/*
-      - rel/*
+      - 'rel/*'
+      - 'feature/*'
   workflow_dispatch:
     inputs:
       debug_enabled:
