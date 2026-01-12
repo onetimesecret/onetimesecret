@@ -7,14 +7,11 @@ require_relative '../../../../../spec/spec_helper'
 require_relative '../../views/base'
 require_relative '../../views/serializers'
 
-# TODO: These tests need updating - BaseView constructor changed from 3 args to 1
-# The view_test_context shared context needs to be updated to provide
-# otto.strategy_result in the request env instead of passing session/customer separately.
-# See: apps/web/core/views/base.rb#initialize
+# Tests for Core::Views::BaseView and its serializers.
+# BaseView expects a single Rack::Request argument and extracts session/customer
+# from req.env['otto.strategy_result'].
 RSpec.describe Core::Views::BaseView do
-  before { skip 'Mocks need updating for new BaseView constructor (see TODO above)' }
-
-  subject { described_class.new(rack_request, session, customer) }
+  subject { described_class.new(rack_request) }
 
   include_context 'rack_test_context'
   include_context 'view_test_context'
@@ -51,9 +48,9 @@ RSpec.describe Core::Views::BaseView do
 
   describe '#initialize' do
     it 'sets basic template variables' do
-      expect(subject['description']).to eq('Test Description')
-      expect(subject['keywords']).to eq('test,keywords')
-      expect(subject['page_title']).to eq('Onetime Secret')
+      expect(subject.view_vars['description']).to eq('Test Description')
+      expect(subject.view_vars['keywords']).to eq('test,keywords')
+      expect(subject.view_vars['page_title']).to eq('One-Time Secret')
     end
 
     it 'initializes JavaScript variables' do
@@ -65,11 +62,10 @@ RSpec.describe Core::Views::BaseView do
     end
 
     it 'includes authentication configuration' do
-      expect(subject.serialized_data['authentication']).to eq({
+      expect(subject.serialized_data['authentication']).to include(
         'enabled' => true,
         'signup' => true,
-      },
-                                                             )
+      )
     end
 
     it 'includes secret options' do
@@ -91,17 +87,19 @@ RSpec.describe Core::Views::BaseView do
       end
 
       it 'sets development-specific variables' do
-        expect(subject['frontend_host']).to eq('http://localhost:5173')
-        expect(subject['frontend_development']).to be true
+        expect(subject.view_vars['frontend_host']).to eq('http://localhost:5173')
+        expect(subject.view_vars['frontend_development']).to be true
       end
     end
 
     context 'with anonymous user' do
       let(:customer) do
-        instance_double(Onetime::Customer,
+        cust = instance_double(Onetime::Customer,
           anonymous?: true,
           planid: 'anonymous',
           custid: nil,
+          email: nil,
+          created: nil,
           safe_dump: {
             'identifier' => 'anon',
             'custid' => 'anon',
@@ -121,6 +119,16 @@ RSpec.describe Core::Views::BaseView do
             'active' => false,
           },
         )
+        allow(cust).to receive(:role?).and_return(false)
+        cust
+      end
+
+      let(:strategy_result) do
+        instance_double('Otto::Security::Authentication::StrategyResult',
+          session: session,
+          user: customer,
+          authenticated?: false,
+          metadata: {})
       end
 
       it 'sets appropriate anonymous state' do
@@ -210,13 +218,24 @@ RSpec.describe Core::Views::BaseView do
 
   context 'with security headers' do
     let(:rack_request) do
-      super().tap do |req|
-        req.env['onetime.nonce'] = 'test-nonce-123'
-      end
+      env = {
+        'REMOTE_ADDR' => '127.0.0.1',
+        'HTTP_HOST' => 'example.com',
+        'rack.session' => session,
+        'otto.locale' => 'en',
+        'otto.strategy_result' => strategy_result,
+        'onetime.nonce' => 'test-nonce-123'
+      }
+
+      request = instance_double('Rack::Request')
+      allow(request).to receive(:env).and_return(env)
+      allow(request).to receive(:nil?).and_return(false)
+      allow(request).to receive(:session).and_return(session)
+      request
     end
 
     it 'includes CSP nonce when present' do
-      expect(subject['nonce']).to eq('test-nonce-123')
+      expect(subject.view_vars['nonce']).to eq('test-nonce-123')
     end
   end
 
@@ -230,7 +249,7 @@ RSpec.describe Core::Views::BaseView do
     end
 
     it 'includes global banner when present' do
-      view = described_class.new(rack_request, session, customer)
+      view = described_class.new(rack_request)
       expect(view.serialized_data['global_banner']).to eq({
         type: 'info',
         message: 'System maintenance scheduled',
@@ -242,7 +261,7 @@ RSpec.describe Core::Views::BaseView do
   context 'with regions configuration' do
     let(:config) do
       super().merge(
-        'site' => super()['site'].merge(
+        'features' => {
           'regions' => {
             'enabled' => true,
             'current_jurisdiction' => 'EU',
@@ -254,7 +273,7 @@ RSpec.describe Core::Views::BaseView do
               },
             ],
           },
-        ),
+        },
       )
     end
 
@@ -269,9 +288,9 @@ RSpec.describe Core::Views::BaseView do
     context 'when regions disabled' do
       let(:config) do
         super().merge(
-          'site' => super()['site'].merge(
+          'features' => {
             'regions' => { 'enabled' => false },
-          ),
+          },
         )
       end
 
@@ -315,18 +334,22 @@ RSpec.describe Core::Views::BaseView do
     # Test various locale scenarios
     shared_examples 'locale initialization' do |locale, expected|
       # Create subject on demand to use the current rack_request
-      subject { described_class.new(rack_request, session, customer) }
+      subject { described_class.new(rack_request) }
 
       let(:rack_request) do
         env = {
           'REMOTE_ADDR' => '127.0.0.1',
           'HTTP_HOST' => 'example.com',
-          'onetime.session' => {},
-          'ots.locale' => locale,
+          'rack.session' => {},
+          'otto.locale' => locale,
+          'otto.strategy_result' => strategy_result,
+          'onetime.nonce' => nil
         }
 
         request = instance_double(Rack::Request)
-        allow(request).to receive_messages(env: env, nil?: false)
+        allow(request).to receive(:env).and_return(env)
+        allow(request).to receive(:nil?).and_return(false)
+        allow(request).to receive(:session).and_return({})
         request
       end
 
@@ -364,10 +387,22 @@ RSpec.describe Core::Views::BaseView do
       }
     end
 
-    context 'with nil locale' do
+    context 'with missing locale (fallback to default)' do
       let(:rack_request) do
-        env = { 'ots.locale' => nil }
-        instance_double(Rack::Request, env: env)
+        # Do not include 'otto.locale' key - should fall back to OT.default_locale
+        env = {
+          'REMOTE_ADDR' => '127.0.0.1',
+          'HTTP_HOST' => 'example.com',
+          'rack.session' => session,
+          'otto.strategy_result' => strategy_result,
+          'onetime.nonce' => nil
+        }
+
+        request = instance_double(Rack::Request)
+        allow(request).to receive(:env).and_return(env)
+        allow(request).to receive(:nil?).and_return(false)
+        allow(request).to receive(:session).and_return(session)
+        request
       end
 
       it 'falls back to default locale' do
