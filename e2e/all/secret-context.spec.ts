@@ -278,8 +278,8 @@ test.describe('Secret Context - Actor Roles', () => {
   test('theme applies correctly for custom domains', async ({ page }) => {
     // Mock custom domain branding
     await page.addInitScript(() => {
-      window.__ONETIME_STATE__ = {
-        ...window.__ONETIME_STATE__,
+      window.__BOOTSTRAP_STATE__ = {
+        ...window.__BOOTSTRAP_STATE__,
         domain_strategy: 'custom',
         domain_branding: {
           primary_color: '#3b82f6',

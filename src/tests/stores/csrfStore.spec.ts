@@ -109,7 +109,7 @@ describe('CSRF Store', () => {
       store.updateShrimp(newShrimp);
 
       expect(store.shrimp).toBe(newShrimp); // Shrimp should update
-      expect(window.__ONETIME_STATE__.shrimp).not.toBe(newShrimp); // Window.shrimp should not change
+      expect(window.__BOOTSTRAP_STATE__.shrimp).not.toBe(newShrimp); // Window.shrimp should not change
       expect(store.isValid).toBe(initialValidity); // Validity should not change
     });
 

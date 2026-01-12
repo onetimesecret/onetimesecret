@@ -55,7 +55,7 @@ declare global {
  * For production tests, consider using a library like 'otpauth' or 'speakeasy'.
  * Since Playwright tests run in Node.js, we can use crypto.
  */
-async function generateTotpCode(secret: string): Promise<string> {
+async function generateTotpCode(_secret: string): Promise<string> {
   // If a static OTP is provided, use it (useful for controlled test environments)
   if (process.env.TEST_MFA_OTP) {
     return process.env.TEST_MFA_OTP;
@@ -64,7 +64,7 @@ async function generateTotpCode(secret: string): Promise<string> {
   // For dynamic TOTP generation, we need the otpauth library
   // This is a placeholder - in a real implementation you'd use:
   // import { TOTP } from 'otpauth';
-  // const totp = new TOTP({ secret });
+  // const totp = new TOTP({ secret: _secret });
   // return totp.generate();
 
   // For now, throw an error if no static OTP is provided
@@ -78,8 +78,11 @@ async function generateTotpCode(secret: string): Promise<string> {
 /**
  * Get bootstrap state from the page.
  * Handles both pre-consumption and post-consumption states.
+ *
+ * Note: Currently unused but retained for future debugging and
+ * manual verification scenarios per the test documentation.
  */
-async function getBootstrapState(page: Page): Promise<BootstrapState | null> {
+async function _getBootstrapState(page: Page): Promise<BootstrapState | null> {
   return page.evaluate(() => {
     // Check if state exists on window (before consumption by bootstrap service)
     if (window.__BOOTSTRAP_STATE__) {
@@ -319,16 +322,9 @@ test.describe('MFA Flow - bootstrapStore Reactivity', () => {
     // Wait for mode switch
     await page.waitForTimeout(500);
 
-    // Recovery code input should now be visible
-    const recoveryInput = page.locator(
-      'input[type="text"]'
-    ).filter({
-      has: page.locator('[placeholder*="recovery" i], [id*="recovery" i]'),
-    });
-
-    // Or look for any text input that appeared after clicking recovery
-    const anyTextInput = page.locator('input#recovery-code, input[placeholder*="recovery" i]');
-    const isRecoveryMode = await anyTextInput.isVisible().catch(() => false);
+    // Look for recovery code input that appeared after clicking recovery
+    const recoveryInput = page.locator('input#recovery-code, input[placeholder*="recovery" i]');
+    const isRecoveryMode = await recoveryInput.isVisible().catch(() => false);
 
     // Back to OTP option should be visible
     const backToOtp = page.locator('button').filter({ hasText: /back|code/i });

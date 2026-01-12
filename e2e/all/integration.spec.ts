@@ -289,13 +289,13 @@ test.describe('E2E Integration - Environment Validation', () => {
 
     // Verify application state is loaded and accessible
     const stateCheck = await page.evaluate(() => {
-      if (!window.__ONETIME_STATE__) {
+      if (!window.__BOOTSTRAP_STATE__) {
         return { loaded: false, error: 'Application state not loaded' };
       }
       return {
         loaded: true,
-        hasFrontendDevelopment: 'frontend_development' in window.__ONETIME_STATE__,
-        isDevelopment: window.__ONETIME_STATE__.frontend_development === true,
+        hasFrontendDevelopment: 'frontend_development' in window.__BOOTSTRAP_STATE__,
+        isDevelopment: window.__BOOTSTRAP_STATE__.frontend_development === true,
       };
     });
 

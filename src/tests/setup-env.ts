@@ -18,7 +18,7 @@ if (typeof process !== 'undefined') {
   });
 }
 
-(window as OnetimeWindow).__ONETIME_STATE__ = {
+(window as OnetimeWindow).__BOOTSTRAP_STATE__ = {
   supported_locales: ['en', 'fr_CA', 'de_AT'],
   fallback_locale: 'en',
   default_locale: 'en',

@@ -338,14 +338,14 @@ export function setupBootstrapMock(
   });
   setActivePinia(pinia);
 
-  // Set up window.__ONETIME_STATE__ for components that access it directly
-  (window as any).__ONETIME_STATE__ = windowState;
+  // Set up window.__BOOTSTRAP_STATE__ for components that access it directly
+  (window as any).__BOOTSTRAP_STATE__ = windowState;
 
   // Helper to update state mid-test
   const updateState = (updates: Partial<OnetimeWindow>) => {
     Object.assign(windowState, updates);
     // Also update window object for direct access
-    (window as any).__ONETIME_STATE__ = windowState;
+    (window as any).__BOOTSTRAP_STATE__ = windowState;
   };
 
   return {

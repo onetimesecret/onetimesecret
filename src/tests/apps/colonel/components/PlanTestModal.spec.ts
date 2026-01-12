@@ -424,7 +424,7 @@ describe('PlanTestModal', () => {
       }).not.toThrow();
     });
 
-    it('handles WindowService errors gracefully', async () => {
+    it('handles bootstrap state errors gracefully', async () => {
       // The useTestPlanMode composable handles errors internally
       wrapper = await mountComponent({}, {});
       expect(wrapper.find('[role="dialog"]').exists()).toBe(true);

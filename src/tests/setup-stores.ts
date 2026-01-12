@@ -63,7 +63,7 @@ vi.mock('vue', async () => {
 // Setup global Pinia instance and window state
 beforeEach(() => {
   // Set up window state before creating stores
-  (window as any).__ONETIME_STATE__ = {
+  (window as any).__BOOTSTRAP_STATE__ = {
     ...stateFixture,
   } as OnetimeWindow;
 
