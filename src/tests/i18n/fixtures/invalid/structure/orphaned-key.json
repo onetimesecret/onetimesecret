@@ -1,0 +1,9 @@
+{
+  "web": {
+    "auth": {
+      "security": {
+        "authenticaton_failed": "Authentication failed. Please try again."
+      }
+    }
+  }
+}

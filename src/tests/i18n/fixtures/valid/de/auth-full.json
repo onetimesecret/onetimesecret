@@ -1,0 +1,18 @@
+{
+  "web": {
+    "auth": {
+      "security": {
+        "_README": "⚠️ SECURITY-CRITICAL: See src/locales/SECURITY-TRANSLATION-GUIDE.md",
+        "authentication_failed": "Authentifizierung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten und versuchen Sie es erneut.",
+        "rate_limited": "Zu viele Versuche. Bitte versuchen Sie es später erneut.",
+        "session_expired": "Sitzung abgelaufen. Bitte melden Sie sich erneut an.",
+        "_meta": {
+          "authentication_failed": {
+            "security_note": "MUST NOT reveal which credential failed",
+            "owasp_ref": "ASVS 2.2.2"
+          }
+        }
+      }
+    }
+  }
+}
