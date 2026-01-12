@@ -7,11 +7,11 @@
 # It is ephemeral by design: all data is lost when the container stops.
 # This is a security feature, not a bug.
 #
-# For more detailed documentation, see docs/docker-lite.md.
+# For more detailed documentation, see docker/variants/README.md.
 #
 # BUILDING:
 #
-#     $ docker build -t onetimesecret-lite -f Dockerfile-lite .
+#     $ docker build -t onetimesecret-lite -f docker/variants/lite.dockerfile .
 #
 # RUNNING:
 #
