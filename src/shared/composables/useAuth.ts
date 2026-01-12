@@ -69,7 +69,7 @@ import { useRoute, useRouter } from 'vue-router';
  * RELATED MODULES
  * ───────────────────────────────────────────────────────────────────────────────
  *
- * - authStore: Session state management, periodic /window refresh
+ * - authStore: Session state management, periodic /bootstrap/me refresh
  * - useMfa: OTP setup, verification, recovery codes
  * - bootstrapStore: Reactive access to server state
  * - Route guards: Navigation protection based on auth state

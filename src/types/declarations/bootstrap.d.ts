@@ -1,4 +1,4 @@
-// src/types/declarations/window.d.ts
+// src/types/declarations/bootstrap.d.ts
 
 import {
   AuthenticationSettings,

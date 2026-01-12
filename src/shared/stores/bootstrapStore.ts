@@ -15,7 +15,7 @@ import type {
   HeaderConfig,
   OnetimeWindow,
   UiInterface,
-} from '@/types/declarations/window';
+} from '@/types/declarations/bootstrap';
 import { defineStore } from 'pinia';
 import { computed, Ref, ref } from 'vue';
 import type { FallbackLocale } from 'vue-i18n';

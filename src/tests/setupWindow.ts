@@ -2,7 +2,7 @@
 
 import { vi } from 'vitest';
 import { stateFixture } from './fixtures/window.fixture';
-import { type OnetimeWindow } from '@/types/declarations/window';
+import { type OnetimeWindow } from '@/types/declarations/bootstrap';
 
 export const windowMock = {
   // Preserve any existing window properties you need

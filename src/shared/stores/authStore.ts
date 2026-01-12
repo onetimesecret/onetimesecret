@@ -299,7 +299,7 @@ export const useAuthStore = defineStore('auth', () => {
       return false;
     }
 
-    loggingService.debug('[AuthStore.checkWindowStatus] Making API call to /window');
+    loggingService.debug('[AuthStore.checkWindowStatus] Making API call to /bootstrap/me');
 
     try {
       const response = await $api.get(AUTH_CHECK_CONFIG.ENDPOINT);

@@ -1,6 +1,6 @@
 // src/tests/setup-env.ts
 
-import type { OnetimeWindow } from '@/types/declarations/window';
+import type { OnetimeWindow } from '@/types/declarations/bootstrap';
 
 // Handle known race condition in vue-i18n during test teardown.
 // When jsdom tears down, async renders may still try to access window.

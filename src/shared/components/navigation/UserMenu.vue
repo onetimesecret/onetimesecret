@@ -22,7 +22,7 @@
   - User logs in with password but has MFA enabled
   - User clicks magic link but has MFA enabled
   - Backend sets session['awaiting_mfa'] = true
-  - Frontend receives awaiting_mfa: true via /window endpoint
+  - Frontend receives awaiting_mfa: true via /bootstrap/me endpoint
 -->
 
 <script setup lang="ts">

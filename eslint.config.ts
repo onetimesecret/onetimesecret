@@ -433,7 +433,7 @@ export default [
     files: [
       'src/services/bootstrap.service.ts',
       'src/types/declarations/global.d.ts',
-      'src/types/declarations/window.d.ts',
+      'src/types/declarations/bootstrap.d.ts',
     ],
     rules: {
       'no-restricted-syntax': 'off',

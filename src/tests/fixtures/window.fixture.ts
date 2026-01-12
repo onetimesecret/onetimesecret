@@ -1,6 +1,6 @@
 // src/tests/fixtures/window.fixture.ts
 
-import { OnetimeWindow } from '@/types/declarations/window';
+import { OnetimeWindow } from '@/types/declarations/bootstrap';
 import { vi } from 'vitest';
 
 const setIntervalMock = vi.fn().mockReturnValue(123);

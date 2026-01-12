@@ -7,7 +7,7 @@
 import { vi } from 'vitest';
 import { createTestingPinia, type TestingPinia } from '@pinia/testing';
 import { setActivePinia } from 'pinia';
-import type { OnetimeWindow } from '@/types/declarations/window';
+import type { OnetimeWindow } from '@/types/declarations/bootstrap';
 import type { Customer } from '@/schemas/models';
 
 // ============================================================================

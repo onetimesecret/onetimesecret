@@ -3,7 +3,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import type { FooterLinksConfig } from '@/types/declarations/window';
+  import type { FooterLinksConfig } from '@/types/declarations/bootstrap';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
 

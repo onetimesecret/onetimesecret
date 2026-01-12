@@ -443,7 +443,7 @@ test.describe('MFA Flow - Edge Cases', () => {
     await page.waitForLoadState('networkidle');
 
     // Should still be on MFA verification page
-    // (server maintains session state, client reinitializes from /window)
+    // (server maintains session state, client reinitializes from /bootstrap/me)
     await expect(page).toHaveURL(/\/mfa-verify/);
   });
 });

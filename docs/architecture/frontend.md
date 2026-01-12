@@ -50,7 +50,7 @@ The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeSc
    - Components using computed() react automatically
 ```
 
-## Window State Bridge
+## Bootstrap State Bridge
 
 **Backend Injection:**
 - **Location:** `apps/web/core/views.rb`
@@ -58,28 +58,29 @@ The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeSc
 - **Serializers:** ConfigSerializer, AuthenticationSerializer, DomainSerializer, I18nSerializer, MessagesSerializer, SystemSerializer
 
 **Frontend Access:**
-- **Service:** `src/services/window.service.ts`
-- **Type Definition:** `src/types/declarations/window.d.ts`
+- **Pre-Pinia Service:** `src/services/bootstrap.service.ts` (for i18n, appInitializer)
+- **Pinia Store:** `src/shared/stores/bootstrapStore.ts` (reactive, single source of truth)
+- **Type Definition:** `src/types/declarations/bootstrap.d.ts`
 
 **Example:**
 ```typescript
-// Reading window state (reactive)
-const windowProps = computed(() => WindowService.getMultiple([
-  'authenticated',
-  'cust',
-  'ui',
-]));
+// Reading bootstrap state via Pinia (recommended)
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { storeToRefs } from 'pinia';
+
+const bootstrapStore = useBootstrapStore();
+const { authenticated, cust, ui } = storeToRefs(bootstrapStore);
 
 // Template access (auto-unwrapped)
 <template>
-  <div v-if="windowProps.authenticated">
-    {{ windowProps.cust.email }}
+  <div v-if="authenticated">
+    {{ cust?.email }}
   </div>
 </template>
 ```
 
 **State Refresh:**
-- **Endpoint:** `GET /window` (apps/web/core/routes:28)
+- **Endpoint:** `GET /bootstrap/me` (apps/web/core/routes)
 - **Frequency:** Every 15 minutes (±90s jitter)
 - **Triggers:**
   - Automatic: `authStore.checkWindowStatus()` timer

@@ -1,6 +1,6 @@
 // src/services/bootstrap.service.ts
 
-import type { OnetimeWindow } from '@/types/declarations/window';
+import type { OnetimeWindow } from '@/types/declarations/bootstrap';
 
 /**
  * Bootstrap Service - Pre-Pinia State Access
