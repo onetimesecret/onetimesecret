@@ -1,0 +1,296 @@
+{
+  "web.domains.learn_more_dns": {
+    "en": "Learn more about DNS configuration"
+  },
+  "web.domains.view_domain_verification_status": {
+    "en": "View domain verification status"
+  },
+  "web.domains.domain_already_in_organization": {
+    "en": "This domain is already registered in your organization"
+  },
+  "web.domains.domain_in_other_organization": {
+    "en": "This domain is already registered to another organization. Please contact support if you believe this is an error."
+  },
+  "web.domains.domain_claimed_successfully": {
+    "en": "Domain successfully claimed and added to your organization"
+  },
+  "web.domains.privacy_defaults_title": {
+    "en": "Privacy Defaults"
+  },
+  "web.domains.privacy_defaults_description": {
+    "en": "Set default privacy options for secrets created under this domain. These settings will be pre-filled when creating new secrets."
+  },
+  "web.domains.privacy_defaults": {
+    "en": "Privacy Defaults"
+  },
+  "web.domains.privacy_defaults_icon": {
+    "en": "Privacy defaults icon"
+  },
+  "web.domains.default_ttl_label": {
+    "en": "Default Time-to-Live"
+  },
+  "web.domains.default_ttl_hint": {
+    "en": "How long secrets should remain accessible by default"
+  },
+  "web.domains.passphrase_required_label": {
+    "en": "Require passphrase"
+  },
+  "web.domains.passphrase_required_hint": {
+    "en": "Make passphrase mandatory for all secrets in this domain"
+  },
+  "web.domains.notify_enabled_label": {
+    "en": "Enable notifications"
+  },
+  "web.domains.notify_enabled_hint": {
+    "en": "Enable email notifications by default when secrets are viewed"
+  },
+  "web.domains.use_global_default": {
+    "en": "Use global default"
+  },
+  "web.domains.global_default": {
+    "en": "Global"
+  },
+  "web.domains.required": {
+    "en": "Required"
+  },
+  "web.domains.optional": {
+    "en": "Optional"
+  },
+  "web.domains.enabled": {
+    "en": "Enabled"
+  },
+  "web.domains.disabled": {
+    "en": "Disabled"
+  },
+  "web.domains.custom": {
+    "en": "Custom"
+  },
+  "web.domains.edit_defaults": {
+    "en": "Edit Defaults"
+  },
+  "web.domains.ttl_short": {
+    "en": "TTL"
+  },
+  "web.domains.passphrase_short": {
+    "en": "Passphrase"
+  },
+  "web.domains.notify_short": {
+    "en": "Notifications"
+  },
+  "web.domains.scope_switch_label": {
+    "en": "Switch domain scope"
+  },
+  "web.domains.switcher_locked": {
+    "en": "Domain switching not available on this page"
+  },
+  "web.domains.scope_list_label": {
+    "en": "Available domains"
+  },
+  "web.domains.scope_header": {
+    "en": "Domains"
+  },
+  "web.domains.add_domain": {
+    "en": "Add domain"
+  },
+  "web.domains.domain_settings": {
+    "en": "Domain settings"
+  },
+  "web.domains.canonical_no_settings": {
+    "en": "Default domain has no settings page"
+  },
+  "web.domains.please_enter_a_domain_name": {
+    "en": "Please enter a {0} domain name"
+  },
+  "web.domains.domain_name": {
+    "en": "Domain name"
+  },
+  "web.domains.control_whether_users_can_create_secret_links": {
+    "en": "Control whether users can create secret links from your domain's homepage"
+  },
+  "web.domains.homepage_access": {
+    "en": "Homepage Access"
+  },
+  "web.domains.and_status": {
+    "en": "& Status"
+  },
+  "web.domains.domain": {
+    "en": "Domain"
+  },
+  "web.domains.manage_and_configure_your_verified_custom_domains": {
+    "en": "Manage and configure your verified custom domains"
+  },
+  "web.domains.domains": {
+    "en": "Domains"
+  },
+  "web.domains.last_monitored": {
+    "en": "Last Monitored"
+  },
+  "web.domains.ssl_status": {
+    "en": "SSL Status"
+  },
+  "web.domains.ssl_renews": {
+    "en": "SSL Renews"
+  },
+  "web.domains.dns_record": {
+    "en": "DNS Record"
+  },
+  "web.domains.target_address": {
+    "en": "Target Address"
+  },
+  "web.domains.domain_status": {
+    "en": "Domain Status"
+  },
+  "web.domains.custom_domains_count": {
+    "en": "Custom domains count"
+  },
+  "web.domains.custom_domain": {
+    "en": "Custom Domain"
+  },
+  "web.domains.open_domain_in_new_tab": {
+    "en": "Open domain in new tab"
+  },
+  "web.domains.back_to_domains": {
+    "en": "Back to Domains"
+  },
+  "web.domains.return_to_domains_list": {
+    "en": "Return to domains list"
+  },
+  "web.domains.verify_domain": {
+    "en": "Verify Domain"
+  },
+  "web.domains.manage_brand": {
+    "en": "Manage Brand"
+  },
+  "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
+    "en": "Added {0}"
+  },
+  "web.domains.add_your_domain": {
+    "en": "Add your domain"
+  },
+  "web.domains.get_started_by_adding_a_custom_domain": {
+    "en": "Get started by adding a custom domain."
+  },
+  "web.domains.no_domains_found": {
+    "en": "No domains found."
+  },
+  "web.domains.loading_domain_information": {
+    "en": "Loading domain information..."
+  },
+  "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
+    "en": "In order to connect your domain, you'll need to have a CNAME record in your DNS that points"
+  },
+  "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
+    "en": "If you already have a CNAME record for that address, please change it to point at"
+  },
+  "web.domains.a_cname_record_is_not_allowed_instead_youll_need": {
+    "en": "), a CNAME record is not allowed. Instead, you'll need to create an A record. Details on how to do this are provided further down the page."
+  },
+  "web.domains.and_remove_any_other_a_aaaa_or_cname_records_for": {
+    "en": "and remove any other A, AAAA, or CNAME records for that exact address."
+  },
+  "web.domains.youll_need_to_complete_these_steps": {
+    "en": ", you'll need to complete these steps."
+  },
+  "web.domains.before_we_can_activate_links_for": {
+    "en": "Before we can activate links for"
+  },
+  "web.domains.please_note_that_for_apex_domains": {
+    "en": "Please note that for apex domains (e.g.,"
+  },
+  "web.domains.verify_your_domain": {
+    "en": "Verify your domain"
+  },
+  "web.domains.secrets_example_dot_com": {
+    "en": "secrets.example.com"
+  },
+  "web.domains.customize_your_domain_branding": {
+    "en": "Customize your domain branding"
+  },
+  "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
+    "en": "It may take a few minutes for your SSL certificate to take effect."
+  },
+  "web.domains.dns_changes_can_take_as_little_as_60_seconds_or_": {
+    "en": "DNS changes can take as little as 60 seconds -- or up to 24 hours -- to take effect."
+  },
+  "web.domains.3_wait_for_propagation": {
+    "en": "3. Wait for propagation"
+  },
+  "web.domains.value_2": {
+    "en": "Value"
+  },
+  "web.domains.value_1": {
+    "en": "Value"
+  },
+  "web.domains.host_1": {
+    "en": "Host"
+  },
+  "web.domains.type_2": {
+    "en": "Type"
+  },
+  "web.domains.type_1": {
+    "en": "Type"
+  },
+  "web.domains.2_create_the_cname_record": {
+    "en": "2. Create the CNAME record"
+  },
+  "web.domains.value_0": {
+    "en": "Value"
+  },
+  "web.domains.host_0": {
+    "en": "Host"
+  },
+  "web.domains.type_0": {
+    "en": "Type"
+  },
+  "web.domains.2_create_the_a_record": {
+    "en": "2. Create the A record"
+  },
+  "web.domains.add_this_hostname_to_your_dns_configuration": {
+    "en": "Add this hostname to your DNS configuration:"
+  },
+  "web.domains.1_create_a_txt_record": {
+    "en": "1. Create a TXT record"
+  },
+  "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
+    "en": "Follow these steps to verify domain ownership and elevate your online presence:"
+  },
+  "web.domains.domain_verification_steps": {
+    "en": "Domain Verification Steps"
+  },
+  "web.domains.domain_verification_initiated_successfully": {
+    "en": "Domain verification initiated successfully."
+  },
+  "web.domains.are_you_sure_you_want_to_remove_this_domain": {
+    "en": "Are you sure you want to remove this domain? This action cannot be undone."
+  },
+  "web.domains.remove_domain": {
+    "en": "Remove Domain"
+  },
+  "web.domains.domain_removed_successfully": {
+    "en": "Domain removed successfully"
+  },
+  "web.domains.failed_to_add_domain": {
+    "en": "Failed to add domain"
+  },
+  "web.domains.domain_added_successfully": {
+    "en": "Domain added successfully"
+  },
+  "web.domains.passphrase_set": {
+    "en": "Protected"
+  },
+  "web.domains.manage_domains": {
+    "en": "Manage Domains"
+  },
+  "web.domains.global_defaults": {
+    "en": "Global Defaults"
+  },
+  "web.domains.edit_ttl": {
+    "en": "Edit time-to-live setting"
+  },
+  "web.domains.edit_passphrase": {
+    "en": "Edit passphrase requirement"
+  },
+  "web.domains.edit_notify": {
+    "en": "Edit notification setting"
+  }
+}

@@ -1,0 +1,476 @@
+{
+  "web.account.settings": {
+    "en": "Settings"
+  },
+  "web.account.change_password": {
+    "en": "Change Password"
+  },
+  "web.account.close_account": {
+    "en": "Close Account"
+  },
+  "web.account.verify_account": {
+    "en": "Verify Account"
+  },
+  "web.account.subscription_title": {
+    "en": "Subscription"
+  },
+  "web.account.manage_subscription": {
+    "en": "Manage Subscription"
+  },
+  "web.account.customer_information": {
+    "en": "Customer Information"
+  },
+  "web.account.customer_since": {
+    "en": "Customer since:"
+  },
+  "web.account.email": {
+    "en": "Email:"
+  },
+  "web.account.region": {
+    "en": "Region"
+  },
+  "web.account.account_balance": {
+    "en": "Balance:"
+  },
+  "web.account.default_payment_method": {
+    "en": "Default Payment Method"
+  },
+  "web.account.card_ending": {
+    "en": "ending in"
+  },
+  "web.account.subscriptions_title": {
+    "en": "Subscriptions"
+  },
+  "web.account.quantity": {
+    "en": "Quantity:"
+  },
+  "web.account.next_billing_date": {
+    "en": "Next billing date:"
+  },
+  "web.account.changePassword.username": {
+    "en": "Username"
+  },
+  "web.account.changePassword.currentPassword": {
+    "en": "Current Password"
+  },
+  "web.account.changePassword.newPassword": {
+    "en": "New Password"
+  },
+  "web.account.changePassword.confirmPassword": {
+    "en": "Confirm"
+  },
+  "web.account.changePassword.updatePassword": {
+    "en": "Update Password"
+  },
+  "web.account.changePassword.updating": {
+    "en": "Updating..."
+  },
+  "web.account.timezone": {
+    "en": "Timezone"
+  },
+  "web.account.customer_id": {
+    "en": "Customer ID"
+  },
+  "web.account.account_id_customerid": {
+    "en": "Account ID"
+  },
+  "web.account.created_windowprops_cust_secrets_created_secrets": {
+    "en": "Created {0} secrets since {1}."
+  },
+  "web.account.delete_account": {
+    "en": "Delete Account"
+  },
+  "web.account.api_key": {
+    "en": "API Key"
+  },
+  "web.account.account_type_windowprops_plan_options_name": {
+    "en": "Account type: {0}"
+  },
+  "web.account.your_account": {
+    "en": "Your Account"
+  },
+  "web.account.support_details": {
+    "en": "Support Details"
+  },
+  "web.account.back_to_details": {
+    "en": "Back to Details"
+  },
+  "web.account.customer_id_cust_custid": {
+    "en": "Customer ID: {0}"
+  },
+  "web.account.token_generated": {
+    "en": "Token generated."
+  },
+  "web.account.keep_this_token_secure_it_provides_full_access_t": {
+    "en": "🔐 Keep this token secure! It provides full access to your account."
+  },
+  "web.account.confirm_with_your_password": {
+    "en": "Confirm with your password"
+  },
+  "web.account.are_you_sure_you_want_to_permanently_delete_your": {
+    "en": "Are you sure you want to permanently delete your account? This action cannot be undone."
+  },
+  "web.account.confirm_account_deletion": {
+    "en": "Confirm Account Deletion"
+  },
+  "web.account.deleting_cust_custid": {
+    "en": "Deleting {0}"
+  },
+  "web.account.permanently_delete_account": {
+    "en": "Permanently Delete Account"
+  },
+  "web.account.permanent_and_non_reversible": {
+    "en": "permanent and non-reversible."
+  },
+  "web.account.deleting_your_account_is": {
+    "en": "Deleting your account is"
+  },
+  "web.account.burn_them_before_continuing": {
+    "en": "burn them before continuing"
+  },
+  "web.account.any_secrets_you_wish_to_remove": {
+    "en": "Any secrets you wish to remove,"
+  },
+  "web.account.secrets_will_remain_active_until_they_expire": {
+    "en": "Secrets will remain active until they expire."
+  },
+  "web.account.please_be_advised": {
+    "en": "Please be advised:"
+  },
+  "web.account.account_deleted_successfully": {
+    "en": "Account deleted successfully."
+  },
+  "web.account.deactivate": {
+    "en": "Deactivate"
+  },
+  "web.account.are_you_sure_you_want_to_deactivate_your_account": {
+    "en": "Are you sure you want to deactivate your account? All of your data will be permanently removed from our servers forever. This action cannot be undone."
+  },
+  "web.account.deactivate_account": {
+    "en": "Deactivate account"
+  },
+  "web.settings.title": {
+    "en": "Settings"
+  },
+  "web.settings.description": {
+    "en": "Manage your account settings and preferences"
+  },
+  "web.settings.manage_your_account_settings_and_preferences": {
+    "en": "Manage your account settings and preferences"
+  },
+  "web.settings.back_to_dashboard": {
+    "en": "Back to Dashboard"
+  },
+  "web.settings.sections.account": {
+    "en": "Account"
+  },
+  "web.settings.sections.billing": {
+    "en": "Billing"
+  },
+  "web.settings.sections.advanced": {
+    "en": "Advanced"
+  },
+  "web.settings.general": {
+    "en": "General"
+  },
+  "web.settings.preferences": {
+    "en": "Preferences"
+  },
+  "web.settings.appearance": {
+    "en": "Appearance"
+  },
+  "web.settings.theme.title": {
+    "en": "Theme"
+  },
+  "web.settings.theme.description": {
+    "en": "Choose light or dark theme"
+  },
+  "web.settings.theme.choose_light_or_dark_theme": {
+    "en": "Choose light or dark theme"
+  },
+  "web.settings.language.title": {
+    "en": "Language"
+  },
+  "web.settings.language.description": {
+    "en": "Select your preferred language"
+  },
+  "web.settings.language.select_your_preferred_language": {
+    "en": "Select your preferred language"
+  },
+  "web.settings.security_settings_description": {
+    "en": "Manage authentication and account security"
+  },
+  "web.settings.profile_settings_description": {
+    "en": "Manage your account information"
+  },
+  "web.settings.profile.title": {
+    "en": "Profile"
+  },
+  "web.settings.profile.change_email": {
+    "en": "Change Email"
+  },
+  "web.settings.profile.current_email": {
+    "en": "Current Email"
+  },
+  "web.settings.profile.current_password": {
+    "en": "Current Password"
+  },
+  "web.settings.profile.new_email": {
+    "en": "New Email"
+  },
+  "web.settings.profile.enter_password_to_confirm": {
+    "en": "Enter your current password"
+  },
+  "web.settings.profile.password_required_for_security": {
+    "en": "Your password is required for security purposes"
+  },
+  "web.settings.profile.verification_email_notice": {
+    "en": "A verification email will be sent to the new address"
+  },
+  "web.settings.profile.update_email": {
+    "en": "Update Email"
+  },
+  "web.settings.profile.change_email_description": {
+    "en": "Update the email address associated with your account"
+  },
+  "web.settings.profile.all_fields_required": {
+    "en": "All fields are required"
+  },
+  "web.settings.profile.invalid_email": {
+    "en": "Please enter a valid email address"
+  },
+  "web.settings.profile.email_same_as_current": {
+    "en": "New email must be different from current email"
+  },
+  "web.settings.profile.email_change_success": {
+    "en": "Email updated successfully. Please check your inbox to verify your new email address."
+  },
+  "web.settings.profile.email_change_error": {
+    "en": "Failed to update email. Please try again."
+  },
+  "web.settings.sessions.title": {
+    "en": "Active Sessions"
+  },
+  "web.settings.sessions.description": {
+    "en": "Manage your active sessions"
+  },
+  "web.settings.sessions.manage_active_sessions": {
+    "en": "Manage your active sessions"
+  },
+  "web.settings.password.title": {
+    "en": "Password"
+  },
+  "web.settings.password.description": {
+    "en": "Update your account password"
+  },
+  "web.settings.password.update_account_password": {
+    "en": "Update your account password"
+  },
+  "web.settings.delete_account.title": {
+    "en": "Delete Account"
+  },
+  "web.settings.delete_account.description": {
+    "en": "Permanently delete your account and all data"
+  },
+  "web.settings.delete_account.permanently_delete_your_account": {
+    "en": "Permanently delete your account and all data"
+  },
+  "web.settings.security.security_score": {
+    "en": "Security Score"
+  },
+  "web.settings.security.score_description": {
+    "en": "Your overall account security health"
+  },
+  "web.settings.security.excellent": {
+    "en": "Excellent"
+  },
+  "web.settings.security.good": {
+    "en": "Good"
+  },
+  "web.settings.security.fair": {
+    "en": "Fair"
+  },
+  "web.settings.security.weak": {
+    "en": "Weak"
+  },
+  "web.settings.security.improve_security": {
+    "en": "Improve your security"
+  },
+  "web.settings.security.enable_mfa_recommendation": {
+    "en": "Enable two-factor authentication for stronger protection"
+  },
+  "web.settings.security.generate_recovery_codes_recommendation": {
+    "en": "Generate recovery codes as a backup"
+  },
+  "web.settings.security.configured": {
+    "en": "Configured"
+  },
+  "web.settings.security.change": {
+    "en": "Change"
+  },
+  "web.settings.security.manage": {
+    "en": "Manage"
+  },
+  "web.settings.security.enable": {
+    "en": "Enable"
+  },
+  "web.settings.security.codes_available": {
+    "en": "{0} codes available"
+  },
+  "web.settings.security.no_codes": {
+    "en": "No codes generated"
+  },
+  "web.settings.security.active_sessions": {
+    "en": "{0} active session | {0} active sessions"
+  },
+  "web.settings.security.best_practices": {
+    "en": "Security Best Practices"
+  },
+  "web.settings.security.use_strong_unique_password": {
+    "en": "Use a strong, unique password for your account"
+  },
+  "web.settings.security.enable_mfa_for_protection": {
+    "en": "Enable two-factor authentication for additional protection"
+  },
+  "web.settings.security.save_recovery_codes_safely": {
+    "en": "Save your recovery codes in a secure location"
+  },
+  "web.settings.security.review_sessions_regularly": {
+    "en": "Review and revoke unused sessions regularly"
+  },
+  "web.settings.security.view_details": {
+    "en": "View details"
+  },
+  "web.settings.api.title": {
+    "en": "API & Integrations"
+  },
+  "web.settings.api.description": {
+    "en": "Manage API keys and integrations"
+  },
+  "web.settings.api.manage_api_keys": {
+    "en": "Manage API keys and integrations"
+  },
+  "web.settings.api.documentation": {
+    "en": "API Documentation"
+  },
+  "web.settings.api.documentation_description": {
+    "en": "Learn how to integrate Onetime Secret into your applications"
+  },
+  "web.settings.api.rest_api_reference": {
+    "en": "REST API Reference"
+  },
+  "web.settings.api.complete_api_documentation": {
+    "en": "Complete API documentation and endpoints"
+  },
+  "web.settings.api.code_examples": {
+    "en": "Code Examples"
+  },
+  "web.settings.api.example_code_and_libraries": {
+    "en": "Example code and client libraries"
+  },
+  "web.settings.api.security_best_practices": {
+    "en": "Security Best Practices"
+  },
+  "web.settings.api.never_commit_api_keys": {
+    "en": "Never commit API keys to version control"
+  },
+  "web.settings.api.use_environment_variables": {
+    "en": "Use environment variables to store API keys"
+  },
+  "web.settings.api.rotate_keys_regularly": {
+    "en": "Rotate API keys regularly for security"
+  },
+  "web.settings.api.use_https_only": {
+    "en": "Always use HTTPS when making API requests"
+  },
+  "web.settings.api.monitor_api_usage": {
+    "en": "Monitor your API usage and set up alerts"
+  },
+  "web.settings.api.important_notice": {
+    "en": "Important Notice"
+  },
+  "web.settings.api.regenerating_key_warning": {
+    "en": "Regenerating your API key will invalidate the current key. Update all applications using the old key."
+  },
+  "web.settings.privacy.title": {
+    "en": "Privacy Settings"
+  },
+  "web.settings.privacy.manage_privacy_settings": {
+    "en": "Manage your privacy preferences"
+  },
+  "web.settings.privacy.your_privacy": {
+    "en": "Your Privacy"
+  },
+  "web.settings.privacy.non_negotiable": {
+    "en": "Non-Negotiable"
+  },
+  "web.settings.privacy.not_a_setting": {
+    "en": "Not a setting"
+  },
+  "web.settings.privacy.no_analytics_statement": {
+    "en": "No analytics. No tracking. Period."
+  },
+  "web.settings.privacy.explanation": {
+    "en": "This isn't a setting because there's nothing to turn on or off. Your privacy is built into how we operate."
+  },
+  "web.settings.notifications.title": {
+    "en": "Notification Settings"
+  },
+  "web.settings.notifications.description": {
+    "en": "Manage how you receive notifications"
+  },
+  "web.settings.notifications.error_updating": {
+    "en": "Failed to update notification preference. Please try again."
+  },
+  "web.settings.notifications.reveal_notifications.title": {
+    "en": "Secret Reveal Notifications"
+  },
+  "web.settings.notifications.reveal_notifications.description": {
+    "en": "Receive an email when someone views your secret"
+  },
+  "web.settings.notifications.reveal_notifications.help": {
+    "en": "You'll be notified each time a recipient reveals one of your secrets"
+  },
+  "web.settings.notifications.privacy_note": {
+    "en": "Notification emails include only the timestamp and secret ID. Viewer information is never included."
+  },
+  "web.settings.caution.title": {
+    "en": "Careful Consideration Zone"
+  },
+  "web.settings.caution.description": {
+    "en": "Advanced settings and data management"
+  },
+  "web.settings.caution.data_export": {
+    "en": "Data Export"
+  },
+  "web.settings.caution.export_your_data": {
+    "en": "Export your account data"
+  },
+  "web.settings.caution.export_description": {
+    "en": "Request a complete copy of your account data in machine-readable format"
+  },
+  "web.settings.caution.request_data_export": {
+    "en": "Request Data Export"
+  },
+  "web.settings.caution.export_info": {
+    "en": "Export Processing Time"
+  },
+  "web.settings.caution.export_info_description": {
+    "en": "Exports are processed within 24 hours and sent to your email address"
+  },
+  "web.settings.caution.deletion_warning_title": {
+    "en": "Deleting your account will:"
+  },
+  "web.settings.caution.deletion_warning_secrets": {
+    "en": "Permanently delete all your secrets"
+  },
+  "web.settings.caution.deletion_warning_metadata": {
+    "en": "Remove all secret metadata and history"
+  },
+  "web.settings.caution.deletion_warning_api_keys": {
+    "en": "Invalidate all API keys"
+  },
+  "web.settings.caution.deletion_warning_irreversible": {
+    "en": "This action cannot be undone"
+  }
+}
