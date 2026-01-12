@@ -59,6 +59,7 @@ module V2::Logic
         {
           success: greenlighted,
           record: {
+            receipt: receipt.safe_dump,
             metadata: receipt.safe_dump, # maintain public API
             secret: secret.safe_dump,
             share_domain: share_domain, # we return the value, but don't save it

@@ -92,8 +92,10 @@ module V2::Logic
             expiration_in_seconds: receipt.default_expiration.to_i,
             share_path: build_path(:secret, receipt.secret_identifier),
             burn_path: build_path(:private, receipt.identifier, 'burn'),
+            receipt_path: build_path(:private, receipt.identifier),
             metadata_path: build_path(:private, receipt.identifier), # maintain public API
             share_url: build_url(baseuri, build_path(:secret, receipt.secret_identifier)),
+            receipt_url: build_url(baseuri, build_path(:private, receipt.identifier)),
             metadata_url: build_url(baseuri, build_path(:private, receipt.identifier)), # maintain public API
             burn_url: build_url(baseuri, build_path(:private, receipt.identifier, 'burn')),
           },
