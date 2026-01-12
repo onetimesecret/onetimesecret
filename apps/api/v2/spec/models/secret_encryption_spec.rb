@@ -227,20 +227,20 @@ RSpec.describe Onetime::Secret, allow_redis: false do
     end
 
     describe 'state transitions' do
-      let(:metadata) { create_stubbed_onetime_receipt(state: 'new') }
+      let(:receipt) { create_stubbed_onetime_receipt(state: 'new') }
       let(:secret) do
         create_stubbed_onetime_secret(
-          receipt_identifier: metadata.identifier,
+          receipt_identifier: receipt.identifier,
           state: 'new',
         )
       end
 
       before do
         # Setup linked objects
-        metadata.secret_identifier = secret.identifier
+        receipt.secret_identifier = secret.identifier
 
         # Mock the load_receipt method
-        allow(secret).to receive(:load_receipt).and_return(metadata)
+        allow(secret).to receive(:load_receipt).and_return(receipt)
 
         # Encrypt the test value
         secret.encrypt_value(secret_value)
@@ -253,7 +253,7 @@ RSpec.describe Onetime::Secret, allow_redis: false do
         expect(secret.instance_variable_get(:@value)).to be_nil
         expect(secret.instance_variable_get(:@passphrase_temp)).to be_nil
         expect(secret.state).to eq('received')
-        expect(metadata.state).to eq('received')
+        expect(receipt.state).to eq('received')
         expect(secret).to have_received(:destroy!)
       end
 
@@ -281,7 +281,7 @@ RSpec.describe Onetime::Secret, allow_redis: false do
 
         expect(secret.instance_variable_get(:@passphrase_temp)).to be_nil
         expect(secret.state).to eq('new') # State doesn't change because destroy! is mocked
-        expect(metadata.state).to eq('burned')
+        expect(receipt.state).to eq('burned')
         expect(secret).to have_received(:destroy!)
       end
     end
