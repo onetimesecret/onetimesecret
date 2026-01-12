@@ -67,12 +67,12 @@ RSpec.describe 'Admin Interface', type: :integration do
 
   # Helper to create secrets through the API
   def create_secret_via_api(content: 'test secret', owner_id: nil)
-    metadata, secret = Onetime::Receipt.spawn_pair(
+    receipt, secret = Onetime::Receipt.spawn_pair(
       owner_id || regular_user.objid,
       7 * 86400, # 7 days
       content
     )
-    { metadata: metadata, secret: secret }
+    { receipt: receipt, secret: secret }
   end
 
   describe 'Authentication & Authorization' do
