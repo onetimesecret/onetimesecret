@@ -29,6 +29,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+# Version check: GitHub Actions workflow uses Python 3.12, but script is compatible with 3.10+
+# (dict[str, Any] syntax requires 3.9+, dataclass features used require 3.10+)
+MIN_PYTHON = (3, 10)
+if sys.version_info < MIN_PYTHON:
+    sys.exit(f"Error: Python {MIN_PYTHON[0]}.{MIN_PYTHON[1]}+ required (found {sys.version_info.major}.{sys.version_info.minor})")
+
 
 # Variable patterns (reused from audit-variables.py)
 VUE_VAR_PATTERN = re.compile(r"(?<!%)(?<!\{)\{([a-zA-Z0-9_]+)\}")
@@ -94,6 +100,16 @@ def extract_variables(text: Any) -> dict[str, set[str]]:
     """Extract all variable patterns from a string.
 
     Accepts Any type for defensive validation of JSON values.
+
+    Examples:
+        >>> extract_variables("Hello {name}, you have {count} messages")
+        {'vue': {'name', 'count'}, 'erb': set(), 'printf': set()}
+
+        >>> extract_variables("Dear %{recipient}, your code is %{code}")
+        {'vue': set(), 'erb': {'recipient', 'code'}, 'printf': set()}
+
+        >>> extract_variables(None)  # Non-string returns empty sets
+        {'vue': set(), 'erb': set(), 'printf': set()}
     """
     if not isinstance(text, str):
         return {"vue": set(), "erb": set(), "printf": set()}
@@ -106,7 +122,15 @@ def extract_variables(text: Any) -> dict[str, set[str]]:
 
 
 def flatten_json(obj: dict[str, Any], prefix: str = "") -> dict[str, str]:
-    """Flatten nested JSON into dot-notation key paths."""
+    """Flatten nested JSON into dot-notation key paths.
+
+    Examples:
+        >>> flatten_json({"web": {"auth": {"login": "Sign in"}}})
+        {'web.auth.login': 'Sign in'}
+
+        >>> flatten_json({"greeting": "Hello", "farewell": "Goodbye"})
+        {'greeting': 'Hello', 'farewell': 'Goodbye'}
+    """
     result = {}
     for key, value in obj.items():
         full_key = f"{prefix}.{key}" if prefix else key
@@ -118,7 +142,18 @@ def flatten_json(obj: dict[str, Any], prefix: str = "") -> dict[str, str]:
 
 
 def should_skip_key(key: str) -> bool:
-    """Check if a key should be skipped (metadata keys with _ prefix)."""
+    """Check if a key should be skipped (metadata keys with _ prefix).
+
+    Examples:
+        >>> should_skip_key("_metadata.version")
+        True
+
+        >>> should_skip_key("web.auth._comment")
+        True
+
+        >>> should_skip_key("web.auth.login")
+        False
+    """
     parts = key.split(".")
     return any(part.startswith("_") for part in parts)
 
@@ -157,9 +192,17 @@ def get_changed_locale_files(base_branch: str) -> list[tuple[str, str]]:
 
 
 def validate_json_syntax(file_path: Path) -> tuple[bool, str]:
-    """
-    Validate JSON syntax.
-    Returns (is_valid, error_message).
+    """Validate JSON syntax and UTF-8 encoding.
+
+    Returns:
+        Tuple of (is_valid, error_message). Error message is empty on success.
+
+    Examples:
+        >>> validate_json_syntax(Path("valid.json"))
+        (True, '')
+
+        >>> validate_json_syntax(Path("broken.json"))  # Missing comma
+        (False, 'Line 3, Col 5: Expecting property name...')
     """
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -337,9 +380,28 @@ def validate_file(
     locales_dir: Path,
     verbose: bool = False,
 ) -> list[ValidationIssue]:
-    """
-    Validate a single locale file.
-    Returns list of issues found.
+    """Validate a single locale file against its English baseline.
+
+    Performs all validation checks in order:
+    1. JSON syntax (fail-fast)
+    2. Template variables match English
+    3. ERB format for email templates
+    4. Security namespace compliance
+    5. Key structure consistency
+
+    Args:
+        locale: Locale code (e.g., 'es', 'fr', 'de')
+        filename: JSON filename (e.g., 'auth.json', 'email.json')
+        locales_dir: Path to src/locales directory
+        verbose: Print progress messages
+
+    Returns:
+        List of ValidationIssue objects found during validation.
+
+    Examples:
+        >>> issues = validate_file('es', 'auth.json', Path('src/locales'))
+        >>> [i.category for i in issues]
+        ['variables', 'security']
     """
     issues = []
 
