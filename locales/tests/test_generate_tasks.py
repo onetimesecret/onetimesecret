@@ -12,12 +12,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 from generate_tasks import (
     TaskData,
+    append_to_sql_file,
     compare_locale,
-    escape_sql_string,
-    generate_insert,
+    export_tasks_to_sql,
     get_keys_from_file,
+    insert_into_db,
     walk_keys,
-    write_to_sql_file,
 )
 
 
@@ -215,18 +215,27 @@ class TestFileComparison:
 
 
 class TestTaskGeneration:
-    """Tests for SQL INSERT statement generation."""
+    """Tests for SQL INSERT statement generation via export_tasks_to_sql."""
 
-    def test_generates_correct_insert_sql(self):
+    def test_export_generates_correct_insert_sql(self, hydrated_db: Path):
         """SQL format is valid and contains expected values."""
-        sql = generate_insert(
-            batch="2026-01-11",
-            locale="eo",
-            file="auth.json",
-            key="web.login.button",
-            english_text="Sign In",
-        )
+        conn = sqlite3.connect(hydrated_db)
 
+        # Insert a task with parameterized query
+        cursor = conn.execute(
+            "INSERT INTO translation_tasks "
+            "(batch, locale, file, key, english_text) VALUES (?, ?, ?, ?, ?)",
+            ("2026-01-11", "eo", "auth.json", "web.login.button", "Sign In"),
+        )
+        task_id = cursor.lastrowid
+        conn.commit()
+
+        # Export using quote() function
+        statements = export_tasks_to_sql(conn, [task_id])
+        conn.close()
+
+        assert len(statements) == 1
+        sql = statements[0]
         assert sql.startswith("INSERT INTO translation_tasks")
         assert "(batch, locale, file, key, english_text)" in sql
         assert "'2026-01-11'" in sql
@@ -236,18 +245,26 @@ class TestTaskGeneration:
         assert "'Sign In'" in sql
         assert sql.endswith(");")
 
-    def test_escapes_single_quotes_in_values(self):
-        """Single quotes in values are properly escaped for SQL."""
-        sql = generate_insert(
-            batch="2026-01-11",
-            locale="fr",
-            file="test.json",
-            key="message",
-            english_text="Don't forget",
-        )
+    def test_export_escapes_single_quotes_via_sqlite_quote(self, hydrated_db: Path):
+        """SQLite's quote() properly escapes single quotes."""
+        conn = sqlite3.connect(hydrated_db)
 
+        # Insert a task with single quotes in text
+        cursor = conn.execute(
+            "INSERT INTO translation_tasks "
+            "(batch, locale, file, key, english_text) VALUES (?, ?, ?, ?, ?)",
+            ("2026-01-11", "fr", "test.json", "message", "Don't forget"),
+        )
+        task_id = cursor.lastrowid
+        conn.commit()
+
+        # Export using quote() function
+        statements = export_tasks_to_sql(conn, [task_id])
+        conn.close()
+
+        sql = statements[0]
+        # SQLite quote() escapes single quotes as ''
         assert "Don''t forget" in sql
-        assert "Don't forget" not in sql
 
     def test_batch_defaults_to_today(self, mock_src_locales: Path, tmp_path: Path):
         """Uses current date if batch not specified."""
@@ -312,22 +329,31 @@ class TestTaskGeneration:
             gt.EN_DIR = original_en_dir
             gt.TASKS_FILE = original_tasks_file
 
-    def test_sql_is_executable(self, hydrated_db: Path):
-        """Generated SQL can be executed against the database schema."""
-        sql = generate_insert(
-            batch="2026-01-11",
-            locale="test",
-            file="test.json",
-            key="test.key",
-            english_text="Test value",
-        )
-
+    def test_exported_sql_is_executable(self, hydrated_db: Path):
+        """Exported SQL can be re-executed against the database schema."""
         conn = sqlite3.connect(hydrated_db)
-        # Should not raise
-        conn.execute(sql)
+
+        # Insert a task
+        cursor = conn.execute(
+            "INSERT INTO translation_tasks "
+            "(batch, locale, file, key, english_text) VALUES (?, ?, ?, ?, ?)",
+            ("2026-01-11", "test", "test.json", "test.key", "Test value"),
+        )
+        task_id = cursor.lastrowid
         conn.commit()
 
-        # Verify it was inserted
+        # Export it
+        statements = export_tasks_to_sql(conn, [task_id])
+
+        # Delete the original
+        conn.execute("DELETE FROM translation_tasks WHERE id = ?", (task_id,))
+        conn.commit()
+
+        # Re-execute the exported SQL - should work
+        conn.execute(statements[0])
+        conn.commit()
+
+        # Verify it was re-inserted
         cursor = conn.execute(
             "SELECT * FROM translation_tasks WHERE key = 'test.key'"
         )
@@ -408,24 +434,6 @@ class TestDryRun:
             gt.TASKS_FILE = original_tasks_file
 
 
-class TestEscapeSqlString:
-    """Tests for SQL string escaping."""
-
-    def test_escapes_single_quotes(self):
-        """Single quotes are doubled for SQL safety."""
-        assert escape_sql_string("Don't") == "Don''t"
-        assert escape_sql_string("It's a test") == "It''s a test"
-
-    def test_handles_multiple_quotes(self):
-        """Multiple single quotes are all escaped."""
-        assert escape_sql_string("'hello' 'world'") == "''hello'' ''world''"
-
-    def test_leaves_other_chars_unchanged(self):
-        """Non-quote characters are not modified."""
-        assert escape_sql_string("Hello World") == "Hello World"
-        assert escape_sql_string("Test 123") == "Test 123"
-
-
 class TestGetKeysFromFile:
     """Tests for get_keys_from_file function."""
 
@@ -458,11 +466,11 @@ class TestGetKeysFromFile:
         }
 
 
-class TestWriteToSqlFile:
-    """Tests for write_to_sql_file function."""
+class TestAppendToSqlFile:
+    """Tests for append_to_sql_file function."""
 
     def test_appends_to_file(self, tmp_path: Path):
-        """INSERT statements are appended to existing file."""
+        """SQL statements are appended to existing file."""
         import generate_tasks as gt
 
         original_tasks_file = gt.TASKS_FILE
@@ -471,24 +479,12 @@ class TestWriteToSqlFile:
             gt.TASKS_FILE = tmp_path / "tasks.sql"
             gt.TASKS_FILE.write_text("-- existing content\n")
 
-            tasks = [
-                TaskData(
-                    batch="test1",
-                    locale="eo",
-                    file="auth.json",
-                    key="web.login",
-                    english_text="Login",
-                ),
-                TaskData(
-                    batch="test2",
-                    locale="eo",
-                    file="auth.json",
-                    key="web.logout",
-                    english_text="Logout",
-                ),
+            statements = [
+                "INSERT INTO translation_tasks (batch) VALUES ('test1');",
+                "INSERT INTO translation_tasks (batch) VALUES ('test2');",
             ]
 
-            write_to_sql_file(tasks)
+            append_to_sql_file(statements)
 
             content = gt.TASKS_FILE.read_text()
             assert "-- existing content" in content
@@ -507,16 +503,10 @@ class TestWriteToSqlFile:
             gt.TASKS_FILE = tmp_path / "new_tasks.sql"
             assert not gt.TASKS_FILE.exists()
 
-            tasks = [
-                TaskData(
-                    batch="test",
-                    locale="eo",
-                    file="auth.json",
-                    key="web.test",
-                    english_text="Test",
-                ),
+            statements = [
+                "INSERT INTO translation_tasks (batch) VALUES ('test');",
             ]
-            write_to_sql_file(tasks)
+            append_to_sql_file(statements)
 
             assert gt.TASKS_FILE.exists()
             assert "test" in gt.TASKS_FILE.read_text()

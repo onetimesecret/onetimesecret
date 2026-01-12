@@ -92,28 +92,6 @@ def get_keys_from_file(file_path: Path) -> dict[str, str]:
         return {}
 
 
-def escape_sql_string(value: str) -> str:
-    """Escape single quotes for SQL strings."""
-    return value.replace("'", "''")
-
-
-def generate_insert(
-    batch: str,
-    locale: str,
-    file: str,
-    key: str,
-    english_text: str,
-) -> str:
-    """Generate an INSERT statement for a translation task."""
-    return (
-        f"INSERT INTO translation_tasks "
-        f"(batch, locale, file, key, english_text) VALUES "
-        f"('{escape_sql_string(batch)}', '{escape_sql_string(locale)}', "
-        f"'{escape_sql_string(file)}', '{escape_sql_string(key)}', "
-        f"'{escape_sql_string(english_text)}');"
-    )
-
-
 def compare_locale(
     locale: str,
     batch: str,
@@ -207,21 +185,48 @@ def compare_locale(
     return tasks, stats
 
 
-def write_to_sql_file(tasks: list[TaskData]) -> None:
-    """Append INSERT statements to tasks.sql.
+def export_tasks_to_sql(conn: sqlite3.Connection, task_ids: list[int]) -> list[str]:
+    """Generate INSERT statements using SQLite's quote() for proper escaping.
 
-    Generates escaped SQL strings for the git-tracked file.
+    Args:
+        conn: Database connection.
+        task_ids: List of task IDs to export.
+
+    Returns:
+        List of properly escaped INSERT statements.
     """
+    if not task_ids:
+        return []
+
+    placeholders = ",".join("?" * len(task_ids))
+    cursor = conn.execute(
+        f"""
+        SELECT 'INSERT INTO translation_tasks (batch, locale, file, key, english_text) VALUES ('
+            || quote(batch) || ', '
+            || quote(locale) || ', '
+            || quote(file) || ', '
+            || quote(key) || ', '
+            || quote(english_text) || ');'
+        FROM translation_tasks
+        WHERE id IN ({placeholders})
+        ORDER BY id
+        """,
+        task_ids,
+    )
+    return [row[0] for row in cursor]
+
+
+def append_to_sql_file(statements: list[str]) -> None:
+    """Append SQL statements to tasks.sql."""
+    if not statements:
+        return
     with open(TASKS_FILE, "a", encoding="utf-8") as f:
         f.write("\n")
-        for task in tasks:
-            stmt = generate_insert(
-                task.batch, task.locale, task.file, task.key, task.english_text
-            )
+        for stmt in statements:
             f.write(stmt + "\n")
 
 
-def insert_into_db(tasks: list[TaskData]) -> int:
+def insert_into_db(tasks: list[TaskData]) -> tuple[sqlite3.Connection, list[int]]:
     """Insert tasks directly into database using parameterized queries.
 
     Uses parameterized queries to prevent SQL injection and ensure
@@ -231,14 +236,18 @@ def insert_into_db(tasks: list[TaskData]) -> int:
         tasks: List of TaskData records to insert.
 
     Returns:
-        Number of rows inserted.
+        Tuple of (connection, list of inserted row IDs).
+        Caller is responsible for closing the connection.
     """
     if not DB_FILE.exists():
-        return 0
+        raise FileNotFoundError(
+            f"Database not found: {DB_FILE}\n"
+            "Run 'python db.py hydrate' to create it first."
+        )
 
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    inserted = 0
+    inserted_ids: list[int] = []
 
     for task in tasks:
         try:
@@ -247,7 +256,8 @@ def insert_into_db(tasks: list[TaskData]) -> int:
                 "(batch, locale, file, key, english_text) VALUES (?, ?, ?, ?, ?)",
                 (task.batch, task.locale, task.file, task.key, task.english_text),
             )
-            inserted += 1
+            if cursor.lastrowid is not None:
+                inserted_ids.append(cursor.lastrowid)
         except sqlite3.IntegrityError:
             # Duplicate key - skip silently (UNIQUE constraint)
             pass
@@ -255,8 +265,7 @@ def insert_into_db(tasks: list[TaskData]) -> int:
             print(f"Warning: SQL error: {e}", file=sys.stderr)
 
     conn.commit()
-    conn.close()
-    return inserted
+    return conn, inserted_ids
 
 
 def main() -> None:
@@ -316,18 +325,25 @@ Examples:
         print("No tasks to generate.")
         return
 
-    # Write to tasks.sql (uses escaped SQL strings for git-tracked file)
-    write_to_sql_file(tasks)
-    print(f"\nAppended {len(tasks)} INSERT statements to {TASKS_FILE}")
+    # Database is required - insert first, then export to SQL file
+    try:
+        conn, inserted_ids = insert_into_db(tasks)
+    except FileNotFoundError as e:
+        print(f"\nError: {e}", file=sys.stderr)
+        sys.exit(1)
 
-    # Insert into database if it exists (uses parameterized queries)
-    if DB_FILE.exists():
-        inserted = insert_into_db(tasks)
-        print(f"Inserted {inserted} rows into {DB_FILE}")
-        if inserted < len(tasks):
-            print(f"  ({len(tasks) - inserted} duplicates skipped)")
-    else:
-        print(f"Database not found ({DB_FILE}) - run 'python db.py hydrate' to create")
+    try:
+        print(f"\nInserted {len(inserted_ids)} rows into {DB_FILE}")
+        if len(inserted_ids) < len(tasks):
+            print(f"  ({len(tasks) - len(inserted_ids)} duplicates skipped)")
+
+        # Export inserted tasks to SQL file using SQLite's quote() for proper escaping
+        if inserted_ids:
+            statements = export_tasks_to_sql(conn, inserted_ids)
+            append_to_sql_file(statements)
+            print(f"Appended {len(statements)} INSERT statements to {TASKS_FILE}")
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":
