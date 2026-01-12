@@ -176,10 +176,32 @@ function updateIfDefined<T>(target: Ref<T>, value: T | undefined): void {
  *    - No more window.__BOOTSTRAP_STATE__ vs reactiveState synchronization
  *    - All access goes through this store after initialization
  *
- * Usage:
+ * Lifecycle:
  * - init() called once during app bootstrap (after Pinia is installed)
- * - update() called after /window API responses
+ * - update() called after /bootstrap/me API responses
+ * - refresh() fetches fresh state from server (use after mutations)
  * - $reset() called on logout to restore defaults
+ *
+ * Access Patterns:
+ * Pinia setup stores auto-unwrap refs, so access patterns differ by context:
+ *
+ * 1. Direct store access (routes, composables, non-reactive JS):
+ *    ```ts
+ *    const store = useBootstrapStore();
+ *    if (store.billing_enabled) { ... }  // No .value needed
+ *    ```
+ *
+ * 2. Reactive destructuring (Vue components needing reactivity):
+ *    ```ts
+ *    const { billing_enabled } = storeToRefs(store);
+ *    if (billing_enabled.value) { ... }  // .value required
+ *    ```
+ *
+ * 3. Template usage (either pattern works without .value):
+ *    ```vue
+ *    <div v-if="store.billing_enabled">  // Direct access
+ *    <div v-if="billing_enabled">        // After storeToRefs destructure
+ *    ```
  */
 /* eslint-disable max-lines-per-function */
 export const useBootstrapStore = defineStore('bootstrap', () => {
