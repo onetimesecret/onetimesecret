@@ -83,7 +83,7 @@
       if (!response) throw 'Response is missing';
       const newMessage: ConcealedMessage = {
         id: nanoid(),
-        receipt_identifier: response.record.metadata.identifier,
+        receipt_identifier: response.record.receipt.identifier,
         secret_identifier: response.record.secret.identifier,
         response,
         clientInfo: {
@@ -102,7 +102,7 @@
 
       // In workspace mode, stay on page; otherwise navigate to receipt
       if (!props.workspaceMode) {
-        router.push(`/receipt/${response.record.metadata.identifier}`);
+        router.push(`/receipt/${response.record.receipt.identifier}`);
       }
     },
   });

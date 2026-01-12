@@ -103,7 +103,7 @@
         if (!response) throw 'Response is missing';
         const newMessage: ConcealedMessage = {
           id: nanoid(),
-          receipt_identifier: response.record.metadata.identifier,
+          receipt_identifier: response.record.receipt.identifier,
           secret_identifier: response.record.secret.identifier,
           response,
           clientInfo: {

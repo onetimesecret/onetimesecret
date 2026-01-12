@@ -86,7 +86,7 @@ function transformLocalRecord(message: ConcealedMessage): RecentSecretRecord {
     hasPassphrase: message.clientInfo.hasPassphrase,
     ttl: message.clientInfo.ttl,
     createdAt: message.clientInfo.createdAt,
-    shareDomain: message.response?.record?.metadata?.share_domain ?? undefined,
+    shareDomain: message.response?.record?.share_domain ?? undefined,
     isViewed: false, // Local records start as not viewed
     isReceived: false, // Local records are never marked received
     isBurned: false, // Local records track this separately if needed

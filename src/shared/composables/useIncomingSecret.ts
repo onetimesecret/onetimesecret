@@ -153,11 +153,11 @@ export function useIncomingSecret(options?: IncomingSecretOptions) {
 
       if (options?.onSuccess) {
         await options.onSuccess(response);
-      } else if (response.success && response.record?.metadata?.key) {
+      } else if (response.success && response.record?.receipt?.key) {
         // Default navigation to success view
         await router.push({
           name: 'IncomingSuccess',
-          params: { receiptKey: response.record.metadata.key },
+          params: { receiptKey: response.record.receipt.key },
         });
       }
 

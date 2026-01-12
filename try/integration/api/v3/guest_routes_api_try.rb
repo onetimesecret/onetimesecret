@@ -76,19 +76,20 @@ post '/api/v3/guest/secret/conceal',
 last_response.status
 #=> 200
 
-## Guest share/conceal response includes record.metadata structure
+## Guest share/conceal response includes record.receipt structure
+# V3 uses modern "receipt" terminology (not "metadata")
 clear_cookies
 post '/api/v3/guest/secret/conceal',
-  { secret: { secret: 'test secret for metadata', ttl: 3600 } }.to_json,
+  { secret: { secret: 'test secret for receipt', ttl: 3600 } }.to_json,
   { 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
 @conceal_response = JSON.parse(last_response.body)
-@conceal_response.dig('record', 'metadata').is_a?(Hash)
+@conceal_response.dig('record', 'receipt').is_a?(Hash)
 #=> true
 
-## Guest share/conceal metadata includes required fields
-# Metadata should have key, identifier (or equivalent identifiers)
-@conceal_response.dig('record', 'metadata').keys.include?('key') ||
-  @conceal_response.dig('record', 'metadata').keys.include?('identifier')
+## Guest share/conceal receipt includes required fields
+# Receipt should have key, identifier (or equivalent identifiers)
+@conceal_response.dig('record', 'receipt').keys.include?('key') ||
+  @conceal_response.dig('record', 'receipt').keys.include?('identifier')
 #=> true
 
 ## Guest share/conceal response includes record.secret structure
@@ -116,9 +117,10 @@ post '/api/v3/guest/secret/generate',
 last_response.status
 #=> 200
 
-## Guest share/generate response includes record.metadata structure
+## Guest share/generate response includes record.receipt structure
+# V3 uses modern "receipt" terminology (not "metadata")
 @generate_response = JSON.parse(last_response.body)
-@generate_response.dig('record', 'metadata').is_a?(Hash)
+@generate_response.dig('record', 'receipt').is_a?(Hash)
 #=> true
 
 ## Guest share/generate response includes record.secret structure

@@ -14,9 +14,12 @@ export const concealReceiptSchema = receiptBaseSchema.extend({
 /**
  * Schema for combined secret and receipt (conceal data)
  * Uses conceal-specific receipt schema without URL fields
+ *
+ * Note: V3 API uses modern "receipt" terminology exclusively.
+ * The legacy "metadata" key was removed in V3 responses.
  */
 export const concealDataSchema = z.object({
-  metadata: concealReceiptSchema, // API response key remains 'metadata' for compatibility
+  receipt: concealReceiptSchema,
   secret: secretSchema,
   share_domain: z.string().nullable(),
 });

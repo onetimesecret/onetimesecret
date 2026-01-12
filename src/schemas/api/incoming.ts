@@ -104,6 +104,8 @@ const secretRecordSchema = z.object({
 /**
  * Schema for incoming secret creation response
  * Matches the actual V3 API response format
+ *
+ * Note: V3 API uses modern "receipt" terminology exclusively.
  */
 export const incomingSecretResponseSchema = z.object({
   success: z.boolean(),
@@ -111,7 +113,7 @@ export const incomingSecretResponseSchema = z.object({
   shrimp: z.string().nullish(),
   custid: z.string().nullish(),
   record: z.object({
-    metadata: metadataRecordSchema,
+    receipt: metadataRecordSchema,
     secret: secretRecordSchema,
   }),
   details: z
