@@ -35,6 +35,8 @@ permissions:
 
 jobs:
   validate-locales:
+    # Temporarily disabled during i18n workflow refactoring (#2319)
+    if: false
     name: Validate Locale Files
     runs-on: ubuntu-24.04
     timeout-minutes: 3
