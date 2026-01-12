@@ -1,8 +1,7 @@
 // src/tests/setup-bootstrap.ts
 //
-// Test utilities for WindowService/bootstrap state mocking.
-// Consolidates 4 distinct mock patterns into a unified approach using
-// createTestingPinia and typed fixtures.
+// Test utilities for bootstrap state mocking.
+// Provides a unified approach using createTestingPinia and typed fixtures.
 
 import type { Customer } from '@/schemas/models';
 import type { BootstrapPayload } from '@/types/declarations/bootstrap';
@@ -237,29 +236,29 @@ export interface BootstrapMockOptions {
 export interface BootstrapMockResult {
   /** The testing Pinia instance */
   pinia: TestingPinia;
-  /** Current window state (mutable for test manipulation) */
-  windowState: BootstrapPayload;
-  /** WindowService mock with get/getMultiple/getState implementations */
-  windowServiceMock: {
+  /** Current bootstrap state (mutable for test manipulation) */
+  bootstrapState: BootstrapPayload;
+  /** Bootstrap mock with get/getMultiple/getState implementations */
+  bootstrapMock: {
     get: ReturnType<typeof vi.fn>;
     getMultiple: ReturnType<typeof vi.fn>;
     getState: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
   };
-  /** Update window state mid-test */
+  /** Update bootstrap state mid-test */
   updateState: (updates: Partial<BootstrapPayload>) => void;
 }
 
 /**
- * Creates a test environment with mocked WindowService and Pinia.
+ * Creates a test environment with mocked bootstrap state and Pinia.
  *
  * This is the recommended approach for tests that depend on bootstrap state.
- * It replaces the 4 distinct mock patterns with a unified, type-safe approach.
+ * Provides a unified, type-safe approach for all test scenarios.
  *
  * @example
  * ```ts
  * // Basic anonymous user test
- * const { pinia, windowServiceMock } = setupBootstrapMock();
+ * const { pinia, bootstrapMock } = setupBootstrapMock();
  *
  * // Authenticated user test
  * const { pinia } = setupBootstrapMock({
@@ -288,14 +287,14 @@ export function setupBootstrapMock(options: BootstrapMockOptions = {}): Bootstra
   } = options;
 
   // Merge base fixture with initial state
-  const windowState: BootstrapPayload = {
+  const bootstrapState: BootstrapPayload = {
     ...baseFixture,
     ...initialState,
   } as BootstrapPayload;
 
-  // Create WindowService mock functions
+  // Create bootstrap mock functions
   const getMock = createSpy((key: keyof BootstrapPayload) => {
-    return windowState[key];
+    return bootstrapState[key];
   });
 
   const getMultipleMock = createSpy(
@@ -303,7 +302,7 @@ export function setupBootstrapMock(options: BootstrapMockOptions = {}): Bootstra
       input: K[] | Partial<Record<K, BootstrapPayload[K]>>
     ): Pick<BootstrapPayload, K> => {
       if (Array.isArray(input)) {
-        return Object.fromEntries(input.map((key) => [key, windowState[key]])) as Pick<
+        return Object.fromEntries(input.map((key) => [key, bootstrapState[key]])) as Pick<
           BootstrapPayload,
           K
         >;
@@ -311,19 +310,19 @@ export function setupBootstrapMock(options: BootstrapMockOptions = {}): Bootstra
       return Object.fromEntries(
         Object.entries(input).map(([key, defaultValue]) => [
           key,
-          windowState[key as K] ?? defaultValue,
+          bootstrapState[key as K] ?? defaultValue,
         ])
       ) as Pick<BootstrapPayload, K>;
     }
   );
 
-  const getStateMock = createSpy(() => windowState);
+  const getStateMock = createSpy(() => bootstrapState);
 
   const updateMock = createSpy((updates: Partial<BootstrapPayload>) => {
-    Object.assign(windowState, updates);
+    Object.assign(bootstrapState, updates);
   });
 
-  const windowServiceMock = {
+  const bootstrapMock = {
     get: getMock,
     getMultiple: getMultipleMock,
     getState: getStateMock,
@@ -338,51 +337,42 @@ export function setupBootstrapMock(options: BootstrapMockOptions = {}): Bootstra
   setActivePinia(pinia);
 
   // Set up window.__BOOTSTRAP_STATE__ for components that access it directly
-  (window as any).__BOOTSTRAP_STATE__ = windowState;
+  (window as any).__BOOTSTRAP_STATE__ = bootstrapState;
 
   // Helper to update state mid-test
   const updateState = (updates: Partial<BootstrapPayload>) => {
-    Object.assign(windowState, updates);
+    Object.assign(bootstrapState, updates);
     // Also update window object for direct access
-    (window as any).__BOOTSTRAP_STATE__ = windowState;
+    (window as any).__BOOTSTRAP_STATE__ = bootstrapState;
   };
 
   return {
     pinia,
-    windowState,
-    windowServiceMock,
+    bootstrapState,
+    bootstrapMock,
     updateState,
   };
 }
 
 /**
- * Creates a WindowService mock for use with vi.mock().
+ * Creates a bootstrap mock for use with vi.hoisted().
  *
- * Use this when you need to mock WindowService at the module level
- * (in vi.mock() calls before imports).
+ * Use this when you need to create mocks at the module level
+ * (in vi.hoisted() calls before imports).
  *
  * @example
  * ```ts
  * // At top of test file, before imports
  * const { mockGet, mockGetMultiple } = vi.hoisted(() =>
- *   createHoistedWindowServiceMock()
+ *   createHoistedBootstrapMock()
  * );
  *
- * vi.mock('@/services/window.service', () => ({
- *   WindowService: {
- *     get: mockGet,
- *     getMultiple: mockGetMultiple,
- *   },
- * }));
- *
- * // In test
- * mockGet.mockImplementation((key) => {
- *   if (key === 'authenticated') return true;
- *   return undefined;
- * });
+ * // In beforeEach
+ * const { bootstrapState } = setupBootstrapMock({ initialState: authenticatedBootstrap });
+ * mockGet.mockImplementation((key) => bootstrapState[key]);
  * ```
  */
-export function createHoistedWindowServiceMock() {
+export function createHoistedBootstrapMock() {
   return {
     mockGet: vi.fn(),
     mockGetMultiple: vi.fn(),
@@ -390,6 +380,11 @@ export function createHoistedWindowServiceMock() {
     mockUpdate: vi.fn(),
   };
 }
+
+/**
+ * @deprecated Use createHoistedBootstrapMock instead
+ */
+export const createHoistedWindowServiceMock = createHoistedBootstrapMock;
 
 /**
  * Convenience function to create a state override object for specific keys.
@@ -401,9 +396,7 @@ export function createHoistedWindowServiceMock() {
  *   billing_enabled: false,
  * });
  *
- * vi.spyOn(WindowService, 'get').mockImplementation((key) =>
- *   override[key] ?? baseBootstrap[key]
- * );
+ * const { bootstrapMock } = setupBootstrapMock({ initialState: override });
  * ```
  */
 export function createStateOverride(
@@ -413,119 +406,16 @@ export function createStateOverride(
 }
 
 // ============================================================================
-// DOCUMENTATION: The 4 Mock Patterns Found in Existing Tests
+// HISTORICAL REFERENCE: Legacy WindowService Mock Patterns
 // ============================================================================
-
-/**
- * ## Pattern 1: vi.spyOn with per-key implementation
- *
- * Found in: DashboardBasic.spec.ts, languageStore.spec.ts, UserMenu.spec.ts
- *
- * ```ts
- * vi.spyOn(WindowService, 'get').mockImplementation((key: string) => {
- *   if (key === 'cust') return { feature_flags: { beta: false } };
- *   if (key === 'billing_enabled') return true;
- *   return undefined;
- * });
- * ```
- *
- * Migration:
- * ```ts
- * const { windowServiceMock } = setupBootstrapMock({
- *   initialState: {
- *     cust: { ...mockCustomer, feature_flags: { beta: false } },
- *     billing_enabled: true,
- *   },
- * });
- * vi.spyOn(WindowService, 'get').mockImplementation(windowServiceMock.get);
- * ```
- *
- * ## Pattern 2: vi.hoisted with vi.mock at module level
- *
- * Found in: useEntitlements.spec.ts
- *
- * ```ts
- * const { mockWindowGet } = vi.hoisted(() => ({
- *   mockWindowGet: vi.fn(),
- * }));
- *
- * vi.mock('@/services/window.service', () => ({
- *   WindowService: { get: mockWindowGet },
- * }));
- * ```
- *
- * Migration:
- * ```ts
- * const { mockGet } = vi.hoisted(() => createHoistedWindowServiceMock());
- *
- * vi.mock('@/services/window.service', () => ({
- *   WindowService: { get: mockGet },
- * }));
- *
- * // In beforeEach
- * const { windowState } = setupBootstrapMock({ initialState: authenticatedBootstrap });
- * mockGet.mockImplementation((key) => windowState[key]);
- * ```
- *
- * ## Pattern 3: Full module mock with static values
- *
- * Found in: useDomainScope.spec.ts, useSecretContext.spec.ts
- *
- * ```ts
- * vi.mock('@/services/window.service', () => ({
- *   WindowService: {
- *     get: vi.fn((key: string) => {
- *       const mockState = { domain_strategy: 'canonical', ... };
- *       return mockState[key];
- *     }),
- *     getMultiple: vi.fn(),
- *   },
- * }));
- * ```
- *
- * Migration:
- * ```ts
- * const { mockGet, mockGetMultiple } = vi.hoisted(() =>
- *   createHoistedWindowServiceMock()
- * );
- *
- * vi.mock('@/services/window.service', () => ({
- *   WindowService: { get: mockGet, getMultiple: mockGetMultiple },
- * }));
- *
- * // In beforeEach
- * const { windowState } = setupBootstrapMock({
- *   initialState: {
- *     domain_strategy: 'canonical',
- *     domains_enabled: true,
- *     ...
- *   },
- * });
- * mockGet.mockImplementation((key) => windowState[key]);
- * mockGetMultiple.mockImplementation((input) => { ... });
- * ```
- *
- * ## Pattern 4: vi.mocked with dynamic return values
- *
- * Found in: useDomainScope.spec.ts (for getMultiple)
- *
- * ```ts
- * vi.mocked(WindowService.getMultiple).mockReturnValue({
- *   domains_enabled: true,
- *   site_host: 'onetimesecret.com',
- * });
- * ```
- *
- * Migration:
- * ```ts
- * const { updateState, windowServiceMock } = setupBootstrapMock({
- *   initialState: customDomainsBootstrap,
- * });
- * vi.spyOn(WindowService, 'getMultiple').mockImplementation(
- *   windowServiceMock.getMultiple
- * );
- *
- * // Update dynamically in test
- * updateState({ domains_enabled: true, site_host: 'onetimesecret.com' });
- * ```
- */
+//
+// NOTE: WindowService was removed in #2365. This documentation is preserved
+// as historical reference for understanding legacy test patterns. All tests
+// should now use setupBootstrapMock() directly with bootstrapStore.
+//
+// The recommended modern approach:
+// ```ts
+// const { pinia, bootstrapState, bootstrapMock, updateState } = setupBootstrapMock({
+//   initialState: authenticatedBootstrap,
+// });
+// ```
