@@ -177,7 +177,7 @@ RSpec.describe 'Admin Interface', type: :integration do
         body = JSON.parse(last_response.body)
 
         expect(body['details']['metadata']).not_to be_nil
-        expect(body['details']['metadata']['metadata_id']).to eq(secret_pair[:metadata].objid)
+        expect(body['details']['metadata']['receipt_id']).to eq(secret_pair[:metadata].objid)
       end
 
       it 'includes owner information' do
