@@ -3,8 +3,9 @@
 import { createApi } from '@/api';
 import i18n from '@/i18n';
 import { createAppRouter } from '@/router';
+import { consumeBootstrapData, getBootstrapValue } from '@/services/bootstrap.service';
 import { loggingService } from '@/services/logging.service';
-import { WindowService } from '@/services/window.service';
+import type { DiagnosticsConfig } from '@/types/diagnostics';
 import { AxiosInstance } from 'axios';
 import { createPinia } from 'pinia';
 import { App, Plugin } from 'vue';
@@ -40,19 +41,23 @@ export const AppInitializer: Plugin<AppInitializerOptions> = {
  */
 /*eslint max-statements: ["error", 20]*/
 function initializeApp(app: App, options: AppInitializerOptions = {}) {
-  const diagnostics = WindowService.get('diagnostics');
-  const d9sEnabled = WindowService.get('d9s_enabled');
-  const displayDomain = WindowService.get('display_domain');
-  const siteHost = WindowService.get('site_host');
+  // Consume bootstrap data early, before Pinia is installed.
+  // This populates the snapshot for getBootstrapValue() calls.
+  consumeBootstrapData();
+
+  const diagnostics = getBootstrapValue('diagnostics');
+  const d9sEnabled = getBootstrapValue('d9s_enabled');
+  const displayDomain = getBootstrapValue('display_domain');
+  const siteHost = getBootstrapValue('site_host');
   const router = createAppRouter();
   const pinia = createPinia();
   const api = options.api ?? createApi();
 
-  if (d9sEnabled) {
-    // Create plugin instances
+  if (d9sEnabled && diagnostics) {
+    // Create plugin instances. When d9sEnabled is true, host/config are guaranteed.
     const diagnosticsPlugin = createDiagnostics({
-      host: displayDomain ?? siteHost,
-      config: diagnostics,
+      host: (displayDomain ?? siteHost) as string,
+      config: diagnostics as DiagnosticsConfig,
       router,
     });
 

@@ -13,8 +13,9 @@
   import TransactionalFooter from '@/shared/components/layout/TransactionalFooter.vue';
   import TransactionalHeader from '@/shared/components/layout/TransactionalHeader.vue';
   import BaseLayout from '@/shared/layouts/BaseLayout.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useMetadataListStore } from '@/shared/stores';
+  import { storeToRefs } from 'pinia';
   import type { LayoutProps } from '@/types/ui/layouts';
   import { computed, onMounted } from 'vue';
 
@@ -28,8 +29,8 @@
     displayPoweredBy: false,
   });
 
-  const authenticated = computed(() => WindowService.get('authenticated'));
-  const domainsEnabled = WindowService.get('domains_enabled');
+  const bootstrapStore = useBootstrapStore();
+  const { authenticated, domains_enabled: domainsEnabled } = storeToRefs(bootstrapStore);
 
   // Store instances for centralized data loading (for authenticated view)
   const metadataListStore = useMetadataListStore();

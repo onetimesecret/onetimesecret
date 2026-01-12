@@ -4,13 +4,23 @@
   import { useI18n } from 'vue-i18n';
   import DefaultLogo from '@/shared/components/logos/DefaultLogo.vue';
   import UserMenu from '@/shared/components/navigation/UserMenu.vue';
-  import { WindowService } from '@/services/window.service';
   import { useAuthStore } from '@/shared/stores/authStore';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import type { LayoutProps } from '@/types/ui/layouts';
+  import { storeToRefs } from 'pinia';
   import { computed, watch, type Component, onMounted } from 'vue';
   import { shallowRef } from 'vue';
 
   const authStore = useAuthStore();
+  const bootstrapStore = useBootstrapStore();
+  const {
+    authentication,
+    awaiting_mfa,
+    email,
+    cust,
+    ui,
+    domain_logo,
+  } = storeToRefs(bootstrapStore);
 
   const props = withDefaults(defineProps<LayoutProps>(), {
     displayMasthead: true,
@@ -18,18 +28,7 @@
     colonel: false,
   });
 
-  // Make window properties reactive by using computed
-  const windowProps = computed(() => WindowService.getMultiple([
-    'authentication',
-    'authenticated',
-    'awaiting_mfa',
-    'email',
-    'cust',
-    'ui',
-    'domain_logo',
-  ]));
-
-  const isColonel = computed(() => windowProps.value.cust?.role === 'colonel');
+  const isColonel = computed(() => cust.value?.role === 'colonel');
 
   // User is partially or fully authenticated - use centralized auth store getter
   // Partially: email verified but awaiting MFA (awaiting_mfa = true, has email but no cust)
@@ -40,21 +39,21 @@
   const { t } = useI18n();
 
   // Header configuration
-  const headerConfig = computed(() => windowProps.value.ui?.header);
+  const headerConfig = computed(() => ui.value?.header);
 
   // Default logo component for fallback
   const DEFAULT_LOGO = 'DefaultLogo.vue';
 
   // Helper functions for logo configuration
   // Priority: props > custom domain logo > static config > default
-  const getLogoUrl = () => props.logo?.url || windowProps.value.domain_logo || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
+  const getLogoUrl = () => props.logo?.url || domain_logo.value || headerConfig.value?.branding?.logo?.url || DEFAULT_LOGO;
   const getLogoAlt = () => props.logo?.alt || headerConfig.value?.branding?.logo?.alt || t('web.homepage.one_time_secret_literal');
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
   // Custom domain logos are larger to emphasize brand identity
-  const isCustomDomainLogo = computed(() => !!windowProps.value.domain_logo);
+  const isCustomDomainLogo = computed(() => !!domain_logo.value);
   const getLogoSize = () => props.logo?.size || (isCustomDomainLogo.value ? 80 : 64);
   // Hide site name when custom domain logo is displayed (unless explicitly configured)
-  const getShowSiteName = () => props.logo?.showSiteName ?? (windowProps.value.domain_logo ? false : !!headerConfig.value?.branding?.site_name);
+  const getShowSiteName = () => props.logo?.showSiteName ?? (domain_logo.value ? false : !!headerConfig.value?.branding?.site_name);
   const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal');
   const getAriaLabel = () => props.logo?.ariaLabel;
   const getIsColonelArea = () => props.logo?.isColonelArea ?? props.colonel;
@@ -124,12 +123,12 @@
   // Watch for changes to logoUrl and load Vue component if needed
   watch(() => logoConfig.value.url, loadLogoComponent, { immediate: true });
 
-  // Refresh window state to ensure auth status is up to date
+  // Refresh bootstrap state to ensure auth status is up to date
   onMounted(async () => {
     try {
-      await WindowService.refresh();
+      await bootstrapStore.refresh();
     } catch (error) {
-      console.warn('Failed to refresh window state:', error);
+      console.warn('Failed to refresh bootstrap state:', error);
     }
   });
 
@@ -179,17 +178,17 @@
         <template v-if="isUserPresent">
           <!-- User Menu Dropdown -->
           <UserMenu
-            :cust="windowProps.cust"
-            :email="windowProps.email"
+            :cust="cust"
+            :email="email"
             :colonel="isColonel"
-            :awaiting-mfa="windowProps.awaiting_mfa" />
+            :awaiting-mfa="awaiting_mfa" />
         </template>
 
         <template v-else>
-          <template v-if="windowProps.authentication.enabled">
+          <template v-if="authentication.enabled">
             <!-- prettier-ignore-attribute class -->
             <router-link
-              v-if="windowProps.authentication.signup"
+              v-if="authentication.signup"
               to="/signup"
               :title="t('web.homepage.signup_individual_and_business_plans')"
               class="font-bold text-gray-600 transition-colors duration-200
@@ -197,7 +196,7 @@
               {{ t('web.COMMON.header_create_account') }}
             </router-link>
             <span
-              v-if="windowProps.authentication.signup && windowProps.authentication.signin"
+              v-if="authentication.signup && authentication.signin"
               class="text-gray-400"
               aria-hidden="true"
               role="separator">
@@ -205,7 +204,7 @@
             </span>
             <!-- prettier-ignore-attribute class -->
             <router-link
-              v-if="windowProps.authentication.signin"
+              v-if="authentication.signin"
               to="/signin"
               :title="t('web.homepage.log_in_to_onetime_secret')"
               class="text-gray-600 transition-colors duration-200

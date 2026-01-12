@@ -11,8 +11,9 @@
  */
 
 import type { BrandSettings } from '@/schemas/models';
-import { WindowService } from '@/services/window.service';
 import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { storeToRefs } from 'pinia';
 import { computed, type ComputedRef, type Ref } from 'vue';
 
 export interface PrivacyDefaults {
@@ -65,9 +66,14 @@ export function useWorkspacePrivacyDefaults(
   const { formatDuration } = usePrivacyOptions();
 
   // Get global secret options for canonical domain defaults
-  const secretOptions = WindowService.get('secret_options');
-  const globalDefaultTtl = secretOptions?.default_ttl ?? 604800; // 7 days fallback
-  const globalPassphraseRequired = secretOptions?.passphrase?.required ?? false;
+  const bootstrapStore = useBootstrapStore();
+  const { secret_options } = storeToRefs(bootstrapStore);
+  const globalDefaultTtl = computed(
+    () => secret_options.value?.default_ttl ?? 604800
+  ); // 7 days fallback
+  const globalPassphraseRequired = computed(
+    () => secret_options.value?.passphrase?.required ?? false
+  );
 
   /**
    * Computed privacy defaults that merge global and domain-specific settings
@@ -76,8 +82,8 @@ export function useWorkspacePrivacyDefaults(
     if (isCanonical.value) {
       // Canonical domain: use global defaults, not editable
       return {
-        defaultTtl: globalDefaultTtl,
-        passphraseRequired: globalPassphraseRequired,
+        defaultTtl: globalDefaultTtl.value,
+        passphraseRequired: globalPassphraseRequired.value,
         notifyEnabled: false, // Global default for notifications
         isGlobalDefaults: true,
         isEditable: false,
@@ -105,7 +111,7 @@ export function useWorkspacePrivacyDefaults(
   const ttlDisplay = computed(() => {
     const ttl = privacyDefaults.value.defaultTtl;
     if (ttl === null) {
-      return formatDuration(globalDefaultTtl);
+      return formatDuration(globalDefaultTtl.value);
     }
     return formatDuration(ttl);
   });

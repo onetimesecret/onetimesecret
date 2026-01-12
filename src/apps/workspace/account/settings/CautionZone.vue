@@ -5,10 +5,12 @@
   import AccountDeleteButtonWithModalForm from '@/apps/workspace/components/account/AccountDeleteButtonWithModalForm.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
-  const windowProps = WindowService.getMultiple(['cust']);
+  const bootstrapStore = useBootstrapStore();
+  const { cust } = storeToRefs(bootstrapStore);
 </script>
 
 <template>
@@ -57,8 +59,8 @@
             </div>
 
             <AccountDeleteButtonWithModalForm
-              v-if="windowProps.cust"
-              :cust="windowProps.cust" />
+              v-if="cust"
+              :cust="cust" />
           </div>
         </div>
       </section>

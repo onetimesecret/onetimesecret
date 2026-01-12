@@ -537,6 +537,34 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     console.debug('[BootstrapStore.$reset] Reset to defaults');
   }
 
+  /**
+   * Refreshes state from the /window API endpoint.
+   * Use this to sync state with the server after actions that change server state.
+   *
+   * @returns Promise that resolves when state is refreshed
+   * @throws Error if fetch fails
+   */
+  async function refresh(): Promise<void> {
+    if (typeof window === 'undefined') {
+      throw new Error('[BootstrapStore] Cannot refresh: window is not defined');
+    }
+
+    const response = await fetch('/window', {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`[BootstrapStore] Failed to refresh state: ${response.status}`);
+    }
+
+    const newState = (await response.json()) as OnetimeWindow;
+    update(newState);
+  }
+
   return {
     // State - Authentication
     authenticated,
@@ -620,6 +648,7 @@ export const useBootstrapStore = defineStore('bootstrap', () => {
     // Actions
     init,
     update,
+    refresh,
     $reset,
   };
 });

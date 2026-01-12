@@ -13,7 +13,8 @@
   import { useBranding } from '@/shared/composables/useBranding';
   import { useDomain } from '@/shared/composables/useDomain';
   import { createError } from '@/schemas/errors';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
   import { detectPlatform } from '@/utils';
   import { computed, onMounted, ref, watch } from 'vue';
   import { onBeforeRouteLeave } from 'vue-router';
@@ -51,7 +52,8 @@
     browserType.value = browserType.value === 'safari' ? 'edge' : 'safari';
   };
 
-  const windowProps = WindowService.getMultiple(['i18n_enabled']);
+  const bootstrapStore = useBootstrapStore();
+  const { i18n_enabled } = storeToRefs(bootstrapStore);
 
   // Instructions fields configuration for the modal
   const instructionFields = computed(() => [
@@ -134,7 +136,7 @@
 
           <template #language-button>
             <LanguageSelector
-              v-if="windowProps.i18n_enabled"
+              v-if="i18n_enabled"
               v-model="brandSettings.locale"
               :preview-i18n="previewI18n"
               @update:model-value="(value) => (brandSettings.locale = value)" />

@@ -4,7 +4,7 @@
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
 import { useCsrfStore } from '@/shared/stores';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { createApi } from '@/api';
 import {
   Dialog,
@@ -18,6 +18,7 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const csrfStore = useCsrfStore();
+const bootstrapStore = useBootstrapStore();
 const $api = createApi();
 
 const props = defineProps<{
@@ -117,8 +118,8 @@ const handleActivateTestMode = async (planId: string) => {
       }
     );
 
-    // Refresh window state to get updated entitlements (no page reload needed)
-    await WindowService.refresh();
+    // Refresh bootstrap store to get updated entitlements (no page reload needed)
+    await bootstrapStore.init();
     emit('close');
   } catch (err: unknown) {
     console.error('Failed to activate test mode:', err);
@@ -144,8 +145,8 @@ const handleResetToActual = async () => {
       }
     );
 
-    // Refresh window state to clear test mode (no page reload needed)
-    await WindowService.refresh();
+    // Refresh bootstrap store to clear test mode (no page reload needed)
+    await bootstrapStore.init();
     emit('close');
   } catch (err: unknown) {
     console.error('Failed to reset test mode:', err);

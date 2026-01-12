@@ -4,10 +4,12 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import QueueStatus from '@/apps/colonel/components/QueueStatus.vue';
   import DomainContextSwitcher from '@/apps/colonel/components/DomainContextSwitcher.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
 
-  const windowProps = WindowService.getMultiple(['authentication', 'development']);
+  const bootstrapStore = useBootstrapStore();
+  const { authentication, development } = storeToRefs(bootstrapStore);
 
   // System sections with conditional visibility
   const systemSections = computed(() => {
@@ -29,7 +31,7 @@
     ];
 
     // Conditionally add Auth Database if authentication mode is full
-    if (windowProps.authentication?.mode === 'full') {
+    if (authentication.value?.mode === 'full') {
       sections.push({
         name: 'Auth Database',
         description: 'SQLite/PostgreSQL authentication database monitoring',
@@ -112,7 +114,7 @@ d="M15 19l-7-7 7-7" />
     </div>
 
     <!-- Domain Context Override (development only) -->
-    <div v-if="windowProps.development?.domain_context_enabled" class="mt-6">
+    <div v-if="development?.domain_context_enabled" class="mt-6">
       <DomainContextSwitcher />
     </div>
   </div>

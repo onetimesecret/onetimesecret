@@ -1,7 +1,8 @@
 // src/shared/composables/useSecretForm.ts
 
 import { transforms } from '@/schemas/transforms';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { storeToRefs } from 'pinia';
 import { reactive } from 'vue';
 import { z } from 'zod';
 
@@ -35,22 +36,6 @@ const formSchema = z.object({
 export type SecretFormData = z.infer<typeof formSchema>;
 
 /**
- * Creates default form state
- */
-function getDefaultFormState(): SecretFormData {
-  // Get system configuration for default TTL
-  const secretOptions = WindowService.get('secret_options');
-
-  return {
-    secret: '',
-    ttl: secretOptions.default_ttl ?? 3600 * 24 * 7,
-    passphrase: '',
-    recipient: '',
-    share_domain: '',
-  };
-}
-
-/**
  * useSecretForm - secret form state and validation
  *
  * Central source of truth for form state. Manages form data validation,
@@ -66,6 +51,22 @@ function getDefaultFormState(): SecretFormData {
  */
 /* eslint-disable max-lines-per-function */
 export function useSecretForm() {
+  const bootstrapStore = useBootstrapStore();
+  const { secret_options } = storeToRefs(bootstrapStore);
+
+  /**
+   * Creates default form state
+   */
+  function getDefaultFormState(): SecretFormData {
+    return {
+      secret: '',
+      ttl: secret_options.value?.default_ttl ?? 3600 * 24 * 7,
+      passphrase: '',
+      recipient: '',
+      share_domain: '',
+    };
+  }
+
   const form = reactive<SecretFormData>(getDefaultFormState());
   const errors = reactive(new Map<keyof SecretFormData, string>());
 
@@ -93,8 +94,7 @@ export function useSecretForm() {
         }
 
         // Additional passphrase validation based on configuration
-        const secretOptions = WindowService.get('secret_options');
-        const passphraseConfig = secretOptions?.passphrase;
+        const passphraseConfig = secret_options.value?.passphrase;
 
         if (passphraseConfig) {
           // Check if passphrase is required

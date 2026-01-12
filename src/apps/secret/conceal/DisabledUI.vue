@@ -3,15 +3,13 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import DisabledHomepageTaglines from '@/apps/secret/components/conceal/DisabledHomepageTaglines.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
 
-  const windowProps = WindowService.getMultiple([
-    'authenticated',
-    'authentication',
-    'ui',
-  ]);
+  const bootstrapStore = useBootstrapStore();
+  const { ui } = storeToRefs(bootstrapStore);
 
 </script>
 
@@ -39,7 +37,7 @@
       <DisabledHomepageTaglines
         :tagline1="t('web.homepage.disabled.tagline1')"
         :tagline2="t('web.homepage.disabled.tagline2')"
-        v-if="!windowProps.ui?.enabled"
+        v-if="!ui?.enabled"
         class="mb-6" />
 
       <!-- Space divider -->

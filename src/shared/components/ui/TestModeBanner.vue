@@ -4,13 +4,14 @@
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
 import { useCsrfStore } from '@/shared/stores';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { createApi } from '@/api';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const csrfStore = useCsrfStore();
+const bootstrapStore = useBootstrapStore();
 const $api = createApi();
 
 // Test plan mode composable
@@ -33,8 +34,8 @@ const handleReset = async () => {
       }
     );
 
-    // Refresh window state to clear test mode (no page reload needed)
-    await WindowService.refresh();
+    // Refresh bootstrap state to clear test mode (no page reload needed)
+    await bootstrapStore.refresh();
   } catch (err: unknown) {
     console.error('Failed to reset test mode:', err);
   } finally {

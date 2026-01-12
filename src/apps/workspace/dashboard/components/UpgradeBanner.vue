@@ -4,9 +4,10 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
+import { storeToRefs } from 'pinia';
 
 const { t } = useI18n();
 const organizationStore = useOrganizationStore();
@@ -21,8 +22,10 @@ const currentOrg = computed(() => organizationStore.organizations[0] ?? null);
 
 const { planId, isStandaloneMode } = useEntitlements(currentOrg);
 
-// Check if billing is enabled via WindowService
-const billingEnabled = computed(() => WindowService.get('billing_enabled') === true);
+// Check if billing is enabled via bootstrapStore
+const bootstrapStore = useBootstrapStore();
+const { billing_enabled } = storeToRefs(bootstrapStore);
+const billingEnabled = computed(() => billing_enabled.value === true);
 
 // Determine if user is on free plan (null, undefined, or 'free')
 const isFreePlan = computed(() => {

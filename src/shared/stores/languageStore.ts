@@ -3,10 +3,10 @@
 import { setGlobalLocale } from '@/i18n';
 import type { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { localeSchema } from '@/schemas/i18n/locale';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { localeCodes } from '@/sources/languages';
 import type { AxiosInstance } from 'axios';
-import { defineStore } from 'pinia';
+import { defineStore, storeToRefs } from 'pinia';
 import { computed, inject, ref, watch } from 'vue';
 
 export const SESSION_STORAGE_KEY = 'selected.locale';
@@ -20,6 +20,11 @@ interface StoreOptions extends PiniaPluginOptions {
 /* eslint-disable max-lines-per-function, max-statements */
 export const useLanguageStore = defineStore('language', () => {
   const $api = inject('api') as AxiosInstance;
+  const bootstrapStore = useBootstrapStore();
+  const {
+    cust: bootstrapCust,
+    supported_locales: bootstrapSupportedLocales,
+  } = storeToRefs(bootstrapStore);
 
   // State
   const deviceLocale = ref<string | null>(null);
@@ -84,7 +89,7 @@ export const useLanguageStore = defineStore('language', () => {
       loadSupportedLocales();
 
       // Check for user preference first
-      const userLocale = WindowService.get('cust')?.locale;
+      const userLocale = bootstrapCust.value?.locale;
       if (userLocale && supportedLocales.value.includes(userLocale)) {
         currentLocale.value = userLocale;
         return getCurrentLocale.value;
@@ -223,7 +228,7 @@ export const useLanguageStore = defineStore('language', () => {
   };
 
   const loadSupportedLocales = () => {
-    const locales = WindowService.get('supported_locales');
+    const locales = bootstrapSupportedLocales.value;
     supportedLocales.value = Array.isArray(locales) ? locales : [];
   };
 

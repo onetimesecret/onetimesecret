@@ -3,9 +3,8 @@
 import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
-import { createPinia, setActivePinia } from 'pinia';
+import { createTestingPinia } from '@pinia/testing';
 import UserMenu from '@/shared/components/navigation/UserMenu.vue';
-import { WindowService } from '@/services/window.service';
 import { nextTick } from 'vue';
 
 // Mock HeadlessUI components (Menu + Dialog for PlanTestModal)
@@ -128,7 +127,6 @@ const i18n = createI18n({
 
 describe('UserMenu', () => {
   let wrapper: VueWrapper;
-  let pinia: ReturnType<typeof createPinia>;
 
   const mockCustomer = {
     custid: '123',
@@ -138,8 +136,6 @@ describe('UserMenu', () => {
   };
 
   beforeEach(() => {
-    pinia = createPinia();
-    setActivePinia(pinia);
     vi.clearAllMocks();
     mockLogout.mockReset();
     mockPush.mockReset();
@@ -153,13 +149,8 @@ describe('UserMenu', () => {
 
   const mountComponent = (
     props: Record<string, unknown> = {},
-    windowState: Record<string, unknown> = {}
+    bootstrapState: Record<string, unknown> = {}
   ) => {
-    vi.spyOn(WindowService, 'get').mockImplementation((key: string) => {
-      if (key === 'billing_enabled') return windowState.billing_enabled ?? true;
-      return windowState[key] ?? undefined;
-    });
-
     return mount(UserMenu, {
       props: {
         cust: mockCustomer,
@@ -168,7 +159,21 @@ describe('UserMenu', () => {
         ...props,
       },
       global: {
-        plugins: [i18n, pinia],
+        plugins: [
+          i18n,
+          createTestingPinia({
+            createSpy: vi.fn,
+            initialState: {
+              bootstrap: {
+                authenticated: true,
+                billing_enabled: bootstrapState.billing_enabled ?? true,
+                entitlement_test_planid: bootstrapState.entitlement_test_planid ?? null,
+                entitlement_test_plan_name: bootstrapState.entitlement_test_plan_name ?? null,
+                cust: mockCustomer,
+              },
+            },
+          }),
+        ],
         stubs: {
           RouterLink: {
             template: '<a :href="to"><slot /></a>',
@@ -447,12 +452,8 @@ describe('UserMenu', () => {
       expect(wrapper.exists()).toBe(true);
     });
 
-    it('handles WindowService errors gracefully', () => {
-      vi.spyOn(WindowService, 'get').mockImplementation(() => {
-        throw new Error('Window state not initialized');
-      });
-
-      // Should not crash
+    it('handles uninitialized store gracefully', () => {
+      // Should not crash with minimal bootstrap state
       expect(() => {
         wrapper = mount(UserMenu, {
           props: {
@@ -461,7 +462,19 @@ describe('UserMenu', () => {
             awaitingMfa: false,
           },
           global: {
-            plugins: [i18n, pinia],
+            plugins: [
+              i18n,
+              createTestingPinia({
+                createSpy: vi.fn,
+                initialState: {
+                  bootstrap: {
+                    authenticated: false,
+                    billing_enabled: false,
+                    cust: null,
+                  },
+                },
+              }),
+            ],
           },
         });
       }).not.toThrow();

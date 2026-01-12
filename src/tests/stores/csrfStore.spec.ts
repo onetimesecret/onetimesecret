@@ -5,6 +5,7 @@ import { mockVisibility } from '../setupDocument';
 import { setupWindowState } from '../setupWindow';
 
 import { useCsrfStore } from '@/shared/stores/csrfStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { nextTick, ref } from 'vue';
 import type { ComponentPublicInstance } from 'vue';
@@ -40,10 +41,10 @@ describe('CSRF Store', () => {
   });
 
   describe('Initialization', () => {
-    it('initializes with empty shrimp when window.shrimp is not available', () => {
-      // Explicitly ensure window.shrimp is undefined
-      const windowMock = setupWindowState({ shrimp: undefined });
-      vi.stubGlobal('window', windowMock);
+    it('initializes with empty shrimp when bootstrap.shrimp is not available', () => {
+      // bootstrapStore defaults to empty shrimp
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.update({ shrimp: '' });
 
       const store = useCsrfStore();
       store.init();
@@ -51,9 +52,10 @@ describe('CSRF Store', () => {
       expect(store.shrimp).toBe('');
     });
 
-    it('initializes with window.shrimp when available', () => {
-      // Set window.shrimp BEFORE creating store
-      vi.stubGlobal('window', setupWindowState({ shrimp: 'yum' }));
+    it('initializes with bootstrap.shrimp when available', () => {
+      // Set bootstrap shrimp BEFORE initializing csrf store
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.update({ shrimp: 'yum' });
 
       const store = useCsrfStore();
       store.init();
@@ -61,9 +63,10 @@ describe('CSRF Store', () => {
       expect(store.shrimp).toBe('yum');
     });
 
-    it('preserves window.shrimp through store reset', () => {
-      // Set initial value
-      vi.stubGlobal('window', setupWindowState({ shrimp: 'initial' }));
+    it('preserves bootstrap.shrimp through store reset', () => {
+      // Set initial value in bootstrapStore
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.update({ shrimp: 'initial' });
 
       const store = useCsrfStore();
       store.init();
@@ -73,14 +76,15 @@ describe('CSRF Store', () => {
       store.updateShrimp('updated');
       expect(store.shrimp).toBe('updated');
 
-      // Reset should revert to window.shrimp
+      // Reset should revert to bootstrap.shrimp
       store.$reset();
       expect(store.shrimp).toBe('initial');
     });
 
-    it('handles falsy but valid window.shrimp values', () => {
+    it('handles falsy but valid bootstrap.shrimp values', () => {
       // Edge case: empty string is a valid value
-      vi.stubGlobal('window', setupWindowState({ shrimp: '' }));
+      const bootstrapStore = useBootstrapStore();
+      bootstrapStore.update({ shrimp: '' });
 
       const store = useCsrfStore();
       store.init();

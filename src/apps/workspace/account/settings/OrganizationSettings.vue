@@ -12,8 +12,9 @@ import { useEntitlementError } from '@/shared/composables/useEntitlementError';
 import { classifyError } from '@/schemas/errors';
 import type { ApplicationError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { storeToRefs } from 'pinia';
 import { useMembersStore } from '@/shared/stores/membersStore';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel } from '@/types/billing';
@@ -79,7 +80,9 @@ const { wrap } = useAsyncHandler({
   notify: false,
 });
 
-const billingEnabled = computed(() => WindowService.get('billing_enabled') ?? false);
+const bootstrapStore = useBootstrapStore();
+const { billing_enabled } = storeToRefs(bootstrapStore);
+const billingEnabled = computed(() => billing_enabled.value ?? false);
 
 // Entitlements - formatEntitlement uses API-driven i18n keys
 const {

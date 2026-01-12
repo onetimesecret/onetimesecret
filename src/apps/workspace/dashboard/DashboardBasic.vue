@@ -5,13 +5,15 @@
 <script setup lang="ts">
   import RecentSecretsTable from '@/apps/secret/components/RecentSecretsTable.vue';
   import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
 
-  const cust = WindowService.get('cust');
+  const bootstrapStore = useBootstrapStore();
+  const { cust } = storeToRefs(bootstrapStore);
 
   // Show beta features if enabled
-  const isBetaEnabled = computed(() => cust?.feature_flags?.beta ?? false);
+  const isBetaEnabled = computed(() => cust.value?.feature_flags?.beta ?? false);
 </script>
 
 <template>

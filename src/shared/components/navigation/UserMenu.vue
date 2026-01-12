@@ -31,8 +31,9 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
 import { Customer } from '@/schemas/models';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import PlanTestModal from '@/shared/components/modals/PlanTestModal.vue';
+import { storeToRefs } from 'pinia';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -51,13 +52,8 @@ const isPlanTestModalOpen = ref(false);
 // Test plan mode composable
 const { isTestModeActive } = useTestPlanMode();
 
-const billingEnabled = computed(() => {
-  try {
-    return WindowService.get('billing_enabled') || false;
-  } catch {
-    return false;
-  }
-});
+const bootstrapStore = useBootstrapStore();
+const { billing_enabled } = storeToRefs(bootstrapStore);
 
 const isOpen = ref(false);
 const menuRef = ref<HTMLElement | null>(null);
@@ -118,7 +114,7 @@ const menuItems = computed<MenuItem[]>(() => [
     to: '/billing',
     label: t('web.navigation.billing'),
     icon: { collection: 'heroicons', name: 'credit-card' },
-    condition: () => !props.awaitingMfa && billingEnabled.value,
+    condition: () => !props.awaitingMfa && !!billing_enabled.value,
   },
   // Colonel (conditional)
   {

@@ -3,14 +3,15 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useColonelInfoStore } from '@/shared/stores/colonelInfoStore';
   import { storeToRefs } from 'pinia';
   import { computed, onMounted } from 'vue';
 
   const { t } = useI18n();
 
-  const windowProps = WindowService.getMultiple(['domains_enabled', 'authentication']);
+  const bootstrapStore = useBootstrapStore();
+  const { domains_enabled } = storeToRefs(bootstrapStore);
 
   const store = useColonelInfoStore();
   const { stats, isLoading } = storeToRefs(store);
@@ -96,7 +97,7 @@
     ];
 
     // Conditionally add Custom Domains if domains feature is enabled
-    if (windowProps.domains_enabled) {
+    if (domains_enabled.value) {
       actions.splice(2, 0, {
         name: t('web.colonel.customDomains.title'),
         description: t('web.colonel.customDomains.description'),

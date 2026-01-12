@@ -1,7 +1,7 @@
 // src/i18n.ts
 
 import { type Locale } from '@/schemas/i18n/locale';
-import { WindowService } from '@/services/window.service';
+import { getBootstrapValue } from '@/services/bootstrap.service';
 import { createI18n, type Composer } from 'vue-i18n';
 
 /**
@@ -138,11 +138,11 @@ type GlobalComposer = Composer<{}, {}, {}, Locale>;
 /**
  * The list of supported locales comes directly from etc/config.yaml.
  */
-const domainBranding = WindowService.get('domain_branding');
-const supportedLocales = WindowService.get('supported_locales') || [];
-const fallbackLocale = WindowService.get('fallback_locale') || {};
-const defaultLocale = WindowService.get('default_locale') || 'en';
-const displayLocale = domainBranding?.locale ?? WindowService.get('locale');
+const domainBranding = getBootstrapValue('domain_branding');
+const supportedLocales = getBootstrapValue('supported_locales') || [];
+const fallbackLocale = getBootstrapValue('fallback_locale') || {};
+const defaultLocale = getBootstrapValue('default_locale') || 'en';
+const displayLocale = domainBranding?.locale ?? getBootstrapValue('locale');
 
 /**
  * Creates a completely independent i18n instance with its own locale state and message

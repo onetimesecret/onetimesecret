@@ -2,16 +2,16 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
   import { FocusTrap } from 'focus-trap-vue';
   import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
   import GeneralTab from './settings/GeneralTab.vue';
   import JurisdictionTab from './settings/JurisdictionTab.vue';
 
-  const windowProps = WindowService.getMultiple([
-    'regions_enabled', 'i18n_enabled',
-  ]);
+  const bootstrapStore = useBootstrapStore();
+  const { regions_enabled } = storeToRefs(bootstrapStore);
 
   interface Tab {
     id: string;
@@ -35,7 +35,7 @@
       { id: 'general', label: t('web.COMMON.general') }
     ];
 
-    if (windowProps.regions_enabled) {
+    if (regions_enabled.value) {
       tabsList.push({ id: 'data-region', label: t('web.regions.data_region') });
     }
 
@@ -243,7 +243,7 @@
                   :aria-labelledby="'tab-button-data-region'"
                   tabindex="0"
                   class="space-y-8">
-                  <JurisdictionTab v-if="windowProps.regions_enabled" />
+                  <JurisdictionTab v-if="regions_enabled" />
                 </div>
               </template>
 

@@ -1,7 +1,7 @@
 // src/tests/components/SecretFormDomainScope.spec.ts
 
 import { mount } from '@vue/test-utils';
-import { createPinia, setActivePinia } from 'pinia';
+import { createTestingPinia } from '@pinia/testing';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
 import { nextTick } from 'vue';
@@ -57,22 +57,6 @@ vi.mock('@/shared/composables/usePrivacyOptions', () => ({
   })),
 }));
 
-vi.mock('@/services/window.service', () => ({
-  WindowService: {
-    get: vi.fn((key: string) => {
-      if (key === 'secret_options') {
-        return {
-          passphrase: {
-            required: false,
-            minimum_length: 8,
-            enforce_complexity: false,
-          },
-        };
-      }
-      return undefined;
-    }),
-  },
-}));
 
 vi.mock('vue-router', () => ({
   useRouter: vi.fn(() => ({
@@ -91,9 +75,25 @@ vi.mock('vue-i18n', () => ({
   })),
 }));
 
+// Helper to create testing pinia with bootstrap state
+const createMountPinia = () =>
+  createTestingPinia({
+    createSpy: vi.fn,
+    initialState: {
+      bootstrap: {
+        secret_options: {
+          passphrase: {
+            required: false,
+            minimum_length: 8,
+            enforce_complexity: false,
+          },
+        },
+      },
+    },
+  });
+
 describe('SecretForm - Domain Scope Integration', () => {
   beforeEach(() => {
-    setActivePinia(createPinia());
     vi.clearAllMocks();
 
     // Reset mock scope state
@@ -111,6 +111,7 @@ describe('SecretForm - Domain Scope Integration', () => {
 
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
       });
 
       const indicator = wrapper.find('[role="status"]');
@@ -122,6 +123,7 @@ describe('SecretForm - Domain Scope Integration', () => {
 
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
       });
 
       // When scope is inactive, the v-if should not render the scope indicator
@@ -147,6 +149,7 @@ describe('SecretForm - Domain Scope Integration', () => {
 
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
       });
 
       const indicator = wrapper.find('[role="status"]');
@@ -164,6 +167,7 @@ describe('SecretForm - Domain Scope Integration', () => {
 
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
       });
 
       const indicator = wrapper.find('[role="status"]');
@@ -182,6 +186,7 @@ describe('SecretForm - Domain Scope Integration', () => {
 
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
       });
 
       const indicator = wrapper.find('[role="status"]');
@@ -205,6 +210,7 @@ describe('SecretForm - Domain Scope Integration', () => {
 
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
       });
 
       const indicator = wrapper.find('[role="status"]');
@@ -224,6 +230,7 @@ describe('SecretForm - Domain Scope Integration', () => {
 
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
       });
 
       const indicator = wrapper.find('[role="status"]');
@@ -242,6 +249,7 @@ describe('SecretForm - Domain Scope Integration', () => {
 
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
       });
 
       const indicator = wrapper.find('[role="status"]');
@@ -254,6 +262,7 @@ describe('SecretForm - Domain Scope Integration', () => {
     it('has proper ARIA attributes on scope indicator', () => {
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
       });
 
       const indicator = wrapper.find('[role="status"]');
@@ -270,6 +279,7 @@ describe('SecretForm - Domain Scope Integration', () => {
 
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
       });
 
       const indicator = wrapper.find('[role="status"]');
@@ -299,6 +309,7 @@ describe('SecretForm - Domain Scope Integration', () => {
 
       mount(SecretForm, {
         props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
       });
 
       await nextTick();
@@ -329,6 +340,7 @@ describe('SecretForm - Domain Scope Integration', () => {
 
       mount(SecretForm, {
         props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
       });
 
       // Change the scope
@@ -349,6 +361,7 @@ describe('SecretForm - Domain Scope Integration', () => {
     it('positions scope indicator correctly in the form footer', () => {
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
       });
 
       const indicator = wrapper.find('[role="status"]');
@@ -361,6 +374,7 @@ describe('SecretForm - Domain Scope Integration', () => {
     it('renders scope indicator before action button on desktop', () => {
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
       });
 
       const indicator = wrapper.find('[role="status"]');
@@ -379,6 +393,7 @@ describe('SecretForm - Domain Scope Integration', () => {
 
       const wrapper = mount(SecretForm, {
         props: { enabled: true },
+        global: { plugins: [createMountPinia()] },
       });
 
       const domainText = wrapper.find('.max-w-\\[180px\\]');

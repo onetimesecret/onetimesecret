@@ -2,22 +2,15 @@
 
 import { ApplicationError } from '@/schemas';
 import { SESSION_STORAGE_KEY, useLanguageStore } from '@/shared/stores/languageStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { setupTestPinia } from '../setup';
-import { WindowService } from '@/services/window.service';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type AxiosMockAdapter from 'axios-mock-adapter';
 import type { AxiosInstance } from 'axios';
 
-// vi.spyOn(WindowService, 'getState').mockImplementation(
-//   () =>
-//     ({
-//       authenticated: true,
-//       locale: 'en',
-//     }) as any
-// );
-
 describe('Language Store', () => {
   let axiosMock: AxiosMockAdapter | null;
+  let bootstrapStore: ReturnType<typeof useBootstrapStore>;
 
   beforeEach(async () => {
     // Setup testing environment with all needed components
@@ -35,8 +28,11 @@ describe('Language Store', () => {
 
     Object.defineProperty(window, 'sessionStorage', { value: sessionStorageMock });
 
-    // Mock window.supported_locales
-    vi.stubGlobal('supported_locales', ['en', 'fr', 'es']);
+    // Get bootstrap store and set up supported locales
+    bootstrapStore = useBootstrapStore();
+    bootstrapStore.update({
+      supported_locales: ['en', 'fr', 'es'],
+    });
   });
 
   afterEach(() => {
@@ -44,18 +40,12 @@ describe('Language Store', () => {
     vi.restoreAllMocks();
     vi.useRealTimers();
     vi.unstubAllGlobals();
+    bootstrapStore.$reset();
   });
 
   describe('Initialization', () => {
     it('initializes correctly', () => {
       const store = useLanguageStore();
-
-      // Mock WindowService.get to return supported locales
-      vi.spyOn(WindowService, 'get').mockImplementation((key: string) => {
-        if (key === 'supported_locales') return ['en', 'fr', 'es'];
-        if (key === 'cust') return undefined;
-        return undefined;
-      });
 
       store.init();
       expect(store.currentLocale).toBe('en'); // Should be 'en' after init, not null
@@ -63,13 +53,6 @@ describe('Language Store', () => {
     });
 
     it('initializes with deviceLocale', () => {
-      // Mock WindowService.get to return supported locales
-      vi.spyOn(WindowService, 'get').mockImplementation((key: string) => {
-        if (key === 'supported_locales') return ['en', 'fr', 'es'];
-        if (key === 'cust') return undefined;
-        return undefined;
-      });
-
       const store = useLanguageStore();
       store.init({
         deviceLocale: 'en-US',
@@ -79,11 +62,9 @@ describe('Language Store', () => {
     });
 
     it('initializes with deviceLocale (es-ES)', () => {
-      // Mock WindowService.get to return supported locales
-      vi.spyOn(WindowService, 'get').mockImplementation((key: string) => {
-        if (key === 'supported_locales') return ['en', 'fr', 'es'];
-        if (key === 'cust') return undefined;
-        return undefined;
+      // Update bootstrap store with supported locales
+      bootstrapStore.update({
+        supported_locales: ['en', 'fr', 'es'],
       });
 
       // Mock sessionStorage to return null to ensure deviceLocale is used
@@ -97,11 +78,9 @@ describe('Language Store', () => {
     });
 
     it('initializes with deviceLocale (de)', () => {
-      // Mock WindowService.get to return supported locales
-      vi.spyOn(WindowService, 'get').mockImplementation((key: string) => {
-        if (key === 'supported_locales') return ['en', 'fr', 'es', 'de'];
-        if (key === 'cust') return undefined;
-        return undefined;
+      // Update bootstrap store with supported locales including 'de'
+      bootstrapStore.update({
+        supported_locales: ['en', 'fr', 'es', 'de'],
       });
 
       // Mock sessionStorage to return null to ensure deviceLocale is used
@@ -115,11 +94,9 @@ describe('Language Store', () => {
     });
 
     it('initializes with stored locale', () => {
-      // Mock WindowService.get to return supported locales
-      vi.spyOn(WindowService, 'get').mockImplementation((key: string) => {
-        if (key === 'supported_locales') return ['en', 'fr', 'es'];
-        if (key === 'cust') return undefined;
-        return undefined;
+      // Update bootstrap store with supported locales
+      bootstrapStore.update({
+        supported_locales: ['en', 'fr', 'es'],
       });
 
       const sessionGetItemSpy = vi.spyOn(sessionStorage, 'getItem').mockReturnValueOnce('fr');
@@ -134,11 +111,9 @@ describe('Language Store', () => {
     let store: ReturnType<typeof useLanguageStore>;
 
     beforeEach(() => {
-      // Mock WindowService.get to return supported locales
-      vi.spyOn(WindowService, 'get').mockImplementation((key: string) => {
-        if (key === 'supported_locales') return ['en', 'fr'];
-        if (key === 'cust') return undefined;
-        return undefined;
+      // Update bootstrap store with supported locales
+      bootstrapStore.update({
+        supported_locales: ['en', 'fr'],
       });
 
       store = useLanguageStore();
@@ -257,11 +232,9 @@ describe('Language Store', () => {
     let store: ReturnType<typeof useLanguageStore>;
 
     beforeEach(() => {
-      // Mock WindowService.get with locales that include region variants
-      vi.spyOn(WindowService, 'get').mockImplementation((key: string) => {
-        if (key === 'supported_locales') return ['en', 'it_IT', 'fr_FR', 'fr_CA', 'de', 'de_AT'];
-        if (key === 'cust') return undefined;
-        return undefined;
+      // Update bootstrap store with locales that include region variants
+      bootstrapStore.update({
+        supported_locales: ['en', 'it_IT', 'fr_FR', 'fr_CA', 'de', 'de_AT'],
       });
 
       store = useLanguageStore();
@@ -330,11 +303,9 @@ describe('Language Store', () => {
     let store: ReturnType<typeof useLanguageStore>;
 
     beforeEach(() => {
-      // Mock WindowService.get to return supported locales
-      vi.spyOn(WindowService, 'get').mockImplementation((key: string) => {
-        if (key === 'supported_locales') return ['en', 'fr', 'es'];
-        if (key === 'cust') return undefined;
-        return undefined;
+      // Update bootstrap store with supported locales
+      bootstrapStore.update({
+        supported_locales: ['en', 'fr', 'es'],
       });
 
       store = useLanguageStore();

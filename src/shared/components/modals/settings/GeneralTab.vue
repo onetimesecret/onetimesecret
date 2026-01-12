@@ -5,10 +5,14 @@
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import LanguageToggle from '@/shared/components/ui/LanguageToggle.vue';
 import ThemeToggle from '@/shared/components/ui/ThemeToggle.vue';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
 
 const { t } = useI18n();
+
+const bootstrapStore = useBootstrapStore();
+const { i18n_enabled } = storeToRefs(bootstrapStore);
 
 const isLoading = ref(false);
 
@@ -20,10 +24,6 @@ const emit = defineEmits<{
 const handleMenuToggled = () => {
   emit('menuToggled');
 };
-
-const windowProps = WindowService.getMultiple([
-  'i18n_enabled',
-]);
 
 const handleThemeChange = async (isDark: boolean) => {
   isLoading.value = true;
@@ -75,7 +75,7 @@ const handleThemeChange = async (isDark: boolean) => {
       aria-hidden="true"></div>
 
     <section
-      v-if="windowProps.i18n_enabled"
+      v-if="i18n_enabled"
       role="language"
       aria-labelledby="language-heading"
       class="space-y-4">

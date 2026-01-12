@@ -4,17 +4,7 @@ import { mount, VueWrapper } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
 import { h, defineComponent, ref } from 'vue';
-import { createPinia, setActivePinia } from 'pinia';
-
-// Mock WindowService
-vi.mock('@/services/window.service', () => ({
-  WindowService: {
-    get: vi.fn((key: string) => {
-      if (key === 'global_banner') return null;
-      return undefined;
-    }),
-  },
-}));
+import { createTestingPinia } from '@pinia/testing';
 
 // Mock useTheme composable
 vi.mock('@/shared/composables/useTheme', () => ({
@@ -142,8 +132,6 @@ describe('BaseLayout', () => {
   });
 
   beforeEach(() => {
-    const pinia = createPinia();
-    setActivePinia(pinia);
     vi.clearAllMocks();
   });
 
@@ -161,7 +149,17 @@ describe('BaseLayout', () => {
       props,
       slots,
       global: {
-        plugins: [i18n],
+        plugins: [
+          i18n,
+          createTestingPinia({
+            createSpy: vi.fn,
+            initialState: {
+              bootstrap: {
+                global_banner: null,
+              },
+            },
+          }),
+        ],
       },
     });
 

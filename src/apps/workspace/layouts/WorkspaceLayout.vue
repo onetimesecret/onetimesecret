@@ -10,10 +10,11 @@
   import WorkspaceFooter from '@/apps/workspace/components/layout/WorkspaceFooter.vue';
   import ManagementHeader from '@/shared/components/layout/ManagementHeader.vue';
   import TestModeBanner from '@/shared/components/ui/TestModeBanner.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useDomainsStore, useMetadataListStore } from '@/shared/stores';
   import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
   import type { ImprovedLayoutProps } from '@/types/ui/layouts';
+  import { storeToRefs } from 'pinia';
   import { computed, onMounted } from 'vue';
 
   import BaseLayout from '@/shared/layouts/BaseLayout.vue';
@@ -34,7 +35,8 @@
   // Store instances for centralized data loading
   const metadataListStore = useMetadataListStore();
   const domainsStore = useDomainsStore();
-  const domainsEnabled = WindowService.get('domains_enabled');
+  const bootstrapStore = useBootstrapStore();
+  const { domains_enabled } = storeToRefs(bootstrapStore);
 
   // Test plan mode composable
   const { isTestModeActive } = useTestPlanMode();
@@ -42,7 +44,7 @@
   // Centralize store refreshing to avoid duplicate API calls from header and footer
   onMounted(() => {
     metadataListStore.refreshRecords(true);
-    if (domainsEnabled) {
+    if (domains_enabled.value) {
       domainsStore.refreshRecords(true);
     }
   });

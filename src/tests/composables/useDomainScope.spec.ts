@@ -2,23 +2,19 @@
 
 import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest';
 import { nextTick } from 'vue';
+import { createTestingPinia } from '@pinia/testing';
+import { setActivePinia } from 'pinia';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 
 // Create mock stores before vi.mock calls
 const mockDomainsStoreState = {
-  domains: [] as Array<{ display_domain: string }>,
+  domains: [] as Array<{ display_domain: string; extid: string }>,
   fetchList: vi.fn().mockResolvedValue(undefined),
 };
 
 const mockOrganizationStoreState = {
   currentOrganization: null as { id: string } | null,
 };
-
-// Mock WindowService
-vi.mock('@/services/window.service', () => ({
-  WindowService: {
-    getMultiple: vi.fn(),
-  },
-}));
 
 // Mock stores
 vi.mock('@/shared/stores/domainsStore', () => ({
@@ -29,14 +25,14 @@ vi.mock('@/shared/stores/organizationStore', () => ({
   useOrganizationStore: () => mockOrganizationStoreState,
 }));
 
-// Import WindowService after mocks
-import { WindowService } from '@/services/window.service';
-
 /**
  * Helper to set up domains store mock
  */
 function setMockDomains(domains: string[]) {
-  mockDomainsStoreState.domains = domains.map((d) => ({ display_domain: d }));
+  mockDomainsStoreState.domains = domains.map((d) => ({
+    display_domain: d,
+    extid: `cd_${d.replace(/\./g, '_')}`,
+  }));
 }
 
 describe('useDomainScope', () => {
@@ -55,6 +51,28 @@ describe('useDomainScope', () => {
       },
     };
   })();
+
+  /**
+   * Helper to set up bootstrapStore with domain configuration
+   */
+  function setupBootstrapStore(config: {
+    domains_enabled?: boolean;
+    site_host?: string;
+    display_domain?: string;
+  }) {
+    const pinia = createTestingPinia({
+      createSpy: vi.fn,
+      stubActions: false,
+    });
+    setActivePinia(pinia);
+
+    const bootstrapStore = useBootstrapStore();
+    bootstrapStore.domains_enabled = config.domains_enabled ?? true;
+    bootstrapStore.site_host = config.site_host ?? 'onetimesecret.com';
+    bootstrapStore.display_domain = config.display_domain ?? config.site_host ?? 'onetimesecret.com';
+
+    return { pinia, bootstrapStore };
+  }
 
   beforeEach(async () => {
     // Reset localStorage mock
@@ -81,7 +99,7 @@ describe('useDomainScope', () => {
 
   describe('initialization', () => {
     it('initializes with canonical domain when no custom domains exist', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -105,7 +123,7 @@ describe('useDomainScope', () => {
     });
 
     it('initializes with first custom domain when custom domains exist', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -131,7 +149,7 @@ describe('useDomainScope', () => {
     it('initializes with saved domain from localStorage if valid', async () => {
       mockLocalStorage.setItem('domainScope', 'widgets.example.com');
 
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -153,7 +171,7 @@ describe('useDomainScope', () => {
     it('ignores invalid saved domain from localStorage', async () => {
       mockLocalStorage.setItem('domainScope', 'invalid.example.com');
 
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -173,7 +191,7 @@ describe('useDomainScope', () => {
     });
 
     it('handles domains_enabled being false', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: false,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -188,7 +206,7 @@ describe('useDomainScope', () => {
     });
 
     it('handles missing custom_domains array', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -211,7 +229,7 @@ describe('useDomainScope', () => {
 
   describe('availableDomains', () => {
     it('includes custom domains and canonical domain', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -230,7 +248,7 @@ describe('useDomainScope', () => {
     });
 
     it('does not duplicate canonical domain if it is in custom_domains', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -247,7 +265,7 @@ describe('useDomainScope', () => {
 
   describe('currentScope computed properties', () => {
     it('correctly identifies canonical domain', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -273,7 +291,7 @@ describe('useDomainScope', () => {
     });
 
     it('sets displayName to domain name for canonical domain', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -292,7 +310,7 @@ describe('useDomainScope', () => {
     });
 
     it('sets displayName to domain for custom domains', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -313,7 +331,7 @@ describe('useDomainScope', () => {
 
   describe('setScope', () => {
     it('updates currentDomain when valid domain is provided', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -334,7 +352,7 @@ describe('useDomainScope', () => {
     });
 
     it('saves domain to localStorage', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -355,7 +373,7 @@ describe('useDomainScope', () => {
     });
 
     it('ignores invalid domain', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -379,7 +397,7 @@ describe('useDomainScope', () => {
     });
 
     it('can switch to canonical domain', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -403,7 +421,7 @@ describe('useDomainScope', () => {
 
   describe('resetScope', () => {
     it('resets to canonical domain', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -429,7 +447,7 @@ describe('useDomainScope', () => {
     });
 
     it('removes domainScope from localStorage', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -454,7 +472,7 @@ describe('useDomainScope', () => {
 
   describe('isScopeActive computed', () => {
     it('returns false when domains_enabled is false', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: false,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -469,7 +487,7 @@ describe('useDomainScope', () => {
     });
 
     it('returns true when domains_enabled even with empty custom_domains', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -484,7 +502,7 @@ describe('useDomainScope', () => {
     });
 
     it('returns true when domains_enabled even with undefined custom_domains', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -500,7 +518,7 @@ describe('useDomainScope', () => {
     });
 
     it('returns true when domains enabled and custom domains exist', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -517,7 +535,7 @@ describe('useDomainScope', () => {
 
   describe('hasMultipleScopes computed', () => {
     it('returns false when only canonical domain exists', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -532,7 +550,7 @@ describe('useDomainScope', () => {
     });
 
     it('returns true when custom domains exist', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -547,7 +565,7 @@ describe('useDomainScope', () => {
     });
 
     it('returns true when multiple custom domains exist', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -564,7 +582,7 @@ describe('useDomainScope', () => {
 
   describe('edge cases', () => {
     it('handles empty canonical domain gracefully', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: '',
         display_domain: '',
@@ -583,10 +601,10 @@ describe('useDomainScope', () => {
     });
 
     it('handles all missing configuration gracefully', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: false,
-        site_host: undefined,
-        display_domain: undefined,
+        site_host: '',
+        display_domain: '',
       });
 
       setMockDomains([]);
@@ -601,7 +619,7 @@ describe('useDomainScope', () => {
 
   describe('getPreferredDomain behavior', () => {
     it('prefers custom domain over canonical when custom domains exist', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -623,7 +641,7 @@ describe('useDomainScope', () => {
     });
 
     it('falls back to canonical when no custom domains available', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -647,7 +665,7 @@ describe('useDomainScope', () => {
     });
 
     it('prefers first custom domain when multiple custom domains exist', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -668,7 +686,7 @@ describe('useDomainScope', () => {
     });
 
     it('handles array with only canonical domain', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -690,7 +708,7 @@ describe('useDomainScope', () => {
     });
 
     it('skips canonical in the list when selecting preferred domain', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: 'onetimesecret.com',
         display_domain: 'onetimesecret.com',
@@ -712,7 +730,7 @@ describe('useDomainScope', () => {
     });
 
     it('returns empty string when no domains available and no canonical', async () => {
-      vi.mocked(WindowService.getMultiple).mockReturnValue({
+      setupBootstrapStore({
         domains_enabled: true,
         site_host: '',
         display_domain: '',

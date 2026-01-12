@@ -13,8 +13,9 @@
   import { useI18n } from 'vue-i18n';
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useConcealedMetadataStore } from '@/shared/stores/concealedMetadataStore';
+  import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
   const concealedMetadataStore = useConcealedMetadataStore();
@@ -47,8 +48,9 @@
   const { formatDuration, lifetimeOptions } = usePrivacyOptions();
 
   // Get passphrase config for validation hints
-  const secretOptions = WindowService.get('secret_options');
-  const passphraseConfig = computed(() => secretOptions?.passphrase);
+  const bootstrapStore = useBootstrapStore();
+  const { secret_options } = storeToRefs(bootstrapStore);
+  const passphraseConfig = computed(() => secret_options.value?.passphrase);
 
   // UI State
   const showTtlDropdown = ref(false);

@@ -1,7 +1,7 @@
 // src/router/guards.routes.ts
 
 import { loggingService } from '@/services/logging.service';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { usePageTitle } from '@/shared/composables/usePageTitle';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { useLanguageStore } from '@/shared/stores/languageStore';
@@ -230,9 +230,9 @@ async function validateAuthentication(
  * allow us to drop-in a request to the server when we need to.
  */
 async function fetchCustomerPreferences(): Promise<{ locale?: string }> {
-  const cust = WindowService.get('cust');
+  const bootstrapStore = useBootstrapStore();
   // Explicitly handle null case and type narrow
-  const locale = cust?.locale ?? undefined;
+  const locale = bootstrapStore.cust?.locale ?? undefined;
   return { locale };
 }
 

@@ -2,6 +2,9 @@
 
 import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest';
 import { ref, computed, nextTick } from 'vue';
+import { createTestingPinia } from '@pinia/testing';
+import { setActivePinia } from 'pinia';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { BrandSettings } from '@/schemas/models/domain';
 
 // Mock formatDuration
@@ -21,31 +24,39 @@ vi.mock('@/shared/composables/usePrivacyOptions', () => ({
   }),
 }));
 
-// Mock WindowService
-const mockSecretOptions = {
-  default_ttl: 604800, // 7 days
-  passphrase: { required: false },
-};
-
-vi.mock('@/services/window.service', () => ({
-  WindowService: {
-    get: vi.fn((key: string) => {
-      if (key === 'secret_options') return mockSecretOptions;
-      return null;
-    }),
-  },
-}));
-
 import {
   useWorkspacePrivacyDefaults,
   type UseWorkspacePrivacyDefaultsOptions,
 } from '@/apps/workspace/composables/useWorkspacePrivacyDefaults';
 
 describe('useWorkspacePrivacyDefaults', () => {
+  /**
+   * Helper to set up bootstrapStore with secret_options configuration
+   */
+  function setupBootstrapStore(config: {
+    default_ttl?: number;
+    passphrase_required?: boolean;
+  } = {}) {
+    const pinia = createTestingPinia({
+      createSpy: vi.fn,
+      stubActions: false,
+    });
+    setActivePinia(pinia);
+
+    const bootstrapStore = useBootstrapStore();
+    bootstrapStore.secret_options = {
+      default_ttl: config.default_ttl ?? 604800,
+      passphrase: { required: config.passphrase_required ?? false },
+      ttl_options: [60, 3600, 86400, 604800, 1209600, 2592000],
+    };
+
+    return { pinia, bootstrapStore };
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSecretOptions.default_ttl = 604800;
-    mockSecretOptions.passphrase = { required: false };
+    // Set up default bootstrap store state for each test
+    setupBootstrapStore({ default_ttl: 604800, passphrase_required: false });
   });
 
   afterEach(() => {
@@ -118,8 +129,8 @@ describe('useWorkspacePrivacyDefaults', () => {
     });
 
     it('uses global passphrase required setting when true', () => {
-      // Mutate the mock to simulate global passphrase required = true
-      mockSecretOptions.passphrase = { required: true };
+      // Set up bootstrap store with passphrase required = true
+      setupBootstrapStore({ default_ttl: 604800, passphrase_required: true });
 
       const options = createOptions({ isCanonical: true });
       const { privacyDefaults } = useWorkspacePrivacyDefaults(options);

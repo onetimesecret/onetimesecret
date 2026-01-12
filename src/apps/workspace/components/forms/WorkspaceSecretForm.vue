@@ -18,8 +18,9 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useDomainScope } from '@/shared/composables/useDomainScope';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useConcealedMetadataStore } from '@/shared/stores/concealedMetadataStore';
+  import { storeToRefs } from 'pinia';
   import {
     DEFAULT_CORNER_CLASS,
     DEFAULT_PRIMARY_COLOR,
@@ -59,8 +60,9 @@
   const concealedMetadataStore = useConcealedMetadataStore();
 
   // Get global defaults
-  const secretOptions = computed(() => WindowService.get('secret_options'));
-  const defaultTtl = computed(() => secretOptions.value?.default_ttl ?? 604800);
+  const bootstrapStore = useBootstrapStore();
+  const { secret_options } = storeToRefs(bootstrapStore);
+  const defaultTtl = computed(() => secret_options.value?.default_ttl ?? 604800);
 
   const { currentScope, isScopeActive } = useDomainScope();
 

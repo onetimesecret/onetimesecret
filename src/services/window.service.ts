@@ -1,13 +1,28 @@
 // src/services/window.service.ts
 
+/**
+ * @deprecated This service is deprecated in favor of bootstrapStore (Pinia).
+ *
+ * Migration guide:
+ * - For reactive state access: use `useBootstrapStore()` with `storeToRefs()`
+ * - For pre-Pinia access: use `getBootstrapValue()` from `bootstrap.service.ts`
+ * - For state updates: use `bootstrapStore.update(data)`
+ * - For state refresh: use `bootstrapStore.refresh()`
+ *
+ * This file will be removed in a future release.
+ * See: https://github.com/onetimesecret/onetimesecret/issues/2365
+ */
+
 import type { OnetimeWindow } from '@/types/declarations/window';
 import { reactive } from 'vue';
 
 const STATE_KEY = '__ONETIME_STATE__';
 
 /**
+ * @deprecated Use bootstrapStore instead.
+ *
  * ═══════════════════════════════════════════════════════════════════════════════
- * WINDOW SERVICE - REACTIVE STATE BRIDGE
+ * WINDOW SERVICE - REACTIVE STATE BRIDGE (DEPRECATED)
  * ═══════════════════════════════════════════════════════════════════════════════
  *
  * Provides reactive access to server-injected window state. This service is the

@@ -7,15 +7,17 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
   import RecentSecretsTable from '@/apps/secret/components/RecentSecretsTable.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
   import { useRouter } from 'vue-router';
 
   const { t } = useI18n(); // auto-import
   const router = useRouter();
-  const cust = WindowService.get('cust');
+  const bootstrapStore = useBootstrapStore();
+  const { cust } = storeToRefs(bootstrapStore);
 
-  const isBetaEnabled = computed(() => cust?.feature_flags?.beta ?? false);
+  const isBetaEnabled = computed(() => cust.value?.feature_flags?.beta ?? false);
 
   const navigateToCreateTeam = () => {
     router.push({ name: 'Teams' });

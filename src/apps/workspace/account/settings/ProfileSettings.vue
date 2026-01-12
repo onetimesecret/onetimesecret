@@ -7,13 +7,15 @@
   import LanguageToggle from '@/shared/components/ui/LanguageToggle.vue';
   import SettingsLayout from '@/apps/workspace/layouts/SettingsLayout.vue';
   import ThemeToggle from '@/shared/components/ui/ThemeToggle.vue';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
   import { ref, onMounted } from 'vue';
 
   const { t } = useI18n();
   // const { accountInfo, fetchAccountInfo } = useAccount();
 
-  const windowProps = WindowService.getMultiple(['i18n_enabled']);
+  const bootstrapStore = useBootstrapStore();
+  const { i18n_enabled } = storeToRefs(bootstrapStore);
 
   const isLoading = ref(false);
 
@@ -80,7 +82,7 @@
 
           <!-- Language Setting -->
           <div
-            v-if="windowProps.i18n_enabled"
+            v-if="i18n_enabled"
             class="px-6 py-4">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">

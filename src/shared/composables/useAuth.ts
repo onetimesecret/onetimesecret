@@ -6,7 +6,7 @@ import {
   type AsyncHandlerOptions,
 } from '@/shared/composables/useAsyncHandler';
 import { loggingService } from '@/services/logging.service';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import {
   isAuthError,
   requiresMfa,
@@ -71,7 +71,7 @@ import { useRoute, useRouter } from 'vue-router';
  *
  * - authStore: Session state management, periodic /window refresh
  * - useMfa: OTP setup, verification, recovery codes
- * - WindowService: Reactive access to server state
+ * - bootstrapStore: Reactive access to server state
  * - Route guards: Navigation protection based on auth state
  *
  * @example
@@ -90,6 +90,7 @@ export function useAuth() {
   const router = useRouter();
   const { locale } = useI18n();
   const authStore = useAuthStore();
+  const bootstrapStore = useBootstrapStore();
   const csrfStore = useCsrfStore();
   const notificationsStore = useNotificationsStore();
   const organizationStore = useOrganizationStore();
@@ -270,7 +271,7 @@ export function useAuth() {
     const { product, interval } = billingParams;
 
     // Check if billing is enabled (graceful degradation for self-hosted)
-    if (!WindowService.get('billing_enabled')) {
+    if (!bootstrapStore.billing_enabled) {
       loggingService.debug('[useAuth] Billing redirect skipped - billing not enabled');
       return false;
     }
@@ -362,11 +363,11 @@ export function useAuth() {
           mfa_methods: validated.mfa_methods,
         });
 
-        // Update window state directly from login response - no round-trip needed.
+        // Update bootstrap store directly from login response - no round-trip needed.
         // The login response already tells us MFA is required, so we set awaiting_mfa
         // to allow route guards to permit access to /mfa-verify.
         // We also explicitly set authenticated: false to ensure consistent state.
-        WindowService.update({ awaiting_mfa: true, authenticated: false });
+        bootstrapStore.update({ awaiting_mfa: true, authenticated: false });
 
         // Redirect to MFA verification - guard will allow access since awaiting_mfa is set
         await router.push('/mfa-verify');

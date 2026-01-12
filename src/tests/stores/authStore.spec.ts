@@ -2,38 +2,24 @@
 
 import { Customer } from '@/schemas/models';
 import { AUTH_CHECK_CONFIG, useAuthStore } from '@/shared/stores/authStore';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { createApi } from '@/api';
-import { WindowService } from '@/services/window.service';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setupTestPinia } from '../setup';
-
-const mockWindow = {
-  authenticated: true,
-  cust: {
-    id: 'cust_123',
-    email: 'test@example.com',
-    name: 'Test User',
-  },
-  email: 'test@example.com',
-  baseuri: 'https://example.com',
-  is_paid: true,
-  domains_enabled: true,
-  billing_enabled: true,
-};
+import { baseBootstrap, mockCustomer as fixtureCustomer } from '../setup-bootstrap';
 
 // Create a mock Customer object that matches the actual Customer type
 const mockCustomer: Customer = {
   identifier: 'cust-1',
   custid: '1',
-  role: 'customer', // Changed from 'user' to valid enum value
+  role: 'customer',
   verified: true,
   secrets_burned: 0,
   secrets_shared: 0,
   emails_sent: 0,
   last_login: null,
   feature_flags: {},
-  // Use proper Date objects
   updated: new Date(Math.floor(Date.now() / 1000) * 1000),
   created: new Date(Math.floor(Date.now() / 1000) * 1000),
   secrets_created: 0,
@@ -48,20 +34,17 @@ describe('authStore', () => {
   let axiosMock: AxiosMockAdapter;
   let api: ReturnType<typeof createApi>;
   let store: ReturnType<typeof useAuthStore>;
+  let bootstrapStore: ReturnType<typeof useBootstrapStore>;
 
   beforeEach(async () => {
-    // Reset WindowService reactive state to sync with window.__ONETIME_STATE__
-    WindowService._resetForTesting();
-
-    // Initialize the store
+    // Initialize the test environment with Pinia
     const { api: testApi } = await setupTestPinia();
     api = testApi;
     axiosMock = new AxiosMockAdapter(api);
-    store = useAuthStore();
 
-    // NOTE: the autoInitPlugin plugin is called during setupTestPinia
-    // which automatically calls store.init() for us. If you need to call
-    // store.init() manually, run store.$reset() first to clear the state.
+    // Get store instances
+    bootstrapStore = useBootstrapStore();
+    store = useAuthStore();
 
     // Ensure all initialization promises are resolved
     await vi.dynamicImportSettled();
@@ -70,25 +53,19 @@ describe('authStore', () => {
   afterEach(() => {
     axiosMock.restore();
     store.$reset();
+    bootstrapStore.$reset();
     vi.clearAllMocks();
     vi.unstubAllGlobals();
   });
 
   describe('Initialization', () => {
     beforeEach(() => {
-      // Set window state properly, preserving __ONETIME_STATE__
-      (window as any).__ONETIME_STATE__ = {
-        ...(window as any).__ONETIME_STATE__,
-        ...mockWindow,
-      };
+      // Reset stores to test initialization
       store.$reset();
+      bootstrapStore.$reset();
     });
 
     afterEach(() => {
-      // Clean up window state properties
-      if ((window as any).__ONETIME_STATE__) {
-        (window as any).__ONETIME_STATE__.authenticated = mockWindow.authenticated;
-      }
       axiosMock.restore();
       store.$reset();
     });
@@ -110,45 +87,47 @@ describe('authStore', () => {
     });
 
     it('initializes correctly (when undefined)', () => {
-      (window as any).__ONETIME_STATE__.authenticated = undefined;
+      // bootstrapStore defaults to authenticated: false
       expect(store.isAuthenticated).toBe(null);
       store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when null)', () => {
-      (window as any).__ONETIME_STATE__.authenticated = null;
+      // Update bootstrap store with null-ish value (will be treated as false)
+      bootstrapStore.update({ authenticated: false });
       store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when false)', () => {
-      (window as any).__ONETIME_STATE__.authenticated = false;
+      bootstrapStore.update({ authenticated: false });
       store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when bad data)', () => {
-      (window as any).__ONETIME_STATE__.authenticated = 123;
+      // Non-boolean values should be treated as false
+      bootstrapStore.update({ authenticated: 123 as any });
       store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly (when true)', () => {
-      (window as any).__ONETIME_STATE__.authenticated = true;
-      WindowService._resetForTesting(); // Sync reactive state after window update
+      bootstrapStore.update({ authenticated: true });
       store.init();
       expect(store.isAuthenticated).toBe(true);
     });
 
     it('initializes correctly (when "true")', () => {
-      (window as any).__ONETIME_STATE__.authenticated = 'true';
+      // String "true" is not boolean true, should be false
+      bootstrapStore.update({ authenticated: 'true' as any });
       store.init();
       expect(store.isAuthenticated).toBe(false);
     });
 
     it('initializes correctly', () => {
-      (window as any).__ONETIME_STATE__.authenticated = false;
+      bootstrapStore.update({ authenticated: false });
       store.init();
       expect(store.isAuthenticated).toBe(false);
       expect(store.failureCount).toBe(null);
@@ -158,11 +137,13 @@ describe('authStore', () => {
 
   describe('Core Functionality', () => {
     beforeEach(() => {
-      // Set window state properly, preserving __ONETIME_STATE__
-      (window as any).__ONETIME_STATE__ = {
-        ...(window as any).__ONETIME_STATE__,
-        ...mockWindow,
-      };
+      // Reset and update bootstrap store with authenticated state
+      bootstrapStore.$reset();
+      bootstrapStore.update({
+        authenticated: true,
+        cust: fixtureCustomer,
+        email: fixtureCustomer.email,
+      });
       store.$reset();
     });
 
@@ -191,11 +172,6 @@ describe('authStore', () => {
     });
 
     it('prevents double initialization', () => {
-      // Let's verify the behavior:
-      // 1. Store gets initialized
-      // 2. Second init doesn't change state
-      // 3. Initial values are preserved
-
       // First init
       const result1 = store.init();
       const initializedState = { ...store.$state };
@@ -207,7 +183,7 @@ describe('authStore', () => {
       expect(store._initialized).toBe(true);
       expect(store.$state).toEqual(initializedState);
 
-      // Optional: verify the returned values if that's part of the contract
+      // Verify the returned values if that's part of the contract
       expect(result1).toEqual(result2);
     });
 
@@ -242,20 +218,18 @@ describe('authStore', () => {
 
   describe('Authentication Status Management', () => {
     beforeEach(() => {
-      // Set window state properly, preserving __ONETIME_STATE__
-      (window as any).__ONETIME_STATE__ = {
-        ...(window as any).__ONETIME_STATE__,
-        ...mockWindow,
-      };
+      // Set up authenticated state via bootstrapStore
+      bootstrapStore.$reset();
+      bootstrapStore.update({
+        authenticated: true,
+        cust: fixtureCustomer,
+        email: fixtureCustomer.email,
+      });
       store.init();
       store.$patch({ isAuthenticated: true });
     });
 
     afterEach(() => {
-      // Clean up window properties
-      for (const key of Object.keys(mockWindow)) {
-        delete (window as any)[key];
-      }
       axiosMock.restore();
       store.$reset();
     });
@@ -268,12 +242,6 @@ describe('authStore', () => {
       });
 
       await store.checkWindowStatus();
-
-      // console.log('Final store state:', {
-      //   isAuthenticated: store.isAuthenticated,
-      //   failureCount: store.failureCount,
-      //   lastCheckTime: store.lastCheckTime,
-      // });
 
       expect(store.isAuthenticated).toBe(true);
       expect(store.lastCheckTime).not.toBeNull();
@@ -320,11 +288,13 @@ describe('authStore', () => {
 
   describe('Schema Validation', () => {
     beforeEach(() => {
-      // Set window state properly, preserving __ONETIME_STATE__
-      (window as any).__ONETIME_STATE__ = {
-        ...(window as any).__ONETIME_STATE__,
-        ...mockWindow,
-      };
+      // Set up authenticated state via bootstrapStore
+      bootstrapStore.$reset();
+      bootstrapStore.update({
+        authenticated: true,
+        cust: fixtureCustomer,
+        email: fixtureCustomer.email,
+      });
       store.init();
       store.$patch({ isAuthenticated: true });
     });
@@ -360,7 +330,7 @@ describe('authStore', () => {
       });
 
       const result = await store.checkWindowStatus();
-      expect(result).toBe(false); // undefined || false → false
+      expect(result).toBe(false); // undefined || false -> false
       expect(store.failureCount).toBe(0); // No network error
     });
 
@@ -387,20 +357,19 @@ describe('authStore', () => {
 
   describe('Window State Synchronization', () => {
     beforeEach(() => {
-      // Set window state properly, preserving __ONETIME_STATE__
-      (window as any).__ONETIME_STATE__ = {
-        ...(window as any).__ONETIME_STATE__,
-        ...mockWindow,
-      };
+      // Set up authenticated state via bootstrapStore
+      bootstrapStore.$reset();
+      bootstrapStore.update({
+        authenticated: true,
+        cust: fixtureCustomer,
+        email: fixtureCustomer.email,
+      });
       store.init();
       store.$patch({ isAuthenticated: true });
     });
 
     afterEach(() => {
-      // Clean up window properties
-      for (const key of Object.keys(mockWindow)) {
-        delete (window as any)[key];
-      }
+      store.$reset();
     });
 
     it('does not sync store authenticated to window state', () => {
@@ -409,12 +378,8 @@ describe('authStore', () => {
     });
 
     it('initializes correctly from window state', () => {
-      // Set up window state with authenticated: true
-      (window as any).__ONETIME_STATE__ = {
-        ...(window as any).__ONETIME_STATE__,
-        authenticated: true,
-      };
-      WindowService._resetForTesting(); // Sync reactive state after window update
+      // Update bootstrapStore with authenticated: true
+      bootstrapStore.update({ authenticated: true });
 
       store.$reset(); // Reset store to test initialization
       store.init();
@@ -424,17 +389,18 @@ describe('authStore', () => {
 
   describe('Timer & Visibility Handling', () => {
     beforeEach(() => {
-      // Set window state properly, preserving __ONETIME_STATE__
-      (window as any).__ONETIME_STATE__ = {
-        ...(window as any).__ONETIME_STATE__,
-        ...mockWindow,
-      };
+      // Set up authenticated state via bootstrapStore
+      bootstrapStore.$reset();
+      bootstrapStore.update({
+        authenticated: true,
+        cust: fixtureCustomer,
+        email: fixtureCustomer.email,
+      });
 
       vi.useFakeTimers();
     });
 
     afterEach(() => {
-      (window as any).authenticated = undefined;
       vi.useRealTimers();
       vi.restoreAllMocks();
     });
@@ -622,6 +588,9 @@ describe('authStore', () => {
       sessionStorage.clear();
       // Clear cookies
       document.cookie = 'sess=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      // Reset stores
+      store.$reset();
+      bootstrapStore.$reset();
     });
 
     afterEach(() => {
@@ -638,12 +607,11 @@ describe('authStore', () => {
       // 2. Server returns error page with:
       //    - authenticated: false (error page default)
       //    - had_valid_session: true (server checked session cookie and it was valid)
-      (window as any).__ONETIME_STATE__ = {
+      bootstrapStore.update({
         authenticated: false,
         had_valid_session: true,
         cust: null,
-      };
-      WindowService._resetForTesting(); // Sync reactive state after window update
+      });
 
       // 3. Store initializes
       store.init();
@@ -658,10 +626,10 @@ describe('authStore', () => {
       sessionStorage.removeItem('ots_auth_state');
 
       // Server says not authenticated
-      (window as any).__ONETIME_STATE__ = {
+      bootstrapStore.update({
         authenticated: false,
         cust: null,
-      };
+      });
 
       store.init();
 
@@ -674,11 +642,11 @@ describe('authStore', () => {
       sessionStorage.setItem('ots_auth_state', 'true');
 
       // Server says not authenticated AND no valid session
-      (window as any).__ONETIME_STATE__ = {
+      bootstrapStore.update({
         authenticated: false,
         had_valid_session: false,
         cust: null,
-      };
+      });
 
       store.init();
 
@@ -692,12 +660,11 @@ describe('authStore', () => {
       // Simulate: server correctly says authenticated
       sessionStorage.removeItem('ots_auth_state');
 
-      (window as any).__ONETIME_STATE__ = {
+      bootstrapStore.update({
         authenticated: true,
         had_valid_session: true,
         cust: mockCustomer,
-      };
-      WindowService._resetForTesting(); // Sync reactive state after window update
+      });
 
       store.init();
 
@@ -752,11 +719,11 @@ describe('authStore', () => {
       sessionStorage.removeItem('ots_auth_state');
 
       // Server says there was a valid session (checked httpOnly cookie server-side)
-      (window as any).__ONETIME_STATE__ = {
+      bootstrapStore.update({
         authenticated: false,
         had_valid_session: true,
         cust: null,
-      };
+      });
 
       store.init();
 
@@ -774,12 +741,12 @@ describe('authStore', () => {
 
       sessionStorage.removeItem('ots_auth_state'); // No stored auth (correct for MFA flow)
 
-      (window as any).__ONETIME_STATE__ = {
+      bootstrapStore.update({
         authenticated: false,
         awaiting_mfa: true,
         had_valid_session: true,
         cust: null,
-      };
+      });
 
       store.init();
 
@@ -793,11 +760,13 @@ describe('authStore', () => {
 
   describe('Error Handling', () => {
     beforeEach(() => {
-      // Set window state properly, preserving __ONETIME_STATE__
-      (window as any).__ONETIME_STATE__ = {
-        ...(window as any).__ONETIME_STATE__,
-        ...mockWindow,
-      };
+      // Set up authenticated state via bootstrapStore
+      bootstrapStore.$reset();
+      bootstrapStore.update({
+        authenticated: true,
+        cust: fixtureCustomer,
+        email: fixtureCustomer.email,
+      });
     });
 
     afterEach(() => {

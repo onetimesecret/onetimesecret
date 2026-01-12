@@ -1,10 +1,10 @@
 // src/shared/stores/identityStore.ts
 
 import { brandSettingschema, type BrandSettings } from '@/schemas/models/domain/brand';
-import { WindowService } from '@/services/window.service';
-import { defineStore } from 'pinia';
-import { computed, reactive, toRefs } from 'vue';
+import { defineStore, storeToRefs } from 'pinia';
+import { computed, reactive, toRefs, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useBootstrapStore } from './bootstrapStore';
 
 export const DEFAULT_PRIMARY_COLOR = '#dc4a22';
 export const DEFAULT_CORNER_CLASS = 'rounded-lg';
@@ -39,48 +39,76 @@ interface IdentityState {
  * Ensures color values conform to brand schema requirements
  */
 const primaryColorValidator = brandSettingschema.shape.primary_color;
-// const allowPublicHomepageValidator = brandSettingschema.shape.allow_public_homepage;
-
-const domainId: string = WindowService.get('domain_id') ?? '';
-/**
- * Creates initial identity state from window service values
- * Handles validation and default values for branding fields
- */
-const getInitialState = (): IdentityState => {
-  const domainStrategy = WindowService.get('domain_strategy');
-  const domainBranding = WindowService.get('domain_branding');
-  const brand = brandSettingschema.parse(domainBranding ?? {});
-
-  // Parse with fallback values
-  let primaryColor = primaryColorValidator.parse(brand.primary_color) ?? DEFAULT_PRIMARY_COLOR;
-  const buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
-
-  const allowPublicHomepage = brand.allow_public_homepage ?? false;
-
-  return {
-    domainStrategy,
-    domainsEnabled: WindowService.get('domains_enabled'),
-    displayDomain: WindowService.get('display_domain'),
-    siteHost: WindowService.get('site_host'),
-    canonicalDomain: WindowService.get('canonical_domain'),
-    domainId,
-    brand,
-    primaryColor,
-    buttonTextLight,
-    allowPublicHomepage,
-  };
-};
 
 /**
  * Manages product identity state including domain context and branding
  * Identity determines how the product is presented and behaves for the current domain
  */
 
+// eslint-disable-next-line max-lines-per-function -- Store setup requires coordinating multiple reactive refs and watchers
 export const useProductIdentity = defineStore('productIdentity', () => {
   // Get i18n instance via injection
   const { t } = useI18n();
 
+  // Access bootstrapStore for all domain/branding data
+  const bootstrapStore = useBootstrapStore();
+  const {
+    domain_strategy,
+    domains_enabled,
+    display_domain,
+    site_host,
+    canonical_domain,
+    domain_id,
+    domain_branding,
+    domain_logo,
+  } = storeToRefs(bootstrapStore);
+
+  /**
+   * Creates initial identity state from bootstrapStore values
+   * Handles validation and default values for branding fields
+   */
+  function getInitialState(): IdentityState {
+    const brand = brandSettingschema.parse(domain_branding.value ?? {});
+
+    // Parse with fallback values
+    const primaryColor =
+      primaryColorValidator.parse(brand.primary_color) ?? DEFAULT_PRIMARY_COLOR;
+    const buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
+    const allowPublicHomepage = brand.allow_public_homepage ?? false;
+
+    return {
+      domainStrategy: domain_strategy.value,
+      domainsEnabled: domains_enabled.value,
+      displayDomain: display_domain.value,
+      siteHost: site_host.value,
+      canonicalDomain: canonical_domain.value,
+      domainId: domain_id.value,
+      brand,
+      primaryColor,
+      buttonTextLight,
+      allowPublicHomepage,
+    };
+  }
+
   const state = reactive<IdentityState>(getInitialState());
+
+  // Watch for domain branding changes to update derived state
+  watch(domain_branding, (newBranding) => {
+    const brand = brandSettingschema.parse(newBranding ?? {});
+    state.brand = brand;
+    state.primaryColor =
+      primaryColorValidator.parse(brand.primary_color) ?? DEFAULT_PRIMARY_COLOR;
+    state.buttonTextLight = brand.button_text_light ?? DEFAULT_BUTTON_TEXT_LIGHT;
+    state.allowPublicHomepage = brand.allow_public_homepage ?? false;
+  });
+
+  // Watch for domain config changes
+  watch(domain_strategy, (val) => { state.domainStrategy = val; });
+  watch(domains_enabled, (val) => { state.domainsEnabled = val; });
+  watch(display_domain, (val) => { state.displayDomain = val; });
+  watch(site_host, (val) => { state.siteHost = val; });
+  watch(canonical_domain, (val) => { state.canonicalDomain = val; });
+  watch(domain_id, (val) => { state.domainId = val; });
 
   /** Whether serving from primary domain */
   const isCanonical = computed(() => state.domainStrategy === 'canonical');
@@ -100,7 +128,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     // Returns null if no logo is uploaded for this custom domain.
     // Note: Client-side URL generation is not possible since we only have
     // the internal domainId, not the public extid needed for the /imagine route.
-     WindowService.get('domain_logo')
+    domain_logo.value
   );
 
   const cornerClass = computed(() => {
@@ -137,7 +165,7 @@ export const useProductIdentity = defineStore('productIdentity', () => {
     () => state.brand?.instructions_post_reveal?.trim() || t('web.shared.post_reveal_default')
   );
 
-  /** Resets state to initial values from window service */
+  /** Resets state to initial values from bootstrapStore */
   function $reset() {
     // Maintains reactivity by modifying the existing properties
     Object.assign(state, getInitialState());

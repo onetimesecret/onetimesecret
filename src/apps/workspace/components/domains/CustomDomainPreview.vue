@@ -25,7 +25,8 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useDomainDropdown } from '@/shared/composables/useDomainDropdown';
   import { useDropdown } from '@/shared/composables/useDropdown';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
   import { onClickOutside, onKeyStroke } from '@vueuse/core';
   import { ref, watch } from 'vue';
 
@@ -53,7 +54,8 @@ const { t } = useI18n();
 
   const activeIndex = ref(-1);
   const buttonRef = ref<HTMLButtonElement | null>(null);
-  const authenticated = WindowService.get('authenticated') ?? false;
+  const bootstrapStore = useBootstrapStore();
+  const { authenticated } = storeToRefs(bootstrapStore);
 
   const selectDomain = (domain: string) => {
     updateSelectedDomain(domain);

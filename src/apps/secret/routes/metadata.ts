@@ -1,7 +1,7 @@
 // src/apps/secret/routes/metadata.ts
 
 import SecretLayout from '@/apps/secret/layouts/SecretLayout.vue';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import BurnSecret from '@/apps/secret/reveal/BurnSecret.vue';
 import ShowMetadata from '@/apps/secret/reveal/ShowMetadata.vue';
 import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
@@ -25,9 +25,9 @@ const validateMetadataKey = (key: string | string[]): key is string =>
  */
 const withValidatedMetadataKey = {
   beforeEnter: (to: RouteLocationNormalized) => {
-    // Use window service directly rather than the identity store
-    // since the routes start before the pinia stores.
-    const domainStrategy = WindowService.get('domain_strategy') as string;
+    // Use bootstrap store for domain strategy
+    const bootstrapStore = useBootstrapStore();
+    const domainStrategy = bootstrapStore.domain_strategy as string;
 
     if (domainStrategy === 'custom') {
       to.meta.layoutProps = {

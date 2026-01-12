@@ -4,6 +4,7 @@ import { mount, flushPromises } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi, afterEach } from 'vitest';
 import { createI18n } from 'vue-i18n';
 import { computed } from 'vue';
+import { createTestingPinia } from '@pinia/testing';
 
 // Shared mock state that can be mutated per test
 interface MockDomainScopeState {
@@ -25,23 +26,6 @@ const mockDomainScopeState: MockDomainScopeState = {
   },
   isScopeActive: true,
 };
-
-// Mock WindowService
-vi.mock('@/services/window.service', () => ({
-  WindowService: {
-    get: vi.fn((key: string) => {
-      if (key === 'cust') return { feature_flags: { beta: false } };
-      if (key === 'secret_options')
-        return {
-          default_ttl: 604800,
-          ttl_options: [3600, 86400, 604800],
-          passphrase: { required: false, minimum_length: 6 },
-        };
-      return null;
-    }),
-    getMultiple: vi.fn(),
-  },
-}));
 
 // Mock useDomainScope - returns fresh refs that read from shared state
 vi.mock('@/shared/composables/useDomainScope', () => ({
@@ -128,7 +112,22 @@ describe('DashboardIndex', () => {
   function createMountOptions() {
     return {
       global: {
-        plugins: [i18n],
+        plugins: [
+          i18n,
+          createTestingPinia({
+            createSpy: vi.fn,
+            initialState: {
+              bootstrap: {
+                cust: { feature_flags: { beta: false } },
+                secret_options: {
+                  default_ttl: 604800,
+                  ttl_options: [3600, 86400, 604800],
+                  passphrase: { required: false, minimum_length: 6 },
+                },
+              },
+            },
+          }),
+        ],
         stubs: {
           WorkspaceSecretForm: WorkspaceSecretFormStub,
           RecentSecretsTable: RecentSecretsTableStub,

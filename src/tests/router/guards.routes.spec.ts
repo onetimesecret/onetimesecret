@@ -1,13 +1,17 @@
 // src/tests/router/guards.routes.spec.ts
 
+import { createTestingPinia } from '@pinia/testing';
+import { setActivePinia } from 'pinia';
+import { beforeEach, describe, expect, it, test, vi } from 'vitest';
+import { RouteLocationNormalized, Router } from 'vue-router';
+
 import {
   AuthValidator,
   setupRouterGuards,
   validateAuthentication,
 } from '@/router/guards.routes';
-import { useAuthStore } from '@/shared/stores';
-import { beforeEach, describe, expect, it, test, vi } from 'vitest';
-import { RouteLocationNormalized, Router } from 'vue-router';
+import { useAuthStore, useLanguageStore } from '@/shared/stores';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 
 const protectedRoute: RouteLocationNormalized = {
   meta: { requiresAuth: true },
@@ -40,12 +44,6 @@ vi.mock('@/shared/stores/languageStore', () => ({
   })),
 }));
 
-vi.mock('@/services/window.service', () => ({
-  WindowService: {
-    get: vi.fn(),
-  },
-}));
-
 vi.mock('@/shared/composables/usePageTitle', () => ({
   usePageTitle: vi.fn(() => ({
     setTitle: vi.fn(),
@@ -56,8 +54,27 @@ vi.mock('@/shared/composables/usePageTitle', () => ({
 
 describe('Router Guards', () => {
   let router: Router;
+  let pinia: ReturnType<typeof createTestingPinia>;
+  let bootstrapStore: ReturnType<typeof useBootstrapStore>;
 
   beforeEach(() => {
+    pinia = createTestingPinia({
+      createSpy: vi.fn,
+      stubActions: false,
+      initialState: {
+        bootstrap: {
+          authenticated: false,
+          domain_strategy: 'canonical',
+          site_host: 'onetimesecret.com',
+          display_domain: 'onetimesecret.com',
+          domains_enabled: false,
+          cust: null,
+        },
+      },
+    });
+    setActivePinia(pinia);
+    bootstrapStore = useBootstrapStore();
+
     router = {
       beforeEach: vi.fn(),
       afterEach: vi.fn(),

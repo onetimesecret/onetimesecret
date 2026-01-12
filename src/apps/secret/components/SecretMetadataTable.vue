@@ -5,7 +5,8 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import SecretMetadataTableItem from '@/apps/secret/components/SecretMetadataTableItem.vue';
   import { MetadataRecords } from '@/schemas/api/account/endpoints/recent';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { storeToRefs } from 'pinia';
   import { ref } from 'vue';
 
   const { t } = useI18n();
@@ -19,14 +20,15 @@
   defineProps<Props>();
 
   // Get the site host for building share links
-  const site_host = WindowService.get('site_host');
+  const bootstrapStore = useBootstrapStore();
+  const { site_host } = storeToRefs(bootstrapStore);
 
   // Track item being copied for feedback
   const copiedItemKey = ref<string | null>(null);
 
   // Create shareable link for an item
   const getShareLink = (item: MetadataRecords) => {
-    const share_domain = item.share_domain ?? site_host;
+    const share_domain = item.share_domain ?? site_host.value;
     return `https://${share_domain}/secret/${item.identifier}`;
   };
 

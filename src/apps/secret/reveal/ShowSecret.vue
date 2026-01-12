@@ -1,8 +1,8 @@
 <!-- src/apps/secret/reveal/ShowSecret.vue -->
 
 <script setup lang="ts">
-// import { domainStrategy } from '@/shared/composables/useBranding';
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 
 import ShowSecretBranded from './branded/ShowSecret.vue';
@@ -14,14 +14,17 @@ interface Props {
 }
 const props = defineProps<Props>();
 
-const domainStrategy = WindowService.get('domain_strategy');
-const displayDomain = WindowService.get('display_domain');
-const domainId = WindowService.get('domain_id');
-const siteHost = WindowService.get('site_host');
+const bootstrapStore = useBootstrapStore();
+const {
+  domain_strategy: domainStrategy,
+  display_domain: displayDomain,
+  domain_id: domainId,
+  site_host: siteHost,
+} = storeToRefs(bootstrapStore);
 
 const currentComponent = computed(() => {
-  console.debug('[ShowSecretContainer] meta=', props.secretIdentifier, domainStrategy)
-  return domainStrategy === 'canonical' ? ShowSecretCanonical : ShowSecretBranded;
+  console.debug('[ShowSecretContainer] meta=', props.secretIdentifier, domainStrategy.value)
+  return domainStrategy.value === 'canonical' ? ShowSecretCanonical : ShowSecretBranded;
 });
 </script>
 

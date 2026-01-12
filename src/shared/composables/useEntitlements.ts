@@ -1,7 +1,8 @@
 // src/shared/composables/useEntitlements.ts
 
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useEntitlementsStore } from '@/shared/stores/entitlementsStore';
+import { storeToRefs } from 'pinia';
 import type { Organization } from '@/types/organization';
 import { ENTITLEMENTS } from '@/types/organization';
 import { computed, type Ref } from 'vue';
@@ -60,15 +61,14 @@ const FALLBACK_ENTITLEMENT_TO_PLAN: Record<string, string> = {
 export function useEntitlements(org: Ref<Organization | null>) {
   const { t } = useI18n();
   const entitlementsStore = useEntitlementsStore();
+  const bootstrapStore = useBootstrapStore();
+  const { billing_enabled } = storeToRefs(bootstrapStore);
 
   /**
    * Check if running in standalone mode (all entitlements available)
    * When billing is disabled, full access is granted
    */
-  const isStandaloneMode = computed(() => {
-    const billingEnabled = WindowService.get('billing_enabled');
-    return !billingEnabled;
-  });
+  const isStandaloneMode = computed(() => !billing_enabled.value);
 
   /**
    * Loading state from the entitlements store

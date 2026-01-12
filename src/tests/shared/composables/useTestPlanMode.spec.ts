@@ -1,20 +1,38 @@
 // src/tests/shared/composables/useTestPlanMode.spec.ts
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { createTestingPinia } from '@pinia/testing';
+import { setActivePinia } from 'pinia';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useTestPlanMode } from '@/shared/composables/useTestPlanMode';
-import { WindowService } from '@/services/window.service';
-
-// Mock WindowService
-vi.mock('@/services/window.service', () => ({
-  WindowService: {
-    get: vi.fn(),
-    getState: vi.fn(() => ({})),
-  },
-}));
 
 describe('useTestPlanMode', () => {
+  let bootstrapStore: ReturnType<typeof useBootstrapStore>;
+
+  /**
+   * Helper to set up bootstrapStore with test plan mode configuration
+   */
+  function setupBootstrapStore(config: {
+    entitlement_test_planid?: string | null;
+    entitlement_test_plan_name?: string | null;
+    organization?: { planid?: string } | null;
+  } = {}) {
+    const pinia = createTestingPinia({
+      createSpy: vi.fn,
+      stubActions: false,
+    });
+    setActivePinia(pinia);
+
+    bootstrapStore = useBootstrapStore();
+    bootstrapStore.entitlement_test_planid = config.entitlement_test_planid;
+    bootstrapStore.entitlement_test_plan_name = config.entitlement_test_plan_name;
+    bootstrapStore.organization = config.organization as any;
+
+    return { pinia, bootstrapStore };
+  }
+
   beforeEach(() => {
-    vi.mocked(WindowService.get).mockReset();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -23,9 +41,8 @@ describe('useTestPlanMode', () => {
 
   describe('isTestModeActive', () => {
     it('returns true when window state has test planid', () => {
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'entitlement_test_planid') return 'identity_v1';
-        return undefined;
+      setupBootstrapStore({
+        entitlement_test_planid: 'identity_v1',
       });
 
       const { isTestModeActive } = useTestPlanMode();
@@ -34,9 +51,8 @@ describe('useTestPlanMode', () => {
     });
 
     it('returns false when no override is set', () => {
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'entitlement_test_planid') return null;
-        return undefined;
+      setupBootstrapStore({
+        entitlement_test_planid: null,
       });
 
       const { isTestModeActive } = useTestPlanMode();
@@ -45,7 +61,9 @@ describe('useTestPlanMode', () => {
     });
 
     it('returns false when test planid is undefined', () => {
-      vi.mocked(WindowService.get).mockImplementation(() => undefined);
+      setupBootstrapStore({
+        entitlement_test_planid: undefined,
+      });
 
       const { isTestModeActive } = useTestPlanMode();
 
@@ -53,9 +71,8 @@ describe('useTestPlanMode', () => {
     });
 
     it('returns false when test planid is empty string', () => {
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'entitlement_test_planid') return '';
-        return undefined;
+      setupBootstrapStore({
+        entitlement_test_planid: '',
       });
 
       const { isTestModeActive } = useTestPlanMode();
@@ -66,9 +83,8 @@ describe('useTestPlanMode', () => {
 
   describe('testPlanId', () => {
     it('returns planid from window state when active', () => {
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'entitlement_test_planid') return 'multi_team_v1';
-        return undefined;
+      setupBootstrapStore({
+        entitlement_test_planid: 'multi_team_v1',
       });
 
       const { testPlanId } = useTestPlanMode();
@@ -77,9 +93,8 @@ describe('useTestPlanMode', () => {
     });
 
     it('returns null when no override is set', () => {
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'entitlement_test_planid') return null;
-        return undefined;
+      setupBootstrapStore({
+        entitlement_test_planid: null,
       });
 
       const { testPlanId } = useTestPlanMode();
@@ -91,9 +106,8 @@ describe('useTestPlanMode', () => {
       const testCases = ['free', 'identity_v1', 'multi_team_v1'];
 
       testCases.forEach(planId => {
-        vi.mocked(WindowService.get).mockImplementation((key: string) => {
-          if (key === 'entitlement_test_planid') return planId;
-          return undefined;
+        setupBootstrapStore({
+          entitlement_test_planid: planId,
         });
 
         const { testPlanId } = useTestPlanMode();
@@ -104,10 +118,9 @@ describe('useTestPlanMode', () => {
 
   describe('testPlanName', () => {
     it('returns plan name from window state when active', () => {
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'entitlement_test_plan_name') return 'Identity Plus';
-        if (key === 'entitlement_test_planid') return 'identity_v1';
-        return undefined;
+      setupBootstrapStore({
+        entitlement_test_planid: 'identity_v1',
+        entitlement_test_plan_name: 'Identity Plus',
       });
 
       const { testPlanName } = useTestPlanMode();
@@ -116,9 +129,8 @@ describe('useTestPlanMode', () => {
     });
 
     it('returns null when no override is set', () => {
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'entitlement_test_plan_name') return null;
-        return undefined;
+      setupBootstrapStore({
+        entitlement_test_plan_name: null,
       });
 
       const { testPlanName } = useTestPlanMode();
@@ -127,23 +139,21 @@ describe('useTestPlanMode', () => {
     });
 
     it('handles missing plan name gracefully', () => {
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'entitlement_test_planid') return 'identity_v1';
-        if (key === 'entitlement_test_plan_name') return undefined;
-        return undefined;
+      setupBootstrapStore({
+        entitlement_test_planid: 'identity_v1',
+        entitlement_test_plan_name: undefined,
       });
 
       const { testPlanName } = useTestPlanMode();
 
-      expect(testPlanName.value).toBeUndefined();
+      expect(testPlanName.value).toBeNull();
     });
   });
 
   describe('actualPlanId', () => {
     it('returns actual organization planid', () => {
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'organization') return { planid: 'free' };
-        return undefined;
+      setupBootstrapStore({
+        organization: { planid: 'free' },
       });
 
       const { actualPlanId } = useTestPlanMode();
@@ -152,9 +162,8 @@ describe('useTestPlanMode', () => {
     });
 
     it('returns undefined when organization is not available', () => {
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'organization') return null;
-        return undefined;
+      setupBootstrapStore({
+        organization: null,
       });
 
       const { actualPlanId } = useTestPlanMode();
@@ -163,9 +172,8 @@ describe('useTestPlanMode', () => {
     });
 
     it('returns undefined when organization has no planid', () => {
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'organization') return {};
-        return undefined;
+      setupBootstrapStore({
+        organization: {},
       });
 
       const { actualPlanId } = useTestPlanMode();
@@ -176,11 +184,10 @@ describe('useTestPlanMode', () => {
 
   describe('Integration scenarios', () => {
     it('provides complete test mode state when active', () => {
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'entitlement_test_planid') return 'multi_team_v1';
-        if (key === 'entitlement_test_plan_name') return 'Multi-Team';
-        if (key === 'organization') return { planid: 'free' };
-        return undefined;
+      setupBootstrapStore({
+        entitlement_test_planid: 'multi_team_v1',
+        entitlement_test_plan_name: 'Multi-Team',
+        organization: { planid: 'free' },
       });
 
       const {
@@ -197,11 +204,10 @@ describe('useTestPlanMode', () => {
     });
 
     it('provides complete normal state when inactive', () => {
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'entitlement_test_planid') return null;
-        if (key === 'entitlement_test_plan_name') return null;
-        if (key === 'organization') return { planid: 'identity_v1' };
-        return undefined;
+      setupBootstrapStore({
+        entitlement_test_planid: null,
+        entitlement_test_plan_name: null,
+        organization: { planid: 'identity_v1' },
       });
 
       const {
@@ -219,12 +225,9 @@ describe('useTestPlanMode', () => {
   });
 
   describe('Reactivity', () => {
-    it('computed values are reactive', () => {
-      let mockPlanId = 'free';
-
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'entitlement_test_planid') return mockPlanId;
-        return undefined;
+    it('computed values are reactive to store changes', () => {
+      setupBootstrapStore({
+        entitlement_test_planid: 'free',
       });
 
       const { testPlanId, isTestModeActive } = useTestPlanMode();
@@ -232,31 +235,19 @@ describe('useTestPlanMode', () => {
       expect(testPlanId.value).toBe('free');
       expect(isTestModeActive.value).toBe(true);
 
-      // Simulate changing the mock value
-      mockPlanId = 'identity_v1';
+      // Update store value
+      bootstrapStore.entitlement_test_planid = 'identity_v1';
 
-      // Note: In real implementation, this would need proper reactivity
-      // This test documents expected behavior
+      expect(testPlanId.value).toBe('identity_v1');
+      expect(isTestModeActive.value).toBe(true);
     });
   });
 
   describe('Edge cases', () => {
-    it('handles WindowService errors gracefully', () => {
-      vi.mocked(WindowService.get).mockImplementation(() => {
-        throw new Error('Window state not initialized');
-      });
-
-      // Should not crash when calling the composable
-      expect(() => {
-        useTestPlanMode();
-      }).not.toThrow();
-    });
-
     it('handles partial window state', () => {
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'entitlement_test_planid') return 'identity_v1';
-        // Other keys return undefined
-        return undefined;
+      setupBootstrapStore({
+        entitlement_test_planid: 'identity_v1',
+        // Other keys left undefined
       });
 
       const {
@@ -268,14 +259,13 @@ describe('useTestPlanMode', () => {
 
       expect(isTestModeActive.value).toBe(true);
       expect(testPlanId.value).toBe('identity_v1');
-      expect(testPlanName.value).toBeUndefined();
+      expect(testPlanName.value).toBeNull();
       expect(actualPlanId.value).toBeUndefined();
     });
 
     it('treats whitespace-only planid as inactive', () => {
-      vi.mocked(WindowService.get).mockImplementation((key: string) => {
-        if (key === 'entitlement_test_planid') return '   ';
-        return undefined;
+      setupBootstrapStore({
+        entitlement_test_planid: '   ',
       });
 
       const { isTestModeActive } = useTestPlanMode();

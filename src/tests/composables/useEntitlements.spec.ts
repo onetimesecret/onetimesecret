@@ -2,36 +2,48 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ref, nextTick } from 'vue';
-import { createPinia, setActivePinia } from 'pinia';
+import { createTestingPinia } from '@pinia/testing';
+import { setActivePinia } from 'pinia';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import type { Organization } from '@/types/organization';
 import { createMockOrganization, mockOrganizations } from '../fixtures/billing.fixture';
 
-const { mockGet, mockWindowGet } = vi.hoisted(() => ({
+const { mockGet } = vi.hoisted(() => ({
   mockGet: vi.fn(),
-  mockWindowGet: vi.fn(),
 }));
 
 vi.mock('@/api', () => ({ createApi: () => ({ get: mockGet }) }));
-vi.mock('@/services/window.service', () => ({ WindowService: { get: mockWindowGet } }));
 vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => `translated:${key}` }) }));
 
 describe('useEntitlements', () => {
-  let pinia: ReturnType<typeof createPinia>;
-
   beforeEach(() => {
-    pinia = createPinia();
-    setActivePinia(pinia);
     vi.clearAllMocks();
     mockGet.mockReset();
-    mockWindowGet.mockReturnValue(true);
   });
 
-  afterEach(() => { vi.resetModules(); });
+  afterEach(() => {
+    vi.resetModules();
+  });
+
+  /**
+   * Helper to set up bootstrapStore with billing configuration
+   */
+  function setupBootstrapStore(config: { billing_enabled?: boolean } = {}) {
+    const pinia = createTestingPinia({
+      createSpy: vi.fn,
+      stubActions: false,
+    });
+    setActivePinia(pinia);
+
+    const bootstrapStore = useBootstrapStore();
+    bootstrapStore.billing_enabled = config.billing_enabled ?? true;
+
+    return { pinia, bootstrapStore };
+  }
 
   async function importFresh() {
     vi.resetModules();
-    pinia = createPinia();
-    setActivePinia(pinia);
+    setupBootstrapStore({ billing_enabled: true });
     const { useEntitlements } = await import('@/shared/composables/useEntitlements');
     return useEntitlements;
   }
@@ -183,8 +195,9 @@ describe('useEntitlements', () => {
 
   describe('standalone mode', () => {
     it('grants all entitlements when billing is disabled', async () => {
-      mockWindowGet.mockReturnValue(false);
-      const useEntitlements = await importFresh();
+      vi.resetModules();
+      setupBootstrapStore({ billing_enabled: false });
+      const { useEntitlements } = await import('@/shared/composables/useEntitlements');
       const { can, isStandaloneMode } = useEntitlements(ref(mockOrganizations.free));
 
       expect(isStandaloneMode.value).toBe(true);
@@ -193,8 +206,9 @@ describe('useEntitlements', () => {
     });
 
     it('respects org entitlements when billing is enabled', async () => {
-      mockWindowGet.mockReturnValue(true);
-      const useEntitlements = await importFresh();
+      vi.resetModules();
+      setupBootstrapStore({ billing_enabled: true });
+      const { useEntitlements } = await import('@/shared/composables/useEntitlements');
       const { can, isStandaloneMode } = useEntitlements(ref(mockOrganizations.free));
 
       expect(isStandaloneMode.value).toBe(false);

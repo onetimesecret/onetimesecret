@@ -8,7 +8,7 @@
   import { useDomainScope } from '@/shared/composables/useDomainScope';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
-  import { WindowService } from '@/services/window.service';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { useConcealedMetadataStore } from '@/shared/stores/concealedMetadataStore';
   import {
     DEFAULT_BUTTON_TEXT_LIGHT,
@@ -17,6 +17,7 @@
   } from '@/shared/stores/identityStore';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
   import { nanoid } from 'nanoid';
+  import { storeToRefs } from 'pinia';
   import { computed, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
 
@@ -59,7 +60,8 @@
   const showProTip = ref(props.withAsterisk);
 
   // Get passphrase configuration for UI hints
-  const secretOptions = computed(() => WindowService.get('secret_options'));
+  const bootstrapStore = useBootstrapStore();
+  const { secret_options: secretOptions } = storeToRefs(bootstrapStore);
 
   const passphraseConfig = computed(() => secretOptions.value?.passphrase);
   const isPassphraseRequired = computed(() => passphraseConfig.value?.required || false);

@@ -3,10 +3,10 @@
 import { PiniaPluginOptions } from '@/plugins/pinia/types';
 import { classifyError, errorGuards } from '@/schemas/errors';
 import { loggingService } from '@/services/logging.service';
-import { WindowService } from '@/services/window.service';
 import { AxiosInstance } from 'axios';
-import { defineStore, PiniaCustomProperties } from 'pinia';
+import { defineStore, PiniaCustomProperties, storeToRefs } from 'pinia';
 import { computed, inject, ref } from 'vue';
+import { useBootstrapStore } from './bootstrapStore';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -18,7 +18,7 @@ import { computed, inject, ref } from 'vue';
  *
  * - useAuth composable: Handles auth operations (login, logout, signup)
  * - useMfa composable: Handles MFA setup and verification
- * - WindowService: Provides reactive access to server-injected state
+ * - bootstrapStore: Provides reactive access to server-injected state
  * - Route guards: Enforce authentication requirements on navigation
  *
  * ───────────────────────────────────────────────────────────────────────────────
@@ -48,20 +48,17 @@ import { computed, inject, ref } from 'vue';
  * STATE SYNCHRONIZATION (CRITICAL)
  * ───────────────────────────────────────────────────────────────────────────────
  *
- * State is stored in two places that MUST stay synchronized:
- *
- * 1. window.__ONETIME_STATE__ - Server-injected on page load
- * 2. WindowService.reactiveState - Vue reactive cache for computed properties
+ * State is stored in bootstrapStore which is the single source of truth.
  *
  * When refreshing state from /window endpoint:
- * - ALWAYS use WindowService.update() to update BOTH locations
- * - NEVER assign directly to window.__ONETIME_STATE__ (breaks reactivity)
+ * - ALWAYS use bootstrapStore.update() to update state
+ * - All computed properties derive from bootstrapStore refs
  *
- * The awaitingMfa computed property reads from WindowService. If the reactive
- * cache isn't updated, route guards see stale state and redirect incorrectly.
+ * The awaitingMfa computed property reads from bootstrapStore. Route guards
+ * will see updated values immediately after bootstrapStore.update().
  *
  * LOGIN WITH MFA: The login response includes mfa_required=true, so useAuth
- * updates WindowService directly with awaiting_mfa=true. No /window fetch is
+ * updates bootstrapStore directly with awaiting_mfa=true. No /window fetch is
  * needed - the state flows naturally from the login response to the route guard.
  *
  * ───────────────────────────────────────────────────────────────────────────────
@@ -143,6 +140,16 @@ export type AuthStore = {
 /* eslint-disable max-lines-per-function */
 export const useAuthStore = defineStore('auth', () => {
   const $api = inject('api') as AxiosInstance;
+  const bootstrapStore = useBootstrapStore();
+
+  // Get reactive refs from bootstrapStore
+  const {
+    authenticated: bsAuthenticated,
+    awaiting_mfa: bsAwaitingMfa,
+    had_valid_session: bsHadValidSession,
+    cust: bsCust,
+    email: bsEmail,
+  } = storeToRefs(bootstrapStore);
 
   // State
   const isAuthenticated = ref<boolean | null>(null);
@@ -166,8 +173,9 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * Whether user is awaiting MFA verification (password OK, OTP pending).
    * This is a transitional state between unauthenticated and fully authenticated.
+   * Derives from bootstrapStore for reactivity.
    */
-  const awaitingMfa = computed(() => WindowService.get('awaiting_mfa') ?? false);
+  const awaitingMfa = computed(() => bsAwaitingMfa.value ?? false);
 
   /**
    * Whether user has completed ALL authentication steps.
@@ -182,12 +190,9 @@ export const useAuthStore = defineStore('auth', () => {
    * Whether a user is present (logged in partially or fully).
    * True for both MFA-pending and fully authenticated states.
    * Use this for UI decisions (show user menu, hide sign-in links).
+   * Derives from bootstrapStore refs for reactivity.
    */
-  const isUserPresent = computed(() => {
-    const cust = WindowService.get('cust');
-    const email = WindowService.get('email');
-    return !!((isAuthenticated.value && cust) || (awaitingMfa.value && email));
-  });
+  const isUserPresent = computed(() => !!((isAuthenticated.value && bsCust.value) || (awaitingMfa.value && bsEmail.value)));
 
   // Actions
 
@@ -199,12 +204,13 @@ export const useAuthStore = defineStore('auth', () => {
 
     if (options?.api) loggingService.warn('API instance provided in options, ignoring.');
 
-    const inputValue = WindowService.get('authenticated');
-    const hadValidSession = WindowService.get('had_valid_session');
+    // Read from bootstrapStore refs (already hydrated from window state)
+    const inputValue = bsAuthenticated.value;
+    const hadValidSession = bsHadValidSession.value;
     const storedAuthState = sessionStorage.getItem('ots_auth_state');
 
     // Debug logging for auth initialization flow
-    loggingService.debug('[AuthStore.init] Auth state from WindowService:', {
+    loggingService.debug('[AuthStore.init] Auth state from bootstrapStore:', {
       authenticated: inputValue,
       authenticatedType: typeof inputValue,
       hadValidSession,
@@ -294,14 +300,11 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await $api.get(AUTH_CHECK_CONFIG.ENDPOINT);
 
-      // Update window state via WindowService to maintain reactivity.
-      // CRITICAL: Must use WindowService.update() to sync BOTH:
-      //   1. window.__ONETIME_STATE__ (for legacy code)
-      //   2. WindowService.reactiveState (for Vue computed properties)
-      // Direct assignment to window.__ONETIME_STATE__ breaks reactivity
-      // and causes stale awaitingMfa state in route guards.
+      // Update bootstrapStore with server response - single source of truth.
+      // All computed properties derive from bootstrapStore refs, so route guards
+      // and components will see updated values immediately.
       if (response.data) {
-        WindowService.update(response.data);
+        bootstrapStore.update(response.data);
       }
 
       // Update local auth state from refreshed window data
@@ -397,8 +400,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     $reset();
 
-    // Sync window state
-    window.__ONETIME_STATE__ = undefined;
+    // Reset bootstrapStore to typed defaults - single source of truth
+    bootstrapStore.$reset();
 
     deleteCookie('sess');
     deleteCookie('locale');
@@ -455,10 +458,10 @@ export const useAuthStore = defineStore('auth', () => {
       await $stopAuthCheck();
     }
 
-    // Sync flags via WindowService for reactivity. When setting authenticated to true,
+    // Sync flags via bootstrapStore for reactivity. When setting authenticated to true,
     // we also set awaiting_mfa to false. This optimistic update prevents getting
     // stuck if the subsequent checkWindowStatus() call fails.
-    WindowService.update({
+    bootstrapStore.update({
       authenticated: value,
       ...(value ? { awaiting_mfa: false } : {}),
     });

@@ -13,9 +13,10 @@
  * @see docs/product/interaction-modes.md - Domain Scope concept
  */
 
-import { WindowService } from '@/services/window.service';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useDomainsStore } from '@/shared/stores/domainsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
+import { storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue';
 
 export interface DomainScope {
@@ -34,11 +35,22 @@ const currentDomain = ref('');
 const isInitialized = ref(false);
 const isLoadingDomains = ref(false);
 
-// Window service config (module-level for reuse)
-const windowConfig = WindowService.getMultiple(['domains_enabled', 'site_host', 'display_domain']);
-const domainsEnabled = windowConfig.domains_enabled;
-const canonicalDomain = windowConfig.site_host;
-const displayDomain = windowConfig.display_domain;
+// Bootstrap config refs - lazily initialized on first composable use
+let domainsEnabled: boolean = false;
+let canonicalDomain: string = '';
+let displayDomain: string = '';
+let configInitialized = false;
+
+/** Initialize config from bootstrap store (called on first composable use) */
+function initConfig(): void {
+  if (configInitialized) return;
+  const bootstrapStore = useBootstrapStore();
+  const refs = storeToRefs(bootstrapStore);
+  domainsEnabled = refs.domains_enabled.value;
+  canonicalDomain = refs.site_host.value;
+  displayDomain = refs.display_domain.value;
+  configInitialized = true;
+}
 
 /** Get display name for a given domain */
 function getDomainDisplayName(domain: string): string {
@@ -100,6 +112,9 @@ async function initializeDomainScope(
  * Domains are scoped to the current organization.
  */
 export function useDomainScope() {
+  // Initialize config from bootstrap store on first use
+  initConfig();
+
   const domainsStore = useDomainsStore();
   const organizationStore = useOrganizationStore();
 
