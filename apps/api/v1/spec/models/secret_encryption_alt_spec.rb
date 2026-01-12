@@ -20,17 +20,17 @@ RSpec.describe Onetime::Secret do
     it 'creates a valid secret and metadata pair' do
       expect(metadata).to be_a(Onetime::Receipt)
       expect(secret).to be_a(described_class)
-      expect(receipt.custid).to eq(customer_id)
+      expect(metadata.custid).to eq(customer_id)
       expect(secret.custid).to eq(customer_id)
-      expect(receipt.secret_identifier).to eq(secret.identifier)
-      expect(secret.receipt_identifier).to eq(receipt.identifier)
+      expect(metadata.secret_identifier).to eq(secret.identifier)
+      expect(secret.receipt_identifier).to eq(metadata.identifier)
     end
 
     it 'generates unique identifiers for each pair' do
-      receipt2, secret2 = create_stubbed_secret_pair(custid: customer_id)
+      metadata2, secret2 = create_stubbed_secret_pair(custid: customer_id)
 
       expect(secret.identifier).not_to eq(secret2.identifier)
-      expect(receipt.identifier).not_to eq(receipt2.identifier)
+      expect(metadata.identifier).not_to eq(metadata2.identifier)
     end
   end
 
@@ -142,14 +142,14 @@ RSpec.describe Onetime::Secret do
       lifecycle_secret.received!
 
       expect(lifecycle_secret.state).to eq('received')
-      expect(lifecycle_receipt.state).to eq('received')
+      expect(lifecycle_metadata.state).to eq('received')
       expect(lifecycle_secret.instance_variable_get(:@value)).to be_nil
     end
 
     it 'transitions from new to burned' do
       lifecycle_secret.burned!
 
-      expect(lifecycle_receipt.state).to eq('burned')
+      expect(lifecycle_metadata.state).to eq('burned')
       expect(lifecycle_secret.instance_variable_get(:@passphrase_temp)).to be_nil
       expect(lifecycle_secret).to have_received(:destroy!)
     end
@@ -157,18 +157,18 @@ RSpec.describe Onetime::Secret do
     it 'prevents expired! when not yet expired' do
       allow(lifecycle_metadata).to receive(:secret_expired?).and_return(false)
 
-      lifecycle_receipt.expired!
+      lifecycle_metadata.expired!
 
-      expect(lifecycle_receipt.state).not_to eq('expired')
+      expect(lifecycle_metadata.state).not_to eq('expired')
     end
 
     it 'allows expired! when truly expired' do
       allow(lifecycle_metadata).to receive(:secret_expired?).and_return(true)
 
-      lifecycle_receipt.expired!
+      lifecycle_metadata.expired!
 
-      expect(lifecycle_receipt.state).to eq('expired')
-      expect(lifecycle_receipt.secret_key).to eq('')
+      expect(lifecycle_metadata.state).to eq('expired')
+      expect(lifecycle_metadata.secret_key).to eq('')
     end
   end
 end
