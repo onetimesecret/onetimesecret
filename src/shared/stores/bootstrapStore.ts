@@ -173,7 +173,7 @@ function updateIfDefined<T>(target: Ref<T>, value: T | undefined): void {
  *    - $reset() returns to known good defaults
  *
  * 3. Single source of truth
- *    - No more window.__ONETIME_STATE__ vs reactiveState synchronization
+ *    - No more window.__BOOTSTRAP_STATE__ vs reactiveState synchronization
  *    - All access goes through this store after initialization
  *
  * Usage:

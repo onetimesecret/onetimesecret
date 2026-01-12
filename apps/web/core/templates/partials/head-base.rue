@@ -8,7 +8,7 @@
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=()">
   <!-- Note: X-Frame-Options is set via HTTP header in middleware, not meta tag -->
-  <!-- Note: CSRF token is delivered via window.__ONETIME_STATE__.shrimp and X-CSRF-Token header -->
+  <!-- Note: CSRF token is delivered via window.__BOOTSTRAP_STATE__.shrimp and X-CSRF-Token header -->
 
   <!-- SEO and page metadata -->
   <link nonce="{{app.nonce}}" rel="canonical" href="{{canonical_url}}">

@@ -46,7 +46,7 @@ module Onetime
           config.nonce_header_name = 'onetime.nonce'
 
           # Inject hydration scripts in <head> before Vue.js initialization
-          # :earliest ensures window.__ONETIME_STATE__ is available when Vue mounts
+          # :earliest ensures window.__BOOTSTRAP_STATE__ is available when Vue mounts
           config.hydration.injection_strategy = :earliest
 
           # Schema is source of truth (production mindset)

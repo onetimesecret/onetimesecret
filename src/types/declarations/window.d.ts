@@ -24,7 +24,7 @@ import { DiagnosticsConfig } from '../diagnostics';
  *
  * Implementation:
  * - Backend injects data via JSON <script> tag in the HTML header
- * - Properties are added to window.__ONETIME_STATE__
+ * - Properties are added to window.__BOOTSTRAP_STATE__
  * - This declaration file enables TypeScript type checking and IDE support
  */
 
@@ -177,6 +177,12 @@ export interface OnetimeWindow {
 
   features: {
     markdown: boolean;
+    /** Email-based authentication (magic links) */
+    email_auth?: boolean;
+    /** WebAuthn/passkey authentication */
+    webauthn?: boolean;
+    /** @deprecated Use email_auth instead */
+    magic_links?: boolean;
   };
 
   ui: UiInterface;

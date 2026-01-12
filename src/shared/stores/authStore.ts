@@ -215,7 +215,7 @@ export const useAuthStore = defineStore('auth', () => {
       authenticatedType: typeof inputValue,
       hadValidSession,
       storedAuthState,
-      windowStateExists: typeof window !== 'undefined' && !!window.__ONETIME_STATE__,
+      windowStateExists: typeof window !== 'undefined' && !!window.__BOOTSTRAP_STATE__,
     });
 
     // Detect if this might be an error page masquerading as unauthenticated:
