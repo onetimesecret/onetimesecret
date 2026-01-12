@@ -15,7 +15,7 @@ OT.boot! :test, false
 
 # Load the mail module
 require 'onetime/mail'
-require 'onetime/mail/templates/subscription_changed'
+require 'onetime/mail/views/subscription_changed'
 
 @valid_data = {
   email_address: 'customer@example.com',

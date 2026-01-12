@@ -15,7 +15,7 @@ OT.boot! :test, false
 
 # Load the mail module
 require 'onetime/mail'
-require 'onetime/mail/templates/email_change_confirmation'
+require 'onetime/mail/views/email_change_confirmation'
 
 @valid_data = {
   new_email: 'newuser@example.com',

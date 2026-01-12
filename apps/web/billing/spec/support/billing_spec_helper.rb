@@ -36,6 +36,9 @@ Dir[File.join(__dir__, 'shared_contexts', '*.rb')].sort.each { |f| require f }
 # Load BannedIP model needed by IPBan middleware
 require_relative '../../../../api/colonel/models/banned_ip'
 
+# Load billing models (includes WebhookSyncFlag needed by webhook handlers)
+require_relative '../../models'
+
 # NOTE: Billing config is mocked in before(:each) blocks.
 # Tests should not depend on etc/billing.yaml existing.
 

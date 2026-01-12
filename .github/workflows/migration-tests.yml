@@ -29,23 +29,11 @@ name: Migration Tests
 # - Concurrent boot: < 3 minutes
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-      - rel/*
-    paths:
-      - 'apps/web/auth/migrations/**'
-      - 'apps/web/auth/database.rb'
-      - 'apps/web/auth/rodauth.rb'
-      - 'spec/integration/full/database_triggers/**'
-      - 'spec/integration/full/*_infrastructure_spec.rb'
-      - 'spec/support/*_database.rb'
-      - '.github/workflows/migration-tests.yml'
   pull_request:
     branches:
       - main
       - develop
+      - 'rel/*'
     paths:
       - 'apps/web/auth/migrations/**'
       - 'apps/web/auth/database.rb'

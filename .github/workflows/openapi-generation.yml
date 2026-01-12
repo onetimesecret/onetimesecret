@@ -16,21 +16,24 @@ name: OpenAPI Generation
 # 3. Validates generated specs are valid JSON
 
 on:
-  push:
-    branches:
-      - develop
-    paths:
-      - 'src/schemas/**/*.ts'
-      - 'apps/api/*/routes.txt'
-      - 'src/scripts/openapi/**/*.ts'
-  pull_request:
-    branches:
-      - develop
-      - main
-    paths:
-      - 'src/schemas/**/*.ts'
-      - 'apps/api/*/routes.txt'
-      - 'src/scripts/openapi/**/*.ts'
+  # Manually only for now since we're not actively using them yet - Delano (2026-01-11)
+  #
+  # push:
+  #   branches:
+  #     - develop
+  #   paths:
+  #     - 'src/schemas/**/*.ts'
+  #     - 'apps/api/*/routes.txt'
+  #     - 'src/scripts/openapi/**/*.ts'
+  # pull_request:
+  #   branches:
+  #     - develop
+  #     - main
+  #   paths:
+  #     - 'src/schemas/**/*.ts'
+  #     - 'apps/api/*/routes.txt'
+  #     - 'src/scripts/openapi/**/*.ts'
+  #
   workflow_dispatch:
     inputs:
       commit_changes:

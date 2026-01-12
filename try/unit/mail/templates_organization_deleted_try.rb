@@ -15,7 +15,7 @@ OT.boot! :test, false
 
 # Load the mail module
 require 'onetime/mail'
-require 'onetime/mail/templates/organization_deleted'
+require 'onetime/mail/views/organization_deleted'
 
 @valid_data = {
   email_address: 'member@example.com',

@@ -130,21 +130,7 @@ docker run -p 3000:3000 \
 
 **Use case**: Production multi-container setup, separate web scaling
 
-### 3. Job Processing Only
-
-Run scheduler + worker (like original `entrypoint-jobs.sh`):
-
-```bash
-docker run \
-  -e REDIS_URL=redis://redis:6379/0 \
-  -e SECRET=your-secret \
-  onetimesecret \
-  bin/entrypoint-jobs.sh
-```
-
-**Use case**: Production multi-container setup, separate job worker scaling
-
-### 4. Individual Services (Advanced)
+### 3. Individual Services (Advanced)
 
 Run specific services using S6:
 

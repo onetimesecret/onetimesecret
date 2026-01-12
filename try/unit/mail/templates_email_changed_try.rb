@@ -15,7 +15,7 @@ OT.boot! :test, false
 
 # Load the mail module
 require 'onetime/mail'
-require 'onetime/mail/templates/email_changed'
+require 'onetime/mail/views/email_changed'
 
 @valid_data = {
   old_email: 'olduser@example.com',

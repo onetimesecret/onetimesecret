@@ -15,7 +15,7 @@ OT.boot! :test, false
 
 # Load the mail module
 require 'onetime/mail'
-require 'onetime/mail/templates/new_login_alert'
+require 'onetime/mail/views/new_login_alert'
 
 @valid_data = {
   email_address: 'user@example.com',

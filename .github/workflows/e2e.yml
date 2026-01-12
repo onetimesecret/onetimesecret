@@ -19,7 +19,7 @@ on:
         default: false
         type: boolean
   pull_request:
-    branches: [develop, main]
+    branches: [develop, main, 'rel/*']
     paths:
       - 'Dockerfile'
       - 'src/**'
@@ -29,8 +29,6 @@ on:
       - 'pnpm-lock.yaml'
       - 'vite.config.ts'
       - '.github/workflows/**'
-  push:
-    branches: [develop]
 
 permissions:
   contents: read
@@ -169,8 +167,10 @@ jobs:
           export PLAYWRIGHT_BASE_URL=${{ env.TEST_BASE_URL }}
           export CI=true
 
-          # Run tests - use existing playwright config with base URL override
-          pnpm test:playwright \
+          # Run only 'all/' tests - these work without auth or billing configuration
+          # Tests in 'full/' require authenticated sessions
+          # Tests in 'full-billing/' require auth + billing enabled
+          pnpm test:playwright e2e/all/ \
             --reporter=github \
             --max-failures=5
         env:
@@ -181,7 +181,7 @@ jobs:
         if: always()
         with:
           name: playwright-report-e2e-integration
-          path: src/tests/e2e/playwright-report/
+          path: e2e/playwright-report/
           retention-days: 7
 
       - name: Debug on failure

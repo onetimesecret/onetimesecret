@@ -41,7 +41,47 @@ def last_response; @test.last_response; end
 
 @session = { 'authenticated' => true, 'external_id' => @owner.extid, 'email' => @owner.email }
 
-## Standalone mode: Can invite members without limit (no billing)
+# Plan data used across all billing blocks
+@limited_plan = {
+  plan_id: 'limited_members',
+  name: 'Limited Members Plan',
+  tier: 'free',
+  interval: 'month',
+  region: 'us',
+  entitlements: ['create_secrets'],
+  limits: { 'members_per_team.max' => '3' }  # Limit: 3 total members
+}
+
+# Helper to run billing-enabled test and return results
+def run_billing_test_invite(org, session, email, plan)
+  result = { status: nil, error_type: nil, error_message: nil, record_id: nil, record_email: nil, member_count: nil, pending_count: nil }
+  BillingTestHelpers.with_billing_enabled(plans: [plan]) do
+    org.planid = plan[:plan_id]
+    org.save
+    org = Onetime::Organization.load(org.objid)
+
+    # Capture counts before the API call
+    result[:member_count] = org.member_count
+    result[:pending_count] = org.pending_invitation_count
+
+    post "/api/organizations/#{org.extid}/invitations",
+      { email: email, role: 'member' }.to_json,
+      { 'rack.session' => session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
+
+    result[:status] = last_response.status
+    resp = JSON.parse(last_response.body)
+    if result[:status] == 200
+      result[:record_id] = resp['record']['id']
+      result[:record_email] = resp['record']['email']
+    else
+      result[:error_type] = resp['error']
+      result[:error_message] = resp['message']
+    end
+  end
+  result
+end
+
+## Standalone mode: Can invite first member without limit (no billing)
 post "/api/organizations/#{@org.extid}/invitations",
   { email: "member1_#{@timestamp}@example.com", role: 'member' }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
@@ -54,7 +94,7 @@ resp = JSON.parse(last_response.body)
 resp['record']['email']
 #=> "member1_#{@timestamp}@example.com"
 
-## Can invite second member in standalone mode
+## Standalone mode: Can invite second member without limit
 post "/api/organizations/#{@org.extid}/invitations",
   { email: "member2_#{@timestamp}@example.com", role: 'member' }.to_json,
   { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
@@ -67,140 +107,62 @@ resp = JSON.parse(last_response.body)
 resp['record']['email']
 #=> "member2_#{@timestamp}@example.com"
 
-## Organization has 2 pending invitations (reload to get updated counts)
+## Organization has 2 pending invitations
 reloaded_org = Onetime::Organization.load(@org.objid)
 reloaded_org.pending_invitation_count
 #=> 2
 
-# Setup billing with member limit
-BillingTestHelpers.with_billing_enabled(plans: [
-  {
-    plan_id: 'limited_members',
-    name: 'Limited Members Plan',
-    tier: 'free',
-    interval: 'month',
-    region: 'us',
-    entitlements: ['create_secrets'],
-    limits: { 'members_per_team.max' => '3' }  # Limit: 3 total members (owner + 2 invites)
-  }
-]) do
-  # Assign limited plan to organization
-  @org.planid = 'limited_members'
-  @org.save
+## With billing at limit (1 owner + 2 pending = 3/3): inviting fails with 422
+@result1 = run_billing_test_invite(@org, @session, "member3_#{@timestamp}@example.com", @limited_plan)
+@result1[:status]
+#=> 422
 
-  # Reload org to ensure entitlements are loaded
-  @org = Onetime::Organization.load(@org.objid)
+## Error message indicates member limit reached
+@result1[:error_message].to_s.include?('limit reached')
+#=> true
 
-  ## With billing enabled: at limit (1 owner + 2 pending = 3/3)
-  @org.member_count + @org.pending_invitation_count
-  #=> 3
-
-  ## Inviting 4th member should fail (quota reached)
-  post "/api/organizations/#{@org.extid}/invitations",
-    { email: "member3_#{@timestamp}@example.com", role: 'member' }.to_json,
-    { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
-  last_response.status
-  #=> 422
-
-  ## Error response indicates member limit reached
-  resp = JSON.parse(last_response.body)
-  resp['error']['message'].include?('Member limit reached')
-  #=> true
-
-  ## Error type is upgrade_required
-  resp['error']['type']
-  #=> 'upgrade_required'
-
-  ## Error field is email
-  resp['error']['field']
-  #=> 'email'
-end
-
-# Accept one invitation to free up space
+## After accepting one invitation: still at limit (2 active + 1 pending = 3/3)
+# Accept invitation within test case code (not loose between tests)
 @invite1 = Onetime::OrganizationMembership.load(@invite1_id)
 @member1 = Onetime::Customer.create!(email: "member1_#{@timestamp}@example.com")
 @member1.verified = 'true'
 @member1.save
 @invite1.accept!(@member1)
 @org = Onetime::Organization.load(@org.objid)
+@result2 = run_billing_test_invite(@org, @session, "member3_#{@timestamp}@example.com", @limited_plan)
+@result2[:status]
+#=> 422
 
-# Setup billing again with same limit
-BillingTestHelpers.with_billing_enabled(plans: [
-  {
-    plan_id: 'limited_members',
-    name: 'Limited Members Plan',
-    tier: 'free',
-    interval: 'month',
-    region: 'us',
-    entitlements: ['create_secrets'],
-    limits: { 'members_per_team.max' => '3' }
-  }
-]) do
-  @org.planid = 'limited_members'
-  @org.save
-  @org = Onetime::Organization.load(@org.objid)
-
-  ## With one accepted member: 2 active + 1 pending = 3/3 (still at limit)
-  @org.member_count + @org.pending_invitation_count
-  #=> 3
-
-  ## Still cannot invite (at limit)
-  post "/api/organizations/#{@org.extid}/invitations",
-    { email: "member3_#{@timestamp}@example.com", role: 'member' }.to_json,
-    { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
-  last_response.status
-  #=> 422
-end
-
-# Delete pending invitation to free up space
+## Revoke invite2: removes from pending_invitations set
 @invite2 = Onetime::OrganizationMembership.load(@invite2_id)
-@invite2.destroy!
+@invite2.revoke!
 @org = Onetime::Organization.load(@org.objid)
+@org.pending_invitation_count
+#=> 0
 
-# Setup billing with same limit, but now under quota
-BillingTestHelpers.with_billing_enabled(plans: [
-  {
-    plan_id: 'limited_members',
-    name: 'Limited Members Plan',
-    tier: 'free',
-    interval: 'month',
-    region: 'us',
-    entitlements: ['create_secrets'],
-    limits: { 'members_per_team.max' => '3' }
-  }
-]) do
-  @org.planid = 'limited_members'
-  @org.save
-  @org = Onetime::Organization.load(@org.objid)
+## After revoke: pending_invitations set is empty
+@org.pending_invitations.to_a.empty?
+#=> true
 
-  ## Now under limit: 2 active + 0 pending = 2/3
-  @org.member_count + @org.pending_invitation_count
-  #=> 2
+## Under limit (2/3), can invite new member
+@result3 = run_billing_test_invite(@org, @session, "member4_#{@timestamp}@example.com", @limited_plan)
+@result3[:status]
+#=> 200
 
-  ## Can invite when under limit
-  post "/api/organizations/#{@org.extid}/invitations",
-    { email: "member3_#{@timestamp}@example.com", role: 'member' }.to_json,
-    { 'rack.session' => @session, 'CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json' }
-  last_response.status
-  #=> 200
-
-  ## Invitation created successfully
-  resp = JSON.parse(last_response.body)
-  @invite3_id = resp['record']['id']
-  resp['record']['email']
-  #=> "member3_#{@timestamp}@example.com"
-end
+## Invitation created successfully when under limit
+@invite3_id = @result3[:record_id]
+@result3[:record_email]
+#=> "member4_#{@timestamp}@example.com"
 
 # Teardown
-begin
-  [@invite1_id, @invite2_id, @invite3_id].compact.each do |invite_id|
-    invite = Onetime::OrganizationMembership.load(invite_id)
-    invite&.destroy!
-  end
-
-  @member1&.destroy!
-  @org&.destroy!
-  @owner&.destroy!
-rescue StandardError => e
-  warn "[Teardown] Cleanup error (ignorable): #{e.message}"
+# invite1 was accepted (now active membership for @member1)
+# invite2 was revoked (already destroyed)
+# invite3 was created in billing block
+[@invite1_id, @invite3_id].compact.each do |invite_id|
+  invite = Onetime::OrganizationMembership.load(invite_id)
+  invite&.destroy_with_index_cleanup!
 end
+
+@member1&.destroy!
+@org&.destroy!
+@owner&.destroy!

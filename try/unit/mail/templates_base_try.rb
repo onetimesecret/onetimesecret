@@ -13,7 +13,7 @@
 require_relative '../../support/test_helpers'
 
 # Load the mail templates module directly without full OT boot
-require 'onetime/mail/templates/base'
+require 'onetime/mail/views/base'
 
 # Load I18n locale files for translation tests
 # The JSON files in src/locales/ don't have locale key at top level, so we wrap them

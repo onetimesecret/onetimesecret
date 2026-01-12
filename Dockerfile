@@ -294,7 +294,7 @@ RUN set -eux && \
         fi; \
     done && \
     cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
-    chmod +x bin/entrypoint.sh bin/entrypoint-jobs.sh bin/update-version.sh
+    chmod +x bin/entrypoint.sh bin/update-version.sh
 
 EXPOSE 3000
 
@@ -307,7 +307,6 @@ USER appuser
 # S6 overlay entrypoint
 # Default: Starts all services defined in s6-rc.d/user bundle (web + scheduler + worker)
 # Override with command: ["bin/entrypoint.sh"] for web-only
-# Override with command: ["bin/entrypoint-jobs.sh"] for jobs-only
 ENTRYPOINT ["/init"]
 CMD []
 
@@ -360,9 +359,7 @@ COPY --chown=appuser:appuser apps ./apps
 COPY --chown=appuser:appuser etc/ ./etc/
 COPY --chown=appuser:appuser lib ./lib
 COPY --chown=appuser:appuser migrations ./migrations
-COPY --chown=appuser:appuser templates ./templates
 COPY --chown=appuser:appuser scripts/entrypoint.sh ./bin/
-COPY --chown=appuser:appuser scripts/entrypoint-jobs.sh ./bin/
 COPY --chown=appuser:appuser scripts/update-version.sh ./bin/
 COPY --chown=appuser:appuser --from=dependencies ${APP_DIR}/bin/puma ./bin/puma
 COPY --chown=appuser:appuser package.json config.ru Gemfile Gemfile.lock ./
@@ -391,7 +388,7 @@ RUN set -eux && \
         fi; \
     done && \
     cp --preserve --no-clobber etc/examples/puma.example.rb etc/puma.rb && \
-    chmod +x bin/entrypoint.sh bin/entrypoint-jobs.sh bin/update-version.sh
+    chmod +x bin/entrypoint.sh bin/update-version.sh
 
 EXPOSE 3000
 

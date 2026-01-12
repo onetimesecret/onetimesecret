@@ -4,6 +4,8 @@
 
 The frontend is organized by **interaction mode** - what the user is doing - rather than domain or branding. This provides clear separation of concerns and better maintainability.
 
+> **Design Principle**: Create a "Pit of Success" - a way of organizing files and folders that makes it hard to put code in the wrong place.
+
 ### Apps (`src/apps/`)
 
 Each app represents a distinct user interaction mode:
@@ -15,50 +17,155 @@ apps/
 │   ├── reveal/          # ShowSecret, ShowMetadata, Burn
 │   ├── support/         # Feedback forms
 │   ├── components/      # Secret-specific components
-│   └── branding/        # Brand presentation logic
+│   ├── composables/     # useHomepageMode, etc.
+│   └── routes/          # Route definitions
 │
-├── workspace/           # Management: dashboard, settings, teams
+├── workspace/           # Management: dashboard, settings, organizations
 │   ├── dashboard/       # Secret management dashboard
 │   ├── account/         # Account settings, profile
 │   ├── billing/         # Subscription and payment
-│   ├── teams/           # Team management
-│   └── domains/         # Custom domain configuration
+│   ├── members/         # Organization member management
+│   ├── domains/         # Custom domain configuration
+│   └── routes/          # Route definitions
 │
 ├── session/             # Authentication: login, signup, MFA
 │   ├── views/           # Auth flow pages
-│   └── logic/           # Auth utilities
+│   └── routes.ts        # Route definitions
 │
-└── kernel/              # Admin: colonel/admin interface
-    └── views/           # Admin pages
+└── colonel/             # Admin: system administration interface
+    ├── views/           # Admin pages
+    └── routes.ts        # Route definitions
 ```
 
-### Actor & Role Systems
+## The Three Dimensions
+
+Three independent dimensions control how views render. Conflating them was a source of architectural confusion.
+
+### Dimension 1: Interaction Mode (Design-Time)
+
+Determines which app handles the request. Set when routes are defined.
+
+| Route         | App       | Mode    | Designed For                               |
+|---------------|-----------|---------|--------------------------------------------|
+| /             | Secret    | Conceal | Creator (anon or auth) submitting the form |
+| /secret/:key  | Secret    | Reveal  | Recipient viewing shared content           |
+| /receipt/:key | Secret    | Reveal  | Creator checking delivery status           |
+| /dashboard/*  | Workspace | Manage  | Account holder managing history            |
+| /colonel/*    | Colonel   | Admin   | System administrator                       |
+| /signin       | Session   | Gateway | Identity verification                      |
+
+### Dimension 2: Domain Context (Runtime)
+
+Detected per-request by middleware. Determines presentation, not structure.
+
+| Domain Type | Detection                     | Affects                               |
+|-------------|-------------------------------|---------------------------------------|
+| Canonical   | Config-defined, static        | Default branding, full marketing copy |
+| Custom      | Per-request header inspection | Custom branding, minimal chrome       |
+
+Each custom domain carries its branding configuration and belongs to exactly one organization.
+
+#### Domain Scope (Workspace Extension)
+
+Within Workspace, Domain Context can be elevated to a **persistent scope** for users managing multiple custom domains:
+
+| Concept        | Role                              | Applies To    |
+|----------------|-----------------------------------|---------------|
+| Domain Context | Presentation wrapper (runtime)    | Secret app    |
+| Domain Scope   | Management filter + defaults      | Workspace app |
+
+When Domain Scope is active:
+- Privacy defaults (TTL, passphrase requirements) are scoped to the selected domain
+- Secrets created from the dashboard use the scoped domain automatically
+- The scope persists across navigation within the session
+
+### Dimension 3: Homepage Mode (Deployment-Time)
+
+A scoped gatekeeper configured at deployment. Only applies to the Conceal context.
+
+| Mode     | Who Can Create       | Who Can View | Homepage Shows        |
+|----------|----------------------|--------------|-----------------------|
+| Open     | Anyone               | Anyone       | Form + explainer      |
+| Internal | Internal IPs/headers | Anyone       | Form + explainer      |
+| External | Nobody               | Anyone       | "Nothing to see here" |
+
+### Dimensional Matrix
+
+Each dimension answers a different question at a different time:
+
+| Dimension        | Binding Time    | Question                     | Role                          |
+|------------------|-----------------|------------------------------|-------------------------------|
+| Interaction Mode | Design-time     | "What is the user doing?"    | Router — selects the App      |
+| Domain Context   | Runtime         | "How should it look?"        | Wrapper — adapts presentation |
+| Domain Scope     | Session         | "Which domain am I managing?"| Filter — scopes Workspace     |
+| Homepage Mode    | Deployment-time | "Is creation permitted?"     | Gatekeeper — gates access     |
+
+**Request flow for Conceal (Homepage):**
+
+```
+Request to /
+      │
+      ▼
+┌─────────────────────┐
+│  Homepage Mode      │ ◄── GATE (Open? Internal? External?)
+│  (Deployment-time)  │
+└─────────────────────┘
+      │
+      ├─ External ──────► AccessDenied.vue (stop here)
+      │
+      ▼ Open/Internal
+┌─────────────────────┐
+│  Domain Context     │ ◄── WRAPPER (Canonical? Custom?)
+│  (Runtime)          │
+└─────────────────────┘
+      │
+      ▼
+┌─────────────────────┐
+│  Homepage.vue       │ ◄── Unified component, adapts to context
+└─────────────────────┘
+```
+
+**Complete matrix for Conceal:**
+
+```
+                          HOMEPAGE MODE (deployment-time)
+                          ┌──────────┬──────────┬──────────┐
+                          │  Open    │ Internal │ External │
+┌─────────────────────────┼──────────┴──────────┼──────────┤
+│ DOMAIN      │ Canonical │    Form + copy      │ Disabled │
+│ CONTEXT     ├───────────┼─────────────────────┼──────────┤
+│ (runtime)   │ Custom    │    Form + brand     │ Branded  │
+│             │           │                     │ Disabled │
+└─────────────┴───────────┴─────────────────────┴──────────┘
+```
+
+## Actor & Role Systems
 
 The frontend uses distinct role systems at different levels:
 
-#### Transaction Roles (Secret App)
+### Transaction Roles (Secret App)
 
-The `useSecretContext` composable resolves who is viewing a specific secret:
+The `useSecretContext` composable (in `shared/composables/`) resolves who is viewing a specific secret:
 
 | Role | Description | UI Behavior |
 |------|-------------|-------------|
 | `CREATOR` | Owner viewing their own secret | Dashboard link, burn control |
 | `RECIPIENT_AUTH` | Logged-in user viewing another's secret | Dashboard link, no upgrade CTA |
-| `RECIPIENT_ANON` | Anonymous visitor | Signup CTA, capabilities upgrade |
+| `RECIPIENT_ANON` | Anonymous visitor | Signup CTA, entitlements upgrade |
 
 The asymmetry is intentional: `CREATOR` is singular because creating a secret is a singular act—auth state is handled at the customer level. Recipients have variants because the receiving experience legitimately differs based on auth state.
 
-#### Team/Organization Roles (Workspace App)
+### Organization Roles (Workspace App)
 
-`TeamRole` and `OrganizationRole` control permissions within groups:
+`OrganizationRole` controls permissions within groups:
 
 | Role | Description |
 |------|-------------|
-| `OWNER` | Full control, can delete team/org |
+| `OWNER` | Full control, can delete organization |
 | `ADMIN` | Management permissions, can manage members |
 | `MEMBER` | Standard access |
 
-#### Account Roles (Customer Level)
+### Account Roles (Customer Level)
 
 `CustomerRole` defines the account type system-wide:
 
@@ -66,16 +173,18 @@ The asymmetry is intentional: `CREATOR` is singular because creating a secret is
 |------|-------------|
 | `CUSTOMER` | Regular authenticated user |
 | `COLONEL` | System administrator (grants access to `/colonel/*`) |
-| `RECIPIENT` | Recipient-only account (limited capabilities) |
+| `RECIPIENT` | Recipient-only account (limited entitlements) |
 | `USER_DELETED_SELF` | Soft-deleted account |
 
-#### Colonel App Access
+### Secret vs Workspace Logic
 
-The colonel (admin) app is gated by `CustomerRole.COLONEL`—only users with this account role can access admin routes.
+| Concern | Secret App | Workspace App |
+|---------|------------|---------------|
+| Auth Variance | High (anon, auth, owner) | Low (always auth) |
+| Logic Model | Dimensional Matrix | Standard RBAC |
+| Question | "Who are you relative to *this secret*?" | "What permissions do you have?" |
 
-See `docs/product/interaction-modes.md` for the full architectural design.
-
-### Shared Resources (`src/shared/`)
+## Shared Resources (`src/shared/`)
 
 Cross-app shared resources:
 
@@ -91,6 +200,8 @@ shared/
 │
 ├── composables/         # Shared Vue composables
 │   ├── useAuth.ts
+│   ├── useSecretContext.ts  # Transaction role resolution
+│   ├── useBranding.ts       # Domain context detection
 │   ├── useTheme.ts
 │   └── ...
 │
@@ -107,7 +218,17 @@ shared/
 └── branding/            # Brand data and utilities
 ```
 
-### Other Directories
+### App-Specific Composables
+
+Some composables belong to specific apps rather than shared:
+
+| Composable | Location | Why |
+|------------|----------|-----|
+| `useHomepageMode` | `apps/secret/composables/` | Only Secret app gates on homepage mode |
+| `useSecretContext` | `shared/composables/` | Used by Secret views and tests |
+| `useBranding` | `shared/composables/` | Used by both Secret (render) and Workspace (manage) |
+
+## Other Directories
 
 ```
 src/
@@ -191,6 +312,41 @@ import { useAuthStore } from '@/shared/stores/authStore';
 import SecretView from '@/apps/secret/reveal/ShowSecret.vue';
 ```
 
+## Clarifications
+
+### Branding: Data vs Presentation
+
+| Concern | Who Needs It | Location |
+|---------|--------------|----------|
+| Brand types, API calls, data fetching | Secret (render), Workspace (manage) | `shared/api/`, `shared/types/` |
+| Brand presentation logic | Secret only | `apps/secret/branding/` |
+
+Workspace imports brand *data* to populate forms. It doesn't import presentation logic because Workspace is always OTS-branded.
+
+### Receipt View Location
+
+`/receipt/:receiptIdentifier` belongs in Secret app. Although it requires "ownership," it is still Transaction mode, not Management. Ownership is historically based on having the unguessable URL, not authentication state.
+
+### Session as an App
+
+Think of `apps/session` as the airport security checkpoint—a distinct physical space. You enter from the street (Public), pass through Security (Session), and emerge into the terminal (Workspace).
+
+### Router Composition
+
+Routes are explicitly imported and ordered in the main router (first match wins):
+
+```ts
+// src/router/index.ts
+export const router = createRouter({
+  routes: [
+    ...sessionRoutes,   // Gateway - check first
+    ...colonelRoutes,   // Admin - high specificity
+    ...workspaceRoutes, // Dashboard - auth required
+    ...secretRoutes,    // Public - contains catch-all 404
+  ],
+});
+```
+
 ## Testing
 
 Tests are located in `src/tests/` mirroring the source structure:
@@ -218,10 +374,6 @@ pnpm run lint         # ESLint
 pnpm test             # Run Vitest tests
 ```
 
-## Documentation
+## Related Documentation
 
-Each major directory should contain a `README.md` documenting:
-- Directory purpose
-- Code conventions
-- Important patterns
-- Usage examples
+- **[Secret Lifecycle](../docs/product/secret-lifecycle.md)** — FSM pattern for secret state management

@@ -1,7 +1,6 @@
 # Switching from Simple to Full Auth Mode
 
 **Last Updated:** 2025-10-23
-**Applies To:** OneTimeSecret v2.0+
 
 ## Overview
 
@@ -11,9 +10,9 @@ OneTimeSecret supports two authentication modes:
 - **Full Mode**: Full-featured authentication using Rodauth with SQL database
 
 Full mode enables:
+- RDBMS requirement
 - Multi-factor authentication (TOTP, WebAuthn)
 - Passwordless login (magic links, security keys)
-- Account verification workflows
 - Password reset functionality
 - Enhanced security features (lockout, active sessions)
 - Audit logging
@@ -31,32 +30,19 @@ Before switching modes:
 
 ### 1. Configure Database Connection
 
-Set the database URL for the Auth application:
+See etc/auth.yaml
 
-```yaml
-# etc/config.yaml
-authentication:
-  mode: simple  # Keep simple during setup
-  database_url: sqlite://data/auth.db
-```
-
-Or via environment variable:
-
-```bash
-export DATABASE_URL='sqlite://data/auth.db'
-# Or for PostgreSQL:
-export DATABASE_URL='postgresql://user:pass@localhost/onetime_auth'
-```
 
 ### 2. Database Migrations (Automatic)
 
-**Migrations run automatically on first boot** when `AUTHENTICATION_MODE=full` is set. No manual intervention required.
+**Migrations run automatically on first boot** when full auth mode is enabled.
 
 The application will:
 1. Detect missing schema on startup
 2. Run all Rodauth migrations automatically
 3. Create necessary tables, indexes, functions, and triggers
 4. Log migration progress to application logs
+
 
 **PostgreSQL-specific setup (one-time, before first boot):**
 

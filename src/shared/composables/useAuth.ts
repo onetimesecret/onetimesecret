@@ -10,6 +10,7 @@ import { WindowService } from '@/services/window.service';
 import {
   isAuthError,
   requiresMfa,
+  hasBillingRedirect,
   type LoginResponse,
   type CreateAccountResponse,
   type LogoutResponse,
@@ -18,6 +19,7 @@ import {
   type VerifyAccountResponse,
   type ChangePasswordResponse,
   type CloseAccountResponse,
+  type BillingRedirect,
 } from '@/schemas/api/auth/endpoints/auth';
 import {
   loginResponseSchema,
@@ -161,32 +163,120 @@ export function useAuth() {
   const { wrap } = useAsyncHandler(defaultAsyncHandlerOptions);
 
   /**
-   * Handles billing redirect after successful authentication.
-   * Reads product/interval directly from route query params.
-   * Returns true if redirect was performed, false otherwise.
+   * Extracts billing params from login response or falls back to query params.
+   * Returns null if backend marked the plan as invalid.
    *
-   * Only redirects when:
-   * - product and interval are present in query params
-   * - billing_enabled is true (WindowService)
-   * - Organization can be resolved
+   * @param response - Login response that may contain billing_redirect
+   * @returns Billing params or null if invalid/not present
    */
-  async function handleBillingRedirect(): Promise<boolean> {
-    const { product, interval } = getBillingParams();
-
-    // No billing params in URL - skip redirect
-    if (!product || !interval) {
-      return false;
+  function extractBillingParams(
+    response?: LoginResponse | CreateAccountResponse
+  ): { product: string; interval: string } | null {
+    if (response && hasBillingRedirect(response)) {
+      // Backend validated the plan - use the response values
+      loggingService.debug('[useAuth] Using validated billing redirect from response', {
+        product: response.billing_redirect.product,
+        interval: response.billing_redirect.interval,
+      });
+      return {
+        product: response.billing_redirect.product,
+        interval: response.billing_redirect.interval,
+      };
     }
 
+    if (response && 'billing_redirect' in response && response.billing_redirect) {
+      // Backend returned billing_redirect but valid=false - do not redirect
+      const billingRedirect = response.billing_redirect as BillingRedirect;
+      loggingService.warn('[useAuth] Billing redirect skipped - backend marked plan as invalid', {
+        product: billingRedirect.product,
+        interval: billingRedirect.interval,
+        valid: billingRedirect.valid,
+      });
+      return null;
+    }
+
+    // No billing_redirect in response - check query params as fallback
+    const params = getBillingParams();
+    if (params.product && params.interval) {
+      return { product: params.product, interval: params.interval };
+    }
+
+    return null;
+  }
+
+  /**
+   * Normalizes plan IDs for comparison by stripping version/interval suffixes.
+   * e.g., 'identity_plus_v1_monthly' -> 'identity_plus'
+   */
+  function normalizePlanId(planId: string): string {
+    return planId.replace(/_v\d+.*$/, '');
+  }
+
+  /**
+   * Handles redirect for users with existing subscriptions.
+   * @returns true if redirect was performed
+   */
+  async function handleExistingSubscription(
+    orgExtid: string,
+    currentPlanId: string,
+    product: string,
+    interval: string
+  ): Promise<boolean> {
+    const normalizedCurrent = normalizePlanId(currentPlanId);
+    const normalizedRequested = normalizePlanId(product);
+
+    if (normalizedCurrent === normalizedRequested) {
+      // Already subscribed to the same plan - redirect to billing overview
+      loggingService.info('[useAuth] User already subscribed to requested plan', {
+        currentPlan: currentPlanId,
+        requestedProduct: product,
+      });
+      notificationsStore.show('You are already subscribed to this plan.', 'info', 'top');
+      await router.push(`/billing/${orgExtid}/overview`);
+      return true;
+    }
+
+    // Subscribed to a different plan - redirect to plan change flow
+    loggingService.info('[useAuth] User has different subscription, redirecting to plans', {
+      currentPlan: currentPlanId,
+      requestedProduct: product,
+    });
+    await router.push(
+      `/billing/${orgExtid}/plans?product=${product}&interval=${interval}&change=true`
+    );
+    return true;
+  }
+
+  /**
+   * Handles billing redirect after successful authentication.
+   * Uses billing_redirect from login response if valid, otherwise falls back to route query params.
+   * Returns true if redirect was performed, false otherwise.
+   *
+   * Safety checks:
+   * 1. Validates billing_redirect.valid flag from backend
+   * 2. Checks if user already has an active subscription
+   * 3. Redirects appropriately based on subscription status
+   *
+   * @param response - Login response that may contain billing_redirect
+   */
+  async function handleBillingRedirect(
+    response?: LoginResponse | CreateAccountResponse
+  ): Promise<boolean> {
+    // Extract and validate billing params
+    const billingParams = extractBillingParams(response);
+    if (!billingParams) {
+      return false;
+    }
+    const { product, interval } = billingParams;
+
     // Check if billing is enabled (graceful degradation for self-hosted)
-    const billingEnabled = WindowService.get('billing_enabled');
-    if (!billingEnabled) {
+    if (!WindowService.get('billing_enabled')) {
       loggingService.debug('[useAuth] Billing redirect skipped - billing not enabled');
       return false;
     }
 
     try {
-      // Fetch organizations to get the default org's extid
+      // Fetch organizations to get the default org's extid and subscription status
       await organizationStore.fetchOrganizations();
       const org = organizationStore.restorePersistedSelection();
 
@@ -195,15 +285,25 @@ export function useAuth() {
         return false;
       }
 
-      const plansUrl = `/billing/${org.extid}/plans?product=${product}&interval=${interval}`;
+      // Fetch entitlements to get current subscription status
+      await organizationStore.fetchEntitlements(org.extid);
 
+      // Re-fetch org after entitlements update (it may have been updated in the store)
+      const updatedOrg = organizationStore.organizations.find((o) => o.extid === org.extid);
+      const currentPlanId = updatedOrg?.planid;
+
+      // Check subscription status - delegate to helper if subscribed
+      if (currentPlanId) {
+        return handleExistingSubscription(org.extid, currentPlanId, product, interval);
+      }
+
+      // No active subscription - proceed to plans page for checkout
       loggingService.debug('[useAuth] Redirecting to billing plans', {
         org: org.extid,
         product,
         interval,
       });
-
-      await router.push(plansUrl);
+      await router.push(`/billing/${org.extid}/plans?product=${product}&interval=${interval}`);
       return true;
     } catch (err) {
       // Graceful degradation - if billing redirect fails, continue to dashboard
@@ -276,10 +376,11 @@ export function useAuth() {
       // Success - update auth state (this fetches fresh window state)
       await authStore.setAuthenticated(true);
 
-      // Check for billing redirect from query params (e.g., user upgrading during signup flow)
-      const redirected = await handleBillingRedirect();
+      // Check for billing redirect using response data (validated by backend)
+      // This handles both billing_redirect in response and fallback to query params
+      const redirected = await handleBillingRedirect(validated);
       if (redirected) {
-        return true; // Redirected to billing plans
+        return true; // Redirected to billing plans or overview
       }
 
       await router.push('/');
