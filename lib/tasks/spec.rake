@@ -157,9 +157,9 @@ end
 # Tryouts is a documentation-first Ruby testing framework where tests are plain
 # Ruby code with comment expectations. These tasks mirror the RSpec structure.
 namespace :try do
-  desc 'Run unit tryouts'
+  desc 'Run unit tryouts (includes security and feature tests)'
   task :unit do
-    patterns = %w[try/unit try/system].select { |p| Dir.exist?(p) }.join(' ')
+    patterns = %w[try/unit try/system try/security try/features].select { |p| Dir.exist?(p) }.join(' ')
     sh "bundle exec tryouts --agent #{patterns}" unless patterns.empty?
   end
 
@@ -176,6 +176,8 @@ namespace :try do
         'AUTHENTICATION_MODE' => 'simple',
       }
 
+      # NOTE: colonel_role_auth_try.rb excluded - requires full Rack app which
+      # calls exit in CI environment. Run locally with: bundle exec try try/integration/colonel_role_auth_try.rb
       patterns = %w[
         try/integration/middleware
         try/integration/boot
@@ -271,6 +273,49 @@ namespace :vcr do
 
       sh env, "bundle exec rspec apps/web/billing/spec #{rspec_format_options}"
     end
+  end
+end
+
+# Smoke test tasks
+# Quick validation that the system works without running the full test suite.
+# Designed for CI's "comprehensive" job to catch obvious breakages efficiently.
+#
+# Philosophy:
+# - Run representative tests, not exhaustive coverage
+# - One integration mode (simple) is sufficient for smoke testing
+# - Skip 100% pending specs (they waste time loading but never execute)
+# - Complete in under 2 minutes
+namespace :smoke do
+  desc 'Run smoke test for RSpec (unit + representative apps + simple integration)'
+  task :rspec do
+    # Unit and CLI tests - fast, covers core logic
+    Rake::Task['spec:unit'].invoke
+    Rake::Task['spec:cli'].invoke
+
+    # Representative app specs - skip 100% pending (domains, acme)
+    # These are chosen because they have actual passing tests
+    %w[api_v1 api_v2 api_organizations web_billing].each do |app|
+      Rake::Task["spec:apps:#{app}"].invoke
+    end
+
+    # One integration mode is enough for smoke testing
+    Rake::Task['spec:integration:simple'].invoke
+  end
+
+  desc 'Run smoke test for Tryouts (unit only, skip integration)'
+  task :tryouts do
+    # Unit tryouts cover the critical paths without needing auth mode setup
+    Rake::Task['try:unit'].invoke
+  end
+
+  desc 'Run complete smoke test suite (Ruby + Tryouts)'
+  task ruby: [:rspec, :tryouts]
+
+  desc 'Run smoke test with Vitest (full smoke)'
+  task :all do
+    Rake::Task['smoke:ruby'].invoke
+    # Vitest is run via pnpm, not rake
+    sh 'pnpm test' if system('command -v pnpm > /dev/null 2>&1')
   end
 end
 

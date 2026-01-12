@@ -40,7 +40,7 @@
 #   - spec:integration:disabled  - Disabled mode integration
 #
 #   Tryouts:
-#   - try:unit                   - Unit tryouts (try/unit, try/system)
+#   - try:unit                   - Unit tryouts (try/unit, try/system, try/security, try/features)
 #   - try:integration:simple     - Integration tryouts (simple mode only)
 #
 # Changelog:
