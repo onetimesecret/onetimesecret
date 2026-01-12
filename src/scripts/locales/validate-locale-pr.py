@@ -3,9 +3,10 @@
 PR locale validation script - validates changed locale files in pull requests.
 
 Purpose:
-  Validation-focused: ensures existing translations don't break. This script
-  catches errors in translations that are present, NOT missing translations.
-  Missing key detection is handled separately by harmonization workflows.
+  Validates structural integrity of submitted translations: syntax, variable
+  preservation, format compliance, and security. Does NOT check for missing
+  keys (translations absent from locale files). Missing key detection is
+  handled separately by harmonization workflows.
 
 Validates:
 1. JSON syntax (prerequisite - fail fast)
@@ -165,6 +166,26 @@ def should_skip_key(key: str) -> bool:
     """
     parts = key.split(".")
     return any(part.startswith("_") for part in parts)
+
+
+def find_project_root(start_path: Path) -> Path | None:
+    """Find project root by searching upward for .git directory.
+
+    Args:
+        start_path: Directory to start searching from.
+
+    Returns:
+        Path to project root, or None if not found.
+
+    Examples:
+        >>> find_project_root(Path("/project/src/scripts/locales"))
+        PosixPath('/project')  # Where /project/.git exists
+    """
+    current = start_path.resolve()
+    for parent in [current, *current.parents]:
+        if (parent / ".git").exists():
+            return parent
+    return None
 
 
 def get_changed_locale_files(base_branch: str) -> list[tuple[str, str]]:
@@ -597,10 +618,15 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    # Determine locales directory
+    # Find project root and locales directory
     script_dir = Path(__file__).resolve().parent
-    # Navigate from src/scripts/locales to src/locales
-    locales_dir = script_dir.parent.parent / "locales"
+    project_root = find_project_root(script_dir)
+
+    if project_root is None:
+        print("Error: Could not find project root (.git directory)", file=sys.stderr)
+        return 1
+
+    locales_dir = project_root / "src" / "locales"
 
     if not locales_dir.exists():
         print(f"Error: Locales directory not found: {locales_dir}", file=sys.stderr)
