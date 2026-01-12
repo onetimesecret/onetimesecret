@@ -12,7 +12,7 @@ module V1::Logic
       EMAIL_REGEX = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/
 
       attr_reader :passphrase, :secret_value, :kind, :ttl, :recipient, :recipient_safe, :greenlighted
-      attr_reader :metadata, :secret, :share_domain, :custom_domain, :payload, :default_expiration
+      attr_reader :receipt, :secret, :share_domain, :custom_domain, :payload, :default_expiration
 
       # Process methods populate instance variables with the values. The
       # raise_concerns and process methods deal with the values in the instance
@@ -46,7 +46,7 @@ module V1::Logic
         {
           success: greenlighted,
           record: {
-            metadata: metadata.safe_dump,
+            metadata: receipt.safe_dump, # maintain public API
             secret: secret.safe_dump,
             share_domain: share_domain,
           },
@@ -69,7 +69,7 @@ module V1::Logic
       end
 
       def redirect_uri
-        ['/private/', metadata.key].join
+        ['/private/', receipt.key].join
       end
 
       protected
@@ -232,18 +232,18 @@ module V1::Logic
 
       private
 
-      # Creates the metadata/secret pair using the modern Metadata.spawn_pair API.
+      # Creates the receipt/secret pair using the modern Metadata.spawn_pair API.
       #
       # IMPORTANT: Uses cust.objid (non-PII identifier) NOT cust.custid (email).
       # The legacy custid field stored email addresses; owner_id stores objid.
       # See: Onetime::Receipt.spawn_pair in lib/onetime/models/receipt.rb
       #
       def create_secret_pair
-        @metadata, @secret = Onetime::Receipt.spawn_pair(
+        @receipt, @secret = Onetime::Receipt.spawn_pair(
           cust&.objid, ttl, secret_value, passphrase: passphrase, domain: share_domain
         )
 
-        @greenlighted = metadata.valid? && secret.valid?
+        @greenlighted = receipt.valid? && secret.valid?
       end
 
       def handle_success
@@ -254,7 +254,7 @@ module V1::Logic
 
       def update_stats
         unless cust.anonymous?
-          cust.add_receipt metadata
+          cust.add_receipt receipt
           cust.increment_field :secrets_created # cust.secrets_created.increment
         end
         # TODO:
@@ -263,7 +263,7 @@ module V1::Logic
 
       def send_email_to_recipient
         return if recipient.nil? || recipient.empty?
-        metadata.deliver_by_email cust, locale, secret, recipient.first
+        receipt.deliver_by_email cust, locale, secret, recipient.first
       end
 
       # Determines which domain should be used for sharing.

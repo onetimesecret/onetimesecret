@@ -20,7 +20,7 @@ module V1
       # the use of either strings or symbols interchangeably when
       # retrieving values from a hash.
       #
-      # @see metadata_hsh method
+      # @see receipt_hsh method
       #
       using FlexibleHashAccess
 
@@ -45,7 +45,7 @@ module V1
             res.redirect res.app_path(logic.redirect_uri)
           else
             secret = logic.secret
-            json self.class.metadata_hsh(logic.metadata,
+            json self.class.receipt_hsh(logic.metadata,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end
@@ -61,7 +61,7 @@ module V1
             res.redirect res.app_path(logic.redirect_uri)
           else
             secret = logic.secret
-            json self.class.metadata_hsh(logic.metadata,
+            json self.class.receipt_hsh(logic.metadata,
                                 :value => logic.secret_value,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
@@ -78,12 +78,12 @@ module V1
           secret = logic.metadata.load_secret
           if logic.show_secret
             secret_value = secret.can_decrypt? ? secret.decrypted_value : nil
-            json self.class.metadata_hsh(logic.metadata,
+            json self.class.receipt_hsh(logic.metadata,
                                 :value => secret_value,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           else
-            json self.class.metadata_hsh(logic.metadata,
+            json self.class.receipt_hsh(logic.metadata,
                                 :secret_ttl => secret ? secret.current_expiration : nil,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end
@@ -96,13 +96,13 @@ module V1
           logic = V1::Logic::Secrets::ShowReceiptList.new sess, cust, req.params, locale
           logic.raise_concerns
           logic.process
-          recent_metadata = logic.metadata.collect { |md|
+          recent_receipts = logic.receipts.collect { |md|
             next if md.nil?
-            hash = self.class.metadata_hsh(md)
+            hash = self.class.receipt_hsh(md)
             hash.delete :secret_key   # Don't call md.delete, that will delete from the db
             hash
           }.compact
-          json recent_metadata
+          json recent_receipts
         end
       end
 
@@ -130,7 +130,7 @@ module V1
           logic.raise_concerns
           logic.process
           if logic.greenlighted
-            json :state           => self.class.metadata_hsh(logic.metadata),
+            json :state           => self.class.receipt_hsh(logic.metadata),
                 :secret_shortid => logic.metadata.secret_shortid
           else
             secret_not_found_response
@@ -149,7 +149,7 @@ module V1
             res.redirect res.app_path(logic.redirect_uri)
           else
             secret = logic.secret
-            json self.class.metadata_hsh(logic.metadata,
+            json self.class.receipt_hsh(logic.metadata,
                                 :secret_ttl => secret.current_expiration,
                                 :passphrase_required => secret && secret.has_passphrase?)
           end

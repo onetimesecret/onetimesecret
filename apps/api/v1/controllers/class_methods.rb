@@ -10,7 +10,7 @@ module V1
   # the use of either strings or symbols interchangeably when
   # retrieving values from a hash.
   #
-  # @see metadata_hsh method
+  # @see receipt_hsh method
   #
   using FlexibleHashAccess
 
@@ -36,14 +36,14 @@ module V1
       #
       # @example Basic usage
       #   metadata = Metadata.new(key: 'abc123', custid: 'user@example.com')
-      #   result = API.metadata_hsh(metadata)
+      #   result = API.receipt_hsh(metadata)
       #   puts result[:custid] # => "user@example.com"
       #
       # @example With secret TTL provided
-      #   result = API.metadata_hsh(metadata, secret_ttl: 3600)
+      #   result = API.receipt_hsh(metadata, secret_ttl: 3600)
       #   puts result[:secret_ttl] # => 3600
       #
-      def metadata_hsh md, opts={}
+      def receipt_hsh md, opts={}
 
         # The to_h method comes from Familia::Horreum which is concerned with
         # preparing values for storage in the db. As a result, the hash returned
@@ -114,7 +114,7 @@ module V1
       end
 
       # Alias for backward compatibility
-      alias receipt_hsh metadata_hsh
+      alias receipt_hsh receipt_hsh
     end
   end
 end

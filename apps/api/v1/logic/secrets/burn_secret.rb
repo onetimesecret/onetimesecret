@@ -9,22 +9,22 @@ module V1::Logic
 
     class BurnSecret < V1::Logic::Base
       attr_reader :key, :passphrase, :continue
-      attr_reader :metadata, :secret, :correct_passphrase, :greenlighted
+      attr_reader :receipt, :secret, :correct_passphrase, :greenlighted
 
       def process_params
         @key = sanitize_identifier(params['key'])
-        @metadata = Onetime::Receipt.load key
+        @receipt = Onetime::Receipt.load key
         @passphrase = params['passphrase'].to_s
         @continue = [true, 'true'].include?(params['continue'])
       end
 
       def raise_concerns
 
-        raise OT::MissingSecret if metadata.nil?
+        raise OT::MissingSecret if receipt.nil?
       end
 
       def process
-        potential_secret = @metadata.load_secret
+        potential_secret = @receipt.load_secret
 
         if potential_secret
 
@@ -52,21 +52,21 @@ module V1::Logic
       end
 
       def success_data
-        # Get base metadata attributes
-        attributes = metadata.safe_dump
+        # Get base receipt attributes
+        attributes = receipt.safe_dump
 
         # Add required URL fields
         attributes.merge!({
           # secret_state: 'burned',
-          natural_expiration: natural_duration(metadata.default_expiration.to_i),
-          expiration: (metadata.default_expiration.to_i + metadata.created.to_i),
-          expiration_in_seconds: (metadata.default_expiration.to_i),
-          share_path: build_path(:secret, metadata.secret_key),
-          burn_path: build_path(:private, metadata.key, 'burn'),
-          metadata_path: build_path(:private, metadata.key),
-          share_url: build_url(baseuri, build_path(:secret, metadata.secret_key)),
-          metadata_url: build_url(baseuri, build_path(:private, metadata.key)),
-          burn_url: build_url(baseuri, build_path(:private, metadata.key, 'burn')),
+          natural_expiration: natural_duration(receipt.default_expiration.to_i),
+          expiration: (receipt.default_expiration.to_i + receipt.created.to_i),
+          expiration_in_seconds: (receipt.default_expiration.to_i),
+          share_path: build_path(:secret, receipt.secret_key),
+          burn_path: build_path(:private, receipt.key, 'burn'),
+          metadata_path: build_path(:private, receipt.key), # maintain public API
+          share_url: build_url(baseuri, build_path(:secret, receipt.secret_key)),
+          metadata_url: build_url(baseuri, build_path(:private, receipt.key)), # maintain public API
+          burn_url: build_url(baseuri, build_path(:private, receipt.key, 'burn')),
         })
 
         {
@@ -84,9 +84,9 @@ module V1::Logic
             is_truncated: false,
             show_secret: false,
             show_secret_link: false,
-            show_metadata_link: false,
-            show_metadata: true,
-            show_recipients: !metadata.recipients.to_s.empty?,
+            show_metadata_link: false, # maintain public API
+            show_metadata: true, # maintain public API
+            show_recipients: !receipt.recipients.to_s.empty?,
             is_orphaned: false,
           },
         }
