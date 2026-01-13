@@ -166,6 +166,73 @@ end
 @org2.list_domains.map(&:display_domain).sort
 #=> []
 
+# Tests for explicit org_id parameter support
+# This enables org context to persist across navigation when session hasn't been updated
+
+# Add owner1 as member of org2 so they can add domains to it via explicit org_id
+@membership = @org2.add_members_instance(@owner1, through_attrs: { role: 'member' })
+
+## Membership was returned (not nil)
+@membership.nil?
+#=> false
+
+## Membership has correct org objid
+@membership.organization_objid
+#=> @org2.objid
+
+## Owner1's objid is in org2's members set
+@org2.members.member?(@owner1.objid)
+#=> true
+
+## Owner1 is now member of org2 (via member? helper)
+@org2.member?(@owner1)
+#=> true
+
+## Explicit org_id param: Add domain to different org than session context
+@test_domain3 = "explicit-#{@timestamp}.example.com"
+@params_explicit = { 'domain' => @test_domain3, 'org_id' => @org2.objid }
+@logic_explicit = DomainsAPI::Logic::Domains::AddDomain.new(@strategy_result1, @params_explicit)
+@logic_explicit.raise_concerns
+@logic_explicit.process
+[@logic_explicit.greenlighted, @logic_explicit.target_organization.objid == @org2.objid]
+#=> [true, true]
+
+## Domain was added to org2 (not org1 from session)
+@org2.domain_count
+#=> 1
+
+## org1 count remains unchanged
+@org1.domain_count
+#=> 2
+
+## Explicit org_id param: Works with extid too
+@test_domain4 = "extid-#{@timestamp}.example.com"
+@params_extid = { 'domain' => @test_domain4, 'org_id' => @org2.extid }
+@logic_extid = DomainsAPI::Logic::Domains::AddDomain.new(@strategy_result1, @params_extid)
+@logic_extid.raise_concerns
+@logic_extid.process
+[@logic_extid.greenlighted, @logic_extid.target_organization.objid == @org2.objid]
+#=> [true, true]
+
+## Explicit org_id param: Rejects non-member org
+@org3 = Onetime::Organization.create!("Third Corp", @owner2, "domains3_#{@timestamp}@third.com")
+@org3.define_singleton_method(:billing_enabled?) { false }
+@test_domain5 = "nonmember-#{@timestamp}.example.com"
+@params_nonmember = { 'domain' => @test_domain5, 'org_id' => @org3.objid }
+@logic_nonmember = DomainsAPI::Logic::Domains::AddDomain.new(@strategy_result1, @params_nonmember)
+begin
+  @logic_nonmember.raise_concerns
+  "unexpected_success"
+rescue Onetime::FormError => e
+  e.message
+end
+#=> "Organization not found or access denied"
+
+## Cleanup for explicit org_id tests
+@logic_extid.custom_domain.destroy! if @logic_extid&.custom_domain&.exists?
+@logic_explicit.custom_domain.destroy! if @logic_explicit&.custom_domain&.exists?
+@org3.destroy! if @org3&.exists?
+
 # Teardown
 @logic4.custom_domain.destroy! if @logic4&.custom_domain&.exists?
 @logic1.custom_domain.destroy! if @logic1&.custom_domain&.exists?
