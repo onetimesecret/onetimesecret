@@ -28,6 +28,8 @@
       "select_organization": "Select an organization",
       "switcher_locked": "Organization switching not available on this page",
       "paid_badge": "Pro",
+      "member_count": "{count} member | {count} members",
+      "domains_label": "Domains",
       "not_found": "Organization not found",
       "load_error": "Failed to load organization",
       "fetch_organization_error": "Failed to load organization",
