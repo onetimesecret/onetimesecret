@@ -330,44 +330,76 @@
                 </div>
               </div>
 
-              <!-- Submit Button -->
-              <button
-                type="submit"
-                :disabled="!hasContent || isSubmitting"
-                :style="buttonStyles"
-                :class="[cornerClass]"
-                class="inline-flex items-center justify-center gap-2 px-6 py-3
-                  text-base font-semibold shadow-lg transition-all duration-200
-                  hover:opacity-90 hover:shadow-xl
-                  focus:outline-none focus:ring-4 focus:ring-brand-500/20
-                  disabled:cursor-not-allowed disabled:opacity-50
-                  disabled:shadow-none">
-                <OIcon
-                  v-if="isSubmitting"
-                  collection="heroicons"
-                  name="arrow-path"
-                  class="size-4 animate-spin"
-                  aria-hidden="true" />
-                <OIcon
-                  v-else
-                  collection="heroicons"
-                  name="lock-closed"
-                  class="size-4"
-                  aria-hidden="true" />
-                <span>
-                  {{
-                    isSubmitting
-                      ? t('web.COMMON.submitting')
-                      : t('web.LABELS.create_link_short')
-                  }}
-                </span>
-                <kbd
-                  v-if="!isSubmitting"
-                  class="ml-1.5 hidden rounded bg-white/20 px-1.5 py-0.5
-                    text-xs font-normal opacity-70 sm:inline-block">
-                  {{ shortcutHint }}
-                </kbd>
-              </button>
+              <!-- Submit Area with Stay on Page toggle -->
+              <div class="flex items-center gap-3">
+                <!-- Stay on Page Chip (Workspace Mode Toggle) -->
+                <button
+                  type="button"
+                  :disabled="isSubmitting"
+                  @click="concealedReceiptStore.toggleWorkspaceMode()"
+                  :title="t('web.secrets.workspace_mode_description')"
+                  class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-2 text-sm
+                    font-medium ring-1 ring-inset transition-all
+                    focus:outline-none focus:ring-2 focus:ring-brand-500
+                    disabled:opacity-50 disabled:cursor-not-allowed"
+                  :class="
+                    concealedReceiptStore.workspaceMode
+                      ? 'bg-brand-50 text-brand-700 ring-brand-600/20 hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-400/30'
+                      : 'bg-gray-50 text-gray-600 ring-gray-500/20 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-500/30'
+                  ">
+                  <OIcon
+                    collection="mdi"
+                    :name="concealedReceiptStore.workspaceMode ? 'pin' : 'pin-off'"
+                    class="size-4"
+                    aria-hidden="true" />
+                  <span>{{ t('web.secrets.workspace_mode') }}</span>
+                  <OIcon
+                    v-if="concealedReceiptStore.workspaceMode"
+                    collection="heroicons"
+                    name="check"
+                    class="size-3.5 text-brand-600 dark:text-brand-400"
+                    aria-hidden="true" />
+                </button>
+
+                <!-- Submit Button -->
+                <button
+                  type="submit"
+                  :disabled="!hasContent || isSubmitting"
+                  :style="buttonStyles"
+                  :class="[cornerClass]"
+                  class="inline-flex items-center justify-center gap-2 px-6 py-3
+                    text-base font-semibold shadow-lg transition-all duration-200
+                    hover:opacity-90 hover:shadow-xl
+                    focus:outline-none focus:ring-4 focus:ring-brand-500/20
+                    disabled:cursor-not-allowed disabled:opacity-50
+                    disabled:shadow-none">
+                  <OIcon
+                    v-if="isSubmitting"
+                    collection="heroicons"
+                    name="arrow-path"
+                    class="size-4 animate-spin"
+                    aria-hidden="true" />
+                  <OIcon
+                    v-else
+                    collection="heroicons"
+                    name="lock-closed"
+                    class="size-4"
+                    aria-hidden="true" />
+                  <span>
+                    {{
+                      isSubmitting
+                        ? t('web.COMMON.submitting')
+                        : t('web.LABELS.create_link_short')
+                    }}
+                  </span>
+                  <kbd
+                    v-if="!isSubmitting"
+                    class="ml-1.5 hidden rounded bg-white/20 px-1.5 py-0.5
+                      text-xs font-normal opacity-70 sm:inline-block">
+                    {{ shortcutHint }}
+                  </kbd>
+                </button>
+              </div>
             </div>
           </div>
         </div>

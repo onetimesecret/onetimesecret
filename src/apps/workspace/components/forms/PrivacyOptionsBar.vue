@@ -14,11 +14,9 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { usePrivacyOptions } from '@/shared/composables/usePrivacyOptions';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-  import { useConcealedReceiptStore } from '@/shared/stores/concealedReceiptStore';
   import { storeToRefs } from 'pinia';
 
   const { t } = useI18n();
-  const concealedReceiptStore = useConcealedReceiptStore();
 
   // Disable auto attribute inheritance since we have multiple root nodes (main div + Teleport)
   // and manually bind $attrs to the main container
@@ -311,34 +309,6 @@
           </Transition>
         </div>
 
-        <!-- Stay on Page Chip (Workspace Mode Toggle) -->
-        <button
-          type="button"
-          :disabled="isSubmitting"
-          @click="concealedReceiptStore.toggleWorkspaceMode()"
-          :title="t('web.secrets.workspace_mode_description')"
-          class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs
-            font-medium ring-1 ring-inset transition-all
-            focus:outline-none focus:ring-2 focus:ring-brand-500
-            disabled:opacity-50 disabled:cursor-not-allowed"
-          :class="
-            concealedReceiptStore.workspaceMode
-              ? 'bg-brand-50 text-brand-700 ring-brand-600/20 hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-400/30'
-              : 'bg-gray-50 text-gray-600 ring-gray-500/20 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-500/30'
-          ">
-          <OIcon
-            collection="mdi"
-            :name="concealedReceiptStore.workspaceMode ? 'pin' : 'pin-off'"
-            class="size-3.5"
-            aria-hidden="true" />
-          <span>{{ t('web.secrets.workspace_mode') }}</span>
-          <OIcon
-            v-if="concealedReceiptStore.workspaceMode"
-            collection="heroicons"
-            name="check"
-            class="size-3 text-brand-600 dark:text-brand-400"
-            aria-hidden="true" />
-        </button>
       </div>
     </div>
   </div>

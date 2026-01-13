@@ -1,23 +1,11 @@
 // src/tests/apps/workspace/components/forms/PrivacyOptionsBar.spec.ts
+//
+// Note: Workspace mode toggle tests moved to WorkspaceSecretForm.spec.ts
+// as the toggle was relocated to be near the Create Link button.
 
 import { createTestingPinia } from '@pinia/testing';
 import { flushPromises, mount } from '@vue/test-utils';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ref } from 'vue';
-
-// Mock store state
-const mockWorkspaceMode = ref(false);
-const mockToggleWorkspaceMode = vi.fn(() => {
-  mockWorkspaceMode.value = !mockWorkspaceMode.value;
-});
-
-// Mock concealedReceiptStore
-vi.mock('@/shared/stores/concealedReceiptStore', () => ({
-  useConcealedReceiptStore: vi.fn(() => ({
-    workspaceMode: mockWorkspaceMode.value,
-    toggleWorkspaceMode: mockToggleWorkspaceMode,
-  })),
-}));
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // Mock usePrivacyOptions composable
 vi.mock('@/shared/composables/usePrivacyOptions', () => ({
@@ -52,11 +40,6 @@ const OIconStub = {
 };
 
 describe('PrivacyOptionsBar', () => {
-  beforeEach(() => {
-    mockWorkspaceMode.value = false;
-    mockToggleWorkspaceMode.mockClear();
-  });
-
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -95,144 +78,7 @@ describe('PrivacyOptionsBar', () => {
     });
   }
 
-  describe('workspace mode toggle chip', () => {
-    it('renders the workspace mode toggle button', async () => {
-      const wrapper = await mountComponent();
-      await flushPromises();
-
-      // Find button containing the workspace mode translation key
-      const buttons = wrapper.findAll('button');
-      const workspaceModeButton = buttons.find((btn) =>
-        btn.text().includes('web.secrets.workspace_mode')
-      );
-
-      expect(workspaceModeButton?.exists()).toBe(true);
-    });
-
-    it('calls toggleWorkspaceMode when workspace mode button is clicked', async () => {
-      const wrapper = await mountComponent();
-      await flushPromises();
-
-      // Find the workspace mode button (last button in the chips)
-      const buttons = wrapper.findAll('button');
-      const workspaceModeButton = buttons.find((btn) =>
-        btn.text().includes('web.secrets.workspace_mode')
-      );
-
-      expect(workspaceModeButton?.exists()).toBe(true);
-      await workspaceModeButton?.trigger('click');
-
-      expect(mockToggleWorkspaceMode).toHaveBeenCalledOnce();
-    });
-
-    it('has correct title attribute for accessibility', async () => {
-      const wrapper = await mountComponent();
-      await flushPromises();
-
-      const buttons = wrapper.findAll('button');
-      const workspaceModeButton = buttons.find((btn) =>
-        btn.text().includes('web.secrets.workspace_mode')
-      );
-
-      expect(workspaceModeButton?.attributes('title')).toBe(
-        'web.secrets.workspace_mode_description'
-      );
-    });
-
-    it('is disabled when isSubmitting is true', async () => {
-      const wrapper = await mountComponent({ isSubmitting: true });
-      await flushPromises();
-
-      const buttons = wrapper.findAll('button');
-      const workspaceModeButton = buttons.find((btn) =>
-        btn.text().includes('web.secrets.workspace_mode')
-      );
-
-      expect(workspaceModeButton?.attributes('disabled')).toBeDefined();
-    });
-
-    it('is enabled when isSubmitting is false', async () => {
-      const wrapper = await mountComponent({ isSubmitting: false });
-      await flushPromises();
-
-      const buttons = wrapper.findAll('button');
-      const workspaceModeButton = buttons.find((btn) =>
-        btn.text().includes('web.secrets.workspace_mode')
-      );
-
-      expect(workspaceModeButton?.attributes('disabled')).toBeUndefined();
-    });
-  });
-
-  describe('workspace mode styling', () => {
-    it('applies inactive styling when workspace mode is off', async () => {
-      mockWorkspaceMode.value = false;
-      const wrapper = await mountComponent();
-      await flushPromises();
-
-      const buttons = wrapper.findAll('button');
-      const workspaceModeButton = buttons.find((btn) =>
-        btn.text().includes('web.secrets.workspace_mode')
-      );
-
-      // When workspaceMode is false, should have gray styling
-      expect(workspaceModeButton?.classes()).toContain('bg-gray-50');
-    });
-
-    it('applies active styling when workspace mode is on', async () => {
-      // Need to re-import with updated mock
-      vi.resetModules();
-
-      // Update mock to return true for workspaceMode
-      vi.doMock('@/shared/stores/concealedReceiptStore', () => ({
-        useConcealedReceiptStore: vi.fn(() => ({
-          workspaceMode: true,
-          toggleWorkspaceMode: mockToggleWorkspaceMode,
-        })),
-      }));
-
-      const { default: PrivacyOptionsBar } =
-        await import('@/apps/workspace/components/forms/PrivacyOptionsBar.vue');
-
-      const wrapper = mount(PrivacyOptionsBar, {
-        props: {
-          currentTtl: 604800,
-          currentPassphrase: '',
-        },
-        global: {
-          plugins: [
-            createTestingPinia({
-              createSpy: vi.fn,
-              initialState: {
-                bootstrap: {
-                  secret_options: {
-                    passphrase: { minimum_length: 6 },
-                  },
-                },
-              },
-            }),
-          ],
-          stubs: {
-            OIcon: OIconStub,
-            Teleport: true,
-          },
-          mocks: {
-            $t: (key: string) => key,
-          },
-        },
-      });
-
-      await flushPromises();
-
-      const buttons = wrapper.findAll('button');
-      const workspaceModeButton = buttons.find((btn) =>
-        btn.text().includes('web.secrets.workspace_mode')
-      );
-
-      // When workspaceMode is true, should have brand styling
-      expect(workspaceModeButton?.classes()).toContain('bg-brand-50');
-    });
-  });
+  // Note: Workspace mode toggle tests removed - toggle moved to WorkspaceSecretForm
 
   describe('TTL dropdown', () => {
     it('displays the formatted TTL value', async () => {
