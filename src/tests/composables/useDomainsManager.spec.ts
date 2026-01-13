@@ -54,12 +54,21 @@ const mockDependencies: MockDependencies = {
   },
 };
 
+// Mock for useDomainScope
+const mockDomainScope = {
+  setScope: vi.fn(),
+};
+
 // Mock imports
 vi.mock('vue-router', () => ({
   useRouter: () => mockDependencies.router,
   useRoute: () => ({
     params: { orgid: 'test-org-id' },
   }),
+}));
+
+vi.mock('@/shared/composables/useDomainScope', () => ({
+  useDomainScope: () => mockDomainScope,
 }));
 
 vi.mock('@/shared/stores/domainsStore', () => ({
@@ -135,6 +144,8 @@ describe('useDomainsManager', () => {
     // Reset reactive refs
     mockDependencies.domainsStore.records.value = mockDomains;
     mockDependencies.errorHandler.wrap.mockImplementation(async (fn) => await fn());
+    // Reset domain scope mock
+    mockDomainScope.setScope.mockClear();
   });
 
   describe('domain addition', () => {
@@ -158,6 +169,33 @@ describe('useDomainsManager', () => {
           'Domain added successfully',
           'success'
         );
+      });
+
+      it('auto-switches domain scope to newly added domain', async () => {
+        mockDependencies.domainsStore.addDomain.mockResolvedValueOnce(newDomainData);
+
+        const { handleAddDomain } = mountComposable(() => useDomainsManager());
+        await handleAddDomain(newDomainData.domainid);
+
+        // Verify setScope was called with the new domain's display_domain
+        expect(mockDomainScope.setScope).toHaveBeenCalledWith(newDomainData.display_domain);
+        expect(mockDomainScope.setScope).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not switch domain scope when domain addition fails', async () => {
+        mockDependencies.domainsStore.addDomain.mockResolvedValueOnce(null);
+        mockDependencies.errorHandler.createError.mockImplementation((message, type, severity) => ({
+          message,
+          type,
+          severity,
+          name: 'Error',
+        }));
+
+        const { handleAddDomain } = mountComposable(() => useDomainsManager());
+        await handleAddDomain('failing-domain.com');
+
+        // Verify setScope was NOT called when domain addition fails
+        expect(mockDomainScope.setScope).not.toHaveBeenCalled();
       });
 
       describe('error handling', () => {

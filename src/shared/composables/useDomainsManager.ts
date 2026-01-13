@@ -1,6 +1,7 @@
 // src/shared/composables/useDomainsManager.ts
 
 import { AsyncHandlerOptions, createError, useAsyncHandler } from '@/shared/composables/useAsyncHandler';
+import { useDomainScope } from '@/shared/composables/useDomainScope';
 import { ApplicationError } from '@/schemas/errors';
 import { useDomainsStore, useNotificationsStore } from '@/shared/stores';
 import { storeToRefs } from 'pinia';
@@ -130,6 +131,10 @@ export function useDomainsManager() {
         const isReclaimed = result.updated.getTime() > result.created.getTime();
         const message = isReclaimed ? 'web.domains.domain_claimed_successfully' : 'web.domains.domain_added_successfully';
         notifications.show(t(message), 'success');
+
+        // Auto-switch domain scope to the newly added domain
+        const { setScope } = useDomainScope();
+        setScope(result.display_domain);
 
         if (orgid.value) {
           router.push({

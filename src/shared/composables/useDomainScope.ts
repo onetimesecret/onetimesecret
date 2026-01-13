@@ -35,6 +35,9 @@ const currentDomain = ref('');
 const isInitialized = ref(false);
 const isLoadingDomains = ref(false);
 
+// Request ID to handle race conditions during rapid org switches
+let currentFetchRequestId = 0;
+
 // Bootstrap config refs - lazily initialized on first composable use
 let domainsEnabled: boolean = false;
 let canonicalDomain: string = '';
@@ -85,7 +88,7 @@ function findExtidByDomain(
 
 /** Initialize domain scope on module load (runs once). Returns promise for awaiting. */
 async function initializeDomainScope(
-  fetchFn: () => Promise<void>,
+  fetchFn: () => Promise<boolean | void>,
   getAvailable: () => string[]
 ): Promise<void> {
   if (isInitialized.value) return;
@@ -122,21 +125,31 @@ export function useDomainScope() {
     buildAvailableDomains(domainsStore.domains || [])
   );
 
-  const fetchDomainsForOrganization = async () => {
-    if (!domainsEnabled) return;
+  const fetchDomainsForOrganization = async (): Promise<boolean> => {
+    if (!domainsEnabled) return true;
     // Guard: Only fetch if we have a valid organization ID
     const orgId = organizationStore.currentOrganization?.id;
     if (!orgId) {
       console.debug('[useDomainScope] Skipping fetch: no currentOrganization set yet');
-      return;
+      return false;
     }
+
+    // Increment request ID to track this specific request
+    const requestId = ++currentFetchRequestId;
     isLoadingDomains.value = true;
+
     try {
       await domainsStore.fetchList(orgId);
+      // Check if this request is still current (not superseded by a newer org switch)
+      return requestId === currentFetchRequestId;
     } catch (error) {
       console.warn('[useDomainScope] Failed to fetch domains:', error);
+      return false;
     } finally {
-      isLoadingDomains.value = false;
+      // Only clear loading if this is still the current request
+      if (requestId === currentFetchRequestId) {
+        isLoadingDomains.value = false;
+      }
     }
   };
 
@@ -144,10 +157,13 @@ export function useDomainScope() {
   // immediate: true ensures we catch the first org load from OrganizationContextBar
   watch(() => organizationStore.currentOrganization?.id, async (newOrgId, oldOrgId) => {
     if (newOrgId && newOrgId !== oldOrgId) {
-      await fetchDomainsForOrganization();
-      // If current selection is invalid for new org, prefer custom domain
-      if (currentDomain.value && !availableDomains.value.includes(currentDomain.value)) {
-        currentDomain.value = getPreferredDomain(availableDomains.value);
+      const isCurrentRequest = await fetchDomainsForOrganization();
+      // Only update domain selection if this request wasn't superseded by a newer org switch
+      if (isCurrentRequest) {
+        // If current selection is invalid for new org, prefer custom domain
+        if (currentDomain.value && !availableDomains.value.includes(currentDomain.value)) {
+          currentDomain.value = getPreferredDomain(availableDomains.value);
+        }
       }
     }
   }, { immediate: true });
