@@ -2,7 +2,29 @@
 
 <!--
   Workspace Layout for authenticated users.
-  Based on ManagementLayout with WorkspaceFooter (simplified SaaS footer links).
+
+  ## Header Design Rationale (2026-01)
+
+  Problem: The original two-row header had inverted visual hierarchy.
+  - Logo (64-80px) dominated despite being low-value after first glance
+  - Org/domain switchers were visually subordinate despite high interaction frequency
+  - User menu truncated emails aggressively (double truncation: JS + CSS)
+  - Identity (user menu) and context (org/domain) were split across rows
+
+  Approach: Single-row merge prioritizing information scent over branding.
+  - Compressed logo to ~36px for authenticated users
+  - Org/domain switchers share the row with increased visual weight
+  - User menu width expanded to accommodate typical email lengths
+  - Related concepts (identity + workspace context) now grouped together
+
+  Tradeoffs accepted:
+  - Reduced brand presence for authenticated users (acceptable: they know where they are)
+  - Horizontal space pressure on narrow viewports (mitigated via responsive breakpoints)
+  - Different header experience logged-in vs logged-out (intentional: different needs)
+
+  What we didn't fully solve:
+  - Mobile still requires compromises; switchers collapse to icons at small widths
+  - The logo size reduction may feel abrupt on auth state transitions
 -->
 
 <script setup lang="ts">
