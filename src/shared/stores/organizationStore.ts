@@ -66,6 +66,7 @@ export const useOrganizationStore = defineStore('organization', () => {
   const currentOrganization = ref<Organization | null>(null);
   const invitations = ref<OrganizationInvitation[]>([]);
   const _initialized = ref(false);
+  const _listFetched = ref(false); // Tracks whether fetchOrganizations() was called (full list)
   const loading = ref(false);
   const entitlementsError = ref<string | null>(null);
   const abortController = ref<AbortController | null>(null);
@@ -84,6 +85,7 @@ export const useOrganizationStore = defineStore('organization', () => {
   );
 
   const isInitialized = computed(() => _initialized.value);
+  const isListFetched = computed(() => _listFetched.value);
 
   // Actions
 
@@ -122,6 +124,7 @@ export const useOrganizationStore = defineStore('organization', () => {
 
       const validated = organizationsResponseSchema.parse(response.data);
       organizations.value = validated.records;
+      _listFetched.value = true;
       return organizations.value;
     } finally {
       loading.value = false;
@@ -399,6 +402,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     currentOrganization.value = null;
     invitations.value = [];
     _initialized.value = false;
+    _listFetched.value = false;
     loading.value = false;
     entitlementsError.value = null;
   }
@@ -467,6 +471,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     hasNonDefaultOrganizations,
     getOrganizationById,
     isInitialized,
+    isListFetched,
 
     // Actions
     init,

@@ -33,8 +33,10 @@ const {
 const isLoaded = ref(false);
 
 // Fetch organizations on mount to determine visibility
+// Use isListFetched (not hasOrganizations) to ensure full list is loaded.
+// hasOrganizations can be true if fetchOrganization() added a single org.
 onMounted(async () => {
-  if (!organizationStore.hasOrganizations) {
+  if (!organizationStore.isListFetched) {
     try {
       await organizationStore.fetchOrganizations();
     } catch (error) {
