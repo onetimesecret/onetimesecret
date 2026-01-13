@@ -106,7 +106,7 @@
     "@tailwindcss/forms": "0.5.11",
     "@tailwindcss/typography": "0.5.19",
     "@tsconfig/node24": "24.0.3",
-    "@types/node": "22.19.3",
+    "@types/node": "22.19.6",
     "@typescript-eslint/eslint-plugin": "8.32.1",
     "@typescript-eslint/parser": "8.32.1",
     "@vitejs/plugin-vue": "5.2.4",
