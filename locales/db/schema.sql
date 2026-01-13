@@ -12,9 +12,9 @@ CREATE TABLE IF NOT EXISTS translation_tasks (
     locale TEXT NOT NULL,
     file TEXT NOT NULL,               -- 'auth.json'
     key TEXT NOT NULL,                -- 'web.auth.security.rate_limited'
-    english_text TEXT NOT NULL,
-    translation TEXT,
-    status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'completed', 'skipped', 'error')),
+    source TEXT,                      -- Source language text (NULL when status=source)
+    text TEXT,                        -- Message content (translation, or source text when status=source)
+    status TEXT DEFAULT 'pending' CHECK(status IN ('pending', 'completed', 'skipped', 'error', 'source')),
     notes TEXT,                       -- translator notes, errors
     created_at TEXT DEFAULT (datetime('now')),
     completed_at TEXT,
@@ -49,7 +49,7 @@ CREATE INDEX IF NOT EXISTS idx_level_file ON level_tasks(file);
 CREATE TABLE IF NOT EXISTS glossary (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     locale TEXT NOT NULL,             -- 'eo', 'de', etc.
-    term TEXT NOT NULL,               -- English term or concept
+    term TEXT NOT NULL,               -- Term or concept from source language
     translation TEXT NOT NULL,        -- Chosen translation
     context TEXT,                     -- When to use this translation
     alternatives TEXT,                -- Other options considered (JSON array or comma-separated)

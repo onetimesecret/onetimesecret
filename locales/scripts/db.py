@@ -53,6 +53,8 @@ SCHEMA_VERSIONS = [
     ("002", "level_tasks"),
     ("003", "glossary"),
     ("004", "session_log"),
+    ("005", "source_status"),
+    ("006", "rename_columns"),  # english_text -> source, translation -> text
 ]
 
 
@@ -103,8 +105,45 @@ def migrate_schema() -> None:
         print("Schema is up to date.")
 
 
+def _load_english_content() -> dict[tuple[str, str], dict[str, str]]:
+    """Load English content into a lookup dictionary.
+
+    Returns:
+        Dictionary mapping (file_name, key) to {text, context} dict.
+    """
+    english_dir = CONTENT_DIR / "en"
+    english_lookup: dict[tuple[str, str], dict[str, str]] = {}
+
+    if not english_dir.exists():
+        print("Warning: English content directory not found", file=sys.stderr)
+        return english_lookup
+
+    for json_file in sorted(english_dir.glob("*.json")):
+        file_name = json_file.name
+        try:
+            with open(json_file, encoding="utf-8") as f:
+                data = json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"Warning: Invalid JSON in {json_file}: {e}", file=sys.stderr)
+            continue
+
+        for key, entry in data.items():
+            if not isinstance(entry, dict):
+                continue
+            english_lookup[(file_name, key)] = {
+                "text": entry.get("text", ""),
+                "context": entry.get("context", ""),
+            }
+
+    return english_lookup
+
+
 def hydrate_from_json(force: bool = False) -> None:
     """Hydrate database from content JSON files.
+
+    Uses two-pass approach:
+    1. Load English content into memory for lookups
+    2. Process all locales, looking up English text from memory
 
     Creates tables from schema.sql, then walks all
     locales/content/{locale}/*.json files to populate the database.
@@ -135,6 +174,11 @@ def hydrate_from_json(force: bool = False) -> None:
 
     schema_sql = SCHEMA_FILE.read_text()
 
+    # First pass: load English content for lookups
+    print("Loading English content...")
+    english_lookup = _load_english_content()
+    print(f"  Loaded {len(english_lookup)} English keys")
+
     with get_connection() as conn:
         cursor = conn.cursor()
 
@@ -145,7 +189,7 @@ def hydrate_from_json(force: bool = False) -> None:
         except sqlite3.Error as e:
             raise RuntimeError(f"SQL error during schema creation: {e}") from e
 
-        # Walk content directories
+        # Second pass: walk all content directories
         inserted = 0
         locale_dirs = sorted(
             d for d in CONTENT_DIR.iterdir()
@@ -174,6 +218,11 @@ def hydrate_from_json(force: bool = False) -> None:
                     skip = entry.get("skip", False)
                     note = entry.get("note")
 
+                    # Look up English text and context
+                    english_entry = english_lookup.get((file_name, key), {})
+                    english_text = english_entry.get("text", "")
+                    context = english_entry.get("context", "")
+
                     # Determine status
                     # For non-English locales: text present = completed
                     # For English: text is source, not a translation
@@ -186,11 +235,28 @@ def hydrate_from_json(force: bool = False) -> None:
                     else:
                         status = "pending"
 
+                    # Build notes: combine entry note with context if present
+                    notes_parts = []
+                    if note:
+                        notes_parts.append(note)
+                    if context and locale != "en":
+                        notes_parts.append(f"context: {context}")
+                    combined_notes = "; ".join(notes_parts) if notes_parts else None
+
+                    # For source language: source=NULL, text=content
+                    # For translations: source=english, text=translation
+                    if locale == "en":
+                        source_val = None
+                        text_val = text  # English text goes in text column
+                    else:
+                        source_val = english_text
+                        text_val = text if text else None
+
                     try:
                         cursor.execute(
                             """
                             INSERT INTO translation_tasks
-                            (batch, locale, file, key, english_text, translation,
+                            (batch, locale, file, key, source, text,
                              status, notes)
                             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                             """,
@@ -199,10 +265,10 @@ def hydrate_from_json(force: bool = False) -> None:
                                 locale,
                                 file_name,
                                 key,
-                                text if locale == "en" else "",  # english_text
-                                text if locale != "en" else None,  # translation
+                                source_val,
+                                text_val,
                                 status,
-                                note,
+                                combined_notes,
                             ),
                         )
                         inserted += 1

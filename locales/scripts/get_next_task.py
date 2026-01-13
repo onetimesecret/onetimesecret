@@ -215,13 +215,13 @@ def format_task_human(task: dict) -> str:
     table.add_column("English", justify="left", width=60, overflow="fold")
     table.add_column("Esperanto", justify="left", width=60, overflow="fold")
 
-    # Sort by length of english text for visual grouping
+    # Sort by length of source text for visual grouping
     sorted_keys = sorted(keys.items(), key=lambda x: len(x[1]))
 
     translations = task.get("translations", {})
-    for key, english_text in sorted_keys:
+    for key, source_text in sorted_keys:
         translation = translations.get(key, "")
-        table.add_row(key, english_text, translation)
+        table.add_row(key, source_text, translation)
 
     # Render table to string
     output = StringIO()

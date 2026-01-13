@@ -14,7 +14,7 @@ Key-based mode detects:
 Level-based mode:
 - Groups keys by parent level (e.g., web.COMMON.buttons.submit -> web.COMMON.buttons)
 - Creates one task row per level per locale
-- Stores keys_json as {key_name: english_text} for the level
+- Stores keys_json as {key_name: source_text} for the level
 
 Usage:
     python generate_tasks.py LOCALE [--batch BATCH_NAME] [--dry-run]
@@ -56,7 +56,7 @@ class TaskData:
     locale: str
     file: str
     key: str
-    english_text: str
+    source: str
 
 
 @dataclass(frozen=True)
@@ -109,13 +109,13 @@ def group_keys_by_level(
         keys: Dictionary mapping full key paths to English text.
 
     Returns:
-        Dictionary mapping level_path to {leaf_key: english_text}.
+        Dictionary mapping level_path to {leaf_key: source}.
     """
     levels: dict[str, dict[str, str]] = defaultdict(dict)
-    for key_path, english_text in keys.items():
+    for key_path, source in keys.items():
         level_path = get_parent_level(key_path)
         leaf_key = get_leaf_key(key_path)
-        levels[level_path][leaf_key] = english_text
+        levels[level_path][leaf_key] = source
     return dict(levels)
 
 
@@ -181,20 +181,20 @@ def compare_locale(
             if dry_run:
                 print(f"MISSING FILE: {file_name} ({len(en_keys)} keys)")
 
-            for key, english_text in en_keys.items():
+            for key, source in en_keys.items():
                 tasks.append(TaskData(
                     batch=batch,
                     locale=locale,
                     file=file_name,
                     key=key,
-                    english_text=english_text,
+                    source=source,
                 ))
                 stats["total_tasks"] += 1
         else:
             # File exists - compare keys
             locale_keys = get_keys_from_file(locale_file)
 
-            for key, english_text in en_keys.items():
+            for key, source in en_keys.items():
                 if key not in locale_keys:
                     # Missing key
                     stats["missing_keys"] += 1
@@ -205,7 +205,7 @@ def compare_locale(
                         locale=locale,
                         file=file_name,
                         key=key,
-                        english_text=english_text,
+                        source=source,
                     ))
                     stats["total_tasks"] += 1
                 elif locale_keys[key] == "":
@@ -218,7 +218,7 @@ def compare_locale(
                         locale=locale,
                         file=file_name,
                         key=key,
-                        english_text=english_text,
+                        source=source,
                     ))
                     stats["total_tasks"] += 1
 
@@ -344,7 +344,7 @@ def export_tasks_to_sql(conn: sqlite3.Connection, task_ids: list[int]) -> list[s
 
     placeholders = ",".join("?" * len(task_ids))
     query = (
-        "SELECT batch, locale, file, key, english_text "
+        "SELECT batch, locale, file, key, source "
         "FROM translation_tasks "
         f"WHERE id IN ({placeholders}) "
         "ORDER BY id"
@@ -356,7 +356,7 @@ def export_tasks_to_sql(conn: sqlite3.Connection, task_ids: list[int]) -> list[s
         quoted = [conn.execute("SELECT quote(?)", (v,)).fetchone()[0] for v in row]
         stmt = (
             "INSERT INTO translation_tasks "
-            "(batch, locale, file, key, english_text) "
+            "(batch, locale, file, key, source) "
             f"VALUES ({', '.join(quoted)});"
         )
         statements.append(stmt)
@@ -401,8 +401,8 @@ def insert_into_db(tasks: list[TaskData]) -> tuple[sqlite3.Connection, list[int]
         try:
             cursor.execute(
                 "INSERT INTO translation_tasks "
-                "(batch, locale, file, key, english_text) VALUES (?, ?, ?, ?, ?)",
-                (task.batch, task.locale, task.file, task.key, task.english_text),
+                "(batch, locale, file, key, source) VALUES (?, ?, ?, ?, ?)",
+                (task.batch, task.locale, task.file, task.key, task.source),
             )
             if cursor.lastrowid is not None:
                 inserted_ids.append(cursor.lastrowid)

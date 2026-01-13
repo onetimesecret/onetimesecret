@@ -60,7 +60,7 @@ class TranslationTask:
 
     file: str
     key: str
-    english_text: str
+    source: str
 
 
 def get_pending_tasks(
@@ -109,7 +109,7 @@ def get_pending_tasks(
             if not isinstance(en_entry, dict):
                 continue
 
-            english_text = en_entry.get("text", "")
+            source = en_entry.get("text", "")
             locale_entry = locale_content.get(key, {})
 
             # Skip if already has text or marked skip
@@ -121,7 +121,7 @@ def get_pending_tasks(
             tasks.append(TranslationTask(
                 file=file_name,
                 key=key,
-                english_text=english_text,
+                source=source,
             ))
 
             if limit and len(tasks) >= limit:
@@ -165,7 +165,7 @@ def build_prompt(
         Formatted prompt string.
     """
     items = [
-        {"key": t.key, "english": t.english_text}
+        {"key": t.key, "english": t.source}
         for t in tasks
     ]
 
@@ -207,10 +207,10 @@ def mock_translate(tasks: list[TranslationTask], locale: str) -> list[dict]:
     results = []
     for task in tasks:
         # Skip empty English text
-        if not task.english_text.strip():
+        if not task.source.strip():
             results.append({
                 "key": task.key,
-                "english": task.english_text,
+                "english": task.source,
                 "translated": "",
                 "skipped": True,
                 "reason": "empty_source",
@@ -218,11 +218,11 @@ def mock_translate(tasks: list[TranslationTask], locale: str) -> list[dict]:
             continue
 
         # Generate placeholder translation
-        translated = f"[{locale.upper()}] {task.english_text}"
+        translated = f"[{locale.upper()}] {task.source}"
 
         results.append({
             "key": task.key,
-            "english": task.english_text,
+            "english": task.source,
             "translated": translated,
         })
 
@@ -500,7 +500,7 @@ Examples:
     if args.dry_run:
         print("\n[DRY-RUN] Would translate:")
         for task in tasks[:5]:
-            print(f"  {task.key}: {task.english_text[:50]}...")
+            print(f"  {task.key}: {task.source[:50]}...")
         if len(tasks) > 5:
             print(f"  ... and {len(tasks) - 5} more")
         return 0
