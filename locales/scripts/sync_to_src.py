@@ -22,6 +22,7 @@ Examples:
     python sync_to_src.py eo --file auth.json
     python sync_to_src.py eo
     python sync_to_src.py --all
+    python sync_to_src.py eo --clobber  # Replace files instead of merging
 """
 
 import argparse
@@ -77,6 +78,7 @@ def sync_locale(
     file_filter: str | None = None,
     dry_run: bool = False,
     verbose: bool = False,
+    clobber: bool = False,
 ) -> dict[str, int]:
     """Sync translations from content JSON to src/locales.
 
@@ -85,6 +87,7 @@ def sync_locale(
         file_filter: Optional file name to filter by.
         dry_run: If True, only report what would be done.
         verbose: If True, show detailed output.
+        clobber: If True, replace target files entirely instead of merging.
 
     Returns:
         Stats dict with counts per file.
@@ -136,8 +139,8 @@ def sync_locale(
                     print(f"  ... and {len(translations) - 5} more")
             continue
 
-        # Load existing target file to preserve structure/metadata
-        target_data = load_json_file(target_file)
+        # Load existing target file to preserve structure/metadata (unless clobber)
+        target_data = {} if clobber else load_json_file(target_file)
 
         # Apply translations (converts flat keys to nested structure)
         for key, translation in translations.items():
@@ -173,6 +176,7 @@ Examples:
     python sync_to_src.py eo
     python sync_to_src.py --all
     python sync_to_src.py --all --dry-run
+    python sync_to_src.py eo --clobber       # Replace files instead of merging
         """,
     )
 
@@ -195,6 +199,11 @@ Examples:
         "--dry-run",
         action="store_true",
         help="Show what would be synced without making changes",
+    )
+    parser.add_argument(
+        "--clobber",
+        action="store_true",
+        help="Replace target files entirely instead of merging with existing",
     )
     parser.add_argument(
         "-v", "--verbose",
@@ -239,6 +248,7 @@ Examples:
             file_filter=args.file_filter,
             dry_run=args.dry_run,
             verbose=args.verbose,
+            clobber=args.clobber,
         )
 
         if stats:
