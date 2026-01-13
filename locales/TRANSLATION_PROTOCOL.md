@@ -3,9 +3,32 @@
 Branch: `feature/2319-workflow-historical`
 Issue: #2319
 
+## Philosophy
+
+**"Excel first"** - We deliberately keep this workflow manual and conversational. No automation until the process is proven. The scripts are helpers, not a pipeline. Once we know exactly what works, we can build tooling.
+
+## Core Concepts
+
+### Task = One JSON Level
+A task is all sibling keys sharing a parent path. For example, `web.COMMON.buttons.submit` and `web.COMMON.buttons.cancel` form one task under `web.COMMON.buttons`.
+
+**Why:**
+- Correlated strings translated together for consistency
+- Natural batch size, self-limiting by design
+- Forces good locale file organization (if a level is too large, restructure it)
+
+### Glossary
+Captures terminology decisions as we translate. When we decide "secret" → "sekreto" in Esperanto, that goes in the glossary so future sessions stay consistent.
+
+### Export Guides
+Locale-specific translation guidance in `locales/guides/exports/{locale}.md`. Read once per session to establish context. Mature locales (de, fr) have detailed guides; new locales (eo) build them as we go.
+
+### Handoff
+To continue work in a new session, generate a handoff document that preserves key decisions and context. Use `/handoff` or write one manually.
+
 ## Architecture
 
-- **Task = one JSON level** - all keys under `web.COMMON.buttons.*` form one task
+- **Task = one JSON level** - sibling keys grouped by parent path
 - **SQLite is working state** - translations live in `locales/db/tasks.db` until synced
 - **Historical JSON is source of truth** - `locales/translations/{locale}/*.json`
 - **src/locales is app-consumable** - synced from historical, nested JSON format
