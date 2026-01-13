@@ -1,0 +1,479 @@
+{
+  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
+    "text": "{0}/{1}/{2} [{3}]"
+  },
+  "web.colonel.customer_verified_verified_not_verified_0": {
+    "text": "`+customer.verified ? `verified` : `not verified"
+  },
+  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
+    "text": "Customers ({0} of {1})"
+  },
+  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
+    "text": "User Feedback (Total: {0})"
+  },
+  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
+    "text": "Metadata / Secrets: {0}/{1} ({2}/{3}/{4} total)"
+  },
+  "web.colonel.secrets_details_counts_secret_count_0": {
+    "text": "Secrets ({0})"
+  },
+  "web.colonel.active_in_the_past_5_minutes_0": {
+    "text": "(active in the past 5 minutes)"
+  },
+  "web.colonel.configEditorTitle": {
+    "text": "Settings"
+  },
+  "web.colonel.configEditorDescription": {
+    "text": "Edit system configuration settings. Changes apply immediately after saving."
+  },
+  "web.colonel.invalidJson": {
+    "text": "Invalid JSON in {section} section"
+  },
+  "web.colonel.validationError": {
+    "text": "Validation error"
+  },
+  "web.colonel.errorFetchingConfig": {
+    "text": "Error loading configuration"
+  },
+  "web.colonel.errorSavingConfig": {
+    "text": "Error saving configuration"
+  },
+  "web.colonel.configSaved": {
+    "text": "Configuration saved successfully"
+  },
+  "web.colonel.mustBeObject": {
+    "text": "Configuration must be a JSON object"
+  },
+  "web.colonel.multipleSectionsInvalid": {
+    "text": "Multiple sections have validation errors: {sections}"
+  },
+  "web.colonel.sectionHasError": {
+    "text": "{section} has validation errors: {error}"
+  },
+  "web.colonel.sectionSaved": {
+    "text": "{section} saved successfully"
+  },
+  "web.colonel.saveSection": {
+    "text": "Save {section}"
+  },
+  "web.colonel.saveAll": {
+    "text": "Save All"
+  },
+  "web.colonel.unsavedChanges": {
+    "text": "Unsaved changes"
+  },
+  "web.colonel.schemaValidationError": {
+    "text": "Schema validation error: {message} ({path})"
+  },
+  "web.colonel.unknownValidationError": {
+    "text": "Unknown validation error: {error}"
+  },
+  "web.colonel.sectionEffectivelyEmpty": {
+    "text": "{section} section has no configured values"
+  },
+  "web.colonel.dashboard": {
+    "text": "Dashboard"
+  },
+  "web.colonel.admin": {
+    "text": "Admin"
+  },
+  "web.colonel.activity": {
+    "text": "Activity"
+  },
+  "web.colonel.accounts": {
+    "text": "Accounts"
+  },
+  "web.colonel.users": {
+    "text": "Users"
+  },
+  "web.colonel.usersDescription": {
+    "text": "Manage user accounts and permissions"
+  },
+  "web.colonel.domains": {
+    "text": "Domains"
+  },
+  "web.colonel.settings": {
+    "text": "Settings"
+  },
+  "web.colonel.system": {
+    "text": "System"
+  },
+  "web.colonel.welcome": {
+    "text": "Welcome to Colonel"
+  },
+  "web.colonel.welcomeDesc": {
+    "text": "Administrative control panel for OneTimeSecret"
+  },
+  "web.colonel.quickActions": {
+    "text": "Quick Actions"
+  },
+  "web.colonel.recentActivity": {
+    "text": "Recent Activity"
+  },
+  "web.colonel.viewAll": {
+    "text": "View All"
+  },
+  "web.colonel.activityPlaceholder": {
+    "text": "Activity data will be displayed here"
+  },
+  "web.colonel.stats.totalSecrets": {
+    "text": "Total Secrets"
+  },
+  "web.colonel.stats.activeUsers": {
+    "text": "Active Users"
+  },
+  "web.colonel.stats.secretsToday": {
+    "text": "Secrets Today"
+  },
+  "web.colonel.stats.secretsCreated": {
+    "text": "Secrets Created"
+  },
+  "web.colonel.stats.secretsShared": {
+    "text": "Secrets Shared"
+  },
+  "web.colonel.stats.totalCustomers": {
+    "text": "Total Users"
+  },
+  "web.colonel.stats.emailsSent": {
+    "text": "Emails Sent"
+  },
+  "web.colonel.stats.systemHealth": {
+    "text": "System Health"
+  },
+  "web.colonel.stats.healthy": {
+    "text": "Healthy"
+  },
+  "web.colonel.actions.viewActivity": {
+    "text": "View Activity"
+  },
+  "web.colonel.actions.viewActivityDesc": {
+    "text": "Monitor system activity and usage"
+  },
+  "web.colonel.actions.manageAccounts": {
+    "text": "Manage Accounts"
+  },
+  "web.colonel.actions.manageAccountsDesc": {
+    "text": "User account administration"
+  },
+  "web.colonel.actions.configureDomains": {
+    "text": "Configure Domains"
+  },
+  "web.colonel.actions.configureDomainsDesc": {
+    "text": "Domain and DNS settings"
+  },
+  "web.colonel.actions.systemSettings": {
+    "text": "System Settings"
+  },
+  "web.colonel.actions.systemSettingsDesc": {
+    "text": "Application configuration"
+  },
+  "web.colonel.backgroundJobs": {
+    "text": "Background Jobs"
+  },
+  "web.colonel.queueStatus": {
+    "text": "Queue Status"
+  },
+  "web.colonel.queueName": {
+    "text": "Queue"
+  },
+  "web.colonel.pendingMessages": {
+    "text": "Pending"
+  },
+  "web.colonel.consumers": {
+    "text": "Consumers"
+  },
+  "web.colonel.processingRate": {
+    "text": "Rate/sec"
+  },
+  "web.colonel.connectionStatus": {
+    "text": "Connection Status"
+  },
+  "web.colonel.workerHealth": {
+    "text": "Worker Health"
+  },
+  "web.colonel.activeWorkers": {
+    "text": "active workers"
+  },
+  "web.colonel.noQueueData": {
+    "text": "No queue data available"
+  },
+  "web.colonel.loadingQueueData": {
+    "text": "Loading queue data..."
+  },
+  "web.colonel.testPlanMode": {
+    "text": "Test Plan Mode"
+  },
+  "web.colonel.testingAsPlan": {
+    "text": "Testing as {planName}"
+  },
+  "web.colonel.clickToReset": {
+    "text": "Click to reset"
+  },
+  "web.colonel.selectTestPlan": {
+    "text": "Select a plan to test"
+  },
+  "web.colonel.resetToActual": {
+    "text": "Reset to actual plan"
+  },
+  "web.colonel.currentActualPlan": {
+    "text": "Current plan"
+  },
+  "web.colonel.availablePlans": {
+    "text": "Available plans"
+  },
+  "web.colonel.activateTestMode": {
+    "text": "Activate test mode"
+  },
+  "web.colonel.testModeActive": {
+    "text": "Test mode active"
+  },
+  "web.colonel.testModeDescription": {
+    "text": "Test your application with different plan entitlements. Changes are temporary and affect only your session."
+  },
+  "web.colonel.warningTestMode": {
+    "text": "You are testing with {planName} entitlements (temporary session override)."
+  },
+  "web.colonel.organizations.title": {
+    "text": "Organizations"
+  },
+  "web.colonel.organizations.description": {
+    "text": "Monitor org billing sync health"
+  },
+  "web.colonel.organizations.pageTitle": {
+    "text": "Billing Health Monitor"
+  },
+  "web.colonel.organizations.organizationsCount": {
+    "text": "{count} organizations"
+  },
+  "web.colonel.organizations.needAttention": {
+    "text": "{count} need attention"
+  },
+  "web.colonel.organizations.unknownCount": {
+    "text": "{count} unknown"
+  },
+  "web.colonel.organizations.noOrganizations": {
+    "text": "No organizations found"
+  },
+  "web.colonel.organizations.filters.syncStatus": {
+    "text": "Sync Status"
+  },
+  "web.colonel.organizations.filters.subscription": {
+    "text": "Subscription"
+  },
+  "web.colonel.organizations.filters.all": {
+    "text": "All"
+  },
+  "web.colonel.organizations.filters.potentiallyStale": {
+    "text": "Potentially Stale"
+  },
+  "web.colonel.organizations.filters.unknown": {
+    "text": "Unknown"
+  },
+  "web.colonel.organizations.filters.synced": {
+    "text": "Synced"
+  },
+  "web.colonel.organizations.filters.active": {
+    "text": "Active"
+  },
+  "web.colonel.organizations.filters.trialing": {
+    "text": "Trialing"
+  },
+  "web.colonel.organizations.filters.pastDue": {
+    "text": "Past Due"
+  },
+  "web.colonel.organizations.filters.canceled": {
+    "text": "Canceled"
+  },
+  "web.colonel.organizations.columns.account": {
+    "text": "Account"
+  },
+  "web.colonel.organizations.columns.billing": {
+    "text": "Billing"
+  },
+  "web.colonel.organizations.columns.status": {
+    "text": "Status"
+  },
+  "web.colonel.organizations.columns.usage": {
+    "text": "Usage"
+  },
+  "web.colonel.organizations.columns.created": {
+    "text": "Created"
+  },
+  "web.colonel.organizations.columns.details": {
+    "text": "Details"
+  },
+  "web.colonel.organizations.columns.owner": {
+    "text": "Owner"
+  },
+  "web.colonel.organizations.columns.plan": {
+    "text": "Plan"
+  },
+  "web.colonel.organizations.columns.members": {
+    "text": "Members"
+  },
+  "web.colonel.organizations.columns.domains": {
+    "text": "Domains"
+  },
+  "web.colonel.organizations.columns.subscription": {
+    "text": "Subscription"
+  },
+  "web.colonel.organizations.columns.default_workspace": {
+    "text": "Default Workspace"
+  },
+  "web.colonel.organizations.columns.has_billing": {
+    "text": "Has Billing"
+  },
+  "web.colonel.organizations.legacy.title": {
+    "text": "Organizations Billing Admin"
+  },
+  "web.colonel.organizations.legacy.description": {
+    "text": "Manage organizations and monitor billing sync health ({total} total)"
+  },
+  "web.colonel.organizations.legacy.empty": {
+    "text": "No organizations found"
+  },
+  "web.colonel.organizations.legacy.potentially_stale": {
+    "text": "potentially stale"
+  },
+  "web.colonel.organizations.status.stale": {
+    "text": "Stale"
+  },
+  "web.colonel.organizations.status.unknown": {
+    "text": "Unknown"
+  },
+  "web.colonel.organizations.status.active": {
+    "text": "active"
+  },
+  "web.colonel.organizations.actions.investigate": {
+    "text": "Investigate"
+  },
+  "web.colonel.organizations.actions.checking": {
+    "text": "Checking..."
+  },
+  "web.colonel.organizations.expanded.customer": {
+    "text": "Customer"
+  },
+  "web.colonel.organizations.expanded.subscription": {
+    "text": "Subscription"
+  },
+  "web.colonel.organizations.expanded.orgId": {
+    "text": "Org ID"
+  },
+  "web.colonel.organizations.investigation.failed": {
+    "text": "Investigation failed"
+  },
+  "web.colonel.organizations.investigation.result": {
+    "text": "Investigation Result"
+  },
+  "web.colonel.organizations.investigation.verifiedSynced": {
+    "text": "Verified Synced"
+  },
+  "web.colonel.organizations.investigation.mismatchFound": {
+    "text": "Mismatch Found"
+  },
+  "web.colonel.organizations.investigation.unableToCompare": {
+    "text": "Unable to Compare"
+  },
+  "web.colonel.organizations.investigation.stripeDetails": {
+    "text": "Stripe Subscription Details"
+  },
+  "web.colonel.organizations.investigation.statusLabel": {
+    "text": "Status"
+  },
+  "web.colonel.organizations.investigation.product": {
+    "text": "Product"
+  },
+  "web.colonel.organizations.investigation.resolvedPlan": {
+    "text": "Resolved Plan"
+  },
+  "web.colonel.organizations.investigation.priceId": {
+    "text": "Price ID"
+  },
+  "web.colonel.organizations.investigation.local": {
+    "text": "Local"
+  },
+  "web.colonel.organizations.investigation.stripe": {
+    "text": "Stripe"
+  },
+  "web.colonel.organizations.usage.members": {
+    "text": "{count} members"
+  },
+  "web.colonel.organizations.usage.domains": {
+    "text": "{count} domains"
+  },
+  "web.colonel.secrets.title": {
+    "text": "Secrets"
+  },
+  "web.colonel.secrets.description": {
+    "text": "View and manage all secrets"
+  },
+  "web.colonel.bannedIps.title": {
+    "text": "Banned IPs"
+  },
+  "web.colonel.bannedIps.description": {
+    "text": "Manage IP ban list"
+  },
+  "web.colonel.usageExport.title": {
+    "text": "Usage Export"
+  },
+  "web.colonel.usageExport.description": {
+    "text": "Export usage data and statistics"
+  },
+  "web.colonel.systemSettings.title": {
+    "text": "System"
+  },
+  "web.colonel.systemSettings.description": {
+    "text": "System settings, databases, and configuration"
+  },
+  "web.colonel.customDomains.title": {
+    "text": "Custom Domains"
+  },
+  "web.colonel.customDomains.description": {
+    "text": "Manage custom domains and branding"
+  },
+  "web.colonel.feedback.when_you_submit_feedback_well_see": {
+    "text": "When you submit feedback, we'll see:"
+  },
+  "web.colonel.feedback.send_feedback": {
+    "text": "Send feedback"
+  },
+  "web.colonel.feedback.sending_ellipses": {
+    "text": "Sending..."
+  },
+  "web.colonel.titles.index": {
+    "text": "Administration"
+  },
+  "web.colonel.titles.users": {
+    "text": "User Management"
+  },
+  "web.colonel.titles.secrets": {
+    "text": "Secret Management"
+  },
+  "web.colonel.titles.domains": {
+    "text": "Custom Domains"
+  },
+  "web.colonel.titles.system": {
+    "text": "System"
+  },
+  "web.colonel.titles.maindb": {
+    "text": "Main Database"
+  },
+  "web.colonel.titles.authdb": {
+    "text": "Auth Database"
+  },
+  "web.colonel.titles.bannedIps": {
+    "text": "Banned IPs"
+  },
+  "web.colonel.titles.usage": {
+    "text": "Usage Export"
+  },
+  "web.colonel.titles.info": {
+    "text": "System Information"
+  },
+  "web.colonel.titles.organizations": {
+    "text": "Organizations"
+  },
+  "web.colonel.titles.redis": {
+    "text": "Redis"
+  }
+}

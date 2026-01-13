@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Send a Secret"
+  },
+  "incoming.page_description": {
+    "text": "Share sensitive information securely with our support team"
+  },
+  "incoming.loading_config": {
+    "text": "Loading..."
+  },
+  "incoming.config_error_title": {
+    "text": "Failed to load configuration"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Feature Not Available"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "This feature is currently disabled. Please contact support for assistance."
+  },
+  "incoming.memo_label": {
+    "text": "Memo"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Brief description (e.g., Password reset request)"
+  },
+  "incoming.memo_hint": {
+    "text": "Help us route your message to the right person"
+  },
+  "incoming.recipient_label": {
+    "text": "Send to"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Select a recipient"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Select a recipient for this secret"
+  },
+  "incoming.recipient_hint": {
+    "text": "Choose who will receive this secure message"
+  },
+  "incoming.no_recipients_available": {
+    "text": "No recipients are available"
+  },
+  "incoming.secret_content_label": {
+    "text": "Secret Information"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Paste sensitive information here (passwords, keys, etc.)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "This information will be encrypted and only viewable once"
+  },
+  "incoming.submit_button": {
+    "text": "Send Secret"
+  },
+  "incoming.submit_secret": {
+    "text": "Send Secret"
+  },
+  "incoming.submitting_button": {
+    "text": "Sending..."
+  },
+  "incoming.submitting": {
+    "text": "Sending..."
+  },
+  "incoming.reset_button": {
+    "text": "Clear Form"
+  },
+  "incoming.reset_form": {
+    "text": "Clear Form"
+  },
+  "incoming.success_title": {
+    "text": "Sent Successfully"
+  },
+  "incoming.success_description": {
+    "text": "Your secure message has been delivered."
+  },
+  "incoming.reference_id": {
+    "text": "Reference ID"
+  },
+  "incoming.success_info_title": {
+    "text": "What happens next?"
+  },
+  "incoming.success_info_description": {
+    "text": "The recipient will be able to view this secret only once. After they view it, the secret will be permanently deleted."
+  },
+  "incoming.create_another": {
+    "text": "Send Another Secret"
+  },
+  "incoming.tagline1": {
+    "text": "Share sensitive information securely"
+  },
+  "incoming.tagline2": {
+    "text": "Keep passwords and private data out of email and chat logs"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Save your {receipt} for your records."
+  },
+  "incoming.receipt_link_text": {
+    "text": "receipt"
+  }
+}

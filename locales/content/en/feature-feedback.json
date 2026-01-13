@@ -1,0 +1,47 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "Your feedback"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "All feedback welcome!"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "Help us improve"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "Close feedback modal"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "Share your feedback"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum"
+  },
+  "web.feedback.delano": {
+    "text": "Delano"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "Help content goes here."
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "Thanks for helping Onetime Secret improve. It means a lot."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "We've built this tool to help you share sensitive info securely, and your real-world experiences are crucial for focusing our efforts. It helps us figure out what to work on next and how to make the service better for everyone."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "Hey there, thanks for stopping by our feedback page. Your input isn't just welcome - it's crucial."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "A note from Delano, founder of Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "Open feedback form"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "Enter your feedback"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Send feedback"
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "web.homepage.tagline1": {
+    "text": "Paste a password, secret message or private link below."
+  },
+  "web.homepage.tagline2": {
+    "text": "Keep sensitive info out of your email and chat logs."
+  },
+  "web.homepage.secret_hint": {
+    "text": "* A secret link only works once and then disappears forever."
+  },
+  "web.homepage.secret_form_more_text1": {
+    "text": "Sign up for a"
+  },
+  "web.homepage.secret_form_more_text2": {
+    "text": "free account"
+  },
+  "web.homepage.secret_form_more_text3": {
+    "text": "and be able to send the secret by email."
+  },
+  "web.homepage.cta_title": {
+    "text": "Increase trust & share with confidence"
+  },
+  "web.homepage.cta_subtitle": {
+    "text": "Elevate your brand and share with confidence"
+  },
+  "web.homepage.cta_feature1": {
+    "text": "Unlimited custom domains"
+  },
+  "web.homepage.cta_feature2": {
+    "text": "Unlimited secret sharing"
+  },
+  "web.homepage.cta_feature3": {
+    "text": "Increase customer trust and engagement"
+  },
+  "web.homepage.explore_premium_plans": {
+    "text": "With Custom Domains"
+  },
+  "web.homepage.need_free_account": {
+    "text": "Just getting started? Send emails with a free account."
+  },
+  "web.homepage.sign_up_free": {
+    "text": "Free Sign-up"
+  },
+  "web.homepage.visit_onetime_secret_home": {
+    "text": "Visit Onetime Secret homepage"
+  },
+  "web.homepage.password_generation_title": {
+    "text": "Password Generator"
+  },
+  "web.homepage.password_generation_description": {
+    "text": " Click \"Generate Password\" to create a secure random password that you can share."
+  },
+  "web.homepage.protip1": {
+    "text": "Your message will self-destruct after being viewed. The link can only be accessed once."
+  },
+  "web.homepage.authonly.tagline2": {
+    "text": "Secure messaging service is for internal use only."
+  },
+  "web.homepage.authonly.tagline1": {
+    "text": "If you have an account, please log in to continue."
+  },
+  "web.homepage.disabled.tagline2": {
+    "text": "This service is setup for internal use only."
+  },
+  "web.homepage.disabled.tagline1": {
+    "text": "User interface and login capabilities are not available."
+  },
+  "web.homepage.link_preview": {
+    "text": "Link Preview"
+  },
+  "web.homepage.meets_and_exceeds_compliance_standards": {
+    "text": "Meets and exceeds compliance standards"
+  },
+  "web.homepage.secure_your_brand_build_customer_trust_etc": {
+    "text": "Secure your brand, build customer trust with links from your domain."
+  },
+  "web.homepage.a_trusted_way_to_share_sensitive_information_etc": {
+    "text": "A trusted way to share sensitive information that self-destructs after being viewed."
+  },
+  "web.homepage.secure_links": {
+    "text": "Secure Links"
+  },
+  "web.homepage.about_onetime_secret_0": {
+    "text": "About Onetime Secret"
+  },
+  "web.homepage.log_in_to_onetime_secret": {
+    "text": "Log in to Onetime Secret"
+  },
+  "web.homepage.about_onetime_secret": {
+    "text": "About Onetime Secret"
+  },
+  "web.homepage.signup_individual_and_business_plans": {
+    "text": "Signup - Individual and Business plans"
+  },
+  "web.homepage.tagline_signed": {
+    "text": "Signed"
+  },
+  "web.homepage.tagline_sealed": {
+    "text": "Sealed"
+  },
+  "web.homepage.tagline_delivered": {
+    "text": "Delivered"
+  },
+  "web.homepage.onetime_secret": {
+    "text": "Onetime Secret"
+  },
+  "web.homepage.onetime_secret_literal": {
+    "text": "Onetime Secret"
+  },
+  "web.homepage.one_time_secret_literal": {
+    "text": "One-Time Secret"
+  },
+  "web.homepage.onetime_secret_homepage": {
+    "text": "Onetime Secret Homepage"
+  },
+  "web.homepage.send_sensitive_information_that_can_only_be_viewed_once": {
+    "text": "Send sensitive information that can only be viewed once"
+  },
+  "web.homepage.create_a_secure_link": {
+    "text": "Create a secure link"
+  },
+  "web.homepage.now_with_custom_domains": {
+    "text": "Now with custom domains"
+  },
+  "web.homepage.this_is_a_private_instance_only_authorized_team_": {
+    "text": "This is a private instance. Only authorized team members can generate new secure links."
+  },
+  "web.homepage.welcome_to_onetime_secret": {
+    "text": "Welcome to Onetime Secret."
+  },
+  "web.homepage.onetime_secret_helps_us_share_sensitive_informat": {
+    "text": "Onetime Secret helps us share sensitive information securely while maintaining our professional facade."
+  },
+  "web.homepage.information_shared_through_this_service_can_only": {
+    "text": "Information shared through this service can only be accessed once. Once viewed, the content is permanently deleted to ensure confidentiality."
+  },
+  "web.homepage.welcome_to_the_global_broadcast": {
+    "text": "Welcome to the Global Broadcast!"
+  }
+}

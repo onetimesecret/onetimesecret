@@ -1,0 +1,128 @@
+{
+  "web.branding.color_picker": {
+    "text": "Color Picker"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "Current {0}: {1}. Click to cycle through options."
+  },
+  "web.branding.use_setting": {
+    "text": "Use setting"
+  },
+  "web.branding.font_family": {
+    "text": "Font Family"
+  },
+  "web.branding.corner_style": {
+    "text": "Corner Style"
+  },
+  "web.branding.brand_color": {
+    "text": "Brand Color"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "Preview of recipient's view when accessing your secure link"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "Preview & Customize"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "Switch to Safari browser view"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "text": "Maximize window"
+  },
+  "web.branding.minimize_window": {
+    "text": "Minimize window"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "Switch to Edge browser view"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500 characters"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "Use your phone to scan the QR code"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "Contact onboarding{'@'}example.com with any questions"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "These instructions will be shown to recipients before they reveal the secret content"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "These instructions will be shown to recipients after they reveal the secret"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "Pre-reveal Instructions"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "Post-reveal Instructions"
+  },
+  "web.branding.instructions": {
+    "text": "Instructions"
+  },
+  "web.branding.logo_controls": {
+    "text": "Logo controls"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "Click to upload a logo. Recommended size: 128x128 pixels. Maximum file size: 1MB. Supported formats: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "text": "Upload logo"
+  },
+  "web.branding.loading_preview": {
+    "text": "Loading preview..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "Preview how recipients will see your secrets by testing the \"View Secret\" button"
+  },
+  "web.branding.eye_icon": {
+    "text": "Eye icon"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "Click the preview image below to update your logo (minimum 128x128 pixels recommended, 1MB max)"
+  },
+  "web.branding.image_icon": {
+    "text": "Image icon"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "Use the controls above to customize brand color, styles, and recipient instructions"
+  },
+  "web.branding.customization_icon": {
+    "text": "Customization icon"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "You have unsaved changes. Are you sure?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "Failed to load brand settings"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button"
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "This is an interactive preview of how recipients will see your secure messages. You can: - Customize colors and fonts using the controls above - Upload a logo (minimum 128x128 pixels recommended, 1MB max) - Test the preview using the \"View Secret\" button"
+  },
+  "web.branding.default_logo_icon": {
+    "text": "Japanese kanji '秘' (himitsu) meaning 'secret' or 'confidential'"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "Powered by Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "text": "{0} Logo"
+  },
+  "web.branding.edge": {
+    "text": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "Switch to Edge preview"
+  },
+  "web.branding.safari": {
+    "text": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "Switch to Safari preview"
+  }
+}
