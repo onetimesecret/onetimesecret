@@ -287,7 +287,9 @@ onUnmounted(() => {
 
       <!-- Email & Chevron -->
       <div class="hidden items-center gap-1 sm:flex">
-        <span class="max-w-[140px] truncate md:max-w-[180px] lg:max-w-[220px]">{{ displayEmail }}</span>
+        <span
+          class="max-w-[140px] truncate md:max-w-[180px] lg:max-w-[220px]"
+          :title="userEmail">{{ displayEmail }}</span>
         <OIcon
           collection="heroicons"
           :name="isOpen ? 'chevron-up-solid' : 'chevron-down-solid'"
