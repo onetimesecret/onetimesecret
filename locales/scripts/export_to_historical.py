@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """
-Export completed translations from SQLite to historical JSON files.
+Export completed translations from SQLite to content JSON files.
 
 Reads completed level_tasks from the database and writes translations
-back to locales/translations/{locale}/*.json in historical format.
+back to locales/content/{locale}/*.json.
 
-Historical format example:
+Content format example:
 {
   "web.COMMON.tagline": {
-    "en": "Secure links that only work once",
-    "translation": "Sekuraj ligiloj kiuj funkcias nur unufoje"
+    "text": "Sekuraj ligiloj kiuj funkcias nur unufoje"
   }
 }
 
@@ -35,7 +34,7 @@ SCRIPT_DIR = Path(__file__).parent.resolve()
 LOCALES_DIR = SCRIPT_DIR.parent
 DB_DIR = LOCALES_DIR / "db"
 DB_FILE = DB_DIR / "tasks.db"
-TRANSLATIONS_DIR = LOCALES_DIR / "translations"
+CONTENT_DIR = LOCALES_DIR / "content"
 
 
 def get_completed_tasks(
@@ -86,7 +85,7 @@ def export_locale(
     dry_run: bool = False,
     verbose: bool = False,
 ) -> dict[str, int]:
-    """Export completed translations to historical JSON files.
+    """Export completed translations to content JSON files.
 
     Args:
         locale: Target locale code.
@@ -112,17 +111,17 @@ def export_locale(
         by_file[file_name].append(task)
 
     stats: dict[str, int] = {}
-    translations_dir = TRANSLATIONS_DIR / locale
+    content_dir = CONTENT_DIR / locale
 
     for file_name, file_tasks in sorted(by_file.items()):
-        historical_file = translations_dir / file_name
+        content_file = content_dir / file_name
 
-        if not historical_file.exists():
-            print(f"Warning: Historical file not found: {historical_file}")
+        if not content_file.exists():
+            print(f"Warning: Content file not found: {content_file}")
             continue
 
-        # Load existing historical data
-        historical = load_json_file(historical_file)
+        # Load existing content data
+        content = load_json_file(content_file)
 
         # Count keys to update
         key_count = 0
@@ -131,7 +130,7 @@ def export_locale(
             keys = json.loads(task["keys_json"])
             translations = json.loads(task["translations_json"])
 
-            for key, english in keys.items():
+            for key in keys:
                 if key not in translations:
                     continue
 
@@ -141,18 +140,17 @@ def export_locale(
 
                 translation = translations[key]
 
-                if full_key in historical:
+                if full_key in content:
                     # Update existing entry
-                    historical[full_key]["translation"] = translation
-                    # Remove skip flag if present
-                    if "skip" in historical[full_key]:
-                        del historical[full_key]["skip"]
+                    content[full_key]["text"] = translation
+                    # Remove skip flag if present (now has translation)
+                    if "skip" in content[full_key]:
+                        del content[full_key]["skip"]
+                    if "note" in content[full_key] and content[full_key]["note"] == "empty":
+                        del content[full_key]["note"]
                 else:
                     # Create new entry
-                    historical[full_key] = {
-                        "en": english,
-                        "translation": translation,
-                    }
+                    content[full_key] = {"text": translation}
 
                 key_count += 1
 
@@ -167,7 +165,7 @@ def export_locale(
                     for k, v in sample:
                         print(f"  {task['level_path']}.{k}: {v[:40]}...")
         else:
-            save_json_file(historical_file, historical)
+            save_json_file(content_file, content)
             print(f"Updated {file_name}: {key_count} keys")
 
             if verbose:
@@ -183,7 +181,7 @@ def export_locale(
 def main() -> int:
     """CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="Export completed translations from SQLite to historical JSON.",
+        description="Export completed translations from SQLite to content JSON.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -218,7 +216,7 @@ Examples:
     try:
         print(f"Exporting completed translations for '{args.locale}'")
         print(f"  From: {DB_FILE}")
-        print(f"  To:   {TRANSLATIONS_DIR / args.locale}")
+        print(f"  To:   {CONTENT_DIR / args.locale}")
         print()
 
         stats = export_locale(

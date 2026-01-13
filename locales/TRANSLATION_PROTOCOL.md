@@ -30,7 +30,7 @@ To continue work in a new session, generate a handoff document that preserves ke
 
 - **Task = one JSON level** - sibling keys grouped by parent path
 - **SQLite is working state** - translations live in `locales/db/tasks.db` until synced
-- **Historical JSON is source of truth** - `locales/translations/{locale}/*.json`
+- **Historical JSON is source of truth** - `locales/content/{locale}/*.json`
 - **src/locales is app-consumable** - synced from historical, nested JSON format
 
 ## Session Workflow
@@ -71,7 +71,7 @@ python locales/scripts/sync_to_src.py eo
 
 ### 7. Commit
 ```bash
-git add locales/translations/eo/ src/locales/eo/
+git add locales/content/eo/ src/locales/eo/
 git commit -m "[#2319] Add eo translations from session"
 ```
 
@@ -108,7 +108,7 @@ locales/db/
   schema.sql          # table definitions
   tasks.db            # SQLite database (not in git)
 
-locales/translations/{locale}/  # historical JSON (source of truth)
+locales/content/{locale}/  # historical JSON (source of truth)
 src/locales/{locale}/           # app-consumable JSON
 ```
 

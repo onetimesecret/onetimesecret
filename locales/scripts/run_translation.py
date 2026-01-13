@@ -6,7 +6,7 @@ Identifies pending tasks by comparing English source with historical JSON,
 invokes Claude (or mock), and writes results to historical JSON files.
 
 Three-tier architecture:
-- locales/translations/{locale}/*.json - Historical source of truth (flat keys)
+- locales/content/{locale}/*.json - Version-controlled source of truth (flat keys)
 - src/locales/{locale}/*.json - Lean app-consumable files (nested JSON)
 - locales/db/tasks.db - Ephemeral, hydrated on-demand for queries
 
@@ -49,7 +49,7 @@ SCRIPT_DIR = Path(__file__).parent.resolve()
 LOCALES_DIR = SCRIPT_DIR.parent
 SRC_LOCALES_DIR = LOCALES_DIR.parent / "src" / "locales"
 EN_DIR = SRC_LOCALES_DIR / "en"
-TRANSLATIONS_DIR = LOCALES_DIR / "translations"
+CONTENT_DIR = LOCALES_DIR / "content"
 GUIDES_DIR = LOCALES_DIR / "guides"
 ANALYSIS_DIR = LOCALES_DIR / "analysis"
 
@@ -68,11 +68,11 @@ def get_pending_tasks(
     limit: Optional[int] = None,
     file_filter: Optional[str] = None,
 ) -> list[TranslationTask]:
-    """Identify pending tasks by comparing English source with historical JSON.
+    """Identify pending tasks by comparing English source with locale content.
 
     A key is pending if:
-    - It exists in en/ source
-    - AND either doesn't exist in historical JSON OR has no 'translation' field
+    - It exists in content/en/ source
+    - AND either doesn't exist in locale content OR has empty/no 'text' field
     - AND is not marked as 'skip'
 
     Args:
@@ -83,35 +83,39 @@ def get_pending_tasks(
     Returns:
         List of TranslationTask objects.
     """
-    if not EN_DIR.exists():
-        raise FileNotFoundError(f"English directory not found: {EN_DIR}")
+    en_content_dir = CONTENT_DIR / "en"
+    if not en_content_dir.exists():
+        raise FileNotFoundError(f"English content not found: {en_content_dir}")
 
     tasks: list[TranslationTask] = []
-    translations_dir = TRANSLATIONS_DIR / locale
+    locale_content_dir = CONTENT_DIR / locale
 
-    # Get English JSON files
-    en_files = sorted(EN_DIR.glob("*.json"))
+    # Get English content JSON files
+    en_files = sorted(en_content_dir.glob("*.json"))
     if file_filter:
         en_files = [f for f in en_files if f.name == file_filter]
 
     for en_file in en_files:
         file_name = en_file.name
-        historical_file = translations_dir / file_name
+        locale_file = locale_content_dir / file_name
 
-        # Get English keys
-        en_data = load_json_file(en_file)
-        en_keys = dict(walk_keys(en_data))
+        # Get English keys from content
+        en_content = load_json_file(en_file)
 
-        # Get existing historical data (may be empty)
-        historical = load_json_file(historical_file)
+        # Get existing locale content (may be empty)
+        locale_content = load_json_file(locale_file)
 
-        for key, english_text in en_keys.items():
-            entry = historical.get(key, {})
-
-            # Skip if already translated or marked skip
-            if "translation" in entry:
+        for key, en_entry in en_content.items():
+            if not isinstance(en_entry, dict):
                 continue
-            if entry.get("skip"):
+
+            english_text = en_entry.get("text", "")
+            locale_entry = locale_content.get(key, {})
+
+            # Skip if already has text or marked skip
+            if locale_entry.get("text") and not locale_entry.get("skip"):
+                continue
+            if locale_entry.get("skip"):
                 continue
 
             tasks.append(TranslationTask(
@@ -355,7 +359,7 @@ def process_translations(
     tasks: list[TranslationTask],
     translations: list[dict],
 ) -> dict[str, int]:
-    """Process translation results and write to historical JSON files.
+    """Process translation results and write to content JSON files.
 
     Args:
         locale: Target locale code.
@@ -378,50 +382,46 @@ def process_translations(
         if file_name:
             by_file.setdefault(file_name, []).append(t)
 
-    translations_dir = TRANSLATIONS_DIR / locale
+    content_dir = CONTENT_DIR / locale
 
     for file_name, file_translations in by_file.items():
-        historical_file = translations_dir / file_name
+        content_file = content_dir / file_name
 
-        # Load existing historical data
-        historical = load_json_file(historical_file)
+        # Load existing content data
+        content = load_json_file(content_file)
 
         for t in file_translations:
             key = t["key"]
-            english = t.get("english", "")
 
             if t.get("skipped"):
                 # Mark as skipped
-                historical[key] = {
-                    "en": english,
+                content[key] = {
+                    "text": "",
                     "skip": True,
                     "note": t.get("reason", "skipped"),
                 }
                 stats["skipped"] += 1
             elif t.get("error"):
                 # Record error but don't mark as translated
-                historical[key] = {
-                    "en": english,
+                content[key] = {
+                    "text": "",
                     "note": f"error: {t.get('error')}",
                 }
                 stats["errors"] += 1
             elif t.get("translated"):
                 # Successful translation
-                historical[key] = {
-                    "en": english,
-                    "translation": t["translated"],
-                }
+                content[key] = {"text": t["translated"]}
                 stats["completed"] += 1
             else:
                 # No translation returned
-                historical[key] = {
-                    "en": english,
+                content[key] = {
+                    "text": "",
                     "note": "no_translation_returned",
                 }
                 stats["errors"] += 1
 
-        # Save updated historical file
-        save_json_file(historical_file, historical)
+        # Save updated content file
+        save_json_file(content_file, content)
 
     return stats
 
@@ -544,7 +544,7 @@ Examples:
             if t.get("translated"):
                 print(f"  {t['key']}: {t['translated'][:60]}...")
 
-    output_dir = TRANSLATIONS_DIR / args.locale
+    output_dir = CONTENT_DIR / args.locale
     print(f"\nOutput: {output_dir}/")
 
     return 0

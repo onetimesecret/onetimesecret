@@ -6,7 +6,7 @@ The database is ephemeral and hydrated on-demand from historical JSON files.
 It exists for querying/reporting only - the source of truth is JSON.
 
 Three-tier architecture:
-- locales/translations/{locale}/*.json - Historical source of truth (flat keys)
+- locales/content/{locale}/*.json - Version-controlled source of truth (flat keys)
 - src/locales/{locale}/*.json - Lean app-consumable files (nested JSON)
 - locales/db/tasks.db - Ephemeral, hydrated on-demand for queries
 
@@ -30,7 +30,7 @@ LOCALES_DIR = SCRIPT_DIR.parent
 DB_DIR = LOCALES_DIR / "db"
 SCHEMA_FILE = DB_DIR / "schema.sql"
 DB_FILE = DB_DIR / "tasks.db"
-TRANSLATIONS_DIR = LOCALES_DIR / "translations"
+CONTENT_DIR = LOCALES_DIR / "content"
 
 
 @contextmanager
@@ -104,10 +104,10 @@ def migrate_schema() -> None:
 
 
 def hydrate_from_json(force: bool = False) -> None:
-    """Hydrate database from historical JSON files.
+    """Hydrate database from content JSON files.
 
     Creates tables from schema.sql, then walks all
-    locales/translations/{locale}/*.json files to populate the database.
+    locales/content/{locale}/*.json files to populate the database.
 
     Args:
         force: If True, delete existing database and recreate.
@@ -115,10 +115,10 @@ def hydrate_from_json(force: bool = False) -> None:
     if not SCHEMA_FILE.exists():
         raise FileNotFoundError(f"Schema file not found: {SCHEMA_FILE}")
 
-    if not TRANSLATIONS_DIR.exists():
+    if not CONTENT_DIR.exists():
         raise FileNotFoundError(
-            f"Translations directory not found: {TRANSLATIONS_DIR}\n"
-            "Run bootstrap_translations.py first to create historical JSON files."
+            f"Content directory not found: {CONTENT_DIR}\n"
+            "Run bootstrap_translations.py first to create content JSON files."
         )
 
     if DB_FILE.exists():
@@ -145,10 +145,10 @@ def hydrate_from_json(force: bool = False) -> None:
         except sqlite3.Error as e:
             raise RuntimeError(f"SQL error during schema creation: {e}") from e
 
-        # Walk translation directories
+        # Walk content directories
         inserted = 0
         locale_dirs = sorted(
-            d for d in TRANSLATIONS_DIR.iterdir()
+            d for d in CONTENT_DIR.iterdir()
             if d.is_dir() and not d.name.startswith(".")
         )
 
@@ -170,13 +170,16 @@ def hydrate_from_json(force: bool = False) -> None:
                     if not isinstance(entry, dict):
                         continue
 
-                    english_text = entry.get("en", "")
-                    translation = entry.get("translation")
+                    text = entry.get("text", "")
                     skip = entry.get("skip", False)
                     note = entry.get("note")
 
                     # Determine status
-                    if translation:
+                    # For non-English locales: text present = completed
+                    # For English: text is source, not a translation
+                    if locale == "en":
+                        status = "source"
+                    elif text and not skip:
                         status = "completed"
                     elif skip:
                         status = "skipped"
@@ -196,8 +199,8 @@ def hydrate_from_json(force: bool = False) -> None:
                                 locale,
                                 file_name,
                                 key,
-                                english_text,
-                                translation,
+                                text if locale == "en" else "",  # english_text
+                                text if locale != "en" else None,  # translation
                                 status,
                                 note,
                             ),
@@ -331,7 +334,7 @@ Examples:
     )
     hydrate_parser.add_argument(
         "--from-json", action="store_true", default=True,
-        help="Hydrate from locales/translations/*.json (default, only option)"
+        help="Hydrate from locales/content/*.json (default, only option)"
     )
     hydrate_parser.add_argument(
         "--force", "-f", action="store_true",
