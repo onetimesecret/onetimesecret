@@ -18,6 +18,7 @@
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomainScope } from '@/shared/composables/useDomainScope';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { ScopesAvailable } from '@/types/router';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
 import { computed } from 'vue';
@@ -39,6 +40,10 @@ const props = withDefaults(defineProps<Props>(), {
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
+const organizationStore = useOrganizationStore();
+
+// Get current organization extid for org-qualified routes
+const currentOrgExtid = computed(() => organizationStore.currentOrganization?.extid);
 
 /**
  * Get the onDomainSwitch navigation target from route meta
@@ -127,20 +132,24 @@ const selectDomain = (domain: string): void => {
 const shouldShow = computed(() => isScopeActive.value);
 
 /**
- * Navigate to domains management page
+ * Navigate to domains management page (org-qualified)
  */
 const navigateToManageDomains = (): void => {
-  router.push('/domains');
+  if (currentOrgExtid.value) {
+    router.push(`/org/${currentOrgExtid.value}/domains`);
+  } else {
+    router.push('/dashboard');
+  }
 };
 
 /**
- * Navigate to edit a specific domain (uses extid for API routes)
+ * Navigate to edit a specific domain (uses org-qualified routes)
  */
 const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
   event.stopPropagation(); // Prevent row selection when clicking gear
   const extid = getExtidByDomain(domain);
-  if (extid) {
-    router.push(`/domains/${extid}/brand`);
+  if (extid && currentOrgExtid.value) {
+    router.push(`/org/${currentOrgExtid.value}/domains/${extid}/brand`);
   }
   // Canonical domain has no extid and no settings page
 };

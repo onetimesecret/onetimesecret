@@ -5,13 +5,19 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useDomainStatus } from '@/shared/composables/useDomainStatus';
   import { CustomDomain } from '@/schemas/models';
+  import { computed } from 'vue';
 
 const { t } = useI18n();
 
   const props = defineProps<{
     domain: CustomDomain;
     hasUnsavedChanges: boolean;
+    orgid: string;
   }>();
+
+  // Build org-qualified routes
+  const domainsListRoute = computed(() => `/org/${props.orgid}/domains`);
+  const verifyRoute = computed(() => `/org/${props.orgid}/domains/${props.domain?.extid}/verify`);
 
   const { statusIcon, isActive, isWarning, isError, displayStatus } = useDomainStatus(
     props.domain
@@ -25,7 +31,7 @@ const { t } = useI18n();
       <div class="flex items-center space-x-4">
         <!-- prettier-ignore-attribute class -->
         <RouterLink
-          to="/domains"
+          :to="domainsListRoute"
           class="inline-flex items-center text-sm
             text-gray-600 transition-colors hover:text-gray-900
             dark:text-gray-400 dark:hover:text-gray-100"
@@ -79,7 +85,7 @@ const { t } = useI18n();
             class="flex shrink-0 items-center rounded-md
               bg-gray-100 px-3 py-1.5 dark:bg-gray-700">
             <RouterLink
-              :to="`/domains/${domain?.extid}/verify`"
+              :to="verifyRoute"
               class="inline-flex items-center gap-1.5"
               :data-tooltip="t('web.domains.view_domain_verification_status')">
               <OIcon

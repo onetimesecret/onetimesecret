@@ -11,6 +11,7 @@ const { t } = useI18n();
 
   interface Props {
     domain: CustomDomain;
+    orgid: string;
   }
 
   const props = defineProps<Props>();
@@ -23,13 +24,13 @@ const { t } = useI18n();
     <div class="flex items-center space-x-2">
       <router-link
         v-if="status.isActive.value"
-        :to="{ name: 'DomainBrand', params: { extid: domain.extid } }"
+        :to="{ name: 'DomainBrand', params: { orgid: props.orgid, extid: domain.extid } }"
         class="font-brand text-lg text-brandcomp-600 hover:text-brandcomp-700 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
         {{ domain.display_domain }}
       </router-link>
       <router-link
         v-else
-        :to="{ name: 'DomainVerify', params: { extid: domain.extid } }"
+        :to="{ name: 'DomainVerify', params: { orgid: props.orgid, extid: domain.extid } }"
         class="font-brand text-lg text-brandcomp-600 hover:text-brandcomp-700 dark:text-brandcomp-400 dark:hover:text-brandcomp-300">
         {{ domain.display_domain }}
       </router-link>
@@ -59,6 +60,7 @@ const { t } = useI18n();
       <DomainVerificationInfo
         mode="icon"
         :domain="domain"
+        :orgid="props.orgid"
         class="-mt-0.5 shrink-0" />
 
       <span class="text-xs text-gray-500 dark:text-gray-400">

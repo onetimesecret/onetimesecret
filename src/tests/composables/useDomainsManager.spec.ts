@@ -57,6 +57,9 @@ const mockDependencies: MockDependencies = {
 // Mock imports
 vi.mock('vue-router', () => ({
   useRouter: () => mockDependencies.router,
+  useRoute: () => ({
+    params: { orgid: 'test-org-id' },
+  }),
 }));
 
 vi.mock('@/shared/stores/domainsStore', () => ({
@@ -144,11 +147,12 @@ describe('useDomainsManager', () => {
 
         expect(result).toEqual(newDomainData);
         expect(mockDependencies.domainsStore.addDomain).toHaveBeenCalledWith(
-          newDomainData.domainid
+          newDomainData.domainid,
+          'test-org-id'  // orgid from route params
         );
         expect(mockDependencies.router.push).toHaveBeenCalledWith({
           name: 'DomainVerify',
-          params: { extid: newDomainData.extid },
+          params: { orgid: 'test-org-id', extid: newDomainData.extid },
         });
         expect(mockDependencies.notificationsStore.show).toHaveBeenCalledWith(
           'Domain added successfully',

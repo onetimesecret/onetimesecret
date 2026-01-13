@@ -34,7 +34,7 @@ export type DomainsStore = {
   initialized: boolean;
 
   // Actions
-  addDomain: (domain: string) => Promise<CustomDomain>;
+  addDomain: (domain: string, orgId?: string) => Promise<CustomDomain>;
   fetchList: () => Promise<void>;
   getDomain: (extid: string) => Promise<CustomDomain>;
   verifyDomain: (extid: string) => Promise<CustomDomain>;
@@ -83,9 +83,15 @@ export const useDomainsStore = defineStore('domains', () => {
 
   /**
    * Add a new custom domain
+   *
+   * @param domain - The domain name to add
+   * @param orgId - Optional organization ID. If provided, adds domain for that org.
+   *                If not provided, uses the organization from session context.
    */
-  async function addDomain(domain: string) {
-    const response = await $api.post('/api/domains/add', { domain });
+  async function addDomain(domain: string, orgId?: string) {
+    const payload: { domain: string; org_id?: string } = { domain };
+    if (orgId) payload.org_id = orgId;
+    const response = await $api.post('/api/domains/add', payload);
     const validated = responseSchemas.customDomain.parse(response.data);
     if (!records.value) records.value = [];
     records.value.push(validated.record);

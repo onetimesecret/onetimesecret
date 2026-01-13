@@ -875,7 +875,7 @@ watch(activeTab, async (newTab) => {
                 </p>
               </div>
               <router-link
-                to="/domains/add"
+                :to="`/org/${orgId}/domains/add`"
                 class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
                 <OIcon
                   collection="heroicons"
@@ -906,13 +906,14 @@ watch(activeTab, async (newTab) => {
             <DomainsTable
               v-else-if="domainCount > 0 && domainRecords"
               :domains="domainRecords"
-              :is-loading="isLoadingDomains" />
+              :is-loading="isLoadingDomains"
+              :orgid="orgId" />
 
             <!-- Empty State -->
             <EmptyState
               v-else
               :showAction="true"
-              action-route="/domains/add"
+              :action-route="`/org/${orgId}/domains/add`"
               :action-text="t('web.domains.add_domain')">
               <template #title>
                 {{ t('web.domains.no_domains_found') }}

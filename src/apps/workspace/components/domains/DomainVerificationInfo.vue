@@ -5,14 +5,25 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useDomainStatus } from '@/shared/composables/useDomainStatus';
   import { CustomDomain } from '@/schemas/models';
+  import { computed } from 'vue';
   const { t } = useI18n();
 
   interface Props {
     domain: CustomDomain;
     mode?: string;
+    orgid?: string;
   }
 
   const props = defineProps<Props>();
+
+  // Build org-qualified verify route
+  const verifyRoute = computed(() => {
+    if (props.orgid && props.domain?.extid) {
+      return `/org/${props.orgid}/domains/${props.domain.extid}/verify`;
+    }
+    // Fallback to dashboard if org context is missing
+    return '/dashboard';
+  });
 
   const { statusIcon, statusColor, isActive, isWarning, isError } = useDomainStatus(
     props.domain
@@ -41,7 +52,7 @@
   <div class="m-0 p-0 leading-none">
     <RouterLink
       v-if="mode === 'icon'"
-      :to="`/domains/${domain?.extid}/verify`"
+      :to="verifyRoute"
       class="tooltip inline-flex items-center gap-1.5"
       :data-tooltip="t('web.domains.view_domain_verification_status')">
       <OIcon

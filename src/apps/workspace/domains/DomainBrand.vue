@@ -21,7 +21,7 @@
 
   const { t } = useI18n(); // auto-import
 
-  const props = defineProps<{ extid: string }>();
+  const props = defineProps<{ extid: string; orgid: string }>();
   const {
     isLoading,
     error,
@@ -117,7 +117,8 @@
         <DomainHeader
           v-if="!domainLoading"
           :domain="customDomainRecord"
-          :has-unsaved-changes="hasUnsavedChanges" />
+          :has-unsaved-changes="hasUnsavedChanges"
+          :orgid="props.orgid" />
 
         <BrandSettingsBar
           v-model="brandSettings"

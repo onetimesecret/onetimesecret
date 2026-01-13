@@ -11,9 +11,10 @@ const { t } = useI18n();
 
   interface Props {
     domain: CustomDomain;
+    orgid: string;
   }
 
-  defineProps<Props>();
+  const props = defineProps<Props>();
 
   const emit = defineEmits<{
     (e: 'delete', domain: string): void
@@ -33,7 +34,7 @@ const { t } = useI18n();
           <router-link
             :to="{
               name: 'DomainBrand',
-              params: { extid: domain.extid },
+              params: { orgid: props.orgid, extid: domain.extid },
             }"
             :class="[
               active
@@ -48,7 +49,7 @@ const { t } = useI18n();
           <router-link
             :to="{
               name: 'DomainVerify',
-              params: { extid: domain.extid },
+              params: { orgid: props.orgid, extid: domain.extid },
             }"
             :class="[
               active
