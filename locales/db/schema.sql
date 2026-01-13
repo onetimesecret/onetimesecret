@@ -60,3 +60,19 @@ CREATE TABLE IF NOT EXISTS glossary (
 );
 
 CREATE INDEX IF NOT EXISTS idx_glossary_locale ON glossary(locale);
+
+-- Session log: record of translation sessions with verbatim feedback
+-- Notes should be preserved exactly as written, not summarized or modified
+CREATE TABLE IF NOT EXISTS session_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,               -- ISO date: '2026-01-12'
+    locale TEXT NOT NULL,             -- 'eo', 'de', etc.
+    started_at TEXT NOT NULL,         -- ISO timestamp from script for duration calc
+    ended_at TEXT,                    -- ISO timestamp when session ends
+    task_count INTEGER DEFAULT 0,     -- Number of tasks completed this session
+    notes TEXT,                       -- Verbatim feedback, not summarized
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_session_locale ON session_log(locale);
+CREATE INDEX IF NOT EXISTS idx_session_date ON session_log(date);

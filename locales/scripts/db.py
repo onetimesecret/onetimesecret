@@ -52,6 +52,7 @@ SCHEMA_VERSIONS = [
     ("001", "initial_tables"),
     ("002", "level_tasks"),
     ("003", "glossary"),
+    ("004", "session_log"),
 ]
 
 
