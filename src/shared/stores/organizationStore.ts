@@ -69,6 +69,7 @@ export const useOrganizationStore = defineStore('organization', () => {
   const _listFetched = ref(false); // Tracks whether fetchOrganizations() was called (full list)
   const loading = ref(false);
   const entitlementsError = ref<string | null>(null);
+  // AbortController for list fetches only - single-org fetches don't need cancellation
   const abortController = ref<AbortController | null>(null);
 
   // Getters
@@ -100,7 +101,7 @@ export const useOrganizationStore = defineStore('organization', () => {
   }
 
   /**
-   * Abort ongoing requests
+   * Abort ongoing list fetch request
    */
   function abort() {
     if (abortController.value) {
@@ -113,7 +114,7 @@ export const useOrganizationStore = defineStore('organization', () => {
    * Fetch all organizations for the current user
    */
   async function fetchOrganizations(): Promise<Organization[]> {
-    abort();
+    abort(); // Cancel any previous list fetch (deduplication)
     abortController.value = new AbortController();
     loading.value = true;
 
@@ -137,14 +138,12 @@ export const useOrganizationStore = defineStore('organization', () => {
    * @param extid - The external ID for API calls (e.g., "on1234abc")
    */
   async function fetchOrganization(extid: string): Promise<Organization> {
-    abort();
-    abortController.value = new AbortController();
+    // No abort() call here - single-org fetches are fast and shouldn't
+    // cancel in-flight list fetches (which would break the org dropdown)
     loading.value = true;
 
     try {
-      const response = await $api.get(`/api/organizations/${extid}`, {
-        signal: abortController.value.signal,
-      });
+      const response = await $api.get(`/api/organizations/${extid}`);
 
       const validated = organizationResponseSchema.parse(response.data);
       currentOrganization.value = validated.record;

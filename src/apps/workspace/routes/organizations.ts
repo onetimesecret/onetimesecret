@@ -31,7 +31,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: SCOPE_PRESETS.orgShowDomainHide,
+      scopesAvailable: SCOPE_PRESETS.hideBoth, // Hide switcher on org list page
     },
   },
   // Redirect /org/domains to /domains to prevent it being caught by :extid
