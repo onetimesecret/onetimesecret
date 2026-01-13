@@ -1,0 +1,59 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "text": "لماذا هذا السر غير متاح؟"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "text": "الأسرار مصممة لعرضها مرة واحدة فقط. ربما تم الوصول إلى هذا الرابط بالفعل، أو انتهت صلاحيته، أو تم حذفه يدوياً من قبل المرسل."
+  },
+  "web.errors.what_should_i_do_now": {
+    "text": "ماذا يجب أن أفعل الآن؟"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "text": "اتصل بالشخص الذي أرسل لك هذا الرابط واطلب منه إنشاء سر جديد. أخبره أنك لم تتمكن من الوصول إلى المعلومات الأصلية."
+  },
+  "web.errors.warning_dismissed": {
+    "text": "تم إغلاق التحذير"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "text": "إغلاق تحذير الاقتطاع"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "text": "عذراً! الصفحة التي تبحث عنها غير موجودة أو تم نقلها."
+  },
+  "web.errors.404_page_not_found_0": {
+    "text": "404 - الصفحة غير موجودة"
+  },
+  "web.errors.404_page_not_found": {
+    "text": "404 - الصفحة غير موجودة"
+  },
+  "web.errors.dismiss_warning": {
+    "text": "إغلاق التحذير"
+  },
+  "web.errors.dismiss_notification": {
+    "text": "إغلاق الإشعار"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "text": "إذا لم تكن متأكداً مما يجب فعله بعد ذلك، يرجى المتابعة مع الشخص الذي أرسل لك هذا الرابط للحصول على مزيد من المعلومات."
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "text": "يمكن الوصول إلى المعلومات المشتركة من خلال خدمتنا مرة واحدة فقط. بمجرد العرض، يتم حذف المحتوى نهائياً من خوادمنا لضمان السرية. يساعد هذا النهج في حماية بياناتك الحساسة عن طريق الحد من تعرضها ومنع الوصول غير المصرح به."
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "text": "نأسف، لكن حدث خطأ غير متوقع أثناء معالجة طلبك. تم إخطار فريقنا ونحن نعمل على إصلاحه."
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "text": "{0} حدث خطأ ما"
+  },
+  "web.errors.go_share_a_secret": {
+    "text": "اذهب وشارك سراً!"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "text": "الصفحة التي تبحث عنها غير موجودة أو تم نقلها. لا تقلق، يحدث ذلك لأفضل منا!"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "text": "{0} 404"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "text": "تعذر تحميل البيانات بسبب مشاكل في تنسيق البيانات. يرجى المحاولة مرة أخرى لاحقاً."
+  }
+}

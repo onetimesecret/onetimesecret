@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Messages reçus"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Messages en attente"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Aucun message récent"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Commencez en créant votre premier message sécurisé"
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Impossible de charger les équipes"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Un problème est survenu lors du chargement de vos équipes. Veuillez réessayer."
+  }
+}

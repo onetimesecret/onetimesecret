@@ -1,0 +1,245 @@
+{
+  "web.footer.api_docs": {
+    "text": "API 문서"
+  },
+  "web.footer.branding_guide": {
+    "text": "브랜딩 가이드"
+  },
+  "web.footer.customize": {
+    "text": "맞춤설정"
+  },
+  "web.footer.plans": {
+    "text": "플랜"
+  },
+  "web.footer.security": {
+    "text": "보안"
+  },
+  "web.footer.learn_about_our_security_measures": {
+    "text": "보안 조치에 대해 알아보기"
+  },
+  "web.footer.view_our_terms_and_conditions": {
+    "text": "이용약관 보기"
+  },
+  "web.footer.terms": {
+    "text": "약관"
+  },
+  "web.footer.privacy": {
+    "text": "개인정보 보호"
+  },
+  "web.footer.contact": {
+    "text": "문의"
+  },
+  "web.footer.support": {
+    "text": "지원"
+  },
+  "web.footer.legals": {
+    "text": "법적 고지"
+  },
+  "web.footer.read_our_privacy_policy": {
+    "text": "개인정보 보호정책 읽기"
+  },
+  "web.footer.check_our_service_status": {
+    "text": "서비스 상태 확인"
+  },
+  "web.footer.explore_our_api_documentation": {
+    "text": "API 문서 탐색"
+  },
+  "web.footer.docs": {
+    "text": "문서"
+  },
+  "web.footer.access_our_documentation": {
+    "text": "문서 접근"
+  },
+  "web.footer.view_our_source_code_on_github": {
+    "text": "GitHub에서 소스 코드 보기"
+  },
+  "web.footer.resources": {
+    "text": "리소스"
+  },
+  "web.footer.blog": {
+    "text": "블로그"
+  },
+  "web.footer.read_our_latest_blog_posts": {
+    "text": "최신 블로그 게시물 읽기"
+  },
+  "web.footer.view_our_subscription_pricing": {
+    "text": "구독 가격 보기"
+  },
+  "web.footer.learn_about_our_company": {
+    "text": "회사에 대해 알아보기"
+  },
+  "web.footer.company": {
+    "text": "회사"
+  },
+  "web.navigation.billing": {
+    "text": "결제"
+  },
+  "web.navigation.billingOverview": {
+    "text": "개요"
+  },
+  "web.navigation.organizations": {
+    "text": "조직"
+  },
+  "web.site.website_version": {
+    "text": "웹사이트 버전"
+  },
+  "web.meta.were_making_onetime_secret_available_in_multiple": {
+    "text": "저희는 {onetime-secret}을 여러 언어로 제공하고 있습니다. 이는 새로운 기능이므로 번역 오류나 어색한 표현이 있을 수 있습니다. 귀하의 피드백은 저희가 개선하는 데 도움이 됩니다 - 문제를 발견하셨다면 {send-feedback}해 주세요"
+  },
+  "web.meta.translations_are_new_spotted_an_error": {
+    "text": "번역은 새로 추가되었습니다. 오류를 발견하셨나요? {send-feedback}해 주세요"
+  },
+  "web.meta.we_recently_added_translations": {
+    "text": "저희는 최근에 번역을 추가했습니다. 오류를 발견하셨나요? {send-feedback}해 주세요"
+  },
+  "web.meta.privacy_and_security_should_be_accessible": {
+    "text": "개인 정보 보호와 보안은 언어에 관계없이 모든 사람이 접근할 수 있어야 합니다. 저희는 사용자와 메시지 수신자가 보안 메시지와 링크를 안전하게 사용하고 접근하는 방법을 더 잘 이해할 수 있도록 번역을 추가하고 있습니다. 이는 새로운 기능이므로 일부 번역 오류나 불명확한 지침이 있을 수 있습니다. 특히 중요한 보안 관련 콘텐츠의 명확성과 정확성을 개선하는 데 도움이 되도록, 문제를 발견하시면 {send-feedback}해 주세요"
+  },
+  "web.help.learn_more": {
+    "text": "더 알아보기"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.title": {
+    "text": "지금 무엇을 보고 있나요?"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.description": {
+    "text": "Onetime Secret을 통해 공유된 보안 메시지를 보고 계십니다. 이 내용은 단 한 번만 표시되며 이후 저희 서버에서 영구적으로 삭제됩니다."
+  },
+  "web.help.secret_view_faq.can_i_view_again.title": {
+    "text": "이 메시지를 나중에 다시 볼 수 있나요?"
+  },
+  "web.help.secret_view_faq.can_i_view_again.description": {
+    "text": "아니요. 보안상의 이유로 이 메시지는 단 한 번만 볼 수 있습니다. 이 페이지를 닫은 후에는 내용이 영구적으로 삭제되며 저희를 포함한 누구도 복구할 수 없습니다."
+  },
+  "web.help.secret_view_faq.how_to_copy.title": {
+    "text": "이 정보를 어떻게 저장하나요?"
+  },
+  "web.help.secret_view_faq.how_to_copy.description": {
+    "text": "'클립보드에 복사' 버튼을 사용하여 전체 메시지를 복사하세요. 긴 메시지의 경우, 이 페이지를 떠나기 전에 전체 내용이 제대로 복사되었는지 확인하세요."
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.title": {
+    "text": "제가 이 메시지를 보는 것이 추적되나요?"
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.description": {
+    "text": "발신자에게는 메시지가 열람되었다는 알림이 가지만, 누가 어디서 열람했는지는 추적하지 않습니다. 귀하의 개인정보는 보호됩니다."
+  },
+  "web.help.secret_view_faq.one_time_warning": {
+    "text": "이 페이지를 떠나거나 새로고침하면, 이 메시지는 영구적으로 삭제되며 누구도 복구할 수 없습니다."
+  },
+  "web.layout.go_back_to_previous_page": {
+    "text": "이전 페이지로 돌아가기"
+  },
+  "web.layout.site_footer": {
+    "text": "사이트 푸터"
+  },
+  "web.layout.toggle_dark_mode": {
+    "text": "다크 모드 전환"
+  },
+  "web.layout.provide_feedback": {
+    "text": "피드백 제공"
+  },
+  "web.layout.company_logo": {
+    "text": "회사 로고"
+  },
+  "web.layout.brand_logo": {
+    "text": "브랜드 로고"
+  },
+  "web.layout.dashboard_navigation": {
+    "text": "대시보드 내비게이션"
+  },
+  "web.layout.mobile_navigation": {
+    "text": "모바일 내비게이션"
+  },
+  "web.layout.main_navigation": {
+    "text": "메인 내비게이션"
+  },
+  "web.layout.mobile_nav_item_count": {
+    "text": "{count}개 항목"
+  },
+  "web.layout.release_notes": {
+    "text": "릴리스 노트"
+  },
+  "web.layout.loading_settings_content": {
+    "text": "설정 내용 로딩 중..."
+  },
+  "web.layout.settings_sections_0": {
+    "text": "설정 섹션"
+  },
+  "web.layout.close_settings": {
+    "text": "설정 닫기"
+  },
+  "web.layout.settings_sections": {
+    "text": "설정 섹션"
+  },
+  "web.layout.customize_your_app_preferences_and_settings": {
+    "text": "앱 환경설정 및 설정 맞춤화"
+  },
+  "web.layout.return_home": {
+    "text": "홈으로 돌아가기"
+  },
+  "web.layout.return_to_home_page": {
+    "text": "홈페이지로 돌아가기"
+  },
+  "web.layout.return_to_home": {
+    "text": "홈으로 돌아가기"
+  },
+  "web.layout.view_privacy_policy": {
+    "text": "개인정보 보호정책 보기"
+  },
+  "web.layout.view_terms_of_service": {
+    "text": "서비스 약관 보기"
+  },
+  "web.layout.visit_onetime_secret_homepage": {
+    "text": "Onetime Secret 홈페이지 방문"
+  },
+  "web.layout.footer_navigation": {
+    "text": "푸터 내비게이션"
+  },
+  "web.layout.terms_of_service": {
+    "text": "서비스 약관"
+  },
+  "web.layout.privacy_policy": {
+    "text": "개인정보 보호정책"
+  },
+  "web.layout.icon_library": {
+    "text": "아이콘 라이브러리"
+  },
+  "web.layout.google_material": {
+    "text": "Google Material"
+  },
+  "web.layout.material_design_icons": {
+    "text": "Material Design Icons"
+  },
+  "web.layout.heroicons": {
+    "text": "Heroicons"
+  },
+  "web.layout.carbon": {
+    "text": "Carbon"
+  },
+  "web.layout.font_awesome_6": {
+    "text": "Font Awesome 6"
+  },
+  "web.layout.view_source_on_github": {
+    "text": "GitHub에서 소스 보기"
+  },
+  "web.layout.website_version_v_ot_version": {
+    "text": "웹사이트 버전: v{0}"
+  },
+  "web.layout.current_language_is_currentlocal": {
+    "text": "언어 변경. 현재 언어는 {0}입니다"
+  },
+  "web.layout.language_changed_to_newlocale": {
+    "text": "언어가 {0}(으)로 변경되었습니다"
+  },
+  "web.layout.switch_to_blank_mode": {
+    "text": "{0} 모드로 전환"
+  },
+  "web.layout.blank_mode_enabled": {
+    "text": "{0} 모드 활성화됨"
+  },
+  "web.layout.workspace": {
+    "text": "워크스페이스"
+  },
+  "web.layout.workspace_context": {
+    "text": "워크스페이스 컨텍스트"
+  }
+}

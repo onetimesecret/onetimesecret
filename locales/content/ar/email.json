@@ -1,0 +1,446 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[:تذكرة %s]"
+  },
+  "email.incomingsupport.body1": {
+    "text": "العميل ارسل هذه البيانات"
+  },
+  "email.secret_link.subject": {
+    "text": "%{sender_email} أرسل لك سراً"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "أرسل لك سراً:"
+  },
+  "email.secret_link.important_label": {
+    "text": "مهم:"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "سيعمل هذا الرابط مرة واحدة فقط. بعد العرض، سيُحذف السر نهائياً."
+  },
+  "email.secret_link.sent_via": {
+    "text": "أُرسل عبر"
+  },
+  "email.welcome.subject": {
+    "text": "قم بتفعيل حسابك بالموقع"
+  },
+  "email.welcome.title": {
+    "text": "لقد تمت دعوتك للانضمام إلى %{product_name}!"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "يرجى التحقق من عنوان بريدك الإلكتروني بالنقر على الرابط أدناه:"
+  },
+  "email.welcome.verify_button": {
+    "text": "التحقق من البريد الإلكتروني"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "أو انسخ والصق هذا الرابط:"
+  },
+  "email.welcome.signature": {
+    "text": "ديلانو"
+  },
+  "email.welcome.postscript": {
+    "text": "ملاحظة: تم إرسال هذا البريد الإلكتروني إلى %{email_address}. إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذه الرسالة بأمان."
+  },
+  "email.password_request.subject": {
+    "text": "إعادة تعيين كلمة المرور (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "text": "إعادة تعيين كلمة المرور"
+  },
+  "email.password_request.request_notice": {
+    "text": "تلقينا طلباً لإعادة تعيين كلمة المرور لـ %{product_name}."
+  },
+  "email.password_request.reset_button": {
+    "text": "إعادة تعيين كلمة المرور"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "أو انسخ والصق هذا الرابط:"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "إذا لم تطلب إعادة تعيين كلمة المرور، يمكنك تجاهل هذه الرسالة بأمان."
+  },
+  "email.password_request.signature": {
+    "text": "ديلانو"
+  },
+  "email.password_request.postscript": {
+    "text": "ملاحظة: أُرسلت هذه الرسالة إلى %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "text": "تسجيل الدخول إلى %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "text": "تسجيل الدخول برابط سحري"
+  },
+  "email.magic_link.request_notice": {
+    "text": "لقد طلبت رابط تسجيل الدخول لحسابك في %{product_name}."
+  },
+  "email.magic_link.login_button": {
+    "text": "تسجيل الدخول"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "أو انسخ والصق هذا الرابط:"
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "تنتهي صلاحية هذا الرابط خلال 15 دقيقة."
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "إذا لم تطلب هذا الرابط، يمكنك تجاهل هذا البريد الإلكتروني بأمان."
+  },
+  "email.magic_link.signature": {
+    "text": "ديلانو"
+  },
+  "email.magic_link.postscript": {
+    "text": "ملاحظة: تم إرسال هذا البريد الإلكتروني إلى %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "text": "لقد تلقيت رسالة سرية"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "لقد تلقيت رسالة آمنة:"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "ملاحظة:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "أرسل لك شخص ما رسالة آمنة عبر %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "لعرض هذا السر، انقر على الرابط أدناه:"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "مهم:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "سيعمل هذا الرابط مرة واحدة فقط. بعد العرض، سيُحذف السر نهائياً."
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "أُرسل عبر"
+  },
+  "email.secret_revealed.subject": {
+    "text": "تم عرض سرك"
+  },
+  "email.secret_revealed.title": {
+    "text": "تم عرض سرك"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "تم عرض سرك في %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "معرّف السر:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "هذا إشعار تلقائي. لا يُطلب اتخاذ أي إجراء."
+  },
+  "email.secret_revealed.signature": {
+    "text": "ديلانو"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "إدارة تفضيلات الإشعارات"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "لإدارة تفضيلات الإشعارات:"
+  },
+  "email.expiration_warning.subject": {
+    "text": "سينتهي رابط سرك قريباً"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "سينتهي رابط سرك خلال %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "اعرض سرك قبل انتهاء صلاحيته"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "تذكير:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "بعد انتهاء الصلاحية، سيُحذف السر نهائياً ولن يمكن استرجاعه."
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "أُرسل عبر"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "اعرضه قبل أن يختفي:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "بعد انتهاء الصلاحية، سيُحذف السر نهائياً."
+  },
+  "email.feedback_email.subject": {
+    "text": "ملاحظات في %{date} عبر %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "text": "ملاحظات المستخدم"
+  },
+  "email.feedback_email.from_label": {
+    "text": "من:"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "النطاق:"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "الاستراتيجية:"
+  },
+  "email.feedback_email.message_label": {
+    "text": "الرسالة:"
+  },
+  "email.feedback_email.signature": {
+    "text": "دعم السر"
+  },
+  "email.organization_invitation.subject": {
+    "text": "لقد تمت دعوتك للانضمام إلى %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "text": "لقد تمت دعوتك للانضمام إلى %{organization_name}!"
+  },
+  "email.organization_invitation.body": {
+    "text": "%{inviter_email} دعاك للانضمام إلى \"%{organization_name}\" كـ %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "قبول الدعوة"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "أو انسخ والصق هذا الرابط:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "ستنتهي صلاحية هذه الدعوة خلال %{days} أيام."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "إذا كنت لا ترغب في الانضمام، يمكنك ببساطة تجاهل هذا البريد الإلكتروني أو رفض الدعوة."
+  },
+  "email.organization_invitation.signature": {
+    "text": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "ملاحظة: تم إرسال هذا البريد الإلكتروني إلى %{invited_email}. إذا لم تكن تتوقع هذه الدعوة، يمكنك تجاهل هذه الرسالة بأمان."
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "عضو"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "مسؤول"
+  },
+  "email.password_changed.subject": {
+    "text": "تم تغيير كلمة المرور (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "text": "تم تغيير كلمة المرور"
+  },
+  "email.password_changed.body": {
+    "text": "تم تغيير كلمة المرور لـ %{product_name} في %{date} الساعة %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "text": "إذا لم تقم بهذا التغيير، يرجى تأمين حسابك فوراً بإعادة تعيين كلمة المرور والاتصال بالدعم."
+  },
+  "email.password_changed.signature": {
+    "text": "ديلانو"
+  },
+  "email.email_changed.subject": {
+    "text": "تم تغيير عنوان بريدك الإلكتروني (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "text": "تم تغيير عنوان بريدك الإلكتروني"
+  },
+  "email.email_changed.body": {
+    "text": "تم تغيير عنوان البريد الإلكتروني لحساب %{product_name} إلى %{new_email_masked} في %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "text": "إذا لم تقم بهذا التغيير، يرجى الاتصال بالدعم فوراً حيث قد يكون حسابك معرضاً للاختراق."
+  },
+  "email.email_changed.signature": {
+    "text": "ديلانو"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "تحقق من عنوان بريدك الإلكتروني الجديد (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "تحقق من عنوان بريدك الإلكتروني الجديد"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "يرجى التحقق من عنوان البريد الإلكتروني هذا لإكمال التغيير لحساب %{product_name}."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "التحقق من البريد الإلكتروني"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "أو انسخ والصق هذا الرابط:"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "ديلانو"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "تم تفعيل المصادقة الثنائية (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "text": "تم تفعيل المصادقة الثنائية"
+  },
+  "email.mfa_enabled.body": {
+    "text": "تم تفعيل المصادقة الثنائية لحساب %{product_name} في %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "حسابك الآن أكثر أماناً. ستحتاج إلى إدخال رمز التحقق من تطبيق المصادقة عند تسجيل الدخول."
+  },
+  "email.mfa_enabled.signature": {
+    "text": "ديلانو"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "تم تعطيل المصادقة الثنائية (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "text": "تم تعطيل المصادقة الثنائية"
+  },
+  "email.mfa_disabled.body": {
+    "text": "تم تعطيل المصادقة الثنائية لحساب %{product_name} في %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "حسابك الآن أقل أماناً. إذا لم تقم بهذا التغيير، يرجى تأمين حسابك فوراً."
+  },
+  "email.mfa_disabled.signature": {
+    "text": "ديلانو"
+  },
+  "email.new_login_alert.subject": {
+    "text": "تسجيل دخول جديد لحسابك (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "text": "اكتُشف تسجيل دخول جديد"
+  },
+  "email.new_login_alert.body": {
+    "text": "اكتُشف تسجيل دخول جديد لحساب %{product_name} في %{date} الساعة %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "text": "الجهاز:"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "الموقع:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "عنوان IP:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "إذا لم تكن أنت، قد يكون حسابك معرضاً للاختراق."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "تأمين حسابك"
+  },
+  "email.new_login_alert.signature": {
+    "text": "ديلانو"
+  },
+  "email.member_removed.subject": {
+    "text": "تمت إزالتك من %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "text": "تمت إزالتك من %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "text": "تمت إزالتك من المنظمة \"%{organization_name}\" على %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "text": "ديلانو"
+  },
+  "email.role_changed.subject": {
+    "text": "تم تغيير دورك في %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "text": "تم تغيير دورك"
+  },
+  "email.role_changed.body": {
+    "text": "تم تغيير دورك في \"%{organization_name}\" من %{old_role} إلى %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "text": "ديلانو"
+  },
+  "email.organization_deleted.subject": {
+    "text": "تم حذف المنظمة \"%{organization_name}\""
+  },
+  "email.organization_deleted.title": {
+    "text": "تم حذف المؤسسة"
+  },
+  "email.organization_deleted.body": {
+    "text": "تم حذف المنظمة \"%{organization_name}\" من %{product_name}. تمت إزالة جميع البيانات المرتبطة."
+  },
+  "email.organization_deleted.signature": {
+    "text": "ديلانو"
+  },
+  "email.payment_receipt.subject": {
+    "text": "إيصال الدفع لـ %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "text": "إيصال الدفع"
+  },
+  "email.payment_receipt.body": {
+    "text": "شكراً لدفعك. إليك تفاصيل الدفع:"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "المبلغ:"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "التاريخ:"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "الخطة:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "عرض الفاتورة"
+  },
+  "email.payment_receipt.signature": {
+    "text": "ديلانو"
+  },
+  "email.payment_failed.subject": {
+    "text": "فشل الدفع لـ %{product_name}"
+  },
+  "email.payment_failed.title": {
+    "text": "فشل الدفع"
+  },
+  "email.payment_failed.body": {
+    "text": "لم نتمكن من معالجة دفعك لـ %{product_name}. يرجى تحديث طريقة الدفع لتجنب انقطاع الخدمة."
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "تحديث طريقة الدفع"
+  },
+  "email.payment_failed.signature": {
+    "text": "ديلانو"
+  },
+  "email.trial_expiring.subject": {
+    "text": "تنتهي فترة تجربتك لـ %{product_name} خلال %{days_remaining} أيام"
+  },
+  "email.trial_expiring.title": {
+    "text": "فترة تجربتك تقترب من الانتهاء"
+  },
+  "email.trial_expiring.body": {
+    "text": "ستنتهي فترة التجربة المجانية لـ %{product_name} خلال %{days_remaining} أيام. قم بالترقية الآن للاحتفاظ بالوصول إلى جميع الميزات."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "الترقية الآن"
+  },
+  "email.trial_expiring.signature": {
+    "text": "ديلانو"
+  },
+  "email.subscription_changed.subject": {
+    "text": "تم تغيير اشتراكك في %{product_name}"
+  },
+  "email.subscription_changed.title": {
+    "text": "تم تغيير الاشتراك"
+  },
+  "email.subscription_changed.body": {
+    "text": "تم تغيير اشتراكك في %{product_name} من %{old_plan} إلى %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "يسري هذا التغيير في %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "text": "ديلانو"
+  },
+  "email.common.greeting": {
+    "text": "مرحباً،"
+  },
+  "email.common.thanks": {
+    "text": "شكراً،"
+  },
+  "email.common.unsubscribe": {
+    "text": "إلغاء الاشتراك"
+  },
+  "email.common.view_in_browser": {
+    "text": "عرض في المتصفح"
+  },
+  "email.common.onetime_secret": {
+    "text": "سر مرة واحدة"
+  }
+}

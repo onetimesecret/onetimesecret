@@ -1,0 +1,128 @@
+{
+  "web.branding.color_picker": {
+    "text": "Farvevælger"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "Nuværende {0}: {1}. Klik for at cykle gennem valgmulighederne."
+  },
+  "web.branding.use_setting": {
+    "text": "Brug indstilling"
+  },
+  "web.branding.font_family": {
+    "text": "Skrifttypefamilie"
+  },
+  "web.branding.corner_style": {
+    "text": "Hjørnestil"
+  },
+  "web.branding.brand_color": {
+    "text": "Brandfarve"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "Forhåndsvisning af modtagerens visning, når han får adgang til dit sikre link"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "Forhåndsvisning og tilpasning"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "Skift til Safari-browservisning"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "text": "Maksimer vindue"
+  },
+  "web.branding.minimize_window": {
+    "text": "Minimér vindue"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "Skift til Edge-browservisning"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500 tegn"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "Brug din telefon til at scanne QR-koden"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "Kontakt onboarding{'@'}example.com, hvis du har spørgsmål"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "Disse instruktioner vil blive vist til modtagerne, før de afslører det hemmelige indhold"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "Disse instruktioner vil blive vist til modtagerne, efter at de har afsløret hemmeligheden"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "Instruktioner før afsløring"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "Instruktioner efter afsløring"
+  },
+  "web.branding.instructions": {
+    "text": "Instruktioner"
+  },
+  "web.branding.logo_controls": {
+    "text": "Logo-kontroller"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "Klik for at uploade et logo. Anbefalet størrelse: 128x128 pixels. Maksimal filstørrelse: 1 MB. Understøttede formater: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "text": "Upload logo"
+  },
+  "web.branding.loading_preview": {
+    "text": "Indlæser forhåndsvisning ..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "Se et eksempel på, hvordan modtagerne vil se dine hemmeligheder ved at teste knappen \"Vis hemmelighed\""
+  },
+  "web.branding.eye_icon": {
+    "text": "Øjenikon"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "Klik på eksempelbilledet nedenfor for at opdatere dit logo (minimum 128x128 pixels anbefales, maks. 1 MB)"
+  },
+  "web.branding.image_icon": {
+    "text": "Billedikon"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "Brug kontrollerne ovenfor til at tilpasse brandets farve, stilarter og modtagerinstruktioner"
+  },
+  "web.branding.customization_icon": {
+    "text": "Tilpasningsikon"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "Du har ikke-gemte ændringer. Er du sikker?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "Kunne ikke indlæse brandindstillinger"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "Dette er en interaktiv forhåndsvisning af, hvordan modtagerne vil se dine sikre beskeder. Det kan du gøre: - Tilpasse farver og skrifttyper ved hjælp af kontrollerne ovenfor - Uploade et logo (minimum 128x128 pixels anbefales, maks. 1 MB) - Teste forhåndsvisningen ved hjælp af knappen \"View Secret\""
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "Dette er en interaktiv forhåndsvisning af, hvordan modtagerne vil se dine sikre beskeder. Det kan du gøre: - Tilpasse farver og skrifttyper ved hjælp af kontrollerne ovenfor - Uploade et logo (minimum 128x128 pixels anbefales, maks. 1 MB) - Teste forhåndsvisningen ved hjælp af knappen \"View Secret\""
+  },
+  "web.branding.default_logo_icon": {
+    "text": "Standard logo-ikon"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "Drevet af Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "text": "{0} Logo"
+  },
+  "web.branding.edge": {
+    "text": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "Skift til Edge-forhåndsvisning"
+  },
+  "web.branding.safari": {
+    "text": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "Skift til Safari-forhåndsvisning"
+  }
+}

@@ -1,0 +1,464 @@
+{
+  "web.account.settings": {
+    "text": "설정"
+  },
+  "web.account.change_password": {
+    "text": "비밀번호 변경"
+  },
+  "web.account.close_account": {
+    "text": "계정 폐쇄"
+  },
+  "web.account.verify_account": {
+    "text": "계정 인증"
+  },
+  "web.account.subscription_title": {
+    "text": "구독"
+  },
+  "web.account.manage_subscription": {
+    "text": "구독 관리"
+  },
+  "web.account.customer_information": {
+    "text": "고객 정보"
+  },
+  "web.account.customer_since": {
+    "text": "가입일:"
+  },
+  "web.account.email": {
+    "text": "이메일:"
+  },
+  "web.account.region": {
+    "text": "지역"
+  },
+  "web.account.account_balance": {
+    "text": "계정 잔액:"
+  },
+  "web.account.default_payment_method": {
+    "text": "기본 결제 수단"
+  },
+  "web.account.card_ending": {
+    "text": "끝자리"
+  },
+  "web.account.subscriptions_title": {
+    "text": "구독"
+  },
+  "web.account.quantity": {
+    "text": "수량:"
+  },
+  "web.account.next_billing_date": {
+    "text": "다음 결제일:"
+  },
+  "web.account.changePassword.username": {
+    "text": "사용자 이름"
+  },
+  "web.account.changePassword.currentPassword": {
+    "text": "현재 비밀번호"
+  },
+  "web.account.changePassword.newPassword": {
+    "text": "새 비밀번호"
+  },
+  "web.account.changePassword.confirmPassword": {
+    "text": "확인"
+  },
+  "web.account.changePassword.updatePassword": {
+    "text": "비밀번호 업데이트"
+  },
+  "web.account.changePassword.updating": {
+    "text": "업데이트 중..."
+  },
+  "web.account.timezone": {
+    "text": "시간대"
+  },
+  "web.account.customer_id": {
+    "text": "고객 ID"
+  },
+  "web.account.account_id_customerid": {
+    "text": "계정 ID"
+  },
+  "web.account.created_windowprops_cust_secrets_created_secrets": {
+    "text": "{1} 이후 {0}개의 비밀 메시지를 생성했습니다."
+  },
+  "web.account.delete_account": {
+    "text": "계정 삭제"
+  },
+  "web.account.api_key": {
+    "text": "API 키"
+  },
+  "web.account.account_type_windowprops_plan_options_name": {
+    "text": "계정 유형: {0}"
+  },
+  "web.account.your_account": {
+    "text": "내 계정"
+  },
+  "web.account.support_details": {
+    "text": "지원 세부정보"
+  },
+  "web.account.back_to_details": {
+    "text": "세부정보로 돌아가기"
+  },
+  "web.account.customer_id_cust_custid": {
+    "text": "고객 ID: {0}"
+  },
+  "web.account.token_generated": {
+    "text": "토큰이 생성되었습니다."
+  },
+  "web.account.keep_this_token_secure_it_provides_full_access_t": {
+    "text": "🔐 이 토큰을 안전하게 보관하세요! 계정에 대한 전체 접근 권한을 제공합니다."
+  },
+  "web.account.confirm_with_your_password": {
+    "text": "비밀번호로 확인"
+  },
+  "web.account.are_you_sure_you_want_to_permanently_delete_your": {
+    "text": "계정을 영구적으로 삭제하시겠습니까? 이 작업은 취소할 수 없습니다."
+  },
+  "web.account.confirm_account_deletion": {
+    "text": "계정 삭제 확인"
+  },
+  "web.account.deleting_cust_custid": {
+    "text": "{0} 삭제 중"
+  },
+  "web.account.permanently_delete_account": {
+    "text": "계정 영구 삭제"
+  },
+  "web.account.permanent_and_non_reversible": {
+    "text": "영구적이며 되돌릴 수 없습니다."
+  },
+  "web.account.deleting_your_account_is": {
+    "text": "계정 삭제는"
+  },
+  "web.account.burn_them_before_continuing": {
+    "text": "계속하기 전에 소각하세요"
+  },
+  "web.account.any_secrets_you_wish_to_remove": {
+    "text": "제거하고 싶은 비밀 메시지가 있다면,"
+  },
+  "web.account.secrets_will_remain_active_until_they_expire": {
+    "text": "비밀 메시지는 만료될 때까지 활성 상태로 유지됩니다."
+  },
+  "web.account.please_be_advised": {
+    "text": "참고하세요:"
+  },
+  "web.account.account_deleted_successfully": {
+    "text": "계정이 성공적으로 삭제되었습니다."
+  },
+  "web.account.deactivate": {
+    "text": "비활성화"
+  },
+  "web.account.are_you_sure_you_want_to_deactivate_your_account": {
+    "text": "계정을 비활성화하시겠습니까? 모든 데이터가 서버에서 영구적으로 제거됩니다. 이 작업은 취소할 수 없습니다."
+  },
+  "web.account.deactivate_account": {
+    "text": "계정 비활성화"
+  },
+  "web.settings.title": {
+    "text": "설정"
+  },
+  "web.settings.description": {
+    "text": "계정 설정 및 환경설정을 관리합니다"
+  },
+  "web.settings.manage_your_account_settings_and_preferences": {
+    "text": "계정 설정 및 환경설정을 관리합니다"
+  },
+  "web.settings.general": {
+    "text": "일반"
+  },
+  "web.settings.preferences": {
+    "text": "환경설정"
+  },
+  "web.settings.appearance": {
+    "text": "외관"
+  },
+  "web.settings.theme.title": {
+    "text": "테마"
+  },
+  "web.settings.theme.description": {
+    "text": "라이트 또는 다크 테마를 선택합니다"
+  },
+  "web.settings.theme.choose_light_or_dark_theme": {
+    "text": "라이트 또는 다크 테마를 선택합니다"
+  },
+  "web.settings.language.title": {
+    "text": "언어"
+  },
+  "web.settings.language.description": {
+    "text": "선호하는 언어를 선택합니다"
+  },
+  "web.settings.language.select_your_preferred_language": {
+    "text": "선호하는 언어를 선택합니다"
+  },
+  "web.settings.security_settings_description": {
+    "text": "인증 및 계정 보안을 관리합니다"
+  },
+  "web.settings.profile_settings_description": {
+    "text": "계정 정보를 관리합니다"
+  },
+  "web.settings.profile.title": {
+    "text": "프로필"
+  },
+  "web.settings.profile.change_email": {
+    "text": "이메일 변경"
+  },
+  "web.settings.profile.current_email": {
+    "text": "현재 이메일"
+  },
+  "web.settings.profile.current_password": {
+    "text": "현재 비밀번호"
+  },
+  "web.settings.profile.new_email": {
+    "text": "새 이메일"
+  },
+  "web.settings.profile.enter_password_to_confirm": {
+    "text": "현재 비밀번호를 입력하세요"
+  },
+  "web.settings.profile.password_required_for_security": {
+    "text": "보안을 위해 비밀번호가 필요합니다"
+  },
+  "web.settings.profile.verification_email_notice": {
+    "text": "새 주소로 인증 이메일이 전송됩니다"
+  },
+  "web.settings.profile.update_email": {
+    "text": "이메일 업데이트"
+  },
+  "web.settings.profile.change_email_description": {
+    "text": "계정과 연결된 이메일 주소를 업데이트합니다"
+  },
+  "web.settings.profile.all_fields_required": {
+    "text": "모든 항목은 필수입니다"
+  },
+  "web.settings.profile.invalid_email": {
+    "text": "유효한 이메일 주소를 입력하세요"
+  },
+  "web.settings.profile.email_same_as_current": {
+    "text": "새 이메일은 현재 이메일과 달라야 합니다"
+  },
+  "web.settings.profile.email_change_success": {
+    "text": "이메일이 성공적으로 업데이트되었습니다. 받은 편지함을 확인하여 새 이메일 주소를 인증하세요."
+  },
+  "web.settings.profile.email_change_error": {
+    "text": "이메일 업데이트에 실패했습니다. 다시 시도해 주세요."
+  },
+  "web.settings.sessions.title": {
+    "text": "활성 세션"
+  },
+  "web.settings.sessions.description": {
+    "text": "활성 세션을 관리합니다"
+  },
+  "web.settings.sessions.manage_active_sessions": {
+    "text": "활성 세션을 관리합니다"
+  },
+  "web.settings.password.title": {
+    "text": "비밀번호"
+  },
+  "web.settings.password.description": {
+    "text": "계정 비밀번호를 업데이트합니다"
+  },
+  "web.settings.password.update_account_password": {
+    "text": "계정 비밀번호를 업데이트합니다"
+  },
+  "web.settings.delete_account.title": {
+    "text": "계정 삭제"
+  },
+  "web.settings.delete_account.description": {
+    "text": "계정과 모든 데이터를 영구적으로 삭제합니다"
+  },
+  "web.settings.delete_account.permanently_delete_your_account": {
+    "text": "계정과 모든 데이터를 영구적으로 삭제합니다"
+  },
+  "web.settings.security.security_score": {
+    "text": "보안 점수"
+  },
+  "web.settings.security.score_description": {
+    "text": "전반적인 계정 보안 상태"
+  },
+  "web.settings.security.excellent": {
+    "text": "탁월함"
+  },
+  "web.settings.security.good": {
+    "text": "좋음"
+  },
+  "web.settings.security.fair": {
+    "text": "보통"
+  },
+  "web.settings.security.weak": {
+    "text": "약함"
+  },
+  "web.settings.security.improve_security": {
+    "text": "보안 향상"
+  },
+  "web.settings.security.enable_mfa_recommendation": {
+    "text": "더 강력한 보호를 위해 2단계 인증을 활성화하세요"
+  },
+  "web.settings.security.generate_recovery_codes_recommendation": {
+    "text": "백업으로 복구 코드를 생성하세요"
+  },
+  "web.settings.security.configured": {
+    "text": "구성됨"
+  },
+  "web.settings.security.change": {
+    "text": "변경"
+  },
+  "web.settings.security.manage": {
+    "text": "관리"
+  },
+  "web.settings.security.enable": {
+    "text": "활성화"
+  },
+  "web.settings.security.codes_available": {
+    "text": "{0}개의 코드 사용 가능"
+  },
+  "web.settings.security.no_codes": {
+    "text": "생성된 코드 없음"
+  },
+  "web.settings.security.active_sessions": {
+    "text": "{0}개의 활성 세션 | {0}개의 활성 세션"
+  },
+  "web.settings.security.best_practices": {
+    "text": "보안 모범 사례"
+  },
+  "web.settings.security.use_strong_unique_password": {
+    "text": "계정에 강력하고 고유한 비밀번호를 사용하세요"
+  },
+  "web.settings.security.enable_mfa_for_protection": {
+    "text": "추가 보호를 위해 2단계 인증을 활성화하세요"
+  },
+  "web.settings.security.save_recovery_codes_safely": {
+    "text": "복구 코드를 안전한 장소에 저장하세요"
+  },
+  "web.settings.security.review_sessions_regularly": {
+    "text": "사용하지 않는 세션을 정기적으로 검토하고 취소하세요"
+  },
+  "web.settings.security.view_details": {
+    "text": "세부정보 보기"
+  },
+  "web.settings.api.title": {
+    "text": "API 및 통합"
+  },
+  "web.settings.api.description": {
+    "text": "API 키 및 통합을 관리합니다"
+  },
+  "web.settings.api.manage_api_keys": {
+    "text": "API 키 및 통합을 관리합니다"
+  },
+  "web.settings.api.documentation": {
+    "text": "API 문서"
+  },
+  "web.settings.api.documentation_description": {
+    "text": "애플리케이션에 Onetime Secret을 통합하는 방법을 알아보세요"
+  },
+  "web.settings.api.rest_api_reference": {
+    "text": "REST API 참조"
+  },
+  "web.settings.api.complete_api_documentation": {
+    "text": "완전한 API 문서 및 엔드포인트"
+  },
+  "web.settings.api.code_examples": {
+    "text": "코드 예제"
+  },
+  "web.settings.api.example_code_and_libraries": {
+    "text": "예제 코드 및 클라이언트 라이브러리"
+  },
+  "web.settings.api.security_best_practices": {
+    "text": "보안 모범 사례"
+  },
+  "web.settings.api.never_commit_api_keys": {
+    "text": "API 키를 버전 관리에 커밋하지 마세요"
+  },
+  "web.settings.api.use_environment_variables": {
+    "text": "환경 변수를 사용하여 API 키를 저장하세요"
+  },
+  "web.settings.api.rotate_keys_regularly": {
+    "text": "보안을 위해 API 키를 정기적으로 교체하세요"
+  },
+  "web.settings.api.use_https_only": {
+    "text": "API 요청 시 항상 HTTPS를 사용하세요"
+  },
+  "web.settings.api.monitor_api_usage": {
+    "text": "API 사용량을 모니터링하고 알림을 설정하세요"
+  },
+  "web.settings.api.important_notice": {
+    "text": "중요 공지"
+  },
+  "web.settings.api.regenerating_key_warning": {
+    "text": "API 키를 재생성하면 현재 키가 무효화됩니다. 이전 키를 사용하는 모든 애플리케이션을 업데이트하세요."
+  },
+  "web.settings.privacy.title": {
+    "text": "개인정보 보호 설정"
+  },
+  "web.settings.privacy.manage_privacy_settings": {
+    "text": "개인정보 보호 환경설정을 관리합니다"
+  },
+  "web.settings.privacy.your_privacy": {
+    "text": "귀하의 개인정보"
+  },
+  "web.settings.privacy.non_negotiable": {
+    "text": "타협 불가"
+  },
+  "web.settings.privacy.not_a_setting": {
+    "text": "설정이 아닙니다"
+  },
+  "web.settings.privacy.no_analytics_statement": {
+    "text": "분석 없음. 추적 없음. 확실합니다."
+  },
+  "web.settings.privacy.explanation": {
+    "text": "켜거나 끌 것이 없기 때문에 설정이 아닙니다. 귀하의 개인정보 보호는 저희 운영 방식에 내재되어 있습니다."
+  },
+  "web.settings.notifications.title": {
+    "text": "알림 설정"
+  },
+  "web.settings.notifications.description": {
+    "text": "알림 수신 방법을 관리합니다"
+  },
+  "web.settings.notifications.error_updating": {
+    "text": "알림 설정 업데이트에 실패했습니다. 다시 시도해 주세요."
+  },
+  "web.settings.notifications.reveal_notifications.title": {
+    "text": "비밀 열람 알림"
+  },
+  "web.settings.notifications.reveal_notifications.description": {
+    "text": "누군가 비밀을 열람하면 이메일을 받습니다"
+  },
+  "web.settings.notifications.reveal_notifications.help": {
+    "text": "수신자가 비밀을 열람할 때마다 알림을 받습니다"
+  },
+  "web.settings.notifications.privacy_note": {
+    "text": "알림 이메일에는 타임스탬프와 비밀 ID만 포함됩니다. 열람자 정보는 포함되지 않습니다."
+  },
+  "web.settings.caution.title": {
+    "text": "신중한 고려 구역"
+  },
+  "web.settings.caution.description": {
+    "text": "고급 설정 및 데이터 관리"
+  },
+  "web.settings.caution.data_export": {
+    "text": "데이터 내보내기"
+  },
+  "web.settings.caution.export_your_data": {
+    "text": "계정 데이터 내보내기"
+  },
+  "web.settings.caution.export_description": {
+    "text": "기계 판독 가능한 형식으로 계정 데이터의 전체 사본을 요청합니다"
+  },
+  "web.settings.caution.request_data_export": {
+    "text": "데이터 내보내기 요청"
+  },
+  "web.settings.caution.export_info": {
+    "text": "내보내기 처리 시간"
+  },
+  "web.settings.caution.export_info_description": {
+    "text": "내보내기는 24시간 이내에 처리되어 이메일 주소로 전송됩니다"
+  },
+  "web.settings.caution.deletion_warning_title": {
+    "text": "계정을 삭제하면:"
+  },
+  "web.settings.caution.deletion_warning_secrets": {
+    "text": "모든 비밀 메시지가 영구적으로 삭제됩니다"
+  },
+  "web.settings.caution.deletion_warning_metadata": {
+    "text": "모든 비밀 메시지 메타데이터 및 기록이 제거됩니다"
+  },
+  "web.settings.caution.deletion_warning_api_keys": {
+    "text": "모든 API 키가 무효화됩니다"
+  },
+  "web.settings.caution.deletion_warning_irreversible": {
+    "text": "이 작업은 취소할 수 없습니다"
+  }
+}

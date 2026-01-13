@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Invia un segreto"
+  },
+  "incoming.page_description": {
+    "text": "Condividi informazioni sensibili in modo sicuro con il nostro team di supporto"
+  },
+  "incoming.loading_config": {
+    "text": "Caricamento..."
+  },
+  "incoming.config_error_title": {
+    "text": "Impossibile caricare la configurazione"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Funzionalità non disponibile"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Questa funzionalità è attualmente disabilitata. Si prega di contattare il supporto per assistenza."
+  },
+  "incoming.memo_label": {
+    "text": "Promemoria"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Breve descrizione (es. Richiesta di reimpostazione password)"
+  },
+  "incoming.memo_hint": {
+    "text": "Aiutaci a inoltrare il tuo messaggio alla persona giusta"
+  },
+  "incoming.recipient_label": {
+    "text": "Invia a"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Seleziona un destinatario"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Seleziona un destinatario per questo segreto"
+  },
+  "incoming.recipient_hint": {
+    "text": "Scegli chi riceverà questo messaggio sicuro"
+  },
+  "incoming.no_recipients_available": {
+    "text": "Nessun destinatario disponibile"
+  },
+  "incoming.secret_content_label": {
+    "text": "Informazioni riservate"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Incolla qui le informazioni sensibili (password, chiavi, ecc.)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Queste informazioni saranno crittografate e visualizzabili solo una volta"
+  },
+  "incoming.submit_button": {
+    "text": "Invia segreto"
+  },
+  "incoming.submit_secret": {
+    "text": "Invia segreto"
+  },
+  "incoming.submitting_button": {
+    "text": "Invio in corso..."
+  },
+  "incoming.submitting": {
+    "text": "Invio in corso..."
+  },
+  "incoming.reset_button": {
+    "text": "Cancella modulo"
+  },
+  "incoming.reset_form": {
+    "text": "Cancella modulo"
+  },
+  "incoming.success_title": {
+    "text": "Inviato con successo"
+  },
+  "incoming.success_description": {
+    "text": "Il tuo messaggio sicuro è stato consegnato."
+  },
+  "incoming.reference_id": {
+    "text": "ID di riferimento"
+  },
+  "incoming.success_info_title": {
+    "text": "Cosa succede ora?"
+  },
+  "incoming.success_info_description": {
+    "text": "Il destinatario potrà visualizzare questo segreto solo una volta. Dopo la visualizzazione, il segreto verrà eliminato permanentemente."
+  },
+  "incoming.create_another": {
+    "text": "Invia un altro segreto"
+  },
+  "incoming.tagline1": {
+    "text": "Condividi informazioni sensibili in modo sicuro"
+  },
+  "incoming.tagline2": {
+    "text": "Mantieni password e dati privati fuori dalle email e dai registri delle chat"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Salva la tua <a href='{receiptUrl}'>ricevuta</a> per i tuoi archivi."
+  },
+  "incoming.receipt_link_text": {
+    "text": "receipt"
+  }
+}

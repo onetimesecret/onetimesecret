@@ -1,0 +1,398 @@
+{
+  "web.auth.mfa_required": {
+    "text": "Vyžadováno MFA ověření"
+  },
+  "web.auth.mfa_verification_required": {
+    "text": "Pro přístup k účtu je vyžadováno MFA ověření"
+  },
+  "web.auth.complete_mfa_verification": {
+    "text": "Dokončit MFA ověření"
+  },
+  "web.auth.security.authentication_failed": {
+    "text": "Autentizace selhala. Ověř si prosím své přihlašovací údaje a zkus to znovu."
+  },
+  "web.auth.security.rate_limited": {
+    "text": "Příliš mnoho pokusů. Zkus to prosím později."
+  },
+  "web.auth.security.session_expired": {
+    "text": "Relace vypršela. Přihlaš se prosím znovu."
+  },
+  "web.auth.security.recovery_code_not_found": {
+    "text": "Záchranný kód nebyl nalezen. Ověř prosím, že jsi ho zadal správně."
+  },
+  "web.auth.security.recovery_code_used": {
+    "text": "Tento záchranný kód již byl použit. Každý kód lze použít pouze jednou."
+  },
+  "web.auth.security.network_error": {
+    "text": "Chyba sítě. Zkontroluj prosím své připojení a zkus to znovu."
+  },
+  "web.auth.security.internal_error": {
+    "text": "Došlo k chybě. Zkus to prosím znovu."
+  },
+  "web.auth.methods.password": {
+    "text": "Heslo"
+  },
+  "web.auth.methods.magicLink": {
+    "text": "E-mailový odkaz"
+  },
+  "web.auth.methods.webauthn": {
+    "text": "Biometrie"
+  },
+  "web.auth.magicLink.title": {
+    "text": "Přihlásit se e-mailem"
+  },
+  "web.auth.magicLink.description": {
+    "text": "Zašleme ti bezpečný přihlašovací odkaz"
+  },
+  "web.auth.magicLink.emailPlaceholder": {
+    "text": "Zadej svůj e-mail"
+  },
+  "web.auth.magicLink.sendLink": {
+    "text": "Odeslat přihlašovací odkaz"
+  },
+  "web.auth.magicLink.checkEmail": {
+    "text": "Zkontroluj svůj e-mail"
+  },
+  "web.auth.magicLink.sentTo": {
+    "text": "Přihlašovací odkaz jsme odeslali na {email}"
+  },
+  "web.auth.magicLink.linkExpiresIn": {
+    "text": "Tento odkaz vyprší za 15 minut"
+  },
+  "web.auth.magicLink.tryDifferentEmail": {
+    "text": "Zkusit jiný e-mail"
+  },
+  "web.auth.magicLink.noPasswordNeeded": {
+    "text": "Heslo není potřeba — stačí kliknout na odkaz v e-mailu"
+  },
+  "web.auth.magicLink.networkError": {
+    "text": "Chyba sítě. Zkus to prosím znovu."
+  },
+  "web.auth.magicLink.requestFailed": {
+    "text": "Odeslání přihlašovacího odkazu se nezdařilo. Zkus to prosím znovu."
+  },
+  "web.auth.magicLink.invalidLink": {
+    "text": "Neplatný nebo chybějící přihlašovací odkaz"
+  },
+  "web.auth.magicLink.loginFailed": {
+    "text": "Přihlášení se nezdařilo. Zkus to prosím znovu."
+  },
+  "web.auth.magicLink.signingYouIn": {
+    "text": "Přihlašuji tě..."
+  },
+  "web.auth.magicLink.pleaseWait": {
+    "text": "Počkej prosím, ověřujeme tvůj odkaz"
+  },
+  "web.auth.magicLink.error": {
+    "text": "Chyba autentizace"
+  },
+  "web.auth.magicLink.back_to_signin": {
+    "text": "Zpět k přihlášení"
+  },
+  "web.auth.webauthn.signIn": {
+    "text": "Přihlásit se pomocí Face ID / Touch ID"
+  },
+  "web.auth.webauthn.setup": {
+    "text": "Nastavit biometrické přihlášení"
+  },
+  "web.auth.webauthn.notSupported": {
+    "text": "Biometrická autentizace není v tomto prohlížeči podporována"
+  },
+  "web.auth.webauthn.requiresModernBrowser": {
+    "text": "Použij prosím moderní prohlížeč podporující WebAuthn (Chrome, Safari, Firefox nebo Edge)"
+  },
+  "web.auth.webauthn.setupSuccess": {
+    "text": "Biometrické přihlášení bylo aktivováno"
+  },
+  "web.auth.webauthn.setupFailed": {
+    "text": "Nastavení biometrického přihlášení se nezdařilo"
+  },
+  "web.auth.webauthn.authFailed": {
+    "text": "Biometrická autentizace selhala. Zkus to prosím znovu."
+  },
+  "web.auth.webauthn.cancelled": {
+    "text": "Autentizace byla zrušena"
+  },
+  "web.auth.webauthn.processing": {
+    "text": "Autentizuji..."
+  },
+  "web.auth.webauthn.description": {
+    "text": "Použij svůj otisk prstu, obličej nebo bezpečnostní klíč k přihlášení"
+  },
+  "web.auth.webauthn.supportedMethods": {
+    "text": "Podporuje Face ID, Touch ID, Windows Hello a bezpečnostní klíče"
+  },
+  "web.auth.lockout.attempts_remaining": {
+    "text": "Varování: zbývá {count} pokus(ů) k přihlášení"
+  },
+  "web.auth.lockout.account_locked": {
+    "text": "Účet je uzamčen kvůli příliš mnoha neúspěšným pokusům o přihlášení"
+  },
+  "web.auth.lockout.locked_until": {
+    "text": "Tvůj účet je uzamčen do {time}"
+  },
+  "web.auth.lockout.contact_support": {
+    "text": "Pokud potřebuješ okamžitý přístup, kontaktuj podporu"
+  },
+  "web.auth.lockout.try_password_reset": {
+    "text": "Místo toho můžeš obnovit své heslo"
+  },
+  "web.auth.sessions.title": {
+    "text": "Aktivní relace"
+  },
+  "web.auth.sessions.current": {
+    "text": "Aktuální relace"
+  },
+  "web.auth.sessions.other": {
+    "text": "Ostatní relace"
+  },
+  "web.auth.sessions.device": {
+    "text": "Zařízení"
+  },
+  "web.auth.sessions.location": {
+    "text": "Umístění"
+  },
+  "web.auth.sessions.ip_address": {
+    "text": "IP adresa"
+  },
+  "web.auth.sessions.last_active": {
+    "text": "Naposledy aktivní"
+  },
+  "web.auth.sessions.created": {
+    "text": "Vytvořeno"
+  },
+  "web.auth.sessions.remove": {
+    "text": "Odebrat"
+  },
+  "web.auth.sessions.remove_all": {
+    "text": "Odhlásit všechny ostatní relace"
+  },
+  "web.auth.sessions.confirm_remove": {
+    "text": "Opravdu chceš odebrat tuto relaci?"
+  },
+  "web.auth.sessions.confirm_remove_all": {
+    "text": "Tím se odhlásíš ze všech ostatních zařízení. Jsi si jistý?"
+  },
+  "web.auth.sessions.no_sessions": {
+    "text": "Žádné další aktivní relace"
+  },
+  "web.auth.sessions.removed_success": {
+    "text": "Relace byla úspěšně odebrána"
+  },
+  "web.auth.sessions.removed_all_success": {
+    "text": "Všechny ostatní relace byly odhlášeny"
+  },
+  "web.auth.sessions.link_title": {
+    "text": "Aktivní relace"
+  },
+  "web.auth.mfa.title": {
+    "text": "Dvoufaktorová autentizace"
+  },
+  "web.auth.mfa.enabled": {
+    "text": "Dvoufaktorová autentizace je aktivní"
+  },
+  "web.auth.mfa.disabled": {
+    "text": "Dvoufaktorová autentizace není aktivní"
+  },
+  "web.auth.mfa.enable": {
+    "text": "Aktivovat dvoufaktorovou autentizaci"
+  },
+  "web.auth.mfa.disable": {
+    "text": "Deaktivovat dvoufaktorovou autentizaci"
+  },
+  "web.auth.mfa.setup_title": {
+    "text": "Nastavit dvoufaktorovou autentizaci"
+  },
+  "web.auth.mfa.setup_description": {
+    "text": "Přidej svému účtu další vrstvu zabezpečení"
+  },
+  "web.auth.mfa.step_scan": {
+    "text": "1. Naskenuj QR kód"
+  },
+  "web.auth.mfa.step_verify": {
+    "text": "2. Ověř nastavení"
+  },
+  "web.auth.mfa.scan_qr": {
+    "text": "Naskenuj tento QR kód pomocí své autentizační aplikace"
+  },
+  "web.auth.mfa.manual_entry": {
+    "text": "Nebo zadej tento kód ručně"
+  },
+  "web.auth.mfa.verify_code": {
+    "text": "Zadej 6místný kód ze své aplikace"
+  },
+  "web.auth.mfa.enter_code": {
+    "text": "Zadej autentizační kód"
+  },
+  "web.auth.mfa.verify": {
+    "text": "Ověřit a aktivovat"
+  },
+  "web.auth.mfa.code_required": {
+    "text": "Autentizační kód je povinný"
+  },
+  "web.auth.mfa.invalid_code": {
+    "text": "Neplatný kód. Kódy vyprší každých 30 sekund. Zkus nejnovější kód ze své autentizační aplikace."
+  },
+  "web.auth.mfa.success_enabled": {
+    "text": "Dvoufaktorová autentizace byla aktivována"
+  },
+  "web.auth.mfa.success_disabled": {
+    "text": "Dvoufaktorová autentizace byla deaktivována"
+  },
+  "web.auth.mfa.require_password": {
+    "text": "Pro deaktivaci 2FA zadej své heslo"
+  },
+  "web.auth.mfa.password_confirmation": {
+    "text": "Heslo"
+  },
+  "web.auth.mfa.password_reason": {
+    "text": "Potvrď svou identitu pro úpravu nastavení dvoufaktorové autentizace"
+  },
+  "web.auth.mfa.last_used": {
+    "text": "Naposledy použito: {time}"
+  },
+  "web.auth.mfa.never_used": {
+    "text": "Nikdy nepoužito"
+  },
+  "web.auth.mfa.use_recovery_code": {
+    "text": "Místo toho použít záchranný kód"
+  },
+  "web.auth.mfa.back_to_code": {
+    "text": "Zpět k autentizačnímu kódu"
+  },
+  "web.auth.mfa.cancel": {
+    "text": "Zrušit a vrátit se k přihlášení"
+  },
+  "web.auth.mfa.loading_status": {
+    "text": "Načítám stav MFA..."
+  },
+  "web.auth.mfa.protected_description": {
+    "text": "Tvůj účet je chráněn dvoufaktorovou autentizací"
+  },
+  "web.auth.mfa.enable_description": {
+    "text": "Chraň svůj účet další vrstvou zabezpečení"
+  },
+  "web.auth.mfa.benefit_unauthorized": {
+    "text": "Zabraň neoprávněnému přístupu, i když je tvé heslo kompromitováno"
+  },
+  "web.auth.mfa.benefit_apps": {
+    "text": "Funguje s Google Authenticator, Authy a dalšími TOTP aplikacemi"
+  },
+  "web.auth.mfa.benefit_recovery": {
+    "text": "Záložní záchranné kódy pro přístup v nouzi"
+  },
+  "web.auth.mfa.password_placeholder": {
+    "text": "Zadej své heslo"
+  },
+  "web.auth.mfa.disabling": {
+    "text": "Deaktivuji..."
+  },
+  "web.auth.mfa.disable_button": {
+    "text": "Deaktivovat 2FA"
+  },
+  "web.auth.mfa.generating_qr": {
+    "text": "Generuji QR kód..."
+  },
+  "web.auth.mfa.supported_apps": {
+    "text": "Použij Google Authenticator, Authy nebo jakoukoli TOTP aplikaci"
+  },
+  "web.auth.mfa.continue_verification": {
+    "text": "Pokračovat k ověření"
+  },
+  "web.auth.mfa.enter_code_description": {
+    "text": "Zadej 6místný kód ze své autentizační aplikace"
+  },
+  "web.auth.mfa.enable_and_continue": {
+    "text": "Aktivovat MFA"
+  },
+  "web.auth.mfa.complete_setup": {
+    "text": "Dokončit nastavení"
+  },
+  "web.auth.mfa.enter_recovery_code": {
+    "text": "Zadej jeden ze svých záchranných kódů"
+  },
+  "web.auth.mfa.recovery_code_label": {
+    "text": "Záchranný kód"
+  },
+  "web.auth.mfa.recovery_code_placeholder": {
+    "text": "Zadej záchranný kód"
+  },
+  "web.auth.mfa.verify_recovery_code": {
+    "text": "Ověřit záchranný kód"
+  },
+  "web.auth.mfa.six_digit_code": {
+    "text": "Zadej 6místný autentizační kód"
+  },
+  "web.auth.mfa.recovery_code_mode_active": {
+    "text": "Režim záchranného kódu aktivní"
+  },
+  "web.auth.mfa.otp_mode_active": {
+    "text": "Režim autentizačního kódu aktivní"
+  },
+  "web.auth.mfa.enter_all_digits": {
+    "text": "Pro pokračování zadej prosím všech 6 číslic"
+  },
+  "web.auth.mfa.digit_of_count": {
+    "text": "Číslice {current} z {total}"
+  },
+  "web.auth.recovery_codes.title": {
+    "text": "Záchranné kódy"
+  },
+  "web.auth.recovery_codes.description": {
+    "text": "Ulož tyto kódy na bezpečné místo. Každý lze použít jednou, pokud ztratíš přístup ke své autentizační aplikaci."
+  },
+  "web.auth.recovery_codes.warning": {
+    "text": "Tyto kódy budou zobrazeny pouze jednou"
+  },
+  "web.auth.recovery_codes.save_required": {
+    "text": "Před dokončením nastavení musíš stáhnout nebo zkopírovat své záchranné kódy."
+  },
+  "web.auth.recovery_codes.generate_new": {
+    "text": "Vygenerovat nové kódy"
+  },
+  "web.auth.recovery_codes.regenerate": {
+    "text": "Vygenerovat znovu"
+  },
+  "web.auth.recovery_codes.generate_new_warning": {
+    "text": "Tím zneplatníš všechny existující záchranné kódy"
+  },
+  "web.auth.recovery_codes.download": {
+    "text": "Stáhnout kódy"
+  },
+  "web.auth.recovery_codes.downloaded": {
+    "text": "Záchranné kódy staženy"
+  },
+  "web.auth.recovery_codes.print": {
+    "text": "Vytisknout kódy"
+  },
+  "web.auth.recovery_codes.copy": {
+    "text": "Zkopírovat všechny kódy"
+  },
+  "web.auth.recovery_codes.copied": {
+    "text": "Kódy zkopírovány do schránky"
+  },
+  "web.auth.recovery_codes.copy_failed": {
+    "text": "Nepodařilo se zkopírovat kódy do schránky"
+  },
+  "web.auth.recovery_codes.code_used": {
+    "text": "Použito"
+  },
+  "web.auth.recovery_codes.code_unused": {
+    "text": "Nepoužito"
+  },
+  "web.auth.recovery_codes.remaining": {
+    "text": "Zbývá {count} záchranný(ch) kód(ů)"
+  },
+  "web.auth.recovery_codes.usage_hint": {
+    "text": "Každý kód lze použít pouze jednou. Pokud ti docházejí, vygeneruj nové."
+  },
+  "web.auth.recovery_codes.none_remaining": {
+    "text": "Nezbývají žádné záchranné kódy"
+  },
+  "web.auth.recovery_codes.generate_success": {
+    "text": "Nové záchranné kódy byly vygenerovány"
+  },
+  "web.auth.recovery_codes.link_title": {
+    "text": "Záchranné kódy"
+  }
+}

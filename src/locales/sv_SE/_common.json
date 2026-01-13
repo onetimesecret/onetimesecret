@@ -4,7 +4,6 @@
       "broadcast": "Sändning",
       "tagline": "Dela säkert, en gång.",
       "powered_by": "Drivs av",
-      "website_url": "",
       "button_generate_secret_short": "Generera lösenord",
       "generate_password_disabled": "Generera lösenord är inaktiverat när formuläret är giltigt",
       "email_placeholder": "t.ex. tom{'@'}example.com",

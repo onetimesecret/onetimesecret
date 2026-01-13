@@ -1,66 +1,17 @@
 {
   "web": {
     "auth": {
-      "_context_mfa_required": "Tiêu đề trang hiển thị khi người dùng phải hoàn thành MFA để tiếp tục",
       "mfa_required": "Yêu cầu xác minh MFA",
-      "_context_mfa_verification_required": "Văn bản giải thích bên dưới tiêu đề",
       "mfa_verification_required": "Yêu cầu xác minh MFA để truy cập tài khoản của bạn",
-      "_context_complete_mfa_verification": "Văn bản nút chính để gửi xác minh MFA",
       "complete_mfa_verification": "Hoàn tất xác minh MFA",
       "security": {
-        "_README": "⚠️ QUAN TRỌNG BẢO MẬT: Thông báo ngăn chặn tiết lộ thông tin. Xem src/locales/SECURITY-TRANSLATION-GUIDE.md",
         "authentication_failed": "Xác thực thất bại. Vui lòng xác minh thông tin đăng nhập và thử lại.",
         "rate_limited": "Quá nhiều lần thử. Vui lòng thử lại sau.",
         "session_expired": "Phiên đã hết hạn. Vui lòng đăng nhập lại.",
         "recovery_code_not_found": "Không tìm thấy mã khôi phục. Vui lòng xác minh bạn đã nhập đúng.",
         "recovery_code_used": "Mã khôi phục này đã được sử dụng. Mỗi mã chỉ có thể sử dụng một lần.",
         "network_error": "Lỗi mạng. Vui lòng kiểm tra kết nối và thử lại.",
-        "internal_error": "Đã xảy ra lỗi. Vui lòng thử lại.",
-        "_meta": {
-          "_purpose": "Các thông báo này tuân theo hướng dẫn OWASP/NIST để ngăn chặn tiết lộ thông tin. Bản dịch PHẢI duy trì từ ngữ chung chung để ngăn chặn liệt kê thông tin đăng nhập và tấn công thời gian. Không bao giờ tiết lộ: thông tin đăng nhập nào thất bại, thời gian chính xác, sự tồn tại tài khoản, hoặc tiến độ tấn công.",
-          "authentication_failed": {
-            "security_note": "KHÔNG được tiết lộ thông tin đăng nhập nào thất bại (mật khẩu, OTP, hoặc mã khôi phục). Điều này ngăn kẻ tấn công xác định thông tin đăng nhập hợp lệ hoặc liệt kê tài khoản.",
-            "owasp_ref": "ASVS 2.2.2 - Phản hồi xác thực thất bại phải chung chung"
-          },
-          "rate_limited": {
-            "security_note": "KHÔNG được tiết lộ thời gian khóa chính xác, số lần thử, hoặc số lần còn lại. Điều này ngăn chặn tấn công thời gian và theo dõi tiến độ.",
-            "owasp_ref": "ASVS 2.2.1 - Khóa tài khoản không được có thể liệt kê dựa trên thời gian"
-          },
-          "session_expired": {
-            "security_note": "An toàn khi chỉ ra vấn đề phiên vì nó không tiết lộ thông tin đăng nhập. Giúp người dùng hiểu họ cần xác thực lại.",
-            "owasp_ref": "Thực hành tốt nhất quản lý phiên"
-          },
-          "recovery_code_not_found": {
-            "security_note": "An toàn khi chỉ ra ngữ cảnh mã khôi phục vì người dùng đã chọn phương thức xác thực này một cách rõ ràng. Không tiết lộ liệu mã có tồn tại hay không.",
-            "owasp_ref": "Hướng dẫn xác thực mã khôi phục"
-          },
-          "recovery_code_used": {
-            "security_note": "Thông báo hành vi mong đợi an toàn. Người dùng cần biết mã khôi phục chỉ sử dụng một lần để tránh nhầm lẫn.",
-            "owasp_ref": "Hướng dẫn người dùng cho cơ chế khôi phục"
-          }
-        },
-        "_translation_guidelines": {
-          "DO_NOT_translate_as": [
-            "Sai mật khẩu",
-            "Mã OTP không hợp lệ",
-            "Mã khôi phục không đúng",
-            "Đợi 5 phút",
-            "Còn 3 lần thử",
-            "Tài khoản bị khóa 15 phút"
-          ],
-          "MUST_translate_as": [
-            "Xác thực thất bại chung chung (không có chi tiết thông tin đăng nhập)",
-            "Thông báo giới hạn tốc độ chung chung (không có thời gian chính xác)",
-            "Xác thực mã khôi phục (không có xác nhận sự tồn tại)"
-          ],
-          "WHY": "Các hạn chế này ngăn kẻ tấn công: (1) xác định tên người dùng/email hợp lệ, (2) biết thông tin đăng nhập nào để tập trung tấn công, (3) tiến hành tấn công thời gian, (4) đo tiến độ tấn công"
-        },
-        "_safe_information": {
-          "format_requirements": "An toàn khi chỉ định quy tắc định dạng (ví dụ: 'OTP phải có 6 chữ số')",
-          "expected_behavior": "An toàn khi mô tả cách tính năng hoạt động (ví dụ: 'Mã hết hạn mỗi 30 giây')",
-          "recovery_options": "An toàn khi cung cấp phương án thay thế (ví dụ: 'Sử dụng mã khôi phục thay thế')",
-          "general_guidance": "An toàn khi cung cấp trợ giúp (ví dụ: 'Kiểm tra ứng dụng xác thực của bạn')"
-        }
+        "internal_error": "Đã xảy ra lỗi. Vui lòng thử lại."
       },
       "methods": {
         "password": "Mật khẩu",
@@ -68,7 +19,6 @@
         "webauthn": "Sinh trắc học"
       },
       "magicLink": {
-        "_context": "Xác thực không cần mật khẩu qua liên kết email",
         "title": "Đăng nhập bằng email",
         "description": "Chúng tôi sẽ gửi cho bạn liên kết đăng nhập an toàn",
         "emailPlaceholder": "Nhập email của bạn",
@@ -108,7 +58,6 @@
         "try_password_reset": "Bạn có thể đặt lại mật khẩu thay thế"
       },
       "sessions": {
-        "_context": "Trang quản lý thiết bị/trình duyệt đã đăng nhập của người dùng",
         "title": "Phiên hoạt động",
         "current": "Phiên hiện tại",
         "other": "Các phiên khác",

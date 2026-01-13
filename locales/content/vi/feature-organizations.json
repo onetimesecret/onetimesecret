@@ -1,0 +1,392 @@
+{
+  "web.organizations.title": {
+    "text": "Tổ chức"
+  },
+  "web.organizations.organization": {
+    "text": "Tổ chức"
+  },
+  "web.organizations.organization_plural": {
+    "text": "Tổ chức"
+  },
+  "web.organizations.organizations_description": {
+    "text": "Quản lý tổ chức của bạn"
+  },
+  "web.organizations.my_organizations": {
+    "text": "Tổ chức của tôi"
+  },
+  "web.organizations.manage_organizations": {
+    "text": "Quản lý Tổ chức"
+  },
+  "web.organizations.new_organization": {
+    "text": "Tổ chức mới"
+  },
+  "web.organizations.no_organizations": {
+    "text": "Chưa có tổ chức nào"
+  },
+  "web.organizations.no_organizations_description": {
+    "text": "Tổ chức cho phép bạn quản lý nhiều nhóm với thanh toán và quản trị thống nhất. Bắt đầu bằng cách tạo tổ chức đầu tiên của bạn."
+  },
+  "web.organizations.no_description": {
+    "text": "Không có mô tả"
+  },
+  "web.organizations.default": {
+    "text": "Mặc định"
+  },
+  "web.organizations.create_organization": {
+    "text": "Tạo tổ chức"
+  },
+  "web.organizations.create_first_organization": {
+    "text": "Tạo tổ chức đầu tiên"
+  },
+  "web.organizations.create_organization_description": {
+    "text": "Tạo một tổ chức mới để nhóm các team của bạn"
+  },
+  "web.organizations.create": {
+    "text": "Tạo"
+  },
+  "web.organizations.create_error": {
+    "text": "Không thể tạo tổ chức"
+  },
+  "web.organizations.organization_name": {
+    "text": "Tên tổ chức"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "text": "ví dụ: Công ty TNHH ABC"
+  },
+  "web.organizations.display_name": {
+    "text": "Tên tổ chức"
+  },
+  "web.organizations.description": {
+    "text": "Mô tả"
+  },
+  "web.organizations.description_placeholder": {
+    "text": "Tổ chức này dành cho mục đích gì?"
+  },
+  "web.organizations.contact_email": {
+    "text": "Email thanh toán"
+  },
+  "web.organizations.contact_email_help": {
+    "text": "Liên hệ chính cho thông báo thanh toán và quản trị"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "text": "Quản lý thanh toán và đăng ký được xử lý thông qua không gian làm việc chính của bạn. Truy cập cài đặt không gian làm việc chính để quản lý phương thức thanh toán và hóa đơn."
+  },
+  "web.organizations.select_organization": {
+    "text": "Chọn một tổ chức"
+  },
+  "web.organizations.switcher_locked": {
+    "text": "Chuyển đổi tổ chức không khả dụng trên trang này"
+  },
+  "web.organizations.not_found": {
+    "text": "Không tìm thấy tổ chức"
+  },
+  "web.organizations.load_error": {
+    "text": "Không thể tải tổ chức"
+  },
+  "web.organizations.fetch_organization_error": {
+    "text": "Không thể tải tổ chức"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "text": "Không thể tải danh sách tổ chức"
+  },
+  "web.organizations.organization_information": {
+    "text": "Thông tin tổ chức"
+  },
+  "web.organizations.created": {
+    "text": "Đã tạo"
+  },
+  "web.organizations.last_updated": {
+    "text": "Cập nhật lần cuối"
+  },
+  "web.organizations.organization_settings": {
+    "text": "Cài đặt tổ chức"
+  },
+  "web.organizations.organization_settings_description": {
+    "text": "Cập nhật tên và mô tả tổ chức của bạn"
+  },
+  "web.organizations.general_settings": {
+    "text": "Cài đặt chung"
+  },
+  "web.organizations.billing_settings": {
+    "text": "Thanh toán & Đăng ký"
+  },
+  "web.organizations.save_changes": {
+    "text": "Lưu thay đổi"
+  },
+  "web.organizations.update_success": {
+    "text": "Đã cập nhật tổ chức thành công"
+  },
+  "web.organizations.update_error": {
+    "text": "Không thể cập nhật tổ chức"
+  },
+  "web.organizations.billing_coming_soon": {
+    "text": "Tích hợp thanh toán sắp ra mắt"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "text": "Quản lý thanh toán và đăng ký thống nhất cho tất cả nhóm trong tổ chức này sẽ có trong bản phát hành tương lai."
+  },
+  "web.organizations.about_title": {
+    "text": "Về tổ chức"
+  },
+  "web.organizations.about_description": {
+    "text": "Tổ chức cung cấp thanh toán và quản trị thống nhất cho nhiều nhóm. Chúng là tùy chọn - các nhóm có thể tồn tại độc lập hoặc được nhóm lại dưới một tổ chức để quản lý tập trung."
+  },
+  "web.organizations.single_user_info_title": {
+    "text": "Quản lý tổ chức của bạn"
+  },
+  "web.organizations.single_user_info_description": {
+    "text": "Cập nhật tên công ty và thông tin tổ chức tại đây. Thông tin này giúp cá nhân hóa tài khoản của bạn và có thể được sử dụng cho các tính năng thương hiệu trong tương lai."
+  },
+  "web.organizations.getting_started_title": {
+    "text": "Bắt đầu với tổ chức"
+  },
+  "web.organizations.getting_started_description": {
+    "text": "Tạo tổ chức đầu tiên của bạn để quản lý thông tin công ty và chuẩn bị cho các tính năng cộng tác nhóm và thương hiệu trong tương lai."
+  },
+  "web.organizations.page_description": {
+    "text": "Quản lý tổ chức và thành viên nhóm của bạn"
+  },
+  "web.organizations.tabs.general": {
+    "text": "Chung"
+  },
+  "web.organizations.tabs.company_branding": {
+    "text": "Thương hiệu công ty"
+  },
+  "web.organizations.tabs.members": {
+    "text": "Nhóm"
+  },
+  "web.organizations.tabs.billing": {
+    "text": "Thanh toán"
+  },
+  "web.organizations.danger_zone": {
+    "text": "Vùng nguy hiểm"
+  },
+  "web.organizations.delete_organization": {
+    "text": "Xóa tổ chức"
+  },
+  "web.organizations.delete_organization_warning": {
+    "text": "Thao tác này sẽ xóa vĩnh viễn tổ chức và tất cả các nhóm liên quan. Hành động này không thể hoàn tác."
+  },
+  "web.organizations.delete": {
+    "text": "Xóa"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "text": "Xóa tổ chức"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "text": "Bạn có chắc chắn muốn xóa {name}? Hành động này không thể hoàn tác."
+  },
+  "web.organizations.delete_error": {
+    "text": "Không thể xóa tổ chức"
+  },
+  "web.organizations.members.title": {
+    "text": "Thành viên"
+  },
+  "web.organizations.members.description": {
+    "text": "Quản lý thành viên tổ chức và vai trò của họ"
+  },
+  "web.organizations.members.current_members": {
+    "text": "Thành viên Hiện tại"
+  },
+  "web.organizations.members.member": {
+    "text": "Thành viên"
+  },
+  "web.organizations.members.member_singular": {
+    "text": "member"
+  },
+  "web.organizations.members.member_plural": {
+    "text": "members"
+  },
+  "web.organizations.members.name": {
+    "text": "Tên"
+  },
+  "web.organizations.members.email": {
+    "text": "Email"
+  },
+  "web.organizations.members.role": {
+    "text": "Vai trò"
+  },
+  "web.organizations.members.joined": {
+    "text": "Đã tham gia"
+  },
+  "web.organizations.members.actions": {
+    "text": "Hành động"
+  },
+  "web.organizations.members.no_members": {
+    "text": "Không tìm thấy thành viên"
+  },
+  "web.organizations.members.no_members_description": {
+    "text": "Tổ chức này chưa có thành viên nào."
+  },
+  "web.organizations.members.role_updated": {
+    "text": "Đã cập nhật vai trò thành viên thành công"
+  },
+  "web.organizations.members.role_update_error": {
+    "text": "Không thể cập nhật vai trò thành viên"
+  },
+  "web.organizations.members.member_removed": {
+    "text": "Đã xóa thành viên khỏi tổ chức"
+  },
+  "web.organizations.members.member_remove_error": {
+    "text": "Không thể xóa thành viên"
+  },
+  "web.organizations.members.remove_member_title": {
+    "text": "Xóa thành viên"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "text": "Bạn có chắc chắn muốn xóa {name} khỏi tổ chức này?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "text": "Bạn không thể thay đổi vai trò của chính mình"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "text": "Bạn không thể tự xóa mình khỏi tổ chức"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "text": "Bạn không thể xóa chủ sở hữu tổ chức"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "text": "Bạn không có quyền quản lý thành viên"
+  },
+  "web.organizations.members.roles.owner": {
+    "text": "Chủ sở hữu"
+  },
+  "web.organizations.members.roles.admin": {
+    "text": "Quản trị viên"
+  },
+  "web.organizations.members.roles.member": {
+    "text": "Thành viên"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "text": "Toàn quyền truy cập tất cả cài đặt tổ chức và thành viên"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "text": "Có thể quản lý thành viên và hầu hết cài đặt tổ chức"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "text": "Quyền truy cập cơ bản vào tài nguyên tổ chức"
+  },
+  "web.organizations.invitations.title": {
+    "text": "Lời mời tổ chức"
+  },
+  "web.organizations.invitations.invite_member": {
+    "text": "Mời thành viên"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "text": "Mời thành viên mới"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "text": "Lời mời đang chờ"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "text": "Không có lời mời đang chờ"
+  },
+  "web.organizations.invitations.email_address": {
+    "text": "Địa chỉ email"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "text": "thanhvien@example.com"
+  },
+  "web.organizations.invitations.role": {
+    "text": "Vai trò"
+  },
+  "web.organizations.invitations.send_invite": {
+    "text": "Gửi lời mời"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "text": "Đã gửi lời mời thành công"
+  },
+  "web.organizations.invitations.invite_error": {
+    "text": "Không thể gửi lời mời"
+  },
+  "web.organizations.invitations.resend": {
+    "text": "Gửi lại"
+  },
+  "web.organizations.invitations.revoke": {
+    "text": "Thu hồi"
+  },
+  "web.organizations.invitations.resend_success": {
+    "text": "Đã gửi lại lời mời thành công"
+  },
+  "web.organizations.invitations.resend_error": {
+    "text": "Không thể gửi lại lời mời"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "text": "Đã thu hồi lời mời thành công"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "text": "Không thể thu hồi lời mời"
+  },
+  "web.organizations.invitations.invited_by": {
+    "text": "Được mời bởi"
+  },
+  "web.organizations.invitations.invited_at": {
+    "text": "Đã mời"
+  },
+  "web.organizations.invitations.expires_at": {
+    "text": "Hết hạn"
+  },
+  "web.organizations.invitations.resent_count": {
+    "text": "Đã gửi lại {count} lần"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "text": "Đã gửi lại {count} lần"
+  },
+  "web.organizations.invitations.status.pending": {
+    "text": "Đang chờ"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "text": "Đã chấp nhận"
+  },
+  "web.organizations.invitations.status.declined": {
+    "text": "Đã từ chối"
+  },
+  "web.organizations.invitations.status.expired": {
+    "text": "Đã hết hạn"
+  },
+  "web.organizations.invitations.roles.member": {
+    "text": "Thành viên"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "text": "Quản trị viên"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "text": "Chấp nhận lời mời"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "text": "Từ chối lời mời"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "text": "Chi tiết lời mời"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "text": "Bạn đã được mời tham gia"
+  },
+  "web.organizations.invitations.invited_as": {
+    "text": "Bạn đã được mời với vai trò"
+  },
+  "web.organizations.invitations.accept_success": {
+    "text": "Đã chấp nhận lời mời thành công"
+  },
+  "web.organizations.invitations.accept_error": {
+    "text": "Không thể chấp nhận lời mời"
+  },
+  "web.organizations.invitations.decline_success": {
+    "text": "Đã từ chối lời mời"
+  },
+  "web.organizations.invitations.decline_error": {
+    "text": "Không thể từ chối lời mời"
+  },
+  "web.organizations.invitations.expired_message": {
+    "text": "Lời mời này đã hết hạn"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "text": "Lời mời không hợp lệ hoặc đã hết hạn"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "text": "Vui lòng đăng nhập để chấp nhận lời mời này"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "text": "Đang tải chi tiết lời mời"
+  }
+}

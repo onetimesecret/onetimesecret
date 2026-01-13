@@ -1,0 +1,398 @@
+{
+  "web.auth.mfa_required": {
+    "text": "Потрібна перевірка MFA"
+  },
+  "web.auth.mfa_verification_required": {
+    "text": "Для доступу до вашого облікового запису потрібна перевірка MFA"
+  },
+  "web.auth.complete_mfa_verification": {
+    "text": "Завершити перевірку MFA"
+  },
+  "web.auth.security.authentication_failed": {
+    "text": "Не вдалося автентифікуватись. Будь ласка, перевірте ваші облікові дані та спробуйте ще раз."
+  },
+  "web.auth.security.rate_limited": {
+    "text": "Занадто багато спроб. Будь ласка, спробуйте пізніше."
+  },
+  "web.auth.security.session_expired": {
+    "text": "Термін сесії закінчився. Будь ласка, увійдіть знову."
+  },
+  "web.auth.security.recovery_code_not_found": {
+    "text": "Код відновлення не знайдено. Будь ласка, перевірте, що ви ввели його правильно."
+  },
+  "web.auth.security.recovery_code_used": {
+    "text": "Цей код відновлення вже використано. Кожен код можна використати лише один раз."
+  },
+  "web.auth.security.network_error": {
+    "text": "Помилка мережі. Будь ласка, перевірте ваше з'єднання та спробуйте ще раз."
+  },
+  "web.auth.security.internal_error": {
+    "text": "Сталася помилка. Будь ласка, спробуйте ще раз."
+  },
+  "web.auth.methods.password": {
+    "text": "Пароль"
+  },
+  "web.auth.methods.magicLink": {
+    "text": "Посилання електронною поштою"
+  },
+  "web.auth.methods.webauthn": {
+    "text": "Біометрія"
+  },
+  "web.auth.magicLink.title": {
+    "text": "Увійти через електронну пошту"
+  },
+  "web.auth.magicLink.description": {
+    "text": "Ми надішлемо вам безпечне посилання для входу"
+  },
+  "web.auth.magicLink.emailPlaceholder": {
+    "text": "Введіть вашу електронну пошту"
+  },
+  "web.auth.magicLink.sendLink": {
+    "text": "Надіслати посилання для входу"
+  },
+  "web.auth.magicLink.checkEmail": {
+    "text": "Перевірте вашу електронну пошту"
+  },
+  "web.auth.magicLink.sentTo": {
+    "text": "Ми надіслали посилання для входу на {email}"
+  },
+  "web.auth.magicLink.linkExpiresIn": {
+    "text": "Термін дії цього посилання закінчиться через 15 хвилин"
+  },
+  "web.auth.magicLink.tryDifferentEmail": {
+    "text": "Спробувати іншу електронну пошту"
+  },
+  "web.auth.magicLink.noPasswordNeeded": {
+    "text": "Пароль не потрібен — просто натисніть посилання у вашій електронній пошті"
+  },
+  "web.auth.magicLink.networkError": {
+    "text": "Помилка мережі. Будь ласка, спробуйте ще раз."
+  },
+  "web.auth.magicLink.requestFailed": {
+    "text": "Не вдалося надіслати посилання для входу. Будь ласка, спробуйте ще раз."
+  },
+  "web.auth.magicLink.invalidLink": {
+    "text": "Недійсне або відсутнє посилання для входу"
+  },
+  "web.auth.magicLink.loginFailed": {
+    "text": "Не вдалося увійти. Будь ласка, спробуйте ще раз."
+  },
+  "web.auth.magicLink.signingYouIn": {
+    "text": "Виконується вхід..."
+  },
+  "web.auth.magicLink.pleaseWait": {
+    "text": "Будь ласка, зачекайте, поки ми перевіряємо ваше посилання"
+  },
+  "web.auth.magicLink.error": {
+    "text": "Помилка автентифікації"
+  },
+  "web.auth.magicLink.back_to_signin": {
+    "text": "Назад до входу"
+  },
+  "web.auth.webauthn.signIn": {
+    "text": "Увійти через Face ID / Touch ID"
+  },
+  "web.auth.webauthn.setup": {
+    "text": "Налаштувати біометричний вхід"
+  },
+  "web.auth.webauthn.notSupported": {
+    "text": "Біометрична автентифікація не підтримується в цьому браузері"
+  },
+  "web.auth.webauthn.requiresModernBrowser": {
+    "text": "Будь ласка, використовуйте сучасний браузер, що підтримує WebAuthn (Chrome, Safari, Firefox або Edge)"
+  },
+  "web.auth.webauthn.setupSuccess": {
+    "text": "Біометричний вхід увімкнено"
+  },
+  "web.auth.webauthn.setupFailed": {
+    "text": "Не вдалося налаштувати біометричний вхід"
+  },
+  "web.auth.webauthn.authFailed": {
+    "text": "Біометрична автентифікація не вдалася. Будь ласка, спробуйте ще раз."
+  },
+  "web.auth.webauthn.cancelled": {
+    "text": "Автентифікацію скасовано"
+  },
+  "web.auth.webauthn.processing": {
+    "text": "Автентифікація..."
+  },
+  "web.auth.webauthn.description": {
+    "text": "Використовуйте ваш відбиток пальця, обличчя або ключ безпеки для входу"
+  },
+  "web.auth.webauthn.supportedMethods": {
+    "text": "Підтримує Face ID, Touch ID, Windows Hello та ключі безпеки"
+  },
+  "web.auth.lockout.attempts_remaining": {
+    "text": "Попередження: залишилось {count} спроб(и) входу"
+  },
+  "web.auth.lockout.account_locked": {
+    "text": "Обліковий запис заблоковано через занадто багато невдалих спроб входу"
+  },
+  "web.auth.lockout.locked_until": {
+    "text": "Ваш обліковий запис заблоковано до {time}"
+  },
+  "web.auth.lockout.contact_support": {
+    "text": "Зв'яжіться з підтримкою, якщо вам потрібен негайний доступ"
+  },
+  "web.auth.lockout.try_password_reset": {
+    "text": "Ви можете натомість скинути ваш пароль"
+  },
+  "web.auth.sessions.title": {
+    "text": "Активні сесії"
+  },
+  "web.auth.sessions.current": {
+    "text": "Поточна сесія"
+  },
+  "web.auth.sessions.other": {
+    "text": "Інші сесії"
+  },
+  "web.auth.sessions.device": {
+    "text": "Пристрій"
+  },
+  "web.auth.sessions.location": {
+    "text": "Місцезнаходження"
+  },
+  "web.auth.sessions.ip_address": {
+    "text": "IP-адреса"
+  },
+  "web.auth.sessions.last_active": {
+    "text": "Остання активність"
+  },
+  "web.auth.sessions.created": {
+    "text": "Створено"
+  },
+  "web.auth.sessions.remove": {
+    "text": "Видалити"
+  },
+  "web.auth.sessions.remove_all": {
+    "text": "Вийти з усіх інших сесій"
+  },
+  "web.auth.sessions.confirm_remove": {
+    "text": "Ви впевнені, що хочете видалити цю сесію?"
+  },
+  "web.auth.sessions.confirm_remove_all": {
+    "text": "Це виведе вас з усіх інших пристроїв. Ви впевнені?"
+  },
+  "web.auth.sessions.no_sessions": {
+    "text": "Немає інших активних сесій"
+  },
+  "web.auth.sessions.removed_success": {
+    "text": "Сесію успішно видалено"
+  },
+  "web.auth.sessions.removed_all_success": {
+    "text": "Усі інші сесії вийшли з системи"
+  },
+  "web.auth.sessions.link_title": {
+    "text": "Активні сесії"
+  },
+  "web.auth.mfa.title": {
+    "text": "Двофакторна автентифікація"
+  },
+  "web.auth.mfa.enabled": {
+    "text": "Двофакторну автентифікацію увімкнено"
+  },
+  "web.auth.mfa.disabled": {
+    "text": "Двофакторну автентифікацію вимкнено"
+  },
+  "web.auth.mfa.enable": {
+    "text": "Увімкнути двофакторну автентифікацію"
+  },
+  "web.auth.mfa.disable": {
+    "text": "Вимкнути двофакторну автентифікацію"
+  },
+  "web.auth.mfa.setup_title": {
+    "text": "Налаштувати двофакторну автентифікацію"
+  },
+  "web.auth.mfa.setup_description": {
+    "text": "Додайте додатковий рівень безпеки до вашого облікового запису"
+  },
+  "web.auth.mfa.step_scan": {
+    "text": "1. Сканувати QR-код"
+  },
+  "web.auth.mfa.step_verify": {
+    "text": "2. Підтвердити налаштування"
+  },
+  "web.auth.mfa.scan_qr": {
+    "text": "Відскануйте цей QR-код за допомогою вашого додатку автентифікації"
+  },
+  "web.auth.mfa.manual_entry": {
+    "text": "Або введіть цей код вручну"
+  },
+  "web.auth.mfa.verify_code": {
+    "text": "Введіть 6-значний код з вашого додатку"
+  },
+  "web.auth.mfa.enter_code": {
+    "text": "Введіть код автентифікації"
+  },
+  "web.auth.mfa.verify": {
+    "text": "Перевірити та увімкнути"
+  },
+  "web.auth.mfa.code_required": {
+    "text": "Код автентифікації обов'язковий"
+  },
+  "web.auth.mfa.invalid_code": {
+    "text": "Недійсний код. Коди закінчуються кожні 30 секунд. Спробуйте останній код з вашого додатку автентифікації."
+  },
+  "web.auth.mfa.success_enabled": {
+    "text": "Двофакторну автентифікацію увімкнено"
+  },
+  "web.auth.mfa.success_disabled": {
+    "text": "Двофакторну автентифікацію вимкнено"
+  },
+  "web.auth.mfa.require_password": {
+    "text": "Введіть ваш пароль, щоб вимкнути 2FA"
+  },
+  "web.auth.mfa.password_confirmation": {
+    "text": "Пароль"
+  },
+  "web.auth.mfa.password_reason": {
+    "text": "Підтвердіть свою особу, щоб змінити налаштування двофакторної автентифікації"
+  },
+  "web.auth.mfa.last_used": {
+    "text": "Останнє використання: {time}"
+  },
+  "web.auth.mfa.never_used": {
+    "text": "Ніколи не використовувалось"
+  },
+  "web.auth.mfa.use_recovery_code": {
+    "text": "Використати код відновлення"
+  },
+  "web.auth.mfa.back_to_code": {
+    "text": "Назад до коду автентифікації"
+  },
+  "web.auth.mfa.cancel": {
+    "text": "Скасувати і повернутись до входу"
+  },
+  "web.auth.mfa.loading_status": {
+    "text": "Завантаження статусу MFA..."
+  },
+  "web.auth.mfa.protected_description": {
+    "text": "Ваш обліковий запис захищено двофакторною автентифікацією"
+  },
+  "web.auth.mfa.enable_description": {
+    "text": "Захистіть ваш обліковий запис додатковим рівнем безпеки"
+  },
+  "web.auth.mfa.benefit_unauthorized": {
+    "text": "Запобігайте несанкціонованому доступу, навіть якщо ваш пароль скомпрометовано"
+  },
+  "web.auth.mfa.benefit_apps": {
+    "text": "Працює з Google Authenticator, Authy та іншими TOTP-додатками"
+  },
+  "web.auth.mfa.benefit_recovery": {
+    "text": "Резервні коди відновлення для екстреного доступу"
+  },
+  "web.auth.mfa.password_placeholder": {
+    "text": "Введіть ваш пароль"
+  },
+  "web.auth.mfa.disabling": {
+    "text": "Вимкнення..."
+  },
+  "web.auth.mfa.disable_button": {
+    "text": "Вимкнути 2FA"
+  },
+  "web.auth.mfa.generating_qr": {
+    "text": "Генерування QR-коду..."
+  },
+  "web.auth.mfa.supported_apps": {
+    "text": "Використовуйте Google Authenticator, Authy або будь-який TOTP-додаток"
+  },
+  "web.auth.mfa.continue_verification": {
+    "text": "Продовжити до перевірки"
+  },
+  "web.auth.mfa.enter_code_description": {
+    "text": "Введіть 6-значний код з вашого додатку автентифікації"
+  },
+  "web.auth.mfa.enable_and_continue": {
+    "text": "Увімкнути MFA"
+  },
+  "web.auth.mfa.complete_setup": {
+    "text": "Завершити налаштування"
+  },
+  "web.auth.mfa.enter_recovery_code": {
+    "text": "Введіть один з ваших кодів відновлення"
+  },
+  "web.auth.mfa.recovery_code_label": {
+    "text": "Код відновлення"
+  },
+  "web.auth.mfa.recovery_code_placeholder": {
+    "text": "Введіть код відновлення"
+  },
+  "web.auth.mfa.verify_recovery_code": {
+    "text": "Перевірити код відновлення"
+  },
+  "web.auth.mfa.six_digit_code": {
+    "text": "Введіть 6-значний код автентифікації"
+  },
+  "web.auth.mfa.recovery_code_mode_active": {
+    "text": "Режим коду відновлення активний"
+  },
+  "web.auth.mfa.otp_mode_active": {
+    "text": "Режим коду автентифікації активний"
+  },
+  "web.auth.mfa.enter_all_digits": {
+    "text": "Будь ласка, введіть всі 6 цифр для продовження"
+  },
+  "web.auth.mfa.digit_of_count": {
+    "text": "Цифра {current} з {total}"
+  },
+  "web.auth.recovery_codes.title": {
+    "text": "Коди відновлення"
+  },
+  "web.auth.recovery_codes.description": {
+    "text": "Збережіть ці коди в безпечному місці. Кожен може бути використаний один раз, якщо ви втратите доступ до вашого автентифікатора."
+  },
+  "web.auth.recovery_codes.warning": {
+    "text": "Ці коди будуть показані лише один раз"
+  },
+  "web.auth.recovery_codes.save_required": {
+    "text": "Ви повинні завантажити або скопіювати коди відновлення перед завершенням налаштування."
+  },
+  "web.auth.recovery_codes.generate_new": {
+    "text": "Згенерувати нові коди"
+  },
+  "web.auth.recovery_codes.regenerate": {
+    "text": "Згенерувати нові коди"
+  },
+  "web.auth.recovery_codes.generate_new_warning": {
+    "text": "Це зробить недійсними всі існуючі коди відновлення"
+  },
+  "web.auth.recovery_codes.download": {
+    "text": "Завантажити коди"
+  },
+  "web.auth.recovery_codes.downloaded": {
+    "text": "Коди відновлення завантажено"
+  },
+  "web.auth.recovery_codes.print": {
+    "text": "Роздрукувати коди"
+  },
+  "web.auth.recovery_codes.copy": {
+    "text": "Копіювати всі коди"
+  },
+  "web.auth.recovery_codes.copied": {
+    "text": "Коди скопійовано в буфер обміну"
+  },
+  "web.auth.recovery_codes.copy_failed": {
+    "text": "Не вдалося скопіювати коди в буфер обміну"
+  },
+  "web.auth.recovery_codes.code_used": {
+    "text": "Використано"
+  },
+  "web.auth.recovery_codes.code_unused": {
+    "text": "Не використано"
+  },
+  "web.auth.recovery_codes.remaining": {
+    "text": "Залишилось {count} кодів відновлення"
+  },
+  "web.auth.recovery_codes.usage_hint": {
+    "text": "Кожен код можна використати лише один раз. Згенеруйте нові коди, якщо їх залишилось мало."
+  },
+  "web.auth.recovery_codes.none_remaining": {
+    "text": "Кодів відновлення не залишилось"
+  },
+  "web.auth.recovery_codes.generate_success": {
+    "text": "Нові коди відновлення згенеровано"
+  },
+  "web.auth.recovery_codes.link_title": {
+    "text": "Коди відновлення"
+  }
+}

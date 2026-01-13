@@ -1,0 +1,592 @@
+{
+  "web.billing.upgrade.required": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.upgrade.viewPlans": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.upgrade.needTeams": {
+    "text": "Takım yönetimi Identity Plus veya üzeri gerektirir"
+  },
+  "web.billing.upgrade.needCustomDomains": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.upgrade.needApiAccess": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.upgrade.needAuditLogs": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.manage_subscription_and_billing": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.organization_selector": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.current_plan": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.plan_features": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.payment_method": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.next_billing_date": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.quick_actions": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.manage_billing": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.view_invoices": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.upgrade_plan": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.change_plan": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.no_payment_method": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.no_upcoming_billing": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.days_remaining": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.billing_on": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.view_plans_action": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.view_plans_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.view_invoices_action": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.view_invoices_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.manage_billing_action": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.manage_billing_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.no_organizations_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.no_organizations_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.entitlements.create_secrets": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.entitlements.view_receipt": {
+    "text": "View Receipts"
+  },
+  "web.billing.overview.entitlements.api_access": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.entitlements.custom_domains": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.entitlements.custom_privacy_defaults": {
+    "text": "Özel Gizlilik Varsayılanları"
+  },
+  "web.billing.overview.entitlements.extended_default_expiration": {
+    "text": "Uzatılmış Varsayılan Süre Sonu"
+  },
+  "web.billing.overview.entitlements.custom_mail_defaults": {
+    "text": "Özel E-posta Varsayılanları"
+  },
+  "web.billing.overview.entitlements.custom_branding": {
+    "text": "Özel Marka"
+  },
+  "web.billing.overview.entitlements.branded_homepage": {
+    "text": "Markalı Ana Sayfa"
+  },
+  "web.billing.overview.entitlements.incoming_secrets": {
+    "text": "Gelen Sırlar"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Organizasyonları Yönet"
+  },
+  "web.billing.overview.entitlements.manage_teams": {
+    "text": "Takımları Yönet"
+  },
+  "web.billing.overview.entitlements.manage_members": {
+    "text": "Üyeleri Yönet"
+  },
+  "web.billing.overview.entitlements.audit_logs": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.entitlements.sso": {
+    "text": "Tek Oturum Açma"
+  },
+  "web.billing.overview.entitlements.priority_support": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.overview.entitlements.sla": {
+    "text": "Hizmet Düzeyi Sözleşmesi"
+  },
+  "web.billing.overview.entitlements_load_error": {
+    "text": "Özellik detayları yüklenemedi"
+  },
+  "web.billing.overview.no_entitlements": {
+    "text": "Kullanılabilir özellik yok"
+  },
+  "web.billing.plans.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.choose_plan": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.subtitle": {
+    "text": "Choose the perfect plan for your organization"
+  },
+  "web.billing.plans.current": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.current_badge": {
+    "text": "Current"
+  },
+  "web.billing.plans.upgrade": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.downgrade": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.monthly": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.yearly": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.per_month": {
+    "text": "aylık"
+  },
+  "web.billing.plans.save_yearly": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.free_plan": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.single_team_plan": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.multi_team_plan": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.individual_account": {
+    "text": "Individual Account"
+  },
+  "web.billing.plans.team_account": {
+    "text": "Team Account"
+  },
+  "web.billing.plans.multi_team_account": {
+    "text": "Organization Account"
+  },
+  "web.billing.plans.features": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.unlimited_secrets": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.api_access": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.priority_support": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.select_plan": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.contact_sales": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.plans.custom_needs_title": {
+    "text": "Sorularınız mı var veya özel bir şeye mi ihtiyacınız var?"
+  },
+  "web.billing.plans.custom_needs_description": {
+    "text": "Sizden haber almak isteriz. Ne aradığınızı bize bildirin."
+  },
+  "web.billing.plans.teams_limit": {
+    "text": "{count} takım | {count} takım"
+  },
+  "web.billing.plans.members_limit": {
+    "text": "Takım başına {count} üye | Takım başına {count} üye"
+  },
+  "web.billing.plans.unlimited_teams": {
+    "text": "Unlimited teams"
+  },
+  "web.billing.plans.unlimited_members": {
+    "text": "Unlimited members per team"
+  },
+  "web.billing.plans.most_popular": {
+    "text": "Most Popular"
+  },
+  "web.billing.plans.suggested": {
+    "text": "Suggested"
+  },
+  "web.billing.plans.everything_in": {
+    "text": "Everything in {plan}, plus:"
+  },
+  "web.billing.plans.no_plans_available": {
+    "text": "No {interval} plans available at this time."
+  },
+  "web.billing.plans.change_immediate": {
+    "text": "Your plan will change immediately."
+  },
+  "web.billing.plans.current_plan_label": {
+    "text": "Current plan:"
+  },
+  "web.billing.plans.new_plan_label": {
+    "text": "New plan:"
+  },
+  "web.billing.plans.credit_label": {
+    "text": "Credit for unused time:"
+  },
+  "web.billing.plans.next_invoice": {
+    "text": "Next invoice"
+  },
+  "web.billing.plans.limits_update_notice": {
+    "text": "Your feature limits will update immediately after the plan change."
+  },
+  "web.billing.plans.change_failed": {
+    "text": "Plan change failed. Please try again."
+  },
+  "web.billing.plans.confirm_upgrade": {
+    "text": "Confirm Upgrade"
+  },
+  "web.billing.plans.confirm_downgrade": {
+    "text": "Confirm Downgrade"
+  },
+  "web.billing.plans.upgrade_to": {
+    "text": "Yükselt"
+  },
+  "web.billing.plans.downgrade_to": {
+    "text": "Downgrade to {plan}?"
+  },
+  "web.billing.invoices.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.invoices.view_history": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.invoices.invoice_date": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.invoices.invoice_amount": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.invoices.invoice_status": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.invoices.invoice_download": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.invoices.no_invoices": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.invoices.paid": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.invoices.pending": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.invoices.failed": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.invoices.load_error": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.notices.org_managed": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.notices.view_org_billing": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.limits.members_reached": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.limits.members_upgrade": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.subscription.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.subscription.status": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.subscription.active": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.subscription.inactive": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.subscription.past_due": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.subscription.canceled": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.subscription.catalog_name": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.portal.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.portal.description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.portal.open_portal": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.portal.redirecting": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.start_today": {
+    "text": "Bugün başlayın"
+  },
+  "web.billing.start_today_with_identity_plus": {
+    "text": "Identity Plus ile bugün başlayın"
+  },
+  "web.billing.per_month": {
+    "text": "aylık"
+  },
+  "web.billing.full_api_access": {
+    "text": "Tam API erişimi"
+  },
+  "web.billing.privacy_first_design": {
+    "text": "Gizlilik öncelikli tasarım"
+  },
+  "web.billing.identity_plus": {
+    "text": "Identity Plus"
+  },
+  "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
+    "text": "Özel alan adları için yükseltmek üzere bu şimşek simgesine tıklayın"
+  },
+  "web.billing.maybe_later": {
+    "text": "Belki Daha Sonra"
+  },
+  "web.billing.upgrade_account": {
+    "text": "Hesabı yükselt"
+  },
+  "web.billing.upgrade_to_identity_plus": {
+    "text": "Identity Plus'a Yükselt"
+  },
+  "web.billing.upgrade_for_teams": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.billing.benefits_of": {
+    "text": "Faydaları"
+  },
+  "web.billing.t_benefits_of_identity_plus": {
+    "text": "{0}: Identity Plus"
+  },
+  "web.billing.upgrade_to": {
+    "text": "Yükselt"
+  },
+  "web.billing.upgrade_for_yourdomain": {
+    "text": "secrets.yourdomain.com için yükseltin"
+  },
+  "web.billing.includes_all_features_and_unlimited_sharing_capa": {
+    "text": "Tüm planlar gizlilik özelliklerini ve sınırsız paylaşım kapasitesini içerir"
+  },
+  "web.billing.includes_all_data_locality_options": {
+    "text": "Tüm planlar veri yerelliği seçeneğini içerir: {0} bölge"
+  },
+  "web.billing.get_started": {
+    "text": "Başlayın"
+  },
+  "web.billing.frequency_value_annually_annual_monthly_subscrip": {
+    "text": "{0} abonelik"
+  },
+  "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
+    "text": "Özel alan adları, sınırsız kapasite ve kurumsal düzeyde özelliklerle güvenli paylaşımınızı yükseltin."
+  },
+  "web.billing.payment_frequency": {
+    "text": "Ödeme sıklığı"
+  },
+  "web.billing.secure_your_brand_and_build_customer_trust_with_": {
+    "text": "Alan adınızdan bağlantılarla markanızı güvence altına alın ve müşteri güveni oluşturun. Gizliliğe ve profesyonelliğe değer veren işletmeler için mükemmeldir."
+  },
+  "web.billing.secure_links_stronger_connections": {
+    "text": "Güvenli Bağlantılar, Daha Güçlü Bağlantılar"
+  },
+  "web.billing.identity_tier_not_found_in_product_tiers": {
+    "text": "Kimlik katmanı ürün katmanlarında bulunamadı"
+  }
+}

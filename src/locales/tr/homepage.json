@@ -41,7 +41,6 @@
       "tagline_delivered": "Teslim edildi",
       "onetime_secret": "Onetime Secret",
       "onetime_secret_literal": "Onetime Secret",
-      "one_time_secret_literal": "",
       "onetime_secret_homepage": "Onetime Secret Ana Sayfası",
       "send_sensitive_information_that_can_only_be_viewed_once": "Yalnızca bir kez görüntülenebilen hassas bilgileri gönderin",
       "create_a_secure_link": "Güvenli bir bağlantı oluşturun",

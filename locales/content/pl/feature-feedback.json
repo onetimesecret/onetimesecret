@@ -1,0 +1,47 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "Twoja opinia"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "Wszelkie opinie mile widziane!"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "Pomóż nam ulepszyć"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "Zamknij okno opinii"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "Podziel się swoją opinią"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum"
+  },
+  "web.feedback.delano": {
+    "text": "Delano"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "Treść pomocy pojawi się tutaj."
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "Dziękujemy za pomoc w ulepszaniu Onetime Secret. To wiele znaczy."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "Stworzyliśmy to narzędzie, aby pomóc Ci bezpiecznie udostępniać poufne informacje, a Twoje doświadczenia z rzeczywistego świata są kluczowe dla ukierunkowania naszych wysiłków. Pomaga nam to zdecydować, nad czym pracować dalej i jak ulepszyć usługę dla wszystkich."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "Cześć, dziękujemy za odwiedzenie naszej strony z opiniami. Twój wkład jest nie tylko mile widziany - jest kluczowy."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "Notatka od Delano, założyciela Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "Otwórz formularz opinii"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "Wprowadź swoją opinię"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Wyślij opinię"
+  }
+}

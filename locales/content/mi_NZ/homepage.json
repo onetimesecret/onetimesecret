@@ -1,0 +1,140 @@
+{
+  "web.homepage.tagline1": {
+    "text": "Whakapiri he kupuhipa, karere huna, hononga tūmataiti rānei ki raro."
+  },
+  "web.homepage.tagline2": {
+    "text": "Puritia ngā mōhiohio tairongo kei waho i tō īmēra me ō rārangi kōrerorero."
+  },
+  "web.homepage.secret_hint": {
+    "text": "* Ka mahi kotahi noa te hononga karere huna, kātahi ka ngaro mō ake tonu atu."
+  },
+  "web.homepage.secret_form_more_text1": {
+    "text": "Waitohu mō tētahi"
+  },
+  "web.homepage.secret_form_more_text2": {
+    "text": "pūkete koreutu"
+  },
+  "web.homepage.secret_form_more_text3": {
+    "text": "ā, ka taea te tuku i te karere huna mā te īmēra."
+  },
+  "web.homepage.cta_title": {
+    "text": "Whakanui i te whakawhirinaki me te tuari i te māia"
+  },
+  "web.homepage.cta_subtitle": {
+    "text": "Whakapiki i tō waitohu me te tuari i te māia"
+  },
+  "web.homepage.cta_feature1": {
+    "text": "Ngā rohe ritenga mutunga kore"
+  },
+  "web.homepage.cta_feature2": {
+    "text": "Tuari karere huna mutunga kore"
+  },
+  "web.homepage.cta_feature3": {
+    "text": "Whakapiki i te whakawhirinaki me te whai wāhi o ngā kiritaki"
+  },
+  "web.homepage.explore_premium_plans": {
+    "text": "Me ngā Rohe Ritenga"
+  },
+  "web.homepage.need_free_account": {
+    "text": "Kātahi anō ka tīmata? Tukua ngā īmēra ki tētahi pūkete koreutu."
+  },
+  "web.homepage.sign_up_free": {
+    "text": "Waitohu Koreutu"
+  },
+  "web.homepage.visit_onetime_secret_home": {
+    "text": "Toro ki te whārangi matua o Onetime Secret"
+  },
+  "web.homepage.password_generation_title": {
+    "text": "Waihanga Kupuhipa"
+  },
+  "web.homepage.password_generation_description": {
+    "text": "Pāwhiri \"Waihanga Kupuhipa\" hei hanga i tētahi kupuhipa matapōkere haumaru ka taea e koe te tuari."
+  },
+  "web.homepage.protip1": {
+    "text": "Ka whakangaromia-anō tō karere whai muri i te tirohanga. Ka taea te uru ki te hononga kotahi anake te wā."
+  },
+  "web.homepage.authonly.tagline2": {
+    "text": "Ko tēnei ratonga mō te whakamahi ā-rohe anake."
+  },
+  "web.homepage.authonly.tagline1": {
+    "text": "Ki te whai pūkenga koe, tēnā whakauru mai kia haere tonu."
+  },
+  "web.homepage.disabled.tagline2": {
+    "text": "Kua whakaritea tēnei ratonga mō te whakamahi ā-rohe anake."
+  },
+  "web.homepage.disabled.tagline1": {
+    "text": "Kāore e wātea te atanga kaiwhakamahi me ngā āheinga whakauru."
+  },
+  "web.homepage.link_preview": {
+    "text": "Arokite Hononga"
+  },
+  "web.homepage.meets_and_exceeds_compliance_standards": {
+    "text": "Ka tutuki, ka nui atu hoki i ngā paerewa tūtohu"
+  },
+  "web.homepage.secure_your_brand_build_customer_trust_etc": {
+    "text": "Tiaki i tō waitohu, whakaritea te whakawhirinaki kiritaki me ngā hononga mai i tō rohe."
+  },
+  "web.homepage.a_trusted_way_to_share_sensitive_information_etc": {
+    "text": "He huarahi pono ki te tuari i ngā mōhiohio tairongo e whakangaromia-anō whai muri i te tirohanga."
+  },
+  "web.homepage.secure_links": {
+    "text": "Ngā Hononga Haumaru"
+  },
+  "web.homepage.about_onetime_secret_0": {
+    "text": "Mō Onetime Secret"
+  },
+  "web.homepage.log_in_to_onetime_secret": {
+    "text": "Takiuru ki Onetime Secret"
+  },
+  "web.homepage.about_onetime_secret": {
+    "text": "Mō Onetime Secret"
+  },
+  "web.homepage.signup_individual_and_business_plans": {
+    "text": "Waitohu - Ngā mahere takitahi me te pakihi"
+  },
+  "web.homepage.tagline_signed": {
+    "text": "Kua Hainatia"
+  },
+  "web.homepage.tagline_sealed": {
+    "text": "Kua Hīritia"
+  },
+  "web.homepage.tagline_delivered": {
+    "text": "Kua Tukuna"
+  },
+  "web.homepage.onetime_secret": {
+    "text": "Onetime Secret"
+  },
+  "web.homepage.onetime_secret_literal": {
+    "text": "Onetime Secret"
+  },
+  "web.homepage.one_time_secret_literal": {
+    "text": "One-Time Secret"
+  },
+  "web.homepage.onetime_secret_homepage": {
+    "text": "Whārangi Matua Onetime Secret"
+  },
+  "web.homepage.send_sensitive_information_that_can_only_be_viewed_once": {
+    "text": "Tukuna ngā mōhiohio tairongo ka kitea kotahi anake"
+  },
+  "web.homepage.create_a_secure_link": {
+    "text": "Waihanga hononga haumaru"
+  },
+  "web.homepage.now_with_custom_domains": {
+    "text": "Ināianei me ngā rohe ritenga"
+  },
+  "web.homepage.this_is_a_private_instance_only_authorized_team_": {
+    "text": "He tauira tūmataiti tēnei. Ko ngā mema rōpū whakaaetia anake ka taea te waihanga i ngā hononga haumaru hou."
+  },
+  "web.homepage.welcome_to_onetime_secret": {
+    "text": "Nau mai ki Onetime Secret."
+  },
+  "web.homepage.onetime_secret_helps_us_share_sensitive_informat": {
+    "text": "Ka āwhina a Onetime Secret i a mātou ki te tuari i ngā mōhiohio tairongo i runga i te haumaru me te pupuri tonu i tō mātou kanohi ngaio."
+  },
+  "web.homepage.information_shared_through_this_service_can_only": {
+    "text": "Ko ngā mōhiohio i tuari mā tēnei ratonga ka taea te uru kotahi anake. Ka tirohia ana, ka mukua pūmautia te ihirangi hei whakaū i te noho muna."
+  },
+  "web.homepage.welcome_to_the_global_broadcast": {
+    "text": "Nau mai ki te Pāhō Ao-Whānui!"
+  }
+}

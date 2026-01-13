@@ -1,0 +1,392 @@
+{
+  "web.organizations.title": {
+    "text": "Organizacja"
+  },
+  "web.organizations.organization": {
+    "text": "Organizacja"
+  },
+  "web.organizations.organization_plural": {
+    "text": "Organizacje"
+  },
+  "web.organizations.organizations_description": {
+    "text": "Zarządzaj swoimi organizacjami"
+  },
+  "web.organizations.my_organizations": {
+    "text": "Moje organizacje"
+  },
+  "web.organizations.manage_organizations": {
+    "text": "Zarządzaj organizacjami"
+  },
+  "web.organizations.new_organization": {
+    "text": "Nowa organizacja"
+  },
+  "web.organizations.no_organizations": {
+    "text": "Brak organizacji"
+  },
+  "web.organizations.no_organizations_description": {
+    "text": "Organizacje pozwalają zarządzać wieloma zespołami z ujednoliconym rozliczaniem i administracją. Zacznij od utworzenia pierwszej organizacji."
+  },
+  "web.organizations.no_description": {
+    "text": "Brak opisu"
+  },
+  "web.organizations.default": {
+    "text": "Domyślna"
+  },
+  "web.organizations.create_organization": {
+    "text": "Utwórz organizację"
+  },
+  "web.organizations.create_first_organization": {
+    "text": "Utwórz pierwszą organizację"
+  },
+  "web.organizations.create_organization_description": {
+    "text": "Utwórz nową organizację, aby pogrupować zespoły"
+  },
+  "web.organizations.create": {
+    "text": "Utwórz"
+  },
+  "web.organizations.create_error": {
+    "text": "Nie udało się utworzyć organizacji"
+  },
+  "web.organizations.organization_name": {
+    "text": "Nazwa organizacji"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "text": "np. Acme Corporation"
+  },
+  "web.organizations.display_name": {
+    "text": "Nazwa organizacji"
+  },
+  "web.organizations.description": {
+    "text": "Opis"
+  },
+  "web.organizations.description_placeholder": {
+    "text": "Do czego służy ta organizacja?"
+  },
+  "web.organizations.contact_email": {
+    "text": "E-mail rozliczeniowy"
+  },
+  "web.organizations.contact_email_help": {
+    "text": "Główny kontakt dla powiadomień rozliczeniowych i administracyjnych"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "text": "Rozliczenia i zarządzanie subskrypcją są obsługiwane przez główny obszar roboczy. Odwiedź ustawienia głównego obszaru roboczego, aby zarządzać metodami płatności i fakturami."
+  },
+  "web.organizations.select_organization": {
+    "text": "Wybierz organizację"
+  },
+  "web.organizations.switcher_locked": {
+    "text": "Przełączanie organizacji niedostępne na tej stronie"
+  },
+  "web.organizations.not_found": {
+    "text": "Nie znaleziono organizacji"
+  },
+  "web.organizations.load_error": {
+    "text": "Nie udało się załadować organizacji"
+  },
+  "web.organizations.fetch_organization_error": {
+    "text": "Nie udało się załadować organizacji"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "text": "Nie udało się załadować organizacji"
+  },
+  "web.organizations.organization_information": {
+    "text": "Informacje o organizacji"
+  },
+  "web.organizations.created": {
+    "text": "Utworzono"
+  },
+  "web.organizations.last_updated": {
+    "text": "Ostatnia aktualizacja"
+  },
+  "web.organizations.organization_settings": {
+    "text": "Ustawienia organizacji"
+  },
+  "web.organizations.organization_settings_description": {
+    "text": "Zaktualizuj nazwę i opis organizacji"
+  },
+  "web.organizations.general_settings": {
+    "text": "Ustawienia ogólne"
+  },
+  "web.organizations.billing_settings": {
+    "text": "Rozliczenia i subskrypcja"
+  },
+  "web.organizations.save_changes": {
+    "text": "Zapisz zmiany"
+  },
+  "web.organizations.update_success": {
+    "text": "Organizacja zaktualizowana pomyślnie"
+  },
+  "web.organizations.update_error": {
+    "text": "Nie udało się zaktualizować organizacji"
+  },
+  "web.organizations.billing_coming_soon": {
+    "text": "Integracja rozliczeń już wkrótce"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "text": "Ujednolicone rozliczenia i zarządzanie subskrypcją dla wszystkich zespołów w tej organizacji będą dostępne w przyszłej wersji."
+  },
+  "web.organizations.about_title": {
+    "text": "O organizacjach"
+  },
+  "web.organizations.about_description": {
+    "text": "Organizacje zapewniają ujednolicone rozliczenia i administrację dla wielu zespołów. Są opcjonalne - zespoły mogą istnieć niezależnie lub być zgrupowane w organizacji dla scentralizowanego zarządzania."
+  },
+  "web.organizations.single_user_info_title": {
+    "text": "Zarządzaj swoją organizacją"
+  },
+  "web.organizations.single_user_info_description": {
+    "text": "Zaktualizuj nazwę firmy i szczegóły organizacji tutaj. Te informacje pomagają spersonalizować konto i mogą być używane do funkcji brandingowych w przyszłości."
+  },
+  "web.organizations.getting_started_title": {
+    "text": "Rozpoczynanie pracy z organizacjami"
+  },
+  "web.organizations.getting_started_description": {
+    "text": "Utwórz pierwszą organizację, aby zarządzać informacjami o firmie i przygotować się na przyszłą współpracę zespołową i funkcje brandingowe."
+  },
+  "web.organizations.page_description": {
+    "text": "Zarządzaj swoimi organizacjami i członkami zespołu"
+  },
+  "web.organizations.tabs.general": {
+    "text": "Ogólne"
+  },
+  "web.organizations.tabs.company_branding": {
+    "text": "Branding firmy"
+  },
+  "web.organizations.tabs.members": {
+    "text": "Zespół"
+  },
+  "web.organizations.tabs.billing": {
+    "text": "Rozliczenia"
+  },
+  "web.organizations.danger_zone": {
+    "text": "Strefa niebezpieczeństwa"
+  },
+  "web.organizations.delete_organization": {
+    "text": "Usuń organizację"
+  },
+  "web.organizations.delete_organization_warning": {
+    "text": "Spowoduje to trwałe usunięcie organizacji i wszystkich powiązanych zespołów. Tej akcji nie można cofnąć."
+  },
+  "web.organizations.delete": {
+    "text": "Usuń"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "text": "Usuń organizację"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "text": "Czy na pewno chcesz usunąć {name}? Tej akcji nie można cofnąć."
+  },
+  "web.organizations.delete_error": {
+    "text": "Nie udało się usunąć organizacji"
+  },
+  "web.organizations.members.title": {
+    "text": "Członkowie"
+  },
+  "web.organizations.members.description": {
+    "text": "Zarządzaj członkami organizacji i ich rolami"
+  },
+  "web.organizations.members.current_members": {
+    "text": "Obecni członkowie"
+  },
+  "web.organizations.members.member": {
+    "text": "Członek"
+  },
+  "web.organizations.members.member_singular": {
+    "text": "member"
+  },
+  "web.organizations.members.member_plural": {
+    "text": "members"
+  },
+  "web.organizations.members.name": {
+    "text": "Nazwa"
+  },
+  "web.organizations.members.email": {
+    "text": "E-mail"
+  },
+  "web.organizations.members.role": {
+    "text": "Rola"
+  },
+  "web.organizations.members.joined": {
+    "text": "Dołączył(a)"
+  },
+  "web.organizations.members.actions": {
+    "text": "Akcje"
+  },
+  "web.organizations.members.no_members": {
+    "text": "Nie znaleziono członków"
+  },
+  "web.organizations.members.no_members_description": {
+    "text": "Ta organizacja nie ma jeszcze członków."
+  },
+  "web.organizations.members.role_updated": {
+    "text": "Rola członka została pomyślnie zaktualizowana"
+  },
+  "web.organizations.members.role_update_error": {
+    "text": "Nie udało się zaktualizować roli członka"
+  },
+  "web.organizations.members.member_removed": {
+    "text": "Członek usunięty z organizacji"
+  },
+  "web.organizations.members.member_remove_error": {
+    "text": "Nie udało się usunąć członka"
+  },
+  "web.organizations.members.remove_member_title": {
+    "text": "Usuń członka"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "text": "Czy na pewno chcesz usunąć {name} z tej organizacji?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "text": "Nie możesz zmienić własnej roli"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "text": "Nie możesz usunąć siebie z organizacji"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "text": "Nie możesz usunąć właściciela organizacji"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "text": "Nie masz uprawnień do zarządzania członkami"
+  },
+  "web.organizations.members.roles.owner": {
+    "text": "Właściciel"
+  },
+  "web.organizations.members.roles.admin": {
+    "text": "Administrator"
+  },
+  "web.organizations.members.roles.member": {
+    "text": "Członek"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "text": "Pełny dostęp do wszystkich ustawień i członków organizacji"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "text": "Może zarządzać członkami i większością ustawień organizacji"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "text": "Podstawowy dostęp do zasobów organizacji"
+  },
+  "web.organizations.invitations.title": {
+    "text": "Zaproszenia do organizacji"
+  },
+  "web.organizations.invitations.invite_member": {
+    "text": "Zaproś członka"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "text": "Zaproś nowego członka"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "text": "Oczekujące zaproszenia"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "text": "Brak oczekujących zaproszeń"
+  },
+  "web.organizations.invitations.email_address": {
+    "text": "Adres e-mail"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "text": "czlonek@przyklad.com"
+  },
+  "web.organizations.invitations.role": {
+    "text": "Rola"
+  },
+  "web.organizations.invitations.send_invite": {
+    "text": "Wyślij zaproszenie"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "text": "Zaproszenie wysłane pomyślnie"
+  },
+  "web.organizations.invitations.invite_error": {
+    "text": "Nie udało się wysłać zaproszenia"
+  },
+  "web.organizations.invitations.resend": {
+    "text": "Wyślij ponownie"
+  },
+  "web.organizations.invitations.revoke": {
+    "text": "Anuluj"
+  },
+  "web.organizations.invitations.resend_success": {
+    "text": "Zaproszenie wysłane ponownie pomyślnie"
+  },
+  "web.organizations.invitations.resend_error": {
+    "text": "Nie udało się wysłać zaproszenia ponownie"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "text": "Zaproszenie anulowane pomyślnie"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "text": "Nie udało się anulować zaproszenia"
+  },
+  "web.organizations.invitations.invited_by": {
+    "text": "Zaproszony przez"
+  },
+  "web.organizations.invitations.invited_at": {
+    "text": "Zaproszony"
+  },
+  "web.organizations.invitations.expires_at": {
+    "text": "Wygasa"
+  },
+  "web.organizations.invitations.resent_count": {
+    "text": "Wysłano ponownie {count} raz"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "text": "Wysłano ponownie {count} razy"
+  },
+  "web.organizations.invitations.status.pending": {
+    "text": "Oczekujące"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "text": "Zaakceptowane"
+  },
+  "web.organizations.invitations.status.declined": {
+    "text": "Odrzucone"
+  },
+  "web.organizations.invitations.status.expired": {
+    "text": "Wygasłe"
+  },
+  "web.organizations.invitations.roles.member": {
+    "text": "Członek"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "text": "Administrator"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "text": "Zaakceptuj zaproszenie"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "text": "Odrzuć zaproszenie"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "text": "Szczegóły zaproszenia"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "text": "Zaproszono Cię do dołączenia do"
+  },
+  "web.organizations.invitations.invited_as": {
+    "text": "Zaproszono Cię jako"
+  },
+  "web.organizations.invitations.accept_success": {
+    "text": "Zaproszenie zaakceptowane pomyślnie"
+  },
+  "web.organizations.invitations.accept_error": {
+    "text": "Nie udało się zaakceptować zaproszenia"
+  },
+  "web.organizations.invitations.decline_success": {
+    "text": "Zaproszenie odrzucone"
+  },
+  "web.organizations.invitations.decline_error": {
+    "text": "Nie udało się odrzucić zaproszenia"
+  },
+  "web.organizations.invitations.expired_message": {
+    "text": "To zaproszenie wygasło"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "text": "Nieprawidłowe lub wygasłe zaproszenie"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "text": "Zaloguj się, aby zaakceptować to zaproszenie"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "text": "Ładowanie szczegółów zaproszenia"
+  }
+}

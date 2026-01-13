@@ -1,0 +1,38 @@
+{
+  "web.testimonials.ai_generated_testimonial": {
+    "text": "Pričevanje, generirano z AI"
+  },
+  "web.testimonials.ai_generated_content_disclaimer": {
+    "text": "Vsebina, generirana z AI, za prikaz. Ne izvira iz dejanske osebe ali podjetja."
+  },
+  "web.testimonials.randomtestimonial_stars_5": {
+    "text": "{0}/5"
+  },
+  "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
+    "text": "- {0}, {1}"
+  },
+  "web.testimonials.randomtestimonial_quote": {
+    "text": "\"{0}\""
+  },
+  "web.testimonials.t_ai_generated_testimonial": {
+    "text": "{0}:"
+  },
+  "web.testimonials.what_leading_ai_says_about_us": {
+    "text": "Kaj vodilna AI pravi o nas"
+  },
+  "web.testimonials.ai_generated_testimonials": {
+    "text": "Pričevanja, generirana z AI"
+  },
+  "web.testimonials.this_quote_was_generated_by": {
+    "text": "Ta citat je generirala"
+  },
+  "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
+    "text": "Temelji na vsebini strani in ne predstavlja dejanske osebe ali podjetja."
+  },
+  "web.testimonials.artificial_feedback": {
+    "text": "Umetne povratne informacije"
+  },
+  "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
+    "text": "Ta vsebina je generirana z AI na podlagi vsebine te strani in ne predstavlja dejanske osebe ali podjetja."
+  }
+}

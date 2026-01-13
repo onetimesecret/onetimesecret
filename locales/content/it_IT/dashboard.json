@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Ricevuto"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Non ricevuto"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Nessun segreto recente"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Inizia creando il tuo primo segreto"
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Impossibile caricare i team"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Si è verificato un problema durante il caricamento dei tuoi team. Riprova."
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "Suwerenność danych i izolacja regionalna"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "Twoje dane znajdują się wyłącznie w wybranym przez Ciebie regionie i nigdy nie są przesyłane między regionami"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "Każdy region działa jako całkowicie niezależne środowisko z własną infrastrukturą, kluczami szyfrowania i przechowywaniem danych"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "Przestrzegamy ścisłej polityki: dane klientów nigdy nie są przesyłane między regionami w żadnych okolicznościach"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "Ważne: Przejście do innego regionu tworzy nowe konto. Twoje dane pozostają w oryginalnym regionie."
+  },
+  "web.regions.your_region": {
+    "text": "Twój region"
+  },
+  "web.regions.your_current_region": {
+    "text": "Twój bieżący region"
+  },
+  "web.regions.active": {
+    "text": "Aktywny"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "Poznaj inne dostępne regiony"
+  },
+  "web.regions.why_it_matters": {
+    "text": "Dlaczego suwerenność danych ma znaczenie"
+  },
+  "web.regions.trust_title": {
+    "text": "Przejrzystość i kontrola"
+  },
+  "web.regions.trust_description": {
+    "text": "Wiedz dokładnie, gdzie znajdują się Twoje dane i które prawa regulują ich ochronę."
+  },
+  "web.regions.privacy_title": {
+    "text": "Prawa do prywatności"
+  },
+  "web.regions.privacy_description": {
+    "text": "Zapewnij, że Twoje dane osobowe są przetwarzane zgodnie z przepisami prawa Twojego kraju dotyczącymi prywatności, zapobiegając nieautoryzowanemu dostępowi lub nadużyciom."
+  },
+  "web.regions.compliance_title": {
+    "text": "Zgodność regulacyjna"
+  },
+  "web.regions.compliance_description": {
+    "text": "Spełniaj wymogi RODO, HIPAA, CCPA i innych regionalnych przepisów dotyczących ochrony danych"
+  },
+  "web.regions.performance_title": {
+    "text": "Szybszy dostęp"
+  },
+  "web.regions.performance_description": {
+    "text": "Dane przechowywane bliżej Ciebie oznaczają niższe opóźnienia i lepszą wydajność."
+  },
+  "web.regions.regions": {
+    "text": "Regiony"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "skontaktuj się z naszym zespołem ds. zgodności"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "przejrzyj naszą dokumentację"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "Twoje konto i dane są chronione zgodnie z prawem i przepisami"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "Te ramy regulacyjne są określane przez Twoją domenę dostępu:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "Każda jurysdykcja utrzymuje odrębną zgodność prawną i zarządzanie danymi. Chociaż możesz tworzyć konta w wielu jurysdykcjach, pozostają one prawnie odrębne bez udostępniania danych między strefami regulacyjnymi."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "Aby zrozumieć szczegółowe przepisy i zabezpieczenia dotyczące Twojego konta, proszę"
+  },
+  "web.regions.current": {
+    "text": "Bieżący"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "Dostępne regiony"
+  },
+  "web.regions.jurisdiction": {
+    "text": "Jurysdykcja"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "Lokalizacja centrum danych: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "Region danych"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "Nieznana jurysdykcja"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "Obsługujemy Cię z"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "Kontynuuj do {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Bieżąca jurysdykcja:"
+  }
+}

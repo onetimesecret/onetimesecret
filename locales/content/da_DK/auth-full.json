@@ -1,0 +1,652 @@
+{
+  "web.auth.mfa_required": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa_verification_required": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.complete_mfa_verification": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.security.authentication_failed": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.security.rate_limited": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.security.session_expired": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.security.recovery_code_not_found": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.security.recovery_code_used": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.security.network_error": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.security.internal_error": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.methods.password": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.methods.magicLink": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.methods.webauthn": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.emailPlaceholder": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.sendLink": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.checkEmail": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.sentTo": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.linkExpiresIn": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.tryDifferentEmail": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.noPasswordNeeded": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.networkError": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.requestFailed": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.invalidLink": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.loginFailed": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.signingYouIn": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.pleaseWait": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.error": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.magicLink.back_to_signin": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.webauthn.signIn": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.webauthn.setup": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.webauthn.notSupported": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.webauthn.requiresModernBrowser": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.webauthn.setupSuccess": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.webauthn.setupFailed": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.webauthn.authFailed": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.webauthn.cancelled": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.webauthn.processing": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.webauthn.description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.webauthn.supportedMethods": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.lockout.attempts_remaining": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.lockout.account_locked": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.lockout.locked_until": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.lockout.contact_support": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.lockout.try_password_reset": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.current": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.other": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.device": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.location": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.ip_address": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.last_active": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.created": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.remove": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.remove_all": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.confirm_remove": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.confirm_remove_all": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.no_sessions": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.removed_success": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.removed_all_success": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.sessions.link_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.enabled": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.disabled": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.enable": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.disable": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.setup_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.setup_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.step_scan": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.step_verify": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.scan_qr": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.manual_entry": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.verify_code": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.enter_code": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.verify": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.code_required": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.invalid_code": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.success_enabled": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.success_disabled": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.require_password": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.password_confirmation": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.password_reason": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.last_used": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.never_used": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.use_recovery_code": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.back_to_code": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.cancel": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.loading_status": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.protected_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.enable_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.benefit_unauthorized": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.benefit_apps": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.benefit_recovery": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.password_placeholder": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.disabling": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.disable_button": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.generating_qr": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.supported_apps": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.continue_verification": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.enter_code_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.enable_and_continue": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.complete_setup": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.enter_recovery_code": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.recovery_code_label": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.recovery_code_placeholder": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.verify_recovery_code": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.six_digit_code": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.recovery_code_mode_active": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.otp_mode_active": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.enter_all_digits": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.mfa.digit_of_count": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.recovery_codes.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.recovery_codes.description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.recovery_codes.warning": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.recovery_codes.save_required": {
+    "text": "Du skal downloade eller kopiere dine gendannelseskoder, før du fuldfører opsætningen."
+  },
+  "web.auth.recovery_codes.generate_new": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.recovery_codes.regenerate": {
+    "text": "Generer nye koder"
+  },
+  "web.auth.recovery_codes.generate_new_warning": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.recovery_codes.download": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.recovery_codes.downloaded": {
+    "text": "Gendannelseskoder downloadet"
+  },
+  "web.auth.recovery_codes.print": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.recovery_codes.copy": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.recovery_codes.copied": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.recovery_codes.copy_failed": {
+    "text": "Kunne ikke kopiere koder til udklipsholder"
+  },
+  "web.auth.recovery_codes.code_used": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.recovery_codes.code_unused": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.recovery_codes.remaining": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.recovery_codes.usage_hint": {
+    "text": "Hver kode kan kun bruges én gang. Generer nye koder, hvis du løber tør."
+  },
+  "web.auth.recovery_codes.none_remaining": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.recovery_codes.generate_success": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.auth.recovery_codes.link_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  }
+}

@@ -1,0 +1,964 @@
+{
+  "web.COMMON.broadcast": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.tagline": {
+    "text": "Links seguros que funcionam apenas uma vez"
+  },
+  "web.COMMON.powered_by": {
+    "text": "Desenvolvido por"
+  },
+  "web.COMMON.website_url": {
+    "text": "https://onetimesecret.com/pt"
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "text": "Gerar Palavra-passe"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "text": "Gerar Palavra-passe está desativado quando o formulário é válido"
+  },
+  "web.COMMON.email_placeholder": {
+    "text": "ex. tom{'@'}myspace.com"
+  },
+  "web.COMMON.password_placeholder": {
+    "text": "Introduza a sua palavra-passe"
+  },
+  "web.COMMON.custom_domains_title": {
+    "text": "Domínios Personalizados"
+  },
+  "web.COMMON.custom_domains_description": {
+    "text": "Fortaleça ligações e construa confiança com os seus próprios links secretos personalizados."
+  },
+  "web.COMMON.get_started_button": {
+    "text": "Começar"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "text": "Confirme a sua palavra-passe"
+  },
+  "web.COMMON.header_settings": {
+    "text": "Definições"
+  },
+  "web.COMMON.submit_with": {
+    "text": "Enviar"
+  },
+  "web.COMMON.submitting": {
+    "text": "A enviar..."
+  },
+  "web.COMMON.processing": {
+    "text": "A processar..."
+  },
+  "web.COMMON.description": {
+    "text": "Mantenha informações sensíveis fora dos seus registos de chat e e-mail. Partilhe um link secreto que está disponível apenas uma vez."
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "text": "Frase-passe incorreta"
+  },
+  "web.COMMON.keywords": {
+    "text": "secreto,gerador de palavras-passe,partilhar um segredo,uma vez"
+  },
+  "web.COMMON.button_create_secret": {
+    "text": "Criar um link secreto"
+  },
+  "web.COMMON.button_generate_secret": {
+    "text": "Ou gerar uma palavra-passe aleatória"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "text": "Opções de Privacidade"
+  },
+  "web.COMMON.secret_passphrase": {
+    "text": "Frase-passe"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "text": "Uma palavra ou frase difícil de adivinhar"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "text": "Endereço do Destinatário"
+  },
+  "web.COMMON.secret_placeholder": {
+    "text": "O conteúdo secreto vai aqui..."
+  },
+  "web.COMMON.header_create_account": {
+    "text": "Criar Conta"
+  },
+  "web.COMMON.header_about": {
+    "text": "Sobre"
+  },
+  "web.COMMON.header_sign_in": {
+    "text": "Iniciar Sessão"
+  },
+  "web.COMMON.header_dashboard": {
+    "text": "Conta"
+  },
+  "web.COMMON.header_logout": {
+    "text": "Terminar Sessão"
+  },
+  "web.COMMON.secret": {
+    "text": "Segredo"
+  },
+  "web.COMMON.recent": {
+    "text": "Recente"
+  },
+  "web.COMMON.received": {
+    "text": "Recebido"
+  },
+  "web.COMMON.burn": {
+    "text": "Queimar"
+  },
+  "web.COMMON.burned": {
+    "text": "Destruído"
+  },
+  "web.COMMON.expires_in": {
+    "text": "Expira em"
+  },
+  "web.COMMON.burn_this_secret": {
+    "text": "Destruir este segredo"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "text": "Destruir um segredo irá apagá-lo antes de ser lido (clique para confirmar)"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "text": "Destruir um segredo é permanente e não pode ser desfeito"
+  },
+  "web.COMMON.msg_check_email": {
+    "text": "Verifique o seu e-mail"
+  },
+  "web.COMMON.click_to_continue": {
+    "text": "Clique para continuar →"
+  },
+  "web.COMMON.click_to_verify": {
+    "text": "Continue para verificar a sua conta:"
+  },
+  "web.COMMON.error_secret": {
+    "text": "Não forneceu nada para partilhar"
+  },
+  "web.COMMON.error_passphrase": {
+    "text": "Verifique novamente essa frase-passe"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "text": "Introduza a frase-passe aqui"
+  },
+  "web.COMMON.view_secret": {
+    "text": "Ver segredo"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "text": "cuidado: só o mostraremos uma vez."
+  },
+  "web.COMMON.warning": {
+    "text": "Aviso"
+  },
+  "web.COMMON.oops": {
+    "text": "Ups!"
+  },
+  "web.COMMON.error": {
+    "text": "Erro"
+  },
+  "web.COMMON.unexpected_error": {
+    "text": "Ocorreu um erro inesperado. Por favor, tente novamente."
+  },
+  "web.COMMON.secret_was_truncated": {
+    "text": "A mensagem foi truncada porque estava acima de"
+  },
+  "web.COMMON.signup_for_more": {
+    "text": "Registe-se para mais"
+  },
+  "web.COMMON.login_to_your_account": {
+    "text": "Inicie sessão na sua conta"
+  },
+  "web.COMMON.sent_to": {
+    "text": "Enviado para: "
+  },
+  "web.COMMON.field_email": {
+    "text": "E-mail"
+  },
+  "web.COMMON.field_password": {
+    "text": "Palavra-passe"
+  },
+  "web.COMMON.field_password2": {
+    "text": "Confirmar Palavra-passe"
+  },
+  "web.COMMON.button_create_account": {
+    "text": "Criar Conta"
+  },
+  "web.COMMON.share_a_secret": {
+    "text": "Partilhar um segredo"
+  },
+  "web.COMMON.title_home": {
+    "text": "Início"
+  },
+  "web.COMMON.word_none": {
+    "text": "Nenhum"
+  },
+  "web.COMMON.word_burned": {
+    "text": "destruído"
+  },
+  "web.COMMON.word_received": {
+    "text": "recebido"
+  },
+  "web.COMMON.word_confirm": {
+    "text": "Confirmar"
+  },
+  "web.COMMON.word_cancel": {
+    "text": "Cancelar"
+  },
+  "web.COMMON.word_continue": {
+    "text": "Continue"
+  },
+  "web.COMMON.word_done": {
+    "text": "Concluído"
+  },
+  "web.COMMON.back": {
+    "text": "Voltar"
+  },
+  "web.COMMON.feedback_text": {
+    "text": "Tem uma pergunta ou comentário?"
+  },
+  "web.COMMON.button_send_feedback": {
+    "text": "Enviar Feedback"
+  },
+  "web.COMMON.verification_sent_to": {
+    "text": "Uma verificação foi enviada para"
+  },
+  "web.COMMON.autoverified_success": {
+    "text": "Conta criada. Por favor, inicie sessão."
+  },
+  "web.COMMON.signup_success_generic": {
+    "text": "Se existe uma conta com este e-mail, receberá um e-mail de verificação."
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "text": "Queimar este segredo permanentemente"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "text": "Por favor, confirme"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "text": "Tem a certeza de que deseja queimar este segredo? Esta ação não pode ser desfeita."
+  },
+  "web.COMMON.confirm_burn": {
+    "text": "Sim, queimar este segredo"
+  },
+  "web.COMMON.burn_security_notice": {
+    "text": "Queimar um segredo irá eliminá-lo antes de ter sido recebido."
+  },
+  "web.COMMON.share_link_securely": {
+    "text": "Por segurança, partilhe este link separadamente de outros detalhes."
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "text": "Copiado para a área de transferência"
+  },
+  "web.COMMON.button_create_incoming": {
+    "text": "Criar Entrada"
+  },
+  "web.COMMON.faq_title": {
+    "text": "Perguntas Frequentes"
+  },
+  "web.COMMON.verification_not_valid": {
+    "text": "A verificação não é válida"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "text": "Não é possível verificar uma conta quando já tem sessão iniciada"
+  },
+  "web.COMMON.show_password": {
+    "text": "Mostrar palavra-passe"
+  },
+  "web.COMMON.hide_password": {
+    "text": "Ocultar palavra-passe"
+  },
+  "web.COMMON.minimum_8_characters": {
+    "text": "A palavra-passe deve ter pelo menos 8 caracteres"
+  },
+  "web.COMMON.password_requirements": {
+    "text": "A palavra-passe deve ter pelo menos 8 caracteres"
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "text": "As palavras-passe não coincidem"
+  },
+  "web.COMMON.form_field_required": {
+    "text": "Este campo é obrigatório"
+  },
+  "web.COMMON.form_processing": {
+    "text": "A processar o seu pedido"
+  },
+  "web.COMMON.remember_me_description": {
+    "text": "Manter sessão iniciada por 30 dias"
+  },
+  "web.COMMON.redirecting": {
+    "text": "A redirecionar..."
+  },
+  "web.COMMON.continue": {
+    "text": "Continuar"
+  },
+  "web.COMMON.are_you_sure": {
+    "text": "Tem a certeza?"
+  },
+  "web.COMMON.danger_zone": {
+    "text": "Zona de Perigo"
+  },
+  "web.COMMON.caution_zone": {
+    "text": "Zona de Consideração Cuidadosa"
+  },
+  "web.COMMON.user_menu": {
+    "text": "Menu do utilizador"
+  },
+  "web.COMMON.security": {
+    "text": "Segurança"
+  },
+  "web.COMMON.manage": {
+    "text": "Gerir"
+  },
+  "web.COMMON.loading": {
+    "text": "A carregar..."
+  },
+  "web.COMMON.save_changes": {
+    "text": "Guardar Alterações"
+  },
+  "web.COMMON.saving": {
+    "text": "A guardar..."
+  },
+  "web.COMMON.adding_ellipses": {
+    "text": "A adicionar..."
+  },
+  "web.COMMON.e_g_example": {
+    "text": "p. ex."
+  },
+  "web.COMMON.example_placeholder": {
+    "text": "p. ex. {example}"
+  },
+  "web.COMMON.status": {
+    "text": "Estado"
+  },
+  "web.COMMON.escape": {
+    "text": "Sair"
+  },
+  "web.COMMON.active": {
+    "text": "Ativo"
+  },
+  "web.COMMON.preview": {
+    "text": "Pré-visualizar"
+  },
+  "web.COMMON.remove": {
+    "text": "Remover"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "text": "Pressione ESC para fechar"
+  },
+  "web.COMMON.enter": {
+    "text": "Entrar"
+  },
+  "web.COMMON.important": {
+    "text": "Importante"
+  },
+  "web.COMMON.language": {
+    "text": "Idioma"
+  },
+  "web.COMMON.theme": {
+    "text": "Tema"
+  },
+  "web.COMMON.appearance": {
+    "text": "Aparência"
+  },
+  "web.COMMON.done": {
+    "text": "Concluído"
+  },
+  "web.COMMON.end": {
+    "text": "Fim"
+  },
+  "web.COMMON.general": {
+    "text": "Geral"
+  },
+  "web.COMMON.note": {
+    "text": "Nota"
+  },
+  "web.COMMON.monthly": {
+    "text": "Mensal"
+  },
+  "web.COMMON.yearly": {
+    "text": "Anual"
+  },
+  "web.COMMON.go_on_then": {
+    "text": "Prossiga."
+  },
+  "web.COMMON.loading_ellipses": {
+    "text": "A carregar..."
+  },
+  "web.COMMON.not_received": {
+    "text": "NÃO RECEBIDO"
+  },
+  "web.COMMON.confirm_password": {
+    "text": "Confirmar palavra-passe"
+  },
+  "web.COMMON.new_password": {
+    "text": "Nova palavra-passe"
+  },
+  "web.COMMON.email_address": {
+    "text": "Endereço de e-mail"
+  },
+  "web.COMMON.switch": {
+    "text": "alternar"
+  },
+  "web.COMMON.features": {
+    "text": "Recursos"
+  },
+  "web.COMMON.not_found": {
+    "text": "Não Encontrado"
+  },
+  "web.COMMON.emoji_x": {
+    "text": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "text": "✅"
+  },
+  "web.COMMON.supported": {
+    "text": "Suportado"
+  },
+  "web.COMMON.version": {
+    "text": "Versão"
+  },
+  "web.COMMON.other": {
+    "text": "Outro"
+  },
+  "web.COMMON.min_width_1024px": {
+    "text": "(largura mínima: 1024px)"
+  },
+  "web.COMMON.ctrl_enter": {
+    "text": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "text": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "text": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "text": "Endereço de e-mail copiado para a área de transferência!"
+  },
+  "web.COMMON.value": {
+    "text": "Valor"
+  },
+  "web.COMMON.host": {
+    "text": "Host"
+  },
+  "web.COMMON.type": {
+    "text": "Tipo"
+  },
+  "web.COMMON.previous": {
+    "text": "Anterior"
+  },
+  "web.COMMON.next": {
+    "text": "Seguinte"
+  },
+  "web.COMMON.password_strength": {
+    "text": "Força da Palavra-passe:"
+  },
+  "web.COMMON.great": {
+    "text": "Ótima"
+  },
+  "web.COMMON.pretty_good": {
+    "text": "Muito boa"
+  },
+  "web.COMMON.fair": {
+    "text": "Razoável"
+  },
+  "web.COMMON.meh": {
+    "text": "Mais ou menos"
+  },
+  "web.COMMON.not_great": {
+    "text": "Não muito boa"
+  },
+  "web.COMMON.open_options": {
+    "text": "Abrir opções"
+  },
+  "web.COMMON.inactive": {
+    "text": "Inativo"
+  },
+  "web.COMMON.an_error_occurred": {
+    "text": "Ocorreu um erro"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "text": "Copiar mensagem secreta para a área de transferência"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "text": "Mensagem secreta copiada para a área de transferência"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "text": "Verifique novamente essa frase-passe"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "text": "Pressione o botão de copiar abaixo."
+  },
+  "web.LABELS.view_toggle.show": {
+    "text": "Mostrar"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "text": "Ocultar"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "text": "Mostrar Mais"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "text": "Mostrar Menos"
+  },
+  "web.LABELS.enable": {
+    "text": "Ativar"
+  },
+  "web.LABELS.disable": {
+    "text": "Desativar"
+  },
+  "web.LABELS.stats": {
+    "text": "Estatísticas"
+  },
+  "web.LABELS.timeline": {
+    "text": "Linha Temporal"
+  },
+  "web.LABELS.lifespan": {
+    "text": "Duração"
+  },
+  "web.LABELS.expiration_time": {
+    "text": "Hora de Expiração"
+  },
+  "web.LABELS.close": {
+    "text": "Fechar"
+  },
+  "web.LABELS.loading": {
+    "text": "A carregar..."
+  },
+  "web.LABELS.cancel": {
+    "text": "Cancelar"
+  },
+  "web.LABELS.saving": {
+    "text": "A guardar..."
+  },
+  "web.LABELS.saved": {
+    "text": "Guardado"
+  },
+  "web.LABELS.save": {
+    "text": "Guardar"
+  },
+  "web.LABELS.save_all": {
+    "text": "Guardar Tudo"
+  },
+  "web.LABELS.details": {
+    "text": "Detalhes"
+  },
+  "web.LABELS.encrypted": {
+    "text": "Encriptado"
+  },
+  "web.LABELS.secret_status": {
+    "text": "Estado do Segredo"
+  },
+  "web.LABELS.need_help": {
+    "text": "Precisa de ajuda?"
+  },
+  "web.LABELS.create_new_secret": {
+    "text": "Criar Novo Segredo"
+  },
+  "web.LABELS.actions": {
+    "text": "Ações"
+  },
+  "web.LABELS.no_passphrase": {
+    "text": "Nenhuma Frase-passe Necessária"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "text": "Copiar para a área de transferência"
+  },
+  "web.LABELS.receipts": {
+    "text": "Recibos"
+  },
+  "web.LABELS.share": {
+    "text": "Partilhar"
+  },
+  "web.LABELS.secret_link": {
+    "text": "Link Secreto"
+  },
+  "web.LABELS.dismiss": {
+    "text": "Dispensar"
+  },
+  "web.LABELS.security_details": {
+    "text": "Detalhes de Segurança"
+  },
+  "web.LABELS.items_count": {
+    "text": "{count} Item | {count} Itens"
+  },
+  "web.LABELS.recipients_count": {
+    "text": "{count} Destinatário | {count} Destinatários"
+  },
+  "web.LABELS.view": {
+    "text": "Ver"
+  },
+  "web.LABELS.views": {
+    "text": "Visualizações"
+  },
+  "web.LABELS.times_viewed": {
+    "text": "vezes visualizado"
+  },
+  "web.LABELS.view_progress": {
+    "text": "Progresso da Visualização"
+  },
+  "web.LABELS.help_section": {
+    "text": "Secção de Ajuda"
+  },
+  "web.LABELS.passphrase_protected": {
+    "text": "Protegido com frase-passe"
+  },
+  "web.LABELS.feedback_received": {
+    "text": "Feedback recebido."
+  },
+  "web.LABELS.sending_ellipses": {
+    "text": "A enviar..."
+  },
+  "web.LABELS.title_recent_secrets": {
+    "text": "Segredos Recentes"
+  },
+  "web.LABELS.pricing": {
+    "text": "Preços"
+  },
+  "web.LABELS.refresh": {
+    "text": "Atualizar"
+  },
+  "web.LABELS.reload": {
+    "text": "Recarregar"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "text": "Links secretos criados nesta sessão"
+  },
+  "web.LABELS.create_link_short": {
+    "text": "Criar Link"
+  },
+  "web.LABELS.create_link": {
+    "text": "Criar Link Secreto"
+  },
+  "web.LABELS.create_request_short": {
+    "text": "Criar Pedido"
+  },
+  "web.LABELS.create_request": {
+    "text": "Criar Link de Pedido"
+  },
+  "web.LABELS.related_settings": {
+    "text": "Definições Relacionadas"
+  },
+  "web.LABELS.creating_links_for": {
+    "text": "A criar links para"
+  },
+  "web.LABELS.scope_indicator": {
+    "text": "A criar segredos em {domain}"
+  },
+  "web.STATUS.new": {
+    "text": "Novo"
+  },
+  "web.STATUS.unread": {
+    "text": "Não lido"
+  },
+  "web.STATUS.viewed": {
+    "text": "Link aberto"
+  },
+  "web.STATUS.received": {
+    "text": "Recebido"
+  },
+  "web.STATUS.burned": {
+    "text": "Destruído"
+  },
+  "web.STATUS.destroyed": {
+    "text": "Destruído"
+  },
+  "web.STATUS.expiring_soon": {
+    "text": "Expira em breve"
+  },
+  "web.STATUS.created": {
+    "text": "Criado"
+  },
+  "web.STATUS.expires": {
+    "text": "Expira"
+  },
+  "web.STATUS.expired": {
+    "text": "Expirado"
+  },
+  "web.STATUS.orphaned": {
+    "text": "Abandonado"
+  },
+  "web.STATUS.secured": {
+    "text": "Protegido"
+  },
+  "web.STATUS.securing": {
+    "text": "A proteger"
+  },
+  "web.STATUS.copied": {
+    "text": "Copiado"
+  },
+  "web.STATUS.time_remaining": {
+    "text": "Tempo Restante"
+  },
+  "web.STATUS.new_description": {
+    "text": "O link secreto foi criado e ainda não foi visualizado"
+  },
+  "web.STATUS.unread_description": {
+    "text": "O link secreto foi criado e não foi visualizado"
+  },
+  "web.STATUS.viewed_description": {
+    "text": "O link secreto foi aberto e está pronto para ser visualizado"
+  },
+  "web.STATUS.received_description": {
+    "text": "O segredo foi revelado ao destinatário"
+  },
+  "web.STATUS.burned_description": {
+    "text": "O segredo foi queimado manualmente antes de ser visualizado"
+  },
+  "web.STATUS.destroyed_description": {
+    "text": "O segredo foi permanentemente destruído"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "text": "O segredo irá expirar em breve"
+  },
+  "web.STATUS.orphaned_description": {
+    "text": "O segredo foi abandonado e será destruído em breve"
+  },
+  "web.STATUS.expired_description": {
+    "text": "O segredo expirou antes de ser visualizado"
+  },
+  "web.STATUS.success": {
+    "text": "Sucesso"
+  },
+  "web.STATUS.delivered": {
+    "text": "Entregue"
+  },
+  "web.STATUS.dns_incorrect": {
+    "text": "DNS Incorreto"
+  },
+  "web.STATUS.active": {
+    "text": "Ativo"
+  },
+  "web.STATUS.inactive": {
+    "text": "Inativo"
+  },
+  "web.FEATURES.unlimited_views": {
+    "text": "Visualizações Ilimitadas"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "text": "Marca de domínio confiável"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "text": "Encriptado em trânsito e em repouso"
+  },
+  "web.UNITS.ttl.duration": {
+    "text": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "text": "dia | dias"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "text": "hora | horas"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "text": "minuto | minutos"
+  },
+  "web.UNITS.ttl.time.second": {
+    "text": "segundo | segundos"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "text": "{count} {unit} restantes"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "text": "dia restante | dias restantes"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "text": "hora restante | horas restantes"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "text": "minuto restante | minutos restantes"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "text": "segundo restante | segundos restantes"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.limited_views": {
+    "text": "limite de {count} visualização | limite de {count} visualizações"
+  },
+  "web.UNITS.days_remaining": {
+    "text": "{count} Dia Restante | {count} Dias Restantes"
+  },
+  "web.UNITS.hours_remaining": {
+    "text": "{count} Hora Restante | {count} Horas Restantes"
+  },
+  "web.UNITS.minutes_remaining": {
+    "text": "{count} Minuto Restante | {count} Minutos Restantes"
+  },
+  "web.TITLES.incoming": {
+    "text": "Segredos Recebidos"
+  },
+  "web.TITLES.feedback": {
+    "text": "Feedback"
+  },
+  "web.TITLES.signin": {
+    "text": "Iniciar Sessão"
+  },
+  "web.TITLES.signup": {
+    "text": "Criar Conta"
+  },
+  "web.TITLES.forgot_password": {
+    "text": "Esqueceu a Palavra-passe"
+  },
+  "web.TITLES.reset_password": {
+    "text": "Redefinir Palavra-passe"
+  },
+  "web.TITLES.logout": {
+    "text": "A Terminar Sessão"
+  },
+  "web.TITLES.verify_account": {
+    "text": "Verificar Conta"
+  },
+  "web.TITLES.mfa_verify": {
+    "text": "Autenticação de Dois Fatores"
+  },
+  "web.TITLES.email_login": {
+    "text": "Iniciar Sessão por E-mail"
+  },
+  "web.TITLES.accept_invitation": {
+    "text": "Aceitar Convite"
+  },
+  "web.TITLES.secret": {
+    "text": "Segredo"
+  },
+  "web.TITLES.metadata": {
+    "text": "Detalhes do Segredo"
+  },
+  "web.TITLES.receipt": {
+    "text": "Recibo do Segredo"
+  },
+  "web.TITLES.burn_secret": {
+    "text": "Queimar Segredo"
+  },
+  "web.TITLES.dashboard": {
+    "text": "Painel"
+  },
+  "web.TITLES.recent": {
+    "text": "Segredos Recentes"
+  },
+  "web.TITLES.domains": {
+    "text": "Domínios Personalizados"
+  },
+  "web.TITLES.domain_add": {
+    "text": "Adicionar Domínio"
+  },
+  "web.TITLES.domain_verify": {
+    "text": "Verificar Domínio"
+  },
+  "web.TITLES.domain_brand": {
+    "text": "Marcar Domínio"
+  },
+  "web.TITLES.account": {
+    "text": "Definições da Conta"
+  },
+  "web.TITLES.data_region": {
+    "text": "Região de Dados"
+  },
+  "web.TITLES.current_region": {
+    "text": "Região Atual"
+  },
+  "web.TITLES.available_regions": {
+    "text": "Regiões Disponíveis"
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "text": "Porque é que a Soberania de Dados Importa"
+  },
+  "web.TITLES.profile_settings": {
+    "text": "Definições do Perfil"
+  },
+  "web.TITLES.preferences_settings": {
+    "text": "Preferências"
+  },
+  "web.TITLES.privacy_settings": {
+    "text": "Privacidade"
+  },
+  "web.TITLES.notification_settings": {
+    "text": "Notificações"
+  },
+  "web.TITLES.change_email": {
+    "text": "Alterar E-mail"
+  },
+  "web.TITLES.security_overview": {
+    "text": "Segurança"
+  },
+  "web.TITLES.change_password": {
+    "text": "Alterar Palavra-passe"
+  },
+  "web.TITLES.mfa_settings": {
+    "text": "Autenticação de Dois Fatores"
+  },
+  "web.TITLES.active_sessions": {
+    "text": "Sessões Ativas"
+  },
+  "web.TITLES.recovery_codes": {
+    "text": "Códigos de Recuperação"
+  },
+  "web.TITLES.api_settings": {
+    "text": "Definições de API"
+  },
+  "web.TITLES.advanced_settings": {
+    "text": "Definições Avançadas"
+  },
+  "web.TITLES.colonel": {
+    "text": "Administração"
+  },
+  "web.TITLES.colonel_users": {
+    "text": "Gestão de Utilizadores"
+  },
+  "web.TITLES.colonel_secrets": {
+    "text": "Gestão de Segredos"
+  },
+  "web.TITLES.colonel_domains": {
+    "text": "Domínios Personalizados"
+  },
+  "web.TITLES.colonel_system": {
+    "text": "Sistema"
+  },
+  "web.TITLES.system_settings": {
+    "text": "Definições do Sistema"
+  },
+  "web.TITLES.colonel_maindb": {
+    "text": "Base de Dados Principal"
+  },
+  "web.TITLES.colonel_authdb": {
+    "text": "Base de Dados de Autenticação"
+  },
+  "web.TITLES.colonel_banned_ips": {
+    "text": "IPs Bloqueados"
+  },
+  "web.TITLES.colonel_usage": {
+    "text": "Exportação de Utilização"
+  },
+  "web.TITLES.colonel_info": {
+    "text": "Informação do Sistema"
+  },
+  "web.TITLES.not_found": {
+    "text": "Página Não Encontrada"
+  },
+  "web.TITLES.organizations_settings": {
+    "text": "Organizações"
+  },
+  "web.TITLES.organization_settings": {
+    "text": "Definições da Organização"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "text": "O foco está agora na área de texto principal"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "text": "Instruções de Partilha"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "text": "Partilhe o link com o destinatário pretendido"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "text": "Partilhe a frase-passe separadamente através de um canal seguro"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "text": "Use um canal seguro diferente para partilhar informações sensíveis"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "text": "Verifique sempre que está no site oficial do Onetime Secret. Os fraudadores por vezes criam sites falsos que parecem exatamente com o Onetime Secret para roubar os seus segredos. Para evitar ataques de phishing, verifique o domínio da região antes de criar novos links."
+  }
+}

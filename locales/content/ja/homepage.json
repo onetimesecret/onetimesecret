@@ -1,0 +1,140 @@
+{
+  "web.homepage.tagline1": {
+    "text": "パスワード、秘密のメッセージ、またはプライベートリンクを以下に貼り付けてください。"
+  },
+  "web.homepage.tagline2": {
+    "text": "機密情報をメールやチャットログから除外してください。"
+  },
+  "web.homepage.secret_hint": {
+    "text": "* 秘密リンクは 1 回しか機能せず、その後は永遠に消えます。"
+  },
+  "web.homepage.secret_form_more_text1": {
+    "text": "サインアップして"
+  },
+  "web.homepage.secret_form_more_text2": {
+    "text": "無料アカウント"
+  },
+  "web.homepage.secret_form_more_text3": {
+    "text": "でメールでシークレットを送信できます。"
+  },
+  "web.homepage.cta_title": {
+    "text": "信頼を高め、自信を持って共有"
+  },
+  "web.homepage.cta_subtitle": {
+    "text": "ブランドを高め、自信を持って共有しましょう"
+  },
+  "web.homepage.cta_feature1": {
+    "text": "カスタムドメインで信頼を構築"
+  },
+  "web.homepage.cta_feature2": {
+    "text": "無制限のシークレットシェアリング"
+  },
+  "web.homepage.cta_feature3": {
+    "text": "顧客の信頼とエンゲージメントを向上"
+  },
+  "web.homepage.explore_premium_plans": {
+    "text": "カスタムドメインで"
+  },
+  "web.homepage.need_free_account": {
+    "text": "始めたばかりですか？無料アカウントでメールを送信してください。"
+  },
+  "web.homepage.sign_up_free": {
+    "text": "無料サインアップ"
+  },
+  "web.homepage.visit_onetime_secret_home": {
+    "text": "Onetime Secret ホームページにアクセス"
+  },
+  "web.homepage.password_generation_title": {
+    "text": "パスワード生成ツール"
+  },
+  "web.homepage.password_generation_description": {
+    "text": "「パスワードを生成」をクリックして、共有できる安全なランダムパスワードを作成します。"
+  },
+  "web.homepage.protip1": {
+    "text": "メッセージは表示後に自動的に破棄されます。リンクは一度しかアクセスできません。"
+  },
+  "web.homepage.authonly.tagline2": {
+    "text": "このサービスは内部利用専用です。"
+  },
+  "web.homepage.authonly.tagline1": {
+    "text": "アカウントをお持ちの方は、ログインして続行してください。"
+  },
+  "web.homepage.disabled.tagline2": {
+    "text": "このサービスは内部利用専用に設定されています。"
+  },
+  "web.homepage.disabled.tagline1": {
+    "text": "ユーザーインターフェースとログイン機能は利用できません。"
+  },
+  "web.homepage.link_preview": {
+    "text": "リンクプレビュー"
+  },
+  "web.homepage.meets_and_exceeds_compliance_standards": {
+    "text": "コンプライアンス基準を満たし、それを上回っています"
+  },
+  "web.homepage.secure_your_brand_build_customer_trust_etc": {
+    "text": "あなたのブランドを保護し、あなたのドメインからのリンクでお客様の信頼を構築します。"
+  },
+  "web.homepage.a_trusted_way_to_share_sensitive_information_etc": {
+    "text": "閲覧後に自動的に削除される機密情報を共有するための信頼された方法。"
+  },
+  "web.homepage.secure_links": {
+    "text": "セキュアリンク"
+  },
+  "web.homepage.about_onetime_secret_0": {
+    "text": "Onetime Secret について"
+  },
+  "web.homepage.log_in_to_onetime_secret": {
+    "text": "Onetime Secret にログイン"
+  },
+  "web.homepage.about_onetime_secret": {
+    "text": "Onetime Secret について"
+  },
+  "web.homepage.signup_individual_and_business_plans": {
+    "text": "サインアップ - 個人およびビジネスプラン"
+  },
+  "web.homepage.tagline_signed": {
+    "text": "署名済み"
+  },
+  "web.homepage.tagline_sealed": {
+    "text": "封印済み"
+  },
+  "web.homepage.tagline_delivered": {
+    "text": "配信済み"
+  },
+  "web.homepage.onetime_secret": {
+    "text": "Onetime Secret"
+  },
+  "web.homepage.onetime_secret_literal": {
+    "text": "Onetime Secret"
+  },
+  "web.homepage.one_time_secret_literal": {
+    "text": "One-Time Secret"
+  },
+  "web.homepage.onetime_secret_homepage": {
+    "text": "Onetime Secret ホームページ"
+  },
+  "web.homepage.send_sensitive_information_that_can_only_be_viewed_once": {
+    "text": "一度だけ閲覧できる機密情報を送信する"
+  },
+  "web.homepage.create_a_secure_link": {
+    "text": "安全なリンクを作成する"
+  },
+  "web.homepage.now_with_custom_domains": {
+    "text": "カスタムドメイン対応"
+  },
+  "web.homepage.this_is_a_private_instance_only_authorized_team_": {
+    "text": "これはプライベートインスタンスです。許可されたチームメンバーのみが新しいセキュアリンクを生成できます。"
+  },
+  "web.homepage.welcome_to_onetime_secret": {
+    "text": "Onetime Secretへようこそ。"
+  },
+  "web.homepage.onetime_secret_helps_us_share_sensitive_informat": {
+    "text": "Onetime Secretは、プロフェッショナルな外観を維持しながら、機密情報を安全に共有するのに役立ちます。"
+  },
+  "web.homepage.information_shared_through_this_service_can_only": {
+    "text": "このサービスを通じて共有された情報は一度だけアクセスできます。一度表示されると、機密性を確保するためにコンテンツは完全に削除されます。"
+  },
+  "web.homepage.welcome_to_the_global_broadcast": {
+    "text": "グローバルブロードキャストへようこそ！"
+  }
+}

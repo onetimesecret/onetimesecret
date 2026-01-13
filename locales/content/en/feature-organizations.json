@@ -1,0 +1,401 @@
+{
+  "web.organizations.title": {
+    "text": "Organizations"
+  },
+  "web.organizations.organization": {
+    "text": "Organization"
+  },
+  "web.organizations.organization_plural": {
+    "text": "Organizations"
+  },
+  "web.organizations.organizations_description": {
+    "text": "Manage your organizations"
+  },
+  "web.organizations.my_organizations": {
+    "text": "Organizations"
+  },
+  "web.organizations.manage_organizations": {
+    "text": "Manage Organizations"
+  },
+  "web.organizations.new_organization": {
+    "text": "New Organization"
+  },
+  "web.organizations.no_organizations": {
+    "text": "No organizations yet"
+  },
+  "web.organizations.no_organizations_description": {
+    "text": "Organizations provide unified billing and administration. Get started by creating your first organization."
+  },
+  "web.organizations.no_description": {
+    "text": "No description provided"
+  },
+  "web.organizations.default": {
+    "text": "Default"
+  },
+  "web.organizations.create_organization": {
+    "text": "Create Organization"
+  },
+  "web.organizations.create_first_organization": {
+    "text": "Create First Organization"
+  },
+  "web.organizations.create_organization_description": {
+    "text": "Create a new organization"
+  },
+  "web.organizations.create": {
+    "text": "Create"
+  },
+  "web.organizations.create_error": {
+    "text": "Failed to create organization"
+  },
+  "web.organizations.organization_name": {
+    "text": "Organization Name"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "text": "e.g. Acme Corporation"
+  },
+  "web.organizations.display_name": {
+    "text": "Organization Name"
+  },
+  "web.organizations.description": {
+    "text": "Description"
+  },
+  "web.organizations.description_placeholder": {
+    "text": "What is this organization for?"
+  },
+  "web.organizations.contact_email": {
+    "text": "Billing Email"
+  },
+  "web.organizations.contact_email_help": {
+    "text": "Primary contact for billing and administrative notifications"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "text": "Billing and subscription management is handled through your primary workspace. Visit your main workspace settings to manage payment methods and invoices."
+  },
+  "web.organizations.select_organization": {
+    "text": "Select an organization"
+  },
+  "web.organizations.switcher_locked": {
+    "text": "Organization switching not available on this page"
+  },
+  "web.organizations.not_found": {
+    "text": "Organization not found"
+  },
+  "web.organizations.load_error": {
+    "text": "Failed to load organization"
+  },
+  "web.organizations.fetch_organization_error": {
+    "text": "Failed to load organization"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "text": "Failed to load organizations"
+  },
+  "web.organizations.organization_information": {
+    "text": "Organization Information"
+  },
+  "web.organizations.created": {
+    "text": "Created"
+  },
+  "web.organizations.last_updated": {
+    "text": "Last Updated"
+  },
+  "web.organizations.organization_settings": {
+    "text": "Organization Settings"
+  },
+  "web.organizations.organization_settings_description": {
+    "text": "Update your organization name and description"
+  },
+  "web.organizations.general_settings": {
+    "text": "General Settings"
+  },
+  "web.organizations.billing_settings": {
+    "text": "Billing & Subscription"
+  },
+  "web.organizations.save_changes": {
+    "text": "Save Changes"
+  },
+  "web.organizations.update_success": {
+    "text": "Organization updated successfully"
+  },
+  "web.organizations.update_error": {
+    "text": "Failed to update organization"
+  },
+  "web.organizations.billing_email_updated": {
+    "text": "Billing email updated successfully"
+  },
+  "web.organizations.billing_coming_soon": {
+    "text": "Billing Integration Coming Soon"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "text": "Unified billing and subscription management will be available in a future release."
+  },
+  "web.organizations.about_title": {
+    "text": "About Organizations"
+  },
+  "web.organizations.about_description": {
+    "text": "Organizations provide unified billing and administration for centralized management."
+  },
+  "web.organizations.single_user_info_title": {
+    "text": "Manage Your Organization"
+  },
+  "web.organizations.single_user_info_description": {
+    "text": "Update your company name and organization details here. This information helps personalize your account and can be used for branding features in the future."
+  },
+  "web.organizations.getting_started_title": {
+    "text": "Getting Started with Organizations"
+  },
+  "web.organizations.getting_started_description": {
+    "text": "Create your first organization to manage your company information and prepare for future branding features."
+  },
+  "web.organizations.page_description": {
+    "text": "Manage your organizations and team members"
+  },
+  "web.organizations.tabs.general": {
+    "text": "Settings"
+  },
+  "web.organizations.tabs.company_branding": {
+    "text": "Company Branding"
+  },
+  "web.organizations.tabs.members": {
+    "text": "Team"
+  },
+  "web.organizations.tabs.billing": {
+    "text": "Billing"
+  },
+  "web.organizations.danger_zone": {
+    "text": "Danger Zone"
+  },
+  "web.organizations.delete_organization": {
+    "text": "Delete Organization"
+  },
+  "web.organizations.delete_organization_warning": {
+    "text": "This will permanently delete the organization. This action cannot be undone."
+  },
+  "web.organizations.delete": {
+    "text": "Delete"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "text": "Delete Organization"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "text": "Are you sure you want to delete {name}? This action cannot be undone."
+  },
+  "web.organizations.delete_error": {
+    "text": "Failed to delete organization"
+  },
+  "web.organizations.members.title": {
+    "text": "Members"
+  },
+  "web.organizations.members.description": {
+    "text": "Manage organization members and their roles"
+  },
+  "web.organizations.members.current_members": {
+    "text": "Current Members"
+  },
+  "web.organizations.members.member": {
+    "text": "Member"
+  },
+  "web.organizations.members.member_singular": {
+    "text": "member"
+  },
+  "web.organizations.members.member_plural": {
+    "text": "members"
+  },
+  "web.organizations.members.name": {
+    "text": "Name"
+  },
+  "web.organizations.members.email": {
+    "text": "Email"
+  },
+  "web.organizations.members.role": {
+    "text": "Role"
+  },
+  "web.organizations.members.joined": {
+    "text": "Joined"
+  },
+  "web.organizations.members.actions": {
+    "text": "Actions"
+  },
+  "web.organizations.members.no_members": {
+    "text": "No members yet. Invite team members to get started."
+  },
+  "web.organizations.members.no_members_description": {
+    "text": "This organization has no members yet."
+  },
+  "web.organizations.members.role_updated": {
+    "text": "Member role updated successfully"
+  },
+  "web.organizations.members.role_update_error": {
+    "text": "Failed to update member role"
+  },
+  "web.organizations.members.member_removed": {
+    "text": "Member removed from organization"
+  },
+  "web.organizations.members.member_remove_error": {
+    "text": "Failed to remove member"
+  },
+  "web.organizations.members.remove_member_title": {
+    "text": "Remove Member"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "text": "Are you sure you want to remove {name} from this organization?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "text": "You cannot change your own role"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "text": "You cannot remove yourself from the organization"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "text": "You cannot remove the organization owner"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "text": "You do not have permission to manage members"
+  },
+  "web.organizations.members.roles.owner": {
+    "text": "Owner"
+  },
+  "web.organizations.members.roles.admin": {
+    "text": "Admin"
+  },
+  "web.organizations.members.roles.member": {
+    "text": "Member"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "text": "Full access to all organization settings and members"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "text": "Can manage members and most organization settings"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "text": "Basic access to organization resources"
+  },
+  "web.organizations.invitations.title": {
+    "text": "Organization Invitations"
+  },
+  "web.organizations.invitations.invite_member": {
+    "text": "Invite Member"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "text": "Invite New Member"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "text": "Pending Invitations"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "text": "No pending invitations"
+  },
+  "web.organizations.invitations.email_address": {
+    "text": "Email Address"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "text": "member@example.com"
+  },
+  "web.organizations.invitations.role": {
+    "text": "Role"
+  },
+  "web.organizations.invitations.send_invite": {
+    "text": "Send Invitation"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "text": "Invitation sent successfully"
+  },
+  "web.organizations.invitations.invite_error": {
+    "text": "Failed to send invitation"
+  },
+  "web.organizations.invitations.resend": {
+    "text": "Resend"
+  },
+  "web.organizations.invitations.revoke": {
+    "text": "Revoke"
+  },
+  "web.organizations.invitations.resend_success": {
+    "text": "Invitation resent successfully"
+  },
+  "web.organizations.invitations.resend_error": {
+    "text": "Failed to resend invitation"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "text": "Invitation revoked successfully"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "text": "Failed to revoke invitation"
+  },
+  "web.organizations.invitations.invited_by": {
+    "text": "Invited by"
+  },
+  "web.organizations.invitations.invited_at": {
+    "text": "Invited"
+  },
+  "web.organizations.invitations.expires_at": {
+    "text": "Expires"
+  },
+  "web.organizations.invitations.resent_count": {
+    "text": "Resent {count} time"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "text": "Resent {count} times"
+  },
+  "web.organizations.invitations.status.pending": {
+    "text": "Pending"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "text": "Accepted"
+  },
+  "web.organizations.invitations.status.declined": {
+    "text": "Declined"
+  },
+  "web.organizations.invitations.status.expired": {
+    "text": "Expired"
+  },
+  "web.organizations.invitations.roles.member": {
+    "text": "Member"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "text": "Admin"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "text": "Accept Invitation"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "text": "Decline Invitation"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "text": "Invitation Details"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "text": "You've been invited to join"
+  },
+  "web.organizations.invitations.invited_as": {
+    "text": "You've been invited as a"
+  },
+  "web.organizations.invitations.accept_success": {
+    "text": "Invitation accepted successfully"
+  },
+  "web.organizations.invitations.accept_error": {
+    "text": "Failed to accept invitation"
+  },
+  "web.organizations.invitations.decline_success": {
+    "text": "Invitation declined"
+  },
+  "web.organizations.invitations.decline_error": {
+    "text": "Failed to decline invitation"
+  },
+  "web.organizations.invitations.expired_message": {
+    "text": "This invitation has expired"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "text": "Invalid or expired invitation"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "text": "Please sign in to accept this invitation"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "text": "Loading invitation details"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Upgrade your plan to invite team members"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization."
+  }
+}

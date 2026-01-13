@@ -1,0 +1,38 @@
+{
+  "web.testimonials.ai_generated_testimonial": {
+    "text": "AI-generiertes Testimonial"
+  },
+  "web.testimonials.ai_generated_content_disclaimer": {
+    "text": "KI-generierte Inhalte zu Demonstrationszwecken. Nicht von einer tatsächlichen Person oder einem Unternehmen."
+  },
+  "web.testimonials.randomtestimonial_stars_5": {
+    "text": "{0}/5"
+  },
+  "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
+    "text": "- {0}, {1}"
+  },
+  "web.testimonials.randomtestimonial_quote": {
+    "text": "\"{0}\""
+  },
+  "web.testimonials.t_ai_generated_testimonial": {
+    "text": "{0}:"
+  },
+  "web.testimonials.what_leading_ai_says_about_us": {
+    "text": "Was führende KI über uns sagt"
+  },
+  "web.testimonials.ai_generated_testimonials": {
+    "text": "AI-generierte Testimonials"
+  },
+  "web.testimonials.this_quote_was_generated_by": {
+    "text": "Dieses Zitat wurde erstellt von"
+  },
+  "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
+    "text": "Sie basiert auf dem Inhalt der Seite und stellt keine tatsächliche Person oder Firma dar."
+  },
+  "web.testimonials.artificial_feedback": {
+    "text": "Künstliche Rückkopplung"
+  },
+  "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
+    "text": "Dieser Inhalt wurde von einer künstlichen Intelligenz auf der Grundlage des Inhalts dieser Seite generiert und stellt keine tatsächliche Person oder Firma dar."
+  }
+}

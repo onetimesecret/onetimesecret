@@ -1,0 +1,47 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "ملاحظاتك"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "نرحب بجميع الملاحظات!"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "ساعدنا على التحسين"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "إغلاق نافذة الملاحظات"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "شارك ملاحظاتك"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum"
+  },
+  "web.feedback.delano": {
+    "text": "Delano"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "يظهر محتوى المساعدة هنا."
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "شكراً لمساعدتك في تحسين Onetime Secret. هذا يعني الكثير."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "لقد بنينا هذه الأداة لمساعدتك في مشاركة المعلومات الحساسة بشكل آمن، وتجاربك الواقعية حاسمة لتركيز جهودنا. إنها تساعدنا في معرفة ما يجب العمل عليه لاحقاً وكيفية جعل الخدمة أفضل للجميع."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "مرحباً، شكراً لزيارتك صفحة الملاحظات الخاصة بنا. مدخلاتك ليست مرحباً بها فحسب - إنها حاسمة."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "ملاحظة من Delano، مؤسس Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "فتح نموذج الملاحظات"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "أدخل ملاحظاتك"
+  },
+  "web.feedback.send_feedback": {
+    "text": "إرسال الملاحظات"
+  }
+}

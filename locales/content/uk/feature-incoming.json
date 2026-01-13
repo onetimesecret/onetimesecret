@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Надіслати секрет"
+  },
+  "incoming.page_description": {
+    "text": "Безпечно поділіться конфіденційною інформацією з нашою службою підтримки"
+  },
+  "incoming.loading_config": {
+    "text": "Завантаження..."
+  },
+  "incoming.config_error_title": {
+    "text": "Не вдалося завантажити конфігурацію"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Функція недоступна"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Ця функція наразі вимкнена. Зверніться до служби підтримки за допомогою."
+  },
+  "incoming.memo_label": {
+    "text": "Примітка"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Короткий опис (наприклад, Запит на скидання пароля)"
+  },
+  "incoming.memo_hint": {
+    "text": "Допоможіть нам направити ваше повідомлення потрібній особі"
+  },
+  "incoming.recipient_label": {
+    "text": "Надіслати"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Виберіть одержувача"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Виберіть одержувача для цього секрету"
+  },
+  "incoming.recipient_hint": {
+    "text": "Оберіть, хто отримає це захищене повідомлення"
+  },
+  "incoming.no_recipients_available": {
+    "text": "Немає доступних одержувачів"
+  },
+  "incoming.secret_content_label": {
+    "text": "Конфіденційна інформація"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Вставте сюди конфіденційну інформацію (паролі, ключі тощо)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Ця інформація буде зашифрована і доступна для перегляду лише один раз"
+  },
+  "incoming.submit_button": {
+    "text": "Надіслати секрет"
+  },
+  "incoming.submit_secret": {
+    "text": "Надіслати секрет"
+  },
+  "incoming.submitting_button": {
+    "text": "Надсилання..."
+  },
+  "incoming.submitting": {
+    "text": "Надсилання..."
+  },
+  "incoming.reset_button": {
+    "text": "Очистити форму"
+  },
+  "incoming.reset_form": {
+    "text": "Очистити форму"
+  },
+  "incoming.success_title": {
+    "text": "Успішно надіслано"
+  },
+  "incoming.success_description": {
+    "text": "Ваше захищене повідомлення доставлено."
+  },
+  "incoming.reference_id": {
+    "text": "Ідентифікатор посилання"
+  },
+  "incoming.success_info_title": {
+    "text": "Що далі?"
+  },
+  "incoming.success_info_description": {
+    "text": "Одержувач зможе переглянути цей секрет лише один раз. Після перегляду секрет буде безповоротно видалено."
+  },
+  "incoming.create_another": {
+    "text": "Надіслати ще один секрет"
+  },
+  "incoming.tagline1": {
+    "text": "Безпечно діліться конфіденційною інформацією"
+  },
+  "incoming.tagline2": {
+    "text": "Тримайте паролі та особисті дані поза електронною поштою та журналами чатів"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Збережіть <a href='{receiptUrl}'>квитанцію</a> для своїх записів."
+  },
+  "incoming.receipt_link_text": {
+    "text": "квитанцію"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Modtaget"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Ikke modtaget"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Ingen nylige beskeder"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Kom i gang med at oprette din første hemmelighed."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Kunne ikke indlæse hold"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Der opstod et problem ved indlæsning af dine hold. Prøv venligst igen."
+  }
+}

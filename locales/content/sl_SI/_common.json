@@ -1,0 +1,934 @@
+{
+  "web.COMMON.broadcast": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.tagline": {
+    "text": "Varne povezave, ki delujejo samo enkrat"
+  },
+  "web.COMMON.powered_by": {
+    "text": "Poganja"
+  },
+  "web.COMMON.website_url": {
+    "text": "https://onetimesecret.com/sl"
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "text": "Generiraj geslo"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "text": "Generiranje gesla je onemogočeno, ko je obrazec veljaven"
+  },
+  "web.COMMON.email_placeholder": {
+    "text": "npr. ime{'@'}primer.si"
+  },
+  "web.COMMON.password_placeholder": {
+    "text": "Vnesite svoje geslo"
+  },
+  "web.COMMON.custom_domains_title": {
+    "text": "Domene po meri"
+  },
+  "web.COMMON.custom_domains_description": {
+    "text": "Okrepite povezave in zgradite zaupanje s svojimi blagovnomarkiranimi povezavami za skrivnosti."
+  },
+  "web.COMMON.get_started_button": {
+    "text": "Začnite"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "text": "Potrdite svoje geslo"
+  },
+  "web.COMMON.header_settings": {
+    "text": "Nastavitve"
+  },
+  "web.COMMON.submit_with": {
+    "text": "Pošlji"
+  },
+  "web.COMMON.submitting": {
+    "text": "Pošiljam..."
+  },
+  "web.COMMON.processing": {
+    "text": "Obdelujem..."
+  },
+  "web.COMMON.description": {
+    "text": "Ohranite občutljive informacije izven vaših klepetov in e-pošte. Delite skrivno povezavo, ki je na voljo samo enkrat."
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "text": "Nepravilna pristopna fraza"
+  },
+  "web.COMMON.keywords": {
+    "text": "skrivnost,generator gesel,deli skrivnost,enkratno"
+  },
+  "web.COMMON.button_create_secret": {
+    "text": "Ustvari skrivno povezavo"
+  },
+  "web.COMMON.button_generate_secret": {
+    "text": "Ali generiraj naključno geslo"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "text": "Možnosti zasebnosti"
+  },
+  "web.COMMON.secret_passphrase": {
+    "text": "Pristopna fraza"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "text": "Beseda ali fraza, ki jo je težko uganiti"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "text": "Naslov prejemnika"
+  },
+  "web.COMMON.secret_placeholder": {
+    "text": "Skrivna vsebina..."
+  },
+  "web.COMMON.header_create_account": {
+    "text": "Ustvari račun"
+  },
+  "web.COMMON.header_about": {
+    "text": "O storitvi"
+  },
+  "web.COMMON.header_sign_in": {
+    "text": "Prijava"
+  },
+  "web.COMMON.header_dashboard": {
+    "text": "Račun"
+  },
+  "web.COMMON.header_logout": {
+    "text": "Odjava"
+  },
+  "web.COMMON.secret": {
+    "text": "Skrivnost | Skrivnosti"
+  },
+  "web.COMMON.recent": {
+    "text": "Nedavne"
+  },
+  "web.COMMON.received": {
+    "text": "Prejeto"
+  },
+  "web.COMMON.burn": {
+    "text": "Trajno izbriši"
+  },
+  "web.COMMON.burned": {
+    "text": "Trajno izbrisano"
+  },
+  "web.COMMON.expires_in": {
+    "text": "Poteče čez"
+  },
+  "web.COMMON.burn_this_secret": {
+    "text": "Trajno izbriši to skrivnost"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "text": "Trajno brisanje skrivnosti jo bo izbrisalo, preden je bila prebrana (kliknite za potrditev)"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "text": "Trajno brisanje skrivnosti je nepovratno in ga ni mogoče razveljaviti"
+  },
+  "web.COMMON.msg_check_email": {
+    "text": "Preverite svojo e-pošto"
+  },
+  "web.COMMON.click_to_continue": {
+    "text": "Kliknite za razkritje →"
+  },
+  "web.COMMON.click_to_verify": {
+    "text": "Nadaljujte za preverjanje svojega računa:"
+  },
+  "web.COMMON.error_secret": {
+    "text": "Niste posredovali ničesar za delitev"
+  },
+  "web.COMMON.error_passphrase": {
+    "text": "Preverite to pristopno frazo"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "text": "Vnesite pristopno frazo tukaj"
+  },
+  "web.COMMON.view_secret": {
+    "text": "Prikaži skrivnost"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "text": "Pozor: pokazali jo bomo samo enkrat."
+  },
+  "web.COMMON.warning": {
+    "text": "Opozorilo"
+  },
+  "web.COMMON.oops": {
+    "text": "Ups!"
+  },
+  "web.COMMON.error": {
+    "text": "Napaka"
+  },
+  "web.COMMON.unexpected_error": {
+    "text": "Prišlo je do nepričakovane napake. Poskusite znova."
+  },
+  "web.COMMON.secret_was_truncated": {
+    "text": "Sporočilo je bilo okrnjeno"
+  },
+  "web.COMMON.signup_for_more": {
+    "text": "Prijavite se za več"
+  },
+  "web.COMMON.login_to_your_account": {
+    "text": "Prijavite se v svoj račun"
+  },
+  "web.COMMON.sent_to": {
+    "text": "Poslano na: "
+  },
+  "web.COMMON.field_email": {
+    "text": "E-pošta"
+  },
+  "web.COMMON.field_password": {
+    "text": "Geslo"
+  },
+  "web.COMMON.field_password2": {
+    "text": "Potrdite geslo"
+  },
+  "web.COMMON.button_create_account": {
+    "text": "Ustvari račun"
+  },
+  "web.COMMON.share_a_secret": {
+    "text": "Deli skrivnost"
+  },
+  "web.COMMON.title_home": {
+    "text": "Domov"
+  },
+  "web.COMMON.word_none": {
+    "text": "Brez"
+  },
+  "web.COMMON.word_burned": {
+    "text": "trajno izbrisano"
+  },
+  "web.COMMON.word_received": {
+    "text": "prejeto"
+  },
+  "web.COMMON.word_confirm": {
+    "text": "Potrdi"
+  },
+  "web.COMMON.word_cancel": {
+    "text": "Prekliči"
+  },
+  "web.COMMON.word_continue": {
+    "text": "Nadaljuj"
+  },
+  "web.COMMON.word_done": {
+    "text": "Končano"
+  },
+  "web.COMMON.back": {
+    "text": "Nazaj"
+  },
+  "web.COMMON.feedback_text": {
+    "text": "Delite svoje misli, ideje ali izkušnje..."
+  },
+  "web.COMMON.button_send_feedback": {
+    "text": "Pošlji povratne informacije"
+  },
+  "web.COMMON.verification_sent_to": {
+    "text": "Preverjanje je bilo poslano na"
+  },
+  "web.COMMON.autoverified_success": {
+    "text": "Račun ustvarjen. Prosimo, prijavite se."
+  },
+  "web.COMMON.signup_success_generic": {
+    "text": "Če račun s to e-pošto obstaja, boste prejeli e-pošto za preverjanje."
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "text": "Trajno izbriši to skrivnost"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "text": "Potrdite"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "text": "Ali ste prepričani, da želite trajno izbrisati to skrivnost? Tega dejanja ni mogoče razveljaviti."
+  },
+  "web.COMMON.confirm_burn": {
+    "text": "Da, trajno izbriši to skrivnost"
+  },
+  "web.COMMON.burn_security_notice": {
+    "text": "Trajno brisanje skrivnosti jo bo izbrisalo, preden bo prejeta."
+  },
+  "web.COMMON.share_link_securely": {
+    "text": "Zaradi varnosti delite to povezavo ločeno od drugih podrobnosti."
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "text": "Kopirano v odložišče"
+  },
+  "web.COMMON.button_create_incoming": {
+    "text": "Ustvari dohodni predal"
+  },
+  "web.COMMON.faq_title": {
+    "text": "Pogosto zastavljena vprašanja"
+  },
+  "web.COMMON.verification_not_valid": {
+    "text": "Preverjanje ni veljavno"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "text": "Računa ni mogoče preveriti, ko ste že prijavljeni"
+  },
+  "web.COMMON.show_password": {
+    "text": "Prikaži geslo"
+  },
+  "web.COMMON.hide_password": {
+    "text": "Skrij geslo"
+  },
+  "web.COMMON.minimum_8_characters": {
+    "text": "Geslo mora vsebovati vsaj 8 znakov"
+  },
+  "web.COMMON.password_requirements": {
+    "text": "Geslo mora biti dolgo vsaj 8 znakov"
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "text": "Gesli se ne ujemata"
+  },
+  "web.COMMON.form_field_required": {
+    "text": "To polje je obvezno"
+  },
+  "web.COMMON.form_processing": {
+    "text": "Obdelujem vašo zahtevo"
+  },
+  "web.COMMON.remember_me_description": {
+    "text": "Ostani prijavljen 30 dni"
+  },
+  "web.COMMON.redirecting": {
+    "text": "Preusmerjam..."
+  },
+  "web.COMMON.continue": {
+    "text": "Nadaljuj"
+  },
+  "web.COMMON.are_you_sure": {
+    "text": "Ali ste prepričani?"
+  },
+  "web.COMMON.danger_zone": {
+    "text": "Nevarno območje"
+  },
+  "web.COMMON.caution_zone": {
+    "text": "Območje previdnosti"
+  },
+  "web.COMMON.user_menu": {
+    "text": "Uporabniški meni"
+  },
+  "web.COMMON.security": {
+    "text": "Varnost"
+  },
+  "web.COMMON.manage": {
+    "text": "Upravljaj"
+  },
+  "web.COMMON.loading": {
+    "text": "Nalagam..."
+  },
+  "web.COMMON.save_changes": {
+    "text": "Shrani spremembe"
+  },
+  "web.COMMON.saving": {
+    "text": "Shranjujem..."
+  },
+  "web.COMMON.adding_ellipses": {
+    "text": "Dodajam"
+  },
+  "web.COMMON.e_g_example": {
+    "text": "npr."
+  },
+  "web.COMMON.example_placeholder": {
+    "text": "npr. {example}"
+  },
+  "web.COMMON.status": {
+    "text": "Status"
+  },
+  "web.COMMON.escape": {
+    "text": "Escape"
+  },
+  "web.COMMON.active": {
+    "text": "Aktivno"
+  },
+  "web.COMMON.preview": {
+    "text": "Predogled"
+  },
+  "web.COMMON.remove": {
+    "text": "Odstrani"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "text": "Pritisnite ESC za zapiranje"
+  },
+  "web.COMMON.enter": {
+    "text": "Vnesi"
+  },
+  "web.COMMON.important": {
+    "text": "Pomembno"
+  },
+  "web.COMMON.language": {
+    "text": "Jezik"
+  },
+  "web.COMMON.theme": {
+    "text": "Tema"
+  },
+  "web.COMMON.appearance": {
+    "text": "Videz"
+  },
+  "web.COMMON.done": {
+    "text": "Končano"
+  },
+  "web.COMMON.end": {
+    "text": "Konec"
+  },
+  "web.COMMON.general": {
+    "text": "Splošno"
+  },
+  "web.COMMON.note": {
+    "text": "Opomba"
+  },
+  "web.COMMON.monthly": {
+    "text": "Mesečno"
+  },
+  "web.COMMON.yearly": {
+    "text": "Letno"
+  },
+  "web.COMMON.go_on_then": {
+    "text": "Pojdi naprej."
+  },
+  "web.COMMON.loading_ellipses": {
+    "text": "Nalagam..."
+  },
+  "web.COMMON.not_received": {
+    "text": "NI PREJETO"
+  },
+  "web.COMMON.confirm_password": {
+    "text": "Potrdite geslo"
+  },
+  "web.COMMON.new_password": {
+    "text": "Novo geslo"
+  },
+  "web.COMMON.email_address": {
+    "text": "E-poštni naslov"
+  },
+  "web.COMMON.switch": {
+    "text": "preklopi"
+  },
+  "web.COMMON.features": {
+    "text": "Funkcije"
+  },
+  "web.COMMON.not_found": {
+    "text": "Ni najdeno"
+  },
+  "web.COMMON.emoji_x": {
+    "text": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "text": "✅"
+  },
+  "web.COMMON.supported": {
+    "text": "Podprto"
+  },
+  "web.COMMON.version": {
+    "text": "Različica"
+  },
+  "web.COMMON.other": {
+    "text": "Drugo"
+  },
+  "web.COMMON.min_width_1024px": {
+    "text": "(najmanjša širina: 1024px)"
+  },
+  "web.COMMON.ctrl_enter": {
+    "text": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "text": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "text": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "text": "E-poštni naslov kopiran v odložišče!"
+  },
+  "web.COMMON.value": {
+    "text": "Vrednost"
+  },
+  "web.COMMON.host": {
+    "text": "Gostitelj"
+  },
+  "web.COMMON.type": {
+    "text": "Vrsta"
+  },
+  "web.COMMON.previous": {
+    "text": "Prejšnji"
+  },
+  "web.COMMON.next": {
+    "text": "Naslednji"
+  },
+  "web.COMMON.password_strength": {
+    "text": "Moč gesla:"
+  },
+  "web.COMMON.great": {
+    "text": "Odlično"
+  },
+  "web.COMMON.pretty_good": {
+    "text": "Precej dobro"
+  },
+  "web.COMMON.fair": {
+    "text": "Primerno"
+  },
+  "web.COMMON.meh": {
+    "text": "Meh"
+  },
+  "web.COMMON.not_great": {
+    "text": "Ni odlično"
+  },
+  "web.COMMON.open_options": {
+    "text": "Odpri možnosti"
+  },
+  "web.COMMON.inactive": {
+    "text": "Neaktivno"
+  },
+  "web.COMMON.an_error_occurred": {
+    "text": "Prišlo je do napake"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "text": "Kopiraj skrivnost v odložišče"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "text": "Skrivnost kopirana v odložišče"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "text": "Dvakrat preverite pristopno frazo"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "text": "Pritisnite spodnji gumb za kopiranje."
+  },
+  "web.LABELS.view_toggle.show": {
+    "text": "Prikaži"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "text": "Skrij"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "text": "Prikaži več"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "text": "Prikaži manj"
+  },
+  "web.LABELS.enable": {
+    "text": "Omogoči"
+  },
+  "web.LABELS.disable": {
+    "text": "Onemogoči"
+  },
+  "web.LABELS.stats": {
+    "text": "Statistika"
+  },
+  "web.LABELS.timeline": {
+    "text": "Časovnica"
+  },
+  "web.LABELS.lifespan": {
+    "text": "Življenjska doba"
+  },
+  "web.LABELS.expiration_time": {
+    "text": "Čas poteka"
+  },
+  "web.LABELS.close": {
+    "text": "Zapri"
+  },
+  "web.LABELS.loading": {
+    "text": "Nalagam..."
+  },
+  "web.LABELS.cancel": {
+    "text": "Prekliči"
+  },
+  "web.LABELS.saving": {
+    "text": "Shranjujem..."
+  },
+  "web.LABELS.saved": {
+    "text": "Shranjeno"
+  },
+  "web.LABELS.save": {
+    "text": "Shrani"
+  },
+  "web.LABELS.save_all": {
+    "text": "Shrani vse"
+  },
+  "web.LABELS.details": {
+    "text": "Podrobnosti"
+  },
+  "web.LABELS.encrypted": {
+    "text": "Šifrirano"
+  },
+  "web.LABELS.secret_status": {
+    "text": "Status skrivnosti"
+  },
+  "web.LABELS.need_help": {
+    "text": "Potrebujete pomoč?"
+  },
+  "web.LABELS.create_new_secret": {
+    "text": "Ustvari novo skrivnost"
+  },
+  "web.LABELS.actions": {
+    "text": "Dejanja"
+  },
+  "web.LABELS.no_passphrase": {
+    "text": "Pristopna fraza ni potrebna"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "text": "Kopiraj v odložišče"
+  },
+  "web.LABELS.receipts": {
+    "text": "Potrdila"
+  },
+  "web.LABELS.share": {
+    "text": "Deli"
+  },
+  "web.LABELS.secret_link": {
+    "text": "Skrivna povezava"
+  },
+  "web.LABELS.dismiss": {
+    "text": "Opusti"
+  },
+  "web.LABELS.security_details": {
+    "text": "Varnostne podrobnosti"
+  },
+  "web.LABELS.items_count": {
+    "text": "{count} elementov"
+  },
+  "web.LABELS.recipients_count": {
+    "text": "{count} prejemnikov"
+  },
+  "web.LABELS.view": {
+    "text": "Ogled"
+  },
+  "web.LABELS.views": {
+    "text": "Ogledi"
+  },
+  "web.LABELS.times_viewed": {
+    "text": "krat ogledano"
+  },
+  "web.LABELS.view_progress": {
+    "text": "Napredek ogleda"
+  },
+  "web.LABELS.help_section": {
+    "text": "Razdelek pomoči"
+  },
+  "web.LABELS.passphrase_protected": {
+    "text": "Zaščiteno s pristopno frazo"
+  },
+  "web.LABELS.feedback_received": {
+    "text": "Povratne informacije prejete."
+  },
+  "web.LABELS.sending_ellipses": {
+    "text": "Pošiljam..."
+  },
+  "web.LABELS.title_recent_secrets": {
+    "text": "Nedavne skrivnosti"
+  },
+  "web.LABELS.pricing": {
+    "text": "Cenik"
+  },
+  "web.LABELS.refresh": {
+    "text": "Osveži"
+  },
+  "web.LABELS.reload": {
+    "text": "Ponovno naloži"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "text": "Skrivne povezave, ustvarjene v tej seji"
+  },
+  "web.LABELS.create_link_short": {
+    "text": "Ustvari povezavo"
+  },
+  "web.LABELS.create_link": {
+    "text": "Ustvari skrivno povezavo"
+  },
+  "web.LABELS.create_request_short": {
+    "text": "Ustvari zahtevo"
+  },
+  "web.LABELS.create_request": {
+    "text": "Ustvari povezavo za zahtevo"
+  },
+  "web.LABELS.related_settings": {
+    "text": "Povezane nastavitve"
+  },
+  "web.LABELS.creating_links_for": {
+    "text": "Ustvarjanje povezav za"
+  },
+  "web.LABELS.scope_indicator": {
+    "text": "Ustvarjanje skrivnosti v {domain}"
+  },
+  "web.STATUS.new": {
+    "text": "Novo"
+  },
+  "web.STATUS.unread": {
+    "text": "Neprebrano"
+  },
+  "web.STATUS.viewed": {
+    "text": "Povezava odprta"
+  },
+  "web.STATUS.received": {
+    "text": "Prejeto"
+  },
+  "web.STATUS.burned": {
+    "text": "Trajno izbrisano"
+  },
+  "web.STATUS.destroyed": {
+    "text": "Uničeno"
+  },
+  "web.STATUS.expiring_soon": {
+    "text": "Kmalu poteče"
+  },
+  "web.STATUS.created": {
+    "text": "Ustvarjeno"
+  },
+  "web.STATUS.expires": {
+    "text": "Poteče"
+  },
+  "web.STATUS.expired": {
+    "text": "Poteklo"
+  },
+  "web.STATUS.orphaned": {
+    "text": "Osirotelo"
+  },
+  "web.STATUS.secured": {
+    "text": "Varno"
+  },
+  "web.STATUS.securing": {
+    "text": "Varovanje"
+  },
+  "web.STATUS.copied": {
+    "text": "Kopirano"
+  },
+  "web.STATUS.time_remaining": {
+    "text": "Preostali čas"
+  },
+  "web.STATUS.new_description": {
+    "text": "Skrivna povezava je bila ustvarjena in še ni bila ogledana"
+  },
+  "web.STATUS.unread_description": {
+    "text": "Skrivna povezava je bila ustvarjena in ni bila ogledana"
+  },
+  "web.STATUS.viewed_description": {
+    "text": "Skrivna povezava je bila odprta in pripravljena za ogled"
+  },
+  "web.STATUS.received_description": {
+    "text": "Skrivnost je bila razkrita prejemniku"
+  },
+  "web.STATUS.burned_description": {
+    "text": "Skrivnost je bila ročno trajno izbrisana pred ogledom"
+  },
+  "web.STATUS.destroyed_description": {
+    "text": "Skrivnost je bila trajno uničena"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "text": "Skrivnost bo kmalu potekla"
+  },
+  "web.STATUS.orphaned_description": {
+    "text": "Skrivnost je osirotela in bo kmalu uničena"
+  },
+  "web.STATUS.expired_description": {
+    "text": "Skrivnost je potekla pred ogledom"
+  },
+  "web.STATUS.success": {
+    "text": "Uspešno"
+  },
+  "web.STATUS.delivered": {
+    "text": "Dostavljeno"
+  },
+  "web.STATUS.dns_incorrect": {
+    "text": "Nepravilen DNS"
+  },
+  "web.STATUS.active": {
+    "text": "Aktivno"
+  },
+  "web.STATUS.inactive": {
+    "text": "Neaktivno"
+  },
+  "web.FEATURES.unlimited_views": {
+    "text": "Neomejeni ogledi"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "text": "Blagovna znamka zaupanja vredne domene"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "text": "Šifrirano med prenosom in pri shranjevanju"
+  },
+  "web.UNITS.ttl.duration": {
+    "text": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "text": "dan | dni | dni"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "text": "ura | uri | ur"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "text": "minuta | minuti | minut"
+  },
+  "web.UNITS.ttl.time.second": {
+    "text": "sekunda | sekundi | sekund"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "text": "preostane {count} {unit}"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "text": "preostane dan | preostaneta dni | preostane dni"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "text": "preostane ura | preostaneta uri | preostane ur"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "text": "preostane minuta | preostaneta minuti | preostane minut"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "text": "preostane sekunda | preostaneta sekundi | preostane sekund"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.limited_views": {
+    "text": "omejitev {count} ogledov"
+  },
+  "web.UNITS.days_remaining": {
+    "text": "Preostane {count} dni"
+  },
+  "web.UNITS.hours_remaining": {
+    "text": "Preostane {count} ur"
+  },
+  "web.UNITS.minutes_remaining": {
+    "text": "Preostane {count} minut"
+  },
+  "web.TITLES.incoming": {
+    "text": "Dohodne skrivnosti"
+  },
+  "web.TITLES.feedback": {
+    "text": "Povratne informacije"
+  },
+  "web.TITLES.signin": {
+    "text": "Prijava"
+  },
+  "web.TITLES.signup": {
+    "text": "Ustvari račun"
+  },
+  "web.TITLES.forgot_password": {
+    "text": "Pozabljeno geslo"
+  },
+  "web.TITLES.reset_password": {
+    "text": "Ponastavi geslo"
+  },
+  "web.TITLES.logout": {
+    "text": "Odjavljanje"
+  },
+  "web.TITLES.verify_account": {
+    "text": "Preveri račun"
+  },
+  "web.TITLES.mfa_verify": {
+    "text": "Dvofaktorska avtentikacija"
+  },
+  "web.TITLES.email_login": {
+    "text": "Prijava z e-pošto"
+  },
+  "web.TITLES.accept_invitation": {
+    "text": "Sprejmi povabilo"
+  },
+  "web.TITLES.secret": {
+    "text": "Skrivnost"
+  },
+  "web.TITLES.metadata": {
+    "text": "Podrobnosti skrivnosti"
+  },
+  "web.TITLES.receipt": {
+    "text": "Potrdilo o skrivnosti"
+  },
+  "web.TITLES.burn_secret": {
+    "text": "Trajno izbriši skrivnost"
+  },
+  "web.TITLES.dashboard": {
+    "text": "Nadzorna plošča"
+  },
+  "web.TITLES.recent": {
+    "text": "Nedavne skrivnosti"
+  },
+  "web.TITLES.domains": {
+    "text": "Domene po meri"
+  },
+  "web.TITLES.domain_add": {
+    "text": "Dodaj domeno"
+  },
+  "web.TITLES.domain_verify": {
+    "text": "Preveri domeno"
+  },
+  "web.TITLES.domain_brand": {
+    "text": "Blagovna znamka domene"
+  },
+  "web.TITLES.account": {
+    "text": "Nastavitve računa"
+  },
+  "web.TITLES.data_region": {
+    "text": "Podatkovna regija"
+  },
+  "web.TITLES.current_region": {
+    "text": "Trenutna regija"
+  },
+  "web.TITLES.available_regions": {
+    "text": "Razpoložljive regije"
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "text": "Zakaj je pomembna suverenost podatkov"
+  },
+  "web.TITLES.profile_settings": {
+    "text": "Nastavitve profila"
+  },
+  "web.TITLES.preferences_settings": {
+    "text": "Preference"
+  },
+  "web.TITLES.privacy_settings": {
+    "text": "Zasebnost"
+  },
+  "web.TITLES.notification_settings": {
+    "text": "Obvestila"
+  },
+  "web.TITLES.change_email": {
+    "text": "Spremeni e-pošto"
+  },
+  "web.TITLES.security_overview": {
+    "text": "Varnost"
+  },
+  "web.TITLES.change_password": {
+    "text": "Spremeni geslo"
+  },
+  "web.TITLES.mfa_settings": {
+    "text": "Dvofaktorska avtentikacija"
+  },
+  "web.TITLES.active_sessions": {
+    "text": "Aktivne seje"
+  },
+  "web.TITLES.recovery_codes": {
+    "text": "Obnovitvene kode"
+  },
+  "web.TITLES.api_settings": {
+    "text": "Nastavitve API"
+  },
+  "web.TITLES.advanced_settings": {
+    "text": "Napredne nastavitve"
+  },
+  "web.TITLES.system_settings": {
+    "text": "Sistemske nastavitve"
+  },
+  "web.TITLES.not_found": {
+    "text": "Stran ni bila najdena"
+  },
+  "web.TITLES.organizations_settings": {
+    "text": "Organizacije"
+  },
+  "web.TITLES.organization_settings": {
+    "text": "Nastavitve organizacije"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "text": "Fokus je zdaj v glavnem besedilnem območju"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "text": "Navodila za deljenje"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "text": "Delite povezavo z namenjenim prejemnikom"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "text": "Delite pristopno frazo ločeno preko varnega kanala"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "text": "Uporabite drug varen kanal za deljenje občutljivih informacij"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "text": "Vedno preverite, da ste na uradni spletni strani Onetime Secret. Prevaranti včasih ustvarijo lažne spletne strani, ki so videti enako kot Onetime Secret, da bi ukradli vaše skrivnosti. Za preprečitev ribarjenja preverite domensko ime regije pred ustvarjanjem novih povezav."
+  }
+}

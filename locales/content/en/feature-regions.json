@@ -1,0 +1,107 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "Data Sovereignty & Regional Isolation"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "Your data resides exclusively in your chosen region and is never transferred across regions"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "Each region operates as a completely independent environment with its own infrastructure, encryption keys, and data storage"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "We maintain a strict policy: customer data is never transferred between regions under any circumstances"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "Important: Switching to a different region creates a new account. Your data stays in your original region."
+  },
+  "web.regions.your_region": {
+    "text": "Your Region"
+  },
+  "web.regions.your_current_region": {
+    "text": "Your Current Region"
+  },
+  "web.regions.active": {
+    "text": "Active"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "Explore other available regions"
+  },
+  "web.regions.why_it_matters": {
+    "text": "Why Data Sovereignty Matters"
+  },
+  "web.regions.trust_title": {
+    "text": "Transparency & Control"
+  },
+  "web.regions.trust_description": {
+    "text": "Know exactly where your data resides and which laws govern its protection."
+  },
+  "web.regions.privacy_title": {
+    "text": "Privacy Rights"
+  },
+  "web.regions.privacy_description": {
+    "text": "Ensure your personal information is handled according to your country's privacy laws and regulations, preventing unauthorized access or misuse."
+  },
+  "web.regions.compliance_title": {
+    "text": "Regulatory Compliance"
+  },
+  "web.regions.compliance_description": {
+    "text": "Meet GDPR, HIPAA, CCPA, and other regional data protection requirements"
+  },
+  "web.regions.performance_title": {
+    "text": "Faster Access"
+  },
+  "web.regions.performance_description": {
+    "text": "Data stored closer to you means lower latency and better performance."
+  },
+  "web.regions.regions": {
+    "text": "Regions"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "contact our compliance team"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "review our documentation"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "Your account and data are protected under the laws of"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "Your regulatory framework is determined by your access domain:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "Each region is completely separate with its own infrastructure, when possible with its own local hosting provider. You can create accounts in multiple regions, but no data is shared between them."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "For details on regulations and protections that apply to your account,"
+  },
+  "web.regions.current": {
+    "text": "Current"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "Available Regions"
+  },
+  "web.regions.jurisdiction": {
+    "text": "Jurisdiction"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "Data center location: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "Data Region"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "Unknown Jurisdiction"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "Serving you from"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "Continue to {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Current jurisdiction:"
+  }
+}

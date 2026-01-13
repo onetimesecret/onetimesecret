@@ -1,0 +1,47 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "Ihr Rückmeldung"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "Jedes Rückmeldung ist willkommen!"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "Helfen Sie uns zu verbessern"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "Rückmeldung-Modal schließen"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "Teilen Sie Ihr Rückmeldung mit"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum"
+  },
+  "web.feedback.delano": {
+    "text": "Delano"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "Hilfe-Inhalte finden Sie hier."
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "Danke, dass Sie Onetime Secret geholfen haben, sich zu verbessern. Das bedeutet mir sehr viel."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "Wir haben dieses Tool entwickelt, um Ihnen zu helfen, vertrauliche Informationen sicher auszutauschen, und Ihre Erfahrungen aus der Praxis sind entscheidend für die Ausrichtung unserer Bemühungen. Sie helfen uns, herauszufinden, woran wir als Nächstes arbeiten und wie wir den Dienst für alle verbessern können."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "Hallo, danke, dass Sie auf unserer Rückmeldung-Seite vorbeischauen. Ihr Beitrag ist nicht nur willkommen - er ist entscheidend."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "Eine Anmerkung von Delano, dem Gründer von Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "Rückmeldung-Formular öffnen"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "Geben Sie Ihr Rückmeldung ein"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Rückmeldung senden"
+  }
+}

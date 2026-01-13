@@ -1,0 +1,446 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[Звернення: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "text": "Клієнт надіслав наступну інформацію"
+  },
+  "email.secret_link.subject": {
+    "text": "%{sender_email} надіслав вам таємницю"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "надіслав вам таємницю:"
+  },
+  "email.secret_link.important_label": {
+    "text": "Важливо:"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "Це посилання спрацює лише один раз. Після перегляду таємницю буде назавжди видалено."
+  },
+  "email.secret_link.sent_via": {
+    "text": "Надіслано через"
+  },
+  "email.welcome.subject": {
+    "text": "Ласкаво просимо до %{product_name} - Будь ласка, підтвердьте вашу електронну пошту"
+  },
+  "email.welcome.title": {
+    "text": "Ласкаво просимо до %{product_name}!"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "Будь ласка, підтвердьте свою адресу електронної пошти, натиснувши на посилання нижче:"
+  },
+  "email.welcome.verify_button": {
+    "text": "Підтвердити адресу електронної пошти"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "Або скопіюйте та вставте це посилання:"
+  },
+  "email.welcome.signature": {
+    "text": "Делано"
+  },
+  "email.welcome.postscript": {
+    "text": "P.S. Цей лист було надіслано на %{email_address}. Якщо ви не створювали обліковий запис, ви можете безпечно проігнорувати це повідомлення."
+  },
+  "email.password_request.subject": {
+    "text": "Скинути ваш пароль (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "text": "Скинути ваш пароль"
+  },
+  "email.password_request.request_notice": {
+    "text": "Ми отримали запит на скидання вашого пароля для %{product_name}."
+  },
+  "email.password_request.reset_button": {
+    "text": "Скинути пароль"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "Або скопіюйте та вставте це посилання:"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "Якщо ви не запитували скидання пароля, ви можете безпечно проігнорувати цей лист."
+  },
+  "email.password_request.signature": {
+    "text": "Делано"
+  },
+  "email.password_request.postscript": {
+    "text": "P.S. Цей лист було надіслано на %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "text": "Вхід до %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "text": "Вхід за допомогою магічного посилання"
+  },
+  "email.magic_link.request_notice": {
+    "text": "Ви запросили посилання для входу до вашого облікового запису %{product_name}."
+  },
+  "email.magic_link.login_button": {
+    "text": "Увійти"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "Або скопіюйте та вставте це посилання:"
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "Термін дії цього посилання закінчується через 15 хвилин."
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "Якщо ви не запитували це посилання, можете проігнорувати цей лист."
+  },
+  "email.magic_link.signature": {
+    "text": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "text": "P.S. Цей лист надіслано на адресу %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "text": "Ви отримали таємне повідомлення"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "Ви отримали захищене повідомлення:"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "Нотатка:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "Хтось надіслав вам захищене повідомлення через %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "Щоб переглянути цю таємницю, натисніть на посилання нижче:"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "Важливо:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "Це посилання спрацює лише один раз. Після перегляду таємницю буде назавжди видалено."
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "Надіслано через"
+  },
+  "email.secret_revealed.subject": {
+    "text": "Вашу таємницю було переглянуто"
+  },
+  "email.secret_revealed.title": {
+    "text": "Вашу таємницю було переглянуто"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "Вашу таємницю було переглянуто %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "ID таємниці:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "Це автоматичне сповіщення. Жодних дій не потрібно."
+  },
+  "email.secret_revealed.signature": {
+    "text": "Делано"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "Керувати налаштуваннями сповіщень"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "Для керування налаштуваннями сповіщень:"
+  },
+  "email.expiration_warning.subject": {
+    "text": "Ваше таємне посилання скоро закінчиться"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "Ваше таємне посилання закінчиться через %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "Перегляньте вашу таємницю до закінчення терміну"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "Нагадування:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "Після закінчення терміну таємницю буде назавжди видалено і не можна буде відновити."
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "Надіслано через"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "Перегляньте до того, як вона зникне:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "Після закінчення терміну таємницю буде назавжди видалено."
+  },
+  "email.feedback_email.subject": {
+    "text": "Зворотний зв'язок %{date} через %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "text": "Зворотний зв'язок користувача"
+  },
+  "email.feedback_email.from_label": {
+    "text": "Від:"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "Домен:"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "Стратегія:"
+  },
+  "email.feedback_email.message_label": {
+    "text": "Повідомлення:"
+  },
+  "email.feedback_email.signature": {
+    "text": "Підтримка Secret"
+  },
+  "email.organization_invitation.subject": {
+    "text": "Вас запрошено приєднатися до %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "text": "Вас запрошено приєднатися до %{organization_name}!"
+  },
+  "email.organization_invitation.body": {
+    "text": "%{inviter_email} запрошує вас приєднатися до \"%{organization_name}\" як %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "Прийняти запрошення"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "Або скопіюйте та вставте це посилання:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "Термін дії цього запрошення закінчиться через %{days} днів."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "Якщо ви не хочете приєднуватися, ви можете просто проігнорувати цей лист або відхилити запрошення."
+  },
+  "email.organization_invitation.signature": {
+    "text": "Делано"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "P.S. Цей лист було надіслано на %{invited_email}. Якщо ви не очікували цього запрошення, ви можете безпечно проігнорувати це повідомлення."
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "учасник"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "адміністратор"
+  },
+  "email.password_changed.subject": {
+    "text": "Ваш пароль було змінено (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "text": "Ваш пароль було змінено"
+  },
+  "email.password_changed.body": {
+    "text": "Ваш пароль для %{product_name} було змінено %{date} о %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "text": "Якщо ви не робили цю зміну, будь ласка, негайно захистіть ваш обліковий запис, скинувши пароль та зв'язавшись з підтримкою."
+  },
+  "email.password_changed.signature": {
+    "text": "Делано"
+  },
+  "email.email_changed.subject": {
+    "text": "Вашу адресу електронної пошти було змінено (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "text": "Вашу адресу електронної пошти було змінено"
+  },
+  "email.email_changed.body": {
+    "text": "Адресу електронної пошти для вашого облікового запису %{product_name} було змінено на %{new_email_masked} %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "text": "Якщо ви не робили цю зміну, будь ласка, негайно зв'яжіться з підтримкою, оскільки ваш обліковий запис може бути скомпрометовано."
+  },
+  "email.email_changed.signature": {
+    "text": "Делано"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "Підтвердьте вашу нову адресу електронної пошти (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "Підтвердьте вашу нову адресу електронної пошти"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "Будь ласка, підтвердьте цю адресу електронної пошти, щоб завершити зміну для вашого облікового запису %{product_name}."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "Підтвердити адресу електронної пошти"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "Або скопіюйте та вставте це посилання:"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "Делано"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "Двофакторну автентифікацію увімкнено (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "text": "Двофакторну автентифікацію увімкнено"
+  },
+  "email.mfa_enabled.body": {
+    "text": "Двофакторну автентифікацію було увімкнено для вашого облікового запису %{product_name} %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "Ваш обліковий запис тепер більш захищений. Вам потрібно буде вводити код підтвердження з вашого додатка автентифікації при вході."
+  },
+  "email.mfa_enabled.signature": {
+    "text": "Делано"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "Двофакторну автентифікацію вимкнено (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "text": "Двофакторну автентифікацію вимкнено"
+  },
+  "email.mfa_disabled.body": {
+    "text": "Двофакторну автентифікацію було вимкнено для вашого облікового запису %{product_name} %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "Ваш обліковий запис тепер менш захищений. Якщо ви не робили цю зміну, будь ласка, негайно захистіть ваш обліковий запис."
+  },
+  "email.mfa_disabled.signature": {
+    "text": "Делано"
+  },
+  "email.new_login_alert.subject": {
+    "text": "Новий вхід до вашого облікового запису (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "text": "Виявлено новий вхід"
+  },
+  "email.new_login_alert.body": {
+    "text": "Було виявлено новий вхід до вашого облікового запису %{product_name} %{date} о %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "text": "Пристрій:"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "Розташування:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "IP-адреса:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "Якщо це були не ви, ваш обліковий запис може бути скомпрометовано."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "Захистити ваш обліковий запис"
+  },
+  "email.new_login_alert.signature": {
+    "text": "Делано"
+  },
+  "email.member_removed.subject": {
+    "text": "Вас видалено з %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "text": "Вас видалено з %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "text": "Вас було видалено з організації \"%{organization_name}\" в %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "text": "Делано"
+  },
+  "email.role_changed.subject": {
+    "text": "Вашу роль було змінено в %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "text": "Вашу роль було змінено"
+  },
+  "email.role_changed.body": {
+    "text": "Вашу роль в \"%{organization_name}\" було змінено з %{old_role} на %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "text": "Делано"
+  },
+  "email.organization_deleted.subject": {
+    "text": "Організацію \"%{organization_name}\" було видалено"
+  },
+  "email.organization_deleted.title": {
+    "text": "Організацію видалено"
+  },
+  "email.organization_deleted.body": {
+    "text": "Організацію \"%{organization_name}\" було видалено з %{product_name}. Всі пов'язані дані було видалено."
+  },
+  "email.organization_deleted.signature": {
+    "text": "Делано"
+  },
+  "email.payment_receipt.subject": {
+    "text": "Квитанція про оплату для %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "text": "Квитанція про оплату"
+  },
+  "email.payment_receipt.body": {
+    "text": "Дякуємо за ваш платіж. Ось деталі вашого платежу:"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "Сума:"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "Дата:"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "План:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "Переглянути рахунок"
+  },
+  "email.payment_receipt.signature": {
+    "text": "Делано"
+  },
+  "email.payment_failed.subject": {
+    "text": "Платіж не вдався для %{product_name}"
+  },
+  "email.payment_failed.title": {
+    "text": "Платіж не вдався"
+  },
+  "email.payment_failed.body": {
+    "text": "Ми не змогли обробити ваш платіж для %{product_name}. Будь ласка, оновіть ваш спосіб оплати, щоб уникнути переривання обслуговування."
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "Оновити спосіб оплати"
+  },
+  "email.payment_failed.signature": {
+    "text": "Делано"
+  },
+  "email.trial_expiring.subject": {
+    "text": "Ваш пробний період %{product_name} закінчується через %{days_remaining} днів"
+  },
+  "email.trial_expiring.title": {
+    "text": "Ваш пробний період скоро закінчується"
+  },
+  "email.trial_expiring.body": {
+    "text": "Ваш безкоштовний пробний період %{product_name} закінчиться через %{days_remaining} днів. Оновіться зараз, щоб зберегти доступ до всіх функцій."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "Оновити зараз"
+  },
+  "email.trial_expiring.signature": {
+    "text": "Делано"
+  },
+  "email.subscription_changed.subject": {
+    "text": "Вашу підписку %{product_name} було змінено"
+  },
+  "email.subscription_changed.title": {
+    "text": "Підписку змінено"
+  },
+  "email.subscription_changed.body": {
+    "text": "Вашу підписку %{product_name} було змінено з %{old_plan} на %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "Ця зміна набуває чинності %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "text": "Делано"
+  },
+  "email.common.greeting": {
+    "text": "Вітаю,"
+  },
+  "email.common.thanks": {
+    "text": "Дякую,"
+  },
+  "email.common.unsubscribe": {
+    "text": "Відписатися"
+  },
+  "email.common.view_in_browser": {
+    "text": "Переглянути в браузері"
+  },
+  "email.common.onetime_secret": {
+    "text": "Onetime Secret"
+  }
+}

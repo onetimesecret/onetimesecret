@@ -1,0 +1,128 @@
+{
+  "web.branding.color_picker": {
+    "text": "Renk Seçici"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "Mevcut {0}: {1}. Seçenekler arasında geçiş yapmak için tıklayın."
+  },
+  "web.branding.use_setting": {
+    "text": "Ayarı kullan"
+  },
+  "web.branding.font_family": {
+    "text": "Yazı Tipi Ailesi"
+  },
+  "web.branding.corner_style": {
+    "text": "Köşe Stili"
+  },
+  "web.branding.brand_color": {
+    "text": "Marka Rengi"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "Alıcının güvenli bağlantınıza eriştiğinde göreceği görünümün önizlemesi"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "Önizle ve Özelleştir"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "Safari tarayıcı görünümüne geç"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "text": "Pencereyi büyüt"
+  },
+  "web.branding.minimize_window": {
+    "text": "Pencereyi küçült"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "Edge tarayıcı görünümüne geç"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500 karakter"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "QR kodunu taramak için telefonunuzu kullanın"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "Sorularınız için onboarding{'@'}example.com ile iletişime geçin"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "Bu talimatlar, alıcılara mesaj içeriğini açmadan önce gösterilecektir"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "Bu talimatlar, alıcılara mesajı açtıktan sonra gösterilecektir"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "Açma Öncesi Talimatlar"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "Açma Sonrası Talimatlar"
+  },
+  "web.branding.instructions": {
+    "text": "Talimatlar"
+  },
+  "web.branding.logo_controls": {
+    "text": "Logo kontrolleri"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "Logo yüklemek için tıklayın. Önerilen boyut: 128x128 piksel. Maksimum dosya boyutu: 1MB. Desteklenen formatlar: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "text": "Logo yükle"
+  },
+  "web.branding.loading_preview": {
+    "text": "Önizleme yükleniyor..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "\"Mesajı Görüntüle\" düğmesini test ederek alıcıların mesajlarınızı nasıl göreceğini önizleyin"
+  },
+  "web.branding.eye_icon": {
+    "text": "Göz simgesi"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "Logonuzu güncellemek için aşağıdaki önizleme resmine tıklayın (minimum 128x128 piksel önerilir, 1MB maks)"
+  },
+  "web.branding.image_icon": {
+    "text": "Resim simgesi"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "Marka rengini, stillerini ve alıcı talimatlarını özelleştirmek için yukarıdaki kontrolleri kullanın"
+  },
+  "web.branding.customization_icon": {
+    "text": "Özelleştirme simgesi"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "Kaydedilmemiş değişiklikleriniz var. Emin misiniz?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "Marka ayarları yüklenemedi"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "Bu, alıcıların güvenli mesajlarınızı nasıl göreceğinin etkileşimli bir önizlemesidir. Şunları yapabilirsiniz: - Yukarıdaki kontrolleri kullanarak renkleri ve yazı tiplerini özelleştirin - Bir logo yükleyin (minimum 128x128 piksel önerilir, 1MB maks) - \"Mesajı Görüntüle\" düğmesini kullanarak önizlemeyi test edin"
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "Bu, alıcıların güvenli mesajlarınızı nasıl göreceğinin etkileşimli bir önizlemesidir. Şunları yapabilirsiniz: - Yukarıdaki kontrolleri kullanarak renkleri ve yazı tiplerini özelleştirin - Bir logo yükleyin (minimum 128x128 piksel önerilir, 1MB maks) - \"Mesajı Görüntüle\" düğmesini kullanarak önizlemeyi test edin"
+  },
+  "web.branding.default_logo_icon": {
+    "text": "Varsayılan logo simgesi"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "Onetime Secret tarafından desteklenmektedir"
+  },
+  "web.branding.heading_logo": {
+    "text": "{0} Logosu"
+  },
+  "web.branding.edge": {
+    "text": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "Edge önizlemesine geç"
+  },
+  "web.branding.safari": {
+    "text": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "Safari önizlemesine geç"
+  }
+}

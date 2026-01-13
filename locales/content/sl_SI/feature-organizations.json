@@ -1,0 +1,392 @@
+{
+  "web.organizations.title": {
+    "text": "Organizacija"
+  },
+  "web.organizations.organization": {
+    "text": "Organizacija"
+  },
+  "web.organizations.organization_plural": {
+    "text": "Organizacije"
+  },
+  "web.organizations.organizations_description": {
+    "text": "Upravljajte svoje organizacije"
+  },
+  "web.organizations.my_organizations": {
+    "text": "Moje organizacije"
+  },
+  "web.organizations.manage_organizations": {
+    "text": "Manage Organizations"
+  },
+  "web.organizations.new_organization": {
+    "text": "Nova organizacija"
+  },
+  "web.organizations.no_organizations": {
+    "text": "Še ni organizacij"
+  },
+  "web.organizations.no_organizations_description": {
+    "text": "Organizacije vam omogočajo upravljanje več ekip z enotnimi plačili in administracijo. Začnite z ustvarjanjem svoje prve organizacije."
+  },
+  "web.organizations.no_description": {
+    "text": "Opis ni podan"
+  },
+  "web.organizations.default": {
+    "text": "Privzeto"
+  },
+  "web.organizations.create_organization": {
+    "text": "Ustvari organizacijo"
+  },
+  "web.organizations.create_first_organization": {
+    "text": "Ustvari prvo organizacijo"
+  },
+  "web.organizations.create_organization_description": {
+    "text": "Ustvarite novo organizacijo za združevanje svojih ekip"
+  },
+  "web.organizations.create": {
+    "text": "Ustvari"
+  },
+  "web.organizations.create_error": {
+    "text": "Ustvarjanje organizacije ni uspelo"
+  },
+  "web.organizations.organization_name": {
+    "text": "Ime organizacije"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "text": "npr. Podjetje Acme"
+  },
+  "web.organizations.display_name": {
+    "text": "Ime organizacije"
+  },
+  "web.organizations.description": {
+    "text": "Opis"
+  },
+  "web.organizations.description_placeholder": {
+    "text": "Čemu je namenjena ta organizacija?"
+  },
+  "web.organizations.contact_email": {
+    "text": "E-pošta za plačila"
+  },
+  "web.organizations.contact_email_help": {
+    "text": "Glavni kontakt za obvestila o plačilih in administraciji"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "text": "Plačila in naročnina se upravljajo preko vašega primarnega delovnega prostora. Obiščite nastavitve glavnega delovnega prostora za upravljanje načinov plačila in računov."
+  },
+  "web.organizations.select_organization": {
+    "text": "Izberite organizacijo"
+  },
+  "web.organizations.switcher_locked": {
+    "text": "Organization switching not available on this page"
+  },
+  "web.organizations.not_found": {
+    "text": "Organizacija ni bila najdena"
+  },
+  "web.organizations.load_error": {
+    "text": "Nalaganje organizacije ni uspelo"
+  },
+  "web.organizations.fetch_organization_error": {
+    "text": "Nalaganje organizacije ni uspelo"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "text": "Nalaganje organizacij ni uspelo"
+  },
+  "web.organizations.organization_information": {
+    "text": "Informacije o organizaciji"
+  },
+  "web.organizations.created": {
+    "text": "Ustvarjeno"
+  },
+  "web.organizations.last_updated": {
+    "text": "Nazadnje posodobljeno"
+  },
+  "web.organizations.organization_settings": {
+    "text": "Nastavitve organizacije"
+  },
+  "web.organizations.organization_settings_description": {
+    "text": "Posodobite ime in opis svoje organizacije"
+  },
+  "web.organizations.general_settings": {
+    "text": "Splošne nastavitve"
+  },
+  "web.organizations.billing_settings": {
+    "text": "Plačila in naročnina"
+  },
+  "web.organizations.save_changes": {
+    "text": "Shrani spremembe"
+  },
+  "web.organizations.update_success": {
+    "text": "Organizacija uspešno posodobljena"
+  },
+  "web.organizations.update_error": {
+    "text": "Posodobitev organizacije ni uspela"
+  },
+  "web.organizations.billing_coming_soon": {
+    "text": "Integracija plačil bo kmalu na voljo"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "text": "Enotno plačilo in upravljanje naročnin za vse ekipe v tej organizaciji bo na voljo v prihodnji izdaji."
+  },
+  "web.organizations.about_title": {
+    "text": "O organizacijah"
+  },
+  "web.organizations.about_description": {
+    "text": "Organizacije zagotavljajo enotno plačilo in administracijo za več ekip. So izbirne - ekipe lahko obstajajo neodvisno ali so združene v organizaciji za centralizirano upravljanje."
+  },
+  "web.organizations.single_user_info_title": {
+    "text": "Upravljajte svojo organizacijo"
+  },
+  "web.organizations.single_user_info_description": {
+    "text": "Tukaj posodobite ime svojega podjetja in podrobnosti organizacije. Te informacije pomagajo personalizirati vaš račun in jih lahko uporabite za prihodnje funkcije blagovne znamke."
+  },
+  "web.organizations.getting_started_title": {
+    "text": "Začnite z organizacijami"
+  },
+  "web.organizations.getting_started_description": {
+    "text": "Ustvarite svojo prvo organizacijo za upravljanje informacij o svojem podjetju in pripravo na prihodnje sodelovanje ekip ter funkcije blagovne znamke."
+  },
+  "web.organizations.page_description": {
+    "text": "Manage your organizations and team members"
+  },
+  "web.organizations.tabs.general": {
+    "text": "Splošno"
+  },
+  "web.organizations.tabs.company_branding": {
+    "text": "Blagovna znamka podjetja"
+  },
+  "web.organizations.tabs.members": {
+    "text": "Team"
+  },
+  "web.organizations.tabs.billing": {
+    "text": "Plačila"
+  },
+  "web.organizations.danger_zone": {
+    "text": "Nevarno območje"
+  },
+  "web.organizations.delete_organization": {
+    "text": "Izbriši organizacijo"
+  },
+  "web.organizations.delete_organization_warning": {
+    "text": "To bo trajno izbrisalo organizacijo in vse povezane ekipe. Tega dejanja ni mogoče razveljaviti."
+  },
+  "web.organizations.delete": {
+    "text": "Izbriši"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "text": "Izbriši organizacijo"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "text": "Ali ste prepričani, da želite izbrisati {name}? Tega dejanja ni mogoče razveljaviti."
+  },
+  "web.organizations.delete_error": {
+    "text": "Brisanje organizacije ni uspelo"
+  },
+  "web.organizations.members.title": {
+    "text": "Člani"
+  },
+  "web.organizations.members.description": {
+    "text": "Upravljajte člane organizacije in njihove vloge"
+  },
+  "web.organizations.members.current_members": {
+    "text": "Current Members"
+  },
+  "web.organizations.members.member": {
+    "text": "Član"
+  },
+  "web.organizations.members.member_singular": {
+    "text": "member"
+  },
+  "web.organizations.members.member_plural": {
+    "text": "members"
+  },
+  "web.organizations.members.name": {
+    "text": "Ime"
+  },
+  "web.organizations.members.email": {
+    "text": "E-pošta"
+  },
+  "web.organizations.members.role": {
+    "text": "Vloga"
+  },
+  "web.organizations.members.joined": {
+    "text": "Pridružen"
+  },
+  "web.organizations.members.actions": {
+    "text": "Dejanja"
+  },
+  "web.organizations.members.no_members": {
+    "text": "Ni najdenih članov"
+  },
+  "web.organizations.members.no_members_description": {
+    "text": "Ta organizacija še nima članov."
+  },
+  "web.organizations.members.role_updated": {
+    "text": "Vloga člana uspešno posodobljena"
+  },
+  "web.organizations.members.role_update_error": {
+    "text": "Posodobitev vloge člana ni uspela"
+  },
+  "web.organizations.members.member_removed": {
+    "text": "Član odstranjen iz organizacije"
+  },
+  "web.organizations.members.member_remove_error": {
+    "text": "Odstranjevanje člana ni uspelo"
+  },
+  "web.organizations.members.remove_member_title": {
+    "text": "Odstrani člana"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "text": "Ali ste prepričani, da želite odstraniti {name} iz te organizacije?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "text": "Ne morete spremeniti svoje lastne vloge"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "text": "Ne morete odstraniti sebe iz organizacije"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "text": "Ne morete odstraniti lastnika organizacije"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "text": "Nimate dovoljenja za upravljanje članov"
+  },
+  "web.organizations.members.roles.owner": {
+    "text": "Lastnik"
+  },
+  "web.organizations.members.roles.admin": {
+    "text": "Administrator"
+  },
+  "web.organizations.members.roles.member": {
+    "text": "Član"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "text": "Poln dostop do vseh nastavitev organizacije in članov"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "text": "Lahko upravlja člane in večino nastavitev organizacije"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "text": "Osnovni dostop do virov organizacije"
+  },
+  "web.organizations.invitations.title": {
+    "text": "Povabila organizacije"
+  },
+  "web.organizations.invitations.invite_member": {
+    "text": "Povabi člana"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "text": "Povabi novega člana"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "text": "Čakajoča povabila"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "text": "Ni čakajočih povabil"
+  },
+  "web.organizations.invitations.email_address": {
+    "text": "E-poštni naslov"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "text": "clan@primer.com"
+  },
+  "web.organizations.invitations.role": {
+    "text": "Vloga"
+  },
+  "web.organizations.invitations.send_invite": {
+    "text": "Pošlji povabilo"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "text": "Povabilo uspešno poslano"
+  },
+  "web.organizations.invitations.invite_error": {
+    "text": "Pošiljanje povabila ni uspelo"
+  },
+  "web.organizations.invitations.resend": {
+    "text": "Ponovno pošlji"
+  },
+  "web.organizations.invitations.revoke": {
+    "text": "Prekliči"
+  },
+  "web.organizations.invitations.resend_success": {
+    "text": "Povabilo ponovno poslano"
+  },
+  "web.organizations.invitations.resend_error": {
+    "text": "Ponovno pošiljanje povabila ni uspelo"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "text": "Povabilo preklicano"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "text": "Preklic povabila ni uspel"
+  },
+  "web.organizations.invitations.invited_by": {
+    "text": "Povabil/-a"
+  },
+  "web.organizations.invitations.invited_at": {
+    "text": "Povabljen"
+  },
+  "web.organizations.invitations.expires_at": {
+    "text": "Poteče"
+  },
+  "web.organizations.invitations.resent_count": {
+    "text": "Ponovno poslano {count}-krat"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "text": "Ponovno poslano {count}-krat"
+  },
+  "web.organizations.invitations.status.pending": {
+    "text": "Čakanje"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "text": "Sprejeto"
+  },
+  "web.organizations.invitations.status.declined": {
+    "text": "Zavrnjeno"
+  },
+  "web.organizations.invitations.status.expired": {
+    "text": "Poteklo"
+  },
+  "web.organizations.invitations.roles.member": {
+    "text": "Član"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "text": "Administrator"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "text": "Sprejmi povabilo"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "text": "Zavrni povabilo"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "text": "Podrobnosti povabila"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "text": "Povabljeni ste k pridružitvi"
+  },
+  "web.organizations.invitations.invited_as": {
+    "text": "Povabljeni ste kot"
+  },
+  "web.organizations.invitations.accept_success": {
+    "text": "Povabilo uspešno sprejeto"
+  },
+  "web.organizations.invitations.accept_error": {
+    "text": "Sprejem povabila ni uspel"
+  },
+  "web.organizations.invitations.decline_success": {
+    "text": "Povabilo zavrnjeno"
+  },
+  "web.organizations.invitations.decline_error": {
+    "text": "Zavrnitev povabila ni uspela"
+  },
+  "web.organizations.invitations.expired_message": {
+    "text": "To povabilo je poteklo"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "text": "Neveljavno ali poteklo povabilo"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "text": "Za sprejem povabila se prijavite"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "text": "Nalaganje podrobnosti povabila"
+  }
+}

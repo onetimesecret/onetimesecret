@@ -1,0 +1,21 @@
+{
+  "web": {
+    "feedback": {
+      "your_feedback": "Via retrosciigo",
+      "all_feedback_welcome": "Ĉiuj retrosciigoj bonvenaj!",
+      "help_us_improve": "Helpu nin plibonigi",
+      "close_feedback_modal": "Fermi retrosciigan dialogon",
+      "share_your_feedback": "Kunhavigi vian retrosciigon",
+      "delano_mandelbaum": "Delano Mandelbaum",
+      "delano": "Delano",
+      "help_content_goes_here": "Helpa enhavo iras ĉi tie.",
+      "thanks_for_helping_onetime_secret_improve_it_mea": "Dankon pro helpi Onetime Secret pliboniĝi. Tio signifas multe.",
+      "weve_built_this_tool_to_help_you_share_sensitive": "Ni konstruis ĉi tiun ilon por helpi vin sekure kunhavigi sentivajn informojn, kaj viaj realmondaj spertoj estas decidaj por fokusigi niajn klopodojn. Tio helpas nin kompreni pri kio labori poste kaj kiel plibonigi la servon por ĉiuj.",
+      "hey_there_thanks_for_stopping_by_our_feedback_pa": "Saluton, dankon pro viziti nian retrosciigan paĝon. Via kontribuo ne nur estas bonvena - ĝi estas decida.",
+      "a_note_from_delano_founder_of_onetime_secret": "Noto de Delano, fondinto de Onetime Secret",
+      "open_feedback_form": "Malfermi retrosciigan formularon",
+      "enter_your_feedback": "Enigu vian retrosciigon",
+      "send_feedback": "Sendi komentojn"
+    }
+  }
+}

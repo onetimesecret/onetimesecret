@@ -1,0 +1,25 @@
+{
+  "web": {
+    "errors": {
+      "why_is_this_secret_unavailable": "Kial ĉi tiu sekreto ne estas disponebla?",
+      "secrets_are_designed_to_be_viewed_only_once": "Sekretoj estas dizajnitaj por esti viditaj nur unufoje. Ĉi tiu ligilo eble jam estis alirita, eksvalidiĝis, aŭ estis permane forigita de la sendinto.",
+      "what_should_i_do_now": "Kion mi faru nun?",
+      "contact_the_person_who_sent_you_this_link": "Kontaktu la personon kiu sendis al vi ĉi tiun ligilon kaj petu ilin krei novan sekreton. Sciigu ilin ke vi ne povis aliri la originalan informon.",
+      "warning_dismissed": "Averto malakceptita",
+      "dismiss_truncation_warning": "Malakcepti averton pri tranĉo",
+      "oops_the_page_you_are_looking_for_doesnt_exist_o": "Ho ve! La paĝo kiun vi serĉas ne ekzistas aŭ estis movita.",
+      "404_page_not_found_0": "404 - Paĝo Ne Trovita",
+      "404_page_not_found": "404 - Paĝo Ne Trovita",
+      "dismiss_warning": "Malakcepti averton",
+      "dismiss_notification": "Malakcepti sciigon",
+      "if_youre_unsure_what_to_do_next_please_follow_up": "Se vi ne certas kion fari poste, bonvolu kontakti la personon kiu sendis al vi ĉi tiun ligilon por pliaj informoj.",
+      "information_shared_through_our_service_can_only_": "Informoj dividitaj per nia servo povas esti aliritaj nur unufoje. Post vidado, la enhavo estas porĉiam forigita de niaj serviloj por certigi konfidencon. Ĉi tiu aliro helpas protekti viajn sentemajn datumojn limigante ilian eksponiĝon kaj malhelpante neaŭtorizitan aliron.",
+      "were_sorry_but_an_unexpected_error_occurred_whil": "Ni bedaŭras, sed neatendita eraro okazis dum pritraktado de via peto. Nia teamo estis sciigita kaj ni laboras por ripari ĝin.",
+      "t_web_common_oops_something_went_wrong": "{0} Io misfunkciis",
+      "go_share_a_secret": "Iru dividi sekreton!",
+      "the_page_youre_looking_for_doesnt_exist_or_has_b": "La paĝo kiun vi serĉas ne ekzistas aŭ estis movita. Ne zorgu, tio okazas al ĉiuj!",
+      "t_web_common_oops_404": "{0} 404",
+      "unable_to_load_data_due_to_data_format_issues_pl": "Ne eblas ŝargi datumojn pro problemoj kun datumformato. Bonvolu reprovi poste."
+    }
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "Mana Motuhake Raraunga me te Motuhake Rohe"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "Ka noho ō raraunga i tō rohe i kōwhiria e koe anake, ā, kāore e tukuna ki ngā rohe kē"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "Ka mahi ia rohe hei taiao motuhake tino me ōna ake hanganga, kī whakamuhumuhu, me te rokiroki raraunga"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "Kei a mātou tētahi kaupapa here mārō: kāore e tukuna ngā raraunga kiritaki i waenga i ngā rohe i raro i ngā āhuatanga katoa"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "Nui te take: Ko te huri ki tētahi rohe kē ka hanga i tētahi pūkete hou. Ka noho ō raraunga i tō rohe taketake."
+  },
+  "web.regions.your_region": {
+    "text": "Tō Rohe"
+  },
+  "web.regions.your_current_region": {
+    "text": "Tō Rohe o Nāianei"
+  },
+  "web.regions.active": {
+    "text": "Hohe"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "Tūhuratia ngā rohe kē e wātea ana"
+  },
+  "web.regions.why_it_matters": {
+    "text": "He Aha Te Take o te Mana Motuhake Raraunga"
+  },
+  "web.regions.trust_title": {
+    "text": "Māramatanga me te Mana"
+  },
+  "web.regions.trust_description": {
+    "text": "Mōhio tika ki te wāhi e noho ana ō raraunga me ngā ture e whakahaere ana i tōna tiaki."
+  },
+  "web.regions.privacy_title": {
+    "text": "Ngā Tika Matatapu"
+  },
+  "web.regions.privacy_description": {
+    "text": "Whakaū ka whakahaerea ō mōhiohio whaiaro e ai ki ngā ture me ngā ture matatapu o tō whenua, hei ārai i te urunga kore mana, te kino whakamahi rānei."
+  },
+  "web.regions.compliance_title": {
+    "text": "Whakaū Ture"
+  },
+  "web.regions.compliance_description": {
+    "text": "Whakatutuki i ngā whakaritenga tiaki raraunga rohe pērā i GDPR, HIPAA, CCPA, me ētahi atu"
+  },
+  "web.regions.performance_title": {
+    "text": "Urunga Tere Ake"
+  },
+  "web.regions.performance_description": {
+    "text": "Ko ngā raraunga kua rokirokihia tata ki a koe, ka iti ake te wā takaroa, ka pai ake te mahi."
+  },
+  "web.regions.regions": {
+    "text": "Ngā Rohe"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "whakapā atu ki tō mātou rōpū tūtohu"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "arotake i ā mātou tuhinga"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "Ka tiakina tō pūkete me ō raraunga i raro i ngā ture me ngā whakaritenga o"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "Ka whakaritea tēnei anga whakahaere e tō rohe uru:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "Ka pupuri ia mana whakahaere i ngā tūtohutanga ture motuhake me te mana whakahaere raraunga. Ahakoa ka taea e koe te waihanga pūkete i ngā mana whakahaere maha, ka noho ture motuhake tonu me te kore tuari raraunga i waenga i ngā rohe whakahaere."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "Ki te mārama ki ngā ture motuhake me ngā whakamarumaru e hāngai ana ki tō pūkete, tēnā"
+  },
+  "web.regions.current": {
+    "text": "O Nāianei"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "Ngā Rohe E Wātea Ana"
+  },
+  "web.regions.jurisdiction": {
+    "text": "Mana Whakahaere"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "Wāhi pokapū raraunga: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "Rohe Raraunga"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "Mana Whakahaere Tē Mōhiotia"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "E manaaki ana i a koe mai i te"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "Haere tonu ki {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Mana whakahaere o nāianei:"
+  }
+}

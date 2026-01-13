@@ -1,0 +1,47 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "Din feedback"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "Al feedback er velkommen!"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "Hjælp os med at forbedre os"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "Luk feedback-modal"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "Del din feedback"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum"
+  },
+  "web.feedback.delano": {
+    "text": "Delano"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "Hjælpeindholdet kommer her."
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "Tak, fordi du hjalp Onetime Secret med at blive bedre. Det betyder meget."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "Vi har bygget dette værktøj for at hjælpe dig med at dele følsomme oplysninger sikkert, og dine erfaringer fra den virkelige verden er afgørende for at fokusere vores indsats. Det hjælper os med at finde ud af, hvad vi skal arbejde videre med, og hvordan vi kan gøre tjenesten bedre for alle."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "Hejsa, tak fordi du kiggede forbi vores feedback-side. Dit input er ikke bare velkomment - det er afgørende."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "En note fra Delano, grundlægger af Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "Åben feedback-formular"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "Indtast din feedback"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Send feedback"
+  }
+}

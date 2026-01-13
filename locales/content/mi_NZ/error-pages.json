@@ -1,0 +1,59 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "text": "He aha tēnei karere huna kāore e wātea?"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "text": "Kua hoahoatia ngā karere huna kia kitea kotahi noa te wā. Kua urunga pea tēnei hononga, kua pau, kua mukua ā-ringa rānei e te kaituku."
+  },
+  "web.errors.what_should_i_do_now": {
+    "text": "Me aha au ināianei?"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "text": "Whakapā atu ki te tangata nāna i tuku tēnei hononga, ā, tonoa ki te waihanga i tētahi karere huna hou. Kia mōhio rātou kāore koe i taea te uru ki ngā mōhiohio taketake."
+  },
+  "web.errors.warning_dismissed": {
+    "text": "Kua whakakorehia te whakatūpato"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "text": "Whakakore i te whakatūpato poroa"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "text": "Auē! Kāore te whārangi e rapu ana koe i te tīari, kua nekehia rānei."
+  },
+  "web.errors.404_page_not_found_0": {
+    "text": "404 - Kāore i Kitea te Whārangi"
+  },
+  "web.errors.404_page_not_found": {
+    "text": "404 - Kāore i Kitea te Whārangi"
+  },
+  "web.errors.dismiss_warning": {
+    "text": "Whakakore whakatūpato"
+  },
+  "web.errors.dismiss_notification": {
+    "text": "Whakakore whakamōhiotanga"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "text": "Mēnā kāore koe e tino mōhio me aha koe ā muri ake nei, tēnā whai ake ki te tangata nāna i tuku tēnei hononga mō ētahi atu mōhiohio."
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "text": "Ko ngā mōhiohio i tuari mā tā mātou ratonga ka taea te uru kotahi anake. Ka tirohia ana, ka mukua pūmautia te ihirangi mai i ā mātou tūmau hei whakaū i te noho muna. Ka āwhina tēnei huarahi ki te tiaki i ō raraunga tairongo mā te whakawhāiti i tōna whakaaturanga me te ārai i te urunga whakaaetia-kore."
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "text": "E whakapāha ana mātou, engari i puta he hapa ohorere i te wā o te tukatuka i tō tono. Kua whakamōhiotia tō mātou rōpū, ā, kei te mahi mātou ki te whakatika."
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "text": "{0} Kua hē tētahi mea"
+  },
+  "web.errors.go_share_a_secret": {
+    "text": "Haere tuari i tētahi karere huna!"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "text": "Kāore te whārangi e rapu ana koe i te tīari, kua nekehia rānei. Kaua e māharahara, ka pā tēnei ki te pai rawa o tātou!"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "text": "{0} 404"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "text": "Kāore e taea te uta raraunga nā ngā take whakatakotoranga raraunga. Tēnā ngana anō ā muri ake."
+  }
+}

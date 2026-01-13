@@ -1,0 +1,128 @@
+{
+  "web.branding.color_picker": {
+    "text": "색상 선택기"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "현재 {0}: {1}. 클릭하여 옵션을 순환합니다."
+  },
+  "web.branding.use_setting": {
+    "text": "설정 사용"
+  },
+  "web.branding.font_family": {
+    "text": "글꼴"
+  },
+  "web.branding.corner_style": {
+    "text": "모서리 스타일"
+  },
+  "web.branding.brand_color": {
+    "text": "브랜드 색상"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "수신자가 보안 링크에 접근할 때의 화면 미리보기"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "미리보기 및 맞춤설정"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "Safari 브라우저 보기로 전환"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "text": "창 최대화"
+  },
+  "web.branding.minimize_window": {
+    "text": "창 최소화"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "Edge 브라우저 보기로 전환"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500자"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "QR 코드를 스캔하려면 휴대폰을 사용하세요"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "질문이 있으시면 onboarding{'@'}example.com으로 문의하세요"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "이 지침은 수신자가 비밀 내용을 확인하기 전에 표시됩니다"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "이 지침은 수신자가 비밀 내용을 확인한 후에 표시됩니다"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "공개 전 지침"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "공개 후 지침"
+  },
+  "web.branding.instructions": {
+    "text": "지침"
+  },
+  "web.branding.logo_controls": {
+    "text": "로고 제어"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "로고를 업로드하려면 클릭하세요. 권장 크기: 128x128 픽셀. 최대 파일 크기: 1MB. 지원 형식: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "text": "로고 업로드"
+  },
+  "web.branding.loading_preview": {
+    "text": "미리보기 로딩 중..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "\"비밀 메시지 보기\" 버튼을 테스트하여 수신자가 비밀 메시지를 어떻게 볼지 미리보기"
+  },
+  "web.branding.eye_icon": {
+    "text": "눈 아이콘"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "아래 미리보기 이미지를 클릭하여 로고를 업데이트하세요 (최소 128x128 픽셀 권장, 최대 1MB)"
+  },
+  "web.branding.image_icon": {
+    "text": "이미지 아이콘"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "위의 컨트롤을 사용하여 브랜드 색상, 스타일 및 수신자 지침을 맞춤설정하세요"
+  },
+  "web.branding.customization_icon": {
+    "text": "맞춤설정 아이콘"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "저장되지 않은 변경사항이 있습니다. 계속하시겠습니까?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "브랜드 설정을 로드하지 못했습니다"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "이것은 수신자가 보안 메시지를 어떻게 볼지에 대한 대화형 미리보기입니다. 다음을 할 수 있습니다: - 위의 컨트롤을 사용하여 색상과 글꼴 맞춤설정 - 로고 업로드 (최소 128x128 픽셀 권장, 최대 1MB) - \"비밀 메시지 보기\" 버튼을 사용하여 미리보기 테스트"
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "이것은 수신자가 보안 메시지를 어떻게 볼지에 대한 대화형 미리보기입니다. 다음을 할 수 있습니다: - 위의 컨트롤을 사용하여 색상과 글꼴 맞춤설정 - 로고 업로드 (최소 128x128 픽셀 권장, 최대 1MB) - \"비밀 메시지 보기\" 버튼을 사용하여 미리보기 테스트"
+  },
+  "web.branding.default_logo_icon": {
+    "text": "기본 로고 아이콘"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "Onetime Secret 제공"
+  },
+  "web.branding.heading_logo": {
+    "text": "{0} 로고"
+  },
+  "web.branding.edge": {
+    "text": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "Edge 미리보기로 전환"
+  },
+  "web.branding.safari": {
+    "text": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "Safari 미리보기로 전환"
+  }
+}

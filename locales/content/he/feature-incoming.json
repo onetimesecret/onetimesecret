@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "שלח סוד"
+  },
+  "incoming.page_description": {
+    "text": "שתף מידע רגיש בצורה מאובטחת עם צוות התמיכה שלנו"
+  },
+  "incoming.loading_config": {
+    "text": "טוען..."
+  },
+  "incoming.config_error_title": {
+    "text": "טעינת התצורה נכשלה"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "התכונה אינה זמינה"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "תכונה זו מושבתת כרגע. אנא פנה לתמיכה לקבלת סיוע."
+  },
+  "incoming.memo_label": {
+    "text": "תזכורת"
+  },
+  "incoming.memo_placeholder": {
+    "text": "תיאור קצר (לדוגמה: בקשה לאיפוס סיסמה)"
+  },
+  "incoming.memo_hint": {
+    "text": "עזור לנו לנתב את ההודעה שלך לאדם הנכון"
+  },
+  "incoming.recipient_label": {
+    "text": "שלח אל"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "בחר נמען"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "בחר נמען עבור סוד זה"
+  },
+  "incoming.recipient_hint": {
+    "text": "בחר מי יקבל הודעה מאובטחת זו"
+  },
+  "incoming.no_recipients_available": {
+    "text": "אין נמענים זמינים"
+  },
+  "incoming.secret_content_label": {
+    "text": "מידע סודי"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "הדבק כאן מידע רגיש (סיסמאות, מפתחות וכו')"
+  },
+  "incoming.secret_content_hint": {
+    "text": "מידע זה יוצפן וניתן יהיה לצפות בו פעם אחת בלבד"
+  },
+  "incoming.submit_button": {
+    "text": "שלח סוד"
+  },
+  "incoming.submit_secret": {
+    "text": "שלח סוד"
+  },
+  "incoming.submitting_button": {
+    "text": "שולח..."
+  },
+  "incoming.submitting": {
+    "text": "שולח..."
+  },
+  "incoming.reset_button": {
+    "text": "נקה טופס"
+  },
+  "incoming.reset_form": {
+    "text": "נקה טופס"
+  },
+  "incoming.success_title": {
+    "text": "נשלח בהצלחה"
+  },
+  "incoming.success_description": {
+    "text": "ההודעה המאובטחת שלך נמסרה."
+  },
+  "incoming.reference_id": {
+    "text": "מזהה אסמכתא"
+  },
+  "incoming.success_info_title": {
+    "text": "מה קורה עכשיו?"
+  },
+  "incoming.success_info_description": {
+    "text": "הנמען יוכל לצפות בסוד זה פעם אחת בלבד. לאחר הצפייה, הסוד יימחק לצמיתות."
+  },
+  "incoming.create_another": {
+    "text": "שלח סוד נוסף"
+  },
+  "incoming.tagline1": {
+    "text": "שתף מידע רגיש בצורה מאובטחת"
+  },
+  "incoming.tagline2": {
+    "text": "שמור על סיסמאות ונתונים פרטיים מחוץ לאימיילים ויומני צ'אט"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "שמור את <a href='{receiptUrl}'>האישור</a> שלך לרישומים שלך."
+  },
+  "incoming.receipt_link_text": {
+    "text": "קבלה"
+  }
+}

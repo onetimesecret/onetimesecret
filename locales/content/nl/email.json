@@ -1,0 +1,446 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[Ticket: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "text": "Een klant heeft u de volgende informatie verstuurd."
+  },
+  "email.secret_link.subject": {
+    "text": "%{sender_email} heeft je een beveiligd bericht gestuurd"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "heeft je een beveiligd bericht gestuurd:"
+  },
+  "email.secret_link.important_label": {
+    "text": "Belangrijk:"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "Deze link werkt maar één keer. Na het bekijken wordt het bericht permanent verwijderd."
+  },
+  "email.secret_link.sent_via": {
+    "text": "Verzonden via"
+  },
+  "email.welcome.subject": {
+    "text": "Welkom bij %{product_name} - Bevestig je e-mailadres"
+  },
+  "email.welcome.title": {
+    "text": "Welkom bij %{product_name}!"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "Bevestig je e-mailadres door op de onderstaande link te klikken:"
+  },
+  "email.welcome.verify_button": {
+    "text": "E-mailadres bevestigen"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "Of kopieer en plak deze link:"
+  },
+  "email.welcome.signature": {
+    "text": "Delano"
+  },
+  "email.welcome.postscript": {
+    "text": "P.S. Deze e-mail is verstuurd naar %{email_address}. Als je geen account hebt aangemaakt, kun je dit bericht veilig negeren."
+  },
+  "email.password_request.subject": {
+    "text": "Stel je wachtwoord opnieuw in (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "text": "Stel je wachtwoord opnieuw in"
+  },
+  "email.password_request.request_notice": {
+    "text": "We hebben een verzoek ontvangen om je wachtwoord voor %{product_name} opnieuw in te stellen."
+  },
+  "email.password_request.reset_button": {
+    "text": "Wachtwoord opnieuw instellen"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "Of kopieer en plak deze link:"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "Als je geen wachtwoordherstel hebt aangevraagd, kun je deze e-mail veilig negeren."
+  },
+  "email.password_request.signature": {
+    "text": "Delano"
+  },
+  "email.password_request.postscript": {
+    "text": "P.S. Deze e-mail is verstuurd naar %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "text": "Inloggen bij %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "text": "Inloggen met magische link"
+  },
+  "email.magic_link.request_notice": {
+    "text": "Je hebt een inloglink aangevraagd voor je %{product_name} account."
+  },
+  "email.magic_link.login_button": {
+    "text": "Inloggen"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "Of kopieer en plak deze link:"
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "Deze link verloopt over 15 minuten."
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "Als je deze link niet hebt aangevraagd, kun je deze e-mail veilig negeren."
+  },
+  "email.magic_link.signature": {
+    "text": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "text": "P.S. Deze e-mail is verzonden naar %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "text": "Je hebt een beveiligd bericht ontvangen"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "Je hebt een beveiligd bericht ontvangen:"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "Memo:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "Iemand heeft je een beveiligd bericht gestuurd via %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "Klik op de onderstaande link om dit bericht te bekijken:"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "Belangrijk:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "Deze link werkt maar één keer. Na het bekijken wordt het bericht permanent verwijderd."
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "Verzonden via"
+  },
+  "email.secret_revealed.subject": {
+    "text": "Je bericht is bekeken"
+  },
+  "email.secret_revealed.title": {
+    "text": "Je bericht is bekeken"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "Je bericht is bekeken op %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "Bericht-ID:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "Dit is een geautomatiseerde melding. Er is geen actie vereist."
+  },
+  "email.secret_revealed.signature": {
+    "text": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "Meldingsvoorkeuren beheren"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "Om je meldingsvoorkeuren te beheren:"
+  },
+  "email.expiration_warning.subject": {
+    "text": "Je berichtlink verloopt binnenkort"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "Je berichtlink verloopt over %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "Bekijk je bericht voordat het verloopt"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "Herinnering:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "Na het verlopen wordt het bericht permanent verwijderd en kan niet worden hersteld."
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "Verzonden via"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "Bekijk het voordat het verdwijnt:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "Na het verlopen wordt het bericht permanent verwijderd."
+  },
+  "email.feedback_email.subject": {
+    "text": "Feedback op %{date} via %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "text": "Gebruikersfeedback"
+  },
+  "email.feedback_email.from_label": {
+    "text": "Van:"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "Domein:"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "Strategie:"
+  },
+  "email.feedback_email.message_label": {
+    "text": "Bericht:"
+  },
+  "email.feedback_email.signature": {
+    "text": "Secret Support"
+  },
+  "email.organization_invitation.subject": {
+    "text": "Je bent uitgenodigd om lid te worden van %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "text": "Je bent uitgenodigd om lid te worden van %{organization_name}!"
+  },
+  "email.organization_invitation.body": {
+    "text": "%{inviter_email} heeft je uitgenodigd om lid te worden van \"%{organization_name}\" als %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "Uitnodiging accepteren"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "Of kopieer en plak deze link:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "Deze uitnodiging verloopt over %{days} dagen."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "Als je niet wilt toetreden, kun je deze e-mail gewoon negeren of de uitnodiging afwijzen."
+  },
+  "email.organization_invitation.signature": {
+    "text": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "P.S. Deze e-mail is verstuurd naar %{invited_email}. Als je deze uitnodiging niet verwachtte, kun je dit bericht veilig negeren."
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "een lid"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "een beheerder"
+  },
+  "email.password_changed.subject": {
+    "text": "Je wachtwoord is gewijzigd (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "text": "Je wachtwoord is gewijzigd"
+  },
+  "email.password_changed.body": {
+    "text": "Je wachtwoord voor %{product_name} is gewijzigd op %{date} om %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "text": "Als je deze wijziging niet hebt doorgevoerd, beveilig dan direct je account door je wachtwoord opnieuw in te stellen en contact op te nemen met support."
+  },
+  "email.password_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_changed.subject": {
+    "text": "Je e-mailadres is gewijzigd (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "text": "Je e-mailadres is gewijzigd"
+  },
+  "email.email_changed.body": {
+    "text": "Het e-mailadres voor je %{product_name}-account is gewijzigd naar %{new_email_masked} op %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "text": "Als je deze wijziging niet hebt doorgevoerd, neem dan direct contact op met support, want je account kan gecompromitteerd zijn."
+  },
+  "email.email_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "Bevestig je nieuwe e-mailadres (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "Bevestig je nieuwe e-mailadres"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "Bevestig dit e-mailadres om de wijziging voor je %{product_name}-account te voltooien."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "E-mailadres bevestigen"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "Of kopieer en plak deze link:"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "Tweefactorauthenticatie ingeschakeld (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "text": "Tweefactorauthenticatie ingeschakeld"
+  },
+  "email.mfa_enabled.body": {
+    "text": "Tweefactorauthenticatie is ingeschakeld voor je %{product_name}-account op %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "Je account is nu beter beveiligd. Je moet een verificatiecode uit je authenticator-app invoeren bij het inloggen."
+  },
+  "email.mfa_enabled.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "Tweefactorauthenticatie uitgeschakeld (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "text": "Tweefactorauthenticatie uitgeschakeld"
+  },
+  "email.mfa_disabled.body": {
+    "text": "Tweefactorauthenticatie is uitgeschakeld voor je %{product_name}-account op %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "Je account is nu minder goed beveiligd. Als je deze wijziging niet hebt doorgevoerd, beveilig dan direct je account."
+  },
+  "email.mfa_disabled.signature": {
+    "text": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "text": "Nieuwe aanmelding op je account (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "text": "Nieuwe aanmelding gedetecteerd"
+  },
+  "email.new_login_alert.body": {
+    "text": "Een nieuwe aanmelding op je %{product_name}-account is gedetecteerd op %{date} om %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "text": "Apparaat:"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "Locatie:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "IP-adres:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "Als jij dit niet was, is je account mogelijk gecompromitteerd."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "Beveilig je account"
+  },
+  "email.new_login_alert.signature": {
+    "text": "Delano"
+  },
+  "email.member_removed.subject": {
+    "text": "Je bent verwijderd uit %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "text": "Je bent verwijderd uit %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "text": "Je bent verwijderd uit de organisatie \"%{organization_name}\" op %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "text": "Delano"
+  },
+  "email.role_changed.subject": {
+    "text": "Je rol is gewijzigd in %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "text": "Je rol is gewijzigd"
+  },
+  "email.role_changed.body": {
+    "text": "Je rol in \"%{organization_name}\" is gewijzigd van %{old_role} naar %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "text": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "text": "Organisatie \"%{organization_name}\" is verwijderd"
+  },
+  "email.organization_deleted.title": {
+    "text": "Organisatie verwijderd"
+  },
+  "email.organization_deleted.body": {
+    "text": "De organisatie \"%{organization_name}\" is verwijderd uit %{product_name}. Alle gekoppelde gegevens zijn verwijderd."
+  },
+  "email.organization_deleted.signature": {
+    "text": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "text": "Betalingsbewijs voor %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "text": "Betalingsbewijs"
+  },
+  "email.payment_receipt.body": {
+    "text": "Bedankt voor je betaling. Hier zijn je betalingsgegevens:"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "Bedrag:"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "Datum:"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "Plan:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "Factuur bekijken"
+  },
+  "email.payment_receipt.signature": {
+    "text": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "text": "Betaling mislukt voor %{product_name}"
+  },
+  "email.payment_failed.title": {
+    "text": "Betaling mislukt"
+  },
+  "email.payment_failed.body": {
+    "text": "We konden je betaling voor %{product_name} niet verwerken. Update je betaalmethode om onderbreking van de service te voorkomen."
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "Betaalmethode updaten"
+  },
+  "email.payment_failed.signature": {
+    "text": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "text": "Je %{product_name}-proefperiode verloopt over %{days_remaining} dagen"
+  },
+  "email.trial_expiring.title": {
+    "text": "Je proefperiode loopt bijna af"
+  },
+  "email.trial_expiring.body": {
+    "text": "Je gratis proefperiode van %{product_name} verloopt over %{days_remaining} dagen. Upgrade nu om toegang te behouden tot alle functies."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "Nu upgraden"
+  },
+  "email.trial_expiring.signature": {
+    "text": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "text": "Je %{product_name}-abonnement is gewijzigd"
+  },
+  "email.subscription_changed.title": {
+    "text": "Abonnement gewijzigd"
+  },
+  "email.subscription_changed.body": {
+    "text": "Je %{product_name}-abonnement is gewijzigd van %{old_plan} naar %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "Deze wijziging gaat in op %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "text": "Delano"
+  },
+  "email.common.greeting": {
+    "text": "Hallo,"
+  },
+  "email.common.thanks": {
+    "text": "Bedankt,"
+  },
+  "email.common.unsubscribe": {
+    "text": "Afmelden"
+  },
+  "email.common.view_in_browser": {
+    "text": "Bekijken in browser"
+  },
+  "email.common.onetime_secret": {
+    "text": "Onetime Secret"
+  }
+}

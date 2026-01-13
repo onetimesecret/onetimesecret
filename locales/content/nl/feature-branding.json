@@ -1,0 +1,128 @@
+{
+  "web.branding.color_picker": {
+    "text": "Kleurkiezer"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "Huidige {0}: {1}. Klik om door opties te bladeren."
+  },
+  "web.branding.use_setting": {
+    "text": "Gebruik instelling"
+  },
+  "web.branding.font_family": {
+    "text": "Lettertype"
+  },
+  "web.branding.corner_style": {
+    "text": "Hoekstijl"
+  },
+  "web.branding.brand_color": {
+    "text": "Merkkleur"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "Voorbeeld van de geheime linkpagina voor ontvangers"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "Voorbeeld & Aanpassen"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "Schakel naar Safari browserweergave"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "text": "Venster maximaliseren"
+  },
+  "web.branding.minimize_window": {
+    "text": "Venster minimaliseren"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "Schakel naar Edge browserweergave"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500 tekens"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "Gebruik uw telefoon om de QR-code te scannen"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "Neem contact op met onboarding{'@'}example.com bij vragen"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "Deze instructies worden aan ontvangers getoond voordat ze de geheime inhoud bekijken"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "Deze instructies worden aan ontvangers getoond nadat ze het geheim hebben onthuld"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "Instructies vóór onthulling"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "Instructies na onthulling"
+  },
+  "web.branding.instructions": {
+    "text": "Instructies"
+  },
+  "web.branding.logo_controls": {
+    "text": "Logo-instellingen"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "Klik om een logo te uploaden. Aanbevolen grootte: 128x128 pixels. Maximale bestandsgrootte: 1MB. Ondersteunde formaten: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "text": "Logo uploaden"
+  },
+  "web.branding.loading_preview": {
+    "text": "Voorbeeld laden..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "Bekijk hoe ontvangers uw berichten zullen zien door de knop \"Bericht bekijken\" te testen"
+  },
+  "web.branding.eye_icon": {
+    "text": "Oog icoon"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "Klik op de voorbeeldafbeelding hieronder om uw logo bij te werken (minimaal 128x128 pixels aanbevolen, 1MB max)"
+  },
+  "web.branding.image_icon": {
+    "text": "Afbeelding icoon"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "Gebruik de besturingselementen hierboven om merkkleur, stijlen en instructies voor ontvangers aan te passen"
+  },
+  "web.branding.customization_icon": {
+    "text": "Aanpassingsicoon"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "U heeft niet-opgeslagen wijzigingen. Weet u het zeker?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "Laden van merkinstellingen mislukt"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "Dit is een interactief voorbeeld van hoe ontvangers uw beveiligde berichten zullen zien. U kunt: - Kleuren en lettertypen aanpassen met de besturingselementen hierboven - Een logo uploaden (minimaal 128x128 pixels aanbevolen, 1MB max) - Het voorbeeld testen met de knop \"Bericht bekijken\""
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "Dit is een interactief voorbeeld van hoe ontvangers uw beveiligde berichten zullen zien. U kunt: - Kleuren en lettertypen aanpassen met de besturingselementen hierboven - Een logo uploaden (minimaal 128x128 pixels aanbevolen, 1MB max) - Het voorbeeld testen met de knop \"Bericht bekijken\""
+  },
+  "web.branding.default_logo_icon": {
+    "text": "Standaard logo icoon"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "Aangedreven door Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "text": "{0} Logo"
+  },
+  "web.branding.edge": {
+    "text": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "Schakel naar Edge-voorbeeld"
+  },
+  "web.branding.safari": {
+    "text": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "Schakel naar Safari-voorbeeld"
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "데이터 주권 및 지역 격리"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "귀하의 데이터는 선택한 지역에만 독점적으로 저장되며 절대 지역 간에 전송되지 않습니다"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "각 지역은 자체 인프라, 암호화 키 및 데이터 저장소를 갖춘 완전히 독립적인 환경으로 운영됩니다"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "저희는 엄격한 정책을 유지합니다: 고객 데이터는 어떤 상황에서도 지역 간에 전송되지 않습니다"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "중요: 다른 지역으로 전환하면 새 계정이 생성됩니다. 귀하의 데이터는 원래 지역에 남아 있습니다."
+  },
+  "web.regions.your_region": {
+    "text": "귀하의 지역"
+  },
+  "web.regions.your_current_region": {
+    "text": "현재 지역"
+  },
+  "web.regions.active": {
+    "text": "활성"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "다른 사용 가능한 지역 탐색"
+  },
+  "web.regions.why_it_matters": {
+    "text": "데이터 주권이 중요한 이유"
+  },
+  "web.regions.trust_title": {
+    "text": "투명성 및 제어"
+  },
+  "web.regions.trust_description": {
+    "text": "데이터가 정확히 어디에 있는지, 어떤 법률이 보호하는지 알 수 있습니다."
+  },
+  "web.regions.privacy_title": {
+    "text": "개인정보 보호 권리"
+  },
+  "web.regions.privacy_description": {
+    "text": "귀하의 개인 정보가 귀하의 국가의 개인정보 보호 법률 및 규정에 따라 처리되도록 하여 무단 접근이나 오용을 방지합니다."
+  },
+  "web.regions.compliance_title": {
+    "text": "규제 준수"
+  },
+  "web.regions.compliance_description": {
+    "text": "GDPR, HIPAA, CCPA 및 기타 지역 데이터 보호 요구사항을 충족합니다"
+  },
+  "web.regions.performance_title": {
+    "text": "더 빠른 접근"
+  },
+  "web.regions.performance_description": {
+    "text": "가까운 곳에 저장된 데이터는 지연 시간이 낮아지고 성능이 향상됩니다."
+  },
+  "web.regions.regions": {
+    "text": "지역"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "규정 준수 팀에 문의하세요"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "문서 검토"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "귀하의 계정과 데이터는 다음의 법률과 규정에 따라 보호됩니다"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "이 규제 프레임워크는 액세스 도메인에 의해 결정됩니다:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "각 관할 구역은 별도의 법적 규정 준수 및 데이터 거버넌스를 유지합니다. 여러 관할 구역에서 계정을 만들 수 있지만, 규제 구역 간에 데이터 공유 없이 법적으로 구분됩니다."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "귀하의 계정에 적용되는 특정 규정 및 보호를 이해하려면"
+  },
+  "web.regions.current": {
+    "text": "현재"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "사용 가능한 지역"
+  },
+  "web.regions.jurisdiction": {
+    "text": "관할 구역"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "데이터 센터 위치: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "데이터 지역"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "알 수 없는 관할 구역"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "서비스 제공 지역"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "{0}(으)로 계속하기"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "현재 관할 구역:"
+  }
+}

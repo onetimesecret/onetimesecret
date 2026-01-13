@@ -1,0 +1,446 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[工单号: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "text": "一位我们的客户发送了以下信息："
+  },
+  "email.secret_link.subject": {
+    "text": "%{sender_email}给您发送了一条内容"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "给您发送了一条内容:"
+  },
+  "email.secret_link.important_label": {
+    "text": "重要提示:"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "此链接仅可使用一次。查看后,内容将被永久删除。"
+  },
+  "email.secret_link.sent_via": {
+    "text": "通过以下方式发送"
+  },
+  "email.welcome.subject": {
+    "text": "验证您的 Onetime Secret 帐户"
+  },
+  "email.welcome.title": {
+    "text": "您已被邀请加入 %{product_name}"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "请点击下面的链接验证您的邮箱地址:"
+  },
+  "email.welcome.verify_button": {
+    "text": "验证邮箱地址"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "或复制并粘贴此链接:"
+  },
+  "email.welcome.signature": {
+    "text": "Delano"
+  },
+  "email.welcome.postscript": {
+    "text": "附注：此邮件已发送至 %{email_address}。如果您未预期收到此邀请，可以安全忽略此消息。"
+  },
+  "email.password_request.subject": {
+    "text": "重置您的密码 (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "text": "重置您的密码"
+  },
+  "email.password_request.request_notice": {
+    "text": "我们收到了为%{product_name}重置密码的请求。"
+  },
+  "email.password_request.reset_button": {
+    "text": "重置密码"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "或复制并粘贴此链接:"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "如果您没有请求重置密码,可以安全地忽略此邮件。"
+  },
+  "email.password_request.signature": {
+    "text": "Delano"
+  },
+  "email.password_request.postscript": {
+    "text": "附言:此邮件已发送至%{email_address}。"
+  },
+  "email.magic_link.subject": {
+    "text": "登录 %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "text": "使用魔法链接登录"
+  },
+  "email.magic_link.request_notice": {
+    "text": "您请求了 %{product_name} 账户的登录链接。"
+  },
+  "email.magic_link.login_button": {
+    "text": "登录"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "或复制并粘贴此链接："
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "此链接将在15分钟后过期。"
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "如果您未请求此链接，可以忽略这封邮件。"
+  },
+  "email.magic_link.signature": {
+    "text": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "text": "附：此邮件已发送至 %{email_address}。"
+  },
+  "email.incoming_secret.subject": {
+    "text": "您收到了一条内容消息"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "您收到了一条安全消息:"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "备忘录:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "有人通过%{display_domain}向您发送了一条安全消息。"
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "要查看此内容,请点击下面的链接:"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "重要提示:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "此链接仅可使用一次。查看后,内容将被永久删除。"
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "通过以下方式发送"
+  },
+  "email.secret_revealed.subject": {
+    "text": "您的内容已被查看"
+  },
+  "email.secret_revealed.title": {
+    "text": "您的内容已被查看"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "您的内容于%{date}被查看。"
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "内容ID:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "这是一条自动通知。无需任何操作。"
+  },
+  "email.secret_revealed.signature": {
+    "text": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "管理通知偏好设置"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "要管理您的通知偏好设置:"
+  },
+  "email.expiration_warning.subject": {
+    "text": "您的内容链接即将过期"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "您的内容链接将在%{time_remaining}后过期"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "在内容过期前查看"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "提醒:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "过期后,内容将被永久删除且无法恢复。"
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "通过以下方式发送"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "在消失之前查看:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "过期后,内容将被永久删除。"
+  },
+  "email.feedback_email.subject": {
+    "text": "反馈于%{date}通过%{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "text": "用户反馈"
+  },
+  "email.feedback_email.from_label": {
+    "text": "发件人:"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "域名:"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "策略:"
+  },
+  "email.feedback_email.message_label": {
+    "text": "消息:"
+  },
+  "email.feedback_email.signature": {
+    "text": "Secret 支持"
+  },
+  "email.organization_invitation.subject": {
+    "text": "您已被邀请加入 %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "text": "您已被邀请加入 %{organization_name}"
+  },
+  "email.organization_invitation.body": {
+    "text": "%{inviter_email} 邀请您以%{role_description}身份加入「%{organization_name}」。"
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "接受邀请"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "或复制并粘贴此链接："
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "此邀请将在 %{days} 天后过期。"
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "如果您不想加入，可以忽略此邮件或拒绝邀请。"
+  },
+  "email.organization_invitation.signature": {
+    "text": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "附注：此邮件已发送至 %{invited_email}。如果您未预期收到此邀请，可以安全忽略此消息。"
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "成员"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "管理员"
+  },
+  "email.password_changed.subject": {
+    "text": "您的密码已更改 (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "text": "您的密码已更改"
+  },
+  "email.password_changed.body": {
+    "text": "您的%{product_name}密码已于%{date} %{time}更改。"
+  },
+  "email.password_changed.security_notice": {
+    "text": "如果您没有进行此更改,请立即通过重置密码并联系支持团队来保护您的账户。"
+  },
+  "email.password_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_changed.subject": {
+    "text": "您的邮箱地址已更改 (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "text": "您的邮箱地址已更改"
+  },
+  "email.email_changed.body": {
+    "text": "您的%{product_name}账户的邮箱地址已于%{date}更改为%{new_email_masked}。"
+  },
+  "email.email_changed.security_notice": {
+    "text": "如果您没有进行此更改,请立即联系支持团队,因为您的账户可能已被入侵。"
+  },
+  "email.email_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "验证您的新邮箱地址 (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "验证您的新邮箱地址"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "请验证此邮箱地址以完成您的%{product_name}账户的更改。"
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "验证邮箱地址"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "或复制并粘贴此链接:"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "双因素认证已启用 (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "text": "双因素认证已启用"
+  },
+  "email.mfa_enabled.body": {
+    "text": "您的%{product_name}账户的双因素认证已于%{date}启用。"
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "您的账户现在更加安全。登录时,您需要输入来自验证器应用的验证码。"
+  },
+  "email.mfa_enabled.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "双因素认证已禁用 (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "text": "双因素认证已禁用"
+  },
+  "email.mfa_disabled.body": {
+    "text": "您的%{product_name}账户的双因素认证已于%{date}禁用。"
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "您的账户安全性降低。如果您没有进行此更改,请立即保护您的账户。"
+  },
+  "email.mfa_disabled.signature": {
+    "text": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "text": "您的账户有新登录 (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "text": "检测到新登录"
+  },
+  "email.new_login_alert.body": {
+    "text": "检测到您的%{product_name}账户于%{date} %{time}有新登录。"
+  },
+  "email.new_login_alert.device_label": {
+    "text": "设备:"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "位置:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "IP地址:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "如果这不是您的操作,您的账户可能已被入侵。"
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "保护您的账户"
+  },
+  "email.new_login_alert.signature": {
+    "text": "Delano"
+  },
+  "email.member_removed.subject": {
+    "text": "您已从%{organization_name}中移除"
+  },
+  "email.member_removed.title": {
+    "text": "您已从%{organization_name}中移除"
+  },
+  "email.member_removed.body": {
+    "text": "您已从%{product_name}上的组织「%{organization_name}」中移除。"
+  },
+  "email.member_removed.signature": {
+    "text": "Delano"
+  },
+  "email.role_changed.subject": {
+    "text": "您在%{organization_name}中的角色已更改"
+  },
+  "email.role_changed.title": {
+    "text": "您的角色已更改"
+  },
+  "email.role_changed.body": {
+    "text": "您在「%{organization_name}」中的角色已从%{old_role}更改为%{new_role}。"
+  },
+  "email.role_changed.signature": {
+    "text": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "text": "组织「%{organization_name}」已删除"
+  },
+  "email.organization_deleted.title": {
+    "text": "组织已删除"
+  },
+  "email.organization_deleted.body": {
+    "text": "组织「%{organization_name}」已从%{product_name}删除。所有相关数据已被移除。"
+  },
+  "email.organization_deleted.signature": {
+    "text": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "text": "%{product_name}的付款收据"
+  },
+  "email.payment_receipt.title": {
+    "text": "付款收据"
+  },
+  "email.payment_receipt.body": {
+    "text": "感谢您的付款。以下是您的付款详情:"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "金额:"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "日期:"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "套餐:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "查看账单"
+  },
+  "email.payment_receipt.signature": {
+    "text": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "text": "%{product_name}的付款失败"
+  },
+  "email.payment_failed.title": {
+    "text": "付款失败"
+  },
+  "email.payment_failed.body": {
+    "text": "我们无法处理您对%{product_name}的付款。请更新您的付款方式以避免服务中断。"
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "更新付款方式"
+  },
+  "email.payment_failed.signature": {
+    "text": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "text": "您的%{product_name}试用将在%{days_remaining}天后到期"
+  },
+  "email.trial_expiring.title": {
+    "text": "您的试用即将结束"
+  },
+  "email.trial_expiring.body": {
+    "text": "您的%{product_name}免费试用将在%{days_remaining}天后到期。立即升级以继续访问所有功能。"
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "立即升级"
+  },
+  "email.trial_expiring.signature": {
+    "text": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "text": "您的%{product_name}订阅已更改"
+  },
+  "email.subscription_changed.title": {
+    "text": "订阅已更改"
+  },
+  "email.subscription_changed.body": {
+    "text": "您的%{product_name}订阅已从%{old_plan}更改为%{new_plan}。"
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "此更改于%{date}生效。"
+  },
+  "email.subscription_changed.signature": {
+    "text": "Delano"
+  },
+  "email.common.greeting": {
+    "text": "您好，"
+  },
+  "email.common.thanks": {
+    "text": "谢谢，"
+  },
+  "email.common.unsubscribe": {
+    "text": "退订"
+  },
+  "email.common.view_in_browser": {
+    "text": "在浏览器中查看"
+  },
+  "email.common.onetime_secret": {
+    "text": "Onetime Secret"
+  }
+}

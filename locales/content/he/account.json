@@ -1,0 +1,464 @@
+{
+  "web.account.settings": {
+    "text": "הגדרות"
+  },
+  "web.account.change_password": {
+    "text": "שינוי סיסמה"
+  },
+  "web.account.close_account": {
+    "text": "סגירת חשבון"
+  },
+  "web.account.verify_account": {
+    "text": "אימות חשבון"
+  },
+  "web.account.subscription_title": {
+    "text": "מנוי"
+  },
+  "web.account.manage_subscription": {
+    "text": "ניהול מנוי"
+  },
+  "web.account.customer_information": {
+    "text": "מידע לקוח"
+  },
+  "web.account.customer_since": {
+    "text": "לקוח מאז:"
+  },
+  "web.account.email": {
+    "text": "דואר אלקטרוני:"
+  },
+  "web.account.region": {
+    "text": "אזור"
+  },
+  "web.account.account_balance": {
+    "text": "יתרה:"
+  },
+  "web.account.default_payment_method": {
+    "text": "אמצעי תשלום ברירת מחדל"
+  },
+  "web.account.card_ending": {
+    "text": "מסתיים ב"
+  },
+  "web.account.subscriptions_title": {
+    "text": "מנויים"
+  },
+  "web.account.quantity": {
+    "text": "כמות:"
+  },
+  "web.account.next_billing_date": {
+    "text": "תאריך חיוב הבא:"
+  },
+  "web.account.changePassword.username": {
+    "text": "שם משתמש"
+  },
+  "web.account.changePassword.currentPassword": {
+    "text": "סיסמה נוכחית"
+  },
+  "web.account.changePassword.newPassword": {
+    "text": "סיסמה חדשה"
+  },
+  "web.account.changePassword.confirmPassword": {
+    "text": "אישור"
+  },
+  "web.account.changePassword.updatePassword": {
+    "text": "עדכון סיסמה"
+  },
+  "web.account.changePassword.updating": {
+    "text": "מעדכן..."
+  },
+  "web.account.timezone": {
+    "text": "אזור זמן"
+  },
+  "web.account.customer_id": {
+    "text": "מזהה לקוח"
+  },
+  "web.account.account_id_customerid": {
+    "text": "מזהה חשבון"
+  },
+  "web.account.created_windowprops_cust_secrets_created_secrets": {
+    "text": "נוצרו {0} סודות מאז {1}."
+  },
+  "web.account.delete_account": {
+    "text": "מחיקת חשבון"
+  },
+  "web.account.api_key": {
+    "text": "מפתח API"
+  },
+  "web.account.account_type_windowprops_plan_options_name": {
+    "text": "סוג חשבון: {0}"
+  },
+  "web.account.your_account": {
+    "text": "החשבון שלכם"
+  },
+  "web.account.support_details": {
+    "text": "פרטי תמיכה"
+  },
+  "web.account.back_to_details": {
+    "text": "חזרה לפרטים"
+  },
+  "web.account.customer_id_cust_custid": {
+    "text": "מזהה לקוח: {0}"
+  },
+  "web.account.token_generated": {
+    "text": "טוקן נוצר."
+  },
+  "web.account.keep_this_token_secure_it_provides_full_access_t": {
+    "text": "🔐 שמרו על טוקן זה בצורה מאובטחת! הוא מספק גישה מלאה לחשבון שלכם."
+  },
+  "web.account.confirm_with_your_password": {
+    "text": "אישור עם הסיסמה שלכם"
+  },
+  "web.account.are_you_sure_you_want_to_permanently_delete_your": {
+    "text": "האם אתם בטוחים שברצונכם למחוק לצמיתות את החשבון שלכם? לא ניתן לבטל פעולה זו."
+  },
+  "web.account.confirm_account_deletion": {
+    "text": "אישור מחיקת חשבון"
+  },
+  "web.account.deleting_cust_custid": {
+    "text": "מוחק {0}"
+  },
+  "web.account.permanently_delete_account": {
+    "text": "מחיקת חשבון לצמיתות"
+  },
+  "web.account.permanent_and_non_reversible": {
+    "text": "קבועה ובלתי הפיכה."
+  },
+  "web.account.deleting_your_account_is": {
+    "text": "מחיקת החשבון שלכם היא"
+  },
+  "web.account.burn_them_before_continuing": {
+    "text": "מחקו אותם סופית לפני שתמשיכו"
+  },
+  "web.account.any_secrets_you_wish_to_remove": {
+    "text": "כל סוד שתרצו להסיר,"
+  },
+  "web.account.secrets_will_remain_active_until_they_expire": {
+    "text": "סודות יישארו פעילים עד שיפוג תוקפם."
+  },
+  "web.account.please_be_advised": {
+    "text": "אנא שימו לב:"
+  },
+  "web.account.account_deleted_successfully": {
+    "text": "החשבון נמחק בהצלחה."
+  },
+  "web.account.deactivate": {
+    "text": "השבתה"
+  },
+  "web.account.are_you_sure_you_want_to_deactivate_your_account": {
+    "text": "האם אתם בטוחים שברצונכם להשבית את החשבון שלכם? כל הנתונים שלכם יוסרו לצמיתות מהשרתים שלנו לנצח. לא ניתן לבטל פעולה זו."
+  },
+  "web.account.deactivate_account": {
+    "text": "השבתת חשבון"
+  },
+  "web.settings.title": {
+    "text": "הגדרות"
+  },
+  "web.settings.description": {
+    "text": "ניהול הגדרות החשבון וההעדפות שלכם"
+  },
+  "web.settings.manage_your_account_settings_and_preferences": {
+    "text": "ניהול הגדרות החשבון וההעדפות שלכם"
+  },
+  "web.settings.general": {
+    "text": "כללי"
+  },
+  "web.settings.preferences": {
+    "text": "העדפות"
+  },
+  "web.settings.appearance": {
+    "text": "מראה"
+  },
+  "web.settings.theme.title": {
+    "text": "ערכת נושא"
+  },
+  "web.settings.theme.description": {
+    "text": "בחירת ערכת נושא בהירה או כהה"
+  },
+  "web.settings.theme.choose_light_or_dark_theme": {
+    "text": "בחירת ערכת נושא בהירה או כהה"
+  },
+  "web.settings.language.title": {
+    "text": "שפה"
+  },
+  "web.settings.language.description": {
+    "text": "בחירת השפה המועדפת"
+  },
+  "web.settings.language.select_your_preferred_language": {
+    "text": "בחירת השפה המועדפת"
+  },
+  "web.settings.security_settings_description": {
+    "text": "ניהול אימות ואבטחת חשבון"
+  },
+  "web.settings.profile_settings_description": {
+    "text": "ניהול מידע החשבון שלכם"
+  },
+  "web.settings.profile.title": {
+    "text": "פרופיל"
+  },
+  "web.settings.profile.change_email": {
+    "text": "שינוי דואר אלקטרוני"
+  },
+  "web.settings.profile.current_email": {
+    "text": "דואר אלקטרוני נוכחי"
+  },
+  "web.settings.profile.current_password": {
+    "text": "סיסמה נוכחית"
+  },
+  "web.settings.profile.new_email": {
+    "text": "דואר אלקטרוני חדש"
+  },
+  "web.settings.profile.enter_password_to_confirm": {
+    "text": "הכניסו את הסיסמה הנוכחית"
+  },
+  "web.settings.profile.password_required_for_security": {
+    "text": "הסיסמה שלכם נדרשת למטרות אבטחה"
+  },
+  "web.settings.profile.verification_email_notice": {
+    "text": "הודעת אימות תישלח לכתובת החדשה"
+  },
+  "web.settings.profile.update_email": {
+    "text": "עדכון דואר אלקטרוני"
+  },
+  "web.settings.profile.change_email_description": {
+    "text": "עדכון כתובת הדואר האלקטרוני המשויכת לחשבון"
+  },
+  "web.settings.profile.all_fields_required": {
+    "text": "כל השדות נדרשים"
+  },
+  "web.settings.profile.invalid_email": {
+    "text": "אנא הכניסו כתובת דואר אלקטרוני תקפה"
+  },
+  "web.settings.profile.email_same_as_current": {
+    "text": "הדואר האלקטרוני החדש חייב להיות שונה מהדואר האלקטרוני הנוכחי"
+  },
+  "web.settings.profile.email_change_success": {
+    "text": "הדואר האלקטרוני עודכן בהצלחה. אנא בדקו את תיבת הדואר לאימות כתובת הדואר האלקטרוני החדשה."
+  },
+  "web.settings.profile.email_change_error": {
+    "text": "כשל בעדכון הדואר האלקטרוני. אנא נסו שוב."
+  },
+  "web.settings.sessions.title": {
+    "text": "סשנים פעילים"
+  },
+  "web.settings.sessions.description": {
+    "text": "ניהול הסשנים הפעילים שלכם"
+  },
+  "web.settings.sessions.manage_active_sessions": {
+    "text": "ניהול הסשנים הפעילים שלכם"
+  },
+  "web.settings.password.title": {
+    "text": "סיסמה"
+  },
+  "web.settings.password.description": {
+    "text": "עדכון סיסמת החשבון שלכם"
+  },
+  "web.settings.password.update_account_password": {
+    "text": "עדכון סיסמת החשבון שלכם"
+  },
+  "web.settings.delete_account.title": {
+    "text": "מחיקת חשבון"
+  },
+  "web.settings.delete_account.description": {
+    "text": "מחיקה לצמיתות של החשבון וכל הנתונים"
+  },
+  "web.settings.delete_account.permanently_delete_your_account": {
+    "text": "מחיקה לצמיתות של החשבון וכל הנתונים"
+  },
+  "web.settings.security.security_score": {
+    "text": "ציון אבטחה"
+  },
+  "web.settings.security.score_description": {
+    "text": "מצב הבריאות הכולל של אבטחת החשבון"
+  },
+  "web.settings.security.excellent": {
+    "text": "מצוין"
+  },
+  "web.settings.security.good": {
+    "text": "טוב"
+  },
+  "web.settings.security.fair": {
+    "text": "סביר"
+  },
+  "web.settings.security.weak": {
+    "text": "חלש"
+  },
+  "web.settings.security.improve_security": {
+    "text": "שיפור האבטחה שלכם"
+  },
+  "web.settings.security.enable_mfa_recommendation": {
+    "text": "הפעילו אימות דו-שלבי להגנה חזקה יותר"
+  },
+  "web.settings.security.generate_recovery_codes_recommendation": {
+    "text": "יצרו קודי שחזור כגיבוי"
+  },
+  "web.settings.security.configured": {
+    "text": "מוגדר"
+  },
+  "web.settings.security.change": {
+    "text": "שינוי"
+  },
+  "web.settings.security.manage": {
+    "text": "ניהול"
+  },
+  "web.settings.security.enable": {
+    "text": "הפעלה"
+  },
+  "web.settings.security.codes_available": {
+    "text": "{0} קודים זמינים"
+  },
+  "web.settings.security.no_codes": {
+    "text": "לא נוצרו קודים"
+  },
+  "web.settings.security.active_sessions": {
+    "text": "סשן פעיל {0} | {0} סשנים פעילים"
+  },
+  "web.settings.security.best_practices": {
+    "text": "שיטות עבודה מומלצות לאבטחה"
+  },
+  "web.settings.security.use_strong_unique_password": {
+    "text": "השתמשו בסיסמה חזקה וייחודית לחשבון שלכם"
+  },
+  "web.settings.security.enable_mfa_for_protection": {
+    "text": "הפעילו אימות דו-שלבי להגנה נוספת"
+  },
+  "web.settings.security.save_recovery_codes_safely": {
+    "text": "שמרו את קודי השחזור במקום מאובטח"
+  },
+  "web.settings.security.review_sessions_regularly": {
+    "text": "בדקו ובטלו סשנים שאינם בשימוש באופן קבוע"
+  },
+  "web.settings.security.view_details": {
+    "text": "צפייה בפרטים"
+  },
+  "web.settings.api.title": {
+    "text": "API ואינטגרציות"
+  },
+  "web.settings.api.description": {
+    "text": "ניהול מפתחות API ואינטגרציות"
+  },
+  "web.settings.api.manage_api_keys": {
+    "text": "ניהול מפתחות API ואינטגרציות"
+  },
+  "web.settings.api.documentation": {
+    "text": "תיעוד API"
+  },
+  "web.settings.api.documentation_description": {
+    "text": "למדו כיצד לשלב את Onetime Secret באפליקציות שלכם"
+  },
+  "web.settings.api.rest_api_reference": {
+    "text": "מדריך REST API"
+  },
+  "web.settings.api.complete_api_documentation": {
+    "text": "תיעוד API מלא ונקודות קצה"
+  },
+  "web.settings.api.code_examples": {
+    "text": "דוגמאות קוד"
+  },
+  "web.settings.api.example_code_and_libraries": {
+    "text": "דוגמאות קוד וספריות לקוח"
+  },
+  "web.settings.api.security_best_practices": {
+    "text": "שיטות עבודה מומלצות לאבטחה"
+  },
+  "web.settings.api.never_commit_api_keys": {
+    "text": "לעולם אל תשלחו מפתחות API לבקרת גרסאות"
+  },
+  "web.settings.api.use_environment_variables": {
+    "text": "השתמשו במשתני סביבה לאחסון מפתחות API"
+  },
+  "web.settings.api.rotate_keys_regularly": {
+    "text": "בצעו החלפה של מפתחות API באופן קבוע למען האבטחה"
+  },
+  "web.settings.api.use_https_only": {
+    "text": "השתמשו תמיד ב-HTTPS בעת ביצוע בקשות API"
+  },
+  "web.settings.api.monitor_api_usage": {
+    "text": "עקבו אחר השימוש ב-API שלכם והגדירו התראות"
+  },
+  "web.settings.api.important_notice": {
+    "text": "הודעה חשובה"
+  },
+  "web.settings.api.regenerating_key_warning": {
+    "text": "יצירה מחדש של מפתח API תבטל את המפתח הנוכחי. עדכנו את כל האפליקציות המשתמשות במפתח הישן."
+  },
+  "web.settings.privacy.title": {
+    "text": "הגדרות פרטיות"
+  },
+  "web.settings.privacy.manage_privacy_settings": {
+    "text": "ניהול העדפות הפרטיות שלכם"
+  },
+  "web.settings.privacy.your_privacy": {
+    "text": "הפרטיות שלכם"
+  },
+  "web.settings.privacy.non_negotiable": {
+    "text": "לא ניתן למשא ומתן"
+  },
+  "web.settings.privacy.not_a_setting": {
+    "text": "לא הגדרה"
+  },
+  "web.settings.privacy.no_analytics_statement": {
+    "text": "ללא ניתוח. ללא מעקב. נקודה."
+  },
+  "web.settings.privacy.explanation": {
+    "text": "זו לא הגדרה כי אין מה להפעיל או לכבות. הפרטיות שלכם משולבת באופן שבו אנו פועלים."
+  },
+  "web.settings.notifications.title": {
+    "text": "הגדרות התראות"
+  },
+  "web.settings.notifications.description": {
+    "text": "ניהול אופן קבלת ההתראות"
+  },
+  "web.settings.notifications.error_updating": {
+    "text": "עדכון העדפת ההתראות נכשל. אנא נסו שוב."
+  },
+  "web.settings.notifications.reveal_notifications.title": {
+    "text": "התראות על צפייה בסוד"
+  },
+  "web.settings.notifications.reveal_notifications.description": {
+    "text": "קבלת דואר אלקטרוני כאשר מישהו צופה בסוד שלכם"
+  },
+  "web.settings.notifications.reveal_notifications.help": {
+    "text": "תקבלו התראה בכל פעם שנמען יצפה באחד מהסודות שלכם"
+  },
+  "web.settings.notifications.privacy_note": {
+    "text": "הודעות ההתראה כוללות רק חותמת זמן ומזהה הסוד. מידע על הצופה לעולם אינו נכלל."
+  },
+  "web.settings.caution.title": {
+    "text": "אזור לשיקול זהיר"
+  },
+  "web.settings.caution.description": {
+    "text": "הגדרות מתקדמות וניהול נתונים"
+  },
+  "web.settings.caution.data_export": {
+    "text": "ייצוא נתונים"
+  },
+  "web.settings.caution.export_your_data": {
+    "text": "ייצוא נתוני החשבון שלכם"
+  },
+  "web.settings.caution.export_description": {
+    "text": "בקשת עותק מלא של נתוני החשבון בפורמט קריא למכונה"
+  },
+  "web.settings.caution.request_data_export": {
+    "text": "בקשת ייצוא נתונים"
+  },
+  "web.settings.caution.export_info": {
+    "text": "זמן עיבוד ייצוא"
+  },
+  "web.settings.caution.export_info_description": {
+    "text": "ייצואים מעובדים בתוך 24 שעות ונשלחים לכתובת הדואר האלקטרוני שלכם"
+  },
+  "web.settings.caution.deletion_warning_title": {
+    "text": "מחיקת החשבון תגרום ל:"
+  },
+  "web.settings.caution.deletion_warning_secrets": {
+    "text": "מחיקה לצמיתות של כל הסודות שלכם"
+  },
+  "web.settings.caution.deletion_warning_metadata": {
+    "text": "הסרת כל מטא-דאטה והיסטוריה של סודות"
+  },
+  "web.settings.caution.deletion_warning_api_keys": {
+    "text": "ביטול כל מפתחות ה-API"
+  },
+  "web.settings.caution.deletion_warning_irreversible": {
+    "text": "פעולה זו אינה ניתנת לביטול"
+  }
+}

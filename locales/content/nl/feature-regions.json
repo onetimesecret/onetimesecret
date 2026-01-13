@@ -1,0 +1,107 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "Datasoevereiniteit en regionale isolatie"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "Je gegevens blijven uitsluitend in de door jou gekozen regio en worden nooit tussen regio's overgedragen"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "Elke regio werkt als een volledig onafhankelijke omgeving met eigen infrastructuur, versleutelingssleutels en data-opslag"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "We hanteren een strikt beleid: klantgegevens worden onder geen enkele omstandigheid tussen regio's overgedragen"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "Belangrijk: overschakelen naar een andere regio maakt een nieuw account aan. Je gegevens blijven in je oorspronkelijke regio"
+  },
+  "web.regions.your_region": {
+    "text": "Je regio"
+  },
+  "web.regions.your_current_region": {
+    "text": "Je huidige regio"
+  },
+  "web.regions.active": {
+    "text": "Actief"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "Verken andere beschikbare regio's"
+  },
+  "web.regions.why_it_matters": {
+    "text": "Waarom datasoevereiniteit belangrijk is"
+  },
+  "web.regions.trust_title": {
+    "text": "Transparantie en controle"
+  },
+  "web.regions.trust_description": {
+    "text": "Precies weten waar je gegevens zich bevinden en welke wetten de bescherming ervan regelen"
+  },
+  "web.regions.privacy_title": {
+    "text": "Privacyrechten"
+  },
+  "web.regions.privacy_description": {
+    "text": "Ervoor zorgen dat je persoonlijke informatie wordt behandeld volgens de privacywetten van jouw land, om ongeautoriseerde toegang of misbruik te voorkomen"
+  },
+  "web.regions.compliance_title": {
+    "text": "Naleving van regelgeving"
+  },
+  "web.regions.compliance_description": {
+    "text": "Voldoen aan regionale gegevensbeschermingsvereisten zoals AVG, HIPAA, CCPA en anderen"
+  },
+  "web.regions.performance_title": {
+    "text": "Snellere toegang"
+  },
+  "web.regions.performance_description": {
+    "text": "Gegevens die dichter bij jou worden opgeslagen betekenen lagere latentie en betere prestaties"
+  },
+  "web.regions.regions": {
+    "text": "Regio's"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "neem contact op met ons compliance team"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "bekijk onze documentatie"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "Uw account en gegevens worden beschermd onder de wetten en voorschriften van"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "Dit regelgevingskader wordt bepaald door uw toegangsdomein:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "Elke jurisdictie heeft afzonderlijke wettelijke naleving en gegevensbeheer. Hoewel u accounts in meerdere jurisdicties kunt aanmaken, blijven ze juridisch gescheiden zonder gegevensuitwisseling tussen regelgevingszones."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "Om de specifieke regelgeving en beschermingen te begrijpen die van toepassing zijn op uw account,"
+  },
+  "web.regions.current": {
+    "text": "Huidig"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "Beschikbare regio's"
+  },
+  "web.regions.jurisdiction": {
+    "text": "Jurisdictie"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "Datacentrum locatie: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "Dataregio"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "Onbekende jurisdictie"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "We bedienen u vanuit de"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "Doorgaan naar {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Huidige jurisdictie:"
+  }
+}

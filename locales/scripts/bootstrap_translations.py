@@ -1,30 +1,34 @@
 #!/usr/bin/env python3
 """
-Bootstrap existing translations into the new historical JSON format.
+Bootstrap locale content into versioned JSON format.
 
-Reads English source files and existing locale translations, then creates
-historical JSON files that serve as the source of truth for translations.
+Reads source locale files from src/locales/{locale}/ and creates
+content files in locales/content/{locale}/ for version control.
 
-The historical format includes the English text at translation time (for
-staleness detection) and metadata about skipped keys.
-
-Usage:
-    python bootstrap_translations.py LOCALE [--dry-run]
-    python bootstrap_translations.py eo --dry-run
-    python bootstrap_translations.py --all
-
-Output format (locales/translations/{locale}/{file}.json):
+All locales use the same format, including English:
     {
       "web.COMMON.tagline": {
-        "en": "Secure links that only work once",
-        "translation": "Sekuraj ligiloj..."
+        "text": "Secure links that only work once"
       },
       "web.COMMON.broadcast": {
-        "en": "",
+        "text": "",
         "skip": true,
         "note": "empty source"
       }
     }
+
+For non-English locales, English text is NOT duplicated here.
+It's looked up from content/en/ when generating tasks.
+
+Usage:
+    python bootstrap_translations.py LOCALE [--dry-run]
+    python bootstrap_translations.py en --dry-run
+    python bootstrap_translations.py --all
+
+Examples:
+    python bootstrap_translations.py en              # Bootstrap English
+    python bootstrap_translations.py eo --dry-run   # Preview Esperanto
+    python bootstrap_translations.py --all          # Bootstrap all locales
 """
 
 import argparse
@@ -38,8 +42,7 @@ from utils import load_json_file, save_json_file, walk_keys
 SCRIPT_DIR = Path(__file__).parent.resolve()
 LOCALES_DIR = SCRIPT_DIR.parent
 SRC_LOCALES_DIR = LOCALES_DIR.parent / "src" / "locales"
-EN_DIR = SRC_LOCALES_DIR / "en"
-TRANSLATIONS_DIR = LOCALES_DIR / "translations"
+CONTENT_DIR = LOCALES_DIR / "content"
 
 
 def get_keys_from_file(file_path: Path) -> dict[str, str]:
@@ -55,41 +58,45 @@ def get_keys_from_file(file_path: Path) -> dict[str, str]:
     return dict(walk_keys(data))
 
 
-def get_available_locales() -> list[str]:
-    """Get list of available locale codes (excluding 'en')."""
+def get_available_locales(include_english: bool = True) -> list[str]:
+    """Get list of available locale codes.
+
+    Args:
+        include_english: If True, include 'en' in the list.
+
+    Returns:
+        Sorted list of locale codes.
+    """
     if not SRC_LOCALES_DIR.exists():
         return []
 
     locales = []
     for path in sorted(SRC_LOCALES_DIR.iterdir()):
-        if path.is_dir() and path.name != "en" and not path.name.startswith("."):
-            locales.append(path.name)
+        if path.is_dir() and not path.name.startswith("."):
+            if include_english or path.name != "en":
+                locales.append(path.name)
     return locales
 
 
-def build_historical_entry(
-    en_text: str,
-    locale_text: str | None,
+def build_content_entry(
+    text: str,
+    is_english: bool = False,
 ) -> dict[str, Any]:
-    """Build a historical entry for a single key.
+    """Build a content entry for a single key.
 
     Args:
-        en_text: English source text.
-        locale_text: Translated text (None if missing).
+        text: The text value for this key.
+        is_english: If True, this is an English source entry.
 
     Returns:
-        Historical entry dict with appropriate fields.
+        Content entry dict with appropriate fields.
     """
-    entry: dict[str, Any] = {"en": en_text}
+    entry: dict[str, Any] = {"text": text}
 
-    if en_text == "":
-        # Empty English source - mark as skip
+    # Mark empty values as skip (applies to all locales)
+    if text == "":
         entry["skip"] = True
-        entry["note"] = "empty source"
-    elif locale_text is not None:
-        # Translation exists
-        entry["translation"] = locale_text
-    # else: only "en" field (pending translation)
+        entry["note"] = "empty source" if is_english else "empty"
 
     return entry
 
@@ -98,76 +105,63 @@ def bootstrap_locale(
     locale: str,
     dry_run: bool = False,
 ) -> dict[str, dict[str, int]] | None:
-    """Bootstrap historical translations for a single locale.
+    """Bootstrap content for a single locale.
 
     Args:
-        locale: Target locale code (e.g., 'eo').
+        locale: Target locale code (e.g., 'en', 'eo').
         dry_run: If True, only report what would be created.
 
     Returns:
-        Stats dict with counts per file.
+        Stats dict with counts per file, or None on error.
     """
     locale_dir = SRC_LOCALES_DIR / locale
-    output_dir = TRANSLATIONS_DIR / locale
+    output_dir = CONTENT_DIR / locale
+    is_english = locale == "en"
 
     if not locale_dir.exists():
         print(f"Error: Locale directory not found: {locale_dir}", file=sys.stderr)
         return None
 
-    if not EN_DIR.exists():
-        print(f"Error: English directory not found: {EN_DIR}", file=sys.stderr)
-        sys.exit(1)
-
     stats: dict[str, dict[str, int]] = {}
-    en_files = sorted(EN_DIR.glob("*.json"))
+    locale_files = sorted(locale_dir.glob("*.json"))
 
-    for en_file in en_files:
-        file_name = en_file.name
-        locale_file = locale_dir / file_name
+    for locale_file in locale_files:
+        file_name = locale_file.name
         output_file = output_dir / file_name
 
-        # Get English keys
-        en_keys = get_keys_from_file(en_file)
-        if not en_keys:
+        # Get keys from this locale's file
+        keys = get_keys_from_file(locale_file)
+        if not keys:
             continue
 
-        # Get locale keys (may be empty if file doesn't exist)
-        locale_keys = get_keys_from_file(locale_file)
-
-        # Build historical data
-        historical: dict[str, dict[str, Any]] = {}
+        # Build content data
+        content: dict[str, dict[str, Any]] = {}
         file_stats = {
             "total": 0,
-            "translated": 0,
-            "pending": 0,
+            "with_text": 0,
             "skipped": 0,
         }
 
-        for key, en_text in en_keys.items():
-            locale_text = locale_keys.get(key)
-            entry = build_historical_entry(en_text, locale_text)
-            historical[key] = entry
+        for key, text in keys.items():
+            entry = build_content_entry(text, is_english=is_english)
+            content[key] = entry
 
             file_stats["total"] += 1
             if entry.get("skip"):
                 file_stats["skipped"] += 1
-            elif "translation" in entry:
-                file_stats["translated"] += 1
             else:
-                file_stats["pending"] += 1
+                file_stats["with_text"] += 1
 
         stats[file_name] = file_stats
 
         if dry_run:
             print(f"  [DRY-RUN] {file_name}: "
-                  f"{file_stats['translated']} translated, "
-                  f"{file_stats['pending']} pending, "
+                  f"{file_stats['with_text']} with text, "
                   f"{file_stats['skipped']} skipped")
         else:
-            save_json_file(output_file, historical)
+            save_json_file(output_file, content)
             print(f"  {file_name}: "
-                  f"{file_stats['translated']} translated, "
-                  f"{file_stats['pending']} pending, "
+                  f"{file_stats['with_text']} with text, "
                   f"{file_stats['skipped']} skipped")
 
     return stats
@@ -179,19 +173,19 @@ def print_summary(all_stats: dict[str, dict[str, dict[str, int]]]) -> None:
     print("Summary")
     print("=" * 60)
 
-    grand_total = {"total": 0, "translated": 0, "pending": 0, "skipped": 0}
+    grand_total = {"total": 0, "with_text": 0, "skipped": 0}
 
     for locale, file_stats in sorted(all_stats.items()):
-        locale_total = {"total": 0, "translated": 0, "pending": 0, "skipped": 0}
+        locale_total = {"total": 0, "with_text": 0, "skipped": 0}
         for stats in file_stats.values():
             for key in locale_total:
                 locale_total[key] += stats[key]
                 grand_total[key] += stats[key]
 
-        pct = (locale_total["translated"] / locale_total["total"] * 100
+        pct = (locale_total["with_text"] / locale_total["total"] * 100
                if locale_total["total"] > 0 else 0)
-        print(f"  {locale}: {locale_total['translated']}/{locale_total['total']} "
-              f"({pct:.1f}% translated)")
+        print(f"  {locale}: {locale_total['with_text']}/{locale_total['total']} "
+              f"({pct:.1f}% with text)")
 
     if len(all_stats) > 1:
         print("-" * 60)
@@ -201,25 +195,25 @@ def print_summary(all_stats: dict[str, dict[str, dict[str, int]]]) -> None:
 def main() -> int:
     """CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="Bootstrap existing translations into historical JSON format.",
+        description="Bootstrap locale content into versioned JSON format.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python bootstrap_translations.py eo           # Bootstrap Esperanto
-    python bootstrap_translations.py eo --dry-run # Preview without writing
-    python bootstrap_translations.py --all        # Bootstrap all locales
+    python bootstrap_translations.py en              # Bootstrap English
+    python bootstrap_translations.py eo --dry-run   # Preview Esperanto
+    python bootstrap_translations.py --all          # Bootstrap all locales
         """,
     )
 
     parser.add_argument(
         "locale",
         nargs="?",
-        help="Target locale code (e.g., 'eo', 'fr_FR')",
+        help="Target locale code (e.g., 'en', 'eo', 'fr_FR')",
     )
     parser.add_argument(
         "--all",
         action="store_true",
-        help="Process all available locales",
+        help="Process all available locales (including English)",
     )
     parser.add_argument(
         "--dry-run",
@@ -238,7 +232,7 @@ Examples:
 
     # Determine locales to process
     if args.all:
-        locales = get_available_locales()
+        locales = get_available_locales(include_english=True)
         if not locales:
             print("Error: No locales found in src/locales/", file=sys.stderr)
             return 1
@@ -268,7 +262,7 @@ Examples:
         print_summary(all_stats)
 
         if not args.dry_run:
-            print(f"\nOutput directory: {TRANSLATIONS_DIR}")
+            print(f"\nOutput directory: {CONTENT_DIR}")
 
     # Return error code if any locales failed
     if errors > 0:

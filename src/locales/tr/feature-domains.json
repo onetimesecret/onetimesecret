@@ -3,9 +3,6 @@
     "domains": {
       "learn_more_dns": "DNS yapılandırması hakkında daha fazla bilgi edinin",
       "view_domain_verification_status": "Alan adı doğrulama durumunu görüntüle",
-      "domain_already_in_organization": "",
-      "domain_in_other_organization": "",
-      "domain_claimed_successfully": "",
       "privacy_defaults_title": "Gizlilik Varsayılanları",
       "privacy_defaults_description": "Bu alan adı altında oluşturulan sırlar için varsayılan gizlilik seçeneklerini ayarlayın. Bu ayarlar yeni sırlar oluştururken önceden doldurulacaktır.",
       "privacy_defaults": "Gizlilik Varsayılanları",

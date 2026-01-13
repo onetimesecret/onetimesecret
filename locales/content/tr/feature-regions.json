@@ -1,0 +1,143 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.your_region": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.your_current_region": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.active": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.why_it_matters": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.trust_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.trust_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.privacy_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.privacy_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.compliance_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.compliance_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.performance_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.performance_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.regions": {
+    "text": "Bölgeler"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "uyumluluk ekibimizle iletişime geçin"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "belgelerimizi inceleyin"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "Hesabınız ve verileriniz yasaları ve düzenlemeleri altında korunmaktadır"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "Bu düzenleyici çerçeve, erişim alan adınız tarafından belirlenir:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "Her yargı bölgesi ayrı yasal uyumluluk ve veri yönetimi sağlar. Birden fazla yargı bölgesinde hesap oluşturabilseniz de, düzenleyici bölgeler arasında veri paylaşımı olmaksızın yasal olarak ayrı kalırlar."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "Hesabınız için geçerli olan belirli düzenlemeleri ve korumaları anlamak için lütfen"
+  },
+  "web.regions.current": {
+    "text": "Mevcut"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "Mevcut Bölgeler"
+  },
+  "web.regions.jurisdiction": {
+    "text": "Yargı Bölgesi"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "Veri merkezi konumu: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "Veri Bölgesi"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "Bilinmeyen Yargı Bölgesi"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "Size şuradan hizmet veriyoruz"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "{0} adresine devam et"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Mevcut yargı bölgesi:"
+  }
+}

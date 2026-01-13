@@ -1,16 +1,11 @@
 {
   "web": {
     "account": {
-      "settings": "",
-      "change_password": "",
-      "close_account": "",
-      "verify_account": "",
       "subscription_title": "Συνδρομή",
       "manage_subscription": "Διαχείριση Συνδρομής",
       "customer_information": "Πληροφορίες Πελάτη",
       "customer_since": "Πελάτης από:",
       "email": "Email:",
-      "region": "",
       "account_balance": "Υπόλοιπο λογαριασμού:",
       "default_payment_method": "Προεπιλεγμένη Μέθοδος Πληρωμής",
       "card_ending": "που λήγει σε",
@@ -55,108 +50,6 @@
       "deactivate_account": "Απενεργοποίηση λογαριασμού"
     },
     "settings": {
-      "title": "",
-      "description": "",
-      "manage_your_account_settings_and_preferences": "",
-      "general": "",
-      "preferences": "",
-      "appearance": "",
-      "theme": {
-        "title": "",
-        "description": "",
-        "choose_light_or_dark_theme": ""
-      },
-      "language": {
-        "title": "",
-        "description": "",
-        "select_your_preferred_language": ""
-      },
-      "security_settings_description": "",
-      "profile_settings_description": "",
-      "profile": {
-        "title": "",
-        "change_email": "",
-        "current_email": "",
-        "current_password": "",
-        "new_email": "",
-        "enter_password_to_confirm": "",
-        "password_required_for_security": "",
-        "verification_email_notice": "",
-        "update_email": "",
-        "change_email_description": "",
-        "all_fields_required": "",
-        "invalid_email": "",
-        "email_same_as_current": "",
-        "email_change_success": "",
-        "email_change_error": ""
-      },
-      "sessions": {
-        "title": "",
-        "description": "",
-        "manage_active_sessions": ""
-      },
-      "password": {
-        "title": "",
-        "description": "",
-        "update_account_password": ""
-      },
-      "delete_account": {
-        "title": "",
-        "description": "",
-        "permanently_delete_your_account": ""
-      },
-      "security": {
-        "security_score": "",
-        "score_description": "",
-        "excellent": "",
-        "good": "",
-        "fair": "",
-        "weak": "",
-        "improve_security": "",
-        "enable_mfa_recommendation": "",
-        "generate_recovery_codes_recommendation": "",
-        "configured": "",
-        "change": "",
-        "manage": "",
-        "enable": "",
-        "codes_available": "",
-        "no_codes": "",
-        "active_sessions": "",
-        "best_practices": "",
-        "use_strong_unique_password": "",
-        "enable_mfa_for_protection": "",
-        "save_recovery_codes_safely": "",
-        "review_sessions_regularly": "",
-        "view_details": ""
-      },
-      "api": {
-        "title": "",
-        "description": "",
-        "manage_api_keys": "",
-        "documentation": "",
-        "documentation_description": "",
-        "rest_api_reference": "",
-        "complete_api_documentation": "",
-        "code_examples": "",
-        "example_code_and_libraries": "",
-        "security_best_practices": "",
-        "never_commit_api_keys": "",
-        "use_environment_variables": "",
-        "rotate_keys_regularly": "",
-        "use_https_only": "",
-        "monitor_api_usage": "",
-        "important_notice": "",
-        "regenerating_key_warning": ""
-      },
-      "privacy": {
-        "title": "",
-        "manage_privacy_settings": "",
-        "your_privacy": "",
-        "non_negotiable": "",
-        "not_a_setting": "",
-        "no_analytics_statement": "",
-        "explanation": ""
-      },
       "notifications": {
         "title": "Ρυθμίσεις Ειδοποιήσεων",
         "description": "Διαχειριστείτε πώς λαμβάνετε ειδοποιήσεις",
@@ -167,21 +60,6 @@
           "help": "Θα ειδοποιείστε κάθε φορά που ένας παραλήπτης αποκαλύπτει κάποιο από τα μυστικά σας"
         },
         "privacy_note": "Τα email ειδοποίησης περιλαμβάνουν μόνο τη χρονοσφραγίδα και το αναγνωριστικό μυστικού. Πληροφορίες θεατή δεν περιλαμβάνονται ποτέ."
-      },
-      "caution": {
-        "title": "",
-        "description": "",
-        "data_export": "",
-        "export_your_data": "",
-        "export_description": "",
-        "request_data_export": "",
-        "export_info": "",
-        "export_info_description": "",
-        "deletion_warning_title": "",
-        "deletion_warning_secrets": "",
-        "deletion_warning_metadata": "",
-        "deletion_warning_api_keys": "",
-        "deletion_warning_irreversible": ""
       }
     }
   }

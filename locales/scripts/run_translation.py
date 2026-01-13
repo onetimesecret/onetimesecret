@@ -6,7 +6,7 @@ Identifies pending tasks by comparing English source with historical JSON,
 invokes Claude (or mock), and writes results to historical JSON files.
 
 Three-tier architecture:
-- locales/translations/{locale}/*.json - Historical source of truth (flat keys)
+- locales/content/{locale}/*.json - Version-controlled source of truth (flat keys)
 - src/locales/{locale}/*.json - Lean app-consumable files (nested JSON)
 - locales/db/tasks.db - Ephemeral, hydrated on-demand for queries
 
@@ -20,7 +20,9 @@ Examples:
 """
 
 import argparse
+import asyncio
 import json
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -28,12 +30,26 @@ from typing import Optional
 
 from utils import load_json_file, save_json_file, walk_keys
 
+# SDK imports - optional, allows --mock fallback
+try:
+    from claude_agent_sdk import (
+        AssistantMessage,
+        ClaudeAgentOptions,
+        ClaudeSDKError,
+        query,
+        ResultMessage,
+        TextBlock,
+    )
+    HAS_SDK = True
+except ImportError:
+    HAS_SDK = False
+
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
 LOCALES_DIR = SCRIPT_DIR.parent
 SRC_LOCALES_DIR = LOCALES_DIR.parent / "src" / "locales"
 EN_DIR = SRC_LOCALES_DIR / "en"
-TRANSLATIONS_DIR = LOCALES_DIR / "translations"
+CONTENT_DIR = LOCALES_DIR / "content"
 GUIDES_DIR = LOCALES_DIR / "guides"
 ANALYSIS_DIR = LOCALES_DIR / "analysis"
 
@@ -44,7 +60,7 @@ class TranslationTask:
 
     file: str
     key: str
-    english_text: str
+    source: str
 
 
 def get_pending_tasks(
@@ -52,11 +68,11 @@ def get_pending_tasks(
     limit: Optional[int] = None,
     file_filter: Optional[str] = None,
 ) -> list[TranslationTask]:
-    """Identify pending tasks by comparing English source with historical JSON.
+    """Identify pending tasks by comparing English source with locale content.
 
     A key is pending if:
-    - It exists in en/ source
-    - AND either doesn't exist in historical JSON OR has no 'translation' field
+    - It exists in content/en/ source
+    - AND either doesn't exist in locale content OR has empty/no 'text' field
     - AND is not marked as 'skip'
 
     Args:
@@ -67,41 +83,45 @@ def get_pending_tasks(
     Returns:
         List of TranslationTask objects.
     """
-    if not EN_DIR.exists():
-        raise FileNotFoundError(f"English directory not found: {EN_DIR}")
+    en_content_dir = CONTENT_DIR / "en"
+    if not en_content_dir.exists():
+        raise FileNotFoundError(f"English content not found: {en_content_dir}")
 
     tasks: list[TranslationTask] = []
-    translations_dir = TRANSLATIONS_DIR / locale
+    locale_content_dir = CONTENT_DIR / locale
 
-    # Get English JSON files
-    en_files = sorted(EN_DIR.glob("*.json"))
+    # Get English content JSON files
+    en_files = sorted(en_content_dir.glob("*.json"))
     if file_filter:
         en_files = [f for f in en_files if f.name == file_filter]
 
     for en_file in en_files:
         file_name = en_file.name
-        historical_file = translations_dir / file_name
+        locale_file = locale_content_dir / file_name
 
-        # Get English keys
-        en_data = load_json_file(en_file)
-        en_keys = dict(walk_keys(en_data))
+        # Get English keys from content
+        en_content = load_json_file(en_file)
 
-        # Get existing historical data (may be empty)
-        historical = load_json_file(historical_file)
+        # Get existing locale content (may be empty)
+        locale_content = load_json_file(locale_file)
 
-        for key, english_text in en_keys.items():
-            entry = historical.get(key, {})
-
-            # Skip if already translated or marked skip
-            if "translation" in entry:
+        for key, en_entry in en_content.items():
+            if not isinstance(en_entry, dict):
                 continue
-            if entry.get("skip"):
+
+            source = en_entry.get("text", "")
+            locale_entry = locale_content.get(key, {})
+
+            # Skip if already has text or marked skip
+            if locale_entry.get("text") and not locale_entry.get("skip"):
+                continue
+            if locale_entry.get("skip"):
                 continue
 
             tasks.append(TranslationTask(
                 file=file_name,
                 key=key,
-                english_text=english_text,
+                source=source,
             ))
 
             if limit and len(tasks) >= limit:
@@ -145,7 +165,7 @@ def build_prompt(
         Formatted prompt string.
     """
     items = [
-        {"key": t.key, "english": t.english_text}
+        {"key": t.key, "english": t.source}
         for t in tasks
     ]
 
@@ -187,10 +207,10 @@ def mock_translate(tasks: list[TranslationTask], locale: str) -> list[dict]:
     results = []
     for task in tasks:
         # Skip empty English text
-        if not task.english_text.strip():
+        if not task.source.strip():
             results.append({
                 "key": task.key,
-                "english": task.english_text,
+                "english": task.source,
                 "translated": "",
                 "skipped": True,
                 "reason": "empty_source",
@@ -198,30 +218,140 @@ def mock_translate(tasks: list[TranslationTask], locale: str) -> list[dict]:
             continue
 
         # Generate placeholder translation
-        translated = f"[{locale.upper()}] {task.english_text}"
+        translated = f"[{locale.upper()}] {task.source}"
 
         results.append({
             "key": task.key,
-            "english": task.english_text,
+            "english": task.source,
             "translated": translated,
         })
 
     return results
 
 
-def invoke_claude(_prompt: str, _locale: str) -> list[dict]:
-    """Invoke Claude to translate strings.
+def extract_json_from_response(text: str) -> list[dict]:
+    """Extract JSON array from Claude's response.
 
-    TODO: Implement actual Claude invocation.
-    For now, raises NotImplementedError.
+    Handles responses that may include markdown code blocks or extra text.
 
     Args:
-        _prompt: The translation prompt (unused until implemented).
-        _locale: Target locale code (unused until implemented).
+        text: Raw response text from Claude.
+
+    Returns:
+        Parsed list of translation dicts.
+
+    Raises:
+        ValueError: If no valid JSON array can be extracted.
     """
-    raise NotImplementedError(
-        "Claude invocation not yet implemented. Use --mock for testing."
+    # Try direct parse first
+    try:
+        result = json.loads(text.strip())
+        if isinstance(result, list):
+            return result
+    except json.JSONDecodeError:
+        pass
+
+    # Try extracting from markdown code block
+    code_block = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", text, re.DOTALL)
+    if code_block:
+        try:
+            result = json.loads(code_block.group(1).strip())
+            if isinstance(result, list):
+                return result
+        except json.JSONDecodeError:
+            pass
+
+    # Try finding JSON array pattern
+    array_match = re.search(r"\[\s*\{.*\}\s*\]", text, re.DOTALL)
+    if array_match:
+        try:
+            result = json.loads(array_match.group(0))
+            if isinstance(result, list):
+                return result
+        except json.JSONDecodeError:
+            pass
+
+    raise ValueError(f"Could not extract JSON array from response: {text[:200]}...")
+
+
+async def _invoke_claude_async(prompt: str, verbose: bool = False) -> list[dict]:
+    """Async implementation of Claude invocation.
+
+    Args:
+        prompt: The translation prompt.
+        verbose: Whether to show progress output.
+
+    Returns:
+        List of translation result dicts.
+
+    Raises:
+        RuntimeError: If SDK not available or Claude returns an error.
+    """
+    if not HAS_SDK:
+        raise RuntimeError(
+            "claude_agent_sdk not installed. Use --mock for testing, "
+            "or install with: pip install claude-agent-sdk"
+        )
+
+    options = ClaudeAgentOptions(
+        cwd=str(LOCALES_DIR),
+        allowed_tools=["Read"],  # May read guide files
+        max_turns=1,  # Single-turn translation task
     )
+
+    content_parts: list[str] = []
+    result_text = ""
+
+    try:
+        async for message in query(prompt=prompt, options=options):
+            if isinstance(message, AssistantMessage):
+                for block in message.content:
+                    if isinstance(block, TextBlock):
+                        content_parts.append(block.text)
+
+            elif isinstance(message, ResultMessage):
+                if verbose:
+                    cost = getattr(message, "cost_usd", 0) or 0
+                    duration = getattr(message, "duration_ms", 0) or 0
+                    print(f"  Cost: ${cost:.4f}, duration: {duration}ms")
+
+                if getattr(message, "is_error", False):
+                    error_msg = getattr(message, "result", "Unknown error")
+                    raise RuntimeError(f"Claude error: {error_msg}")
+
+                result_text = getattr(message, "result", "") or ""
+
+        # Use accumulated content if no result from ResultMessage
+        if not result_text and content_parts:
+            result_text = "".join(content_parts)
+
+        if not result_text:
+            raise RuntimeError("No response received from Claude")
+
+        return extract_json_from_response(result_text)
+
+    except ClaudeSDKError as e:
+        raise RuntimeError(f"Claude SDK error: {e}") from e
+
+
+def invoke_claude(prompt: str, locale: str, verbose: bool = False) -> list[dict]:
+    """Invoke Claude to translate strings.
+
+    Args:
+        prompt: The translation prompt.
+        locale: Target locale code (for error messages).
+        verbose: Whether to show progress output.
+
+    Returns:
+        List of translation result dicts with keys: key, english, translated.
+
+    Raises:
+        RuntimeError: If Claude invocation fails.
+    """
+    try:
+        return asyncio.run(_invoke_claude_async(prompt, verbose))
+    except Exception as e:
+        raise RuntimeError(f"Translation failed for {locale}: {e}") from e
 
 
 def process_translations(
@@ -229,7 +359,7 @@ def process_translations(
     tasks: list[TranslationTask],
     translations: list[dict],
 ) -> dict[str, int]:
-    """Process translation results and write to historical JSON files.
+    """Process translation results and write to content JSON files.
 
     Args:
         locale: Target locale code.
@@ -252,50 +382,46 @@ def process_translations(
         if file_name:
             by_file.setdefault(file_name, []).append(t)
 
-    translations_dir = TRANSLATIONS_DIR / locale
+    content_dir = CONTENT_DIR / locale
 
     for file_name, file_translations in by_file.items():
-        historical_file = translations_dir / file_name
+        content_file = content_dir / file_name
 
-        # Load existing historical data
-        historical = load_json_file(historical_file)
+        # Load existing content data
+        content = load_json_file(content_file)
 
         for t in file_translations:
             key = t["key"]
-            english = t.get("english", "")
 
             if t.get("skipped"):
                 # Mark as skipped
-                historical[key] = {
-                    "en": english,
+                content[key] = {
+                    "text": "",
                     "skip": True,
                     "note": t.get("reason", "skipped"),
                 }
                 stats["skipped"] += 1
             elif t.get("error"):
                 # Record error but don't mark as translated
-                historical[key] = {
-                    "en": english,
+                content[key] = {
+                    "text": "",
                     "note": f"error: {t.get('error')}",
                 }
                 stats["errors"] += 1
             elif t.get("translated"):
                 # Successful translation
-                historical[key] = {
-                    "en": english,
-                    "translation": t["translated"],
-                }
+                content[key] = {"text": t["translated"]}
                 stats["completed"] += 1
             else:
                 # No translation returned
-                historical[key] = {
-                    "en": english,
+                content[key] = {
+                    "text": "",
                     "note": "no_translation_returned",
                 }
                 stats["errors"] += 1
 
-        # Save updated historical file
-        save_json_file(historical_file, historical)
+        # Save updated content file
+        save_json_file(content_file, content)
 
     return stats
 
@@ -374,7 +500,7 @@ Examples:
     if args.dry_run:
         print("\n[DRY-RUN] Would translate:")
         for task in tasks[:5]:
-            print(f"  {task.key}: {task.english_text[:50]}...")
+            print(f"  {task.key}: {task.source[:50]}...")
         if len(tasks) > 5:
             print(f"  ... and {len(tasks) - 5} more")
         return 0
@@ -398,8 +524,8 @@ Examples:
     else:
         print("Invoking Claude...")
         try:
-            translations = invoke_claude(prompt, args.locale)
-        except NotImplementedError as e:
+            translations = invoke_claude(prompt, args.locale, verbose=args.verbose)
+        except RuntimeError as e:
             print(f"Error: {e}", file=sys.stderr)
             return 1
 
@@ -418,7 +544,7 @@ Examples:
             if t.get("translated"):
                 print(f"  {t['key']}: {t['translated'][:60]}...")
 
-    output_dir = TRANSLATIONS_DIR / args.locale
+    output_dir = CONTENT_DIR / args.locale
     print(f"\nOutput: {output_dir}/")
 
     return 0

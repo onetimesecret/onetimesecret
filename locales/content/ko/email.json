@@ -1,0 +1,446 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[티켓: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "text": "고객이 다음 정보를 보냈습니다"
+  },
+  "email.secret_link.subject": {
+    "text": "%{sender_email}님이 비밀 메시지를 보냈습니다"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "님이 비밀 메시지를 보냈습니다:"
+  },
+  "email.secret_link.important_label": {
+    "text": "중요:"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "이 링크는 한 번만 작동합니다. 확인 후 비밀 메시지는 영구적으로 삭제됩니다."
+  },
+  "email.secret_link.sent_via": {
+    "text": "발신:"
+  },
+  "email.welcome.subject": {
+    "text": "Onetime Secret 계정을 인증하세요"
+  },
+  "email.welcome.title": {
+    "text": "%{product_name}에 초대되었습니다!"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "아래 링크를 클릭하여 이메일 주소를 인증해 주세요:"
+  },
+  "email.welcome.verify_button": {
+    "text": "이메일 주소 인증"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "또는 이 링크를 복사하여 붙여넣기:"
+  },
+  "email.welcome.signature": {
+    "text": "Delano"
+  },
+  "email.welcome.postscript": {
+    "text": "추신: 이 이메일은 %{email_address}로 전송되었습니다. 이 초대를 예상하지 못했다면 이 메시지를 무시하셔도 됩니다."
+  },
+  "email.password_request.subject": {
+    "text": "비밀번호 재설정 (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "text": "비밀번호 재설정"
+  },
+  "email.password_request.request_notice": {
+    "text": "%{product_name} 비밀번호 재설정 요청을 받았습니다."
+  },
+  "email.password_request.reset_button": {
+    "text": "비밀번호 재설정"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "또는 이 링크를 복사하여 붙여넣기:"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "비밀번호 재설정을 요청하지 않으셨다면 이 이메일을 무시하셔도 됩니다."
+  },
+  "email.password_request.signature": {
+    "text": "Delano"
+  },
+  "email.password_request.postscript": {
+    "text": "P.S. 이 이메일은 %{email_address}로 발송되었습니다."
+  },
+  "email.magic_link.subject": {
+    "text": "%{display_domain}에 로그인"
+  },
+  "email.magic_link.title": {
+    "text": "매직 링크로 로그인"
+  },
+  "email.magic_link.request_notice": {
+    "text": "%{product_name} 계정의 로그인 링크를 요청하셨습니다."
+  },
+  "email.magic_link.login_button": {
+    "text": "로그인"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "또는 이 링크를 복사하여 붙여넣으세요:"
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "이 링크는 15분 후에 만료됩니다."
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "이 링크를 요청하지 않으셨다면 이 이메일을 무시하셔도 됩니다."
+  },
+  "email.magic_link.signature": {
+    "text": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "text": "추신: 이 이메일은 %{email_address}(으)로 발송되었습니다."
+  },
+  "email.incoming_secret.subject": {
+    "text": "비밀 메시지를 받으셨습니다"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "안전한 메시지를 받으셨습니다:"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "메모:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "누군가 %{display_domain}을 통해 안전한 메시지를 보냈습니다."
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "비밀 메시지를 보려면 아래 링크를 클릭하세요:"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "중요:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "이 링크는 한 번만 작동합니다. 확인 후 비밀 메시지는 영구적으로 삭제됩니다."
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "발신:"
+  },
+  "email.secret_revealed.subject": {
+    "text": "비밀 메시지가 확인되었습니다"
+  },
+  "email.secret_revealed.title": {
+    "text": "비밀 메시지가 확인되었습니다"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "비밀 메시지가 %{date}에 확인되었습니다."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "비밀 메시지 ID:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "자동 알림입니다. 별도의 조치가 필요하지 않습니다."
+  },
+  "email.secret_revealed.signature": {
+    "text": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "알림 설정 관리"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "알림 설정을 관리하려면:"
+  },
+  "email.expiration_warning.subject": {
+    "text": "비밀 메시지 링크가 곧 만료됩니다"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "비밀 메시지 링크가 %{time_remaining} 후에 만료됩니다"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "만료되기 전에 비밀 메시지 확인"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "안내:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "만료 후 비밀 메시지는 영구적으로 삭제되며 복구할 수 없습니다."
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "발신:"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "삭제되기 전에 확인하세요:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "만료 후 비밀 메시지는 영구적으로 삭제됩니다."
+  },
+  "email.feedback_email.subject": {
+    "text": "%{display_domain}을 통한 %{date} 피드백 (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "text": "사용자 피드백"
+  },
+  "email.feedback_email.from_label": {
+    "text": "발신:"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "도메인:"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "전략:"
+  },
+  "email.feedback_email.message_label": {
+    "text": "메시지:"
+  },
+  "email.feedback_email.signature": {
+    "text": "Secret Support"
+  },
+  "email.organization_invitation.subject": {
+    "text": "%{organization_name}에 초대되었습니다"
+  },
+  "email.organization_invitation.title": {
+    "text": "%{organization_name}에 초대되었습니다!"
+  },
+  "email.organization_invitation.body": {
+    "text": "%{inviter_email}님이 \"%{organization_name}\"에 %{role_description}(으)로 귀하를 초대했습니다."
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "초대 수락"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "또는 이 링크를 복사하여 붙여넣으세요:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "이 초대는 %{days}일 후에 만료됩니다."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "참여를 원하지 않으시면 이 이메일을 무시하거나 초대를 거부하실 수 있습니다."
+  },
+  "email.organization_invitation.signature": {
+    "text": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "추신: 이 이메일은 %{invited_email}로 전송되었습니다. 이 초대를 예상하지 못했다면 이 메시지를 무시하셔도 됩니다."
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "구성원"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "관리자"
+  },
+  "email.password_changed.subject": {
+    "text": "비밀번호가 변경되었습니다 (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "text": "비밀번호가 변경되었습니다"
+  },
+  "email.password_changed.body": {
+    "text": "%{product_name} 비밀번호가 %{date} %{time}에 변경되었습니다."
+  },
+  "email.password_changed.security_notice": {
+    "text": "이 변경을 하지 않으셨다면 비밀번호를 재설정하고 지원팀에 즉시 연락하여 계정을 보호하세요."
+  },
+  "email.password_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_changed.subject": {
+    "text": "이메일 주소가 변경되었습니다 (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "text": "이메일 주소가 변경되었습니다"
+  },
+  "email.email_changed.body": {
+    "text": "%{product_name} 계정의 이메일 주소가 %{date}에 %{new_email_masked}(으)로 변경되었습니다."
+  },
+  "email.email_changed.security_notice": {
+    "text": "이 변경을 하지 않으셨다면 계정이 침해되었을 수 있으므로 즉시 지원팀에 연락하세요."
+  },
+  "email.email_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "새 이메일 주소를 인증하세요 (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "새 이메일 주소 인증"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "%{product_name} 계정의 변경을 완료하려면 이 이메일 주소를 인증해 주세요."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "이메일 주소 인증"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "또는 이 링크를 복사하여 붙여넣기:"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "2단계 인증이 활성화되었습니다 (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "text": "2단계 인증 활성화됨"
+  },
+  "email.mfa_enabled.body": {
+    "text": "%{product_name} 계정에 2단계 인증이 %{date}에 활성화되었습니다."
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "계정이 더욱 안전해졌습니다. 로그인 시 인증 앱에서 인증 코드를 입력해야 합니다."
+  },
+  "email.mfa_enabled.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "2단계 인증이 비활성화되었습니다 (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "text": "2단계 인증 비활성화됨"
+  },
+  "email.mfa_disabled.body": {
+    "text": "%{product_name} 계정의 2단계 인증이 %{date}에 비활성화되었습니다."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "계정의 보안이 약화되었습니다. 이 변경을 하지 않으셨다면 즉시 계정을 보호하세요."
+  },
+  "email.mfa_disabled.signature": {
+    "text": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "text": "새로운 로그인이 감지되었습니다 (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "text": "새로운 로그인 감지됨"
+  },
+  "email.new_login_alert.body": {
+    "text": "%{product_name} 계정에 %{date} %{time}에 새로운 로그인이 감지되었습니다."
+  },
+  "email.new_login_alert.device_label": {
+    "text": "기기:"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "위치:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "IP 주소:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "본인이 아니라면 계정이 침해되었을 수 있습니다."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "계정 보호하기"
+  },
+  "email.new_login_alert.signature": {
+    "text": "Delano"
+  },
+  "email.member_removed.subject": {
+    "text": "%{organization_name}에서 제거되었습니다"
+  },
+  "email.member_removed.title": {
+    "text": "%{organization_name}에서 제거됨"
+  },
+  "email.member_removed.body": {
+    "text": "%{product_name}의 조직 \"%{organization_name}\"에서 제거되었습니다."
+  },
+  "email.member_removed.signature": {
+    "text": "Delano"
+  },
+  "email.role_changed.subject": {
+    "text": "%{organization_name}에서 역할이 변경되었습니다"
+  },
+  "email.role_changed.title": {
+    "text": "역할이 변경되었습니다"
+  },
+  "email.role_changed.body": {
+    "text": "\"%{organization_name}\"에서의 역할이 %{old_role}에서 %{new_role}(으)로 변경되었습니다."
+  },
+  "email.role_changed.signature": {
+    "text": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "text": "조직 \"%{organization_name}\"이(가) 삭제되었습니다"
+  },
+  "email.organization_deleted.title": {
+    "text": "조직 삭제됨"
+  },
+  "email.organization_deleted.body": {
+    "text": "조직 \"%{organization_name}\"이(가) %{product_name}에서 삭제되었습니다. 모든 관련 데이터가 제거되었습니다."
+  },
+  "email.organization_deleted.signature": {
+    "text": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "text": "%{product_name} 결제 영수증"
+  },
+  "email.payment_receipt.title": {
+    "text": "결제 영수증"
+  },
+  "email.payment_receipt.body": {
+    "text": "결제해 주셔서 감사합니다. 결제 내역은 다음과 같습니다:"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "금액:"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "날짜:"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "플랜:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "청구서 보기"
+  },
+  "email.payment_receipt.signature": {
+    "text": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "text": "%{product_name} 결제 실패"
+  },
+  "email.payment_failed.title": {
+    "text": "결제 실패"
+  },
+  "email.payment_failed.body": {
+    "text": "%{product_name} 결제를 처리할 수 없습니다. 서비스 중단을 방지하려면 결제 수단을 업데이트해 주세요."
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "결제 수단 업데이트"
+  },
+  "email.payment_failed.signature": {
+    "text": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "text": "%{product_name} 체험판이 %{days_remaining}일 후 만료됩니다"
+  },
+  "email.trial_expiring.title": {
+    "text": "체험판이 곧 종료됩니다"
+  },
+  "email.trial_expiring.body": {
+    "text": "%{product_name} 무료 체험판이 %{days_remaining}일 후에 만료됩니다. 모든 기능에 계속 액세스하려면 지금 업그레이드하세요."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "지금 업그레이드"
+  },
+  "email.trial_expiring.signature": {
+    "text": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "text": "%{product_name} 구독이 변경되었습니다"
+  },
+  "email.subscription_changed.title": {
+    "text": "구독 변경됨"
+  },
+  "email.subscription_changed.body": {
+    "text": "%{product_name} 구독이 %{old_plan}에서 %{new_plan}(으)로 변경되었습니다."
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "이 변경은 %{date}부터 적용됩니다."
+  },
+  "email.subscription_changed.signature": {
+    "text": "Delano"
+  },
+  "email.common.greeting": {
+    "text": "안녕하세요,"
+  },
+  "email.common.thanks": {
+    "text": "감사합니다,"
+  },
+  "email.common.unsubscribe": {
+    "text": "수신 거부"
+  },
+  "email.common.view_in_browser": {
+    "text": "브라우저에서 보기"
+  },
+  "email.common.onetime_secret": {
+    "text": "Onetime Secret"
+  }
+}

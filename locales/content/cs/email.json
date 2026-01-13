@@ -1,0 +1,446 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[Ticket: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "text": "Zákazník odeslal následující informace"
+  },
+  "email.secret_link.subject": {
+    "text": "%{sender_email} vám poslal tajemství"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "vám poslal tajemství:"
+  },
+  "email.secret_link.important_label": {
+    "text": "Důležité:"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "Tento odkaz bude fungovat pouze jednou. Po zobrazení bude tajemství trvale smazáno."
+  },
+  "email.secret_link.sent_via": {
+    "text": "Odesláno přes"
+  },
+  "email.welcome.subject": {
+    "text": "Ověř svůj účet Onetime Secret"
+  },
+  "email.welcome.title": {
+    "text": "Byl jsi pozván do %{product_name}!"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "Ověřte prosím svou e-mailovou adresu kliknutím na odkaz níže:"
+  },
+  "email.welcome.verify_button": {
+    "text": "Ověřit e-mailovou adresu"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "Nebo zkopírujte a vložte tento odkaz:"
+  },
+  "email.welcome.signature": {
+    "text": "Delano"
+  },
+  "email.welcome.postscript": {
+    "text": "P.S. Tento e-mail byl odeslán na %{email_address}. Pokud jsi tuto pozvánku neočekával, můžeš tuto zprávu bezpečně ignorovat."
+  },
+  "email.password_request.subject": {
+    "text": "Obnovit heslo (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "text": "Obnovit heslo"
+  },
+  "email.password_request.request_notice": {
+    "text": "Obdrželi jsme žádost o obnovení vašeho hesla pro %{product_name}."
+  },
+  "email.password_request.reset_button": {
+    "text": "Obnovit heslo"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "Nebo zkopírujte a vložte tento odkaz:"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "Pokud jste o obnovení hesla nežádali, můžete tento e-mail bezpečně ignorovat."
+  },
+  "email.password_request.signature": {
+    "text": "Delano"
+  },
+  "email.password_request.postscript": {
+    "text": "P.S. Tento e-mail byl odeslán na %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "text": "Přihlášení na %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "text": "Přihlášení pomocí magického odkazu"
+  },
+  "email.magic_link.request_notice": {
+    "text": "Vyžádal/a sis přihlašovací odkaz pro svůj účet %{product_name}."
+  },
+  "email.magic_link.login_button": {
+    "text": "Přihlásit se"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "Nebo zkopíruj a vlož tento odkaz:"
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "Tento odkaz vyprší za 15 minut."
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "Pokud sis tento odkaz nevyžádal/a, můžeš tento e-mail klidně ignorovat."
+  },
+  "email.magic_link.signature": {
+    "text": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "text": "P.S. Tento e-mail byl odeslán na adresu %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "text": "Obdrželi jste tajnou zprávu"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "Obdrželi jste bezpečnou zprávu:"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "Poznámka:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "Někdo vám poslal bezpečnou zprávu přes %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "Pro zobrazení tohoto tajemství klikněte na odkaz níže:"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "Důležité:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "Tento odkaz bude fungovat pouze jednou. Po zobrazení bude tajemství trvale smazáno."
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "Odesláno přes"
+  },
+  "email.secret_revealed.subject": {
+    "text": "Vaše tajemství bylo zobrazeno"
+  },
+  "email.secret_revealed.title": {
+    "text": "Vaše tajemství bylo zobrazeno"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "Vaše tajemství bylo zobrazeno %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "ID tajemství:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "Toto je automatické upozornění. Není vyžadována žádná akce."
+  },
+  "email.secret_revealed.signature": {
+    "text": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "Spravovat předvolby upozornění"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "Pro správu předvoleb upozornění:"
+  },
+  "email.expiration_warning.subject": {
+    "text": "Váš odkaz na tajemství brzy vyprší"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "Váš odkaz na tajemství vyprší za %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "Zobrazit tajemství před vypršením"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "Připomínka:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "Po vypršení bude tajemství trvale smazáno a nelze jej obnovit."
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "Odesláno přes"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "Zobrazit před vypršením:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "Po vypršení bude tajemství trvale smazáno."
+  },
+  "email.feedback_email.subject": {
+    "text": "Zpětná vazba z %{date} přes %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "text": "Zpětná vazba uživatele"
+  },
+  "email.feedback_email.from_label": {
+    "text": "Od:"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "Doména:"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "Strategie:"
+  },
+  "email.feedback_email.message_label": {
+    "text": "Zpráva:"
+  },
+  "email.feedback_email.signature": {
+    "text": "Podpora Secret"
+  },
+  "email.organization_invitation.subject": {
+    "text": "Byl jsi pozván do %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "text": "Byl jsi pozván do %{organization_name}!"
+  },
+  "email.organization_invitation.body": {
+    "text": "%{inviter_email} tě pozval do \"%{organization_name}\" jako %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "Přijmout pozvánku"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "Nebo zkopíruj a vlož tento odkaz:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "Platnost této pozvánky vyprší za %{days} dní."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "Pokud se nechceš připojit, můžeš tento e-mail jednoduše ignorovat nebo pozvánku odmítnout."
+  },
+  "email.organization_invitation.signature": {
+    "text": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "P.S. Tento e-mail byl odeslán na %{invited_email}. Pokud jsi tuto pozvánku neočekával, můžeš tuto zprávu bezpečně ignorovat."
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "člen"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "administrátor"
+  },
+  "email.password_changed.subject": {
+    "text": "Vaše heslo bylo změněno (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "text": "Vaše heslo bylo změněno"
+  },
+  "email.password_changed.body": {
+    "text": "Vaše heslo pro %{product_name} bylo změněno %{date} v %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "text": "Pokud jste tuto změnu neprovedli, zabezpečte prosím okamžitě svůj účet obnovením hesla a kontaktováním podpory."
+  },
+  "email.password_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_changed.subject": {
+    "text": "Vaše e-mailová adresa byla změněna (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "text": "Vaše e-mailová adresa byla změněna"
+  },
+  "email.email_changed.body": {
+    "text": "E-mailová adresa vašeho účtu %{product_name} byla změněna na %{new_email_masked} dne %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "text": "Pokud jste tuto změnu neprovedli, kontaktujte prosím okamžitě podporu, protože váš účet může být kompromitován."
+  },
+  "email.email_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "Ověřte svou novou e-mailovou adresu (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "Ověřte svou novou e-mailovou adresu"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "Ověřte prosím tuto e-mailovou adresu pro dokončení změny vašeho účtu %{product_name}."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "Ověřit e-mailovou adresu"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "Nebo zkopírujte a vložte tento odkaz:"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "Dvoufaktorové ověření povoleno (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "text": "Dvoufaktorové ověření povoleno"
+  },
+  "email.mfa_enabled.body": {
+    "text": "Dvoufaktorové ověření bylo pro váš účet %{product_name} povoleno dne %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "Váš účet je nyní bezpečnější. Při přihlašování budete muset zadat ověřovací kód z vaší autentizační aplikace."
+  },
+  "email.mfa_enabled.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "Dvoufaktorové ověření zakázáno (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "text": "Dvoufaktorové ověření zakázáno"
+  },
+  "email.mfa_disabled.body": {
+    "text": "Dvoufaktorové ověření bylo pro váš účet %{product_name} zakázáno dne %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "Váš účet je nyní méně bezpečný. Pokud jste tuto změnu neprovedli, zabezpečte prosím okamžitě svůj účet."
+  },
+  "email.mfa_disabled.signature": {
+    "text": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "text": "Nové přihlášení k vašemu účtu (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "text": "Zjištěno nové přihlášení"
+  },
+  "email.new_login_alert.body": {
+    "text": "Nové přihlášení k vašemu účtu %{product_name} bylo zjištěno %{date} v %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "text": "Zařízení:"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "Umístění:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "IP adresa:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "Pokud jste to nebyli vy, váš účet může být kompromitován."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "Zabezpečit účet"
+  },
+  "email.new_login_alert.signature": {
+    "text": "Delano"
+  },
+  "email.member_removed.subject": {
+    "text": "Byl jsi odebrán z %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "text": "Byl jsi odebrán z %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "text": "Byl jsi odebrán z organizace \"%{organization_name}\" na %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "text": "Delano"
+  },
+  "email.role_changed.subject": {
+    "text": "Vaše role byla změněna v %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "text": "Vaše role byla změněna"
+  },
+  "email.role_changed.body": {
+    "text": "Vaše role v \"%{organization_name}\" byla změněna z %{old_role} na %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "text": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "text": "Organizace \"%{organization_name}\" byla smazána"
+  },
+  "email.organization_deleted.title": {
+    "text": "Organizace smazána"
+  },
+  "email.organization_deleted.body": {
+    "text": "Organizace \"%{organization_name}\" byla smazána z %{product_name}. Všechna související data byla odstraněna."
+  },
+  "email.organization_deleted.signature": {
+    "text": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "text": "Potvrzení o platbě pro %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "text": "Potvrzení o platbě"
+  },
+  "email.payment_receipt.body": {
+    "text": "Děkujeme za vaši platbu. Zde jsou podrobnosti o platbě:"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "Částka:"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "Datum:"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "Plán:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "Zobrazit fakturu"
+  },
+  "email.payment_receipt.signature": {
+    "text": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "text": "Platba pro %{product_name} selhala"
+  },
+  "email.payment_failed.title": {
+    "text": "Platba selhala"
+  },
+  "email.payment_failed.body": {
+    "text": "Nemohli jsme zpracovat vaši platbu pro %{product_name}. Aktualizujte prosím svou platební metodu, abyste se vyhnuli přerušení služby."
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "Aktualizovat platební metodu"
+  },
+  "email.payment_failed.signature": {
+    "text": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "text": "Vaše zkušební verze %{product_name} vyprší za %{days_remaining} dní"
+  },
+  "email.trial_expiring.title": {
+    "text": "Vaše zkušební verze brzy skončí"
+  },
+  "email.trial_expiring.body": {
+    "text": "Vaše bezplatná zkušební verze %{product_name} vyprší za %{days_remaining} dní. Upgradujte nyní, abyste měli přístup ke všem funkcím."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "Upgradovat nyní"
+  },
+  "email.trial_expiring.signature": {
+    "text": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "text": "Vaše předplatné %{product_name} bylo změněno"
+  },
+  "email.subscription_changed.title": {
+    "text": "Předplatné změněno"
+  },
+  "email.subscription_changed.body": {
+    "text": "Vaše předplatné %{product_name} bylo změněno z %{old_plan} na %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "Tato změna je účinná od %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "text": "Delano"
+  },
+  "email.common.greeting": {
+    "text": "Ahoj,"
+  },
+  "email.common.thanks": {
+    "text": "Díky,"
+  },
+  "email.common.unsubscribe": {
+    "text": "Odhlásit odběr"
+  },
+  "email.common.view_in_browser": {
+    "text": "Zobrazit v prohlížeči"
+  },
+  "email.common.onetime_secret": {
+    "text": "Onetime Secret"
+  }
+}

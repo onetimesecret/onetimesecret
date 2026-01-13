@@ -1,0 +1,398 @@
+{
+  "web.auth.mfa_required": {
+    "text": "Kétfaktoros hitelesítés szükséges"
+  },
+  "web.auth.mfa_verification_required": {
+    "text": "Kétfaktoros hitelesítés szükséges a fiókjához való hozzáféréshez"
+  },
+  "web.auth.complete_mfa_verification": {
+    "text": "Kétfaktoros hitelesítés befejezése"
+  },
+  "web.auth.security.authentication_failed": {
+    "text": "A hitelesítés sikertelen. Kérjük, ellenőrizze a hitelesítő adatokat, majd próbálja újra."
+  },
+  "web.auth.security.rate_limited": {
+    "text": "Túl sok próbálkozás. Kérjük, próbálja újra később."
+  },
+  "web.auth.security.session_expired": {
+    "text": "A munkamenet lejárt. Kérjük, jelentkezzen be újra."
+  },
+  "web.auth.security.recovery_code_not_found": {
+    "text": "A helyreállítási kód nem található. Kérjük, ellenőrizze, hogy helyesen adta-e meg."
+  },
+  "web.auth.security.recovery_code_used": {
+    "text": "Ez a helyreállítási kód már fel lett használva. Minden kód csak egyszer használható."
+  },
+  "web.auth.security.network_error": {
+    "text": "Hálózati hiba. Kérjük, ellenőrizze az internetkapcsolatot, majd próbálja újra."
+  },
+  "web.auth.security.internal_error": {
+    "text": "Hiba történt. Kérjük, próbálja újra."
+  },
+  "web.auth.methods.password": {
+    "text": "Jelszó"
+  },
+  "web.auth.methods.magicLink": {
+    "text": "E-mail hivatkozás"
+  },
+  "web.auth.methods.webauthn": {
+    "text": "Biometrikus"
+  },
+  "web.auth.magicLink.title": {
+    "text": "Bejelentkezés e-maillel"
+  },
+  "web.auth.magicLink.description": {
+    "text": "Elküldünk egy biztonságos bejelentkezési hivatkozást"
+  },
+  "web.auth.magicLink.emailPlaceholder": {
+    "text": "Adja meg az e-mail címét"
+  },
+  "web.auth.magicLink.sendLink": {
+    "text": "Bejelentkezési hivatkozás küldése"
+  },
+  "web.auth.magicLink.checkEmail": {
+    "text": "Ellenőrizze az e-mail fiókját"
+  },
+  "web.auth.magicLink.sentTo": {
+    "text": "Bejelentkezési hivatkozást küldtünk ide: {email}"
+  },
+  "web.auth.magicLink.linkExpiresIn": {
+    "text": "Ez a hivatkozás 15 perc múlva lejár"
+  },
+  "web.auth.magicLink.tryDifferentEmail": {
+    "text": "Másik e-mail cím használata"
+  },
+  "web.auth.magicLink.noPasswordNeeded": {
+    "text": "Nincs szükség jelszóra — csak kattintson az e-mailben található hivatkozásra"
+  },
+  "web.auth.magicLink.networkError": {
+    "text": "Hálózati hiba. Kérjük, próbálja újra."
+  },
+  "web.auth.magicLink.requestFailed": {
+    "text": "A bejelentkezési hivatkozás küldése sikertelen. Kérjük, próbálja újra."
+  },
+  "web.auth.magicLink.invalidLink": {
+    "text": "Érvénytelen vagy hiányzó bejelentkezési hivatkozás"
+  },
+  "web.auth.magicLink.loginFailed": {
+    "text": "A bejelentkezés sikertelen. Kérjük, próbálja újra."
+  },
+  "web.auth.magicLink.signingYouIn": {
+    "text": "Bejelentkeztetés folyamatban..."
+  },
+  "web.auth.magicLink.pleaseWait": {
+    "text": "Kérjük, várjon, amíg ellenőrizzük a hivatkozást"
+  },
+  "web.auth.magicLink.error": {
+    "text": "Hitelesítési hiba"
+  },
+  "web.auth.magicLink.back_to_signin": {
+    "text": "Vissza a bejelentkezéshez"
+  },
+  "web.auth.webauthn.signIn": {
+    "text": "Bejelentkezés Face ID / Touch ID segítségével"
+  },
+  "web.auth.webauthn.setup": {
+    "text": "Biometrikus bejelentkezés beállítása"
+  },
+  "web.auth.webauthn.notSupported": {
+    "text": "A biometrikus hitelesítés nem támogatott ebben a böngészőben"
+  },
+  "web.auth.webauthn.requiresModernBrowser": {
+    "text": "Kérjük, használjon olyan modern böngészőt, amely támogatja a WebAuthn technológiát (Chrome, Safari, Firefox vagy Edge)"
+  },
+  "web.auth.webauthn.setupSuccess": {
+    "text": "A biometrikus bejelentkezés engedélyezve lett"
+  },
+  "web.auth.webauthn.setupFailed": {
+    "text": "A biometrikus bejelentkezés beállítása sikertelen"
+  },
+  "web.auth.webauthn.authFailed": {
+    "text": "A biometrikus hitelesítés sikertelen. Kérjük, próbálja újra."
+  },
+  "web.auth.webauthn.cancelled": {
+    "text": "A hitelesítés megszakítva"
+  },
+  "web.auth.webauthn.processing": {
+    "text": "Hitelesítés folyamatban..."
+  },
+  "web.auth.webauthn.description": {
+    "text": "Használja az ujjlenyomatát, arcát vagy biztonsági kulcsát a bejelentkezéshez"
+  },
+  "web.auth.webauthn.supportedMethods": {
+    "text": "Támogatja a Face ID, Touch ID, Windows Hello és biztonsági kulcsok használatát"
+  },
+  "web.auth.lockout.attempts_remaining": {
+    "text": "Figyelmeztetés: {count} bejelentkezési kísérlet maradt"
+  },
+  "web.auth.lockout.account_locked": {
+    "text": "A fiók zárolva lett a túl sok sikertelen bejelentkezési kísérlet miatt"
+  },
+  "web.auth.lockout.locked_until": {
+    "text": "A fiókja {time} időpontig zárolva van"
+  },
+  "web.auth.lockout.contact_support": {
+    "text": "Vegye fel a kapcsolatot az ügyfélszolgálattal, ha azonnali hozzáférésre van szüksége"
+  },
+  "web.auth.lockout.try_password_reset": {
+    "text": "Ehelyett visszaállíthatja a jelszavát"
+  },
+  "web.auth.sessions.title": {
+    "text": "Aktív munkamenetek"
+  },
+  "web.auth.sessions.current": {
+    "text": "Jelenlegi munkamenet"
+  },
+  "web.auth.sessions.other": {
+    "text": "Egyéb munkamenetek"
+  },
+  "web.auth.sessions.device": {
+    "text": "Eszköz"
+  },
+  "web.auth.sessions.location": {
+    "text": "Helyszín"
+  },
+  "web.auth.sessions.ip_address": {
+    "text": "IP-cím"
+  },
+  "web.auth.sessions.last_active": {
+    "text": "Utoljára aktív"
+  },
+  "web.auth.sessions.created": {
+    "text": "Létrehozva"
+  },
+  "web.auth.sessions.remove": {
+    "text": "Eltávolítás"
+  },
+  "web.auth.sessions.remove_all": {
+    "text": "Minden egyéb munkamenet kijelentkeztetése"
+  },
+  "web.auth.sessions.confirm_remove": {
+    "text": "Biztosan el kívánja távolítani ezt a munkamenetet?"
+  },
+  "web.auth.sessions.confirm_remove_all": {
+    "text": "Ez az összes többi eszközön kijelentkezteti. Biztos benne?"
+  },
+  "web.auth.sessions.no_sessions": {
+    "text": "Nincsenek egyéb aktív munkamenetek"
+  },
+  "web.auth.sessions.removed_success": {
+    "text": "A munkamenet sikeresen eltávolítva"
+  },
+  "web.auth.sessions.removed_all_success": {
+    "text": "Minden egyéb munkamenet kijelentkeztetve"
+  },
+  "web.auth.sessions.link_title": {
+    "text": "Aktív munkamenetek"
+  },
+  "web.auth.mfa.title": {
+    "text": "Kétfaktoros hitelesítés"
+  },
+  "web.auth.mfa.enabled": {
+    "text": "A kétfaktoros hitelesítés engedélyezve van"
+  },
+  "web.auth.mfa.disabled": {
+    "text": "A kétfaktoros hitelesítés le van tiltva"
+  },
+  "web.auth.mfa.enable": {
+    "text": "Kétfaktoros hitelesítés engedélyezése"
+  },
+  "web.auth.mfa.disable": {
+    "text": "Kétfaktoros hitelesítés letiltása"
+  },
+  "web.auth.mfa.setup_title": {
+    "text": "Kétfaktoros hitelesítés beállítása"
+  },
+  "web.auth.mfa.setup_description": {
+    "text": "Adjon hozzá egy további biztonsági réteget a fiókjához"
+  },
+  "web.auth.mfa.step_scan": {
+    "text": "1. QR-kód beolvasása"
+  },
+  "web.auth.mfa.step_verify": {
+    "text": "2. Beállítás ellenőrzése"
+  },
+  "web.auth.mfa.scan_qr": {
+    "text": "Olvassa be ezt a QR-kódot a hitelesítő alkalmazásával"
+  },
+  "web.auth.mfa.manual_entry": {
+    "text": "Vagy adja meg ezt a kódot manuálisan"
+  },
+  "web.auth.mfa.verify_code": {
+    "text": "Adja meg az alkalmazásból származó 6 jegyű kódot"
+  },
+  "web.auth.mfa.enter_code": {
+    "text": "Hitelesítési kód megadása"
+  },
+  "web.auth.mfa.verify": {
+    "text": "Ellenőrzés és engedélyezés"
+  },
+  "web.auth.mfa.code_required": {
+    "text": "A hitelesítési kód megadása kötelező"
+  },
+  "web.auth.mfa.invalid_code": {
+    "text": "Érvénytelen kód. A kódok 30 másodpercenként lejárnak. Próbálja meg a legújabb kódot a hitelesítő alkalmazásából."
+  },
+  "web.auth.mfa.success_enabled": {
+    "text": "A kétfaktoros hitelesítés engedélyezve lett"
+  },
+  "web.auth.mfa.success_disabled": {
+    "text": "A kétfaktoros hitelesítés letiltásra került"
+  },
+  "web.auth.mfa.require_password": {
+    "text": "Adja meg a jelszavát a 2FA letiltásához"
+  },
+  "web.auth.mfa.password_confirmation": {
+    "text": "Jelszó"
+  },
+  "web.auth.mfa.password_reason": {
+    "text": "Erősítse meg az azonosságát a kétfaktoros hitelesítési beállítások módosításához"
+  },
+  "web.auth.mfa.last_used": {
+    "text": "Utoljára használva: {time}"
+  },
+  "web.auth.mfa.never_used": {
+    "text": "Még nem használt"
+  },
+  "web.auth.mfa.use_recovery_code": {
+    "text": "Helyreállítási kód használata helyette"
+  },
+  "web.auth.mfa.back_to_code": {
+    "text": "Vissza a hitelesítési kódhoz"
+  },
+  "web.auth.mfa.cancel": {
+    "text": "Mégse és visszatérés a bejelentkezéshez"
+  },
+  "web.auth.mfa.loading_status": {
+    "text": "Kétfaktoros hitelesítési állapot betöltése..."
+  },
+  "web.auth.mfa.protected_description": {
+    "text": "A fiókja kétfaktoros hitelesítéssel védett"
+  },
+  "web.auth.mfa.enable_description": {
+    "text": "Védje fiókját egy további biztonsági réteggel"
+  },
+  "web.auth.mfa.benefit_unauthorized": {
+    "text": "Megakadályozza a jogosulatlan hozzáférést, még akkor is, ha a jelszava veszélybe került"
+  },
+  "web.auth.mfa.benefit_apps": {
+    "text": "Működik a Google Authenticator, Authy és más TOTP alkalmazásokkal"
+  },
+  "web.auth.mfa.benefit_recovery": {
+    "text": "Tartalék helyreállítási kódok vészhelyzeti hozzáféréshez"
+  },
+  "web.auth.mfa.password_placeholder": {
+    "text": "Adja meg a jelszavát"
+  },
+  "web.auth.mfa.disabling": {
+    "text": "Letiltás folyamatban..."
+  },
+  "web.auth.mfa.disable_button": {
+    "text": "2FA letiltása"
+  },
+  "web.auth.mfa.generating_qr": {
+    "text": "QR-kód generálása..."
+  },
+  "web.auth.mfa.supported_apps": {
+    "text": "Használja a Google Authenticator, Authy vagy bármely TOTP alkalmazást"
+  },
+  "web.auth.mfa.continue_verification": {
+    "text": "Folytatás az ellenőrzéshez"
+  },
+  "web.auth.mfa.enter_code_description": {
+    "text": "Adja meg a hitelesítő alkalmazásból származó 6 jegyű kódot"
+  },
+  "web.auth.mfa.enable_and_continue": {
+    "text": "Kétfaktoros hitelesítés engedélyezése"
+  },
+  "web.auth.mfa.complete_setup": {
+    "text": "Beállítás befejezése"
+  },
+  "web.auth.mfa.enter_recovery_code": {
+    "text": "Adja meg az egyik helyreállítási kódját"
+  },
+  "web.auth.mfa.recovery_code_label": {
+    "text": "Helyreállítási kód"
+  },
+  "web.auth.mfa.recovery_code_placeholder": {
+    "text": "Helyreállítási kód megadása"
+  },
+  "web.auth.mfa.verify_recovery_code": {
+    "text": "Helyreállítási kód ellenőrzése"
+  },
+  "web.auth.mfa.six_digit_code": {
+    "text": "6 jegyű hitelesítési kód megadása"
+  },
+  "web.auth.mfa.recovery_code_mode_active": {
+    "text": "Helyreállítási kód mód aktív"
+  },
+  "web.auth.mfa.otp_mode_active": {
+    "text": "Hitelesítési kód mód aktív"
+  },
+  "web.auth.mfa.enter_all_digits": {
+    "text": "Kérjük, adja meg mind a 6 számjegyet a folytatáshoz"
+  },
+  "web.auth.mfa.digit_of_count": {
+    "text": "{current}. számjegy a {total}-ból"
+  },
+  "web.auth.recovery_codes.title": {
+    "text": "Helyreállítási kódok"
+  },
+  "web.auth.recovery_codes.description": {
+    "text": "Mentse el ezeket a kódokat biztonságos helyre. Mindegyik egyszer használható, ha elveszíti a hozzáférést a hitelesítő alkalmazásához."
+  },
+  "web.auth.recovery_codes.warning": {
+    "text": "Ezek a kódok csak egyszer jelennek meg"
+  },
+  "web.auth.recovery_codes.save_required": {
+    "text": "A beállítás befejezése előtt le kell töltenie vagy másolnia a helyreállítási kódokat."
+  },
+  "web.auth.recovery_codes.generate_new": {
+    "text": "Új kódok generálása"
+  },
+  "web.auth.recovery_codes.regenerate": {
+    "text": "Kódok újragenerálása"
+  },
+  "web.auth.recovery_codes.generate_new_warning": {
+    "text": "Ez érvényteleníti az összes meglévő helyreállítási kódot"
+  },
+  "web.auth.recovery_codes.download": {
+    "text": "Kódok letöltése"
+  },
+  "web.auth.recovery_codes.downloaded": {
+    "text": "Helyreállítási kódok letöltve"
+  },
+  "web.auth.recovery_codes.print": {
+    "text": "Kódok nyomtatása"
+  },
+  "web.auth.recovery_codes.copy": {
+    "text": "Összes kód másolása"
+  },
+  "web.auth.recovery_codes.copied": {
+    "text": "A kódok vágólapra másolva"
+  },
+  "web.auth.recovery_codes.copy_failed": {
+    "text": "Nem sikerült a kódokat a vágólapra másolni"
+  },
+  "web.auth.recovery_codes.code_used": {
+    "text": "Felhasznált"
+  },
+  "web.auth.recovery_codes.code_unused": {
+    "text": "Nem használt"
+  },
+  "web.auth.recovery_codes.remaining": {
+    "text": "{count} helyreállítási kód maradt"
+  },
+  "web.auth.recovery_codes.usage_hint": {
+    "text": "Minden kód csak egyszer használható. Ha fogytán vannak, generáljon új kódokat."
+  },
+  "web.auth.recovery_codes.none_remaining": {
+    "text": "Nem maradt helyreállítási kód"
+  },
+  "web.auth.recovery_codes.generate_success": {
+    "text": "Az új helyreállítási kódok generálva lettek"
+  },
+  "web.auth.recovery_codes.link_title": {
+    "text": "Helyreállítási kódok"
+  }
+}

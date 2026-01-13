@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "התקבל"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "לא התקבל"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "אין סודות אחרונים"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "התחילו על ידי יצירת הסוד הראשון שלכם."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "לא ניתן לטעון את הצוותים"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "אירעה בעיה בטעינת הצוותים שלך. אנא נסה שוב."
+  }
+}

@@ -1,0 +1,398 @@
+{
+  "web.auth.mfa_required": {
+    "text": "Изисква се MFA потвърждение"
+  },
+  "web.auth.mfa_verification_required": {
+    "text": "Необходимо е MFA потвърждение за достъп до вашия акаунт"
+  },
+  "web.auth.complete_mfa_verification": {
+    "text": "Завърши MFA потвърждението"
+  },
+  "web.auth.security.authentication_failed": {
+    "text": "Удостоверяването беше неуспешно. Моля, проверете вашите данни и опитайте отново."
+  },
+  "web.auth.security.rate_limited": {
+    "text": "Твърде много опити. Моля, опитайте отново по-късно."
+  },
+  "web.auth.security.session_expired": {
+    "text": "Сесията е изтекла. Моля, влезте отново."
+  },
+  "web.auth.security.recovery_code_not_found": {
+    "text": "Кодът за възстановяване не е намерен. Моля, проверете дали сте го въвели правилно."
+  },
+  "web.auth.security.recovery_code_used": {
+    "text": "Този код за възстановяване вече е използван. Всеки код може да се използва само веднъж."
+  },
+  "web.auth.security.network_error": {
+    "text": "Мрежова грешка. Моля, проверете вашата връзка и опитайте отново."
+  },
+  "web.auth.security.internal_error": {
+    "text": "Възникна грешка. Моля, опитайте отново."
+  },
+  "web.auth.methods.password": {
+    "text": "Парола"
+  },
+  "web.auth.methods.magicLink": {
+    "text": "Имейл връзка"
+  },
+  "web.auth.methods.webauthn": {
+    "text": "Биометрична"
+  },
+  "web.auth.magicLink.title": {
+    "text": "Влизане с имейл"
+  },
+  "web.auth.magicLink.description": {
+    "text": "Ще ви изпратим сигурна връзка за вход"
+  },
+  "web.auth.magicLink.emailPlaceholder": {
+    "text": "Въведете вашия имейл"
+  },
+  "web.auth.magicLink.sendLink": {
+    "text": "Изпратете връзка за вход"
+  },
+  "web.auth.magicLink.checkEmail": {
+    "text": "Проверете вашия имейл"
+  },
+  "web.auth.magicLink.sentTo": {
+    "text": "Изпратихме връзка за вход на {email}"
+  },
+  "web.auth.magicLink.linkExpiresIn": {
+    "text": "Тази връзка ще изтече след 15 минути"
+  },
+  "web.auth.magicLink.tryDifferentEmail": {
+    "text": "Опитайте с друг имейл"
+  },
+  "web.auth.magicLink.noPasswordNeeded": {
+    "text": "Не се изисква парола — просто кликнете върху връзката във вашия имейл"
+  },
+  "web.auth.magicLink.networkError": {
+    "text": "Мрежова грешка. Моля, опитайте отново."
+  },
+  "web.auth.magicLink.requestFailed": {
+    "text": "Неуспешно изпращане на връзката за вход. Моля, опитайте отново."
+  },
+  "web.auth.magicLink.invalidLink": {
+    "text": "Невалидна или липсваща връзка за вход"
+  },
+  "web.auth.magicLink.loginFailed": {
+    "text": "Неуспешен вход. Моля, опитайте отново."
+  },
+  "web.auth.magicLink.signingYouIn": {
+    "text": "Влизане..."
+  },
+  "web.auth.magicLink.pleaseWait": {
+    "text": "Моля, изчакайте, докато потвърдим вашата връзка"
+  },
+  "web.auth.magicLink.error": {
+    "text": "Грешка при удостоверяване"
+  },
+  "web.auth.magicLink.back_to_signin": {
+    "text": "Обратно към влизане"
+  },
+  "web.auth.webauthn.signIn": {
+    "text": "Влизане с Face ID / Touch ID"
+  },
+  "web.auth.webauthn.setup": {
+    "text": "Настройка на биометрично влизане"
+  },
+  "web.auth.webauthn.notSupported": {
+    "text": "Биометричното удостоверяване не се поддържа в този браузър"
+  },
+  "web.auth.webauthn.requiresModernBrowser": {
+    "text": "Моля, използвайте модерен браузър, който поддържа WebAuthn (Chrome, Safari, Firefox или Edge)"
+  },
+  "web.auth.webauthn.setupSuccess": {
+    "text": "Биометричното влизане е активирано"
+  },
+  "web.auth.webauthn.setupFailed": {
+    "text": "Неуспешна настройка на биометрично влизане"
+  },
+  "web.auth.webauthn.authFailed": {
+    "text": "Биометричното удостоверяване беше неуспешно. Моля, опитайте отново."
+  },
+  "web.auth.webauthn.cancelled": {
+    "text": "Удостоверяването беше отменено"
+  },
+  "web.auth.webauthn.processing": {
+    "text": "Удостоверяване..."
+  },
+  "web.auth.webauthn.description": {
+    "text": "Използвайте вашия пръстов отпечатък, лице или ключ за сигурност за влизане"
+  },
+  "web.auth.webauthn.supportedMethods": {
+    "text": "Поддържа Face ID, Touch ID, Windows Hello и ключове за сигурност"
+  },
+  "web.auth.lockout.attempts_remaining": {
+    "text": "Внимание: остават {count} опит(и) за влизане"
+  },
+  "web.auth.lockout.account_locked": {
+    "text": "Акаунтът е заключен поради твърде много неуспешни опити за влизане"
+  },
+  "web.auth.lockout.locked_until": {
+    "text": "Вашият акаунт е заключен до {time}"
+  },
+  "web.auth.lockout.contact_support": {
+    "text": "Свържете се с поддръжката, ако имате нужда от незабавен достъп"
+  },
+  "web.auth.lockout.try_password_reset": {
+    "text": "Можете да нулирате вашата парола вместо това"
+  },
+  "web.auth.sessions.title": {
+    "text": "Активни сесии"
+  },
+  "web.auth.sessions.current": {
+    "text": "Текуща сесия"
+  },
+  "web.auth.sessions.other": {
+    "text": "Други сесии"
+  },
+  "web.auth.sessions.device": {
+    "text": "Устройство"
+  },
+  "web.auth.sessions.location": {
+    "text": "Местоположение"
+  },
+  "web.auth.sessions.ip_address": {
+    "text": "IP адрес"
+  },
+  "web.auth.sessions.last_active": {
+    "text": "Последна активност"
+  },
+  "web.auth.sessions.created": {
+    "text": "Създадена"
+  },
+  "web.auth.sessions.remove": {
+    "text": "Премахване"
+  },
+  "web.auth.sessions.remove_all": {
+    "text": "Излез от всички други сесии"
+  },
+  "web.auth.sessions.confirm_remove": {
+    "text": "Сигурни ли сте, че искате да премахнете тази сесия?"
+  },
+  "web.auth.sessions.confirm_remove_all": {
+    "text": "Това ще ви изведе от всички други устройства. Сигурни ли сте?"
+  },
+  "web.auth.sessions.no_sessions": {
+    "text": "Няма други активни сесии"
+  },
+  "web.auth.sessions.removed_success": {
+    "text": "Сесията беше премахната успешно"
+  },
+  "web.auth.sessions.removed_all_success": {
+    "text": "Всички други сесии са излезли"
+  },
+  "web.auth.sessions.link_title": {
+    "text": "Активни сесии"
+  },
+  "web.auth.mfa.title": {
+    "text": "Двуфакторна автентикация"
+  },
+  "web.auth.mfa.enabled": {
+    "text": "Двуфакторната автентикация е активирана"
+  },
+  "web.auth.mfa.disabled": {
+    "text": "Двуфакторната автентикация е деактивирана"
+  },
+  "web.auth.mfa.enable": {
+    "text": "Активиране на двуфакторна автентикация"
+  },
+  "web.auth.mfa.disable": {
+    "text": "Деактивиране на двуфакторна автентикация"
+  },
+  "web.auth.mfa.setup_title": {
+    "text": "Настройка на двуфакторна автентикация"
+  },
+  "web.auth.mfa.setup_description": {
+    "text": "Добавете допълнителен слой сигурност към вашия акаунт"
+  },
+  "web.auth.mfa.step_scan": {
+    "text": "1. Сканирайте QR кода"
+  },
+  "web.auth.mfa.step_verify": {
+    "text": "2. Потвърдете настройката"
+  },
+  "web.auth.mfa.scan_qr": {
+    "text": "Сканирайте този QR код с вашето приложение за автентикация"
+  },
+  "web.auth.mfa.manual_entry": {
+    "text": "Или въведете този код ръчно"
+  },
+  "web.auth.mfa.verify_code": {
+    "text": "Въведете 6-цифрения код от вашето приложение"
+  },
+  "web.auth.mfa.enter_code": {
+    "text": "Въведете код за автентикация"
+  },
+  "web.auth.mfa.verify": {
+    "text": "Потвърди и активирай"
+  },
+  "web.auth.mfa.code_required": {
+    "text": "Кодът за автентикация е задължителен"
+  },
+  "web.auth.mfa.invalid_code": {
+    "text": "Невалиден код. Кодовете изтичат на всеки 30 секунди. Опитайте с най-новия код от вашето приложение за автентикация."
+  },
+  "web.auth.mfa.success_enabled": {
+    "text": "Двуфакторната автентикация е активирана"
+  },
+  "web.auth.mfa.success_disabled": {
+    "text": "Двуфакторната автентикация е деактивирана"
+  },
+  "web.auth.mfa.require_password": {
+    "text": "Въведете вашата парола, за да деактивирате 2FA"
+  },
+  "web.auth.mfa.password_confirmation": {
+    "text": "Парола"
+  },
+  "web.auth.mfa.password_reason": {
+    "text": "Потвърдете вашата самоличност, за да промените настройките за двуфакторна автентикация"
+  },
+  "web.auth.mfa.last_used": {
+    "text": "Последна употреба: {time}"
+  },
+  "web.auth.mfa.never_used": {
+    "text": "Никога не е използвана"
+  },
+  "web.auth.mfa.use_recovery_code": {
+    "text": "Използвайте код за възстановяване вместо това"
+  },
+  "web.auth.mfa.back_to_code": {
+    "text": "Обратно към код за автентикация"
+  },
+  "web.auth.mfa.cancel": {
+    "text": "Откажи и се върни към влизане"
+  },
+  "web.auth.mfa.loading_status": {
+    "text": "Зареждане на MFA състоянието..."
+  },
+  "web.auth.mfa.protected_description": {
+    "text": "Вашият акаунт е защитен с двуфакторна автентикация"
+  },
+  "web.auth.mfa.enable_description": {
+    "text": "Защитете вашия акаунт с допълнителен слой сигурност"
+  },
+  "web.auth.mfa.benefit_unauthorized": {
+    "text": "Предотвратете неоторизиран достъп дори ако вашата парола е компрометирана"
+  },
+  "web.auth.mfa.benefit_apps": {
+    "text": "Работи с Google Authenticator, Authy и други TOTP приложения"
+  },
+  "web.auth.mfa.benefit_recovery": {
+    "text": "Резервни кодове за възстановяване за спешен достъп"
+  },
+  "web.auth.mfa.password_placeholder": {
+    "text": "Въведете вашата парола"
+  },
+  "web.auth.mfa.disabling": {
+    "text": "Деактивиране..."
+  },
+  "web.auth.mfa.disable_button": {
+    "text": "Деактивирай 2FA"
+  },
+  "web.auth.mfa.generating_qr": {
+    "text": "Генериране на QR код..."
+  },
+  "web.auth.mfa.supported_apps": {
+    "text": "Използвайте Google Authenticator, Authy или всяко TOTP приложение"
+  },
+  "web.auth.mfa.continue_verification": {
+    "text": "Продължете към потвърждение"
+  },
+  "web.auth.mfa.enter_code_description": {
+    "text": "Въведете 6-цифрения код от вашето приложение за автентикация"
+  },
+  "web.auth.mfa.enable_and_continue": {
+    "text": "Активирай MFA"
+  },
+  "web.auth.mfa.complete_setup": {
+    "text": "Завърши настройката"
+  },
+  "web.auth.mfa.enter_recovery_code": {
+    "text": "Въведете един от вашите кодове за възстановяване"
+  },
+  "web.auth.mfa.recovery_code_label": {
+    "text": "Код за възстановяване"
+  },
+  "web.auth.mfa.recovery_code_placeholder": {
+    "text": "Въведете код за възстановяване"
+  },
+  "web.auth.mfa.verify_recovery_code": {
+    "text": "Потвърди кода за възстановяване"
+  },
+  "web.auth.mfa.six_digit_code": {
+    "text": "Въведете 6-цифрен код за автентикация"
+  },
+  "web.auth.mfa.recovery_code_mode_active": {
+    "text": "Режим на код за възстановяване е активен"
+  },
+  "web.auth.mfa.otp_mode_active": {
+    "text": "Режим на код за автентикация е активен"
+  },
+  "web.auth.mfa.enter_all_digits": {
+    "text": "Моля, въведете всичките 6 цифри, за да продължите"
+  },
+  "web.auth.mfa.digit_of_count": {
+    "text": "Цифра {current} от {total}"
+  },
+  "web.auth.recovery_codes.title": {
+    "text": "Кодове за възстановяване"
+  },
+  "web.auth.recovery_codes.description": {
+    "text": "Запазете тези кодове на сигурно място. Всеки може да се използва веднъж, ако загубите достъп до вашето приложение за автентикация."
+  },
+  "web.auth.recovery_codes.warning": {
+    "text": "Тези кодове ще бъдат показани само веднъж"
+  },
+  "web.auth.recovery_codes.save_required": {
+    "text": "Трябва да изтеглите или копирате вашите кодове за възстановяване преди да завършите настройката."
+  },
+  "web.auth.recovery_codes.generate_new": {
+    "text": "Генериране на нови кодове"
+  },
+  "web.auth.recovery_codes.regenerate": {
+    "text": "Регенерирай кодове"
+  },
+  "web.auth.recovery_codes.generate_new_warning": {
+    "text": "Това ще анулира всички съществуващи кодове за възстановяване"
+  },
+  "web.auth.recovery_codes.download": {
+    "text": "Изтегляне на кодовете"
+  },
+  "web.auth.recovery_codes.downloaded": {
+    "text": "Кодовете за възстановяване са изтеглени"
+  },
+  "web.auth.recovery_codes.print": {
+    "text": "Отпечатване на кодовете"
+  },
+  "web.auth.recovery_codes.copy": {
+    "text": "Копиране на всички кодове"
+  },
+  "web.auth.recovery_codes.copied": {
+    "text": "Кодовете са копирани в клипборда"
+  },
+  "web.auth.recovery_codes.copy_failed": {
+    "text": "Неуспешно копиране на кодовете в клипборда"
+  },
+  "web.auth.recovery_codes.code_used": {
+    "text": "Използван"
+  },
+  "web.auth.recovery_codes.code_unused": {
+    "text": "Неизползван"
+  },
+  "web.auth.recovery_codes.remaining": {
+    "text": "{count} код(а) за възстановяване остават"
+  },
+  "web.auth.recovery_codes.usage_hint": {
+    "text": "Всеки код може да се използва само веднъж. Регенерирайте кодове, ако ви остават малко."
+  },
+  "web.auth.recovery_codes.none_remaining": {
+    "text": "Не остават кодове за възстановяване"
+  },
+  "web.auth.recovery_codes.generate_success": {
+    "text": "Новите кодове за възстановяване са генерирани"
+  },
+  "web.auth.recovery_codes.link_title": {
+    "text": "Кодове за възстановяване"
+  }
+}

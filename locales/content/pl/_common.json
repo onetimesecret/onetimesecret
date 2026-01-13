@@ -1,0 +1,932 @@
+{
+  "web.COMMON.broadcast": {
+    "text": "Ogłoszenie"
+  },
+  "web.COMMON.tagline": {
+    "text": "Bezpieczne linki, które działają tylko raz"
+  },
+  "web.COMMON.powered_by": {
+    "text": "Wspierane przez"
+  },
+  "web.COMMON.website_url": {
+    "text": "https://onetimesecret.com/pl"
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "text": "Generuj Hasło"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "text": "Generowanie hasła jest wyłączone, gdy formularz jest prawidłowy"
+  },
+  "web.COMMON.email_placeholder": {
+    "text": "np. tom{'@'}myspace.com"
+  },
+  "web.COMMON.password_placeholder": {
+    "text": "Wpisz swoje hasło"
+  },
+  "web.COMMON.custom_domains_title": {
+    "text": "Domeny niestandardowe"
+  },
+  "web.COMMON.custom_domains_description": {
+    "text": "Wzmocnij relacje i buduj zaufanie dzięki własnym, markowym linkom do wiadomości."
+  },
+  "web.COMMON.get_started_button": {
+    "text": "Rozpocznij"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "text": "Potwierdź swoje hasło"
+  },
+  "web.COMMON.header_settings": {
+    "text": "Ustawienia"
+  },
+  "web.COMMON.submit_with": {
+    "text": "Wyślij"
+  },
+  "web.COMMON.submitting": {
+    "text": "Wysyłanie..."
+  },
+  "web.COMMON.processing": {
+    "text": "Przetwarzanie..."
+  },
+  "web.COMMON.description": {
+    "text": "Bezpiecznie udostępniaj poufne informacje na czatach i pocztą e-mail. Udostępnij tajne łącze, które jest dostępne tylko jeden raz."
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "text": "Nieprawidłowa fraza dostępowa"
+  },
+  "web.COMMON.keywords": {
+    "text": "sekret,generator haseł,sekretne linki,jednorazowe,wiadomość,poufne"
+  },
+  "web.COMMON.button_create_secret": {
+    "text": "Utwórz link do wiadomości"
+  },
+  "web.COMMON.button_generate_secret": {
+    "text": "Lub wygeneruj losowe hasło"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "text": "Ustawienia prywatności"
+  },
+  "web.COMMON.secret_passphrase": {
+    "text": "Fraza dostępowa"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "text": "Trudne do odgadnięcia słowo lub fraza chroniąca wiadomość"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "text": "Adres e-mail odbiorcy"
+  },
+  "web.COMMON.secret_placeholder": {
+    "text": "Napisz wiadomość..."
+  },
+  "web.COMMON.header_create_account": {
+    "text": "Utwórz konto"
+  },
+  "web.COMMON.header_about": {
+    "text": "O nas"
+  },
+  "web.COMMON.header_sign_in": {
+    "text": "Zaloguj"
+  },
+  "web.COMMON.header_dashboard": {
+    "text": "Panel"
+  },
+  "web.COMMON.header_logout": {
+    "text": "Wyloguj"
+  },
+  "web.COMMON.secret": {
+    "text": "Wiadomość"
+  },
+  "web.COMMON.recent": {
+    "text": "Ostatnie"
+  },
+  "web.COMMON.received": {
+    "text": "Odebrane"
+  },
+  "web.COMMON.burn": {
+    "text": "Unieważnij"
+  },
+  "web.COMMON.burned": {
+    "text": "Unieważniono"
+  },
+  "web.COMMON.expires_in": {
+    "text": "Wygasa za"
+  },
+  "web.COMMON.burn_this_secret": {
+    "text": "unieważnij tę wiadomość"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "text": "Unieważnienie spowoduje wygaśnięcie linku do wiadomości przed jego użyciem oraz bezpowrotne usunięcie wiadomości z serwera (kliknij, aby potwierdzić)"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "text": "Unieważnienie jest trwałe i nieodwracalne"
+  },
+  "web.COMMON.msg_check_email": {
+    "text": "Sprawdź swoją skrzynkę e-mail"
+  },
+  "web.COMMON.click_to_continue": {
+    "text": "Kliknij aby kontynuować →"
+  },
+  "web.COMMON.click_to_verify": {
+    "text": "Kontynuuj weryfikację swojego konta:"
+  },
+  "web.COMMON.error_secret": {
+    "text": "Nie podałeś niczego do udostępnienia"
+  },
+  "web.COMMON.error_passphrase": {
+    "text": "Nieprawidłowa fraza dostępowa, spróbuj jeszcze raz!"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "text": "Wprowadź frazę dostępową tutaj"
+  },
+  "web.COMMON.view_secret": {
+    "text": "Wyświetl wiadomość"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "text": "uwaga: ta wiadomość wyświetli się tylko raz, a następnie ulegnie samozniszczeniu"
+  },
+  "web.COMMON.warning": {
+    "text": "Ostrzeżenie"
+  },
+  "web.COMMON.oops": {
+    "text": "Ups!"
+  },
+  "web.COMMON.error": {
+    "text": "Błąd"
+  },
+  "web.COMMON.unexpected_error": {
+    "text": "Wystąpił nieoczekiwany błąd. Spróbuj ponownie."
+  },
+  "web.COMMON.secret_was_truncated": {
+    "text": "Wiadomość została obcięta ponieważ była dłuższa niż"
+  },
+  "web.COMMON.signup_for_more": {
+    "text": "Zarejestruj się, aby uzyskać więcej"
+  },
+  "web.COMMON.login_to_your_account": {
+    "text": "Zaloguj się na swoje konto"
+  },
+  "web.COMMON.sent_to": {
+    "text": "Wyślij do: "
+  },
+  "web.COMMON.field_email": {
+    "text": "E-mail"
+  },
+  "web.COMMON.field_password": {
+    "text": "Hasło"
+  },
+  "web.COMMON.field_password2": {
+    "text": "Potwierdź hasło"
+  },
+  "web.COMMON.button_create_account": {
+    "text": "Utwórz Konto"
+  },
+  "web.COMMON.share_a_secret": {
+    "text": "Udostępnij wiadomość"
+  },
+  "web.COMMON.title_home": {
+    "text": "Strona główna"
+  },
+  "web.COMMON.word_none": {
+    "text": "Brak"
+  },
+  "web.COMMON.word_burned": {
+    "text": "unieważnione"
+  },
+  "web.COMMON.word_received": {
+    "text": "odebrane"
+  },
+  "web.COMMON.word_confirm": {
+    "text": "Potwierdź"
+  },
+  "web.COMMON.word_cancel": {
+    "text": "Anuluj"
+  },
+  "web.COMMON.word_continue": {
+    "text": "Kontynuuj"
+  },
+  "web.COMMON.word_done": {
+    "text": "Gotowe"
+  },
+  "web.COMMON.back": {
+    "text": "Wstecz"
+  },
+  "web.COMMON.feedback_text": {
+    "text": "Masz pytanie lub komentarz?"
+  },
+  "web.COMMON.button_send_feedback": {
+    "text": "Wyślij Opinię"
+  },
+  "web.COMMON.verification_sent_to": {
+    "text": "Wysłano potwierdzenie na"
+  },
+  "web.COMMON.autoverified_success": {
+    "text": "Konto utworzone. Zaloguj się."
+  },
+  "web.COMMON.signup_success_generic": {
+    "text": "Jeśli istnieje konto z tym adresem e-mail, otrzymasz wiadomość weryfikacyjną."
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "text": "Unieważnij tę wiadomość na stałe"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "text": "Proszę potwierdzić"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "text": "Czy na pewno chcesz unieważnić tę wiadomość? Tej akcji nie można cofnąć."
+  },
+  "web.COMMON.confirm_burn": {
+    "text": "Tak, unieważnij tę wiadomość"
+  },
+  "web.COMMON.burn_security_notice": {
+    "text": "Unieważnienie wiadomości spowoduje jej usunięcie, zanim zostanie odebrana."
+  },
+  "web.COMMON.share_link_securely": {
+    "text": "Ze względów bezpieczeństwa udostępnij ten link oddzielnie od innych szczegółów."
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "text": "Skopiowano do schowka"
+  },
+  "web.COMMON.button_create_incoming": {
+    "text": "Utwórz przychodzące"
+  },
+  "web.COMMON.faq_title": {
+    "text": "FAQ"
+  },
+  "web.COMMON.verification_not_valid": {
+    "text": "Weryfikacja jest nieprawidłowa"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "text": "Nie można zweryfikować konta, gdy jesteś już zalogowany"
+  },
+  "web.COMMON.show_password": {
+    "text": "Pokaż hasło"
+  },
+  "web.COMMON.hide_password": {
+    "text": "Ukryj hasło"
+  },
+  "web.COMMON.minimum_8_characters": {
+    "text": "Hasło musi mieć co najmniej 8 znaków"
+  },
+  "web.COMMON.password_requirements": {
+    "text": "Hasło musi mieć co najmniej 8 znaków"
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "text": "Hasła nie pasują do siebie"
+  },
+  "web.COMMON.form_field_required": {
+    "text": "To pole jest wymagane"
+  },
+  "web.COMMON.form_processing": {
+    "text": "Przetwarzanie żądania"
+  },
+  "web.COMMON.remember_me_description": {
+    "text": "Pozostaw mnie zalogowanym przez 30 dni"
+  },
+  "web.COMMON.redirecting": {
+    "text": "Przekierowywanie..."
+  },
+  "web.COMMON.continue": {
+    "text": "Kontynuuj"
+  },
+  "web.COMMON.are_you_sure": {
+    "text": "Czy na pewno?"
+  },
+  "web.COMMON.danger_zone": {
+    "text": "Strefa niebezpieczeństwa"
+  },
+  "web.COMMON.caution_zone": {
+    "text": "Strefa rozważnej decyzji"
+  },
+  "web.COMMON.user_menu": {
+    "text": "Menu użytkownika"
+  },
+  "web.COMMON.security": {
+    "text": "Bezpieczeństwo"
+  },
+  "web.COMMON.manage": {
+    "text": "Zarządzaj"
+  },
+  "web.COMMON.loading": {
+    "text": "Ładowanie..."
+  },
+  "web.COMMON.save_changes": {
+    "text": "Zapisz zmiany"
+  },
+  "web.COMMON.saving": {
+    "text": "Zapisywanie..."
+  },
+  "web.COMMON.adding_ellipses": {
+    "text": "Dodawanie..."
+  },
+  "web.COMMON.e_g_example": {
+    "text": "np."
+  },
+  "web.COMMON.example_placeholder": {
+    "text": "np. {example}"
+  },
+  "web.COMMON.status": {
+    "text": "Status"
+  },
+  "web.COMMON.escape": {
+    "text": "Escape"
+  },
+  "web.COMMON.active": {
+    "text": "Aktywny"
+  },
+  "web.COMMON.preview": {
+    "text": "Podgląd"
+  },
+  "web.COMMON.remove": {
+    "text": "Usuń"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "text": "Naciśnij ESC, aby zamknąć"
+  },
+  "web.COMMON.enter": {
+    "text": "Wprowadź"
+  },
+  "web.COMMON.important": {
+    "text": "Ważne"
+  },
+  "web.COMMON.language": {
+    "text": "Język"
+  },
+  "web.COMMON.theme": {
+    "text": "Motyw"
+  },
+  "web.COMMON.appearance": {
+    "text": "Wygląd"
+  },
+  "web.COMMON.done": {
+    "text": "Gotowe"
+  },
+  "web.COMMON.end": {
+    "text": "Koniec"
+  },
+  "web.COMMON.general": {
+    "text": "Ogólne"
+  },
+  "web.COMMON.note": {
+    "text": "Uwaga"
+  },
+  "web.COMMON.monthly": {
+    "text": "Miesięcznie"
+  },
+  "web.COMMON.yearly": {
+    "text": "Rocznie"
+  },
+  "web.COMMON.go_on_then": {
+    "text": "No dalej."
+  },
+  "web.COMMON.loading_ellipses": {
+    "text": "Ładowanie..."
+  },
+  "web.COMMON.not_received": {
+    "text": "NIE ODEBRANO"
+  },
+  "web.COMMON.confirm_password": {
+    "text": "Potwierdź hasło"
+  },
+  "web.COMMON.new_password": {
+    "text": "Nowe hasło"
+  },
+  "web.COMMON.email_address": {
+    "text": "Adres e-mail"
+  },
+  "web.COMMON.switch": {
+    "text": "przełącz"
+  },
+  "web.COMMON.features": {
+    "text": "Funkcje"
+  },
+  "web.COMMON.not_found": {
+    "text": "Nie znaleziono"
+  },
+  "web.COMMON.emoji_x": {
+    "text": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "text": "✅"
+  },
+  "web.COMMON.supported": {
+    "text": "Obsługiwane"
+  },
+  "web.COMMON.version": {
+    "text": "Wersja"
+  },
+  "web.COMMON.other": {
+    "text": "Inne"
+  },
+  "web.COMMON.min_width_1024px": {
+    "text": "(min-width: 1024px)"
+  },
+  "web.COMMON.ctrl_enter": {
+    "text": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "text": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "text": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "text": "Adres e-mail skopiowany do schowka!"
+  },
+  "web.COMMON.value": {
+    "text": "Wartość"
+  },
+  "web.COMMON.host": {
+    "text": "Host"
+  },
+  "web.COMMON.type": {
+    "text": "Typ"
+  },
+  "web.COMMON.previous": {
+    "text": "Poprzedni"
+  },
+  "web.COMMON.next": {
+    "text": "Następny"
+  },
+  "web.COMMON.password_strength": {
+    "text": "Siła hasła:"
+  },
+  "web.COMMON.great": {
+    "text": "Świetna"
+  },
+  "web.COMMON.pretty_good": {
+    "text": "Całkiem dobra"
+  },
+  "web.COMMON.fair": {
+    "text": "Dostateczna"
+  },
+  "web.COMMON.meh": {
+    "text": "Słaba"
+  },
+  "web.COMMON.not_great": {
+    "text": "Bardzo słaba"
+  },
+  "web.COMMON.open_options": {
+    "text": "Otwórz opcje"
+  },
+  "web.COMMON.inactive": {
+    "text": "Nieaktywny"
+  },
+  "web.COMMON.an_error_occurred": {
+    "text": "Wystąpił błąd"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "text": "Kopiuj wiadomość do schowka"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "text": "Wiadomość skopiowana do schowka"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "text": "Sprawdź dokładnie tę frazę dostępową"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "text": "Naciśnij przycisk kopiowania poniżej."
+  },
+  "web.LABELS.view_toggle.show": {
+    "text": "Pokaż"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "text": "Ukryj"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "text": "Pokaż więcej"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "text": "Pokaż mniej"
+  },
+  "web.LABELS.enable": {
+    "text": "Włącz"
+  },
+  "web.LABELS.disable": {
+    "text": "Wyłącz"
+  },
+  "web.LABELS.stats": {
+    "text": "Statystyki"
+  },
+  "web.LABELS.timeline": {
+    "text": "Oś czasu"
+  },
+  "web.LABELS.lifespan": {
+    "text": "Okres ważności"
+  },
+  "web.LABELS.expiration_time": {
+    "text": "Czas wygaśnięcia"
+  },
+  "web.LABELS.close": {
+    "text": "Zamknij"
+  },
+  "web.LABELS.loading": {
+    "text": "Ładowanie..."
+  },
+  "web.LABELS.cancel": {
+    "text": "Anuluj"
+  },
+  "web.LABELS.saving": {
+    "text": "Zapisywanie..."
+  },
+  "web.LABELS.saved": {
+    "text": "Zapisano"
+  },
+  "web.LABELS.save": {
+    "text": "Zapisz"
+  },
+  "web.LABELS.save_all": {
+    "text": "Zapisz wszystko"
+  },
+  "web.LABELS.details": {
+    "text": "Szczegóły"
+  },
+  "web.LABELS.encrypted": {
+    "text": "Zaszyfrowane"
+  },
+  "web.LABELS.secret_status": {
+    "text": "Status wiadomości"
+  },
+  "web.LABELS.need_help": {
+    "text": "Potrzebujesz pomocy?"
+  },
+  "web.LABELS.create_new_secret": {
+    "text": "Utwórz nową wiadomość"
+  },
+  "web.LABELS.actions": {
+    "text": "Akcje"
+  },
+  "web.LABELS.no_passphrase": {
+    "text": "Fraza dostępowa nie jest wymagana"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "text": "Kopiuj do schowka"
+  },
+  "web.LABELS.receipts": {
+    "text": "Potwierdzenia"
+  },
+  "web.LABELS.share": {
+    "text": "Udostępnij"
+  },
+  "web.LABELS.secret_link": {
+    "text": "Link do wiadomości"
+  },
+  "web.LABELS.dismiss": {
+    "text": "Odrzuć"
+  },
+  "web.LABELS.security_details": {
+    "text": "Szczegóły bezpieczeństwa"
+  },
+  "web.LABELS.items_count": {
+    "text": "{count} elementów"
+  },
+  "web.LABELS.recipients_count": {
+    "text": "{count} odbiorców"
+  },
+  "web.LABELS.view": {
+    "text": "Wyświetl"
+  },
+  "web.LABELS.views": {
+    "text": "Wyświetlenia"
+  },
+  "web.LABELS.times_viewed": {
+    "text": "wyświetlono razy"
+  },
+  "web.LABELS.view_progress": {
+    "text": "Postęp wyświetlania"
+  },
+  "web.LABELS.help_section": {
+    "text": "Sekcja pomocy"
+  },
+  "web.LABELS.passphrase_protected": {
+    "text": "Chronione frazą dostępową"
+  },
+  "web.LABELS.feedback_received": {
+    "text": "Otrzymano opinię."
+  },
+  "web.LABELS.sending_ellipses": {
+    "text": "Wysyłanie..."
+  },
+  "web.LABELS.title_recent_secrets": {
+    "text": "Ostatnie wiadomości"
+  },
+  "web.LABELS.pricing": {
+    "text": "Cennik"
+  },
+  "web.LABELS.refresh": {
+    "text": "Odśwież"
+  },
+  "web.LABELS.reload": {
+    "text": "Załaduj ponownie"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "text": "Linki do wiadomości utworzone w tej sesji"
+  },
+  "web.LABELS.create_link_short": {
+    "text": "Utwórz link"
+  },
+  "web.LABELS.create_link": {
+    "text": "Utwórz link do wiadomości"
+  },
+  "web.LABELS.create_request_short": {
+    "text": "Utwórz żądanie"
+  },
+  "web.LABELS.create_request": {
+    "text": "Utwórz link żądania"
+  },
+  "web.LABELS.related_settings": {
+    "text": "Powiązane ustawienia"
+  },
+  "web.LABELS.creating_links_for": {
+    "text": "Tworzenie linków dla"
+  },
+  "web.LABELS.scope_indicator": {
+    "text": "Tworzenie sekretów w {domain}"
+  },
+  "web.STATUS.new": {
+    "text": "Nowy"
+  },
+  "web.STATUS.unread": {
+    "text": "Nieprzeczytane"
+  },
+  "web.STATUS.viewed": {
+    "text": "Link otwarty"
+  },
+  "web.STATUS.received": {
+    "text": "Odebrane"
+  },
+  "web.STATUS.burned": {
+    "text": "Unieważnione"
+  },
+  "web.STATUS.destroyed": {
+    "text": "Zniszczone"
+  },
+  "web.STATUS.expiring_soon": {
+    "text": "Wygasa wkrótce"
+  },
+  "web.STATUS.created": {
+    "text": "Utworzono"
+  },
+  "web.STATUS.expires": {
+    "text": "Wygasa"
+  },
+  "web.STATUS.expired": {
+    "text": "Wygasło"
+  },
+  "web.STATUS.orphaned": {
+    "text": "Osierocone"
+  },
+  "web.STATUS.secured": {
+    "text": "Zabezpieczone"
+  },
+  "web.STATUS.securing": {
+    "text": "Zabezpieczanie"
+  },
+  "web.STATUS.copied": {
+    "text": "Skopiowano"
+  },
+  "web.STATUS.time_remaining": {
+    "text": "Pozostały czas"
+  },
+  "web.STATUS.new_description": {
+    "text": "Link do wiadomości został utworzony i jeszcze nie wyświetlony"
+  },
+  "web.STATUS.unread_description": {
+    "text": "Link do wiadomości został utworzony i nie został wyświetlony"
+  },
+  "web.STATUS.viewed_description": {
+    "text": "Link do wiadomości został otwarty i jest gotowy do wyświetlenia"
+  },
+  "web.STATUS.received_description": {
+    "text": "Wiadomość została ujawniona odbiorcy"
+  },
+  "web.STATUS.burned_description": {
+    "text": "Wiadomość została ręcznie unieważniona przed wyświetleniem"
+  },
+  "web.STATUS.destroyed_description": {
+    "text": "Wiadomość została trwale zniszczona"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "text": "Wiadomość wkrótce wygaśnie"
+  },
+  "web.STATUS.orphaned_description": {
+    "text": "Wiadomość została osierocona i wkrótce zostanie zniszczona"
+  },
+  "web.STATUS.expired_description": {
+    "text": "Wiadomość wygasła przed wyświetleniem"
+  },
+  "web.STATUS.success": {
+    "text": "Sukces"
+  },
+  "web.STATUS.delivered": {
+    "text": "Dostarczono"
+  },
+  "web.STATUS.dns_incorrect": {
+    "text": "Nieprawidłowy DNS"
+  },
+  "web.STATUS.active": {
+    "text": "Aktywny"
+  },
+  "web.STATUS.inactive": {
+    "text": "Nieaktywny"
+  },
+  "web.FEATURES.unlimited_views": {
+    "text": "Nieograniczone wyświetlenia"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "text": "Zaufany branding domeny"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "text": "Szyfrowane podczas przesyłania i przechowywania"
+  },
+  "web.UNITS.ttl.duration": {
+    "text": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "text": "dzień | dni | dni"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "text": "godzina | godziny | godzin"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "text": "minuta | minuty | minut"
+  },
+  "web.UNITS.ttl.time.second": {
+    "text": "sekunda | sekundy | sekund"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "text": "Pozostało {count} {unit}"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "text": "pozostał dzień | pozostały dni | pozostało dni"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "text": "pozostała godzina | pozostały godziny | pozostało godzin"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "text": "pozostała minuta | pozostały minuty | pozostało minut"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "text": "pozostała sekunda | pozostały sekundy | pozostało sekund"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.limited_views": {
+    "text": "Limit {count} wyświetleń"
+  },
+  "web.UNITS.days_remaining": {
+    "text": "Pozostało {count} dni"
+  },
+  "web.UNITS.hours_remaining": {
+    "text": "Pozostało {count} godzin"
+  },
+  "web.UNITS.minutes_remaining": {
+    "text": "Pozostało {count} minut"
+  },
+  "web.TITLES.incoming": {
+    "text": "Sekrety przychodzące"
+  },
+  "web.TITLES.feedback": {
+    "text": "Opinia"
+  },
+  "web.TITLES.signin": {
+    "text": "Zaloguj się"
+  },
+  "web.TITLES.signup": {
+    "text": "Utwórz konto"
+  },
+  "web.TITLES.forgot_password": {
+    "text": "Zapomniałeś hasła"
+  },
+  "web.TITLES.reset_password": {
+    "text": "Zresetuj hasło"
+  },
+  "web.TITLES.logout": {
+    "text": "Wylogowywanie"
+  },
+  "web.TITLES.verify_account": {
+    "text": "Zweryfikuj konto"
+  },
+  "web.TITLES.mfa_verify": {
+    "text": "Uwierzytelnianie dwuskładnikowe"
+  },
+  "web.TITLES.email_login": {
+    "text": "Logowanie e-mail"
+  },
+  "web.TITLES.accept_invitation": {
+    "text": "Zaakceptuj zaproszenie"
+  },
+  "web.TITLES.secret": {
+    "text": "Sekret"
+  },
+  "web.TITLES.metadata": {
+    "text": "Szczegóły sekretu"
+  },
+  "web.TITLES.receipt": {
+    "text": "Potwierdzenie sekretu"
+  },
+  "web.TITLES.burn_secret": {
+    "text": "Unieważnij sekret"
+  },
+  "web.TITLES.dashboard": {
+    "text": "Panel"
+  },
+  "web.TITLES.recent": {
+    "text": "Ostatnie"
+  },
+  "web.TITLES.domains": {
+    "text": "Domeny niestandardowe"
+  },
+  "web.TITLES.domain_add": {
+    "text": "Dodaj domenę"
+  },
+  "web.TITLES.domain_verify": {
+    "text": "Zweryfikuj domenę"
+  },
+  "web.TITLES.domain_brand": {
+    "text": "Domena markowa"
+  },
+  "web.TITLES.account": {
+    "text": "Ustawienia konta"
+  },
+  "web.TITLES.data_region": {
+    "text": "Region danych"
+  },
+  "web.TITLES.current_region": {
+    "text": "Bieżący region"
+  },
+  "web.TITLES.available_regions": {
+    "text": "Dostępne regiony"
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "text": "Dlaczego suwerenność danych ma znaczenie"
+  },
+  "web.TITLES.profile_settings": {
+    "text": "Ustawienia profilu"
+  },
+  "web.TITLES.preferences_settings": {
+    "text": "Preferencje"
+  },
+  "web.TITLES.privacy_settings": {
+    "text": "Prywatność"
+  },
+  "web.TITLES.notification_settings": {
+    "text": "Powiadomienia"
+  },
+  "web.TITLES.change_email": {
+    "text": "Zmień e-mail"
+  },
+  "web.TITLES.security_overview": {
+    "text": "Bezpieczeństwo"
+  },
+  "web.TITLES.change_password": {
+    "text": "Zmień hasło"
+  },
+  "web.TITLES.mfa_settings": {
+    "text": "Uwierzytelnianie dwuskładnikowe"
+  },
+  "web.TITLES.active_sessions": {
+    "text": "Aktywne sesje"
+  },
+  "web.TITLES.recovery_codes": {
+    "text": "Kody odzyskiwania"
+  },
+  "web.TITLES.api_settings": {
+    "text": "Ustawienia API"
+  },
+  "web.TITLES.advanced_settings": {
+    "text": "Ustawienia zaawansowane"
+  },
+  "web.TITLES.system_settings": {
+    "text": "Ustawienia systemowe"
+  },
+  "web.TITLES.not_found": {
+    "text": "Strona nie znaleziona"
+  },
+  "web.TITLES.organizations_settings": {
+    "text": "Organizacje"
+  },
+  "web.TITLES.organization_settings": {
+    "text": "Ustawienia organizacji"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "text": "Fokus znajduje się teraz w głównym obszarze tekstowym"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "text": "Instrukcje udostępniania"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "text": "Udostępnij link docelowemu odbiorcy"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "text": "Udostępnij frazę dostępową oddzielnie przez bezpieczny kanał"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "text": "Użyj innego bezpiecznego kanału do udostępniania poufnych informacji"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "text": "Zawsze sprawdzaj, czy jesteś na oficjalnej stronie Onetime Secret. Oszuści czasami tworzą fałszywe strony internetowe, które wyglądają dokładnie jak Onetime Secret, aby wykraść Twoje sekrety. Aby uniknąć ataków phishingowych, sprawdź domenę regionu przed utworzeniem nowych linków."
+  }
+}

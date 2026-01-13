@@ -1,0 +1,128 @@
+{
+  "web.branding.color_picker": {
+    "text": "Kaiwhiriwhiri Tae"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "Ko te {0} o nāianei: {1}. Pāwhiri ki te huri i ngā kōwhiringa."
+  },
+  "web.branding.use_setting": {
+    "text": "Whakamahi tautuhinga"
+  },
+  "web.branding.font_family": {
+    "text": "Whānau Momotuhi"
+  },
+  "web.branding.corner_style": {
+    "text": "Kāhua Kokonga"
+  },
+  "web.branding.brand_color": {
+    "text": "Tae Waitohu"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "Arokite o te tirohanga a te kaiwhiwhi ina urunga ki tō hononga haumaru"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "Arokite & Whakarite"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "Takahuri ki te tirohanga pūtirotiro Safari"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "text": "Whakanui matapihi"
+  },
+  "web.branding.minimize_window": {
+    "text": "Whakaiti matapihi"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "Takahuri ki te tirohanga pūtirotiro Edge"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500 ngā pūāhua"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "Whakamahia tō waea ki te matawai i te waehere QR"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "Whakapā atu ki te onboarding{'@'}example.com me ngā pātai katoa"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "Ka whakaatuhia ēnei tohutohu ki ngā kaiwhiwhi i mua i te whakaatu i te ihirangi karere huna"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "Ka whakaatuhia ēnei tohutohu ki ngā kaiwhiwhi whai muri i te whakaatu i te karere huna"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "Ngā Tohutohu I-Mua-I-Te-Whakaatu"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "Ngā Tohutohu Whai-Muri-O-Te-Whakaatu"
+  },
+  "web.branding.instructions": {
+    "text": "Ngā Tohutohu"
+  },
+  "web.branding.logo_controls": {
+    "text": "Ngā tohuhau tohu"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "Pāwhiri ki te tukuake i tētahi tohu. Rahinga tūtohu: 128x128 ngā pika. Rahi kōnae mōrahi: 1MB. Ngā whakatakotoranga tautokona: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "text": "Tukuake tohu"
+  },
+  "web.branding.loading_preview": {
+    "text": "Kei te uta arokite..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "Titiro tīpako ka pēhea te kitenga o ō karere huna e ngā kaiwhiwhi mā te whakamātau i te pātene \"Tirohia te Karere Huna\""
+  },
+  "web.branding.eye_icon": {
+    "text": "Tohu karu"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "Pāwhiri te awhiata arokite i raro nei ki te whakahou i tō tohu (tūtohu 128x128 ngā pika, 1MB max)"
+  },
+  "web.branding.image_icon": {
+    "text": "Tohu whakaahua"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "Whakamahia ngā tohutoro i runga ake ki te whakarite i te tae waitohu, ngā kāhua, me ngā tohutohu kaiwhiwhi"
+  },
+  "web.branding.customization_icon": {
+    "text": "Tohu whakaritea"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "He whakarerekētanga tiaki-kore āu. E tino hiahia ana koe?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "I rahua te uta i ngā tautuhinga waitohu"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "He arokite pāhekoheko tēnei o te pēhea e kite ai ngā kaiwhiwhi i ō karere haumaru. Ka taea e koe te: - Whakarite i ngā tae me ngā momotuhi mā ngā tohutoro i runga ake - Tukuake i tētahi tohu (tūtohu 128x128 ngā pika, 1MB max) - Whakamātau i te arokite mā te pātene \"Tirohia te Karere Huna\""
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "He arokite pāhekoheko tēnei o te pēhea e kite ai ngā kaiwhiwhi i ō karere haumaru. Ka taea e koe te: - Whakarite i ngā tae me ngā momotuhi mā ngā tohutoro i runga ake - Tukuake i tētahi tohu (tūtohu 128x128 ngā pika, 1MB max) - Whakamātau i te arokite mā te pātene \"Tirohia te Karere Huna\""
+  },
+  "web.branding.default_logo_icon": {
+    "text": "Tohu tohu taunoa"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "Powered by Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "text": "Tohu {0}"
+  },
+  "web.branding.edge": {
+    "text": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "Takahuri ki te arokite Edge"
+  },
+  "web.branding.safari": {
+    "text": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "Takahuri ki te arokite Safari"
+  }
+}

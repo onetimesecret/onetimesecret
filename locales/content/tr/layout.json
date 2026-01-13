@@ -1,0 +1,297 @@
+{
+  "web.footer.api_docs": {
+    "text": "API Belgeleri"
+  },
+  "web.footer.branding_guide": {
+    "text": "Marka Kılavuzu"
+  },
+  "web.footer.customize": {
+    "text": "Özelleştir"
+  },
+  "web.footer.plans": {
+    "text": "Planlar"
+  },
+  "web.footer.security": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.learn_about_our_security_measures": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.view_our_terms_and_conditions": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.terms": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.privacy": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.contact": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.support": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.legals": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.read_our_privacy_policy": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.check_our_service_status": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.explore_our_api_documentation": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.docs": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.access_our_documentation": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.view_our_source_code_on_github": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.resources": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.blog": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.read_our_latest_blog_posts": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.view_our_subscription_pricing": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.learn_about_our_company": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.company": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.navigation.billing": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.navigation.billingOverview": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.navigation.organizations": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.site.website_version": {
+    "text": "Web Sitesi Sürümü"
+  },
+  "web.meta.were_making_onetime_secret_available_in_multiple": {
+    "text": "{onetime-secret} özelliğini birden fazla dilde kullanıma sunuyoruz. Bu yeni bir özellik olduğundan, çeviri hataları veya garip ifadelerle karşılaşabilirsiniz. Geri bildirimleriniz bize yardımcı olur - herhangi bir sorunla karşılaşırsanız, lütfen {send-feedback}"
+  },
+  "web.meta.translations_are_new_spotted_an_error": {
+    "text": "Çeviriler yenidir. Bir hata mı gördünüz? {send-feedback}"
+  },
+  "web.meta.we_recently_added_translations": {
+    "text": "Çevirileri kısa süre önce ekledik. Bir hata mı gördünüz? {send-feedback}"
+  },
+  "web.meta.privacy_and_security_should_be_accessible": {
+    "text": "Gizlilik ve güvenlik, dil farkı gözetmeksizin herkes için erişilebilir olmalıdır. Kullanıcılarımızın ve mesaj alıcılarının güvenli mesajları ve bağlantıları nasıl güvenli bir şekilde kullanacaklarını ve erişeceklerini daha iyi anlamalarına yardımcı olmak için çeviriler ekliyoruz. Bu yeni bir özellik olduğundan, bazı çeviri hataları veya belirsiz talimatlarla karşılaşabilirsiniz. Çevirilerimizin netliğini ve doğruluğunu, özellikle güvenlikle ilgili kritik içeriklerde iyileştirmemize yardımcı olmak için, herhangi bir sorun fark ederseniz lütfen {send-feedback}"
+  },
+  "web.help.learn_more": {
+    "text": "Daha fazla bilgi"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.title": {
+    "text": "Neye bakıyorum?"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.description": {
+    "text": "Onetime Secret aracılığıyla sizinle paylaşılan güvenli bir mesaja bakıyorsunuz. Bu içerik yalnızca bir kez görüntülenir ve ardından sunucularımızdan kalıcı olarak silinir."
+  },
+  "web.help.secret_view_faq.can_i_view_again.title": {
+    "text": "Bu gizli mesajı daha sonra tekrar görüntüleyebilir miyim?"
+  },
+  "web.help.secret_view_faq.can_i_view_again.description": {
+    "text": "Hayır. Güvenlik nedeniyle, bu gizli mesaj yalnızca bir kez görüntülenebilir. Bu sayfayı kapattıktan sonra, içerik kalıcı olarak silinir ve bizim de dahil olduğumuz hiç kimse tarafından kurtarılamaz."
+  },
+  "web.help.secret_view_faq.how_to_copy.title": {
+    "text": "Bu bilgiyi nasıl kaydederim?"
+  },
+  "web.help.secret_view_faq.how_to_copy.description": {
+    "text": "Tüm gizli mesajı kopyalamak için 'Panoya Kopyala' düğmesini kullanın. Daha uzun gizli mesajlar için, bu sayfadan ayrılmadan önce tüm içeriği kopyaladığınızdan emin olun."
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.title": {
+    "text": "Bu gizli mesajı görüntülemem takip ediliyor mu?"
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.description": {
+    "text": "Gönderene, gizli mesajının görüntülendiği bildirilecek, ancak kimin görüntülediğini veya hangi konumdan görüntülediğini takip etmiyoruz. Gizliliğiniz korunmaktadır."
+  },
+  "web.help.secret_view_faq.one_time_warning": {
+    "text": "Bu sayfadan ayrıldığınızda veya yenilediğinizde, bu gizli mesaj kalıcı olarak silinecek ve hiç kimse tarafından kurtarılamayacaktır."
+  },
+  "web.layout.go_back_to_previous_page": {
+    "text": "Önceki sayfaya geri dön"
+  },
+  "web.layout.site_footer": {
+    "text": "Site alt bilgisi"
+  },
+  "web.layout.toggle_dark_mode": {
+    "text": "Karanlık modu aç/kapat"
+  },
+  "web.layout.provide_feedback": {
+    "text": "Geri bildirim sağlayın"
+  },
+  "web.layout.company_logo": {
+    "text": "Şirket logosu"
+  },
+  "web.layout.brand_logo": {
+    "text": "Marka logosu"
+  },
+  "web.layout.dashboard_navigation": {
+    "text": "Kontrol Paneli Gezinmesi"
+  },
+  "web.layout.mobile_navigation": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.layout.main_navigation": {
+    "text": "Ana gezinme"
+  },
+  "web.layout.mobile_nav_item_count": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.layout.release_notes": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.layout.loading_settings_content": {
+    "text": "Ayarlar içeriği yükleniyor..."
+  },
+  "web.layout.settings_sections_0": {
+    "text": "Ayarlar bölümleri"
+  },
+  "web.layout.close_settings": {
+    "text": "Ayarları kapat"
+  },
+  "web.layout.settings_sections": {
+    "text": "Ayarlar bölümleri"
+  },
+  "web.layout.customize_your_app_preferences_and_settings": {
+    "text": "Uygulama tercihlerinizi ve ayarlarınızı özelleştirin"
+  },
+  "web.layout.return_home": {
+    "text": "Ana sayfaya dön"
+  },
+  "web.layout.return_to_home_page": {
+    "text": "Ana sayfaya geri dön"
+  },
+  "web.layout.return_to_home": {
+    "text": "Ana Sayfaya Dön"
+  },
+  "web.layout.view_privacy_policy": {
+    "text": "Gizlilik Politikasını Görüntüle"
+  },
+  "web.layout.view_terms_of_service": {
+    "text": "Hizmet Şartlarını Görüntüle"
+  },
+  "web.layout.visit_onetime_secret_homepage": {
+    "text": "Onetime Secret ana sayfasını ziyaret edin"
+  },
+  "web.layout.footer_navigation": {
+    "text": "Alt bilgi gezinmesi"
+  },
+  "web.layout.terms_of_service": {
+    "text": "Hizmet Şartları"
+  },
+  "web.layout.privacy_policy": {
+    "text": "Gizlilik Politikası"
+  },
+  "web.layout.icon_library": {
+    "text": "Simge Kitaplığı"
+  },
+  "web.layout.google_material": {
+    "text": "Google Material"
+  },
+  "web.layout.material_design_icons": {
+    "text": "Material Design Simgeleri"
+  },
+  "web.layout.heroicons": {
+    "text": "Heroicons"
+  },
+  "web.layout.carbon": {
+    "text": "Carbon"
+  },
+  "web.layout.font_awesome_6": {
+    "text": "Font Awesome 6"
+  },
+  "web.layout.view_source_on_github": {
+    "text": "GitHub'da kaynağı görüntüle"
+  },
+  "web.layout.website_version_v_ot_version": {
+    "text": "Web Sitesi Sürümü: v{0}"
+  },
+  "web.layout.current_language_is_currentlocal": {
+    "text": "Dili değiştir. Mevcut dil {0}"
+  },
+  "web.layout.language_changed_to_newlocale": {
+    "text": "Dil {0} olarak değiştirildi"
+  },
+  "web.layout.switch_to_blank_mode": {
+    "text": "{0} moduna geç"
+  },
+  "web.layout.blank_mode_enabled": {
+    "text": "{0} modu etkinleştirildi"
+  },
+  "web.layout.workspace": {
+    "text": "Çalışma Alanı"
+  },
+  "web.layout.workspace_context": {
+    "text": "Çalışma alanı bağlamı"
+  }
+}

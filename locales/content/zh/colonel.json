@@ -1,0 +1,245 @@
+{
+  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
+    "text": "{0}/{1}/{2} [{3}]"
+  },
+  "web.colonel.customer_verified_verified_not_verified_0": {
+    "text": "`+customer.verified ? `verified` : `not verified"
+  },
+  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
+    "text": "Customers ({0} of {1})"
+  },
+  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
+    "text": "User Feedback (Total: {0})"
+  },
+  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
+    "text": "Metadata / Secrets: {0}/{1} ({2}/{3}/{4} total)"
+  },
+  "web.colonel.secrets_details_counts_secret_count_0": {
+    "text": "Secrets ({0})"
+  },
+  "web.colonel.active_in_the_past_5_minutes_0": {
+    "text": "(active in the past 5 minutes)"
+  },
+  "web.colonel.configEditorTitle": {
+    "text": "设置"
+  },
+  "web.colonel.configEditorDescription": {
+    "text": "编辑系统配置设置。保存后更改立即生效。"
+  },
+  "web.colonel.invalidJson": {
+    "text": "{section} 部分中的 JSON 无效"
+  },
+  "web.colonel.validationError": {
+    "text": "验证错误"
+  },
+  "web.colonel.errorFetchingConfig": {
+    "text": "加载配置时出错"
+  },
+  "web.colonel.errorSavingConfig": {
+    "text": "保存配置时出错"
+  },
+  "web.colonel.configSaved": {
+    "text": "配置保存成功"
+  },
+  "web.colonel.mustBeObject": {
+    "text": "配置必须是 JSON 对象"
+  },
+  "web.colonel.multipleSectionsInvalid": {
+    "text": "多个部分存在验证错误：{sections}"
+  },
+  "web.colonel.sectionHasError": {
+    "text": "{section} 存在验证错误：{error}"
+  },
+  "web.colonel.sectionSaved": {
+    "text": "{section} 保存成功"
+  },
+  "web.colonel.saveSection": {
+    "text": "保存 {section}"
+  },
+  "web.colonel.saveAll": {
+    "text": "全部保存"
+  },
+  "web.colonel.unsavedChanges": {
+    "text": "未保存的更改"
+  },
+  "web.colonel.schemaValidationError": {
+    "text": "架构验证错误：{message}（{path}）"
+  },
+  "web.colonel.unknownValidationError": {
+    "text": "未知验证错误：{error}"
+  },
+  "web.colonel.sectionEffectivelyEmpty": {
+    "text": "{section} 部分没有配置值"
+  },
+  "web.colonel.dashboard": {
+    "text": "仪表板"
+  },
+  "web.colonel.admin": {
+    "text": "管理员"
+  },
+  "web.colonel.activity": {
+    "text": "活动"
+  },
+  "web.colonel.accounts": {
+    "text": "账户"
+  },
+  "web.colonel.users": {
+    "text": "用户"
+  },
+  "web.colonel.usersDescription": {
+    "text": "管理用户账户和权限"
+  },
+  "web.colonel.domains": {
+    "text": "域名"
+  },
+  "web.colonel.settings": {
+    "text": "设置"
+  },
+  "web.colonel.system": {
+    "text": "系统"
+  },
+  "web.colonel.welcome": {
+    "text": "欢迎使用 Colonel"
+  },
+  "web.colonel.welcomeDesc": {
+    "text": "OneTimeSecret 管理控制面板"
+  },
+  "web.colonel.quickActions": {
+    "text": "快速操作"
+  },
+  "web.colonel.recentActivity": {
+    "text": "最近活动"
+  },
+  "web.colonel.viewAll": {
+    "text": "查看全部"
+  },
+  "web.colonel.activityPlaceholder": {
+    "text": "活动数据将显示在此处"
+  },
+  "web.colonel.stats.totalSecrets": {
+    "text": "总内容数"
+  },
+  "web.colonel.stats.activeUsers": {
+    "text": "活跃用户"
+  },
+  "web.colonel.stats.secretsToday": {
+    "text": "今日内容"
+  },
+  "web.colonel.stats.secretsCreated": {
+    "text": "已创建内容"
+  },
+  "web.colonel.stats.secretsShared": {
+    "text": "已分享内容"
+  },
+  "web.colonel.stats.totalCustomers": {
+    "text": "总客户数"
+  },
+  "web.colonel.stats.emailsSent": {
+    "text": "已发送邮件"
+  },
+  "web.colonel.stats.systemHealth": {
+    "text": "系统健康"
+  },
+  "web.colonel.stats.healthy": {
+    "text": "健康"
+  },
+  "web.colonel.actions.viewActivity": {
+    "text": "查看活动"
+  },
+  "web.colonel.actions.viewActivityDesc": {
+    "text": "监控系统活动和使用情况"
+  },
+  "web.colonel.actions.manageAccounts": {
+    "text": "管理账户"
+  },
+  "web.colonel.actions.manageAccountsDesc": {
+    "text": "用户账户管理"
+  },
+  "web.colonel.actions.configureDomains": {
+    "text": "配置域名"
+  },
+  "web.colonel.actions.configureDomainsDesc": {
+    "text": "域名和 DNS 设置"
+  },
+  "web.colonel.actions.systemSettings": {
+    "text": "系统设置"
+  },
+  "web.colonel.actions.systemSettingsDesc": {
+    "text": "应用程序配置"
+  },
+  "web.colonel.backgroundJobs": {
+    "text": "后台任务"
+  },
+  "web.colonel.queueStatus": {
+    "text": "队列状态"
+  },
+  "web.colonel.queueName": {
+    "text": "队列"
+  },
+  "web.colonel.pendingMessages": {
+    "text": "待处理"
+  },
+  "web.colonel.consumers": {
+    "text": "消费者"
+  },
+  "web.colonel.processingRate": {
+    "text": "速率/秒"
+  },
+  "web.colonel.connectionStatus": {
+    "text": "连接状态"
+  },
+  "web.colonel.workerHealth": {
+    "text": "工作进程健康"
+  },
+  "web.colonel.activeWorkers": {
+    "text": "活跃工作进程"
+  },
+  "web.colonel.noQueueData": {
+    "text": "无可用队列数据"
+  },
+  "web.colonel.loadingQueueData": {
+    "text": "加载队列数据中..."
+  },
+  "web.colonel.testPlanMode": {
+    "text": "测试套餐模式"
+  },
+  "web.colonel.testingAsPlan": {
+    "text": "以 {planName} 身份测试"
+  },
+  "web.colonel.clickToReset": {
+    "text": "点击重置"
+  },
+  "web.colonel.selectTestPlan": {
+    "text": "选择要测试的套餐"
+  },
+  "web.colonel.resetToActual": {
+    "text": "重置为实际套餐"
+  },
+  "web.colonel.currentActualPlan": {
+    "text": "当前套餐"
+  },
+  "web.colonel.availablePlans": {
+    "text": "可用套餐"
+  },
+  "web.colonel.activateTestMode": {
+    "text": "激活测试模式"
+  },
+  "web.colonel.testModeActive": {
+    "text": "测试模式已激活"
+  },
+  "web.colonel.testModeDescription": {
+    "text": "使用不同的套餐权限测试您的应用程序。更改是临时的，仅影响您的会话。"
+  },
+  "web.colonel.warningTestMode": {
+    "text": "您正在使用 {planName} 权限进行测试（临时会话覆盖）。"
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "当您提交反馈时，我们将看到："
+  },
+  "web.feedback.send_feedback": {
+    "text": "发送反馈"
+  },
+  "web.feedback.sending_ellipses": {
+    "text": "发送中"
+  }
+}

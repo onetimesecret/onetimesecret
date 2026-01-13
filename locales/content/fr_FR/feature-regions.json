@@ -1,0 +1,107 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "Souveraineté des données et isolation régionale"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "Vos données résident exclusivement dans votre région choisie et ne sont jamais transférées entre régions"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "Chaque région fonctionne comme un environnement complètement indépendant avec sa propre infrastructure, ses clés de chiffrement et son stockage de données"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "Nous maintenons une politique stricte : les données client ne sont jamais transférées entre régions en aucune circonstance"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "Important : changer de région crée un nouveau compte. Vos données restent dans votre région d'origine."
+  },
+  "web.regions.your_region": {
+    "text": "Votre région"
+  },
+  "web.regions.your_current_region": {
+    "text": "Votre région actuelle"
+  },
+  "web.regions.active": {
+    "text": "Actif"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "Explorer les autres régions disponibles"
+  },
+  "web.regions.why_it_matters": {
+    "text": "Pourquoi la souveraineté des données est importante"
+  },
+  "web.regions.trust_title": {
+    "text": "Transparence et contrôle"
+  },
+  "web.regions.trust_description": {
+    "text": "Sachez exactement où résident vos données et quelles lois régissent leur protection."
+  },
+  "web.regions.privacy_title": {
+    "text": "Droits à la vie privée"
+  },
+  "web.regions.privacy_description": {
+    "text": "Garantissez que vos informations personnelles sont traitées conformément aux lois et réglementations de votre pays en matière de confidentialité, empêchant tout accès non autorisé ou utilisation abusive."
+  },
+  "web.regions.compliance_title": {
+    "text": "Conformité réglementaire"
+  },
+  "web.regions.compliance_description": {
+    "text": "Conformité aux exigences RGPD, HIPAA, CCPA et autres exigences régionales de protection des données"
+  },
+  "web.regions.performance_title": {
+    "text": "Accès plus rapide"
+  },
+  "web.regions.performance_description": {
+    "text": "Les données stockées près de vous signifient une latence plus faible et de meilleures performances."
+  },
+  "web.regions.regions": {
+    "text": "Régions"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "contactez notre équipe de conformité"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "examiner notre documentation"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "Votre compte et vos données sont protégés par les lois et règlements des pays suivants"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "Ce cadre réglementaire est déterminé par votre domaine d'accès :"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "Chaque juridiction maintient une conformité légale et une gouvernance des données distinctes. Bien que vous puissiez créer des comptes dans plusieurs juridictions, celles-ci restent juridiquement distinctes et les données ne sont pas partagées entre les zones réglementaires."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "Pour comprendre les réglementations et protections spécifiques qui s'appliquent à votre compte, veuillez"
+  },
+  "web.regions.current": {
+    "text": "Actuel"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "Régions disponibles"
+  },
+  "web.regions.jurisdiction": {
+    "text": "Compétence"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "Emplacement du centre de données : {0}"
+  },
+  "web.regions.data_region": {
+    "text": "Région de données"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "Juridiction inconnue"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "Service hébergé depuis"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "Continuer vers {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Juridiction actuelle :"
+  }
+}

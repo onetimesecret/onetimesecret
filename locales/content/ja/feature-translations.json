@@ -1,0 +1,71 @@
+{
+  "web.translations.welcomes_contributors_for_both_existing_and_new_": {
+    "text": "既存および新しい言語の両方の貢献者を歓迎します。"
+  },
+  "web.translations.our_github_project": {
+    "text": "私たちのGitHubプロジェクト"
+  },
+  "web.translations.if_youre_interested_in_translation": {
+    "text": "翻訳に興味がある場合、"
+  },
+  "web.translations.whove_helped_with_translations_as_we_continue_to": {
+    "text": "新機能の開発を続ける中で、翻訳を手伝ってくれた人々。"
+  },
+  "web.translations.25_contributors": {
+    "text": "25人以上の貢献者"
+  },
+  "web.translations.were_grateful_to_the": {
+    "text": "私たちは感謝しています"
+  },
+  "web.translations.as_we_add_new_features_our_translations_graduall": {
+    "text": "新機能を追加するにつれて、翻訳は徐々に更新が必要になります。これは、onetimesecret.comと世界中の何千ものセルフホスティングインストールの両方に影響します。"
+  },
+  "web.translations.remember_to_include_your_email_if_youre_not_logg": {
+    "text": "- ログインしていない場合は、メールを含めることを忘れないでください。すべての翻訳は、より多くの人々が安全に通信するのに役立ちます。"
+  },
+  "web.translations.reach_out_to_us": {
+    "text": "お問い合わせください"
+  },
+  "web.translations.have_questions": {
+    "text": "質問がありますか？"
+  },
+  "web.translations.send_translations_by_email_to": {
+    "text": "翻訳をメールで送信"
+  },
+  "web.translations.english_template": {
+    "text": "英語テンプレート"
+  },
+  "web.translations.start_a_new_translation_from_our": {
+    "text": "新しい翻訳を開始"
+  },
+  "web.translations.update_a_language_directly_through_our_github_pr": {
+    "text": "GitHubプロジェクトを通じて言語を直接更新する"
+  },
+  "web.translations.review_existing_translations_using_the_language_": {
+    "text": "上記の言語セレクターを使用して、既存の翻訳を確認する"
+  },
+  "web.translations.ready_to_help_some_ways_to_contribute": {
+    "text": "お手伝いする準備はできていますか？貢献方法はいくつかあります："
+  },
+  "web.translations.the_following_people_have_donated_their_time_to_": {
+    "text": "以下の人々は、Onetime Secretの影響範囲を拡大するために時間を寄付してくれました："
+  },
+  "web.translations.translations": {
+    "text": "翻訳"
+  },
+  "web.translations.fork_on_github_and_submit_a_pr": {
+    "text": "GitHubでフォークしてPRを提出する"
+  },
+  "web.translations.your_language_skills_can_help_expand_access_to_s": {
+    "text": "あなたの言語スキルは、安全な通信へのアクセスを拡大するのに役立ちます。"
+  },
+  "web.translations.thanks_to_our_community_we_support_over_20_langu": {
+    "text": "コミュニティのおかげで、現在20以上の言語をサポートしています。しかし、急速な開発ペースにより、多くの翻訳は最新の状態を維持するために更新が必要です。これは、onetimesecret.comと世界中の何千ものセルフホスティングインストールの両方に影響します。"
+  },
+  "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
+    "text": "2012年以来、Onetime Secretは世界中で機密情報を安全に共有する方法を提供してきました。英語が主要言語ではない地域のユーザーがいるため、正確な翻訳は、安全なコミュニケーションを誰もがアクセスできるようにするために不可欠です。"
+  },
+  "web.translations.help_secure_communication_go_global": {
+    "text": "安全なコミュニケーションのグローバル化を支援する"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "text": "¿Por qué no está disponible este secreto?"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "text": "Los secretos están diseñados para ser vistos solo una vez. Es posible que este enlace ya haya sido accedido, haya expirado o haya sido eliminado manualmente por el remitente."
+  },
+  "web.errors.what_should_i_do_now": {
+    "text": "¿Qué debo hacer ahora?"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "text": "Contacta a la persona que te envió este enlace y pídele que cree un nuevo secreto. Hazle saber que no pudiste acceder a la información original."
+  },
+  "web.errors.warning_dismissed": {
+    "text": "Advertencia descartada"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "text": "Descartar advertencia de truncamiento"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "text": "¡Ups! La página que buscas no existe o ha sido movida."
+  },
+  "web.errors.404_page_not_found_0": {
+    "text": "404 - Página no encontrada"
+  },
+  "web.errors.404_page_not_found": {
+    "text": "404 - Página no encontrada"
+  },
+  "web.errors.dismiss_warning": {
+    "text": "Descartar advertencia"
+  },
+  "web.errors.dismiss_notification": {
+    "text": "Descartar notificación"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "text": "Si no estás seguro de qué hacer a continuación, por favor contacta a la persona que te envió este enlace para obtener más información."
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "text": "La información compartida a través de nuestro servicio solo se puede acceder una vez. Una vez vista, el contenido se elimina permanentemente de nuestros servidores para garantizar la confidencialidad. Este enfoque ayuda a proteger tus datos sensibles limitando su exposición y previniendo el acceso no autorizado."
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "text": "Lo sentimos, pero ocurrió un error inesperado al procesar tu solicitud. Nuestro equipo ha sido notificado y estamos trabajando para solucionarlo."
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "text": "{0} Algo salió mal"
+  },
+  "web.errors.go_share_a_secret": {
+    "text": "¡Ve a compartir un secreto!"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "text": "La página que buscas no existe o ha sido movida. ¡No te preocupes, le pasa a los mejores!"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "text": "{0} 404"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "text": "No se pueden cargar los datos debido a problemas de formato. Por favor, inténtalo de nuevo más tarde."
+  }
+}

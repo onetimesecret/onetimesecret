@@ -1,66 +1,17 @@
 {
   "web": {
     "auth": {
-      "_context_mfa_required": "Page heading shown when user must complete MFA to proceed",
       "mfa_required": "MFA確認が必要です",
-      "_context_mfa_verification_required": "Explanatory text below the heading",
       "mfa_verification_required": "アカウントにアクセスするにはMFA確認が必要です",
-      "_context_complete_mfa_verification": "Primary button text to submit MFA verification",
       "complete_mfa_verification": "MFA確認を完了",
       "security": {
-        "_README": "⚠️ セキュリティクリティカル: メッセージは情報漏洩を防ぎます。src/locales/SECURITY-TRANSLATION-GUIDE.mdを参照してください",
         "authentication_failed": "認証に失敗しました。認証情報を確認してもう一度お試しください。",
         "rate_limited": "試行回数が多すぎます。しばらくしてからもう一度お試しください。",
         "session_expired": "セッションが期限切れです。もう一度ログインしてください。",
         "recovery_code_not_found": "リカバリーコードが見つかりません。正しく入力したか確認してください。",
         "recovery_code_used": "このリカバリーコードは既に使用されています。各コードは一度しか使用できません。",
         "network_error": "ネットワークエラーです。接続を確認してもう一度お試しください。",
-        "internal_error": "エラーが発生しました。もう一度お試しください。",
-        "_meta": {
-          "_purpose": "These messages follow OWASP/NIST guidelines to prevent information disclosure. Translations MUST maintain generic wording to prevent credential enumeration and timing attacks. Never reveal: which credential failed, precise timing, account existence, or attack progress.",
-          "authentication_failed": {
-            "security_note": "MUST NOT reveal which credential failed (password, OTP, or recovery code). This prevents attackers from determining valid credentials or enumerating accounts.",
-            "owasp_ref": "ASVS 2.2.2 - Authentication failure responses must be generic"
-          },
-          "rate_limited": {
-            "security_note": "MUST NOT reveal precise lockout duration, attempt counts, or remaining attempts. This prevents timing attacks and progress tracking.",
-            "owasp_ref": "ASVS 2.2.1 - Account lockout must not be timing-based enumerable"
-          },
-          "session_expired": {
-            "security_note": "Safe to indicate session issue as it doesn't reveal credential information. Helps users understand they need to re-authenticate.",
-            "owasp_ref": "Session management best practices"
-          },
-          "recovery_code_not_found": {
-            "security_note": "Safe to indicate recovery code context as user explicitly selected this authentication method. Does not reveal whether code exists.",
-            "owasp_ref": "Recovery code validation guidance"
-          },
-          "recovery_code_used": {
-            "security_note": "Safe expected behavior message. Users need to know recovery codes are single-use to prevent confusion.",
-            "owasp_ref": "User guidance for recovery mechanisms"
-          }
-        },
-        "_translation_guidelines": {
-          "DO_NOT_translate_as": [
-            "Wrong password",
-            "Invalid OTP code",
-            "Incorrect recovery code",
-            "Wait 5 minutes",
-            "3 attempts remaining",
-            "Account locked for 15 minutes"
-          ],
-          "MUST_translate_as": [
-            "Generic authentication failure (no credential specifics)",
-            "Generic rate limit message (no precise timing)",
-            "Recovery code validation (no existence confirmation)"
-          ],
-          "WHY": "These restrictions prevent attackers from: (1) determining valid usernames/emails, (2) knowing which credential to focus attacks on, (3) conducting timing attacks, (4) measuring attack progress"
-        },
-        "_safe_information": {
-          "format_requirements": "Safe to specify format rules (e.g., 'OTP must be 6 digits')",
-          "expected_behavior": "Safe to describe how features work (e.g., 'Codes expire every 30 seconds')",
-          "recovery_options": "Safe to offer alternatives (e.g., 'Use a recovery code instead')",
-          "general_guidance": "Safe to provide help (e.g., 'Check your authenticator app')"
-        }
+        "internal_error": "エラーが発生しました。もう一度お試しください。"
       },
       "methods": {
         "password": "パスワード",
@@ -68,7 +19,6 @@
         "webauthn": "生体認証"
       },
       "magicLink": {
-        "_context": "Passwordless authentication via email link",
         "title": "メールでサインイン",
         "description": "安全なログインリンクを送信します",
         "emailPlaceholder": "メールアドレスを入力",
@@ -108,7 +58,6 @@
         "try_password_reset": "代わりにパスワードをリセットできます"
       },
       "sessions": {
-        "_context": "User's logged-in devices/browsers management page",
         "title": "アクティブセッション",
         "current": "現在のセッション",
         "other": "その他のセッション",

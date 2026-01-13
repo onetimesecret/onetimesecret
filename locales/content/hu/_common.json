@@ -1,0 +1,934 @@
+{
+  "web.COMMON.broadcast": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.tagline": {
+    "text": "Biztonságos hivatkozások, amelyek csak egyszer működnek"
+  },
+  "web.COMMON.powered_by": {
+    "text": "Szolgáltató:"
+  },
+  "web.COMMON.website_url": {
+    "text": "https://onetimesecret.com/hu"
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "text": "Jelszó generálása"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "text": "A jelszó generálása le van tiltva, amikor az űrlap érvényes"
+  },
+  "web.COMMON.email_placeholder": {
+    "text": "pl. kovacs{'@'}pelda.hu"
+  },
+  "web.COMMON.password_placeholder": {
+    "text": "Adja meg jelszavát"
+  },
+  "web.COMMON.custom_domains_title": {
+    "text": "Egyéni domének"
+  },
+  "web.COMMON.custom_domains_description": {
+    "text": "Erősítse meg kapcsolatait és építsen bizalmat saját márkás titok hivatkozásokkal."
+  },
+  "web.COMMON.get_started_button": {
+    "text": "Kezdés"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "text": "Erősítse meg jelszavát"
+  },
+  "web.COMMON.header_settings": {
+    "text": "Beállítások"
+  },
+  "web.COMMON.submit_with": {
+    "text": "Küldés"
+  },
+  "web.COMMON.submitting": {
+    "text": "Küldés folyamatban..."
+  },
+  "web.COMMON.processing": {
+    "text": "Feldolgozás..."
+  },
+  "web.COMMON.description": {
+    "text": "Tartsa távol az érzékeny információkat a csevegési naplókból és e-mailekből. Osszon meg egy titkos hivatkozást, amely csak egyszer érhető el."
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "text": "Helytelen hozzáférési mondat"
+  },
+  "web.COMMON.keywords": {
+    "text": "titok,jelszógenerátor,titok megosztása,egyszer használatos"
+  },
+  "web.COMMON.button_create_secret": {
+    "text": "Titkos hivatkozás létrehozása"
+  },
+  "web.COMMON.button_generate_secret": {
+    "text": "Vagy generáljon véletlenszerű jelszót"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "text": "Adatvédelmi beállítások"
+  },
+  "web.COMMON.secret_passphrase": {
+    "text": "Hozzáférési mondat"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "text": "Egy szó vagy kifejezés, amelyet nehéz kitalálni"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "text": "Címzett e-mail címe"
+  },
+  "web.COMMON.secret_placeholder": {
+    "text": "A titkos tartalom ide kerül..."
+  },
+  "web.COMMON.header_create_account": {
+    "text": "Fiók létrehozása"
+  },
+  "web.COMMON.header_about": {
+    "text": "Rólunk"
+  },
+  "web.COMMON.header_sign_in": {
+    "text": "Bejelentkezés"
+  },
+  "web.COMMON.header_dashboard": {
+    "text": "Fiók"
+  },
+  "web.COMMON.header_logout": {
+    "text": "Kijelentkezés"
+  },
+  "web.COMMON.secret": {
+    "text": "Titok | Titkok"
+  },
+  "web.COMMON.recent": {
+    "text": "Legutóbbi"
+  },
+  "web.COMMON.received": {
+    "text": "Megkapva"
+  },
+  "web.COMMON.burn": {
+    "text": "Végleges törlés"
+  },
+  "web.COMMON.burned": {
+    "text": "Véglegesen törölve"
+  },
+  "web.COMMON.expires_in": {
+    "text": "Lejár"
+  },
+  "web.COMMON.burn_this_secret": {
+    "text": "Titok végleges törlése"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "text": "A titok végleges törlése megsemmisíti azt, mielőtt elolvasnák (kattintson a megerősítéshez)"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "text": "A titok végleges törlése visszavonhatatlan"
+  },
+  "web.COMMON.msg_check_email": {
+    "text": "Ellenőrizze e-mailjét"
+  },
+  "web.COMMON.click_to_continue": {
+    "text": "Kattintson a felfedéshez →"
+  },
+  "web.COMMON.click_to_verify": {
+    "text": "Folytassa fiókja ellenőrzését:"
+  },
+  "web.COMMON.error_secret": {
+    "text": "Nem adott meg semmit, amit megoszthatnánk"
+  },
+  "web.COMMON.error_passphrase": {
+    "text": "Ellenőrizze újra a hozzáférési mondatot"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "text": "Adja meg a hozzáférési mondatot itt"
+  },
+  "web.COMMON.view_secret": {
+    "text": "Titok megtekintése"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "text": "Figyelem: csak egyszer fogjuk megmutatni."
+  },
+  "web.COMMON.warning": {
+    "text": "Figyelmeztetés"
+  },
+  "web.COMMON.oops": {
+    "text": "Hoppá!"
+  },
+  "web.COMMON.error": {
+    "text": "Hiba"
+  },
+  "web.COMMON.unexpected_error": {
+    "text": "Váratlan hiba történt. Kérjük, próbálja újra."
+  },
+  "web.COMMON.secret_was_truncated": {
+    "text": "Az üzenet lerövidítésre került"
+  },
+  "web.COMMON.signup_for_more": {
+    "text": "Regisztráljon további lehetőségekért"
+  },
+  "web.COMMON.login_to_your_account": {
+    "text": "Jelentkezzen be fiókjába"
+  },
+  "web.COMMON.sent_to": {
+    "text": "Elküldve: "
+  },
+  "web.COMMON.field_email": {
+    "text": "E-mail"
+  },
+  "web.COMMON.field_password": {
+    "text": "Jelszó"
+  },
+  "web.COMMON.field_password2": {
+    "text": "Jelszó megerősítése"
+  },
+  "web.COMMON.button_create_account": {
+    "text": "Fiók létrehozása"
+  },
+  "web.COMMON.share_a_secret": {
+    "text": "Titok megosztása"
+  },
+  "web.COMMON.title_home": {
+    "text": "Kezdőlap"
+  },
+  "web.COMMON.word_none": {
+    "text": "Nincs"
+  },
+  "web.COMMON.word_burned": {
+    "text": "véglegesen törölve"
+  },
+  "web.COMMON.word_received": {
+    "text": "megkapva"
+  },
+  "web.COMMON.word_confirm": {
+    "text": "Megerősítés"
+  },
+  "web.COMMON.word_cancel": {
+    "text": "Mégse"
+  },
+  "web.COMMON.word_continue": {
+    "text": "Folytatás"
+  },
+  "web.COMMON.word_done": {
+    "text": "Kész"
+  },
+  "web.COMMON.back": {
+    "text": "Vissza"
+  },
+  "web.COMMON.feedback_text": {
+    "text": "Ossza meg gondolatait, ötleteit vagy tapasztalatait..."
+  },
+  "web.COMMON.button_send_feedback": {
+    "text": "Visszajelzés küldése"
+  },
+  "web.COMMON.verification_sent_to": {
+    "text": "Ellenőrzést küldtünk a következő címre"
+  },
+  "web.COMMON.autoverified_success": {
+    "text": "Fiók létrehozva. Kérjük, jelentkezzen be."
+  },
+  "web.COMMON.signup_success_generic": {
+    "text": "Ha létezik fiók ezzel az e-mail címmel, küldünk egy ellenőrző e-mailt."
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "text": "Titok végleges törlése"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "text": "Kérjük, erősítse meg"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "text": "Biztosan véglegesen törölni szeretné ezt a titkot? Ez a művelet nem vonható vissza."
+  },
+  "web.COMMON.confirm_burn": {
+    "text": "Igen, törlöm véglegesen ezt a titkot"
+  },
+  "web.COMMON.burn_security_notice": {
+    "text": "A titok végleges törlése megsemmisíti azt, mielőtt fogadták volna."
+  },
+  "web.COMMON.share_link_securely": {
+    "text": "A biztonság érdekében ossza meg ezt a hivatkozást külön a többi adattól."
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "text": "Vágólapra másolva"
+  },
+  "web.COMMON.button_create_incoming": {
+    "text": "Bejövő létrehozása"
+  },
+  "web.COMMON.faq_title": {
+    "text": "G.Y.I.K."
+  },
+  "web.COMMON.verification_not_valid": {
+    "text": "Az ellenőrzés nem érvényes"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "text": "Nem ellenőrizhet fiókot, amikor már be van jelentkezve"
+  },
+  "web.COMMON.show_password": {
+    "text": "Jelszó megjelenítése"
+  },
+  "web.COMMON.hide_password": {
+    "text": "Jelszó elrejtése"
+  },
+  "web.COMMON.minimum_8_characters": {
+    "text": "A jelszónak legalább 8 karakterből kell állnia"
+  },
+  "web.COMMON.password_requirements": {
+    "text": "A jelszónak legalább 8 karakter hosszúnak kell lennie"
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "text": "A jelszavak nem egyeznek"
+  },
+  "web.COMMON.form_field_required": {
+    "text": "Ez a mező kötelező"
+  },
+  "web.COMMON.form_processing": {
+    "text": "Kérése feldolgozása folyamatban"
+  },
+  "web.COMMON.remember_me_description": {
+    "text": "Maradjak bejelentkezve 30 napig"
+  },
+  "web.COMMON.redirecting": {
+    "text": "Átirányítás..."
+  },
+  "web.COMMON.continue": {
+    "text": "Folytatás"
+  },
+  "web.COMMON.are_you_sure": {
+    "text": "Biztos benne?"
+  },
+  "web.COMMON.danger_zone": {
+    "text": "Veszélyzóna"
+  },
+  "web.COMMON.caution_zone": {
+    "text": "Óvatosan mérlegelendő zóna"
+  },
+  "web.COMMON.user_menu": {
+    "text": "Felhasználói menü"
+  },
+  "web.COMMON.security": {
+    "text": "Biztonság"
+  },
+  "web.COMMON.manage": {
+    "text": "Kezelés"
+  },
+  "web.COMMON.loading": {
+    "text": "Betöltés..."
+  },
+  "web.COMMON.save_changes": {
+    "text": "Módosítások mentése"
+  },
+  "web.COMMON.saving": {
+    "text": "Mentés..."
+  },
+  "web.COMMON.adding_ellipses": {
+    "text": "Hozzáadás"
+  },
+  "web.COMMON.e_g_example": {
+    "text": "pl."
+  },
+  "web.COMMON.example_placeholder": {
+    "text": "pl. {example}"
+  },
+  "web.COMMON.status": {
+    "text": "Állapot"
+  },
+  "web.COMMON.escape": {
+    "text": "Kilépés"
+  },
+  "web.COMMON.active": {
+    "text": "Aktív"
+  },
+  "web.COMMON.preview": {
+    "text": "Előnézet"
+  },
+  "web.COMMON.remove": {
+    "text": "Eltávolítás"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "text": "Nyomja meg az ESC-t a bezáráshoz"
+  },
+  "web.COMMON.enter": {
+    "text": "Enter"
+  },
+  "web.COMMON.important": {
+    "text": "Fontos"
+  },
+  "web.COMMON.language": {
+    "text": "Nyelv"
+  },
+  "web.COMMON.theme": {
+    "text": "Téma"
+  },
+  "web.COMMON.appearance": {
+    "text": "Megjelenés"
+  },
+  "web.COMMON.done": {
+    "text": "Kész"
+  },
+  "web.COMMON.end": {
+    "text": "Vége"
+  },
+  "web.COMMON.general": {
+    "text": "Általános"
+  },
+  "web.COMMON.note": {
+    "text": "Megjegyzés"
+  },
+  "web.COMMON.monthly": {
+    "text": "Havi"
+  },
+  "web.COMMON.yearly": {
+    "text": "Éves"
+  },
+  "web.COMMON.go_on_then": {
+    "text": "Rendben, folytassa."
+  },
+  "web.COMMON.loading_ellipses": {
+    "text": "Betöltés..."
+  },
+  "web.COMMON.not_received": {
+    "text": "NEM KAPOTT MEG"
+  },
+  "web.COMMON.confirm_password": {
+    "text": "Jelszó megerősítése"
+  },
+  "web.COMMON.new_password": {
+    "text": "Új jelszó"
+  },
+  "web.COMMON.email_address": {
+    "text": "E-mail cím"
+  },
+  "web.COMMON.switch": {
+    "text": "váltás"
+  },
+  "web.COMMON.features": {
+    "text": "Funkciók"
+  },
+  "web.COMMON.not_found": {
+    "text": "Nem található"
+  },
+  "web.COMMON.emoji_x": {
+    "text": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "text": "✅"
+  },
+  "web.COMMON.supported": {
+    "text": "Támogatott"
+  },
+  "web.COMMON.version": {
+    "text": "Verzió"
+  },
+  "web.COMMON.other": {
+    "text": "Egyéb"
+  },
+  "web.COMMON.min_width_1024px": {
+    "text": "(min-szélesség: 1024px)"
+  },
+  "web.COMMON.ctrl_enter": {
+    "text": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "text": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "text": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "text": "E-mail cím vágólapra másolva!"
+  },
+  "web.COMMON.value": {
+    "text": "Érték"
+  },
+  "web.COMMON.host": {
+    "text": "Host"
+  },
+  "web.COMMON.type": {
+    "text": "Típus"
+  },
+  "web.COMMON.previous": {
+    "text": "Előző"
+  },
+  "web.COMMON.next": {
+    "text": "Következő"
+  },
+  "web.COMMON.password_strength": {
+    "text": "Jelszó erősség:"
+  },
+  "web.COMMON.great": {
+    "text": "Remek"
+  },
+  "web.COMMON.pretty_good": {
+    "text": "Elég jó"
+  },
+  "web.COMMON.fair": {
+    "text": "Megfelelő"
+  },
+  "web.COMMON.meh": {
+    "text": "Gyenge"
+  },
+  "web.COMMON.not_great": {
+    "text": "Nem jó"
+  },
+  "web.COMMON.open_options": {
+    "text": "Lehetőségek megnyitása"
+  },
+  "web.COMMON.inactive": {
+    "text": "Inaktív"
+  },
+  "web.COMMON.an_error_occurred": {
+    "text": "Hiba történt"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "text": "Titok másolása vágólapra"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "text": "Titok vágólapra másolva"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "text": "Ellenőrizze újra a hozzáférési mondatot"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "text": "Nyomja meg az alábbi másolás gombot."
+  },
+  "web.LABELS.view_toggle.show": {
+    "text": "Megjelenítés"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "text": "Elrejtés"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "text": "Több megjelenítése"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "text": "Kevesebb megjelenítése"
+  },
+  "web.LABELS.enable": {
+    "text": "Engedélyezés"
+  },
+  "web.LABELS.disable": {
+    "text": "Letiltás"
+  },
+  "web.LABELS.stats": {
+    "text": "Statisztikák"
+  },
+  "web.LABELS.timeline": {
+    "text": "Idővonal"
+  },
+  "web.LABELS.lifespan": {
+    "text": "Élettartam"
+  },
+  "web.LABELS.expiration_time": {
+    "text": "Lejárati idő"
+  },
+  "web.LABELS.close": {
+    "text": "Bezárás"
+  },
+  "web.LABELS.loading": {
+    "text": "Betöltés..."
+  },
+  "web.LABELS.cancel": {
+    "text": "Mégse"
+  },
+  "web.LABELS.saving": {
+    "text": "Mentés..."
+  },
+  "web.LABELS.saved": {
+    "text": "Mentve"
+  },
+  "web.LABELS.save": {
+    "text": "Mentés"
+  },
+  "web.LABELS.save_all": {
+    "text": "Összes mentése"
+  },
+  "web.LABELS.details": {
+    "text": "Részletek"
+  },
+  "web.LABELS.encrypted": {
+    "text": "Titkosított"
+  },
+  "web.LABELS.secret_status": {
+    "text": "Titok állapota"
+  },
+  "web.LABELS.need_help": {
+    "text": "Segítségre van szüksége?"
+  },
+  "web.LABELS.create_new_secret": {
+    "text": "Új titok létrehozása"
+  },
+  "web.LABELS.actions": {
+    "text": "Műveletek"
+  },
+  "web.LABELS.no_passphrase": {
+    "text": "Nincs szükség hozzáférési mondatra"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "text": "Másolás vágólapra"
+  },
+  "web.LABELS.receipts": {
+    "text": "Nyugták"
+  },
+  "web.LABELS.share": {
+    "text": "Megosztás"
+  },
+  "web.LABELS.secret_link": {
+    "text": "Titkos hivatkozás"
+  },
+  "web.LABELS.dismiss": {
+    "text": "Elvetés"
+  },
+  "web.LABELS.security_details": {
+    "text": "Biztonsági részletek"
+  },
+  "web.LABELS.items_count": {
+    "text": "{count} elem"
+  },
+  "web.LABELS.recipients_count": {
+    "text": "{count} címzett"
+  },
+  "web.LABELS.view": {
+    "text": "Megtekintés"
+  },
+  "web.LABELS.views": {
+    "text": "Megtekintések"
+  },
+  "web.LABELS.times_viewed": {
+    "text": "alkalommal megtekintve"
+  },
+  "web.LABELS.view_progress": {
+    "text": "Megtekintési előrehaladás"
+  },
+  "web.LABELS.help_section": {
+    "text": "Súgó"
+  },
+  "web.LABELS.passphrase_protected": {
+    "text": "Hozzáférési mondattal védett"
+  },
+  "web.LABELS.feedback_received": {
+    "text": "Visszajelzés beérkezett."
+  },
+  "web.LABELS.sending_ellipses": {
+    "text": "Küldés..."
+  },
+  "web.LABELS.title_recent_secrets": {
+    "text": "Legutóbbi titkok"
+  },
+  "web.LABELS.pricing": {
+    "text": "Árak"
+  },
+  "web.LABELS.refresh": {
+    "text": "Frissítés"
+  },
+  "web.LABELS.reload": {
+    "text": "Újratöltés"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "text": "Ebben a munkamenetben létrehozott titkos hivatkozások"
+  },
+  "web.LABELS.create_link_short": {
+    "text": "Hivatkozás létrehozása"
+  },
+  "web.LABELS.create_link": {
+    "text": "Titkos hivatkozás létrehozása"
+  },
+  "web.LABELS.create_request_short": {
+    "text": "Kérés létrehozása"
+  },
+  "web.LABELS.create_request": {
+    "text": "Kérési hivatkozás létrehozása"
+  },
+  "web.LABELS.related_settings": {
+    "text": "Kapcsolódó beállítások"
+  },
+  "web.LABELS.creating_links_for": {
+    "text": "Hivatkozások létrehozása ehhez:"
+  },
+  "web.LABELS.scope_indicator": {
+    "text": "Titkok létrehozása itt: {domain}"
+  },
+  "web.STATUS.new": {
+    "text": "Új"
+  },
+  "web.STATUS.unread": {
+    "text": "Olvasatlan"
+  },
+  "web.STATUS.viewed": {
+    "text": "Hivatkozás megnyitva"
+  },
+  "web.STATUS.received": {
+    "text": "Megkapva"
+  },
+  "web.STATUS.burned": {
+    "text": "Véglegesen törölve"
+  },
+  "web.STATUS.destroyed": {
+    "text": "Megsemmisítve"
+  },
+  "web.STATUS.expiring_soon": {
+    "text": "Hamarosan lejár"
+  },
+  "web.STATUS.created": {
+    "text": "Létrehozva"
+  },
+  "web.STATUS.expires": {
+    "text": "Lejár"
+  },
+  "web.STATUS.expired": {
+    "text": "Lejárt"
+  },
+  "web.STATUS.orphaned": {
+    "text": "Elárvulva"
+  },
+  "web.STATUS.secured": {
+    "text": "Biztonságossá téve"
+  },
+  "web.STATUS.securing": {
+    "text": "Biztonságossá tétel"
+  },
+  "web.STATUS.copied": {
+    "text": "Másolva"
+  },
+  "web.STATUS.time_remaining": {
+    "text": "Hátralévő idő"
+  },
+  "web.STATUS.new_description": {
+    "text": "A titkos hivatkozás létrejött, de még nem tekintették meg"
+  },
+  "web.STATUS.unread_description": {
+    "text": "A titkos hivatkozás létrejött, de még nem tekintették meg"
+  },
+  "web.STATUS.viewed_description": {
+    "text": "A titkos hivatkozás meg lett nyitva és készen áll a megtekintésre"
+  },
+  "web.STATUS.received_description": {
+    "text": "A titok felfedésre került a címzett számára"
+  },
+  "web.STATUS.burned_description": {
+    "text": "A titkot manuálisan véglegesen törölték, mielőtt megtekintették volna"
+  },
+  "web.STATUS.destroyed_description": {
+    "text": "A titok véglegesen megsemmisítésre került"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "text": "A titok hamarosan lejár"
+  },
+  "web.STATUS.orphaned_description": {
+    "text": "A titok elárvult és hamarosan megsemmisítésre kerül"
+  },
+  "web.STATUS.expired_description": {
+    "text": "A titok lejárt, mielőtt megtekintették volna"
+  },
+  "web.STATUS.success": {
+    "text": "Sikeres"
+  },
+  "web.STATUS.delivered": {
+    "text": "Kézbesítve"
+  },
+  "web.STATUS.dns_incorrect": {
+    "text": "Helytelen DNS"
+  },
+  "web.STATUS.active": {
+    "text": "Aktív"
+  },
+  "web.STATUS.inactive": {
+    "text": "Inaktív"
+  },
+  "web.FEATURES.unlimited_views": {
+    "text": "Korlátlan megtekintések"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "text": "Megbízható domén márkajelzés"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "text": "Átvitel és tárolás közben titkosítva"
+  },
+  "web.UNITS.ttl.duration": {
+    "text": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "text": "nap | nap"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "text": "óra | óra"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "text": "perc | perc"
+  },
+  "web.UNITS.ttl.time.second": {
+    "text": "másodperc | másodperc"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "text": "{count} {unit} van hátra"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "text": "nap van hátra | nap van hátra"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "text": "óra van hátra | óra van hátra"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "text": "perc van hátra | perc van hátra"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "text": "másodperc van hátra | másodperc van hátra"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.limited_views": {
+    "text": "{count} megtekintési korlát"
+  },
+  "web.UNITS.days_remaining": {
+    "text": "{count} nap van hátra"
+  },
+  "web.UNITS.hours_remaining": {
+    "text": "{count} óra van hátra"
+  },
+  "web.UNITS.minutes_remaining": {
+    "text": "{count} perc van hátra"
+  },
+  "web.TITLES.incoming": {
+    "text": "Bejövő titkok"
+  },
+  "web.TITLES.feedback": {
+    "text": "Visszajelzés"
+  },
+  "web.TITLES.signin": {
+    "text": "Bejelentkezés"
+  },
+  "web.TITLES.signup": {
+    "text": "Fiók létrehozása"
+  },
+  "web.TITLES.forgot_password": {
+    "text": "Elfelejtett jelszó"
+  },
+  "web.TITLES.reset_password": {
+    "text": "Jelszó visszaállítása"
+  },
+  "web.TITLES.logout": {
+    "text": "Kijelentkezés folyamatban"
+  },
+  "web.TITLES.verify_account": {
+    "text": "Fiók ellenőrzése"
+  },
+  "web.TITLES.mfa_verify": {
+    "text": "Kétfaktoros hitelesítés"
+  },
+  "web.TITLES.email_login": {
+    "text": "E-mail bejelentkezés"
+  },
+  "web.TITLES.accept_invitation": {
+    "text": "Meghívó elfogadása"
+  },
+  "web.TITLES.secret": {
+    "text": "Titok"
+  },
+  "web.TITLES.metadata": {
+    "text": "Titok részletei"
+  },
+  "web.TITLES.receipt": {
+    "text": "Titok nyugta"
+  },
+  "web.TITLES.burn_secret": {
+    "text": "Titok végleges törlése"
+  },
+  "web.TITLES.dashboard": {
+    "text": "Vezérlőpult"
+  },
+  "web.TITLES.recent": {
+    "text": "Legutóbbi titkok"
+  },
+  "web.TITLES.domains": {
+    "text": "Egyéni domének"
+  },
+  "web.TITLES.domain_add": {
+    "text": "Domén hozzáadása"
+  },
+  "web.TITLES.domain_verify": {
+    "text": "Domén ellenőrzése"
+  },
+  "web.TITLES.domain_brand": {
+    "text": "Domén márkajelzése"
+  },
+  "web.TITLES.account": {
+    "text": "Fiókbeállítások"
+  },
+  "web.TITLES.data_region": {
+    "text": "Adatrégió"
+  },
+  "web.TITLES.current_region": {
+    "text": "Jelenlegi régió"
+  },
+  "web.TITLES.available_regions": {
+    "text": "Elérhető régiók"
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "text": "Miért fontos az adatszuverenitás"
+  },
+  "web.TITLES.profile_settings": {
+    "text": "Profilbeállítások"
+  },
+  "web.TITLES.preferences_settings": {
+    "text": "Preferenciák"
+  },
+  "web.TITLES.privacy_settings": {
+    "text": "Adatvédelem"
+  },
+  "web.TITLES.notification_settings": {
+    "text": "Értesítések"
+  },
+  "web.TITLES.change_email": {
+    "text": "E-mail cím módosítása"
+  },
+  "web.TITLES.security_overview": {
+    "text": "Biztonság"
+  },
+  "web.TITLES.change_password": {
+    "text": "Jelszó módosítása"
+  },
+  "web.TITLES.mfa_settings": {
+    "text": "Kétfaktoros hitelesítés"
+  },
+  "web.TITLES.active_sessions": {
+    "text": "Aktív munkamenetek"
+  },
+  "web.TITLES.recovery_codes": {
+    "text": "Helyreállítási kódok"
+  },
+  "web.TITLES.api_settings": {
+    "text": "API beállítások"
+  },
+  "web.TITLES.advanced_settings": {
+    "text": "Speciális beállítások"
+  },
+  "web.TITLES.system_settings": {
+    "text": "Rendszerbeállítások"
+  },
+  "web.TITLES.not_found": {
+    "text": "Az oldal nem található"
+  },
+  "web.TITLES.organizations_settings": {
+    "text": "Szervezetek"
+  },
+  "web.TITLES.organization_settings": {
+    "text": "Szervezet beállításai"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "text": "A fókusz most a fő szövegmezőben van"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "text": "Megosztási útmutató"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "text": "Ossza meg a hivatkozást a kívánt címzettel"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "text": "Ossza meg a hozzáférési mondatot külön, biztonságos csatornán keresztül"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "text": "Használjon másik biztonságos csatornát az érzékeny információk megosztásához"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "text": "Mindig ellenőrizze, hogy a hivatalos Onetime Secret weboldalon van-e. A csalók néha hamis weboldalakat hoznak létre, amelyek pontosan úgy néznek ki, mint az Onetime Secret, hogy ellopják titkait. Az adathalász támadások elkerülése érdekében ellenőrizze a régió domént, mielőtt új hivatkozásokat hoz létre."
+  }
+}

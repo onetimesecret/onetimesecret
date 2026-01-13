@@ -1,0 +1,47 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "Tō urupare"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "Ka pōwhiritia ngā urupare katoa!"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "Āwhinatia mātou ki te whakapai ake"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "Katia te modal urupare"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "Tuari i tō urupare"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum"
+  },
+  "web.feedback.delano": {
+    "text": "Delano"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "Ka noho te ihirangi āwhina ki konei."
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "Ngā mihi mō tō āwhina ki a Onetime Secret ki te whakapai ake. He mea nui tēnei."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "Kua hangaia e mātou tēnei taputapu hei āwhina i a koe ki te tuari mōhiohio tairongo i runga i te haumaru, ā, he mea nui ō wheako ao-tūturu mō te arotahi i ā mātou mahi. Ka āwhina i a mātou ki te whakatau he aha te mahi ā muri ake nei me te pēhea te whakapai ake i te ratonga mō te katoa."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "Tēnā koe, ngā mihi mō tō toro mai ki tā mātou whārangi urupare. Ehara tō kōrero i te mea pōwhiri noa - he mea nui."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "He tuhipoka mai i a Delano, kaiwhakarewa o Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "Huakina te puka urupare"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "Tāurua tō urupare"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Tuku urupare"
+  }
+}

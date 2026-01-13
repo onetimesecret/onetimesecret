@@ -83,7 +83,6 @@
       "testModeActive": "Test mode active",
       "testModeDescription": "Test your application with different plan entitlements. Changes are temporary and affect only your session.",
       "warningTestMode": "You are testing with {planName} entitlements (temporary session override).",
-
       "organizations": {
         "title": "Organizations",
         "description": "Monitor org billing sync health",

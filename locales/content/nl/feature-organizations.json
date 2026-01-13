@@ -1,0 +1,392 @@
+{
+  "web.organizations.title": {
+    "text": "Organisatie"
+  },
+  "web.organizations.organization": {
+    "text": "Organisatie"
+  },
+  "web.organizations.organization_plural": {
+    "text": "Organisaties"
+  },
+  "web.organizations.organizations_description": {
+    "text": "Beheer je organisaties"
+  },
+  "web.organizations.my_organizations": {
+    "text": "Mijn organisaties"
+  },
+  "web.organizations.manage_organizations": {
+    "text": "Manage Organizations"
+  },
+  "web.organizations.new_organization": {
+    "text": "Nieuwe organisatie"
+  },
+  "web.organizations.no_organizations": {
+    "text": "Nog geen organisaties"
+  },
+  "web.organizations.no_organizations_description": {
+    "text": "Organisaties stellen je in staat om meerdere teams te beheren met uniforme facturering en administratie. Begin met het aanmaken van je eerste organisatie"
+  },
+  "web.organizations.no_description": {
+    "text": "Geen beschrijving opgegeven"
+  },
+  "web.organizations.default": {
+    "text": "Standaard"
+  },
+  "web.organizations.create_organization": {
+    "text": "Organisatie aanmaken"
+  },
+  "web.organizations.create_first_organization": {
+    "text": "Eerste organisatie aanmaken"
+  },
+  "web.organizations.create_organization_description": {
+    "text": "Maak een nieuwe organisatie aan om je teams te groeperen"
+  },
+  "web.organizations.create": {
+    "text": "Aanmaken"
+  },
+  "web.organizations.create_error": {
+    "text": "Kon organisatie niet aanmaken"
+  },
+  "web.organizations.organization_name": {
+    "text": "Organisatienaam"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "text": "bijv. Acme Corporation"
+  },
+  "web.organizations.display_name": {
+    "text": "Organisatienaam"
+  },
+  "web.organizations.description": {
+    "text": "Beschrijving"
+  },
+  "web.organizations.description_placeholder": {
+    "text": "Waarvoor is deze organisatie?"
+  },
+  "web.organizations.contact_email": {
+    "text": "Facturatie e-mail"
+  },
+  "web.organizations.contact_email_help": {
+    "text": "Primair contact voor facturering en administratieve meldingen"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "text": "Facturering en abonnementsbeheer worden via je primaire werkruimte afgehandeld. Bezoek je hoofdwerkruimte-instellingen om betaalmethoden en facturen te beheren."
+  },
+  "web.organizations.select_organization": {
+    "text": "Selecteer een organisatie"
+  },
+  "web.organizations.switcher_locked": {
+    "text": "Organization switching not available on this page"
+  },
+  "web.organizations.not_found": {
+    "text": "Organisatie niet gevonden"
+  },
+  "web.organizations.load_error": {
+    "text": "Kon organisatie niet laden"
+  },
+  "web.organizations.fetch_organization_error": {
+    "text": "Kon organisatie niet laden"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "text": "Kon organisaties niet laden"
+  },
+  "web.organizations.organization_information": {
+    "text": "Organisatie-informatie"
+  },
+  "web.organizations.created": {
+    "text": "Aangemaakt"
+  },
+  "web.organizations.last_updated": {
+    "text": "Laatst bijgewerkt"
+  },
+  "web.organizations.organization_settings": {
+    "text": "Organisatie-instellingen"
+  },
+  "web.organizations.organization_settings_description": {
+    "text": "Werk je organisatienaam en beschrijving bij"
+  },
+  "web.organizations.general_settings": {
+    "text": "Algemene instellingen"
+  },
+  "web.organizations.billing_settings": {
+    "text": "Facturering en abonnement"
+  },
+  "web.organizations.save_changes": {
+    "text": "Wijzigingen opslaan"
+  },
+  "web.organizations.update_success": {
+    "text": "Organisatie succesvol bijgewerkt"
+  },
+  "web.organizations.update_error": {
+    "text": "Kon organisatie niet bijwerken"
+  },
+  "web.organizations.billing_coming_soon": {
+    "text": "Facturering-integratie komt eraan"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "text": "Uniform facturerings- en abonnementsbeheer voor alle teams in deze organisatie komt in een toekomstige versie"
+  },
+  "web.organizations.about_title": {
+    "text": "Over organisaties"
+  },
+  "web.organizations.about_description": {
+    "text": "Organisaties bieden uniforme facturering en administratie voor meerdere teams. Ze zijn optioneel: teams kunnen onafhankelijk bestaan of gegroepeerd worden onder een organisatie voor gecentraliseerd beheer"
+  },
+  "web.organizations.single_user_info_title": {
+    "text": "Beheer je organisatie"
+  },
+  "web.organizations.single_user_info_description": {
+    "text": "Werk hier je bedrijfsnaam en organisatiegegevens bij. Deze informatie helpt je account te personaliseren en kan in de toekomst worden gebruikt voor branding-functies"
+  },
+  "web.organizations.getting_started_title": {
+    "text": "Aan de slag met organisaties"
+  },
+  "web.organizations.getting_started_description": {
+    "text": "Maak je eerste organisatie aan om je bedrijfsinformatie te beheren en je voor te bereiden op toekomstige teamsamenwerkings- en branding-functies"
+  },
+  "web.organizations.page_description": {
+    "text": "Manage your organizations and team members"
+  },
+  "web.organizations.tabs.general": {
+    "text": "Algemeen"
+  },
+  "web.organizations.tabs.company_branding": {
+    "text": "Bedrijfsbranding"
+  },
+  "web.organizations.tabs.members": {
+    "text": "Team"
+  },
+  "web.organizations.tabs.billing": {
+    "text": "Facturering"
+  },
+  "web.organizations.danger_zone": {
+    "text": "Gevaarlijke zone"
+  },
+  "web.organizations.delete_organization": {
+    "text": "Organisatie verwijderen"
+  },
+  "web.organizations.delete_organization_warning": {
+    "text": "Dit zal de organisatie en alle gekoppelde teams permanent verwijderen. Deze actie kan niet ongedaan worden gemaakt"
+  },
+  "web.organizations.delete": {
+    "text": "Verwijderen"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "text": "Organisatie verwijderen"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "text": "Weet je zeker dat je {name} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt"
+  },
+  "web.organizations.delete_error": {
+    "text": "Kon organisatie niet verwijderen"
+  },
+  "web.organizations.members.title": {
+    "text": "Leden"
+  },
+  "web.organizations.members.description": {
+    "text": "Beheer organisatieleden en hun rollen"
+  },
+  "web.organizations.members.current_members": {
+    "text": "Current Members"
+  },
+  "web.organizations.members.member": {
+    "text": "Lid"
+  },
+  "web.organizations.members.member_singular": {
+    "text": "member"
+  },
+  "web.organizations.members.member_plural": {
+    "text": "members"
+  },
+  "web.organizations.members.name": {
+    "text": "Naam"
+  },
+  "web.organizations.members.email": {
+    "text": "E-mail"
+  },
+  "web.organizations.members.role": {
+    "text": "Rol"
+  },
+  "web.organizations.members.joined": {
+    "text": "Toegetreden"
+  },
+  "web.organizations.members.actions": {
+    "text": "Acties"
+  },
+  "web.organizations.members.no_members": {
+    "text": "Geen leden gevonden"
+  },
+  "web.organizations.members.no_members_description": {
+    "text": "Deze organisatie heeft nog geen leden."
+  },
+  "web.organizations.members.role_updated": {
+    "text": "Rol van lid succesvol bijgewerkt"
+  },
+  "web.organizations.members.role_update_error": {
+    "text": "Rol van lid bijwerken mislukt"
+  },
+  "web.organizations.members.member_removed": {
+    "text": "Lid verwijderd uit organisatie"
+  },
+  "web.organizations.members.member_remove_error": {
+    "text": "Lid verwijderen mislukt"
+  },
+  "web.organizations.members.remove_member_title": {
+    "text": "Lid verwijderen"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "text": "Weet je zeker dat je {name} uit deze organisatie wilt verwijderen?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "text": "Je kunt je eigen rol niet wijzigen"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "text": "Je kunt jezelf niet uit de organisatie verwijderen"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "text": "Je kunt de eigenaar van de organisatie niet verwijderen"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "text": "Je hebt geen toestemming om leden te beheren"
+  },
+  "web.organizations.members.roles.owner": {
+    "text": "Eigenaar"
+  },
+  "web.organizations.members.roles.admin": {
+    "text": "Beheerder"
+  },
+  "web.organizations.members.roles.member": {
+    "text": "Lid"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "text": "Volledige toegang tot alle organisatie-instellingen en leden"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "text": "Kan leden en de meeste organisatie-instellingen beheren"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "text": "Basistoegang tot organisatiebronnen"
+  },
+  "web.organizations.invitations.title": {
+    "text": "Organisatie-uitnodigingen"
+  },
+  "web.organizations.invitations.invite_member": {
+    "text": "Lid uitnodigen"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "text": "Nieuw lid uitnodigen"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "text": "Openstaande uitnodigingen"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "text": "Geen openstaande uitnodigingen"
+  },
+  "web.organizations.invitations.email_address": {
+    "text": "E-mailadres"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "text": "lid@voorbeeld.com"
+  },
+  "web.organizations.invitations.role": {
+    "text": "Rol"
+  },
+  "web.organizations.invitations.send_invite": {
+    "text": "Uitnodiging versturen"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "text": "Uitnodiging succesvol verstuurd"
+  },
+  "web.organizations.invitations.invite_error": {
+    "text": "Uitnodiging versturen mislukt"
+  },
+  "web.organizations.invitations.resend": {
+    "text": "Opnieuw versturen"
+  },
+  "web.organizations.invitations.revoke": {
+    "text": "Intrekken"
+  },
+  "web.organizations.invitations.resend_success": {
+    "text": "Uitnodiging opnieuw verstuurd"
+  },
+  "web.organizations.invitations.resend_error": {
+    "text": "Uitnodiging opnieuw versturen mislukt"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "text": "Uitnodiging succesvol ingetrokken"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "text": "Uitnodiging intrekken mislukt"
+  },
+  "web.organizations.invitations.invited_by": {
+    "text": "Uitgenodigd door"
+  },
+  "web.organizations.invitations.invited_at": {
+    "text": "Uitgenodigd"
+  },
+  "web.organizations.invitations.expires_at": {
+    "text": "Verloopt"
+  },
+  "web.organizations.invitations.resent_count": {
+    "text": "{count} keer opnieuw verstuurd"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "text": "{count} keer opnieuw verstuurd"
+  },
+  "web.organizations.invitations.status.pending": {
+    "text": "In behandeling"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "text": "Geaccepteerd"
+  },
+  "web.organizations.invitations.status.declined": {
+    "text": "Afgewezen"
+  },
+  "web.organizations.invitations.status.expired": {
+    "text": "Verlopen"
+  },
+  "web.organizations.invitations.roles.member": {
+    "text": "Lid"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "text": "Beheerder"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "text": "Uitnodiging accepteren"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "text": "Uitnodiging afwijzen"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "text": "Uitnodigingsdetails"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "text": "Je bent uitgenodigd om lid te worden van"
+  },
+  "web.organizations.invitations.invited_as": {
+    "text": "Je bent uitgenodigd als"
+  },
+  "web.organizations.invitations.accept_success": {
+    "text": "Uitnodiging succesvol geaccepteerd"
+  },
+  "web.organizations.invitations.accept_error": {
+    "text": "Uitnodiging accepteren mislukt"
+  },
+  "web.organizations.invitations.decline_success": {
+    "text": "Uitnodiging afgewezen"
+  },
+  "web.organizations.invitations.decline_error": {
+    "text": "Uitnodiging afwijzen mislukt"
+  },
+  "web.organizations.invitations.expired_message": {
+    "text": "Deze uitnodiging is verlopen"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "text": "Ongeldige of verlopen uitnodiging"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "text": "Log in om deze uitnodiging te accepteren"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "text": "Uitnodigingsdetails laden"
+  }
+}

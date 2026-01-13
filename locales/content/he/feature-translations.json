@@ -1,0 +1,71 @@
+{
+  "web.translations.welcomes_contributors_for_both_existing_and_new_": {
+    "text": "מברך תורמים הן לשפות קיימות והן לשפות חדשות."
+  },
+  "web.translations.our_github_project": {
+    "text": "פרויקט ה-GitHub שלנו"
+  },
+  "web.translations.if_youre_interested_in_translation": {
+    "text": "אם אתם מעוניינים בתרגום,"
+  },
+  "web.translations.whove_helped_with_translations_as_we_continue_to": {
+    "text": "שעזרו עם תרגומים בזמן שאנחנו ממשיכים לפתח תכונות חדשות."
+  },
+  "web.translations.25_contributors": {
+    "text": "25+ תורמים"
+  },
+  "web.translations.were_grateful_to_the": {
+    "text": "אנחנו אסירי תודה ל"
+  },
+  "web.translations.as_we_add_new_features_our_translations_graduall": {
+    "text": "בזמן שאנחנו מוסיפים תכונות חדשות, התרגומים שלנו צריכים בהדרגה עדכונים כדי להישאר עדכניים. זה משפיע גם על onetimesecret.com וגם על אלפי התקנות עצמאיות ברחבי העולם."
+  },
+  "web.translations.remember_to_include_your_email_if_youre_not_logg": {
+    "text": "- זכרו לכלול את הדוא״ל שלכם אם אינכם מחוברים. כל תרגום עוזר ליותר אנשים לתקשר בצורה מאובטחת."
+  },
+  "web.translations.reach_out_to_us": {
+    "text": "פנו אלינו"
+  },
+  "web.translations.have_questions": {
+    "text": "יש שאלות?"
+  },
+  "web.translations.send_translations_by_email_to": {
+    "text": "שלחו תרגומים בדוא״ל אל"
+  },
+  "web.translations.english_template": {
+    "text": "תבנית אנגלית"
+  },
+  "web.translations.start_a_new_translation_from_our": {
+    "text": "התחילו תרגום חדש מ"
+  },
+  "web.translations.update_a_language_directly_through_our_github_pr": {
+    "text": "עדכנו שפה ישירות דרך פרויקט ה-GitHub שלנו"
+  },
+  "web.translations.review_existing_translations_using_the_language_": {
+    "text": "עיינו בתרגומים קיימים באמצעות בורר השפה למעלה"
+  },
+  "web.translations.ready_to_help_some_ways_to_contribute": {
+    "text": "מוכנים לעזור? כמה דרכים לתרום:"
+  },
+  "web.translations.the_following_people_have_donated_their_time_to_": {
+    "text": "האנשים הבאים תרמו מזמנם כדי לעזור להרחיב את טווח ההגעה של Onetime Secret:"
+  },
+  "web.translations.translations": {
+    "text": "תרגומים"
+  },
+  "web.translations.fork_on_github_and_submit_a_pr": {
+    "text": "עשו Fork ב-GitHub ושלחו PR"
+  },
+  "web.translations.your_language_skills_can_help_expand_access_to_s": {
+    "text": "כישורי השפה שלכם יכולים לעזור להרחיב גישה לתקשורת מאובטחת."
+  },
+  "web.translations.thanks_to_our_community_we_support_over_20_langu": {
+    "text": "תודות לקהילה שלנו, אנחנו תומכים ביותר מ-20 שפות היום. עם זאת, עם קצב הפיתוח המהיר שלנו, תרגומים רבים זקוקים לעדכונים כדי להישאר עדכניים. זה משפיע גם על onetimesecret.com וגם על אלפי התקנות עצמאיות ברחבי העולם."
+  },
+  "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
+    "text": "מאז 2012, Onetime Secret סיפק דרך מאובטחת לשתף מידע רגיש ברחבי העולם. עם משתמשים באזורים שבהם אנגלית אינה השפה העיקרית, תרגומים מדויקים חיוניים להפיכת תקשורת מאובטחת לנגישה לכולם."
+  },
+  "web.translations.help_secure_communication_go_global": {
+    "text": "עזרו לתקשורת מאובטחת להפוך גלובלית"
+  }
+}

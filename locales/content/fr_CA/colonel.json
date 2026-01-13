@@ -1,0 +1,245 @@
+{
+  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
+    "text": "{0}/{1}/{2} [{3}]"
+  },
+  "web.colonel.customer_verified_verified_not_verified_0": {
+    "text": "`+customer.verified ? `verified` : `not verified"
+  },
+  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
+    "text": "Clients ({0} de {1})"
+  },
+  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
+    "text": "Commentaires des utilisateurs (Total : {0})"
+  },
+  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
+    "text": "Métadonnées / Secrets : {0}/{1} ({2}/{3}/{4} au total)"
+  },
+  "web.colonel.secrets_details_counts_secret_count_0": {
+    "text": "Secrets ({0})"
+  },
+  "web.colonel.active_in_the_past_5_minutes_0": {
+    "text": "(actif dans les 5 dernières minutes)"
+  },
+  "web.colonel.configEditorTitle": {
+    "text": "Paramètres"
+  },
+  "web.colonel.configEditorDescription": {
+    "text": "Modifier les paramètres de configuration du système. Les modifications sont appliquées immédiatement après l'enregistrement."
+  },
+  "web.colonel.invalidJson": {
+    "text": "JSON invalide dans la section {section}"
+  },
+  "web.colonel.validationError": {
+    "text": "Erreur de validation"
+  },
+  "web.colonel.errorFetchingConfig": {
+    "text": "Erreur lors du chargement de la configuration"
+  },
+  "web.colonel.errorSavingConfig": {
+    "text": "Erreur lors de l'enregistrement de la configuration"
+  },
+  "web.colonel.configSaved": {
+    "text": "Configuration enregistrée avec succès"
+  },
+  "web.colonel.mustBeObject": {
+    "text": "La configuration doit être un objet JSON"
+  },
+  "web.colonel.multipleSectionsInvalid": {
+    "text": "Plusieurs sections contiennent des erreurs de validation : {sections}"
+  },
+  "web.colonel.sectionHasError": {
+    "text": "La section {section} contient des erreurs de validation : {error}"
+  },
+  "web.colonel.sectionSaved": {
+    "text": "Section {section} enregistrée avec succès"
+  },
+  "web.colonel.saveSection": {
+    "text": "Enregistrer la section {section}"
+  },
+  "web.colonel.saveAll": {
+    "text": "Tout enregistrer"
+  },
+  "web.colonel.unsavedChanges": {
+    "text": "Modifications non enregistrées"
+  },
+  "web.colonel.schemaValidationError": {
+    "text": "Erreur de validation du schéma : {message} ({path})"
+  },
+  "web.colonel.unknownValidationError": {
+    "text": "Erreur de validation inconnue : {error}"
+  },
+  "web.colonel.sectionEffectivelyEmpty": {
+    "text": "La section {section} n'a aucune valeur configurée"
+  },
+  "web.colonel.dashboard": {
+    "text": "Tableau de bord"
+  },
+  "web.colonel.admin": {
+    "text": "Admin"
+  },
+  "web.colonel.activity": {
+    "text": "Activité"
+  },
+  "web.colonel.accounts": {
+    "text": "Comptes"
+  },
+  "web.colonel.users": {
+    "text": "Utilisateurs"
+  },
+  "web.colonel.usersDescription": {
+    "text": "Gérer les comptes utilisateurs et les autorisations"
+  },
+  "web.colonel.domains": {
+    "text": "Domaines"
+  },
+  "web.colonel.settings": {
+    "text": "Paramètres"
+  },
+  "web.colonel.system": {
+    "text": "Système"
+  },
+  "web.colonel.welcome": {
+    "text": "Bienvenue dans Colonel"
+  },
+  "web.colonel.welcomeDesc": {
+    "text": "Panneau de contrôle administratif pour OneTimeSecret"
+  },
+  "web.colonel.quickActions": {
+    "text": "Actions rapides"
+  },
+  "web.colonel.recentActivity": {
+    "text": "Activité récente"
+  },
+  "web.colonel.viewAll": {
+    "text": "Tout afficher"
+  },
+  "web.colonel.activityPlaceholder": {
+    "text": "Les données d'activité seront affichées ici"
+  },
+  "web.colonel.stats.totalSecrets": {
+    "text": "Total des secrets"
+  },
+  "web.colonel.stats.activeUsers": {
+    "text": "Utilisateurs actifs"
+  },
+  "web.colonel.stats.secretsToday": {
+    "text": "Secrets aujourd'hui"
+  },
+  "web.colonel.stats.secretsCreated": {
+    "text": "Secrets créés"
+  },
+  "web.colonel.stats.secretsShared": {
+    "text": "Secrets partagés"
+  },
+  "web.colonel.stats.totalCustomers": {
+    "text": "Total des clients"
+  },
+  "web.colonel.stats.emailsSent": {
+    "text": "Courriels envoyés"
+  },
+  "web.colonel.stats.systemHealth": {
+    "text": "Santé du système"
+  },
+  "web.colonel.stats.healthy": {
+    "text": "En bonne santé"
+  },
+  "web.colonel.actions.viewActivity": {
+    "text": "Consulter l'activité"
+  },
+  "web.colonel.actions.viewActivityDesc": {
+    "text": "Surveiller l'activité et l'utilisation du système"
+  },
+  "web.colonel.actions.manageAccounts": {
+    "text": "Gérer les comptes"
+  },
+  "web.colonel.actions.manageAccountsDesc": {
+    "text": "Administration des comptes utilisateurs"
+  },
+  "web.colonel.actions.configureDomains": {
+    "text": "Configurer les domaines"
+  },
+  "web.colonel.actions.configureDomainsDesc": {
+    "text": "Paramètres de domaine et DNS"
+  },
+  "web.colonel.actions.systemSettings": {
+    "text": "Paramètres système"
+  },
+  "web.colonel.actions.systemSettingsDesc": {
+    "text": "Configuration de l'application"
+  },
+  "web.colonel.backgroundJobs": {
+    "text": "Tâches en arrière-plan"
+  },
+  "web.colonel.queueStatus": {
+    "text": "État de la file d'attente"
+  },
+  "web.colonel.queueName": {
+    "text": "File d'attente"
+  },
+  "web.colonel.pendingMessages": {
+    "text": "En attente"
+  },
+  "web.colonel.consumers": {
+    "text": "Consommateurs"
+  },
+  "web.colonel.processingRate": {
+    "text": "Taux/sec"
+  },
+  "web.colonel.connectionStatus": {
+    "text": "État de la connexion"
+  },
+  "web.colonel.workerHealth": {
+    "text": "Santé des travailleurs"
+  },
+  "web.colonel.activeWorkers": {
+    "text": "travailleurs actifs"
+  },
+  "web.colonel.noQueueData": {
+    "text": "Aucune donnée de file d'attente disponible"
+  },
+  "web.colonel.loadingQueueData": {
+    "text": "Chargement des données de file d'attente..."
+  },
+  "web.colonel.testPlanMode": {
+    "text": "Mode de test de forfait"
+  },
+  "web.colonel.testingAsPlan": {
+    "text": "Test en cours avec le forfait {planName}"
+  },
+  "web.colonel.clickToReset": {
+    "text": "Cliquer pour réinitialiser"
+  },
+  "web.colonel.selectTestPlan": {
+    "text": "Sélectionner un forfait à tester"
+  },
+  "web.colonel.resetToActual": {
+    "text": "Réinitialiser au forfait actuel"
+  },
+  "web.colonel.currentActualPlan": {
+    "text": "Forfait actuel"
+  },
+  "web.colonel.availablePlans": {
+    "text": "Forfaits disponibles"
+  },
+  "web.colonel.activateTestMode": {
+    "text": "Activer le mode test"
+  },
+  "web.colonel.testModeActive": {
+    "text": "Mode test actif"
+  },
+  "web.colonel.testModeDescription": {
+    "text": "Testez votre application avec différents droits de forfait. Les modifications sont temporaires et n'affectent que votre session."
+  },
+  "web.colonel.warningTestMode": {
+    "text": "Vous testez avec les droits du forfait {planName} (remplacement temporaire de session)."
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Lorsque vous soumettez un retour d'information, nous le voyons :"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Envoyer un retour d'information"
+  },
+  "web.feedback.sending_ellipses": {
+    "text": "Envoi..."
+  }
+}

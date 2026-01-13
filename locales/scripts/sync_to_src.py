@@ -1,25 +1,28 @@
 #!/usr/bin/env python3
 """
-Sync translations from historical JSON to app-consumable JSON files.
+Sync translations from content JSON to app-consumable JSON files.
 
-Reads from locales/translations/{locale}/*.json (historical format, flat keys)
+Reads from locales/content/{locale}/*.json (flat keys with text field)
 and writes to src/locales/{locale}/*.json (app format, nested JSON).
 
 Three-tier architecture:
-- locales/translations/{locale}/*.json - Historical source of truth (flat keys)
+- locales/content/{locale}/*.json - Version-controlled source of truth (flat keys)
 - src/locales/{locale}/*.json - Lean app-consumable files (nested JSON)
 - locales/db/tasks.db - Ephemeral, hydrated on-demand for queries
 
-Only keys with a 'translation' field are synced. Keys marked 'skip' or
-pending (no translation) are excluded from app files.
+Only keys with a 'text' field are synced. Keys marked 'skip' or
+with empty text are excluded from app files.
 
 Usage:
     python sync_to_src.py LOCALE [OPTIONS]
+    python sync_to_src.py --all [OPTIONS]
 
 Examples:
     python sync_to_src.py eo --dry-run
     python sync_to_src.py eo --file auth.json
     python sync_to_src.py eo
+    python sync_to_src.py --all
+    python sync_to_src.py eo --clobber  # Replace files instead of merging
 """
 
 import argparse
@@ -37,31 +40,35 @@ from utils import (
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
 LOCALES_DIR = SCRIPT_DIR.parent
-TRANSLATIONS_DIR = LOCALES_DIR / "translations"
+CONTENT_DIR = LOCALES_DIR / "content"
 SRC_LOCALES_DIR = LOCALES_DIR.parent / "src" / "locales"
 
 
-def get_translations_from_historical(historical: dict[str, Any]) -> dict[str, str]:
-    """Extract translations from historical format.
+def get_translations_from_content(content: dict[str, Any]) -> dict[str, str]:
+    """Extract translations from content format.
 
-    Only returns keys that have a 'translation' field.
-    Skips pending keys (only 'en') and skipped keys ('skip': true).
+    Only returns keys that have a non-empty 'text' field and no 'skip' flag.
 
     Args:
-        historical: Historical format dict with flat keys.
+        content: Content format dict with flat keys.
 
     Returns:
         Dict mapping flat key paths to translation strings.
     """
     translations = {}
 
-    for key, entry in historical.items():
+    for key, entry in content.items():
         if not isinstance(entry, dict):
             continue
 
-        # Only include keys with actual translations
-        if "translation" in entry:
-            translations[key] = entry["translation"]
+        # Skip entries marked as skip
+        if entry.get("skip"):
+            continue
+
+        # Only include keys with non-empty text
+        text = entry.get("text", "")
+        if text:
+            translations[key] = text
 
     return translations
 
@@ -71,48 +78,50 @@ def sync_locale(
     file_filter: str | None = None,
     dry_run: bool = False,
     verbose: bool = False,
+    clobber: bool = False,
 ) -> dict[str, int]:
-    """Sync translations from historical JSON to src/locales.
+    """Sync translations from content JSON to src/locales.
 
     Args:
         locale: Target locale code.
         file_filter: Optional file name to filter by.
         dry_run: If True, only report what would be done.
         verbose: If True, show detailed output.
+        clobber: If True, replace target files entirely instead of merging.
 
     Returns:
         Stats dict with counts per file.
     """
-    translations_dir = TRANSLATIONS_DIR / locale
+    content_dir = CONTENT_DIR / locale
     target_dir = SRC_LOCALES_DIR / locale
 
-    if not translations_dir.exists():
-        print(f"No translations found for '{locale}'")
-        print(f"  Expected: {translations_dir}")
+    if not content_dir.exists():
+        print(f"No content found for '{locale}'")
+        print(f"  Expected: {content_dir}")
         return {}
 
-    # Get historical JSON files
-    historical_files = sorted(translations_dir.glob("*.json"))
+    # Get content JSON files
+    content_files = sorted(content_dir.glob("*.json"))
     if file_filter:
-        historical_files = [f for f in historical_files if f.name == file_filter]
+        content_files = [f for f in content_files if f.name == file_filter]
 
-    if not historical_files:
-        print(f"No translation files found in {translations_dir}")
+    if not content_files:
+        print(f"No content files found in {content_dir}")
         return {}
 
     stats: dict[str, int] = {}
 
-    for historical_file in historical_files:
-        file_name = historical_file.name
+    for content_file in content_files:
+        file_name = content_file.name
         target_file = target_dir / file_name
 
-        # Load historical data
-        historical = load_json_file(historical_file)
-        if not historical:
+        # Load content data
+        content = load_json_file(content_file)
+        if not content:
             continue
 
         # Extract translations only
-        translations = get_translations_from_historical(historical)
+        translations = get_translations_from_content(content)
         if not translations:
             if verbose:
                 print(f"  {file_name}: no translations yet")
@@ -130,8 +139,8 @@ def sync_locale(
                     print(f"  ... and {len(translations) - 5} more")
             continue
 
-        # Load existing target file to preserve structure/metadata
-        target_data = load_json_file(target_file)
+        # Load existing target file to preserve structure/metadata (unless clobber)
+        target_data = {} if clobber else load_json_file(target_file)
 
         # Apply translations (converts flat keys to nested structure)
         for key, translation in translations.items():
@@ -158,19 +167,28 @@ def sync_locale(
 def main() -> int:
     """CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="Sync translations from historical JSON to src/locales.",
+        description="Sync translations from content JSON to src/locales.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
     python sync_to_src.py eo --dry-run
     python sync_to_src.py eo --file auth.json
     python sync_to_src.py eo
+    python sync_to_src.py --all
+    python sync_to_src.py --all --dry-run
+    python sync_to_src.py eo --clobber       # Replace files instead of merging
         """,
     )
 
     parser.add_argument(
         "locale",
+        nargs="?",
         help="Target locale code (e.g., 'eo', 'de')",
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Sync all locales in content directory",
     )
     parser.add_argument(
         "--file",
@@ -183,6 +201,11 @@ Examples:
         help="Show what would be synced without making changes",
     )
     parser.add_argument(
+        "--clobber",
+        action="store_true",
+        help="Replace target files entirely instead of merging with existing",
+    )
+    parser.add_argument(
         "-v", "--verbose",
         action="store_true",
         help="Verbose output",
@@ -190,21 +213,62 @@ Examples:
 
     args = parser.parse_args()
 
-    print(f"Syncing translations for '{args.locale}'")
-    print(f"  From: {TRANSLATIONS_DIR / args.locale}")
-    print(f"  To:   {SRC_LOCALES_DIR / args.locale}")
-    print()
+    # Validate arguments
+    if not args.locale and not args.all:
+        parser.error("Either LOCALE or --all must be specified")
+    if args.locale and args.all:
+        parser.error("Cannot specify both LOCALE and --all")
 
-    stats = sync_locale(
-        locale=args.locale,
-        file_filter=args.file_filter,
-        dry_run=args.dry_run,
-        verbose=args.verbose,
-    )
+    # Determine which locales to sync
+    if args.all:
+        locale_dirs = sorted([d.name for d in CONTENT_DIR.iterdir() if d.is_dir()])
+        if not locale_dirs:
+            print(f"No locale directories found in {CONTENT_DIR}")
+            return 1
+        print(f"Syncing {len(locale_dirs)} locales: {', '.join(locale_dirs[:5])}{'...' if len(locale_dirs) > 5 else ''}")
+        print()
+    else:
+        locale_dirs = [args.locale]
 
-    if stats and not args.dry_run:
-        total = sum(stats.values())
-        print(f"\nSynced {total} translations across {len(stats)} files")
+    all_stats: dict[str, dict[str, int]] = {}
+
+    for locale in locale_dirs:
+        if args.all:
+            print(f"\n{'='*60}")
+            print(f"Locale: {locale}")
+            print(f"{'='*60}")
+
+        print(f"Syncing translations for '{locale}'")
+        print(f"  From: {CONTENT_DIR / locale}")
+        print(f"  To:   {SRC_LOCALES_DIR / locale}")
+        print()
+
+        stats = sync_locale(
+            locale=locale,
+            file_filter=args.file_filter,
+            dry_run=args.dry_run,
+            verbose=args.verbose,
+            clobber=args.clobber,
+        )
+
+        if stats:
+            all_stats[locale] = stats
+            if not args.dry_run and not args.all:
+                total = sum(stats.values())
+                print(f"\nSynced {total} translations across {len(stats)} files")
+
+    # Summary for --all mode
+    if args.all and all_stats and not args.dry_run:
+        print(f"\n{'='*60}")
+        print("Summary")
+        print(f"{'='*60}")
+        grand_total = 0
+        for locale, stats in sorted(all_stats.items()):
+            locale_total = sum(stats.values())
+            grand_total += locale_total
+            print(f"  {locale}: {locale_total} keys across {len(stats)} files")
+        print(f"{'='*60}")
+        print(f"Total: {grand_total} keys across {len(all_stats)} locales")
 
     return 0
 

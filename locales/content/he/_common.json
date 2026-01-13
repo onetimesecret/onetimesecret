@@ -1,0 +1,934 @@
+{
+  "web.COMMON.broadcast": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.tagline": {
+    "text": "קישורים מאובטחים שעובדים רק פעם אחת"
+  },
+  "web.COMMON.powered_by": {
+    "text": "מופעל על ידי"
+  },
+  "web.COMMON.website_url": {
+    "text": "https://onetimesecret.com/he"
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "text": "יצירת סיסמה"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "text": "יצירת סיסמה מושבתת כאשר הטופס תקין"
+  },
+  "web.COMMON.email_placeholder": {
+    "text": "לדוגמה tom{'@'}myspace.com"
+  },
+  "web.COMMON.password_placeholder": {
+    "text": "הכניסו את הסיסמה"
+  },
+  "web.COMMON.custom_domains_title": {
+    "text": "דומיינים מותאמים אישית"
+  },
+  "web.COMMON.custom_domains_description": {
+    "text": "חזקו קשרים ובנו אמון עם קישורי סוד ממותגים משלכם."
+  },
+  "web.COMMON.get_started_button": {
+    "text": "התחלה"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "text": "אישור הסיסמה"
+  },
+  "web.COMMON.header_settings": {
+    "text": "הגדרות"
+  },
+  "web.COMMON.submit_with": {
+    "text": "שליחה"
+  },
+  "web.COMMON.submitting": {
+    "text": "שולח..."
+  },
+  "web.COMMON.processing": {
+    "text": "מעבד..."
+  },
+  "web.COMMON.description": {
+    "text": "שמרו מידע רגיש מחוץ ללוגים של הצטים והמייל. שלחו קישור סודי הזמין לשימוש פעם אחת בלבד."
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "text": "ביטוי סיסמה שגוי"
+  },
+  "web.COMMON.keywords": {
+    "text": "סוד,מחולל סיסמאות,שתפו סוד,חד פעמי"
+  },
+  "web.COMMON.button_create_secret": {
+    "text": "יצירת קישור סודי"
+  },
+  "web.COMMON.button_generate_secret": {
+    "text": "או יצירת סיסמה אקראית"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "text": "אפשרויות פרטיות"
+  },
+  "web.COMMON.secret_passphrase": {
+    "text": "ביטוי סיסמה"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "text": "מילה או משפט שקשה לנחש"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "text": "כתובת הנמען"
+  },
+  "web.COMMON.secret_placeholder": {
+    "text": "התוכן הסודי נכנס כאן..."
+  },
+  "web.COMMON.header_create_account": {
+    "text": "יצירת חשבון"
+  },
+  "web.COMMON.header_about": {
+    "text": "אודות"
+  },
+  "web.COMMON.header_sign_in": {
+    "text": "התחברות"
+  },
+  "web.COMMON.header_dashboard": {
+    "text": "חשבון"
+  },
+  "web.COMMON.header_logout": {
+    "text": "יציאה"
+  },
+  "web.COMMON.secret": {
+    "text": "סוד | סודות"
+  },
+  "web.COMMON.recent": {
+    "text": "אחרונים"
+  },
+  "web.COMMON.received": {
+    "text": "התקבל"
+  },
+  "web.COMMON.burn": {
+    "text": "מחיקה סופית"
+  },
+  "web.COMMON.burned": {
+    "text": "נמחק סופית"
+  },
+  "web.COMMON.expires_in": {
+    "text": "פג תוקף בעוד"
+  },
+  "web.COMMON.burn_this_secret": {
+    "text": "מחיקה סופית של סוד זה"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "text": "מחיקה סופית של סוד תמחק אותו לפני שנקרא (לחצו לאישור)"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "text": "מחיקה סופית של סוד היא לצמיתות ואינה ניתנת לביטול"
+  },
+  "web.COMMON.msg_check_email": {
+    "text": "בדקו את הדואר האלקטרוני"
+  },
+  "web.COMMON.click_to_continue": {
+    "text": "לחצו לחשיפה →"
+  },
+  "web.COMMON.click_to_verify": {
+    "text": "המשיכו לאימות החשבון:"
+  },
+  "web.COMMON.error_secret": {
+    "text": "לא סיפקתם דבר לשיתוף"
+  },
+  "web.COMMON.error_passphrase": {
+    "text": "בדקו שוב את ביטוי הסיסמה"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "text": "הכניסו כאן את ביטוי הסיסמה"
+  },
+  "web.COMMON.view_secret": {
+    "text": "צפייה בסוד"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "text": "זהירות: נציג את זה רק פעם אחת."
+  },
+  "web.COMMON.warning": {
+    "text": "אזהרה"
+  },
+  "web.COMMON.oops": {
+    "text": "אופס!"
+  },
+  "web.COMMON.error": {
+    "text": "שגיאה"
+  },
+  "web.COMMON.unexpected_error": {
+    "text": "אירעה שגיאה בלתי צפויה. נסו שוב."
+  },
+  "web.COMMON.secret_was_truncated": {
+    "text": "ההודעה קוצרה"
+  },
+  "web.COMMON.signup_for_more": {
+    "text": "הרשמה למידע נוסף"
+  },
+  "web.COMMON.login_to_your_account": {
+    "text": "התחברות לחשבון"
+  },
+  "web.COMMON.sent_to": {
+    "text": "נשלח אל: "
+  },
+  "web.COMMON.field_email": {
+    "text": "דואר אלקטרוני"
+  },
+  "web.COMMON.field_password": {
+    "text": "סיסמה"
+  },
+  "web.COMMON.field_password2": {
+    "text": "אישור סיסמה"
+  },
+  "web.COMMON.button_create_account": {
+    "text": "יצירת חשבון"
+  },
+  "web.COMMON.share_a_secret": {
+    "text": "שיתוף סוד"
+  },
+  "web.COMMON.title_home": {
+    "text": "בית"
+  },
+  "web.COMMON.word_none": {
+    "text": "ללא"
+  },
+  "web.COMMON.word_burned": {
+    "text": "נמחק סופית"
+  },
+  "web.COMMON.word_received": {
+    "text": "התקבל"
+  },
+  "web.COMMON.word_confirm": {
+    "text": "אישור"
+  },
+  "web.COMMON.word_cancel": {
+    "text": "ביטול"
+  },
+  "web.COMMON.word_continue": {
+    "text": "המשך"
+  },
+  "web.COMMON.word_done": {
+    "text": "סיום"
+  },
+  "web.COMMON.back": {
+    "text": "חזרה"
+  },
+  "web.COMMON.feedback_text": {
+    "text": "שתפו את המחשבות, הרעיונות או החוויות שלכם..."
+  },
+  "web.COMMON.button_send_feedback": {
+    "text": "שליחת משוב"
+  },
+  "web.COMMON.verification_sent_to": {
+    "text": "אימות נשלח אל"
+  },
+  "web.COMMON.autoverified_success": {
+    "text": "החשבון נוצר. אנא התחברו."
+  },
+  "web.COMMON.signup_success_generic": {
+    "text": "אם קיים חשבון עם דואר אלקטרוני זה, תקבלו הודעת אימות."
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "text": "מחיקה סופית של סוד זה לצמיתות"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "text": "אנא אשרו"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "text": "האם אתם בטוחים שברצונכם למחוק סופית את הסוד הזה? פעולה זו אינה ניתנת לביטול."
+  },
+  "web.COMMON.confirm_burn": {
+    "text": "כן, מחקו סופית את הסוד הזה"
+  },
+  "web.COMMON.burn_security_notice": {
+    "text": "מחיקה סופית של סוד תמחק אותו לפני שהתקבל."
+  },
+  "web.COMMON.share_link_securely": {
+    "text": "מטעמי אבטחה, שתפו קישור זה בנפרד מפרטים אחרים."
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "text": "הועתק ללוח"
+  },
+  "web.COMMON.button_create_incoming": {
+    "text": "יצירת סוד נכנס"
+  },
+  "web.COMMON.faq_title": {
+    "text": "שאלות נפוצות"
+  },
+  "web.COMMON.verification_not_valid": {
+    "text": "האימות אינו תקף"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "text": "לא ניתן לאמת חשבון כאשר כבר מחוברים"
+  },
+  "web.COMMON.show_password": {
+    "text": "הצגת סיסמה"
+  },
+  "web.COMMON.hide_password": {
+    "text": "הסתרת סיסמה"
+  },
+  "web.COMMON.minimum_8_characters": {
+    "text": "הסיסמה חייבת להכיל לפחות 8 תווים"
+  },
+  "web.COMMON.password_requirements": {
+    "text": "הסיסמה חייבת להכיל לפחות 8 תווים"
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "text": "הסיסמאות אינן תואמות"
+  },
+  "web.COMMON.form_field_required": {
+    "text": "שדה זה נדרש"
+  },
+  "web.COMMON.form_processing": {
+    "text": "מעבד את הבקשה"
+  },
+  "web.COMMON.remember_me_description": {
+    "text": "שמרו אותי מחובר למשך 30 יום"
+  },
+  "web.COMMON.redirecting": {
+    "text": "מפנה מחדש..."
+  },
+  "web.COMMON.continue": {
+    "text": "המשך"
+  },
+  "web.COMMON.are_you_sure": {
+    "text": "האם אתם בטוחים?"
+  },
+  "web.COMMON.danger_zone": {
+    "text": "אזור סכנה"
+  },
+  "web.COMMON.caution_zone": {
+    "text": "אזור לשיקול זהיר"
+  },
+  "web.COMMON.user_menu": {
+    "text": "תפריט משתמש"
+  },
+  "web.COMMON.security": {
+    "text": "אבטחה"
+  },
+  "web.COMMON.manage": {
+    "text": "ניהול"
+  },
+  "web.COMMON.loading": {
+    "text": "טוען..."
+  },
+  "web.COMMON.save_changes": {
+    "text": "שמירת שינויים"
+  },
+  "web.COMMON.saving": {
+    "text": "שומר..."
+  },
+  "web.COMMON.adding_ellipses": {
+    "text": "מוסיף..."
+  },
+  "web.COMMON.e_g_example": {
+    "text": "לדוגמה"
+  },
+  "web.COMMON.example_placeholder": {
+    "text": "לדוגמה {example}"
+  },
+  "web.COMMON.status": {
+    "text": "סטטוס"
+  },
+  "web.COMMON.escape": {
+    "text": "יציאה"
+  },
+  "web.COMMON.active": {
+    "text": "פעיל"
+  },
+  "web.COMMON.preview": {
+    "text": "תצוגה מקדימה"
+  },
+  "web.COMMON.remove": {
+    "text": "הסרה"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "text": "לחצו ESC לסגירה"
+  },
+  "web.COMMON.enter": {
+    "text": "הזנה"
+  },
+  "web.COMMON.important": {
+    "text": "חשוב"
+  },
+  "web.COMMON.language": {
+    "text": "שפה"
+  },
+  "web.COMMON.theme": {
+    "text": "ערכת נושא"
+  },
+  "web.COMMON.appearance": {
+    "text": "מראה"
+  },
+  "web.COMMON.done": {
+    "text": "סיום"
+  },
+  "web.COMMON.end": {
+    "text": "סיום"
+  },
+  "web.COMMON.general": {
+    "text": "כללי"
+  },
+  "web.COMMON.note": {
+    "text": "הערה"
+  },
+  "web.COMMON.monthly": {
+    "text": "חודשי"
+  },
+  "web.COMMON.yearly": {
+    "text": "שנתי"
+  },
+  "web.COMMON.go_on_then": {
+    "text": "קדימה אם כן."
+  },
+  "web.COMMON.loading_ellipses": {
+    "text": "טוען..."
+  },
+  "web.COMMON.not_received": {
+    "text": "לא התקבל"
+  },
+  "web.COMMON.confirm_password": {
+    "text": "אישור סיסמה"
+  },
+  "web.COMMON.new_password": {
+    "text": "סיסמה חדשה"
+  },
+  "web.COMMON.email_address": {
+    "text": "כתובת דוא״ל"
+  },
+  "web.COMMON.switch": {
+    "text": "החלפה"
+  },
+  "web.COMMON.features": {
+    "text": "תכונות"
+  },
+  "web.COMMON.not_found": {
+    "text": "לא נמצא"
+  },
+  "web.COMMON.emoji_x": {
+    "text": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "text": "✅"
+  },
+  "web.COMMON.supported": {
+    "text": "נתמך"
+  },
+  "web.COMMON.version": {
+    "text": "גרסה"
+  },
+  "web.COMMON.other": {
+    "text": "אחר"
+  },
+  "web.COMMON.min_width_1024px": {
+    "text": "(רוחב מינימלי: 1024px)"
+  },
+  "web.COMMON.ctrl_enter": {
+    "text": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "text": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "text": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "text": "כתובת הדוא״ל הועתקה ללוח!"
+  },
+  "web.COMMON.value": {
+    "text": "ערך"
+  },
+  "web.COMMON.host": {
+    "text": "מארח"
+  },
+  "web.COMMON.type": {
+    "text": "סוג"
+  },
+  "web.COMMON.previous": {
+    "text": "קודם"
+  },
+  "web.COMMON.next": {
+    "text": "הבא"
+  },
+  "web.COMMON.password_strength": {
+    "text": "חוזק סיסמה:"
+  },
+  "web.COMMON.great": {
+    "text": "מצוין"
+  },
+  "web.COMMON.pretty_good": {
+    "text": "די טוב"
+  },
+  "web.COMMON.fair": {
+    "text": "סביר"
+  },
+  "web.COMMON.meh": {
+    "text": "בסדר"
+  },
+  "web.COMMON.not_great": {
+    "text": "לא נהדר"
+  },
+  "web.COMMON.open_options": {
+    "text": "פתיחת אפשרויות"
+  },
+  "web.COMMON.inactive": {
+    "text": "לא פעיל"
+  },
+  "web.COMMON.an_error_occurred": {
+    "text": "אירעה שגיאה"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "text": "העתקת סוד ללוח"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "text": "הסוד הועתק ללוח"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "text": "בדקו שוב את ביטוי הסיסמה"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "text": "לחצו על כפתור ההעתקה למטה."
+  },
+  "web.LABELS.view_toggle.show": {
+    "text": "הצגה"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "text": "הסתרה"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "text": "הצגת עוד"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "text": "הצגת פחות"
+  },
+  "web.LABELS.enable": {
+    "text": "הפעלה"
+  },
+  "web.LABELS.disable": {
+    "text": "השבתה"
+  },
+  "web.LABELS.stats": {
+    "text": "סטטיסטיקות"
+  },
+  "web.LABELS.timeline": {
+    "text": "ציר זמן"
+  },
+  "web.LABELS.lifespan": {
+    "text": "תוחלת חיים"
+  },
+  "web.LABELS.expiration_time": {
+    "text": "זמן תפוגה"
+  },
+  "web.LABELS.close": {
+    "text": "סגירה"
+  },
+  "web.LABELS.loading": {
+    "text": "טוען..."
+  },
+  "web.LABELS.cancel": {
+    "text": "ביטול"
+  },
+  "web.LABELS.saving": {
+    "text": "שומר..."
+  },
+  "web.LABELS.saved": {
+    "text": "נשמר"
+  },
+  "web.LABELS.save": {
+    "text": "שמירה"
+  },
+  "web.LABELS.save_all": {
+    "text": "שמירת הכל"
+  },
+  "web.LABELS.details": {
+    "text": "פרטים"
+  },
+  "web.LABELS.encrypted": {
+    "text": "מוצפן"
+  },
+  "web.LABELS.secret_status": {
+    "text": "מצב הסוד"
+  },
+  "web.LABELS.need_help": {
+    "text": "צריכים עזרה?"
+  },
+  "web.LABELS.create_new_secret": {
+    "text": "יצירת סוד חדש"
+  },
+  "web.LABELS.actions": {
+    "text": "פעולות"
+  },
+  "web.LABELS.no_passphrase": {
+    "text": "ללא ביטוי סיסמה נדרש"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "text": "העתקה ללוח"
+  },
+  "web.LABELS.receipts": {
+    "text": "קבלות"
+  },
+  "web.LABELS.share": {
+    "text": "שיתוף"
+  },
+  "web.LABELS.secret_link": {
+    "text": "קישור סודי"
+  },
+  "web.LABELS.dismiss": {
+    "text": "סגירה"
+  },
+  "web.LABELS.security_details": {
+    "text": "פרטי אבטחה"
+  },
+  "web.LABELS.items_count": {
+    "text": "{count} פריטים"
+  },
+  "web.LABELS.recipients_count": {
+    "text": "{count} נמענים"
+  },
+  "web.LABELS.view": {
+    "text": "צפייה"
+  },
+  "web.LABELS.views": {
+    "text": "צפיות"
+  },
+  "web.LABELS.times_viewed": {
+    "text": "פעמים נצפה"
+  },
+  "web.LABELS.view_progress": {
+    "text": "התקדמות צפייה"
+  },
+  "web.LABELS.help_section": {
+    "text": "מדור עזרה"
+  },
+  "web.LABELS.passphrase_protected": {
+    "text": "מוגן בביטוי סיסמה"
+  },
+  "web.LABELS.feedback_received": {
+    "text": "המשוב התקבל."
+  },
+  "web.LABELS.sending_ellipses": {
+    "text": "שולח..."
+  },
+  "web.LABELS.title_recent_secrets": {
+    "text": "סודות אחרונים"
+  },
+  "web.LABELS.pricing": {
+    "text": "תמחור"
+  },
+  "web.LABELS.refresh": {
+    "text": "רענון"
+  },
+  "web.LABELS.reload": {
+    "text": "טעינה מחדש"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "text": "קישורי סודות שנוצרו בסשן זה"
+  },
+  "web.LABELS.create_link_short": {
+    "text": "יצירת קישור"
+  },
+  "web.LABELS.create_link": {
+    "text": "יצירת קישור סודי"
+  },
+  "web.LABELS.create_request_short": {
+    "text": "יצירת בקשה"
+  },
+  "web.LABELS.create_request": {
+    "text": "יצירת קישור בקשה"
+  },
+  "web.LABELS.related_settings": {
+    "text": "הגדרות קשורות"
+  },
+  "web.LABELS.creating_links_for": {
+    "text": "יוצר קישורים עבור"
+  },
+  "web.LABELS.scope_indicator": {
+    "text": "יוצר סודות ב-{domain}"
+  },
+  "web.STATUS.new": {
+    "text": "חדש"
+  },
+  "web.STATUS.unread": {
+    "text": "לא נקרא"
+  },
+  "web.STATUS.viewed": {
+    "text": "הקישור נפתח"
+  },
+  "web.STATUS.received": {
+    "text": "התקבל"
+  },
+  "web.STATUS.burned": {
+    "text": "נמחק סופית"
+  },
+  "web.STATUS.destroyed": {
+    "text": "הושמד"
+  },
+  "web.STATUS.expiring_soon": {
+    "text": "פג תוקף בקרוב"
+  },
+  "web.STATUS.created": {
+    "text": "נוצר"
+  },
+  "web.STATUS.expires": {
+    "text": "פג תוקף"
+  },
+  "web.STATUS.expired": {
+    "text": "פג תוקף"
+  },
+  "web.STATUS.orphaned": {
+    "text": "נטוש"
+  },
+  "web.STATUS.secured": {
+    "text": "מאובטח"
+  },
+  "web.STATUS.securing": {
+    "text": "מאבטח"
+  },
+  "web.STATUS.copied": {
+    "text": "הועתק"
+  },
+  "web.STATUS.time_remaining": {
+    "text": "זמן נותר"
+  },
+  "web.STATUS.new_description": {
+    "text": "קישור סודי נוצר וטרם נצפה"
+  },
+  "web.STATUS.unread_description": {
+    "text": "קישור סודי נוצר וטרם נצפה"
+  },
+  "web.STATUS.viewed_description": {
+    "text": "קישור סודי נפתח ומוכן לצפייה"
+  },
+  "web.STATUS.received_description": {
+    "text": "הסוד נחשף לנמען"
+  },
+  "web.STATUS.burned_description": {
+    "text": "הסוד נמחק סופית באופן ידני לפני שנצפה"
+  },
+  "web.STATUS.destroyed_description": {
+    "text": "הסוד הושמד לצמיתות"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "text": "הסוד יפוג בקרוב"
+  },
+  "web.STATUS.orphaned_description": {
+    "text": "הסוד נטוש ויושמד בקרוב"
+  },
+  "web.STATUS.expired_description": {
+    "text": "הסוד פג תוקפו לפני שנצפה"
+  },
+  "web.STATUS.success": {
+    "text": "הצלחה"
+  },
+  "web.STATUS.delivered": {
+    "text": "נמסר"
+  },
+  "web.STATUS.dns_incorrect": {
+    "text": "DNS שגוי"
+  },
+  "web.STATUS.active": {
+    "text": "פעיל"
+  },
+  "web.STATUS.inactive": {
+    "text": "לא פעיל"
+  },
+  "web.FEATURES.unlimited_views": {
+    "text": "צפיות בלתי מוגבלות"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "text": "מיתוג דומיין מהימן"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "text": "מוצפן בהעברה ובמנוחה"
+  },
+  "web.UNITS.ttl.duration": {
+    "text": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "text": "יום | ימים"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "text": "שעה | שעות"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "text": "דקה | דקות"
+  },
+  "web.UNITS.ttl.time.second": {
+    "text": "שנייה | שניות"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "text": "{count} {unit} נותרו"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "text": "יום נותר | ימים נותרו"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "text": "שעה נותרה | שעות נותרו"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "text": "דקה נותרה | דקות נותרו"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "text": "שנייה נותרה | שניות נותרו"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.limited_views": {
+    "text": "מגבלת {count} צפיות"
+  },
+  "web.UNITS.days_remaining": {
+    "text": "{count} ימים נותרו"
+  },
+  "web.UNITS.hours_remaining": {
+    "text": "{count} שעות נותרו"
+  },
+  "web.UNITS.minutes_remaining": {
+    "text": "{count} דקות נותרו"
+  },
+  "web.TITLES.incoming": {
+    "text": "סודות נכנסים"
+  },
+  "web.TITLES.feedback": {
+    "text": "משוב"
+  },
+  "web.TITLES.signin": {
+    "text": "התחברות"
+  },
+  "web.TITLES.signup": {
+    "text": "יצירת חשבון"
+  },
+  "web.TITLES.forgot_password": {
+    "text": "שכחתי סיסמה"
+  },
+  "web.TITLES.reset_password": {
+    "text": "איפוס סיסמה"
+  },
+  "web.TITLES.logout": {
+    "text": "מתנתק"
+  },
+  "web.TITLES.verify_account": {
+    "text": "אימות חשבון"
+  },
+  "web.TITLES.mfa_verify": {
+    "text": "אימות דו-שלבי"
+  },
+  "web.TITLES.email_login": {
+    "text": "התחברות בדואר אלקטרוני"
+  },
+  "web.TITLES.accept_invitation": {
+    "text": "קבלת הזמנה"
+  },
+  "web.TITLES.secret": {
+    "text": "סוד"
+  },
+  "web.TITLES.metadata": {
+    "text": "פרטי הסוד"
+  },
+  "web.TITLES.receipt": {
+    "text": "קבלה על סוד"
+  },
+  "web.TITLES.burn_secret": {
+    "text": "מחיקה סופית של סוד"
+  },
+  "web.TITLES.dashboard": {
+    "text": "לוח בקרה"
+  },
+  "web.TITLES.recent": {
+    "text": "סודות אחרונים"
+  },
+  "web.TITLES.domains": {
+    "text": "דומיינים מותאמים אישית"
+  },
+  "web.TITLES.domain_add": {
+    "text": "הוספת דומיין"
+  },
+  "web.TITLES.domain_verify": {
+    "text": "אימות דומיין"
+  },
+  "web.TITLES.domain_brand": {
+    "text": "מיתוג דומיין"
+  },
+  "web.TITLES.account": {
+    "text": "הגדרות חשבון"
+  },
+  "web.TITLES.data_region": {
+    "text": "אזור נתונים"
+  },
+  "web.TITLES.current_region": {
+    "text": "אזור נוכחי"
+  },
+  "web.TITLES.available_regions": {
+    "text": "אזורים זמינים"
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "text": "למה ריבונות נתונים חשובה"
+  },
+  "web.TITLES.profile_settings": {
+    "text": "הגדרות פרופיל"
+  },
+  "web.TITLES.preferences_settings": {
+    "text": "העדפות"
+  },
+  "web.TITLES.privacy_settings": {
+    "text": "פרטיות"
+  },
+  "web.TITLES.notification_settings": {
+    "text": "התראות"
+  },
+  "web.TITLES.change_email": {
+    "text": "שינוי דואר אלקטרוני"
+  },
+  "web.TITLES.security_overview": {
+    "text": "אבטחה"
+  },
+  "web.TITLES.change_password": {
+    "text": "שינוי סיסמה"
+  },
+  "web.TITLES.mfa_settings": {
+    "text": "אימות דו-שלבי"
+  },
+  "web.TITLES.active_sessions": {
+    "text": "סשנים פעילים"
+  },
+  "web.TITLES.recovery_codes": {
+    "text": "קודי שחזור"
+  },
+  "web.TITLES.api_settings": {
+    "text": "הגדרות API"
+  },
+  "web.TITLES.advanced_settings": {
+    "text": "הגדרות מתקדמות"
+  },
+  "web.TITLES.system_settings": {
+    "text": "הגדרות מערכת"
+  },
+  "web.TITLES.not_found": {
+    "text": "העמוד לא נמצא"
+  },
+  "web.TITLES.organizations_settings": {
+    "text": "ארגונים"
+  },
+  "web.TITLES.organization_settings": {
+    "text": "הגדרות ארגון"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "text": "הפוקוס כעת באזור הטקסט הראשי"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "text": "הוראות שיתוף"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "text": "שתפו את הקישור עם הנמען המיועד"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "text": "שתפו את ביטוי הסיסמה בנפרד דרך ערוץ מאובטח"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "text": "השתמשו בערוץ מאובטח שונה לשיתוף מידע רגיש"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "text": "תמיד ודאו שאתם באתר הרשמי של Onetime Secret. רמאים לעיתים יוצרים אתרים מזויפים שנראים בדיוק כמו Onetime Secret כדי לגנוב את הסודות שלכם. כדי להימנע מהתקפות פישינג, בדקו את דומיין האזור לפני יצירת קישורים חדשים."
+  }
+}

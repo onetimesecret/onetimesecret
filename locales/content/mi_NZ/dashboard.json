@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Kua Tae"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Kāore i Tae"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Kāore he karere huna tata"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Tīmatahia mā te waihanga i tō karere huna tuatahi."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Kāore i taea te uta i ngā rōpū"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "He raruraru i te wā e uta ana i ō rōpū. Tēnā koa whakamātau anō."
+  }
+}

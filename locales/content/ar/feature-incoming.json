@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "إرسال سر"
+  },
+  "incoming.page_description": {
+    "text": "شارك المعلومات الحساسة بشكل آمن مع فريق الدعم لدينا"
+  },
+  "incoming.loading_config": {
+    "text": "جاري التحميل..."
+  },
+  "incoming.config_error_title": {
+    "text": "فشل تحميل التكوين"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "الميزة غير متاحة"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "هذه الميزة معطلة حاليًا. يرجى الاتصال بالدعم للحصول على المساعدة."
+  },
+  "incoming.memo_label": {
+    "text": "مذكرة"
+  },
+  "incoming.memo_placeholder": {
+    "text": "وصف مختصر (مثل: طلب إعادة تعيين كلمة المرور)"
+  },
+  "incoming.memo_hint": {
+    "text": "ساعدنا في توجيه رسالتك إلى الشخص المناسب"
+  },
+  "incoming.recipient_label": {
+    "text": "إرسال إلى"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "اختر مستلمًا"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "اختر مستلمًا لهذا السر"
+  },
+  "incoming.recipient_hint": {
+    "text": "اختر من سيستقبل هذه الرسالة الآمنة"
+  },
+  "incoming.no_recipients_available": {
+    "text": "لا يوجد مستلمون متاحون"
+  },
+  "incoming.secret_content_label": {
+    "text": "معلومات سرية"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "الصق المعلومات الحساسة هنا (كلمات المرور، المفاتيح، إلخ)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "سيتم تشفير هذه المعلومات ويمكن عرضها مرة واحدة فقط"
+  },
+  "incoming.submit_button": {
+    "text": "إرسال السر"
+  },
+  "incoming.submit_secret": {
+    "text": "إرسال السر"
+  },
+  "incoming.submitting_button": {
+    "text": "جاري الإرسال..."
+  },
+  "incoming.submitting": {
+    "text": "جاري الإرسال..."
+  },
+  "incoming.reset_button": {
+    "text": "مسح النموذج"
+  },
+  "incoming.reset_form": {
+    "text": "مسح النموذج"
+  },
+  "incoming.success_title": {
+    "text": "تم الإرسال بنجاح"
+  },
+  "incoming.success_description": {
+    "text": "تم تسليم رسالتك الآمنة."
+  },
+  "incoming.reference_id": {
+    "text": "معرف المرجع"
+  },
+  "incoming.success_info_title": {
+    "text": "ماذا يحدث بعد ذلك؟"
+  },
+  "incoming.success_info_description": {
+    "text": "سيتمكن المستلم من عرض هذا السر مرة واحدة فقط. بعد العرض، سيتم حذف السر نهائيًا."
+  },
+  "incoming.create_another": {
+    "text": "إرسال سر آخر"
+  },
+  "incoming.tagline1": {
+    "text": "شارك المعلومات الحساسة بشكل آمن"
+  },
+  "incoming.tagline2": {
+    "text": "احتفظ بكلمات المرور والبيانات الخاصة بعيدًا عن البريد الإلكتروني وسجلات الدردشة"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "احفظ <a href='{receiptUrl}'>إيصالك</a> لسجلاتك."
+  },
+  "incoming.receipt_link_text": {
+    "text": "الإيصال"
+  }
+}

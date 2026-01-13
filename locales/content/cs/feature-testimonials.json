@@ -1,0 +1,38 @@
+{
+  "web.testimonials.ai_generated_testimonial": {
+    "text": "Vygenerováno AI - Reference"
+  },
+  "web.testimonials.ai_generated_content_disclaimer": {
+    "text": "Obsah vygenerovaný AI pro demonstraci. Nepochází od skutečné osoby nebo společnosti."
+  },
+  "web.testimonials.randomtestimonial_stars_5": {
+    "text": "{0}/5"
+  },
+  "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
+    "text": "- {0}, {1}"
+  },
+  "web.testimonials.randomtestimonial_quote": {
+    "text": "\"{0}\""
+  },
+  "web.testimonials.t_ai_generated_testimonial": {
+    "text": "{0}:"
+  },
+  "web.testimonials.what_leading_ai_says_about_us": {
+    "text": "Co o nás říká přední AI"
+  },
+  "web.testimonials.ai_generated_testimonials": {
+    "text": "Vygenerované AI - Reference"
+  },
+  "web.testimonials.this_quote_was_generated_by": {
+    "text": "Tento citát byl vygenerován pomocí"
+  },
+  "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
+    "text": "Byl založen na obsahu stránky a nepředstavuje skutečnou osobu nebo společnost."
+  },
+  "web.testimonials.artificial_feedback": {
+    "text": "Umělá zpětná vazba"
+  },
+  "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
+    "text": "Tento obsah je vygenerován AI na základě obsahu této stránky a nepředstavuje skutečnou osobu nebo společnost."
+  }
+}

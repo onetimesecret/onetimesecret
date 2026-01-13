@@ -1,0 +1,38 @@
+{
+  "web.testimonials.ai_generated_testimonial": {
+    "text": "Opinia wygenerowana przez AI"
+  },
+  "web.testimonials.ai_generated_content_disclaimer": {
+    "text": "Treść wygenerowana przez AI w celach demonstracyjnych.\nNie pochodzi od rzeczywistej osoby ani firmy."
+  },
+  "web.testimonials.randomtestimonial_stars_5": {
+    "text": "{0}/5"
+  },
+  "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
+    "text": "- {0}, {1}"
+  },
+  "web.testimonials.randomtestimonial_quote": {
+    "text": "\"{0}\""
+  },
+  "web.testimonials.t_ai_generated_testimonial": {
+    "text": "{0}:"
+  },
+  "web.testimonials.what_leading_ai_says_about_us": {
+    "text": "Co mówi o nas wiodąca AI"
+  },
+  "web.testimonials.ai_generated_testimonials": {
+    "text": "Opinie wygenerowane przez AI"
+  },
+  "web.testimonials.this_quote_was_generated_by": {
+    "text": "Ten cytat został wygenerowany przez"
+  },
+  "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
+    "text": "Został oparty na treści strony i nie reprezentuje rzeczywistej osoby ani firmy."
+  },
+  "web.testimonials.artificial_feedback": {
+    "text": "Sztuczna opinia"
+  },
+  "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
+    "text": "Ta treść jest generowana przez AI na podstawie zawartości tej strony i nie reprezentuje rzeczywistej osoby ani firmy."
+  }
+}

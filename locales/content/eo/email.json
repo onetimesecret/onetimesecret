@@ -1,0 +1,446 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[Bileto: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "text": "Kliento sendis la jenajn informojn"
+  },
+  "email.secret_link.subject": {
+    "text": "%{sender_email} sendis al vi sekreton"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "sendis al vi sekreton:"
+  },
+  "email.secret_link.important_label": {
+    "text": "Grava:"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "Cxi tiu ligilo funkcios nur unufoje. Post vidado, la sekreto estos permanente forigita."
+  },
+  "email.secret_link.sent_via": {
+    "text": "Sendita per"
+  },
+  "email.welcome.subject": {
+    "text": "Bonvenon al %{product_name} - Bonvolu konfirmi vian retadreso"
+  },
+  "email.welcome.title": {
+    "text": "Bonvenon al %{product_name}!"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "Bonvolu konfirmi vian retadreson alklakante la ligilon sube:"
+  },
+  "email.welcome.verify_button": {
+    "text": "Konfirmi Retadreson"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "Aux kopiu kaj algluu cxi tiun ligilon:"
+  },
+  "email.welcome.signature": {
+    "text": "Delano"
+  },
+  "email.welcome.postscript": {
+    "text": "P.S. Cxi tiu retposxto estis sendita al %{email_address}. Se vi ne kreis konton, vi povas sekure ignori cxi tiun mesagxon."
+  },
+  "email.password_request.subject": {
+    "text": "Restarigi vian pasvorton (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "text": "Restarigi Vian Pasvorton"
+  },
+  "email.password_request.request_notice": {
+    "text": "Ni ricevis peton por restarigi vian pasvorton por %{product_name}."
+  },
+  "email.password_request.reset_button": {
+    "text": "Restarigi Pasvorton"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "Aux kopiu kaj algluu cxi tiun ligilon:"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "Se vi ne petis pasvortan restarigon, vi povas sekure ignori cxi tiun retposxton."
+  },
+  "email.password_request.signature": {
+    "text": "Delano"
+  },
+  "email.password_request.postscript": {
+    "text": "P.S. Cxi tiu retposxto estis sendita al %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "text": "Ensaluti al %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "text": "Ensaluti per Magia Ligilo"
+  },
+  "email.magic_link.request_notice": {
+    "text": "Vi petis ensalutan ligilon por via %{product_name} konto."
+  },
+  "email.magic_link.login_button": {
+    "text": "Ensaluti"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "Aux kopiu kaj algluu cxi tiun ligilon:"
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "Cxi tiu ligilo senvalidigas post 15 minutoj."
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "Se vi ne petis cxi tiun ligilon, vi povas sekure ignori cxi tiun retposxton."
+  },
+  "email.magic_link.signature": {
+    "text": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "text": "P.S. Cxi tiu retposxto estis sendita al %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "text": "Vi ricevis sekretan mesagxon"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "Vi ricevis sekuran mesagxon:"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "Memoro:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "Iu sendis al vi sekuran mesagxon per %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "Por vidi cxi tiun sekreton, alklaku la ligilon sube:"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "Grava:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "Cxi tiu ligilo funkcios nur unufoje. Post vidado, la sekreto estos permanente forigita."
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "Sendita per"
+  },
+  "email.secret_revealed.subject": {
+    "text": "Via sekreto estis vidata"
+  },
+  "email.secret_revealed.title": {
+    "text": "Via Sekreto Estis Vidata"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "Via sekreto estis vidata je %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "Sekreta ID:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "Cxi tio estas auxtomata sciigo. Neniu ago estas bezonata."
+  },
+  "email.secret_revealed.signature": {
+    "text": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "Administri sciigajn preferojn"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "Por administri viajn sciigajn preferojn:"
+  },
+  "email.expiration_warning.subject": {
+    "text": "Via sekreta ligilo baldaux senvalidigas"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "Via sekreta ligilo senvalidigas post %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "Vidi vian sekreton antaux ol gxi senvalidigas"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "Memorigilo:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "Post senvalidigxo, la sekreto estos permanente forigita kaj ne reakireblaj."
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "Sendita per"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "Vidu gxin antaux ol gxi forigas:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "Post senvalidigxo, la sekreto estos permanente forigita."
+  },
+  "email.feedback_email.subject": {
+    "text": "Retrosciigxo je %{date} per %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "text": "Uzanta Retrosciigxo"
+  },
+  "email.feedback_email.from_label": {
+    "text": "De:"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "Domajno:"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "Strategio:"
+  },
+  "email.feedback_email.message_label": {
+    "text": "Mesagxo:"
+  },
+  "email.feedback_email.signature": {
+    "text": "Sekreta Subteno"
+  },
+  "email.organization_invitation.subject": {
+    "text": "Vi estas invitita aligxi al %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "text": "Vi estas invitita aligxi al %{organization_name}!"
+  },
+  "email.organization_invitation.body": {
+    "text": "%{inviter_email} invitis vin aligxi al \"%{organization_name}\" kiel %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "Akcepti Inviton"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "Aux kopiu kaj algluu cxi tiun ligilon:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "Cxi tiu invito senvalidigas post %{days} tagoj."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "Se vi ne volas aligxi, vi povas simple ignori cxi tiun retposxton aux malakcepti la inviton."
+  },
+  "email.organization_invitation.signature": {
+    "text": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "P.S. Cxi tiu retposxto estis sendita al %{invited_email}. Se vi ne atendis cxi tiun inviton, vi povas sekure ignori cxi tiun mesagxon."
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "membro"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "administranto"
+  },
+  "email.password_changed.subject": {
+    "text": "Via pasvorto estis sxangxita (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "text": "Via Pasvorto Estis Sxangxita"
+  },
+  "email.password_changed.body": {
+    "text": "Via pasvorto por %{product_name} estis sxangxita je %{date} je %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "text": "Se vi ne faris cxi tiun sxangxon, bonvolu tuj sekurigi vian konton per restarigado de via pasvorto kaj kontaktante subtenon."
+  },
+  "email.password_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_changed.subject": {
+    "text": "Via retadreso estis sxangxita (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "text": "Via Retadreso Estis Sxangxita"
+  },
+  "email.email_changed.body": {
+    "text": "La retadreso por via %{product_name} konto estis sxangxita al %{new_email_masked} je %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "text": "Se vi ne faris cxi tiun sxangxon, bonvolu tuj kontakti subtenon, cxar via konto eble estas kompromitita."
+  },
+  "email.email_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "Konfirmu vian novan retadreson (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "Konfirmu Vian Novan Retadreson"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "Bonvolu konfirmi cxi tiun retadreson por kompletigi la sxangxon por via %{product_name} konto."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "Konfirmi Retadreson"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "Aux kopiu kaj algluu cxi tiun ligilon:"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "Dufaktora auxtentigxo ebligita (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "text": "Dufaktora Auxtentigxo Ebligita"
+  },
+  "email.mfa_enabled.body": {
+    "text": "Dufaktora auxtentigxo estis ebligita por via %{product_name} konto je %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "Via konto nun estas pli sekura. Vi bezonos enigi konfirmokodon de via auxtentigxilo-aplikajxo kiam vi ensalutas."
+  },
+  "email.mfa_enabled.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "Dufaktora auxtentigxo malebligita (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "text": "Dufaktora Auxtentigxo Malebligita"
+  },
+  "email.mfa_disabled.body": {
+    "text": "Dufaktora auxtentigxo estis malebligita por via %{product_name} konto je %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "Via konto nun estas malpli sekura. Se vi ne faris cxi tiun sxangxon, bonvolu tuj sekurigi vian konton."
+  },
+  "email.mfa_disabled.signature": {
+    "text": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "text": "Nova ensaluto al via konto (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "text": "Nova Ensaluto Detektita"
+  },
+  "email.new_login_alert.body": {
+    "text": "Nova ensaluto al via %{product_name} konto estis detektita je %{date} je %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "text": "Aparato:"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "Loko:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "IP-Adreso:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "Se cxi tio ne estis vi, via konto eble estas kompromitita."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "Sekurigi Vian Konton"
+  },
+  "email.new_login_alert.signature": {
+    "text": "Delano"
+  },
+  "email.member_removed.subject": {
+    "text": "Vi estis forigita el %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "text": "Vi Estis Forigita el %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "text": "Vi estis forigita el la organizo \"%{organization_name}\" cxe %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "text": "Delano"
+  },
+  "email.role_changed.subject": {
+    "text": "Via rolo estis sxangxita en %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "text": "Via Rolo Estis Sxangxita"
+  },
+  "email.role_changed.body": {
+    "text": "Via rolo en \"%{organization_name}\" estis sxangxita de %{old_role} al %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "text": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "text": "Organizo \"%{organization_name}\" estis forigita"
+  },
+  "email.organization_deleted.title": {
+    "text": "Organizo Forigita"
+  },
+  "email.organization_deleted.body": {
+    "text": "La organizo \"%{organization_name}\" estis forigita el %{product_name}. Cxiuj rilataj datumoj estis forigitaj."
+  },
+  "email.organization_deleted.signature": {
+    "text": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "text": "Paga kvitanco por %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "text": "Paga Kvitanco"
+  },
+  "email.payment_receipt.body": {
+    "text": "Dankon pro via pago. Jen viaj pagaj detaloj:"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "Sumo:"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "Dato:"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "Plano:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "Vidi Fakturon"
+  },
+  "email.payment_receipt.signature": {
+    "text": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "text": "Pago malsukcesis por %{product_name}"
+  },
+  "email.payment_failed.title": {
+    "text": "Pago Malsukcesis"
+  },
+  "email.payment_failed.body": {
+    "text": "Ni ne povis procezi vian pagon por %{product_name}. Bonvolu auxdatigi vian pagmetodon por eviti servointerrompon."
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "Auxdatigi Pagmetodon"
+  },
+  "email.payment_failed.signature": {
+    "text": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "text": "Via %{product_name} provo senvalidigas post %{days_remaining} tagoj"
+  },
+  "email.trial_expiring.title": {
+    "text": "Via Provo Baldaux Finigxas"
+  },
+  "email.trial_expiring.body": {
+    "text": "Via senpaga provo de %{product_name} senvalidigas post %{days_remaining} tagoj. Auxgradu nun por konservi aliron al cxiuj funkcioj."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "Auxgradi Nun"
+  },
+  "email.trial_expiring.signature": {
+    "text": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "text": "Via %{product_name} abono estis sxangxita"
+  },
+  "email.subscription_changed.title": {
+    "text": "Abono Sxangxita"
+  },
+  "email.subscription_changed.body": {
+    "text": "Via %{product_name} abono estis sxangxita de %{old_plan} al %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "Cxi tiu sxangxo efikas ekde %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "text": "Delano"
+  },
+  "email.common.greeting": {
+    "text": "Saluton,"
+  },
+  "email.common.thanks": {
+    "text": "Dankon,"
+  },
+  "email.common.unsubscribe": {
+    "text": "Malaboni"
+  },
+  "email.common.view_in_browser": {
+    "text": "Vidi en retumilo"
+  },
+  "email.common.onetime_secret": {
+    "text": "Onetime Secret"
+  }
+}

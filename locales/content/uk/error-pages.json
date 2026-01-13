@@ -1,0 +1,59 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "text": "Чому цей секрет недоступний?"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "text": "Секрети призначені для перегляду лише один раз. Можливо, це посилання вже було використано, термін його дії закінчився, або його було вручну видалено відправником."
+  },
+  "web.errors.what_should_i_do_now": {
+    "text": "Що мені робити тепер?"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "text": "Зв'яжіться з людиною, яка надіслала вам це посилання, і попросіть її створити новий секрет. Повідомте їй, що ви не змогли отримати доступ до початкової інформації."
+  },
+  "web.errors.warning_dismissed": {
+    "text": "Попередження закрито"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "text": "Закрити попередження про скорочення"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "text": "Ой! Сторінка, яку ви шукаєте, не існує або була переміщена."
+  },
+  "web.errors.404_page_not_found_0": {
+    "text": "404 - Сторінку не знайдено"
+  },
+  "web.errors.404_page_not_found": {
+    "text": "404 - Сторінку не знайдено"
+  },
+  "web.errors.dismiss_warning": {
+    "text": "Закрити попередження"
+  },
+  "web.errors.dismiss_notification": {
+    "text": "Закрити сповіщення"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "text": "Якщо ви не впевнені, що робити далі, будь ласка, зв'яжіться з людиною, яка надіслала вам це посилання, для отримання додаткової інформації."
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "text": "Інформація, передана через наш сервіс, може бути доступна лише один раз. Після перегляду вміст назавжди видаляється з наших серверів для забезпечення конфіденційності. Такий підхід допомагає захистити ваші конфіденційні дані, обмежуючи їх розкриття та запобігаючи несанкціонованому доступу."
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "text": "Вибачте, але під час обробки вашого запиту сталася неочікувана помилка. Наша команда сповіщена, і ми працюємо над її виправленням."
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "text": "{0} Щось пішло не так"
+  },
+  "web.errors.go_share_a_secret": {
+    "text": "Йдіть ділитися секретом!"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "text": "Сторінка, яку ви шукаєте, не існує або була переміщена. Не хвилюйтеся, це трапляється з найкращими!"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "text": "{0} 404"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "text": "Не вдалося завантажити дані через проблеми з форматом даних. Будь ласка, спробуйте пізніше."
+  }
+}

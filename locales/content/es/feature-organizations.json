@@ -1,0 +1,392 @@
+{
+  "web.organizations.title": {
+    "text": "Organización"
+  },
+  "web.organizations.organization": {
+    "text": "Organización"
+  },
+  "web.organizations.organization_plural": {
+    "text": "Organizaciones"
+  },
+  "web.organizations.organizations_description": {
+    "text": "Gestiona tus organizaciones"
+  },
+  "web.organizations.my_organizations": {
+    "text": "Mis Organizaciones"
+  },
+  "web.organizations.manage_organizations": {
+    "text": "Gestionar organizaciones"
+  },
+  "web.organizations.new_organization": {
+    "text": "Nueva Organización"
+  },
+  "web.organizations.no_organizations": {
+    "text": "Sin organizaciones aún"
+  },
+  "web.organizations.no_organizations_description": {
+    "text": "Las organizaciones te permiten gestionar múltiples equipos con facturación y administración unificadas. Comienza creando tu primera organización."
+  },
+  "web.organizations.no_description": {
+    "text": "No se proporcionó descripción"
+  },
+  "web.organizations.default": {
+    "text": "Predeterminado"
+  },
+  "web.organizations.create_organization": {
+    "text": "Crear Organización"
+  },
+  "web.organizations.create_first_organization": {
+    "text": "Crear Primera Organización"
+  },
+  "web.organizations.create_organization_description": {
+    "text": "Crea una nueva organización para agrupar tus equipos"
+  },
+  "web.organizations.create": {
+    "text": "Crear"
+  },
+  "web.organizations.create_error": {
+    "text": "Error al crear organización"
+  },
+  "web.organizations.organization_name": {
+    "text": "Nombre de la Organización"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "text": "ej. Corporación Acme"
+  },
+  "web.organizations.display_name": {
+    "text": "Nombre de la Organización"
+  },
+  "web.organizations.description": {
+    "text": "Descripción"
+  },
+  "web.organizations.description_placeholder": {
+    "text": "¿Para qué es esta organización?"
+  },
+  "web.organizations.contact_email": {
+    "text": "Correo de Facturación"
+  },
+  "web.organizations.contact_email_help": {
+    "text": "Contacto principal para notificaciones de facturación y administrativas"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "text": "La facturación y gestión de suscripciones se maneja a través de tu espacio de trabajo principal. Visita la configuración de tu espacio de trabajo principal para gestionar métodos de pago y facturas."
+  },
+  "web.organizations.select_organization": {
+    "text": "Seleccionar una organización"
+  },
+  "web.organizations.switcher_locked": {
+    "text": "El cambio de organización no está disponible en esta página"
+  },
+  "web.organizations.not_found": {
+    "text": "Organización no encontrada"
+  },
+  "web.organizations.load_error": {
+    "text": "Error al cargar organización"
+  },
+  "web.organizations.fetch_organization_error": {
+    "text": "Error al cargar organización"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "text": "Error al cargar organizaciones"
+  },
+  "web.organizations.organization_information": {
+    "text": "Información de la Organización"
+  },
+  "web.organizations.created": {
+    "text": "Creada"
+  },
+  "web.organizations.last_updated": {
+    "text": "Última Actualización"
+  },
+  "web.organizations.organization_settings": {
+    "text": "Configuración de la Organización"
+  },
+  "web.organizations.organization_settings_description": {
+    "text": "Actualiza el nombre y la descripción de tu organización"
+  },
+  "web.organizations.general_settings": {
+    "text": "Configuración General"
+  },
+  "web.organizations.billing_settings": {
+    "text": "Facturación y Suscripción"
+  },
+  "web.organizations.save_changes": {
+    "text": "Guardar Cambios"
+  },
+  "web.organizations.update_success": {
+    "text": "Organización actualizada con éxito"
+  },
+  "web.organizations.update_error": {
+    "text": "Error al actualizar organización"
+  },
+  "web.organizations.billing_coming_soon": {
+    "text": "Integración de Facturación Próximamente"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "text": "La facturación unificada y la gestión de suscripciones para todos los equipos en esta organización estarán disponibles en una futura versión."
+  },
+  "web.organizations.about_title": {
+    "text": "Acerca de las Organizaciones"
+  },
+  "web.organizations.about_description": {
+    "text": "Las organizaciones proporcionan facturación y administración unificadas para múltiples equipos. Son opcionales: los equipos pueden existir de forma independiente o agruparse bajo una organización para una gestión centralizada."
+  },
+  "web.organizations.single_user_info_title": {
+    "text": "Gestiona Tu Organización"
+  },
+  "web.organizations.single_user_info_description": {
+    "text": "Actualiza el nombre de tu empresa y los detalles de la organización aquí. Esta información ayuda a personalizar tu cuenta y puede usarse para funciones de marca en el futuro."
+  },
+  "web.organizations.getting_started_title": {
+    "text": "Comenzando con las Organizaciones"
+  },
+  "web.organizations.getting_started_description": {
+    "text": "Crea tu primera organización para gestionar la información de tu empresa y prepararte para futuras funciones de colaboración en equipo y marca."
+  },
+  "web.organizations.page_description": {
+    "text": "Gestiona tus organizaciones y miembros del equipo"
+  },
+  "web.organizations.tabs.general": {
+    "text": "General"
+  },
+  "web.organizations.tabs.company_branding": {
+    "text": "Marca de la Empresa"
+  },
+  "web.organizations.tabs.members": {
+    "text": "Equipo"
+  },
+  "web.organizations.tabs.billing": {
+    "text": "Facturación"
+  },
+  "web.organizations.danger_zone": {
+    "text": "Zona de Peligro"
+  },
+  "web.organizations.delete_organization": {
+    "text": "Eliminar Organización"
+  },
+  "web.organizations.delete_organization_warning": {
+    "text": "Esto eliminará permanentemente la organización y todos los equipos asociados. Esta acción no se puede deshacer."
+  },
+  "web.organizations.delete": {
+    "text": "Eliminar"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "text": "Eliminar Organización"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "text": "¿Estás seguro de que quieres eliminar {name}? Esta acción no se puede deshacer."
+  },
+  "web.organizations.delete_error": {
+    "text": "Error al eliminar organización"
+  },
+  "web.organizations.members.title": {
+    "text": "Miembros"
+  },
+  "web.organizations.members.description": {
+    "text": "Gestionar miembros de la organización y sus roles"
+  },
+  "web.organizations.members.current_members": {
+    "text": "Miembros actuales"
+  },
+  "web.organizations.members.member": {
+    "text": "Miembro"
+  },
+  "web.organizations.members.member_singular": {
+    "text": "member"
+  },
+  "web.organizations.members.member_plural": {
+    "text": "members"
+  },
+  "web.organizations.members.name": {
+    "text": "Nombre"
+  },
+  "web.organizations.members.email": {
+    "text": "Correo Electrónico"
+  },
+  "web.organizations.members.role": {
+    "text": "Rol"
+  },
+  "web.organizations.members.joined": {
+    "text": "Se unió"
+  },
+  "web.organizations.members.actions": {
+    "text": "Acciones"
+  },
+  "web.organizations.members.no_members": {
+    "text": "No se encontraron miembros"
+  },
+  "web.organizations.members.no_members_description": {
+    "text": "Esta organización aún no tiene miembros."
+  },
+  "web.organizations.members.role_updated": {
+    "text": "Rol del miembro actualizado con éxito"
+  },
+  "web.organizations.members.role_update_error": {
+    "text": "Error al actualizar el rol del miembro"
+  },
+  "web.organizations.members.member_removed": {
+    "text": "Miembro eliminado de la organización"
+  },
+  "web.organizations.members.member_remove_error": {
+    "text": "Error al eliminar miembro"
+  },
+  "web.organizations.members.remove_member_title": {
+    "text": "Eliminar Miembro"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "text": "¿Estás seguro de que quieres eliminar a {name} de esta organización?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "text": "No puedes cambiar tu propio rol"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "text": "No puedes eliminarte a ti mismo de la organización"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "text": "No puedes eliminar al propietario de la organización"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "text": "No tienes permiso para gestionar miembros"
+  },
+  "web.organizations.members.roles.owner": {
+    "text": "Propietario"
+  },
+  "web.organizations.members.roles.admin": {
+    "text": "Administrador"
+  },
+  "web.organizations.members.roles.member": {
+    "text": "Miembro"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "text": "Acceso completo a toda la configuración y miembros de la organización"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "text": "Puede gestionar miembros y la mayoría de la configuración de la organización"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "text": "Acceso básico a los recursos de la organización"
+  },
+  "web.organizations.invitations.title": {
+    "text": "Invitaciones de la Organización"
+  },
+  "web.organizations.invitations.invite_member": {
+    "text": "Invitar Miembro"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "text": "Invitar Nuevo Miembro"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "text": "Invitaciones Pendientes"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "text": "No hay invitaciones pendientes"
+  },
+  "web.organizations.invitations.email_address": {
+    "text": "Dirección de Correo Electrónico"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "text": "miembro@ejemplo.com"
+  },
+  "web.organizations.invitations.role": {
+    "text": "Rol"
+  },
+  "web.organizations.invitations.send_invite": {
+    "text": "Enviar Invitación"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "text": "Invitación enviada con éxito"
+  },
+  "web.organizations.invitations.invite_error": {
+    "text": "Error al enviar invitación"
+  },
+  "web.organizations.invitations.resend": {
+    "text": "Reenviar"
+  },
+  "web.organizations.invitations.revoke": {
+    "text": "Revocar"
+  },
+  "web.organizations.invitations.resend_success": {
+    "text": "Invitación reenviada con éxito"
+  },
+  "web.organizations.invitations.resend_error": {
+    "text": "Error al reenviar invitación"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "text": "Invitación revocada con éxito"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "text": "Error al revocar invitación"
+  },
+  "web.organizations.invitations.invited_by": {
+    "text": "Invitado por"
+  },
+  "web.organizations.invitations.invited_at": {
+    "text": "Invitado"
+  },
+  "web.organizations.invitations.expires_at": {
+    "text": "Expira"
+  },
+  "web.organizations.invitations.resent_count": {
+    "text": "Reenviado {count} vez"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "text": "Reenviado {count} veces"
+  },
+  "web.organizations.invitations.status.pending": {
+    "text": "Pendiente"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "text": "Aceptado"
+  },
+  "web.organizations.invitations.status.declined": {
+    "text": "Rechazado"
+  },
+  "web.organizations.invitations.status.expired": {
+    "text": "Expirado"
+  },
+  "web.organizations.invitations.roles.member": {
+    "text": "Miembro"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "text": "Administrador"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "text": "Aceptar Invitación"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "text": "Rechazar Invitación"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "text": "Detalles de la Invitación"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "text": "Has sido invitado a unirte a"
+  },
+  "web.organizations.invitations.invited_as": {
+    "text": "Has sido invitado como"
+  },
+  "web.organizations.invitations.accept_success": {
+    "text": "Invitación aceptada con éxito"
+  },
+  "web.organizations.invitations.accept_error": {
+    "text": "Error al aceptar invitación"
+  },
+  "web.organizations.invitations.decline_success": {
+    "text": "Invitación rechazada"
+  },
+  "web.organizations.invitations.decline_error": {
+    "text": "Error al rechazar invitación"
+  },
+  "web.organizations.invitations.expired_message": {
+    "text": "Esta invitación ha expirado"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "text": "Invitación inválida o expirada"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "text": "Por favor, inicia sesión para aceptar esta invitación"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "text": "Cargando detalles de la invitación"
+  }
+}

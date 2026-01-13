@@ -1,0 +1,59 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "text": "Warum ist dieses Geheimnis nicht verfügbar?"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "text": "Geheimnisse sind so konzipiert, dass sie nur einmal angesehen werden können. Dieser Link wurde möglicherweise bereits aufgerufen, ist abgelaufen oder wurde vom Absender manuell gelöscht."
+  },
+  "web.errors.what_should_i_do_now": {
+    "text": "Was soll ich jetzt tun?"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "text": "Kontaktieren Sie die Person, die Ihnen diesen Link gesendet hat, und bitten Sie sie, ein neues Geheimnis zu erstellen. Teilen Sie ihr mit, dass Sie nicht auf die ursprünglichen Informationen zugreifen konnten."
+  },
+  "web.errors.warning_dismissed": {
+    "text": "Abgelehnte Warnung"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "text": "Trunkierungswarnung aufheben"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "text": "Huch! Die Seite, die Sie suchen, existiert nicht oder wurde verschoben."
+  },
+  "web.errors.404_page_not_found_0": {
+    "text": "404 - Seite nicht gefunden"
+  },
+  "web.errors.404_page_not_found": {
+    "text": "404 - Seite nicht gefunden"
+  },
+  "web.errors.dismiss_warning": {
+    "text": "Warnung verwerfen"
+  },
+  "web.errors.dismiss_notification": {
+    "text": "Benachrichtigung entlassen"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "text": "Wenn Sie sich nicht sicher sind, wie Sie weiter vorgehen sollen, wenden Sie sich bitte an die Person, die Ihnen diesen Link geschickt hat, um weitere Informationen zu erhalten."
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "text": "Auf die über unseren Dienst geteilten Informationen kann nur einmal zugegriffen werden. Nach dem Abruf werden die Inhalte dauerhaft von unseren Servern gelöscht, um die Vertraulichkeit zu gewährleisten. Dieser Ansatz hilft, Ihre sensiblen Daten zu schützen, indem er ihre Exposition begrenzt und unbefugten Zugriff verhindert."
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "text": "Es tut uns leid, aber bei der Bearbeitung Ihrer Anfrage ist ein unerwarteter Fehler aufgetreten. Unser Team wurde benachrichtigt und wir arbeiten an der Behebung des Problems."
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "text": "{0} Etwas ist schief gelaufen"
+  },
+  "web.errors.go_share_a_secret": {
+    "text": "Geh und teile ein Geheimnis!"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "text": "Die Seite, die Sie suchen, existiert nicht oder wurde verschoben. Keine Sorge, das passiert auch den Besten von uns!"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "text": "{0} 404"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "text": "Die Daten können aufgrund von Datenformatproblemen nicht geladen werden. Bitte versuchen Sie es später noch einmal."
+  }
+}

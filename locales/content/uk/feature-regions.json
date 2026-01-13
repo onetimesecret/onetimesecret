@@ -1,0 +1,107 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "Суверенність даних та регіональна ізоляція"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "Ваші дані зберігаються виключно у вибраному вами регіоні та ніколи не передаються між регіонами"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "Кожен регіон працює як повністю незалежне середовище з власною інфраструктурою, ключами шифрування та сховищем даних"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "Ми дотримуємося суворої політики: дані клієнтів ніколи не передаються між регіонами за будь-яких обставин"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "Важливо: Перемикання на інший регіон створює новий обліковий запис. Ваші дані залишаються у вашому початковому регіоні."
+  },
+  "web.regions.your_region": {
+    "text": "Ваш регіон"
+  },
+  "web.regions.your_current_region": {
+    "text": "Ваш поточний регіон"
+  },
+  "web.regions.active": {
+    "text": "Активний"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "Дослідіть інші доступні регіони"
+  },
+  "web.regions.why_it_matters": {
+    "text": "Чому важлива суверенність даних"
+  },
+  "web.regions.trust_title": {
+    "text": "Прозорість та контроль"
+  },
+  "web.regions.trust_description": {
+    "text": "Точно знайте, де зберігаються ваші дані та які закони регулюють їх захист."
+  },
+  "web.regions.privacy_title": {
+    "text": "Права конфіденційності"
+  },
+  "web.regions.privacy_description": {
+    "text": "Переконайтеся, що ваша особиста інформація обробляється відповідно до законів про конфіденційність вашої країни та правил, запобігаючи несанкціонованому доступу або зловживанню."
+  },
+  "web.regions.compliance_title": {
+    "text": "Відповідність нормативним вимогам"
+  },
+  "web.regions.compliance_description": {
+    "text": "Відповідність GDPR, HIPAA, CCPA та іншим регіональним вимогам захисту даних"
+  },
+  "web.regions.performance_title": {
+    "text": "Швидший доступ"
+  },
+  "web.regions.performance_description": {
+    "text": "Дані, що зберігаються ближче до вас, означають меншу затримку та кращу продуктивність."
+  },
+  "web.regions.regions": {
+    "text": "Регіони"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "зв'яжіться з нашою командою з питань відповідності"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "перегляньте нашу документацію"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "Ваш обліковий запис та дані захищені відповідно до законів та правил"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "Ця регуляторна структура визначається вашим доменом доступу:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "Кожна юрисдикція підтримує окрему правову відповідність та управління даними. Хоча ви можете створювати облікові записи в кількох юрисдикціях, вони залишаються юридично відокремленими без обміну даними між регуляторними зонами."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "Щоб зрозуміти конкретні правила та засоби захисту, які застосовуються до вашого облікового запису, будь ласка,"
+  },
+  "web.regions.current": {
+    "text": "Поточний"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "Доступні регіони"
+  },
+  "web.regions.jurisdiction": {
+    "text": "Юрисдикція"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "Розташування дата-центру: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "Регіон даних"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "Невідома юрисдикція"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "Обслуговуємо вас з"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "Перейти до {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Поточна юрисдикція:"
+  }
+}

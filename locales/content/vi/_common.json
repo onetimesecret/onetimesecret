@@ -1,0 +1,934 @@
+{
+  "web.COMMON.broadcast": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.tagline": {
+    "text": "Liên kết an toàn chỉ hoạt động một lần"
+  },
+  "web.COMMON.powered_by": {
+    "text": "Được hỗ trợ bởi"
+  },
+  "web.COMMON.website_url": {
+    "text": "https://onetimesecret.com/vi"
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "text": "Tạo mật khẩu"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "text": "Tạo mật khẩu bị vô hiệu hóa khi biểu mẫu hợp lệ"
+  },
+  "web.COMMON.email_placeholder": {
+    "text": "ví dụ tom{'@'}myspace.com"
+  },
+  "web.COMMON.password_placeholder": {
+    "text": "Nhập mật khẩu của bạn"
+  },
+  "web.COMMON.custom_domains_title": {
+    "text": "Tên miền tùy chỉnh"
+  },
+  "web.COMMON.custom_domains_description": {
+    "text": "Tăng cường kết nối và xây dựng lòng tin với liên kết bí mật mang thương hiệu của bạn."
+  },
+  "web.COMMON.get_started_button": {
+    "text": "Bắt đầu"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "text": "Xác nhận mật khẩu của bạn"
+  },
+  "web.COMMON.header_settings": {
+    "text": "Cài đặt"
+  },
+  "web.COMMON.submit_with": {
+    "text": "Gửi"
+  },
+  "web.COMMON.submitting": {
+    "text": "Đang gửi..."
+  },
+  "web.COMMON.processing": {
+    "text": "Đang xử lý..."
+  },
+  "web.COMMON.description": {
+    "text": "Giữ thông tin nhạy cảm ra khỏi nhật ký trò chuyện và email của bạn. Chia sẻ liên kết bí mật chỉ khả dụng một lần."
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "text": "Cụm mật khẩu không đúng"
+  },
+  "web.COMMON.keywords": {
+    "text": "bí mật,tạo mật khẩu,chia sẻ bí mật,onetime"
+  },
+  "web.COMMON.button_create_secret": {
+    "text": "Tạo liên kết bí mật"
+  },
+  "web.COMMON.button_generate_secret": {
+    "text": "Hoặc tạo mật khẩu ngẫu nhiên"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "text": "Tùy chọn quyền riêng tư"
+  },
+  "web.COMMON.secret_passphrase": {
+    "text": "Cụm mật khẩu"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "text": "Một từ hoặc cụm từ khó đoán"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "text": "Địa chỉ người nhận"
+  },
+  "web.COMMON.secret_placeholder": {
+    "text": "Nội dung bí mật ở đây..."
+  },
+  "web.COMMON.header_create_account": {
+    "text": "Tạo tài khoản"
+  },
+  "web.COMMON.header_about": {
+    "text": "Giới thiệu"
+  },
+  "web.COMMON.header_sign_in": {
+    "text": "Đăng nhập"
+  },
+  "web.COMMON.header_dashboard": {
+    "text": "Tài khoản"
+  },
+  "web.COMMON.header_logout": {
+    "text": "Đăng xuất"
+  },
+  "web.COMMON.secret": {
+    "text": "Bí mật"
+  },
+  "web.COMMON.recent": {
+    "text": "Gần đây"
+  },
+  "web.COMMON.received": {
+    "text": "Đã nhận"
+  },
+  "web.COMMON.burn": {
+    "text": "Xóa vĩnh viễn"
+  },
+  "web.COMMON.burned": {
+    "text": "Đã xóa vĩnh viễn"
+  },
+  "web.COMMON.expires_in": {
+    "text": "Hết hạn sau"
+  },
+  "web.COMMON.burn_this_secret": {
+    "text": "Xóa vĩnh viễn bí mật này"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "text": "Xóa vĩnh viễn bí mật sẽ xóa nó trước khi được đọc (nhấp để xác nhận)"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "text": "Xóa vĩnh viễn bí mật là không thể hoàn tác"
+  },
+  "web.COMMON.msg_check_email": {
+    "text": "Kiểm tra email của bạn"
+  },
+  "web.COMMON.click_to_continue": {
+    "text": "Nhấp để hiển thị →"
+  },
+  "web.COMMON.click_to_verify": {
+    "text": "Tiếp tục để xác minh tài khoản của bạn:"
+  },
+  "web.COMMON.error_secret": {
+    "text": "Bạn chưa cung cấp gì để chia sẻ"
+  },
+  "web.COMMON.error_passphrase": {
+    "text": "Kiểm tra lại cụm mật khẩu đó"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "text": "Nhập cụm mật khẩu ở đây"
+  },
+  "web.COMMON.view_secret": {
+    "text": "Xem bí mật"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "text": "Cẩn thận: chúng tôi chỉ hiển thị một lần."
+  },
+  "web.COMMON.warning": {
+    "text": "Cảnh báo"
+  },
+  "web.COMMON.oops": {
+    "text": "Rất tiếc!"
+  },
+  "web.COMMON.error": {
+    "text": "Lỗi"
+  },
+  "web.COMMON.unexpected_error": {
+    "text": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
+  },
+  "web.COMMON.secret_was_truncated": {
+    "text": "Tin nhắn đã được cắt ngắn"
+  },
+  "web.COMMON.signup_for_more": {
+    "text": "Đăng ký để có thêm"
+  },
+  "web.COMMON.login_to_your_account": {
+    "text": "Đăng nhập vào tài khoản của bạn"
+  },
+  "web.COMMON.sent_to": {
+    "text": "Đã gửi tới: "
+  },
+  "web.COMMON.field_email": {
+    "text": "Email"
+  },
+  "web.COMMON.field_password": {
+    "text": "Mật khẩu"
+  },
+  "web.COMMON.field_password2": {
+    "text": "Xác nhận mật khẩu"
+  },
+  "web.COMMON.button_create_account": {
+    "text": "Tạo tài khoản"
+  },
+  "web.COMMON.share_a_secret": {
+    "text": "Chia sẻ bí mật"
+  },
+  "web.COMMON.title_home": {
+    "text": "Trang chủ"
+  },
+  "web.COMMON.word_none": {
+    "text": "Không có"
+  },
+  "web.COMMON.word_burned": {
+    "text": "đã xóa vĩnh viễn"
+  },
+  "web.COMMON.word_received": {
+    "text": "đã nhận"
+  },
+  "web.COMMON.word_confirm": {
+    "text": "Xác nhận"
+  },
+  "web.COMMON.word_cancel": {
+    "text": "Hủy"
+  },
+  "web.COMMON.word_continue": {
+    "text": "Tiếp tục"
+  },
+  "web.COMMON.word_done": {
+    "text": "Xong"
+  },
+  "web.COMMON.back": {
+    "text": "Quay lại"
+  },
+  "web.COMMON.feedback_text": {
+    "text": "Chia sẻ suy nghĩ, ý tưởng hoặc trải nghiệm của bạn..."
+  },
+  "web.COMMON.button_send_feedback": {
+    "text": "Gửi phản hồi"
+  },
+  "web.COMMON.verification_sent_to": {
+    "text": "Xác minh đã được gửi tới"
+  },
+  "web.COMMON.autoverified_success": {
+    "text": "Tài khoản đã được tạo. Vui lòng đăng nhập."
+  },
+  "web.COMMON.signup_success_generic": {
+    "text": "Nếu tài khoản với email này tồn tại, bạn sẽ nhận được email xác minh."
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "text": "Xóa vĩnh viễn bí mật này"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "text": "Vui lòng xác nhận"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "text": "Bạn có chắc chắn muốn xóa vĩnh viễn bí mật này? Hành động này không thể hoàn tác."
+  },
+  "web.COMMON.confirm_burn": {
+    "text": "Có, xóa vĩnh viễn bí mật này"
+  },
+  "web.COMMON.burn_security_notice": {
+    "text": "Xóa vĩnh viễn bí mật sẽ xóa nó trước khi được nhận."
+  },
+  "web.COMMON.share_link_securely": {
+    "text": "Để bảo mật, chia sẻ liên kết này riêng biệt với các chi tiết khác."
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "text": "Đã sao chép vào clipboard"
+  },
+  "web.COMMON.button_create_incoming": {
+    "text": "Tạo yêu cầu nhận"
+  },
+  "web.COMMON.faq_title": {
+    "text": "Câu hỏi thường gặp"
+  },
+  "web.COMMON.verification_not_valid": {
+    "text": "Xác minh không hợp lệ"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "text": "Không thể xác minh tài khoản khi bạn đã đăng nhập"
+  },
+  "web.COMMON.show_password": {
+    "text": "Hiện mật khẩu"
+  },
+  "web.COMMON.hide_password": {
+    "text": "Ẩn mật khẩu"
+  },
+  "web.COMMON.minimum_8_characters": {
+    "text": "Mật khẩu phải có ít nhất 8 ký tự"
+  },
+  "web.COMMON.password_requirements": {
+    "text": "Mật khẩu phải dài ít nhất 8 ký tự"
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "text": "Mật khẩu không khớp"
+  },
+  "web.COMMON.form_field_required": {
+    "text": "Trường này là bắt buộc"
+  },
+  "web.COMMON.form_processing": {
+    "text": "Đang xử lý yêu cầu của bạn"
+  },
+  "web.COMMON.remember_me_description": {
+    "text": "Giữ tôi đăng nhập trong 30 ngày"
+  },
+  "web.COMMON.redirecting": {
+    "text": "Đang chuyển hướng..."
+  },
+  "web.COMMON.continue": {
+    "text": "Tiếp tục"
+  },
+  "web.COMMON.are_you_sure": {
+    "text": "Bạn có chắc chắn?"
+  },
+  "web.COMMON.danger_zone": {
+    "text": "Vùng nguy hiểm"
+  },
+  "web.COMMON.caution_zone": {
+    "text": "Vùng cân nhắc cẩn thận"
+  },
+  "web.COMMON.user_menu": {
+    "text": "Menu người dùng"
+  },
+  "web.COMMON.security": {
+    "text": "Bảo mật"
+  },
+  "web.COMMON.manage": {
+    "text": "Quản lý"
+  },
+  "web.COMMON.loading": {
+    "text": "Đang tải..."
+  },
+  "web.COMMON.save_changes": {
+    "text": "Lưu thay đổi"
+  },
+  "web.COMMON.saving": {
+    "text": "Đang lưu..."
+  },
+  "web.COMMON.adding_ellipses": {
+    "text": "Đang thêm..."
+  },
+  "web.COMMON.e_g_example": {
+    "text": "ví dụ:"
+  },
+  "web.COMMON.example_placeholder": {
+    "text": "ví dụ: {example}"
+  },
+  "web.COMMON.status": {
+    "text": "Trạng thái"
+  },
+  "web.COMMON.escape": {
+    "text": "Escape"
+  },
+  "web.COMMON.active": {
+    "text": "Hoạt động"
+  },
+  "web.COMMON.preview": {
+    "text": "Xem trước"
+  },
+  "web.COMMON.remove": {
+    "text": "Xóa"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "text": "Nhấn ESC để đóng"
+  },
+  "web.COMMON.enter": {
+    "text": "Enter"
+  },
+  "web.COMMON.important": {
+    "text": "Quan trọng"
+  },
+  "web.COMMON.language": {
+    "text": "Ngôn ngữ"
+  },
+  "web.COMMON.theme": {
+    "text": "Giao diện"
+  },
+  "web.COMMON.appearance": {
+    "text": "Giao diện"
+  },
+  "web.COMMON.done": {
+    "text": "Xong"
+  },
+  "web.COMMON.end": {
+    "text": "Kết thúc"
+  },
+  "web.COMMON.general": {
+    "text": "Chung"
+  },
+  "web.COMMON.note": {
+    "text": "Lưu ý"
+  },
+  "web.COMMON.monthly": {
+    "text": "Hàng tháng"
+  },
+  "web.COMMON.yearly": {
+    "text": "Hàng năm"
+  },
+  "web.COMMON.go_on_then": {
+    "text": "Tiếp tục đi."
+  },
+  "web.COMMON.loading_ellipses": {
+    "text": "Đang tải..."
+  },
+  "web.COMMON.not_received": {
+    "text": "CHƯA NHẬN"
+  },
+  "web.COMMON.confirm_password": {
+    "text": "Xác nhận mật khẩu"
+  },
+  "web.COMMON.new_password": {
+    "text": "Mật khẩu mới"
+  },
+  "web.COMMON.email_address": {
+    "text": "Địa chỉ email"
+  },
+  "web.COMMON.switch": {
+    "text": "chuyển"
+  },
+  "web.COMMON.features": {
+    "text": "Tính năng"
+  },
+  "web.COMMON.not_found": {
+    "text": "Không tìm thấy"
+  },
+  "web.COMMON.emoji_x": {
+    "text": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "text": "✅"
+  },
+  "web.COMMON.supported": {
+    "text": "Được hỗ trợ"
+  },
+  "web.COMMON.version": {
+    "text": "Phiên bản"
+  },
+  "web.COMMON.other": {
+    "text": "Khác"
+  },
+  "web.COMMON.min_width_1024px": {
+    "text": "(chiều rộng tối thiểu: 1024px)"
+  },
+  "web.COMMON.ctrl_enter": {
+    "text": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "text": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "text": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "text": "Đã sao chép địa chỉ email vào clipboard!"
+  },
+  "web.COMMON.value": {
+    "text": "Giá trị"
+  },
+  "web.COMMON.host": {
+    "text": "Máy chủ"
+  },
+  "web.COMMON.type": {
+    "text": "Loại"
+  },
+  "web.COMMON.previous": {
+    "text": "Trước"
+  },
+  "web.COMMON.next": {
+    "text": "Tiếp"
+  },
+  "web.COMMON.password_strength": {
+    "text": "Độ mạnh mật khẩu:"
+  },
+  "web.COMMON.great": {
+    "text": "Tuyệt vời"
+  },
+  "web.COMMON.pretty_good": {
+    "text": "Khá tốt"
+  },
+  "web.COMMON.fair": {
+    "text": "Khá"
+  },
+  "web.COMMON.meh": {
+    "text": "Tạm được"
+  },
+  "web.COMMON.not_great": {
+    "text": "Chưa tốt"
+  },
+  "web.COMMON.open_options": {
+    "text": "Mở tùy chọn"
+  },
+  "web.COMMON.inactive": {
+    "text": "Không hoạt động"
+  },
+  "web.COMMON.an_error_occurred": {
+    "text": "Đã xảy ra lỗi"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "text": "Sao chép bí mật vào clipboard"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "text": "Đã sao chép bí mật vào clipboard"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "text": "Kiểm tra lại cụm mật khẩu đó"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "text": "Nhấn nút sao chép bên dưới."
+  },
+  "web.LABELS.view_toggle.show": {
+    "text": "Hiển thị"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "text": "Ẩn"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "text": "Hiển thị thêm"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "text": "Ẩn bớt"
+  },
+  "web.LABELS.enable": {
+    "text": "Bật"
+  },
+  "web.LABELS.disable": {
+    "text": "Tắt"
+  },
+  "web.LABELS.stats": {
+    "text": "Thống kê"
+  },
+  "web.LABELS.timeline": {
+    "text": "Dòng thời gian"
+  },
+  "web.LABELS.lifespan": {
+    "text": "Thời gian tồn tại"
+  },
+  "web.LABELS.expiration_time": {
+    "text": "Thời gian hết hạn"
+  },
+  "web.LABELS.close": {
+    "text": "Đóng"
+  },
+  "web.LABELS.loading": {
+    "text": "Đang tải..."
+  },
+  "web.LABELS.cancel": {
+    "text": "Hủy"
+  },
+  "web.LABELS.saving": {
+    "text": "Đang lưu..."
+  },
+  "web.LABELS.saved": {
+    "text": "Đã lưu"
+  },
+  "web.LABELS.save": {
+    "text": "Lưu"
+  },
+  "web.LABELS.save_all": {
+    "text": "Lưu tất cả"
+  },
+  "web.LABELS.details": {
+    "text": "Chi tiết"
+  },
+  "web.LABELS.encrypted": {
+    "text": "Đã mã hóa"
+  },
+  "web.LABELS.secret_status": {
+    "text": "Trạng thái bí mật"
+  },
+  "web.LABELS.need_help": {
+    "text": "Cần trợ giúp?"
+  },
+  "web.LABELS.create_new_secret": {
+    "text": "Tạo bí mật mới"
+  },
+  "web.LABELS.actions": {
+    "text": "Hành động"
+  },
+  "web.LABELS.no_passphrase": {
+    "text": "Không yêu cầu cụm mật khẩu"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "text": "Sao chép vào clipboard"
+  },
+  "web.LABELS.receipts": {
+    "text": "Biên nhận"
+  },
+  "web.LABELS.share": {
+    "text": "Chia sẻ"
+  },
+  "web.LABELS.secret_link": {
+    "text": "Liên kết bí mật"
+  },
+  "web.LABELS.dismiss": {
+    "text": "Bỏ qua"
+  },
+  "web.LABELS.security_details": {
+    "text": "Chi tiết bảo mật"
+  },
+  "web.LABELS.items_count": {
+    "text": "{count} mục"
+  },
+  "web.LABELS.recipients_count": {
+    "text": "{count} người nhận"
+  },
+  "web.LABELS.view": {
+    "text": "Xem"
+  },
+  "web.LABELS.views": {
+    "text": "Lượt xem"
+  },
+  "web.LABELS.times_viewed": {
+    "text": "lần xem"
+  },
+  "web.LABELS.view_progress": {
+    "text": "Tiến độ xem"
+  },
+  "web.LABELS.help_section": {
+    "text": "Phần trợ giúp"
+  },
+  "web.LABELS.passphrase_protected": {
+    "text": "Được bảo vệ bằng cụm mật khẩu"
+  },
+  "web.LABELS.feedback_received": {
+    "text": "Đã nhận phản hồi."
+  },
+  "web.LABELS.sending_ellipses": {
+    "text": "Đang gửi..."
+  },
+  "web.LABELS.title_recent_secrets": {
+    "text": "Bí mật gần đây"
+  },
+  "web.LABELS.pricing": {
+    "text": "Bảng giá"
+  },
+  "web.LABELS.refresh": {
+    "text": "Làm mới"
+  },
+  "web.LABELS.reload": {
+    "text": "Tải lại"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "text": "Liên kết bí mật được tạo trong phiên này"
+  },
+  "web.LABELS.create_link_short": {
+    "text": "Tạo liên kết"
+  },
+  "web.LABELS.create_link": {
+    "text": "Tạo liên kết bí mật"
+  },
+  "web.LABELS.create_request_short": {
+    "text": "Tạo yêu cầu"
+  },
+  "web.LABELS.create_request": {
+    "text": "Tạo liên kết yêu cầu"
+  },
+  "web.LABELS.related_settings": {
+    "text": "Cài đặt liên quan"
+  },
+  "web.LABELS.creating_links_for": {
+    "text": "Đang tạo liên kết cho"
+  },
+  "web.LABELS.scope_indicator": {
+    "text": "Đang tạo bí mật trong {domain}"
+  },
+  "web.STATUS.new": {
+    "text": "Mới"
+  },
+  "web.STATUS.unread": {
+    "text": "Chưa đọc"
+  },
+  "web.STATUS.viewed": {
+    "text": "Đã mở liên kết"
+  },
+  "web.STATUS.received": {
+    "text": "Đã nhận"
+  },
+  "web.STATUS.burned": {
+    "text": "Đã xóa vĩnh viễn"
+  },
+  "web.STATUS.destroyed": {
+    "text": "Đã hủy"
+  },
+  "web.STATUS.expiring_soon": {
+    "text": "Sắp hết hạn"
+  },
+  "web.STATUS.created": {
+    "text": "Đã tạo"
+  },
+  "web.STATUS.expires": {
+    "text": "Hết hạn"
+  },
+  "web.STATUS.expired": {
+    "text": "Đã hết hạn"
+  },
+  "web.STATUS.orphaned": {
+    "text": "Đã mồ côi"
+  },
+  "web.STATUS.secured": {
+    "text": "Đã bảo mật"
+  },
+  "web.STATUS.securing": {
+    "text": "Đang bảo mật"
+  },
+  "web.STATUS.copied": {
+    "text": "Đã sao chép"
+  },
+  "web.STATUS.time_remaining": {
+    "text": "Thời gian còn lại"
+  },
+  "web.STATUS.new_description": {
+    "text": "Liên kết bí mật đã được tạo và chưa được xem"
+  },
+  "web.STATUS.unread_description": {
+    "text": "Liên kết bí mật đã được tạo và chưa được xem"
+  },
+  "web.STATUS.viewed_description": {
+    "text": "Liên kết bí mật đã được mở và sẵn sàng xem"
+  },
+  "web.STATUS.received_description": {
+    "text": "Bí mật đã được tiết lộ cho người nhận"
+  },
+  "web.STATUS.burned_description": {
+    "text": "Bí mật đã được xóa vĩnh viễn thủ công trước khi được xem"
+  },
+  "web.STATUS.destroyed_description": {
+    "text": "Bí mật đã được hủy vĩnh viễn"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "text": "Bí mật sẽ sớm hết hạn"
+  },
+  "web.STATUS.orphaned_description": {
+    "text": "Bí mật đã bị mồ côi và sẽ sớm bị hủy"
+  },
+  "web.STATUS.expired_description": {
+    "text": "Bí mật đã hết hạn trước khi được xem"
+  },
+  "web.STATUS.success": {
+    "text": "Thành công"
+  },
+  "web.STATUS.delivered": {
+    "text": "Đã gửi"
+  },
+  "web.STATUS.dns_incorrect": {
+    "text": "DNS không chính xác"
+  },
+  "web.STATUS.active": {
+    "text": "Hoạt động"
+  },
+  "web.STATUS.inactive": {
+    "text": "Không hoạt động"
+  },
+  "web.FEATURES.unlimited_views": {
+    "text": "Xem không giới hạn"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "text": "Thương hiệu tên miền đáng tin cậy"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "text": "Mã hóa khi truyền và khi lưu trữ"
+  },
+  "web.UNITS.ttl.duration": {
+    "text": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "text": "ngày"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "text": "giờ"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "text": "phút"
+  },
+  "web.UNITS.ttl.time.second": {
+    "text": "giây"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "text": "còn {count} {unit}"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "text": "ngày"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "text": "giờ"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "text": "phút"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "text": "giây"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.limited_views": {
+    "text": "giới hạn {count} lượt xem"
+  },
+  "web.UNITS.days_remaining": {
+    "text": "Còn {count} ngày"
+  },
+  "web.UNITS.hours_remaining": {
+    "text": "Còn {count} giờ"
+  },
+  "web.UNITS.minutes_remaining": {
+    "text": "Còn {count} phút"
+  },
+  "web.TITLES.incoming": {
+    "text": "Bí mật đến"
+  },
+  "web.TITLES.feedback": {
+    "text": "Phản hồi"
+  },
+  "web.TITLES.signin": {
+    "text": "Đăng nhập"
+  },
+  "web.TITLES.signup": {
+    "text": "Tạo tài khoản"
+  },
+  "web.TITLES.forgot_password": {
+    "text": "Quên mật khẩu"
+  },
+  "web.TITLES.reset_password": {
+    "text": "Đặt lại mật khẩu"
+  },
+  "web.TITLES.logout": {
+    "text": "Đang đăng xuất"
+  },
+  "web.TITLES.verify_account": {
+    "text": "Xác minh tài khoản"
+  },
+  "web.TITLES.mfa_verify": {
+    "text": "Xác thực hai yếu tố"
+  },
+  "web.TITLES.email_login": {
+    "text": "Đăng nhập bằng email"
+  },
+  "web.TITLES.accept_invitation": {
+    "text": "Chấp nhận lời mời"
+  },
+  "web.TITLES.secret": {
+    "text": "Bí mật"
+  },
+  "web.TITLES.metadata": {
+    "text": "Chi tiết bí mật"
+  },
+  "web.TITLES.receipt": {
+    "text": "Biên nhận bí mật"
+  },
+  "web.TITLES.burn_secret": {
+    "text": "Xóa vĩnh viễn bí mật"
+  },
+  "web.TITLES.dashboard": {
+    "text": "Bảng điều khiển"
+  },
+  "web.TITLES.recent": {
+    "text": "Bí mật gần đây"
+  },
+  "web.TITLES.domains": {
+    "text": "Tên miền tùy chỉnh"
+  },
+  "web.TITLES.domain_add": {
+    "text": "Thêm tên miền"
+  },
+  "web.TITLES.domain_verify": {
+    "text": "Xác minh tên miền"
+  },
+  "web.TITLES.domain_brand": {
+    "text": "Thương hiệu tên miền"
+  },
+  "web.TITLES.account": {
+    "text": "Cài đặt tài khoản"
+  },
+  "web.TITLES.data_region": {
+    "text": "Khu vực dữ liệu"
+  },
+  "web.TITLES.current_region": {
+    "text": "Khu vực hiện tại"
+  },
+  "web.TITLES.available_regions": {
+    "text": "Khu vực khả dụng"
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "text": "Tại sao chủ quyền dữ liệu quan trọng"
+  },
+  "web.TITLES.profile_settings": {
+    "text": "Cài đặt hồ sơ"
+  },
+  "web.TITLES.preferences_settings": {
+    "text": "Tùy chọn"
+  },
+  "web.TITLES.privacy_settings": {
+    "text": "Quyền riêng tư"
+  },
+  "web.TITLES.notification_settings": {
+    "text": "Thông báo"
+  },
+  "web.TITLES.change_email": {
+    "text": "Thay đổi email"
+  },
+  "web.TITLES.security_overview": {
+    "text": "Bảo mật"
+  },
+  "web.TITLES.change_password": {
+    "text": "Thay đổi mật khẩu"
+  },
+  "web.TITLES.mfa_settings": {
+    "text": "Xác thực hai yếu tố"
+  },
+  "web.TITLES.active_sessions": {
+    "text": "Phiên hoạt động"
+  },
+  "web.TITLES.recovery_codes": {
+    "text": "Mã khôi phục"
+  },
+  "web.TITLES.api_settings": {
+    "text": "Cài đặt API"
+  },
+  "web.TITLES.advanced_settings": {
+    "text": "Cài đặt nâng cao"
+  },
+  "web.TITLES.system_settings": {
+    "text": "Cài đặt hệ thống"
+  },
+  "web.TITLES.not_found": {
+    "text": "Không tìm thấy trang"
+  },
+  "web.TITLES.organizations_settings": {
+    "text": "Tổ chức"
+  },
+  "web.TITLES.organization_settings": {
+    "text": "Cài đặt tổ chức"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "text": "Con trỏ hiện đang ở vùng văn bản chính"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "text": "Hướng dẫn chia sẻ"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "text": "Chia sẻ liên kết với người nhận dự định"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "text": "Chia sẻ cụm mật khẩu riêng biệt qua kênh an toàn"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "text": "Sử dụng kênh an toàn khác để chia sẻ thông tin nhạy cảm"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "text": "Luôn xác minh bạn đang ở trang web chính thức của Onetime Secret. Kẻ lừa đảo đôi khi tạo trang web giả trông giống hệt Onetime Secret để đánh cắp bí mật của bạn. Để tránh các cuộc tấn công lừa đảo, kiểm tra tên miền khu vực trước khi tạo liên kết mới."
+  }
+}

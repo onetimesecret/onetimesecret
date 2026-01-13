@@ -1,0 +1,38 @@
+{
+  "web.testimonials.ai_generated_testimonial": {
+    "text": "AI生成の推薦文"
+  },
+  "web.testimonials.ai_generated_content_disclaimer": {
+    "text": "デモンストレーション用のAI生成コンテンツ。実際の人物や企業からのものではありません。"
+  },
+  "web.testimonials.randomtestimonial_stars_5": {
+    "text": "{0}/5"
+  },
+  "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
+    "text": "- {0}、{1}"
+  },
+  "web.testimonials.randomtestimonial_quote": {
+    "text": "「{0}」"
+  },
+  "web.testimonials.t_ai_generated_testimonial": {
+    "text": "{0}:"
+  },
+  "web.testimonials.what_leading_ai_says_about_us": {
+    "text": "先進的なAIが私たちについて言うこと"
+  },
+  "web.testimonials.ai_generated_testimonials": {
+    "text": "AI生成の推薦文"
+  },
+  "web.testimonials.this_quote_was_generated_by": {
+    "text": "この引用は次によって生成されました"
+  },
+  "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
+    "text": "ページの内容に基づいており、実際の人物や会社を表すものではありません。"
+  },
+  "web.testimonials.artificial_feedback": {
+    "text": "人工フィードバック"
+  },
+  "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
+    "text": "このコンテンツはページの内容に基づいてAIが生成したもので、実際の人物や会社を表すものではありません。"
+  }
+}

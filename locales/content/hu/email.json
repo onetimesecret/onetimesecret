@@ -1,0 +1,446 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[Jegy: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "text": "Egy ügyfél a következő információt küldte"
+  },
+  "email.secret_link.subject": {
+    "text": "%{sender_email} küldött önnek egy titkot"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "küldött önnek egy titkot:"
+  },
+  "email.secret_link.important_label": {
+    "text": "Fontos:"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "Ez a hivatkozás csak egyszer működik. Megtekintés után a titok véglegesen törlésre kerül."
+  },
+  "email.secret_link.sent_via": {
+    "text": "Küldve"
+  },
+  "email.welcome.subject": {
+    "text": "Erősítse meg Onetime Secret fiókját"
+  },
+  "email.welcome.title": {
+    "text": "Meghívást kapott a(z) %{product_name} szervezethez!"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "Kérjük, erősítse meg e-mail címét az alábbi hivatkozásra kattintva:"
+  },
+  "email.welcome.verify_button": {
+    "text": "E-mail cím megerősítése"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "Vagy másolja és illessze be ezt a hivatkozást:"
+  },
+  "email.welcome.signature": {
+    "text": "Delano"
+  },
+  "email.welcome.postscript": {
+    "text": "U.i. Ez az e-mail a következő címre lett küldve: %{email_address}. Ha nem várta ezt a meghívót, biztonságosan figyelmen kívül hagyhatja ezt az üzenetet."
+  },
+  "email.password_request.subject": {
+    "text": "Jelszó visszaállítása (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "text": "Jelszó visszaállítása"
+  },
+  "email.password_request.request_notice": {
+    "text": "Jelszó-visszaállítási kérelmet kaptunk a(z) %{product_name} fiókjához."
+  },
+  "email.password_request.reset_button": {
+    "text": "Jelszó visszaállítása"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "Vagy másolja és illessze be ezt a hivatkozást:"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "Ha nem kért jelszó-visszaállítást, biztonságosan figyelmen kívül hagyhatja ezt az e-mailt."
+  },
+  "email.password_request.signature": {
+    "text": "Delano"
+  },
+  "email.password_request.postscript": {
+    "text": "U.i. Ez az e-mail a következő címre lett küldve: %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "text": "Bejelentkezés: %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "text": "Bejelentkezés mágikus hivatkozással"
+  },
+  "email.magic_link.request_notice": {
+    "text": "Ön bejelentkezési hivatkozást kért a %{product_name} fiókjához."
+  },
+  "email.magic_link.login_button": {
+    "text": "Bejelentkezés"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "Vagy másolja és illessze be ezt a hivatkozást:"
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "Ez a hivatkozás 15 perc múlva lejár."
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "Ha nem Ön kérte ezt a hivatkozást, nyugodtan figyelmen kívül hagyhatja ezt az e-mailt."
+  },
+  "email.magic_link.signature": {
+    "text": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "text": "U.i. Ez az e-mail a következő címre lett elküldve: %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "text": "Titkos üzenetet kapott"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "Biztonságos üzenetet kapott:"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "Megjegyzés:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "Valaki biztonságos üzenetet küldött önnek a(z) %{display_domain} címen keresztül."
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "A titok megtekintéséhez kattintson az alábbi hivatkozásra:"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "Fontos:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "Ez a hivatkozás csak egyszer működik. Megtekintés után a titok véglegesen törlésre kerül."
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "Küldve"
+  },
+  "email.secret_revealed.subject": {
+    "text": "A titka megtekintésre került"
+  },
+  "email.secret_revealed.title": {
+    "text": "A titka megtekintésre került"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "A titka megtekintésre került: %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "Titok azonosítója:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "Ez egy automatikus értesítés. Nincs szükség további teendőre."
+  },
+  "email.secret_revealed.signature": {
+    "text": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "Értesítési beállítások kezelése"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "Az értesítési beállítások kezeléséhez:"
+  },
+  "email.expiration_warning.subject": {
+    "text": "A titok hivatkozása hamarosan lejár"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "A titok hivatkozása lejár: %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "Tekintse meg a titkot, mielőtt lejár"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "Emlékeztető:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "Lejárat után a titok véglegesen törlésre kerül, és nem állítható vissza."
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "Küldve"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "Tekintse meg, mielőtt eltűnik:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "Lejárat után a titok véglegesen törlésre kerül."
+  },
+  "email.feedback_email.subject": {
+    "text": "Visszajelzés %{date} dátummal a(z) %{display_domain} címről (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "text": "Felhasználói visszajelzés"
+  },
+  "email.feedback_email.from_label": {
+    "text": "Feladó:"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "Domain:"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "Stratégia:"
+  },
+  "email.feedback_email.message_label": {
+    "text": "Üzenet:"
+  },
+  "email.feedback_email.signature": {
+    "text": "Secret Support"
+  },
+  "email.organization_invitation.subject": {
+    "text": "Meghívást kapott a(z) %{organization_name} szervezethez"
+  },
+  "email.organization_invitation.title": {
+    "text": "Meghívást kapott a(z) %{organization_name} szervezethez!"
+  },
+  "email.organization_invitation.body": {
+    "text": "%{inviter_email} meghívta önt a(z) \"%{organization_name}\" szervezetbe %{role_description} szerepkörben."
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "Meghívó elfogadása"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "Vagy másolja és illessze be ezt a hivatkozást:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "Ez a meghívó %{days} nap múlva lejár."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "Ha nem szeretne csatlakozni, egyszerűen hagyja figyelmen kívül ezt az e-mailt, vagy utasítsa el a meghívót."
+  },
+  "email.organization_invitation.signature": {
+    "text": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "U.i. Ez az e-mail a következő címre lett küldve: %{invited_email}. Ha nem várta ezt a meghívót, biztonságosan figyelmen kívül hagyhatja ezt az üzenetet."
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "tag"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "adminisztrátor"
+  },
+  "email.password_changed.subject": {
+    "text": "A jelszava módosítva lett (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "text": "A jelszava módosítva lett"
+  },
+  "email.password_changed.body": {
+    "text": "A(z) %{product_name} jelszava módosítva lett: %{date} %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "text": "Ha nem ön végezte ezt a módosítást, azonnal biztosítsa fiókját a jelszó visszaállításával és a támogatás értesítésével."
+  },
+  "email.password_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_changed.subject": {
+    "text": "Az e-mail címe módosítva lett (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "text": "Az e-mail címe módosítva lett"
+  },
+  "email.email_changed.body": {
+    "text": "A(z) %{product_name} fiók e-mail címe módosítva lett erre: %{new_email_masked} (%{date})."
+  },
+  "email.email_changed.security_notice": {
+    "text": "Ha nem ön végezte ezt a módosítást, azonnal lépjen kapcsolatba a támogatással, mivel a fiókja veszélyben lehet."
+  },
+  "email.email_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "Erősítse meg új e-mail címét (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "Erősítse meg új e-mail címét"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "Kérjük, erősítse meg ezt az e-mail címet a(z) %{product_name} fiók módosításának befejezéséhez."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "E-mail cím megerősítése"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "Vagy másolja és illessze be ezt a hivatkozást:"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "Kétlépcsős hitelesítés engedélyezve (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "text": "Kétlépcsős hitelesítés engedélyezve"
+  },
+  "email.mfa_enabled.body": {
+    "text": "A kétlépcsős hitelesítés engedélyezve lett a(z) %{product_name} fiókjához: %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "A fiókja most biztonságosabb. Bejelentkezéskor meg kell adnia a hitelesítő alkalmazásból származó ellenőrző kódot."
+  },
+  "email.mfa_enabled.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "Kétlépcsős hitelesítés letiltva (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "text": "Kétlépcsős hitelesítés letiltva"
+  },
+  "email.mfa_disabled.body": {
+    "text": "A kétlépcsős hitelesítés letiltásra került a(z) %{product_name} fiókjához: %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "A fiókja most kevésbé biztonságos. Ha nem ön végezte ezt a módosítást, azonnal biztosítsa fiókját."
+  },
+  "email.mfa_disabled.signature": {
+    "text": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "text": "Új bejelentkezés a fiókjába (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "text": "Új bejelentkezés észlelve"
+  },
+  "email.new_login_alert.body": {
+    "text": "Új bejelentkezés észlelve a(z) %{product_name} fiókjába: %{date} %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "text": "Eszköz:"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "Hely:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "IP-cím:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "Ha ez nem ön volt, a fiókja veszélyben lehet."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "Fiók biztosítása"
+  },
+  "email.new_login_alert.signature": {
+    "text": "Delano"
+  },
+  "email.member_removed.subject": {
+    "text": "Eltávolították önt a(z) %{organization_name} szervezetből"
+  },
+  "email.member_removed.title": {
+    "text": "Eltávolították önt a(z) %{organization_name} szervezetből"
+  },
+  "email.member_removed.body": {
+    "text": "Eltávolították önt a(z) \"%{organization_name}\" szervezetből a(z) %{product_name} szolgáltatásban."
+  },
+  "email.member_removed.signature": {
+    "text": "Delano"
+  },
+  "email.role_changed.subject": {
+    "text": "A szerepe módosítva lett a(z) %{organization_name} szervezetben"
+  },
+  "email.role_changed.title": {
+    "text": "A szerepe módosítva lett"
+  },
+  "email.role_changed.body": {
+    "text": "A szerepe a(z) \"%{organization_name}\" szervezetben %{old_role} szerepről %{new_role} szerepre módosult."
+  },
+  "email.role_changed.signature": {
+    "text": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "text": "A(z) \"%{organization_name}\" szervezet törölve lett"
+  },
+  "email.organization_deleted.title": {
+    "text": "Szervezet törölve"
+  },
+  "email.organization_deleted.body": {
+    "text": "A(z) \"%{organization_name}\" szervezet törölve lett a(z) %{product_name} szolgáltatásból. Minden kapcsolódó adat eltávolításra került."
+  },
+  "email.organization_deleted.signature": {
+    "text": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "text": "Fizetési nyugta a(z) %{product_name} szolgáltatáshoz"
+  },
+  "email.payment_receipt.title": {
+    "text": "Fizetési nyugta"
+  },
+  "email.payment_receipt.body": {
+    "text": "Köszönjük a befizetést. Itt vannak a fizetési részletek:"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "Összeg:"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "Dátum:"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "Csomag:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "Számla megtekintése"
+  },
+  "email.payment_receipt.signature": {
+    "text": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "text": "A fizetés sikertelen volt a(z) %{product_name} szolgáltatáshoz"
+  },
+  "email.payment_failed.title": {
+    "text": "A fizetés sikertelen"
+  },
+  "email.payment_failed.body": {
+    "text": "Nem sikerült feldolgozni a(z) %{product_name} szolgáltatáshoz történő befizetést. Kérjük, frissítse fizetési módját a szolgáltatás megszakításának elkerülése érdekében."
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "Fizetési mód frissítése"
+  },
+  "email.payment_failed.signature": {
+    "text": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "text": "A(z) %{product_name} próbaidőszaka %{days_remaining} nap múlva lejár"
+  },
+  "email.trial_expiring.title": {
+    "text": "A próbaidőszaka hamarosan véget ér"
+  },
+  "email.trial_expiring.body": {
+    "text": "A(z) %{product_name} ingyenes próbaidőszaka %{days_remaining} nap múlva lejár. Frissítsen most, hogy megtartsa a hozzáférést az összes funkcióhoz."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "Frissítés most"
+  },
+  "email.trial_expiring.signature": {
+    "text": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "text": "A(z) %{product_name} előfizetése módosítva lett"
+  },
+  "email.subscription_changed.title": {
+    "text": "Előfizetés módosítva"
+  },
+  "email.subscription_changed.body": {
+    "text": "A(z) %{product_name} előfizetése módosítva lett erről: %{old_plan} erre: %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "Ez a módosítás hatályba lép: %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "text": "Delano"
+  },
+  "email.common.greeting": {
+    "text": "Üdvözöljük,"
+  },
+  "email.common.thanks": {
+    "text": "Köszönjük,"
+  },
+  "email.common.unsubscribe": {
+    "text": "Leiratkozás"
+  },
+  "email.common.view_in_browser": {
+    "text": "Megtekintés böngészőben"
+  },
+  "email.common.onetime_secret": {
+    "text": "Onetime Secret"
+  }
+}

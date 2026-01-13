@@ -40,27 +40,6 @@
       "recentActivity": "Letzte Aktivitäten",
       "viewAll": "Alle anzeigen",
       "activityPlaceholder": "Aktivitätsdaten werden hier angezeigt",
-      "stats": {
-        "totalSecrets": "",
-        "activeUsers": "",
-        "secretsToday": "",
-        "secretsCreated": "",
-        "secretsShared": "",
-        "totalCustomers": "",
-        "emailsSent": "",
-        "systemHealth": "",
-        "healthy": ""
-      },
-      "actions": {
-        "viewActivity": "",
-        "viewActivityDesc": "",
-        "manageAccounts": "",
-        "manageAccountsDesc": "",
-        "configureDomains": "",
-        "configureDomainsDesc": "",
-        "systemSettings": "",
-        "systemSettingsDesc": ""
-      },
       "backgroundJobs": "Hintergrund-Jobs",
       "queueStatus": "Warteschlangenstatus",
       "queueName": "Warteschlange",

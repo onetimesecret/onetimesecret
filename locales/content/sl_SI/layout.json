@@ -1,0 +1,245 @@
+{
+  "web.footer.api_docs": {
+    "text": "API dokumentacija"
+  },
+  "web.footer.branding_guide": {
+    "text": "Vodnik za blagovno znamko"
+  },
+  "web.footer.customize": {
+    "text": "Prilagodi"
+  },
+  "web.footer.plans": {
+    "text": "Paketi"
+  },
+  "web.footer.security": {
+    "text": "Varnost"
+  },
+  "web.footer.learn_about_our_security_measures": {
+    "text": "Več o naših varnostnih ukrepih"
+  },
+  "web.footer.view_our_terms_and_conditions": {
+    "text": "Oglejte si naše pogoje poslovanja"
+  },
+  "web.footer.terms": {
+    "text": "Pogoji"
+  },
+  "web.footer.privacy": {
+    "text": "Zasebnost"
+  },
+  "web.footer.contact": {
+    "text": "Kontakt"
+  },
+  "web.footer.support": {
+    "text": "Podpora"
+  },
+  "web.footer.legals": {
+    "text": "Pravno"
+  },
+  "web.footer.read_our_privacy_policy": {
+    "text": "Preberite našo politiko zasebnosti"
+  },
+  "web.footer.check_our_service_status": {
+    "text": "Preverite status naše storitve"
+  },
+  "web.footer.explore_our_api_documentation": {
+    "text": "Raziščite našo dokumentacijo API"
+  },
+  "web.footer.docs": {
+    "text": "Dokumentacija"
+  },
+  "web.footer.access_our_documentation": {
+    "text": "Dostopajte do naše dokumentacije"
+  },
+  "web.footer.view_our_source_code_on_github": {
+    "text": "Oglejte si našo izvorno kodo na GitHub"
+  },
+  "web.footer.resources": {
+    "text": "Viri"
+  },
+  "web.footer.blog": {
+    "text": "Blog"
+  },
+  "web.footer.read_our_latest_blog_posts": {
+    "text": "Preberite naše najnovejše objave na blogu"
+  },
+  "web.footer.view_our_subscription_pricing": {
+    "text": "Oglejte si naše cene naročnin"
+  },
+  "web.footer.learn_about_our_company": {
+    "text": "Izvedite več o našem podjetju"
+  },
+  "web.footer.company": {
+    "text": "Podjetje"
+  },
+  "web.navigation.billing": {
+    "text": "Plačila"
+  },
+  "web.navigation.billingOverview": {
+    "text": "Pregled"
+  },
+  "web.navigation.organizations": {
+    "text": "Organizacije"
+  },
+  "web.site.website_version": {
+    "text": "Različica spletne strani"
+  },
+  "web.meta.were_making_onetime_secret_available_in_multiple": {
+    "text": "Onetime Secret je na voljo v več jezikih. Ker je to nova funkcija, lahko naletite na napake v prevodu ali nerodno izražanje. Vaše povratne informacije nam pomagajo izboljšati - če opazite težave, {send-feedback}"
+  },
+  "web.meta.translations_are_new_spotted_an_error": {
+    "text": "Prevodi so novi. Opazili ste napako? {send-feedback}"
+  },
+  "web.meta.we_recently_added_translations": {
+    "text": "Nedavno smo dodali prevode. Opazili ste napako? {send-feedback}"
+  },
+  "web.meta.privacy_and_security_should_be_accessible": {
+    "text": "Zasebnost in varnost bi morali biti dostopni vsem, ne glede na jezik. Dodajamo prevode, da našim uporabnikom in njihovim prejemnikom sporočil pomagamo bolje razumeti, kako varno uporabljati in dostopati do varnih sporočil in povezav. Ker je to nova funkcija, lahko naletite na napake v prevodu ali nejasna navodila. Za pomoč pri izboljšanju jasnosti in točnosti naših prevodov, zlasti za kritično varnostno vsebino, {send-feedback}, če opazite težave"
+  },
+  "web.help.learn_more": {
+    "text": "Več informacij"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.title": {
+    "text": "Kaj gledam?"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.description": {
+    "text": "Ogledujete si varno sporočilo, ki je bilo z vami deljeno preko Onetime Secret. Ta vsebina je prikazana samo enkrat in nato trajno izbrisana z naših strežnikov."
+  },
+  "web.help.secret_view_faq.can_i_view_again.title": {
+    "text": "Ali lahko to skrivnost znova pogledam kasneje?"
+  },
+  "web.help.secret_view_faq.can_i_view_again.description": {
+    "text": "Ne. Iz varnostnih razlogov je ta skrivnost vidna samo enkrat. Po zaprtju te strani bo vsebina trajno izbrisana in je nihče, vključno z nami, ne bo mogel obnoviti."
+  },
+  "web.help.secret_view_faq.how_to_copy.title": {
+    "text": "Kako shranim te informacije?"
+  },
+  "web.help.secret_view_faq.how_to_copy.description": {
+    "text": "Uporabite gumb 'Kopiraj v odložišče' za kopiranje celotne skrivnosti. Za daljše skrivnosti se prepričajte, da ste kopirali celotno vsebino, preden zapustite to stran."
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.title": {
+    "text": "Ali se moj ogled te skrivnosti sledi?"
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.description": {
+    "text": "Pošiljatelj bo obveščen, da je bila njegova skrivnost ogledana, vendar ne sledimo, kdo jo je ogledal ali od kod. Vaša zasebnost je zaščitena."
+  },
+  "web.help.secret_view_faq.one_time_warning": {
+    "text": "Ko zapustite ali osvežite to stran, bo ta skrivnost trajno izbrisana in je nihče ne bo mogel obnoviti."
+  },
+  "web.layout.go_back_to_previous_page": {
+    "text": "Pojdi nazaj na prejšnjo stran"
+  },
+  "web.layout.site_footer": {
+    "text": "Noga spletne strani"
+  },
+  "web.layout.toggle_dark_mode": {
+    "text": "Preklopi temni način"
+  },
+  "web.layout.provide_feedback": {
+    "text": "Posredujte povratne informacije"
+  },
+  "web.layout.company_logo": {
+    "text": "Logotip podjetja"
+  },
+  "web.layout.brand_logo": {
+    "text": "Logotip blagovne znamke"
+  },
+  "web.layout.dashboard_navigation": {
+    "text": "Navigacija nadzorne plošče"
+  },
+  "web.layout.mobile_navigation": {
+    "text": "Mobilna navigacija"
+  },
+  "web.layout.main_navigation": {
+    "text": "Glavna navigacija"
+  },
+  "web.layout.mobile_nav_item_count": {
+    "text": "{count} elementov"
+  },
+  "web.layout.release_notes": {
+    "text": "Opombe ob izdaji"
+  },
+  "web.layout.loading_settings_content": {
+    "text": "Nalagam vsebino nastavitev..."
+  },
+  "web.layout.settings_sections_0": {
+    "text": "Razdelki nastavitev"
+  },
+  "web.layout.close_settings": {
+    "text": "Zapri nastavitve"
+  },
+  "web.layout.settings_sections": {
+    "text": "Razdelki nastavitev"
+  },
+  "web.layout.customize_your_app_preferences_and_settings": {
+    "text": "Prilagodite svoje preference in nastavitve aplikacije"
+  },
+  "web.layout.return_home": {
+    "text": "Vrni se domov"
+  },
+  "web.layout.return_to_home_page": {
+    "text": "Vrni se na domačo stran"
+  },
+  "web.layout.return_to_home": {
+    "text": "Vrni se domov"
+  },
+  "web.layout.view_privacy_policy": {
+    "text": "Oglejte si politiko zasebnosti"
+  },
+  "web.layout.view_terms_of_service": {
+    "text": "Oglejte si pogoje storitve"
+  },
+  "web.layout.visit_onetime_secret_homepage": {
+    "text": "Obiščite domačo stran Onetime Secret"
+  },
+  "web.layout.footer_navigation": {
+    "text": "Navigacija noge"
+  },
+  "web.layout.terms_of_service": {
+    "text": "Pogoji storitve"
+  },
+  "web.layout.privacy_policy": {
+    "text": "Politika zasebnosti"
+  },
+  "web.layout.icon_library": {
+    "text": "Knjižnica ikon"
+  },
+  "web.layout.google_material": {
+    "text": "Google Material"
+  },
+  "web.layout.material_design_icons": {
+    "text": "Material Design Icons"
+  },
+  "web.layout.heroicons": {
+    "text": "Heroicons"
+  },
+  "web.layout.carbon": {
+    "text": "Carbon"
+  },
+  "web.layout.font_awesome_6": {
+    "text": "Font Awesome 6"
+  },
+  "web.layout.view_source_on_github": {
+    "text": "Oglejte si izvorno kodo na GitHub"
+  },
+  "web.layout.website_version_v_ot_version": {
+    "text": "Različica spletne strani: v{0}"
+  },
+  "web.layout.current_language_is_currentlocal": {
+    "text": "Spremeni jezik. Trenutni jezik je {0}"
+  },
+  "web.layout.language_changed_to_newlocale": {
+    "text": "Jezik spremenjen v {0}"
+  },
+  "web.layout.switch_to_blank_mode": {
+    "text": "Preklopi v {0} način"
+  },
+  "web.layout.blank_mode_enabled": {
+    "text": "{0} način omogočen"
+  },
+  "web.layout.workspace": {
+    "text": "Delovni prostor"
+  },
+  "web.layout.workspace_context": {
+    "text": "Kontekst delovnega prostora"
+  }
+}

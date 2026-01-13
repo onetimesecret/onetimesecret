@@ -1,0 +1,245 @@
+{
+  "web.footer.api_docs": {
+    "text": "API документация"
+  },
+  "web.footer.branding_guide": {
+    "text": "Ръководство за брандиране"
+  },
+  "web.footer.customize": {
+    "text": "Персонализирай"
+  },
+  "web.footer.plans": {
+    "text": "Планове"
+  },
+  "web.footer.security": {
+    "text": "Сигурност"
+  },
+  "web.footer.learn_about_our_security_measures": {
+    "text": "Научете повече за нашите мерки за сигурност"
+  },
+  "web.footer.view_our_terms_and_conditions": {
+    "text": "Прегледайте нашите Общи условия"
+  },
+  "web.footer.terms": {
+    "text": "Условия"
+  },
+  "web.footer.privacy": {
+    "text": "Поверителност"
+  },
+  "web.footer.contact": {
+    "text": "Контакт"
+  },
+  "web.footer.support": {
+    "text": "Поддръжка"
+  },
+  "web.footer.legals": {
+    "text": "Правни документи"
+  },
+  "web.footer.read_our_privacy_policy": {
+    "text": "Прочетете нашата Политика за поверителност"
+  },
+  "web.footer.check_our_service_status": {
+    "text": "Проверете състоянието на нашата услуга"
+  },
+  "web.footer.explore_our_api_documentation": {
+    "text": "Разгледайте нашата API документация"
+  },
+  "web.footer.docs": {
+    "text": "Документация"
+  },
+  "web.footer.access_our_documentation": {
+    "text": "Достъп до нашата документация"
+  },
+  "web.footer.view_our_source_code_on_github": {
+    "text": "Прегледайте нашия изходен код в GitHub"
+  },
+  "web.footer.resources": {
+    "text": "Ресурси"
+  },
+  "web.footer.blog": {
+    "text": "Блог"
+  },
+  "web.footer.read_our_latest_blog_posts": {
+    "text": "Прочетете нашите последни блог публикации"
+  },
+  "web.footer.view_our_subscription_pricing": {
+    "text": "Прегледайте нашите цени за абонаменти"
+  },
+  "web.footer.learn_about_our_company": {
+    "text": "Научете повече за нашата компания"
+  },
+  "web.footer.company": {
+    "text": "Компания"
+  },
+  "web.navigation.billing": {
+    "text": "Фактуриране"
+  },
+  "web.navigation.billingOverview": {
+    "text": "Общ преглед"
+  },
+  "web.navigation.organizations": {
+    "text": "Организации"
+  },
+  "web.site.website_version": {
+    "text": "Версия на уебсайта"
+  },
+  "web.meta.were_making_onetime_secret_available_in_multiple": {
+    "text": "Правим {onetime-secret} достъпен на множество езици. Тъй като това е нова функция, може да срещнете грешки в превода или неловки формулировки. Вашата обратна връзка ни помага да се подобрим - ако забележите някакви проблеми, моля {send-feedback}"
+  },
+  "web.meta.translations_are_new_spotted_an_error": {
+    "text": "Преводите са нови. Забелязахте грешка? {send-feedback}"
+  },
+  "web.meta.we_recently_added_translations": {
+    "text": "Наскоро добавихме преводи. Забелязахте грешка? {send-feedback}"
+  },
+  "web.meta.privacy_and_security_should_be_accessible": {
+    "text": "Поверителността и сигурността трябва да бъдат достъпни за всички, независимо от езика. Добавяме преводи, за да помогнем както на нашите потребители, така и на получателите на техните съобщения да разберат по-добре как безопасно да използват и достъпват сигурни съобщения и връзки. Тъй като това е нова функция, може да срещнете грешки в превода или неясни инструкции. За да ни помогнете да подобрим яснотата и точността на нашите преводи, особено за критично съдържание, свързано със сигурността, моля {send-feedback}, ако забележите някакви проблеми"
+  },
+  "web.help.learn_more": {
+    "text": "Научете повече"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.title": {
+    "text": "Какво гледам?"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.description": {
+    "text": "Преглеждате сигурно съобщение, споделено с вас чрез Onetime Secret. Съдържанието се показва само веднъж, след което се изтрива перманентно от нашите сървъри."
+  },
+  "web.help.secret_view_faq.can_i_view_again.title": {
+    "text": "Мога ли да го видя отново по-късно?"
+  },
+  "web.help.secret_view_faq.can_i_view_again.description": {
+    "text": "Не. От съображения за сигурност, тази тайна е видима само веднъж. След затварянето на тази страница, съдържанието ще бъде перманентно изтрито и няма да може да бъде възстановено от никого, включително от нас."
+  },
+  "web.help.secret_view_faq.how_to_copy.title": {
+    "text": "Как да запазя тази информация?"
+  },
+  "web.help.secret_view_faq.how_to_copy.description": {
+    "text": "Използвайте бутона 'Копирай в клипборда', за да копирате цялата тайна. За по-дълги тайни, уверете се, че сте копирали пълното съдържание, преди да напуснете тази страница."
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.title": {
+    "text": "Записва ли се прегледът ми на тази тайна?"
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.description": {
+    "text": "Изпращачът ще бъде уведомен, че неговата тайна е била прегледана, но ние не записваме кой я е прегледал или от коя локация. Вашата поверителност е защитена."
+  },
+  "web.help.secret_view_faq.one_time_warning": {
+    "text": "След като напуснете или обновите тази страница, тази тайна ще бъде перманентно изтрита и няма да може да бъде възстановена от никого."
+  },
+  "web.layout.go_back_to_previous_page": {
+    "text": "Върни се на предишната страница"
+  },
+  "web.layout.site_footer": {
+    "text": "Долен колонтитул на сайта"
+  },
+  "web.layout.toggle_dark_mode": {
+    "text": "Превключване на тъмен режим"
+  },
+  "web.layout.provide_feedback": {
+    "text": "Предоставете обратна връзка"
+  },
+  "web.layout.company_logo": {
+    "text": "Лого на компанията"
+  },
+  "web.layout.brand_logo": {
+    "text": "Лого на марката"
+  },
+  "web.layout.dashboard_navigation": {
+    "text": "Навигация в таблото за управление"
+  },
+  "web.layout.mobile_navigation": {
+    "text": "Мобилна навигация"
+  },
+  "web.layout.main_navigation": {
+    "text": "Основна навигация"
+  },
+  "web.layout.mobile_nav_item_count": {
+    "text": "{count} елемента"
+  },
+  "web.layout.release_notes": {
+    "text": "Бележки за версията"
+  },
+  "web.layout.loading_settings_content": {
+    "text": "Зареждане на съдържанието на настройките..."
+  },
+  "web.layout.settings_sections_0": {
+    "text": "Секции с настройки"
+  },
+  "web.layout.close_settings": {
+    "text": "Затвори настройките"
+  },
+  "web.layout.settings_sections": {
+    "text": "Секции с настройки"
+  },
+  "web.layout.customize_your_app_preferences_and_settings": {
+    "text": "Персонализирайте предпочитанията и настройките на вашето приложение"
+  },
+  "web.layout.return_home": {
+    "text": "Върни се у дома"
+  },
+  "web.layout.return_to_home_page": {
+    "text": "Върни се на началната страница"
+  },
+  "web.layout.return_to_home": {
+    "text": "Върни се към дома"
+  },
+  "web.layout.view_privacy_policy": {
+    "text": "Преглед на политиката за поверителност"
+  },
+  "web.layout.view_terms_of_service": {
+    "text": "Преглед на условията за ползване"
+  },
+  "web.layout.visit_onetime_secret_homepage": {
+    "text": "Посетете началната страница на Onetime Secret"
+  },
+  "web.layout.footer_navigation": {
+    "text": "Навигация в долния колонтитул"
+  },
+  "web.layout.terms_of_service": {
+    "text": "Условия за ползване"
+  },
+  "web.layout.privacy_policy": {
+    "text": "Политика за поверителност"
+  },
+  "web.layout.icon_library": {
+    "text": "Библиотека с икони"
+  },
+  "web.layout.google_material": {
+    "text": "Google Material"
+  },
+  "web.layout.material_design_icons": {
+    "text": "Material Design икони"
+  },
+  "web.layout.heroicons": {
+    "text": "Heroicons"
+  },
+  "web.layout.carbon": {
+    "text": "Carbon"
+  },
+  "web.layout.font_awesome_6": {
+    "text": "Font Awesome 6"
+  },
+  "web.layout.view_source_on_github": {
+    "text": "Преглед на изходния код в GitHub"
+  },
+  "web.layout.website_version_v_ot_version": {
+    "text": "Версия на уебсайта: v{0}"
+  },
+  "web.layout.current_language_is_currentlocal": {
+    "text": "Промени езика. Текущият език е {0}"
+  },
+  "web.layout.language_changed_to_newlocale": {
+    "text": "Езикът е променен на {0}"
+  },
+  "web.layout.switch_to_blank_mode": {
+    "text": "Превключете към {0} режим"
+  },
+  "web.layout.blank_mode_enabled": {
+    "text": "{0} режим е активиран"
+  },
+  "web.layout.workspace": {
+    "text": "Работно пространство"
+  },
+  "web.layout.workspace_context": {
+    "text": "Контекст на работното пространство"
+  }
+}

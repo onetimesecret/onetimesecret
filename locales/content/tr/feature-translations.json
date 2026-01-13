@@ -1,0 +1,71 @@
+{
+  "web.translations.welcomes_contributors_for_both_existing_and_new_": {
+    "text": "hem mevcut hem de yeni diller için katkıda bulunanları memnuniyetle karşılar."
+  },
+  "web.translations.our_github_project": {
+    "text": "GitHub projemiz"
+  },
+  "web.translations.if_youre_interested_in_translation": {
+    "text": "Çeviriyle ilgileniyorsanız,"
+  },
+  "web.translations.whove_helped_with_translations_as_we_continue_to": {
+    "text": "yeni özellikler geliştirmeye devam ederken çevirilere yardımcı olan."
+  },
+  "web.translations.25_contributors": {
+    "text": "25+ katkıda bulunan"
+  },
+  "web.translations.were_grateful_to_the": {
+    "text": "Minnettarız"
+  },
+  "web.translations.as_we_add_new_features_our_translations_graduall": {
+    "text": "Yeni özellikler ekledikçe, çevirilerimizin güncel kalması için kademeli olarak güncellemelere ihtiyacı vardır. Bu, hem onetimesecret.com'u hem de dünya çapındaki binlerce kendi kendine barındırılan kurulumu etkiler."
+  },
+  "web.translations.remember_to_include_your_email_if_youre_not_logg": {
+    "text": "- giriş yapmadıysanız e-postanızı eklemeyi unutmayın. Her çeviri daha fazla insanın güvenli bir şekilde iletişim kurmasına yardımcı olur."
+  },
+  "web.translations.reach_out_to_us": {
+    "text": "Bize ulaşın"
+  },
+  "web.translations.have_questions": {
+    "text": "Sorularınız mı var?"
+  },
+  "web.translations.send_translations_by_email_to": {
+    "text": "Çevirileri e-posta ile şuraya gönderin"
+  },
+  "web.translations.english_template": {
+    "text": "İngilizce şablon"
+  },
+  "web.translations.start_a_new_translation_from_our": {
+    "text": "Şuradan yeni bir çeviri başlatın"
+  },
+  "web.translations.update_a_language_directly_through_our_github_pr": {
+    "text": "GitHub projemiz aracılığıyla bir dili doğrudan güncelleyin"
+  },
+  "web.translations.review_existing_translations_using_the_language_": {
+    "text": "Yukarıdaki dil seçiciyi kullanarak mevcut çevirileri inceleyin"
+  },
+  "web.translations.ready_to_help_some_ways_to_contribute": {
+    "text": "Yardıma hazır mısınız? Katkıda bulunmanın bazı yolları:"
+  },
+  "web.translations.the_following_people_have_donated_their_time_to_": {
+    "text": "Aşağıdaki kişiler, Onetime Secret'ın erişimini genişletmeye yardımcı olmak için zamanlarını bağışladılar:"
+  },
+  "web.translations.translations": {
+    "text": "Çeviriler"
+  },
+  "web.translations.fork_on_github_and_submit_a_pr": {
+    "text": "GitHub'da Forklayın ve PR Gönderin"
+  },
+  "web.translations.your_language_skills_can_help_expand_access_to_s": {
+    "text": "Dil becerileriniz güvenli iletişime erişimi genişletmeye yardımcı olabilir."
+  },
+  "web.translations.thanks_to_our_community_we_support_over_20_langu": {
+    "text": "Topluluğumuz sayesinde bugün 20'den fazla dili destekliyoruz. Ancak hızlı geliştirme hızımız nedeniyle birçok çevirinin güncel kalması için güncellemelere ihtiyacı var. Bu, hem onetimesecret.com'u hem de dünya çapındaki binlerce kendi kendine barındırılan kurulumu etkiler."
+  },
+  "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
+    "text": "2012'den beri Onetime Secret, dünya çapında hassas bilgileri paylaşmanın güvenli bir yolunu sunmaktadır. İngilizce'nin birincil dil olmadığı bölgelerdeki kullanıcılarla, güvenli iletişimi herkes için erişilebilir kılmak için doğru çeviriler esastır."
+  },
+  "web.translations.help_secure_communication_go_global": {
+    "text": "Güvenli İletişimin Küreselleşmesine Yardımcı Olun"
+  }
+}

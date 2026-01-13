@@ -1,0 +1,107 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "数据主权与区域隔离"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "您的数据仅存储在您选择的区域，永不跨区域传输"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "每个区域作为完全独立的环境运行，拥有自己的基础设施、加密密钥和数据存储"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "我们坚持严格的政策：客户数据在任何情况下都不会在区域之间传输"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "重要提示：切换到不同区域会创建新账户。您的数据保留在原始区域。"
+  },
+  "web.regions.your_region": {
+    "text": "您的区域"
+  },
+  "web.regions.your_current_region": {
+    "text": "您的当前区域"
+  },
+  "web.regions.active": {
+    "text": "活跃"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "探索其他可用区域"
+  },
+  "web.regions.why_it_matters": {
+    "text": "数据主权的重要性"
+  },
+  "web.regions.trust_title": {
+    "text": "透明度与控制"
+  },
+  "web.regions.trust_description": {
+    "text": "准确了解您的数据存储位置以及管辖其保护的法律。"
+  },
+  "web.regions.privacy_title": {
+    "text": "隐私权"
+  },
+  "web.regions.privacy_description": {
+    "text": "确保您的个人信息根据您所在国家的隐私法律和法规处理，防止未经授权的访问或滥用。"
+  },
+  "web.regions.compliance_title": {
+    "text": "监管合规"
+  },
+  "web.regions.compliance_description": {
+    "text": "满足 GDPR、HIPAA、CCPA 和其他区域数据保护要求"
+  },
+  "web.regions.performance_title": {
+    "text": "更快的访问"
+  },
+  "web.regions.performance_description": {
+    "text": "数据存储在离您更近的地方意味着更低的延迟和更好的性能。"
+  },
+  "web.regions.regions": {
+    "text": "区域"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "联系我们的合规团队"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "查看我们的文档"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "您的账户和数据受以下法律保护"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "您的监管框架由您的访问域名决定："
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "每个区域都是完全独立的，拥有自己的基础设施，在可能的情况下拥有自己的本地托管提供商。您可以在多个区域创建账户，但它们之间不共享数据。"
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "有关适用于您账户的法规和保护的详细信息，"
+  },
+  "web.regions.current": {
+    "text": "当前"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "可用区域"
+  },
+  "web.regions.jurisdiction": {
+    "text": "司法管辖区"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "数据中心位置：{0}"
+  },
+  "web.regions.data_region": {
+    "text": "数据区域"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "未知司法管辖区"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "正在为您提供服务，来自"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "继续到 {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "当前司法管辖区："
+  }
+}

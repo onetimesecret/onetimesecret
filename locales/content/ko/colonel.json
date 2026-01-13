@@ -1,0 +1,245 @@
+{
+  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
+    "text": "{0}/{1}/{2} [{3}]"
+  },
+  "web.colonel.customer_verified_verified_not_verified_0": {
+    "text": "`+customer.verified ? `verified` : `not verified"
+  },
+  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
+    "text": "고객 ({0} / {1})"
+  },
+  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
+    "text": "사용자 피드백 (총: {0})"
+  },
+  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
+    "text": "메타데이터 / 비밀 메시지: {0}/{1} ({2}/{3}/{4} 총계)"
+  },
+  "web.colonel.secrets_details_counts_secret_count_0": {
+    "text": "비밀 메시지 ({0})"
+  },
+  "web.colonel.active_in_the_past_5_minutes_0": {
+    "text": "(최근 5분간 활성화)"
+  },
+  "web.colonel.configEditorTitle": {
+    "text": "설정"
+  },
+  "web.colonel.configEditorDescription": {
+    "text": "시스템 구성 설정을 편집합니다. 변경사항은 저장 후 즉시 적용됩니다."
+  },
+  "web.colonel.invalidJson": {
+    "text": "{section} 섹션에 유효하지 않은 JSON"
+  },
+  "web.colonel.validationError": {
+    "text": "검증 오류"
+  },
+  "web.colonel.errorFetchingConfig": {
+    "text": "구성 로딩 오류"
+  },
+  "web.colonel.errorSavingConfig": {
+    "text": "구성 저장 오류"
+  },
+  "web.colonel.configSaved": {
+    "text": "구성이 성공적으로 저장되었습니다"
+  },
+  "web.colonel.mustBeObject": {
+    "text": "구성은 JSON 객체여야 합니다"
+  },
+  "web.colonel.multipleSectionsInvalid": {
+    "text": "여러 섹션에 검증 오류가 있습니다: {sections}"
+  },
+  "web.colonel.sectionHasError": {
+    "text": "{section}에 검증 오류가 있습니다: {error}"
+  },
+  "web.colonel.sectionSaved": {
+    "text": "{section}이(가) 성공적으로 저장되었습니다"
+  },
+  "web.colonel.saveSection": {
+    "text": "{section} 저장"
+  },
+  "web.colonel.saveAll": {
+    "text": "모두 저장"
+  },
+  "web.colonel.unsavedChanges": {
+    "text": "저장되지 않은 변경사항"
+  },
+  "web.colonel.schemaValidationError": {
+    "text": "스키마 검증 오류: {message} ({path})"
+  },
+  "web.colonel.unknownValidationError": {
+    "text": "알 수 없는 검증 오류: {error}"
+  },
+  "web.colonel.sectionEffectivelyEmpty": {
+    "text": "{section} 섹션에 구성된 값이 없습니다"
+  },
+  "web.colonel.dashboard": {
+    "text": "대시보드"
+  },
+  "web.colonel.admin": {
+    "text": "관리자"
+  },
+  "web.colonel.activity": {
+    "text": "활동"
+  },
+  "web.colonel.accounts": {
+    "text": "계정"
+  },
+  "web.colonel.users": {
+    "text": "사용자"
+  },
+  "web.colonel.usersDescription": {
+    "text": "사용자 계정 및 권한 관리"
+  },
+  "web.colonel.domains": {
+    "text": "도메인"
+  },
+  "web.colonel.settings": {
+    "text": "설정"
+  },
+  "web.colonel.system": {
+    "text": "시스템"
+  },
+  "web.colonel.welcome": {
+    "text": "Colonel에 오신 것을 환영합니다"
+  },
+  "web.colonel.welcomeDesc": {
+    "text": "OneTimeSecret 관리 제어판"
+  },
+  "web.colonel.quickActions": {
+    "text": "빠른 작업"
+  },
+  "web.colonel.recentActivity": {
+    "text": "최근 활동"
+  },
+  "web.colonel.viewAll": {
+    "text": "모두 보기"
+  },
+  "web.colonel.activityPlaceholder": {
+    "text": "활동 데이터가 여기에 표시됩니다"
+  },
+  "web.colonel.stats.totalSecrets": {
+    "text": "전체 비밀 메시지"
+  },
+  "web.colonel.stats.activeUsers": {
+    "text": "활성 사용자"
+  },
+  "web.colonel.stats.secretsToday": {
+    "text": "오늘의 비밀 메시지"
+  },
+  "web.colonel.stats.secretsCreated": {
+    "text": "생성된 비밀 메시지"
+  },
+  "web.colonel.stats.secretsShared": {
+    "text": "공유된 비밀 메시지"
+  },
+  "web.colonel.stats.totalCustomers": {
+    "text": "전체 고객"
+  },
+  "web.colonel.stats.emailsSent": {
+    "text": "전송된 이메일"
+  },
+  "web.colonel.stats.systemHealth": {
+    "text": "시스템 상태"
+  },
+  "web.colonel.stats.healthy": {
+    "text": "정상"
+  },
+  "web.colonel.actions.viewActivity": {
+    "text": "활동 보기"
+  },
+  "web.colonel.actions.viewActivityDesc": {
+    "text": "시스템 활동 및 사용량 모니터링"
+  },
+  "web.colonel.actions.manageAccounts": {
+    "text": "계정 관리"
+  },
+  "web.colonel.actions.manageAccountsDesc": {
+    "text": "사용자 계정 관리"
+  },
+  "web.colonel.actions.configureDomains": {
+    "text": "도메인 구성"
+  },
+  "web.colonel.actions.configureDomainsDesc": {
+    "text": "도메인 및 DNS 설정"
+  },
+  "web.colonel.actions.systemSettings": {
+    "text": "시스템 설정"
+  },
+  "web.colonel.actions.systemSettingsDesc": {
+    "text": "애플리케이션 구성"
+  },
+  "web.colonel.backgroundJobs": {
+    "text": "백그라운드 작업"
+  },
+  "web.colonel.queueStatus": {
+    "text": "큐 상태"
+  },
+  "web.colonel.queueName": {
+    "text": "큐"
+  },
+  "web.colonel.pendingMessages": {
+    "text": "대기 중"
+  },
+  "web.colonel.consumers": {
+    "text": "소비자"
+  },
+  "web.colonel.processingRate": {
+    "text": "처리율/초"
+  },
+  "web.colonel.connectionStatus": {
+    "text": "연결 상태"
+  },
+  "web.colonel.workerHealth": {
+    "text": "워커 상태"
+  },
+  "web.colonel.activeWorkers": {
+    "text": "활성 워커"
+  },
+  "web.colonel.noQueueData": {
+    "text": "큐 데이터 없음"
+  },
+  "web.colonel.loadingQueueData": {
+    "text": "큐 데이터 로딩 중..."
+  },
+  "web.colonel.testPlanMode": {
+    "text": "테스트 플랜 모드"
+  },
+  "web.colonel.testingAsPlan": {
+    "text": "{planName}으로 테스트 중"
+  },
+  "web.colonel.clickToReset": {
+    "text": "클릭하여 재설정"
+  },
+  "web.colonel.selectTestPlan": {
+    "text": "테스트할 플랜 선택"
+  },
+  "web.colonel.resetToActual": {
+    "text": "실제 플랜으로 재설정"
+  },
+  "web.colonel.currentActualPlan": {
+    "text": "현재 플랜"
+  },
+  "web.colonel.availablePlans": {
+    "text": "사용 가능한 플랜"
+  },
+  "web.colonel.activateTestMode": {
+    "text": "테스트 모드 활성화"
+  },
+  "web.colonel.testModeActive": {
+    "text": "테스트 모드 활성"
+  },
+  "web.colonel.testModeDescription": {
+    "text": "다른 플랜 권한으로 애플리케이션을 테스트합니다. 변경 사항은 임시이며 현재 세션에만 영향을 미칩니다."
+  },
+  "web.colonel.warningTestMode": {
+    "text": "{planName} 권한으로 테스트 중입니다 (임시 세션 오버라이드)."
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "피드백을 제출하면 저희가 확인할 수 있는 정보:"
+  },
+  "web.feedback.send_feedback": {
+    "text": "피드백 보내기"
+  },
+  "web.feedback.sending_ellipses": {
+    "text": "전송 중..."
+  }
+}

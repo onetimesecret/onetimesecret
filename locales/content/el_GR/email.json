@@ -1,0 +1,446 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[Αίτημα Υποστήριξης: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "text": "Ένας πελάτης έστειλε τις παρακάτω πληροφορίες"
+  },
+  "email.secret_link.subject": {
+    "text": "Ο/Η %{sender_email} σας έστειλε ένα μυστικό"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "σας έστειλε ένα μυστικό:"
+  },
+  "email.secret_link.important_label": {
+    "text": "Σημαντικό:"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "Αυτός ο σύνδεσμος λειτουργεί μόνο μία φορά. Μετά την προβολή, το μυστικό θα διαγραφεί οριστικά."
+  },
+  "email.secret_link.sent_via": {
+    "text": "Απεστάλη μέσω"
+  },
+  "email.welcome.subject": {
+    "text": "Εξακρίβωση του Onetime Secret λογαριασμού σας"
+  },
+  "email.welcome.title": {
+    "text": "Έχετε προσκληθεί να συμμετάσχετε στο %{product_name}!"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "Παρακαλώ επαληθεύστε τη διεύθυνση email σας κάνοντας κλικ στον παρακάτω σύνδεσμο:"
+  },
+  "email.welcome.verify_button": {
+    "text": "Επαλήθευση Διεύθυνσης Email"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:"
+  },
+  "email.welcome.signature": {
+    "text": "Delano"
+  },
+  "email.welcome.postscript": {
+    "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address}. Εάν δεν περιμένατε αυτήν την πρόσκληση, μπορείτε να αγνοήσετε αυτό το μήνυμα."
+  },
+  "email.password_request.subject": {
+    "text": "Επαναφορά του κωδικού πρόσβασής σας (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "text": "Επαναφορά Κωδικού Πρόσβασης"
+  },
+  "email.password_request.request_notice": {
+    "text": "Λάβαμε αίτημα επαναφοράς του κωδικού πρόσβασής σας για το %{product_name}."
+  },
+  "email.password_request.reset_button": {
+    "text": "Επαναφορά Κωδικού Πρόσβασης"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "Αν δεν ζητήσατε επαναφορά κωδικού πρόσβασης, μπορείτε να αγνοήσετε αυτό το email."
+  },
+  "email.password_request.signature": {
+    "text": "Delano"
+  },
+  "email.password_request.postscript": {
+    "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "text": "Σύνδεση στο %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "text": "Σύνδεση με Μαγικό Σύνδεσμο"
+  },
+  "email.magic_link.request_notice": {
+    "text": "Ζητήσατε έναν σύνδεσμο σύνδεσης για τον λογαριασμό σας στο %{product_name}."
+  },
+  "email.magic_link.login_button": {
+    "text": "Σύνδεση"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:"
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "Αυτός ο σύνδεσμος θα λήξει σε 15 λεπτά."
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "Εάν δεν ζητήσατε αυτόν τον σύνδεσμο, μπορείτε να αγνοήσετε αυτό το μήνυμα."
+  },
+  "email.magic_link.signature": {
+    "text": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "text": "Υ.Γ. Αυτό το μήνυμα εστάλη στη διεύθυνση %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "text": "Λάβατε ένα μυστικό μήνυμα"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "Λάβατε ένα ασφαλές μήνυμα:"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "Σημείωση:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "Κάποιος σας έστειλε ένα ασφαλές μήνυμα μέσω %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "Για να δείτε αυτό το μυστικό, κάντε κλικ στον παρακάτω σύνδεσμο:"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "Σημαντικό:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "Αυτός ο σύνδεσμος λειτουργεί μόνο μία φορά. Μετά την προβολή, το μυστικό θα διαγραφεί οριστικά."
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "Απεστάλη μέσω"
+  },
+  "email.secret_revealed.subject": {
+    "text": "Το μυστικό σας προβλήθηκε"
+  },
+  "email.secret_revealed.title": {
+    "text": "Το Μυστικό Σας Προβλήθηκε"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "Το μυστικό σας προβλήθηκε στις %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "Αναγνωριστικό Μυστικού:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "Αυτή είναι μια αυτοματοποιημένη ειδοποίηση. Δεν απαιτείται καμία ενέργεια."
+  },
+  "email.secret_revealed.signature": {
+    "text": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "Διαχείριση προτιμήσεων ειδοποιήσεων"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "Για να διαχειριστείτε τις προτιμήσεις ειδοποιήσεών σας:"
+  },
+  "email.expiration_warning.subject": {
+    "text": "Ο σύνδεσμος του μυστικού σας λήγει σύντομα"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "Ο σύνδεσμος του μυστικού σας θα λήξει σε %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "Δείτε το μυστικό σας πριν λήξει"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "Υπενθύμιση:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "Μετά τη λήξη, το μυστικό θα διαγραφεί οριστικά και δεν θα μπορεί να ανακτηθεί."
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "Απεστάλη μέσω"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "Δείτε το πριν χαθεί:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "Μετά τη λήξη, το μυστικό θα διαγραφεί οριστικά."
+  },
+  "email.feedback_email.subject": {
+    "text": "Σχόλια στις %{date} μέσω %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "text": "Σχόλια Χρήστη"
+  },
+  "email.feedback_email.from_label": {
+    "text": "Από:"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "Τομέας:"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "Στρατηγική:"
+  },
+  "email.feedback_email.message_label": {
+    "text": "Μήνυμα:"
+  },
+  "email.feedback_email.signature": {
+    "text": "Υποστήριξη Secret"
+  },
+  "email.organization_invitation.subject": {
+    "text": "Έχετε προσκληθεί να συμμετάσχετε στο %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "text": "Έχετε προσκληθεί να συμμετάσχετε στο %{organization_name}!"
+  },
+  "email.organization_invitation.body": {
+    "text": "Ο χρήστης %{inviter_email} σας προσκάλεσε να συμμετάσχετε στο \"%{organization_name}\" ως %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "Αποδοχή Πρόσκλησης"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "Αυτή η πρόσκληση θα λήξει σε %{days} ημέρες."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "Εάν δεν θέλετε να συμμετάσχετε, μπορείτε απλά να αγνοήσετε αυτό το email ή να απορρίψετε την πρόσκληση."
+  },
+  "email.organization_invitation.signature": {
+    "text": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "Υ.Γ. Αυτό το email στάλθηκε στο %{invited_email}. Εάν δεν περιμένατε αυτήν την πρόσκληση, μπορείτε να αγνοήσετε αυτό το μήνυμα."
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "μέλος"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "διαχειριστής"
+  },
+  "email.password_changed.subject": {
+    "text": "Ο κωδικός πρόσβασής σας άλλαξε (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "text": "Ο Κωδικός Πρόσβασής Σας Άλλαξε"
+  },
+  "email.password_changed.body": {
+    "text": "Ο κωδικός πρόσβασής σας για το %{product_name} άλλαξε στις %{date} στις %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "text": "Αν δεν κάνατε εσείς αυτή την αλλαγή, παρακαλώ ασφαλίστε τον λογαριασμό σας άμεσα επαναφέροντας τον κωδικό πρόσβασής σας και επικοινωνώντας με την υποστήριξη."
+  },
+  "email.password_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_changed.subject": {
+    "text": "Η διεύθυνση email σας άλλαξε (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "text": "Η Διεύθυνση Email Σας Άλλαξε"
+  },
+  "email.email_changed.body": {
+    "text": "Η διεύθυνση email για τον λογαριασμό σας στο %{product_name} άλλαξε σε %{new_email_masked} στις %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "text": "Αν δεν κάνατε εσείς αυτή την αλλαγή, παρακαλώ επικοινωνήστε άμεσα με την υποστήριξη καθώς ο λογαριασμός σας ενδέχεται να έχει παραβιαστεί."
+  },
+  "email.email_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "Επαληθεύστε τη νέα διεύθυνση email σας (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "Επαλήθευση Νέας Διεύθυνσης Email"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "Παρακαλώ επαληθεύστε αυτή τη διεύθυνση email για να ολοκληρώσετε την αλλαγή για τον λογαριασμό σας στο %{product_name}."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "Επαλήθευση Διεύθυνσης Email"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "Ή αντιγράψτε και επικολλήστε αυτόν τον σύνδεσμο:"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "Ενεργοποιήθηκε η ταυτοποίηση δύο παραγόντων (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "text": "Ενεργοποιήθηκε η Ταυτοποίηση Δύο Παραγόντων"
+  },
+  "email.mfa_enabled.body": {
+    "text": "Η ταυτοποίηση δύο παραγόντων ενεργοποιήθηκε για τον λογαριασμό σας στο %{product_name} στις %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "Ο λογαριασμός σας είναι πλέον πιο ασφαλής. Θα χρειαστεί να εισαγάγετε έναν κωδικό επαλήθευσης από την εφαρμογή ταυτοποίησής σας κατά τη σύνδεση."
+  },
+  "email.mfa_enabled.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "Απενεργοποιήθηκε η ταυτοποίηση δύο παραγόντων (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "text": "Απενεργοποιήθηκε η Ταυτοποίηση Δύο Παραγόντων"
+  },
+  "email.mfa_disabled.body": {
+    "text": "Η ταυτοποίηση δύο παραγόντων απενεργοποιήθηκε για τον λογαριασμό σας στο %{product_name} στις %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "Ο λογαριασμός σας είναι πλέον λιγότερο ασφαλής. Αν δεν κάνατε εσείς αυτή την αλλαγή, παρακαλώ ασφαλίστε τον λογαριασμό σας άμεσα."
+  },
+  "email.mfa_disabled.signature": {
+    "text": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "text": "Νέα σύνδεση στον λογαριασμό σας (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "text": "Εντοπίστηκε Νέα Σύνδεση"
+  },
+  "email.new_login_alert.body": {
+    "text": "Εντοπίστηκε νέα σύνδεση στον λογαριασμό σας στο %{product_name} στις %{date} στις %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "text": "Συσκευή:"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "Τοποθεσία:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "Διεύθυνση IP:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "Αν δεν ήσασταν εσείς, ο λογαριασμός σας ενδέχεται να έχει παραβιαστεί."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "Ασφαλίστε τον Λογαριασμό Σας"
+  },
+  "email.new_login_alert.signature": {
+    "text": "Delano"
+  },
+  "email.member_removed.subject": {
+    "text": "Αφαιρεθήκατε από το %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "text": "Αφαιρεθήκατε από το %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "text": "Αφαιρεθήκατε από τον οργανισμό \"%{organization_name}\" στο %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "text": "Delano"
+  },
+  "email.role_changed.subject": {
+    "text": "Ο ρόλος σας άλλαξε στο %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "text": "Ο Ρόλος Σας Άλλαξε"
+  },
+  "email.role_changed.body": {
+    "text": "Ο ρόλος σας στο \"%{organization_name}\" άλλαξε από %{old_role} σε %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "text": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "text": "Ο οργανισμός \"%{organization_name}\" διαγράφηκε"
+  },
+  "email.organization_deleted.title": {
+    "text": "Ο Οργανισμός Διαγράφηκε"
+  },
+  "email.organization_deleted.body": {
+    "text": "Ο οργανισμός \"%{organization_name}\" διαγράφηκε από το %{product_name}. Όλα τα σχετικά δεδομένα έχουν αφαιρεθεί."
+  },
+  "email.organization_deleted.signature": {
+    "text": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "text": "Απόδειξη πληρωμής για το %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "text": "Απόδειξη Πληρωμής"
+  },
+  "email.payment_receipt.body": {
+    "text": "Σας ευχαριστούμε για την πληρωμή σας. Ακολουθούν τα στοιχεία πληρωμής σας:"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "Ποσό:"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "Ημερομηνία:"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "Πρόγραμμα:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "Προβολή Τιμολογίου"
+  },
+  "email.payment_receipt.signature": {
+    "text": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "text": "Η πληρωμή απέτυχε για το %{product_name}"
+  },
+  "email.payment_failed.title": {
+    "text": "Η Πληρωμή Απέτυχε"
+  },
+  "email.payment_failed.body": {
+    "text": "Δεν μπορέσαμε να επεξεργαστούμε την πληρωμή σας για το %{product_name}. Παρακαλώ ενημερώστε τον τρόπο πληρωμής σας για να αποφύγετε διακοπή υπηρεσίας."
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "Ενημέρωση Τρόπου Πληρωμής"
+  },
+  "email.payment_failed.signature": {
+    "text": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "text": "Η δοκιμαστική περίοδός σας για το %{product_name} λήγει σε %{days_remaining} ημέρες"
+  },
+  "email.trial_expiring.title": {
+    "text": "Η Δοκιμαστική Περίοδός Σας Λήγει Σύντομα"
+  },
+  "email.trial_expiring.body": {
+    "text": "Η δωρεάν δοκιμαστική περίοδός σας για το %{product_name} θα λήξει σε %{days_remaining} ημέρες. Κάντε αναβάθμιση τώρα για να διατηρήσετε πρόσβαση σε όλες τις λειτουργίες."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "Αναβάθμιση Τώρα"
+  },
+  "email.trial_expiring.signature": {
+    "text": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "text": "Η συνδρομή σας στο %{product_name} άλλαξε"
+  },
+  "email.subscription_changed.title": {
+    "text": "Η Συνδρομή Άλλαξε"
+  },
+  "email.subscription_changed.body": {
+    "text": "Η συνδρομή σας στο %{product_name} άλλαξε από %{old_plan} σε %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "Αυτή η αλλαγή ισχύει από %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "text": "Delano"
+  },
+  "email.common.greeting": {
+    "text": "Γεια σας,"
+  },
+  "email.common.thanks": {
+    "text": "Ευχαριστούμε,"
+  },
+  "email.common.unsubscribe": {
+    "text": "Κατάργηση εγγραφής"
+  },
+  "email.common.view_in_browser": {
+    "text": "Προβολή στο πρόγραμμα περιήγησης"
+  },
+  "email.common.onetime_secret": {
+    "text": "Onetime Secret"
+  }
+}

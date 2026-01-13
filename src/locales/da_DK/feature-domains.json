@@ -3,9 +3,6 @@
     "domains": {
       "learn_more_dns": "Lær mere om DNS-konfiguration",
       "view_domain_verification_status": "Se status for domænebekræftelse",
-      "domain_already_in_organization": "",
-      "domain_in_other_organization": "",
-      "domain_claimed_successfully": "",
       "privacy_defaults_title": "Standardindstillinger for privatliv",
       "privacy_defaults_description": "Indstil standardprivatlivsindstillinger for beskeder oprettet under dette domæne. Disse indstillinger udfyldes automatisk ved oprettelse af nye beskeder.",
       "privacy_defaults": "Standardindstillinger for privatliv",

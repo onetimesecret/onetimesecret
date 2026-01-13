@@ -1,0 +1,128 @@
+{
+  "web.branding.color_picker": {
+    "text": "Kolorelektilo"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "Nuna {0}: {1}. Klaku por cikli tra opcioj."
+  },
+  "web.branding.use_setting": {
+    "text": "Uzi agordon"
+  },
+  "web.branding.font_family": {
+    "text": "Tiparfamilio"
+  },
+  "web.branding.corner_style": {
+    "text": "Angulstilo"
+  },
+  "web.branding.brand_color": {
+    "text": "Markkoloro"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "Antaŭvido de la ricevanta vido kiam aliras vian sekuran ligilon"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "Antaŭvidi kaj Personecigi"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "Ŝanĝi al Safari-retumila vido"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "text": "Maksimumigi fenestron"
+  },
+  "web.branding.minimize_window": {
+    "text": "Minimumigi fenestron"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "Ŝanĝi al Edge-retumila vido"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500 signoj"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "Uzu vian telefonon por skani la QR-kodon"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "Kontaktu onboarding{'@'}example.com kun demandoj"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "Ĉi tiuj instrukcioj estos montritaj al ricevantoj antaŭ ol ili malkaŝos la sekretan enhavon"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "Ĉi tiuj instrukcioj estos montritaj al ricevantoj post kiam ili malkaŝos la sekreton"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "Antaŭmalkaŝaj Instrukcioj"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "Postmalkaŝaj Instrukcioj"
+  },
+  "web.branding.instructions": {
+    "text": "Instrukcioj"
+  },
+  "web.branding.logo_controls": {
+    "text": "Emblemoregilo"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "Klaku por alŝuti emblemon. Rekomendita grandeco: 128x128 pikseloj. Maksimuma dosiergrandeco: 1MB. Subtenataj formatoj: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "text": "Alŝuti emblemon"
+  },
+  "web.branding.loading_preview": {
+    "text": "Ŝargante antaŭvidon..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "Antaŭvidu kiel ricevantoj vidos viajn sekretojn provante la butonon \"Vidi Sekreton\""
+  },
+  "web.branding.eye_icon": {
+    "text": "Okula ikono"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "Klaku la antaŭvidan bildon sube por ĝisdatigi vian emblemon (minimumo 128x128 pikseloj rekomendata, maks. 1MB)"
+  },
+  "web.branding.image_icon": {
+    "text": "Bilda ikono"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "Uzu la suprajn regilojn por personecigi markkoloron, stilojn kaj ricevantajn instrukciojn"
+  },
+  "web.branding.customization_icon": {
+    "text": "Personeciiga ikono"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "Vi havas nekonservitajn ŝanĝojn. Ĉu vi certas?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "Malsukcesis ŝargi markagordojn"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "Ĉi tio estas interaga antaŭvido de kiel ricevantoj vidos viajn sekurajn mesaĝojn. Vi povas: - Personecigi kolorojn kaj tiparojn uzante la suprajn regilojn - Alŝuti emblemon (minimumo 128x128 pikseloj rekomendata, maks. 1MB) - Provi la antaŭvidon uzante la butonon \"Vidi Sekreton\""
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "Ĉi tio estas interaga antaŭvido de kiel ricevantoj vidos viajn sekurajn mesaĝojn. Vi povas: - Personecigi kolorojn kaj tiparojn uzante la suprajn regilojn - Alŝuti emblemon (minimumo 128x128 pikseloj rekomendata, maks. 1MB) - Provi la antaŭvidon uzante la butonon \"Vidi Sekreton\""
+  },
+  "web.branding.default_logo_icon": {
+    "text": "Japana kanĵio '秘' (himitsu) signifante 'sekreto' aŭ 'konfidenca'"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "Funkciigita de Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "text": "{0} Emblemo"
+  },
+  "web.branding.edge": {
+    "text": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "Ŝanĝi al Edge-antaŭvido"
+  },
+  "web.branding.safari": {
+    "text": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "Ŝanĝi al Safari-antaŭvido"
+  }
+}

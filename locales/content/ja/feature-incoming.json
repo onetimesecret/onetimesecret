@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "シークレットを送信"
+  },
+  "incoming.page_description": {
+    "text": "サポートチームと機密情報を安全に共有する"
+  },
+  "incoming.loading_config": {
+    "text": "読み込み中..."
+  },
+  "incoming.config_error_title": {
+    "text": "設定の読み込みに失敗しました"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "機能が利用できません"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "この機能は現在無効になっています。サポートにお問い合わせください。"
+  },
+  "incoming.memo_label": {
+    "text": "メモ"
+  },
+  "incoming.memo_placeholder": {
+    "text": "簡単な説明(例:パスワードリセット依頼)"
+  },
+  "incoming.memo_hint": {
+    "text": "メッセージを適切な担当者に転送するためにご協力ください"
+  },
+  "incoming.recipient_label": {
+    "text": "送信先"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "受信者を選択"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "このシークレットの受信者を選択してください"
+  },
+  "incoming.recipient_hint": {
+    "text": "この安全なメッセージを受信する人を選択してください"
+  },
+  "incoming.no_recipients_available": {
+    "text": "利用可能な受信者がありません"
+  },
+  "incoming.secret_content_label": {
+    "text": "機密情報"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "機密情報をここに貼り付けてください(パスワード、キーなど)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "この情報は暗号化され、一度だけ閲覧可能です"
+  },
+  "incoming.submit_button": {
+    "text": "シークレットを送信"
+  },
+  "incoming.submit_secret": {
+    "text": "シークレットを送信"
+  },
+  "incoming.submitting_button": {
+    "text": "送信中..."
+  },
+  "incoming.submitting": {
+    "text": "送信中..."
+  },
+  "incoming.reset_button": {
+    "text": "フォームをクリア"
+  },
+  "incoming.reset_form": {
+    "text": "フォームをクリア"
+  },
+  "incoming.success_title": {
+    "text": "送信に成功しました"
+  },
+  "incoming.success_description": {
+    "text": "安全なメッセージが配信されました。"
+  },
+  "incoming.reference_id": {
+    "text": "参照ID"
+  },
+  "incoming.success_info_title": {
+    "text": "次に何が起こりますか?"
+  },
+  "incoming.success_info_description": {
+    "text": "受信者はこのシークレットを一度だけ閲覧できます。閲覧後、シークレットは完全に削除されます。"
+  },
+  "incoming.create_another": {
+    "text": "別のシークレットを送信"
+  },
+  "incoming.tagline1": {
+    "text": "機密情報を安全に共有"
+  },
+  "incoming.tagline2": {
+    "text": "パスワードや個人データをメールやチャットログから守りましょう"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "記録のために<a href='{receiptUrl}'>受領書</a>を保存してください。"
+  },
+  "incoming.receipt_link_text": {
+    "text": "receipt"
+  }
+}

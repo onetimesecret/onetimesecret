@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Recebido"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Não Recebido"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Sem segredos recentes"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Comece por criar o seu primeiro segredo."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Não foi possível carregar as equipas"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Ocorreu um problema ao carregar as suas equipas. Por favor, tente novamente."
+  }
+}

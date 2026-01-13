@@ -1,0 +1,446 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[Phiếu yêu cầu: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "text": "Có một khách hàng đã gởi thông tin sau"
+  },
+  "email.secret_link.subject": {
+    "text": "%{sender_email} đã gửi cho bạn một bí mật"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "đã gửi cho bạn một bí mật:"
+  },
+  "email.secret_link.important_label": {
+    "text": "Quan trọng:"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "Liên kết này chỉ hoạt động một lần. Sau khi xem, bí mật sẽ bị xóa vĩnh viễn."
+  },
+  "email.secret_link.sent_via": {
+    "text": "Đã gửi qua"
+  },
+  "email.welcome.subject": {
+    "text": "Chào mừng đến với %{product_name} - Vui lòng xác minh email của bạn"
+  },
+  "email.welcome.title": {
+    "text": "Chào mừng đến với %{product_name}!"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "Vui lòng xác minh địa chỉ email của bạn bằng cách nhấp vào liên kết bên dưới:"
+  },
+  "email.welcome.verify_button": {
+    "text": "Xác minh địa chỉ email"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "Hoặc sao chép và dán liên kết này:"
+  },
+  "email.welcome.signature": {
+    "text": "Delano"
+  },
+  "email.welcome.postscript": {
+    "text": "Tái bút: Email này đã được gửi đến %{email_address}."
+  },
+  "email.password_request.subject": {
+    "text": "Đặt lại mật khẩu của bạn (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "text": "Đặt lại mật khẩu của bạn"
+  },
+  "email.password_request.request_notice": {
+    "text": "Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu của bạn cho %{product_name}."
+  },
+  "email.password_request.reset_button": {
+    "text": "Đặt lại mật khẩu"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "Hoặc sao chép và dán liên kết này:"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "Nếu bạn không yêu cầu đặt lại mật khẩu, bạn có thể bỏ qua email này một cách an toàn."
+  },
+  "email.password_request.signature": {
+    "text": "Delano"
+  },
+  "email.password_request.postscript": {
+    "text": "Tái bút: Email này đã được gửi đến %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "text": "Đăng nhập vào %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "text": "Đăng nhập bằng liên kết ma thuật"
+  },
+  "email.magic_link.request_notice": {
+    "text": "Bạn đã yêu cầu liên kết đăng nhập cho tài khoản %{product_name} của bạn."
+  },
+  "email.magic_link.login_button": {
+    "text": "Đăng nhập"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "Hoặc sao chép và dán liên kết này:"
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "Liên kết này sẽ hết hạn sau 15 phút."
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "Nếu bạn không yêu cầu liên kết này, bạn có thể bỏ qua email này."
+  },
+  "email.magic_link.signature": {
+    "text": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "text": "Tái bút: Email này đã được gửi đến %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "text": "Bạn đã nhận được một tin nhắn bí mật"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "Bạn đã nhận được một tin nhắn bảo mật:"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "Ghi chú:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "Ai đó đã gửi cho bạn một tin nhắn bảo mật qua %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "Để xem bí mật này, hãy nhấp vào liên kết bên dưới:"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "Quan trọng:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "Liên kết này chỉ hoạt động một lần. Sau khi xem, bí mật sẽ bị xóa vĩnh viễn."
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "Đã gửi qua"
+  },
+  "email.secret_revealed.subject": {
+    "text": "Bí mật của bạn đã được xem"
+  },
+  "email.secret_revealed.title": {
+    "text": "Bí mật của bạn đã được xem"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "Bí mật của bạn đã được xem vào %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "ID bí mật:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "Đây là thông báo tự động. Không cần thực hiện hành động nào."
+  },
+  "email.secret_revealed.signature": {
+    "text": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "Quản lý tùy chọn thông báo"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "Để quản lý tùy chọn thông báo của bạn:"
+  },
+  "email.expiration_warning.subject": {
+    "text": "Liên kết bí mật của bạn sẽ hết hạn sớm"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "Liên kết bí mật của bạn sẽ hết hạn trong %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "Xem bí mật của bạn trước khi hết hạn"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "Nhắc nhở:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "Sau khi hết hạn, bí mật sẽ bị xóa vĩnh viễn và không thể khôi phục."
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "Đã gửi qua"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "Xem nó trước khi nó biến mất:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "Sau khi hết hạn, bí mật sẽ bị xóa vĩnh viễn."
+  },
+  "email.feedback_email.subject": {
+    "text": "Phản hồi vào %{date} qua %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "text": "Phản hồi người dùng"
+  },
+  "email.feedback_email.from_label": {
+    "text": "Từ:"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "Tên miền:"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "Chiến lược:"
+  },
+  "email.feedback_email.message_label": {
+    "text": "Tin nhắn:"
+  },
+  "email.feedback_email.signature": {
+    "text": "Delano"
+  },
+  "email.organization_invitation.subject": {
+    "text": "Bạn đã được mời tham gia %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "text": "Bạn đã được mời tham gia %{organization_name}!"
+  },
+  "email.organization_invitation.body": {
+    "text": "%{inviter_email} đã mời bạn tham gia \"%{organization_name}\" với vai trò %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "Chấp nhận lời mời"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "Hoặc sao chép và dán liên kết này:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "Lời mời này sẽ hết hạn sau %{days} ngày."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "Nếu bạn không muốn tham gia, bạn có thể bỏ qua email này hoặc từ chối lời mời."
+  },
+  "email.organization_invitation.signature": {
+    "text": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "Tái bút: Email này đã được gửi đến %{invited_email}. Nếu bạn không mong đợi lời mời này, bạn có thể bỏ qua email này một cách an toàn."
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "thành viên"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "quản trị viên"
+  },
+  "email.password_changed.subject": {
+    "text": "Mật khẩu của bạn đã được thay đổi (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "text": "Mật khẩu của bạn đã được thay đổi"
+  },
+  "email.password_changed.body": {
+    "text": "Mật khẩu cho tài khoản %{product_name} của bạn đã được thay đổi vào %{date} lúc %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "text": "Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản của bạn ngay lập tức bằng cách đặt lại mật khẩu và liên hệ với bộ phận hỗ trợ."
+  },
+  "email.password_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_changed.subject": {
+    "text": "Địa chỉ email của bạn đã được thay đổi (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "text": "Địa chỉ email của bạn đã được thay đổi"
+  },
+  "email.email_changed.body": {
+    "text": "Địa chỉ email cho tài khoản %{product_name} của bạn đã được thay đổi thành %{new_email_masked} vào %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "text": "Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ với bộ phận hỗ trợ ngay lập tức vì tài khoản của bạn có thể đã bị xâm phạm."
+  },
+  "email.email_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "Xác minh địa chỉ email mới của bạn (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "Xác minh địa chỉ email mới của bạn"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "Vui lòng xác minh địa chỉ email này để hoàn tất thay đổi cho tài khoản %{product_name} của bạn."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "Xác minh địa chỉ email"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "Hoặc sao chép và dán liên kết này:"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "Xác thực hai yếu tố đã được bật (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "text": "Xác thực hai yếu tố đã được bật"
+  },
+  "email.mfa_enabled.body": {
+    "text": "Xác thực hai yếu tố đã được bật cho tài khoản %{product_name} của bạn vào %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "Tài khoản của bạn hiện an toàn hơn. Bạn sẽ cần nhập mã xác minh từ ứng dụng xác thực khi đăng nhập."
+  },
+  "email.mfa_enabled.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "Xác thực hai yếu tố đã bị tắt (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "text": "Xác thực hai yếu tố đã bị tắt"
+  },
+  "email.mfa_disabled.body": {
+    "text": "Xác thực hai yếu tố đã bị tắt cho tài khoản %{product_name} của bạn vào %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "Tài khoản của bạn hiện kém an toàn hơn. Nếu bạn không thực hiện thay đổi này, vui lòng bảo mật tài khoản của bạn ngay lập tức."
+  },
+  "email.mfa_disabled.signature": {
+    "text": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "text": "Đăng nhập mới vào tài khoản của bạn (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "text": "Phát hiện đăng nhập mới"
+  },
+  "email.new_login_alert.body": {
+    "text": "Đã phát hiện một đăng nhập mới vào tài khoản %{product_name} của bạn vào %{date} lúc %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "text": "Thiết bị:"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "Vị trí:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "Địa chỉ IP:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "Nếu không phải bạn, tài khoản của bạn có thể đã bị xâm phạm."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "Bảo mật tài khoản của bạn"
+  },
+  "email.new_login_alert.signature": {
+    "text": "Delano"
+  },
+  "email.member_removed.subject": {
+    "text": "Bạn đã bị xóa khỏi %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "text": "Bạn đã bị xóa khỏi %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "text": "Bạn đã bị xóa khỏi tổ chức \"%{organization_name}\" trên %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "text": "Delano"
+  },
+  "email.role_changed.subject": {
+    "text": "Vai trò của bạn đã được thay đổi trong %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "text": "Vai trò của bạn đã được thay đổi"
+  },
+  "email.role_changed.body": {
+    "text": "Vai trò của bạn trong \"%{organization_name}\" đã được thay đổi từ %{old_role} thành %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "text": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "text": "Tổ chức \"%{organization_name}\" đã bị xóa"
+  },
+  "email.organization_deleted.title": {
+    "text": "Tổ chức đã bị xóa"
+  },
+  "email.organization_deleted.body": {
+    "text": "Tổ chức \"%{organization_name}\" đã bị xóa khỏi %{product_name}. Tất cả dữ liệu liên quan đã được xóa."
+  },
+  "email.organization_deleted.signature": {
+    "text": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "text": "Biên lai thanh toán cho %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "text": "Biên lai thanh toán"
+  },
+  "email.payment_receipt.body": {
+    "text": "Cảm ơn bạn đã thanh toán. Dưới đây là chi tiết thanh toán của bạn:"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "Số tiền:"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "Ngày:"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "Gói:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "Xem hóa đơn"
+  },
+  "email.payment_receipt.signature": {
+    "text": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "text": "Thanh toán thất bại cho %{product_name}"
+  },
+  "email.payment_failed.title": {
+    "text": "Thanh toán thất bại"
+  },
+  "email.payment_failed.body": {
+    "text": "Chúng tôi không thể xử lý thanh toán của bạn cho %{product_name}. Vui lòng cập nhật phương thức thanh toán để tránh gián đoạn dịch vụ."
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "Cập nhật phương thức thanh toán"
+  },
+  "email.payment_failed.signature": {
+    "text": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "text": "Bản dùng thử %{product_name} của bạn sẽ hết hạn sau %{days_remaining} ngày"
+  },
+  "email.trial_expiring.title": {
+    "text": "Bản dùng thử của bạn sắp kết thúc"
+  },
+  "email.trial_expiring.body": {
+    "text": "Bản dùng thử miễn phí %{product_name} của bạn sẽ hết hạn sau %{days_remaining} ngày. Nâng cấp ngay để giữ quyền truy cập vào tất cả các tính năng."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "Nâng cấp ngay"
+  },
+  "email.trial_expiring.signature": {
+    "text": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "text": "Gói đăng ký %{product_name} của bạn đã được thay đổi"
+  },
+  "email.subscription_changed.title": {
+    "text": "Gói đăng ký đã được thay đổi"
+  },
+  "email.subscription_changed.body": {
+    "text": "Gói đăng ký %{product_name} của bạn đã được thay đổi từ %{old_plan} sang %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "Thay đổi này có hiệu lực từ %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "text": "Delano"
+  },
+  "email.common.greeting": {
+    "text": "Xin chào,"
+  },
+  "email.common.thanks": {
+    "text": "Cảm ơn,"
+  },
+  "email.common.unsubscribe": {
+    "text": "Hủy đăng ký"
+  },
+  "email.common.view_in_browser": {
+    "text": "Xem trong trình duyệt"
+  },
+  "email.common.onetime_secret": {
+    "text": "Onetime Secret"
+  }
+}

@@ -1,66 +1,17 @@
 {
   "web": {
     "auth": {
-      "_context_mfa_required": "Page heading shown when user must complete MFA to proceed",
       "mfa_required": "Tvåfaktorsautentisering krävs",
-      "_context_mfa_verification_required": "Explanatory text below the heading",
       "mfa_verification_required": "Ange din verifieringskod för att fortsätta",
-      "_context_complete_mfa_verification": "Primary button text to submit MFA verification",
       "complete_mfa_verification": "Slutför verifiering",
       "security": {
-        "_README": "",
         "authentication_failed": "Autentiseringen misslyckades. Kontrollera dina inloggningsuppgifter och försök igen.",
         "rate_limited": "För många försök. Vänligen vänta innan du försöker igen.",
         "session_expired": "Din session har gått ut. Logga in igen.",
         "recovery_code_not_found": "Återställningskoden kunde inte verifieras. Kontrollera koden och försök igen.",
         "recovery_code_used": "Denna återställningskod har redan använts. Använd en annan kod.",
         "network_error": "Ett nätverksfel inträffade. Kontrollera din anslutning och försök igen.",
-        "internal_error": "Ett internt fel inträffade. Försök igen senare.",
-        "_meta": {
-          "_purpose": "",
-          "authentication_failed": {
-            "security_note": "",
-            "owasp_ref": ""
-          },
-          "rate_limited": {
-            "security_note": "",
-            "owasp_ref": ""
-          },
-          "session_expired": {
-            "security_note": "",
-            "owasp_ref": ""
-          },
-          "recovery_code_not_found": {
-            "security_note": "",
-            "owasp_ref": ""
-          },
-          "recovery_code_used": {
-            "security_note": "",
-            "owasp_ref": ""
-          }
-        },
-        "_translation_guidelines": {
-          "DO_NOT_translate_as": [
-            "Wrong password",
-            "Invalid OTP code",
-            "Incorrect recovery code",
-            "Wait 5 minutes",
-            "3 attempts remaining",
-            "Account locked for 15 minutes"
-          ],
-          "MUST_translate_as": [
-            "Generic authentication failure (no credential specifics)",
-            "Generic rate limit message (no precise timing)",
-            "Recovery code validation (no existence confirmation)"
-          ],
-          "WHY": ""
-        },
-        "_safe_information": {
-          "format_requirements": "",
-          "expected_behavior": "",
-          "recovery_options": "",
-          "general_guidance": ""
-        }
+        "internal_error": "Ett internt fel inträffade. Försök igen senare."
       },
       "methods": {
         "password": "Lösenord",
@@ -68,7 +19,6 @@
         "webauthn": "Säkerhetsnyckel"
       },
       "magicLink": {
-        "_context": "Passwordless authentication via email link",
         "title": "Logga in med e-postlänk",
         "description": "Vi skickar en säker inloggningslänk till din e-post",
         "emailPlaceholder": "Ange din e-postadress",
@@ -108,7 +58,6 @@
         "try_password_reset": "Prova att återställa ditt lösenord"
       },
       "sessions": {
-        "_context": "User's logged-in devices/browsers management page",
         "title": "Aktiva sessioner",
         "current": "Nuvarande session",
         "other": "Andra sessioner",

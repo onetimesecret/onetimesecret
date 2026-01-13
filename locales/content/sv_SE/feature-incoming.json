@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Skicka en hemlighet"
+  },
+  "incoming.page_description": {
+    "text": "Dela känslig information säkert med vårt supportteam"
+  },
+  "incoming.loading_config": {
+    "text": "Laddar..."
+  },
+  "incoming.config_error_title": {
+    "text": "Kunde inte ladda konfigurationen"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Funktionen är inte tillgänglig"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Denna funktion är för närvarande inaktiverad. Kontakta support för hjälp."
+  },
+  "incoming.memo_label": {
+    "text": "Anteckning"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Kort beskrivning (t.ex. Begäran om återställning av lösenord)"
+  },
+  "incoming.memo_hint": {
+    "text": "Hjälp oss att dirigera ditt meddelande till rätt person"
+  },
+  "incoming.recipient_label": {
+    "text": "Skicka till"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Välj mottagare"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Välj en mottagare för denna hemlighet"
+  },
+  "incoming.recipient_hint": {
+    "text": "Välj vem som ska ta emot detta säkra meddelande"
+  },
+  "incoming.no_recipients_available": {
+    "text": "Inga mottagare tillgängliga"
+  },
+  "incoming.secret_content_label": {
+    "text": "Konfidentiell information"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Klistra in känslig information här (lösenord, nycklar, etc.)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Denna information kommer att krypteras och endast vara synlig en gång"
+  },
+  "incoming.submit_button": {
+    "text": "Skicka hemlighet"
+  },
+  "incoming.submit_secret": {
+    "text": "Skicka hemlighet"
+  },
+  "incoming.submitting_button": {
+    "text": "Skickar..."
+  },
+  "incoming.submitting": {
+    "text": "Skickar..."
+  },
+  "incoming.reset_button": {
+    "text": "Rensa formulär"
+  },
+  "incoming.reset_form": {
+    "text": "Rensa formulär"
+  },
+  "incoming.success_title": {
+    "text": "Skickat"
+  },
+  "incoming.success_description": {
+    "text": "Ditt säkra meddelande har levererats."
+  },
+  "incoming.reference_id": {
+    "text": "Referens-ID"
+  },
+  "incoming.success_info_title": {
+    "text": "Vad händer nu?"
+  },
+  "incoming.success_info_description": {
+    "text": "Mottagaren kommer att kunna se denna hemlighet endast en gång. Efter visning kommer hemligheten att raderas permanent."
+  },
+  "incoming.create_another": {
+    "text": "Skicka en till hemlighet"
+  },
+  "incoming.tagline1": {
+    "text": "Dela känslig information säkert"
+  },
+  "incoming.tagline2": {
+    "text": "Håll lösenord och privata data utanför e-post och chattloggar"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Spara ditt <a href='{receiptUrl}'>kvitto</a> för dina register."
+  },
+  "incoming.receipt_link_text": {
+    "text": "kvitto"
+  }
+}

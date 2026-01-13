@@ -1,0 +1,245 @@
+{
+  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
+    "text": "{0}/{1}/{2} [{3}]"
+  },
+  "web.colonel.customer_verified_verified_not_verified_0": {
+    "text": "`+customer.verified ? `verified` : `not verified"
+  },
+  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
+    "text": "לקוחות ({0} מתוך {1})"
+  },
+  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
+    "text": "משוב משתמשים (סה״כ: {0})"
+  },
+  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
+    "text": "מטא-דאטה / סודות: {0}/{1} ({2}/{3}/{4} סה״כ)"
+  },
+  "web.colonel.secrets_details_counts_secret_count_0": {
+    "text": "סודות ({0})"
+  },
+  "web.colonel.active_in_the_past_5_minutes_0": {
+    "text": "(פעיל ב-5 הדקות האחרונות)"
+  },
+  "web.colonel.configEditorTitle": {
+    "text": "הגדרות"
+  },
+  "web.colonel.configEditorDescription": {
+    "text": "עריכת הגדרות תצורת מערכת. השינויים חלים מיד לאחר השמירה."
+  },
+  "web.colonel.invalidJson": {
+    "text": "JSON לא תקף במדור {section}"
+  },
+  "web.colonel.validationError": {
+    "text": "שגיאת אימות"
+  },
+  "web.colonel.errorFetchingConfig": {
+    "text": "שגיאה בטעינת תצורה"
+  },
+  "web.colonel.errorSavingConfig": {
+    "text": "שגיאה בשמירת תצורה"
+  },
+  "web.colonel.configSaved": {
+    "text": "התצורה נשמרה בהצלחה"
+  },
+  "web.colonel.mustBeObject": {
+    "text": "התצורה חייבת להיות אובייקט JSON"
+  },
+  "web.colonel.multipleSectionsInvalid": {
+    "text": "מספר מדורים כוללים שגיאות אימות: {sections}"
+  },
+  "web.colonel.sectionHasError": {
+    "text": "{section} כולל שגיאות אימות: {error}"
+  },
+  "web.colonel.sectionSaved": {
+    "text": "{section} נשמר בהצלחה"
+  },
+  "web.colonel.saveSection": {
+    "text": "שמירת {section}"
+  },
+  "web.colonel.saveAll": {
+    "text": "שמירת הכל"
+  },
+  "web.colonel.unsavedChanges": {
+    "text": "שינויים שלא נשמרו"
+  },
+  "web.colonel.schemaValidationError": {
+    "text": "שגיאת אימות סכמה: {message} ({path})"
+  },
+  "web.colonel.unknownValidationError": {
+    "text": "שגיאת אימות לא ידועה: {error}"
+  },
+  "web.colonel.sectionEffectivelyEmpty": {
+    "text": "מדור {section} אינו מכיל ערכים מוגדרים"
+  },
+  "web.colonel.dashboard": {
+    "text": "לוח בקרה"
+  },
+  "web.colonel.admin": {
+    "text": "ניהול"
+  },
+  "web.colonel.activity": {
+    "text": "פעילות"
+  },
+  "web.colonel.accounts": {
+    "text": "חשבונות"
+  },
+  "web.colonel.users": {
+    "text": "משתמשים"
+  },
+  "web.colonel.usersDescription": {
+    "text": "ניהול חשבונות משתמש והרשאות"
+  },
+  "web.colonel.domains": {
+    "text": "דומיינים"
+  },
+  "web.colonel.settings": {
+    "text": "הגדרות"
+  },
+  "web.colonel.system": {
+    "text": "מערכת"
+  },
+  "web.colonel.welcome": {
+    "text": "ברוכים הבאים ל-Colonel"
+  },
+  "web.colonel.welcomeDesc": {
+    "text": "לוח בקרה ניהולי עבור OneTimeSecret"
+  },
+  "web.colonel.quickActions": {
+    "text": "פעולות מהירות"
+  },
+  "web.colonel.recentActivity": {
+    "text": "פעילות אחרונה"
+  },
+  "web.colonel.viewAll": {
+    "text": "צפייה בהכל"
+  },
+  "web.colonel.activityPlaceholder": {
+    "text": "נתוני פעילות יוצגו כאן"
+  },
+  "web.colonel.stats.totalSecrets": {
+    "text": "סודות סה״כ"
+  },
+  "web.colonel.stats.activeUsers": {
+    "text": "משתמשים פעילים"
+  },
+  "web.colonel.stats.secretsToday": {
+    "text": "סודות היום"
+  },
+  "web.colonel.stats.secretsCreated": {
+    "text": "סודות שנוצרו"
+  },
+  "web.colonel.stats.secretsShared": {
+    "text": "סודות ששותפו"
+  },
+  "web.colonel.stats.totalCustomers": {
+    "text": "לקוחות סה״כ"
+  },
+  "web.colonel.stats.emailsSent": {
+    "text": "הודעות דואר שנשלחו"
+  },
+  "web.colonel.stats.systemHealth": {
+    "text": "בריאות המערכת"
+  },
+  "web.colonel.stats.healthy": {
+    "text": "בריא"
+  },
+  "web.colonel.actions.viewActivity": {
+    "text": "צפייה בפעילות"
+  },
+  "web.colonel.actions.viewActivityDesc": {
+    "text": "מעקב אחר פעילות ושימוש במערכת"
+  },
+  "web.colonel.actions.manageAccounts": {
+    "text": "ניהול חשבונות"
+  },
+  "web.colonel.actions.manageAccountsDesc": {
+    "text": "ניהול חשבונות משתמש"
+  },
+  "web.colonel.actions.configureDomains": {
+    "text": "הגדרת דומיינים"
+  },
+  "web.colonel.actions.configureDomainsDesc": {
+    "text": "הגדרות דומיין ו-DNS"
+  },
+  "web.colonel.actions.systemSettings": {
+    "text": "הגדרות מערכת"
+  },
+  "web.colonel.actions.systemSettingsDesc": {
+    "text": "תצורת אפליקציה"
+  },
+  "web.colonel.backgroundJobs": {
+    "text": "משימות רקע"
+  },
+  "web.colonel.queueStatus": {
+    "text": "מצב תור"
+  },
+  "web.colonel.queueName": {
+    "text": "תור"
+  },
+  "web.colonel.pendingMessages": {
+    "text": "ממתין"
+  },
+  "web.colonel.consumers": {
+    "text": "צרכנים"
+  },
+  "web.colonel.processingRate": {
+    "text": "קצב/שנייה"
+  },
+  "web.colonel.connectionStatus": {
+    "text": "מצב חיבור"
+  },
+  "web.colonel.workerHealth": {
+    "text": "בריאות עובדים"
+  },
+  "web.colonel.activeWorkers": {
+    "text": "עובדים פעילים"
+  },
+  "web.colonel.noQueueData": {
+    "text": "אין נתוני תור זמינים"
+  },
+  "web.colonel.loadingQueueData": {
+    "text": "טוען נתוני תור..."
+  },
+  "web.colonel.testPlanMode": {
+    "text": "מצב בדיקת תוכנית"
+  },
+  "web.colonel.testingAsPlan": {
+    "text": "בודק כ-{planName}"
+  },
+  "web.colonel.clickToReset": {
+    "text": "לחצו לאיפוס"
+  },
+  "web.colonel.selectTestPlan": {
+    "text": "בחרו תוכנית לבדיקה"
+  },
+  "web.colonel.resetToActual": {
+    "text": "איפוס לתוכנית בפועל"
+  },
+  "web.colonel.currentActualPlan": {
+    "text": "תוכנית נוכחית"
+  },
+  "web.colonel.availablePlans": {
+    "text": "תוכניות זמינות"
+  },
+  "web.colonel.activateTestMode": {
+    "text": "הפעלת מצב בדיקה"
+  },
+  "web.colonel.testModeActive": {
+    "text": "מצב בדיקה פעיל"
+  },
+  "web.colonel.testModeDescription": {
+    "text": "בדקו את האפליקציה עם הרשאות תוכנית שונות. השינויים זמניים ומשפיעים רק על הסשן שלכם."
+  },
+  "web.colonel.warningTestMode": {
+    "text": "אתם בודקים עם הרשאות {planName} (עקיפת סשן זמנית)."
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "כאשר תשלחו משוב, נראה:"
+  },
+  "web.feedback.send_feedback": {
+    "text": "שליחת משוב"
+  },
+  "web.feedback.sending_ellipses": {
+    "text": "שולח..."
+  }
+}
