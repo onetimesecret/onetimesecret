@@ -666,11 +666,11 @@
   },
   "web.LABELS.enable": {
     "en": "Enable",
-    "translation": "Ebligi"
+    "translation": "Ŝalti"
   },
   "web.LABELS.disable": {
     "en": "Disable",
-    "translation": "Malebligi"
+    "translation": "Malŝalti"
   },
   "web.LABELS.stats": {
     "en": "Stats",
@@ -742,7 +742,7 @@
   },
   "web.LABELS.no_passphrase": {
     "en": "No Passphrase Required",
-    "translation": "Pasfrazo Ne Bezonata"
+    "translation": "Neniu Pasfrazo Bezonata"
   },
   "web.LABELS.copy_to_clipboard": {
     "en": "Copy to clipboard",
@@ -762,7 +762,7 @@
   },
   "web.LABELS.dismiss": {
     "en": "Dismiss",
-    "translation": "Forigi"
+    "translation": "Forĵeti"
   },
   "web.LABELS.security_details": {
     "en": "Security Details",
@@ -778,7 +778,7 @@
   },
   "web.LABELS.view": {
     "en": "View",
-    "translation": "Vido"
+    "translation": "Vidi"
   },
   "web.LABELS.views": {
     "en": "Views",
@@ -786,7 +786,7 @@
   },
   "web.LABELS.times_viewed": {
     "en": "times viewed",
-    "translation": "fojoj viditaj"
+    "translation": "foje vidata"
   },
   "web.LABELS.view_progress": {
     "en": "View Progress",
@@ -814,7 +814,7 @@
   },
   "web.LABELS.pricing": {
     "en": "Pricing",
-    "translation": "Prezoj"
+    "translation": "Prezaro"
   },
   "web.LABELS.refresh": {
     "en": "Refresh",
@@ -890,7 +890,7 @@
   },
   "web.STATUS.expiring_soon": {
     "en": "Expiring Soon",
-    "translation": "Baldaŭ Eksvalidiĝos"
+    "translation": "Baldaŭ Eksvalidiĝonta"
   },
   "web.STATUS.created": {
     "en": "Created",
@@ -926,27 +926,27 @@
   },
   "web.STATUS.new_description": {
     "en": "Secret link has been created and not yet viewed",
-    "translation": "Sekreta ligilo estis kreita kaj ankoraŭ ne vidigita"
+    "translation": "Sekreta ligilo estas kreita kaj ankoraŭ ne vidata"
   },
   "web.STATUS.unread_description": {
     "en": "Secret link has been created and has not been viewed",
-    "translation": "Sekreta ligilo estis kreita kaj ne estis vidigita"
+    "translation": "Sekreta ligilo estas kreita kaj ne estas vidata"
   },
   "web.STATUS.viewed_description": {
     "en": "Secret link has been opened and ready to be viewed",
-    "translation": "Sekreta ligilo estis malfermita kaj pretas esti vidigita"
+    "translation": "Sekreta ligilo estas malfermita kaj preta por vidado"
   },
   "web.STATUS.received_description": {
     "en": "Secret has been revealed to the recipient",
-    "translation": "Sekreto estis malkaŝita al la ricevanto"
+    "translation": "Sekreto estas malkaŝita al la ricevanto"
   },
   "web.STATUS.burned_description": {
     "en": "Secret was manually burned before being viewed",
-    "translation": "Sekreto estis permane forbruligita antaŭ ol esti vidigita"
+    "translation": "Sekreto estis permane forbruligita antaŭ vidado"
   },
   "web.STATUS.destroyed_description": {
     "en": "Secret has been permanently destroyed",
-    "translation": "Sekreto estis porĉiam detruita"
+    "translation": "Sekreto estas permanente detruita"
   },
   "web.STATUS.expiring_soon_description": {
     "en": "Secret will expire soon",
@@ -954,11 +954,11 @@
   },
   "web.STATUS.orphaned_description": {
     "en": "Secret has been orphaned and will be destroyed soon",
-    "translation": "Sekreto estis orfigita kaj baldaŭ estos detruita"
+    "translation": "Sekreto estas orfigita kaj baldaŭ estos detruita"
   },
   "web.STATUS.expired_description": {
     "en": "Secret has expired before being viewed",
-    "translation": "Sekreto eksvalidiĝis antaŭ ol esti vidigita"
+    "translation": "Sekreto eksvalidiĝis antaŭ ol esti vidata"
   },
   "web.STATUS.success": {
     "en": "Success",
@@ -986,11 +986,11 @@
   },
   "web.FEATURES.custom_domain_protected": {
     "en": "Trusted domain branding",
-    "translation": "Fidinda domajnmarko"
+    "translation": "Fidinda domajno-markado"
   },
   "web.FEATURES.encrypted_in_transit": {
     "en": "Encrypted in transit and at rest",
-    "translation": "Ĉifrita dum transsendo kaj dum stokado"
+    "translation": "Ĉifrita dumvojaĝe kaj en ripozo"
   },
   "web.UNITS.ttl.duration": {
     "en": "{count} {unit}",
@@ -1234,7 +1234,7 @@
   },
   "web.ARIA.focus_is_now_in_the_main_text_area": {
     "en": "Focus is now in the main text area",
-    "translation": "Fokuso nun estas en la ĉefa tekstkampo"
+    "translation": "Fokuso nun estas en la ĉefa teksta areo"
   },
   "web.INSTRUCTION.sharing_instructions": {
     "en": "Sharing Instructions",
@@ -1250,11 +1250,11 @@
   },
   "web.INSTRUCTION.secure_channel_instruction": {
     "en": "Use a different secure channel to share sensitive information",
-    "translation": "Uzu alian sekuran kanalon por kunhavigi konfidencajn informojn"
+    "translation": "Uzu malsaman sekuran kanalon por kunhavigi sentivajn informojn"
   },
   "web.INSTRUCTION.phishing_warning": {
     "en": "Always verify you're on the official Onetime Secret website. Fraudsters sometimes create fake websites that look exactly like Onetime Secret to steal your secrets. To avoid phishing attacks, check the region domain before creating new links.",
-    "translation": "Ĉiam certigu, ke vi estas en la oficiala retejo de Onetime Secret. Frauduloj foje kreas falsajn retejojn kiuj aspektas ekzakte kiel Onetime Secret por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la regionan domajnon antaŭ ol krei novajn ligilojn."
+    "translation": "Ĉiam kontrolu ke vi estas sur la oficiala retejo de Onetime Secret. Fraŭduloj foje kreas falsajn retejojn kiuj aspektas ekzakte kiel Onetime Secret por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la region-domajnon antaŭ krei novajn ligilojn."
   },
   "web.pricing.title": {
     "en": "Simple, Transparent Pricing",

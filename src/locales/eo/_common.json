@@ -170,8 +170,8 @@
         "show_more": "Montri Pli",
         "show_less": "Montri Malpli"
       },
-      "enable": "Ebligi",
-      "disable": "Malebligi",
+      "enable": "Ŝalti",
+      "disable": "Malŝalti",
       "stats": "Statistikoj",
       "timeline": "Templinio",
       "lifespan": "Vivdaŭro",
@@ -189,25 +189,25 @@
       "need_help": "Ĉu vi bezonas helpon?",
       "create_new_secret": "Krei Novan Sekreton",
       "actions": "Agoj",
-      "no_passphrase": "Pasfrazo Ne Bezonata",
+      "no_passphrase": "Neniu Pasfrazo Bezonata",
       "copy_to_clipboard": "Kopii al tondujo",
       "receipts": "Kvitancoj",
       "share": "Kunhavigi",
       "secret_link": "Sekreta Ligilo",
-      "dismiss": "Forigi",
+      "dismiss": "Forĵeti",
       "security_details": "Sekurecaj Detaloj",
       "items_count": "{count} Eroj",
       "recipients_count": "{count} Ricevantoj",
-      "view": "Vido",
+      "view": "Vidi",
       "views": "Vidoj",
-      "times_viewed": "fojoj viditaj",
+      "times_viewed": "foje vidata",
       "view_progress": "Vidi Progreson",
       "help_section": "Helpa Sekcio",
       "passphrase_protected": "Protektita per pasfrazo",
       "feedback_received": "Reago ricevita.",
       "sending_ellipses": "Sendante...",
       "title_recent_secrets": "Lastaj Sekretoj",
-      "pricing": "Prezoj",
+      "pricing": "Prezaro",
       "refresh": "Refreŝigi",
       "reload": "Reŝargi",
       "filter": "Filtri",
@@ -228,7 +228,7 @@
       "received": "Ricevita",
       "burned": "Forbruligita",
       "destroyed": "Detruita",
-      "expiring_soon": "Baldaŭ Eksvalidiĝos",
+      "expiring_soon": "Baldaŭ Eksvalidiĝonta",
       "created": "Kreita",
       "expires": "Eksvalidiĝas",
       "expired": "Eksvalidiĝinta",
@@ -237,15 +237,15 @@
       "securing": "Sekurigante",
       "copied": "Kopiita",
       "time_remaining": "Restanta Tempo",
-      "new_description": "Sekreta ligilo estis kreita kaj ankoraŭ ne vidigita",
-      "unread_description": "Sekreta ligilo estis kreita kaj ne estis vidigita",
-      "viewed_description": "Sekreta ligilo estis malfermita kaj pretas esti vidigita",
-      "received_description": "Sekreto estis malkaŝita al la ricevanto",
-      "burned_description": "Sekreto estis permane forbruligita antaŭ ol esti vidigita",
-      "destroyed_description": "Sekreto estis porĉiam detruita",
+      "new_description": "Sekreta ligilo estas kreita kaj ankoraŭ ne vidata",
+      "unread_description": "Sekreta ligilo estas kreita kaj ne estas vidata",
+      "viewed_description": "Sekreta ligilo estas malfermita kaj preta por vidado",
+      "received_description": "Sekreto estas malkaŝita al la ricevanto",
+      "burned_description": "Sekreto estis permane forbruligita antaŭ vidado",
+      "destroyed_description": "Sekreto estas permanente detruita",
       "expiring_soon_description": "Sekreto baldaŭ eksvalidiĝos",
-      "orphaned_description": "Sekreto estis orfigita kaj baldaŭ estos detruita",
-      "expired_description": "Sekreto eksvalidiĝis antaŭ ol esti vidigita",
+      "orphaned_description": "Sekreto estas orfigita kaj baldaŭ estos detruita",
+      "expired_description": "Sekreto eksvalidiĝis antaŭ ol esti vidata",
       "success": "Sukceso",
       "delivered": "Liverita",
       "dns_incorrect": "DNS Malĝusta",
@@ -254,8 +254,8 @@
     },
     "FEATURES": {
       "unlimited_views": "Senlimaj Vidoj",
-      "custom_domain_protected": "Fidinda domajnmarko",
-      "encrypted_in_transit": "Ĉifrita dum transsendo kaj dum stokado"
+      "custom_domain_protected": "Fidinda domajno-markado",
+      "encrypted_in_transit": "Ĉifrita dumvojaĝe kaj en ripozo"
     },
     "UNITS": {
       "ttl": {
@@ -330,14 +330,14 @@
       "pricing": "Prezoj"
     },
     "ARIA": {
-      "focus_is_now_in_the_main_text_area": "Fokuso nun estas en la ĉefa tekstkampo"
+      "focus_is_now_in_the_main_text_area": "Fokuso nun estas en la ĉefa teksta areo"
     },
     "INSTRUCTION": {
       "sharing_instructions": "Kunhavigaj Instrukcioj",
       "share_link_instruction": "Kunhavigu la ligilon kun la celata ricevanto",
       "share_passphrase_instruction": "Kunhavigu la pasfrazon aparte per sekura kanalo",
-      "secure_channel_instruction": "Uzu alian sekuran kanalon por kunhavigi konfidencajn informojn",
-      "phishing_warning": "Ĉiam certigu, ke vi estas en la oficiala retejo de Onetime Secret. Frauduloj foje kreas falsajn retejojn kiuj aspektas ekzakte kiel Onetime Secret por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la regionan domajnon antaŭ ol krei novajn ligilojn."
+      "secure_channel_instruction": "Uzu malsaman sekuran kanalon por kunhavigi sentivajn informojn",
+      "phishing_warning": "Ĉiam kontrolu ke vi estas sur la oficiala retejo de Onetime Secret. Fraŭduloj foje kreas falsajn retejojn kiuj aspektas ekzakte kiel Onetime Secret por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la region-domajnon antaŭ krei novajn ligilojn."
     },
     "pricing": {
       "title": "Simpla, Travidebla Prezaro",
