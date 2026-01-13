@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Αποστολή μυστικού"
+  },
+  "incoming.page_description": {
+    "text": "Μοιραστείτε ευαίσθητες πληροφορίες με ασφάλεια με την ομάδα υποστήριξής μας"
+  },
+  "incoming.loading_config": {
+    "text": "Φόρτωση..."
+  },
+  "incoming.config_error_title": {
+    "text": "Αποτυχία φόρτωσης ρυθμίσεων"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Η λειτουργία δεν είναι διαθέσιμη"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Αυτή η λειτουργία είναι προς το παρόν απενεργοποιημένη. Επικοινωνήστε με την υποστήριξη για βοήθεια."
+  },
+  "incoming.memo_label": {
+    "text": "Σημείωση"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Σύντομη περιγραφή (π.χ. Αίτημα επαναφοράς κωδικού πρόσβασης)"
+  },
+  "incoming.memo_hint": {
+    "text": "Βοηθήστε μας να δρομολογήσουμε το μήνυμά σας στο κατάλληλο άτομο"
+  },
+  "incoming.recipient_label": {
+    "text": "Αποστολή σε"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Επιλέξτε παραλήπτη"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Επιλέξτε παραλήπτη για αυτό το μυστικό"
+  },
+  "incoming.recipient_hint": {
+    "text": "Επιλέξτε ποιος θα λάβει αυτό το ασφαλές μήνυμα"
+  },
+  "incoming.no_recipients_available": {
+    "text": "Δεν υπάρχουν διαθέσιμοι παραλήπτες"
+  },
+  "incoming.secret_content_label": {
+    "text": "Εμπιστευτικές πληροφορίες"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Επικολλήστε εδώ ευαίσθητες πληροφορίες (κωδικούς πρόσβασης, κλειδιά κ.λπ.)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Αυτές οι πληροφορίες θα κρυπτογραφηθούν και θα είναι προβολή μόνο μία φορά"
+  },
+  "incoming.submit_button": {
+    "text": "Αποστολή μυστικού"
+  },
+  "incoming.submit_secret": {
+    "text": "Αποστολή μυστικού"
+  },
+  "incoming.submitting_button": {
+    "text": "Αποστολή..."
+  },
+  "incoming.submitting": {
+    "text": "Αποστολή..."
+  },
+  "incoming.reset_button": {
+    "text": "Εκκαθάριση φόρμας"
+  },
+  "incoming.reset_form": {
+    "text": "Εκκαθάριση φόρμας"
+  },
+  "incoming.success_title": {
+    "text": "Απεστάλη με επιτυχία"
+  },
+  "incoming.success_description": {
+    "text": "Το ασφαλές σας μήνυμα παραδόθηκε."
+  },
+  "incoming.reference_id": {
+    "text": "Αναγνωριστικό αναφοράς"
+  },
+  "incoming.success_info_title": {
+    "text": "Τι συμβαίνει στη συνέχεια;"
+  },
+  "incoming.success_info_description": {
+    "text": "Ο παραλήπτης θα μπορεί να δει αυτό το μυστικό μόνο μία φορά. Μετά την προβολή, το μυστικό θα διαγραφεί μόνιμα."
+  },
+  "incoming.create_another": {
+    "text": "Αποστολή άλλου μυστικού"
+  },
+  "incoming.tagline1": {
+    "text": "Μοιραστείτε ευαίσθητες πληροφορίες με ασφάλεια"
+  },
+  "incoming.tagline2": {
+    "text": "Κρατήστε τους κωδικούς πρόσβασης και τα ιδιωτικά δεδομένα μακριά από email και αρχεία συνομιλίας"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Αποθηκεύστε την <a href='{receiptUrl}'>απόδειξή</a> σας για τα αρχεία σας."
+  },
+  "incoming.receipt_link_text": {
+    "text": "απόδειξη"
+  }
+}

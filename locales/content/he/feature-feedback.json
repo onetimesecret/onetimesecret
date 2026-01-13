@@ -1,0 +1,47 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "המשוב שלכם"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "כל משוב מתקבל בברכה!"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "עזרו לנו להשתפר"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "סגירת חלון משוב"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "שתפו את המשוב שלכם"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum"
+  },
+  "web.feedback.delano": {
+    "text": "Delano"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "תוכן עזרה נמצא כאן."
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "תודה על העזרה ב-Onetime Secret להשתפר. זה אומר הרבה."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "בנינו כלי זה כדי לעזור לכם לשתף מידע רגיש בצורה מאובטחת, והניסיון שלכם בעולם האמיתי חיוני למיקוד המאמצים שלנו. זה עוזר לנו להבין על מה לעבוד בהמשך וכיצד להפוך את השירות לטוב יותר עבור כולם."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "היי, תודה שעצרתם בעמוד המשוב שלנו. הקלט שלכם לא רק מתקבל בברכה - הוא קריטי."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "הערה מ-Delano, מייסד Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "פתיחת טופס משוב"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "הזינו את המשוב שלכם"
+  },
+  "web.feedback.send_feedback": {
+    "text": "שליחת משוב"
+  }
+}

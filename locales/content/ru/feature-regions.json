@@ -1,0 +1,107 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "Суверенитет данных и региональная изоляция"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "Ваши данные находятся исключительно в выбранном вами регионе и никогда не передаются между регионами"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "Каждый регион работает как полностью независимая среда со своей собственной инфраструктурой, ключами шифрования и хранилищем данных"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "Мы придерживаемся строгой политики: данные клиентов никогда не передаются между регионами ни при каких обстоятельствах"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "Важно: переключение на другой регион создаёт новую учётную запись. Ваши данные остаются в вашем исходном регионе."
+  },
+  "web.regions.your_region": {
+    "text": "Ваш регион"
+  },
+  "web.regions.your_current_region": {
+    "text": "Ваш текущий регион"
+  },
+  "web.regions.active": {
+    "text": "Активен"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "Изучите другие доступные регионы"
+  },
+  "web.regions.why_it_matters": {
+    "text": "Почему важен суверенитет данных"
+  },
+  "web.regions.trust_title": {
+    "text": "Прозрачность и контроль"
+  },
+  "web.regions.trust_description": {
+    "text": "Точно знайте, где находятся ваши данные и какие законы регулируют их защиту."
+  },
+  "web.regions.privacy_title": {
+    "text": "Права на конфиденциальность"
+  },
+  "web.regions.privacy_description": {
+    "text": "Убедитесь, что ваша личная информация обрабатывается в соответствии с законами о конфиденциальности вашей страны и правилами, предотвращая несанкционированный доступ или злоупотребление."
+  },
+  "web.regions.compliance_title": {
+    "text": "Соответствие нормативным требованиям"
+  },
+  "web.regions.compliance_description": {
+    "text": "Соответствуйте требованиям GDPR, HIPAA, CCPA и другим региональным требованиям защиты данных"
+  },
+  "web.regions.performance_title": {
+    "text": "Более быстрый доступ"
+  },
+  "web.regions.performance_description": {
+    "text": "Данные, хранящиеся ближе к вам, означают меньшую задержку и лучшую производительность."
+  },
+  "web.regions.regions": {
+    "text": "Регионы"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "свяжитесь с нашей командой по соблюдению требований"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "ознакомьтесь с нашей документацией"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "Ваша учётная запись и данные защищены в соответствии с законами и нормативными актами"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "Данная нормативно-правовая база определяется доменом вашего доступа:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "Каждая юрисдикция поддерживает отдельное юридическое соответствие и управление данными. Хотя вы можете создавать учётные записи в нескольких юрисдикциях, они остаются юридически независимыми без обмена данными между регулятивными зонами."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "Чтобы понять конкретные нормативные требования и меры защиты, применимые к вашей учётной записи, пожалуйста"
+  },
+  "web.regions.current": {
+    "text": "Текущий"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "Доступные регионы"
+  },
+  "web.regions.jurisdiction": {
+    "text": "Юрисдикция"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "Местоположение центра обработки данных: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "Регион данных"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "Неизвестная юрисдикция"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "Обслуживаем Вас из"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "Перейти к {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Текущая юрисдикция:"
+  }
+}

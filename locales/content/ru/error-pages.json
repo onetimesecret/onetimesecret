@@ -1,0 +1,59 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "text": "Почему этот секрет недоступен?"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "text": "Секреты предназначены для однократного просмотра. Эта ссылка могла быть уже открыта, истекла или была вручную удалена отправителем."
+  },
+  "web.errors.what_should_i_do_now": {
+    "text": "Что мне делать сейчас?"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "text": "Свяжитесь с человеком, который отправил Вам эту ссылку, и попросите его создать новый секрет. Сообщите ему, что Вы не смогли получить доступ к исходной информации."
+  },
+  "web.errors.warning_dismissed": {
+    "text": "Предупреждение закрыто"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "text": "Закрыть предупреждение об усечении"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "text": "Упс! Страница, которую Вы ищете, не существует или была перемещена."
+  },
+  "web.errors.404_page_not_found_0": {
+    "text": "404 - Страница не найдена"
+  },
+  "web.errors.404_page_not_found": {
+    "text": "404 - Страница не найдена"
+  },
+  "web.errors.dismiss_warning": {
+    "text": "Закрыть предупреждение"
+  },
+  "web.errors.dismiss_notification": {
+    "text": "Закрыть уведомление"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "text": "Если Вы не уверены, что делать дальше, пожалуйста, свяжитесь с человеком, который отправил Вам эту ссылку, для получения дополнительной информации."
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "text": "Информация, переданная через наш сервис, может быть доступна только один раз. После просмотра содержимое будет безвозвратно удалено с наших серверов для обеспечения конфиденциальности. Этот подход помогает защитить Ваши конфиденциальные данные, ограничивая их раскрытие и предотвращая несанкционированный доступ."
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "text": "Извините, но при обработке Вашего запроса произошла непредвиденная ошибка. Наша команда была уведомлена и работает над исправлением."
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "text": "{0} Что-то пошло не так"
+  },
+  "web.errors.go_share_a_secret": {
+    "text": "Поделитесь секретом"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "text": "Страница, которую Вы ищете, не существует или была перемещена. Не волнуйтесь, такое случается с каждым!"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "text": "{0} 404"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "text": "Невозможно загрузить данные из-за проблем с форматом данных. Пожалуйста, повторите попытку позже."
+  }
+}

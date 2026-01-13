@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Odeslat tajemství"
+  },
+  "incoming.page_description": {
+    "text": "Bezpečně sdílejte citlivé informace s naším týmem podpory"
+  },
+  "incoming.loading_config": {
+    "text": "Načítání..."
+  },
+  "incoming.config_error_title": {
+    "text": "Načtení konfigurace se nezdařilo"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Funkce není dostupná"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Tato funkce je momentálně zakázána. Pro pomoc kontaktujte podporu."
+  },
+  "incoming.memo_label": {
+    "text": "Poznámka"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Stručný popis (např. Žádost o obnovení hesla)"
+  },
+  "incoming.memo_hint": {
+    "text": "Pomozte nám směrovat vaši zprávu správné osobě"
+  },
+  "incoming.recipient_label": {
+    "text": "Odeslat komu"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Vyberte příjemce"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Vyberte příjemce pro toto tajemství"
+  },
+  "incoming.recipient_hint": {
+    "text": "Vyberte, kdo obdrží tuto zabezpečenou zprávu"
+  },
+  "incoming.no_recipients_available": {
+    "text": "Žádní příjemci nejsou k dispozici"
+  },
+  "incoming.secret_content_label": {
+    "text": "Důvěrné informace"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Vložte sem citlivé informace (hesla, klíče apod.)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Tyto informace budou šifrovány a zobrazí se pouze jednou"
+  },
+  "incoming.submit_button": {
+    "text": "Odeslat tajemství"
+  },
+  "incoming.submit_secret": {
+    "text": "Odeslat tajemství"
+  },
+  "incoming.submitting_button": {
+    "text": "Odesílání..."
+  },
+  "incoming.submitting": {
+    "text": "Odesílání..."
+  },
+  "incoming.reset_button": {
+    "text": "Vymazat formulář"
+  },
+  "incoming.reset_form": {
+    "text": "Vymazat formulář"
+  },
+  "incoming.success_title": {
+    "text": "Úspěšně odesláno"
+  },
+  "incoming.success_description": {
+    "text": "Vaše zabezpečená zpráva byla doručena."
+  },
+  "incoming.reference_id": {
+    "text": "Referenční ID"
+  },
+  "incoming.success_info_title": {
+    "text": "Co se stane dál?"
+  },
+  "incoming.success_info_description": {
+    "text": "Příjemce bude moci zobrazit toto tajemství pouze jednou. Po zobrazení bude tajemství trvale smazáno."
+  },
+  "incoming.create_another": {
+    "text": "Odeslat další tajemství"
+  },
+  "incoming.tagline1": {
+    "text": "Bezpečně sdílejte citlivé informace"
+  },
+  "incoming.tagline2": {
+    "text": "Udržujte hesla a soukromá data mimo e-maily a záznamy chatů"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Uložte si <a href='{receiptUrl}'>potvrzení</a> pro své záznamy."
+  },
+  "incoming.receipt_link_text": {
+    "text": "potvrzení"
+  }
+}

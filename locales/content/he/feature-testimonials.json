@@ -1,0 +1,38 @@
+{
+  "web.testimonials.ai_generated_testimonial": {
+    "text": "המלצה שנוצרה על ידי AI"
+  },
+  "web.testimonials.ai_generated_content_disclaimer": {
+    "text": "תוכן שנוצר על ידי AI להדגמה. לא מאדם או חברה בפועל."
+  },
+  "web.testimonials.randomtestimonial_stars_5": {
+    "text": "{0}/5"
+  },
+  "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
+    "text": "- {0}, {1}"
+  },
+  "web.testimonials.randomtestimonial_quote": {
+    "text": "\"{0}\""
+  },
+  "web.testimonials.t_ai_generated_testimonial": {
+    "text": "{0}:"
+  },
+  "web.testimonials.what_leading_ai_says_about_us": {
+    "text": "מה AI מוביל אומר עלינו"
+  },
+  "web.testimonials.ai_generated_testimonials": {
+    "text": "המלצות שנוצרו על ידי AI"
+  },
+  "web.testimonials.this_quote_was_generated_by": {
+    "text": "ציטוט זה נוצר על ידי"
+  },
+  "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
+    "text": "הוא התבסס על תוכן העמוד ואינו מייצג אדם או חברה בפועל."
+  },
+  "web.testimonials.artificial_feedback": {
+    "text": "משוב מלאכותי"
+  },
+  "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
+    "text": "תוכן זה נוצר על ידי AI בהתבסס על תוכן העמוד ואינו מייצג אדם או חברה בפועל."
+  }
+}

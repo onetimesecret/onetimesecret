@@ -1,0 +1,245 @@
+{
+  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
+    "text": "{0}/{1}/{2} [{3}]"
+  },
+  "web.colonel.customer_verified_verified_not_verified_0": {
+    "text": "`+customer.verified ? `подтверждён` : `не подтверждён"
+  },
+  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
+    "text": "Пользователи ({0} из {1})"
+  },
+  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
+    "text": "Отзывы пользователей (всего: {0})"
+  },
+  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
+    "text": "Метаданные / Секреты: {0}/{1} ({2}/{3}/{4} всего)"
+  },
+  "web.colonel.secrets_details_counts_secret_count_0": {
+    "text": "Секреты ({0})"
+  },
+  "web.colonel.active_in_the_past_5_minutes_0": {
+    "text": "(активны за последние 5 минут)"
+  },
+  "web.colonel.configEditorTitle": {
+    "text": "Настройки"
+  },
+  "web.colonel.configEditorDescription": {
+    "text": "Редактирование системных параметров. Изменения применяются сразу после сохранения."
+  },
+  "web.colonel.invalidJson": {
+    "text": "Некорректный JSON в разделе {section}"
+  },
+  "web.colonel.validationError": {
+    "text": "Ошибка проверки"
+  },
+  "web.colonel.errorFetchingConfig": {
+    "text": "Ошибка загрузки конфигурации"
+  },
+  "web.colonel.errorSavingConfig": {
+    "text": "Ошибка сохранения конфигурации"
+  },
+  "web.colonel.configSaved": {
+    "text": "Конфигурация сохранена"
+  },
+  "web.colonel.mustBeObject": {
+    "text": "Конфигурация должна быть объектом JSON"
+  },
+  "web.colonel.multipleSectionsInvalid": {
+    "text": "Ошибки проверки в нескольких разделах: {sections}"
+  },
+  "web.colonel.sectionHasError": {
+    "text": "Раздел {section} содержит ошибки: {error}"
+  },
+  "web.colonel.sectionSaved": {
+    "text": "Раздел {section} сохранён"
+  },
+  "web.colonel.saveSection": {
+    "text": "Сохранить {section}"
+  },
+  "web.colonel.saveAll": {
+    "text": "Сохранить всё"
+  },
+  "web.colonel.unsavedChanges": {
+    "text": "Несохранённые изменения"
+  },
+  "web.colonel.schemaValidationError": {
+    "text": "Ошибка проверки схемы: {message} ({path})"
+  },
+  "web.colonel.unknownValidationError": {
+    "text": "Неизвестная ошибка проверки: {error}"
+  },
+  "web.colonel.sectionEffectivelyEmpty": {
+    "text": "Раздел {section} не содержит настроенных значений"
+  },
+  "web.colonel.dashboard": {
+    "text": "Панель управления"
+  },
+  "web.colonel.admin": {
+    "text": "Администрирование"
+  },
+  "web.colonel.activity": {
+    "text": "Активность"
+  },
+  "web.colonel.accounts": {
+    "text": "Учётные записи"
+  },
+  "web.colonel.users": {
+    "text": "Пользователи"
+  },
+  "web.colonel.usersDescription": {
+    "text": "Управление учётными записями и правами доступа"
+  },
+  "web.colonel.domains": {
+    "text": "Домены"
+  },
+  "web.colonel.settings": {
+    "text": "Настройки"
+  },
+  "web.colonel.system": {
+    "text": "Система"
+  },
+  "web.colonel.welcome": {
+    "text": "Добро пожаловать в Colonel"
+  },
+  "web.colonel.welcomeDesc": {
+    "text": "Панель управления OneTimeSecret"
+  },
+  "web.colonel.quickActions": {
+    "text": "Быстрые действия"
+  },
+  "web.colonel.recentActivity": {
+    "text": "Недавняя активность"
+  },
+  "web.colonel.viewAll": {
+    "text": "Показать всё"
+  },
+  "web.colonel.activityPlaceholder": {
+    "text": "Данные об активности будут отображены здесь"
+  },
+  "web.colonel.stats.totalSecrets": {
+    "text": "Всего секретов"
+  },
+  "web.colonel.stats.activeUsers": {
+    "text": "Активные пользователи"
+  },
+  "web.colonel.stats.secretsToday": {
+    "text": "Секретов сегодня"
+  },
+  "web.colonel.stats.secretsCreated": {
+    "text": "Секретов создано"
+  },
+  "web.colonel.stats.secretsShared": {
+    "text": "Секретов передано"
+  },
+  "web.colonel.stats.totalCustomers": {
+    "text": "Всего пользователей"
+  },
+  "web.colonel.stats.emailsSent": {
+    "text": "Писем отправлено"
+  },
+  "web.colonel.stats.systemHealth": {
+    "text": "Состояние системы"
+  },
+  "web.colonel.stats.healthy": {
+    "text": "Исправна"
+  },
+  "web.colonel.actions.viewActivity": {
+    "text": "Просмотр активности"
+  },
+  "web.colonel.actions.viewActivityDesc": {
+    "text": "Мониторинг системной активности и использования"
+  },
+  "web.colonel.actions.manageAccounts": {
+    "text": "Управление учётными записями"
+  },
+  "web.colonel.actions.manageAccountsDesc": {
+    "text": "Администрирование учётных записей"
+  },
+  "web.colonel.actions.configureDomains": {
+    "text": "Настройка доменов"
+  },
+  "web.colonel.actions.configureDomainsDesc": {
+    "text": "Параметры доменов и DNS"
+  },
+  "web.colonel.actions.systemSettings": {
+    "text": "Системные настройки"
+  },
+  "web.colonel.actions.systemSettingsDesc": {
+    "text": "Конфигурация приложения"
+  },
+  "web.colonel.backgroundJobs": {
+    "text": "Фоновые задачи"
+  },
+  "web.colonel.queueStatus": {
+    "text": "Статус очереди"
+  },
+  "web.colonel.queueName": {
+    "text": "Очередь"
+  },
+  "web.colonel.pendingMessages": {
+    "text": "Ожидающие"
+  },
+  "web.colonel.consumers": {
+    "text": "Обработчики"
+  },
+  "web.colonel.processingRate": {
+    "text": "Скорость/сек"
+  },
+  "web.colonel.connectionStatus": {
+    "text": "Статус подключения"
+  },
+  "web.colonel.workerHealth": {
+    "text": "Состояние обработчиков"
+  },
+  "web.colonel.activeWorkers": {
+    "text": "активных обработчиков"
+  },
+  "web.colonel.noQueueData": {
+    "text": "Данные очереди недоступны"
+  },
+  "web.colonel.loadingQueueData": {
+    "text": "Загрузка данных очереди..."
+  },
+  "web.colonel.testPlanMode": {
+    "text": "Режим тестирования тарифа"
+  },
+  "web.colonel.testingAsPlan": {
+    "text": "Тестирование как {planName}"
+  },
+  "web.colonel.clickToReset": {
+    "text": "Нажмите для сброса"
+  },
+  "web.colonel.selectTestPlan": {
+    "text": "Выберите тариф для тестирования"
+  },
+  "web.colonel.resetToActual": {
+    "text": "Сбросить к текущему тарифу"
+  },
+  "web.colonel.currentActualPlan": {
+    "text": "Текущий тариф"
+  },
+  "web.colonel.availablePlans": {
+    "text": "Доступные тарифы"
+  },
+  "web.colonel.activateTestMode": {
+    "text": "Активировать тестовый режим"
+  },
+  "web.colonel.testModeActive": {
+    "text": "Тестовый режим активен"
+  },
+  "web.colonel.testModeDescription": {
+    "text": "Тестируйте приложение с различными правами тарифов. Изменения временные и влияют только на вашу сессию."
+  },
+  "web.colonel.warningTestMode": {
+    "text": "Вы тестируете с правами {planName} (временное переопределение сессии)."
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Когда вы отправите отзыв, мы увидим:"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Отправить отзыв"
+  },
+  "web.feedback.sending_ellipses": {
+    "text": "Отправка..."
+  }
+}

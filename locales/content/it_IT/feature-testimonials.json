@@ -1,0 +1,38 @@
+{
+  "web.testimonials.ai_generated_testimonial": {
+    "text": "Testimonianza generata dall'intelligenza artificiale"
+  },
+  "web.testimonials.ai_generated_content_disclaimer": {
+    "text": "Contenuto generato dall'intelligenza artificiale a scopo dimostrativo. Non di una persona o di un'azienda reale"
+  },
+  "web.testimonials.randomtestimonial_stars_5": {
+    "text": "{0}/5"
+  },
+  "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
+    "text": "- {0}, {1}"
+  },
+  "web.testimonials.randomtestimonial_quote": {
+    "text": "\"{0}\""
+  },
+  "web.testimonials.t_ai_generated_testimonial": {
+    "text": "{0}:"
+  },
+  "web.testimonials.what_leading_ai_says_about_us": {
+    "text": "Cosa dice di noi l'IA leader"
+  },
+  "web.testimonials.ai_generated_testimonials": {
+    "text": "Testimonianze generate dall'IA"
+  },
+  "web.testimonials.this_quote_was_generated_by": {
+    "text": "Questa citazione è stata generata da"
+  },
+  "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
+    "text": "Si è basata sul contenuto della pagina e non rappresenta una persona o un'azienda reale"
+  },
+  "web.testimonials.artificial_feedback": {
+    "text": "Feedback artificiale"
+  },
+  "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
+    "text": "Questo contenuto è generato dall'IA in base al contenuto di questa pagina e non rappresenta una persona o un'azienda reale"
+  }
+}

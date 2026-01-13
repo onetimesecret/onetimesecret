@@ -1,0 +1,476 @@
+{
+  "web.account.settings": {
+    "text": "Настройки"
+  },
+  "web.account.change_password": {
+    "text": "Промяна на паролата"
+  },
+  "web.account.close_account": {
+    "text": "Затваряне на акаунта"
+  },
+  "web.account.verify_account": {
+    "text": "Потвърждение на акаунта"
+  },
+  "web.account.subscription_title": {
+    "text": "Абонамент"
+  },
+  "web.account.manage_subscription": {
+    "text": "Управление на абонамента"
+  },
+  "web.account.customer_information": {
+    "text": "Информация за клиента"
+  },
+  "web.account.customer_since": {
+    "text": "Клиент от:"
+  },
+  "web.account.email": {
+    "text": "Имейл:"
+  },
+  "web.account.region": {
+    "text": "Регион"
+  },
+  "web.account.account_balance": {
+    "text": "Баланс по сметка:"
+  },
+  "web.account.default_payment_method": {
+    "text": "Метод на плащане по подразбиране"
+  },
+  "web.account.card_ending": {
+    "text": "завършващ на"
+  },
+  "web.account.subscriptions_title": {
+    "text": "Абонаменти"
+  },
+  "web.account.quantity": {
+    "text": "Количество:"
+  },
+  "web.account.next_billing_date": {
+    "text": "Следваща дата на фактуриране:"
+  },
+  "web.account.changePassword.username": {
+    "text": "Потребителско име"
+  },
+  "web.account.changePassword.currentPassword": {
+    "text": "Текуща парола"
+  },
+  "web.account.changePassword.newPassword": {
+    "text": "Нова парола"
+  },
+  "web.account.changePassword.confirmPassword": {
+    "text": "Потвърди"
+  },
+  "web.account.changePassword.updatePassword": {
+    "text": "Актуализирай паролата"
+  },
+  "web.account.changePassword.updating": {
+    "text": "Актуализиране..."
+  },
+  "web.account.timezone": {
+    "text": "Часова зона"
+  },
+  "web.account.customer_id": {
+    "text": "Клиентски ID"
+  },
+  "web.account.account_id_customerid": {
+    "text": "ID на акаунт: {customerid}"
+  },
+  "web.account.created_windowprops_cust_secrets_created_secrets": {
+    "text": "Създадени {0} тайни от {1}."
+  },
+  "web.account.delete_account": {
+    "text": "Изтрий акаунт"
+  },
+  "web.account.api_key": {
+    "text": "API ключ"
+  },
+  "web.account.account_type_windowprops_plan_options_name": {
+    "text": "Тип акаунт: {0}"
+  },
+  "web.account.your_account": {
+    "text": "Вашият акаунт"
+  },
+  "web.account.support_details": {
+    "text": "Детайли за поддръжка"
+  },
+  "web.account.back_to_details": {
+    "text": "Обратно към детайлите"
+  },
+  "web.account.customer_id_cust_custid": {
+    "text": "Клиентски ID: {0}"
+  },
+  "web.account.token_generated": {
+    "text": "Генериран токен."
+  },
+  "web.account.keep_this_token_secure_it_provides_full_access_t": {
+    "text": "🔐 Пазете този токен в безопасност! Той предоставя пълен достъп до вашия акаунт."
+  },
+  "web.account.confirm_with_your_password": {
+    "text": "Потвърдете с паролата си"
+  },
+  "web.account.are_you_sure_you_want_to_permanently_delete_your": {
+    "text": "Сигурни ли сте, че искате да изтриете перманентно акаунта си? Това действие не може да бъде отменено."
+  },
+  "web.account.confirm_account_deletion": {
+    "text": "Потвърждаване на изтриване на акаунт"
+  },
+  "web.account.deleting_cust_custid": {
+    "text": "Изтриване на {0}"
+  },
+  "web.account.permanently_delete_account": {
+    "text": "Перманентно изтриване на акаунт"
+  },
+  "web.account.permanent_and_non_reversible": {
+    "text": "перманентно и необратимо."
+  },
+  "web.account.deleting_your_account_is": {
+    "text": "Изтриването на вашия акаунт е"
+  },
+  "web.account.burn_them_before_continuing": {
+    "text": "изгорете ги преди да продължите"
+  },
+  "web.account.any_secrets_you_wish_to_remove": {
+    "text": "Всички тайни, които желаете да премахнете,"
+  },
+  "web.account.secrets_will_remain_active_until_they_expire": {
+    "text": "Тайните ще останат активни, докато не изтекат."
+  },
+  "web.account.please_be_advised": {
+    "text": "Моля, имайте предвид:"
+  },
+  "web.account.account_deleted_successfully": {
+    "text": "Акаунтът е изтрит успешно."
+  },
+  "web.account.deactivate": {
+    "text": "Деактивиране"
+  },
+  "web.account.are_you_sure_you_want_to_deactivate_your_account": {
+    "text": "Сигурни ли сте, че искате да деактивирате вашия акаунт? Всички ваши данни ще бъдат перманентно изтрити от нашите сървъри завинаги. Това действие не може да бъде отменено."
+  },
+  "web.account.deactivate_account": {
+    "text": "Деактивиране на акаунт"
+  },
+  "web.settings.title": {
+    "text": "Настройки"
+  },
+  "web.settings.description": {
+    "text": "Управление на настройките и предпочитанията на вашия акаунт"
+  },
+  "web.settings.manage_your_account_settings_and_preferences": {
+    "text": "Управление на настройките и предпочитанията на вашия акаунт"
+  },
+  "web.settings.back_to_dashboard": {
+    "text": "Обратно към таблото"
+  },
+  "web.settings.sections.account": {
+    "text": "Акаунт"
+  },
+  "web.settings.sections.billing": {
+    "text": "Фактуриране"
+  },
+  "web.settings.sections.advanced": {
+    "text": "Разширени"
+  },
+  "web.settings.general": {
+    "text": "Общи"
+  },
+  "web.settings.preferences": {
+    "text": "Предпочитания"
+  },
+  "web.settings.appearance": {
+    "text": "Външен вид"
+  },
+  "web.settings.theme.title": {
+    "text": "Тема"
+  },
+  "web.settings.theme.description": {
+    "text": "Изберете светла или тъмна тема"
+  },
+  "web.settings.theme.choose_light_or_dark_theme": {
+    "text": "Изберете светла или тъмна тема"
+  },
+  "web.settings.language.title": {
+    "text": "Език"
+  },
+  "web.settings.language.description": {
+    "text": "Изберете предпочитания език"
+  },
+  "web.settings.language.select_your_preferred_language": {
+    "text": "Изберете предпочитания език"
+  },
+  "web.settings.security_settings_description": {
+    "text": "Управление на удостоверяването и сигурността на акаунта"
+  },
+  "web.settings.profile_settings_description": {
+    "text": "Управление на информацията за вашия акаунт"
+  },
+  "web.settings.profile.title": {
+    "text": "Профил"
+  },
+  "web.settings.profile.change_email": {
+    "text": "Промяна на имейл"
+  },
+  "web.settings.profile.current_email": {
+    "text": "Текущ имейл"
+  },
+  "web.settings.profile.current_password": {
+    "text": "Текуща парола"
+  },
+  "web.settings.profile.new_email": {
+    "text": "Нов имейл"
+  },
+  "web.settings.profile.enter_password_to_confirm": {
+    "text": "Въведете вашата текуща парола"
+  },
+  "web.settings.profile.password_required_for_security": {
+    "text": "Вашата парола е необходима за целите на сигурността"
+  },
+  "web.settings.profile.verification_email_notice": {
+    "text": "Имейл за потвърждение ще бъде изпратен на новия адрес"
+  },
+  "web.settings.profile.update_email": {
+    "text": "Актуализирай имейла"
+  },
+  "web.settings.profile.change_email_description": {
+    "text": "Актуализирайте имейл адреса, свързан с вашия акаунт"
+  },
+  "web.settings.profile.all_fields_required": {
+    "text": "Всички полета са задължителни"
+  },
+  "web.settings.profile.invalid_email": {
+    "text": "Моля, въведете валиден имейл адрес"
+  },
+  "web.settings.profile.email_same_as_current": {
+    "text": "Новият имейл трябва да се различава от текущия имейл"
+  },
+  "web.settings.profile.email_change_success": {
+    "text": "Имейлът е актуализиран успешно. Моля, проверете входящата си поща, за да потвърдите новия си имейл адрес."
+  },
+  "web.settings.profile.email_change_error": {
+    "text": "Неуспешно актуализиране на имейла. Моля, опитайте отново."
+  },
+  "web.settings.sessions.title": {
+    "text": "Активни сесии"
+  },
+  "web.settings.sessions.description": {
+    "text": "Управление на вашите активни сесии"
+  },
+  "web.settings.sessions.manage_active_sessions": {
+    "text": "Управление на вашите активни сесии"
+  },
+  "web.settings.password.title": {
+    "text": "Парола"
+  },
+  "web.settings.password.description": {
+    "text": "Актуализиране на паролата на вашия акаунт"
+  },
+  "web.settings.password.update_account_password": {
+    "text": "Актуализиране на паролата на вашия акаунт"
+  },
+  "web.settings.delete_account.title": {
+    "text": "Изтриване на акаунта"
+  },
+  "web.settings.delete_account.description": {
+    "text": "Перманентно изтриване на вашия акаунт и всички данни"
+  },
+  "web.settings.delete_account.permanently_delete_your_account": {
+    "text": "Перманентно изтриване на вашия акаунт и всички данни"
+  },
+  "web.settings.security.security_score": {
+    "text": "Оценка на сигурността"
+  },
+  "web.settings.security.score_description": {
+    "text": "Общото състояние на сигурността на вашия акаунт"
+  },
+  "web.settings.security.excellent": {
+    "text": "Отлична"
+  },
+  "web.settings.security.good": {
+    "text": "Добра"
+  },
+  "web.settings.security.fair": {
+    "text": "Задоволителна"
+  },
+  "web.settings.security.weak": {
+    "text": "Слаба"
+  },
+  "web.settings.security.improve_security": {
+    "text": "Подобрете вашата сигурност"
+  },
+  "web.settings.security.enable_mfa_recommendation": {
+    "text": "Активирайте двуфакторна автентикация за по-силна защита"
+  },
+  "web.settings.security.generate_recovery_codes_recommendation": {
+    "text": "Генерирайте кодове за възстановяване като резервен вариант"
+  },
+  "web.settings.security.configured": {
+    "text": "Конфигурирана"
+  },
+  "web.settings.security.change": {
+    "text": "Промяна"
+  },
+  "web.settings.security.manage": {
+    "text": "Управление"
+  },
+  "web.settings.security.enable": {
+    "text": "Активиране"
+  },
+  "web.settings.security.codes_available": {
+    "text": "{0} налични кода"
+  },
+  "web.settings.security.no_codes": {
+    "text": "Няма генерирани кодове"
+  },
+  "web.settings.security.active_sessions": {
+    "text": "{0} активна сесия | {0} активни сесии"
+  },
+  "web.settings.security.best_practices": {
+    "text": "Добри практики за сигурност"
+  },
+  "web.settings.security.use_strong_unique_password": {
+    "text": "Използвайте силна, уникална парола за вашия акаунт"
+  },
+  "web.settings.security.enable_mfa_for_protection": {
+    "text": "Активирайте двуфакторна автентикация за допълнителна защита"
+  },
+  "web.settings.security.save_recovery_codes_safely": {
+    "text": "Запазете вашите кодове за възстановяване на сигурно място"
+  },
+  "web.settings.security.review_sessions_regularly": {
+    "text": "Преглеждайте и отменяйте неизползваните сесии редовно"
+  },
+  "web.settings.security.view_details": {
+    "text": "Вижте детайли"
+  },
+  "web.settings.api.title": {
+    "text": "API и интеграции"
+  },
+  "web.settings.api.description": {
+    "text": "Управление на API ключове и интеграции"
+  },
+  "web.settings.api.manage_api_keys": {
+    "text": "Управление на API ключове и интеграции"
+  },
+  "web.settings.api.documentation": {
+    "text": "API документация"
+  },
+  "web.settings.api.documentation_description": {
+    "text": "Научете как да интегрирате Onetime Secret във вашите приложения"
+  },
+  "web.settings.api.rest_api_reference": {
+    "text": "REST API справка"
+  },
+  "web.settings.api.complete_api_documentation": {
+    "text": "Пълна API документация и крайни точки"
+  },
+  "web.settings.api.code_examples": {
+    "text": "Примери с код"
+  },
+  "web.settings.api.example_code_and_libraries": {
+    "text": "Примерен код и клиентски библиотеки"
+  },
+  "web.settings.api.security_best_practices": {
+    "text": "Добри практики за сигурност"
+  },
+  "web.settings.api.never_commit_api_keys": {
+    "text": "Никога не добавяйте API ключове към системата за контрол на версиите"
+  },
+  "web.settings.api.use_environment_variables": {
+    "text": "Използвайте променливи на средата за съхранение на API ключове"
+  },
+  "web.settings.api.rotate_keys_regularly": {
+    "text": "Ротирайте API ключовете редовно за сигурност"
+  },
+  "web.settings.api.use_https_only": {
+    "text": "Винаги използвайте HTTPS при API заявки"
+  },
+  "web.settings.api.monitor_api_usage": {
+    "text": "Следете вашето API използване и настройте известия"
+  },
+  "web.settings.api.important_notice": {
+    "text": "Важно съобщение"
+  },
+  "web.settings.api.regenerating_key_warning": {
+    "text": "Регенерирането на вашия API ключ ще анулира текущия ключ. Актуализирайте всички приложения, които използват стария ключ."
+  },
+  "web.settings.privacy.title": {
+    "text": "Настройки за поверителност"
+  },
+  "web.settings.privacy.manage_privacy_settings": {
+    "text": "Управление на вашите предпочитания за поверителност"
+  },
+  "web.settings.privacy.your_privacy": {
+    "text": "Вашата поверителност"
+  },
+  "web.settings.privacy.non_negotiable": {
+    "text": "Без компромис"
+  },
+  "web.settings.privacy.not_a_setting": {
+    "text": "Не е настройка"
+  },
+  "web.settings.privacy.no_analytics_statement": {
+    "text": "Без анализи. Без проследяване. Точка."
+  },
+  "web.settings.privacy.explanation": {
+    "text": "Това не е настройка, защото няма какво да се включва или изключва. Вашата поверителност е вградена в начина, по който работим."
+  },
+  "web.settings.notifications.title": {
+    "text": "Настройки за известия"
+  },
+  "web.settings.notifications.description": {
+    "text": "Управление на начина, по който получавате известия"
+  },
+  "web.settings.notifications.error_updating": {
+    "text": "Неуспешно актуализиране на предпочитанията за известия. Моля, опитайте отново."
+  },
+  "web.settings.notifications.reveal_notifications.title": {
+    "text": "Известия при разкриване на тайна"
+  },
+  "web.settings.notifications.reveal_notifications.description": {
+    "text": "Получавайте имейл, когато някой преглежда вашата тайна"
+  },
+  "web.settings.notifications.reveal_notifications.help": {
+    "text": "Ще бъдете уведомени всеки път, когато получател разкрие някоя от вашите тайни"
+  },
+  "web.settings.notifications.privacy_note": {
+    "text": "Имейлите с известия съдържат само времева отметка и идентификатор на тайната. Информация за прегледалия никога не се включва."
+  },
+  "web.settings.caution.title": {
+    "text": "Зона на внимателно обмисляне"
+  },
+  "web.settings.caution.description": {
+    "text": "Разширени настройки и управление на данни"
+  },
+  "web.settings.caution.data_export": {
+    "text": "Експорт на данни"
+  },
+  "web.settings.caution.export_your_data": {
+    "text": "Експорт на данните на вашия акаунт"
+  },
+  "web.settings.caution.export_description": {
+    "text": "Заявете пълно копие на данните на вашия акаунт в машинно-четим формат"
+  },
+  "web.settings.caution.request_data_export": {
+    "text": "Заявете експорт на данни"
+  },
+  "web.settings.caution.export_info": {
+    "text": "Време за обработка на експорта"
+  },
+  "web.settings.caution.export_info_description": {
+    "text": "Експортите се обработват в рамките на 24 часа и се изпращат на вашия имейл адрес"
+  },
+  "web.settings.caution.deletion_warning_title": {
+    "text": "Изтриването на вашия акаунт ще:"
+  },
+  "web.settings.caution.deletion_warning_secrets": {
+    "text": "Перманентно изтрие всички ваши тайни"
+  },
+  "web.settings.caution.deletion_warning_metadata": {
+    "text": "Премахне всички метаданни и история на тайните"
+  },
+  "web.settings.caution.deletion_warning_api_keys": {
+    "text": "Анулира всички API ключове"
+  },
+  "web.settings.caution.deletion_warning_irreversible": {
+    "text": "Това действие не може да бъде отменено"
+  }
+}

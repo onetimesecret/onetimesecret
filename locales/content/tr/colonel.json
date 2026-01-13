@@ -1,0 +1,329 @@
+{
+  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
+    "text": "{0}/{1}/{2} [{3}]"
+  },
+  "web.colonel.customer_verified_verified_not_verified_0": {
+    "text": "`+customer.verified ? `verified` : `not verified"
+  },
+  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
+    "text": "Müşteriler ({1} kişiden {0})"
+  },
+  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
+    "text": "Kullanıcı Geri Bildirimi (Toplam: {0})"
+  },
+  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
+    "text": "Meta Veri / Mesajlar: {0}/{1} ({2}/{3}/{4} toplam)"
+  },
+  "web.colonel.secrets_details_counts_secret_count_0": {
+    "text": "Mesajlar ({0})"
+  },
+  "web.colonel.active_in_the_past_5_minutes_0": {
+    "text": "(son 5 dakika içinde aktif)"
+  },
+  "web.colonel.configEditorTitle": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.configEditorDescription": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.invalidJson": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.validationError": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.errorFetchingConfig": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.errorSavingConfig": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.configSaved": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.mustBeObject": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.multipleSectionsInvalid": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.sectionHasError": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.sectionSaved": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.saveSection": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.saveAll": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.unsavedChanges": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.schemaValidationError": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.unknownValidationError": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.sectionEffectivelyEmpty": {
+    "text": "{section} bölümünde yapılandırılmış değer yok"
+  },
+  "web.colonel.dashboard": {
+    "text": "Kontrol Paneli"
+  },
+  "web.colonel.admin": {
+    "text": "Admin"
+  },
+  "web.colonel.activity": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.accounts": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.users": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.usersDescription": {
+    "text": "Kullanıcı hesaplarını ve izinleri yönetin"
+  },
+  "web.colonel.domains": {
+    "text": "Alan Adları"
+  },
+  "web.colonel.settings": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.system": {
+    "text": "Sistem"
+  },
+  "web.colonel.welcome": {
+    "text": "Yönetici Paneline Hoş Geldiniz"
+  },
+  "web.colonel.welcomeDesc": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.quickActions": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.recentActivity": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.viewAll": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.activityPlaceholder": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.stats.totalSecrets": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.stats.activeUsers": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.stats.secretsToday": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.stats.secretsCreated": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.stats.secretsShared": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.stats.totalCustomers": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.stats.emailsSent": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.stats.systemHealth": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.stats.healthy": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.actions.viewActivity": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.actions.viewActivityDesc": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.actions.manageAccounts": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.actions.manageAccountsDesc": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.actions.configureDomains": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.actions.configureDomainsDesc": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.actions.systemSettings": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.actions.systemSettingsDesc": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.colonel.backgroundJobs": {
+    "text": "Arka Plan İşleri"
+  },
+  "web.colonel.queueStatus": {
+    "text": "Kuyruk Durumu"
+  },
+  "web.colonel.queueName": {
+    "text": "Kuyruk"
+  },
+  "web.colonel.pendingMessages": {
+    "text": "Bekleyen"
+  },
+  "web.colonel.consumers": {
+    "text": "Tüketiciler"
+  },
+  "web.colonel.processingRate": {
+    "text": "Hız/sn"
+  },
+  "web.colonel.connectionStatus": {
+    "text": "Bağlantı Durumu"
+  },
+  "web.colonel.workerHealth": {
+    "text": "İşçi Sağlığı"
+  },
+  "web.colonel.activeWorkers": {
+    "text": "aktif işçiler"
+  },
+  "web.colonel.noQueueData": {
+    "text": "Kuyruk verisi mevcut değil"
+  },
+  "web.colonel.loadingQueueData": {
+    "text": "Kuyruk verileri yükleniyor..."
+  },
+  "web.colonel.testPlanMode": {
+    "text": "Test Plan Modu"
+  },
+  "web.colonel.testingAsPlan": {
+    "text": "{planName} olarak test ediliyor"
+  },
+  "web.colonel.clickToReset": {
+    "text": "Sıfırlamak için tıklayın"
+  },
+  "web.colonel.selectTestPlan": {
+    "text": "Test edilecek bir plan seçin"
+  },
+  "web.colonel.resetToActual": {
+    "text": "Gerçek plana sıfırla"
+  },
+  "web.colonel.currentActualPlan": {
+    "text": "Mevcut plan"
+  },
+  "web.colonel.availablePlans": {
+    "text": "Mevcut planlar"
+  },
+  "web.colonel.activateTestMode": {
+    "text": "Test modunu etkinleştir"
+  },
+  "web.colonel.testModeActive": {
+    "text": "Test modu aktif"
+  },
+  "web.colonel.testModeDescription": {
+    "text": "Uygulamanızı farklı plan yetkileriyle test edin. Değişiklikler geçicidir ve yalnızca oturumunuzu etkiler."
+  },
+  "web.colonel.warningTestMode": {
+    "text": "{planName} yetkileriyle test ediyorsunuz (geçici oturum geçersiz kılma)."
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Geribildirim gönderdiğinizde göreceğimiz bilgiler:"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Geribildirim gönder"
+  },
+  "web.feedback.sending_ellipses": {
+    "text": "Gönderiliyor..."
+  }
+}

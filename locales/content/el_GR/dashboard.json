@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Ληφθέντα"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Μη Ληφθέντα"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Δεν υπάρχουν πρόσφατα μυστικά"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Ξεκινήστε δημιουργώντας το πρώτο σας μυστικό."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Αδυναμία φόρτωσης ομάδων"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Παρουσιάστηκε πρόβλημα κατά τη φόρτωση των ομάδων σας. Παρακαλώ δοκιμάστε ξανά."
+  }
+}

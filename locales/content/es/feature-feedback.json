@@ -1,0 +1,47 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "Tus comentarios"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "¡Todos los comentarios son bienvenidos!"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "Ayúdanos a mejorar"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "Cerrar modal de comentarios"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "Comparte tus comentarios"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum"
+  },
+  "web.feedback.delano": {
+    "text": "Delano"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "El contenido de ayuda va aquí."
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "Gracias por ayudar a mejorar Onetime Secret. Significa mucho."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "Hemos creado esta herramienta para ayudarte a compartir información sensible de forma segura, y tus experiencias del mundo real son cruciales para enfocar nuestros esfuerzos. Nos ayuda a decidir en qué trabajar a continuación y cómo mejorar el servicio para todos."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "Hola, gracias por visitar nuestra página de comentarios. Tu opinión no solo es bienvenida, es crucial."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "Una nota de Delano, fundador de Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "Abrir formulario de comentarios"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "Introduce tus comentarios"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Enviar comentarios"
+  }
+}

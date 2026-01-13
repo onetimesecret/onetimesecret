@@ -1,0 +1,107 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "Datová suverenita a regionální izolace"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "Tvá data se nacházejí výhradně ve tvém zvoleném regionu a nikdy nejsou přenášena mezi regiony"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "Každý region funguje jako zcela nezávislé prostředí s vlastní infrastrukturou, šifrovacími klíči a úložištěm dat"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "Dodržujeme přísnou politiku: zákaznická data nejsou nikdy za žádných okolností přenášena mezi regiony"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "Důležité: Přepnutí do jiného regionu vytvoří nový účet. Tvá data zůstanou v původním regionu."
+  },
+  "web.regions.your_region": {
+    "text": "Tvůj region"
+  },
+  "web.regions.your_current_region": {
+    "text": "Tvůj současný region"
+  },
+  "web.regions.active": {
+    "text": "Aktivní"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "Prozkoumat další dostupné regiony"
+  },
+  "web.regions.why_it_matters": {
+    "text": "Proč je datová suverenita důležitá"
+  },
+  "web.regions.trust_title": {
+    "text": "Transparentnost a kontrola"
+  },
+  "web.regions.trust_description": {
+    "text": "Přesně víš, kde se tvá data nacházejí a které zákony chrání jejich ochranu."
+  },
+  "web.regions.privacy_title": {
+    "text": "Práva na soukromí"
+  },
+  "web.regions.privacy_description": {
+    "text": "Zajisti, aby tvé osobní údaje byly zpracovávány v souladu s pravidly soukromí tvé země, což zabrání neoprávněnému přístupu nebo zneužití."
+  },
+  "web.regions.compliance_title": {
+    "text": "Regulační soulad"
+  },
+  "web.regions.compliance_description": {
+    "text": "Splň požadavky GDPR, HIPAA, CCPA a dalších regionálních předpisů o ochraně dat"
+  },
+  "web.regions.performance_title": {
+    "text": "Rychlejší přístup"
+  },
+  "web.regions.performance_description": {
+    "text": "Data uložená blíže k tobě znamenají nižší latenci a lepší výkon."
+  },
+  "web.regions.regions": {
+    "text": "Regiony"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "kontaktuj náš tým pro soulad"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "přečti si naši dokumentaci"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "Tvůj účet a data jsou chráněny podle zákonů"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "Tvůj regulační rámec je určen tvou přístupovou doménou:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "Každý region je zcela oddělený s vlastní infrastrukturou, pokud možno s vlastním lokálním poskytovatelem hostingu. Můžeš vytvářet účty ve více regionech, ale žádná data mezi nimi nejsou sdílena."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "Pro podrobnosti o předpisech a ochraně, které se vztahují na tvůj účet,"
+  },
+  "web.regions.current": {
+    "text": "Aktuální"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "Dostupné regiony"
+  },
+  "web.regions.jurisdiction": {
+    "text": "Jurisdikce"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "Umístění datového centra: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "Datový region"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "Neznámá jurisdikce"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "Obsluhujeme tě z"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "Pokračovat na {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Aktuální jurisdikce:"
+  }
+}

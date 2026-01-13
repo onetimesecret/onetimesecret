@@ -1,0 +1,278 @@
+{
+  "web.domains.learn_more_dns": {
+    "text": "Узнайте больше о конфигурации DNS"
+  },
+  "web.domains.view_domain_verification_status": {
+    "text": "Просмотреть статус подтверждения домена"
+  },
+  "web.domains.domain_already_in_organization": {
+    "text": "Этот домен уже зарегистрирован в вашей организации"
+  },
+  "web.domains.domain_in_other_organization": {
+    "text": "Этот домен уже зарегистрирован в другой организации. Пожалуйста, свяжитесь с поддержкой, если вы считаете, что это ошибка."
+  },
+  "web.domains.domain_claimed_successfully": {
+    "text": "Домен успешно заявлен и добавлен в вашу организацию"
+  },
+  "web.domains.privacy_defaults_title": {
+    "text": "Настройки конфиденциальности"
+  },
+  "web.domains.privacy_defaults_description": {
+    "text": "Задайте настройки конфиденциальности по умолчанию для секретов, созданных в этом домене. Эти настройки будут предзаполнены при создании новых секретов."
+  },
+  "web.domains.privacy_defaults": {
+    "text": "Настройки конфиденциальности"
+  },
+  "web.domains.privacy_defaults_icon": {
+    "text": "Иконка настроек конфиденциальности"
+  },
+  "web.domains.default_ttl_label": {
+    "text": "Срок действия по умолчанию"
+  },
+  "web.domains.default_ttl_hint": {
+    "text": "Как долго секреты должны быть доступны по умолчанию"
+  },
+  "web.domains.passphrase_required_label": {
+    "text": "Требовать кодовую фразу"
+  },
+  "web.domains.passphrase_required_hint": {
+    "text": "Сделать кодовую фразу обязательной для всех секретов в этом домене"
+  },
+  "web.domains.notify_enabled_label": {
+    "text": "Включить уведомления"
+  },
+  "web.domains.notify_enabled_hint": {
+    "text": "Включить уведомления по электронной почте по умолчанию при просмотре секретов"
+  },
+  "web.domains.use_global_default": {
+    "text": "Использовать глобальную настройку"
+  },
+  "web.domains.global_default": {
+    "text": "Глобальная"
+  },
+  "web.domains.required": {
+    "text": "Обязательно"
+  },
+  "web.domains.optional": {
+    "text": "Необязательно"
+  },
+  "web.domains.enabled": {
+    "text": "Включено"
+  },
+  "web.domains.disabled": {
+    "text": "Отключено"
+  },
+  "web.domains.custom": {
+    "text": "Пользовательская"
+  },
+  "web.domains.edit_defaults": {
+    "text": "Изменить настройки"
+  },
+  "web.domains.ttl_short": {
+    "text": "Срок"
+  },
+  "web.domains.passphrase_short": {
+    "text": "Кодовая фраза"
+  },
+  "web.domains.notify_short": {
+    "text": "Уведомления"
+  },
+  "web.domains.scope_switch_label": {
+    "text": "Переключить область домена"
+  },
+  "web.domains.switcher_locked": {
+    "text": "Переключение домена недоступно на этой странице"
+  },
+  "web.domains.scope_list_label": {
+    "text": "Доступные домены"
+  },
+  "web.domains.scope_header": {
+    "text": "Домены"
+  },
+  "web.domains.add_domain": {
+    "text": "Добавить домен"
+  },
+  "web.domains.domain_settings": {
+    "text": "Настройки домена"
+  },
+  "web.domains.canonical_no_settings": {
+    "text": "У домена по умолчанию нет страницы настроек"
+  },
+  "web.domains.please_enter_a_domain_name": {
+    "text": "Пожалуйста, введите доменное имя {0}"
+  },
+  "web.domains.domain_name": {
+    "text": "Доменное имя"
+  },
+  "web.domains.control_whether_users_can_create_secret_links": {
+    "text": "Управляйте тем, могут ли пользователи создавать ссылки на секреты с главной страницы Вашего домена"
+  },
+  "web.domains.homepage_access": {
+    "text": "Доступ к главной странице"
+  },
+  "web.domains.and_status": {
+    "text": "& Статус"
+  },
+  "web.domains.domain": {
+    "text": "Домен"
+  },
+  "web.domains.manage_and_configure_your_verified_custom_domains": {
+    "text": "Управляйте и настраивайте Ваши проверенные пользовательские домены"
+  },
+  "web.domains.domains": {
+    "text": "Домены"
+  },
+  "web.domains.last_monitored": {
+    "text": "Последний мониторинг"
+  },
+  "web.domains.ssl_status": {
+    "text": "Статус SSL"
+  },
+  "web.domains.ssl_renews": {
+    "text": "Обновление SSL"
+  },
+  "web.domains.dns_record": {
+    "text": "DNS-запись"
+  },
+  "web.domains.target_address": {
+    "text": "Целевой адрес"
+  },
+  "web.domains.domain_status": {
+    "text": "Статус домена"
+  },
+  "web.domains.custom_domains_count": {
+    "text": "Количество пользовательских доменов"
+  },
+  "web.domains.custom_domain": {
+    "text": "Пользовательский домен"
+  },
+  "web.domains.open_domain_in_new_tab": {
+    "text": "Открыть домен в новой вкладке"
+  },
+  "web.domains.back_to_domains": {
+    "text": "Назад к доменам"
+  },
+  "web.domains.return_to_domains_list": {
+    "text": "Вернуться к списку доменов"
+  },
+  "web.domains.verify_domain": {
+    "text": "Проверить домен"
+  },
+  "web.domains.manage_brand": {
+    "text": "Управление брендом"
+  },
+  "web.domains.added_formatdistancetonow_domain_created_addsuffix_true": {
+    "text": "Добавлено {0}"
+  },
+  "web.domains.add_your_domain": {
+    "text": "Добавьте Ваш домен"
+  },
+  "web.domains.get_started_by_adding_a_custom_domain": {
+    "text": "Начните с добавления пользовательского домена."
+  },
+  "web.domains.no_domains_found": {
+    "text": "Домены не найдены."
+  },
+  "web.domains.loading_domain_information": {
+    "text": "Загрузка информации о домене..."
+  },
+  "web.domains.in_order_to_connect_your_domain_youll_need_to_ha": {
+    "text": "Чтобы подключить Ваш домен, Вам необходимо иметь CNAME-запись в DNS, указывающую на"
+  },
+  "web.domains.if_you_already_have_a_cname_record_for_that_addr": {
+    "text": "Если у Вас уже есть CNAME-запись для этого адреса, пожалуйста, измените её так, чтобы она указывала на"
+  },
+  "web.domains.a_cname_record_is_not_allowed_instead_youll_need": {
+    "text": "), CNAME-запись не разрешена. Вместо этого Вам нужно создать A-запись. Подробная информация о том, как это сделать, будет предоставлена ниже на странице."
+  },
+  "web.domains.and_remove_any_other_a_aaaa_or_cname_records_for": {
+    "text": "и удалите все другие A-, AAAA- или CNAME-записи для этого точного адреса."
+  },
+  "web.domains.youll_need_to_complete_these_steps": {
+    "text": ", Вам нужно будет выполнить эти шаги."
+  },
+  "web.domains.before_we_can_activate_links_for": {
+    "text": "Прежде чем мы сможем активировать ссылки для"
+  },
+  "web.domains.please_note_that_for_apex_domains": {
+    "text": "Обратите внимание, что для корневых доменов (например,"
+  },
+  "web.domains.verify_your_domain": {
+    "text": "Проверьте Ваш домен"
+  },
+  "web.domains.secrets_example_dot_com": {
+    "text": "секреты.пример.com"
+  },
+  "web.domains.customize_your_domain_branding": {
+    "text": "Настройте брендинг Вашего домена"
+  },
+  "web.domains.it_may_take_a_few_minutes_for_your_ssl_certifica": {
+    "text": "Вашему SSL-сертификату может потребоваться несколько минут для вступления в силу."
+  },
+  "web.domains.dns_changes_can_take_as_little_as_60_seconds_or_": {
+    "text": "Изменения DNS могут вступить в силу за 60 секунд или занять до 24 часов."
+  },
+  "web.domains.3_wait_for_propagation": {
+    "text": "3. Дождитесь распространения"
+  },
+  "web.domains.value_2": {
+    "text": "Значение"
+  },
+  "web.domains.value_1": {
+    "text": "Значение"
+  },
+  "web.domains.host_1": {
+    "text": "Хост"
+  },
+  "web.domains.type_2": {
+    "text": "Тип"
+  },
+  "web.domains.type_1": {
+    "text": "Тип"
+  },
+  "web.domains.2_create_the_cname_record": {
+    "text": "2. Создайте CNAME-запись"
+  },
+  "web.domains.value_0": {
+    "text": "Значение"
+  },
+  "web.domains.host_0": {
+    "text": "Хост"
+  },
+  "web.domains.type_0": {
+    "text": "Тип"
+  },
+  "web.domains.2_create_the_a_record": {
+    "text": "2. Создайте A-запись"
+  },
+  "web.domains.add_this_hostname_to_your_dns_configuration": {
+    "text": "Добавьте это имя хоста в конфигурацию DNS:"
+  },
+  "web.domains.1_create_a_txt_record": {
+    "text": "1. Создайте TXT-запись"
+  },
+  "web.domains.follow_these_steps_to_verify_domain_ownership_an": {
+    "text": "Следуйте этим шагам для проверки владения доменом и повышения Вашего присутствия в Интернете:"
+  },
+  "web.domains.domain_verification_steps": {
+    "text": "Шаги проверки домена"
+  },
+  "web.domains.domain_verification_initiated_successfully": {
+    "text": "Проверка домена успешно инициирована."
+  },
+  "web.domains.are_you_sure_you_want_to_remove_this_domain": {
+    "text": "Вы уверены, что хотите удалить этот домен? Это действие нельзя отменить."
+  },
+  "web.domains.remove_domain": {
+    "text": "Удалить домен"
+  },
+  "web.domains.domain_removed_successfully": {
+    "text": "Домен успешно удалён"
+  },
+  "web.domains.failed_to_add_domain": {
+    "text": "Не удалось добавить домен"
+  },
+  "web.domains.domain_added_successfully": {
+    "text": "Домен успешно добавлен"
+  }
+}

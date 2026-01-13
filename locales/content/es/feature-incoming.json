@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Enviar un secreto"
+  },
+  "incoming.page_description": {
+    "text": "Comparta información confidencial de forma segura con nuestro equipo de soporte"
+  },
+  "incoming.loading_config": {
+    "text": "Cargando..."
+  },
+  "incoming.config_error_title": {
+    "text": "Error al cargar la configuración"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Función no disponible"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Esta función está actualmente desactivada. Por favor, contacte con soporte para obtener asistencia."
+  },
+  "incoming.memo_label": {
+    "text": "Nota"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Breve descripción (ej. Solicitud de restablecimiento de contraseña)"
+  },
+  "incoming.memo_hint": {
+    "text": "Ayúdenos a dirigir su mensaje a la persona adecuada"
+  },
+  "incoming.recipient_label": {
+    "text": "Enviar a"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Seleccionar un destinatario"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Seleccione un destinatario para este secreto"
+  },
+  "incoming.recipient_hint": {
+    "text": "Elija quién recibirá este mensaje seguro"
+  },
+  "incoming.no_recipients_available": {
+    "text": "No hay destinatarios disponibles"
+  },
+  "incoming.secret_content_label": {
+    "text": "Información confidencial"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Pegue aquí información confidencial (contraseñas, claves, etc.)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Esta información será cifrada y solo se podrá ver una vez"
+  },
+  "incoming.submit_button": {
+    "text": "Enviar secreto"
+  },
+  "incoming.submit_secret": {
+    "text": "Enviar secreto"
+  },
+  "incoming.submitting_button": {
+    "text": "Enviando..."
+  },
+  "incoming.submitting": {
+    "text": "Enviando..."
+  },
+  "incoming.reset_button": {
+    "text": "Limpiar formulario"
+  },
+  "incoming.reset_form": {
+    "text": "Limpiar formulario"
+  },
+  "incoming.success_title": {
+    "text": "Enviado correctamente"
+  },
+  "incoming.success_description": {
+    "text": "Su mensaje seguro ha sido entregado."
+  },
+  "incoming.reference_id": {
+    "text": "ID de referencia"
+  },
+  "incoming.success_info_title": {
+    "text": "¿Qué sucede ahora?"
+  },
+  "incoming.success_info_description": {
+    "text": "El destinatario podrá ver este secreto solo una vez. Después de verlo, el secreto será eliminado permanentemente."
+  },
+  "incoming.create_another": {
+    "text": "Enviar otro secreto"
+  },
+  "incoming.tagline1": {
+    "text": "Comparta información confidencial de forma segura"
+  },
+  "incoming.tagline2": {
+    "text": "Mantenga contraseñas y datos privados fuera de correos electrónicos y registros de chat"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Guarde su <a href='{receiptUrl}'>recibo</a> para sus registros."
+  },
+  "incoming.receipt_link_text": {
+    "text": "recibo"
+  }
+}

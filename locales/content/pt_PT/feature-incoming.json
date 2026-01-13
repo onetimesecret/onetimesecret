@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Enviar um segredo"
+  },
+  "incoming.page_description": {
+    "text": "Partilhe informações sensíveis de forma segura com a nossa equipa de suporte"
+  },
+  "incoming.loading_config": {
+    "text": "A carregar..."
+  },
+  "incoming.config_error_title": {
+    "text": "Falha ao carregar a configuração"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Funcionalidade não disponível"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Esta funcionalidade está atualmente desativada. Contacte o suporte para obter assistência."
+  },
+  "incoming.memo_label": {
+    "text": "Nota"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Breve descrição (ex. Pedido de redefinição de palavra-passe)"
+  },
+  "incoming.memo_hint": {
+    "text": "Ajude-nos a encaminhar a sua mensagem para a pessoa certa"
+  },
+  "incoming.recipient_label": {
+    "text": "Enviar para"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Selecionar um destinatário"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Selecione um destinatário para este segredo"
+  },
+  "incoming.recipient_hint": {
+    "text": "Escolha quem receberá esta mensagem segura"
+  },
+  "incoming.no_recipients_available": {
+    "text": "Nenhum destinatário disponível"
+  },
+  "incoming.secret_content_label": {
+    "text": "Informações confidenciais"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Cole aqui as informações sensíveis (palavras-passe, chaves, etc.)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Estas informações serão encriptadas e visualizáveis apenas uma vez"
+  },
+  "incoming.submit_button": {
+    "text": "Enviar segredo"
+  },
+  "incoming.submit_secret": {
+    "text": "Enviar segredo"
+  },
+  "incoming.submitting_button": {
+    "text": "A enviar..."
+  },
+  "incoming.submitting": {
+    "text": "A enviar..."
+  },
+  "incoming.reset_button": {
+    "text": "Limpar formulário"
+  },
+  "incoming.reset_form": {
+    "text": "Limpar formulário"
+  },
+  "incoming.success_title": {
+    "text": "Enviado com sucesso"
+  },
+  "incoming.success_description": {
+    "text": "A sua mensagem segura foi entregue."
+  },
+  "incoming.reference_id": {
+    "text": "ID de referência"
+  },
+  "incoming.success_info_title": {
+    "text": "O que acontece agora?"
+  },
+  "incoming.success_info_description": {
+    "text": "O destinatário poderá visualizar este segredo apenas uma vez. Após a visualização, o segredo será permanentemente eliminado."
+  },
+  "incoming.create_another": {
+    "text": "Enviar outro segredo"
+  },
+  "incoming.tagline1": {
+    "text": "Partilhe informações sensíveis de forma segura"
+  },
+  "incoming.tagline2": {
+    "text": "Mantenha palavras-passe e dados privados fora de e-mails e registos de chat"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Guarde o seu <a href='{receiptUrl}'>recibo</a> para os seus registos."
+  },
+  "incoming.receipt_link_text": {
+    "text": "recibo"
+  }
+}

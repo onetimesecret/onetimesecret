@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Rebut"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "no s'ha rebut"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "No hi ha secrets recents"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Comença creant el teu primer secret."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "No s'han pogut carregar els equips"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Hi ha hagut un problema en carregar els teus equips. Si us plau, torna-ho a provar."
+  }
+}

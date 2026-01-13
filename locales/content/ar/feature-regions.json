@@ -1,0 +1,107 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "السيادة على البيانات والعزل الإقليمي"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "تتواجد بياناتك حصرياً في المنطقة التي اخترتها ولا يتم نقلها أبداً بين المناطق"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "تعمل كل منطقة كبيئة مستقلة تماماً بها بنيتها التحتية الخاصة، ومفاتيح التشفير، وتخزين البيانات"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "نحافظ على سياسة صارمة: بيانات العملاء لا يتم نقلها أبداً بين المناطق تحت أي ظرف"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "مهم: التبديل إلى منطقة مختلفة ينشئ حساباً جديداً. تبقى بياناتك في منطقتك الأصلية."
+  },
+  "web.regions.your_region": {
+    "text": "منطقتك"
+  },
+  "web.regions.your_current_region": {
+    "text": "منطقتك الحالية"
+  },
+  "web.regions.active": {
+    "text": "نشط"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "استكشف المناطق المتاحة الأخرى"
+  },
+  "web.regions.why_it_matters": {
+    "text": "لماذا تهم السيادة على البيانات"
+  },
+  "web.regions.trust_title": {
+    "text": "الشفافية والسيطرة"
+  },
+  "web.regions.trust_description": {
+    "text": "اعرف بالضبط أين تتواجد بياناتك وأي قوانين تحكم حمايتها."
+  },
+  "web.regions.privacy_title": {
+    "text": "حقوق الخصوصية"
+  },
+  "web.regions.privacy_description": {
+    "text": "تأكد من معالجة معلوماتك الشخصية وفقاً لقوانين الخصوصية في بلدك، مما يمنع الوصول غير المصرح به أو سوء الاستخدام."
+  },
+  "web.regions.compliance_title": {
+    "text": "الامتثال التنظيمي"
+  },
+  "web.regions.compliance_description": {
+    "text": "استوفِ متطلبات GDPR و HIPAA و CCPA وغيرها من متطلبات حماية البيانات الإقليمية"
+  },
+  "web.regions.performance_title": {
+    "text": "وصول أسرع"
+  },
+  "web.regions.performance_description": {
+    "text": "تخزين البيانات بالقرب منك يعني زمن انتقال أقل وأداء أفضل."
+  },
+  "web.regions.regions": {
+    "text": "المناطق"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "اتصل بفريق الامتثال لدينا"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "راجع وثائقنا"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "حسابك وبياناتك محمية بموجب قوانين"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "يتم تحديد إطارك التنظيمي من خلال نطاق الوصول الخاص بك:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "كل منطقة منفصلة تماماً مع بنيتها التحتية الخاصة، عندما يكون ذلك ممكناً مع موفر استضافة محلي خاص بها. يمكنك إنشاء حسابات في مناطق متعددة، ولكن لا تتم مشاركة أي بيانات بينها."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "للحصول على تفاصيل حول اللوائح والحماية المطبقة على حسابك،"
+  },
+  "web.regions.current": {
+    "text": "الحالي"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "المناطق المتاحة"
+  },
+  "web.regions.jurisdiction": {
+    "text": "الولاية القضائية"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "موقع مركز البيانات: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "منطقة البيانات"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "ولاية قضائية غير معروفة"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "نخدمك من"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "المتابعة إلى {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "الولاية القضائية الحالية:"
+  }
+}

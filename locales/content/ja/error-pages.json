@@ -1,0 +1,59 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "text": "なぜこのシークレットは利用できないのですか？"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "text": "シークレットは一度だけ表示されるように設計されています。このリンクはすでにアクセスされたか、期限切れになったか、送信者によって手動で削除された可能性があります。"
+  },
+  "web.errors.what_should_i_do_now": {
+    "text": "今何をすべきですか？"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "text": "このリンクを送信した人に連絡し、新しいシークレットを作成するよう依頼してください。元の情報にアクセスできなかったことを伝えてください。"
+  },
+  "web.errors.warning_dismissed": {
+    "text": "警告が閉じられました"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "text": "切り詰め警告を閉じる"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "text": "おっと！お探しのページは存在しないか、移動されました。"
+  },
+  "web.errors.404_page_not_found_0": {
+    "text": "404 - ページが見つかりません"
+  },
+  "web.errors.404_page_not_found": {
+    "text": "404 - ページが見つかりません"
+  },
+  "web.errors.dismiss_warning": {
+    "text": "警告を閉じる"
+  },
+  "web.errors.dismiss_notification": {
+    "text": "通知を閉じる"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "text": "次に何をすべきか分からない場合は、このリンクを送信した人に詳細な情報を確認してください。"
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "text": "私たちのサービスを通じて共有された情報は一度だけアクセスできます。一度表示されると、コンテンツは機密性を確保するために私たちのサーバーから完全に削除されます。このアプローチは、露出を制限し、不正アクセスを防止することで、機密データを保護するのに役立ちます。"
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "text": "申し訳ありませんが、リクエストの処理中に予期しないエラーが発生しました。チームに通知されており、修正に取り組んでいます。"
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "text": "{0} 何かがうまくいきませんでした"
+  },
+  "web.errors.go_share_a_secret": {
+    "text": "シークレットを共有しましょう！"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "text": "お探しのページは存在しないか、移動された可能性があります。心配しないでください、誰にでも起こることです！"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "text": "{0} 404"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "text": "データ形式の問題によりデータを読み込めません。後でもう一度お試しください。"
+  }
+}

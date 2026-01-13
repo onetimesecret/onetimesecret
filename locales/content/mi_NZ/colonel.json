@@ -1,0 +1,245 @@
+{
+  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
+    "text": "{0}/{1}/{2} [{3}]"
+  },
+  "web.colonel.customer_verified_verified_not_verified_0": {
+    "text": "`+customer.verified ? `verified` : `not verified"
+  },
+  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
+    "text": "Ngā Kiritaki ({0} o {1})"
+  },
+  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
+    "text": "Urupare Kaiwhakamahi (Tapeke: {0})"
+  },
+  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
+    "text": "Metadata / Ngā Karere Huna: {0}/{1} ({2}/{3}/{4} tapeke)"
+  },
+  "web.colonel.secrets_details_counts_secret_count_0": {
+    "text": "Ngā Karere Huna ({0})"
+  },
+  "web.colonel.active_in_the_past_5_minutes_0": {
+    "text": "(hohe i ngā meneti 5 kua hipa)"
+  },
+  "web.colonel.configEditorTitle": {
+    "text": "Ngā Tautuhinga"
+  },
+  "web.colonel.configEditorDescription": {
+    "text": "Whakatika i ngā tautuhinga whirihoranga pūnaha. Ka whakamahia ngā huringa i muri tonu i te tiakitanga."
+  },
+  "web.colonel.invalidJson": {
+    "text": "JSON muhu i roto i te wāhanga {section}"
+  },
+  "web.colonel.validationError": {
+    "text": "Hapa whakaū"
+  },
+  "web.colonel.errorFetchingConfig": {
+    "text": "Hapa utanga whirihoranga"
+  },
+  "web.colonel.errorSavingConfig": {
+    "text": "Hapa tiakitanga whirihoranga"
+  },
+  "web.colonel.configSaved": {
+    "text": "Kua tiakina angituhia te whirihoranga"
+  },
+  "web.colonel.mustBeObject": {
+    "text": "Me whai te whirihoranga i tētahi ahanoa JSON"
+  },
+  "web.colonel.multipleSectionsInvalid": {
+    "text": "He hapa whakaū kei ngā wāhanga maha: {sections}"
+  },
+  "web.colonel.sectionHasError": {
+    "text": "He hapa whakaū kei {section}: {error}"
+  },
+  "web.colonel.sectionSaved": {
+    "text": "Kua tiakina angituhia {section}"
+  },
+  "web.colonel.saveSection": {
+    "text": "Tiaki {section}"
+  },
+  "web.colonel.saveAll": {
+    "text": "Tiaki Katoa"
+  },
+  "web.colonel.unsavedChanges": {
+    "text": "Ngā huringa kāore anō kia tiakina"
+  },
+  "web.colonel.schemaValidationError": {
+    "text": "Hapa whakaū kaupapa: {message} ({path})"
+  },
+  "web.colonel.unknownValidationError": {
+    "text": "Hapa whakaū tē mōhiotia: {error}"
+  },
+  "web.colonel.sectionEffectivelyEmpty": {
+    "text": "Kāore he uara whirihorahia i te wāhanga {section}"
+  },
+  "web.colonel.dashboard": {
+    "text": "Papatohu"
+  },
+  "web.colonel.admin": {
+    "text": "Kaiwhakahaere"
+  },
+  "web.colonel.activity": {
+    "text": "Hohenga"
+  },
+  "web.colonel.accounts": {
+    "text": "Ngā Pūkete"
+  },
+  "web.colonel.users": {
+    "text": "Ngā Kaiwhakamahi"
+  },
+  "web.colonel.usersDescription": {
+    "text": "Whakahaere pūkete kaiwhakamahi me ngā whakaaetanga"
+  },
+  "web.colonel.domains": {
+    "text": "Ngā Rohe"
+  },
+  "web.colonel.settings": {
+    "text": "Ngā Tautuhinga"
+  },
+  "web.colonel.system": {
+    "text": "Pūnaha"
+  },
+  "web.colonel.welcome": {
+    "text": "Nau mai ki Colonel"
+  },
+  "web.colonel.welcomeDesc": {
+    "text": "Papa whakahaere mō OneTimeSecret"
+  },
+  "web.colonel.quickActions": {
+    "text": "Ngā Mahi Tere"
+  },
+  "web.colonel.recentActivity": {
+    "text": "Hohenga Tata"
+  },
+  "web.colonel.viewAll": {
+    "text": "Titiro Katoa"
+  },
+  "web.colonel.activityPlaceholder": {
+    "text": "Ka whakaatuhia ngā raraunga hohenga ki konei"
+  },
+  "web.colonel.stats.totalSecrets": {
+    "text": "Ngā Karere Huna Katoa"
+  },
+  "web.colonel.stats.activeUsers": {
+    "text": "Ngā Kaiwhakamahi Hohe"
+  },
+  "web.colonel.stats.secretsToday": {
+    "text": "Ngā Karere Huna i Tēnei Rā"
+  },
+  "web.colonel.stats.secretsCreated": {
+    "text": "Ngā Karere Huna Kua Hangaia"
+  },
+  "web.colonel.stats.secretsShared": {
+    "text": "Ngā Karere Huna Kua Tohatohahia"
+  },
+  "web.colonel.stats.totalCustomers": {
+    "text": "Ngā Kiritaki Katoa"
+  },
+  "web.colonel.stats.emailsSent": {
+    "text": "Ngā Īmēra Kua Tukuna"
+  },
+  "web.colonel.stats.systemHealth": {
+    "text": "Hauora Pūnaha"
+  },
+  "web.colonel.stats.healthy": {
+    "text": "Hauora"
+  },
+  "web.colonel.actions.viewActivity": {
+    "text": "Titiro Hohenga"
+  },
+  "web.colonel.actions.viewActivityDesc": {
+    "text": "Aromātai i te hohenga me te whakamahi pūnaha"
+  },
+  "web.colonel.actions.manageAccounts": {
+    "text": "Whakahaere Pūkete"
+  },
+  "web.colonel.actions.manageAccountsDesc": {
+    "text": "Whakahaere pūkete kaiwhakamahi"
+  },
+  "web.colonel.actions.configureDomains": {
+    "text": "Whirihora Rohe"
+  },
+  "web.colonel.actions.configureDomainsDesc": {
+    "text": "Ngā tautuhinga rohe me DNS"
+  },
+  "web.colonel.actions.systemSettings": {
+    "text": "Ngā Tautuhinga Pūnaha"
+  },
+  "web.colonel.actions.systemSettingsDesc": {
+    "text": "Whirihoranga taupānga"
+  },
+  "web.colonel.backgroundJobs": {
+    "text": "Ngā Mahi Tūāpapa"
+  },
+  "web.colonel.queueStatus": {
+    "text": "Tūnga Rārangi"
+  },
+  "web.colonel.queueName": {
+    "text": "Rārangi"
+  },
+  "web.colonel.pendingMessages": {
+    "text": "Kei te Tatari"
+  },
+  "web.colonel.consumers": {
+    "text": "Ngā Kaiwhakarato"
+  },
+  "web.colonel.processingRate": {
+    "text": "Pāpātanga/hēkona"
+  },
+  "web.colonel.connectionStatus": {
+    "text": "Tūnga Hononga"
+  },
+  "web.colonel.workerHealth": {
+    "text": "Hauora Kaimahi"
+  },
+  "web.colonel.activeWorkers": {
+    "text": "ngā kaimahi hohe"
+  },
+  "web.colonel.noQueueData": {
+    "text": "Kāore he raraunga rārangi e wātea ana"
+  },
+  "web.colonel.loadingQueueData": {
+    "text": "Kei te uta raraunga rārangi..."
+  },
+  "web.colonel.testPlanMode": {
+    "text": "Aratau Whakamātau Mahere"
+  },
+  "web.colonel.testingAsPlan": {
+    "text": "Kei te whakamātau hei {planName}"
+  },
+  "web.colonel.clickToReset": {
+    "text": "Pāwhiri ki te tautuhi anō"
+  },
+  "web.colonel.selectTestPlan": {
+    "text": "Kōwhiria he mahere hei whakamātau"
+  },
+  "web.colonel.resetToActual": {
+    "text": "Tautuhi anō ki te mahere tūturu"
+  },
+  "web.colonel.currentActualPlan": {
+    "text": "Mahere o nāianei"
+  },
+  "web.colonel.availablePlans": {
+    "text": "Ngā mahere e wātea ana"
+  },
+  "web.colonel.activateTestMode": {
+    "text": "Whakahohea te aratau whakamātau"
+  },
+  "web.colonel.testModeActive": {
+    "text": "Kei te hohe te aratau whakamātau"
+  },
+  "web.colonel.testModeDescription": {
+    "text": "Whakamātaua tō taupānga me ngā whakaaetanga mahere rerekē. He wā poto ngā huringa, ka pā anake ki tō wātū."
+  },
+  "web.colonel.warningTestMode": {
+    "text": "Kei te whakamātau koe me ngā whakaaetanga {planName} (he whakapānga wātū wā poto)."
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Ina tuku koe i te urupare, ka kite mātou:"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Tuku urupare"
+  },
+  "web.feedback.sending_ellipses": {
+    "text": "Kei te tuku..."
+  }
+}

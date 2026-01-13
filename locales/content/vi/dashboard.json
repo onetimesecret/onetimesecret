@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Đã nhận"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Chưa nhận"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Không có bí mật nào ở đây cả"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Bắt đầu bằng cách tạo bí mật đầu tiên của bạn."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Không thể tải các nhóm"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Đã xảy ra sự cố khi tải các nhóm của bạn. Vui lòng thử lại."
+  }
+}

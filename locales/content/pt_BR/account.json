@@ -1,0 +1,464 @@
+{
+  "web.account.settings": {
+    "text": "Configurações"
+  },
+  "web.account.change_password": {
+    "text": "Alterar Senha"
+  },
+  "web.account.close_account": {
+    "text": "Fechar Conta"
+  },
+  "web.account.verify_account": {
+    "text": "Verificar Conta"
+  },
+  "web.account.subscription_title": {
+    "text": "Assinatura"
+  },
+  "web.account.manage_subscription": {
+    "text": "Gerenciar Assinatura"
+  },
+  "web.account.customer_information": {
+    "text": "Informações do Cliente"
+  },
+  "web.account.customer_since": {
+    "text": "Cliente desde:"
+  },
+  "web.account.email": {
+    "text": "Email:"
+  },
+  "web.account.region": {
+    "text": "Região"
+  },
+  "web.account.account_balance": {
+    "text": "Saldo da conta:"
+  },
+  "web.account.default_payment_method": {
+    "text": "Método de Pagamento Padrão"
+  },
+  "web.account.card_ending": {
+    "text": "terminado em"
+  },
+  "web.account.subscriptions_title": {
+    "text": "Assinaturas"
+  },
+  "web.account.quantity": {
+    "text": "Quantidade:"
+  },
+  "web.account.next_billing_date": {
+    "text": "Próxima data de cobrança:"
+  },
+  "web.account.changePassword.username": {
+    "text": "Nome de usuário"
+  },
+  "web.account.changePassword.currentPassword": {
+    "text": "Senha Atual"
+  },
+  "web.account.changePassword.newPassword": {
+    "text": "Nova Senha"
+  },
+  "web.account.changePassword.confirmPassword": {
+    "text": "Confirmar"
+  },
+  "web.account.changePassword.updatePassword": {
+    "text": "Atualizar Senha"
+  },
+  "web.account.changePassword.updating": {
+    "text": "Atualizando..."
+  },
+  "web.account.timezone": {
+    "text": "Fuso Horário"
+  },
+  "web.account.customer_id": {
+    "text": "ID do Cliente"
+  },
+  "web.account.account_id_customerid": {
+    "text": "ID da Conta"
+  },
+  "web.account.created_windowprops_cust_secrets_created_secrets": {
+    "text": "Criou {0} mensagens confidenciais desde {1}."
+  },
+  "web.account.delete_account": {
+    "text": "Excluir Conta"
+  },
+  "web.account.api_key": {
+    "text": "Chave de API"
+  },
+  "web.account.account_type_windowprops_plan_options_name": {
+    "text": "Tipo de conta: {0}"
+  },
+  "web.account.your_account": {
+    "text": "Sua Conta"
+  },
+  "web.account.support_details": {
+    "text": "Detalhes do Suporte"
+  },
+  "web.account.back_to_details": {
+    "text": "Voltar aos Detalhes"
+  },
+  "web.account.customer_id_cust_custid": {
+    "text": "ID do Cliente: {0}"
+  },
+  "web.account.token_generated": {
+    "text": "Token gerado."
+  },
+  "web.account.keep_this_token_secure_it_provides_full_access_t": {
+    "text": "🔐 Mantenha este token seguro! Ele fornece acesso total à sua conta."
+  },
+  "web.account.confirm_with_your_password": {
+    "text": "Confirme com sua senha"
+  },
+  "web.account.are_you_sure_you_want_to_permanently_delete_your": {
+    "text": "Tem certeza de que deseja excluir permanentemente sua conta? Esta ação não pode ser desfeita."
+  },
+  "web.account.confirm_account_deletion": {
+    "text": "Confirmar Exclusão da Conta"
+  },
+  "web.account.deleting_cust_custid": {
+    "text": "Excluindo {0}"
+  },
+  "web.account.permanently_delete_account": {
+    "text": "Excluir Conta Permanentemente"
+  },
+  "web.account.permanent_and_non_reversible": {
+    "text": "permanente e irreversível."
+  },
+  "web.account.deleting_your_account_is": {
+    "text": "Excluir sua conta é"
+  },
+  "web.account.burn_them_before_continuing": {
+    "text": "destrua-as antes de continuar"
+  },
+  "web.account.any_secrets_you_wish_to_remove": {
+    "text": "Quaisquer mensagens confidenciais que você deseja remover,"
+  },
+  "web.account.secrets_will_remain_active_until_they_expire": {
+    "text": "As mensagens confidenciais permanecerão ativas até expirarem."
+  },
+  "web.account.please_be_advised": {
+    "text": "Por favor, esteja ciente:"
+  },
+  "web.account.account_deleted_successfully": {
+    "text": "Conta excluída com sucesso."
+  },
+  "web.account.deactivate": {
+    "text": "Desativar"
+  },
+  "web.account.are_you_sure_you_want_to_deactivate_your_account": {
+    "text": "Tem certeza de que deseja desativar sua conta? Todos os seus dados serão removidos permanentemente de nossos servidores para sempre. Esta ação não pode ser desfeita."
+  },
+  "web.account.deactivate_account": {
+    "text": "Desativar conta"
+  },
+  "web.settings.title": {
+    "text": "Configurações"
+  },
+  "web.settings.description": {
+    "text": "Gerencie suas configurações e preferências de conta"
+  },
+  "web.settings.manage_your_account_settings_and_preferences": {
+    "text": "Gerencie suas configurações e preferências de conta"
+  },
+  "web.settings.general": {
+    "text": "Geral"
+  },
+  "web.settings.preferences": {
+    "text": "Preferências"
+  },
+  "web.settings.appearance": {
+    "text": "Aparência"
+  },
+  "web.settings.theme.title": {
+    "text": "Tema"
+  },
+  "web.settings.theme.description": {
+    "text": "Escolha o tema claro ou escuro"
+  },
+  "web.settings.theme.choose_light_or_dark_theme": {
+    "text": "Escolha o tema claro ou escuro"
+  },
+  "web.settings.language.title": {
+    "text": "Idioma"
+  },
+  "web.settings.language.description": {
+    "text": "Selecione seu idioma preferido"
+  },
+  "web.settings.language.select_your_preferred_language": {
+    "text": "Selecione seu idioma preferido"
+  },
+  "web.settings.security_settings_description": {
+    "text": "Gerencie autenticação e segurança da conta"
+  },
+  "web.settings.profile_settings_description": {
+    "text": "Gerencie suas informações de conta"
+  },
+  "web.settings.profile.title": {
+    "text": "Perfil"
+  },
+  "web.settings.profile.change_email": {
+    "text": "Alterar E-mail"
+  },
+  "web.settings.profile.current_email": {
+    "text": "E-mail Atual"
+  },
+  "web.settings.profile.current_password": {
+    "text": "Senha Atual"
+  },
+  "web.settings.profile.new_email": {
+    "text": "Novo E-mail"
+  },
+  "web.settings.profile.enter_password_to_confirm": {
+    "text": "Digite sua senha atual"
+  },
+  "web.settings.profile.password_required_for_security": {
+    "text": "Sua senha é necessária por motivos de segurança"
+  },
+  "web.settings.profile.verification_email_notice": {
+    "text": "Um e-mail de verificação será enviado para o novo endereço"
+  },
+  "web.settings.profile.update_email": {
+    "text": "Atualizar E-mail"
+  },
+  "web.settings.profile.change_email_description": {
+    "text": "Atualize o endereço de e-mail associado à sua conta"
+  },
+  "web.settings.profile.all_fields_required": {
+    "text": "Todos os campos são obrigatórios"
+  },
+  "web.settings.profile.invalid_email": {
+    "text": "Por favor, insira um endereço de e-mail válido"
+  },
+  "web.settings.profile.email_same_as_current": {
+    "text": "O novo e-mail deve ser diferente do e-mail atual"
+  },
+  "web.settings.profile.email_change_success": {
+    "text": "E-mail atualizado com sucesso. Por favor, verifique sua caixa de entrada para verificar seu novo endereço de e-mail."
+  },
+  "web.settings.profile.email_change_error": {
+    "text": "Falha ao atualizar e-mail. Por favor, tente novamente."
+  },
+  "web.settings.sessions.title": {
+    "text": "Sessões Ativas"
+  },
+  "web.settings.sessions.description": {
+    "text": "Gerencie suas sessões ativas"
+  },
+  "web.settings.sessions.manage_active_sessions": {
+    "text": "Gerencie suas sessões ativas"
+  },
+  "web.settings.password.title": {
+    "text": "Senha"
+  },
+  "web.settings.password.description": {
+    "text": "Atualize a senha da sua conta"
+  },
+  "web.settings.password.update_account_password": {
+    "text": "Atualize a senha da sua conta"
+  },
+  "web.settings.delete_account.title": {
+    "text": "Excluir Conta"
+  },
+  "web.settings.delete_account.description": {
+    "text": "Exclua permanentemente sua conta e todos os dados"
+  },
+  "web.settings.delete_account.permanently_delete_your_account": {
+    "text": "Exclua permanentemente sua conta e todos os dados"
+  },
+  "web.settings.security.security_score": {
+    "text": "Pontuação de Segurança"
+  },
+  "web.settings.security.score_description": {
+    "text": "A saúde geral da segurança da sua conta"
+  },
+  "web.settings.security.excellent": {
+    "text": "Excelente"
+  },
+  "web.settings.security.good": {
+    "text": "Boa"
+  },
+  "web.settings.security.fair": {
+    "text": "Razoável"
+  },
+  "web.settings.security.weak": {
+    "text": "Fraca"
+  },
+  "web.settings.security.improve_security": {
+    "text": "Melhore sua segurança"
+  },
+  "web.settings.security.enable_mfa_recommendation": {
+    "text": "Ative a autenticação de dois fatores para maior proteção"
+  },
+  "web.settings.security.generate_recovery_codes_recommendation": {
+    "text": "Gere códigos de recuperação como backup"
+  },
+  "web.settings.security.configured": {
+    "text": "Configurado"
+  },
+  "web.settings.security.change": {
+    "text": "Alterar"
+  },
+  "web.settings.security.manage": {
+    "text": "Gerenciar"
+  },
+  "web.settings.security.enable": {
+    "text": "Ativar"
+  },
+  "web.settings.security.codes_available": {
+    "text": "{0} códigos disponíveis"
+  },
+  "web.settings.security.no_codes": {
+    "text": "Nenhum código gerado"
+  },
+  "web.settings.security.active_sessions": {
+    "text": "{0} sessão ativa | {0} sessões ativas"
+  },
+  "web.settings.security.best_practices": {
+    "text": "Melhores Práticas de Segurança"
+  },
+  "web.settings.security.use_strong_unique_password": {
+    "text": "Use uma senha forte e única para sua conta"
+  },
+  "web.settings.security.enable_mfa_for_protection": {
+    "text": "Ative a autenticação de dois fatores para proteção adicional"
+  },
+  "web.settings.security.save_recovery_codes_safely": {
+    "text": "Salve seus códigos de recuperação em um local seguro"
+  },
+  "web.settings.security.review_sessions_regularly": {
+    "text": "Revise e revogue sessões não utilizadas regularmente"
+  },
+  "web.settings.security.view_details": {
+    "text": "Ver detalhes"
+  },
+  "web.settings.api.title": {
+    "text": "API e Integrações"
+  },
+  "web.settings.api.description": {
+    "text": "Gerencie chaves de API e integrações"
+  },
+  "web.settings.api.manage_api_keys": {
+    "text": "Gerencie chaves de API e integrações"
+  },
+  "web.settings.api.documentation": {
+    "text": "Documentação da API"
+  },
+  "web.settings.api.documentation_description": {
+    "text": "Aprenda como integrar o Onetime Secret em suas aplicações"
+  },
+  "web.settings.api.rest_api_reference": {
+    "text": "Referência da API REST"
+  },
+  "web.settings.api.complete_api_documentation": {
+    "text": "Documentação completa da API e endpoints"
+  },
+  "web.settings.api.code_examples": {
+    "text": "Exemplos de Código"
+  },
+  "web.settings.api.example_code_and_libraries": {
+    "text": "Código de exemplo e bibliotecas cliente"
+  },
+  "web.settings.api.security_best_practices": {
+    "text": "Melhores Práticas de Segurança"
+  },
+  "web.settings.api.never_commit_api_keys": {
+    "text": "Nunca commit chaves de API no controle de versão"
+  },
+  "web.settings.api.use_environment_variables": {
+    "text": "Use variáveis de ambiente para armazenar chaves de API"
+  },
+  "web.settings.api.rotate_keys_regularly": {
+    "text": "Rotacione chaves de API regularmente por segurança"
+  },
+  "web.settings.api.use_https_only": {
+    "text": "Sempre use HTTPS ao fazer solicitações de API"
+  },
+  "web.settings.api.monitor_api_usage": {
+    "text": "Monitore seu uso de API e configure alertas"
+  },
+  "web.settings.api.important_notice": {
+    "text": "Aviso Importante"
+  },
+  "web.settings.api.regenerating_key_warning": {
+    "text": "Regenerar sua chave de API invalidará a chave atual. Atualize todas as aplicações que usam a chave antiga."
+  },
+  "web.settings.privacy.title": {
+    "text": "Configurações de Privacidade"
+  },
+  "web.settings.privacy.manage_privacy_settings": {
+    "text": "Gerencie suas preferências de privacidade"
+  },
+  "web.settings.privacy.your_privacy": {
+    "text": "Sua Privacidade"
+  },
+  "web.settings.privacy.non_negotiable": {
+    "text": "Não Negociável"
+  },
+  "web.settings.privacy.not_a_setting": {
+    "text": "Não é uma configuração"
+  },
+  "web.settings.privacy.no_analytics_statement": {
+    "text": "Sem análises. Sem rastreamento. Ponto final."
+  },
+  "web.settings.privacy.explanation": {
+    "text": "Isso não é uma configuração porque não há nada para ativar ou desativar. Sua privacidade está integrada em como operamos."
+  },
+  "web.settings.notifications.title": {
+    "text": "Configurações de Notificações"
+  },
+  "web.settings.notifications.description": {
+    "text": "Gerencie como você recebe notificações"
+  },
+  "web.settings.notifications.error_updating": {
+    "text": "Falha ao atualizar preferência de notificação. Por favor, tente novamente."
+  },
+  "web.settings.notifications.reveal_notifications.title": {
+    "text": "Notificações de Visualização de Segredos"
+  },
+  "web.settings.notifications.reveal_notifications.description": {
+    "text": "Receba um e-mail quando alguém visualizar seu segredo"
+  },
+  "web.settings.notifications.reveal_notifications.help": {
+    "text": "Você será notificado sempre que um destinatário visualizar um de seus segredos"
+  },
+  "web.settings.notifications.privacy_note": {
+    "text": "Os e-mails de notificação incluem apenas o carimbo de data/hora e o ID do segredo. Informações do visualizador nunca são incluídas."
+  },
+  "web.settings.caution.title": {
+    "text": "Zona de Consideração Cuidadosa"
+  },
+  "web.settings.caution.description": {
+    "text": "Configurações avançadas e gerenciamento de dados"
+  },
+  "web.settings.caution.data_export": {
+    "text": "Exportação de Dados"
+  },
+  "web.settings.caution.export_your_data": {
+    "text": "Exporte os dados da sua conta"
+  },
+  "web.settings.caution.export_description": {
+    "text": "Solicite uma cópia completa dos dados da sua conta em formato legível por máquina"
+  },
+  "web.settings.caution.request_data_export": {
+    "text": "Solicitar Exportação de Dados"
+  },
+  "web.settings.caution.export_info": {
+    "text": "Tempo de Processamento da Exportação"
+  },
+  "web.settings.caution.export_info_description": {
+    "text": "As exportações são processadas em até 24 horas e enviadas para seu endereço de e-mail"
+  },
+  "web.settings.caution.deletion_warning_title": {
+    "text": "Excluir sua conta irá:"
+  },
+  "web.settings.caution.deletion_warning_secrets": {
+    "text": "Excluir permanentemente todas as suas mensagens confidenciais"
+  },
+  "web.settings.caution.deletion_warning_metadata": {
+    "text": "Remover todos os metadados e histórico de mensagens confidenciais"
+  },
+  "web.settings.caution.deletion_warning_api_keys": {
+    "text": "Invalidar todas as chaves de API"
+  },
+  "web.settings.caution.deletion_warning_irreversible": {
+    "text": "Esta ação não pode ser desfeita"
+  }
+}

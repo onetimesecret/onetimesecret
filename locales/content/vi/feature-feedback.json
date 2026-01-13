@@ -1,0 +1,47 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "Phản hồi của bạn"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "Chào đón mọi phản hồi!"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "Giúp chúng tôi cải thiện"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "Đóng hộp thoại phản hồi"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "Chia sẻ phản hồi của bạn"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum"
+  },
+  "web.feedback.delano": {
+    "text": "Delano"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "Nội dung trợ giúp sẽ ở đây."
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "Cảm ơn vì đã giúp Onetime Secret cải thiện. Điều đó rất có ý nghĩa."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "Chúng tôi đã xây dựng công cụ này để giúp bạn chia sẻ thông tin nhạy cảm một cách an toàn và trải nghiệm thực tế của bạn rất quan trọng để tập trung nỗ lực của chúng tôi. Nó giúp chúng tôi tìm ra những gì cần làm tiếp theo và cách làm cho dịch vụ tốt hơn cho mọi người."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "Xin chào, cảm ơn vì đã ghé thăm trang phản hồi của chúng tôi. Ý kiến của bạn không chỉ được chào đón - mà còn rất quan trọng."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "Lời nhắn từ Delano, người sáng lập Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "Mở biểu mẫu phản hồi"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "Nhập phản hồi của bạn"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Gửi phản hồi"
+  }
+}

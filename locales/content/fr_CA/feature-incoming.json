@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Envoyer un secret"
+  },
+  "incoming.page_description": {
+    "text": "Partagez des informations sensibles en toute sécurité avec notre équipe d'assistance"
+  },
+  "incoming.loading_config": {
+    "text": "Chargement..."
+  },
+  "incoming.config_error_title": {
+    "text": "Échec du chargement de la configuration"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Fonctionnalité non disponible"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Cette fonctionnalité est actuellement désactivée. Veuillez contacter le support pour obtenir de l'aide."
+  },
+  "incoming.memo_label": {
+    "text": "Mémo"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Brève description (ex. Demande de réinitialisation de mot de passe)"
+  },
+  "incoming.memo_hint": {
+    "text": "Aidez-nous à acheminer votre message vers la bonne personne"
+  },
+  "incoming.recipient_label": {
+    "text": "Envoyer à"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Sélectionner un destinataire"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Sélectionnez un destinataire pour ce secret"
+  },
+  "incoming.recipient_hint": {
+    "text": "Choisissez qui recevra ce message sécurisé"
+  },
+  "incoming.no_recipients_available": {
+    "text": "Aucun destinataire disponible"
+  },
+  "incoming.secret_content_label": {
+    "text": "Informations confidentielles"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Collez les informations sensibles ici (mots de passe, clés, etc.)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Ces informations seront chiffrées et ne pourront être consultées qu'une seule fois"
+  },
+  "incoming.submit_button": {
+    "text": "Envoyer le secret"
+  },
+  "incoming.submit_secret": {
+    "text": "Envoyer le secret"
+  },
+  "incoming.submitting_button": {
+    "text": "Envoi en cours..."
+  },
+  "incoming.submitting": {
+    "text": "Envoi en cours..."
+  },
+  "incoming.reset_button": {
+    "text": "Effacer le formulaire"
+  },
+  "incoming.reset_form": {
+    "text": "Effacer le formulaire"
+  },
+  "incoming.success_title": {
+    "text": "Envoyé avec succès"
+  },
+  "incoming.success_description": {
+    "text": "Votre message sécurisé a été délivré."
+  },
+  "incoming.reference_id": {
+    "text": "ID de référence"
+  },
+  "incoming.success_info_title": {
+    "text": "Que se passe-t-il ensuite ?"
+  },
+  "incoming.success_info_description": {
+    "text": "Le destinataire pourra consulter ce secret une seule fois. Après consultation, le secret sera définitivement supprimé."
+  },
+  "incoming.create_another": {
+    "text": "Envoyer un autre secret"
+  },
+  "incoming.tagline1": {
+    "text": "Partagez des informations sensibles en toute sécurité"
+  },
+  "incoming.tagline2": {
+    "text": "Gardez les mots de passe et données privées hors des courriels et journaux de discussion"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Conservez votre <a href='{receiptUrl}'>reçu</a> pour vos dossiers."
+  },
+  "incoming.receipt_link_text": {
+    "text": "reçu"
+  }
+}

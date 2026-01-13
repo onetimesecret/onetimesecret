@@ -1,0 +1,59 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "text": "Per què aquest secret no està disponible?"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "text": "Els secrets estan dissenyats per visualitzar-se només una vegada. Aquest enllaç pot haver estat ja accedit, caducat o suprimit manualment pel remitent."
+  },
+  "web.errors.what_should_i_do_now": {
+    "text": "Què hauria de fer ara?"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "text": "Contacta amb la persona que t'ha enviat aquest enllaç i demana-li que creï un secret nou. Fes-li saber que no has pogut accedir a la informació original."
+  },
+  "web.errors.warning_dismissed": {
+    "text": "Advertència descartada"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "text": "Descarta l'advertència de truncament"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "text": "Ups! La pàgina que busques no existeix o s'ha mogut."
+  },
+  "web.errors.404_page_not_found_0": {
+    "text": "404 - Pàgina no trobada"
+  },
+  "web.errors.404_page_not_found": {
+    "text": "404 - Pàgina no trobada"
+  },
+  "web.errors.dismiss_warning": {
+    "text": "Descarta l'advertència"
+  },
+  "web.errors.dismiss_notification": {
+    "text": "Descarta la notificació"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "text": "Si no estàs segur de què fer després, si us plau, segueix amb la persona que t'ha enviat aquest enllaç per obtenir més informació."
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "text": "La informació compartida a través del nostre servei només es pot accedir una vegada. Una vegada visualitzada, el contingut se suprimeix permanentment dels nostres servidors per garantir la confidencialitat. Aquest enfocament ajuda a protegir les teves dades sensibles limitant la seva exposició i evitant l'accés no autoritzat."
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "text": "Ho sentim, però s'ha produït un error inesperat mentre processàvem la teva sol·licitud. El nostre equip ha estat notificat i estem treballant per solucionar-ho."
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "text": "{0} Alguna cosa ha anat malament"
+  },
+  "web.errors.go_share_a_secret": {
+    "text": "Ves a compartir un secret!"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "text": "La pàgina que busques no existeix o s'ha mogut. No et preocupis, passa als millors!"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "text": "{0} 404"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "text": "No es poden carregar les dades a causa de problemes de format de dades. Torna-ho a provar més tard."
+  }
+}

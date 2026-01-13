@@ -1,0 +1,245 @@
+{
+  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
+    "text": "{0}/{1}/{2} [{3}]"
+  },
+  "web.colonel.customer_verified_verified_not_verified_0": {
+    "text": "`+customer.verified ? `verified` : `not verified"
+  },
+  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
+    "text": "Khách hàng ({0} trong {1})"
+  },
+  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
+    "text": "Phản hồi người dùng (Tổng: {0})"
+  },
+  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
+    "text": "Metadata / Bí mật: {0}/{1} ({2}/{3}/{4} tổng)"
+  },
+  "web.colonel.secrets_details_counts_secret_count_0": {
+    "text": "Bí mật ({0})"
+  },
+  "web.colonel.active_in_the_past_5_minutes_0": {
+    "text": "(hoạt động trong 5 phút qua)"
+  },
+  "web.colonel.configEditorTitle": {
+    "text": "Cài đặt"
+  },
+  "web.colonel.configEditorDescription": {
+    "text": "Chỉnh sửa cài đặt cấu hình hệ thống. Thay đổi sẽ có hiệu lực ngay sau khi lưu."
+  },
+  "web.colonel.invalidJson": {
+    "text": "JSON không hợp lệ trong phần {section}"
+  },
+  "web.colonel.validationError": {
+    "text": "Lỗi xác thực"
+  },
+  "web.colonel.errorFetchingConfig": {
+    "text": "Lỗi tải cấu hình"
+  },
+  "web.colonel.errorSavingConfig": {
+    "text": "Lỗi lưu cấu hình"
+  },
+  "web.colonel.configSaved": {
+    "text": "Đã lưu cấu hình thành công"
+  },
+  "web.colonel.mustBeObject": {
+    "text": "Cấu hình phải là một đối tượng JSON"
+  },
+  "web.colonel.multipleSectionsInvalid": {
+    "text": "Nhiều phần có lỗi xác thực: {sections}"
+  },
+  "web.colonel.sectionHasError": {
+    "text": "{section} có lỗi xác thực: {error}"
+  },
+  "web.colonel.sectionSaved": {
+    "text": "Đã lưu {section} thành công"
+  },
+  "web.colonel.saveSection": {
+    "text": "Lưu {section}"
+  },
+  "web.colonel.saveAll": {
+    "text": "Lưu tất cả"
+  },
+  "web.colonel.unsavedChanges": {
+    "text": "Có thay đổi chưa lưu"
+  },
+  "web.colonel.schemaValidationError": {
+    "text": "Lỗi xác thực schema: {message} ({path})"
+  },
+  "web.colonel.unknownValidationError": {
+    "text": "Lỗi xác thực không xác định: {error}"
+  },
+  "web.colonel.sectionEffectivelyEmpty": {
+    "text": "Phần {section} không có giá trị được cấu hình"
+  },
+  "web.colonel.dashboard": {
+    "text": "Bảng điều khiển"
+  },
+  "web.colonel.admin": {
+    "text": "Admin"
+  },
+  "web.colonel.activity": {
+    "text": "Hoạt động"
+  },
+  "web.colonel.accounts": {
+    "text": "Tài khoản"
+  },
+  "web.colonel.users": {
+    "text": "Người dùng"
+  },
+  "web.colonel.usersDescription": {
+    "text": "Quản lý tài khoản người dùng và quyền hạn"
+  },
+  "web.colonel.domains": {
+    "text": "Tên miền"
+  },
+  "web.colonel.settings": {
+    "text": "Cài đặt"
+  },
+  "web.colonel.system": {
+    "text": "Hệ thống"
+  },
+  "web.colonel.welcome": {
+    "text": "Chào mừng đến với Colonel"
+  },
+  "web.colonel.welcomeDesc": {
+    "text": "Bảng điều khiển quản trị cho OneTimeSecret"
+  },
+  "web.colonel.quickActions": {
+    "text": "Thao tác nhanh"
+  },
+  "web.colonel.recentActivity": {
+    "text": "Hoạt động gần đây"
+  },
+  "web.colonel.viewAll": {
+    "text": "Xem tất cả"
+  },
+  "web.colonel.activityPlaceholder": {
+    "text": "Dữ liệu hoạt động sẽ được hiển thị tại đây"
+  },
+  "web.colonel.stats.totalSecrets": {
+    "text": "Tổng số bí mật"
+  },
+  "web.colonel.stats.activeUsers": {
+    "text": "Người dùng hoạt động"
+  },
+  "web.colonel.stats.secretsToday": {
+    "text": "Bí mật hôm nay"
+  },
+  "web.colonel.stats.secretsCreated": {
+    "text": "Bí mật đã tạo"
+  },
+  "web.colonel.stats.secretsShared": {
+    "text": "Bí mật đã chia sẻ"
+  },
+  "web.colonel.stats.totalCustomers": {
+    "text": "Tổng số khách hàng"
+  },
+  "web.colonel.stats.emailsSent": {
+    "text": "Email đã gửi"
+  },
+  "web.colonel.stats.systemHealth": {
+    "text": "Tình trạng hệ thống"
+  },
+  "web.colonel.stats.healthy": {
+    "text": "Tốt"
+  },
+  "web.colonel.actions.viewActivity": {
+    "text": "Xem hoạt động"
+  },
+  "web.colonel.actions.viewActivityDesc": {
+    "text": "Giám sát hoạt động và sử dụng hệ thống"
+  },
+  "web.colonel.actions.manageAccounts": {
+    "text": "Quản lý tài khoản"
+  },
+  "web.colonel.actions.manageAccountsDesc": {
+    "text": "Quản trị tài khoản người dùng"
+  },
+  "web.colonel.actions.configureDomains": {
+    "text": "Cấu hình tên miền"
+  },
+  "web.colonel.actions.configureDomainsDesc": {
+    "text": "Cài đặt tên miền và DNS"
+  },
+  "web.colonel.actions.systemSettings": {
+    "text": "Cài đặt hệ thống"
+  },
+  "web.colonel.actions.systemSettingsDesc": {
+    "text": "Cấu hình ứng dụng"
+  },
+  "web.colonel.backgroundJobs": {
+    "text": "Công việc nền"
+  },
+  "web.colonel.queueStatus": {
+    "text": "Trạng thái hàng đợi"
+  },
+  "web.colonel.queueName": {
+    "text": "Hàng đợi"
+  },
+  "web.colonel.pendingMessages": {
+    "text": "Đang chờ"
+  },
+  "web.colonel.consumers": {
+    "text": "Người tiêu thụ"
+  },
+  "web.colonel.processingRate": {
+    "text": "Tốc độ/giây"
+  },
+  "web.colonel.connectionStatus": {
+    "text": "Trạng thái kết nối"
+  },
+  "web.colonel.workerHealth": {
+    "text": "Tình trạng worker"
+  },
+  "web.colonel.activeWorkers": {
+    "text": "worker đang hoạt động"
+  },
+  "web.colonel.noQueueData": {
+    "text": "Không có dữ liệu hàng đợi"
+  },
+  "web.colonel.loadingQueueData": {
+    "text": "Đang tải dữ liệu hàng đợi..."
+  },
+  "web.colonel.testPlanMode": {
+    "text": "Chế độ thử nghiệm gói"
+  },
+  "web.colonel.testingAsPlan": {
+    "text": "Đang thử nghiệm với gói {planName}"
+  },
+  "web.colonel.clickToReset": {
+    "text": "Nhấp để đặt lại"
+  },
+  "web.colonel.selectTestPlan": {
+    "text": "Chọn gói để thử nghiệm"
+  },
+  "web.colonel.resetToActual": {
+    "text": "Đặt lại về gói thực"
+  },
+  "web.colonel.currentActualPlan": {
+    "text": "Gói hiện tại"
+  },
+  "web.colonel.availablePlans": {
+    "text": "Gói khả dụng"
+  },
+  "web.colonel.activateTestMode": {
+    "text": "Kích hoạt chế độ thử nghiệm"
+  },
+  "web.colonel.testModeActive": {
+    "text": "Chế độ thử nghiệm đang hoạt động"
+  },
+  "web.colonel.testModeDescription": {
+    "text": "Thử nghiệm ứng dụng của bạn với các quyền lợi gói khác nhau. Thay đổi là tạm thời và chỉ ảnh hưởng đến phiên của bạn."
+  },
+  "web.colonel.warningTestMode": {
+    "text": "Bạn đang thử nghiệm với quyền lợi gói {planName} (ghi đè phiên tạm thời)."
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Khi bạn gửi phản hồi, chúng tôi sẽ thấy:"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Gửi phản hồi"
+  },
+  "web.feedback.sending_ellipses": {
+    "text": "Đang gửi..."
+  }
+}

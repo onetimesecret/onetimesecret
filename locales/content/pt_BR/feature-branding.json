@@ -1,0 +1,128 @@
+{
+  "web.branding.color_picker": {
+    "text": "Seletor de Cores"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "{0} atual: {1}. Clique para alternar entre as opções."
+  },
+  "web.branding.use_setting": {
+    "text": "Usar configuração"
+  },
+  "web.branding.font_family": {
+    "text": "Família da Fonte"
+  },
+  "web.branding.corner_style": {
+    "text": "Estilo do Canto"
+  },
+  "web.branding.brand_color": {
+    "text": "Cor da Marca"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "Pré-visualização da visão do destinatário ao acessar seu link seguro"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "Pré-visualizar e Personalizar"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "Alternar para visualização do navegador Safari"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "text": "Maximizar janela"
+  },
+  "web.branding.minimize_window": {
+    "text": "Minimizar janela"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "Alternar para visualização do navegador Edge"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500 caracteres"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "Use seu telefone para escanear o código QR"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "Contate onboarding{'@'}example.com com qualquer dúvida"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "Estas instruções serão mostradas aos destinatários antes de revelarem o conteúdo confidencial"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "Estas instruções serão mostradas aos destinatários após revelarem a mensagem"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "Instruções pré-revelação"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "Instruções pós-revelação"
+  },
+  "web.branding.instructions": {
+    "text": "Instruções"
+  },
+  "web.branding.logo_controls": {
+    "text": "Controles do logo"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "Clique para carregar um logo. Tamanho recomendado: 128x128 pixels. Tamanho máximo do arquivo: 1MB. Formatos suportados: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "text": "Carregar logo"
+  },
+  "web.branding.loading_preview": {
+    "text": "Carregando pré-visualização..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "Pré-visualize como os destinatários verão suas mensagens testando o botão \"Visualizar Mensagem Confidencial\""
+  },
+  "web.branding.eye_icon": {
+    "text": "Ícone de olho"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "Clique na imagem de pré-visualização abaixo para atualizar seu logo (mínimo 128x128 pixels recomendado, 1MB máx)"
+  },
+  "web.branding.image_icon": {
+    "text": "Ícone de imagem"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "Use os controles acima para personalizar a cor da marca, estilos e instruções para o destinatário"
+  },
+  "web.branding.customization_icon": {
+    "text": "Ícone de personalização"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "Você tem alterações não salvas. Tem certeza?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "Falha ao carregar as configurações da marca"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "Esta é uma pré-visualização interativa de como os destinatários verão suas mensagens seguras. Você pode: - Personalizar cores e fontes usando os controles acima - Carregar um logo (mínimo 128x128 pixels recomendado, 1MB máx) - Testar a pré-visualização usando o botão \"Visualizar Mensagem Confidencial\""
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "Esta é uma pré-visualização interativa de como os destinatários verão suas mensagens seguras. Você pode: - Personalizar cores e fontes usando os controles acima - Carregar um logo (mínimo 128x128 pixels recomendado, 1MB máx) - Testar a pré-visualização usando o botão \"Visualizar Mensagem Confidencial\""
+  },
+  "web.branding.default_logo_icon": {
+    "text": "Ícone de logo padrão"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "Powered by Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "text": "Logo {0}"
+  },
+  "web.branding.edge": {
+    "text": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "Alternar para pré-visualização do Edge"
+  },
+  "web.branding.safari": {
+    "text": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "Alternar para pré-visualização do Safari"
+  }
+}

@@ -1,0 +1,446 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[Запрос: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "text": "Клиент отправил следующую информацию"
+  },
+  "email.secret_link.subject": {
+    "text": "%{sender_email} отправил вам секрет"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "отправил вам секрет:"
+  },
+  "email.secret_link.important_label": {
+    "text": "Важно:"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "Эта ссылка работает только один раз. После просмотра секрет будет окончательно удалён."
+  },
+  "email.secret_link.sent_via": {
+    "text": "Отправлено через"
+  },
+  "email.welcome.subject": {
+    "text": "Подтвердите свою учётную запись Onetime Secret"
+  },
+  "email.welcome.title": {
+    "text": "Вас пригласили присоединиться к %{product_name}!"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "Подтвердите свой адрес электронной почты, перейдя по ссылке ниже:"
+  },
+  "email.welcome.verify_button": {
+    "text": "Подтвердить адрес электронной почты"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "Или скопируйте и вставьте эту ссылку:"
+  },
+  "email.welcome.signature": {
+    "text": "Delano"
+  },
+  "email.welcome.postscript": {
+    "text": "P.S. Это письмо было отправлено на %{email_address}. Если вы не ожидали этого приглашения, вы можете спокойно проигнорировать это сообщение."
+  },
+  "email.password_request.subject": {
+    "text": "Сброс пароля (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "text": "Сброс пароля"
+  },
+  "email.password_request.request_notice": {
+    "text": "Мы получили запрос на сброс вашего пароля для %{product_name}."
+  },
+  "email.password_request.reset_button": {
+    "text": "Сбросить пароль"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "Или скопируйте и вставьте эту ссылку:"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "Если вы не запрашивали сброс пароля, можете проигнорировать это письмо."
+  },
+  "email.password_request.signature": {
+    "text": "Delano"
+  },
+  "email.password_request.postscript": {
+    "text": "P.S. Это письмо было отправлено на адрес %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "text": "Вход на %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "text": "Вход по волшебной ссылке"
+  },
+  "email.magic_link.request_notice": {
+    "text": "Вы запросили ссылку для входа в вашу учётную запись %{product_name}."
+  },
+  "email.magic_link.login_button": {
+    "text": "Войти"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "Или скопируйте и вставьте эту ссылку:"
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "Срок действия этой ссылки истекает через 15 минут."
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "Если вы не запрашивали эту ссылку, просто проигнорируйте это письмо."
+  },
+  "email.magic_link.signature": {
+    "text": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "text": "P.S. Это письмо было отправлено на адрес %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "text": "Вы получили секретное сообщение"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "Вы получили безопасное сообщение:"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "Заметка:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "Вам отправили безопасное сообщение через %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "Чтобы просмотреть этот секрет, перейдите по ссылке ниже:"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "Важно:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "Эта ссылка работает только один раз. После просмотра секрет будет окончательно удалён."
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "Отправлено через"
+  },
+  "email.secret_revealed.subject": {
+    "text": "Ваш секрет был просмотрен"
+  },
+  "email.secret_revealed.title": {
+    "text": "Ваш секрет был просмотрен"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "Ваш секрет был просмотрен %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "ID секрета:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "Это автоматическое уведомление. Никаких действий не требуется."
+  },
+  "email.secret_revealed.signature": {
+    "text": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "Управление настройками уведомлений"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "Для управления настройками уведомлений:"
+  },
+  "email.expiration_warning.subject": {
+    "text": "Срок действия вашей ссылки на секрет скоро истечёт"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "Срок действия вашей ссылки на секрет истечёт через %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "Просмотрите свой секрет до истечения срока"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "Напоминание:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "После истечения срока секрет будет окончательно удалён и не может быть восстановлен."
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "Отправлено через"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "Просмотрите его, пока не поздно:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "После истечения срока секрет будет окончательно удалён."
+  },
+  "email.feedback_email.subject": {
+    "text": "Отзыв от %{date} через %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "text": "Отзыв пользователя"
+  },
+  "email.feedback_email.from_label": {
+    "text": "От:"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "Домен:"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "Стратегия:"
+  },
+  "email.feedback_email.message_label": {
+    "text": "Сообщение:"
+  },
+  "email.feedback_email.signature": {
+    "text": "Служба поддержки Secret"
+  },
+  "email.organization_invitation.subject": {
+    "text": "Вас пригласили присоединиться к %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "text": "Вас пригласили присоединиться к %{organization_name}!"
+  },
+  "email.organization_invitation.body": {
+    "text": "%{inviter_email} приглашает вас присоединиться к «%{organization_name}» в качестве %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "Принять приглашение"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "Или скопируйте и вставьте эту ссылку:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "Это приглашение истечёт через %{days} дней."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "Если вы не хотите присоединяться, вы можете просто проигнорировать это письмо или отклонить приглашение."
+  },
+  "email.organization_invitation.signature": {
+    "text": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "P.S. Это письмо было отправлено на %{invited_email}. Если вы не ожидали этого приглашения, вы можете спокойно проигнорировать это сообщение."
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "участника"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "администратора"
+  },
+  "email.password_changed.subject": {
+    "text": "Ваш пароль был изменён (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "text": "Ваш пароль был изменён"
+  },
+  "email.password_changed.body": {
+    "text": "Ваш пароль для %{product_name} был изменён %{date} в %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "text": "Если вы не вносили это изменение, немедленно защитите свою учётную запись, сбросив пароль и связавшись со службой поддержки."
+  },
+  "email.password_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_changed.subject": {
+    "text": "Ваш адрес электронной почты был изменён (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "text": "Ваш адрес электронной почты был изменён"
+  },
+  "email.email_changed.body": {
+    "text": "Адрес электронной почты для вашей учётной записи %{product_name} был изменён на %{new_email_masked} %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "text": "Если вы не вносили это изменение, немедленно свяжитесь со службой поддержки, так как ваша учётная запись может быть скомпрометирована."
+  },
+  "email.email_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "Подтвердите новый адрес электронной почты (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "Подтвердите новый адрес электронной почты"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "Подтвердите этот адрес электронной почты, чтобы завершить изменение для вашей учётной записи %{product_name}."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "Подтвердить адрес электронной почты"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "Или скопируйте и вставьте эту ссылку:"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "Двухфакторная аутентификация включена (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "text": "Двухфакторная аутентификация включена"
+  },
+  "email.mfa_enabled.body": {
+    "text": "Двухфакторная аутентификация была включена для вашей учётной записи %{product_name} %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "Ваша учётная запись теперь более защищена. При входе вам потребуется вводить код подтверждения из приложения-аутентификатора."
+  },
+  "email.mfa_enabled.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "Двухфакторная аутентификация отключена (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "text": "Двухфакторная аутентификация отключена"
+  },
+  "email.mfa_disabled.body": {
+    "text": "Двухфакторная аутентификация была отключена для вашей учётной записи %{product_name} %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "Ваша учётная запись теперь менее защищена. Если вы не вносили это изменение, немедленно защитите свою учётную запись."
+  },
+  "email.mfa_disabled.signature": {
+    "text": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "text": "Новый вход в вашу учётную запись (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "text": "Обнаружен новый вход"
+  },
+  "email.new_login_alert.body": {
+    "text": "Обнаружен новый вход в вашу учётную запись %{product_name} %{date} в %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "text": "Устройство:"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "Местоположение:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "IP-адрес:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "Если это были не вы, ваша учётная запись может быть скомпрометирована."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "Защитить учётную запись"
+  },
+  "email.new_login_alert.signature": {
+    "text": "Delano"
+  },
+  "email.member_removed.subject": {
+    "text": "Вы удалены из организации %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "text": "Вы удалены из организации %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "text": "Вы были удалены из организации \"%{organization_name}\" в %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "text": "Delano"
+  },
+  "email.role_changed.subject": {
+    "text": "Ваша роль изменена в организации %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "text": "Ваша роль была изменена"
+  },
+  "email.role_changed.body": {
+    "text": "Ваша роль в \"%{organization_name}\" была изменена с %{old_role} на %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "text": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "text": "Организация \"%{organization_name}\" была удалена"
+  },
+  "email.organization_deleted.title": {
+    "text": "Организация удалена"
+  },
+  "email.organization_deleted.body": {
+    "text": "Организация \"%{organization_name}\" была удалена из %{product_name}. Все связанные данные были удалены."
+  },
+  "email.organization_deleted.signature": {
+    "text": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "text": "Квитанция об оплате для %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "text": "Квитанция об оплате"
+  },
+  "email.payment_receipt.body": {
+    "text": "Благодарим за оплату. Вот детали вашего платежа:"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "Сумма:"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "Дата:"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "Тариф:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "Просмотр счёта"
+  },
+  "email.payment_receipt.signature": {
+    "text": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "text": "Платёж для %{product_name} не выполнен"
+  },
+  "email.payment_failed.title": {
+    "text": "Платёж не выполнен"
+  },
+  "email.payment_failed.body": {
+    "text": "Не удалось обработать ваш платёж для %{product_name}. Обновите способ оплаты, чтобы избежать прерывания обслуживания."
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "Обновить способ оплаты"
+  },
+  "email.payment_failed.signature": {
+    "text": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "text": "Ваш пробный период %{product_name} истекает через %{days_remaining} дн."
+  },
+  "email.trial_expiring.title": {
+    "text": "Ваш пробный период скоро закончится"
+  },
+  "email.trial_expiring.body": {
+    "text": "Ваш бесплатный пробный период %{product_name} истекает через %{days_remaining} дн. Повысьте тариф, чтобы сохранить доступ ко всем функциям."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "Повысить тариф"
+  },
+  "email.trial_expiring.signature": {
+    "text": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "text": "Ваша подписка %{product_name} была изменена"
+  },
+  "email.subscription_changed.title": {
+    "text": "Подписка изменена"
+  },
+  "email.subscription_changed.body": {
+    "text": "Ваша подписка %{product_name} была изменена с %{old_plan} на %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "Это изменение вступает в силу %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "text": "Delano"
+  },
+  "email.common.greeting": {
+    "text": "Здравствуйте,"
+  },
+  "email.common.thanks": {
+    "text": "Спасибо,"
+  },
+  "email.common.unsubscribe": {
+    "text": "Отписаться"
+  },
+  "email.common.view_in_browser": {
+    "text": "Открыть в браузере"
+  },
+  "email.common.onetime_secret": {
+    "text": "Onetime Secret"
+  }
+}

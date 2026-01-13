@@ -1,0 +1,398 @@
+{
+  "web.auth.mfa_required": {
+    "text": "Cal verificació MFA"
+  },
+  "web.auth.mfa_verification_required": {
+    "text": "Cal verificació MFA per accedir al teu compte"
+  },
+  "web.auth.complete_mfa_verification": {
+    "text": "Completa la verificació MFA"
+  },
+  "web.auth.security.authentication_failed": {
+    "text": "L'autenticació ha fallat. Verifica les teves credencials i torna-ho a provar."
+  },
+  "web.auth.security.rate_limited": {
+    "text": "Massa intents. Torna-ho a provar més tard."
+  },
+  "web.auth.security.session_expired": {
+    "text": "La sessió ha caducat. Torna a iniciar sessió."
+  },
+  "web.auth.security.recovery_code_not_found": {
+    "text": "Codi de recuperació no trobat. Verifica que l'has introduït correctament."
+  },
+  "web.auth.security.recovery_code_used": {
+    "text": "Aquest codi de recuperació ja s'ha utilitzat. Cada codi només es pot utilitzar una vegada."
+  },
+  "web.auth.security.network_error": {
+    "text": "Error de xarxa. Comprova la teva connexió i torna-ho a provar."
+  },
+  "web.auth.security.internal_error": {
+    "text": "S'ha produït un error. Torna-ho a provar."
+  },
+  "web.auth.methods.password": {
+    "text": "Contrasenya"
+  },
+  "web.auth.methods.magicLink": {
+    "text": "Enllaç per correu electrònic"
+  },
+  "web.auth.methods.webauthn": {
+    "text": "Biometria"
+  },
+  "web.auth.magicLink.title": {
+    "text": "Inicia sessió amb correu electrònic"
+  },
+  "web.auth.magicLink.description": {
+    "text": "T'enviarem un enllaç d'inici de sessió segur"
+  },
+  "web.auth.magicLink.emailPlaceholder": {
+    "text": "Introdueix el teu correu electrònic"
+  },
+  "web.auth.magicLink.sendLink": {
+    "text": "Envia l'enllaç d'inici de sessió"
+  },
+  "web.auth.magicLink.checkEmail": {
+    "text": "Comprova el teu correu electrònic"
+  },
+  "web.auth.magicLink.sentTo": {
+    "text": "Hem enviat un enllaç d'inici de sessió a {email}"
+  },
+  "web.auth.magicLink.linkExpiresIn": {
+    "text": "Aquest enllaç caducarà en 15 minuts"
+  },
+  "web.auth.magicLink.tryDifferentEmail": {
+    "text": "Prova amb un correu electrònic diferent"
+  },
+  "web.auth.magicLink.noPasswordNeeded": {
+    "text": "No cal contrasenya, només fes clic a l'enllaç del teu correu electrònic"
+  },
+  "web.auth.magicLink.networkError": {
+    "text": "Error de xarxa. Torna-ho a provar."
+  },
+  "web.auth.magicLink.requestFailed": {
+    "text": "No s'ha pogut enviar l'enllaç d'inici de sessió. Torna-ho a provar."
+  },
+  "web.auth.magicLink.invalidLink": {
+    "text": "Enllaç d'inici de sessió no vàlid o inexistent"
+  },
+  "web.auth.magicLink.loginFailed": {
+    "text": "L'inici de sessió ha fallat. Torna-ho a provar."
+  },
+  "web.auth.magicLink.signingYouIn": {
+    "text": "Iniciant sessió..."
+  },
+  "web.auth.magicLink.pleaseWait": {
+    "text": "Espera mentre verifiquem el teu enllaç"
+  },
+  "web.auth.magicLink.error": {
+    "text": "Error d'autenticació"
+  },
+  "web.auth.magicLink.back_to_signin": {
+    "text": "Torna a l'inici de sessió"
+  },
+  "web.auth.webauthn.signIn": {
+    "text": "Inicia sessió amb Face ID / Touch ID"
+  },
+  "web.auth.webauthn.setup": {
+    "text": "Configura l'inici de sessió biomètric"
+  },
+  "web.auth.webauthn.notSupported": {
+    "text": "L'autenticació biomètrica no és compatible amb aquest navegador"
+  },
+  "web.auth.webauthn.requiresModernBrowser": {
+    "text": "Utilitza un navegador modern que admeti WebAuthn (Chrome, Safari, Firefox o Edge)"
+  },
+  "web.auth.webauthn.setupSuccess": {
+    "text": "S'ha activat l'inici de sessió biomètric"
+  },
+  "web.auth.webauthn.setupFailed": {
+    "text": "No s'ha pogut configurar l'inici de sessió biomètric"
+  },
+  "web.auth.webauthn.authFailed": {
+    "text": "L'autenticació biomètrica ha fallat. Torna-ho a provar."
+  },
+  "web.auth.webauthn.cancelled": {
+    "text": "S'ha cancel·lat l'autenticació"
+  },
+  "web.auth.webauthn.processing": {
+    "text": "Autenticant..."
+  },
+  "web.auth.webauthn.description": {
+    "text": "Utilitza la teva empremta digital, rostre o clau de seguretat per iniciar sessió"
+  },
+  "web.auth.webauthn.supportedMethods": {
+    "text": "És compatible amb Face ID, Touch ID, Windows Hello i claus de seguretat"
+  },
+  "web.auth.lockout.attempts_remaining": {
+    "text": "Advertència: {count} intent(s) d'inici de sessió restant(s)"
+  },
+  "web.auth.lockout.account_locked": {
+    "text": "Compte bloquejat a causa de massa intents d'inici de sessió fallits"
+  },
+  "web.auth.lockout.locked_until": {
+    "text": "El teu compte està bloquejat fins a {time}"
+  },
+  "web.auth.lockout.contact_support": {
+    "text": "Contacta amb l'assistència tècnica si necessites accés immediat"
+  },
+  "web.auth.lockout.try_password_reset": {
+    "text": "Pots restablir la teva contrasenya"
+  },
+  "web.auth.sessions.title": {
+    "text": "Sessions actives"
+  },
+  "web.auth.sessions.current": {
+    "text": "Sessió actual"
+  },
+  "web.auth.sessions.other": {
+    "text": "Altres sessions"
+  },
+  "web.auth.sessions.device": {
+    "text": "Dispositiu"
+  },
+  "web.auth.sessions.location": {
+    "text": "Ubicació"
+  },
+  "web.auth.sessions.ip_address": {
+    "text": "Adreça IP"
+  },
+  "web.auth.sessions.last_active": {
+    "text": "Última activitat"
+  },
+  "web.auth.sessions.created": {
+    "text": "Creada"
+  },
+  "web.auth.sessions.remove": {
+    "text": "Elimina"
+  },
+  "web.auth.sessions.remove_all": {
+    "text": "Tanca totes les altres sessions"
+  },
+  "web.auth.sessions.confirm_remove": {
+    "text": "Estàs segur que vols eliminar aquesta sessió?"
+  },
+  "web.auth.sessions.confirm_remove_all": {
+    "text": "Això tancarà la teva sessió de tots els altres dispositius. Estàs segur?"
+  },
+  "web.auth.sessions.no_sessions": {
+    "text": "No hi ha altres sessions actives"
+  },
+  "web.auth.sessions.removed_success": {
+    "text": "Sessió eliminada correctament"
+  },
+  "web.auth.sessions.removed_all_success": {
+    "text": "S'han tancat totes les altres sessions"
+  },
+  "web.auth.sessions.link_title": {
+    "text": "Sessions actives"
+  },
+  "web.auth.mfa.title": {
+    "text": "Autenticació de dos factors"
+  },
+  "web.auth.mfa.enabled": {
+    "text": "L'autenticació de dos factors està activada"
+  },
+  "web.auth.mfa.disabled": {
+    "text": "L'autenticació de dos factors està desactivada"
+  },
+  "web.auth.mfa.enable": {
+    "text": "Activa l'autenticació de dos factors"
+  },
+  "web.auth.mfa.disable": {
+    "text": "Desactiva l'autenticació de dos factors"
+  },
+  "web.auth.mfa.setup_title": {
+    "text": "Configura l'autenticació de dos factors"
+  },
+  "web.auth.mfa.setup_description": {
+    "text": "Afegeix una capa addicional de seguretat al teu compte"
+  },
+  "web.auth.mfa.step_scan": {
+    "text": "1. Escaneja el codi QR"
+  },
+  "web.auth.mfa.step_verify": {
+    "text": "2. Verifica la configuració"
+  },
+  "web.auth.mfa.scan_qr": {
+    "text": "Escaneja aquest codi QR amb la teva aplicació d'autenticació"
+  },
+  "web.auth.mfa.manual_entry": {
+    "text": "O introdueix aquest codi manualment"
+  },
+  "web.auth.mfa.verify_code": {
+    "text": "Introdueix el codi de 6 dígits de la teva aplicació"
+  },
+  "web.auth.mfa.enter_code": {
+    "text": "Introdueix el codi d'autenticació"
+  },
+  "web.auth.mfa.verify": {
+    "text": "Verifica i activa"
+  },
+  "web.auth.mfa.code_required": {
+    "text": "El codi d'autenticació és obligatori"
+  },
+  "web.auth.mfa.invalid_code": {
+    "text": "Codi no vàlid. Els codis caduquen cada 30 segons. Prova amb el codi més recent de la teva aplicació d'autenticació."
+  },
+  "web.auth.mfa.success_enabled": {
+    "text": "S'ha activat l'autenticació de dos factors"
+  },
+  "web.auth.mfa.success_disabled": {
+    "text": "S'ha desactivat l'autenticació de dos factors"
+  },
+  "web.auth.mfa.require_password": {
+    "text": "Introdueix la teva contrasenya per desactivar 2FA"
+  },
+  "web.auth.mfa.password_confirmation": {
+    "text": "Contrasenya"
+  },
+  "web.auth.mfa.password_reason": {
+    "text": "Confirma la teva identitat per modificar la configuració d'autenticació de dos factors"
+  },
+  "web.auth.mfa.last_used": {
+    "text": "Última utilització: {time}"
+  },
+  "web.auth.mfa.never_used": {
+    "text": "Mai s'ha utilitzat"
+  },
+  "web.auth.mfa.use_recovery_code": {
+    "text": "Utilitza un codi de recuperació"
+  },
+  "web.auth.mfa.back_to_code": {
+    "text": "Torna al codi d'autenticació"
+  },
+  "web.auth.mfa.cancel": {
+    "text": "Cancel·la i torna a l'inici de sessió"
+  },
+  "web.auth.mfa.loading_status": {
+    "text": "Carregant l'estat MFA..."
+  },
+  "web.auth.mfa.protected_description": {
+    "text": "El teu compte està protegit amb autenticació de dos factors"
+  },
+  "web.auth.mfa.enable_description": {
+    "text": "Protegeix el teu compte amb una capa addicional de seguretat"
+  },
+  "web.auth.mfa.benefit_unauthorized": {
+    "text": "Evita l'accés no autoritzat fins i tot si la teva contrasenya es veu compromesa"
+  },
+  "web.auth.mfa.benefit_apps": {
+    "text": "Funciona amb Google Authenticator, Authy i altres aplicacions TOTP"
+  },
+  "web.auth.mfa.benefit_recovery": {
+    "text": "Codis de recuperació de còpia de seguretat per a l'accés d'emergència"
+  },
+  "web.auth.mfa.password_placeholder": {
+    "text": "Introdueix la teva contrasenya"
+  },
+  "web.auth.mfa.disabling": {
+    "text": "Desactivant..."
+  },
+  "web.auth.mfa.disable_button": {
+    "text": "Desactiva 2FA"
+  },
+  "web.auth.mfa.generating_qr": {
+    "text": "Generant el codi QR..."
+  },
+  "web.auth.mfa.supported_apps": {
+    "text": "Utilitza Google Authenticator, Authy o qualsevol aplicació TOTP"
+  },
+  "web.auth.mfa.continue_verification": {
+    "text": "Continua amb la verificació"
+  },
+  "web.auth.mfa.enter_code_description": {
+    "text": "Introdueix el codi de 6 dígits de la teva aplicació d'autenticació"
+  },
+  "web.auth.mfa.enable_and_continue": {
+    "text": "Activa MFA"
+  },
+  "web.auth.mfa.complete_setup": {
+    "text": "Completa la configuració"
+  },
+  "web.auth.mfa.enter_recovery_code": {
+    "text": "Introdueix un dels teus codis de recuperació"
+  },
+  "web.auth.mfa.recovery_code_label": {
+    "text": "Codi de recuperació"
+  },
+  "web.auth.mfa.recovery_code_placeholder": {
+    "text": "Introdueix el codi de recuperació"
+  },
+  "web.auth.mfa.verify_recovery_code": {
+    "text": "Verifica el codi de recuperació"
+  },
+  "web.auth.mfa.six_digit_code": {
+    "text": "Introdueix el codi d'autenticació de 6 dígits"
+  },
+  "web.auth.mfa.recovery_code_mode_active": {
+    "text": "Mode de codi de recuperació actiu"
+  },
+  "web.auth.mfa.otp_mode_active": {
+    "text": "Mode de codi d'autenticació actiu"
+  },
+  "web.auth.mfa.enter_all_digits": {
+    "text": "Introdueix els 6 dígits per continuar"
+  },
+  "web.auth.mfa.digit_of_count": {
+    "text": "Dígit {current} de {total}"
+  },
+  "web.auth.recovery_codes.title": {
+    "text": "Codis de recuperació"
+  },
+  "web.auth.recovery_codes.description": {
+    "text": "Desa aquests codis en un lloc segur. Cada un es pot utilitzar una vegada si perds l'accés al teu autenticador."
+  },
+  "web.auth.recovery_codes.warning": {
+    "text": "Aquests codis només es mostraran una vegada"
+  },
+  "web.auth.recovery_codes.save_required": {
+    "text": "Has de descarregar o copiar els teus codis de recuperació abans de completar la configuració."
+  },
+  "web.auth.recovery_codes.generate_new": {
+    "text": "Genera codis nous"
+  },
+  "web.auth.recovery_codes.regenerate": {
+    "text": "Regenera els codis"
+  },
+  "web.auth.recovery_codes.generate_new_warning": {
+    "text": "Això invalidarà tots els codis de recuperació existents"
+  },
+  "web.auth.recovery_codes.download": {
+    "text": "Descarrega els codis"
+  },
+  "web.auth.recovery_codes.downloaded": {
+    "text": "Codis de recuperació descarregats"
+  },
+  "web.auth.recovery_codes.print": {
+    "text": "Imprimeix els codis"
+  },
+  "web.auth.recovery_codes.copy": {
+    "text": "Copia tots els codis"
+  },
+  "web.auth.recovery_codes.copied": {
+    "text": "Codis copiats al porta-retalls"
+  },
+  "web.auth.recovery_codes.copy_failed": {
+    "text": "No s'han pogut copiar els codis al porta-retalls"
+  },
+  "web.auth.recovery_codes.code_used": {
+    "text": "Utilitzat"
+  },
+  "web.auth.recovery_codes.code_unused": {
+    "text": "No utilitzat"
+  },
+  "web.auth.recovery_codes.remaining": {
+    "text": "{count} codi(s) de recuperació restant(s)"
+  },
+  "web.auth.recovery_codes.usage_hint": {
+    "text": "Cada codi només es pot utilitzar una vegada. Regenera els codis si et queden pocs."
+  },
+  "web.auth.recovery_codes.none_remaining": {
+    "text": "No queden codis de recuperació"
+  },
+  "web.auth.recovery_codes.generate_success": {
+    "text": "S'han generat nous codis de recuperació"
+  },
+  "web.auth.recovery_codes.link_title": {
+    "text": "Codis de recuperació"
+  }
+}

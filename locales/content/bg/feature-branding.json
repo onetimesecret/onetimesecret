@@ -1,0 +1,128 @@
+{
+  "web.branding.color_picker": {
+    "text": "Избор на цвят"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "Текущ {0}: {1}. Кликнете, за да преминете през опциите."
+  },
+  "web.branding.use_setting": {
+    "text": "Използвай настройка"
+  },
+  "web.branding.font_family": {
+    "text": "Семейство шрифтове"
+  },
+  "web.branding.corner_style": {
+    "text": "Стил на ъглите"
+  },
+  "web.branding.brand_color": {
+    "text": "Цвят на марката"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "Преглед на изгледа на получателя при достъп до вашата сигурна връзка"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "Преглед и персонализиране"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "Превключи към изглед на браузър Safari"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "text": "Максимизиране на прозореца"
+  },
+  "web.branding.minimize_window": {
+    "text": "Минимизиране на прозореца"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "Превключи към изглед на браузър Edge"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500 символа"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "Използвайте телефона си, за да сканирате QR кода"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "Свържете се с onboarding{'@'}example.com при въпроси"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "Тези инструкции ще бъдат показани на получателите, преди да разкрият тайното съдържание"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "Тези инструкции ще бъдат показани на получателите, след като разкрият тайната"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "Инструкции преди разкриване"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "Инструкции след разкриване"
+  },
+  "web.branding.instructions": {
+    "text": "Инструкции"
+  },
+  "web.branding.logo_controls": {
+    "text": "Контроли за лого"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "Кликнете, за да качите лого. Препоръчителен размер: 128x128 пиксела. Максимален размер на файла: 1MB. Поддържани формати: PNG, JPG, SVG"
+  },
+  "web.branding.upload_logo": {
+    "text": "Качи лого"
+  },
+  "web.branding.loading_preview": {
+    "text": "Зареждане на преглед..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "Прегледайте как получателите ще виждат вашите тайни, като тествате бутона \"Преглед на тайната\""
+  },
+  "web.branding.eye_icon": {
+    "text": "Икона око"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "Кликнете върху изображението за преглед по-долу, за да актуализирате логото си (препоръчителен минимален размер 128x128 пиксела, макс. 1MB)"
+  },
+  "web.branding.image_icon": {
+    "text": "Икона изображение"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "Използвайте контролите по-горе, за да персонализирате цвета на марката, стиловете и инструкциите за получателя"
+  },
+  "web.branding.customization_icon": {
+    "text": "Икона за персонализиране"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "Имате незапазени промени. Сигурни ли сте?"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "Неуспешно зареждане на настройките на марката"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "Това е интерактивен преглед на това как получателите ще виждат вашите сигурни съобщения. Можете да: - Персонализирате цветове и шрифтове, използвайки контролите по-горе - Качите лого (препоръчителен минимален размер 128x128 пиксела, макс. 1MB) - Тествате прегледа, използвайки бутона \"Преглед на тайната\""
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "Това е интерактивен преглед на това как получателите ще виждат вашите сигурни съобщения. Можете да: - Персонализирате цветове и шрифтове, използвайки контролите по-горе - Качите лого (препоръчителен минимален размер 128x128 пиксела, макс. 1MB) - Тествате прегледа, използвайки бутона \"Преглед на тайната\""
+  },
+  "web.branding.default_logo_icon": {
+    "text": "Икона за лого по подразбиране"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "Осъществено от Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "text": "{0} Лого"
+  },
+  "web.branding.edge": {
+    "text": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "Преглед за Edge"
+  },
+  "web.branding.safari": {
+    "text": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "Преглед за Safari"
+  }
+}

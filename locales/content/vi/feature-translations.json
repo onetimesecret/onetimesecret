@@ -1,0 +1,71 @@
+{
+  "web.translations.welcomes_contributors_for_both_existing_and_new_": {
+    "text": "chào đón những người đóng góp cho cả ngôn ngữ hiện có và mới."
+  },
+  "web.translations.our_github_project": {
+    "text": "dự án GitHub của chúng tôi"
+  },
+  "web.translations.if_youre_interested_in_translation": {
+    "text": "Nếu bạn quan tâm đến dịch thuật,"
+  },
+  "web.translations.whove_helped_with_translations_as_we_continue_to": {
+    "text": "đã giúp đỡ với bản dịch khi chúng tôi tiếp tục phát triển các tính năng mới."
+  },
+  "web.translations.25_contributors": {
+    "text": "hơn 25 người đóng góp"
+  },
+  "web.translations.were_grateful_to_the": {
+    "text": "Chúng tôi biết ơn"
+  },
+  "web.translations.as_we_add_new_features_our_translations_graduall": {
+    "text": "Khi chúng tôi thêm các tính năng mới, bản dịch của chúng tôi dần dần cần cập nhật để luôn mới. Điều này ảnh hưởng đến cả onetimesecret.com và hàng nghìn cài đặt tự lưu trữ trên toàn thế giới."
+  },
+  "web.translations.remember_to_include_your_email_if_youre_not_logg": {
+    "text": "- nhớ bao gồm email của bạn nếu bạn chưa đăng nhập. Mỗi bản dịch giúp nhiều người giao tiếp an toàn hơn."
+  },
+  "web.translations.reach_out_to_us": {
+    "text": "Liên hệ với chúng tôi"
+  },
+  "web.translations.have_questions": {
+    "text": "Có câu hỏi?"
+  },
+  "web.translations.send_translations_by_email_to": {
+    "text": "Gửi bản dịch qua email đến"
+  },
+  "web.translations.english_template": {
+    "text": "Mẫu tiếng Anh"
+  },
+  "web.translations.start_a_new_translation_from_our": {
+    "text": "Bắt đầu bản dịch mới từ"
+  },
+  "web.translations.update_a_language_directly_through_our_github_pr": {
+    "text": "Cập nhật ngôn ngữ trực tiếp qua dự án GitHub của chúng tôi"
+  },
+  "web.translations.review_existing_translations_using_the_language_": {
+    "text": "Xem lại các bản dịch hiện có bằng bộ chọn ngôn ngữ ở trên"
+  },
+  "web.translations.ready_to_help_some_ways_to_contribute": {
+    "text": "Sẵn sàng giúp đỡ? Một số cách đóng góp:"
+  },
+  "web.translations.the_following_people_have_donated_their_time_to_": {
+    "text": "Những người sau đây đã dành thời gian để giúp mở rộng phạm vi tiếp cận của Onetime Secret:"
+  },
+  "web.translations.translations": {
+    "text": "Bản dịch"
+  },
+  "web.translations.fork_on_github_and_submit_a_pr": {
+    "text": "Fork trên GitHub và gửi PR"
+  },
+  "web.translations.your_language_skills_can_help_expand_access_to_s": {
+    "text": "Kỹ năng ngôn ngữ của bạn có thể giúp mở rộng khả năng tiếp cận với giao tiếp an toàn."
+  },
+  "web.translations.thanks_to_our_community_we_support_over_20_langu": {
+    "text": "Nhờ cộng đồng của chúng tôi, ngày nay chúng tôi hỗ trợ hơn 20 ngôn ngữ. Tuy nhiên, với tốc độ phát triển nhanh chóng của chúng tôi, nhiều bản dịch cần cập nhật để luôn mới. Điều này ảnh hưởng đến cả onetimesecret.com và hàng nghìn cài đặt tự lưu trữ trên toàn thế giới."
+  },
+  "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
+    "text": "Từ năm 2012, Onetime Secret đã cung cấp một cách an toàn để chia sẻ thông tin nhạy cảm trên toàn thế giới. Với người dùng ở các khu vực mà tiếng Anh không phải là ngôn ngữ chính, bản dịch chính xác là điều cần thiết để làm cho giao tiếp an toàn có thể tiếp cận được với mọi người."
+  },
+  "web.translations.help_secure_communication_go_global": {
+    "text": "Giúp giao tiếp an toàn toàn cầu hóa"
+  }
+}

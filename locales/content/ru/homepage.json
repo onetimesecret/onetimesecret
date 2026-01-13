@@ -1,0 +1,140 @@
+{
+  "web.homepage.tagline1": {
+    "text": "Вставьте пароль, тайное сообщение или закрытую ссылку ниже."
+  },
+  "web.homepage.tagline2": {
+    "text": "Не пересылайте конфиденциальную информацию через беседы и эл-почту."
+  },
+  "web.homepage.secret_hint": {
+    "text": "* Ссылка сработает только один раз, а затем удалится навсегда."
+  },
+  "web.homepage.secret_form_more_text1": {
+    "text": "Создайте"
+  },
+  "web.homepage.secret_form_more_text2": {
+    "text": "бесплатную учётную запись"
+  },
+  "web.homepage.secret_form_more_text3": {
+    "text": "и получите возможность отправлять тайны по эл-почте."
+  },
+  "web.homepage.cta_title": {
+    "text": "Используйте собственный домен"
+  },
+  "web.homepage.cta_subtitle": {
+    "text": "Поднимите свой бренд и делитесь с уверенностью"
+  },
+  "web.homepage.cta_feature1": {
+    "text": "Ваш собственный настраиваемый домен"
+  },
+  "web.homepage.cta_feature2": {
+    "text": "Безлимитный обмен секретами"
+  },
+  "web.homepage.cta_feature3": {
+    "text": "Расширенные настройки конфиденциальности"
+  },
+  "web.homepage.explore_premium_plans": {
+    "text": "Изучите премиум-планы"
+  },
+  "web.homepage.need_free_account": {
+    "text": "Только начинаете?"
+  },
+  "web.homepage.sign_up_free": {
+    "text": "Создать бесплатный аккаунт"
+  },
+  "web.homepage.visit_onetime_secret_home": {
+    "text": "Посетить главную страницу Onetime Secret"
+  },
+  "web.homepage.password_generation_title": {
+    "text": "Генератор паролей"
+  },
+  "web.homepage.password_generation_description": {
+    "text": "Нажмите «Сгенерировать пароль», чтобы создать безопасный случайный пароль, которым вы можете поделиться."
+  },
+  "web.homepage.protip1": {
+    "text": "Ваше сообщение самоуничтожится после просмотра. Ссылка может быть открыта только один раз."
+  },
+  "web.homepage.authonly.tagline2": {
+    "text": "Не пересылайте конфиденциальную информацию через беседы и эл-почту."
+  },
+  "web.homepage.authonly.tagline1": {
+    "text": "Вставьте пароль, тайное сообщение или закрытую ссылку ниже."
+  },
+  "web.homepage.disabled.tagline2": {
+    "text": "Не пересылайте конфиденциальную информацию через беседы и эл-почту."
+  },
+  "web.homepage.disabled.tagline1": {
+    "text": "Вставьте пароль, тайное сообщение или закрытую ссылку ниже."
+  },
+  "web.homepage.link_preview": {
+    "text": "Предпросмотр ссылки"
+  },
+  "web.homepage.meets_and_exceeds_compliance_standards": {
+    "text": "Соответствует и превосходит стандарты соблюдения требований"
+  },
+  "web.homepage.secure_your_brand_build_customer_trust_etc": {
+    "text": "Защитите свой бренд, завоюйте доверие клиентов с помощью ссылок из Вашего домена."
+  },
+  "web.homepage.a_trusted_way_to_share_sensitive_information_etc": {
+    "text": "Надёжный способ делиться конфиденциальной информацией, которая самоуничтожается после просмотра."
+  },
+  "web.homepage.secure_links": {
+    "text": "Безопасные ссылки"
+  },
+  "web.homepage.about_onetime_secret_0": {
+    "text": "О Onetime Secret"
+  },
+  "web.homepage.log_in_to_onetime_secret": {
+    "text": "Войти в Onetime Secret"
+  },
+  "web.homepage.about_onetime_secret": {
+    "text": "О Onetime Secret"
+  },
+  "web.homepage.signup_individual_and_business_plans": {
+    "text": "Регистрация - Индивидуальные и бизнес-тарифы"
+  },
+  "web.homepage.tagline_signed": {
+    "text": "Подписано"
+  },
+  "web.homepage.tagline_sealed": {
+    "text": "Запечатано"
+  },
+  "web.homepage.tagline_delivered": {
+    "text": "Доставлено"
+  },
+  "web.homepage.onetime_secret": {
+    "text": "Onetime Secret"
+  },
+  "web.homepage.onetime_secret_literal": {
+    "text": "Onetime Secret"
+  },
+  "web.homepage.one_time_secret_literal": {
+    "text": "Одноразовый секрет"
+  },
+  "web.homepage.onetime_secret_homepage": {
+    "text": "Главная страница Onetime Secret"
+  },
+  "web.homepage.send_sensitive_information_that_can_only_be_viewed_once": {
+    "text": "Отправьте конфиденциальную информацию, которую можно просмотреть только один раз"
+  },
+  "web.homepage.create_a_secure_link": {
+    "text": "Создать безопасную ссылку"
+  },
+  "web.homepage.now_with_custom_domains": {
+    "text": "Теперь с пользовательскими доменами"
+  },
+  "web.homepage.this_is_a_private_instance_only_authorized_team_": {
+    "text": "Это частный экземпляр. Только авторизованные члены команды могут создавать новые безопасные ссылки."
+  },
+  "web.homepage.welcome_to_onetime_secret": {
+    "text": "Добро пожаловать в Onetime Secret."
+  },
+  "web.homepage.onetime_secret_helps_us_share_sensitive_informat": {
+    "text": "Onetime Secret помогает нам безопасно делиться конфиденциальной информацией, сохраняя при этом наш профессиональный имидж."
+  },
+  "web.homepage.information_shared_through_this_service_can_only": {
+    "text": "Информация, переданная через этот сервис, может быть доступна только один раз. После просмотра содержимое будет безвозвратно удалено для обеспечения конфиденциальности."
+  },
+  "web.homepage.welcome_to_the_global_broadcast": {
+    "text": "Добро пожаловать в глобальное вещание!"
+  }
+}

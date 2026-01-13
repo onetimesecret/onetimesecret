@@ -1,0 +1,71 @@
+{
+  "web.translations.welcomes_contributors_for_both_existing_and_new_": {
+    "text": "közreműködőket vár mind a meglévő, mind az új nyelvekhez."
+  },
+  "web.translations.our_github_project": {
+    "text": "GitHub projektünk"
+  },
+  "web.translations.if_youre_interested_in_translation": {
+    "text": "Ha érdekli a fordítás,"
+  },
+  "web.translations.whove_helped_with_translations_as_we_continue_to": {
+    "text": "akik segítettek a fordításokban, miközben tovább fejlesztjük az új funkciókat."
+  },
+  "web.translations.25_contributors": {
+    "text": "25+ közreműködő"
+  },
+  "web.translations.were_grateful_to_the": {
+    "text": "Hálásak vagyunk a"
+  },
+  "web.translations.as_we_add_new_features_our_translations_graduall": {
+    "text": "Ahogy új funkciókat adunk hozzá, fordításaink fokozatosan frissítésre szorulnak. Ez érinti mind az onetimesecret.com-ot, mind a több ezer önálló telepítést világszerte."
+  },
+  "web.translations.remember_to_include_your_email_if_youre_not_logg": {
+    "text": "- ne felejtse el megadni e-mail címét, ha nincs bejelentkezve. Minden fordítás segít több embernek biztonságosan kommunikálni."
+  },
+  "web.translations.reach_out_to_us": {
+    "text": "Lépjen kapcsolatba velünk"
+  },
+  "web.translations.have_questions": {
+    "text": "Kérdése van?"
+  },
+  "web.translations.send_translations_by_email_to": {
+    "text": "Fordítások küldése e-mailben a következő címre"
+  },
+  "web.translations.english_template": {
+    "text": "Angol sablon"
+  },
+  "web.translations.start_a_new_translation_from_our": {
+    "text": "Kezdjen új fordítást"
+  },
+  "web.translations.update_a_language_directly_through_our_github_pr": {
+    "text": "Nyelv frissítése közvetlenül GitHub projektünkön keresztül"
+  },
+  "web.translations.review_existing_translations_using_the_language_": {
+    "text": "Meglévő fordítások áttekintése a fenti nyelvválasztó használatával"
+  },
+  "web.translations.ready_to_help_some_ways_to_contribute": {
+    "text": "Készen áll a segítségre? Néhány módszer a közreműködésre:"
+  },
+  "web.translations.the_following_people_have_donated_their_time_to_": {
+    "text": "A következő emberek adományozták idejüket az Onetime Secret elérésének kiterjesztéséhez:"
+  },
+  "web.translations.translations": {
+    "text": "Fordítások"
+  },
+  "web.translations.fork_on_github_and_submit_a_pr": {
+    "text": "Fork a GitHub-on és PR beküldése"
+  },
+  "web.translations.your_language_skills_can_help_expand_access_to_s": {
+    "text": "Nyelvi készségei segíthetnek a biztonságos kommunikáció hozzáférésének kiterjesztésében."
+  },
+  "web.translations.thanks_to_our_community_we_support_over_20_langu": {
+    "text": "Közösségünknek köszönhetően ma több mint 20 nyelvet támogatunk. Azonban gyors fejlesztési tempónk miatt sok fordítás frissítésre szorul. Ez érinti mind az onetimesecret.com-ot, mind a több ezer önálló telepítést világszerte."
+  },
+  "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
+    "text": "2012 óta az Onetime Secret biztonságos módot nyújt érzékeny információk megosztásához világszerte. Mivel felhasználóink olyan régiókban vannak, ahol az angol nem az elsődleges nyelv, a pontos fordítások elengedhetetlenek a biztonságos kommunikáció mindenki számára elérhetővé tételéhez."
+  },
+  "web.translations.help_secure_communication_go_global": {
+    "text": "Segítsen a biztonságos kommunikáció globálissá tételében"
+  }
+}

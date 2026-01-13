@@ -1,0 +1,934 @@
+{
+  "web.COMMON.broadcast": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.tagline": {
+    "text": "روابط آمنة تعمل لمرة واحدة فقط"
+  },
+  "web.COMMON.powered_by": {
+    "text": "مدعوم من"
+  },
+  "web.COMMON.website_url": {
+    "text": "https://onetimesecret.com/ar"
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "text": "توليد كلمة المرور"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "text": "توليد كلمة المرور معطل عندما يكون النموذج صالحاً"
+  },
+  "web.COMMON.email_placeholder": {
+    "text": "مثال: tom{'@'}myspace.com"
+  },
+  "web.COMMON.password_placeholder": {
+    "text": "أدخل كلمة المرور"
+  },
+  "web.COMMON.custom_domains_title": {
+    "text": "نطاقات مخصصة"
+  },
+  "web.COMMON.custom_domains_description": {
+    "text": "عزز الاتصالات وابنِ الثقة بروابط الأسرار المخصصة بعلامتك التجارية."
+  },
+  "web.COMMON.get_started_button": {
+    "text": "ابدأ"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "text": "تأكيد كلمة المرور"
+  },
+  "web.COMMON.header_settings": {
+    "text": "الإعدادات"
+  },
+  "web.COMMON.submit_with": {
+    "text": "إرسال"
+  },
+  "web.COMMON.submitting": {
+    "text": "جارٍ الإرسال..."
+  },
+  "web.COMMON.processing": {
+    "text": "يعالج"
+  },
+  "web.COMMON.description": {
+    "text": "احفظ المعلومات الحساسة بعيداً عن سجلات المحادثة ورسائل البريد الالكتروني. اصنع رابطاً سرياً قابل للمشاركة مرة واحدة فقط."
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "text": "عبارة مرور غير صحيحة"
+  },
+  "web.COMMON.keywords": {
+    "text": "سر، كلمة مرور، لمرة واحدة، مولد"
+  },
+  "web.COMMON.button_create_secret": {
+    "text": "اصنع رابطاً سرياً *"
+  },
+  "web.COMMON.button_generate_secret": {
+    "text": "او استخدم مولد كلمات المرور العشوائية"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "text": "خيارات الخصوصية"
+  },
+  "web.COMMON.secret_passphrase": {
+    "text": "كلمة المرور"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "text": "استخدم كلمة او جملة صعبة التخمين"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "text": "بريد المُرسل إليه"
+  },
+  "web.COMMON.secret_placeholder": {
+    "text": "...ضع المحتوى السري هنا"
+  },
+  "web.COMMON.header_create_account": {
+    "text": "إنشاء حساب"
+  },
+  "web.COMMON.header_about": {
+    "text": "عنا"
+  },
+  "web.COMMON.header_sign_in": {
+    "text": "تسجيل الدخول"
+  },
+  "web.COMMON.header_dashboard": {
+    "text": "الحساب"
+  },
+  "web.COMMON.header_logout": {
+    "text": "تسجيل الخروج"
+  },
+  "web.COMMON.secret": {
+    "text": "السر"
+  },
+  "web.COMMON.recent": {
+    "text": "حديثة"
+  },
+  "web.COMMON.received": {
+    "text": "تم العرض"
+  },
+  "web.COMMON.burn": {
+    "text": "حذف نهائياً"
+  },
+  "web.COMMON.burned": {
+    "text": "احرق"
+  },
+  "web.COMMON.expires_in": {
+    "text": "ينتهي خلال"
+  },
+  "web.COMMON.burn_this_secret": {
+    "text": "احرق هذا السر"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "text": "(حرق السر سيحذفه قبل ان تتم قراءته (اضغط للتأكيد"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "text": "خيار حرق السر دائم ولن تتمكن من التراجع عنه"
+  },
+  "web.COMMON.msg_check_email": {
+    "text": "تفقد بريدك الالكتروني"
+  },
+  "web.COMMON.click_to_continue": {
+    "text": "← اضغط للمتابعة"
+  },
+  "web.COMMON.click_to_verify": {
+    "text": ":المتابعة لتأكيد الحساب"
+  },
+  "web.COMMON.error_secret": {
+    "text": "لم تضع محتوى لتشاركه"
+  },
+  "web.COMMON.error_passphrase": {
+    "text": "تأكد من كلمة المرور"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "text": "ادخل كلمة المرور هنا"
+  },
+  "web.COMMON.view_secret": {
+    "text": "اظهر السر"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "text": "تنبيه: سنظهره مرة واحدة فقط"
+  },
+  "web.COMMON.warning": {
+    "text": "تحذير"
+  },
+  "web.COMMON.oops": {
+    "text": "!مهلاً"
+  },
+  "web.COMMON.error": {
+    "text": "خطأ"
+  },
+  "web.COMMON.unexpected_error": {
+    "text": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى."
+  },
+  "web.COMMON.secret_was_truncated": {
+    "text": "تم إقتطاع المحتوى"
+  },
+  "web.COMMON.signup_for_more": {
+    "text": "انشأ حساباً من اجل المزيد"
+  },
+  "web.COMMON.login_to_your_account": {
+    "text": "تسجيل الدخول الى حسابك"
+  },
+  "web.COMMON.sent_to": {
+    "text": " :تم الارسال الى"
+  },
+  "web.COMMON.field_email": {
+    "text": "البريد الالكتروني"
+  },
+  "web.COMMON.field_password": {
+    "text": "كلمة المرور"
+  },
+  "web.COMMON.field_password2": {
+    "text": "قم بتأكيد كلمة المرور"
+  },
+  "web.COMMON.button_create_account": {
+    "text": "انشأ حساباً"
+  },
+  "web.COMMON.share_a_secret": {
+    "text": "شارك سراً"
+  },
+  "web.COMMON.title_home": {
+    "text": "الرئيسية"
+  },
+  "web.COMMON.word_none": {
+    "text": "لا يوجد"
+  },
+  "web.COMMON.word_burned": {
+    "text": "احرق"
+  },
+  "web.COMMON.word_received": {
+    "text": "تم العرض"
+  },
+  "web.COMMON.word_confirm": {
+    "text": "تأكيد"
+  },
+  "web.COMMON.word_cancel": {
+    "text": "الغاء"
+  },
+  "web.COMMON.word_continue": {
+    "text": "متابعة"
+  },
+  "web.COMMON.word_done": {
+    "text": "تم"
+  },
+  "web.COMMON.back": {
+    "text": "رجوع"
+  },
+  "web.COMMON.feedback_text": {
+    "text": "هل لديك استفسار او تعليق؟"
+  },
+  "web.COMMON.button_send_feedback": {
+    "text": "ارسل"
+  },
+  "web.COMMON.verification_sent_to": {
+    "text": "تم ارسال التفعيل الى"
+  },
+  "web.COMMON.autoverified_success": {
+    "text": "تم إنشاء الحساب. يرجى تسجيل الدخول."
+  },
+  "web.COMMON.signup_success_generic": {
+    "text": "إذا كان يوجد حساب بهذا البريد الإلكتروني، ستتلقى بريد التحقق."
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "text": "حذف هذا السر نهائياً"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "text": "يرجى التأكيد"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "text": "هل أنت متأكد من حذف هذا السر نهائياً؟ لا يمكن التراجع عن هذا الإجراء."
+  },
+  "web.COMMON.confirm_burn": {
+    "text": "نعم، احذف هذا السر نهائياً"
+  },
+  "web.COMMON.burn_security_notice": {
+    "text": "حذف السر نهائياً سيحذفه قبل أن يتم عرضه."
+  },
+  "web.COMMON.share_link_securely": {
+    "text": "للحماية، شارك هذا الرابط بشكل منفصل عن التفاصيل الأخرى."
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "text": "تم النسخ إلى الحافظة"
+  },
+  "web.COMMON.button_create_incoming": {
+    "text": "إنشاء وارد"
+  },
+  "web.COMMON.faq_title": {
+    "text": "الأسئلة الشائعة"
+  },
+  "web.COMMON.verification_not_valid": {
+    "text": "التحقق غير صالح"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "text": "لا يمكن التحقق من حساب عندما تكون مسجلاً دخولك بالفعل"
+  },
+  "web.COMMON.show_password": {
+    "text": "إظهار كلمة المرور"
+  },
+  "web.COMMON.hide_password": {
+    "text": "إخفاء كلمة المرور"
+  },
+  "web.COMMON.minimum_8_characters": {
+    "text": "يجب أن تكون كلمة المرور 8 أحرف على الأقل"
+  },
+  "web.COMMON.password_requirements": {
+    "text": "يجب أن تكون كلمة المرور 8 أحرف على الأقل"
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "text": "كلمات المرور غير متطابقة"
+  },
+  "web.COMMON.form_field_required": {
+    "text": "هذا الحقل مطلوب"
+  },
+  "web.COMMON.form_processing": {
+    "text": "جارٍ معالجة طلبك"
+  },
+  "web.COMMON.remember_me_description": {
+    "text": "إبقائي مسجلاً الدخول لمدة 30 يوماً"
+  },
+  "web.COMMON.redirecting": {
+    "text": "جارٍ إعادة التوجيه..."
+  },
+  "web.COMMON.continue": {
+    "text": "متابعة"
+  },
+  "web.COMMON.are_you_sure": {
+    "text": "هل أنت متأكد؟"
+  },
+  "web.COMMON.danger_zone": {
+    "text": "منطقة الخطر"
+  },
+  "web.COMMON.caution_zone": {
+    "text": "منطقة التفكير بعناية"
+  },
+  "web.COMMON.user_menu": {
+    "text": "قائمة المستخدم"
+  },
+  "web.COMMON.security": {
+    "text": "حماية"
+  },
+  "web.COMMON.manage": {
+    "text": "إدارة"
+  },
+  "web.COMMON.loading": {
+    "text": "جارٍ التحميل..."
+  },
+  "web.COMMON.save_changes": {
+    "text": "حفظ التغييرات"
+  },
+  "web.COMMON.saving": {
+    "text": "جارٍ الحفظ..."
+  },
+  "web.COMMON.adding_ellipses": {
+    "text": "جارٍ الإضافة"
+  },
+  "web.COMMON.e_g_example": {
+    "text": "مثال:"
+  },
+  "web.COMMON.example_placeholder": {
+    "text": "مثال: {example}"
+  },
+  "web.COMMON.status": {
+    "text": "الحالة"
+  },
+  "web.COMMON.escape": {
+    "text": "خروج"
+  },
+  "web.COMMON.active": {
+    "text": "نشط"
+  },
+  "web.COMMON.preview": {
+    "text": "معاينة"
+  },
+  "web.COMMON.remove": {
+    "text": "إزالة"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "text": "اضغط ESC للإغلاق"
+  },
+  "web.COMMON.enter": {
+    "text": "إدخال"
+  },
+  "web.COMMON.important": {
+    "text": "مهم"
+  },
+  "web.COMMON.language": {
+    "text": "اللغة"
+  },
+  "web.COMMON.theme": {
+    "text": "المظهر"
+  },
+  "web.COMMON.appearance": {
+    "text": "المظهر"
+  },
+  "web.COMMON.done": {
+    "text": "تم"
+  },
+  "web.COMMON.end": {
+    "text": "النهاية"
+  },
+  "web.COMMON.general": {
+    "text": "عام"
+  },
+  "web.COMMON.note": {
+    "text": "ملاحظة"
+  },
+  "web.COMMON.monthly": {
+    "text": "شهرياً"
+  },
+  "web.COMMON.yearly": {
+    "text": "سنوياً"
+  },
+  "web.COMMON.go_on_then": {
+    "text": "تفضل إذاً."
+  },
+  "web.COMMON.loading_ellipses": {
+    "text": "جارٍ التحميل..."
+  },
+  "web.COMMON.not_received": {
+    "text": "لم يتم الاستلام"
+  },
+  "web.COMMON.confirm_password": {
+    "text": "تأكيد كلمة المرور"
+  },
+  "web.COMMON.new_password": {
+    "text": "كلمة المرور الجديدة"
+  },
+  "web.COMMON.email_address": {
+    "text": "عنوان البريد الإلكتروني"
+  },
+  "web.COMMON.switch": {
+    "text": "تبديل"
+  },
+  "web.COMMON.features": {
+    "text": "الميزات"
+  },
+  "web.COMMON.not_found": {
+    "text": "غير موجود"
+  },
+  "web.COMMON.emoji_x": {
+    "text": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "text": "✅"
+  },
+  "web.COMMON.supported": {
+    "text": "مدعوم"
+  },
+  "web.COMMON.version": {
+    "text": "الإصدار"
+  },
+  "web.COMMON.other": {
+    "text": "أخرى"
+  },
+  "web.COMMON.min_width_1024px": {
+    "text": "(min-width: 1024px)"
+  },
+  "web.COMMON.ctrl_enter": {
+    "text": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "text": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "text": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "text": "تم نسخ عنوان البريد الإلكتروني إلى الحافظة!"
+  },
+  "web.COMMON.value": {
+    "text": "القيمة"
+  },
+  "web.COMMON.host": {
+    "text": "المضيف"
+  },
+  "web.COMMON.type": {
+    "text": "النوع"
+  },
+  "web.COMMON.previous": {
+    "text": "السابق"
+  },
+  "web.COMMON.next": {
+    "text": "التالي"
+  },
+  "web.COMMON.password_strength": {
+    "text": "قوة كلمة المرور:"
+  },
+  "web.COMMON.great": {
+    "text": "ممتاز"
+  },
+  "web.COMMON.pretty_good": {
+    "text": "جيد جداً"
+  },
+  "web.COMMON.fair": {
+    "text": "مقبول"
+  },
+  "web.COMMON.meh": {
+    "text": "ضعيف"
+  },
+  "web.COMMON.not_great": {
+    "text": "ليس جيداً"
+  },
+  "web.COMMON.open_options": {
+    "text": "فتح الخيارات"
+  },
+  "web.COMMON.inactive": {
+    "text": "غير نشط"
+  },
+  "web.COMMON.an_error_occurred": {
+    "text": "حدث خطأ"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "text": "نسخ السر إلى الحافظة"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "text": "تم نسخ السر إلى الحافظة"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "text": "تحقق مرة أخرى من عبارة المرور"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "text": "اضغط على زر النسخ أدناه."
+  },
+  "web.LABELS.view_toggle.show": {
+    "text": "إظهار"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "text": "إخفاء"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "text": "إظهار المزيد"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "text": "إظهار أقل"
+  },
+  "web.LABELS.enable": {
+    "text": "تفعيل"
+  },
+  "web.LABELS.disable": {
+    "text": "تعطيل"
+  },
+  "web.LABELS.stats": {
+    "text": "الإحصائيات"
+  },
+  "web.LABELS.timeline": {
+    "text": "الجدول الزمني"
+  },
+  "web.LABELS.lifespan": {
+    "text": "مدة الصلاحية"
+  },
+  "web.LABELS.expiration_time": {
+    "text": "وقت انتهاء الصلاحية"
+  },
+  "web.LABELS.close": {
+    "text": "إغلاق"
+  },
+  "web.LABELS.loading": {
+    "text": "جارٍ التحميل..."
+  },
+  "web.LABELS.cancel": {
+    "text": "إلغاء"
+  },
+  "web.LABELS.saving": {
+    "text": "جارٍ الحفظ..."
+  },
+  "web.LABELS.saved": {
+    "text": "تم الحفظ"
+  },
+  "web.LABELS.save": {
+    "text": "حفظ"
+  },
+  "web.LABELS.save_all": {
+    "text": "حفظ الكل"
+  },
+  "web.LABELS.details": {
+    "text": "التفاصيل"
+  },
+  "web.LABELS.encrypted": {
+    "text": "مشفر"
+  },
+  "web.LABELS.secret_status": {
+    "text": "حالة السر"
+  },
+  "web.LABELS.need_help": {
+    "text": "هل تحتاج مساعدة؟"
+  },
+  "web.LABELS.create_new_secret": {
+    "text": "إنشاء سر جديد"
+  },
+  "web.LABELS.actions": {
+    "text": "الإجراءات"
+  },
+  "web.LABELS.no_passphrase": {
+    "text": "لا يتطلب عبارة مرور"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "text": "نسخ إلى الحافظة"
+  },
+  "web.LABELS.receipts": {
+    "text": "الإيصالات"
+  },
+  "web.LABELS.share": {
+    "text": "مشاركة"
+  },
+  "web.LABELS.secret_link": {
+    "text": "رابط السر"
+  },
+  "web.LABELS.dismiss": {
+    "text": "إغلاق"
+  },
+  "web.LABELS.security_details": {
+    "text": "تفاصيل الأمان"
+  },
+  "web.LABELS.items_count": {
+    "text": "{count} عنصر"
+  },
+  "web.LABELS.recipients_count": {
+    "text": "{count} مستلم"
+  },
+  "web.LABELS.view": {
+    "text": "عرض"
+  },
+  "web.LABELS.views": {
+    "text": "المشاهدات"
+  },
+  "web.LABELS.times_viewed": {
+    "text": "مرات المشاهدة"
+  },
+  "web.LABELS.view_progress": {
+    "text": "تقدم العرض"
+  },
+  "web.LABELS.help_section": {
+    "text": "قسم المساعدة"
+  },
+  "web.LABELS.passphrase_protected": {
+    "text": "محمي بعبارة مرور"
+  },
+  "web.LABELS.feedback_received": {
+    "text": "تم استلام الملاحظات."
+  },
+  "web.LABELS.sending_ellipses": {
+    "text": "جارٍ الإرسال..."
+  },
+  "web.LABELS.title_recent_secrets": {
+    "text": "الأسرار الحديثة"
+  },
+  "web.LABELS.pricing": {
+    "text": "الأسعار"
+  },
+  "web.LABELS.refresh": {
+    "text": "تحديث"
+  },
+  "web.LABELS.reload": {
+    "text": "إعادة تحميل"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "text": "روابط الأسرار المنشأة في هذه الجلسة"
+  },
+  "web.LABELS.create_link_short": {
+    "text": "إنشاء رابط"
+  },
+  "web.LABELS.create_link": {
+    "text": "إنشاء رابط سر"
+  },
+  "web.LABELS.create_request_short": {
+    "text": "إنشاء طلب"
+  },
+  "web.LABELS.create_request": {
+    "text": "إنشاء رابط طلب"
+  },
+  "web.LABELS.related_settings": {
+    "text": "الإعدادات ذات الصلة"
+  },
+  "web.LABELS.creating_links_for": {
+    "text": "إنشاء روابط لـ"
+  },
+  "web.LABELS.scope_indicator": {
+    "text": "إنشاء أسرار في {domain}"
+  },
+  "web.STATUS.new": {
+    "text": "جديد"
+  },
+  "web.STATUS.unread": {
+    "text": "غير مقروء"
+  },
+  "web.STATUS.viewed": {
+    "text": "تم فتح الرابط"
+  },
+  "web.STATUS.received": {
+    "text": "تم العرض"
+  },
+  "web.STATUS.burned": {
+    "text": "احرق"
+  },
+  "web.STATUS.destroyed": {
+    "text": "تم الإتلاف"
+  },
+  "web.STATUS.expiring_soon": {
+    "text": "ينتهي قريباً"
+  },
+  "web.STATUS.created": {
+    "text": "تم الإنشاء"
+  },
+  "web.STATUS.expires": {
+    "text": "ينتهي"
+  },
+  "web.STATUS.expired": {
+    "text": "منتهي الصلاحية"
+  },
+  "web.STATUS.orphaned": {
+    "text": "مهجور"
+  },
+  "web.STATUS.secured": {
+    "text": "آمن"
+  },
+  "web.STATUS.securing": {
+    "text": "جارٍ التأمين"
+  },
+  "web.STATUS.copied": {
+    "text": "تم النسخ"
+  },
+  "web.STATUS.time_remaining": {
+    "text": "الوقت المتبقي"
+  },
+  "web.STATUS.new_description": {
+    "text": "تم إنشاء رابط السر ولم يتم عرضه بعد"
+  },
+  "web.STATUS.unread_description": {
+    "text": "تم إنشاء رابط السر ولم يتم عرضه"
+  },
+  "web.STATUS.viewed_description": {
+    "text": "تم فتح رابط السر وهو جاهز للعرض"
+  },
+  "web.STATUS.received_description": {
+    "text": "تم الكشف عن السر للمستلم"
+  },
+  "web.STATUS.burned_description": {
+    "text": "تم حذف السر نهائياً يدوياً قبل عرضه"
+  },
+  "web.STATUS.destroyed_description": {
+    "text": "تم إتلاف السر نهائياً"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "text": "سينتهي السر قريباً"
+  },
+  "web.STATUS.orphaned_description": {
+    "text": "تم هجر السر وسيتم إتلافه قريباً"
+  },
+  "web.STATUS.expired_description": {
+    "text": "انتهت صلاحية السر قبل عرضه"
+  },
+  "web.STATUS.success": {
+    "text": "نجح"
+  },
+  "web.STATUS.delivered": {
+    "text": "تم التسليم"
+  },
+  "web.STATUS.dns_incorrect": {
+    "text": "DNS غير صحيح"
+  },
+  "web.STATUS.active": {
+    "text": "نشط"
+  },
+  "web.STATUS.inactive": {
+    "text": "غير نشط"
+  },
+  "web.FEATURES.unlimited_views": {
+    "text": "مشاهدات غير محدودة"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "text": "علامة تجارية موثوقة للنطاق"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "text": "مشفر أثناء النقل والتخزين"
+  },
+  "web.UNITS.ttl.duration": {
+    "text": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "text": "يوم | أيام"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "text": "ساعة | ساعات"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "text": "دقيقة | دقائق"
+  },
+  "web.UNITS.ttl.time.second": {
+    "text": "ثانية | ثوانٍ"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "text": "{count} {unit} متبقية"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "text": "يوم متبقي | أيام متبقية"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "text": "ساعة متبقية | ساعات متبقية"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "text": "دقيقة متبقية | دقائق متبقية"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "text": "ثانية متبقية | ثوانٍ متبقية"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.limited_views": {
+    "text": "حد {count} مشاهدة"
+  },
+  "web.UNITS.days_remaining": {
+    "text": "{count} أيام متبقية"
+  },
+  "web.UNITS.hours_remaining": {
+    "text": "{count} ساعات متبقية"
+  },
+  "web.UNITS.minutes_remaining": {
+    "text": "{count} دقائق متبقية"
+  },
+  "web.TITLES.incoming": {
+    "text": "الأسرار الواردة"
+  },
+  "web.TITLES.feedback": {
+    "text": "الملاحظات"
+  },
+  "web.TITLES.signin": {
+    "text": "تسجيل الدخول"
+  },
+  "web.TITLES.signup": {
+    "text": "إنشاء حساب"
+  },
+  "web.TITLES.forgot_password": {
+    "text": "نسيت كلمة المرور"
+  },
+  "web.TITLES.reset_password": {
+    "text": "إعادة تعيين كلمة المرور"
+  },
+  "web.TITLES.logout": {
+    "text": "جارٍ تسجيل الخروج"
+  },
+  "web.TITLES.verify_account": {
+    "text": "التحقق من الحساب"
+  },
+  "web.TITLES.mfa_verify": {
+    "text": "المصادقة الثنائية"
+  },
+  "web.TITLES.email_login": {
+    "text": "تسجيل الدخول بالبريد الإلكتروني"
+  },
+  "web.TITLES.accept_invitation": {
+    "text": "قبول الدعوة"
+  },
+  "web.TITLES.secret": {
+    "text": "السر"
+  },
+  "web.TITLES.metadata": {
+    "text": "تفاصيل السر"
+  },
+  "web.TITLES.receipt": {
+    "text": "إيصال السر"
+  },
+  "web.TITLES.burn_secret": {
+    "text": "حذف السر نهائياً"
+  },
+  "web.TITLES.dashboard": {
+    "text": "لوحة التحكم"
+  },
+  "web.TITLES.recent": {
+    "text": "الأسرار الحديثة"
+  },
+  "web.TITLES.domains": {
+    "text": "النطاقات المخصصة"
+  },
+  "web.TITLES.domain_add": {
+    "text": "إضافة نطاق"
+  },
+  "web.TITLES.domain_verify": {
+    "text": "التحقق من النطاق"
+  },
+  "web.TITLES.domain_brand": {
+    "text": "علامة النطاق التجارية"
+  },
+  "web.TITLES.account": {
+    "text": "إعدادات الحساب"
+  },
+  "web.TITLES.data_region": {
+    "text": "منطقة البيانات"
+  },
+  "web.TITLES.current_region": {
+    "text": "المنطقة الحالية"
+  },
+  "web.TITLES.available_regions": {
+    "text": "المناطق المتاحة"
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "text": "لماذا تهم السيادة على البيانات"
+  },
+  "web.TITLES.profile_settings": {
+    "text": "إعدادات الملف الشخصي"
+  },
+  "web.TITLES.preferences_settings": {
+    "text": "التفضيلات"
+  },
+  "web.TITLES.privacy_settings": {
+    "text": "الخصوصية"
+  },
+  "web.TITLES.notification_settings": {
+    "text": "الإشعارات"
+  },
+  "web.TITLES.change_email": {
+    "text": "تغيير البريد الإلكتروني"
+  },
+  "web.TITLES.security_overview": {
+    "text": "الأمان"
+  },
+  "web.TITLES.change_password": {
+    "text": "تغيير كلمة المرور"
+  },
+  "web.TITLES.mfa_settings": {
+    "text": "المصادقة الثنائية"
+  },
+  "web.TITLES.active_sessions": {
+    "text": "الجلسات النشطة"
+  },
+  "web.TITLES.recovery_codes": {
+    "text": "رموز الاسترداد"
+  },
+  "web.TITLES.api_settings": {
+    "text": "إعدادات API"
+  },
+  "web.TITLES.advanced_settings": {
+    "text": "الإعدادات المتقدمة"
+  },
+  "web.TITLES.system_settings": {
+    "text": "إعدادات النظام"
+  },
+  "web.TITLES.not_found": {
+    "text": "الصفحة غير موجودة"
+  },
+  "web.TITLES.organizations_settings": {
+    "text": "المنظمات"
+  },
+  "web.TITLES.organization_settings": {
+    "text": "إعدادات المنظمة"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "text": "التركيز الآن في منطقة النص الرئيسية"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "text": "تعليمات المشاركة"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "text": "شارك الرابط مع المستلم المقصود"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "text": "شارك عبارة المرور بشكل منفصل عبر قناة آمنة"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "text": "استخدم قناة آمنة مختلفة لمشاركة المعلومات الحساسة"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "text": "تحقق دائماً من أنك على موقع Onetime Secret الرسمي. يقوم المحتالون أحياناً بإنشاء مواقع مزيفة تبدو تماماً مثل Onetime Secret لسرقة أسرارك. لتجنب هجمات التصيد الاحتيالي، تحقق من نطاق المنطقة قبل إنشاء روابط جديدة."
+  }
+}

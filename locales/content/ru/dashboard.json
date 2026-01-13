@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Получено"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Не получено"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Нет недавних тайн"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Начните с создания вашего первого секрета."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Не удалось загрузить команды"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Произошла ошибка при загрузке ваших команд. Попробуйте ещё раз."
+  }
+}

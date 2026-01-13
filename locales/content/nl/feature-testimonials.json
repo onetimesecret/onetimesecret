@@ -1,0 +1,38 @@
+{
+  "web.testimonials.ai_generated_testimonial": {
+    "text": "AI-gegenereerde testimonial"
+  },
+  "web.testimonials.ai_generated_content_disclaimer": {
+    "text": "AI-gegenereerde inhoud voor demonstratie. \nNiet van een echte persoon of bedrijf."
+  },
+  "web.testimonials.randomtestimonial_stars_5": {
+    "text": "{0}/5"
+  },
+  "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
+    "text": "- {0}, {1}"
+  },
+  "web.testimonials.randomtestimonial_quote": {
+    "text": "\"{0}\""
+  },
+  "web.testimonials.t_ai_generated_testimonial": {
+    "text": "{0}:"
+  },
+  "web.testimonials.what_leading_ai_says_about_us": {
+    "text": "Wat toonaangevende AI over ons zegt"
+  },
+  "web.testimonials.ai_generated_testimonials": {
+    "text": "AI-gegenereerde testimonials"
+  },
+  "web.testimonials.this_quote_was_generated_by": {
+    "text": "Dit citaat is gegenereerd door"
+  },
+  "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
+    "text": "Het was gebaseerd op de inhoud van de pagina en vertegenwoordigt geen echte persoon of bedrijf."
+  },
+  "web.testimonials.artificial_feedback": {
+    "text": "Kunstmatige feedback"
+  },
+  "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
+    "text": "Deze inhoud is door AI gegenereerd op basis van de inhoud van deze pagina en vertegenwoordigt geen echte persoon of bedrijf."
+  }
+}

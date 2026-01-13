@@ -1,0 +1,47 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "Ваш відгук"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "Будь-який відгук вітається!"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "Допоможіть нам стати кращими"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "Закрити модальне вікно відгуку"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "Поділіться своїм відгуком"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Делано Мандельбаум"
+  },
+  "web.feedback.delano": {
+    "text": "Делано"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "Тут буде довідковий контент."
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "Дякуємо за допомогу у вдосконаленні Onetime Secret. Це багато значить."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "Ми створили цей інструмент, щоб допомогти вам безпечно ділитися конфіденційною інформацією, і ваш реальний досвід є вирішальним для зосередження наших зусиль. Це допомагає нам зрозуміти, над чим працювати далі та як зробити сервіс кращим для всіх."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "Привіт, дякуємо, що завітали на нашу сторінку відгуків. Ваш внесок не просто вітається - він надзвичайно важливий."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "Записка від Делано, засновника Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "Відкрити форму відгуку"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "Введіть ваш відгук"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Надіслати відгук"
+  }
+}

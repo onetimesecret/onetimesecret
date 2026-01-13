@@ -1,0 +1,47 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "Tvá zpětná vazba"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "Veškerá zpětná vazba je vítána!"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "Pomoz nám zlepšit se"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "Zavřít okno zpětné vazby"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "Sdílej svou zpětnou vazbu"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum"
+  },
+  "web.feedback.delano": {
+    "text": "Delano"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "Obsah nápovědy se zobrazí zde."
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "Díky za pomoc se zlepšováním Onetime Secret. Znamená to hodně."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "Vytvořili jsme tento nástroj, abychom ti pomohli bezpečně sdílet citlivé informace, a tvé zkušenosti z reálného světa jsou zásadní pro zaměření našeho úsilí. Pomáhá nám to zjistit, na čem pracovat dál a jak vylepšit službu pro všechny."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "Ahoj, díky, že jsi navštívil naši stránku zpětné vazby. Tvůj názor není jen vítán - je zásadní."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "Poznámka od Delano, zakladatele Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "Otevřít formulář zpětné vazby"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "Zadej svou zpětnou vazbu"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Odeslat zpětnou vazbu"
+  }
+}

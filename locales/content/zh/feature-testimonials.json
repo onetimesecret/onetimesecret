@@ -1,0 +1,38 @@
+{
+  "web.testimonials.ai_generated_testimonial": {
+    "text": "AI 生成的推荐"
+  },
+  "web.testimonials.ai_generated_content_disclaimer": {
+    "text": "AI 生成的内容用于演示。不是来自实际的人或公司。"
+  },
+  "web.testimonials.randomtestimonial_stars_5": {
+    "text": "{0}/5"
+  },
+  "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
+    "text": "- {0}，{1}"
+  },
+  "web.testimonials.randomtestimonial_quote": {
+    "text": "「{0}」"
+  },
+  "web.testimonials.t_ai_generated_testimonial": {
+    "text": "{0}："
+  },
+  "web.testimonials.what_leading_ai_says_about_us": {
+    "text": "领先的 AI 如何评价我们"
+  },
+  "web.testimonials.ai_generated_testimonials": {
+    "text": "AI 生成的推荐"
+  },
+  "web.testimonials.this_quote_was_generated_by": {
+    "text": "此引用由以下生成"
+  },
+  "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
+    "text": "它基于页面内容，不代表实际的人或公司。"
+  },
+  "web.testimonials.artificial_feedback": {
+    "text": "人工反馈"
+  },
+  "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
+    "text": "此内容是基于此页面内容的 AI 生成内容，不代表实际的人或公司。"
+  }
+}

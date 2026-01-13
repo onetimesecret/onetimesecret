@@ -1,0 +1,128 @@
+{
+  "web.branding.color_picker": {
+    "text": "カラーピッカー"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "現在の{0}: {1}。クリックしてオプションを切り替えます。"
+  },
+  "web.branding.use_setting": {
+    "text": "設定を使用"
+  },
+  "web.branding.font_family": {
+    "text": "フォント ファミリー"
+  },
+  "web.branding.corner_style": {
+    "text": "コーナースタイル"
+  },
+  "web.branding.brand_color": {
+    "text": "ブランドカラー"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "セキュアリンクにアクセスする受信者の表示のプレビュー"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "プレビューとカスタマイズ"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "Safari ブラウザビューに切り替え"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "text": "ウィンドウを最大化"
+  },
+  "web.branding.minimize_window": {
+    "text": "ウィンドウを最小化"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "Edge ブラウザビューに切り替え"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500文字"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "QRコードをスキャンするには、スマートフォンを使用してください"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "質問がある場合は、onboarding{'@'}example.comにお問い合わせください"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "これらの指示は、受信者がシークレットの内容を表示する前に表示されます"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "これらの指示は、受信者がシークレットを表示した後に表示されます"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "表示前の指示"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "表示後の指示"
+  },
+  "web.branding.instructions": {
+    "text": "手順"
+  },
+  "web.branding.logo_controls": {
+    "text": "ロゴコントロール"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "クリックしてロゴをアップロードします。推奨サイズ：128x128ピクセル。最大ファイルサイズ：1MB。サポートされている形式：PNG、JPG、SVG"
+  },
+  "web.branding.upload_logo": {
+    "text": "ロゴをアップロード"
+  },
+  "web.branding.loading_preview": {
+    "text": "プレビューを読み込み中..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "「シークレットを表示」ボタンをテストして、受信者がどのようにあなたのシークレットを見るかをプレビューします"
+  },
+  "web.branding.eye_icon": {
+    "text": "目のアイコン"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "以下のプレビュー画像をクリックして、ロゴを更新します（最小128x128ピクセル推奨、最大1MB）"
+  },
+  "web.branding.image_icon": {
+    "text": "画像アイコン"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "上のコントロールを使用して、ブランドの色、スタイル、受信者への指示をカスタマイズします"
+  },
+  "web.branding.customization_icon": {
+    "text": "カスタマイズアイコン"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "保存されていない変更があります。よろしいですか？"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "ブランド設定の読み込みに失敗しました"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "これは、受信者があなたの安全なメッセージをどのように見るかのインタラクティブなプレビューです。次のことができます： - 上部のコントロールを使用して色とフォントをカスタマイズ - ロゴをアップロード（最小128x128ピクセル推奨、最大1MB） - 「秘密を表示」ボタンを使用してプレビューをテスト"
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "これは、受信者があなたの安全なメッセージをどのように見るかのインタラクティブなプレビューです。次のことができます： - 上部のコントロールを使用して色とフォントをカスタマイズ - ロゴをアップロード（最小128x128ピクセル推奨、最大1MB） - 「秘密を表示」ボタンを使用してプレビューをテスト"
+  },
+  "web.branding.default_logo_icon": {
+    "text": "デフォルトのロゴアイコン"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "Onetime Secretによる提供"
+  },
+  "web.branding.heading_logo": {
+    "text": "{0}ロゴ"
+  },
+  "web.branding.edge": {
+    "text": "エッジ"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "Edgeプレビューに切り替える"
+  },
+  "web.branding.safari": {
+    "text": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "Safariプレビューに切り替える"
+  }
+}

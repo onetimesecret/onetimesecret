@@ -1,0 +1,47 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "Geri bildiriminiz"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "Tüm geri bildirimlere açığız!"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "Geliştirmemize yardımcı olun"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "Geri bildirim penceresini kapat"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "Geri bildiriminizi paylaşın"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum"
+  },
+  "web.feedback.delano": {
+    "text": "Delano"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "Yardım içeriği buraya gelir."
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "Onetime Secret'ı geliştirmeye yardımcı olduğunuz için teşekkürler. Bu çok şey ifade ediyor."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "Hassas bilgileri güvenli bir şekilde paylaşmanıza yardımcı olmak için bu aracı oluşturduk ve gerçek dünya deneyimleriniz çabalarımızı odaklamak için çok önemlidir. Sırada ne üzerinde çalışacağımızı ve hizmeti herkes için nasıl daha iyi hale getireceğimizi anlamamıza yardımcı olur."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "Merhaba, geri bildirim sayfamıza uğradığınız için teşekkürler. Girdileriniz sadece hoş karşılanmakla kalmaz, aynı zamanda çok önemlidir."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "Onetime Secret'ın kurucusu Delano'dan bir not"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "Geri bildirim formunu aç"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "Geri bildiriminizi girin"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Geribildirim gönder"
+  }
+}

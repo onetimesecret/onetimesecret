@@ -1,0 +1,140 @@
+{
+  "web.homepage.tagline1": {
+    "text": ".ضع كلمة مرور، رسالة سرية او رابطاً خاصاً أدناه"
+  },
+  "web.homepage.tagline2": {
+    "text": "لا تستخدم معلوماتك الحساسة في محادثاتك او رسائل البريد"
+  },
+  "web.homepage.secret_hint": {
+    "text": ".الرابط السري سيعمل لمرة واحدة فقط ومن ثم يختفي للأبد *"
+  },
+  "web.homepage.secret_form_more_text1": {
+    "text": "قم بأنشاء "
+  },
+  "web.homepage.secret_form_more_text2": {
+    "text": "حساب مجاني"
+  },
+  "web.homepage.secret_form_more_text3": {
+    "text": ".وتمكن من ارسال السر عبر البريد الالكتروني"
+  },
+  "web.homepage.cta_title": {
+    "text": "استخدم نطاقًا مخصصًا"
+  },
+  "web.homepage.cta_subtitle": {
+    "text": "ارفع مستوى علامتك التجارية وشارك بثقة"
+  },
+  "web.homepage.cta_feature1": {
+    "text": "نطاقك المخصص الخاص"
+  },
+  "web.homepage.cta_feature2": {
+    "text": "مشاركة أسرار غير محدودة"
+  },
+  "web.homepage.cta_feature3": {
+    "text": "ضوابط خصوصية متقدمة"
+  },
+  "web.homepage.explore_premium_plans": {
+    "text": "استكشف الخطط المميزة"
+  },
+  "web.homepage.need_free_account": {
+    "text": "هل تبدأ للتو؟"
+  },
+  "web.homepage.sign_up_free": {
+    "text": "أنشئ حسابًا مجانيًا"
+  },
+  "web.homepage.visit_onetime_secret_home": {
+    "text": "زيارة الصفحة الرئيسية لـ Onetime Secret"
+  },
+  "web.homepage.password_generation_title": {
+    "text": "مولد كلمات المرور"
+  },
+  "web.homepage.password_generation_description": {
+    "text": " انقر على \"توليد كلمة المرور\" لإنشاء كلمة مرور عشوائية آمنة يمكنك مشاركتها."
+  },
+  "web.homepage.protip1": {
+    "text": "رسالتك ستدمر نفسها تلقائياً بعد عرضها. لا يمكن الوصول إلى الرابط إلا مرة واحدة."
+  },
+  "web.homepage.authonly.tagline2": {
+    "text": "لا تستخدم معلوماتك الحساسة في محادثاتك او رسائل البريد"
+  },
+  "web.homepage.authonly.tagline1": {
+    "text": ".ضع كلمة مرور، رسالة سرية او رابطاً خاصاً أدناه"
+  },
+  "web.homepage.disabled.tagline2": {
+    "text": "لا تستخدم معلوماتك الحساسة في محادثاتك او رسائل البريد"
+  },
+  "web.homepage.disabled.tagline1": {
+    "text": ".ضع كلمة مرور، رسالة سرية او رابطاً خاصاً أدناه"
+  },
+  "web.homepage.link_preview": {
+    "text": "معاينة الرابط"
+  },
+  "web.homepage.meets_and_exceeds_compliance_standards": {
+    "text": "يلبي ويتجاوز معايير الامتثال"
+  },
+  "web.homepage.secure_your_brand_build_customer_trust_etc": {
+    "text": "أمّن علامتك التجارية، وابنِ ثقة العملاء بروابط من نطاقك."
+  },
+  "web.homepage.a_trusted_way_to_share_sensitive_information_etc": {
+    "text": "طريقة موثوقة لمشاركة المعلومات الحساسة التي تدمر نفسها تلقائياً بعد عرضها."
+  },
+  "web.homepage.secure_links": {
+    "text": "روابط آمنة"
+  },
+  "web.homepage.about_onetime_secret_0": {
+    "text": "عن Onetime Secret"
+  },
+  "web.homepage.log_in_to_onetime_secret": {
+    "text": "تسجيل الدخول إلى Onetime Secret"
+  },
+  "web.homepage.about_onetime_secret": {
+    "text": "عن Onetime Secret"
+  },
+  "web.homepage.signup_individual_and_business_plans": {
+    "text": "التسجيل - خطط فردية وتجارية"
+  },
+  "web.homepage.tagline_signed": {
+    "text": "موقّع"
+  },
+  "web.homepage.tagline_sealed": {
+    "text": "مختوم"
+  },
+  "web.homepage.tagline_delivered": {
+    "text": "تم التسليم"
+  },
+  "web.homepage.onetime_secret": {
+    "text": "Onetime Secret"
+  },
+  "web.homepage.onetime_secret_literal": {
+    "text": "Onetime Secret"
+  },
+  "web.homepage.one_time_secret_literal": {
+    "text": "One-Time Secret"
+  },
+  "web.homepage.onetime_secret_homepage": {
+    "text": "الصفحة الرئيسية لـ Onetime Secret"
+  },
+  "web.homepage.send_sensitive_information_that_can_only_be_viewed_once": {
+    "text": "أرسل معلومات حساسة يمكن عرضها مرة واحدة فقط"
+  },
+  "web.homepage.create_a_secure_link": {
+    "text": "أنشئ رابطاً آمناً"
+  },
+  "web.homepage.now_with_custom_domains": {
+    "text": "الآن مع نطاقات مخصصة"
+  },
+  "web.homepage.this_is_a_private_instance_only_authorized_team_": {
+    "text": "هذه نسخة خاصة. يمكن فقط لأعضاء الفريق المصرح لهم إنشاء روابط آمنة جديدة."
+  },
+  "web.homepage.welcome_to_onetime_secret": {
+    "text": "مرحباً بك في Onetime Secret."
+  },
+  "web.homepage.onetime_secret_helps_us_share_sensitive_informat": {
+    "text": "يساعدنا Onetime Secret في مشاركة المعلومات الحساسة بشكل آمن مع الحفاظ على واجهتنا المهنية."
+  },
+  "web.homepage.information_shared_through_this_service_can_only": {
+    "text": "يمكن الوصول إلى المعلومات المشتركة من خلال هذه الخدمة مرة واحدة فقط. بمجرد العرض، يتم حذف المحتوى نهائياً لضمان السرية."
+  },
+  "web.homepage.welcome_to_the_global_broadcast": {
+    "text": "مرحباً بك في البث العالمي!"
+  }
+}

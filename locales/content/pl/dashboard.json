@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Odebrane"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Nieodebrane"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Brak ostatnich wiadomości"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Zacznij od utworzenia swojej pierwszej wiadomości."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Nie można załadować zespołów"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Wystąpił problem podczas ładowania Twoich zespołów. Spróbuj ponownie."
+  }
+}

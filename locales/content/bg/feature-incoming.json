@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Изпращане на тайна"
+  },
+  "incoming.page_description": {
+    "text": "Споделете поверителна информация сигурно с нашия екип за поддръжка"
+  },
+  "incoming.loading_config": {
+    "text": "Зареждане..."
+  },
+  "incoming.config_error_title": {
+    "text": "Неуспешно зареждане на конфигурацията"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Функцията не е налична"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Тази функция в момента е деактивирана. Моля, свържете се с поддръжката за помощ."
+  },
+  "incoming.memo_label": {
+    "text": "Бележка"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Кратко описание (напр. Заявка за нулиране на парола)"
+  },
+  "incoming.memo_hint": {
+    "text": "Помогнете ни да насочим вашето съобщение към правилния човек"
+  },
+  "incoming.recipient_label": {
+    "text": "Изпрати до"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Изберете получател"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Изберете получател за тази тайна"
+  },
+  "incoming.recipient_hint": {
+    "text": "Изберете кой ще получи това защитено съобщение"
+  },
+  "incoming.no_recipients_available": {
+    "text": "Няма налични получатели"
+  },
+  "incoming.secret_content_label": {
+    "text": "Поверителна информация"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Поставете тук чувствителна информация (пароли, ключове и др.)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Тази информация ще бъде криптирана и ще може да се види само веднъж"
+  },
+  "incoming.submit_button": {
+    "text": "Изпрати тайна"
+  },
+  "incoming.submit_secret": {
+    "text": "Изпрати тайна"
+  },
+  "incoming.submitting_button": {
+    "text": "Изпраща се..."
+  },
+  "incoming.submitting": {
+    "text": "Изпраща се..."
+  },
+  "incoming.reset_button": {
+    "text": "Изчисти формуляр"
+  },
+  "incoming.reset_form": {
+    "text": "Изчисти формуляр"
+  },
+  "incoming.success_title": {
+    "text": "Успешно изпратено"
+  },
+  "incoming.success_description": {
+    "text": "Вашето защитено съобщение беше доставено."
+  },
+  "incoming.reference_id": {
+    "text": "Референтен номер"
+  },
+  "incoming.success_info_title": {
+    "text": "Какво се случва след това?"
+  },
+  "incoming.success_info_description": {
+    "text": "Получателят ще може да види тази тайна само веднъж. След преглед тайната ще бъде изтрита завинаги."
+  },
+  "incoming.create_another": {
+    "text": "Изпрати друга тайна"
+  },
+  "incoming.tagline1": {
+    "text": "Споделяйте поверителна информация сигурно"
+  },
+  "incoming.tagline2": {
+    "text": "Пазете паролите и личните данни далеч от имейли и чат логове"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Запазете вашата <a href='{receiptUrl}'>разписка</a> за вашите записи."
+  },
+  "incoming.receipt_link_text": {
+    "text": "разписка"
+  }
+}

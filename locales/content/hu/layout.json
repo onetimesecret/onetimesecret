@@ -1,0 +1,245 @@
+{
+  "web.footer.api_docs": {
+    "text": "API dokumentáció"
+  },
+  "web.footer.branding_guide": {
+    "text": "Márkajelzési útmutató"
+  },
+  "web.footer.customize": {
+    "text": "Testreszabás"
+  },
+  "web.footer.plans": {
+    "text": "Csomagok"
+  },
+  "web.footer.security": {
+    "text": "Biztonság"
+  },
+  "web.footer.learn_about_our_security_measures": {
+    "text": "Ismerje meg biztonsági intézkedéseinket"
+  },
+  "web.footer.view_our_terms_and_conditions": {
+    "text": "Tekintse meg Feltételeinket"
+  },
+  "web.footer.terms": {
+    "text": "Feltételek"
+  },
+  "web.footer.privacy": {
+    "text": "Adatvédelem"
+  },
+  "web.footer.contact": {
+    "text": "Kapcsolat"
+  },
+  "web.footer.support": {
+    "text": "Támogatás"
+  },
+  "web.footer.legals": {
+    "text": "Jogi információk"
+  },
+  "web.footer.read_our_privacy_policy": {
+    "text": "Olvassa el Adatvédelmi irányelveinket"
+  },
+  "web.footer.check_our_service_status": {
+    "text": "Ellenőrizze szolgáltatásunk állapotát"
+  },
+  "web.footer.explore_our_api_documentation": {
+    "text": "Fedezze fel API dokumentációnkat"
+  },
+  "web.footer.docs": {
+    "text": "Dokumentáció"
+  },
+  "web.footer.access_our_documentation": {
+    "text": "Hozzáférés dokumentációnkhoz"
+  },
+  "web.footer.view_our_source_code_on_github": {
+    "text": "Tekintse meg forráskódunkat a GitHub-on"
+  },
+  "web.footer.resources": {
+    "text": "Források"
+  },
+  "web.footer.blog": {
+    "text": "Blog"
+  },
+  "web.footer.read_our_latest_blog_posts": {
+    "text": "Olvassa el legfrissebb blogbejegyzéseinket"
+  },
+  "web.footer.view_our_subscription_pricing": {
+    "text": "Tekintse meg előfizetési árazásunkat"
+  },
+  "web.footer.learn_about_our_company": {
+    "text": "Ismerje meg cégünket"
+  },
+  "web.footer.company": {
+    "text": "Cég"
+  },
+  "web.navigation.billing": {
+    "text": "Számlázás"
+  },
+  "web.navigation.billingOverview": {
+    "text": "Áttekintés"
+  },
+  "web.navigation.organizations": {
+    "text": "Szervezetek"
+  },
+  "web.site.website_version": {
+    "text": "Weboldal verzió"
+  },
+  "web.meta.were_making_onetime_secret_available_in_multiple": {
+    "text": "Az {onetime-secret}-et több nyelven is elérhetővé tesszük. Mivel ez egy új funkció, fordítási hibákba vagy furcsa megfogalmazásokba ütközhet. Visszajelzése segít fejlődnünk - ha bármilyen problémát észlel, kérjük, {send-feedback}"
+  },
+  "web.meta.translations_are_new_spotted_an_error": {
+    "text": "A fordítások újak. Hibát észlelt? {send-feedback}"
+  },
+  "web.meta.we_recently_added_translations": {
+    "text": "Nemrég adtunk hozzá fordításokat. Hibát észlelt? {send-feedback}"
+  },
+  "web.meta.privacy_and_security_should_be_accessible": {
+    "text": "Az adatvédelemnek és biztonságnak mindenkisz számára elérhetőnek kell lennie, nyelvtől függetlenül. Fordításokat adunk hozzá, hogy segítsük felhasználóinkat és üzeneteik címzettjeit jobban megérteni, hogyan használják biztonságosan az üzeneteket és hivatkozásokat. Mivel ez egy új funkció, néhány fordítási hibába vagy nem egyértelmű utasításba ütközhet. Hogy segítsen nekünk javítani fordításaink egyértelműségét és pontosságát, különösen a kritikus biztonsági tartalmak esetében, kérjük, {send-feedback}, ha bármilyen problémát észlel"
+  },
+  "web.help.learn_more": {
+    "text": "További információ"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.title": {
+    "text": "Mit látok?"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.description": {
+    "text": "Egy biztonságos üzenetet tekint meg, amelyet az Onetime Secret-en keresztül osztottak meg önnel. Ez a tartalom csak egyszer jelenik meg, majd véglegesen törlődik szervereinkről."
+  },
+  "web.help.secret_view_faq.can_i_view_again.title": {
+    "text": "Később újra megtekinthetем ezt a titkot?"
+  },
+  "web.help.secret_view_faq.can_i_view_again.description": {
+    "text": "Nem. Biztonsági okokból ez a titok csak egyszer tekinthető meg. Az oldal bezárása után a tartalom véglegesen törlődik, és senki nem tudja visszaállítani, beleértve minket is."
+  },
+  "web.help.secret_view_faq.how_to_copy.title": {
+    "text": "Hogyan menthetem el ezt az információt?"
+  },
+  "web.help.secret_view_faq.how_to_copy.description": {
+    "text": "Használja a 'Másolás vágólapra' gombot a teljes titok másolásához. Hosszabb titkok esetén győződjön meg róla, hogy az oldal elhagyása előtt átmásolta a teljes tartalmat."
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.title": {
+    "text": "Követik a titok megtekintését?"
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.description": {
+    "text": "A feladó értesítést kap arról, hogy titkát megtekintették, de nem követjük, hogy ki vagy honnan tekintette meg. Adatvédelme védett."
+  },
+  "web.help.secret_view_faq.one_time_warning": {
+    "text": "Miután elhagyja vagy frissíti ezt az oldalt, ez a titok véglegesen törlődik, és senki nem tudja visszaállítani."
+  },
+  "web.layout.go_back_to_previous_page": {
+    "text": "Vissza az előző oldalra"
+  },
+  "web.layout.site_footer": {
+    "text": "Oldal lábléc"
+  },
+  "web.layout.toggle_dark_mode": {
+    "text": "Sötét mód váltása"
+  },
+  "web.layout.provide_feedback": {
+    "text": "Visszajelzés küldése"
+  },
+  "web.layout.company_logo": {
+    "text": "Céges logó"
+  },
+  "web.layout.brand_logo": {
+    "text": "Márka logó"
+  },
+  "web.layout.dashboard_navigation": {
+    "text": "Vezérlőpult navigáció"
+  },
+  "web.layout.mobile_navigation": {
+    "text": "Mobil navigáció"
+  },
+  "web.layout.main_navigation": {
+    "text": "Fő navigáció"
+  },
+  "web.layout.mobile_nav_item_count": {
+    "text": "{count} elem"
+  },
+  "web.layout.release_notes": {
+    "text": "Kiadási megjegyzések"
+  },
+  "web.layout.loading_settings_content": {
+    "text": "Beállítások tartalmának betöltése..."
+  },
+  "web.layout.settings_sections_0": {
+    "text": "Beállítások szakaszok"
+  },
+  "web.layout.close_settings": {
+    "text": "Beállítások bezárása"
+  },
+  "web.layout.settings_sections": {
+    "text": "Beállítások szakaszok"
+  },
+  "web.layout.customize_your_app_preferences_and_settings": {
+    "text": "Alkalmazás preferenciák és beállítások testreszabása"
+  },
+  "web.layout.return_home": {
+    "text": "Vissza a kezdőlapra"
+  },
+  "web.layout.return_to_home_page": {
+    "text": "Vissza a kezdőlapra"
+  },
+  "web.layout.return_to_home": {
+    "text": "Vissza a kezdőlapra"
+  },
+  "web.layout.view_privacy_policy": {
+    "text": "Adatvédelmi irányelvek megtekintése"
+  },
+  "web.layout.view_terms_of_service": {
+    "text": "Felhasználási feltételek megtekintése"
+  },
+  "web.layout.visit_onetime_secret_homepage": {
+    "text": "Onetime Secret kezdőlap meglátogatása"
+  },
+  "web.layout.footer_navigation": {
+    "text": "Lábléc navigáció"
+  },
+  "web.layout.terms_of_service": {
+    "text": "Felhasználási feltételek"
+  },
+  "web.layout.privacy_policy": {
+    "text": "Adatvédelmi irányelvek"
+  },
+  "web.layout.icon_library": {
+    "text": "Ikon könyvtár"
+  },
+  "web.layout.google_material": {
+    "text": "Google Material"
+  },
+  "web.layout.material_design_icons": {
+    "text": "Material Design ikonok"
+  },
+  "web.layout.heroicons": {
+    "text": "Heroiconok"
+  },
+  "web.layout.carbon": {
+    "text": "Carbon"
+  },
+  "web.layout.font_awesome_6": {
+    "text": "Font Awesome 6"
+  },
+  "web.layout.view_source_on_github": {
+    "text": "Forráskód megtekintése a GitHub-on"
+  },
+  "web.layout.website_version_v_ot_version": {
+    "text": "Weboldal verzió: v{0}"
+  },
+  "web.layout.current_language_is_currentlocal": {
+    "text": "Nyelv módosítása. Jelenlegi nyelv: {0}"
+  },
+  "web.layout.language_changed_to_newlocale": {
+    "text": "Nyelv módosítva: {0}"
+  },
+  "web.layout.switch_to_blank_mode": {
+    "text": "Váltás {0} módra"
+  },
+  "web.layout.blank_mode_enabled": {
+    "text": "{0} mód engedélyezve"
+  },
+  "web.layout.workspace": {
+    "text": "Munkaterület"
+  },
+  "web.layout.workspace_context": {
+    "text": "Munkaterület kontextus"
+  }
+}

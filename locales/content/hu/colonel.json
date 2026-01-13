@@ -1,0 +1,245 @@
+{
+  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
+    "text": "{0}/{1}/{2} [{3}]"
+  },
+  "web.colonel.customer_verified_verified_not_verified_0": {
+    "text": "`+customer.verified ? `ellenőrizve` : `nem ellenőrizve"
+  },
+  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
+    "text": "Ügyfelek ({0} / {1})"
+  },
+  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
+    "text": "Felhasználói visszajelzések (Összesen: {0})"
+  },
+  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
+    "text": "Metaadatok / Titkok: {0}/{1} ({2}/{3}/{4} összesen)"
+  },
+  "web.colonel.secrets_details_counts_secret_count_0": {
+    "text": "Titkok ({0})"
+  },
+  "web.colonel.active_in_the_past_5_minutes_0": {
+    "text": "(aktív az elmúlt 5 percben)"
+  },
+  "web.colonel.configEditorTitle": {
+    "text": "Beállítások"
+  },
+  "web.colonel.configEditorDescription": {
+    "text": "Rendszerkonfigurációs beállítások szerkesztése. A változtatások azonnal érvénybe lépnek mentés után."
+  },
+  "web.colonel.invalidJson": {
+    "text": "Érvénytelen JSON a(z) {section} szakaszban"
+  },
+  "web.colonel.validationError": {
+    "text": "Érvényesítési hiba"
+  },
+  "web.colonel.errorFetchingConfig": {
+    "text": "Hiba a konfiguráció betöltésekor"
+  },
+  "web.colonel.errorSavingConfig": {
+    "text": "Hiba a konfiguráció mentésekor"
+  },
+  "web.colonel.configSaved": {
+    "text": "Konfiguráció sikeresen mentve"
+  },
+  "web.colonel.mustBeObject": {
+    "text": "A konfigurációnak JSON objektumnak kell lennie"
+  },
+  "web.colonel.multipleSectionsInvalid": {
+    "text": "Több szakasznak vannak érvényesítési hibái: {sections}"
+  },
+  "web.colonel.sectionHasError": {
+    "text": "A(z) {section} szakasznak érvényesítési hibái vannak: {error}"
+  },
+  "web.colonel.sectionSaved": {
+    "text": "{section} sikeresen mentve"
+  },
+  "web.colonel.saveSection": {
+    "text": "{section} mentése"
+  },
+  "web.colonel.saveAll": {
+    "text": "Összes mentése"
+  },
+  "web.colonel.unsavedChanges": {
+    "text": "Nem mentett változtatások"
+  },
+  "web.colonel.schemaValidationError": {
+    "text": "Séma érvényesítési hiba: {message} ({path})"
+  },
+  "web.colonel.unknownValidationError": {
+    "text": "Ismeretlen érvényesítési hiba: {error}"
+  },
+  "web.colonel.sectionEffectivelyEmpty": {
+    "text": "A(z) {section} szakaszban nincsenek beállított értékek"
+  },
+  "web.colonel.dashboard": {
+    "text": "Vezérlőpult"
+  },
+  "web.colonel.admin": {
+    "text": "Admin"
+  },
+  "web.colonel.activity": {
+    "text": "Tevékenység"
+  },
+  "web.colonel.accounts": {
+    "text": "Fiókok"
+  },
+  "web.colonel.users": {
+    "text": "Felhasználók"
+  },
+  "web.colonel.usersDescription": {
+    "text": "Felhasználói fiókok és jogosultságok kezelése"
+  },
+  "web.colonel.domains": {
+    "text": "Domének"
+  },
+  "web.colonel.settings": {
+    "text": "Beállítások"
+  },
+  "web.colonel.system": {
+    "text": "Rendszer"
+  },
+  "web.colonel.welcome": {
+    "text": "Üdvözöljük a Colonel-ben"
+  },
+  "web.colonel.welcomeDesc": {
+    "text": "Adminisztratív vezérlőpult az Onetime Secret számára"
+  },
+  "web.colonel.quickActions": {
+    "text": "Gyors műveletek"
+  },
+  "web.colonel.recentActivity": {
+    "text": "Legutóbbi tevékenység"
+  },
+  "web.colonel.viewAll": {
+    "text": "Összes megtekintése"
+  },
+  "web.colonel.activityPlaceholder": {
+    "text": "A tevékenységi adatok itt jelennek meg"
+  },
+  "web.colonel.stats.totalSecrets": {
+    "text": "Összes titok"
+  },
+  "web.colonel.stats.activeUsers": {
+    "text": "Aktív felhasználók"
+  },
+  "web.colonel.stats.secretsToday": {
+    "text": "Mai titkok"
+  },
+  "web.colonel.stats.secretsCreated": {
+    "text": "Létrehozott titkok"
+  },
+  "web.colonel.stats.secretsShared": {
+    "text": "Megosztott titkok"
+  },
+  "web.colonel.stats.totalCustomers": {
+    "text": "Összes ügyfél"
+  },
+  "web.colonel.stats.emailsSent": {
+    "text": "Küldött e-mailek"
+  },
+  "web.colonel.stats.systemHealth": {
+    "text": "Rendszer állapota"
+  },
+  "web.colonel.stats.healthy": {
+    "text": "Egészséges"
+  },
+  "web.colonel.actions.viewActivity": {
+    "text": "Tevékenység megtekintése"
+  },
+  "web.colonel.actions.viewActivityDesc": {
+    "text": "Rendszertevékenység és használat figyelése"
+  },
+  "web.colonel.actions.manageAccounts": {
+    "text": "Fiókok kezelése"
+  },
+  "web.colonel.actions.manageAccountsDesc": {
+    "text": "Felhasználói fiók adminisztráció"
+  },
+  "web.colonel.actions.configureDomains": {
+    "text": "Domének konfigurálása"
+  },
+  "web.colonel.actions.configureDomainsDesc": {
+    "text": "Domén és DNS beállítások"
+  },
+  "web.colonel.actions.systemSettings": {
+    "text": "Rendszerbeállítások"
+  },
+  "web.colonel.actions.systemSettingsDesc": {
+    "text": "Alkalmazás konfiguráció"
+  },
+  "web.colonel.backgroundJobs": {
+    "text": "Háttérfeladatok"
+  },
+  "web.colonel.queueStatus": {
+    "text": "Várólista állapota"
+  },
+  "web.colonel.queueName": {
+    "text": "Várólista"
+  },
+  "web.colonel.pendingMessages": {
+    "text": "Függőben"
+  },
+  "web.colonel.consumers": {
+    "text": "Fogyasztók"
+  },
+  "web.colonel.processingRate": {
+    "text": "Feldolgozás/mp"
+  },
+  "web.colonel.connectionStatus": {
+    "text": "Kapcsolat állapota"
+  },
+  "web.colonel.workerHealth": {
+    "text": "Dolgozók állapota"
+  },
+  "web.colonel.activeWorkers": {
+    "text": "aktív dolgozó"
+  },
+  "web.colonel.noQueueData": {
+    "text": "Nincsenek elérhető várólista adatok"
+  },
+  "web.colonel.loadingQueueData": {
+    "text": "Várólista adatok betöltése..."
+  },
+  "web.colonel.testPlanMode": {
+    "text": "Teszt csomag mód"
+  },
+  "web.colonel.testingAsPlan": {
+    "text": "Tesztelés mint: {planName}"
+  },
+  "web.colonel.clickToReset": {
+    "text": "Kattintson a visszaállításhoz"
+  },
+  "web.colonel.selectTestPlan": {
+    "text": "Válasszon tesztelendő csomagot"
+  },
+  "web.colonel.resetToActual": {
+    "text": "Visszaállítás tényleges csomagra"
+  },
+  "web.colonel.currentActualPlan": {
+    "text": "Jelenlegi csomag"
+  },
+  "web.colonel.availablePlans": {
+    "text": "Elérhető csomagok"
+  },
+  "web.colonel.activateTestMode": {
+    "text": "Teszt mód aktiválása"
+  },
+  "web.colonel.testModeActive": {
+    "text": "Teszt mód aktív"
+  },
+  "web.colonel.testModeDescription": {
+    "text": "Tesztelje alkalmazását különböző csomag jogosultságokkal. A változtatások ideiglenesek és csak az ön munkamenetét érintik."
+  },
+  "web.colonel.warningTestMode": {
+    "text": "Ön {planName} jogosultságokkal tesztel (ideiglenes munkamenet felülírás)."
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Amikor visszajelzést küld, látni fogjuk:"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Visszajelzés küldése"
+  },
+  "web.feedback.sending_ellipses": {
+    "text": "Küldés..."
+  }
+}

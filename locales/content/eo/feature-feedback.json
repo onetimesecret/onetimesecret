@@ -1,0 +1,47 @@
+{
+  "web.feedback.your_feedback": {
+    "text": "Via retrosciigo"
+  },
+  "web.feedback.all_feedback_welcome": {
+    "text": "Ĉiuj retrosciigoj bonvenaj!"
+  },
+  "web.feedback.help_us_improve": {
+    "text": "Helpu nin plibonigi"
+  },
+  "web.feedback.close_feedback_modal": {
+    "text": "Fermi retrosciigan dialogon"
+  },
+  "web.feedback.share_your_feedback": {
+    "text": "Kunhavigi vian retrosciigon"
+  },
+  "web.feedback.delano_mandelbaum": {
+    "text": "Delano Mandelbaum"
+  },
+  "web.feedback.delano": {
+    "text": "Delano"
+  },
+  "web.feedback.help_content_goes_here": {
+    "text": "Helpa enhavo iras ĉi tie."
+  },
+  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
+    "text": "Dankon pro helpi Onetime Secret pliboniĝi. Tio signifas multe."
+  },
+  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
+    "text": "Ni konstruis ĉi tiun ilon por helpi vin sekure kunhavigi sentivajn informojn, kaj viaj realmondaj spertoj estas decidaj por fokusigi niajn klopodojn. Tio helpas nin kompreni pri kio labori poste kaj kiel plibonigi la servon por ĉiuj."
+  },
+  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
+    "text": "Saluton, dankon pro viziti nian retrosciigan paĝon. Via kontribuo ne nur estas bonvena - ĝi estas decida."
+  },
+  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
+    "text": "Noto de Delano, fondinto de Onetime Secret"
+  },
+  "web.feedback.open_feedback_form": {
+    "text": "Malfermi retrosciigan formularon"
+  },
+  "web.feedback.enter_your_feedback": {
+    "text": "Enigu vian retrosciigon"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Sendi komentojn"
+  }
+}

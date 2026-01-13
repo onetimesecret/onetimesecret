@@ -1,0 +1,143 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.your_region": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.your_current_region": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.active": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.why_it_matters": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.trust_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.trust_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.privacy_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.privacy_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.compliance_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.compliance_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.performance_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.performance_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.regions": {
+    "text": "Περιοχές"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "επικοινωνήστε με την ομάδα συμμόρφωσής μας"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "ελέγξτε την τεκμηρίωσή μας"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "Ο λογαριασμός και τα δεδομένα σας προστατεύονται σύμφωνα με τους νόμους και τους κανονισμούς της"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "Αυτό το ρυθμιστικό πλαίσιο καθορίζεται από το domain πρόσβασής σας:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "Κάθε δικαιοδοσία διατηρεί ξεχωριστή νομική συμμόρφωση και διακυβέρνηση δεδομένων. Ενώ μπορείτε να δημιουργήσετε λογαριασμούς σε πολλαπλές δικαιοδοσίες, παραμένουν νομικά διακριτοί χωρίς κοινή χρήση δεδομένων μεταξύ ρυθμιστικών ζωνών."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "Για να κατανοήσετε τους συγκεκριμένους κανονισμούς και προστασίες που ισχύουν για τον λογαριασμό σας, παρακαλώ"
+  },
+  "web.regions.current": {
+    "text": "Τρέχον"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "Διαθέσιμες Περιοχές"
+  },
+  "web.regions.jurisdiction": {
+    "text": "Δικαιοδοσία"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "Τοποθεσία κέντρου δεδομένων: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "Περιοχή Δεδομένων"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "Άγνωστη Δικαιοδοσία"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "Σας εξυπηρετούμε από την"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "Συνέχεια στο {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Τρέχουσα δικαιοδοσία:"
+  }
+}

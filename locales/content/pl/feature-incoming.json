@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Wyślij sekret"
+  },
+  "incoming.page_description": {
+    "text": "Bezpiecznie udostępnij poufne informacje naszemu zespołowi wsparcia"
+  },
+  "incoming.loading_config": {
+    "text": "Ładowanie..."
+  },
+  "incoming.config_error_title": {
+    "text": "Nie udało się załadować konfiguracji"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Funkcja niedostępna"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Ta funkcja jest obecnie wyłączona. Skontaktuj się z pomocą techniczną w celu uzyskania pomocy."
+  },
+  "incoming.memo_label": {
+    "text": "Notatka"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Krótki opis (np. Żądanie resetowania hasła)"
+  },
+  "incoming.memo_hint": {
+    "text": "Pomóż nam skierować Twoją wiadomość do właściwej osoby"
+  },
+  "incoming.recipient_label": {
+    "text": "Wyślij do"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Wybierz odbiorcę"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Wybierz odbiorcę dla tego sekretu"
+  },
+  "incoming.recipient_hint": {
+    "text": "Wybierz, kto otrzyma tę bezpieczną wiadomość"
+  },
+  "incoming.no_recipients_available": {
+    "text": "Brak dostępnych odbiorców"
+  },
+  "incoming.secret_content_label": {
+    "text": "Informacje poufne"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Wklej tutaj poufne informacje (hasła, klucze itp.)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Te informacje zostaną zaszyfrowane i będą widoczne tylko raz"
+  },
+  "incoming.submit_button": {
+    "text": "Wyślij sekret"
+  },
+  "incoming.submit_secret": {
+    "text": "Wyślij sekret"
+  },
+  "incoming.submitting_button": {
+    "text": "Wysyłanie..."
+  },
+  "incoming.submitting": {
+    "text": "Wysyłanie..."
+  },
+  "incoming.reset_button": {
+    "text": "Wyczyść formularz"
+  },
+  "incoming.reset_form": {
+    "text": "Wyczyść formularz"
+  },
+  "incoming.success_title": {
+    "text": "Wysłano pomyślnie"
+  },
+  "incoming.success_description": {
+    "text": "Twoja bezpieczna wiadomość została dostarczona."
+  },
+  "incoming.reference_id": {
+    "text": "Numer referencyjny"
+  },
+  "incoming.success_info_title": {
+    "text": "Co dalej?"
+  },
+  "incoming.success_info_description": {
+    "text": "Odbiorca będzie mógł wyświetlić ten sekret tylko raz. Po wyświetleniu sekret zostanie trwale usunięty."
+  },
+  "incoming.create_another": {
+    "text": "Wyślij kolejny sekret"
+  },
+  "incoming.tagline1": {
+    "text": "Bezpiecznie udostępniaj poufne informacje"
+  },
+  "incoming.tagline2": {
+    "text": "Trzymaj hasła i dane prywatne z dala od e-maili i dzienników czatów"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Zapisz <a href='{receiptUrl}'>potwierdzenie</a> dla swoich zapisów."
+  },
+  "incoming.receipt_link_text": {
+    "text": "receipt"
+  }
+}

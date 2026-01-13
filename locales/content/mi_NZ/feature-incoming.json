@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Tukuna he mea huna"
+  },
+  "incoming.page_description": {
+    "text": "Tohaina ngā kōrero ngaro ki tō mātou rōpū tautoko"
+  },
+  "incoming.loading_config": {
+    "text": "E uta ana..."
+  },
+  "incoming.config_error_title": {
+    "text": "I rahua te uta whirihoranga"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Kāore i wātea te āhuatanga"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Kei te monokia tēnei āhuatanga i tēnei wā. Pā mai ki te tautoko mō te āwhina."
+  },
+  "incoming.memo_label": {
+    "text": "Pūrongo"
+  },
+  "incoming.memo_placeholder": {
+    "text": "He whakamārama poto (hei tauira, Tono tautuhi kupuhipa anō)"
+  },
+  "incoming.memo_hint": {
+    "text": "Āwhina mātou ki te tuku i tō karere ki te tangata tika"
+  },
+  "incoming.recipient_label": {
+    "text": "Tuku ki"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Kōwhiria he kaiwhiwhi"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Kōwhiria he kaiwhiwhi mō tēnei mea huna"
+  },
+  "incoming.recipient_hint": {
+    "text": "Kōwhiria ko wai ka whiwhi i tēnei karere haumaru"
+  },
+  "incoming.no_recipients_available": {
+    "text": "Kāore he kaiwhiwhi e wātea ana"
+  },
+  "incoming.secret_content_label": {
+    "text": "Kōrero ngaro"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Whakapiri kōrero ngaro ki konei (kupuhipa, kī, me ērā atu)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Ka whakamunaina ēnei kōrero, kotahi noa te wā ka kitea"
+  },
+  "incoming.submit_button": {
+    "text": "Tukuna te mea huna"
+  },
+  "incoming.submit_secret": {
+    "text": "Tukuna te mea huna"
+  },
+  "incoming.submitting_button": {
+    "text": "E tuku ana..."
+  },
+  "incoming.submitting": {
+    "text": "E tuku ana..."
+  },
+  "incoming.reset_button": {
+    "text": "Whakawātea puka"
+  },
+  "incoming.reset_form": {
+    "text": "Whakawātea puka"
+  },
+  "incoming.success_title": {
+    "text": "I angitu te tuku"
+  },
+  "incoming.success_description": {
+    "text": "Kua tukuna tō karere haumaru."
+  },
+  "incoming.reference_id": {
+    "text": "Tautuhi tohutoro"
+  },
+  "incoming.success_info_title": {
+    "text": "He aha te mea e pā mai ana?"
+  },
+  "incoming.success_info_description": {
+    "text": "Ka taea e te kaiwhiwhi te tiro i tēnei mea huna kotahi noa te wā. I muri i te tiro, ka mukua tūturu te mea huna."
+  },
+  "incoming.create_another": {
+    "text": "Tukuna anō he mea huna"
+  },
+  "incoming.tagline1": {
+    "text": "Tohaina ngā kōrero ngaro haumaru"
+  },
+  "incoming.tagline2": {
+    "text": "Kia tawhiti atu ngā kupuhipa me ngā raraunga tūmataiti i te īmēra me ngā rārangi kōrerorero"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Tiakina tō <a href='{receiptUrl}'>rīhīti</a> mō ō rēkōtanga."
+  },
+  "incoming.receipt_link_text": {
+    "text": "rīhīti"
+  }
+}

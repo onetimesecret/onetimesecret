@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "已接收"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "未接收"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "无最近内容"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "创建您的第一个内容来开始使用。"
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "无法加载团队"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "加载您的团队时出现问题。请重试。"
+  }
+}

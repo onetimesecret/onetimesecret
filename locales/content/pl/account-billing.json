@@ -1,0 +1,434 @@
+{
+  "web.billing.upgrade.required": {
+    "text": "Wymagana aktualizacja"
+  },
+  "web.billing.upgrade.viewPlans": {
+    "text": "Zobacz plany"
+  },
+  "web.billing.upgrade.needTeams": {
+    "text": "Zarządzanie zespołami wymaga planu Identity Plus lub wyższego"
+  },
+  "web.billing.upgrade.needCustomDomains": {
+    "text": "Domeny niestandardowe wymagają planu Identity Plus lub wyższego"
+  },
+  "web.billing.upgrade.needApiAccess": {
+    "text": "Dostęp do API wymaga planu Multi-Team lub wyższego"
+  },
+  "web.billing.upgrade.needAuditLogs": {
+    "text": "Dzienniki audytu wymagają planu Multi-Team lub wyższego"
+  },
+  "web.billing.manage_subscription_and_billing": {
+    "text": "Zarządzaj subskrypcją, organizacjami i ustawieniami rozliczeniowymi"
+  },
+  "web.billing.overview.title": {
+    "text": "Przegląd rozliczeń"
+  },
+  "web.billing.overview.description": {
+    "text": "Wyświetl i zarządzaj subskrypcją oraz szczegółami płatności"
+  },
+  "web.billing.overview.organization_selector": {
+    "text": "Wybierz organizację"
+  },
+  "web.billing.overview.current_plan": {
+    "text": "Obecny plan"
+  },
+  "web.billing.overview.plan_features": {
+    "text": "Funkcje planu"
+  },
+  "web.billing.overview.payment_method": {
+    "text": "Metoda płatności"
+  },
+  "web.billing.overview.next_billing_date": {
+    "text": "Data następnego rozliczenia"
+  },
+  "web.billing.overview.quick_actions": {
+    "text": "Szybkie działania"
+  },
+  "web.billing.overview.manage_billing": {
+    "text": "Zarządzaj rozliczeniami"
+  },
+  "web.billing.overview.view_invoices": {
+    "text": "Wyświetl faktury"
+  },
+  "web.billing.overview.upgrade_plan": {
+    "text": "Uaktualnij plan"
+  },
+  "web.billing.overview.change_plan": {
+    "text": "Zmień plan"
+  },
+  "web.billing.overview.no_payment_method": {
+    "text": "Brak metody płatności w pliku"
+  },
+  "web.billing.overview.no_upcoming_billing": {
+    "text": "Brak nadchodzących rozliczeń"
+  },
+  "web.billing.overview.days_remaining": {
+    "text": "pozostało dni"
+  },
+  "web.billing.overview.billing_on": {
+    "text": "Rozliczenie {date}"
+  },
+  "web.billing.overview.view_plans_action": {
+    "text": "Zobacz plany"
+  },
+  "web.billing.overview.view_plans_description": {
+    "text": "Porównaj i uaktualnij"
+  },
+  "web.billing.overview.view_invoices_action": {
+    "text": "Zobacz faktury"
+  },
+  "web.billing.overview.view_invoices_description": {
+    "text": "Pobierz historię"
+  },
+  "web.billing.overview.manage_billing_action": {
+    "text": "Zarządzaj rozliczeniami"
+  },
+  "web.billing.overview.manage_billing_description": {
+    "text": "Zaktualizuj informacje płatnicze"
+  },
+  "web.billing.overview.no_organizations_title": {
+    "text": "Brak organizacji"
+  },
+  "web.billing.overview.no_organizations_description": {
+    "text": "Utwórz organizację, aby zarządzać rozliczeniami i subskrypcją"
+  },
+  "web.billing.overview.entitlements.create_secrets": {
+    "text": "Tworzenie sekretów"
+  },
+  "web.billing.overview.entitlements.view_receipt": {
+    "text": "Wyświetl paragony"
+  },
+  "web.billing.overview.entitlements.api_access": {
+    "text": "Dostęp do API"
+  },
+  "web.billing.overview.entitlements.custom_domains": {
+    "text": "Domeny niestandardowe"
+  },
+  "web.billing.overview.entitlements.custom_privacy_defaults": {
+    "text": "Niestandardowe ustawienia prywatności"
+  },
+  "web.billing.overview.entitlements.extended_default_expiration": {
+    "text": "Rozszerzony domyślny czas wygaśnięcia"
+  },
+  "web.billing.overview.entitlements.custom_mail_defaults": {
+    "text": "Niestandardowe ustawienia poczty"
+  },
+  "web.billing.overview.entitlements.custom_branding": {
+    "text": "Niestandardowy branding"
+  },
+  "web.billing.overview.entitlements.branded_homepage": {
+    "text": "Markowa strona główna"
+  },
+  "web.billing.overview.entitlements.incoming_secrets": {
+    "text": "Sekrety przychodzące"
+  },
+  "web.billing.overview.entitlements.manage_orgs": {
+    "text": "Zarządzaj organizacjami"
+  },
+  "web.billing.overview.entitlements.manage_teams": {
+    "text": "Zarządzaj zespołami"
+  },
+  "web.billing.overview.entitlements.manage_members": {
+    "text": "Zarządzaj członkami"
+  },
+  "web.billing.overview.entitlements.audit_logs": {
+    "text": "Dzienniki audytu"
+  },
+  "web.billing.overview.entitlements.sso": {
+    "text": "Jednokrotne logowanie"
+  },
+  "web.billing.overview.entitlements.priority_support": {
+    "text": "Wsparcie priorytetowe"
+  },
+  "web.billing.overview.entitlements.sla": {
+    "text": "Umowa poziomu usług"
+  },
+  "web.billing.overview.entitlements_load_error": {
+    "text": "Nie udało się załadować szczegółów funkcji"
+  },
+  "web.billing.overview.no_entitlements": {
+    "text": "Brak dostępnych funkcji"
+  },
+  "web.billing.plans.title": {
+    "text": "Wybierz plan"
+  },
+  "web.billing.plans.choose_plan": {
+    "text": "Wybierz plan, który odpowiada Twoim potrzebom"
+  },
+  "web.billing.plans.subtitle": {
+    "text": "Wybierz idealny plan dla Twojej organizacji"
+  },
+  "web.billing.plans.current": {
+    "text": "Obecny plan"
+  },
+  "web.billing.plans.current_badge": {
+    "text": "Obecny"
+  },
+  "web.billing.plans.upgrade": {
+    "text": "Uaktualnij"
+  },
+  "web.billing.plans.downgrade": {
+    "text": "Obniż"
+  },
+  "web.billing.plans.monthly": {
+    "text": "Miesięcznie"
+  },
+  "web.billing.plans.yearly": {
+    "text": "Rocznie"
+  },
+  "web.billing.plans.per_month": {
+    "text": "miesięcznie"
+  },
+  "web.billing.plans.save_yearly": {
+    "text": "Zaoszczędź {percent}% przy rozliczeniu rocznym"
+  },
+  "web.billing.plans.free_plan": {
+    "text": "Darmowy"
+  },
+  "web.billing.plans.single_team_plan": {
+    "text": "Jeden zespół"
+  },
+  "web.billing.plans.multi_team_plan": {
+    "text": "Wiele zespołów"
+  },
+  "web.billing.plans.individual_account": {
+    "text": "Konto indywidualne"
+  },
+  "web.billing.plans.team_account": {
+    "text": "Konto zespołowe"
+  },
+  "web.billing.plans.multi_team_account": {
+    "text": "Konto organizacyjne"
+  },
+  "web.billing.plans.features": {
+    "text": "Funkcje"
+  },
+  "web.billing.plans.unlimited_secrets": {
+    "text": "Nieograniczone sekrety"
+  },
+  "web.billing.plans.api_access": {
+    "text": "Dostęp do API"
+  },
+  "web.billing.plans.priority_support": {
+    "text": "Wsparcie priorytetowe"
+  },
+  "web.billing.plans.select_plan": {
+    "text": "Wybierz plan"
+  },
+  "web.billing.plans.contact_sales": {
+    "text": "Skontaktuj się ze sprzedażą"
+  },
+  "web.billing.plans.custom_needs_title": {
+    "text": "Masz pytania lub potrzebujesz czegoś niestandardowego?"
+  },
+  "web.billing.plans.custom_needs_description": {
+    "text": "Chętnie od Ciebie usłyszymy. Powiedz nam, czego szukasz."
+  },
+  "web.billing.plans.teams_limit": {
+    "text": "{count} zespół | {count} zespoły | {count} zespołów"
+  },
+  "web.billing.plans.members_limit": {
+    "text": "{count} członek na zespół | {count} członków na zespół | {count} członków na zespół"
+  },
+  "web.billing.plans.unlimited_teams": {
+    "text": "Nieograniczona liczba zespołów"
+  },
+  "web.billing.plans.unlimited_members": {
+    "text": "Nieograniczona liczba członków na zespół"
+  },
+  "web.billing.plans.most_popular": {
+    "text": "Najpopularniejszy"
+  },
+  "web.billing.plans.suggested": {
+    "text": "Sugerowany"
+  },
+  "web.billing.plans.everything_in": {
+    "text": "Wszystko z planu {plan}, a także:"
+  },
+  "web.billing.plans.no_plans_available": {
+    "text": "Brak dostępnych planów {interval} w tej chwili."
+  },
+  "web.billing.plans.change_immediate": {
+    "text": "Twój plan zostanie zmieniony natychmiast."
+  },
+  "web.billing.plans.current_plan_label": {
+    "text": "Obecny plan:"
+  },
+  "web.billing.plans.new_plan_label": {
+    "text": "Nowy plan:"
+  },
+  "web.billing.plans.credit_label": {
+    "text": "Zwrot za niewykorzystany czas:"
+  },
+  "web.billing.plans.next_invoice": {
+    "text": "Następna faktura"
+  },
+  "web.billing.plans.limits_update_notice": {
+    "text": "Twoje limity funkcji zostaną zaktualizowane natychmiast po zmianie planu."
+  },
+  "web.billing.plans.change_failed": {
+    "text": "Zmiana planu nie powiodła się. Spróbuj ponownie."
+  },
+  "web.billing.plans.confirm_upgrade": {
+    "text": "Potwierdź uaktualnienie"
+  },
+  "web.billing.plans.confirm_downgrade": {
+    "text": "Potwierdź obniżenie planu"
+  },
+  "web.billing.plans.upgrade_to": {
+    "text": "Uaktualnij do"
+  },
+  "web.billing.plans.downgrade_to": {
+    "text": "Obniżyć plan do {plan}?"
+  },
+  "web.billing.invoices.title": {
+    "text": "Historia rozliczeń"
+  },
+  "web.billing.invoices.view_history": {
+    "text": "Wyświetl historię rozliczeń i pobierz faktury"
+  },
+  "web.billing.invoices.invoice_date": {
+    "text": "Data"
+  },
+  "web.billing.invoices.invoice_amount": {
+    "text": "Kwota"
+  },
+  "web.billing.invoices.invoice_status": {
+    "text": "Status"
+  },
+  "web.billing.invoices.invoice_download": {
+    "text": "Pobierz"
+  },
+  "web.billing.invoices.no_invoices": {
+    "text": "Brak faktur"
+  },
+  "web.billing.invoices.paid": {
+    "text": "Opłacone"
+  },
+  "web.billing.invoices.pending": {
+    "text": "Oczekujące"
+  },
+  "web.billing.invoices.failed": {
+    "text": "Niepowodzenie"
+  },
+  "web.billing.invoices.load_error": {
+    "text": "Nie udało się załadować faktur"
+  },
+  "web.billing.notices.org_managed": {
+    "text": "Rozliczenia dla tego zespołu są zarządzane przez {orgName}"
+  },
+  "web.billing.notices.view_org_billing": {
+    "text": "Zobacz rozliczenia organizacji"
+  },
+  "web.billing.limits.members_reached": {
+    "text": "Osiągnięto limit członków dla tego zespołu"
+  },
+  "web.billing.limits.members_upgrade": {
+    "text": "Uaktualnij, aby dodać więcej członków"
+  },
+  "web.billing.subscription.title": {
+    "text": "Subskrypcja"
+  },
+  "web.billing.subscription.status": {
+    "text": "Status subskrypcji"
+  },
+  "web.billing.subscription.active": {
+    "text": "Aktywna"
+  },
+  "web.billing.subscription.inactive": {
+    "text": "Nieaktywna"
+  },
+  "web.billing.subscription.past_due": {
+    "text": "Zaległa"
+  },
+  "web.billing.subscription.canceled": {
+    "text": "Anulowana"
+  },
+  "web.billing.subscription.catalog_name": {
+    "text": "Plan"
+  },
+  "web.billing.portal.title": {
+    "text": "Portal rozliczeń"
+  },
+  "web.billing.portal.description": {
+    "text": "Zarządzaj subskrypcją, metodami płatności i historią rozliczeń"
+  },
+  "web.billing.portal.open_portal": {
+    "text": "Otwórz portal rozliczeń"
+  },
+  "web.billing.portal.redirecting": {
+    "text": "Przekierowywanie do portalu rozliczeń..."
+  },
+  "web.billing.start_today": {
+    "text": "Zacznij dzisiaj"
+  },
+  "web.billing.start_today_with_identity_plus": {
+    "text": "Zacznij dzisiaj z Identity Plus"
+  },
+  "web.billing.per_month": {
+    "text": "miesięcznie"
+  },
+  "web.billing.full_api_access": {
+    "text": "Pełny dostęp do API"
+  },
+  "web.billing.privacy_first_design": {
+    "text": "Projekt z priorytetem prywatności"
+  },
+  "web.billing.identity_plus": {
+    "text": "Identity Plus"
+  },
+  "web.billing.click_this_lightning_bolt_to_upgrade_for_custom_domains": {
+    "text": "Kliknij tę błyskawicę, aby uaktualnić do domen niestandardowych"
+  },
+  "web.billing.maybe_later": {
+    "text": "Może później"
+  },
+  "web.billing.upgrade_account": {
+    "text": "Uaktualnij konto"
+  },
+  "web.billing.upgrade_to_identity_plus": {
+    "text": "Uaktualnij do Identity Plus"
+  },
+  "web.billing.upgrade_for_teams": {
+    "text": "Uaktualnij dla zespołów"
+  },
+  "web.billing.benefits_of": {
+    "text": "Korzyści z"
+  },
+  "web.billing.t_benefits_of_identity_plus": {
+    "text": "{0}: Identity Plus"
+  },
+  "web.billing.upgrade_to": {
+    "text": "Uaktualnij do"
+  },
+  "web.billing.upgrade_for_yourdomain": {
+    "text": "Uaktualnij dla wiadomosci.twojadomena.com"
+  },
+  "web.billing.includes_all_features_and_unlimited_sharing_capa": {
+    "text": "Wszystkie plany obejmują funkcje prywatności i nieograniczoną pojemność udostępniania"
+  },
+  "web.billing.includes_all_data_locality_options": {
+    "text": "Wszystkie plany obejmują wybór lokalizacji danych: {0} regionów"
+  },
+  "web.billing.get_started": {
+    "text": "Rozpocznij"
+  },
+  "web.billing.frequency_value_annually_annual_monthly_subscrip": {
+    "text": "Subskrypcja {0}"
+  },
+  "web.billing.elevate_your_secure_sharing_with_custom_domains_": {
+    "text": "Podnieś poziom bezpiecznego udostępniania dzięki niestandardowym domenom, nieograniczonej pojemności i funkcjom klasy korporacyjnej."
+  },
+  "web.billing.payment_frequency": {
+    "text": "Częstotliwość płatności"
+  },
+  "web.billing.secure_your_brand_and_build_customer_trust_with_": {
+    "text": "Zabezpiecz swoją markę i buduj zaufanie klientów dzięki linkom z Twojej domeny. Idealne dla firm ceniących prywatność i profesjonalizm."
+  },
+  "web.billing.secure_links_stronger_connections": {
+    "text": "Bezpieczne linki, silniejsze połączenia"
+  },
+  "web.billing.identity_tier_not_found_in_product_tiers": {
+    "text": "Poziom Identity nie znaleziony w poziomach produktów"
+  }
+}

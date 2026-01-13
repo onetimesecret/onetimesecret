@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Получени"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Неполучени"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Няма последни тайни"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Започнете, като създадете първата си тайна."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Неуспешно зареждане на екипите"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Възникна проблем при зареждането на вашите екипи. Моля, опитайте отново."
+  }
+}

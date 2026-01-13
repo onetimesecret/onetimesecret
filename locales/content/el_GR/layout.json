@@ -1,0 +1,297 @@
+{
+  "web.footer.api_docs": {
+    "text": "Τεκμηρίωση API"
+  },
+  "web.footer.branding_guide": {
+    "text": "Οδηγός Επωνυμίας"
+  },
+  "web.footer.customize": {
+    "text": "Προσαρμογή"
+  },
+  "web.footer.plans": {
+    "text": "Πλάνα"
+  },
+  "web.footer.security": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.learn_about_our_security_measures": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.view_our_terms_and_conditions": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.terms": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.privacy": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.contact": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.support": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.legals": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.read_our_privacy_policy": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.check_our_service_status": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.explore_our_api_documentation": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.docs": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.access_our_documentation": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.view_our_source_code_on_github": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.resources": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.blog": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.read_our_latest_blog_posts": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.view_our_subscription_pricing": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.learn_about_our_company": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.footer.company": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.navigation.billing": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.navigation.billingOverview": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.navigation.organizations": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.site.website_version": {
+    "text": "Έκδοση Ιστοσελίδας"
+  },
+  "web.meta.were_making_onetime_secret_available_in_multiple": {
+    "text": "Κάνουμε το {onetime-secret} διαθέσιμο σε πολλές γλώσσες. Δεδομένου ότι πρόκειται για μια νέα δυνατότητα, ενδέχεται να συναντήσετε μεταφραστικά λάθη ή αδέξια διατύπωση. Τα σχόλιά σας μας βοηθούν να βελτιωθούμε - εάν εντοπίσετε τυχόν προβλήματα, παρακαλούμε {send-feedback}"
+  },
+  "web.meta.translations_are_new_spotted_an_error": {
+    "text": "Οι μεταφράσεις είναι νέες. Εντοπίσατε κάποιο λάθος; {send-feedback}"
+  },
+  "web.meta.we_recently_added_translations": {
+    "text": "Προσθέσαμε πρόσφατα μεταφράσεις. Εντοπίσατε κάποιο λάθος; {send-feedback}"
+  },
+  "web.meta.privacy_and_security_should_be_accessible": {
+    "text": "Το απόρρητο και η ασφάλεια πρέπει να είναι προσβάσιμα σε όλους, ανεξαρτήτως γλώσσας. Προσθέτουμε μεταφράσεις για να βοηθήσουμε τόσο τους χρήστες μας όσο και τους παραλήπτες των μηνυμάτων τους να κατανοήσουν καλύτερα πώς να χρησιμοποιούν και να έχουν πρόσβαση με ασφάλεια σε ασφαλή μηνύματα και συνδέσμους. Δεδομένου ότι πρόκειται για μια νέα δυνατότητα, ενδέχεται να συναντήσετε ορισμένα μεταφραστικά λάθη ή ασαφείς οδηγίες. Για να μας βοηθήσετε να βελτιώσουμε τη σαφήνεια και την ακρίβεια των μεταφράσεών μας, ειδικά για κρίσιμο περιεχόμενο που σχετίζεται με την ασφάλεια, παρακαλούμε {send-feedback} εάν εντοπίσετε τυχόν προβλήματα"
+  },
+  "web.help.learn_more": {
+    "text": "Μάθετε περισσότερα"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.title": {
+    "text": "Τι βλέπω;"
+  },
+  "web.help.secret_view_faq.what_am_i_looking_at.description": {
+    "text": "Βλέπετε ένα ασφαλές μήνυμα που μοιράστηκε μαζί σας μέσω του Onetime Secret. Αυτό το περιεχόμενο εμφανίζεται μόνο μία φορά και στη συνέχεια διαγράφεται μόνιμα από τους διακομιστές μας."
+  },
+  "web.help.secret_view_faq.can_i_view_again.title": {
+    "text": "Μπορώ να δω αυτό το μυστικό ξανά αργότερα;"
+  },
+  "web.help.secret_view_faq.can_i_view_again.description": {
+    "text": "Όχι. Για λόγους ασφαλείας, αυτό το μυστικό είναι διαθέσιμο μόνο μία φορά. Μετά το κλείσιμο αυτής της σελίδας, το περιεχόμενο θα διαγραφεί μόνιμα και δεν μπορεί να ανακτηθεί από κανέναν, συμπεριλαμβανομένων και εμάς."
+  },
+  "web.help.secret_view_faq.how_to_copy.title": {
+    "text": "Πώς μπορώ να αποθηκεύσω αυτές τις πληροφορίες;"
+  },
+  "web.help.secret_view_faq.how_to_copy.description": {
+    "text": "Χρησιμοποιήστε το κουμπί 'Αντιγραφή στο Πρόχειρο' για να αντιγράψετε ολόκληρο το μυστικό. Για μεγαλύτερα μυστικά, βεβαιωθείτε ότι έχετε αντιγράψει ολόκληρο το περιεχόμενο πριν φύγετε από αυτή τη σελίδα."
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.title": {
+    "text": "Παρακολουθείται η προβολή αυτού του μυστικού;"
+  },
+  "web.help.secret_view_faq.is_my_viewing_tracked.description": {
+    "text": "Ο αποστολέας θα ειδοποιηθεί ότι το μυστικό του προβλήθηκε, αλλά δεν παρακολουθούμε ποιος το είδε ή από ποια τοποθεσία. Η ιδιωτικότητά σας προστατεύεται."
+  },
+  "web.help.secret_view_faq.one_time_warning": {
+    "text": "Μόλις φύγετε ή ανανεώσετε αυτή τη σελίδα, αυτό το μυστικό θα διαγραφεί μόνιμα και δεν μπορεί να ανακτηθεί από κανέναν."
+  },
+  "web.layout.go_back_to_previous_page": {
+    "text": "Επιστροφή στην προηγούμενη σελίδα"
+  },
+  "web.layout.site_footer": {
+    "text": "Υποσέλιδο ιστότοπου"
+  },
+  "web.layout.toggle_dark_mode": {
+    "text": "Εναλλαγή σκοτεινής λειτουργίας"
+  },
+  "web.layout.provide_feedback": {
+    "text": "Παροχή σχολίων"
+  },
+  "web.layout.company_logo": {
+    "text": "Λογότυπο εταιρείας"
+  },
+  "web.layout.brand_logo": {
+    "text": "Λογότυπο επωνυμίας"
+  },
+  "web.layout.dashboard_navigation": {
+    "text": "Πλοήγηση Πίνακα Ελέγχου"
+  },
+  "web.layout.mobile_navigation": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.layout.main_navigation": {
+    "text": "Κύρια πλοήγηση"
+  },
+  "web.layout.mobile_nav_item_count": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.layout.release_notes": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.layout.loading_settings_content": {
+    "text": "Φόρτωση περιεχομένου ρυθμίσεων..."
+  },
+  "web.layout.settings_sections_0": {
+    "text": "Ενότητες ρυθμίσεων"
+  },
+  "web.layout.close_settings": {
+    "text": "Κλείσιμο ρυθμίσεων"
+  },
+  "web.layout.settings_sections": {
+    "text": "Ενότητες ρυθμίσεων"
+  },
+  "web.layout.customize_your_app_preferences_and_settings": {
+    "text": "Προσαρμόστε τις προτιμήσεις και τις ρυθμίσεις της εφαρμογής σας"
+  },
+  "web.layout.return_home": {
+    "text": "Επιστροφή στην αρχική"
+  },
+  "web.layout.return_to_home_page": {
+    "text": "Επιστροφή στην αρχική σελίδα"
+  },
+  "web.layout.return_to_home": {
+    "text": "Επιστροφή στην Αρχική"
+  },
+  "web.layout.view_privacy_policy": {
+    "text": "Προβολή Πολιτικής Απορρήτου"
+  },
+  "web.layout.view_terms_of_service": {
+    "text": "Προβολή Όρων Παροχής Υπηρεσιών"
+  },
+  "web.layout.visit_onetime_secret_homepage": {
+    "text": "Επισκεφθείτε την αρχική σελίδα του Onetime Secret"
+  },
+  "web.layout.footer_navigation": {
+    "text": "Πλοήγηση υποσέλιδου"
+  },
+  "web.layout.terms_of_service": {
+    "text": "Όροι Παροχής Υπηρεσιών"
+  },
+  "web.layout.privacy_policy": {
+    "text": "Πολιτική Απορρήτου"
+  },
+  "web.layout.icon_library": {
+    "text": "Βιβλιοθήκη Εικονιδίων"
+  },
+  "web.layout.google_material": {
+    "text": "Google Material"
+  },
+  "web.layout.material_design_icons": {
+    "text": "Material Design Icons"
+  },
+  "web.layout.heroicons": {
+    "text": "Heroicons"
+  },
+  "web.layout.carbon": {
+    "text": "Carbon"
+  },
+  "web.layout.font_awesome_6": {
+    "text": "Font Awesome 6"
+  },
+  "web.layout.view_source_on_github": {
+    "text": "Προβολή πηγαίου κώδικα στο GitHub"
+  },
+  "web.layout.website_version_v_ot_version": {
+    "text": "Έκδοση Ιστοσελίδας: v{0}"
+  },
+  "web.layout.current_language_is_currentlocal": {
+    "text": "Αλλαγή γλώσσας. Η τρέχουσα γλώσσα είναι {0}"
+  },
+  "web.layout.language_changed_to_newlocale": {
+    "text": "Η γλώσσα άλλαξε σε {0}"
+  },
+  "web.layout.switch_to_blank_mode": {
+    "text": "Εναλλαγή σε λειτουργία {0}"
+  },
+  "web.layout.blank_mode_enabled": {
+    "text": "Η λειτουργία {0} ενεργοποιήθηκε"
+  },
+  "web.layout.workspace": {
+    "text": "Χώρος Εργασίας"
+  },
+  "web.layout.workspace_context": {
+    "text": "Πλαίσιο χώρου εργασίας"
+  }
+}

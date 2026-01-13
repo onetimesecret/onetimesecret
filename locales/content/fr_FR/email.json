@@ -1,0 +1,446 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[Support: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "text": "Un client a soumis la demande suivante"
+  },
+  "email.secret_link.subject": {
+    "text": "%{sender_email} vous a envoyé un secret"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "vous a envoyé un secret :"
+  },
+  "email.secret_link.important_label": {
+    "text": "Important :"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "Ce lien ne fonctionnera qu'une seule fois. Après consultation, le secret sera définitivement supprimé."
+  },
+  "email.secret_link.sent_via": {
+    "text": "Envoyé via"
+  },
+  "email.welcome.subject": {
+    "text": "Vérification de votre compte Onetime-Secret"
+  },
+  "email.welcome.title": {
+    "text": "Vous avez été invité à rejoindre %{product_name} !"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "Veuillez vérifier votre adresse e-mail en cliquant sur le lien ci-dessous :"
+  },
+  "email.welcome.verify_button": {
+    "text": "Vérifier l'adresse e-mail"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "Ou copiez et collez ce lien :"
+  },
+  "email.welcome.signature": {
+    "text": "Delano"
+  },
+  "email.welcome.postscript": {
+    "text": "P.S. Cet e-mail a été envoyé à %{email_address}. Si vous n'attendiez pas cette invitation, vous pouvez ignorer ce message en toute sécurité."
+  },
+  "email.password_request.subject": {
+    "text": "Réinitialisez votre mot de passe (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "text": "Réinitialisez votre mot de passe"
+  },
+  "email.password_request.request_notice": {
+    "text": "Nous avons reçu une demande de réinitialisation de votre mot de passe pour %{product_name}."
+  },
+  "email.password_request.reset_button": {
+    "text": "Réinitialiser le mot de passe"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "Ou copiez et collez ce lien :"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "Si vous n'avez pas demandé de réinitialisation de mot de passe, vous pouvez ignorer cet e-mail en toute sécurité."
+  },
+  "email.password_request.signature": {
+    "text": "Delano"
+  },
+  "email.password_request.postscript": {
+    "text": "P.S. Cet e-mail a été envoyé à %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "text": "Se connecter à %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "text": "Connexion avec lien magique"
+  },
+  "email.magic_link.request_notice": {
+    "text": "Vous avez demandé un lien de connexion pour votre compte %{product_name}."
+  },
+  "email.magic_link.login_button": {
+    "text": "Se connecter"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "Ou copiez et collez ce lien :"
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "Ce lien expirera dans 15 minutes."
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "Si vous n'avez pas demandé ce lien, vous pouvez ignorer cet e-mail en toute sécurité."
+  },
+  "email.magic_link.signature": {
+    "text": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "text": "P.-S. Cet e-mail a été envoyé à %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "text": "Vous avez reçu un message secret"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "Vous avez reçu un message sécurisé :"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "Mémo :"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "Quelqu'un vous a envoyé un message sécurisé via %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "Pour consulter ce secret, cliquez sur le lien ci-dessous :"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "Important :"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "Ce lien ne fonctionnera qu'une seule fois. Après consultation, le secret sera définitivement supprimé."
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "Envoyé via"
+  },
+  "email.secret_revealed.subject": {
+    "text": "Votre secret a été consulté"
+  },
+  "email.secret_revealed.title": {
+    "text": "Votre secret a été consulté"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "Votre secret a été consulté le %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "ID du secret :"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "Ceci est une notification automatique. Aucune action n'est requise."
+  },
+  "email.secret_revealed.signature": {
+    "text": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "Gérer les préférences de notification"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "Pour gérer vos préférences de notification :"
+  },
+  "email.expiration_warning.subject": {
+    "text": "Votre lien secret expirera bientôt"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "Votre lien secret expirera dans %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "Consultez votre secret avant qu'il n'expire"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "Rappel :"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "Après expiration, le secret sera définitivement supprimé et ne pourra pas être récupéré."
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "Envoyé via"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "Consultez-le avant qu'il ne disparaisse :"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "Après expiration, le secret sera définitivement supprimé."
+  },
+  "email.feedback_email.subject": {
+    "text": "Commentaires du %{date} via %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "text": "Commentaires de l'utilisateur"
+  },
+  "email.feedback_email.from_label": {
+    "text": "De :"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "Domaine :"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "Stratégie :"
+  },
+  "email.feedback_email.message_label": {
+    "text": "Message :"
+  },
+  "email.feedback_email.signature": {
+    "text": "Support Secret"
+  },
+  "email.organization_invitation.subject": {
+    "text": "Vous avez été invité à rejoindre %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "text": "Vous avez été invité à rejoindre %{organization_name} !"
+  },
+  "email.organization_invitation.body": {
+    "text": "%{inviter_email} vous a invité à rejoindre « %{organization_name} » en tant que %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "Accepter l'invitation"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "Ou copiez et collez ce lien :"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "Cette invitation expirera dans %{days} jours."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "Si vous ne souhaitez pas rejoindre l'organisation, vous pouvez simplement ignorer cet e-mail ou refuser l'invitation."
+  },
+  "email.organization_invitation.signature": {
+    "text": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "P.S. Cet e-mail a été envoyé à %{invited_email}. Si vous n'attendiez pas cette invitation, vous pouvez ignorer ce message en toute sécurité."
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "membre"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "administrateur"
+  },
+  "email.password_changed.subject": {
+    "text": "Votre mot de passe a été modifié (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "text": "Votre mot de passe a été modifié"
+  },
+  "email.password_changed.body": {
+    "text": "Votre mot de passe pour %{product_name} a été modifié le %{date} à %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "text": "Si vous n'avez pas effectué ce changement, veuillez sécuriser votre compte immédiatement en réinitialisant votre mot de passe et en contactant le support."
+  },
+  "email.password_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_changed.subject": {
+    "text": "Votre adresse e-mail a été modifiée (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "text": "Votre adresse e-mail a été modifiée"
+  },
+  "email.email_changed.body": {
+    "text": "L'adresse e-mail de votre compte %{product_name} a été changée en %{new_email_masked} le %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "text": "Si vous n'avez pas effectué ce changement, veuillez contacter le support immédiatement car votre compte pourrait être compromis."
+  },
+  "email.email_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "Vérifiez votre nouvelle adresse e-mail (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "Vérifiez votre nouvelle adresse e-mail"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "Veuillez vérifier cette adresse e-mail pour finaliser le changement de votre compte %{product_name}."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "Vérifier l'adresse e-mail"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "Ou copiez et collez ce lien :"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "Authentification à deux facteurs activée (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "text": "Authentification à deux facteurs activée"
+  },
+  "email.mfa_enabled.body": {
+    "text": "L'authentification à deux facteurs a été activée pour votre compte %{product_name} le %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "Votre compte est maintenant plus sécurisé. Vous devrez saisir un code de vérification de votre application d'authentification lors de la connexion."
+  },
+  "email.mfa_enabled.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "Authentification à deux facteurs désactivée (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "text": "Authentification à deux facteurs désactivée"
+  },
+  "email.mfa_disabled.body": {
+    "text": "L'authentification à deux facteurs a été désactivée pour votre compte %{product_name} le %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "Votre compte est maintenant moins sécurisé. Si vous n'avez pas effectué ce changement, veuillez sécuriser votre compte immédiatement."
+  },
+  "email.mfa_disabled.signature": {
+    "text": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "text": "Nouvelle connexion à votre compte (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "text": "Nouvelle connexion détectée"
+  },
+  "email.new_login_alert.body": {
+    "text": "Une nouvelle connexion à votre compte %{product_name} a été détectée le %{date} à %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "text": "Appareil :"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "Localisation :"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "Adresse IP :"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "Si ce n'était pas vous, votre compte pourrait être compromis."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "Sécuriser votre compte"
+  },
+  "email.new_login_alert.signature": {
+    "text": "Delano"
+  },
+  "email.member_removed.subject": {
+    "text": "Vous avez été retiré de %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "text": "Vous avez été retiré de %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "text": "Vous avez été retiré de l'organisation « %{organization_name} » sur %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "text": "Delano"
+  },
+  "email.role_changed.subject": {
+    "text": "Votre rôle a été modifié dans %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "text": "Votre rôle a été modifié"
+  },
+  "email.role_changed.body": {
+    "text": "Votre rôle dans « %{organization_name} » a été modifié de %{old_role} à %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "text": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "text": "L'organisation « %{organization_name} » a été supprimée"
+  },
+  "email.organization_deleted.title": {
+    "text": "Organisation supprimée"
+  },
+  "email.organization_deleted.body": {
+    "text": "L'organisation « %{organization_name} » a été supprimée de %{product_name}. Toutes les données associées ont été supprimées."
+  },
+  "email.organization_deleted.signature": {
+    "text": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "text": "Reçu de paiement pour %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "text": "Reçu de paiement"
+  },
+  "email.payment_receipt.body": {
+    "text": "Merci pour votre paiement. Voici les détails de votre paiement :"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "Montant :"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "Date :"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "Forfait :"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "Consulter la facture"
+  },
+  "email.payment_receipt.signature": {
+    "text": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "text": "Échec du paiement pour %{product_name}"
+  },
+  "email.payment_failed.title": {
+    "text": "Échec du paiement"
+  },
+  "email.payment_failed.body": {
+    "text": "Nous n'avons pas pu traiter votre paiement pour %{product_name}. Veuillez mettre à jour votre mode de paiement pour éviter toute interruption de service."
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "Mettre à jour le mode de paiement"
+  },
+  "email.payment_failed.signature": {
+    "text": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "text": "Votre essai de %{product_name} expire dans %{days_remaining} jours"
+  },
+  "email.trial_expiring.title": {
+    "text": "Votre essai se termine bientôt"
+  },
+  "email.trial_expiring.body": {
+    "text": "Votre essai gratuit de %{product_name} expirera dans %{days_remaining} jours. Passez à un forfait payant maintenant pour conserver l'accès à toutes les fonctionnalités."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "Mettre à niveau maintenant"
+  },
+  "email.trial_expiring.signature": {
+    "text": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "text": "Votre abonnement à %{product_name} a été modifié"
+  },
+  "email.subscription_changed.title": {
+    "text": "Abonnement modifié"
+  },
+  "email.subscription_changed.body": {
+    "text": "Votre abonnement à %{product_name} a été changé de %{old_plan} à %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "Ce changement prend effet le %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "text": "Delano"
+  },
+  "email.common.greeting": {
+    "text": "Bonjour,"
+  },
+  "email.common.thanks": {
+    "text": "Cordialement,"
+  },
+  "email.common.unsubscribe": {
+    "text": "Se désabonner"
+  },
+  "email.common.view_in_browser": {
+    "text": "Afficher dans le navigateur"
+  },
+  "email.common.onetime_secret": {
+    "text": "Onetime Secret"
+  }
+}

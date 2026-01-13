@@ -1,0 +1,107 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "Datasuveränitet"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "Din data stannar i den region du väljer"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "Varje region är en helt separat miljö"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "Ingen data överförs mellan regioner"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "Att byta region skapar ett nytt konto"
+  },
+  "web.regions.your_region": {
+    "text": "Din region"
+  },
+  "web.regions.your_current_region": {
+    "text": "Din nuvarande region"
+  },
+  "web.regions.active": {
+    "text": "Aktiv"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "Utforska andra regioner"
+  },
+  "web.regions.why_it_matters": {
+    "text": "Varför det spelar roll"
+  },
+  "web.regions.trust_title": {
+    "text": "Förtroende"
+  },
+  "web.regions.trust_description": {
+    "text": "Din data hanteras enligt lokala lagar och förordningar"
+  },
+  "web.regions.privacy_title": {
+    "text": "Integritet"
+  },
+  "web.regions.privacy_description": {
+    "text": "Data stannar inom juridiska gränser du förstår"
+  },
+  "web.regions.compliance_title": {
+    "text": "Efterlevnad"
+  },
+  "web.regions.compliance_description": {
+    "text": "Uppfyll regulatoriska krav för din bransch"
+  },
+  "web.regions.performance_title": {
+    "text": "Prestanda"
+  },
+  "web.regions.performance_description": {
+    "text": "Snabbare åtkomst från datacenter nära dig"
+  },
+  "web.regions.regions": {
+    "text": "Regioner"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "kontakta vårt efterlevnadsteam"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "granska vår dokumentation"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "Ditt konto och dina data skyddas enligt lagar och förordningar i"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "Detta regelverk bestäms av din åtkomstdomän:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "Varje jurisdiktion upprätthåller separat juridisk efterlevnad och datastyrning. Även om du kan skapa konton i flera jurisdiktioner förblir de juridiskt åtskilda utan datadelning mellan regleringszoner."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "För att förstå de specifika regler och skydd som gäller för ditt konto, vänligen"
+  },
+  "web.regions.current": {
+    "text": "Nuvarande"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "Tillgängliga regioner"
+  },
+  "web.regions.jurisdiction": {
+    "text": "Jurisdiktion"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "Datacenterplats: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "Dataregion"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "Okänd jurisdiktion"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "Serverar dig från"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "Fortsätt till {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Nuvarande jurisdiktion:"
+  }
+}

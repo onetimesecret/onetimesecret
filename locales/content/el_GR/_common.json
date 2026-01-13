@@ -1,0 +1,1064 @@
+{
+  "web.COMMON.broadcast": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.tagline": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.powered_by": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.website_url": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "text": "Δημιουργία Κωδικού"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "text": "Η Δημιουργία Κωδικού είναι απενεργοποιημένη όταν η φόρμα είναι έγκυρη"
+  },
+  "web.COMMON.email_placeholder": {
+    "text": "π.χ. tom{'@'}myspace.com"
+  },
+  "web.COMMON.password_placeholder": {
+    "text": "Εισαγάγετε τον κωδικό πρόσβασής σας"
+  },
+  "web.COMMON.custom_domains_title": {
+    "text": "Προσαρμοσμένα Domain"
+  },
+  "web.COMMON.custom_domains_description": {
+    "text": "Ενισχύστε τις συνδέσεις και χτίστε εμπιστοσύνη με τους δικούς σας επώνυμους μυστικούς συνδέσμους."
+  },
+  "web.COMMON.get_started_button": {
+    "text": "Ξεκινήστε"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "text": "Επιβεβαιώστε τον κωδικό πρόσβασής σας"
+  },
+  "web.COMMON.header_settings": {
+    "text": "Ρυθμίσεις"
+  },
+  "web.COMMON.submit_with": {
+    "text": "Υποβολή"
+  },
+  "web.COMMON.submitting": {
+    "text": "Υποβάλλεται..."
+  },
+  "web.COMMON.processing": {
+    "text": "Επεξεργασία..."
+  },
+  "web.COMMON.description": {
+    "text": "Κρατήστε ευαίσθητες πληροφορίες μακριά από την αλληλογραφία και τις καταγεγγραμένες συζητήσεις σας. Μοιραστείτε μυστικούς συνδέσμους που διατίθενται μόνο μία φορά."
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "text": "Λανθασμένη φράση πρόσβασης"
+  },
+  "web.COMMON.keywords": {
+    "text": "μυστικό,γεννήτρια κωδικού πρόσβασης,διαμοιρασμός μυστικού,onetime"
+  },
+  "web.COMMON.button_create_secret": {
+    "text": "Δημιουργήστε ένα μυστικό σύνδεσμο"
+  },
+  "web.COMMON.button_generate_secret": {
+    "text": "Ή παράγετε ένα τυχαίο κωδικό πρόσβασης"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "text": "Επιλογές Ιδιωτικότητας"
+  },
+  "web.COMMON.secret_passphrase": {
+    "text": "Φράση Πρόσβασης"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "text": "Μία λέξη η φράση που είναι δύσκολο να μαντευτεί"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "text": "Διεύθυνση Παραλήπτη"
+  },
+  "web.COMMON.secret_placeholder": {
+    "text": "Γράψτε το μυστικό περιεχόμενο εδώ..."
+  },
+  "web.COMMON.header_create_account": {
+    "text": "Δημιουργία Λογαριασμού"
+  },
+  "web.COMMON.header_about": {
+    "text": "Σχετικά"
+  },
+  "web.COMMON.header_sign_in": {
+    "text": "Σύνδεση"
+  },
+  "web.COMMON.header_dashboard": {
+    "text": "Λογαριασμός"
+  },
+  "web.COMMON.header_logout": {
+    "text": "Αποσύνδεση"
+  },
+  "web.COMMON.secret": {
+    "text": "Μυστικό"
+  },
+  "web.COMMON.recent": {
+    "text": "Πρόσφατα"
+  },
+  "web.COMMON.received": {
+    "text": "Ελήφθη"
+  },
+  "web.COMMON.burn": {
+    "text": "Κάψιμο"
+  },
+  "web.COMMON.burned": {
+    "text": "Κάηκε"
+  },
+  "web.COMMON.expires_in": {
+    "text": "Λήγει σε"
+  },
+  "web.COMMON.burn_this_secret": {
+    "text": "Κάψτε αυτό το μυστικό"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "text": "Εάν κάψετε ένα μυστικό, διαγράφεται πριν διαβαστεί (πατήστε για επιβεβαίωση)"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "text": "Το κάψιμο ενός μυστικού είναι μόνιμο και δε μπορεί να αναιρεθεί"
+  },
+  "web.COMMON.msg_check_email": {
+    "text": "Ελέγξτε την αλληλογραφία σας"
+  },
+  "web.COMMON.click_to_continue": {
+    "text": "Επιλέξτε για συνέχεια →"
+  },
+  "web.COMMON.click_to_verify": {
+    "text": "Συνεχίστε για να επαληθεύσετε το λογαριασμό σας:"
+  },
+  "web.COMMON.error_secret": {
+    "text": "Δεν ορίσατε κάτι προς διαμοιρασμό"
+  },
+  "web.COMMON.error_passphrase": {
+    "text": "Ελέγξτε ξανά τη φράση πρόσβασης"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "text": "Εισαγάγετε τη φράση πρόσβασης εδώ"
+  },
+  "web.COMMON.view_secret": {
+    "text": "Προβολή Μυστικού"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "text": "προσοχή: θα το φανερώσουμε μόνο μια φορά."
+  },
+  "web.COMMON.warning": {
+    "text": "Προειδοποίηση"
+  },
+  "web.COMMON.oops": {
+    "text": "Ωχ!"
+  },
+  "web.COMMON.error": {
+    "text": "Σφάλμα"
+  },
+  "web.COMMON.unexpected_error": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.secret_was_truncated": {
+    "text": "Το μήνυμα κόπηκε επειδή ολοκληρώθηκε"
+  },
+  "web.COMMON.signup_for_more": {
+    "text": "Εγγραφείτε για περισσότερα"
+  },
+  "web.COMMON.login_to_your_account": {
+    "text": "Συνδεθείτε στο λογαριασμό σας"
+  },
+  "web.COMMON.sent_to": {
+    "text": "Εστάλει στο χρήστη: "
+  },
+  "web.COMMON.field_email": {
+    "text": "Αλληλογραφία"
+  },
+  "web.COMMON.field_password": {
+    "text": "Κωδικός Πρόσβασης"
+  },
+  "web.COMMON.field_password2": {
+    "text": "Επιβεβαίωση Κωδικού Πρόσβασης"
+  },
+  "web.COMMON.button_create_account": {
+    "text": "Δημιουργήστε Λογαριασμού"
+  },
+  "web.COMMON.share_a_secret": {
+    "text": "Μοιραστείτε ένα μυστικό"
+  },
+  "web.COMMON.title_home": {
+    "text": "Αρχική"
+  },
+  "web.COMMON.word_none": {
+    "text": "Άδειο"
+  },
+  "web.COMMON.word_burned": {
+    "text": "καμμένο"
+  },
+  "web.COMMON.word_received": {
+    "text": "ελήφθη"
+  },
+  "web.COMMON.word_confirm": {
+    "text": "Επιβεβαίωση"
+  },
+  "web.COMMON.word_cancel": {
+    "text": "Ακύρωση"
+  },
+  "web.COMMON.word_continue": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.word_done": {
+    "text": "Ολοκληρώθηκε"
+  },
+  "web.COMMON.back": {
+    "text": "Πίσω"
+  },
+  "web.COMMON.feedback_text": {
+    "text": "Έχετε κάποια απορία ή θέλετε να σχολιάσετε;"
+  },
+  "web.COMMON.button_send_feedback": {
+    "text": "Αποστολή"
+  },
+  "web.COMMON.verification_sent_to": {
+    "text": "Εστάλει επιβεβαίωση στο χρήστη"
+  },
+  "web.COMMON.autoverified_success": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.signup_success_generic": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "text": "Κάψτε αυτό το μυστικό μόνιμα"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "text": "Παρακαλώ Επιβεβαιώστε"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "text": "Είστε σίγουροι ότι θέλετε να κάψετε αυτό το μυστικό; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί."
+  },
+  "web.COMMON.confirm_burn": {
+    "text": "Ναι, κάψτε αυτό το μυστικό"
+  },
+  "web.COMMON.burn_security_notice": {
+    "text": "Το κάψιμο ενός μυστικού θα το διαγράψει πριν παραληφθεί."
+  },
+  "web.COMMON.share_link_securely": {
+    "text": "Για ασφάλεια, μοιραστείτε αυτόν τον σύνδεσμο ξεχωριστά από άλλες λεπτομέρειες."
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "text": "Αντιγράφηκε στο πρόχειρο"
+  },
+  "web.COMMON.button_create_incoming": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.faq_title": {
+    "text": "Συχνές Ερωτήσεις"
+  },
+  "web.COMMON.verification_not_valid": {
+    "text": "Η επαλήθευση δεν είναι έγκυρη"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "text": "Δεν είναι δυνατή η επαλήθευση λογαριασμού όταν είστε ήδη συνδεδεμένοι"
+  },
+  "web.COMMON.show_password": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.hide_password": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.minimum_8_characters": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.password_requirements": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.form_field_required": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.form_processing": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.remember_me_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.redirecting": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.continue": {
+    "text": "Συνέχεια"
+  },
+  "web.COMMON.are_you_sure": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.danger_zone": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.caution_zone": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.user_menu": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.security": {
+    "text": "Ασφάλεια"
+  },
+  "web.COMMON.manage": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.loading": {
+    "text": "Φόρτωση..."
+  },
+  "web.COMMON.save_changes": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.saving": {
+    "text": "Αποθήκευση..."
+  },
+  "web.COMMON.adding_ellipses": {
+    "text": "Προσθήκη..."
+  },
+  "web.COMMON.e_g_example": {
+    "text": "π.χ."
+  },
+  "web.COMMON.example_placeholder": {
+    "text": "π.χ. {example}"
+  },
+  "web.COMMON.status": {
+    "text": "Κατάσταση"
+  },
+  "web.COMMON.escape": {
+    "text": "Διαφυγή"
+  },
+  "web.COMMON.active": {
+    "text": "Ενεργό"
+  },
+  "web.COMMON.preview": {
+    "text": "Προεπισκόπηση"
+  },
+  "web.COMMON.remove": {
+    "text": "Αφαίρεση"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "text": "Πατήστε ESC για κλείσιμο"
+  },
+  "web.COMMON.enter": {
+    "text": "Είσοδος"
+  },
+  "web.COMMON.important": {
+    "text": "Σημαντικό"
+  },
+  "web.COMMON.language": {
+    "text": "Γλώσσα"
+  },
+  "web.COMMON.theme": {
+    "text": "Θέμα"
+  },
+  "web.COMMON.appearance": {
+    "text": "Εμφάνιση"
+  },
+  "web.COMMON.done": {
+    "text": "Ολοκληρώθηκε"
+  },
+  "web.COMMON.end": {
+    "text": "Τέλος"
+  },
+  "web.COMMON.general": {
+    "text": "Γενικά"
+  },
+  "web.COMMON.note": {
+    "text": "Σημείωση"
+  },
+  "web.COMMON.monthly": {
+    "text": "Μηνιαία"
+  },
+  "web.COMMON.yearly": {
+    "text": "Ετήσια"
+  },
+  "web.COMMON.go_on_then": {
+    "text": "Προχώρα λοιπόν."
+  },
+  "web.COMMON.loading_ellipses": {
+    "text": "Φόρτωση..."
+  },
+  "web.COMMON.not_received": {
+    "text": "ΔΕΝ ΕΛΗΦΘΗ"
+  },
+  "web.COMMON.confirm_password": {
+    "text": "Επιβεβαίωση κωδικού πρόσβασης"
+  },
+  "web.COMMON.new_password": {
+    "text": "Νέος κωδικός πρόσβασης"
+  },
+  "web.COMMON.email_address": {
+    "text": "Διεύθυνση email"
+  },
+  "web.COMMON.switch": {
+    "text": "εναλλαγή"
+  },
+  "web.COMMON.features": {
+    "text": "Χαρακτηριστικά"
+  },
+  "web.COMMON.not_found": {
+    "text": "Δεν βρέθηκε"
+  },
+  "web.COMMON.emoji_x": {
+    "text": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "text": "✅"
+  },
+  "web.COMMON.supported": {
+    "text": "Υποστηρίζεται"
+  },
+  "web.COMMON.version": {
+    "text": "Έκδοση"
+  },
+  "web.COMMON.other": {
+    "text": "Άλλο"
+  },
+  "web.COMMON.min_width_1024px": {
+    "text": "(ελάχιστο πλάτος: 1024px)"
+  },
+  "web.COMMON.ctrl_enter": {
+    "text": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "text": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "text": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "text": "Η διεύθυνση email αντιγράφηκε στο πρόχειρο!"
+  },
+  "web.COMMON.value": {
+    "text": "Τιμή"
+  },
+  "web.COMMON.host": {
+    "text": "Κεντρικός Υπολογιστής"
+  },
+  "web.COMMON.type": {
+    "text": "Τύπος"
+  },
+  "web.COMMON.previous": {
+    "text": "Προηγούμενο"
+  },
+  "web.COMMON.next": {
+    "text": "Επόμενο"
+  },
+  "web.COMMON.password_strength": {
+    "text": "Ισχύς Κωδικού Πρόσβασης:"
+  },
+  "web.COMMON.great": {
+    "text": "Εξαιρετική"
+  },
+  "web.COMMON.pretty_good": {
+    "text": "Αρκετά καλή"
+  },
+  "web.COMMON.fair": {
+    "text": "Μέτρια"
+  },
+  "web.COMMON.meh": {
+    "text": "Έτσι κι έτσι"
+  },
+  "web.COMMON.not_great": {
+    "text": "Όχι καλή"
+  },
+  "web.COMMON.open_options": {
+    "text": "Άνοιγμα επιλογών"
+  },
+  "web.COMMON.inactive": {
+    "text": "Ανενεργό"
+  },
+  "web.COMMON.an_error_occurred": {
+    "text": "Παρουσιάστηκε σφάλμα"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "text": "Αντιγραφή μυστικού στο πρόχειρο"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "text": "Το μυστικό αντιγράφηκε στο πρόχειρο"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "text": "Ελέγξτε ξανά αυτή τη φράση πρόσβασης"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "text": "Πατήστε το παρακάτω κουμπί αντιγραφής."
+  },
+  "web.LABELS.view_toggle.show": {
+    "text": "Εμφάνιση"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "text": "Απόκρυψη"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "text": "Εμφάνιση Περισσότερων"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "text": "Εμφάνιση Λιγότερων"
+  },
+  "web.LABELS.enable": {
+    "text": "Ενεργοποίηση"
+  },
+  "web.LABELS.disable": {
+    "text": "Απενεργοποίηση"
+  },
+  "web.LABELS.stats": {
+    "text": "Στατιστικά"
+  },
+  "web.LABELS.timeline": {
+    "text": "Χρονολόγιο"
+  },
+  "web.LABELS.lifespan": {
+    "text": "Διάρκεια Ζωής"
+  },
+  "web.LABELS.expiration_time": {
+    "text": "Χρόνος Λήξης"
+  },
+  "web.LABELS.close": {
+    "text": "Κλείσιμο"
+  },
+  "web.LABELS.loading": {
+    "text": "Φόρτωση..."
+  },
+  "web.LABELS.cancel": {
+    "text": "Ακύρωση"
+  },
+  "web.LABELS.saving": {
+    "text": "Αποθήκευση..."
+  },
+  "web.LABELS.saved": {
+    "text": "Αποθηκεύτηκε"
+  },
+  "web.LABELS.save": {
+    "text": "Αποθήκευση"
+  },
+  "web.LABELS.save_all": {
+    "text": "Αποθήκευση Όλων"
+  },
+  "web.LABELS.details": {
+    "text": "Λεπτομέρειες"
+  },
+  "web.LABELS.encrypted": {
+    "text": "Κρυπτογραφημένο"
+  },
+  "web.LABELS.secret_status": {
+    "text": "Κατάσταση Μυστικού"
+  },
+  "web.LABELS.need_help": {
+    "text": "Χρειάζεστε βοήθεια;"
+  },
+  "web.LABELS.create_new_secret": {
+    "text": "Δημιουργία Νέου Μυστικού"
+  },
+  "web.LABELS.actions": {
+    "text": "Ενέργειες"
+  },
+  "web.LABELS.no_passphrase": {
+    "text": "Δεν Απαιτείται Φράση Πρόσβασης"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "text": "Αντιγραφή στο πρόχειρο"
+  },
+  "web.LABELS.receipts": {
+    "text": "Αποδείξεις"
+  },
+  "web.LABELS.share": {
+    "text": "Κοινοποίηση"
+  },
+  "web.LABELS.secret_link": {
+    "text": "Μυστικός Σύνδεσμος"
+  },
+  "web.LABELS.dismiss": {
+    "text": "Παράβλεψη"
+  },
+  "web.LABELS.security_details": {
+    "text": "Λεπτομέρειες Ασφαλείας"
+  },
+  "web.LABELS.items_count": {
+    "text": "{count} Στοιχεία"
+  },
+  "web.LABELS.recipients_count": {
+    "text": "{count} Παραλήπτες"
+  },
+  "web.LABELS.view": {
+    "text": "Προβολή"
+  },
+  "web.LABELS.views": {
+    "text": "Προβολές"
+  },
+  "web.LABELS.times_viewed": {
+    "text": "φορές προβλήθηκε"
+  },
+  "web.LABELS.view_progress": {
+    "text": "Πρόοδος Προβολής"
+  },
+  "web.LABELS.help_section": {
+    "text": "Ενότητα Βοήθειας"
+  },
+  "web.LABELS.passphrase_protected": {
+    "text": "Προστατεύεται με φράση πρόσβασης"
+  },
+  "web.LABELS.feedback_received": {
+    "text": "Τα σχόλια ελήφθησαν."
+  },
+  "web.LABELS.sending_ellipses": {
+    "text": "Αποστολή..."
+  },
+  "web.LABELS.title_recent_secrets": {
+    "text": "Πρόσφατα Μυστικά"
+  },
+  "web.LABELS.pricing": {
+    "text": "Τιμολόγηση"
+  },
+  "web.LABELS.refresh": {
+    "text": "Ανανέωση"
+  },
+  "web.LABELS.reload": {
+    "text": "Επαναφόρτωση"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "text": "Μυστικοί σύνδεσμοι που δημιουργήθηκαν σε αυτή τη συνεδρία"
+  },
+  "web.LABELS.create_link_short": {
+    "text": "Δημιουργία Συνδέσμου"
+  },
+  "web.LABELS.create_link": {
+    "text": "Δημιουργία Μυστικού Συνδέσμου"
+  },
+  "web.LABELS.create_request_short": {
+    "text": "Δημιουργία Αιτήματος"
+  },
+  "web.LABELS.create_request": {
+    "text": "Δημιουργία Συνδέσμου Αιτήματος"
+  },
+  "web.LABELS.related_settings": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.LABELS.creating_links_for": {
+    "text": "Δημιουργία συνδέσμων για"
+  },
+  "web.LABELS.scope_indicator": {
+    "text": "Δημιουργία μυστικών στο {domain}"
+  },
+  "web.STATUS.new": {
+    "text": "Νέο"
+  },
+  "web.STATUS.unread": {
+    "text": "Μη αναγνωσμένο"
+  },
+  "web.STATUS.viewed": {
+    "text": "Ο σύνδεσμος ανοίχτηκε"
+  },
+  "web.STATUS.received": {
+    "text": "Ελήφθη"
+  },
+  "web.STATUS.burned": {
+    "text": "Κάηκε"
+  },
+  "web.STATUS.destroyed": {
+    "text": "Καταστράφηκε"
+  },
+  "web.STATUS.expiring_soon": {
+    "text": "Λήγει Σύντομα"
+  },
+  "web.STATUS.created": {
+    "text": "Δημιουργήθηκε"
+  },
+  "web.STATUS.expires": {
+    "text": "Λήγει"
+  },
+  "web.STATUS.expired": {
+    "text": "Έληξε"
+  },
+  "web.STATUS.orphaned": {
+    "text": "Ορφανό"
+  },
+  "web.STATUS.secured": {
+    "text": "Ασφαλίστηκε"
+  },
+  "web.STATUS.securing": {
+    "text": "Ασφαλίζεται"
+  },
+  "web.STATUS.copied": {
+    "text": "Αντιγράφηκε"
+  },
+  "web.STATUS.time_remaining": {
+    "text": "Υπολειπόμενος Χρόνος"
+  },
+  "web.STATUS.new_description": {
+    "text": "Ο μυστικός σύνδεσμος δημιουργήθηκε και δεν έχει προβληθεί ακόμα"
+  },
+  "web.STATUS.unread_description": {
+    "text": "Ο μυστικός σύνδεσμος δημιουργήθηκε και δεν έχει προβληθεί"
+  },
+  "web.STATUS.viewed_description": {
+    "text": "Ο μυστικός σύνδεσμος έχει ανοιχτεί και είναι έτοιμος για προβολή"
+  },
+  "web.STATUS.received_description": {
+    "text": "Το μυστικό αποκαλύφθηκε στον παραλήπτη"
+  },
+  "web.STATUS.burned_description": {
+    "text": "Το μυστικό κάηκε χειροκίνητα πριν προβληθεί"
+  },
+  "web.STATUS.destroyed_description": {
+    "text": "Το μυστικό καταστράφηκε μόνιμα"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "text": "Το μυστικό θα λήξει σύντομα"
+  },
+  "web.STATUS.orphaned_description": {
+    "text": "Το μυστικό έχει μείνει ορφανό και θα καταστραφεί σύντομα"
+  },
+  "web.STATUS.expired_description": {
+    "text": "Το μυστικό έληξε πριν προβληθεί"
+  },
+  "web.STATUS.success": {
+    "text": "Επιτυχία"
+  },
+  "web.STATUS.delivered": {
+    "text": "Παραδόθηκε"
+  },
+  "web.STATUS.dns_incorrect": {
+    "text": "Λανθασμένο DNS"
+  },
+  "web.STATUS.active": {
+    "text": "Ενεργό"
+  },
+  "web.STATUS.inactive": {
+    "text": "Ανενεργό"
+  },
+  "web.FEATURES.unlimited_views": {
+    "text": "Απεριόριστες Προβολές"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "text": "Επωνυμία αξιόπιστου domain"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "text": "Κρυπτογραφημένο κατά τη μεταφορά και σε αδράνεια"
+  },
+  "web.UNITS.ttl.duration": {
+    "text": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "text": "ημέρα | ημέρες"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "text": "ώρα | ώρες"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "text": "λεπτό | λεπτά"
+  },
+  "web.UNITS.ttl.time.second": {
+    "text": "δευτερόλεπτο | δευτερόλεπτα"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "text": "{count} {unit} απομένουν"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "text": "ημέρα απομένει | ημέρες απομένουν"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "text": "ώρα απομένει | ώρες απομένουν"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "text": "λεπτό απομένει | λεπτά απομένουν"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "text": "δευτερόλεπτο απομένει | δευτερόλεπτα απομένουν"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.limited_views": {
+    "text": "Όριο {count} προβολών"
+  },
+  "web.UNITS.days_remaining": {
+    "text": "{count} Ημέρες Απομένουν"
+  },
+  "web.UNITS.hours_remaining": {
+    "text": "{count} Ώρες Απομένουν"
+  },
+  "web.UNITS.minutes_remaining": {
+    "text": "{count} Λεπτά Απομένουν"
+  },
+  "web.TITLES.incoming": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.feedback": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.signin": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.signup": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.forgot_password": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.reset_password": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.logout": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.verify_account": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.mfa_verify": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.email_login": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.accept_invitation": {
+    "text": "Αποδοχή Πρόσκλησης"
+  },
+  "web.TITLES.secret": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.metadata": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.receipt": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.burn_secret": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.dashboard": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.recent": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.domains": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.domain_add": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.domain_verify": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.domain_brand": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.account": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.data_region": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.current_region": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.available_regions": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.profile_settings": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.preferences_settings": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.privacy_settings": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.notification_settings": {
+    "text": "Ειδοποιήσεις"
+  },
+  "web.TITLES.change_email": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.security_overview": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.change_password": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.mfa_settings": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.active_sessions": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.recovery_codes": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.api_settings": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.advanced_settings": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.system_settings": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.not_found": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.organizations_settings": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.TITLES.organization_settings": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "text": "Η εστίαση βρίσκεται τώρα στην κύρια περιοχή κειμένου"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "text": "Οδηγίες Κοινοποίησης"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "text": "Μοιραστείτε τον σύνδεσμο με τον προβλεπόμενο παραλήπτη"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "text": "Μοιραστείτε τη φράση πρόσβασης ξεχωριστά μέσω ενός ασφαλούς καναλιού"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "text": "Χρησιμοποιήστε ένα διαφορετικό ασφαλές κανάλι για να μοιραστείτε ευαίσθητες πληροφορίες"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  }
+}

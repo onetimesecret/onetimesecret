@@ -1,0 +1,245 @@
+{
+  "web.colonel.customer_secrets_created_customer_secrets_shared_0": {
+    "text": "{0}/{1}/{2} [{3}]"
+  },
+  "web.colonel.customer_verified_verified_not_verified_0": {
+    "text": "`+customer.verified ? `zweryfikowany` : `niezweryfikowany`"
+  },
+  "web.colonel.customers_details_counts_recent_customer_count_o_0": {
+    "text": "Klienci ({0} z {1})"
+  },
+  "web.colonel.user_feedback_total_details_counts_feedback_coun_0": {
+    "text": "Opinie użytkowników (Łącznie: {0})"
+  },
+  "web.colonel.metadata_secrets_details_counts_metadata_count_d_0": {
+    "text": "Metadane / Wiadomości: {0}/{1} (łącznie {2}/{3}/{4})"
+  },
+  "web.colonel.secrets_details_counts_secret_count_0": {
+    "text": "Wiadomości ({0})"
+  },
+  "web.colonel.active_in_the_past_5_minutes_0": {
+    "text": "(aktywny w ciągu ostatnich 5 minut)"
+  },
+  "web.colonel.configEditorTitle": {
+    "text": "Ustawienia"
+  },
+  "web.colonel.configEditorDescription": {
+    "text": "Edytuj ustawienia konfiguracji systemowej. Zmiany są stosowane natychmiast po zapisaniu."
+  },
+  "web.colonel.invalidJson": {
+    "text": "Nieprawidłowy JSON w sekcji {section}"
+  },
+  "web.colonel.validationError": {
+    "text": "Błąd walidacji"
+  },
+  "web.colonel.errorFetchingConfig": {
+    "text": "Błąd ładowania konfiguracji"
+  },
+  "web.colonel.errorSavingConfig": {
+    "text": "Błąd zapisywania konfiguracji"
+  },
+  "web.colonel.configSaved": {
+    "text": "Konfiguracja zapisana pomyślnie"
+  },
+  "web.colonel.mustBeObject": {
+    "text": "Konfiguracja musi być obiektem JSON"
+  },
+  "web.colonel.multipleSectionsInvalid": {
+    "text": "Wiele sekcji ma błędy walidacji: {sections}"
+  },
+  "web.colonel.sectionHasError": {
+    "text": "{section} ma błędy walidacji: {error}"
+  },
+  "web.colonel.sectionSaved": {
+    "text": "{section} zapisano pomyślnie"
+  },
+  "web.colonel.saveSection": {
+    "text": "Zapisz {section}"
+  },
+  "web.colonel.saveAll": {
+    "text": "Zapisz wszystko"
+  },
+  "web.colonel.unsavedChanges": {
+    "text": "Niezapisane zmiany"
+  },
+  "web.colonel.schemaValidationError": {
+    "text": "Błąd walidacji schematu: {message} ({path})"
+  },
+  "web.colonel.unknownValidationError": {
+    "text": "Nieznany błąd walidacji: {error}"
+  },
+  "web.colonel.sectionEffectivelyEmpty": {
+    "text": "Sekcja {section} nie ma skonfigurowanych wartości"
+  },
+  "web.colonel.dashboard": {
+    "text": "Panel"
+  },
+  "web.colonel.admin": {
+    "text": "Admin"
+  },
+  "web.colonel.activity": {
+    "text": "Aktywność"
+  },
+  "web.colonel.accounts": {
+    "text": "Konta"
+  },
+  "web.colonel.users": {
+    "text": "Użytkownicy"
+  },
+  "web.colonel.usersDescription": {
+    "text": "Zarządzaj kontami użytkowników i uprawnieniami"
+  },
+  "web.colonel.domains": {
+    "text": "Domeny"
+  },
+  "web.colonel.settings": {
+    "text": "Ustawienia"
+  },
+  "web.colonel.system": {
+    "text": "System"
+  },
+  "web.colonel.welcome": {
+    "text": "Witaj w Colonel"
+  },
+  "web.colonel.welcomeDesc": {
+    "text": "Panel kontrolny administracyjny OneTimeSecret"
+  },
+  "web.colonel.quickActions": {
+    "text": "Szybkie działania"
+  },
+  "web.colonel.recentActivity": {
+    "text": "Ostatnia aktywność"
+  },
+  "web.colonel.viewAll": {
+    "text": "Wyświetl wszystko"
+  },
+  "web.colonel.activityPlaceholder": {
+    "text": "Dane aktywności będą wyświetlane tutaj"
+  },
+  "web.colonel.stats.totalSecrets": {
+    "text": "Łączna liczba sekretów"
+  },
+  "web.colonel.stats.activeUsers": {
+    "text": "Aktywni użytkownicy"
+  },
+  "web.colonel.stats.secretsToday": {
+    "text": "Sekrety dzisiaj"
+  },
+  "web.colonel.stats.secretsCreated": {
+    "text": "Utworzone sekrety"
+  },
+  "web.colonel.stats.secretsShared": {
+    "text": "Udostępnione sekrety"
+  },
+  "web.colonel.stats.totalCustomers": {
+    "text": "Łączna liczba klientów"
+  },
+  "web.colonel.stats.emailsSent": {
+    "text": "Wysłane e-maile"
+  },
+  "web.colonel.stats.systemHealth": {
+    "text": "Stan systemu"
+  },
+  "web.colonel.stats.healthy": {
+    "text": "Zdrowy"
+  },
+  "web.colonel.actions.viewActivity": {
+    "text": "Wyświetl aktywność"
+  },
+  "web.colonel.actions.viewActivityDesc": {
+    "text": "Monitoruj aktywność i użycie systemu"
+  },
+  "web.colonel.actions.manageAccounts": {
+    "text": "Zarządzaj kontami"
+  },
+  "web.colonel.actions.manageAccountsDesc": {
+    "text": "Administracja kontami użytkowników"
+  },
+  "web.colonel.actions.configureDomains": {
+    "text": "Konfiguruj domeny"
+  },
+  "web.colonel.actions.configureDomainsDesc": {
+    "text": "Ustawienia domen i DNS"
+  },
+  "web.colonel.actions.systemSettings": {
+    "text": "Ustawienia systemowe"
+  },
+  "web.colonel.actions.systemSettingsDesc": {
+    "text": "Konfiguracja aplikacji"
+  },
+  "web.colonel.backgroundJobs": {
+    "text": "Zadania w tle"
+  },
+  "web.colonel.queueStatus": {
+    "text": "Status kolejki"
+  },
+  "web.colonel.queueName": {
+    "text": "Kolejka"
+  },
+  "web.colonel.pendingMessages": {
+    "text": "Oczekujące"
+  },
+  "web.colonel.consumers": {
+    "text": "Konsumenci"
+  },
+  "web.colonel.processingRate": {
+    "text": "Tempo/sek."
+  },
+  "web.colonel.connectionStatus": {
+    "text": "Status połączenia"
+  },
+  "web.colonel.workerHealth": {
+    "text": "Stan procesów roboczych"
+  },
+  "web.colonel.activeWorkers": {
+    "text": "aktywne procesy robocze"
+  },
+  "web.colonel.noQueueData": {
+    "text": "Brak dostępnych danych kolejki"
+  },
+  "web.colonel.loadingQueueData": {
+    "text": "Ładowanie danych kolejki..."
+  },
+  "web.colonel.testPlanMode": {
+    "text": "Tryb planu testowego"
+  },
+  "web.colonel.testingAsPlan": {
+    "text": "Testowanie jako {planName}"
+  },
+  "web.colonel.clickToReset": {
+    "text": "Kliknij, aby zresetować"
+  },
+  "web.colonel.selectTestPlan": {
+    "text": "Wybierz plan do testowania"
+  },
+  "web.colonel.resetToActual": {
+    "text": "Resetuj do aktualnego planu"
+  },
+  "web.colonel.currentActualPlan": {
+    "text": "Obecny plan"
+  },
+  "web.colonel.availablePlans": {
+    "text": "Dostępne plany"
+  },
+  "web.colonel.activateTestMode": {
+    "text": "Aktywuj tryb testowy"
+  },
+  "web.colonel.testModeActive": {
+    "text": "Tryb testowy aktywny"
+  },
+  "web.colonel.testModeDescription": {
+    "text": "Przetestuj aplikację z różnymi uprawnieniami planów. Zmiany są tymczasowe i dotyczą tylko Twojej sesji."
+  },
+  "web.colonel.warningTestMode": {
+    "text": "Testujesz z uprawnieniami {planName} (tymczasowe nadpisanie sesji)."
+  },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "Gdy prześlesz opinię, zobaczymy:"
+  },
+  "web.feedback.send_feedback": {
+    "text": "Wyślij opinię"
+  },
+  "web.feedback.sending_ellipses": {
+    "text": "Wysyłanie..."
+  }
+}

@@ -1,0 +1,398 @@
+{
+  "web.organizations.title": {
+    "text": "Организация"
+  },
+  "web.organizations.organization": {
+    "text": "Организация"
+  },
+  "web.organizations.organization_plural": {
+    "text": "Организации"
+  },
+  "web.organizations.organizations_description": {
+    "text": "Управлявайте вашите организации"
+  },
+  "web.organizations.my_organizations": {
+    "text": "Моите организации"
+  },
+  "web.organizations.manage_organizations": {
+    "text": "Управление на организации"
+  },
+  "web.organizations.new_organization": {
+    "text": "Нова организация"
+  },
+  "web.organizations.no_organizations": {
+    "text": "Все още няма организации"
+  },
+  "web.organizations.no_organizations_description": {
+    "text": "Организациите ви позволяват да управлявате множество екипи с унифицирано фактуриране и администриране. Започнете, като създадете първата си организация."
+  },
+  "web.organizations.no_description": {
+    "text": "Не е предоставено описание"
+  },
+  "web.organizations.default": {
+    "text": "По подразбиране"
+  },
+  "web.organizations.create_organization": {
+    "text": "Създай организация"
+  },
+  "web.organizations.create_first_organization": {
+    "text": "Създай първа организация"
+  },
+  "web.organizations.create_organization_description": {
+    "text": "Създайте нова организация за групиране на вашите екипи"
+  },
+  "web.organizations.create": {
+    "text": "Създай"
+  },
+  "web.organizations.create_error": {
+    "text": "Неуспешно създаване на организация"
+  },
+  "web.organizations.organization_name": {
+    "text": "Име на организацията"
+  },
+  "web.organizations.organization_name_placeholder": {
+    "text": "напр. Акме Корпорейшън"
+  },
+  "web.organizations.display_name": {
+    "text": "Име на организацията"
+  },
+  "web.organizations.description": {
+    "text": "Описание"
+  },
+  "web.organizations.description_placeholder": {
+    "text": "За какво е тази организация?"
+  },
+  "web.organizations.contact_email": {
+    "text": "Имейл за фактуриране"
+  },
+  "web.organizations.contact_email_help": {
+    "text": "Основна контакт за фактуриране и административни известия"
+  },
+  "web.organizations.billing_managed_by_default": {
+    "text": "Управлението на фактуриране и абонамент се извършва чрез основното ви работно пространство. Посетете настройките на основното си работно пространство, за да управлявате методи на плащане и фактури."
+  },
+  "web.organizations.select_organization": {
+    "text": "Изберете организация"
+  },
+  "web.organizations.switcher_locked": {
+    "text": "Превключването на организация не е налично на тази страница"
+  },
+  "web.organizations.not_found": {
+    "text": "Организацията не е намерена"
+  },
+  "web.organizations.load_error": {
+    "text": "Неуспешно зареждане на организация"
+  },
+  "web.organizations.fetch_organization_error": {
+    "text": "Неуспешно зареждане на организация"
+  },
+  "web.organizations.fetch_organizations_error": {
+    "text": "Неуспешно зареждане на организации"
+  },
+  "web.organizations.organization_information": {
+    "text": "Информация за организацията"
+  },
+  "web.organizations.created": {
+    "text": "Създадена"
+  },
+  "web.organizations.last_updated": {
+    "text": "Последна актуализация"
+  },
+  "web.organizations.organization_settings": {
+    "text": "Настройки на организацията"
+  },
+  "web.organizations.organization_settings_description": {
+    "text": "Актуализирайте името и описанието на вашата организация"
+  },
+  "web.organizations.general_settings": {
+    "text": "Общи настройки"
+  },
+  "web.organizations.billing_settings": {
+    "text": "Фактуриране и абонамент"
+  },
+  "web.organizations.save_changes": {
+    "text": "Запази промените"
+  },
+  "web.organizations.update_success": {
+    "text": "Организацията е актуализирана успешно"
+  },
+  "web.organizations.update_error": {
+    "text": "Неуспешна актуализация на организацията"
+  },
+  "web.organizations.billing_coming_soon": {
+    "text": "Интеграция за фактуриране очаквайте скоро"
+  },
+  "web.organizations.billing_coming_soon_description": {
+    "text": "Унифицирано фактуриране и управление на абонаменти за всички екипи в тази организация ще бъдат налични в бъдещо издание."
+  },
+  "web.organizations.about_title": {
+    "text": "За организациите"
+  },
+  "web.organizations.about_description": {
+    "text": "Организациите предоставят унифицирано фактуриране и администриране за множество екипи. Те са опционални - екипите могат да съществуват независимо или да бъдат групирани под организация за централизирано управление."
+  },
+  "web.organizations.single_user_info_title": {
+    "text": "Управлявайте вашата организация"
+  },
+  "web.organizations.single_user_info_description": {
+    "text": "Актуализирайте името на вашата компания и детайлите за организацията тук. Тази информация помага за персонализиране на вашия акаунт и може да се използва за функции за брандиране в бъдеще."
+  },
+  "web.organizations.getting_started_title": {
+    "text": "Първи стъпки с организациите"
+  },
+  "web.organizations.getting_started_description": {
+    "text": "Създайте първата си организация, за да управлявате информацията за вашата компания и да се подготвите за бъдещи функции за сътрудничество в екип и брандиране."
+  },
+  "web.organizations.page_description": {
+    "text": "Управлявайте вашите организации и членове на екипа"
+  },
+  "web.organizations.tabs.general": {
+    "text": "Общи"
+  },
+  "web.organizations.tabs.company_branding": {
+    "text": "Корпоративен брандинг"
+  },
+  "web.organizations.tabs.members": {
+    "text": "Екип"
+  },
+  "web.organizations.tabs.billing": {
+    "text": "Фактуриране"
+  },
+  "web.organizations.danger_zone": {
+    "text": "Опасна зона"
+  },
+  "web.organizations.delete_organization": {
+    "text": "Изтрий организация"
+  },
+  "web.organizations.delete_organization_warning": {
+    "text": "Това ще изтрие перманентно организацията и всички свързани екипи. Това действие не може да бъде отменено."
+  },
+  "web.organizations.delete": {
+    "text": "Изтрий"
+  },
+  "web.organizations.delete_organization_confirm_title": {
+    "text": "Изтрий организация"
+  },
+  "web.organizations.delete_organization_confirm_message": {
+    "text": "Сигурни ли сте, че искате да изтриете {name}? Това действие не може да бъде отменено."
+  },
+  "web.organizations.delete_error": {
+    "text": "Неуспешно изтриване на организация"
+  },
+  "web.organizations.members.title": {
+    "text": "Членове"
+  },
+  "web.organizations.members.description": {
+    "text": "Управление на членове на организацията и техните роли"
+  },
+  "web.organizations.members.current_members": {
+    "text": "Текущи членове"
+  },
+  "web.organizations.members.member": {
+    "text": "Член"
+  },
+  "web.organizations.members.member_singular": {
+    "text": "member"
+  },
+  "web.organizations.members.member_plural": {
+    "text": "members"
+  },
+  "web.organizations.members.name": {
+    "text": "Име"
+  },
+  "web.organizations.members.email": {
+    "text": "Имейл"
+  },
+  "web.organizations.members.role": {
+    "text": "Роля"
+  },
+  "web.organizations.members.joined": {
+    "text": "Присъединил се"
+  },
+  "web.organizations.members.actions": {
+    "text": "Действия"
+  },
+  "web.organizations.members.no_members": {
+    "text": "Не са намерени членове"
+  },
+  "web.organizations.members.no_members_description": {
+    "text": "Тази организация все още няма членове."
+  },
+  "web.organizations.members.role_updated": {
+    "text": "Ролята на члена е актуализирана успешно"
+  },
+  "web.organizations.members.role_update_error": {
+    "text": "Неуспешна актуализация на ролята на члена"
+  },
+  "web.organizations.members.member_removed": {
+    "text": "Членът е премахнат от организацията"
+  },
+  "web.organizations.members.member_remove_error": {
+    "text": "Неуспешно премахване на член"
+  },
+  "web.organizations.members.remove_member_title": {
+    "text": "Премахни член"
+  },
+  "web.organizations.members.remove_member_confirm": {
+    "text": "Сигурни ли сте, че искате да премахнете {name} от тази организация?"
+  },
+  "web.organizations.members.cannot_change_own_role": {
+    "text": "Не можете да промените собствената си роля"
+  },
+  "web.organizations.members.cannot_remove_self": {
+    "text": "Не можете да премахнете себе си от организацията"
+  },
+  "web.organizations.members.cannot_remove_owner": {
+    "text": "Не можете да премахнете собственика на организацията"
+  },
+  "web.organizations.members.insufficient_permissions": {
+    "text": "Нямате права да управлявате членове"
+  },
+  "web.organizations.members.roles.owner": {
+    "text": "Собственик"
+  },
+  "web.organizations.members.roles.admin": {
+    "text": "Администратор"
+  },
+  "web.organizations.members.roles.member": {
+    "text": "Член"
+  },
+  "web.organizations.members.role_descriptions.owner": {
+    "text": "Пълен достъп до всички настройки на организацията и членове"
+  },
+  "web.organizations.members.role_descriptions.admin": {
+    "text": "Може да управлява членове и повечето настройки на организацията"
+  },
+  "web.organizations.members.role_descriptions.member": {
+    "text": "Основен достъп до ресурсите на организацията"
+  },
+  "web.organizations.invitations.title": {
+    "text": "Покани за организацията"
+  },
+  "web.organizations.invitations.invite_member": {
+    "text": "Покани член"
+  },
+  "web.organizations.invitations.invite_new_member": {
+    "text": "Покани нов член"
+  },
+  "web.organizations.invitations.pending_invitations": {
+    "text": "Чакащи покани"
+  },
+  "web.organizations.invitations.no_pending_invitations": {
+    "text": "Няма чакащи покани"
+  },
+  "web.organizations.invitations.email_address": {
+    "text": "Имейл адрес"
+  },
+  "web.organizations.invitations.email_placeholder": {
+    "text": "член@example.com"
+  },
+  "web.organizations.invitations.role": {
+    "text": "Роля"
+  },
+  "web.organizations.invitations.send_invite": {
+    "text": "Изпрати покана"
+  },
+  "web.organizations.invitations.invite_sent": {
+    "text": "Поканата е изпратена успешно"
+  },
+  "web.organizations.invitations.invite_error": {
+    "text": "Неуспешно изпращане на покана"
+  },
+  "web.organizations.invitations.resend": {
+    "text": "Изпрати отново"
+  },
+  "web.organizations.invitations.revoke": {
+    "text": "Оттегли"
+  },
+  "web.organizations.invitations.resend_success": {
+    "text": "Поканата е изпратена отново успешно"
+  },
+  "web.organizations.invitations.resend_error": {
+    "text": "Неуспешно повторно изпращане на покана"
+  },
+  "web.organizations.invitations.revoke_success": {
+    "text": "Поканата е оттеглена успешно"
+  },
+  "web.organizations.invitations.revoke_error": {
+    "text": "Неуспешно оттегляне на покана"
+  },
+  "web.organizations.invitations.invited_by": {
+    "text": "Поканен от"
+  },
+  "web.organizations.invitations.invited_at": {
+    "text": "Поканен"
+  },
+  "web.organizations.invitations.expires_at": {
+    "text": "Изтича"
+  },
+  "web.organizations.invitations.resent_count": {
+    "text": "Изпратена отново {count} път"
+  },
+  "web.organizations.invitations.resent_count_plural": {
+    "text": "Изпратена отново {count} пъти"
+  },
+  "web.organizations.invitations.status.pending": {
+    "text": "Чакаща"
+  },
+  "web.organizations.invitations.status.accepted": {
+    "text": "Приета"
+  },
+  "web.organizations.invitations.status.declined": {
+    "text": "Отхвърлена"
+  },
+  "web.organizations.invitations.status.expired": {
+    "text": "Изтекла"
+  },
+  "web.organizations.invitations.roles.member": {
+    "text": "Член"
+  },
+  "web.organizations.invitations.roles.admin": {
+    "text": "Администратор"
+  },
+  "web.organizations.invitations.accept_invitation": {
+    "text": "Приемане на покана"
+  },
+  "web.organizations.invitations.decline_invitation": {
+    "text": "Отхвърляне на покана"
+  },
+  "web.organizations.invitations.invitation_details": {
+    "text": "Детайли за поканата"
+  },
+  "web.organizations.invitations.you_are_invited": {
+    "text": "Поканени сте да се присъедините към"
+  },
+  "web.organizations.invitations.invited_as": {
+    "text": "Поканени сте като"
+  },
+  "web.organizations.invitations.accept_success": {
+    "text": "Поканата е приета успешно"
+  },
+  "web.organizations.invitations.accept_error": {
+    "text": "Неуспешно приемане на покана"
+  },
+  "web.organizations.invitations.decline_success": {
+    "text": "Поканата е отхвърлена"
+  },
+  "web.organizations.invitations.decline_error": {
+    "text": "Неуспешно отхвърляне на покана"
+  },
+  "web.organizations.invitations.expired_message": {
+    "text": "Тази покана е изтекла"
+  },
+  "web.organizations.invitations.invalid_token": {
+    "text": "Невалидна или изтекла покана"
+  },
+  "web.organizations.invitations.must_sign_in": {
+    "text": "Моля, влезте, за да приемете тази покана"
+  },
+  "web.organizations.invitations.loading_invitation": {
+    "text": "Зареждане на детайли за поканата"
+  },
+  "web.organizations.invitations.upgrade_to_invite": {
+    "text": "Надградете плана си, за да поканите членове на екипа"
+  },
+  "web.organizations.invitations.upgrade_prompt": {
+    "text": "Поканите за членове на екипа изискват план с управление на екипи. Надградете, за да добавите сътрудници към организацията си."
+  }
+}

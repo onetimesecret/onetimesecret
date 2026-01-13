@@ -1,0 +1,107 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "ריבונות נתונים ובידוד אזורי"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "הנתונים שלכם נמצאים באופן בלעדי באזור שבחרתם ולעולם אינם מועברים בין אזורים"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "כל אזור פועל כסביבה עצמאית לחלוטין עם תשתית, מפתחות הצפנה ואחסון נתונים משלו"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "אנו מקיימים מדיניות קפדנית: נתוני לקוחות לעולם אינם מועברים בין אזורים בשום נסיבות"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "חשוב: מעבר לאזור אחר יוצר חשבון חדש. הנתונים שלכם נשארים באזור המקורי."
+  },
+  "web.regions.your_region": {
+    "text": "האזור שלכם"
+  },
+  "web.regions.your_current_region": {
+    "text": "האזור הנוכחי שלכם"
+  },
+  "web.regions.active": {
+    "text": "פעיל"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "חקרו אזורים זמינים נוספים"
+  },
+  "web.regions.why_it_matters": {
+    "text": "למה ריבונות נתונים חשובה"
+  },
+  "web.regions.trust_title": {
+    "text": "שקיפות ושליטה"
+  },
+  "web.regions.trust_description": {
+    "text": "דעו בדיוק היכן נמצאים הנתונים שלכם ואילו חוקים מגנים עליהם."
+  },
+  "web.regions.privacy_title": {
+    "text": "זכויות פרטיות"
+  },
+  "web.regions.privacy_description": {
+    "text": "וודאו שהמידע האישי שלכם מטופל בהתאם לחוקי הפרטיות של המדינה שלכם, ומנעו גישה או שימוש לרעה בלתי מורשים."
+  },
+  "web.regions.compliance_title": {
+    "text": "עמידה ברגולציה"
+  },
+  "web.regions.compliance_description": {
+    "text": "עמדו בדרישות GDPR, HIPAA, CCPA ודרישות הגנת מידע אזוריות אחרות"
+  },
+  "web.regions.performance_title": {
+    "text": "גישה מהירה יותר"
+  },
+  "web.regions.performance_description": {
+    "text": "נתונים המאוחסנים קרוב אליכם משמעותם זמן תגובה נמוך יותר וביצועים טובים יותר."
+  },
+  "web.regions.regions": {
+    "text": "אזורים"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "צרו קשר עם צוות הציות שלנו"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "עיינו בתיעוד שלנו"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "החשבון והנתונים שלכם מוגנים תחת חוקי"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "מסגרת רגולציה שלכם נקבעת על ידי דומיין הגישה שלכם:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "כל אזור הוא נפרד לחלוטין עם תשתית משלו, כאשר אפשרי עם ספק אירוח מקומי משלו. אתם יכולים ליצור חשבונות באזורים מרובים, אך אין נתונים משותפים ביניהם."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "לפרטים על רגולציות והגנות החלות על החשבון שלכם,"
+  },
+  "web.regions.current": {
+    "text": "נוכחי"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "אזורים זמינים"
+  },
+  "web.regions.jurisdiction": {
+    "text": "תחום שיפוט"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "מיקום מרכז נתונים: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "אזור נתונים"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "תחום שיפוט לא ידוע"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "משרתים אתכם מ"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "המשך אל {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "תחום שיפוט נוכחי:"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "text": "Varför är denna hemlighet otillgänglig?"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "text": "Hemligheter är utformade för att endast ses en gång. Denna länk kan redan ha använts, gått ut eller raderats manuellt av avsändaren."
+  },
+  "web.errors.what_should_i_do_now": {
+    "text": "Vad ska jag göra nu?"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "text": "Kontakta personen som skickade dig denna länk och be dem skapa en ny hemlighet. Låt dem veta att du inte kunde komma åt den ursprungliga informationen."
+  },
+  "web.errors.warning_dismissed": {
+    "text": "Varning avfärdad"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "text": "Avfärda trunkeringsvarning"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "text": "Hoppsan! Sidan du letar efter finns inte eller har flyttats."
+  },
+  "web.errors.404_page_not_found_0": {
+    "text": "404 - Sidan hittades inte"
+  },
+  "web.errors.404_page_not_found": {
+    "text": "404 - Sidan hittades inte"
+  },
+  "web.errors.dismiss_warning": {
+    "text": "Avfärda varning"
+  },
+  "web.errors.dismiss_notification": {
+    "text": "Avfärda avisering"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "text": "Om du är osäker på vad du ska göra härnäst, vänligen följ upp med personen som skickade dig denna länk för mer information."
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "text": "Information som delas via vår tjänst kan endast nås en gång. När den har visats raderas innehållet permanent från våra servrar för att säkerställa konfidentialitet. Detta tillvägagångssätt hjälper till att skydda dina känsliga data genom att begränsa dess exponering och förhindra obehörig åtkomst."
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "text": "Vi beklagar, men ett oväntat fel inträffade när din begäran behandlades. Vårt team har meddelats och vi arbetar på att åtgärda det."
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "text": "{0} Något gick fel"
+  },
+  "web.errors.go_share_a_secret": {
+    "text": "Gå och dela en hemlighet!"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "text": "Sidan du letar efter finns inte eller har flyttats. Oroa dig inte, det händer de bästa av oss!"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "text": "{0} 404"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "text": "Kunde inte ladda data på grund av dataformatproblem. Försök igen senare."
+  }
+}

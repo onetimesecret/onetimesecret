@@ -1,0 +1,128 @@
+{
+  "web.branding.color_picker": {
+    "text": "منتقي الألوان"
+  },
+  "web.branding.current_label_modelvalue_click_to_cycle_through_options": {
+    "text": "{0} الحالي: {1}. انقر للتنقل بين الخيارات."
+  },
+  "web.branding.use_setting": {
+    "text": "استخدام الإعداد"
+  },
+  "web.branding.font_family": {
+    "text": "عائلة الخط"
+  },
+  "web.branding.corner_style": {
+    "text": "نمط الزوايا"
+  },
+  "web.branding.brand_color": {
+    "text": "لون العلامة التجارية"
+  },
+  "web.branding.preview_of_the_secret_link_page_for_recipients": {
+    "text": "معاينة عرض المستلم عند الوصول إلى رابطك الآمن"
+  },
+  "web.branding.preview_and_customize": {
+    "text": "معاينة وتخصيص"
+  },
+  "web.branding.switch_to_safari_browser_view": {
+    "text": "التبديل إلى عرض متصفح Safari"
+  },
+  "web.branding.microsoft_edge": {
+    "text": "Microsoft Edge"
+  },
+  "web.branding.maximize_window": {
+    "text": "تكبير النافذة"
+  },
+  "web.branding.minimize_window": {
+    "text": "تصغير النافذة"
+  },
+  "web.branding.switch_to_edge_browser_view": {
+    "text": "التبديل إلى عرض متصفح Edge"
+  },
+  "web.branding.charactercount_500_characters": {
+    "text": "{0}/500 حرف"
+  },
+  "web.branding.example_pre_reveal_instructions": {
+    "text": "استخدم هاتفك لمسح رمز QR"
+  },
+  "web.branding.example_post_reveal_instructions": {
+    "text": "تواصل مع onboarding{'@'}example.com لأي استفسارات"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_before": {
+    "text": "ستُعرض هذه التعليمات للمستلمين قبل الكشف عن محتوى السر"
+  },
+  "web.branding.these_instructions_will_be_shown_to_recipients_after": {
+    "text": "ستُعرض هذه التعليمات للمستلمين بعد الكشف عن السر"
+  },
+  "web.branding.pre_reveal_instructions": {
+    "text": "تعليمات ما قبل الكشف"
+  },
+  "web.branding.post_reveal_instructions": {
+    "text": "تعليمات ما بعد الكشف"
+  },
+  "web.branding.instructions": {
+    "text": "التعليمات"
+  },
+  "web.branding.logo_controls": {
+    "text": "عناصر التحكم في الشعار"
+  },
+  "web.branding.click_to_upload_a_logo_with_recommendation": {
+    "text": "انقر لتحميل شعار. الحجم الموصى به: 128×128 بكسل. الحد الأقصى لحجم الملف: 1 ميجابايت. التنسيقات المدعومة: PNG، JPG، SVG"
+  },
+  "web.branding.upload_logo": {
+    "text": "تحميل شعار"
+  },
+  "web.branding.loading_preview": {
+    "text": "جارٍ تحميل المعاينة..."
+  },
+  "web.branding.preview_how_recipients_will_see_your_secrets": {
+    "text": "معاينة كيف سيرى المستلمون أسرارك باختبار زر \"عرض السر\""
+  },
+  "web.branding.eye_icon": {
+    "text": "أيقونة العين"
+  },
+  "web.branding.click_the_preview_image_below_to_update_your_logo": {
+    "text": "انقر على صورة المعاينة أدناه لتحديث شعارك (الحد الأدنى الموصى به 128×128 بكسل، الحد الأقصى 1 ميجابايت)"
+  },
+  "web.branding.image_icon": {
+    "text": "أيقونة الصورة"
+  },
+  "web.branding.use_the_controls_above_to_customize_brand_details": {
+    "text": "استخدم عناصر التحكم أعلاه لتخصيص لون العلامة التجارية والأنماط وتعليمات المستلم"
+  },
+  "web.branding.customization_icon": {
+    "text": "أيقونة التخصيص"
+  },
+  "web.branding.you_have_unsaved_changes_are_you_sure": {
+    "text": "لديك تغييرات غير محفوظة. هل أنت متأكد؟"
+  },
+  "web.branding.failed_to_load_brand_settings": {
+    "text": "فشل تحميل إعدادات العلامة التجارية"
+  },
+  "web.branding.this_is_an_interactive_preview_o": {
+    "text": "هذه معاينة تفاعلية لكيفية رؤية المستلمين لرسائلك الآمنة. يمكنك: - تخصيص الألوان والخطوط باستخدام عناصر التحكم أعلاه - تحميل شعار (الحد الأدنى الموصى به 128×128 بكسل، الحد الأقصى 1 ميجابايت) - اختبار المعاينة باستخدام زر \"عرض السر\""
+  },
+  "web.branding.this_is_an_interactive_preview_of_how_recipients": {
+    "text": "هذه معاينة تفاعلية لكيفية رؤية المستلمين لرسائلك الآمنة. يمكنك: - تخصيص الألوان والخطوط باستخدام عناصر التحكم أعلاه - تحميل شعار (الحد الأدنى الموصى به 128×128 بكسل، الحد الأقصى 1 ميجابايت) - اختبار المعاينة باستخدام زر \"عرض السر\""
+  },
+  "web.branding.default_logo_icon": {
+    "text": "الكانجي الياباني '秘' (هيميتسو) بمعنى 'سري' أو 'سري'"
+  },
+  "web.branding.powered_by_onetime_secret": {
+    "text": "مدعوم بواسطة Onetime Secret"
+  },
+  "web.branding.heading_logo": {
+    "text": "شعار {0}"
+  },
+  "web.branding.edge": {
+    "text": "Edge"
+  },
+  "web.branding.switch_to_edge_preview": {
+    "text": "التبديل إلى معاينة Edge"
+  },
+  "web.branding.safari": {
+    "text": "Safari"
+  },
+  "web.branding.switch_to_safari_preview": {
+    "text": "التبديل إلى معاينة Safari"
+  }
+}

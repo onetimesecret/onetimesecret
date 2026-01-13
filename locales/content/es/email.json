@@ -1,0 +1,446 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[Ticket: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "text": "Un cliente ha enviado la siguiente información"
+  },
+  "email.secret_link.subject": {
+    "text": "%{sender_email} te envió un secreto"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "te envió un secreto:"
+  },
+  "email.secret_link.important_label": {
+    "text": "Importante:"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "Este enlace solo funcionará una vez. Después de verlo, el secreto se eliminará permanentemente."
+  },
+  "email.secret_link.sent_via": {
+    "text": "Enviado mediante"
+  },
+  "email.welcome.subject": {
+    "text": "Verifica tu cuenta de Onetime Secret"
+  },
+  "email.welcome.title": {
+    "text": "¡Has sido invitado a unirte a %{product_name}!"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "Verifica tu dirección de correo electrónico haciendo clic en el enlace a continuación:"
+  },
+  "email.welcome.verify_button": {
+    "text": "Verificar correo electrónico"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "O copia y pega este enlace:"
+  },
+  "email.welcome.signature": {
+    "text": "Delano"
+  },
+  "email.welcome.postscript": {
+    "text": "P.D. Este correo fue enviado a %{email_address}. Si no esperabas esta invitación, puedes ignorar este mensaje sin problema."
+  },
+  "email.password_request.subject": {
+    "text": "Restablecer tu contraseña (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "text": "Restablecer tu contraseña"
+  },
+  "email.password_request.request_notice": {
+    "text": "Recibimos una solicitud para restablecer tu contraseña de %{product_name}."
+  },
+  "email.password_request.reset_button": {
+    "text": "Restablecer contraseña"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "O copia y pega este enlace:"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "Si no solicitaste restablecer tu contraseña, puedes ignorar este correo sin problema."
+  },
+  "email.password_request.signature": {
+    "text": "Delano"
+  },
+  "email.password_request.postscript": {
+    "text": "P.D. Este correo fue enviado a %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "text": "Iniciar sesión en %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "text": "Iniciar sesión con enlace mágico"
+  },
+  "email.magic_link.request_notice": {
+    "text": "Solicitaste un enlace de inicio de sesión para tu cuenta de %{product_name}."
+  },
+  "email.magic_link.login_button": {
+    "text": "Iniciar sesión"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "O copia y pega este enlace:"
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "Este enlace expirará en 15 minutos."
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "Si no solicitaste este enlace, puedes ignorar este correo electrónico."
+  },
+  "email.magic_link.signature": {
+    "text": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "text": "P.D. Este correo electrónico fue enviado a %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "text": "Has recibido un mensaje secreto"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "Has recibido un mensaje seguro:"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "Nota:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "Alguien te ha enviado un mensaje seguro mediante %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "Para ver este secreto, haz clic en el enlace a continuación:"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "Importante:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "Este enlace solo funcionará una vez. Después de verlo, el secreto se eliminará permanentemente."
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "Enviado mediante"
+  },
+  "email.secret_revealed.subject": {
+    "text": "Tu secreto fue visto"
+  },
+  "email.secret_revealed.title": {
+    "text": "Tu secreto fue visto"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "Tu secreto fue visto el %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "ID del secreto:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "Esta es una notificación automática. No se requiere ninguna acción."
+  },
+  "email.secret_revealed.signature": {
+    "text": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "Gestionar preferencias de notificación"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "Para gestionar tus preferencias de notificación:"
+  },
+  "email.expiration_warning.subject": {
+    "text": "Tu enlace de secreto expirará pronto"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "Tu enlace de secreto expirará en %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "Ver tu secreto antes de que expire"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "Recordatorio:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "Después de la expiración, el secreto se eliminará permanentemente y no se podrá recuperar."
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "Enviado mediante"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "Velo antes de que desaparezca:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "Después de la expiración, el secreto se eliminará permanentemente."
+  },
+  "email.feedback_email.subject": {
+    "text": "Comentarios del %{date} mediante %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "text": "Comentarios del usuario"
+  },
+  "email.feedback_email.from_label": {
+    "text": "De:"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "Dominio:"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "Estrategia:"
+  },
+  "email.feedback_email.message_label": {
+    "text": "Mensaje:"
+  },
+  "email.feedback_email.signature": {
+    "text": "Soporte de Secretos"
+  },
+  "email.organization_invitation.subject": {
+    "text": "Has sido invitado a unirte a %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "text": "¡Has sido invitado a unirte a %{organization_name}!"
+  },
+  "email.organization_invitation.body": {
+    "text": "%{inviter_email} te ha invitado a unirte a \"%{organization_name}\" como %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "Aceptar Invitación"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "O copia y pega este enlace:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "Esta invitación expirará en %{days} días."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "Si no deseas unirte, puedes simplemente ignorar este correo o rechazar la invitación."
+  },
+  "email.organization_invitation.signature": {
+    "text": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "P.D. Este correo fue enviado a %{invited_email}. Si no esperabas esta invitación, puedes ignorar este mensaje sin problema."
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "miembro"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "administrador"
+  },
+  "email.password_changed.subject": {
+    "text": "Tu contraseña fue cambiada (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "text": "Tu contraseña fue cambiada"
+  },
+  "email.password_changed.body": {
+    "text": "Tu contraseña de %{product_name} fue cambiada el %{date} a las %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "text": "Si no hiciste este cambio, asegura tu cuenta de inmediato restableciendo tu contraseña y contactando al soporte."
+  },
+  "email.password_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_changed.subject": {
+    "text": "Tu dirección de correo electrónico fue cambiada (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "text": "Tu dirección de correo electrónico fue cambiada"
+  },
+  "email.email_changed.body": {
+    "text": "La dirección de correo electrónico de tu cuenta de %{product_name} fue cambiada a %{new_email_masked} el %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "text": "Si no hiciste este cambio, contacta al soporte de inmediato, ya que tu cuenta puede estar comprometida."
+  },
+  "email.email_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "Verifica tu nueva dirección de correo electrónico (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "Verifica tu nueva dirección de correo electrónico"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "Verifica esta dirección de correo electrónico para completar el cambio de tu cuenta de %{product_name}."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "Verificar correo electrónico"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "O copia y pega este enlace:"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "Autenticación de dos factores activada (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "text": "Autenticación de dos factores activada"
+  },
+  "email.mfa_enabled.body": {
+    "text": "La autenticación de dos factores fue activada para tu cuenta de %{product_name} el %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "Tu cuenta ahora es más segura. Deberás ingresar un código de verificación de tu aplicación de autenticación al iniciar sesión."
+  },
+  "email.mfa_enabled.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "Autenticación de dos factores desactivada (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "text": "Autenticación de dos factores desactivada"
+  },
+  "email.mfa_disabled.body": {
+    "text": "La autenticación de dos factores fue desactivada para tu cuenta de %{product_name} el %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "Tu cuenta ahora es menos segura. Si no hiciste este cambio, asegura tu cuenta de inmediato."
+  },
+  "email.mfa_disabled.signature": {
+    "text": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "text": "Nuevo inicio de sesión en tu cuenta (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "text": "Nuevo inicio de sesión detectado"
+  },
+  "email.new_login_alert.body": {
+    "text": "Se detectó un nuevo inicio de sesión en tu cuenta de %{product_name} el %{date} a las %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "text": "Dispositivo:"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "Ubicación:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "Dirección IP:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "Si no fuiste tú, tu cuenta puede estar comprometida."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "Asegurar tu cuenta"
+  },
+  "email.new_login_alert.signature": {
+    "text": "Delano"
+  },
+  "email.member_removed.subject": {
+    "text": "Has sido eliminado de %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "text": "Has sido eliminado de %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "text": "Has sido eliminado de la organización \"%{organization_name}\" en %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "text": "Delano"
+  },
+  "email.role_changed.subject": {
+    "text": "Tu rol fue cambiado en %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "text": "Tu rol fue cambiado"
+  },
+  "email.role_changed.body": {
+    "text": "Tu rol en \"%{organization_name}\" ha sido cambiado de %{old_role} a %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "text": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "text": "La organización \"%{organization_name}\" fue eliminada"
+  },
+  "email.organization_deleted.title": {
+    "text": "Organización eliminada"
+  },
+  "email.organization_deleted.body": {
+    "text": "La organización \"%{organization_name}\" ha sido eliminada de %{product_name}. Todos los datos asociados han sido eliminados."
+  },
+  "email.organization_deleted.signature": {
+    "text": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "text": "Recibo de pago de %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "text": "Recibo de pago"
+  },
+  "email.payment_receipt.body": {
+    "text": "Gracias por tu pago. Aquí están los detalles de tu pago:"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "Monto:"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "Fecha:"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "Plan:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "Ver factura"
+  },
+  "email.payment_receipt.signature": {
+    "text": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "text": "Pago fallido para %{product_name}"
+  },
+  "email.payment_failed.title": {
+    "text": "Pago fallido"
+  },
+  "email.payment_failed.body": {
+    "text": "No pudimos procesar tu pago de %{product_name}. Actualiza tu método de pago para evitar interrupciones del servicio."
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "Actualizar método de pago"
+  },
+  "email.payment_failed.signature": {
+    "text": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "text": "Tu prueba de %{product_name} expira en %{days_remaining} días"
+  },
+  "email.trial_expiring.title": {
+    "text": "Tu prueba está por terminar"
+  },
+  "email.trial_expiring.body": {
+    "text": "Tu prueba gratuita de %{product_name} expirará en %{days_remaining} días. Actualiza ahora para mantener acceso a todas las funciones."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "Actualizar ahora"
+  },
+  "email.trial_expiring.signature": {
+    "text": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "text": "Tu suscripción de %{product_name} fue cambiada"
+  },
+  "email.subscription_changed.title": {
+    "text": "Suscripción cambiada"
+  },
+  "email.subscription_changed.body": {
+    "text": "Tu suscripción de %{product_name} fue cambiada de %{old_plan} a %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "Este cambio es efectivo el %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "text": "Delano"
+  },
+  "email.common.greeting": {
+    "text": "Hola,"
+  },
+  "email.common.thanks": {
+    "text": "Gracias,"
+  },
+  "email.common.unsubscribe": {
+    "text": "Darse de baja"
+  },
+  "email.common.view_in_browser": {
+    "text": "Ver en el navegador"
+  },
+  "email.common.onetime_secret": {
+    "text": "Onetime Secret"
+  }
+}

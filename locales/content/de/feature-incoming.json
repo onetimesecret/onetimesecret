@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Geheimnis senden"
+  },
+  "incoming.page_description": {
+    "text": "Teilen Sie vertrauliche Informationen sicher mit unserem Support-Team"
+  },
+  "incoming.loading_config": {
+    "text": "Lädt..."
+  },
+  "incoming.config_error_title": {
+    "text": "Konfiguration konnte nicht geladen werden"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Funktion nicht verfügbar"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Diese Funktion ist derzeit deaktiviert. Bitte wenden Sie sich für Unterstützung an den Support."
+  },
+  "incoming.memo_label": {
+    "text": "Notiz"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Kurze Beschreibung (z.B. Anfrage zum Passwort-Zurücksetzen)"
+  },
+  "incoming.memo_hint": {
+    "text": "Helfen Sie uns, Ihre Nachricht an die richtige Person weiterzuleiten"
+  },
+  "incoming.recipient_label": {
+    "text": "Senden an"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Empfänger auswählen"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Wählen Sie einen Empfänger für dieses Geheimnis"
+  },
+  "incoming.recipient_hint": {
+    "text": "Wählen Sie aus, wer diese sichere Nachricht erhalten soll"
+  },
+  "incoming.no_recipients_available": {
+    "text": "Keine Empfänger verfügbar"
+  },
+  "incoming.secret_content_label": {
+    "text": "Vertrauliche Informationen"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Vertrauliche Informationen hier einfügen (Passwörter, Schlüssel, etc.)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Diese Informationen werden verschlüsselt und sind nur einmal einsehbar"
+  },
+  "incoming.submit_button": {
+    "text": "Geheimnis senden"
+  },
+  "incoming.submit_secret": {
+    "text": "Geheimnis senden"
+  },
+  "incoming.submitting_button": {
+    "text": "Wird gesendet..."
+  },
+  "incoming.submitting": {
+    "text": "Wird gesendet..."
+  },
+  "incoming.reset_button": {
+    "text": "Formular löschen"
+  },
+  "incoming.reset_form": {
+    "text": "Formular löschen"
+  },
+  "incoming.success_title": {
+    "text": "Erfolgreich gesendet"
+  },
+  "incoming.success_description": {
+    "text": "Ihre sichere Nachricht wurde zugestellt."
+  },
+  "incoming.reference_id": {
+    "text": "Referenz-ID"
+  },
+  "incoming.success_info_title": {
+    "text": "Wie geht es weiter?"
+  },
+  "incoming.success_info_description": {
+    "text": "Der Empfänger kann dieses Geheimnis nur einmal einsehen. Nachdem es angesehen wurde, wird das Geheimnis dauerhaft gelöscht."
+  },
+  "incoming.create_another": {
+    "text": "Weiteres Geheimnis senden"
+  },
+  "incoming.tagline1": {
+    "text": "Vertrauliche Informationen sicher teilen"
+  },
+  "incoming.tagline2": {
+    "text": "Halten Sie Passwörter und private Daten aus E-Mails und Chat-Protokollen fern"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Speichern Sie Ihre <a href='{receiptUrl}'>Quittung</a> für Ihre Unterlagen."
+  },
+  "incoming.receipt_link_text": {
+    "text": "Quittung"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "web.errors.why_is_this_secret_unavailable": {
+    "text": "Waarom is dit geheim niet beschikbaar?"
+  },
+  "web.errors.secrets_are_designed_to_be_viewed_only_once": {
+    "text": "Geheimen zijn ontworpen om slechts één keer bekeken te worden. Deze link is mogelijk al geopend, verlopen of handmatig verwijderd door de afzender."
+  },
+  "web.errors.what_should_i_do_now": {
+    "text": "Wat moet ik nu doen?"
+  },
+  "web.errors.contact_the_person_who_sent_you_this_link": {
+    "text": "Neem contact op met de persoon die je deze link heeft gestuurd en vraag om een nieuw geheim aan te maken. Laat hen weten dat je geen toegang had tot de oorspronkelijke informatie."
+  },
+  "web.errors.warning_dismissed": {
+    "text": "Waarschuwing genegeerd"
+  },
+  "web.errors.dismiss_truncation_warning": {
+    "text": "Afkortingswaarschuwing negeren"
+  },
+  "web.errors.oops_the_page_you_are_looking_for_doesnt_exist_o": {
+    "text": "Oeps! De pagina die u zoekt bestaat niet of is verplaatst."
+  },
+  "web.errors.404_page_not_found_0": {
+    "text": "404 - Pagina niet gevonden"
+  },
+  "web.errors.404_page_not_found": {
+    "text": "404 - Pagina niet gevonden"
+  },
+  "web.errors.dismiss_warning": {
+    "text": "Waarschuwing negeren"
+  },
+  "web.errors.dismiss_notification": {
+    "text": "Melding negeren"
+  },
+  "web.errors.if_youre_unsure_what_to_do_next_please_follow_up": {
+    "text": "Als u niet zeker weet wat u nu moet doen, neem dan contact op met de persoon die u deze link heeft gestuurd voor meer informatie."
+  },
+  "web.errors.information_shared_through_our_service_can_only_": {
+    "text": "Informatie die via onze service wordt gedeeld, kan slechts één keer worden bekeken. Na het bekijken wordt de inhoud permanent verwijderd van onze servers om vertrouwelijkheid te waarborgen. Deze aanpak helpt uw gevoelige gegevens te beschermen door de blootstelling ervan te beperken en ongeautoriseerde toegang te voorkomen."
+  },
+  "web.errors.were_sorry_but_an_unexpected_error_occurred_whil": {
+    "text": "Het spijt ons, maar er is een onverwachte fout opgetreden tijdens het verwerken van uw verzoek. Ons team is op de hoogte gebracht en we werken aan een oplossing."
+  },
+  "web.errors.t_web_common_oops_something_went_wrong": {
+    "text": "{0} Er is iets misgegaan"
+  },
+  "web.errors.go_share_a_secret": {
+    "text": "Ga een bericht delen!"
+  },
+  "web.errors.the_page_youre_looking_for_doesnt_exist_or_has_b": {
+    "text": "De pagina die u zoekt bestaat niet of is verplaatst. Maak u geen zorgen, dit gebeurt bij de besten!"
+  },
+  "web.errors.t_web_common_oops_404": {
+    "text": "{0} 404"
+  },
+  "web.errors.unable_to_load_data_due_to_data_format_issues_pl": {
+    "text": "Kan gegevens niet laden vanwege problemen met gegevensformaat. Probeer het later opnieuw."
+  }
+}

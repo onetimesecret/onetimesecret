@@ -1,0 +1,446 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[Ärende: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "text": "En kund har skickat följande information"
+  },
+  "email.secret_link.subject": {
+    "text": "%{sender_email} skickade en hemlighet till dig"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "skickade en hemlighet till dig:"
+  },
+  "email.secret_link.important_label": {
+    "text": "Viktigt:"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "Denna länk fungerar bara en gång. Efter visning raderas hemligheten permanent."
+  },
+  "email.secret_link.sent_via": {
+    "text": "Skickat via"
+  },
+  "email.welcome.subject": {
+    "text": "Verifiera ditt Onetime Secret-konto"
+  },
+  "email.welcome.title": {
+    "text": "Du har blivit inbjuden att gå med i %{product_name}!"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "Vänligen verifiera din e-postadress genom att klicka på länken nedan:"
+  },
+  "email.welcome.verify_button": {
+    "text": "Verifiera e-postadress"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "Eller kopiera och klistra in denna länk:"
+  },
+  "email.welcome.signature": {
+    "text": "Delano"
+  },
+  "email.welcome.postscript": {
+    "text": "P.S. Detta e-postmeddelande skickades till %{email_address}. Om du inte förväntade dig denna inbjudan kan du ignorera detta meddelande."
+  },
+  "email.password_request.subject": {
+    "text": "Återställ ditt lösenord (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "text": "Återställ ditt lösenord"
+  },
+  "email.password_request.request_notice": {
+    "text": "Vi har mottagit en begäran om att återställa ditt lösenord för %{product_name}."
+  },
+  "email.password_request.reset_button": {
+    "text": "Återställ lösenord"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "Eller kopiera och klistra in denna länk:"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "Om du inte begärde en lösenordsåterställning kan du ignorera detta e-postmeddelande."
+  },
+  "email.password_request.signature": {
+    "text": "Delano"
+  },
+  "email.password_request.postscript": {
+    "text": "P.S. Detta e-postmeddelande skickades till %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "text": "Logga in på %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "text": "Logga in med magisk länk"
+  },
+  "email.magic_link.request_notice": {
+    "text": "Du begärde en inloggningslänk för ditt %{product_name}-konto."
+  },
+  "email.magic_link.login_button": {
+    "text": "Logga in"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "Eller kopiera och klistra in denna länk:"
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "Denna länk går ut om 15 minuter."
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "Om du inte begärde denna länk kan du ignorera detta e-postmeddelande."
+  },
+  "email.magic_link.signature": {
+    "text": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "text": "P.S. Detta e-postmeddelande skickades till %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "text": "Du har fått ett hemligt meddelande"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "Du har fått ett säkert meddelande:"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "Anteckning:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "Någon har skickat dig ett säkert meddelande via %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "Klicka på länken nedan för att visa hemligheten:"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "Viktigt:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "Denna länk fungerar bara en gång. Efter visning raderas hemligheten permanent."
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "Skickat via"
+  },
+  "email.secret_revealed.subject": {
+    "text": "Din hemlighet har visats"
+  },
+  "email.secret_revealed.title": {
+    "text": "Din hemlighet har visats"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "Din hemlighet visades den %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "Hemlighets-ID:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "Detta är en automatisk avisering. Ingen åtgärd krävs."
+  },
+  "email.secret_revealed.signature": {
+    "text": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "Hantera aviseringsinställningar"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "För att hantera dina aviseringsinställningar:"
+  },
+  "email.expiration_warning.subject": {
+    "text": "Din hemliga länk går snart ut"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "Din hemliga länk går ut om %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "Visa din hemlighet innan den går ut"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "Påminnelse:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "Efter utgångsdatumet raderas hemligheten permanent och kan inte återställas."
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "Skickat via"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "Visa den innan den försvinner:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "Efter utgångsdatumet raderas hemligheten permanent."
+  },
+  "email.feedback_email.subject": {
+    "text": "Feedback den %{date} via %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "text": "Användarfeedback"
+  },
+  "email.feedback_email.from_label": {
+    "text": "Från:"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "Domän:"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "Strategi:"
+  },
+  "email.feedback_email.message_label": {
+    "text": "Meddelande:"
+  },
+  "email.feedback_email.signature": {
+    "text": "Secret Support"
+  },
+  "email.organization_invitation.subject": {
+    "text": "Du har blivit inbjuden att gå med i %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "text": "Du har blivit inbjuden att gå med i %{organization_name}!"
+  },
+  "email.organization_invitation.body": {
+    "text": "%{inviter_email} har bjudit in dig att gå med i \"%{organization_name}\" som %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "Acceptera inbjudan"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "Eller kopiera och klistra in denna länk:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "Denna inbjudan upphör att gälla om %{days} dagar."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "Om du inte vill gå med kan du helt enkelt ignorera detta e-postmeddelande eller avböja inbjudan."
+  },
+  "email.organization_invitation.signature": {
+    "text": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "P.S. Detta e-postmeddelande skickades till %{invited_email}. Om du inte förväntade dig denna inbjudan kan du ignorera detta meddelande."
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "en medlem"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "en administratör"
+  },
+  "email.password_changed.subject": {
+    "text": "Ditt lösenord har ändrats (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "text": "Ditt lösenord har ändrats"
+  },
+  "email.password_changed.body": {
+    "text": "Ditt lösenord för %{product_name} ändrades den %{date} kl. %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "text": "Om du inte gjorde denna ändring, vänligen säkra ditt konto omedelbart genom att återställa ditt lösenord och kontakta supporten."
+  },
+  "email.password_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_changed.subject": {
+    "text": "Din e-postadress har ändrats (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "text": "Din e-postadress har ändrats"
+  },
+  "email.email_changed.body": {
+    "text": "E-postadressen för ditt %{product_name}-konto ändrades till %{new_email_masked} den %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "text": "Om du inte gjorde denna ändring, vänligen kontakta supporten omedelbart eftersom ditt konto kan ha komprometterats."
+  },
+  "email.email_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "Verifiera din nya e-postadress (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "Verifiera din nya e-postadress"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "Vänligen verifiera denna e-postadress för att slutföra ändringen av ditt %{product_name}-konto."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "Verifiera e-postadress"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "Eller kopiera och klistra in denna länk:"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "Tvåfaktorsautentisering aktiverad (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "text": "Tvåfaktorsautentisering aktiverad"
+  },
+  "email.mfa_enabled.body": {
+    "text": "Tvåfaktorsautentisering aktiverades för ditt %{product_name}-konto den %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "Ditt konto är nu säkrare. Du kommer att behöva ange en verifieringskod från din autentiseringsapp vid inloggning."
+  },
+  "email.mfa_enabled.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "Tvåfaktorsautentisering inaktiverad (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "text": "Tvåfaktorsautentisering inaktiverad"
+  },
+  "email.mfa_disabled.body": {
+    "text": "Tvåfaktorsautentisering inaktiverades för ditt %{product_name}-konto den %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "Ditt konto är nu mindre säkert. Om du inte gjorde denna ändring, vänligen säkra ditt konto omedelbart."
+  },
+  "email.mfa_disabled.signature": {
+    "text": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "text": "Ny inloggning till ditt konto (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "text": "Ny inloggning upptäckt"
+  },
+  "email.new_login_alert.body": {
+    "text": "En ny inloggning till ditt %{product_name}-konto upptäcktes den %{date} kl. %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "text": "Enhet:"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "Plats:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "IP-adress:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "Om det inte var du kan ditt konto ha komprometterats."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "Säkra ditt konto"
+  },
+  "email.new_login_alert.signature": {
+    "text": "Delano"
+  },
+  "email.member_removed.subject": {
+    "text": "Du har tagits bort från %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "text": "Du har tagits bort från %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "text": "Du har tagits bort från organisationen \"%{organization_name}\" på %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "text": "Delano"
+  },
+  "email.role_changed.subject": {
+    "text": "Din roll har ändrats i %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "text": "Din roll har ändrats"
+  },
+  "email.role_changed.body": {
+    "text": "Din roll i \"%{organization_name}\" har ändrats från %{old_role} till %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "text": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "text": "Organisationen \"%{organization_name}\" har raderats"
+  },
+  "email.organization_deleted.title": {
+    "text": "Organisation raderad"
+  },
+  "email.organization_deleted.body": {
+    "text": "Organisationen \"%{organization_name}\" har raderats från %{product_name}. All tillhörande data har tagits bort."
+  },
+  "email.organization_deleted.signature": {
+    "text": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "text": "Betalningskvitto för %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "text": "Betalningskvitto"
+  },
+  "email.payment_receipt.body": {
+    "text": "Tack för din betalning. Här är dina betalningsuppgifter:"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "Belopp:"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "Datum:"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "Plan:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "Visa faktura"
+  },
+  "email.payment_receipt.signature": {
+    "text": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "text": "Betalning misslyckades för %{product_name}"
+  },
+  "email.payment_failed.title": {
+    "text": "Betalning misslyckades"
+  },
+  "email.payment_failed.body": {
+    "text": "Vi kunde inte behandla din betalning för %{product_name}. Vänligen uppdatera din betalningsmetod för att undvika avbrott i tjänsten."
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "Uppdatera betalningsmetod"
+  },
+  "email.payment_failed.signature": {
+    "text": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "text": "Din %{product_name}-provperiod går ut om %{days_remaining} dagar"
+  },
+  "email.trial_expiring.title": {
+    "text": "Din provperiod går snart ut"
+  },
+  "email.trial_expiring.body": {
+    "text": "Din kostnadsfria provperiod av %{product_name} går ut om %{days_remaining} dagar. Uppgradera nu för att behålla tillgång till alla funktioner."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "Uppgradera nu"
+  },
+  "email.trial_expiring.signature": {
+    "text": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "text": "Din %{product_name}-prenumeration har ändrats"
+  },
+  "email.subscription_changed.title": {
+    "text": "Prenumeration ändrad"
+  },
+  "email.subscription_changed.body": {
+    "text": "Din %{product_name}-prenumeration har ändrats från %{old_plan} till %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "Denna ändring träder i kraft %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "text": "Delano"
+  },
+  "email.common.greeting": {
+    "text": "Hej,"
+  },
+  "email.common.thanks": {
+    "text": "Tack,"
+  },
+  "email.common.unsubscribe": {
+    "text": "Avprenumerera"
+  },
+  "email.common.view_in_browser": {
+    "text": "Visa i webbläsare"
+  },
+  "email.common.onetime_secret": {
+    "text": "Onetime Secret"
+  }
+}

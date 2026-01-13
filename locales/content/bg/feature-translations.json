@@ -1,0 +1,71 @@
+{
+  "web.translations.welcomes_contributors_for_both_existing_and_new_": {
+    "text": "приветства сътрудници както за съществуващи, така и за нови езици."
+  },
+  "web.translations.our_github_project": {
+    "text": "нашия GitHub проект"
+  },
+  "web.translations.if_youre_interested_in_translation": {
+    "text": "Ако се интересувате от превод,"
+  },
+  "web.translations.whove_helped_with_translations_as_we_continue_to": {
+    "text": "които са помогнали с преводите, докато продължаваме да разработваме нови функции."
+  },
+  "web.translations.25_contributors": {
+    "text": "25+ сътрудници"
+  },
+  "web.translations.were_grateful_to_the": {
+    "text": "Благодарни сме на"
+  },
+  "web.translations.as_we_add_new_features_our_translations_graduall": {
+    "text": "С добавянето на нови функции, нашите преводи постепенно се нуждаят от актуализации, за да останат актуални. Това засяга както onetimesecret.com, така и хиляди самостоятелно хоствани инсталации по целия свят."
+  },
+  "web.translations.remember_to_include_your_email_if_youre_not_logg": {
+    "text": "- Не забравяйте да включите имейла си, ако не сте влезли. Всеки превод помага на повече хора да комуникират сигурно."
+  },
+  "web.translations.reach_out_to_us": {
+    "text": "Свържете се с нас"
+  },
+  "web.translations.have_questions": {
+    "text": "Имате въпроси?"
+  },
+  "web.translations.send_translations_by_email_to": {
+    "text": "Изпратете преводи по имейл до"
+  },
+  "web.translations.english_template": {
+    "text": "Английски шаблон"
+  },
+  "web.translations.start_a_new_translation_from_our": {
+    "text": "Започнете нов превод от нашия"
+  },
+  "web.translations.update_a_language_directly_through_our_github_pr": {
+    "text": "Актуализирайте език директно чрез нашия GitHub проект"
+  },
+  "web.translations.review_existing_translations_using_the_language_": {
+    "text": "Прегледайте съществуващи преводи чрез избора на език по-горе"
+  },
+  "web.translations.ready_to_help_some_ways_to_contribute": {
+    "text": "Готови ли сте да помогнете? Някои начини за сътрудничество:"
+  },
+  "web.translations.the_following_people_have_donated_their_time_to_": {
+    "text": "Следните хора са дарили времето си, за да помогнат за разпространението на Onetime Secret:"
+  },
+  "web.translations.translations": {
+    "text": "Преводи"
+  },
+  "web.translations.fork_on_github_and_submit_a_pr": {
+    "text": "Направете fork в GitHub и изпратете PR"
+  },
+  "web.translations.your_language_skills_can_help_expand_access_to_s": {
+    "text": "Вашите езикови умения могат да помогнат за разширяване на достъпа до сигурна комуникация."
+  },
+  "web.translations.thanks_to_our_community_we_support_over_20_langu": {
+    "text": "Благодарение на нашата общност, днес поддържаме над 20 езика. Въпреки бързото ни развитие, много преводи се нуждаят от актуализация, за да останат актуални. Това засяга както onetimesecret.com, така и хиляди самостоятелно хоствани инсталации по целия свят."
+  },
+  "web.translations.since_2012_onetime_secret_has_provided_a_secure_": {
+    "text": "От 2012 г. Onetime Secret предоставя сигурен начин за споделяне на чувствителна информация по целия свят. С потребители навсякъде, където английският не е основен език, точните преводи са от съществено значение за по-достъпна сигурна комуникация."
+  },
+  "web.translations.help_secure_communication_go_global": {
+    "text": "Помогнете на сигурната комуникация да стане глобална"
+  }
+}

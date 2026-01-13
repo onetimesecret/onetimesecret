@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Enviar un secret"
+  },
+  "incoming.page_description": {
+    "text": "Compartiu informació confidencial de manera segura amb el nostre equip de suport"
+  },
+  "incoming.loading_config": {
+    "text": "Carregant..."
+  },
+  "incoming.config_error_title": {
+    "text": "Error en carregar la configuració"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Funció no disponible"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Aquesta funció està desactivada actualment. Contacteu amb el suport per obtenir assistència."
+  },
+  "incoming.memo_label": {
+    "text": "Nota"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Breu descripció (p. ex. Sol·licitud de restabliment de contrasenya)"
+  },
+  "incoming.memo_hint": {
+    "text": "Ajudeu-nos a dirigir el vostre missatge a la persona adequada"
+  },
+  "incoming.recipient_label": {
+    "text": "Enviar a"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Seleccioneu un destinatari"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Seleccioneu un destinatari per aquest secret"
+  },
+  "incoming.recipient_hint": {
+    "text": "Trieu qui rebrà aquest missatge segur"
+  },
+  "incoming.no_recipients_available": {
+    "text": "No hi ha destinataris disponibles"
+  },
+  "incoming.secret_content_label": {
+    "text": "Informació confidencial"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Enganxeu informació confidencial aquí (contrasenyes, claus, etc.)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Aquesta informació s'encriptarà i només es podrà veure una vegada"
+  },
+  "incoming.submit_button": {
+    "text": "Enviar secret"
+  },
+  "incoming.submit_secret": {
+    "text": "Enviar secret"
+  },
+  "incoming.submitting_button": {
+    "text": "Enviant..."
+  },
+  "incoming.submitting": {
+    "text": "Enviant..."
+  },
+  "incoming.reset_button": {
+    "text": "Esborrar formulari"
+  },
+  "incoming.reset_form": {
+    "text": "Esborrar formulari"
+  },
+  "incoming.success_title": {
+    "text": "Enviat correctament"
+  },
+  "incoming.success_description": {
+    "text": "El vostre missatge segur s'ha lliurat."
+  },
+  "incoming.reference_id": {
+    "text": "ID de referència"
+  },
+  "incoming.success_info_title": {
+    "text": "Què passa ara?"
+  },
+  "incoming.success_info_description": {
+    "text": "El destinatari podrà veure aquest secret només una vegada. Després de veure'l, el secret s'eliminarà permanentment."
+  },
+  "incoming.create_another": {
+    "text": "Enviar un altre secret"
+  },
+  "incoming.tagline1": {
+    "text": "Compartiu informació confidencial de manera segura"
+  },
+  "incoming.tagline2": {
+    "text": "Mantingueu contrasenyes i dades privades fora dels correus electrònics i registres de xat"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Deseu el vostre <a href='{receiptUrl}'>rebut</a> per als vostres registres."
+  },
+  "incoming.receipt_link_text": {
+    "text": "receipt"
+  }
+}

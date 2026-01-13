@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Отправить секрет"
+  },
+  "incoming.page_description": {
+    "text": "Безопасно поделитесь конфиденциальной информацией с нашей службой поддержки"
+  },
+  "incoming.loading_config": {
+    "text": "Загрузка..."
+  },
+  "incoming.config_error_title": {
+    "text": "Не удалось загрузить конфигурацию"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Функция недоступна"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Эта функция в настоящее время отключена. Обратитесь в службу поддержки за помощью."
+  },
+  "incoming.memo_label": {
+    "text": "Заметка"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Краткое описание (например, Запрос на сброс пароля)"
+  },
+  "incoming.memo_hint": {
+    "text": "Помогите нам направить ваше сообщение нужному человеку"
+  },
+  "incoming.recipient_label": {
+    "text": "Отправить"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Выберите получателя"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Выберите получателя для этого секрета"
+  },
+  "incoming.recipient_hint": {
+    "text": "Выберите, кто получит это защищенное сообщение"
+  },
+  "incoming.no_recipients_available": {
+    "text": "Нет доступных получателей"
+  },
+  "incoming.secret_content_label": {
+    "text": "Конфиденциальная информация"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Вставьте сюда конфиденциальную информацию (пароли, ключи и т.д.)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Эта информация будет зашифрована и доступна для просмотра только один раз"
+  },
+  "incoming.submit_button": {
+    "text": "Отправить секрет"
+  },
+  "incoming.submit_secret": {
+    "text": "Отправить секрет"
+  },
+  "incoming.submitting_button": {
+    "text": "Отправка..."
+  },
+  "incoming.submitting": {
+    "text": "Отправка..."
+  },
+  "incoming.reset_button": {
+    "text": "Очистить форму"
+  },
+  "incoming.reset_form": {
+    "text": "Очистить форму"
+  },
+  "incoming.success_title": {
+    "text": "Успешно отправлено"
+  },
+  "incoming.success_description": {
+    "text": "Ваше защищенное сообщение доставлено."
+  },
+  "incoming.reference_id": {
+    "text": "Идентификатор ссылки"
+  },
+  "incoming.success_info_title": {
+    "text": "Что дальше?"
+  },
+  "incoming.success_info_description": {
+    "text": "Получатель сможет просмотреть этот секрет только один раз. После просмотра секрет будет безвозвратно удален."
+  },
+  "incoming.create_another": {
+    "text": "Отправить еще один секрет"
+  },
+  "incoming.tagline1": {
+    "text": "Безопасно делитесь конфиденциальной информацией"
+  },
+  "incoming.tagline2": {
+    "text": "Держите пароли и личные данные вне электронной почты и журналов чатов"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Сохраните <a href='{receiptUrl}'>квитанцию</a> для своих записей."
+  },
+  "incoming.receipt_link_text": {
+    "text": "квитанцию"
+  }
+}

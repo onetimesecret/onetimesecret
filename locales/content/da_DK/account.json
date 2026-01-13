@@ -1,0 +1,668 @@
+{
+  "web.account.settings": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.account.change_password": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.account.close_account": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.account.verify_account": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.account.subscription_title": {
+    "text": "Abonnement"
+  },
+  "web.account.manage_subscription": {
+    "text": "Administrer abonnement"
+  },
+  "web.account.customer_information": {
+    "text": "Kundeoplysninger"
+  },
+  "web.account.customer_since": {
+    "text": "Kunde siden:"
+  },
+  "web.account.email": {
+    "text": "E-mail:"
+  },
+  "web.account.region": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.account.account_balance": {
+    "text": "Kontosaldo:"
+  },
+  "web.account.default_payment_method": {
+    "text": "Standard betalingsmetode"
+  },
+  "web.account.card_ending": {
+    "text": "slutter i"
+  },
+  "web.account.subscriptions_title": {
+    "text": "Abonnementer"
+  },
+  "web.account.quantity": {
+    "text": "Mængde:"
+  },
+  "web.account.next_billing_date": {
+    "text": "Næste faktureringsdato:"
+  },
+  "web.account.changePassword.username": {
+    "text": "Brugernavn"
+  },
+  "web.account.changePassword.currentPassword": {
+    "text": "Nuværende adgangskode"
+  },
+  "web.account.changePassword.newPassword": {
+    "text": "Ny adgangskode"
+  },
+  "web.account.changePassword.confirmPassword": {
+    "text": "Bekræft"
+  },
+  "web.account.changePassword.updatePassword": {
+    "text": "Opdater adgangskode"
+  },
+  "web.account.changePassword.updating": {
+    "text": "Opdaterer ..."
+  },
+  "web.account.timezone": {
+    "text": "Tidszone"
+  },
+  "web.account.customer_id": {
+    "text": "Kunde-id"
+  },
+  "web.account.account_id_customerid": {
+    "text": "Konto-ID"
+  },
+  "web.account.created_windowprops_cust_secrets_created_secrets": {
+    "text": "Oprettet {0} hemmeligheder siden {1}."
+  },
+  "web.account.delete_account": {
+    "text": "Slet konto"
+  },
+  "web.account.api_key": {
+    "text": "API-nøgle"
+  },
+  "web.account.account_type_windowprops_plan_options_name": {
+    "text": "Kontotype: {0}"
+  },
+  "web.account.your_account": {
+    "text": "Din konto"
+  },
+  "web.account.support_details": {
+    "text": "Supportoplysninger"
+  },
+  "web.account.back_to_details": {
+    "text": "Tilbage til detaljer"
+  },
+  "web.account.customer_id_cust_custid": {
+    "text": "Kunde-ID: {0}"
+  },
+  "web.account.token_generated": {
+    "text": "Token genereret."
+  },
+  "web.account.keep_this_token_secure_it_provides_full_access_t": {
+    "text": "🔐 Hold dette token sikkert! Det giver fuld adgang til din konto."
+  },
+  "web.account.confirm_with_your_password": {
+    "text": "Bekræft med din adgangskode"
+  },
+  "web.account.are_you_sure_you_want_to_permanently_delete_your": {
+    "text": "Er du sikker på, at du vil slette din konto permanent? Denne handling kan ikke fortrydes."
+  },
+  "web.account.confirm_account_deletion": {
+    "text": "Bekræft sletning af konto"
+  },
+  "web.account.deleting_cust_custid": {
+    "text": "Sletter {0}"
+  },
+  "web.account.permanently_delete_account": {
+    "text": "Slet konto permanent"
+  },
+  "web.account.permanent_and_non_reversible": {
+    "text": "permanent og ikke-reversibel."
+  },
+  "web.account.deleting_your_account_is": {
+    "text": "At slette din konto er"
+  },
+  "web.account.burn_them_before_continuing": {
+    "text": "brænd dem, før du fortsætter"
+  },
+  "web.account.any_secrets_you_wish_to_remove": {
+    "text": "Eventuelle hemmeligheder, du ønsker at fjerne"
+  },
+  "web.account.secrets_will_remain_active_until_they_expire": {
+    "text": "Hemmeligheder vil forblive aktive, indtil de udløber."
+  },
+  "web.account.please_be_advised": {
+    "text": "Vær opmærksom på:"
+  },
+  "web.account.account_deleted_successfully": {
+    "text": "Konto slettet med succes."
+  },
+  "web.account.deactivate": {
+    "text": "Deaktiver"
+  },
+  "web.account.are_you_sure_you_want_to_deactivate_your_account": {
+    "text": "Er du sikker på, at du vil deaktivere din konto? Alle dine data vil blive fjernet permanent fra vores servere for altid. Denne handling kan ikke fortrydes."
+  },
+  "web.account.deactivate_account": {
+    "text": "Deaktiver konto"
+  },
+  "web.settings.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.manage_your_account_settings_and_preferences": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.general": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.preferences": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.appearance": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.theme.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.theme.description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.theme.choose_light_or_dark_theme": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.language.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.language.description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.language.select_your_preferred_language": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security_settings_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile_settings_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile.change_email": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile.current_email": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile.current_password": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile.new_email": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile.enter_password_to_confirm": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile.password_required_for_security": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile.verification_email_notice": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile.update_email": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile.change_email_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile.all_fields_required": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile.invalid_email": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile.email_same_as_current": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile.email_change_success": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.profile.email_change_error": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.sessions.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.sessions.description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.sessions.manage_active_sessions": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.password.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.password.description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.password.update_account_password": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.delete_account.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.delete_account.description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.delete_account.permanently_delete_your_account": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.security_score": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.score_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.excellent": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.good": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.fair": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.weak": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.improve_security": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.enable_mfa_recommendation": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.generate_recovery_codes_recommendation": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.configured": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.change": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.manage": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.enable": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.codes_available": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.no_codes": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.active_sessions": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.best_practices": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.use_strong_unique_password": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.enable_mfa_for_protection": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.save_recovery_codes_safely": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.review_sessions_regularly": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.security.view_details": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.manage_api_keys": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.documentation": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.documentation_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.rest_api_reference": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.complete_api_documentation": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.code_examples": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.example_code_and_libraries": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.security_best_practices": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.never_commit_api_keys": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.use_environment_variables": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.rotate_keys_regularly": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.use_https_only": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.monitor_api_usage": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.important_notice": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.api.regenerating_key_warning": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.privacy.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.privacy.manage_privacy_settings": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.privacy.your_privacy": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.privacy.non_negotiable": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.privacy.not_a_setting": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.privacy.no_analytics_statement": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.privacy.explanation": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.notifications.title": {
+    "text": "Notifikationsindstillinger"
+  },
+  "web.settings.notifications.description": {
+    "text": "Administrer hvordan du modtager notifikationer"
+  },
+  "web.settings.notifications.error_updating": {
+    "text": "Kunne ikke opdatere notifikationspræference. Prøv igen."
+  },
+  "web.settings.notifications.reveal_notifications.title": {
+    "text": "Notifikationer ved visning af beskeder"
+  },
+  "web.settings.notifications.reveal_notifications.description": {
+    "text": "Modtag en e-mail, når nogen ser din besked"
+  },
+  "web.settings.notifications.reveal_notifications.help": {
+    "text": "Du vil få besked hver gang en modtager åbner en af dine beskeder"
+  },
+  "web.settings.notifications.privacy_note": {
+    "text": "Notifikations-e-mails indeholder kun tidsstempel og besked-ID. Oplysninger om seeren inkluderes aldrig."
+  },
+  "web.settings.caution.title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.caution.description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.caution.data_export": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.caution.export_your_data": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.caution.export_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.caution.request_data_export": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.caution.export_info": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.caution.export_info_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.caution.deletion_warning_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.caution.deletion_warning_secrets": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.caution.deletion_warning_metadata": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.caution.deletion_warning_api_keys": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.settings.caution.deletion_warning_irreversible": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  }
+}

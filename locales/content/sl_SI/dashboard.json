@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Prejeto"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Ni prejeto"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Ni nedavnih skrivnosti"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Začnite z ustvarjanjem svoje prve skrivnosti."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Ekip ni bilo mogoče naložiti"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Pri nalaganju vaših ekip je prišlo do težave. Poskusite znova."
+  }
+}

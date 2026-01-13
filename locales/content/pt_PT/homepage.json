@@ -1,0 +1,140 @@
+{
+  "web.homepage.tagline1": {
+    "text": "Cole uma palavra-passe, mensagem secreta ou link privado abaixo."
+  },
+  "web.homepage.tagline2": {
+    "text": "Mantenha informações sensíveis fora do seu e-mail e registos de chat."
+  },
+  "web.homepage.secret_hint": {
+    "text": "* Um link secreto funciona apenas uma vez e depois desaparece para sempre."
+  },
+  "web.homepage.secret_form_more_text1": {
+    "text": "Registe-se para uma"
+  },
+  "web.homepage.secret_form_more_text2": {
+    "text": "conta gratuita"
+  },
+  "web.homepage.secret_form_more_text3": {
+    "text": "e poder enviar o segredo por e-mail."
+  },
+  "web.homepage.cta_title": {
+    "text": "Use um Domínio Personalizado"
+  },
+  "web.homepage.cta_subtitle": {
+    "text": "Eleve a sua marca e partilhe com confiança"
+  },
+  "web.homepage.cta_feature1": {
+    "text": "O seu próprio domínio personalizado"
+  },
+  "web.homepage.cta_feature2": {
+    "text": "Partilha ilimitada de segredos"
+  },
+  "web.homepage.cta_feature3": {
+    "text": "Controlos de privacidade avançados"
+  },
+  "web.homepage.explore_premium_plans": {
+    "text": "Explore os Planos Premium"
+  },
+  "web.homepage.need_free_account": {
+    "text": "Está a começar?"
+  },
+  "web.homepage.sign_up_free": {
+    "text": "Crie uma conta gratuita"
+  },
+  "web.homepage.visit_onetime_secret_home": {
+    "text": "Visitar a página inicial do Onetime Secret"
+  },
+  "web.homepage.password_generation_title": {
+    "text": "Gerador de Palavras-passe"
+  },
+  "web.homepage.password_generation_description": {
+    "text": " Clique em \"Gerar Palavra-passe\" para criar uma palavra-passe aleatória segura que pode partilhar."
+  },
+  "web.homepage.protip1": {
+    "text": "A sua mensagem vai autodestruir-se após ser visualizada. O link só pode ser acedido uma vez."
+  },
+  "web.homepage.authonly.tagline2": {
+    "text": "Mantenha informações sensíveis fora do seu e-mail e registos de chat."
+  },
+  "web.homepage.authonly.tagline1": {
+    "text": "Cole uma palavra-passe, mensagem secreta ou link privado abaixo."
+  },
+  "web.homepage.disabled.tagline2": {
+    "text": "Mantenha informações sensíveis fora do seu e-mail e registos de chat."
+  },
+  "web.homepage.disabled.tagline1": {
+    "text": "Cole uma palavra-passe, mensagem secreta ou link privado abaixo."
+  },
+  "web.homepage.link_preview": {
+    "text": "Pré-visualização do Link"
+  },
+  "web.homepage.meets_and_exceeds_compliance_standards": {
+    "text": "Atende e excede os padrões de conformidade"
+  },
+  "web.homepage.secure_your_brand_build_customer_trust_etc": {
+    "text": "Proteja a sua marca, construa a confiança do cliente com links do seu domínio."
+  },
+  "web.homepage.a_trusted_way_to_share_sensitive_information_etc": {
+    "text": "Uma forma confiável de partilhar informações sensíveis que se autodestruem após serem visualizadas."
+  },
+  "web.homepage.secure_links": {
+    "text": "Links Seguros"
+  },
+  "web.homepage.about_onetime_secret_0": {
+    "text": "Sobre Onetime Secret"
+  },
+  "web.homepage.log_in_to_onetime_secret": {
+    "text": "Iniciar sessão no Onetime Secret"
+  },
+  "web.homepage.about_onetime_secret": {
+    "text": "Sobre Onetime Secret"
+  },
+  "web.homepage.signup_individual_and_business_plans": {
+    "text": "Registo - Planos individuais e empresariais"
+  },
+  "web.homepage.tagline_signed": {
+    "text": "Assinado"
+  },
+  "web.homepage.tagline_sealed": {
+    "text": "Selado"
+  },
+  "web.homepage.tagline_delivered": {
+    "text": "Entregue"
+  },
+  "web.homepage.onetime_secret": {
+    "text": "Onetime Secret"
+  },
+  "web.homepage.onetime_secret_literal": {
+    "text": "Onetime Secret"
+  },
+  "web.homepage.one_time_secret_literal": {
+    "text": "One-Time Secret"
+  },
+  "web.homepage.onetime_secret_homepage": {
+    "text": "Página Inicial do Onetime Secret"
+  },
+  "web.homepage.send_sensitive_information_that_can_only_be_viewed_once": {
+    "text": "Envie informações sensíveis que só podem ser visualizadas uma vez"
+  },
+  "web.homepage.create_a_secure_link": {
+    "text": "Criar um link seguro"
+  },
+  "web.homepage.now_with_custom_domains": {
+    "text": "Agora com domínios personalizados"
+  },
+  "web.homepage.this_is_a_private_instance_only_authorized_team_": {
+    "text": "Esta é uma instância privada. Apenas membros autorizados da equipa podem gerar novos links seguros."
+  },
+  "web.homepage.welcome_to_onetime_secret": {
+    "text": "Bem-vindo ao Onetime Secret."
+  },
+  "web.homepage.onetime_secret_helps_us_share_sensitive_informat": {
+    "text": "Onetime Secret ajuda-nos a partilhar informações sensíveis com segurança, mantendo a nossa fachada profissional."
+  },
+  "web.homepage.information_shared_through_this_service_can_only": {
+    "text": "As informações partilhadas através deste serviço só podem ser acedidas uma vez. Uma vez visualizado, o conteúdo é permanentemente eliminado para garantir a confidencialidade."
+  },
+  "web.homepage.welcome_to_the_global_broadcast": {
+    "text": "Bem-vindo à Transmissão Global!"
+  }
+}

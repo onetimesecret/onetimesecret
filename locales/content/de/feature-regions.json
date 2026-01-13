@@ -1,0 +1,107 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "Datensouveränität & regionale Isolation"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "Deine Daten befinden sich ausschließlich in deiner gewählten Region und werden niemals über Regionen hinweg übertragen"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "Jede Region funktioniert als vollständig unabhängige Umgebung mit eigener Infrastruktur, Verschlüsselungsschlüsseln und Datenspeicherung"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "Wir pflegen eine strikte Richtlinie: Kundendaten werden unter keinen Umständen zwischen Regionen übertragen"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "Wichtig: Der Wechsel zu einer anderen Region erstellt ein neues Konto. Deine Daten bleiben in deiner ursprünglichen Region."
+  },
+  "web.regions.your_region": {
+    "text": "Deine Region"
+  },
+  "web.regions.your_current_region": {
+    "text": "Deine aktuelle Region"
+  },
+  "web.regions.active": {
+    "text": "Aktiv"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "Erkunde andere verfügbare Regionen"
+  },
+  "web.regions.why_it_matters": {
+    "text": "Warum Datensouveränität wichtig ist"
+  },
+  "web.regions.trust_title": {
+    "text": "Transparenz & Kontrolle"
+  },
+  "web.regions.trust_description": {
+    "text": "Wisse genau, wo sich deine Daten befinden und welche Gesetze ihren Schutz regeln."
+  },
+  "web.regions.privacy_title": {
+    "text": "Datenschutzrechte"
+  },
+  "web.regions.privacy_description": {
+    "text": "Stelle sicher, dass deine persönlichen Informationen gemäß den Datenschutzgesetzen und -vorschriften deines Landes behandelt werden, um unbefugten Zugriff oder Missbrauch zu verhindern."
+  },
+  "web.regions.compliance_title": {
+    "text": "Einhaltung gesetzlicher Vorschriften"
+  },
+  "web.regions.compliance_description": {
+    "text": "Erfülle DSGVO, HIPAA, CCPA und andere regionale Datenschutzanforderungen"
+  },
+  "web.regions.performance_title": {
+    "text": "Schnellerer Zugriff"
+  },
+  "web.regions.performance_description": {
+    "text": "Daten, die näher bei dir gespeichert sind, bedeuten geringere Latenz und bessere Leistung."
+  },
+  "web.regions.regions": {
+    "text": "Regionen"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "kontaktiere unser Compliance-Team"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "unsere Dokumentation überprüfen"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "Dein Konto und deine Daten sind gemäß den Gesetzen und Vorschriften von"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "Dieser regulatorische Rahmen wird durch deine Zugriffsdomain bestimmt:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "Jede Gerichtsbarkeit unterhält separate rechtliche Compliance und Datenverwaltung. Obwohl du Konten in mehreren Gerichtsbarkeiten erstellen kannst, bleiben sie rechtlich getrennt ohne Datenaustausch zwischen regulatorischen Zonen."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "Um die spezifischen Vorschriften und Schutzmaßnahmen zu verstehen, die für dein Konto gelten, bitte"
+  },
+  "web.regions.current": {
+    "text": "Aktuell"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "Verfügbare Regionen"
+  },
+  "web.regions.jurisdiction": {
+    "text": "Gerichtsbarkeit"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "Rechenzentrumsstandort: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "Datenregion"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "Unbekannte Gerichtsbarkeit"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "Wir bedienen dich von"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "Weiter zu {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Aktuelle Gerichtsbarkeit:"
+  }
+}

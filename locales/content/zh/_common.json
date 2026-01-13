@@ -1,0 +1,934 @@
+{
+  "web.COMMON.broadcast": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.COMMON.tagline": {
+    "text": "仅可使用一次的安全链接"
+  },
+  "web.COMMON.powered_by": {
+    "text": "技术支持"
+  },
+  "web.COMMON.website_url": {
+    "text": "https://onetimesecret.com/zh"
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "text": "生成密码"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "text": "表单有效时生成密码功能被禁用"
+  },
+  "web.COMMON.email_placeholder": {
+    "text": "例如: tom{'@'}myspace.com"
+  },
+  "web.COMMON.password_placeholder": {
+    "text": "输入您的密码"
+  },
+  "web.COMMON.custom_domains_title": {
+    "text": "自定义域名"
+  },
+  "web.COMMON.custom_domains_description": {
+    "text": "使用您自己品牌的链接加强联系并建立信任。"
+  },
+  "web.COMMON.get_started_button": {
+    "text": "开始使用"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "text": "确认您的密码"
+  },
+  "web.COMMON.header_settings": {
+    "text": "设置"
+  },
+  "web.COMMON.submit_with": {
+    "text": "提交"
+  },
+  "web.COMMON.submitting": {
+    "text": "正在提交"
+  },
+  "web.COMMON.processing": {
+    "text": "处理中"
+  },
+  "web.COMMON.description": {
+    "text": "使您的消息记录和电子邮箱地址保持隐匿。分享仅可查看一次的密文链接。"
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "text": "口令不正确"
+  },
+  "web.COMMON.keywords": {
+    "text": "内容,密码生成器,内容分享,一次性"
+  },
+  "web.COMMON.button_create_secret": {
+    "text": "创建内容"
+  },
+  "web.COMMON.button_generate_secret": {
+    "text": "生成随机密码"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "text": "隐私选项"
+  },
+  "web.COMMON.secret_passphrase": {
+    "text": "口令"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "text": "使用不易被猜测到的口令"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "text": "接收者地址"
+  },
+  "web.COMMON.secret_placeholder": {
+    "text": "在此处输入内容..."
+  },
+  "web.COMMON.header_create_account": {
+    "text": "创建账户"
+  },
+  "web.COMMON.header_about": {
+    "text": "关于"
+  },
+  "web.COMMON.header_sign_in": {
+    "text": "登录"
+  },
+  "web.COMMON.header_dashboard": {
+    "text": "账户"
+  },
+  "web.COMMON.header_logout": {
+    "text": "退出帐号"
+  },
+  "web.COMMON.secret": {
+    "text": "内容"
+  },
+  "web.COMMON.recent": {
+    "text": "最近"
+  },
+  "web.COMMON.received": {
+    "text": "已接收"
+  },
+  "web.COMMON.burn": {
+    "text": "销毁"
+  },
+  "web.COMMON.burned": {
+    "text": "已销毁"
+  },
+  "web.COMMON.expires_in": {
+    "text": "有效期"
+  },
+  "web.COMMON.burn_this_secret": {
+    "text": "销毁内容"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "text": "销毁内容将在查看前删除（点击确认）"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "text": "销毁操作是永久的、不可撤销的"
+  },
+  "web.COMMON.msg_check_email": {
+    "text": "检查您的电子邮箱"
+  },
+  "web.COMMON.click_to_continue": {
+    "text": "点击继续 →"
+  },
+  "web.COMMON.click_to_verify": {
+    "text": "继续进行账户认证:"
+  },
+  "web.COMMON.error_secret": {
+    "text": "您还未提交任何需要加密的内容"
+  },
+  "web.COMMON.error_passphrase": {
+    "text": "再次确认口令"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "text": "在此处填写口令"
+  },
+  "web.COMMON.view_secret": {
+    "text": "查看内容"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "text": "请注意：内容仅可查看一次"
+  },
+  "web.COMMON.warning": {
+    "text": "警告"
+  },
+  "web.COMMON.oops": {
+    "text": "哎呀"
+  },
+  "web.COMMON.error": {
+    "text": "错误"
+  },
+  "web.COMMON.unexpected_error": {
+    "text": "发生意外错误。请重试。"
+  },
+  "web.COMMON.secret_was_truncated": {
+    "text": "您撰写的内容过长，已被删节"
+  },
+  "web.COMMON.signup_for_more": {
+    "text": "登录以使用更多功能"
+  },
+  "web.COMMON.login_to_your_account": {
+    "text": "登录您的帐户"
+  },
+  "web.COMMON.sent_to": {
+    "text": "发送至: "
+  },
+  "web.COMMON.field_email": {
+    "text": "电子邮箱"
+  },
+  "web.COMMON.field_password": {
+    "text": "密码"
+  },
+  "web.COMMON.field_password2": {
+    "text": "确认密码"
+  },
+  "web.COMMON.button_create_account": {
+    "text": "创建账户"
+  },
+  "web.COMMON.share_a_secret": {
+    "text": "分享内容"
+  },
+  "web.COMMON.title_home": {
+    "text": "主页"
+  },
+  "web.COMMON.word_none": {
+    "text": "无"
+  },
+  "web.COMMON.word_burned": {
+    "text": "已销毁"
+  },
+  "web.COMMON.word_received": {
+    "text": "已接收"
+  },
+  "web.COMMON.word_confirm": {
+    "text": "确认"
+  },
+  "web.COMMON.word_cancel": {
+    "text": "取消"
+  },
+  "web.COMMON.word_continue": {
+    "text": "继续"
+  },
+  "web.COMMON.word_done": {
+    "text": "完成"
+  },
+  "web.COMMON.back": {
+    "text": "返回"
+  },
+  "web.COMMON.feedback_text": {
+    "text": "有疑问或建议？"
+  },
+  "web.COMMON.button_send_feedback": {
+    "text": "发送反馈"
+  },
+  "web.COMMON.verification_sent_to": {
+    "text": "验证消息已送至"
+  },
+  "web.COMMON.autoverified_success": {
+    "text": "账户已创建。请登录。"
+  },
+  "web.COMMON.signup_success_generic": {
+    "text": "如果使用此邮箱的账户存在，您将收到验证邮件。"
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "text": "永久销毁此内容"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "text": "请确认"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "text": "您确定要销毁此内容吗？此操作无法撤销。"
+  },
+  "web.COMMON.confirm_burn": {
+    "text": "是的，销毁此内容"
+  },
+  "web.COMMON.burn_security_notice": {
+    "text": "销毁内容将在查看前删除它。"
+  },
+  "web.COMMON.share_link_securely": {
+    "text": "为安全起见，请单独分享此链接。"
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "text": "已复制"
+  },
+  "web.COMMON.button_create_incoming": {
+    "text": "创建接收"
+  },
+  "web.COMMON.faq_title": {
+    "text": "常见问题"
+  },
+  "web.COMMON.verification_not_valid": {
+    "text": "验证无效"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "text": "已登录时无法验证账户"
+  },
+  "web.COMMON.show_password": {
+    "text": "显示密码"
+  },
+  "web.COMMON.hide_password": {
+    "text": "隐藏密码"
+  },
+  "web.COMMON.minimum_8_characters": {
+    "text": "密码至少需要8个字符"
+  },
+  "web.COMMON.password_requirements": {
+    "text": "密码至少需要8个字符"
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "text": "密码不匹配"
+  },
+  "web.COMMON.form_field_required": {
+    "text": "此字段为必填项"
+  },
+  "web.COMMON.form_processing": {
+    "text": "正在处理您的请求"
+  },
+  "web.COMMON.remember_me_description": {
+    "text": "保持登录状态30天"
+  },
+  "web.COMMON.redirecting": {
+    "text": "正在跳转"
+  },
+  "web.COMMON.continue": {
+    "text": "继续"
+  },
+  "web.COMMON.are_you_sure": {
+    "text": "您确定吗？"
+  },
+  "web.COMMON.danger_zone": {
+    "text": "危险区域"
+  },
+  "web.COMMON.caution_zone": {
+    "text": "谨慎操作区域"
+  },
+  "web.COMMON.user_menu": {
+    "text": "用户菜单"
+  },
+  "web.COMMON.security": {
+    "text": "安全"
+  },
+  "web.COMMON.manage": {
+    "text": "管理"
+  },
+  "web.COMMON.loading": {
+    "text": "加载中"
+  },
+  "web.COMMON.save_changes": {
+    "text": "保存更改"
+  },
+  "web.COMMON.saving": {
+    "text": "保存中"
+  },
+  "web.COMMON.adding_ellipses": {
+    "text": "添加中……"
+  },
+  "web.COMMON.e_g_example": {
+    "text": "例如"
+  },
+  "web.COMMON.example_placeholder": {
+    "text": "例如：{example}"
+  },
+  "web.COMMON.status": {
+    "text": "状态"
+  },
+  "web.COMMON.escape": {
+    "text": "退出"
+  },
+  "web.COMMON.active": {
+    "text": "活跃"
+  },
+  "web.COMMON.preview": {
+    "text": "预览"
+  },
+  "web.COMMON.remove": {
+    "text": "移除"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "text": "按 ESC 键关闭"
+  },
+  "web.COMMON.enter": {
+    "text": "输入"
+  },
+  "web.COMMON.important": {
+    "text": "重要"
+  },
+  "web.COMMON.language": {
+    "text": "语言"
+  },
+  "web.COMMON.theme": {
+    "text": "主题"
+  },
+  "web.COMMON.appearance": {
+    "text": "外观"
+  },
+  "web.COMMON.done": {
+    "text": "完成"
+  },
+  "web.COMMON.end": {
+    "text": "结束"
+  },
+  "web.COMMON.general": {
+    "text": "常规"
+  },
+  "web.COMMON.note": {
+    "text": "注意"
+  },
+  "web.COMMON.monthly": {
+    "text": "每月"
+  },
+  "web.COMMON.yearly": {
+    "text": "每年"
+  },
+  "web.COMMON.go_on_then": {
+    "text": "那就继续吧。"
+  },
+  "web.COMMON.loading_ellipses": {
+    "text": "加载中……"
+  },
+  "web.COMMON.not_received": {
+    "text": "未接收"
+  },
+  "web.COMMON.confirm_password": {
+    "text": "确认密码"
+  },
+  "web.COMMON.new_password": {
+    "text": "新密码"
+  },
+  "web.COMMON.email_address": {
+    "text": "邮箱地址"
+  },
+  "web.COMMON.switch": {
+    "text": "切换"
+  },
+  "web.COMMON.features": {
+    "text": "功能"
+  },
+  "web.COMMON.not_found": {
+    "text": "未找到"
+  },
+  "web.COMMON.emoji_x": {
+    "text": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "text": "✅"
+  },
+  "web.COMMON.supported": {
+    "text": "支持"
+  },
+  "web.COMMON.version": {
+    "text": "版本"
+  },
+  "web.COMMON.other": {
+    "text": "其他"
+  },
+  "web.COMMON.min_width_1024px": {
+    "text": "（最小宽度：1024px）"
+  },
+  "web.COMMON.ctrl_enter": {
+    "text": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "text": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "text": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "text": "邮箱地址已复制到剪贴板"
+  },
+  "web.COMMON.value": {
+    "text": "值"
+  },
+  "web.COMMON.host": {
+    "text": "主机"
+  },
+  "web.COMMON.type": {
+    "text": "类型"
+  },
+  "web.COMMON.previous": {
+    "text": "上一个"
+  },
+  "web.COMMON.next": {
+    "text": "下一个"
+  },
+  "web.COMMON.password_strength": {
+    "text": "密码强度："
+  },
+  "web.COMMON.great": {
+    "text": "很好"
+  },
+  "web.COMMON.pretty_good": {
+    "text": "不错"
+  },
+  "web.COMMON.fair": {
+    "text": "一般"
+  },
+  "web.COMMON.meh": {
+    "text": "勉强"
+  },
+  "web.COMMON.not_great": {
+    "text": "不太好"
+  },
+  "web.COMMON.open_options": {
+    "text": "打开选项"
+  },
+  "web.COMMON.inactive": {
+    "text": "未激活"
+  },
+  "web.COMMON.an_error_occurred": {
+    "text": "发生错误"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "text": "将内容复制到剪贴板"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "text": "内容已复制到剪贴板"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "text": "请仔细检查该口令"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "text": "请按下方的复制按钮。"
+  },
+  "web.LABELS.view_toggle.show": {
+    "text": "显示"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "text": "隐藏"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "text": "显示更多"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "text": "收起"
+  },
+  "web.LABELS.enable": {
+    "text": "启用"
+  },
+  "web.LABELS.disable": {
+    "text": "禁用"
+  },
+  "web.LABELS.stats": {
+    "text": "统计"
+  },
+  "web.LABELS.timeline": {
+    "text": "时间线"
+  },
+  "web.LABELS.lifespan": {
+    "text": "生命周期"
+  },
+  "web.LABELS.expiration_time": {
+    "text": "过期时间"
+  },
+  "web.LABELS.close": {
+    "text": "关闭"
+  },
+  "web.LABELS.loading": {
+    "text": "加载中"
+  },
+  "web.LABELS.cancel": {
+    "text": "取消"
+  },
+  "web.LABELS.saving": {
+    "text": "保存中"
+  },
+  "web.LABELS.saved": {
+    "text": "已保存"
+  },
+  "web.LABELS.save": {
+    "text": "保存"
+  },
+  "web.LABELS.save_all": {
+    "text": "全部保存"
+  },
+  "web.LABELS.details": {
+    "text": "详情"
+  },
+  "web.LABELS.encrypted": {
+    "text": "已加密"
+  },
+  "web.LABELS.secret_status": {
+    "text": "内容状态"
+  },
+  "web.LABELS.need_help": {
+    "text": "需要帮助？"
+  },
+  "web.LABELS.create_new_secret": {
+    "text": "创建新内容"
+  },
+  "web.LABELS.actions": {
+    "text": "操作"
+  },
+  "web.LABELS.no_passphrase": {
+    "text": "无需口令"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "text": "复制"
+  },
+  "web.LABELS.receipts": {
+    "text": "回执"
+  },
+  "web.LABELS.share": {
+    "text": "分享"
+  },
+  "web.LABELS.secret_link": {
+    "text": "一次性链接"
+  },
+  "web.LABELS.dismiss": {
+    "text": "关闭"
+  },
+  "web.LABELS.security_details": {
+    "text": "安全详情"
+  },
+  "web.LABELS.items_count": {
+    "text": "{count} 项"
+  },
+  "web.LABELS.recipients_count": {
+    "text": "{count} 位接收者"
+  },
+  "web.LABELS.view": {
+    "text": "查看"
+  },
+  "web.LABELS.views": {
+    "text": "查看次数"
+  },
+  "web.LABELS.times_viewed": {
+    "text": "次查看"
+  },
+  "web.LABELS.view_progress": {
+    "text": "查看进度"
+  },
+  "web.LABELS.help_section": {
+    "text": "帮助部分"
+  },
+  "web.LABELS.passphrase_protected": {
+    "text": "口令保护"
+  },
+  "web.LABELS.feedback_received": {
+    "text": "已收到反馈。"
+  },
+  "web.LABELS.sending_ellipses": {
+    "text": "发送中"
+  },
+  "web.LABELS.title_recent_secrets": {
+    "text": "最近的内容"
+  },
+  "web.LABELS.pricing": {
+    "text": "定价"
+  },
+  "web.LABELS.refresh": {
+    "text": "刷新"
+  },
+  "web.LABELS.reload": {
+    "text": "重新加载"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "text": "本会话中创建的一次性链接"
+  },
+  "web.LABELS.create_link_short": {
+    "text": "创建链接"
+  },
+  "web.LABELS.create_link": {
+    "text": "创建一次性链接"
+  },
+  "web.LABELS.create_request_short": {
+    "text": "创建请求"
+  },
+  "web.LABELS.create_request": {
+    "text": "创建请求链接"
+  },
+  "web.LABELS.related_settings": {
+    "text": "相关设置"
+  },
+  "web.LABELS.creating_links_for": {
+    "text": "创建链接用于"
+  },
+  "web.LABELS.scope_indicator": {
+    "text": "在 {domain} 中创建内容"
+  },
+  "web.STATUS.new": {
+    "text": "新建"
+  },
+  "web.STATUS.unread": {
+    "text": "未读"
+  },
+  "web.STATUS.viewed": {
+    "text": "链接已打开"
+  },
+  "web.STATUS.received": {
+    "text": "已接收"
+  },
+  "web.STATUS.burned": {
+    "text": "已销毁"
+  },
+  "web.STATUS.destroyed": {
+    "text": "已删除"
+  },
+  "web.STATUS.expiring_soon": {
+    "text": "即将过期"
+  },
+  "web.STATUS.created": {
+    "text": "已创建"
+  },
+  "web.STATUS.expires": {
+    "text": "过期"
+  },
+  "web.STATUS.expired": {
+    "text": "已过期"
+  },
+  "web.STATUS.orphaned": {
+    "text": "已孤立"
+  },
+  "web.STATUS.secured": {
+    "text": "已保护"
+  },
+  "web.STATUS.securing": {
+    "text": "保护中"
+  },
+  "web.STATUS.copied": {
+    "text": "已复制"
+  },
+  "web.STATUS.time_remaining": {
+    "text": "剩余时间"
+  },
+  "web.STATUS.new_description": {
+    "text": "一次性链接已创建且尚未查看"
+  },
+  "web.STATUS.unread_description": {
+    "text": "一次性链接已创建且尚未查看"
+  },
+  "web.STATUS.viewed_description": {
+    "text": "一次性链接已打开并准备查看"
+  },
+  "web.STATUS.received_description": {
+    "text": "内容已向接收者显示"
+  },
+  "web.STATUS.burned_description": {
+    "text": "内容在查看前已手动销毁"
+  },
+  "web.STATUS.destroyed_description": {
+    "text": "内容已永久删除"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "text": "内容即将过期"
+  },
+  "web.STATUS.orphaned_description": {
+    "text": "内容已孤立并将很快删除"
+  },
+  "web.STATUS.expired_description": {
+    "text": "内容在查看前已过期"
+  },
+  "web.STATUS.success": {
+    "text": "成功"
+  },
+  "web.STATUS.delivered": {
+    "text": "已发送"
+  },
+  "web.STATUS.dns_incorrect": {
+    "text": "DNS 不正确"
+  },
+  "web.STATUS.active": {
+    "text": "活跃"
+  },
+  "web.STATUS.inactive": {
+    "text": "未激活"
+  },
+  "web.FEATURES.unlimited_views": {
+    "text": "无限查看次数"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "text": "可信域名品牌化"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "text": "传输中和静态加密"
+  },
+  "web.UNITS.ttl.duration": {
+    "text": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "text": "天"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "text": "小时"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "text": "分钟"
+  },
+  "web.UNITS.ttl.time.second": {
+    "text": "秒"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "text": "剩余 {count} {unit}"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "text": "剩余天数"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "text": "剩余小时"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "text": "剩余分钟"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "text": "剩余秒数"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.limited_views": {
+    "text": "{count} 次查看限制"
+  },
+  "web.UNITS.days_remaining": {
+    "text": "剩余 {count} 天"
+  },
+  "web.UNITS.hours_remaining": {
+    "text": "剩余 {count} 小时"
+  },
+  "web.UNITS.minutes_remaining": {
+    "text": "剩余 {count} 分钟"
+  },
+  "web.TITLES.incoming": {
+    "text": "接收的内容"
+  },
+  "web.TITLES.feedback": {
+    "text": "反馈"
+  },
+  "web.TITLES.signin": {
+    "text": "登录"
+  },
+  "web.TITLES.signup": {
+    "text": "创建账户"
+  },
+  "web.TITLES.forgot_password": {
+    "text": "忘记密码"
+  },
+  "web.TITLES.reset_password": {
+    "text": "重置密码"
+  },
+  "web.TITLES.logout": {
+    "text": "退出登录"
+  },
+  "web.TITLES.verify_account": {
+    "text": "验证账户"
+  },
+  "web.TITLES.mfa_verify": {
+    "text": "双因素认证"
+  },
+  "web.TITLES.email_login": {
+    "text": "邮箱登录"
+  },
+  "web.TITLES.accept_invitation": {
+    "text": "接受邀请"
+  },
+  "web.TITLES.secret": {
+    "text": "内容"
+  },
+  "web.TITLES.metadata": {
+    "text": "内容详情"
+  },
+  "web.TITLES.receipt": {
+    "text": "内容回执"
+  },
+  "web.TITLES.burn_secret": {
+    "text": "销毁内容"
+  },
+  "web.TITLES.dashboard": {
+    "text": "仪表板"
+  },
+  "web.TITLES.recent": {
+    "text": "最近的内容"
+  },
+  "web.TITLES.domains": {
+    "text": "自定义域名"
+  },
+  "web.TITLES.domain_add": {
+    "text": "添加域名"
+  },
+  "web.TITLES.domain_verify": {
+    "text": "验证域名"
+  },
+  "web.TITLES.domain_brand": {
+    "text": "品牌域名"
+  },
+  "web.TITLES.account": {
+    "text": "账户设置"
+  },
+  "web.TITLES.data_region": {
+    "text": "数据区域"
+  },
+  "web.TITLES.current_region": {
+    "text": "当前区域"
+  },
+  "web.TITLES.available_regions": {
+    "text": "可用区域"
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "text": "数据主权的重要性"
+  },
+  "web.TITLES.profile_settings": {
+    "text": "个人资料设置"
+  },
+  "web.TITLES.preferences_settings": {
+    "text": "偏好设置"
+  },
+  "web.TITLES.privacy_settings": {
+    "text": "隐私"
+  },
+  "web.TITLES.notification_settings": {
+    "text": "通知"
+  },
+  "web.TITLES.change_email": {
+    "text": "更改邮箱"
+  },
+  "web.TITLES.security_overview": {
+    "text": "安全"
+  },
+  "web.TITLES.change_password": {
+    "text": "更改密码"
+  },
+  "web.TITLES.mfa_settings": {
+    "text": "双因素认证"
+  },
+  "web.TITLES.active_sessions": {
+    "text": "活跃会话"
+  },
+  "web.TITLES.recovery_codes": {
+    "text": "恢复代码"
+  },
+  "web.TITLES.api_settings": {
+    "text": "API 设置"
+  },
+  "web.TITLES.advanced_settings": {
+    "text": "高级设置"
+  },
+  "web.TITLES.system_settings": {
+    "text": "系统设置"
+  },
+  "web.TITLES.not_found": {
+    "text": "页面未找到"
+  },
+  "web.TITLES.organizations_settings": {
+    "text": "组织"
+  },
+  "web.TITLES.organization_settings": {
+    "text": "组织设置"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "text": "焦点现在位于主文本区域"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "text": "分享说明"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "text": "与预期接收者分享链接"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "text": "通过安全渠道单独分享口令"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "text": "使用不同的安全渠道分享敏感信息"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "text": "请始终验证您在官方 Onetime Secret 网站上。欺诈者有时会创建看起来与 Onetime Secret 完全相同的虚假网站来窃取您的内容。为避免网络钓鱼攻击，请在创建新链接之前检查区域域名。"
+  }
+}

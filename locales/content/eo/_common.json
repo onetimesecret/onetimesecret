@@ -1,0 +1,962 @@
+{
+  "web.COMMON.tagline": {
+    "text": "Sekuraj ligiloj kiuj funkcias nur unufoje"
+  },
+  "web.COMMON.powered_by": {
+    "text": "Funkciigita de"
+  },
+  "web.COMMON.website_url": {
+    "text": "https://onetimesecret.com/eo"
+  },
+  "web.COMMON.button_generate_secret_short": {
+    "text": "Generi Pasvorton"
+  },
+  "web.COMMON.generate_password_disabled": {
+    "text": "Generi Pasvorton estas malŝaltita kiam la formularo estas valida"
+  },
+  "web.COMMON.email_placeholder": {
+    "text": "ekz. tomo{'@'}myspace.com"
+  },
+  "web.COMMON.password_placeholder": {
+    "text": "Enigu vian pasvorton"
+  },
+  "web.COMMON.custom_domains_title": {
+    "text": "Propraj Domajnoj"
+  },
+  "web.COMMON.custom_domains_description": {
+    "text": "Fortigu konektojn kaj konstruu fidon per viaj propraj markitaj sekretaj ligiloj."
+  },
+  "web.COMMON.get_started_button": {
+    "text": "Komenci"
+  },
+  "web.COMMON.confirm_password_placeholder": {
+    "text": "Konfirmu vian pasvorton"
+  },
+  "web.COMMON.header_settings": {
+    "text": "Agordoj"
+  },
+  "web.COMMON.submit_with": {
+    "text": "Sendi"
+  },
+  "web.COMMON.submitting": {
+    "text": "Sendante..."
+  },
+  "web.COMMON.processing": {
+    "text": "Prilaborante..."
+  },
+  "web.COMMON.description": {
+    "text": "Tenu sentemajn informojn ekster viaj babilaj protokoloj kaj retpoŝto. Kunhavigu sekretan ligilon kiu estas havebla nur unufoje."
+  },
+  "web.COMMON.incorrect_passphrase": {
+    "text": "Malĝusta pasfrazo"
+  },
+  "web.COMMON.keywords": {
+    "text": "sekreto,pasvortgenerilo,kunhavigi sekreton,unufoja"
+  },
+  "web.COMMON.button_create_secret": {
+    "text": "Krei sekretan ligilon"
+  },
+  "web.COMMON.button_generate_secret": {
+    "text": "Aŭ generi hazardan pasvorton"
+  },
+  "web.COMMON.secret_privacy_options": {
+    "text": "Privatecaj Opcioj"
+  },
+  "web.COMMON.secret_passphrase": {
+    "text": "Pasfrazo"
+  },
+  "web.COMMON.secret_passphrase_hint": {
+    "text": "Vorto aŭ frazo malfacile divenebla"
+  },
+  "web.COMMON.secret_recipient_address": {
+    "text": "Adreso de Ricevanto"
+  },
+  "web.COMMON.secret_placeholder": {
+    "text": "Sekreta enhavo iras ĉi tien..."
+  },
+  "web.COMMON.header_create_account": {
+    "text": "Krei Konton"
+  },
+  "web.COMMON.header_about": {
+    "text": "Pri"
+  },
+  "web.COMMON.header_sign_in": {
+    "text": "Ensaluti"
+  },
+  "web.COMMON.header_dashboard": {
+    "text": "Konto"
+  },
+  "web.COMMON.header_logout": {
+    "text": "Elsaluti"
+  },
+  "web.COMMON.secret": {
+    "text": "Sekreto | Sekretoj"
+  },
+  "web.COMMON.recent": {
+    "text": "Lastatempa"
+  },
+  "web.COMMON.received": {
+    "text": "Ricevita"
+  },
+  "web.COMMON.burn": {
+    "text": "Bruligi"
+  },
+  "web.COMMON.burned": {
+    "text": "Bruligita"
+  },
+  "web.COMMON.expires_in": {
+    "text": "Eksvalidiĝas post"
+  },
+  "web.COMMON.burn_this_secret": {
+    "text": "Bruligi ĉi tiun sekreton"
+  },
+  "web.COMMON.burn_this_secret_hint": {
+    "text": "Bruligi sekreton forigos ĝin antaŭ ol ĝi estas legita (klaku por konfirmi)"
+  },
+  "web.COMMON.burn_this_secret_confirm_hint": {
+    "text": "Bruligi sekreton estas permanenta kaj ne povas esti malfarita"
+  },
+  "web.COMMON.msg_check_email": {
+    "text": "Kontrolu vian retpoŝton"
+  },
+  "web.COMMON.click_to_continue": {
+    "text": "Klaku por malkaŝi →"
+  },
+  "web.COMMON.click_to_verify": {
+    "text": "Daŭrigu por konfirmi vian konton:"
+  },
+  "web.COMMON.error_secret": {
+    "text": "Vi provizis nenion por kunhavigi"
+  },
+  "web.COMMON.error_passphrase": {
+    "text": "Duoble kontrolu tiun pasfrazon"
+  },
+  "web.COMMON.enter_passphrase_here": {
+    "text": "Enigu la pasfrazon ĉi tie"
+  },
+  "web.COMMON.view_secret": {
+    "text": "Vidi Sekreton"
+  },
+  "web.COMMON.careful_only_see_once": {
+    "text": "Atentu: ni montros ĝin nur unufoje."
+  },
+  "web.COMMON.warning": {
+    "text": "Averto"
+  },
+  "web.COMMON.oops": {
+    "text": "Ho ve!"
+  },
+  "web.COMMON.error": {
+    "text": "Eraro"
+  },
+  "web.COMMON.unexpected_error": {
+    "text": "Neatendita eraro okazis. Bonvolu reprovi."
+  },
+  "web.COMMON.secret_was_truncated": {
+    "text": "La mesaĝo estis trunkita"
+  },
+  "web.COMMON.signup_for_more": {
+    "text": "Registriĝu por pli"
+  },
+  "web.COMMON.login_to_your_account": {
+    "text": "Ensalutu al via konto"
+  },
+  "web.COMMON.sent_to": {
+    "text": "Sendita al: "
+  },
+  "web.COMMON.field_email": {
+    "text": "Retpoŝto"
+  },
+  "web.COMMON.field_password": {
+    "text": "Pasvorto"
+  },
+  "web.COMMON.field_password2": {
+    "text": "Konfirmi Pasvorton"
+  },
+  "web.COMMON.button_create_account": {
+    "text": "Krei Konton"
+  },
+  "web.COMMON.share_a_secret": {
+    "text": "Kunhavigi sekreton"
+  },
+  "web.COMMON.title_home": {
+    "text": "Hejmo"
+  },
+  "web.COMMON.word_none": {
+    "text": "Neniu"
+  },
+  "web.COMMON.word_burned": {
+    "text": "bruligita"
+  },
+  "web.COMMON.word_received": {
+    "text": "ricevita"
+  },
+  "web.COMMON.word_confirm": {
+    "text": "Konfirmi"
+  },
+  "web.COMMON.word_cancel": {
+    "text": "Nuligi"
+  },
+  "web.COMMON.word_continue": {
+    "text": "Daŭrigi"
+  },
+  "web.COMMON.word_done": {
+    "text": "Farita"
+  },
+  "web.COMMON.back": {
+    "text": "Reen"
+  },
+  "web.COMMON.feedback_text": {
+    "text": "Kunhavigu viajn pensojn, ideojn, aŭ spertojn..."
+  },
+  "web.COMMON.button_send_feedback": {
+    "text": "Sendi Rimarkojn"
+  },
+  "web.COMMON.verification_sent_to": {
+    "text": "Konfirmo estis sendita al"
+  },
+  "web.COMMON.autoverified_success": {
+    "text": "Konto kreita. Bonvolu ensaluti."
+  },
+  "web.COMMON.signup_success_generic": {
+    "text": "Se konto kun ĉi tiu retpoŝto ekzistas, vi ricevos konfirman retmesaĝon."
+  },
+  "web.COMMON.burn_this_secret_aria": {
+    "text": "Bruligi ĉi tiun sekreton permanente"
+  },
+  "web.COMMON.burn_confirmation_title": {
+    "text": "Bonvolu Konfirmi"
+  },
+  "web.COMMON.burn_confirmation_message": {
+    "text": "Ĉu vi certas ke vi volas bruligi ĉi tiun sekreton? Ĉi tiu ago ne povas esti malfarita."
+  },
+  "web.COMMON.confirm_burn": {
+    "text": "Jes, bruligi ĉi tiun sekreton"
+  },
+  "web.COMMON.burn_security_notice": {
+    "text": "Bruligi sekreton forigos ĝin antaŭ ol ĝi estas ricevita."
+  },
+  "web.COMMON.share_link_securely": {
+    "text": "Por sekureco, kunhavigu ĉi tiun ligilon aparte de aliaj detaloj."
+  },
+  "web.COMMON.copied_to_clipboard": {
+    "text": "Kopiita al tondujo"
+  },
+  "web.COMMON.button_create_incoming": {
+    "text": "Krei Envenantan"
+  },
+  "web.COMMON.faq_title": {
+    "text": "Oftaj Demandoj"
+  },
+  "web.COMMON.verification_not_valid": {
+    "text": "Konfirmo ne estas valida"
+  },
+  "web.COMMON.verification_already_logged_in": {
+    "text": "Ne eblas konfirmi konton kiam vi jam estas ensalutinta"
+  },
+  "web.COMMON.show_password": {
+    "text": "Montri pasvorton"
+  },
+  "web.COMMON.hide_password": {
+    "text": "Kaŝi pasvorton"
+  },
+  "web.COMMON.minimum_8_characters": {
+    "text": "Pasvorto devas havi almenaŭ 8 signojn"
+  },
+  "web.COMMON.password_requirements": {
+    "text": "Pasvorto devas esti almenaŭ 8 signojn longa"
+  },
+  "web.COMMON.passwords_do_not_match": {
+    "text": "Pasvortoj ne kongruas"
+  },
+  "web.COMMON.form_field_required": {
+    "text": "Ĉi tiu kampo estas deviga"
+  },
+  "web.COMMON.form_processing": {
+    "text": "Prilaborante vian peton"
+  },
+  "web.COMMON.remember_me_description": {
+    "text": "Tenu min ensalutinta dum 30 tagoj"
+  },
+  "web.COMMON.redirecting": {
+    "text": "Alidirektante..."
+  },
+  "web.COMMON.continue": {
+    "text": "Daŭrigi"
+  },
+  "web.COMMON.are_you_sure": {
+    "text": "Ĉu vi certas?"
+  },
+  "web.COMMON.danger_zone": {
+    "text": "Danĝera Zono"
+  },
+  "web.COMMON.caution_zone": {
+    "text": "Zono de Zorga Konsidero"
+  },
+  "web.COMMON.user_menu": {
+    "text": "Uzantmenuo"
+  },
+  "web.COMMON.security": {
+    "text": "Sekureco"
+  },
+  "web.COMMON.manage": {
+    "text": "Administri"
+  },
+  "web.COMMON.loading": {
+    "text": "Ŝargante..."
+  },
+  "web.COMMON.save_changes": {
+    "text": "Konservi Ŝanĝojn"
+  },
+  "web.COMMON.saving": {
+    "text": "Konservante..."
+  },
+  "web.COMMON.adding_ellipses": {
+    "text": "Aldonante"
+  },
+  "web.COMMON.e_g_example": {
+    "text": "ekz."
+  },
+  "web.COMMON.example_placeholder": {
+    "text": "ekz. {example}"
+  },
+  "web.COMMON.status": {
+    "text": "Stato"
+  },
+  "web.COMMON.escape": {
+    "text": "Eskapi"
+  },
+  "web.COMMON.active": {
+    "text": "Aktiva"
+  },
+  "web.COMMON.preview": {
+    "text": "Antaŭvido"
+  },
+  "web.COMMON.remove": {
+    "text": "Forigi"
+  },
+  "web.COMMON.press_esc_to_close": {
+    "text": "Premu ESC por fermi"
+  },
+  "web.COMMON.enter": {
+    "text": "Enigi"
+  },
+  "web.COMMON.important": {
+    "text": "Grava"
+  },
+  "web.COMMON.language": {
+    "text": "Lingvo"
+  },
+  "web.COMMON.theme": {
+    "text": "Etoso"
+  },
+  "web.COMMON.appearance": {
+    "text": "Aspekto"
+  },
+  "web.COMMON.done": {
+    "text": "Farite"
+  },
+  "web.COMMON.end": {
+    "text": "Fino"
+  },
+  "web.COMMON.general": {
+    "text": "Ĝenerala"
+  },
+  "web.COMMON.note": {
+    "text": "Noto"
+  },
+  "web.COMMON.monthly": {
+    "text": "Monate"
+  },
+  "web.COMMON.yearly": {
+    "text": "Jare"
+  },
+  "web.COMMON.go_on_then": {
+    "text": "Daŭrigu do."
+  },
+  "web.COMMON.loading_ellipses": {
+    "text": "Ŝargante..."
+  },
+  "web.COMMON.not_received": {
+    "text": "NE RICEVITA"
+  },
+  "web.COMMON.confirm_password": {
+    "text": "Konfirmu pasvorton"
+  },
+  "web.COMMON.new_password": {
+    "text": "Nova pasvorto"
+  },
+  "web.COMMON.email_address": {
+    "text": "Retpoŝtadreso"
+  },
+  "web.COMMON.switch": {
+    "text": "ŝalti"
+  },
+  "web.COMMON.features": {
+    "text": "Funkcioj"
+  },
+  "web.COMMON.not_found": {
+    "text": "Ne Trovita"
+  },
+  "web.COMMON.emoji_x": {
+    "text": "❌"
+  },
+  "web.COMMON.emoji_checkmark": {
+    "text": "✅"
+  },
+  "web.COMMON.supported": {
+    "text": "Subtenata"
+  },
+  "web.COMMON.version": {
+    "text": "Versio"
+  },
+  "web.COMMON.other": {
+    "text": "Alia"
+  },
+  "web.COMMON.min_width_1024px": {
+    "text": "(min-width: 1024px)"
+  },
+  "web.COMMON.ctrl_enter": {
+    "text": "Ctrl + Enter"
+  },
+  "web.COMMON.enter_0": {
+    "text": "⌘ + Enter"
+  },
+  "web.COMMON.mac": {
+    "text": "Mac"
+  },
+  "web.COMMON.email_address_copied_to_clipboard": {
+    "text": "Retpoŝtadreso kopiita al tondujo!"
+  },
+  "web.COMMON.value": {
+    "text": "Valoro"
+  },
+  "web.COMMON.host": {
+    "text": "Gastiganto"
+  },
+  "web.COMMON.type": {
+    "text": "Tipo"
+  },
+  "web.COMMON.previous": {
+    "text": "Antaŭa"
+  },
+  "web.COMMON.next": {
+    "text": "Sekva"
+  },
+  "web.COMMON.password_strength": {
+    "text": "Pasvorta Forteco:"
+  },
+  "web.COMMON.great": {
+    "text": "Bonega"
+  },
+  "web.COMMON.pretty_good": {
+    "text": "Sufiĉe bona"
+  },
+  "web.COMMON.fair": {
+    "text": "Akceptebla"
+  },
+  "web.COMMON.meh": {
+    "text": "Nu ja"
+  },
+  "web.COMMON.not_great": {
+    "text": "Ne bona"
+  },
+  "web.COMMON.open_options": {
+    "text": "Malfermi opciojn"
+  },
+  "web.COMMON.inactive": {
+    "text": "Neaktiva"
+  },
+  "web.COMMON.an_error_occurred": {
+    "text": "Eraro okazis"
+  },
+  "web.COMMON.copy_secret_to_clipboard": {
+    "text": "Kopii sekreton al tondujo"
+  },
+  "web.COMMON.secret_copied_to_clipboard": {
+    "text": "Sekreto kopiita al tondujo"
+  },
+  "web.COMMON.double_check_that_passphrase": {
+    "text": "Rekontrolegu tiun pasfrazon"
+  },
+  "web.COMMON.press_copy_button_below": {
+    "text": "Premu la kopian butonon sube."
+  },
+  "web.LABELS.view_toggle.show": {
+    "text": "Montri"
+  },
+  "web.LABELS.view_toggle.hide": {
+    "text": "Kaŝi"
+  },
+  "web.LABELS.view_toggle.show_more": {
+    "text": "Montri Pli"
+  },
+  "web.LABELS.view_toggle.show_less": {
+    "text": "Montri Malpli"
+  },
+  "web.LABELS.enable": {
+    "text": "Ŝalti"
+  },
+  "web.LABELS.disable": {
+    "text": "Malŝalti"
+  },
+  "web.LABELS.stats": {
+    "text": "Statistikoj"
+  },
+  "web.LABELS.timeline": {
+    "text": "Templinio"
+  },
+  "web.LABELS.lifespan": {
+    "text": "Vivdaŭro"
+  },
+  "web.LABELS.expiration_time": {
+    "text": "Eksvalidiĝa Tempo"
+  },
+  "web.LABELS.close": {
+    "text": "Fermi"
+  },
+  "web.LABELS.loading": {
+    "text": "Ŝargante..."
+  },
+  "web.LABELS.cancel": {
+    "text": "Nuligi"
+  },
+  "web.LABELS.saving": {
+    "text": "Konservante..."
+  },
+  "web.LABELS.saved": {
+    "text": "Konservita"
+  },
+  "web.LABELS.save": {
+    "text": "Konservi"
+  },
+  "web.LABELS.save_all": {
+    "text": "Konservi Ĉion"
+  },
+  "web.LABELS.details": {
+    "text": "Detaloj"
+  },
+  "web.LABELS.encrypted": {
+    "text": "Ĉifrita"
+  },
+  "web.LABELS.secret_status": {
+    "text": "Sekreta Stato"
+  },
+  "web.LABELS.need_help": {
+    "text": "Ĉu vi bezonas helpon?"
+  },
+  "web.LABELS.create_new_secret": {
+    "text": "Krei Novan Sekreton"
+  },
+  "web.LABELS.actions": {
+    "text": "Agoj"
+  },
+  "web.LABELS.no_passphrase": {
+    "text": "Neniu Pasfrazo Bezonata"
+  },
+  "web.LABELS.copy_to_clipboard": {
+    "text": "Kopii al tondujo"
+  },
+  "web.LABELS.receipts": {
+    "text": "Kvitancoj"
+  },
+  "web.LABELS.share": {
+    "text": "Kunhavigi"
+  },
+  "web.LABELS.secret_link": {
+    "text": "Sekreta Ligilo"
+  },
+  "web.LABELS.dismiss": {
+    "text": "Forĵeti"
+  },
+  "web.LABELS.security_details": {
+    "text": "Sekurecaj Detaloj"
+  },
+  "web.LABELS.items_count": {
+    "text": "{count} Eroj"
+  },
+  "web.LABELS.recipients_count": {
+    "text": "{count} Ricevantoj"
+  },
+  "web.LABELS.view": {
+    "text": "Vidi"
+  },
+  "web.LABELS.views": {
+    "text": "Vidoj"
+  },
+  "web.LABELS.times_viewed": {
+    "text": "foje vidata"
+  },
+  "web.LABELS.view_progress": {
+    "text": "Vidi Progreson"
+  },
+  "web.LABELS.help_section": {
+    "text": "Helpa Sekcio"
+  },
+  "web.LABELS.passphrase_protected": {
+    "text": "Protektita per pasfrazo"
+  },
+  "web.LABELS.feedback_received": {
+    "text": "Reago ricevita."
+  },
+  "web.LABELS.sending_ellipses": {
+    "text": "Sendante..."
+  },
+  "web.LABELS.title_recent_secrets": {
+    "text": "Lastaj Sekretoj"
+  },
+  "web.LABELS.pricing": {
+    "text": "Prezaro"
+  },
+  "web.LABELS.refresh": {
+    "text": "Refreŝigi"
+  },
+  "web.LABELS.reload": {
+    "text": "Reŝargi"
+  },
+  "web.LABELS.filter": {
+    "text": "Filtri"
+  },
+  "web.LABELS.clear": {
+    "text": "Forviŝi"
+  },
+  "web.LABELS.caption_recent_secrets": {
+    "text": "Sekretaj ligiloj kreitaj en ĉi tiu seanco"
+  },
+  "web.LABELS.create_link_short": {
+    "text": "Krei Ligilon"
+  },
+  "web.LABELS.create_link": {
+    "text": "Krei Sekretan Ligilon"
+  },
+  "web.LABELS.create_request_short": {
+    "text": "Krei Peton"
+  },
+  "web.LABELS.create_request": {
+    "text": "Krei Petan Ligilon"
+  },
+  "web.LABELS.related_settings": {
+    "text": "Rilataj Agordoj"
+  },
+  "web.LABELS.creating_links_for": {
+    "text": "Kreante ligilojn por"
+  },
+  "web.LABELS.scope_indicator": {
+    "text": "Kreante sekretojn en {domain}"
+  },
+  "web.STATUS.new": {
+    "text": "Nova"
+  },
+  "web.STATUS.unread": {
+    "text": "Nelegita"
+  },
+  "web.STATUS.viewed": {
+    "text": "Ligilo malfermita"
+  },
+  "web.STATUS.received": {
+    "text": "Ricevita"
+  },
+  "web.STATUS.burned": {
+    "text": "Forbruligita"
+  },
+  "web.STATUS.destroyed": {
+    "text": "Detruita"
+  },
+  "web.STATUS.expiring_soon": {
+    "text": "Baldaŭ Eksvalidiĝonta"
+  },
+  "web.STATUS.created": {
+    "text": "Kreita"
+  },
+  "web.STATUS.expires": {
+    "text": "Eksvalidiĝas"
+  },
+  "web.STATUS.expired": {
+    "text": "Eksvalidiĝinta"
+  },
+  "web.STATUS.orphaned": {
+    "text": "Orfigita"
+  },
+  "web.STATUS.secured": {
+    "text": "Sekurigita"
+  },
+  "web.STATUS.securing": {
+    "text": "Sekurigante"
+  },
+  "web.STATUS.copied": {
+    "text": "Kopiita"
+  },
+  "web.STATUS.time_remaining": {
+    "text": "Restanta Tempo"
+  },
+  "web.STATUS.new_description": {
+    "text": "Sekreta ligilo estas kreita kaj ankoraŭ ne vidata"
+  },
+  "web.STATUS.unread_description": {
+    "text": "Sekreta ligilo estas kreita kaj ne estas vidata"
+  },
+  "web.STATUS.viewed_description": {
+    "text": "Sekreta ligilo estas malfermita kaj preta por vidado"
+  },
+  "web.STATUS.received_description": {
+    "text": "Sekreto estas malkaŝita al la ricevanto"
+  },
+  "web.STATUS.burned_description": {
+    "text": "Sekreto estis permane forbruligita antaŭ vidado"
+  },
+  "web.STATUS.destroyed_description": {
+    "text": "Sekreto estas permanente detruita"
+  },
+  "web.STATUS.expiring_soon_description": {
+    "text": "Sekreto baldaŭ eksvalidiĝos"
+  },
+  "web.STATUS.orphaned_description": {
+    "text": "Sekreto estas orfigita kaj baldaŭ estos detruita"
+  },
+  "web.STATUS.expired_description": {
+    "text": "Sekreto eksvalidiĝis antaŭ ol esti vidata"
+  },
+  "web.STATUS.success": {
+    "text": "Sukceso"
+  },
+  "web.STATUS.delivered": {
+    "text": "Liverita"
+  },
+  "web.STATUS.dns_incorrect": {
+    "text": "DNS Malĝusta"
+  },
+  "web.STATUS.active": {
+    "text": "Aktiva"
+  },
+  "web.STATUS.inactive": {
+    "text": "Neaktiva"
+  },
+  "web.FEATURES.unlimited_views": {
+    "text": "Senlimaj Vidoj"
+  },
+  "web.FEATURES.custom_domain_protected": {
+    "text": "Fidinda domajno-markado"
+  },
+  "web.FEATURES.encrypted_in_transit": {
+    "text": "Ĉifrita dumvojaĝe kaj en ripozo"
+  },
+  "web.UNITS.ttl.duration": {
+    "text": "{count} {unit}"
+  },
+  "web.UNITS.ttl.time.day": {
+    "text": "tago | tagoj"
+  },
+  "web.UNITS.ttl.time.hour": {
+    "text": "horo | horoj"
+  },
+  "web.UNITS.ttl.time.minute": {
+    "text": "minuto | minutoj"
+  },
+  "web.UNITS.ttl.time.second": {
+    "text": "sekundo | sekundoj"
+  },
+  "web.UNITS.ttl.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.ttl_remaining.duration": {
+    "text": "{count} {unit} restanta"
+  },
+  "web.UNITS.ttl_remaining.time.day": {
+    "text": "tago restanta | tagoj restantaj"
+  },
+  "web.UNITS.ttl_remaining.time.hour": {
+    "text": "horo restanta | horoj restantaj"
+  },
+  "web.UNITS.ttl_remaining.time.minute": {
+    "text": "minuto restanta | minutoj restantaj"
+  },
+  "web.UNITS.ttl_remaining.time.second": {
+    "text": "sekundo restanta | sekundoj restantaj"
+  },
+  "web.UNITS.ttl_remaining.noOptionsAvailable": {
+    "text": "---"
+  },
+  "web.UNITS.limited_views": {
+    "text": "{count} vidlimo"
+  },
+  "web.UNITS.days_remaining": {
+    "text": "{count} Tagoj Restantaj"
+  },
+  "web.UNITS.hours_remaining": {
+    "text": "{count} Horoj Restantaj"
+  },
+  "web.UNITS.minutes_remaining": {
+    "text": "{count} Minutoj Restantaj"
+  },
+  "web.TITLES.incoming": {
+    "text": "Alvenantaj Sekretoj"
+  },
+  "web.TITLES.feedback": {
+    "text": "Reago"
+  },
+  "web.TITLES.help": {
+    "text": "Helpo"
+  },
+  "web.TITLES.signin": {
+    "text": "Ensaluti"
+  },
+  "web.TITLES.signup": {
+    "text": "Krei Konton"
+  },
+  "web.TITLES.forgot_password": {
+    "text": "Forgesita Pasvorto"
+  },
+  "web.TITLES.reset_password": {
+    "text": "Restarigi Pasvorton"
+  },
+  "web.TITLES.logout": {
+    "text": "Elsalutante"
+  },
+  "web.TITLES.verify_account": {
+    "text": "Kontroli Konton"
+  },
+  "web.TITLES.mfa_verify": {
+    "text": "Dufaktora Aŭtentigo"
+  },
+  "web.TITLES.email_login": {
+    "text": "Retpoŝta Ensaluto"
+  },
+  "web.TITLES.accept_invitation": {
+    "text": "Akcepti Inviton"
+  },
+  "web.TITLES.secret": {
+    "text": "Sekreto"
+  },
+  "web.TITLES.metadata": {
+    "text": "Sekretaj Detaloj"
+  },
+  "web.TITLES.receipt": {
+    "text": "Sekreta Kvitanco"
+  },
+  "web.TITLES.burn_secret": {
+    "text": "Forbruligi Sekreton"
+  },
+  "web.TITLES.dashboard": {
+    "text": "Panelo"
+  },
+  "web.TITLES.recent": {
+    "text": "Lastaj Sekretoj"
+  },
+  "web.TITLES.domains": {
+    "text": "Propraj Domajnoj"
+  },
+  "web.TITLES.domain_add": {
+    "text": "Aldoni Domajnon"
+  },
+  "web.TITLES.domain_verify": {
+    "text": "Kontroli Domajnon"
+  },
+  "web.TITLES.domain_brand": {
+    "text": "Markigi Domajnon"
+  },
+  "web.TITLES.account": {
+    "text": "Konto"
+  },
+  "web.TITLES.data_region": {
+    "text": "Datuma Regiono"
+  },
+  "web.TITLES.current_region": {
+    "text": "Nuna Regiono"
+  },
+  "web.TITLES.available_regions": {
+    "text": "Disponeblaj Regionoj"
+  },
+  "web.TITLES.why_data_sovereignty": {
+    "text": "Kial Datuma Suvereneco Gravas"
+  },
+  "web.TITLES.profile_settings": {
+    "text": "Profilaj Agordoj"
+  },
+  "web.TITLES.preferences_settings": {
+    "text": "Preferoj"
+  },
+  "web.TITLES.privacy_settings": {
+    "text": "Privateco"
+  },
+  "web.TITLES.notification_settings": {
+    "text": "Sciigoj"
+  },
+  "web.TITLES.change_email": {
+    "text": "Ŝanĝi Retpoŝtadreson"
+  },
+  "web.TITLES.security_overview": {
+    "text": "Sekureco"
+  },
+  "web.TITLES.change_password": {
+    "text": "Ŝanĝi Pasvorton"
+  },
+  "web.TITLES.mfa_settings": {
+    "text": "Dufaktora Aŭtentigo"
+  },
+  "web.TITLES.active_sessions": {
+    "text": "Aktivaj Seancoj"
+  },
+  "web.TITLES.recovery_codes": {
+    "text": "Reakirkodoj"
+  },
+  "web.TITLES.api_settings": {
+    "text": "API-Agordoj"
+  },
+  "web.TITLES.advanced_settings": {
+    "text": "Altnivelaj Agordoj"
+  },
+  "web.TITLES.system_settings": {
+    "text": "Sistemaj Agordoj"
+  },
+  "web.TITLES.not_found": {
+    "text": "Paĝo Ne Trovita"
+  },
+  "web.TITLES.organizations_settings": {
+    "text": "Organizoj"
+  },
+  "web.TITLES.organization_settings": {
+    "text": "Organizaj Agordoj"
+  },
+  "web.TITLES.pricing": {
+    "text": "Prezoj"
+  },
+  "web.ARIA.focus_is_now_in_the_main_text_area": {
+    "text": "Fokuso nun estas en la ĉefa teksta areo"
+  },
+  "web.INSTRUCTION.sharing_instructions": {
+    "text": "Kunhavigaj Instrukcioj"
+  },
+  "web.INSTRUCTION.share_link_instruction": {
+    "text": "Kunhavigu la ligilon kun la celata ricevanto"
+  },
+  "web.INSTRUCTION.share_passphrase_instruction": {
+    "text": "Kunhavigu la pasfrazon aparte per sekura kanalo"
+  },
+  "web.INSTRUCTION.secure_channel_instruction": {
+    "text": "Uzu malsaman sekuran kanalon por kunhavigi sentivajn informojn"
+  },
+  "web.INSTRUCTION.phishing_warning": {
+    "text": "Ĉiam kontrolu ke vi estas sur la oficiala retejo de Onetime Secret. Fraŭduloj foje kreas falsajn retejojn kiuj aspektas ekzakte kiel Onetime Secret por ŝteli viajn sekretojn. Por eviti phishing-atakojn, kontrolu la region-domajnon antaŭ krei novajn ligilojn."
+  },
+  "web.pricing.title": {
+    "text": "Simpla, Travidebla Prezaro"
+  },
+  "web.pricing.subtitle": {
+    "text": "Elektu la planon kiu konvenas al viaj bezonoj. Ĉiuj planoj inkluzivas senliman kunhavigon de sekretoj kaj privatec-prioritatan dezajnon."
+  },
+  "web.pricing.get_started_free": {
+    "text": "Komencu Senpage"
+  },
+  "web.pricing.start_trial": {
+    "text": "Komencu"
+  },
+  "web.pricing.already_have_account": {
+    "text": "Jam havas konton?"
+  },
+  "web.pricing.sign_in": {
+    "text": "Ensaluti"
+  },
+  "web.pricing.recommended_for_you": {
+    "text": "Rekomendata por Vi"
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "비밀 전송"
+  },
+  "incoming.page_description": {
+    "text": "지원 팀과 민감한 정보를 안전하게 공유하세요"
+  },
+  "incoming.loading_config": {
+    "text": "로딩 중..."
+  },
+  "incoming.config_error_title": {
+    "text": "구성을 불러오지 못했습니다"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "기능을 사용할 수 없음"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "이 기능은 현재 비활성화되어 있습니다. 지원팀에 문의하여 도움을 받으세요."
+  },
+  "incoming.memo_label": {
+    "text": "메모"
+  },
+  "incoming.memo_placeholder": {
+    "text": "간단한 설명 (예: 비밀번호 재설정 요청)"
+  },
+  "incoming.memo_hint": {
+    "text": "메시지를 적절한 담당자에게 전달할 수 있도록 도와주세요"
+  },
+  "incoming.recipient_label": {
+    "text": "받는 사람"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "받는 사람 선택"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "이 비밀의 받는 사람을 선택하세요"
+  },
+  "incoming.recipient_hint": {
+    "text": "이 보안 메시지를 받을 사람을 선택하세요"
+  },
+  "incoming.no_recipients_available": {
+    "text": "사용 가능한 받는 사람이 없습니다"
+  },
+  "incoming.secret_content_label": {
+    "text": "기밀 정보"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "민감한 정보를 여기에 붙여넣으세요 (비밀번호, 키 등)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "이 정보는 암호화되며 한 번만 볼 수 있습니다"
+  },
+  "incoming.submit_button": {
+    "text": "비밀 전송"
+  },
+  "incoming.submit_secret": {
+    "text": "비밀 전송"
+  },
+  "incoming.submitting_button": {
+    "text": "전송 중..."
+  },
+  "incoming.submitting": {
+    "text": "전송 중..."
+  },
+  "incoming.reset_button": {
+    "text": "양식 지우기"
+  },
+  "incoming.reset_form": {
+    "text": "양식 지우기"
+  },
+  "incoming.success_title": {
+    "text": "성공적으로 전송됨"
+  },
+  "incoming.success_description": {
+    "text": "보안 메시지가 전달되었습니다."
+  },
+  "incoming.reference_id": {
+    "text": "참조 ID"
+  },
+  "incoming.success_info_title": {
+    "text": "다음에는 무엇이 일어날까요?"
+  },
+  "incoming.success_info_description": {
+    "text": "받는 사람은 이 비밀을 한 번만 볼 수 있습니다. 확인 후 비밀은 영구적으로 삭제됩니다."
+  },
+  "incoming.create_another": {
+    "text": "다른 비밀 전송"
+  },
+  "incoming.tagline1": {
+    "text": "민감한 정보를 안전하게 공유하세요"
+  },
+  "incoming.tagline2": {
+    "text": "비밀번호와 개인 데이터를 이메일 및 채팅 기록에서 보호하세요"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "기록을 위해 <a href='{receiptUrl}'>영수증</a>을 저장하세요."
+  },
+  "incoming.receipt_link_text": {
+    "text": "receipt"
+  }
+}

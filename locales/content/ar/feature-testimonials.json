@@ -1,0 +1,38 @@
+{
+  "web.testimonials.ai_generated_testimonial": {
+    "text": "شهادة من الذكاء الاصطناعي"
+  },
+  "web.testimonials.ai_generated_content_disclaimer": {
+    "text": "محتوى من الذكاء الاصطناعى من أجل العرض التوضيحي. \nليس من شخص أو شركة فعلية."
+  },
+  "web.testimonials.randomtestimonial_stars_5": {
+    "text": "{0}/5"
+  },
+  "web.testimonials.randomtestimonial_name_randomtestimonial_company": {
+    "text": "- {0}، {1}"
+  },
+  "web.testimonials.randomtestimonial_quote": {
+    "text": "\"{0}\""
+  },
+  "web.testimonials.t_ai_generated_testimonial": {
+    "text": "{0}:"
+  },
+  "web.testimonials.what_leading_ai_says_about_us": {
+    "text": "ما يقوله الذكاء الاصطناعي الرائد عنا"
+  },
+  "web.testimonials.ai_generated_testimonials": {
+    "text": "شهادات من الذكاء الاصطناعي"
+  },
+  "web.testimonials.this_quote_was_generated_by": {
+    "text": "تم إنشاء هذا الاقتباس بواسطة"
+  },
+  "web.testimonials.it_was_based_on_the_content_of_the_page_and_does": {
+    "text": "استند إلى محتوى الصفحة ولا يمثل شخصاً أو شركة فعلية."
+  },
+  "web.testimonials.artificial_feedback": {
+    "text": "ملاحظات اصطناعية"
+  },
+  "web.testimonials.this_content_is_ai_generated_based_on_the_conten": {
+    "text": "هذا المحتوى من إنتاج الذكاء الاصطناعي بناءً على محتوى هذه الصفحة ولا يمثل شخصاً أو شركة فعلية."
+  }
+}

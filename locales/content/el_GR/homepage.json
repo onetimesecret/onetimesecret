@@ -1,0 +1,142 @@
+{
+  "web.homepage.tagline1": {
+    "text": "Επικολλήστε ένα κωδικό πρόσβασης, μυστικό μήνυμα ή ιδιωτικό σύνδεσμο παρακάτω."
+  },
+  "web.homepage.tagline2": {
+    "text": "Κρατήστε ευαίσθητες πληροφορίες μακριά από την αλληλογραφία και τις καταγεγγραμένες συζητήσεις σας."
+  },
+  "web.homepage.secret_hint": {
+    "text": "* Ο μυστικό σύνδεσμος λειτουργεί μόνο μία φορά και μετά εξαφανίζεται για πάντα."
+  },
+  "web.homepage.secret_form_more_text1": {
+    "text": "Εγγραφείτε και δημιουργήστε"
+  },
+  "web.homepage.secret_form_more_text2": {
+    "text": "δωρεάν λογαριασμό"
+  },
+  "web.homepage.secret_form_more_text3": {
+    "text": "και να μπορείτε να στείλετε το μυστικό μέσω email."
+  },
+  "web.homepage.cta_title": {
+    "text": "Χρησιμοποιήστε ένα προσαρμοσμένο domain"
+  },
+  "web.homepage.cta_subtitle": {
+    "text": "Αναβαθμίστε το brand σας και μοιραστείτε με αυτοπεποίθηση"
+  },
+  "web.homepage.cta_feature1": {
+    "text": "Το δικό σας προσαρμοσμένο domain"
+  },
+  "web.homepage.cta_feature2": {
+    "text": "Απεριόριστη κοινοποίηση μυστικών"
+  },
+  "web.homepage.cta_feature3": {
+    "text": "Προηγμένοι έλεγχοι απορρήτου"
+  },
+  "web.homepage.explore_premium_plans": {
+    "text": "Εξερευνήστε τα Premium πλάνα"
+  },
+  "web.homepage.need_free_account": {
+    "text": "Μόλις ξεκινάτε;"
+  },
+  "web.homepage.sign_up_free": {
+    "text": "Δημιουργήστε ένα δωρεάν λογαριασμό"
+  },
+  "web.homepage.visit_onetime_secret_home": {
+    "text": "Επισκεφθείτε την αρχική σελίδα του Onetime Secret"
+  },
+  "web.homepage.password_generation_title": {
+    "text": "Γεννήτρια Κωδικών Πρόσβασης"
+  },
+  "web.homepage.password_generation_description": {
+    "text": " Κάντε κλικ στο \"Δημιουργία Κωδικού\" για να δημιουργήσετε έναν ασφαλή τυχαίο κωδικό πρόσβασης που μπορείτε να μοιραστείτε."
+  },
+  "web.homepage.protip1": {
+    "text": "Το μήνυμά σας θα αυτοκαταστραφεί αφού προβληθεί. Ο σύνδεσμος μπορεί να προσπελαστεί μόνο μία φορά."
+  },
+  "web.homepage.authonly.tagline2": {
+    "text": "Αυτή η υπηρεσία προορίζεται για εσωτερική χρήση μόνο."
+  },
+  "web.homepage.authonly.tagline1": {
+    "text": "Εάν έχετε λογαριασμό, συνδεθείτε για να συνεχίσετε."
+  },
+  "web.homepage.disabled.tagline2": {
+    "text": "Αυτή η υπηρεσία έχει ρυθμιστεί για εσωτερική χρήση μόνο."
+  },
+  "web.homepage.disabled.tagline1": {
+    "text": "Δεν είναι διαθέσιμη η διεπαφή χρήστη και οι δυνατότητες σύνδεσης."
+  },
+  "web.homepage.link_preview": {
+    "text": "Προεπισκόπηση Συνδέσμου"
+  },
+  "web.homepage.meets_and_exceeds_compliance_standards": {
+    "text": "Πληροί και υπερβαίνει τα πρότυπα συμμόρφωσης"
+  },
+  "web.homepage.secure_your_brand_build_customer_trust_etc": {
+    "text": "Ασφαλίστε την επωνυμία σας, χτίστε εμπιστοσύνη πελατών με συνδέσμους από το domain σας."
+  },
+  "web.homepage.a_trusted_way_to_share_sensitive_information_etc": {
+    "text": "Ένας αξιόπιστος τρόπος κοινοποίησης ευαίσθητων πληροφοριών που αυτοκαταστρέφονται αφού προβληθούν."
+  },
+  "web.homepage.secure_links": {
+    "text": "Ασφαλείς Σύνδεσμοι"
+  },
+  "web.homepage.about_onetime_secret_0": {
+    "text": "Σχετικά με το Onetime Secret"
+  },
+  "web.homepage.log_in_to_onetime_secret": {
+    "text": "Σύνδεση στο Onetime Secret"
+  },
+  "web.homepage.about_onetime_secret": {
+    "text": "Σχετικά με το Onetime Secret"
+  },
+  "web.homepage.signup_individual_and_business_plans": {
+    "text": "Εγγραφή - Ατομικά και Επιχειρηματικά πλάνα"
+  },
+  "web.homepage.tagline_signed": {
+    "text": "Υπογεγραμμένο"
+  },
+  "web.homepage.tagline_sealed": {
+    "text": "Σφραγισμένο"
+  },
+  "web.homepage.tagline_delivered": {
+    "text": "Παραδόθηκε"
+  },
+  "web.homepage.onetime_secret": {
+    "text": "Onetime Secret"
+  },
+  "web.homepage.onetime_secret_literal": {
+    "text": "Onetime Secret"
+  },
+  "web.homepage.one_time_secret_literal": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.homepage.onetime_secret_homepage": {
+    "text": "Αρχική Σελίδα Onetime Secret"
+  },
+  "web.homepage.send_sensitive_information_that_can_only_be_viewed_once": {
+    "text": "Στείλτε ευαίσθητες πληροφορίες που μπορούν να προβληθούν μόνο μία φορά"
+  },
+  "web.homepage.create_a_secure_link": {
+    "text": "Δημιουργήστε έναν ασφαλή σύνδεσμο"
+  },
+  "web.homepage.now_with_custom_domains": {
+    "text": "Τώρα με προσαρμοσμένα domain"
+  },
+  "web.homepage.this_is_a_private_instance_only_authorized_team_": {
+    "text": "Αυτή είναι μια ιδιωτική εγκατάσταση. Μόνο εξουσιοδοτημένα μέλη της ομάδας μπορούν να δημιουργήσουν νέους ασφαλείς συνδέσμους."
+  },
+  "web.homepage.welcome_to_onetime_secret": {
+    "text": "Καλώς ορίσατε στο Onetime Secret."
+  },
+  "web.homepage.onetime_secret_helps_us_share_sensitive_informat": {
+    "text": "Το Onetime Secret μας βοηθά να μοιραζόμαστε ευαίσθητες πληροφορίες με ασφάλεια διατηρώντας παράλληλα την επαγγελματική μας εικόνα."
+  },
+  "web.homepage.information_shared_through_this_service_can_only": {
+    "text": "Οι πληροφορίες που κοινοποιούνται μέσω αυτής της υπηρεσίας μπορούν να προσπελαστούν μόνο μία φορά. Μόλις προβληθεί, το περιεχόμενο διαγράφεται μόνιμα για να διασφαλιστεί η εμπιστευτικότητα."
+  },
+  "web.homepage.welcome_to_the_global_broadcast": {
+    "text": "Καλώς ορίσατε στην Παγκόσμια Μετάδοση!"
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "Soberanía de Datos y Aislamiento Regional"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "Tus datos residen exclusivamente en tu región elegida y nunca se transfieren entre regiones"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "Cada región opera como un entorno completamente independiente con su propia infraestructura, claves de cifrado y almacenamiento de datos"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "Mantenemos una política estricta: los datos de los clientes nunca se transfieren entre regiones bajo ninguna circunstancia"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "Importante: Cambiar a una región diferente crea una nueva cuenta. Tus datos permanecen en tu región original."
+  },
+  "web.regions.your_region": {
+    "text": "Tu Región"
+  },
+  "web.regions.your_current_region": {
+    "text": "Tu Región Actual"
+  },
+  "web.regions.active": {
+    "text": "Activa"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "Explorar otras regiones disponibles"
+  },
+  "web.regions.why_it_matters": {
+    "text": "Por Qué Importa la Soberanía de Datos"
+  },
+  "web.regions.trust_title": {
+    "text": "Transparencia y Control"
+  },
+  "web.regions.trust_description": {
+    "text": "Saber exactamente dónde residen tus datos y qué leyes rigen su protección."
+  },
+  "web.regions.privacy_title": {
+    "text": "Derechos de Privacidad"
+  },
+  "web.regions.privacy_description": {
+    "text": "Asegurar que tu información personal se maneje de acuerdo con las leyes y regulaciones de privacidad de tu país, previniendo el acceso no autorizado o el mal uso."
+  },
+  "web.regions.compliance_title": {
+    "text": "Cumplimiento Normativo"
+  },
+  "web.regions.compliance_description": {
+    "text": "Cumplir con GDPR, HIPAA, CCPA y otros requisitos regionales de protección de datos"
+  },
+  "web.regions.performance_title": {
+    "text": "Acceso Más Rápido"
+  },
+  "web.regions.performance_description": {
+    "text": "Los datos almacenados más cerca de ti significan menor latencia y mejor rendimiento."
+  },
+  "web.regions.regions": {
+    "text": "Regiones"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "contacta a nuestro equipo de cumplimiento"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "revisa nuestra documentación"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "Tu cuenta y tus datos están protegidos bajo las leyes y regulaciones de"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "Este marco regulatorio está determinado por tu dominio de acceso:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "Cada jurisdicción mantiene un cumplimiento legal y una gobernanza de datos separados. Si bien puedes crear cuentas en múltiples jurisdicciones, permanecen legalmente distintas sin intercambio de datos entre zonas regulatorias."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "Para comprender las regulaciones y protecciones específicas que se aplican a tu cuenta, por favor"
+  },
+  "web.regions.current": {
+    "text": "Actual"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "Regiones Disponibles"
+  },
+  "web.regions.jurisdiction": {
+    "text": "Jurisdicción"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "Ubicación del centro de datos: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "Región de Datos"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "Jurisdicción Desconocida"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "Sirviéndote desde"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "Continuar a {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Jurisdicción actual:"
+  }
+}

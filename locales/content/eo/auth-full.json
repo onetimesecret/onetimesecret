@@ -1,0 +1,407 @@
+{
+  "web.auth.mfa_required": {
+    "text": "MFA-konfirmo necesas"
+  },
+  "web.auth.mfa_verification_required": {
+    "text": "MFA-konfirmo necesas por aliri vian konton"
+  },
+  "web.auth.complete_mfa_verification": {
+    "text": "Kompletigi MFA-Konfirmon"
+  },
+  "web.auth.security.authentication_failed": {
+    "text": "Aŭtentigo malsukcesis. Bonvolu kontroli viajn akreditaĵojn kaj reprovi."
+  },
+  "web.auth.security.rate_limited": {
+    "text": "Tro multaj provoj. Bonvolu reprovi poste."
+  },
+  "web.auth.security.session_expired": {
+    "text": "Seanco eksvalidiĝis. Bonvolu ensaluti denove."
+  },
+  "web.auth.security.recovery_code_not_found": {
+    "text": "Reakira kodo ne trovita. Bonvolu kontroli ke vi ĝuste enigis ĝin."
+  },
+  "web.auth.security.recovery_code_used": {
+    "text": "Ĉi tiu reakira kodo jam estis uzita. Ĉiu kodo povas esti uzita nur unufoje."
+  },
+  "web.auth.security.network_error": {
+    "text": "Reta eraro. Bonvolu kontroli vian konekton kaj reprovi."
+  },
+  "web.auth.security.internal_error": {
+    "text": "Eraro okazis. Bonvolu reprovi."
+  },
+  "web.auth.methods.password": {
+    "text": "Pasvorto"
+  },
+  "web.auth.methods.magicLink": {
+    "text": "Retpoŝta Ligilo"
+  },
+  "web.auth.methods.webauthn": {
+    "text": "Biometrio"
+  },
+  "web.auth.magicLink.title": {
+    "text": "Ensaluti per Retpoŝto"
+  },
+  "web.auth.magicLink.description": {
+    "text": "Ni sendos al vi sekuran ensalutan ligilon"
+  },
+  "web.auth.magicLink.emailPlaceholder": {
+    "text": "Enigu vian retpoŝtadreson"
+  },
+  "web.auth.magicLink.sendLink": {
+    "text": "Sendi Ensalutan Ligilon"
+  },
+  "web.auth.magicLink.checkEmail": {
+    "text": "Kontrolu vian retpoŝton"
+  },
+  "web.auth.magicLink.sentTo": {
+    "text": "Ni sendis ensalutan ligilon al {email}"
+  },
+  "web.auth.magicLink.linkExpiresIn": {
+    "text": "Ĉi tiu ligilo eksvalidiĝos post 15 minutoj"
+  },
+  "web.auth.magicLink.tryDifferentEmail": {
+    "text": "Provi alian retpoŝtadreson"
+  },
+  "web.auth.magicLink.noPasswordNeeded": {
+    "text": "Neniu pasvorto necesa — nur alklaku la ligilon en via retpoŝto"
+  },
+  "web.auth.magicLink.networkError": {
+    "text": "Reta eraro. Bonvolu reprovi."
+  },
+  "web.auth.magicLink.requestFailed": {
+    "text": "Malsukcesis sendi ensalutan ligilon. Bonvolu reprovi."
+  },
+  "web.auth.magicLink.invalidLink": {
+    "text": "Nevalida aŭ mankanta ensaluta ligilo"
+  },
+  "web.auth.magicLink.loginFailed": {
+    "text": "Ensaluto malsukcesis. Bonvolu reprovi."
+  },
+  "web.auth.magicLink.signingYouIn": {
+    "text": "Ensalutigante vin..."
+  },
+  "web.auth.magicLink.pleaseWait": {
+    "text": "Bonvolu atendi dum ni kontrolas vian ligilon"
+  },
+  "web.auth.magicLink.error": {
+    "text": "Aŭtentiga Eraro"
+  },
+  "web.auth.magicLink.back_to_signin": {
+    "text": "Reen al Ensaluto"
+  },
+  "web.auth.webauthn.signIn": {
+    "text": "Ensaluti per Face ID / Touch ID"
+  },
+  "web.auth.webauthn.setup": {
+    "text": "Agordi biometrian ensaluton"
+  },
+  "web.auth.webauthn.notSupported": {
+    "text": "Biometria aŭtentigo ne estas subtenata en ĉi tiu retumilo"
+  },
+  "web.auth.webauthn.requiresModernBrowser": {
+    "text": "Bonvolu uzi modernan retumilon kiu subtenas WebAuthn (Chrome, Safari, Firefox, aŭ Edge)"
+  },
+  "web.auth.webauthn.setupSuccess": {
+    "text": "Biometria ensaluto estis ebligita"
+  },
+  "web.auth.webauthn.setupFailed": {
+    "text": "Malsukcesis agordi biometrian ensaluton"
+  },
+  "web.auth.webauthn.authFailed": {
+    "text": "Biometria aŭtentigo malsukcesis. Bonvolu reprovi."
+  },
+  "web.auth.webauthn.cancelled": {
+    "text": "Aŭtentigo estis nuligita"
+  },
+  "web.auth.webauthn.processing": {
+    "text": "Aŭtentigante..."
+  },
+  "web.auth.webauthn.description": {
+    "text": "Uzu vian fingrospuron, vizaĝon, aŭ sekurecan ŝlosilon por ensaluti"
+  },
+  "web.auth.webauthn.supportedMethods": {
+    "text": "Subtenas Face ID, Touch ID, Windows Hello, kaj sekurecajn ŝlosilojn"
+  },
+  "web.auth.lockout.attempts_remaining": {
+    "text": "Averto: {count} ensaluta(j) provo(j) restas"
+  },
+  "web.auth.lockout.account_locked": {
+    "text": "Konto ŝlosita pro tro multaj malsukcesaj ensalutaj provoj"
+  },
+  "web.auth.lockout.locked_until": {
+    "text": "Via konto estas ŝlosita ĝis {time}"
+  },
+  "web.auth.lockout.contact_support": {
+    "text": "Kontaktu subtenon se vi bezonas tujan aliron"
+  },
+  "web.auth.lockout.try_password_reset": {
+    "text": "Vi povas anstataŭe restarigi vian pasvorton"
+  },
+  "web.auth.sessions.title": {
+    "text": "Aktivaj Seancoj"
+  },
+  "web.auth.sessions.current": {
+    "text": "Nuna Seanco"
+  },
+  "web.auth.sessions.other": {
+    "text": "Aliaj Seancoj"
+  },
+  "web.auth.sessions.device": {
+    "text": "Aparato"
+  },
+  "web.auth.sessions.location": {
+    "text": "Loko"
+  },
+  "web.auth.sessions.ip_address": {
+    "text": "IP-Adreso"
+  },
+  "web.auth.sessions.last_active": {
+    "text": "Laste Aktiva"
+  },
+  "web.auth.sessions.created": {
+    "text": "Kreita"
+  },
+  "web.auth.sessions.remove": {
+    "text": "Forigi"
+  },
+  "web.auth.sessions.remove_all": {
+    "text": "Elsaluti Ĉiujn Aliajn Seancojn"
+  },
+  "web.auth.sessions.confirm_remove": {
+    "text": "Ĉu vi certas, ke vi volas forigi ĉi tiun seancon?"
+  },
+  "web.auth.sessions.confirm_remove_all": {
+    "text": "Ĉi tio elsalutos vin el ĉiuj aliaj aparatoj. Ĉu vi certas?"
+  },
+  "web.auth.sessions.no_sessions": {
+    "text": "Neniuj aliaj aktivaj seancoj"
+  },
+  "web.auth.sessions.removed_success": {
+    "text": "Seanco sukcese forigita"
+  },
+  "web.auth.sessions.removed_all_success": {
+    "text": "Ĉiuj aliaj seancoj estis elsalutitaj"
+  },
+  "web.auth.sessions.link_title": {
+    "text": "Aktivaj Seancoj"
+  },
+  "web.auth.mfa.title": {
+    "text": "Dufaktora Aŭtentigo"
+  },
+  "web.auth.mfa.enabled": {
+    "text": "Dufaktora aŭtentigo estas ebligita"
+  },
+  "web.auth.mfa.disabled": {
+    "text": "Dufaktora aŭtentigo estas malebligita"
+  },
+  "web.auth.mfa.enable": {
+    "text": "Ebligi Dufaktoran Aŭtentigon"
+  },
+  "web.auth.mfa.disable": {
+    "text": "Malebligi Dufaktoran Aŭtentigon"
+  },
+  "web.auth.mfa.setup_title": {
+    "text": "Agordi Dufaktoran Aŭtentigon"
+  },
+  "web.auth.mfa.setup_description": {
+    "text": "Aldonu kroman sekurecan tavolon al via konto"
+  },
+  "web.auth.mfa.step_scan": {
+    "text": "1. Skani QR-kodon"
+  },
+  "web.auth.mfa.step_verify": {
+    "text": "2. Kontroli Agordon"
+  },
+  "web.auth.mfa.scan_qr": {
+    "text": "Skanu ĉi tiun QR-kodon per via aŭtentiga aplikaĵo"
+  },
+  "web.auth.mfa.manual_entry": {
+    "text": "Aŭ enigu ĉi tiun kodon permane"
+  },
+  "web.auth.mfa.verify_code": {
+    "text": "Enigu la 6-ciferecan kodon el via aplikaĵo"
+  },
+  "web.auth.mfa.enter_code": {
+    "text": "Enigu aŭtentigan kodon"
+  },
+  "web.auth.mfa.verify": {
+    "text": "Kontroli kaj Ebligi"
+  },
+  "web.auth.mfa.verify_login": {
+    "text": "Kontroli"
+  },
+  "web.auth.mfa.code_required": {
+    "text": "Aŭtentiga kodo estas bezonata"
+  },
+  "web.auth.mfa.invalid_code": {
+    "text": "Nevalida kodo. Kodoj eksvalidiĝas ĉiujn 30 sekundojn. Provu la plej novan kodon el via aŭtentiga aplikaĵo."
+  },
+  "web.auth.mfa.success_enabled": {
+    "text": "Dufaktora aŭtentigo estis ebligita"
+  },
+  "web.auth.mfa.success_disabled": {
+    "text": "Dufaktora aŭtentigo estis malebligita"
+  },
+  "web.auth.mfa.require_password": {
+    "text": "Enigu vian pasvorton por malebligi 2FA"
+  },
+  "web.auth.mfa.password_confirmation": {
+    "text": "Pasvorto"
+  },
+  "web.auth.mfa.password_reason": {
+    "text": "Konfirmu vian identecon por modifi agordojn de dufaktora aŭtentigo"
+  },
+  "web.auth.mfa.last_used": {
+    "text": "Laste uzita: {time}"
+  },
+  "web.auth.mfa.never_used": {
+    "text": "Neniam uzita"
+  },
+  "web.auth.mfa.use_recovery_code": {
+    "text": "Uzu rekuperan kodon anstataŭe"
+  },
+  "web.auth.mfa.use_recovery_code_short": {
+    "text": "Uzi rekuperan kodon"
+  },
+  "web.auth.mfa.back_to_code": {
+    "text": "Reen al aŭtentiga kodo"
+  },
+  "web.auth.mfa.cancel": {
+    "text": "Nuligi kaj reveni al ensaluto"
+  },
+  "web.auth.mfa.cancel_sign_in": {
+    "text": "Nuligi ensaluton"
+  },
+  "web.auth.mfa.loading_status": {
+    "text": "Ŝargante MFA-staton..."
+  },
+  "web.auth.mfa.protected_description": {
+    "text": "Via konto estas protektita per dufaktora aŭtentigo"
+  },
+  "web.auth.mfa.enable_description": {
+    "text": "Protektu vian konton per kroma sekureca tavolo"
+  },
+  "web.auth.mfa.benefit_unauthorized": {
+    "text": "Malhelpu neaŭtorizitan aliron eĉ se via pasvorto estas kompromitita"
+  },
+  "web.auth.mfa.benefit_apps": {
+    "text": "Funkcias kun Google Authenticator, Authy, kaj aliaj TOTP-aplikaĵoj"
+  },
+  "web.auth.mfa.benefit_recovery": {
+    "text": "Rezervaj rekuperaj kodoj por urĝa aliro"
+  },
+  "web.auth.mfa.password_placeholder": {
+    "text": "Enigu vian pasvorton"
+  },
+  "web.auth.mfa.disabling": {
+    "text": "Malebligante..."
+  },
+  "web.auth.mfa.disable_button": {
+    "text": "Malebligi 2FA"
+  },
+  "web.auth.mfa.generating_qr": {
+    "text": "Generante QR-kodon..."
+  },
+  "web.auth.mfa.supported_apps": {
+    "text": "Uzu Google Authenticator, Authy, aŭ iun ajn TOTP-aplikaĵon"
+  },
+  "web.auth.mfa.continue_verification": {
+    "text": "Daŭrigi al Kontrolo"
+  },
+  "web.auth.mfa.enter_code_description": {
+    "text": "Enigu la 6-ciferecan kodon el via aŭtentiga aplikaĵo"
+  },
+  "web.auth.mfa.enable_and_continue": {
+    "text": "Ebligi MFA"
+  },
+  "web.auth.mfa.complete_setup": {
+    "text": "Kompletigi Agordon"
+  },
+  "web.auth.mfa.enter_recovery_code": {
+    "text": "Enigu unu el viaj rekuperaj kodoj"
+  },
+  "web.auth.mfa.recovery_code_label": {
+    "text": "Rekupera Kodo"
+  },
+  "web.auth.mfa.recovery_code_placeholder": {
+    "text": "Enigu rekuperan kodon"
+  },
+  "web.auth.mfa.verify_recovery_code": {
+    "text": "Kontroli Rekuperan Kodon"
+  },
+  "web.auth.mfa.six_digit_code": {
+    "text": "Enigu 6-ciferecan aŭtentigan kodon"
+  },
+  "web.auth.mfa.recovery_code_mode_active": {
+    "text": "Rekupera koda reĝimo aktiva"
+  },
+  "web.auth.mfa.otp_mode_active": {
+    "text": "Aŭtentiga koda reĝimo aktiva"
+  },
+  "web.auth.mfa.enter_all_digits": {
+    "text": "Bonvolu enigi ĉiujn 6 ciferojn por daŭrigi"
+  },
+  "web.auth.mfa.digit_of_count": {
+    "text": "Cifero {current} el {total}"
+  },
+  "web.auth.recovery_codes.title": {
+    "text": "Rekuperaj Kodoj"
+  },
+  "web.auth.recovery_codes.description": {
+    "text": "Konservu ĉi tiujn kodojn en sekura loko. Ĉiu povas esti uzita unufoje se vi perdas aliron al via aŭtentikilo."
+  },
+  "web.auth.recovery_codes.warning": {
+    "text": "Ĉi tiuj kodoj estos montrataj nur unufoje"
+  },
+  "web.auth.recovery_codes.save_required": {
+    "text": "Vi devas elŝuti aŭ kopii viajn rekuperajn kodojn antaŭ ol kompletigi la agordon."
+  },
+  "web.auth.recovery_codes.generate_new": {
+    "text": "Generi Novajn Kodojn"
+  },
+  "web.auth.recovery_codes.regenerate": {
+    "text": "Regeneri Kodojn"
+  },
+  "web.auth.recovery_codes.generate_new_warning": {
+    "text": "Ĉi tio malvalidigos ĉiujn ekzistantajn rekuperajn kodojn"
+  },
+  "web.auth.recovery_codes.download": {
+    "text": "Elŝuti Kodojn"
+  },
+  "web.auth.recovery_codes.downloaded": {
+    "text": "Rekuperaj kodoj elŝutitaj"
+  },
+  "web.auth.recovery_codes.print": {
+    "text": "Presi Kodojn"
+  },
+  "web.auth.recovery_codes.copy": {
+    "text": "Kopii Ĉiujn Kodojn"
+  },
+  "web.auth.recovery_codes.copied": {
+    "text": "Kodoj kopiitaj al tondujo"
+  },
+  "web.auth.recovery_codes.copy_failed": {
+    "text": "Malsukcesis kopii kodojn al tondujo"
+  },
+  "web.auth.recovery_codes.code_used": {
+    "text": "Uzita"
+  },
+  "web.auth.recovery_codes.code_unused": {
+    "text": "Neuzita"
+  },
+  "web.auth.recovery_codes.remaining": {
+    "text": "{count} el {limit} rekuperaj kodoj restantaj"
+  },
+  "web.auth.recovery_codes.usage_hint": {
+    "text": "Ĉiu kodo povas esti uzita nur unufoje. Regeneru kodojn se vi havas malmultajn."
+  },
+  "web.auth.recovery_codes.none_remaining": {
+    "text": "Neniuj rekuperaj kodoj restantaj"
+  },
+  "web.auth.recovery_codes.generate_success": {
+    "text": "Novaj rekuperaj kodoj estis generitaj"
+  },
+  "web.auth.recovery_codes.link_title": {
+    "text": "Rekuperaj Kodoj"
+  }
+}

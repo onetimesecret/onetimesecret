@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Empfangen"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Nicht erhalten"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Keine neuen Geheimnisse"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Beginnen Sie mit der Erstellung Ihres ersten Geheimnisses."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Teams konnten nicht geladen werden"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Beim Laden Ihrer Teams ist ein Problem aufgetreten. Bitte versuchen Sie es erneut."
+  }
+}

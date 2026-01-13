@@ -1,0 +1,446 @@
+{
+  "email.incomingsupport.subject": {
+    "text": "[Zahtevek: %s]"
+  },
+  "email.incomingsupport.body1": {
+    "text": "Stranka je poslala naslednje informacije"
+  },
+  "email.secret_link.subject": {
+    "text": "%{sender_email} vam je poslal/-a skrivnost"
+  },
+  "email.secret_link.sent_you_secret": {
+    "text": "vam je poslal/-a skrivnost:"
+  },
+  "email.secret_link.important_label": {
+    "text": "Pomembno:"
+  },
+  "email.secret_link.link_works_once": {
+    "text": "Ta povezava bo delovala samo enkrat. Po ogledu bo skrivnost trajno izbrisana."
+  },
+  "email.secret_link.sent_via": {
+    "text": "Poslano prek"
+  },
+  "email.welcome.subject": {
+    "text": "Preverite svoj račun Onetime Secret"
+  },
+  "email.welcome.title": {
+    "text": "Povabljeni ste k pridružitvi organizaciji %{product_name}!"
+  },
+  "email.welcome.verify_prompt": {
+    "text": "Prosimo, potrdite svoj e-poštni naslov s klikom na spodnjo povezavo:"
+  },
+  "email.welcome.verify_button": {
+    "text": "Potrdi e-poštni naslov"
+  },
+  "email.welcome.copy_link_prompt": {
+    "text": "Ali kopirajte in prilepite to povezavo:"
+  },
+  "email.welcome.signature": {
+    "text": "Delano"
+  },
+  "email.welcome.postscript": {
+    "text": "P.S. Ta e-pošta je bila poslana na %{email_address}. Če niste ustvarili računa, lahko to sporočilo varno prezrete."
+  },
+  "email.password_request.subject": {
+    "text": "Ponastavite svoje geslo (%{display_domain})"
+  },
+  "email.password_request.title": {
+    "text": "Ponastavite svoje geslo"
+  },
+  "email.password_request.request_notice": {
+    "text": "Prejeli smo zahtevo za ponastavitev vašega gesla za %{product_name}."
+  },
+  "email.password_request.reset_button": {
+    "text": "Ponastavi geslo"
+  },
+  "email.password_request.copy_link_prompt": {
+    "text": "Ali kopirajte in prilepite to povezavo:"
+  },
+  "email.password_request.ignore_notice": {
+    "text": "Če niste zahtevali ponastavitve gesla, lahko to e-pošto varno prezrete."
+  },
+  "email.password_request.signature": {
+    "text": "Delano"
+  },
+  "email.password_request.postscript": {
+    "text": "P.S. Ta e-pošta je bila poslana na %{email_address}."
+  },
+  "email.magic_link.subject": {
+    "text": "Prijava v %{display_domain}"
+  },
+  "email.magic_link.title": {
+    "text": "Prijava s čarobno povezavo"
+  },
+  "email.magic_link.request_notice": {
+    "text": "Zahtevali ste povezavo za prijavo v vaš račun %{product_name}."
+  },
+  "email.magic_link.login_button": {
+    "text": "Prijava"
+  },
+  "email.magic_link.copy_link_prompt": {
+    "text": "Ali kopirajte in prilepite to povezavo:"
+  },
+  "email.magic_link.expiration_notice": {
+    "text": "Ta povezava poteče čez 15 minut."
+  },
+  "email.magic_link.ignore_notice": {
+    "text": "Če niste zahtevali te povezave, lahko to e-pošto varno prezrete."
+  },
+  "email.magic_link.signature": {
+    "text": "Delano"
+  },
+  "email.magic_link.postscript": {
+    "text": "P.S. To e-poštno sporočilo je bilo poslano na %{email_address}."
+  },
+  "email.incoming_secret.subject": {
+    "text": "Prejeli ste skrivno sporočilo"
+  },
+  "email.incoming_secret.received_message": {
+    "text": "Prejeli ste varno sporočilo:"
+  },
+  "email.incoming_secret.memo_label": {
+    "text": "Opomba:"
+  },
+  "email.incoming_secret.someone_sent": {
+    "text": "Nekdo vam je poslal varno sporočilo prek %{display_domain}."
+  },
+  "email.incoming_secret.view_instructions": {
+    "text": "Za ogled te skrivnosti kliknite spodnjo povezavo:"
+  },
+  "email.incoming_secret.important_label": {
+    "text": "Pomembno:"
+  },
+  "email.incoming_secret.link_works_once": {
+    "text": "Ta povezava bo delovala samo enkrat. Po ogledu bo skrivnost trajno izbrisana."
+  },
+  "email.incoming_secret.sent_via": {
+    "text": "Poslano prek"
+  },
+  "email.secret_revealed.subject": {
+    "text": "Vaša skrivnost je bila pregledana"
+  },
+  "email.secret_revealed.title": {
+    "text": "Vaša skrivnost je bila pregledana"
+  },
+  "email.secret_revealed.viewed_on": {
+    "text": "Vaša skrivnost je bila pregledana dne %{date}."
+  },
+  "email.secret_revealed.secret_id_label": {
+    "text": "ID skrivnosti:"
+  },
+  "email.secret_revealed.automated_notice": {
+    "text": "To je samodejno obvestilo. Ni potrebno ukrepanje."
+  },
+  "email.secret_revealed.signature": {
+    "text": "Delano"
+  },
+  "email.secret_revealed.manage_preferences": {
+    "text": "Upravljajte nastavitve obvestil"
+  },
+  "email.secret_revealed.manage_preferences_prompt": {
+    "text": "Za upravljanje nastavitev obvestil:"
+  },
+  "email.expiration_warning.subject": {
+    "text": "Vaša povezava do skrivnosti bo kmalu potekla"
+  },
+  "email.expiration_warning.expires_in": {
+    "text": "Vaša povezava do skrivnosti bo potekla čez %{time_remaining}"
+  },
+  "email.expiration_warning.view_button": {
+    "text": "Oglejte si svojo skrivnost, preden poteče"
+  },
+  "email.expiration_warning.reminder_label": {
+    "text": "Opomnik:"
+  },
+  "email.expiration_warning.after_expiration": {
+    "text": "Po preteku veljavnosti bo skrivnost trajno izbrisana in je ne bo mogoče obnoviti."
+  },
+  "email.expiration_warning.sent_via": {
+    "text": "Poslano prek"
+  },
+  "email.expiration_warning.view_before_gone": {
+    "text": "Oglejte si jo, preden izgine:"
+  },
+  "email.expiration_warning.after_expiration_short": {
+    "text": "Po preteku veljavnosti bo skrivnost trajno izbrisana."
+  },
+  "email.feedback_email.subject": {
+    "text": "Povratne informacije dne %{date} prek %{display_domain} (%{strategy})"
+  },
+  "email.feedback_email.title": {
+    "text": "Povratne informacije uporabnika"
+  },
+  "email.feedback_email.from_label": {
+    "text": "Od:"
+  },
+  "email.feedback_email.domain_label": {
+    "text": "Domena:"
+  },
+  "email.feedback_email.strategy_label": {
+    "text": "Strategija:"
+  },
+  "email.feedback_email.message_label": {
+    "text": "Sporočilo:"
+  },
+  "email.feedback_email.signature": {
+    "text": "Podpora"
+  },
+  "email.organization_invitation.subject": {
+    "text": "Povabljeni ste k pridružitvi organizaciji %{organization_name}"
+  },
+  "email.organization_invitation.title": {
+    "text": "Povabljeni ste k pridružitvi organizaciji %{organization_name}!"
+  },
+  "email.organization_invitation.body": {
+    "text": "%{inviter_email} vas je povabil/-a, da se pridružite organizaciji \"%{organization_name}\" kot %{role_description}."
+  },
+  "email.organization_invitation.accept_button": {
+    "text": "Sprejmi povabilo"
+  },
+  "email.organization_invitation.link_instruction": {
+    "text": "Ali kopirajte in prilepite to povezavo:"
+  },
+  "email.organization_invitation.expiry_notice": {
+    "text": "To povabilo bo poteklo čez %{days} dni."
+  },
+  "email.organization_invitation.decline_instruction": {
+    "text": "Če se ne želite pridružiti, lahko preprosto prezrete to e-pošto ali zavrnete povabilo."
+  },
+  "email.organization_invitation.signature": {
+    "text": "Delano"
+  },
+  "email.organization_invitation.postscript": {
+    "text": "P.S. Ta e-pošta je bila poslana na %{invited_email}. Če niste pričakovali tega povabila, lahko to sporočilo varno prezrete."
+  },
+  "email.organization_invitation.roles.member": {
+    "text": "član"
+  },
+  "email.organization_invitation.roles.admin": {
+    "text": "administrator"
+  },
+  "email.password_changed.subject": {
+    "text": "Vaše geslo je bilo spremenjeno (%{display_domain})"
+  },
+  "email.password_changed.title": {
+    "text": "Vaše geslo je bilo spremenjeno"
+  },
+  "email.password_changed.body": {
+    "text": "Vaše geslo za %{product_name} je bilo spremenjeno dne %{date} ob %{time}."
+  },
+  "email.password_changed.security_notice": {
+    "text": "Če te spremembe niste naredili vi, takoj zavarujte svoj račun tako, da ponastavite geslo in stopite v stik s podporo."
+  },
+  "email.password_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_changed.subject": {
+    "text": "Vaš e-poštni naslov je bil spremenjen (%{display_domain})"
+  },
+  "email.email_changed.title": {
+    "text": "Vaš e-poštni naslov je bil spremenjen"
+  },
+  "email.email_changed.body": {
+    "text": "E-poštni naslov za vaš račun %{product_name} je bil spremenjen v %{new_email_masked} dne %{date}."
+  },
+  "email.email_changed.security_notice": {
+    "text": "Če te spremembe niste naredili vi, takoj stopite v stik s podporo, saj je vaš račun morda ogrožen."
+  },
+  "email.email_changed.signature": {
+    "text": "Delano"
+  },
+  "email.email_change_confirmation.subject": {
+    "text": "Potrdite svoj novi e-poštni naslov (%{display_domain})"
+  },
+  "email.email_change_confirmation.title": {
+    "text": "Potrdite svoj novi e-poštni naslov"
+  },
+  "email.email_change_confirmation.body": {
+    "text": "Prosimo, potrdite ta e-poštni naslov za dokončanje spremembe za vaš račun %{product_name}."
+  },
+  "email.email_change_confirmation.verify_button": {
+    "text": "Potrdi e-poštni naslov"
+  },
+  "email.email_change_confirmation.copy_link_prompt": {
+    "text": "Ali kopirajte in prilepite to povezavo:"
+  },
+  "email.email_change_confirmation.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_enabled.subject": {
+    "text": "Dvofaktorska avtentikacija omogočena (%{display_domain})"
+  },
+  "email.mfa_enabled.title": {
+    "text": "Dvofaktorska avtentikacija omogočena"
+  },
+  "email.mfa_enabled.body": {
+    "text": "Dvofaktorska avtentikacija je bila omogočena za vaš račun %{product_name} dne %{date}."
+  },
+  "email.mfa_enabled.security_notice": {
+    "text": "Vaš račun je zdaj varnejši. Pri prijavi boste morali vnesti potrditveno kodo iz aplikacije za avtentikacijo."
+  },
+  "email.mfa_enabled.signature": {
+    "text": "Delano"
+  },
+  "email.mfa_disabled.subject": {
+    "text": "Dvofaktorska avtentikacija onemogočena (%{display_domain})"
+  },
+  "email.mfa_disabled.title": {
+    "text": "Dvofaktorska avtentikacija onemogočena"
+  },
+  "email.mfa_disabled.body": {
+    "text": "Dvofaktorska avtentikacija je bila onemogočena za vaš račun %{product_name} dne %{date}."
+  },
+  "email.mfa_disabled.warning_notice": {
+    "text": "Vaš račun je zdaj manj varen. Če te spremembe niste naredili vi, takoj zavarujte svoj račun."
+  },
+  "email.mfa_disabled.signature": {
+    "text": "Delano"
+  },
+  "email.new_login_alert.subject": {
+    "text": "Nova prijava v vaš račun (%{display_domain})"
+  },
+  "email.new_login_alert.title": {
+    "text": "Zaznana nova prijava"
+  },
+  "email.new_login_alert.body": {
+    "text": "Nova prijava v vaš račun %{product_name} je bila zaznana dne %{date} ob %{time}."
+  },
+  "email.new_login_alert.device_label": {
+    "text": "Naprava:"
+  },
+  "email.new_login_alert.location_label": {
+    "text": "Lokacija:"
+  },
+  "email.new_login_alert.ip_address_label": {
+    "text": "IP naslov:"
+  },
+  "email.new_login_alert.not_you_notice": {
+    "text": "Če to niste bili vi, je vaš račun morda ogrožen."
+  },
+  "email.new_login_alert.secure_account_button": {
+    "text": "Zavarujte svoj račun"
+  },
+  "email.new_login_alert.signature": {
+    "text": "Delano"
+  },
+  "email.member_removed.subject": {
+    "text": "Odstranjeni ste bili iz %{organization_name}"
+  },
+  "email.member_removed.title": {
+    "text": "Odstranjeni ste bili iz %{organization_name}"
+  },
+  "email.member_removed.body": {
+    "text": "Odstranjeni ste bili iz organizacije \"%{organization_name}\" na %{product_name}."
+  },
+  "email.member_removed.signature": {
+    "text": "Delano"
+  },
+  "email.role_changed.subject": {
+    "text": "Vaša vloga je bila spremenjena v %{organization_name}"
+  },
+  "email.role_changed.title": {
+    "text": "Vaša vloga je bila spremenjena"
+  },
+  "email.role_changed.body": {
+    "text": "Vaša vloga v \"%{organization_name}\" je bila spremenjena iz %{old_role} v %{new_role}."
+  },
+  "email.role_changed.signature": {
+    "text": "Delano"
+  },
+  "email.organization_deleted.subject": {
+    "text": "Organizacija \"%{organization_name}\" je bila izbrisana"
+  },
+  "email.organization_deleted.title": {
+    "text": "Organizacija izbrisana"
+  },
+  "email.organization_deleted.body": {
+    "text": "Organizacija \"%{organization_name}\" je bila izbrisana iz %{product_name}. Vsi povezani podatki so bili odstranjeni."
+  },
+  "email.organization_deleted.signature": {
+    "text": "Delano"
+  },
+  "email.payment_receipt.subject": {
+    "text": "Potrdilo o plačilu za %{product_name}"
+  },
+  "email.payment_receipt.title": {
+    "text": "Potrdilo o plačilu"
+  },
+  "email.payment_receipt.body": {
+    "text": "Hvala za vaše plačilo. Tukaj so podrobnosti vašega plačila:"
+  },
+  "email.payment_receipt.amount_label": {
+    "text": "Znesek:"
+  },
+  "email.payment_receipt.date_label": {
+    "text": "Datum:"
+  },
+  "email.payment_receipt.plan_label": {
+    "text": "Paket:"
+  },
+  "email.payment_receipt.invoice_link": {
+    "text": "Oglejte si račun"
+  },
+  "email.payment_receipt.signature": {
+    "text": "Delano"
+  },
+  "email.payment_failed.subject": {
+    "text": "Plačilo za %{product_name} ni uspelo"
+  },
+  "email.payment_failed.title": {
+    "text": "Plačilo ni uspelo"
+  },
+  "email.payment_failed.body": {
+    "text": "Vašega plačila za %{product_name} nismo mogli obdelati. Prosimo, posodobite način plačila, da se izognete prekinitvi storitve."
+  },
+  "email.payment_failed.update_payment_button": {
+    "text": "Posodobi način plačila"
+  },
+  "email.payment_failed.signature": {
+    "text": "Delano"
+  },
+  "email.trial_expiring.subject": {
+    "text": "Vaše preskusno obdobje za %{product_name} poteče čez %{days_remaining} dni"
+  },
+  "email.trial_expiring.title": {
+    "text": "Vaše preskusno obdobje se kmalu zaključuje"
+  },
+  "email.trial_expiring.body": {
+    "text": "Vaše brezplačno preskusno obdobje za %{product_name} bo poteklo čez %{days_remaining} dni. Nadgradite zdaj, da ohranite dostop do vseh funkcij."
+  },
+  "email.trial_expiring.upgrade_button": {
+    "text": "Nadgradi zdaj"
+  },
+  "email.trial_expiring.signature": {
+    "text": "Delano"
+  },
+  "email.subscription_changed.subject": {
+    "text": "Vaša naročnina na %{product_name} je bila spremenjena"
+  },
+  "email.subscription_changed.title": {
+    "text": "Naročnina spremenjena"
+  },
+  "email.subscription_changed.body": {
+    "text": "Vaša naročnina na %{product_name} je bila spremenjena iz %{old_plan} v %{new_plan}."
+  },
+  "email.subscription_changed.effective_date": {
+    "text": "Ta sprememba je veljavna od %{date}."
+  },
+  "email.subscription_changed.signature": {
+    "text": "Delano"
+  },
+  "email.common.greeting": {
+    "text": "Pozdravljeni,"
+  },
+  "email.common.thanks": {
+    "text": "Hvala,"
+  },
+  "email.common.unsubscribe": {
+    "text": "Odjava"
+  },
+  "email.common.view_in_browser": {
+    "text": "Prikaži v brskalniku"
+  },
+  "email.common.onetime_secret": {
+    "text": "Onetime Secret"
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "web.regions.data_sovereignty_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.data_sovereignty_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.separate_environments_explanation": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.no_data_transfer_policy": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.switching_creates_new_account": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.your_region": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.your_current_region": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.active": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.explore_other_regions": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.why_it_matters": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.trust_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.trust_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.privacy_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.privacy_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.compliance_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.compliance_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.performance_title": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.performance_description": {
+    "text": "",
+    "skip": true,
+    "note": "empty"
+  },
+  "web.regions.regions": {
+    "text": "Regioner"
+  },
+  "web.regions.contact_our_compliance_team": {
+    "text": "kontakt vores compliance-team"
+  },
+  "web.regions.review_our_documentation": {
+    "text": "gennemgå vores dokumentation"
+  },
+  "web.regions.your_account_and_data_are_protected_under_the_la": {
+    "text": "Din konto og dine data er beskyttet i henhold til love og regler i"
+  },
+  "web.regions.this_regulatory_framework_is_determined_by_your_": {
+    "text": "Denne lovgivningsmæssige ramme bestemmes af dit adgangsdomæne:"
+  },
+  "web.regions.each_jurisdiction_maintains_separate_legal_compl": {
+    "text": "Hver jurisdiktion opretholder separat juridisk overholdelse og datastyring. Selvom du kan oprette konti i flere jurisdiktioner, forbliver de juridisk adskilte uden datadeling mellem reguleringszoner."
+  },
+  "web.regions.to_understand_the_specific_regulations_and_prote": {
+    "text": "For at forstå de specifikke regler og beskyttelser, der gælder for din konto, bedes du"
+  },
+  "web.regions.current": {
+    "text": "Nuværende"
+  },
+  "web.regions.jurisdiction_display_name_iscurrentjurisdiction_": {
+    "text": "{0} {1}"
+  },
+  "web.regions.available_regions": {
+    "text": "Tilgængelige regioner"
+  },
+  "web.regions.jurisdiction": {
+    "text": "Jurisdiktion"
+  },
+  "web.regions.data_center_location_currentjurisdiction_identif": {
+    "text": "Datacenterplacering: {0}"
+  },
+  "web.regions.data_region": {
+    "text": "Dataregion"
+  },
+  "web.regions.unknown_jurisdiction": {
+    "text": "Ukendt jurisdiktion"
+  },
+  "web.regions.serving_you_from_the": {
+    "text": "Betjener dig fra"
+  },
+  "web.regions.continue_to_jurisdiction_domain": {
+    "text": "Fortsæt til {0}"
+  },
+  "web.regions.current_jurisdiction": {
+    "text": "Nuværende jurisdiktion:"
+  }
+}

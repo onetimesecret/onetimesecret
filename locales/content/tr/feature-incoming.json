@@ -1,0 +1,101 @@
+{
+  "incoming.page_title": {
+    "text": "Sır gönder"
+  },
+  "incoming.page_description": {
+    "text": "Destek ekibimizle hassas bilgileri güvenli bir şekilde paylaşın"
+  },
+  "incoming.loading_config": {
+    "text": "Yükleniyor..."
+  },
+  "incoming.config_error_title": {
+    "text": "Yapılandırma yüklenemedi"
+  },
+  "incoming.feature_disabled_title": {
+    "text": "Özellik kullanılamıyor"
+  },
+  "incoming.feature_disabled_description": {
+    "text": "Bu özellik şu anda devre dışı. Yardım için lütfen destekle iletişime geçin."
+  },
+  "incoming.memo_label": {
+    "text": "Not"
+  },
+  "incoming.memo_placeholder": {
+    "text": "Kısa açıklama (örn. Şifre sıfırlama talebi)"
+  },
+  "incoming.memo_hint": {
+    "text": "Mesajınızı doğru kişiye yönlendirmemize yardımcı olun"
+  },
+  "incoming.recipient_label": {
+    "text": "Gönder"
+  },
+  "incoming.recipient_placeholder": {
+    "text": "Alıcı seçin"
+  },
+  "incoming.recipient_aria_label": {
+    "text": "Bu sır için bir alıcı seçin"
+  },
+  "incoming.recipient_hint": {
+    "text": "Bu güvenli mesajı kimin alacağını seçin"
+  },
+  "incoming.no_recipients_available": {
+    "text": "Kullanılabilir alıcı yok"
+  },
+  "incoming.secret_content_label": {
+    "text": "Gizli bilgi"
+  },
+  "incoming.secret_content_placeholder": {
+    "text": "Hassas bilgileri buraya yapıştırın (şifreler, anahtarlar vb.)"
+  },
+  "incoming.secret_content_hint": {
+    "text": "Bu bilgi şifrelenecek ve yalnızca bir kez görüntülenebilecek"
+  },
+  "incoming.submit_button": {
+    "text": "Sır gönder"
+  },
+  "incoming.submit_secret": {
+    "text": "Sır gönder"
+  },
+  "incoming.submitting_button": {
+    "text": "Gönderiliyor..."
+  },
+  "incoming.submitting": {
+    "text": "Gönderiliyor..."
+  },
+  "incoming.reset_button": {
+    "text": "Formu temizle"
+  },
+  "incoming.reset_form": {
+    "text": "Formu temizle"
+  },
+  "incoming.success_title": {
+    "text": "Başarıyla gönderildi"
+  },
+  "incoming.success_description": {
+    "text": "Güvenli mesajınız iletildi."
+  },
+  "incoming.reference_id": {
+    "text": "Referans kimliği"
+  },
+  "incoming.success_info_title": {
+    "text": "Sırada ne var?"
+  },
+  "incoming.success_info_description": {
+    "text": "Alıcı bu sırrı yalnızca bir kez görüntüleyebilecek. Görüntülendikten sonra sır kalıcı olarak silinecek."
+  },
+  "incoming.create_another": {
+    "text": "Başka bir sır gönder"
+  },
+  "incoming.tagline1": {
+    "text": "Hassas bilgileri güvenli bir şekilde paylaşın"
+  },
+  "incoming.tagline2": {
+    "text": "Şifreleri ve özel verileri e-posta ve sohbet kayıtlarından uzak tutun"
+  },
+  "incoming.end_of_experience_suggestion": {
+    "text": "Kayıtlarınız için <a href='{receiptUrl}'>makbuzunuzu</a> saklayın."
+  },
+  "incoming.receipt_link_text": {
+    "text": "makbuz"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "web.dashboard.title_received": {
+    "text": "Отримано"
+  },
+  "web.dashboard.title_not_received": {
+    "text": "Не отримано"
+  },
+  "web.dashboard.title_no_recent_secrets": {
+    "text": "Немає недавніх секретів"
+  },
+  "web.dashboard.get_started_by_creating_your_first_secret": {
+    "text": "Почніть зі створення вашого першого секрету."
+  },
+  "web.dashboard.fetch_error_title": {
+    "text": "Не вдалося завантажити команди"
+  },
+  "web.dashboard.fetch_error_description": {
+    "text": "Виникла проблема під час завантаження ваших команд. Будь ласка, спробуйте ще раз."
+  }
+}
