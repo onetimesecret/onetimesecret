@@ -1,66 +1,17 @@
 {
   "web": {
     "auth": {
-      "_context_mfa_required": "Intestazione della pagina mostrata quando l'utente deve completare l'MFA per procedere",
       "mfa_required": "Verifica MFA richiesta",
-      "_context_mfa_verification_required": "Testo esplicativo sotto l'intestazione",
       "mfa_verification_required": "Verifica MFA richiesta per accedere al tuo account",
-      "_context_complete_mfa_verification": "Testo del pulsante principale per inviare la verifica MFA",
       "complete_mfa_verification": "Completa verifica MFA",
       "security": {
-        "_README": "⚠️ CRITICO PER LA SICUREZZA: I messaggi prevengono la divulgazione di informazioni. Vedi src/locales/SECURITY-TRANSLATION-GUIDE.md",
         "authentication_failed": "Autenticazione fallita. Verifica le tue credenziali e riprova",
         "rate_limited": "Troppi tentativi. Riprova più tardi",
         "session_expired": "Sessione scaduta. Accedi nuovamente",
         "recovery_code_not_found": "Codice di recupero non trovato. Verifica di averlo inserito correttamente",
         "recovery_code_used": "Questo codice di recupero è già stato utilizzato. Ogni codice può essere usato una sola volta",
         "network_error": "Errore di rete. Controlla la connessione e riprova",
-        "internal_error": "Si è verificato un errore. Riprova",
-        "_meta": {
-          "_purpose": "Questi messaggi seguono le linee guida OWASP/NIST per prevenire la divulgazione di informazioni. Le traduzioni DEVONO mantenere formulazioni generiche per prevenire l'enumerazione delle credenziali e gli attacchi temporali. Non rivelare mai: quale credenziale è fallita, tempistiche precise, esistenza dell'account o progresso dell'attacco.",
-          "authentication_failed": {
-            "security_note": "NON DEVE rivelare quale credenziale è fallita (password, OTP o codice di recupero). Questo impedisce agli attaccanti di determinare credenziali valide o enumerare account.",
-            "owasp_ref": "ASVS 2.2.2 - Le risposte di fallimento dell'autenticazione devono essere generiche"
-          },
-          "rate_limited": {
-            "security_note": "NON DEVE rivelare la durata precisa del blocco, il conteggio dei tentativi o i tentativi rimanenti. Questo previene gli attacchi temporali e il tracciamento del progresso.",
-            "owasp_ref": "ASVS 2.2.1 - Il blocco dell'account non deve essere enumerabile in base al tempo"
-          },
-          "session_expired": {
-            "security_note": "Sicuro indicare un problema di sessione poiché non rivela informazioni sulle credenziali. Aiuta gli utenti a capire che devono riautenticarsi.",
-            "owasp_ref": "Best practice per la gestione delle sessioni"
-          },
-          "recovery_code_not_found": {
-            "security_note": "Sicuro indicare il contesto del codice di recupero poiché l'utente ha esplicitamente selezionato questo metodo di autenticazione. Non rivela se il codice esiste.",
-            "owasp_ref": "Linee guida per la validazione del codice di recupero"
-          },
-          "recovery_code_used": {
-            "security_note": "Messaggio di comportamento atteso sicuro. Gli utenti devono sapere che i codici di recupero sono monouso per evitare confusione.",
-            "owasp_ref": "Guida utente per i meccanismi di recupero"
-          }
-        },
-        "_translation_guidelines": {
-          "DO_NOT_translate_as": [
-            "Wrong password",
-            "Invalid OTP code",
-            "Incorrect recovery code",
-            "Wait 5 minutes",
-            "3 attempts remaining",
-            "Account locked for 15 minutes"
-          ],
-          "MUST_translate_as": [
-            "Generic authentication failure (no credential specifics)",
-            "Generic rate limit message (no precise timing)",
-            "Recovery code validation (no existence confirmation)"
-          ],
-          "WHY": "Queste restrizioni impediscono agli attaccanti di: (1) determinare nomi utente/email validi, (2) sapere su quali credenziali concentrare gli attacchi, (3) condurre attacchi temporali, (4) misurare il progresso dell'attacco"
-        },
-        "_safe_information": {
-          "format_requirements": "Sicuro specificare i requisiti di formato (es. 'L'OTP deve essere di 6 cifre')",
-          "expected_behavior": "Sicuro descrivere come funzionano le funzionalità (es. 'I codici scadono ogni 30 secondi')",
-          "recovery_options": "Sicuro offrire alternative (es. 'Usa invece un codice di recupero')",
-          "general_guidance": "Sicuro fornire aiuto (es. 'Controlla la tua app di autenticazione')"
-        }
+        "internal_error": "Si è verificato un errore. Riprova"
       },
       "methods": {
         "password": "Password",
@@ -68,7 +19,6 @@
         "webauthn": "Biometrico"
       },
       "magicLink": {
-        "_context": "Autenticazione senza password tramite link email",
         "title": "Accedi con email",
         "description": "Ti invieremo un link di accesso sicuro",
         "emailPlaceholder": "Inserisci la tua email",
@@ -108,7 +58,6 @@
         "try_password_reset": "Puoi invece reimpostare la tua password"
       },
       "sessions": {
-        "_context": "Pagina di gestione dei dispositivi/browser dell'utente connesso",
         "title": "Sessioni attive",
         "current": "Sessione corrente",
         "other": "Altre sessioni",

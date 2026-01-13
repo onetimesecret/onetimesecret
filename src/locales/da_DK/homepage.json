@@ -41,7 +41,6 @@
       "tagline_delivered": "Leveret",
       "onetime_secret": "Onetime Secret",
       "onetime_secret_literal": "Onetime Secret",
-      "one_time_secret_literal": "",
       "onetime_secret_homepage": "Onetime Secret-hjemmeside",
       "send_sensitive_information_that_can_only_be_viewed_once": "Send følsomme oplysninger, der kun kan ses én gang",
       "create_a_secure_link": "Opret et sikkert link",

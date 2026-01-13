@@ -1,66 +1,17 @@
 {
   "web": {
     "auth": {
-      "_context_mfa_required": "Nagłówek strony wyświetlany, gdy użytkownik musi ukończyć MFA, aby kontynuować",
       "mfa_required": "Wymagana weryfikacja MFA",
-      "_context_mfa_verification_required": "Tekst wyjaśniający poniżej nagłówka",
       "mfa_verification_required": "Weryfikacja MFA wymagana do uzyskania dostępu do konta",
-      "_context_complete_mfa_verification": "Tekst głównego przycisku do przesłania weryfikacji MFA",
       "complete_mfa_verification": "Ukończ weryfikację MFA",
       "security": {
-        "_README": "⚠️ KRYTYCZNE DLA BEZPIECZEŃSTWA: Komunikaty zapobiegają ujawnianiu informacji. Zobacz src/locales/SECURITY-TRANSLATION-GUIDE.md",
         "authentication_failed": "Uwierzytelnianie nie powiodło się. Zweryfikuj swoje dane uwierzytelniające i spróbuj ponownie.",
         "rate_limited": "Zbyt wiele prób. Spróbuj ponownie później.",
         "session_expired": "Sesja wygasła. Zaloguj się ponownie.",
         "recovery_code_not_found": "Kod odzyskiwania nie został znaleziony. Sprawdź, czy wprowadziłeś go poprawnie.",
         "recovery_code_used": "Ten kod odzyskiwania został już użyty. Każdy kod może zostać użyty tylko raz.",
         "network_error": "Błąd sieci. Sprawdź połączenie i spróbuj ponownie.",
-        "internal_error": "Wystąpił błąd. Spróbuj ponownie.",
-        "_meta": {
-          "_purpose": "Te komunikaty są zgodne z wytycznymi OWASP/NIST, aby zapobiec ujawnianiu informacji. Tłumaczenia MUSZĄ zachować ogólne sformułowania, aby zapobiec wyliczaniu danych uwierzytelniających i atakom czasowym. Nigdy nie ujawniaj: które dane uwierzytelniające zawiodły, dokładnego czasu, istnienia konta lub postępu ataku.",
-          "authentication_failed": {
-            "security_note": "NIE WOLNO ujawniać, które dane uwierzytelniające zawiodły (hasło, OTP lub kod odzyskiwania). Zapobiega to umożliwieniu atakującym określenia prawidłowych danych uwierzytelniających lub wyliczenia kont.",
-            "owasp_ref": "ASVS 2.2.2 - Odpowiedzi na niepowodzenie uwierzytelniania muszą być ogólne"
-          },
-          "rate_limited": {
-            "security_note": "NIE WOLNO ujawniać dokładnego czasu blokady, liczby prób ani pozostałych prób. Zapobiega to atakom czasowym i śledzeniu postępu.",
-            "owasp_ref": "ASVS 2.2.1 - Blokada konta nie może być możliwa do wyliczenia za pomocą czasowania"
-          },
-          "session_expired": {
-            "security_note": "Bezpieczne jest wskazanie problemu z sesją, ponieważ nie ujawnia informacji o danych uwierzytelniających. Pomaga użytkownikom zrozumieć, że muszą ponownie się uwierzytelnić.",
-            "owasp_ref": "Najlepsze praktyki zarządzania sesją"
-          },
-          "recovery_code_not_found": {
-            "security_note": "Bezpieczne jest wskazanie kontekstu kodu odzyskiwania, ponieważ użytkownik wyraźnie wybrał tę metodę uwierzytelniania. Nie ujawnia, czy kod istnieje.",
-            "owasp_ref": "Wytyczne dotyczące walidacji kodu odzyskiwania"
-          },
-          "recovery_code_used": {
-            "security_note": "Bezpieczny komunikat o oczekiwanym zachowaniu. Użytkownicy muszą wiedzieć, że kody odzyskiwania są jednorazowe, aby uniknąć zamieszania.",
-            "owasp_ref": "Wskazówki użytkownika dotyczące mechanizmów odzyskiwania"
-          }
-        },
-        "_translation_guidelines": {
-          "DO_NOT_translate_as": [
-            "Złe hasło",
-            "Nieprawidłowy kod OTP",
-            "Niepoprawny kod odzyskiwania",
-            "Poczekaj 5 minut",
-            "Pozostały 3 próby",
-            "Konto zablokowane na 15 minut"
-          ],
-          "MUST_translate_as": [
-            "Ogólne niepowodzenie uwierzytelniania (bez szczegółów dotyczących danych uwierzytelniających)",
-            "Ogólny komunikat o limicie częstotliwości (bez dokładnego czasu)",
-            "Walidacja kodu odzyskiwania (bez potwierdzenia istnienia)"
-          ],
-          "WHY": "Te ograniczenia zapobiegają umożliwieniu atakującym: (1) określenia prawidłowych nazw użytkowników/e-maili, (2) wiedzy, na których danych uwierzytelniających skupić ataki, (3) przeprowadzania ataków czasowych, (4) mierzenia postępu ataku"
-        },
-        "_safe_information": {
-          "format_requirements": "Bezpieczne jest określenie reguł formatu (np. 'OTP musi mieć 6 cyfr')",
-          "expected_behavior": "Bezpieczne jest opisanie działania funkcji (np. 'Kody wygasają co 30 sekund')",
-          "recovery_options": "Bezpieczne jest oferowanie alternatyw (np. 'Zamiast tego użyj kodu odzyskiwania')",
-          "general_guidance": "Bezpieczne jest zapewnienie pomocy (np. 'Sprawdź aplikację uwierzytelniającą')"
-        }
+        "internal_error": "Wystąpił błąd. Spróbuj ponownie."
       },
       "methods": {
         "password": "Hasło",
@@ -68,7 +19,6 @@
         "webauthn": "Biometria"
       },
       "magicLink": {
-        "_context": "Uwierzytelnianie bez hasła przez link e-mail",
         "title": "Zaloguj się za pomocą e-mail",
         "description": "Wyślemy Ci bezpieczny link logowania",
         "emailPlaceholder": "Wprowadź swój e-mail",
@@ -108,7 +58,6 @@
         "try_password_reset": "Możesz zamiast tego zresetować hasło"
       },
       "sessions": {
-        "_context": "Strona zarządzania zalogowanymi urządzeniami/przeglądarkami użytkownika",
         "title": "Aktywne sesje",
         "current": "Bieżąca sesja",
         "other": "Inne sesje",

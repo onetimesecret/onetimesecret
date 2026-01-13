@@ -3,9 +3,6 @@
     "domains": {
       "learn_more_dns": "Μάθετε περισσότερα για τη διαμόρφωση DNS",
       "view_domain_verification_status": "Προβολή κατάστασης επαλήθευσης domain",
-      "domain_already_in_organization": "",
-      "domain_in_other_organization": "",
-      "domain_claimed_successfully": "",
       "privacy_defaults_title": "Προεπιλογές Απορρήτου",
       "privacy_defaults_description": "Ορίστε προεπιλεγμένες επιλογές απορρήτου για μυστικά που δημιουργούνται σε αυτό το domain. Αυτές οι ρυθμίσεις θα προσυμπληρώνονται κατά τη δημιουργία νέων μυστικών.",
       "privacy_defaults": "Προεπιλογές Απορρήτου",

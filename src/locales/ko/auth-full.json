@@ -1,66 +1,17 @@
 {
   "web": {
     "auth": {
-      "_context_mfa_required": "Page heading shown when user must complete MFA to proceed",
       "mfa_required": "MFA 인증 필요",
-      "_context_mfa_verification_required": "Explanatory text below the heading",
       "mfa_verification_required": "계정에 접근하려면 MFA 인증이 필요합니다",
-      "_context_complete_mfa_verification": "Primary button text to submit MFA verification",
       "complete_mfa_verification": "MFA 인증 완료",
       "security": {
-        "_README": "⚠️ SECURITY-CRITICAL: Messages prevent information disclosure. See src/locales/SECURITY-TRANSLATION-GUIDE.md",
         "authentication_failed": "인증에 실패했습니다. 자격 증명을 확인하고 다시 시도해 주세요.",
         "rate_limited": "시도 횟수가 너무 많습니다. 나중에 다시 시도해 주세요.",
         "session_expired": "세션이 만료되었습니다. 다시 로그인해 주세요.",
         "recovery_code_not_found": "복구 코드를 찾을 수 없습니다. 올바르게 입력했는지 확인해 주세요.",
         "recovery_code_used": "이 복구 코드는 이미 사용되었습니다. 각 코드는 한 번만 사용할 수 있습니다.",
         "network_error": "네트워크 오류입니다. 연결을 확인하고 다시 시도해 주세요.",
-        "internal_error": "오류가 발생했습니다. 다시 시도해 주세요.",
-        "_meta": {
-          "_purpose": "These messages follow OWASP/NIST guidelines to prevent information disclosure. Translations MUST maintain generic wording to prevent credential enumeration and timing attacks. Never reveal: which credential failed, precise timing, account existence, or attack progress.",
-          "authentication_failed": {
-            "security_note": "MUST NOT reveal which credential failed (password, OTP, or recovery code). This prevents attackers from determining valid credentials or enumerating accounts.",
-            "owasp_ref": "ASVS 2.2.2 - Authentication failure responses must be generic"
-          },
-          "rate_limited": {
-            "security_note": "MUST NOT reveal precise lockout duration, attempt counts, or remaining attempts. This prevents timing attacks and progress tracking.",
-            "owasp_ref": "ASVS 2.2.1 - Account lockout must not be timing-based enumerable"
-          },
-          "session_expired": {
-            "security_note": "Safe to indicate session issue as it doesn't reveal credential information. Helps users understand they need to re-authenticate.",
-            "owasp_ref": "Session management best practices"
-          },
-          "recovery_code_not_found": {
-            "security_note": "Safe to indicate recovery code context as user explicitly selected this authentication method. Does not reveal whether code exists.",
-            "owasp_ref": "Recovery code validation guidance"
-          },
-          "recovery_code_used": {
-            "security_note": "Safe expected behavior message. Users need to know recovery codes are single-use to prevent confusion.",
-            "owasp_ref": "User guidance for recovery mechanisms"
-          }
-        },
-        "_translation_guidelines": {
-          "DO_NOT_translate_as": [
-            "Wrong password",
-            "Invalid OTP code",
-            "Incorrect recovery code",
-            "Wait 5 minutes",
-            "3 attempts remaining",
-            "Account locked for 15 minutes"
-          ],
-          "MUST_translate_as": [
-            "Generic authentication failure (no credential specifics)",
-            "Generic rate limit message (no precise timing)",
-            "Recovery code validation (no existence confirmation)"
-          ],
-          "WHY": "These restrictions prevent attackers from: (1) determining valid usernames/emails, (2) knowing which credential to focus attacks on, (3) conducting timing attacks, (4) measuring attack progress"
-        },
-        "_safe_information": {
-          "format_requirements": "Safe to specify format rules (e.g., 'OTP must be 6 digits')",
-          "expected_behavior": "Safe to describe how features work (e.g., 'Codes expire every 30 seconds')",
-          "recovery_options": "Safe to offer alternatives (e.g., 'Use a recovery code instead')",
-          "general_guidance": "Safe to provide help (e.g., 'Check your authenticator app')"
-        }
+        "internal_error": "오류가 발생했습니다. 다시 시도해 주세요."
       },
       "methods": {
         "password": "비밀번호",
@@ -68,7 +19,6 @@
         "webauthn": "생체 인식"
       },
       "magicLink": {
-        "_context": "이메일 링크를 통한 비밀번호 없는 인증",
         "title": "이메일로 로그인",
         "description": "안전한 로그인 링크를 보내드립니다",
         "emailPlaceholder": "이메일을 입력하세요",
@@ -108,7 +58,6 @@
         "try_password_reset": "대신 비밀번호를 재설정할 수 있습니다"
       },
       "sessions": {
-        "_context": "사용자의 로그인된 장치/브라우저 관리 페이지",
         "title": "활성 세션",
         "current": "현재 세션",
         "other": "기타 세션",

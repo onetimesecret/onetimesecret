@@ -1,66 +1,17 @@
 {
   "web": {
     "auth": {
-      "_context_mfa_required": "Page heading shown when user must complete MFA to proceed",
       "mfa_required": "MFA-Verifizierung erforderlich",
-      "_context_mfa_verification_required": "Explanatory text below the heading",
       "mfa_verification_required": "MFA-Verifizierung erforderlich, um auf Ihr Konto zuzugreifen",
-      "_context_complete_mfa_verification": "Primary button text to submit MFA verification",
       "complete_mfa_verification": "MFA-Verifizierung abschließen",
       "security": {
-        "_README": "⚠️ SICHERHEITSKRITISCH: Nachrichten verhindern Informationspreisgabe. Siehe src/locales/SECURITY-TRANSLATION-GUIDE.md",
         "authentication_failed": "Authentifizierung fehlgeschlagen. Bitte überprüfen Sie Ihre Anmeldedaten und versuchen Sie es erneut.",
         "rate_limited": "Zu viele Versuche. Bitte versuchen Sie es später erneut.",
         "session_expired": "Sitzung abgelaufen. Bitte melden Sie sich erneut an.",
         "recovery_code_not_found": "Wiederherstellungscode nicht gefunden. Bitte überprüfen Sie, ob Sie ihn korrekt eingegeben haben.",
         "recovery_code_used": "Dieser Wiederherstellungscode wurde bereits verwendet. Jeder Code kann nur einmal verwendet werden.",
         "network_error": "Netzwerkfehler. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
-        "internal_error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.",
-        "_meta": {
-          "_purpose": "Diese Nachrichten folgen OWASP/NIST-Richtlinien, um Informationspreisgabe zu verhindern. Übersetzungen MÜSSEN generische Formulierungen beibehalten, um Aufzählung von Anmeldedaten und Timing-Angriffe zu verhindern. Niemals offenlegen: welche Anmeldedaten fehlgeschlagen sind, genaue Zeitangaben, Kontoexistenz oder Angriffsfortschritt.",
-          "authentication_failed": {
-            "security_note": "DARF NICHT offenlegen, welche Anmeldedaten fehlgeschlagen sind (Passwort, OTP oder Wiederherstellungscode). Dies verhindert, dass Angreifer gültige Anmeldedaten ermitteln oder Konten aufzählen.",
-            "owasp_ref": "ASVS 2.2.2 - Authentifizierungsfehlermeldungen müssen generisch sein"
-          },
-          "rate_limited": {
-            "security_note": "DARF NICHT genaue Sperrdauer, Versuchszählungen oder verbleibende Versuche offenlegen. Dies verhindert Timing-Angriffe und Fortschrittsverfolgung.",
-            "owasp_ref": "ASVS 2.2.1 - Kontosperrung darf nicht zeitbasiert aufzählbar sein"
-          },
-          "session_expired": {
-            "security_note": "Sicher, Sitzungsproblem anzugeben, da es keine Anmeldeinformationen offenlegt. Hilft Benutzern zu verstehen, dass sie sich neu authentifizieren müssen.",
-            "owasp_ref": "Best Practices für Sitzungsverwaltung"
-          },
-          "recovery_code_not_found": {
-            "security_note": "Sicher, Wiederherstellungscode-Kontext anzugeben, da Benutzer diese Authentifizierungsmethode explizit gewählt haben. Offenbart nicht, ob Code existiert.",
-            "owasp_ref": "Leitfaden zur Validierung von Wiederherstellungscodes"
-          },
-          "recovery_code_used": {
-            "security_note": "Sichere erwartete Verhaltensnachricht. Benutzer müssen wissen, dass Wiederherstellungscodes nur einmal verwendet werden können, um Verwirrung zu vermeiden.",
-            "owasp_ref": "Benutzeranleitung für Wiederherstellungsmechanismen"
-          }
-        },
-        "_translation_guidelines": {
-          "DO_NOT_translate_as": [
-            "Falsches Passwort",
-            "Ungültiger OTP-Code",
-            "Falscher Wiederherstellungscode",
-            "Warten Sie 5 Minuten",
-            "3 Versuche verbleibend",
-            "Konto für 15 Minuten gesperrt"
-          ],
-          "MUST_translate_as": [
-            "Generischer Authentifizierungsfehler (keine spezifischen Anmeldedaten)",
-            "Generische Rate-Limit-Nachricht (keine genaue Zeitangabe)",
-            "Wiederherstellungscode-Validierung (keine Existenzbestätigung)"
-          ],
-          "WHY": "Diese Einschränkungen verhindern, dass Angreifer: (1) gültige Benutzernamen/E-Mails ermitteln, (2) wissen, auf welche Anmeldedaten sie Angriffe konzentrieren sollen, (3) Timing-Angriffe durchführen, (4) Angriffsfortschritt messen"
-        },
-        "_safe_information": {
-          "format_requirements": "Sicher, Formatregeln anzugeben (z.B. 'OTP muss 6 Ziffern haben')",
-          "expected_behavior": "Sicher, zu beschreiben, wie Funktionen funktionieren (z.B. 'Codes laufen alle 30 Sekunden ab')",
-          "recovery_options": "Sicher, Alternativen anzubieten (z.B. 'Verwenden Sie stattdessen einen Wiederherstellungscode')",
-          "general_guidance": "Sicher, Hilfe zu leisten (z.B. 'Überprüfen Sie Ihre Authenticator-App')"
-        }
+        "internal_error": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut."
       },
       "methods": {
         "password": "Passwort",
@@ -68,7 +19,6 @@
         "webauthn": "Biometrisch"
       },
       "magicLink": {
-        "_context": "Passwordless authentication via email link",
         "title": "Mit E-Mail anmelden",
         "description": "Wir senden Ihnen einen sicheren Anmeldelink",
         "emailPlaceholder": "Geben Sie Ihre E-Mail ein",
@@ -108,7 +58,6 @@
         "try_password_reset": "Sie können stattdessen Ihr Passwort zurücksetzen"
       },
       "sessions": {
-        "_context": "User's logged-in devices/browsers management page",
         "title": "Aktive Sitzungen",
         "current": "Aktuelle Sitzung",
         "other": "Andere Sitzungen",
