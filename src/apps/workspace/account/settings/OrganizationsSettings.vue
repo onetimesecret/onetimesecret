@@ -11,6 +11,7 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import CreateOrganizationModal from '@/apps/workspace/components/organizations/CreateOrganizationModal.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+import { useDomainsStore } from '@/shared/stores/domainsStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
 import { getPlanDisplayName } from '@/types/billing';
@@ -21,6 +22,7 @@ const { t } = useI18n();
 const router = useRouter();
 const organizationStore = useOrganizationStore();
 const bootstrapStore = useBootstrapStore();
+const domainsStore = useDomainsStore();
 
 const isLoading = ref(false);
 const showCreateModal = ref(false);
@@ -76,10 +78,19 @@ const canCreateMultipleOrgs = computed(() =>
  */
 const isSingleUserAccount = computed(() => !can(ENTITLEMENTS.MANAGE_TEAMS));
 
+/**
+ * Domain count from domains store
+ */
+const domainCount = computed(() => domainsStore.count ?? 0);
+
 onMounted(async () => {
   isLoading.value = true;
   try {
-    await organizationStore.fetchOrganizations();
+    // Fetch organizations and domains in parallel
+    await Promise.all([
+      organizationStore.fetchOrganizations(),
+      domainsStore.fetchList(),
+    ]);
   } catch (error) {
     console.error('[OrganizationsSettings] Error fetching organizations:', error);
   } finally {
@@ -214,7 +225,7 @@ const handleManageOrganization = (org: Organization) => {
                 <router-link
                   v-if="billingEnabled && org.extid"
                   :to="`/billing/${org.extid}/overview`"
-                  class="group/stat inline-flex items-center gap-1.5 text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400"
+                  class="inline-flex items-center gap-1.5 text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400"
                   @click.stop>
                   <OIcon
                     collection="heroicons"
@@ -222,11 +233,6 @@ const handleManageOrganization = (org: Organization) => {
                     class="size-4"
                     aria-hidden="true" />
                   <span>{{ getOrgPlanName(org) }}</span>
-                  <OIcon
-                    collection="heroicons"
-                    name="arrow-top-right-on-square"
-                    class="size-3 opacity-0 transition-opacity group-hover/stat:opacity-100"
-                    aria-hidden="true" />
                 </router-link>
                 <span
                   v-else
@@ -243,7 +249,7 @@ const handleManageOrganization = (org: Organization) => {
                 <router-link
                   v-if="org.extid"
                   :to="`/org/${org.extid}/members`"
-                  class="group/stat inline-flex items-center gap-1.5 text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400"
+                  class="inline-flex items-center gap-1.5 text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400"
                   @click.stop>
                   <OIcon
                     collection="heroicons"
@@ -251,29 +257,19 @@ const handleManageOrganization = (org: Organization) => {
                     class="size-4"
                     aria-hidden="true" />
                   <span>{{ t('web.organizations.member_count', { count: org.member_count ?? 1 }) }}</span>
-                  <OIcon
-                    collection="heroicons"
-                    name="arrow-top-right-on-square"
-                    class="size-3 opacity-0 transition-opacity group-hover/stat:opacity-100"
-                    aria-hidden="true" />
                 </router-link>
 
                 <!-- Domains (links to domains page) -->
                 <router-link
                   to="/domains"
-                  class="group/stat inline-flex items-center gap-1.5 text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400"
+                  class="inline-flex items-center gap-1.5 text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400"
                   @click.stop>
                   <OIcon
                     collection="heroicons"
                     name="globe-alt"
                     class="size-4"
                     aria-hidden="true" />
-                  <span>{{ t('web.organizations.domains_label') }}</span>
-                  <OIcon
-                    collection="heroicons"
-                    name="arrow-top-right-on-square"
-                    class="size-3 opacity-0 transition-opacity group-hover/stat:opacity-100"
-                    aria-hidden="true" />
+                  <span>{{ t('web.organizations.domain_count', { count: domainCount }) }}</span>
                 </router-link>
               </div>
             </div>
