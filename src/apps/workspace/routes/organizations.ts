@@ -34,7 +34,8 @@ const routes: Array<RouteRecordRaw> = [
       scopesAvailable: SCOPE_PRESETS.hideBoth, // Hide switcher on org list page
     },
   },
-  // Redirect /org/domains to /domains to prevent it being caught by :extid
+  // Route /org/domains to the OrganizationSettings page with domains tab active
+  // This prevents it from being caught by :extid param
   {
     path: '/org/domains',
     redirect: '/domains',
@@ -48,11 +49,7 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: {
-        organization: 'show',
-        domain: 'hide',
-        onOrgSwitch: 'same',
-      },
+      scopesAvailable: SCOPE_PRESETS.hideBoth, // Hide switcher - org name shown in page header
     },
   },
   {
@@ -67,6 +64,19 @@ const routes: Array<RouteRecordRaw> = [
       scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
     },
     props: true,
+  },
+  {
+    path: '/org/:extid/domains',
+    name: 'OrganizationDomains',
+    component: () => import('@/apps/workspace/account/settings/OrganizationSettings.vue'),
+    meta: {
+      title: 'web.domains.domains',
+      requiresAuth: true,
+      layout: WorkspaceLayout,
+      layoutProps: standardLayoutProps,
+      scopesAvailable: SCOPE_PRESETS.hideBoth, // Hide switcher - org name shown in page header
+    },
+    props: (route) => ({ extid: route.params.extid, initialTab: 'domains' }),
   },
   // Legacy redirects (no billing guard needed)
   {

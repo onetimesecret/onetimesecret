@@ -5,10 +5,13 @@ import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
+import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
+import EmptyState from '@/shared/components/ui/EmptyState.vue';
 import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
 import { useEntitlementError } from '@/shared/composables/useEntitlementError';
+import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { classifyError } from '@/schemas/errors';
 import type { ApplicationError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
@@ -22,6 +25,14 @@ import type { CreateInvitationPayload, Organization, OrganizationInvitation } fr
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { z } from 'zod';
+
+type TabType = 'general' | 'members' | 'domains' | 'billing';
+
+const props = withDefaults(defineProps<{
+  initialTab?: TabType;
+}>(), {
+  initialTab: 'members',
+});
 
 const { t } = useI18n();
 const route = useRoute();
@@ -51,7 +62,16 @@ const invitations = ref<OrganizationInvitation[]>([]);
  * This aligns with Fitts's Law corollary: reduce interaction cost for frequent
  * actions, accept higher cost for infrequent ones.
  */
-const activeTab = ref<'general' | 'members' | 'billing'>('members');
+const activeTab = ref<TabType>(props.initialTab);
+
+// Domains management
+const {
+  isLoading: isLoadingDomains,
+  records: domainRecords,
+  recordCount: domainCount,
+  error: domainsError,
+  refreshRecords: refreshDomains,
+} = useDomainsManager();
 
 const isLoading = ref(false);
 const isSaving = ref(false);
@@ -93,12 +113,6 @@ const {
   ENTITLEMENTS,
 } = useEntitlements(organization);
 
-
-/**
- * Determine if this is the user's default organization.
- * Billing is managed through the default organization only.
- */
-const isDefaultOrganization = computed(() => organization.value?.is_default ?? false);
 
 // Form data
 const formData = ref({
@@ -376,8 +390,15 @@ onMounted(async () => {
   await initDefinitions();
 
   await loadOrganization();
-  // Default tab is 'members', so load members and invitations on mount
-  await Promise.all([loadMembers(), loadInvitations()]);
+
+  // Load data for the initial tab
+  if (activeTab.value === 'members') {
+    await Promise.all([loadMembers(), loadInvitations()]);
+  } else if (activeTab.value === 'domains') {
+    await refreshDomains();
+  } else if (activeTab.value === 'billing' && billingEnabled.value) {
+    await loadBilling();
+  }
 });
 
 watch(activeTab, async (newTab) => {
@@ -393,6 +414,9 @@ watch(activeTab, async (newTab) => {
     if (promises.length > 0) {
       await Promise.all(promises);
     }
+  } else if (newTab === 'domains') {
+    // Load domains when switching to domains tab
+    await refreshDomains();
   } else if (newTab === 'billing' && !subscription.value && billingEnabled.value) {
     await loadBilling();
   }
@@ -402,30 +426,26 @@ watch(activeTab, async (newTab) => {
 <template>
   <div class="mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-8">
     <div class="space-y-6">
-      <!-- Breadcrumb -->
-      <nav class="flex" aria-label="Breadcrumb">
-        <ol class="flex items-center space-x-2">
-          <li>
-            <router-link
-              to="/org"
-              class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-              {{ t('web.organizations.title') }}
-            </router-link>
-          </li>
-          <li>
+      <!-- Page Header -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <router-link
+            to="/org"
+            class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            :title="t('web.organizations.title')">
             <OIcon
               collection="heroicons"
-              name="chevron-right"
-              class="size-4 text-gray-400"
+              name="arrow-left"
+              class="size-4"
               aria-hidden="true" />
-          </li>
-          <li class="text-sm font-medium text-gray-900 dark:text-white">
+          </router-link>
+          <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
             {{ organization?.display_name || t('web.COMMON.loading') }}
-          </li>
-        </ol>
-      </nav>
+          </h1>
+        </div>
+      </div>
 
-      <!-- Tabs: Team (primary), Billing (conditional), Settings (infrequent) -->
+      <!-- Tabs: Team (primary), Domains, Billing (conditional), Settings (infrequent) -->
       <div class="border-b border-gray-200 dark:border-gray-700">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
           <!-- Team tab - primary action, shown first -->
@@ -439,9 +459,19 @@ watch(activeTab, async (newTab) => {
             ]">
             {{ t('web.organizations.tabs.members') }}
           </button>
-          <!-- Billing tab - only shown for default organization -->
+          <!-- Domains tab -->
           <button
-            v-if="isDefaultOrganization"
+            @click="activeTab = 'domains'"
+            :class="[
+              'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
+              activeTab === 'domains'
+                ? 'border-brand-500 text-brand-600 dark:border-brand-400 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:text-gray-300',
+            ]">
+            {{ t('web.organizations.tabs.domains') }}
+          </button>
+          <!-- Billing tab - shown for all organizations -->
+          <button
             @click="activeTab = 'billing'"
             :class="[
               'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium',
@@ -535,8 +565,8 @@ watch(activeTab, async (newTab) => {
                 </p>
               </div>
 
-              <!-- Billing Email (only for default organization) -->
-              <div v-if="isDefaultOrganization">
+              <!-- Billing Email -->
+              <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   {{ t('web.organizations.contact_email') }}
                 </label>
@@ -592,24 +622,6 @@ watch(activeTab, async (newTab) => {
                 <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {{ t('web.organizations.contact_email_help') }}
                 </p>
-              </div>
-
-              <!-- Billing info notice for non-default organizations -->
-              <div
-                v-else
-                class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
-                <div class="flex">
-                  <OIcon
-                    collection="heroicons"
-                    name="information-circle"
-                    class="size-5 flex-shrink-0 text-blue-400 dark:text-blue-300"
-                    aria-hidden="true" />
-                  <div class="ml-3">
-                    <p class="text-sm text-blue-700 dark:text-blue-300">
-                      {{ t('web.organizations.billing_managed_by_default') }}
-                    </p>
-                  </div>
-                </div>
               </div>
 
               <!-- Action Buttons -->
@@ -845,6 +857,70 @@ watch(activeTab, async (newTab) => {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        <!-- Domains Tab -->
+        <section
+          v-if="activeTab === 'domains'"
+          class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+          <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">
+                  {{ t('web.domains.domains') }}
+                </h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {{ t('web.domains.manage_and_configure_your_verified_custom_domains') }}
+                </p>
+              </div>
+              <router-link
+                to="/domains/add"
+                class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+                <OIcon
+                  collection="heroicons"
+                  name="plus"
+                  class="size-4"
+                  aria-hidden="true" />
+                {{ t('web.domains.add_domain') }}
+              </router-link>
+            </div>
+          </div>
+
+          <div class="p-6">
+            <!-- Loading State -->
+            <div v-if="isLoadingDomains" class="flex items-center justify-center py-8">
+              <OIcon
+                collection="heroicons"
+                name="arrow-path"
+                class="size-6 animate-spin text-gray-400"
+                aria-hidden="true" />
+            </div>
+
+            <!-- Error State -->
+            <BasicFormAlerts
+              v-else-if="domainsError"
+              :error="domainsError.message" />
+
+            <!-- Domains Table -->
+            <DomainsTable
+              v-else-if="domainCount > 0 && domainRecords"
+              :domains="domainRecords"
+              :is-loading="isLoadingDomains" />
+
+            <!-- Empty State -->
+            <EmptyState
+              v-else
+              :showAction="true"
+              action-route="/domains/add"
+              :action-text="t('web.domains.add_domain')">
+              <template #title>
+                {{ t('web.domains.no_domains_found') }}
+              </template>
+              <template #description>
+                {{ t('web.domains.get_started_by_adding_a_custom_domain') }}
+              </template>
+            </EmptyState>
           </div>
         </section>
 
