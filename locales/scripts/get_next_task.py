@@ -19,8 +19,12 @@ import argparse
 import json
 import sqlite3
 import sys
+from io import StringIO
 from pathlib import Path
 from typing import Optional
+
+from rich.console import Console
+from rich.table import Table
 
 # Path constants relative to script location
 SCRIPT_DIR = Path(__file__).parent.resolve()
@@ -191,33 +195,44 @@ def get_task_stats(locale: str) -> dict:
 
 
 def format_task_human(task: dict) -> str:
-    """Format a task for human-readable output.
+    """Format a task for human-readable output with rich table.
 
     Args:
         task: Task dictionary.
 
     Returns:
-        Formatted string.
+        Formatted string with title line and key/english/translation table.
     """
-    lines = [
-        f"Task ID: {task['id']}",
-        f"File: {task['file']}",
-        f"Path: {task['level_path']}",
-        f"Locale: {task['locale']}",
-        f"Status: {task['status']}",
-        f"Keys ({len(task.get('keys', {}))} items):",
-    ]
-
     keys = task.get("keys", {})
-    for key, english_text in sorted(keys.items()):
-        # Truncate long values
-        display_text = english_text
-        if len(display_text) > 60:
-            display_text = display_text[:57] + "..."
-        lines.append(f"  {key}: {display_text}")
+    num_keys = len(keys)
+
+    # Title line: Task # · file · path · key count
+    title = f"**Task {task['id']}** · `{task['file']}` · `{task['level_path']}` · {num_keys} keys"
+
+    # Build table with rich
+    table = Table(show_header=True, header_style="bold", box=None, pad_edge=False)
+    table.add_column("Key", justify="right", style="cyan", min_width=28)
+    table.add_column("English", justify="left", width=60, overflow="fold")
+    table.add_column("Esperanto", justify="left", width=60, overflow="fold")
+
+    # Sort by length of english text for visual grouping
+    sorted_keys = sorted(keys.items(), key=lambda x: len(x[1]))
+
+    translations = task.get("translations", {})
+    for key, english_text in sorted_keys:
+        translation = translations.get(key, "")
+        table.add_row(key, english_text, translation)
+
+    # Render table to string
+    output = StringIO()
+    console = Console(file=output, force_terminal=False, width=160)
+    console.print(table)
+    table_str = output.getvalue()
+
+    lines = [title, "", table_str.rstrip()]
 
     if task.get("notes"):
-        lines.append(f"Notes: {task['notes']}")
+        lines.append(f"\nNotes: {task['notes']}")
 
     return "\n".join(lines)
 
