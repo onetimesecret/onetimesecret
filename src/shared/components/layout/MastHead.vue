@@ -51,7 +51,13 @@
   const getLogoHref = () => props.logo?.href || headerConfig.value?.branding?.logo?.link_to || '/';
   // Custom domain logos are larger to emphasize brand identity
   const isCustomDomainLogo = computed(() => !!domain_logo.value);
-  const getLogoSize = () => props.logo?.size || (isCustomDomainLogo.value ? 80 : 64);
+  // Authenticated users get a smaller logo (40px) to balance visual weight with context switchers
+  // Custom domain logos remain at 80px, unauthenticated users get 64px
+  const getLogoSize = () => {
+    if (props.logo?.size) return props.logo.size;
+    if (isCustomDomainLogo.value) return 80;
+    return isUserPresent.value ? 40 : 64;
+  };
   // Hide site name when custom domain logo is displayed (unless explicitly configured)
   const getShowSiteName = () => props.logo?.showSiteName ?? (domain_logo.value ? false : !!headerConfig.value?.branding?.site_name);
   const getSiteName = () => props.logo?.siteName || headerConfig.value?.branding?.site_name || t('web.homepage.one_time_secret_literal');
@@ -136,44 +142,60 @@
 
 <template>
   <div class="w-full">
-    <div class="flex flex-row items-center justify-between">
-      <!-- Logo lockup -->
-      <div class="flex items-center gap-3">
-        <div v-if="isVueComponent">
-          <component
-            id="logo"
-            :is="logoComponent"
-            v-if="logoComponent"
-            v-bind="logoConfig"
-            :is-user-present="isUserPresent"
-            class="transition-transform" />
-        </div>
-        <div v-else>
-          <a
-            :href="logoConfig.href"
-            class="flex items-center gap-3"
-            :aria-label="logoConfig.alt">
-            <img
+    <div class="flex flex-row items-center justify-between gap-4">
+      <!-- Left section: Logo + Context Switchers (for authenticated users) -->
+      <div class="flex min-w-0 flex-1 items-center gap-4">
+        <!-- Logo lockup -->
+        <div class="shrink-0">
+          <div v-if="isVueComponent">
+            <component
               id="logo"
-              :src="logoConfig.url"
-              class="transition-transform"
-              :class="isCustomDomainLogo ? 'size-20' : 'size-12'"
-              :height="logoConfig.size"
-              :width="logoConfig.size"
-              :alt="logoConfig.alt" />
-            <span
-              v-if="logoConfig.showSiteName"
-              class="font-brand text-lg font-bold leading-tight">
-              {{ logoConfig.siteName }}
-            </span>
-          </a>
+              :is="logoComponent"
+              v-if="logoComponent"
+              v-bind="logoConfig"
+              :is-user-present="isUserPresent"
+              class="transition-transform" />
+          </div>
+          <div v-else>
+            <a
+              :href="logoConfig.href"
+              class="flex items-center gap-3"
+              :aria-label="logoConfig.alt">
+              <img
+                id="logo"
+                :src="logoConfig.url"
+                class="transition-transform"
+                :class="[
+                  isCustomDomainLogo
+                    ? 'size-20'
+                    : isUserPresent
+                      ? 'size-10'
+                      : 'size-12'
+                ]"
+                :height="logoConfig.size"
+                :width="logoConfig.size"
+                :alt="logoConfig.alt" />
+              <span
+                v-if="logoConfig.showSiteName"
+                class="font-brand text-lg font-bold leading-tight">
+                {{ logoConfig.siteName }}
+              </span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Context Switchers slot (rendered inline for authenticated users) -->
+        <div v-if="isUserPresent" class="hidden min-w-0 items-center gap-3 sm:flex">
+          <slot name="context-switchers"></slot>
         </div>
       </div>
+
+      <!-- Right section: Navigation / User Menu -->
       <nav
         v-if="displayNavigation && navigationEnabled"
         role="navigation"
         :aria-label="t('web.layout.main_navigation')"
-        class="flex flex-wrap items-center justify-end gap-4
+        class="flex shrink-0 flex-wrap items-center justify-end gap-4
           font-brand text-sm sm:text-base">
         <template v-if="isUserPresent">
           <!-- User Menu Dropdown -->
@@ -214,6 +236,11 @@
           </template>
         </template>
       </nav>
+    </div>
+
+    <!-- Mobile context switchers (below header row) -->
+    <div v-if="isUserPresent" class="mt-2 flex items-center gap-3 sm:hidden">
+      <slot name="context-switchers"></slot>
     </div>
   </div>
 </template>

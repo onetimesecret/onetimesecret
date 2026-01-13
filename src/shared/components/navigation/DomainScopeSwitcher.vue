@@ -180,7 +180,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
         aria-hidden="true" />
 
       <!-- Current Domain Display -->
-      <span class="max-w-[150px] truncate">
+      <span class="max-w-[120px] truncate md:max-w-[160px] lg:max-w-[200px]">
         {{ currentScope.displayName }}
       </span>
 
