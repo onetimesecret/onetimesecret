@@ -84,6 +84,15 @@ const isDefaultOrg = (org: Organization | null): boolean => org?.is_default ?? f
 const isCurrentOrgDefault = computed(() => isDefaultOrg(currentOrganization.value));
 
 /**
+ * Check if an organization has a paid plan
+ * Paid = planid exists and doesn't start with "free"
+ */
+const hasPaidPlan = (org: Organization): boolean => {
+  if (!org.planid) return false;
+  return !org.planid.toLowerCase().startsWith('free');
+};
+
+/**
  * Get initials for organization avatar (first letter)
  */
 const getOrganizationInitial = (org: Organization): string =>
@@ -274,6 +283,13 @@ const navigateToManageOrganizations = (): void => {
                 class="block truncate"
                 :class="{ 'font-semibold': isCurrentOrganization(org) }">
                 {{ getOrganizationDisplayName(org) }}
+              </span>
+
+              <!-- Paid plan badge -->
+              <span
+                v-if="hasPaidPlan(org)"
+                class="ml-1.5 inline-flex items-center rounded bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">
+                {{ t('web.organizations.paid_badge') }}
               </span>
             </span>
 
