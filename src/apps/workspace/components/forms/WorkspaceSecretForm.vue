@@ -16,6 +16,7 @@
   import { useI18n } from 'vue-i18n';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import SplitButton from '@/shared/components/ui/SplitButton.vue';
   import { useDomainScope } from '@/shared/composables/useDomainScope';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -27,9 +28,8 @@
     DEFAULT_BUTTON_TEXT_LIGHT,
   } from '@/shared/stores/identityStore';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
-  import { useMagicKeys, whenever } from '@vueuse/core';
   import { nanoid } from 'nanoid';
-  import { computed, watch } from 'vue';
+  import { computed, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
   import { useCharCounter } from '@/shared/composables/useCharCounter';
   import { useTextarea } from '@/shared/composables/useTextarea';
@@ -46,7 +46,8 @@
     buttonTextLight?: boolean;
   }
 
-  const props = withDefaults(defineProps<Props>(), {
+  // Props not destructured - accessed via template bindings or unprefixed in script
+  withDefaults(defineProps<Props>(), {
     cornerClass: DEFAULT_CORNER_CLASS,
     primaryColor: DEFAULT_PRIMARY_COLOR,
     buttonTextLight: DEFAULT_BUTTON_TEXT_LIGHT,
@@ -158,35 +159,17 @@
     () => !!content.value && content.value.trim().length > 0
   );
 
-  // Form submission
-  const handleSubmit = () => submit('conceal');
+  // Track selected action from SplitButton
+  const selectedAction = ref<'create-link' | 'generate-password'>('create-link');
 
-  // Keyboard shortcut: Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux)
-  const keys = useMagicKeys();
-  const submitShortcut = computed(
-    () => keys['Meta+Enter'].value || keys['Control+Enter'].value
-  );
-
-  whenever(submitShortcut, () => {
-    if (hasContent.value && !isSubmitting.value) {
-      handleSubmit();
+  // Form submission handlers
+  const handleSubmit = () => {
+    // Use appropriate submission type based on selected action
+    if (selectedAction.value === 'generate-password') {
+      return submit('generate');
     }
-  });
-
-  // Detect Mac for keyboard shortcut hint
-  const isMac = computed(() =>
-    typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
-  );
-  const shortcutHint = computed(() => (isMac.value ? '⌘ Enter' : 'Ctrl Enter'));
-
-  // Dynamic button styles based on brand color
-  const buttonStyles = computed(() => {
-    const color = props.primaryColor || DEFAULT_PRIMARY_COLOR;
-    return {
-      backgroundColor: color,
-      color: props.buttonTextLight ? '#ffffff' : '#1f2937',
-    };
-  });
+    return submit('conceal');
+  };
 
   // Expose form state and operations for parent component
   const currentTtl = computed(() => form.ttl as number);
@@ -362,43 +345,18 @@
                 </button>
 
                 <!-- Submit Button -->
-                <button
-                  type="submit"
-                  :disabled="!hasContent || isSubmitting"
-                  :style="buttonStyles"
-                  :class="[cornerClass]"
-                  class="inline-flex items-center justify-center gap-2 px-6 py-3
-                    text-base font-semibold shadow-lg transition-all duration-200
-                    hover:opacity-90 hover:shadow-xl
-                    focus:outline-none focus:ring-4 focus:ring-brand-500/20
-                    disabled:cursor-not-allowed disabled:opacity-50
-                    disabled:shadow-none">
-                  <OIcon
-                    v-if="isSubmitting"
-                    collection="heroicons"
-                    name="arrow-path"
-                    class="size-4 animate-spin"
-                    aria-hidden="true" />
-                  <OIcon
-                    v-else
-                    collection="heroicons"
-                    name="lock-closed"
-                    class="size-4"
-                    aria-hidden="true" />
-                  <span>
-                    {{
-                      isSubmitting
-                        ? t('web.COMMON.submitting')
-                        : t('web.LABELS.create_link_short')
-                    }}
-                  </span>
-                  <kbd
-                    v-if="!isSubmitting"
-                    class="ml-1.5 hidden rounded bg-white/20 px-1.5 py-0.5
-                      text-xs font-normal opacity-70 sm:inline-block">
-                    {{ shortcutHint }}
-                  </kbd>
-                </button>
+                <SplitButton
+                  :with-generate="true"
+                  :corner-class="cornerClass"
+                  :primary-color="primaryColor"
+                  :button-text-light="buttonTextLight"
+                  :disabled="selectedAction === 'create-link' && !hasContent"
+                  :disable-generate="selectedAction === 'create-link' && hasContent"
+                  :keyboard-shortcut-enabled="true"
+                  :show-keyboard-hint="true"
+                  @update:action="selectedAction = $event"
+                  @create-link="handleSubmit"
+                  @generate-password="handleSubmit" />
               </div>
             </div>
           </div>

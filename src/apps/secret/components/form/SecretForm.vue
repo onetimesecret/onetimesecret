@@ -494,6 +494,8 @@
                     :button-text-light="buttonTextLight"
                     :disabled="selectedAction === 'create-link' && !hasContent"
                     :disable-generate="selectedAction === 'create-link' && hasContent"
+                    :keyboard-shortcut-enabled="true"
+                    :show-keyboard-hint="true"
                     :aria-label="
                       selectedAction === 'create-link' ? 'Create Secret Link' : 'Generate Password'
                     "
