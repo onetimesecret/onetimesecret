@@ -23,4 +23,6 @@ export interface ConcealedMessage {
   ttl: number;
   /** Unix timestamp (ms) when secret was created */
   createdAt: number;
+  /** Optional user-defined memo for identifying the secret */
+  memo?: string;
 }

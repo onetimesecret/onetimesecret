@@ -25,6 +25,7 @@ export type ReceiptListStore = {
   // Actions
   fetchList: () => Promise<void>;
   refreshRecords: (force?: boolean) => Promise<void>;
+  updateMemo: (id: string, memo: string) => Promise<void>;
   $reset: () => void;
 } & PiniaCustomProperties;
 
@@ -75,6 +76,26 @@ export const useReceiptListStore = defineStore('receiptList', () => {
     _initialized.value = true;
   }
 
+  async function updateMemo(id: string, memo: string) {
+    const response = await $api.patch(`/api/v3/receipt/${id}`, { memo });
+
+    // Update the local record with the response from the API
+    if (records.value && response.data?.record) {
+      const updatedRecord = response.data.record;
+      const index = records.value.findIndex((r) =>
+        r.identifier === updatedRecord.identifier ||
+        r.key === updatedRecord.key
+      );
+
+      if (index !== -1) {
+        // Update just the memo field to preserve reactivity
+        records.value[index].memo = updatedRecord.memo;
+      }
+    }
+
+    return response.data;
+  }
+
   /**
    * Reset store state to initial values.
    * Implementation of $reset() for setup stores since it's not automatically available.
@@ -101,6 +122,7 @@ export const useReceiptListStore = defineStore('receiptList', () => {
     // Actions
     fetchList,
     refreshRecords,
+    updateMemo,
     $reset,
   };
 });

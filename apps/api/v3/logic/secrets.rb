@@ -149,6 +149,11 @@ module V3
           super
         end
       end
+
+      # Update receipt (memo field)
+      class UpdateReceipt < V2::Logic::Secrets::UpdateReceipt
+        # include ::V3::Logic::Base
+      end
     end
   end
 end

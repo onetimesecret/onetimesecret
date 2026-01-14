@@ -16,6 +16,14 @@ const props = defineProps<{
   ariaLabelledBy?: string;
 }>();
 
+const emit = defineEmits<{
+  'update:memo': [id: string, memo: string];
+}>();
+
+const handleUpdateMemo = (id: string, memo: string) => {
+  emit('update:memo', id, memo);
+};
+
 // Toast notification state
 const showToast = ref(false);
 const toastMessage = ref('');
@@ -107,7 +115,8 @@ onBeforeUnmount(() => {
         :record="record"
         :index="sortedSecrets.length - idx"
         @copy="handleCopy"
-        @delete="handleBurn" />
+        @delete="handleBurn"
+        @update:memo="handleUpdateMemo" />
     </div>
 
     <ToastNotification

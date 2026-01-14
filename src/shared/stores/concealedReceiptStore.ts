@@ -24,6 +24,7 @@ export type ConcealedReceiptStore = {
   // Actions
   init: (options?: StoreOptions) => { isInitialized: boolean };
   addMessage: (message: ConcealedMessage) => void;
+  updateMemo: (id: string, memo: string) => void;
   clearMessages: () => void;
   setWorkspaceMode: (enabled: boolean) => void;
   toggleWorkspaceMode: () => void;
@@ -74,6 +75,7 @@ function loadWorkspaceModePreference(): boolean {
  * This store persists links created during the current session so they
  * remain available when navigating between pages and browser refreshes.
  */
+// eslint-disable-next-line max-lines-per-function
 export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
   // State
   const _initialized = ref(false);
@@ -137,6 +139,27 @@ export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
   }
 
   /**
+   * Updates the memo for a specific message.
+   * Empty string removes the memo.
+   *
+   * @param id The message ID to update
+   * @param memo The new memo value
+   */
+  function updateMemo(id: string, memo: string) {
+    const index = concealedMessages.value.findIndex((m) => m.id === id);
+    if (index !== -1) {
+      const trimmed = memo.trim();
+      if (trimmed) {
+        concealedMessages.value[index].memo = trimmed;
+      } else {
+        delete concealedMessages.value[index].memo;
+      }
+      // Trigger reactivity by replacing the array
+      concealedMessages.value = [...concealedMessages.value];
+    }
+  }
+
+  /**
    * Clears all concealed messages from the store and sessionStorage.
    */
   function clearMessages() {
@@ -189,6 +212,7 @@ export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
     // Actions
     init,
     addMessage,
+    updateMemo,
     clearMessages,
     setWorkspaceMode,
     toggleWorkspaceMode,
