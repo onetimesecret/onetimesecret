@@ -83,14 +83,14 @@
       if (!response) throw 'Response is missing';
       const newMessage: ConcealedMessage = {
         id: nanoid(),
-        receipt_identifier: response.record.receipt.identifier,
-        secret_identifier: response.record.secret.identifier,
-        response,
-        clientInfo: {
-          hasPassphrase: !!form.passphrase,
-          ttl: form.ttl as number,
-          createdAt: new Date(),
-        },
+        receiptExtid: response.record.receipt.identifier,
+        receiptShortid: response.record.receipt.shortid,
+        secretExtid: response.record.secret.identifier,
+        secretShortid: response.record.secret.shortid,
+        shareDomain: response.record.share_domain,
+        hasPassphrase: !!form.passphrase,
+        ttl: form.ttl as number,
+        createdAt: Date.now(),
       };
       // Add the message to the store
       concealedReceiptStore.addMessage(newMessage);

@@ -35,6 +35,7 @@ export type ConcealedReceiptStore = {
 // which use dot notation).
 const STORAGE_KEY = 'onetimeReceiptCache';
 const WORKSPACE_MODE_KEY = 'onetimeWorkspaceMode';
+const MAX_STORED_RECEIPTS = 20;
 
 /**
  * Loads concealed messages from sessionStorage
@@ -43,15 +44,10 @@ function loadFromStorage(): ConcealedMessage[] {
   try {
     const stored = sessionStorage.getItem(STORAGE_KEY);
     if (stored) {
-      const parsed = JSON.parse(stored);
-      // Ensure dates are properly restored as Date objects
-      return parsed.map((message: any) => ({
-        ...message,
-        clientInfo: {
-          ...message.clientInfo,
-          createdAt: new Date(message.clientInfo.createdAt),
-        },
-      }));
+      const now = Date.now();
+      const parsed = JSON.parse(stored) as ConcealedMessage[];
+      // Filter out expired entries (createdAt + ttl has passed)
+      return parsed.filter((m) => m.createdAt + m.ttl * 1000 > now);
     }
   } catch (error) {
     loggingService.error(new Error(`Failed to load concealed messages from storage: ${error}`));
@@ -129,18 +125,15 @@ export const useConcealedReceiptStore = defineStore('concealedReceipt', () => {
   /**
    * Adds a new concealed message to the store.
    * New messages are added to the beginning of the list.
+   * Enforces maximum storage limit.
    *
    * @param message The concealed message to add
    */
   function addMessage(message: ConcealedMessage) {
-    // Check for existing message with the same ID and remove if found
-    const existingIndex = concealedMessages.value.findIndex((m) => m.id === message.id);
-    if (existingIndex !== -1) {
-      concealedMessages.value.splice(existingIndex, 1);
-    }
-
-    // Add new message to the beginning of the array
-    concealedMessages.value.unshift(message);
+    // Remove any existing message with same ID
+    const filtered = concealedMessages.value.filter((m) => m.id !== message.id);
+    // Add new message at beginning, enforce max limit
+    concealedMessages.value = [message, ...filtered].slice(0, MAX_STORED_RECEIPTS);
   }
 
   /**
