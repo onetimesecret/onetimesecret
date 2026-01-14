@@ -20,6 +20,7 @@
   import { storeToRefs } from 'pinia';
   import { computed, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
+  import { useMediaQuery } from '@vueuse/core';
 
   const { t } = useI18n();
 
@@ -131,6 +132,13 @@
   };
   const secretContentInput = ref<{ clearTextarea: () => void } | null>(null);
   const selectedAction = ref<'create-link' | 'generate-password'>('create-link');
+
+  // Platform detection for keyboard hint (desktop only)
+  const isDesktop = useMediaQuery('(min-width: 640px)');
+  const isMac = computed(() =>
+    typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
+  );
+  const shortcutHint = computed(() => (isMac.value ? '⌘ Enter' : 'Ctrl Enter'));
 
   // Watch for domain scope changes and update form
   // Use immediate: true to ensure the initial value is captured
@@ -495,7 +503,7 @@
                     :disabled="selectedAction === 'create-link' && !hasContent"
                     :disable-generate="selectedAction === 'create-link' && hasContent"
                     :keyboard-shortcut-enabled="true"
-                    :show-keyboard-hint="true"
+                    :show-keyboard-hint="false"
                     :aria-label="
                       selectedAction === 'create-link' ? 'Create Secret Link' : 'Generate Password'
                     "
@@ -517,6 +525,15 @@
                   </div>
                 </div>
               </div>
+            </div>
+
+            <!-- Keyboard hint row (desktop only) -->
+            <div
+              v-if="isDesktop"
+              class="mt-3 flex justify-end">
+              <span class="text-xs text-gray-500 dark:text-gray-400">
+                {{ shortcutHint }}
+              </span>
             </div>
           </div>
         </div>

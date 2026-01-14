@@ -31,6 +31,7 @@
   import { nanoid } from 'nanoid';
   import { computed, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
+  import { useMediaQuery } from '@vueuse/core';
   import { useCharCounter } from '@/shared/composables/useCharCounter';
   import { useTextarea } from '@/shared/composables/useTextarea';
 
@@ -162,6 +163,13 @@
   // Track selected action from SplitButton
   const selectedAction = ref<'create-link' | 'generate-password'>('create-link');
 
+  // Platform detection for keyboard hint (desktop only)
+  const isDesktop = useMediaQuery('(min-width: 640px)');
+  const isMac = computed(() =>
+    typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
+  );
+  const shortcutHint = computed(() => (isMac.value ? '⌘ Enter' : 'Ctrl Enter'));
+
   // Form submission handlers
   const handleSubmit = () => {
     // Use appropriate submission type based on selected action
@@ -274,6 +282,7 @@
         <!-- Actions Footer -->
         <div class="border-t border-gray-200/50 dark:border-gray-700/50">
           <div class="p-6">
+            <!-- Main action row -->
             <div
               class="flex flex-col gap-4 sm:flex-row sm:items-center
                 sm:justify-between">
@@ -314,34 +323,28 @@
               </div>
 
               <!-- Submit Area with Stay on Page toggle -->
-              <div class="flex items-center gap-3">
-                <!-- Stay on Page Chip (Workspace Mode Toggle) -->
+              <div class="flex items-center gap-2.5">
+                <!-- Stay on Page Toggle (refined, compact) -->
                 <button
                   type="button"
                   :disabled="isSubmitting"
                   @click="concealedReceiptStore.toggleWorkspaceMode()"
                   :title="t('web.secrets.workspace_mode_description')"
-                  class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-2 text-sm
+                  class="inline-flex items-center gap-1 rounded px-2 py-1.5 text-xs
                     font-medium ring-1 ring-inset transition-all
-                    focus:outline-none focus:ring-2 focus:ring-brand-500
+                    focus:outline-none focus:ring-2 focus:ring-brand-500/50
                     disabled:opacity-50 disabled:cursor-not-allowed"
                   :class="
                     concealedReceiptStore.workspaceMode
-                      ? 'bg-brand-50 text-brand-700 ring-brand-600/20 hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-400/30'
-                      : 'bg-gray-50 text-gray-600 ring-gray-500/20 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:ring-gray-500/30'
+                      ? 'bg-brand-50/80 text-brand-600 ring-brand-500/25 hover:bg-brand-100/80 dark:bg-brand-900/20 dark:text-brand-400 dark:ring-brand-400/20 dark:hover:bg-brand-900/30'
+                      : 'bg-gray-50/80 text-gray-500 ring-gray-400/20 hover:bg-gray-100/80 hover:text-gray-600 dark:bg-gray-800/50 dark:text-gray-400 dark:ring-gray-600/20 dark:hover:bg-gray-700/50'
                   ">
                   <OIcon
                     collection="mdi"
                     :name="concealedReceiptStore.workspaceMode ? 'pin' : 'pin-off'"
-                    class="size-4"
+                    class="size-3.5"
                     aria-hidden="true" />
                   <span>{{ t('web.secrets.workspace_mode') }}</span>
-                  <OIcon
-                    v-if="concealedReceiptStore.workspaceMode"
-                    collection="heroicons"
-                    name="check"
-                    class="size-3.5 text-brand-600 dark:text-brand-400"
-                    aria-hidden="true" />
                 </button>
 
                 <!-- Submit Button -->
@@ -353,11 +356,20 @@
                   :disabled="selectedAction === 'create-link' && !hasContent"
                   :disable-generate="selectedAction === 'create-link' && hasContent"
                   :keyboard-shortcut-enabled="true"
-                  :show-keyboard-hint="true"
+                  :show-keyboard-hint="false"
                   @update:action="selectedAction = $event"
                   @create-link="handleSubmit"
                   @generate-password="handleSubmit" />
               </div>
+            </div>
+
+            <!-- Keyboard hint row (desktop only) -->
+            <div
+              v-if="isDesktop"
+              class="mt-2 flex justify-end">
+              <span class="text-xs text-gray-500 dark:text-gray-400">
+                {{ shortcutHint }}
+              </span>
             </div>
           </div>
         </div>
