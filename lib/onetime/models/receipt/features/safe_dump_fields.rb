@@ -23,6 +23,7 @@ module Onetime::Receipt::Features
       base.safe_dump_field :owner_id
       base.safe_dump_field :state
       base.safe_dump_field :secret_shortid
+      base.safe_dump_field :secret_identifier
       base.safe_dump_field :secret_ttl, ->(m) { m.secret_ttl || -1 }
       base.safe_dump_field :metadata_ttl, ->(m) { m.lifespan }
       base.safe_dump_field :receipt_ttl, ->(m) { m.lifespan }
