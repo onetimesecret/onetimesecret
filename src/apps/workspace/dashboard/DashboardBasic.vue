@@ -7,13 +7,21 @@
   import SecretForm from '@/apps/secret/components/form/SecretForm.vue';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
   import { storeToRefs } from 'pinia';
-  import { computed } from 'vue';
+  import { computed, ref } from 'vue';
 
   const bootstrapStore = useBootstrapStore();
   const { cust } = storeToRefs(bootstrapStore);
 
   // Show beta features if enabled
   const isBetaEnabled = computed(() => cust.value?.feature_flags?.beta ?? false);
+
+  // Recent secrets table ref for refreshing after creation
+  const recentSecretsTableRef = ref<InstanceType<typeof RecentSecretsTable> | null>(null);
+
+  // Refresh recent secrets table after a secret is created
+  const handleSecretCreated = () => {
+    recentSecretsTableRef.value?.fetch();
+  };
 </script>
 
 <template>
@@ -21,8 +29,11 @@
     <SecretForm
       class="mb-12"
       :with-generate="true"
-      :with-recipient="true" />
+      :with-recipient="true"
+      @created="handleSecretCreated" />
 
-    <RecentSecretsTable v-if="isBetaEnabled" />
+    <RecentSecretsTable
+      v-if="isBetaEnabled"
+      ref="recentSecretsTableRef" />
   </div>
 </template>

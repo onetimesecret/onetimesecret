@@ -36,6 +36,11 @@ onMounted(() => {
 const dismissAllRecents = () => {
   clear();
 };
+
+// Expose fetch for parent components to trigger refresh
+defineExpose({
+  fetch,
+});
 </script>
 
 <template>

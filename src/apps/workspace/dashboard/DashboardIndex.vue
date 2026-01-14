@@ -14,6 +14,9 @@
   // Form ref for accessing exposed state
   const secretFormRef = ref<InstanceType<typeof WorkspaceSecretForm> | null>(null);
 
+  // Recent secrets table ref for refreshing after creation
+  const recentSecretsTableRef = ref<InstanceType<typeof RecentSecretsTable> | null>(null);
+
   // Computed values that read from form's exposed state
   const currentTtl = computed(() => secretFormRef.value?.currentTtl ?? 604800);
   const currentPassphrase = computed(() => secretFormRef.value?.currentPassphrase ?? '');
@@ -26,6 +29,11 @@
 
   const handlePassphraseUpdate = (value: string) => {
     secretFormRef.value?.updatePassphrase(value);
+  };
+
+  // Refresh recent secrets table after a secret is created
+  const handleSecretCreated = () => {
+    recentSecretsTableRef.value?.fetch();
   };
 </script>
 
@@ -46,8 +54,11 @@
 
     <WorkspaceSecretForm
       ref="secretFormRef"
-      class="mb-12" />
+      class="mb-12"
+      @created="handleSecretCreated" />
 
-    <RecentSecretsTable :show-workspace-mode-toggle="false" />
+    <RecentSecretsTable
+      ref="recentSecretsTableRef"
+      :show-workspace-mode-toggle="false" />
   </div>
 </template>
