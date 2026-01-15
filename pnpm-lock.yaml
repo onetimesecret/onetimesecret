@@ -199,8 +199,8 @@ importers:
         specifier: 16.1.0
         version: 16.1.0
       happy-dom:
-        specifier: 20.0.11
-        version: 20.0.11
+        specifier: 20.1.1
+        version: 20.1.1
       jiti:
         specifier: 2.4.2
         version: 2.4.2
@@ -257,7 +257,7 @@ importers:
         version: 3.2.2(vite@5.4.21(@types/node@22.19.6)(terser@5.39.0))
       vitest:
         specifier: 2.1.9
-        version: 2.1.9(@types/node@22.19.6)(@vitest/ui@2.1.9)(happy-dom@20.0.11)(jsdom@26.1.0)(terser@5.39.0)
+        version: 2.1.9(@types/node@22.19.6)(@vitest/ui@2.1.9)(happy-dom@20.1.1)(jsdom@26.1.0)(terser@5.39.0)
       vue-eslint-parser:
         specifier: ^10.2.0
         version: 10.2.0(eslint@9.35.0(jiti@2.4.2))
@@ -1418,6 +1418,9 @@ packages:
 
   '@types/whatwg-mimetype@3.0.2':
     resolution: {integrity: sha512-c2AKvDT8ToxLIOUlN51gTiHXflsfIFisS4pO7pDPoKouJCESkhZnEy623gwP9laCy5lnLDAw1vAzu2vM2YLOrA==}
+
+  '@types/ws@8.18.1':
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@typescript-eslint/eslint-plugin@8.32.1':
     resolution: {integrity: sha512-6u6Plg9nP/J1GRpe/vcjjabo6Uc5YQPAMxsgQyGC/I0RuukiG1wIe3+Vtg3IrSCVJDmqK3j8adrtzXSENRtFgg==}
@@ -2631,8 +2634,8 @@ packages:
     resolution: {integrity: sha512-5v6yZd4JK3eMI3FqqCouswVqwugaA9r4dNZB1wwcmrD02QkV5H0y7XBQW8QwQqEaZY1pM9aqORSORhJRdNK44Q==}
     engines: {node: '>=6.0'}
 
-  happy-dom@20.0.11:
-    resolution: {integrity: sha512-QsCdAUHAmiDeKeaNojb1OHOPF7NjcWPBR7obdu3NwH2a/oyQaLg5d0aaCy/9My6CdPChYF07dvz5chaXBGaD4g==}
+  happy-dom@20.1.1:
+    resolution: {integrity: sha512-jVSnpH/5lR97B7m2dg6bXCF462jiZvkoTQkMcRmM6hMo0YQpRkIewvfiGfSNLMpwBidmF/AEIrPKVdhXLZRRtw==}
     engines: {node: '>=20.0.0'}
 
   has-bigints@1.1.0:
@@ -4185,6 +4188,18 @@ packages:
       utf-8-validate:
         optional: true
 
+  ws@8.19.0:
+    resolution: {integrity: sha512-blAT2mjOEIi0ZzruJfIhb3nps74PRWTCz1IjglWEEpQl5XS/UNama6u2/rjFkDDouqr4L67ry+1aGIALViWjDg==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
   xdiff@0.2.11:
     resolution: {integrity: sha512-724yjHkwZyON3AqfmlEDLKPHJS0y3kxK8/oHtMu3qfDrESAGymv1QiKk5htK49fSMirRZmeAg2ocudWsiVvr8g==}
 
@@ -5208,6 +5223,10 @@ snapshots:
 
   '@types/whatwg-mimetype@3.0.2': {}
 
+  '@types/ws@8.18.1':
+    dependencies:
+      '@types/node': 22.19.6
+
   '@typescript-eslint/eslint-plugin@8.32.1(@typescript-eslint/parser@8.32.1(eslint@9.35.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.35.0(jiti@2.4.2))(typescript@5.8.3)':
     dependencies:
       '@eslint-community/regexpp': 4.12.1
@@ -5363,7 +5382,7 @@ snapshots:
       std-env: 3.9.0
       test-exclude: 7.0.1
       tinyrainbow: 1.2.0
-      vitest: 2.1.9(@types/node@22.19.6)(@vitest/ui@2.1.9)(happy-dom@20.0.11)(jsdom@26.1.0)(terser@5.39.0)
+      vitest: 2.1.9(@types/node@22.19.6)(@vitest/ui@2.1.9)(happy-dom@20.1.1)(jsdom@26.1.0)(terser@5.39.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -5410,7 +5429,7 @@ snapshots:
       sirv: 3.0.1
       tinyglobby: 0.2.13
       tinyrainbow: 1.2.0
-      vitest: 2.1.9(@types/node@22.19.6)(@vitest/ui@2.1.9)(happy-dom@20.0.11)(jsdom@26.1.0)(terser@5.39.0)
+      vitest: 2.1.9(@types/node@22.19.6)(@vitest/ui@2.1.9)(happy-dom@20.1.1)(jsdom@26.1.0)(terser@5.39.0)
 
   '@vitest/utils@2.1.9':
     dependencies:
@@ -6624,11 +6643,16 @@ snapshots:
       section-matter: 1.0.0
       strip-bom-string: 1.0.0
 
-  happy-dom@20.0.11:
+  happy-dom@20.1.1:
     dependencies:
       '@types/node': 20.19.23
       '@types/whatwg-mimetype': 3.0.2
+      '@types/ws': 8.18.1
       whatwg-mimetype: 3.0.0
+      ws: 8.19.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   has-bigints@1.1.0: {}
 
@@ -7991,7 +8015,7 @@ snapshots:
       fsevents: 2.3.3
       terser: 5.39.0
 
-  vitest@2.1.9(@types/node@22.19.6)(@vitest/ui@2.1.9)(happy-dom@20.0.11)(jsdom@26.1.0)(terser@5.39.0):
+  vitest@2.1.9(@types/node@22.19.6)(@vitest/ui@2.1.9)(happy-dom@20.1.1)(jsdom@26.1.0)(terser@5.39.0):
     dependencies:
       '@vitest/expect': 2.1.9
       '@vitest/mocker': 2.1.9(vite@5.4.21(@types/node@22.19.6)(terser@5.39.0))
@@ -8016,7 +8040,7 @@ snapshots:
     optionalDependencies:
       '@types/node': 22.19.6
       '@vitest/ui': 2.1.9(vitest@2.1.9)
-      happy-dom: 20.0.11
+      happy-dom: 20.1.1
       jsdom: 26.1.0
     transitivePeerDependencies:
       - less
@@ -8210,6 +8234,8 @@ snapshots:
       strip-ansi: 7.1.0
 
   ws@8.18.1: {}
+
+  ws@8.19.0: {}
 
   xdiff@0.2.11:
     dependencies:
