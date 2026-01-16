@@ -164,6 +164,12 @@
   "web.billing.features.custom_domains": {
     "text": "Custom Domains"
   },
+  "web.billing.features.custom_domain": {
+    "text": "1 Custom Domain"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Unlimited Custom Domains"
+  },
   "web.billing.features.custom_branding": {
     "text": "Custom Branding"
   },

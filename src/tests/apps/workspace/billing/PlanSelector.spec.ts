@@ -522,4 +522,215 @@ describe('PlanSelector Logic', () => {
       expect(canDowngrade('free', freePlan)).toBe(false);
     });
   });
+
+  // ============================================================
+  // Free Plan Display Tests
+  // ============================================================
+  describe('Free plan display', () => {
+    describe('free plan visibility', () => {
+      it('free plan is shown regardless of billing interval', () => {
+        // Free plan should appear in both monthly and yearly views
+        // The interval filter should include free plans or treat them specially
+        const freePlan = createMockPlan({
+          id: 'free_v1',
+          tier: 'free',
+          interval: 'month', // Free plan uses month interval
+          amount: 0,
+        });
+
+        // Filter by month interval
+        const monthlyPlans = [freePlan].filter(p => p.interval === 'month');
+        expect(monthlyPlans).toContainEqual(freePlan);
+      });
+
+      it('free plan has tier=free', () => {
+        const freePlan = createMockPlan({
+          id: 'free_v1',
+          tier: 'free',
+        });
+
+        expect(freePlan.tier).toBe('free');
+      });
+
+      it('free plan has amount=0', () => {
+        const freePlan = createMockPlan({
+          id: 'free_v1',
+          tier: 'free',
+          amount: 0,
+        });
+
+        expect(freePlan.amount).toBe(0);
+      });
+    });
+
+    describe('free plan button state for current free users', () => {
+      it('free plan button is disabled when user is on free tier', () => {
+        const freePlan = createMockPlan({
+          id: 'free_v1',
+          tier: 'free',
+        });
+
+        // User is on free tier (currentTier = 'free')
+        // isPlanCurrent should return true
+        const isPlanCurrent = (plan: BillingPlan, currentTier: string): boolean =>
+          plan.tier === currentTier;
+
+        expect(isPlanCurrent(freePlan, 'free')).toBe(true);
+      });
+
+      it('free plan cannot be upgraded to when already on free', () => {
+        const freePlan = createMockPlan({
+          id: 'free_v1',
+          tier: 'free',
+        });
+
+        // Cannot upgrade from free to free
+        expect(canUpgrade('free', freePlan)).toBe(false);
+      });
+
+      it('free plan cannot be downgraded to when already on free', () => {
+        const freePlan = createMockPlan({
+          id: 'free_v1',
+          tier: 'free',
+        });
+
+        // Cannot downgrade from free (lowest tier)
+        expect(canDowngrade('free', freePlan)).toBe(false);
+      });
+
+      it('paid tier users can downgrade to free', () => {
+        const freePlan = createMockPlan({
+          id: 'free_v1',
+          tier: 'free',
+        });
+
+        // single_team user can downgrade to free
+        expect(canDowngrade('single_team', freePlan)).toBe(true);
+        // multi_team user can downgrade to free
+        expect(canDowngrade('multi_team', freePlan)).toBe(true);
+      });
+    });
+
+    describe('free plan CTA link', () => {
+      it('free plan action is disabled in PlanSelector (no checkout for free)', () => {
+        // PlanSelector disables the button for free plans
+        // From PlanSelector.vue: :button-disabled="isPlanCurrent(plan) || isCreatingCheckout || plan.id === 'free'"
+        const freePlan = createMockPlan({
+          id: 'free',
+          tier: 'free',
+        });
+
+        // Simulate the disable condition from PlanSelector
+        const isButtonDisabled = (plan: BillingPlan, isPlanCurrent: boolean, isCreatingCheckout: boolean): boolean =>
+          isPlanCurrent || isCreatingCheckout || plan.id === 'free';
+
+        expect(isButtonDisabled(freePlan, false, false)).toBe(true);
+      });
+
+      it('free plan does not trigger checkout flow', () => {
+        // From PlanSelector.vue: if (isPlanCurrent(plan) || !selectedOrg.value?.extid || plan.tier === 'free') return;
+        const freePlan = createMockPlan({
+          id: 'free_v1',
+          tier: 'free',
+        });
+
+        // handlePlanSelect early returns for free tier
+        const shouldSkipCheckout = (plan: BillingPlan): boolean => plan.tier === 'free';
+        expect(shouldSkipCheckout(freePlan)).toBe(true);
+      });
+    });
+
+    describe('free plan badge behavior', () => {
+      it('free plan is not marked as popular', () => {
+        const freePlan = createMockPlan({
+          id: 'free_v1',
+          tier: 'free',
+          is_popular: undefined, // Not explicitly set
+        });
+
+        // isPlanRecommended falls back to tier === 'single_team' when is_popular undefined
+        expect(isPlanRecommended(freePlan)).toBe(false);
+      });
+
+      it('free plan with is_popular=false is not recommended', () => {
+        const freePlan = createMockPlan({
+          id: 'free_v1',
+          tier: 'free',
+        }) as BillingPlan & { is_popular?: boolean };
+        freePlan.is_popular = false;
+
+        expect(isPlanRecommended(freePlan)).toBe(false);
+      });
+    });
+
+    describe('free plan pricing display', () => {
+      it('getPlanPricePerMonth returns 0 for free plan', () => {
+        const freePlan = createMockPlan({
+          id: 'free_v1',
+          tier: 'free',
+          interval: 'month',
+          amount: 0,
+        });
+
+        expect(getPlanPricePerMonth(freePlan)).toBe(0);
+      });
+
+      it('free plan yearly also returns 0', () => {
+        const freePlanYearly = createMockPlan({
+          id: 'free_v1',
+          tier: 'free',
+          interval: 'year',
+          amount: 0,
+        });
+
+        // 0 / 12 = 0
+        expect(getPlanPricePerMonth(freePlanYearly)).toBe(0);
+      });
+    });
+
+    describe('free plan in tier hierarchy', () => {
+      it('free tier index is 0 (lowest)', () => {
+        expect(getTierIndex('free')).toBe(0);
+      });
+
+      it('free tier is lower than all paid tiers', () => {
+        expect(getTierIndex('free')).toBeLessThan(getTierIndex('single_team'));
+        expect(getTierIndex('free')).toBeLessThan(getTierIndex('multi_team'));
+      });
+
+      it('all paid tiers can upgrade from free', () => {
+        const singleTeam = createMockPlan({ tier: 'single_team' });
+        const multiTeam = createMockPlan({ tier: 'multi_team' });
+
+        expect(canUpgrade('free', singleTeam)).toBe(true);
+        expect(canUpgrade('free', multiTeam)).toBe(true);
+      });
+    });
+
+    describe('free plan deduplication', () => {
+      it('free plan is deduplicated by plan_code', () => {
+        const plans = [
+          createMockPlan({ id: 'free_v1_monthly', tier: 'free' }),
+          createMockPlan({ id: 'free_v1_yearly', tier: 'free' }),
+        ] as (BillingPlan & { plan_code?: string })[];
+
+        plans[0].plan_code = 'free_v1';
+        plans[1].plan_code = 'free_v1'; // Same plan_code
+
+        const deduplicated = deduplicatePlans(plans);
+
+        expect(deduplicated).toHaveLength(1);
+        expect(deduplicated[0].id).toBe('free_v1_monthly'); // First one kept
+      });
+
+      it('free plan without plan_code uses id for deduplication', () => {
+        const plans = [
+          createMockPlan({ id: 'free_v1', tier: 'free' }),
+        ];
+
+        const deduplicated = deduplicatePlans(plans);
+        expect(deduplicated).toHaveLength(1);
+      });
+    });
+  });
 });

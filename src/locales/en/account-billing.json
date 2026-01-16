@@ -47,14 +47,18 @@
           "homepage_secrets": "Homepage Secrets",
           "incoming_secrets": "Incoming Secrets",
           "manage_orgs": "Manage Organizations",
-          "manage_teams": "Manage Members",
+          "manage_teams": "Manage Teams",
           "notifications": "Email Notifications",
           "ip_access_rules": "IP Access Rules",
           "workspace_branding": "Workspace Branding",
           "audit_logs": "Audit Logs",
           "sso": "Single Sign-On",
           "priority_support": "Priority Support",
-          "sla": "Service Level Agreement"
+          "sla": "Service Level Agreement",
+          "extended_default_expiration": "Extended Default Expiration",
+          "custom_mail_defaults": "Custom Mail Defaults",
+          "branded_homepage": "Branded Homepage",
+          "manage_members": "Manage Members"
         },
         "entitlements_load_error": "Could not load feature details",
         "no_entitlements": "No features available"
@@ -67,7 +71,7 @@
         "extended_retention": "30-day Secret Retention",
         "homepage_secrets": "Homepage Secrets",
         "incoming_secrets": "Incoming Secrets",
-        "manage_teams": "Manage Members",
+        "manage_teams": "Team Management",
         "team_members_5": "Up to 5 team members",
         "team_members_10": "Up to 10 team members",
         "team_members_25": "Up to 25 team members",
@@ -78,7 +82,13 @@
         "workspace_branding": "Workspace Branding",
         "audit_logs": "Audit Logs",
         "sso": "Single Sign-On (SSO)",
-        "dedicated_infrastructure": "Dedicated Infrastructure"
+        "dedicated_infrastructure": "Dedicated Infrastructure",
+        "branded_homepage": "Branded Homepage",
+        "manage_members": "Member Management",
+        "priority_support": "Priority Support",
+        "sla": "Service Level Agreement",
+        "unlimited_custom_domains": "Unlimited Custom Domains",
+        "custom_domain": "1 Custom Domain"
       },
       "plans": {
         "title": "Select a Plan",

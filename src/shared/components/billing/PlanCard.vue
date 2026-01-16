@@ -136,12 +136,20 @@
       <!-- Price -->
       <div class="mb-6">
         <div class="flex items-baseline gap-2">
-          <span class="text-4xl font-bold text-gray-900 dark:text-white">
-            {{ formatCurrency(pricePerMonth, plan.currency) }}
+          <!-- Free tier displays "Free" text instead of $0.00 -->
+          <span
+            v-if="plan.tier === 'free'"
+            class="text-4xl font-bold text-gray-900 dark:text-white">
+            {{ t('web.billing.plans.free_plan') }}
           </span>
-          <span class="text-sm text-gray-500 dark:text-gray-400">
-            {{ t('web.billing.plans.per_month') }}
-          </span>
+          <template v-else>
+            <span class="text-4xl font-bold text-gray-900 dark:text-white">
+              {{ formatCurrency(pricePerMonth, plan.currency) }}
+            </span>
+            <span class="text-sm text-gray-500 dark:text-gray-400">
+              {{ t('web.billing.plans.per_month') }}
+            </span>
+          </template>
         </div>
         <p
           v-if="plan.interval === 'year' && plan.amount > 0"

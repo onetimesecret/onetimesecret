@@ -81,7 +81,10 @@ const currentTier = computed((): string => {
 });
 
 // Filter plans by selected billing interval
-const filteredPlans = computed(() => plans.value.filter(plan => plan.interval === billingInterval.value));
+// Free tier plans (tier === 'free') always show regardless of interval toggle
+const filteredPlans = computed(() =>
+  plans.value.filter(plan => plan.tier === 'free' || plan.interval === billingInterval.value)
+);
 
 /**
  * Combined loading state for the component
@@ -346,7 +349,7 @@ aria-live="polite">
           :is-recommended="isPlanRecommended(plan)"
           :is-suggested="suggestedPlanId === plan.id"
           :button-label="getButtonLabel(plan)"
-          :button-disabled="isPlanCurrent(plan) || isCreatingCheckout || plan.id === 'free'"
+          :button-disabled="isPlanCurrent(plan) || isCreatingCheckout || plan.tier === 'free'"
           :is-processing="isCreatingCheckout && !isPlanCurrent(plan)"
           @select="handlePlanSelect" />
       </div>
