@@ -227,6 +227,7 @@ module Onetime
           'show_on_plans_page' => plan_def['show_on_plans_page'].to_s,
           'entitlements' => (plan_def['entitlements'] || []).join(','),
           Billing::Metadata::FIELD_INCLUDES_PLAN => plan_def['includes_plan'].to_s,
+          Billing::Metadata::FIELD_IS_POPULAR => (plan_def['is_popular'] == true).to_s,
         }
 
         # Add limit fields (always include so removed limits sync as empty strings)
@@ -437,6 +438,7 @@ module Onetime
 
         # Add optional fields
         metadata[Billing::Metadata::FIELD_INCLUDES_PLAN] = plan_def['includes_plan'] if plan_def['includes_plan']
+        metadata[Billing::Metadata::FIELD_IS_POPULAR]    = 'true' if plan_def['is_popular'] == true
 
         # Add limit fields
         metadata['limit_teams']            = limits['teams'].to_s if limits['teams']
