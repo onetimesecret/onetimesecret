@@ -1,12 +1,12 @@
 // src/router/public.routes.ts
 
+import HomepageContainer from '@/apps/secret/conceal/Homepage.vue';
 import TransactionalFooter from '@/shared/components/layout/TransactionalFooter.vue';
 import TransactionalHeader from '@/shared/components/layout/TransactionalHeader.vue';
-import DefaultLayout from '@/shared/layouts/TransactionalLayout.vue';
+import TransactionalLayout from '@/shared/layouts/TransactionalLayout.vue';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
-import HomepageContainer from '@/apps/secret/conceal/Homepage.vue';
-import { RouteRecordRaw } from 'vue-router';
 import { SCOPE_PRESETS } from '@/types/router';
+import { RouteRecordRaw } from 'vue-router';
 
 // Extend RouteRecordRaw meta to include our custom componentMode
 declare module 'vue-router' {
@@ -28,8 +28,10 @@ function determineComponentMode(): string {
   // Only show disabled-homepage if user has no session and one of:
   //  - auth is required
   //  - if homepage is in external mode
-  if (!hasSession && (bootstrapStore.authentication?.required ||
-      bootstrapStore.homepage_mode === 'external')) {
+  if (
+    !hasSession &&
+    (bootstrapStore.authentication?.required || bootstrapStore.homepage_mode === 'external')
+  ) {
     console.debug('Homepage Mode disabled-homepage ' + bootstrapStore.homepage_mode);
     return 'disabled-homepage';
   }
@@ -100,7 +102,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.COMMON.title_home',
       requiresAuth: false,
-      layout: DefaultLayout,
+      layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: true,
         displayNavigation: true,
@@ -141,7 +143,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.feedback',
       requiresAuth: false,
-      layout: DefaultLayout,
+      layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: true,
         displayFooterLinks: true,
@@ -157,7 +159,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.help',
       requiresAuth: false,
-      layout: DefaultLayout,
+      layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: true,
         displayFooterLinks: true,
@@ -173,7 +175,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.pricing',
       requiresAuth: false,
-      layout: DefaultLayout,
+      layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: true,
         displayFooterLinks: true,
@@ -193,7 +195,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.pricing',
       requiresAuth: false,
-      layout: DefaultLayout,
+      layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: true,
         displayFooterLinks: true,
@@ -209,7 +211,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: 'web.TITLES.pricing',
       requiresAuth: false,
-      layout: DefaultLayout,
+      layout: TransactionalLayout,
       layoutProps: {
         displayMasthead: true,
         displayFooterLinks: true,
