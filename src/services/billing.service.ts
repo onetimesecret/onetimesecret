@@ -77,6 +77,7 @@ export interface Plan {
   currency: string;
   region: string;
   display_order: number;
+  /** Feature locale keys (e.g., "web.billing.features.custom_domains") */
   features: string[];
   limits: Record<string, number>;
   entitlements: string[];
@@ -88,6 +89,10 @@ export interface Plan {
   monthly_equivalent_amount?: number;
   /** Display label next to plan name (e.g., "For Teams"). Null/empty = hide label */
   plan_name_label?: string | null;
+  /** Reference to parent plan ID for "Everything in X, plus:" display */
+  includes_plan?: string;
+  /** Human-readable name of included plan (resolved by backend) */
+  includes_plan_name?: string;
 }
 
 /**

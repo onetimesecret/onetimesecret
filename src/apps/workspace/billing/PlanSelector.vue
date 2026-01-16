@@ -6,13 +6,13 @@ import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import BillingLayout from '@/shared/components/layout/BillingLayout.vue';
 import FeedbackToggle from '@/shared/components/ui/FeedbackToggle.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
+import PlanCard from '@/shared/components/billing/PlanCard.vue';
 import PlanChangeModal from './PlanChangeModal.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
 import { classifyError } from '@/schemas/errors';
 import { BillingService, type Plan as BillingPlan, type SubscriptionStatusResponse } from '@/services/billing.service';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { BillingInterval } from '@/types/billing';
-import { formatCurrency } from '@/types/billing';
 import type { Organization } from '@/types/organization';
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
@@ -84,38 +84,9 @@ const currentTier = computed((): string => {
 const filteredPlans = computed(() => plans.value.filter(plan => plan.interval === billingInterval.value));
 
 /**
- * Get the teams limit for a plan, handling unlimited (-1)
- * Note: Prefixed with _ as currently unused (template section commented out)
- */
-const _getTeamsLimit = (plan: BillingPlan): number | string => {
-  const limit = plan.limits?.['teams.max'] ?? plan.limits?.teams ?? 1;
-  return limit === -1 ? '∞' : limit;
-};
-
-/**
- * Get the members per team limit for a plan, handling unlimited (-1)
- * Note: Prefixed with _ as currently unused (template section commented out)
- */
-const _getMembersLimit = (plan: BillingPlan): number | string => {
-  const limit = plan.limits?.['members_per_team.max'] ?? plan.limits?.members_per_team ?? 1;
-  return limit === -1 ? '∞' : limit;
-};
-
-/**
  * Combined loading state for the component
  */
 const isLoadingContent = computed(() => isLoadingPlans.value || isLoadingDefinitions.value || isLoadingOrg.value);
-
-/**
- * Get the monthly price for display.
- * Uses API-provided monthly_equivalent_amount for yearly plans if available.
- */
-const getPlanPricePerMonth = (plan: BillingPlan): number => {
-  if (plan.interval === 'year') {
-    return plan.monthly_equivalent_amount ?? Math.floor(plan.amount / 12);
-  }
-  return plan.amount;
-};
 
 /**
  * Check if plan should show "Most Popular" badge.
@@ -367,128 +338,17 @@ aria-live="polite">
 
       <!-- Plan Cards -->
       <div v-else class="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-        <div
+        <PlanCard
           v-for="plan in filteredPlans"
           :key="plan.id"
-          :class="[
-            'relative flex flex-col rounded-2xl border bg-white transition-all hover:shadow-lg dark:bg-gray-800',
-            isPlanRecommended(plan)
-              ? 'border-brand-500 ring-2 ring-brand-500 shadow-xl md:scale-105 dark:border-brand-400 dark:ring-brand-400'
-              : 'border-gray-200 shadow-sm dark:border-gray-700',
-            suggestedPlanId === plan.id ? 'ring-2 ring-yellow-500' : '',
-          ]"
-          :style="{ zIndex: isPlanRecommended(plan) ? 10 : 1 }">
-          <!-- Recommended Badge -->
-          <div
-            v-if="isPlanRecommended(plan)"
-            class="absolute -top-5 left-1/2 -translate-x-1/2 rounded-full bg-brand-600 px-3 py-1 text-xs font-semibold text-white dark:bg-brand-500">
-            {{ t('web.billing.plans.most_popular') }}
-          </div>
-
-          <!-- Suggested Badge -->
-          <div
-            v-if="suggestedPlanId === plan.id"
-            class="absolute -top-5 right-4 rounded-full bg-yellow-500 px-3 py-1 text-xs font-semibold text-white">
-            {{ t('web.billing.plans.suggested') }}
-          </div>
-
-          <!-- Current Badge - positioned prominently like Most Popular -->
-          <div
-            v-if="isPlanCurrent(plan)"
-            class="absolute -top-3 right-4 z-10 rounded-full border-2 border-green-600 bg-green-600 px-3 py-1 text-xs font-semibold text-white shadow-md dark:border-green-500 dark:bg-green-500">
-            {{ t('web.billing.plans.current_badge') }}
-          </div>
-
-          <div class="flex-1 p-6">
-            <!-- Plan Header -->
-            <div class="mb-4">
-              <div class="flex items-center gap-2">
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white" :data-plan-id="plan.id">
-                  {{ plan.name }}
-                </h3>
-                <span
-                  v-if="plan.plan_name_label"
-                  class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-                  {{ t(plan.plan_name_label) }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Price -->
-            <div class="mb-6">
-              <div class="flex items-baseline gap-2">
-                <span class="text-4xl font-bold text-gray-900 dark:text-white">
-                  {{ formatCurrency(getPlanPricePerMonth(plan), plan.currency) }}
-                </span>
-                <span class="text-sm text-gray-500 dark:text-gray-400">
-                  {{ t('web.billing.plans.per_month') }}
-                </span>
-              </div>
-              <p v-if="plan.interval === 'year' && plan.amount > 0" class="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
-                {{ t('web.billing.plans.yearly') }}: {{ formatCurrency(plan.amount, plan.currency) }}
-              </p>
-            </div>
-
-            <!-- Team & Member Limits -->
-            <!-- <div class="mb-6 space-y-2 text-sm">
-              <p class="text-gray-700 dark:text-gray-300">
-                {{ typeof getTeamsLimit(plan) === 'string'
-                  ? t('web.billing.plans.unlimited_teams')
-                  : t('web.billing.plans.teams_limit', { count: getTeamsLimit(plan) })
-                }}
-              </p>
-              <p class="text-gray-700 dark:text-gray-300">
-                {{ typeof getMembersLimit(plan) === 'string'
-                  ? t('web.billing.plans.unlimited_members')
-                  : t('web.billing.plans.members_limit', { count: getMembersLimit(plan) })
-                }}
-              </p>
-            </div> -->
-
-            <!-- Features -->
-            <div class="space-y-3">
-              <p class="text-sm font-semibold text-gray-900 dark:text-white">
-                {{ t('web.billing.plans.features') }}
-              </p>
-
-              <ul class="space-y-2">
-                <li
-                  v-for="feature in plan.features"
-                  :key="feature"
-                  class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-                  <OIcon
-                    collection="heroicons"
-                    name="check"
-                    class="mt-0.5 size-5 shrink-0 text-green-500 dark:text-green-400"
-                    aria-hidden="true" />
-                  <span>{{ t(feature) }}</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <!-- Action Button -->
-          <div class="border-t border-gray-200 p-6 dark:border-gray-700">
-            <button
-              @click="handlePlanSelect(plan)"
-              :disabled="isPlanCurrent(plan) || isCreatingCheckout || plan.id === 'free'"
-              :class="[
-                'w-full rounded-md px-4 py-2 text-sm font-semibold transition-colors',
-                isPlanCurrent(plan)
-                  ? 'cursor-default bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-                  : canUpgrade(plan)
-                    ? 'bg-brand-600 text-white hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400'
-                    : 'bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700',
-              ]">
-              <span v-if="isCreatingCheckout && !isPlanCurrent(plan)">
-                {{ t('web.COMMON.processing') }}
-              </span>
-              <span v-else>
-                {{ getButtonLabel(plan) }}
-              </span>
-            </button>
-          </div>
-        </div>
+          :plan="plan"
+          :is-current="isPlanCurrent(plan)"
+          :is-recommended="isPlanRecommended(plan)"
+          :is-suggested="suggestedPlanId === plan.id"
+          :button-label="getButtonLabel(plan)"
+          :button-disabled="isPlanCurrent(plan) || isCreatingCheckout || plan.id === 'free'"
+          :is-processing="isCreatingCheckout && !isPlanCurrent(plan)"
+          @select="handlePlanSelect" />
       </div>
 
       <!-- Custom Needs -->
