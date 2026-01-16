@@ -65,9 +65,16 @@
   // Plans loaded from API
   const plans = ref<BillingPlan[]>([]);
 
-  // Filter plans by selected billing interval
+  // Filter paid plans by selected billing interval
   const filteredPlans = computed(() =>
-    plans.value.filter((plan) => plan.interval === billingInterval.value)
+    plans.value.filter(
+      (plan) => plan.tier !== 'free' && plan.interval === billingInterval.value
+    )
+  );
+
+  // Get the free plan (if available)
+  const freePlan = computed(() =>
+    plans.value.find((plan) => plan.tier === 'free')
   );
 
   /**
@@ -211,25 +218,30 @@
         </div>
       </div>
 
-      <!-- No Plans Message -->
+      <!-- Free Tier Section -->
       <div
-        v-else-if="filteredPlans.length === 0 && !error"
-        class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-900/50">
-        <p class="text-gray-600 dark:text-gray-400">
-          {{
-            t('web.billing.plans.no_plans_available', {
-              interval:
-                billingInterval === 'year'
-                  ? t('web.billing.plans.yearly').toLowerCase()
-                  : t('web.billing.plans.monthly').toLowerCase(),
-            })
-          }}
-        </p>
+        v-if="freePlan && !isLoadingPlans"
+        class="mb-10 rounded-lg border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-900/50">
+        <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              {{ freePlan.name }}
+            </h3>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              {{ t('web.pricing.free_tier_description') }}
+            </p>
+          </div>
+          <RouterLink
+            to="/signup"
+            class="shrink-0 rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-gray-700">
+            {{ t('web.pricing.get_started_free') }}
+          </RouterLink>
+        </div>
       </div>
 
-      <!-- Plan Cards -->
+      <!-- Paid Plan Cards -->
       <div
-        v-else
+        v-if="!isLoadingPlans && filteredPlans.length > 0"
         class="mx-auto flex max-w-[1400px] flex-wrap items-stretch justify-center gap-6">
         <PlanCard
           v-for="plan in filteredPlans"
@@ -252,6 +264,22 @@
             </RouterLink>
           </template>
         </PlanCard>
+      </div>
+
+      <!-- No Paid Plans Message -->
+      <div
+        v-else-if="!isLoadingPlans && filteredPlans.length === 0 && !error"
+        class="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center dark:border-gray-700 dark:bg-gray-900/50">
+        <p class="text-gray-600 dark:text-gray-400">
+          {{
+            t('web.billing.plans.no_plans_available', {
+              interval:
+                billingInterval === 'year'
+                  ? t('web.billing.plans.yearly').toLowerCase()
+                  : t('web.billing.plans.monthly').toLowerCase(),
+            })
+          }}
+        </p>
       </div>
 
       <!-- Custom Needs Section -->

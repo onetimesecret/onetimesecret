@@ -348,7 +348,8 @@
       "start_trial": "Get Started",
       "already_have_account": "Already have an account?",
       "sign_in": "Sign in",
-      "recommended_for_you": "Recommended for You"
+      "recommended_for_you": "Recommended for You",
+      "free_tier_description": "Create and share secrets with basic features. No credit card required."
     }
   }
 }

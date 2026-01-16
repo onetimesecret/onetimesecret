@@ -68,14 +68,13 @@ export interface InvoicesResponse {
  */
 export interface Plan {
   id: string;
-  /** Stripe price ID for plan switching operations */
-  stripe_price_id: string;
+  /** Stripe price ID for plan switching operations. Null for free/config-only plans. */
+  stripe_price_id: string | null;
   name: string;
   tier: string;
   interval: string;
   amount: number;
   currency: string;
-  region: string;
   display_order: number;
   /** Feature locale keys (e.g., "web.billing.features.custom_domains") */
   features: string[];

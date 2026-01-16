@@ -41,10 +41,10 @@ export function createMockPlan(overrides: Partial<Plan> = {}): Plan {
 export const mockPlans: Record<string, Plan> = {
   free: createMockPlan({
     id: 'free_v1',
-    stripe_price_id: 'price_free',
+    stripe_price_id: null, // Free plans have no Stripe price
     name: 'Free',
     tier: 'free',
-    interval: 'month',
+    interval: null, // Free plans have no interval
     amount: 0,
     display_order: 0,
     features: ['Basic secret sharing'],
