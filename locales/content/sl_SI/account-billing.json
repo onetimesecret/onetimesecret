@@ -243,7 +243,7 @@
     "text": "Suggested"
   },
   "web.billing.plans.everything_in": {
-    "text": "Everything in {plan}, plus:"
+    "text": "Includes everything in {plan}"
   },
   "web.billing.plans.no_plans_available": {
     "text": "No {interval} plans available at this time."

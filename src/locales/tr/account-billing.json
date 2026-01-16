@@ -37,7 +37,7 @@
         "unlimited_members": "Unlimited members per team",
         "most_popular": "Most Popular",
         "suggested": "Suggested",
-        "everything_in": "Everything in {plan}, plus:",
+        "everything_in": "Includes everything in {plan}",
         "no_plans_available": "No {interval} plans available at this time.",
         "change_immediate": "Your plan will change immediately.",
         "current_plan_label": "Current plan:",
