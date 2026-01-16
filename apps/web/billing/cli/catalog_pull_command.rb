@@ -38,7 +38,11 @@ module Onetime
           Billing::Plan.refresh_from_stripe(progress: method(:show_progress))
         end
 
-        puts "\n\nSuccessfully pulled #{count} plan(s) to cache"
+        # Upsert config-only plans (free tier, etc.) after Stripe sync
+        config_count = Billing::Plan.upsert_config_only_plans
+
+        puts "\n\nSuccessfully pulled #{count} plan(s) from Stripe"
+        puts "Upserted #{config_count} config-only plan(s)" if config_count > 0
         puts "\nTo view cached plans:"
         puts '  bin/ots billing plans'
       rescue Stripe::StripeError => ex
