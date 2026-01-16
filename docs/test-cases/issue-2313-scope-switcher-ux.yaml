@@ -14,11 +14,34 @@ suite:
 # |-----------------|--------------|-----------------|
 # | Dashboard       | show         | show            |
 # | Secret creation | show         | show            |
-# | Org settings    | locked       | hide            |
+# | Org settings    | hide         | hide            |
+# | Org list        | hide         | hide            |
 # | Domains list    | show         | show            |
 # | Domain detail   | show         | locked          |
-# | Billing         | locked       | hide            |
+# | Billing         | show         | hide            |
 # | Account         | hide         | hide            |
+
+# Data-testid Attribute Reference:
+# These attributes should be present in the Vue components for test automation.
+# See also: data-testid-recommendations.yaml for additional selectors.
+#
+# Scope Switchers:
+#   - data-testid="org-scope-switcher"           : Organization switcher container
+#   - data-testid="org-scope-switcher-trigger"   : Organization switcher button/trigger
+#   - data-testid="org-scope-switcher-dropdown"  : Organization dropdown menu
+#   - data-testid="org-scope-manage-link"        : "Manage Organizations" link in dropdown
+#   - data-testid="domain-scope-switcher"        : Domain switcher container
+#   - data-testid="domain-scope-switcher-trigger": Domain switcher button/trigger
+#   - data-testid="domain-scope-switcher-dropdown": Domain dropdown menu
+#   - data-testid="domain-scope-manage-link"     : "Manage Domains" link in dropdown
+#
+# General UI (from data-testid-recommendations.yaml):
+#   - data-testid="owner-warning"                : Warning banner for secret creators
+#   - data-testid="header-dashboard-link"        : Dashboard nav link in header
+#   - data-testid="header-signup-cta"            : Sign up CTA for anonymous users
+#   - data-testid="secret-content"               : Revealed secret content container
+#   - data-testid="burn-control"                 : Burn/destroy secret button
+#   - data-testid="capabilities-upgrade"         : Marketing upgrade prompt
 
 definitions:
   users:
@@ -75,22 +98,22 @@ tests:
     covers: [OrganizationScopeSwitcher, organizationStore]
 
   - id: TC-SS-002
-    intent: Dashboard shows interactive domain switcher for user with custom domains
+    intent: Dashboard shows interactive domain switcher for all authenticated users
     setup:
-      <<: *user_with_domains
+      <<: *user_auth
     target: /dashboard
     action:
       type: none
     verify:
       - Domain switcher visible in header
-      - Current domain scope displayed
+      - Current domain scope displayed (canonical domain for users without custom domains)
       - Switcher is interactive (not disabled)
       - selector: "[data-testid='domain-scope-switcher']"
         assertion: visible
     priority: high
     type: functional
     covers: [DomainScopeSwitcher, useDomainScope]
-    notes: If user has no custom domains, domain switcher should be hidden (not an error)
+    notes: Domain switcher always visible showing at minimum the canonical domain
 
   - id: TC-SS-003
     intent: Secret creation page shows interactive organization switcher
@@ -127,7 +150,7 @@ tests:
     covers: [DomainScopeSwitcher]
 
   - id: TC-SS-005
-    intent: Organization settings page shows locked (non-interactive) org switcher
+    intent: Organization settings page hides organization switcher
     setup:
       <<: *user_auth
       state:
@@ -135,20 +158,17 @@ tests:
         organization_extid: "{{org_extid}}"
     target: /org/{{org_extid}}
     action:
-      type: click
-      element: Organization switcher trigger
+      type: none
     verify:
-      - Organization switcher is visible
-      - Current organization name displayed
-      - Switcher is disabled/locked (cursor not-allowed, opacity reduced)
-      - Clicking does not open dropdown
-      - selector: "[data-testid='org-scope-switcher-trigger']"
-        assertion: visible
-      - selector: "[data-testid='org-scope-switcher-trigger'][aria-disabled='true']"
-        assertion: exists
+      - Organization switcher is NOT visible in header
+      - Only user menu button visible in navigation
+      - Organization context is implicit from the URL
+      - selector: "[data-testid='org-scope-switcher']"
+        assertion: hidden
     priority: high
     type: functional
-    covers: [OrganizationScopeSwitcher, locked state]
+    covers: [OrganizationScopeSwitcher, visibility rules]
+    notes: Org switcher is hidden (not locked) because switching orgs while editing org settings would be confusing
 
   - id: TC-SS-006
     intent: Organization settings page hides domain switcher completely
@@ -240,23 +260,26 @@ tests:
     covers: [DomainScopeSwitcher, locked state]
 
   - id: TC-SS-011
-    intent: Billing page shows locked organization switcher
+    intent: Billing page shows interactive organization switcher
     setup:
       <<: *user_auth
-    target: /billing/overview
+    target: /billing/{{org_extid}}/overview
     action:
       type: click
-      element: Organization switcher trigger
+      element: "[data-testid='org-scope-switcher-trigger']"
     verify:
-      - Organization switcher is visible
-      - Shows current organization
-      - Switcher is disabled/locked
-      - Billing context tied to current organization
-      - selector: "[data-testid='org-scope-switcher-trigger'][aria-disabled='true']"
-        assertion: exists
+      - Organization switcher is visible in header
+      - Shows current organization name
+      - Switcher is interactive (can switch organizations)
+      - Switching org navigates to that org's billing page
+      - selector: "[data-testid='org-scope-switcher']"
+        assertion: visible
+      - selector: "[data-testid='org-scope-switcher-dropdown']"
+        assertion: visible
     priority: high
     type: functional
     covers: [OrganizationScopeSwitcher, billing context]
+    notes: Users can switch orgs on billing page to view different organization billing
 
   - id: TC-SS-012
     intent: Billing page hides domain switcher
@@ -319,10 +342,10 @@ tests:
       element: "[data-testid='org-scope-switcher-trigger']"
     verify:
       - Dropdown menu opens with animation
-      - Menu shows "My Organizations" header
       - All user's organizations are listed
       - Current organization has checkmark indicator
       - Menu has role="menu" for accessibility
+      - "Manage Organizations" link is available
       - selector: "[data-testid='org-scope-switcher-dropdown']"
         assertion: visible
       - selector: "[data-testid='org-scope-switcher-dropdown'][role='menu']"
@@ -459,15 +482,15 @@ tests:
     covers: [useDomainScope, localStorage]
 
   - id: TC-SS-033
-    intent: Add Domain link navigates to domains management
+    intent: Manage Domains link navigates to domains management
     setup:
-      <<: *user_with_domains
+      <<: *user_auth
     target: /dashboard
     action:
       type: click
-      element: "[data-testid='domain-scope-add-link']"
+      element: "[data-testid='domain-scope-manage-link']"
     verify:
-      - Navigates to /domains
+      - Navigates to /org/{{org_extid}}/domains
       - Dropdown closes
       - Domains management page loads
     priority: medium
@@ -479,41 +502,46 @@ tests:
   # ===========================================================================
 
   - id: TC-SS-040
-    intent: Locked organization switcher cannot be clicked
+    intent: Locked domain switcher cannot be clicked on domain detail page
     setup:
-      <<: *user_auth
-    target: /billing/overview
+      <<: *user_with_domains
+      state:
+        domain_extid: "{{domain_extid}}"
+    target: /domains/{{domain_extid}}/brand
     action:
       type: click
-      element: Organization switcher trigger
+      element: "[data-testid='domain-scope-switcher-trigger']"
     verify:
-      - Switcher displays current organization name
+      - Switcher displays current domain name
       - Cursor shows not-allowed
       - Visual opacity is reduced (muted appearance)
       - Clicking has no effect
       - No dropdown opens
-      - selector: "[data-testid='org-scope-switcher-dropdown']"
+      - selector: "[data-testid='domain-scope-switcher-dropdown']"
         assertion: hidden
     priority: high
     type: functional
-    covers: [OrganizationScopeSwitcher, locked state]
+    covers: [DomainScopeSwitcher, locked state]
+    notes: Domain switcher is locked when viewing/editing a specific domain's settings
 
   - id: TC-SS-041
-    intent: Locked switcher has proper ARIA attributes for accessibility
+    intent: Locked domain switcher has proper ARIA attributes for accessibility
     setup:
-      <<: *user_auth
-    target: /billing/overview
+      <<: *user_with_domains
+      state:
+        domain_extid: "{{domain_extid}}"
+    target: /domains/{{domain_extid}}/brand
     action:
       type: none
     verify:
       - Element has aria-disabled="true" OR disabled attribute
       - Screen readers announce element as disabled
       - Keyboard focus behavior is appropriate
-      - selector: "[data-testid='org-scope-switcher-trigger'][aria-disabled='true']"
+      - selector: "[data-testid='domain-scope-switcher-trigger'][aria-disabled='true']"
         assertion: exists
     priority: medium
     type: accessibility
-    covers: [OrganizationScopeSwitcher, ARIA, a11y]
+    covers: [DomainScopeSwitcher, ARIA, a11y]
 
   - id: TC-SS-042
     intent: Locked domain switcher shows current domain without interaction
@@ -557,23 +585,27 @@ tests:
     covers: [OrganizationScopeSwitcher, single org user]
 
   - id: TC-SS-051
-    intent: User without custom domains does not see domain switcher
+    intent: Domain switcher visible for all authenticated users showing canonical domain
     setup:
       auth: logged_in
       state:
         has_custom_domains: false
     target: /dashboard
     action:
-      type: none
+      type: click
+      element: "[data-testid='domain-scope-switcher-trigger']"
     verify:
-      - Domain switcher is NOT visible
-      - No placeholder or disabled state shown
-      - Page layout adjusts appropriately
+      - Domain switcher is visible regardless of plan or custom domains
+      - Shows canonical domain (e.g., dev.onetime.dev) as default scope
+      - Dropdown shows "Manage Domains" link for adding custom domains
       - selector: "[data-testid='domain-scope-switcher']"
-        assertion: hidden
+        assertion: visible
+      - selector: "[data-testid='domain-scope-switcher-dropdown']"
+        assertion: visible
     priority: high
     type: edge
-    covers: [DomainScopeSwitcher, entitlements gating]
+    covers: [DomainScopeSwitcher, canonical domain]
+    notes: Domain switcher always visible to show which domain secrets are created for
 
   - id: TC-SS-052
     intent: Canonical domain shows with Personal label and home icon

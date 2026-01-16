@@ -149,7 +149,8 @@
           :rows="details?.display_lines ?? 4"
           :value="record?.secret_value"
           aria-describedby="copy-instructions"
-          :aria-label="t('web.secrets.secret_content')"></textarea>
+          :aria-label="t('web.secrets.secret_content')"
+          data-testid="secret-content"></textarea>
         <div
           v-else
           class="text-red-500 dark:text-red-400"

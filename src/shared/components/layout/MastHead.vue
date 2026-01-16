@@ -214,7 +214,8 @@
               to="/signup"
               :title="t('web.homepage.signup_individual_and_business_plans')"
               class="font-bold text-gray-600 transition-colors duration-200
-                hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
+                hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
+              data-testid="header-signup-cta">
               {{ t('web.COMMON.header_create_account') }}
             </router-link>
             <span

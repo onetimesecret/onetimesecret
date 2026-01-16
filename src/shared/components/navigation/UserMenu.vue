@@ -359,6 +359,7 @@ onUnmounted(() => {
               v-if="item.to"
               :to="item.to"
               :class="getMenuItemClasses(item.variant)"
+              :data-testid="item.id === 'dashboard' ? 'header-dashboard-link' : undefined"
               @click="closeMenu"
               role="menuitem">
               <!-- Special case for upgrade using FancyIcon -->

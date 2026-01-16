@@ -190,6 +190,7 @@
             :rows="details?.display_lines ?? 4"
             :value="record?.secret_value"
             :aria-label="t('web.secrets.secret_content')"
+            data-testid="secret-content"
             ref="secretContent"></textarea>
         </div>
       </div>

@@ -160,6 +160,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
     v-if="shouldShow"
     as="div"
     class="relative inline-flex"
+    data-testid="domain-scope-switcher"
     v-slot="{ open }">
     <!-- Trigger Button -->
     <MenuButton
@@ -171,7 +172,9 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
       ]"
       :disabled="props.locked"
       :title="props.locked ? t('web.domains.switcher_locked') : undefined"
-      :aria-label="t('web.domains.scope_switch_label')">
+      :aria-label="t('web.domains.scope_switch_label')"
+      :aria-disabled="props.locked ? 'true' : undefined"
+      data-testid="domain-scope-switcher-trigger">
       <!-- Domain Icon -->
       <OIcon
         collection="heroicons"
@@ -210,7 +213,8 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
       leave-from-class="transform opacity-100 scale-100"
       leave-to-class="transform opacity-0 scale-95">
       <MenuItems
-        class="absolute left-0 top-full z-50 mt-1 max-h-60 w-max min-w-[220px] max-w-xs overflow-auto rounded-lg bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700">
+        class="absolute left-0 top-full z-50 mt-1 max-h-60 w-max min-w-[220px] max-w-xs overflow-auto rounded-lg bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700"
+        data-testid="domain-scope-switcher-dropdown">
         <!-- Header -->
         <div
           class="px-3 py-2 font-brand text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -299,12 +303,13 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
           role="separator"
           aria-hidden="true" ></div>
 
-        <!-- Add Domain Link -->
+        <!-- Manage Domains Link -->
         <MenuItem v-slot="{ active }" @click="navigateToManageDomains">
           <button
             type="button"
             class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
-            :class="active ? 'bg-gray-100 dark:bg-gray-700' : ''">
+            :class="active ? 'bg-gray-100 dark:bg-gray-700' : ''"
+            data-testid="domain-scope-manage-link">
             <span class="flex items-center gap-2">
               <OIcon
                 collection="heroicons"
