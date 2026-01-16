@@ -279,22 +279,24 @@ module Billing
           .map do |plan|
             {
               id: plan.plan_id,
-              stripe_price_id: plan.stripe_price_id,
+              stripe_price_id: plan.stripe_price_id,  # nil for free/config-only plans
               name: plan.name,
               tier: plan.tier,
               interval: plan.interval,
               amount: plan.amount,
               currency: plan.currency,
-              region: plan.region,
               features: plan.features.to_a,
               limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
               entitlements: plan.entitlements.to_a,
               display_order: plan.display_order.to_i,
+              plan_code: plan.plan_code,
+              is_popular: plan.popular?,
+              plan_name_label: plan.plan_name_label,
               includes_plan: plan.includes_plan,
               includes_plan_name: plan_names_by_id[plan.includes_plan],
             }
           end
-          .sort_by { |p| p[:display_order] } # Ascending: Identity Plus (10) → Org Max (40)
+          .sort_by { |p| p[:display_order] } # Ascending: Free (0) → Identity Plus (10) → Org Max (40)
 
         json_response({ plans: plan_data })
       rescue StandardError => ex
