@@ -86,6 +86,7 @@ module Billing
     field :plan_code                # Deduplication key (e.g., "identity_plus" for monthly+yearly variants)
     field :is_popular               # Boolean: show "Most Popular" badge
     field :plan_name_label          # Display label next to plan name (e.g., "For Teams")
+    field :includes_plan            # Plan ID this plan includes (for "Includes everything in X" display)
 
     # Additional Stripe Price fields
     field :active                   # Boolean: whether price is available for new subscriptions
@@ -418,6 +419,10 @@ module Billing
         plan_name_label_raw = product.metadata[Metadata::FIELD_PLAN_NAME_LABEL]
         plan_name_label     = plan_name_label_raw.to_s.strip.empty? ? nil : plan_name_label_raw
 
+        # Extract includes_plan from product metadata (nil if not set or empty)
+        includes_plan_raw = product.metadata[Metadata::FIELD_INCLUDES_PLAN]
+        includes_plan     = includes_plan_raw.to_s.strip.empty? ? nil : includes_plan_raw
+
         # Build stripe snapshot for recovery
         stripe_snapshot = {
           product: {
@@ -456,6 +461,7 @@ module Billing
           plan_code: plan_code,
           is_popular: is_popular.to_s,
           plan_name_label: plan_name_label,
+          includes_plan: includes_plan,
           active: price.active.to_s,
           billing_scheme: price.billing_scheme,
           usage_type: price.recurring&.usage_type || 'licensed',
@@ -518,6 +524,7 @@ module Billing
         plan.plan_code          = plan_data[:plan_code]
         plan.is_popular         = plan_data[:is_popular]
         plan.plan_name_label    = plan_data[:plan_name_label]
+        plan.includes_plan      = plan_data[:includes_plan]
         plan.active             = plan_data[:active]
         plan.billing_scheme     = plan_data[:billing_scheme]
         plan.usage_type         = plan_data[:usage_type]
@@ -832,6 +839,7 @@ module Billing
             plan.plan_code         = plan_def['plan_code']
             plan.is_popular        = (plan_def['is_popular'] == true).to_s
             plan.plan_name_label   = plan_def['plan_name_label']
+            plan.includes_plan     = plan_def['includes_plan']
             plan.last_synced_at    = Time.now.to_i.to_s
 
             # Add entitlements to set
@@ -883,13 +891,13 @@ module Billing
 
         # Try exact match first (e.g., "free_v1")
         if plans_hash.key?(plan_id)
-          return config_plan_to_hash(plan_id, plans_hash[plan_id])
+          return config_plan_to_hash(plan_id, plans_hash[plan_id], plans_hash)
         end
 
         # Try stripping interval suffix (e.g., "identity_plus_v1_monthly" -> "identity_plus_v1")
         base_id = plan_id.sub(/_(month|year)ly$/, '')
         if plans_hash.key?(base_id)
-          return config_plan_to_hash(plan_id, plans_hash[base_id])
+          return config_plan_to_hash(plan_id, plans_hash[base_id], plans_hash)
         end
 
         nil
@@ -910,7 +918,7 @@ module Billing
           interval = plan_def['prices']&.first&.dig('interval') || 'month'
           full_id  = plan_def['prices']&.any? ? "#{plan_id}_#{interval}ly" : plan_id
 
-          config_plan_to_hash(full_id, plan_def)
+          config_plan_to_hash(full_id, plan_def, plans_hash)
         end
       end
 
@@ -920,13 +928,18 @@ module Billing
       #
       # @param plan_id [String] Full plan ID (with interval suffix if applicable)
       # @param plan_def [Hash] Plan definition from YAML
+      # @param plans_hash [Hash] All plans hash for resolving includes_plan_name
       # @return [Hash] Normalized plan hash
-      def config_plan_to_hash(plan_id, plan_def)
+      def config_plan_to_hash(plan_id, plan_def, plans_hash = {})
         # Convert limits to flattened format (e.g., "teams" -> "teams.max")
         limits = (plan_def['limits'] || {}).transform_keys { |k| "#{k}.max" }
         limits = limits.transform_values do |v|
           v.nil? || v == -1 ? 'unlimited' : v.to_s
         end
+
+        # Resolve includes_plan_name from the referenced plan
+        includes_plan      = plan_def['includes_plan']
+        includes_plan_name = includes_plan && plans_hash[includes_plan] ? plans_hash[includes_plan]['name'] : nil
 
         {
           planid: plan_id,
@@ -940,6 +953,8 @@ module Billing
           plan_code: plan_def['plan_code'],
           is_popular: plan_def['is_popular'] == true,
           plan_name_label: plan_def['plan_name_label'],
+          includes_plan: includes_plan,
+          includes_plan_name: includes_plan_name,
           entitlements: plan_def['entitlements'] || [],
           features: plan_def['features'] || [],
           limits: limits,

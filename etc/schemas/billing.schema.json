@@ -88,7 +88,7 @@
     },
     "CurrencyCode": {
       "type": "string",
-      "enum": ["usd", "eur", "cad"],
+      "enum": ["usd", "eur", "cad", "nzd"],
       "description": "ISO 4217 currency code"
     },
     "LimitValue": {
@@ -172,7 +172,7 @@
         },
         "includes_plan": {
           "type": "string",
-          "description": "Plan ID this plan includes (for 'Everything in X' display)"
+          "description": "Plan ID this plan includes (for 'Includes everything in X' display)"
         },
         "description": {
           "type": "string",

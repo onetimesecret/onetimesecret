@@ -161,7 +161,10 @@ export const PlanDefinitionSchema = z.object({
     .nullable()
     .describe('Sort order on plans page (higher = earlier, null = hidden)'),
   show_on_plans_page: z.boolean().describe('Visibility on public plans page'),
-  includes_plan: z.string().optional().describe('Plan ID this plan includes (for "Everything in X" display)'),
+  includes_plan: z
+    .string()
+    .optional()
+    .describe('Plan ID this plan includes (for "Includes everything in X" display)'),
   description: z.string().min(1).optional().describe('Plan description for documentation'),
   legacy: z.boolean().optional().describe('Marks plan as legacy/grandfathered (no longer offered)'),
   grandfathered_until: z
@@ -171,7 +174,10 @@ export const PlanDefinitionSchema = z.object({
     .describe('ISO date until which plan is grandfathered (YYYY-MM-DD)'),
 
   entitlements: z.array(z.string().min(1)).describe('Array of entitlement IDs'),
-  features: z.array(z.string().min(1)).optional().describe('Array of i18n feature keys for UI display'),
+  features: z
+    .array(z.string().min(1))
+    .optional()
+    .describe('Array of i18n feature keys for UI display'),
   limits: PlanLimitsSchema,
   prices: z.array(PlanPriceSchema).describe('Available pricing options'),
 });
@@ -221,7 +227,12 @@ export const BillingConfigSchema = z.object({
 
   plans: z
     .record(
-      z.string().regex(/^[a-z_]+(_v\d+)?$/, 'Plan ID must be lowercase with underscores (e.g., identity, identity_plus_v1)'),
+      z
+        .string()
+        .regex(
+          /^[a-z_]+(_v\d+)?$/,
+          'Plan ID must be lowercase with underscores (e.g., identity, identity_plus_v1)'
+        ),
       PlanDefinitionSchema
     )
     .describe('Plan definitions by plan_id (legacy plans use legacy: true flag)'),
@@ -298,7 +309,10 @@ export function planHasEntitlement(plan: PlanDefinition, entitlement: string): b
   return plan.entitlements.includes(entitlement);
 }
 
-export function getPlanPrice(plan: PlanDefinition, interval: BillingInterval): PlanPrice | undefined {
+export function getPlanPrice(
+  plan: PlanDefinition,
+  interval: BillingInterval
+): PlanPrice | undefined {
   return plan.prices.find((p) => p.interval === interval);
 }
 

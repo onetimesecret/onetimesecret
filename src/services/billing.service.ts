@@ -89,7 +89,7 @@ export interface Plan {
   monthly_equivalent_amount?: number;
   /** Display label next to plan name (e.g., "For Teams"). Null/empty = hide label */
   plan_name_label?: string | null;
-  /** Reference to parent plan ID for "Everything in X, plus:" display */
+  /** Reference to parent plan ID for "Includes everything in X, plus:" display */
   includes_plan?: string;
   /** Human-readable name of included plan (resolved by backend) */
   includes_plan_name?: string;
@@ -265,10 +265,7 @@ export const BillingService = {
    * @param newPriceId - Stripe price ID to switch to
    * @returns Result of plan change with new plan details
    */
-  async changePlan(
-    orgExtId: string,
-    newPriceId: string
-  ): Promise<PlanChangeResponse> {
+  async changePlan(orgExtId: string, newPriceId: string): Promise<PlanChangeResponse> {
     const response = await $api.post(`/billing/api/org/${orgExtId}/change-plan`, {
       new_price_id: newPriceId,
     });

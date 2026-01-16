@@ -156,7 +156,7 @@
           {{ t('web.billing.plans.features') }}
         </p>
 
-        <!-- "Everything in X, plus:" header when plan includes another -->
+        <!-- "Includes everything in X, plus:" header when plan includes another -->
         <p
           v-if="plan.includes_plan_name"
           class="text-sm italic text-gray-600 dark:text-gray-400">

@@ -27,6 +27,7 @@ module Billing
     FIELD_PLAN_CODE          = 'ots_plan_code'           # Deduplication key (e.g., "identity_plus" for monthly+yearly)
     FIELD_IS_POPULAR         = 'ots_is_popular'          # Boolean: show "Most Popular" badge
     FIELD_PLAN_NAME_LABEL    = 'ots_plan_name_label'     # Display label next to plan name (e.g., "For Teams")
+    FIELD_INCLUDES_PLAN      = 'ots_includes_plan'       # Plan ID this plan includes (for "Includes everything in X" display)
 
     # Limit fields (prefixed with 'limit_')
     FIELD_LIMIT_TEAMS            = 'limit_teams'
@@ -36,7 +37,6 @@ module Billing
     REQUIRED_FIELDS = [
       FIELD_APP,
       FIELD_TIER,
-      FIELD_REGION,
       FIELD_ENTITLEMENTS,
       FIELD_TENANCY,
       FIELD_CREATED,

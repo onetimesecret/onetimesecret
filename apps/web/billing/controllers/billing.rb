@@ -261,11 +261,20 @@ module Billing
       #
       # @return [Hash] List of plans
       def list_plans
-        plans = ::Billing::Plan.list_plans
+        plans = ::Billing::Plan.list_plans.compact
 
-        # Filter out nil plans, filter by show_on_plans_page, and sort by display_order (ascending - lower values first)
+        # Build lookup for resolving includes_plan_name
+        # Plan IDs include interval suffix (e.g., "identity_v1_monthly"), but includes_plan
+        # references the base ID (e.g., "identity_v1"). Map both for flexibility.
+        plan_names_by_id = plans.each_with_object({}) do |plan, lookup|
+          lookup[plan.plan_id] = plan.name
+          # Also index by base ID (strip interval suffix)
+          base_id              = plan.plan_id.sub(/_(month|year)ly$/, '')
+          lookup[base_id]      = plan.name
+        end
+
+        # Filter by show_on_plans_page and sort by display_order (ascending - lower values first)
         plan_data = plans
-          .compact
           .select { |plan| plan.show_on_plans_page.to_s == 'true' }
           .map do |plan|
             {
@@ -281,6 +290,8 @@ module Billing
               limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
               entitlements: plan.entitlements.to_a,
               display_order: plan.display_order.to_i,
+              includes_plan: plan.includes_plan,
+              includes_plan_name: plan_names_by_id[plan.includes_plan],
             }
           end
           .sort_by { |p| p[:display_order] } # Ascending: Identity Plus (10) → Org Max (40)
