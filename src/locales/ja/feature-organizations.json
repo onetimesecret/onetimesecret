@@ -105,7 +105,7 @@
         "pending_invitations": "保留中の招待",
         "no_pending_invitations": "保留中の招待はありません",
         "email_address": "メールアドレス",
-        "email_placeholder": "member@example.com",
+        "email_placeholder": "member{'@'}example.com",
         "role": "役割",
         "send_invite": "招待を送信",
         "invite_sent": "招待が正常に送信されました",

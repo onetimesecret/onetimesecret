@@ -168,7 +168,7 @@
       md:py-6"
     :aria-label="t('web.layout.site_footer')">
     <div class="container mx-auto max-w-4xl px-4">
-      <!-- Footer Links and Feedback Section -->
+      <!-- Footer Links Section -->
       <div
         v-if="displayFooterLinks"
         class="mb-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
@@ -190,10 +190,18 @@
           </a>
         </template>
 
-        <!-- Feedback Toggle -->
+        <!-- Feedback Toggle - icon only on narrow screens, with text on wider -->
         <FeedbackToggle
           v-if="props.displayFeedback"
-          class="text-sm text-gray-600 transition-colors duration-200 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          :aria-label="t('web.layout.provide_feedback')" />
+      </div>
+
+      <!-- Feedback Toggle (standalone for mobile when links are hidden) -->
+      <div
+        v-if="props.displayFeedback && !displayFooterLinks"
+        class="mb-6 flex items-center justify-center">
+        <FeedbackToggle
+          :icon-only="true"
           :aria-label="t('web.layout.provide_feedback')" />
       </div>
 

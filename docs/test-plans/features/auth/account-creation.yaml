@@ -1,0 +1,202 @@
+# docs/test-plans/account-creation.yaml
+---
+# LLM-Optimized Test Cases: Account Creation
+# Schema version: 1.0.0
+
+suite:
+  id: account-creation
+  name: Account Creation and Signup Flow
+  feature: User registration via SignUpForm component
+  tags: [auth, signup, registration, forms, validation]
+  priority: critical
+  notes: |
+    Tests cover the signup form at /signup. Successful signup redirects to /signin
+    with a success notification. The form requires email, password, and terms
+    agreement. Backend validation handles duplicate emails and password strength.
+
+definitions:
+  users:
+    anonymous:
+      auth: logged_out
+      description: Unauthenticated visitor
+
+tests:
+  - id: TC-AC-001
+    intent: New user successfully creates account with valid email, strong password, and terms agreement
+    setup:
+      auth: logged_out
+      description: Clean state with no existing account for test email
+    target: /signup
+    action:
+      type: submit
+      element: signup form
+      data:
+        email: newuser-{{timestamp}}@example.com
+        password: SecureP@ssw0rd123
+        terms: true
+    verify:
+      - Success notification appears with account created message
+      - selector: "[data-testid='signup-success-notification']"
+        assertion: visible
+        contains: account created
+      - User is redirected to /signin page
+      - url:
+          path: /signin
+          assertion: equals
+      - Email field on signin page is NOT prefilled
+      - selector: "[data-testid='email-input']"
+        assertion: value
+        expected: ""
+      - selector: "[role='alert']"
+        assertion: hidden
+    priority: critical
+    severity: blocker
+    type: functional
+    covers: [SignUpForm, useAuth.signup, /auth/create-account]
+    postconditions:
+      - Account exists in database
+      - api: GET /api/v2/account/verify-exists
+        params:
+          email: newuser-{{timestamp}}@example.com
+        assert:
+          status: 200
+          body.exists: true
+          body.account_id: "{{capture:account_id}}"
+          body.created_at: "{{capture:created_at}}"
+        notes: Verify API response includes account details, not just existence flag
+      - User can sign in with created credentials
+      - followup_action:
+          target: /signin
+          action:
+            type: submit
+            data:
+              email: newuser-{{timestamp}}@example.com
+              password: SecureP@ssw0rd123
+          verify:
+            - selector: "[data-testid='header-dashboard-link']"
+              assertion: visible
+            - url:
+                path: /dashboard
+                assertion: starts_with
+          notes: Actually attempt signin to verify credentials work
+
+  - id: TC-AC-002
+    intent: Attempt to register with existing email shows duplicate email error
+    setup:
+      auth: logged_out
+      description: Account already exists for test email
+      state:
+        existing_email: existing@example.com
+    target: /signup
+    action:
+      type: submit
+      element: signup form
+      data:
+        email: existing@example.com
+        password: SecureP@ssw0rd123
+        terms: true
+    verify:
+      - Error alert appears with role=alert
+      - selector: "[data-testid='signup-error-alert']"
+        assertion: visible
+      - Error message indicates email is already registered
+      - selector: "[data-testid='signup-error-alert']"
+        assertion: contains
+        text: already registered
+      - User remains on /signup page
+      - url:
+          path: /signup
+          assertion: equals
+      - Form is NOT cleared (email value preserved)
+      - selector: "[data-testid='email-input']"
+        assertion: value
+        expected: existing@example.com
+        notes: Explicitly verify email field retains entered value after error
+      - selector: "[role='alert']"
+        assertion: visible
+    priority: high
+    severity: major
+    type: error
+    covers: [SignUpForm, useAuth.signup, duplicate detection]
+    notes: Backend returns field-error for login field on duplicate email
+
+  - id: TC-AC-003
+    intent: Invalid email format is rejected by browser validation before form submission
+    setup:
+      auth: logged_out
+    target: /signup
+    action:
+      type: submit
+      element: signup form
+      data:
+        email: not-an-email
+        password: SecureP@ssw0rd123
+        terms: true
+    verify:
+      - Form does NOT submit (browser validation prevents it)
+      - Email input shows browser native validation message
+      - No network request is made
+      - selector: "#email-address:invalid"
+        assertion: exists
+    priority: high
+    severity: major
+    type: functional
+    covers: [SignUpForm, HTML5 email validation]
+    notes: HTML5 type=email provides client-side validation
+
+  - id: TC-AC-004
+    intent: Weak password is rejected with clear error message
+    setup:
+      auth: logged_out
+    target: /signup
+    action:
+      type: submit
+      element: signup form
+      data:
+        email: newuser-{{timestamp}}@example.com
+        password: weak
+        terms: true
+    verify:
+      - Error alert appears with role=alert
+      - selector: "[data-testid='signup-error-alert']"
+        assertion: visible
+      - Error message references password requirements
+      - selector: "[data-testid='signup-error-alert']"
+        assertion: contains
+        text: password
+      - Password field is marked as invalid
+      - selector: "[data-testid='password-input']"
+        assertion: has-attribute
+        attribute: aria-invalid
+        value: "true"
+      - selector: "[role='alert']"
+        assertion: visible
+    priority: high
+    severity: major
+    type: error
+    covers: [SignUpForm, useAuth.signup, password validation]
+    notes: Backend validates password strength via Rodauth
+
+  - id: TC-AC-005
+    intent: Form cannot be submitted without accepting terms of service
+    setup:
+      auth: logged_out
+    target: /signup
+    action:
+      type: submit
+      element: signup form
+      data:
+        email: newuser-{{timestamp}}@example.com
+        password: SecureP@ssw0rd123
+        terms: false
+    verify:
+      - Form does NOT submit (browser validation prevents it)
+      - Terms checkbox shows validation constraint
+      - No network request is made
+      - selector: "#terms-agreement:invalid"
+        assertion: exists
+    priority: high
+    severity: major
+    type: functional
+    covers: [SignUpForm, terms agreement requirement]
+    notes: HTML5 required attribute on checkbox prevents submission without agreement

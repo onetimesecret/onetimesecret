@@ -6,8 +6,11 @@
   import OIcon from '@/shared/components/icons/OIcon.vue';
   import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
   import { classifyError } from '@/schemas/errors';
+  import { useAuth } from '@/shared/composables/useAuth';
   import { useAuthStore } from '@/shared/stores/authStore';
-  import { inject, onMounted, ref } from 'vue';
+  import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
+  import { inject, onMounted, ref, computed } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import type { AxiosInstance } from 'axios';
   import { z } from 'zod';
@@ -16,6 +19,9 @@
   const route = useRoute();
   const router = useRouter();
   const authStore = useAuthStore();
+  const bootstrapStore = useBootstrapStore();
+  const organizationStore = useOrganizationStore();
+  const { logout } = useAuth();
   const $api = inject('api') as AxiosInstance;
 
   const { wrap } = useAsyncHandler({
@@ -48,6 +54,44 @@
     status: z.string(),
   });
 
+  /**
+   * Normalizes an email address for comparison.
+   * - Lowercases the entire email
+   * - Strips Gmail-style + suffixes (user+tag@gmail.com → user@gmail.com)
+   */
+  function normalizeEmail(email: string): string {
+    const [local, domain] = email.toLowerCase().split('@');
+    if (!domain) return email.toLowerCase();
+    const normalizedLocal = local.split('+')[0];
+    return `${normalizedLocal}@${domain}`;
+  }
+
+  /**
+   * Detects if the currently logged-in user has a different email
+   * than the one the invitation was sent to.
+   */
+  const emailMismatch = computed(() => {
+    if (!authStore.isAuthenticated || !invitation.value?.email) return false;
+    const currentEmail = bootstrapStore.email;
+    if (!currentEmail) return false;
+    return normalizeEmail(currentEmail) !== normalizeEmail(invitation.value.email);
+  });
+
+  /**
+   * Logs out the current user and redirects to sign in with the invited email prefilled.
+   */
+  async function handleSwitchAccount() {
+    const invitedEmail = invitation.value?.email;
+    const token = invitationToken.value;
+
+    // Build the signin URL with email prefill and redirect back to invitation
+    const signinUrl = `/signin?email=${encodeURIComponent(invitedEmail || '')}&redirect=${encodeURIComponent(`/invite/${token}`)}`;
+
+    // Pass the redirect URL to logout - it handles the navigation via window.location.href
+    await logout(signinUrl);
+    // No router.push needed - logout handles the redirect
+  }
+
   onMounted(async () => {
     const result = await wrap(async () => {
       const response = await $api.get(`/api/invite/${invitationToken.value}`);
@@ -73,7 +117,10 @@
     if (!authStore.isAuthenticated) {
       router.push({
         name: 'Sign In',
-        query: { redirect: `/invite/${invitationToken.value}` },
+        query: {
+          email: invitation.value?.email,
+          redirect: `/invite/${invitationToken.value}`,
+        },
       });
       return;
     }
@@ -86,6 +133,9 @@
       await $api.post(`/api/invite/${invitationToken.value}/accept`);
 
       success.value = t('web.organizations.invitations.accept_success');
+
+      // Reset organization store to force refetch on next mount
+      organizationStore.$reset();
 
       setTimeout(() => {
         router.push('/org');
@@ -105,6 +155,10 @@
     try {
       await $api.post(`/api/invite/${invitationToken.value}/decline`);
 
+      // Update local state to hide invitation details immediately
+      if (invitation.value) {
+        invitation.value.status = 'declined';
+      }
       success.value = t('web.organizations.invitations.decline_success');
 
       setTimeout(() => {
@@ -169,6 +223,7 @@
       <!-- Invitation Details -->
       <div
         v-if="invitation && invitation.status === 'pending'"
+        data-testid="invitation-details"
         class="space-y-4">
         <div class="rounded-lg bg-gray-50 p-4 dark:bg-gray-700/50">
           <p class="mb-2 text-sm text-gray-600 dark:text-gray-400">
@@ -217,9 +272,45 @@
           </div>
         </div>
 
-        <!-- Sign In Notice -->
+        <!-- Email Mismatch Warning (authenticated but wrong email) -->
         <div
-          v-if="!authStore.isAuthenticated"
+          v-if="emailMismatch"
+          data-testid="email-mismatch-warning"
+          class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-900/20">
+          <div class="flex">
+            <OIcon
+              collection="heroicons"
+              name="exclamation-triangle"
+              class="size-5 shrink-0 text-amber-500"
+              aria-hidden="true" />
+            <div class="ml-3">
+              <p class="font-medium text-amber-800 dark:text-amber-200">
+                {{ t('web.organizations.invitations.email_mismatch_title') }}
+              </p>
+              <p class="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                {{ t('web.organizations.invitations.email_mismatch_body', {
+                  invitedEmail: invitation?.email,
+                  currentEmail: bootstrapStore.email
+                }) }}
+              </p>
+              <div class="mt-3">
+                <button
+                  type="button"
+                  @click="handleSwitchAccount"
+                  :disabled="isProcessing"
+                  data-testid="switch-account-btn"
+                  class="inline-flex items-center rounded-md bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-amber-800 dark:text-amber-100 dark:hover:bg-amber-700">
+                  {{ t('web.organizations.invitations.switch_account') }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sign In Notice (unauthenticated) -->
+        <div
+          v-else-if="!authStore.isAuthenticated"
+          data-testid="sign-in-notice"
           class="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
           <div class="flex">
             <OIcon
@@ -241,7 +332,8 @@
             type="button"
             @click="handleAccept"
             :disabled="isProcessing"
-            class="inline-flex w-full justify-center rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400 sm:w-auto">
+            data-testid="accept-invitation-btn"
+            class="inline-flex w-full justify-center rounded-md bg-brand-600 px-4 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400 sm:w-auto">
             <span v-if="!isProcessing">
               {{ t('web.organizations.invitations.accept_invitation') }}
             </span>
@@ -251,6 +343,7 @@
             type="button"
             @click="handleDecline"
             :disabled="isProcessing"
+            data-testid="decline-invitation-btn"
             class="inline-flex w-full justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-100 dark:ring-gray-600 dark:hover:bg-gray-600 sm:w-auto">
             {{ t('web.organizations.invitations.decline_invitation') }}
           </button>

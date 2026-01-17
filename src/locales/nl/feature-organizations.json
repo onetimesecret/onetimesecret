@@ -105,7 +105,7 @@
         "pending_invitations": "Openstaande uitnodigingen",
         "no_pending_invitations": "Geen openstaande uitnodigingen",
         "email_address": "E-mailadres",
-        "email_placeholder": "lid@voorbeeld.com",
+        "email_placeholder": "lid{'@'}voorbeeld.com",
         "role": "Rol",
         "send_invite": "Uitnodiging versturen",
         "invite_sent": "Uitnodiging succesvol verstuurd",

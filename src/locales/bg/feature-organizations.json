@@ -105,7 +105,7 @@
         "pending_invitations": "Чакащи покани",
         "no_pending_invitations": "Няма чакащи покани",
         "email_address": "Имейл адрес",
-        "email_placeholder": "член@example.com",
+        "email_placeholder": "член{'@'}example.com",
         "role": "Роля",
         "send_invite": "Изпрати покана",
         "invite_sent": "Поканата е изпратена успешно",

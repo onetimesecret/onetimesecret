@@ -105,7 +105,7 @@
         "pending_invitations": "الدعوات المعلقة",
         "no_pending_invitations": "لا توجد دعوات معلقة",
         "email_address": "عنوان البريد الإلكتروني",
-        "email_placeholder": "member@example.com",
+        "email_placeholder": "member{'@'}example.com",
         "role": "الدور",
         "send_invite": "إرسال الدعوة",
         "invite_sent": "تم إرسال الدعوة بنجاح",

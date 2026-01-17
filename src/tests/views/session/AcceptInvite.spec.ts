@@ -244,7 +244,10 @@ describe('AcceptInvite', () => {
 
       expect(routerPushSpy).toHaveBeenCalledWith({
         name: 'Sign In',
-        query: { redirect: '/invite/test-token-123' },
+        query: {
+          email: mockInvitation.email,
+          redirect: '/invite/test-token-123',
+        },
       });
     });
   });

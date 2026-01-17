@@ -71,9 +71,7 @@ export function useMembersManager() {
         return router.push({ name: 'NotFound' });
       }
       error.value = err;
-      if (err.message) {
-        notifications.show(err.message, 'error');
-      }
+      // Note: notification is already handled by the notify handler above
     },
   };
 

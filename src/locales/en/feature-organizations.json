@@ -110,7 +110,7 @@
         "pending_invitations": "Pending Invitations",
         "no_pending_invitations": "No pending invitations",
         "email_address": "Email Address",
-        "email_placeholder": "member@example.com",
+        "email_placeholder": "member{'@'}example.com",
         "role": "Role",
         "send_invite": "Send Invitation",
         "invite_sent": "Invitation sent successfully",
@@ -150,7 +150,13 @@
         "must_sign_in": "Please sign in to accept this invitation",
         "loading_invitation": "Loading invitation details",
         "upgrade_to_invite": "Upgrade your plan to invite team members",
-        "upgrade_prompt": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization."
+        "upgrade_prompt": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization.",
+        "email_mismatch_title": "Wrong Account",
+        "email_mismatch_body": "This invitation was sent to {invitedEmail}, but you're signed in as {currentEmail}.",
+        "switch_account": "Sign In with Different Account",
+        "expires_in_days": "{days}d left",
+        "expires_in_hours": "{hours}h left",
+        "expires_soon": "Expires soon"
       }
     }
   }

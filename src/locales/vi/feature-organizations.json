@@ -105,7 +105,7 @@
         "pending_invitations": "Lời mời đang chờ",
         "no_pending_invitations": "Không có lời mời đang chờ",
         "email_address": "Địa chỉ email",
-        "email_placeholder": "thanhvien@example.com",
+        "email_placeholder": "thanhvien{'@'}example.com",
         "role": "Vai trò",
         "send_invite": "Gửi lời mời",
         "invite_sent": "Đã gửi lời mời thành công",

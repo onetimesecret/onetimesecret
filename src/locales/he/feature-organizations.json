@@ -105,7 +105,7 @@
         "pending_invitations": "הזמנות ממתינות",
         "no_pending_invitations": "אין הזמנות ממתינות",
         "email_address": "כתובת דוא״ל",
-        "email_placeholder": "member@example.com",
+        "email_placeholder": "member{'@'}example.com",
         "role": "תפקיד",
         "send_invite": "שליחת הזמנה",
         "invite_sent": "ההזמנה נשלחה בהצלחה",

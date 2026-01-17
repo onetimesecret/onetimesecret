@@ -395,7 +395,7 @@
     "text": "E-posta Adresi"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "uye@example.com"
+    "text": "uye{'@'}example.com"
   },
   "web.organizations.invitations.role": {
     "text": "Rol"

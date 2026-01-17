@@ -285,7 +285,7 @@
     "text": "E-mailová adresa"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "clen@example.com"
+    "text": "clen{'@'}example.com"
   },
   "web.organizations.invitations.role": {
     "text": "Role"

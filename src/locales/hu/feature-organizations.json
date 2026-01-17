@@ -105,7 +105,7 @@
         "pending_invitations": "Függő meghívók",
         "no_pending_invitations": "Nincsenek függő meghívók",
         "email_address": "E-mail cím",
-        "email_placeholder": "tag@pelda.hu",
+        "email_placeholder": "tag{'@'}pelda.hu",
         "role": "Szerepkör",
         "send_invite": "Meghívó küldése",
         "invite_sent": "Meghívó sikeresen elküldve",

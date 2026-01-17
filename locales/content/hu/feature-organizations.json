@@ -285,7 +285,7 @@
     "text": "E-mail cím"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "tag@pelda.hu"
+    "text": "tag{'@'}pelda.hu"
   },
   "web.organizations.invitations.role": {
     "text": "Szerepkör"

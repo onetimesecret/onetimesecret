@@ -105,7 +105,7 @@
         "pending_invitations": "Čakajoča povabila",
         "no_pending_invitations": "Ni čakajočih povabil",
         "email_address": "E-poštni naslov",
-        "email_placeholder": "clan@primer.com",
+        "email_placeholder": "clan{'@'}primer.com",
         "role": "Vloga",
         "send_invite": "Pošlji povabilo",
         "invite_sent": "Povabilo uspešno poslano",

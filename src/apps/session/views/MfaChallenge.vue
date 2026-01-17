@@ -8,11 +8,23 @@
   import { useAuth } from '@/shared/composables/useAuth';
   import { useMfa } from '@/shared/composables/useMfa';
   import { useAuthStore } from '@/shared/stores/authStore';
-  import { ref, onMounted } from 'vue';
-  import { useRouter } from 'vue-router';
+  import { isValidInternalPath } from '@/utils/redirect';
+  import { ref, onMounted, computed } from 'vue';
+  import { useRoute, useRouter } from 'vue-router';
 
   const { t } = useI18n();
+  const route = useRoute();
   const router = useRouter();
+
+  /**
+   * Gets the redirect path from query params if valid.
+   * Security: Only allows internal paths to prevent open redirect attacks.
+   */
+  const redirectPath = computed(() => {
+    const redirect = route.query.redirect;
+    if (typeof redirect !== 'string') return null;
+    return isValidInternalPath(redirect) ? redirect : null;
+  });
   const authStore = useAuthStore();
   const { verifyOtp, verifyRecoveryCode, fetchMfaStatus, isLoading, error, clearError } = useMfa();
   const { logout } = useAuth();
@@ -69,7 +81,10 @@
       loggingService.debug('[MfaChallenge] Setting authenticated=true');
       await authStore.setAuthenticated(true);
       loggingService.debug('[MfaChallenge] After setAuthenticated - auth complete');
-      router.push('/');
+      // Redirect to saved path or dashboard
+      const destination = redirectPath.value || '/';
+      loggingService.debug('[MfaChallenge] Redirecting to', { destination });
+      router.push(destination);
     } else {
       // Clear input on error
       loggingService.debug('[MfaChallenge] OTP failed, clearing input');
@@ -104,7 +119,9 @@
     if (success) {
       // Update auth state and navigate
       await authStore.setAuthenticated(true);
-      router.push('/');
+      // Redirect to saved path or dashboard
+      const destination = redirectPath.value || '/';
+      router.push(destination);
     } else {
       // Clear input on error
       recoveryCode.value = '';
@@ -114,9 +131,9 @@
   // Handle cancel - logout and return to signin
   const handleCancel = async () => {
     clearError();
-    await logout();
-    await authStore.setAuthenticated(false);
-    router.push('/signin');
+    // Pass the redirect URL to logout - it handles the navigation via window.location.href
+    await logout('/signin');
+    // No router.push needed - logout handles the redirect
   };
 </script>
 

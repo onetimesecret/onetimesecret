@@ -241,8 +241,8 @@ delete "/api/organizations/#{@org.extid}/members/#{@member2.extid}",
   nil,
   { 'rack.session' => @owner_session, 'HTTP_ACCEPT' => 'application/json' }
 resp = JSON.parse(last_response.body)
-[last_response.status, resp['removed']]
-#=> [200, true]
+[last_response.status, resp['deleted'], resp['member_extid'] == @member2.extid]
+#=> [200, true, true]
 
 ## DELETE - Verify member was actually removed
 @org.member?(@member2)
@@ -274,8 +274,8 @@ delete "/api/organizations/#{@org.extid}/members/#{@admin.extid}",
   nil,
   { 'rack.session' => @owner_session, 'HTTP_ACCEPT' => 'application/json' }
 resp = JSON.parse(last_response.body)
-[last_response.status, resp['removed']]
-#=> [200, true]
+[last_response.status, resp['deleted'], resp['member_extid'] == @admin.extid]
+#=> [200, true, true]
 
 ## DELETE - Outsider cannot remove members
 delete "/api/organizations/#{@org.extid}/members/#{@member.extid}",

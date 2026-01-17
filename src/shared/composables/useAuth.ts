@@ -6,6 +6,7 @@ import {
   type AsyncHandlerOptions,
 } from '@/shared/composables/useAsyncHandler';
 import { loggingService } from '@/services/logging.service';
+import { isValidInternalPath } from '@/utils/redirect';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import {
   isAuthError,
@@ -94,6 +95,20 @@ export function useAuth() {
   const csrfStore = useCsrfStore();
   const notificationsStore = useNotificationsStore();
   const organizationStore = useOrganizationStore();
+
+  // Alias for backward compatibility - uses shared utility from @/utils/redirect
+  const isValidRedirect = isValidInternalPath;
+
+  /**
+   * Gets the redirect path from query params if valid.
+   *
+   * @returns The redirect path if valid, undefined otherwise
+   */
+  function getRedirectParam(): string | undefined {
+    const redirect = route.query.redirect;
+    const redirectPath = typeof redirect === 'string' ? redirect : undefined;
+    return isValidRedirect(redirectPath) ? redirectPath : undefined;
+  }
 
   /**
    * Extracts billing-related query params from the current route.
@@ -342,7 +357,7 @@ export function useAuth() {
 
       const validated = loginResponseSchema.parse(response.data);
 
-      console.log('[useAuth] Login response:', {
+      loggingService.debug('[useAuth] Login response:', {
         data: response.data,
         validated: validated,
         hasMfaRequired: 'mfa_required' in response.data,
@@ -370,7 +385,12 @@ export function useAuth() {
         bootstrapStore.update({ awaiting_mfa: true, authenticated: false });
 
         // Redirect to MFA verification - guard will allow access since awaiting_mfa is set
-        await router.push('/mfa-verify');
+        // Preserve redirect param so MFA flow can complete the redirect after verification
+        const redirectPath = getRedirectParam();
+        await router.push({
+          path: '/mfa-verify',
+          query: redirectPath ? { redirect: redirectPath } : undefined,
+        });
         return false; // Not fully logged in yet
       }
 
@@ -382,6 +402,14 @@ export function useAuth() {
       const redirected = await handleBillingRedirect(validated);
       if (redirected) {
         return true; // Redirected to billing plans or overview
+      }
+
+      // Check for redirect param (e.g., from invitation flow)
+      const redirectPath = getRedirectParam();
+      if (redirectPath) {
+        loggingService.debug('[useAuth] Redirecting to saved path after login', { redirectPath });
+        await router.push(redirectPath);
+        return true;
       }
 
       await router.push('/');
@@ -429,16 +457,23 @@ export function useAuth() {
       // User needs to either verify email or sign in
       notificationsStore.show(validated.success, 'success', 'top');
 
-      // Preserve billing params when redirecting to signin
-      // so the subsequent login can pick them up for billing redirect
+      // Build query params for signin redirect
+      // Preserve billing params and redirect path for subsequent login
+      const redirectPath = getRedirectParam();
+      const query: Record<string, string> = {};
+
       if (billingParams.product && billingParams.interval) {
-        await router.push({
-          path: '/signin',
-          query: { product: billingParams.product, interval: billingParams.interval },
-        });
-      } else {
-        await router.push('/signin');
+        query.product = billingParams.product;
+        query.interval = billingParams.interval;
       }
+      if (redirectPath) {
+        query.redirect = redirectPath;
+      }
+
+      await router.push({
+        path: '/signin',
+        query: Object.keys(query).length > 0 ? query : undefined,
+      });
       return true;
     });
 
@@ -448,9 +483,10 @@ export function useAuth() {
   /**
    * Logs out the current user
    *
+   * @param redirectTo - Optional path to redirect to after logout (must be a valid internal path)
    * @returns true if logout successful
    */
-  async function logout(): Promise<boolean> {
+  async function logout(redirectTo?: string): Promise<boolean> {
     clearErrors();
 
     const result = await wrap(async () => {
@@ -468,7 +504,9 @@ export function useAuth() {
       await authStore.logout();
 
       // Force page reload to fetch fresh unauthenticated state from backend
-      window.location.href = '/';
+      // Validate redirect URL to prevent open redirect attacks
+      const safeRedirect = isValidRedirect(redirectTo) ? redirectTo : '/';
+      window.location.href = safeRedirect;
       return true;
     });
 

@@ -412,11 +412,31 @@ const handleRevokeInvitation = async (token: string) => {
   }
 };
 
-const _formatDate = (timestamp: number): string => new Date(timestamp * 1000).toLocaleDateString(undefined, {
+const formatDate = (timestamp: number): string => new Date(timestamp * 1000).toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
   });
+
+const formatTimeRemaining = (expiresAt: number): string => {
+  const now = Math.floor(Date.now() / 1000);
+  const remaining = expiresAt - now;
+
+  if (remaining <= 0) {
+    return t('web.organizations.invitations.status.expired');
+  }
+
+  const days = Math.floor(remaining / 86400);
+  const hours = Math.floor((remaining % 86400) / 3600);
+
+  if (days > 0) {
+    return t('web.organizations.invitations.expires_in_days', { days });
+  } else if (hours > 0) {
+    return t('web.organizations.invitations.expires_in_hours', { hours });
+  } else {
+    return t('web.organizations.invitations.expires_soon');
+  }
+};
 
 const canManageMembers = computed(() => {
   if (!organization.value) return false;
@@ -479,17 +499,17 @@ watch(activeTab, async (newTab) => {
         <div class="flex items-center gap-3">
           <router-link
             to="/org"
-            class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            class="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             :title="t('web.organizations.title')">
             <OIcon
               collection="heroicons"
               name="arrow-left"
-              class="size-4"
+              class="size-5"
               aria-hidden="true" />
+            <h1 class="m-0 text-xl font-brand font-semibold text-gray-900 dark:text-white">
+              {{ organization?.display_name || t('web.COMMON.loading') }}
+            </h1>
           </router-link>
-          <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
-            {{ organization?.display_name || t('web.COMMON.loading') }}
-          </h1>
         </div>
       </div>
 
@@ -695,7 +715,7 @@ watch(activeTab, async (newTab) => {
                 <button
                   type="submit"
                   :disabled="!isDirty || isSaving"
-                  class="rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
+                  class="rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
                   <span v-if="!isSaving">{{ t('web.COMMON.save_changes') }}</span>
                   <span v-else>{{ t('web.COMMON.saving') }}</span>
                 </button>
@@ -842,7 +862,7 @@ watch(activeTab, async (newTab) => {
                     <button
                       type="submit"
                       :disabled="isInviting || !inviteFormData.email"
-                      class="rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
+                      class="rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
                       {{ isInviting ? t('web.COMMON.processing') : t('web.organizations.invitations.send_invite') }}
                     </button>
                   </div>
@@ -891,24 +911,33 @@ watch(activeTab, async (newTab) => {
                 <div
                   v-for="invitation in invitations"
                   :key="invitation.id"
-                  class="flex items-center justify-between rounded-md bg-gray-50 px-3 py-2 dark:bg-gray-700/50">
-                  <div class="flex items-center gap-3">
-                    <span class="text-sm text-gray-900 dark:text-white">{{ invitation.email }}</span>
-                    <span class="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-                      {{ t('web.organizations.invitations.status.pending') }}
-                    </span>
+                  class="flex items-center justify-between rounded-md bg-gray-50 px-4 py-3 dark:bg-gray-700/50">
+                  <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{ invitation.email }}</span>
+                    <div class="flex items-center gap-2">
+                      <span class="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+                        {{ t('web.organizations.invitations.status.pending') }}
+                      </span>
+                      <span class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ t('web.organizations.invitations.invited_at') }} {{ formatDate(invitation.invited_at) }}
+                      </span>
+                      <span class="text-xs text-gray-500 dark:text-gray-400">·</span>
+                      <span class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ formatTimeRemaining(invitation.expires_at) }}
+                      </span>
+                    </div>
                   </div>
                   <div v-if="invitation.token" class="flex gap-2">
                     <button
                       type="button"
                       @click="handleResendInvitation(invitation.token!)"
-                      class="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                      class="cursor-pointer rounded px-2 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-1 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-100 dark:focus:ring-offset-gray-800">
                       {{ t('web.organizations.invitations.resend') }}
                     </button>
                     <button
                       type="button"
                       @click="handleRevokeInvitation(invitation.token!)"
-                      class="text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                      class="cursor-pointer rounded px-2 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300 dark:focus:ring-offset-gray-800">
                       {{ t('web.organizations.invitations.revoke') }}
                     </button>
                   </div>
@@ -934,7 +963,7 @@ watch(activeTab, async (newTab) => {
               </div>
               <router-link
                 :to="`/org/${orgId}/domains/add`"
-                class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
+                class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:bg-brand-500 dark:hover:bg-brand-400">
                 <OIcon
                   collection="heroicons"
                   name="plus"
@@ -1125,7 +1154,7 @@ watch(activeTab, async (newTab) => {
                   <div class="flex flex-wrap gap-3 pt-4">
                     <router-link
                       :to="`/billing/${orgId}/plans`"
-                      class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
+                      class="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
                       <OIcon
                         collection="heroicons"
                         name="arrow-up-circle"
@@ -1171,7 +1200,7 @@ watch(activeTab, async (newTab) => {
                   </p>
                   <router-link
                     :to="`/billing/${orgId}/plans`"
-                    class="mt-4 inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
+                    class="mt-4 inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 dark:bg-brand-500 dark:hover:bg-brand-400">
                     <OIcon
                       collection="heroicons"
                       name="arrow-up-circle"

@@ -1,0 +1,640 @@
+# docs/test-plans/issues/2394-magic-link-invite-flow.yaml
+---
+# LLM-Optimized Test Cases: Single-Field Magic Link Invite Flow
+# Schema version: 1.0.0
+#
+# Tests the enhanced organization invitation flow that uses single-field
+# email entry with magic links. This eliminates account enumeration while
+# providing better UX for new users.
+
+suite:
+  id: magic-link-invite-flow
+  name: Single-Field Magic Link Invitation Flow
+  feature: Organization invitations with magic link authentication
+  issue: https://github.com/onetimesecret/onetimesecret/issues/2394
+  tags: [organizations, invitations, auth, magic-link, security]
+  notes: |
+    This flow replaces the traditional "Sign in to accept" pattern with a
+    single email field + magic link. The key insight is that account existence
+    is checked server-side when the magic link is clicked, preventing enumeration.
+
+# Flow Overview:
+# 1. User clicks invite link → sees invite details + email field (prefilled)
+# 2. User submits email → receives magic link email
+# 3. User clicks magic link → server checks if account exists
+# 4. If account exists → signed in, redirect to invite page
+# 5. If no account → show "Set your password" page, create account on submit
+# 6. After auth → redirect to invite page, user can Accept/Decline
+
+definitions:
+  users:
+    unauthenticated: &user_unauth
+      auth: logged_out
+      description: User not signed in
+
+    authenticated_matching: &user_auth_match
+      auth: logged_in
+      description: User signed in with email matching invitation
+
+    authenticated_wrong: &user_auth_wrong
+      auth: logged_in
+      description: User signed in with different email than invitation
+
+    org_owner: &user_owner
+      auth: logged_in
+      user_type: owner
+      description: Organization owner who sends invitations
+
+  fixtures:
+    organization: &fixture_org
+      type: organization
+      props:
+        name: "Acme Corporation"
+
+    invitation_pending: &fixture_invite
+      type: organization_invitation
+      props:
+        email: invited@example.com
+        role: member
+        status: pending
+        expires_in_days: 7
+
+    invitation_expired: &fixture_invite_expired
+      type: organization_invitation
+      props:
+        email: invited@example.com
+        role: member
+        status: expired
+
+tests:
+  # ===========================================================================
+  # SECTION 1: Invite Page - Email Entry
+  # ===========================================================================
+
+  - id: TC-MLI-001
+    intent: Unauthenticated user sees invite details with email entry field
+    setup:
+      <<: *user_unauth
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /invite/{{invite.token}}
+    action:
+      type: none
+    verify:
+      - Invitation details displayed (org name, role, inviter)
+      - Single email input field visible
+      - Email field prefilled with invited email address
+      - '"Continue" or "Continue with email" button visible'
+      - No separate Sign in / Sign up links
+      - selector: "[data-testid='invite-email-input']"
+        assertion: visible
+      - selector: "[data-testid='invite-continue-button']"
+        assertion: visible
+    priority: critical
+    type: functional
+    covers: [AcceptInvite.vue, magic-link-flow]
+
+  - id: TC-MLI-002
+    intent: Email field is prefilled with invited email address
+    setup:
+      <<: *user_unauth
+      fixtures:
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /invite/{{invite.token}}
+    action:
+      type: none
+    verify:
+      - Email input contains invited email (invited@example.com)
+      - Email field is editable (user can change if needed)
+      - Visual indication that this is the expected email
+      - selector: "[data-testid='invite-email-input']"
+        assertion: contains
+        value: "invited@example.com"
+    priority: high
+    type: functional
+    covers: [AcceptInvite.vue, email-prefill]
+
+  - id: TC-MLI-003
+    intent: Submitting email sends magic link with invite context
+    setup:
+      <<: *user_unauth
+      fixtures:
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /invite/{{invite.token}}
+    action:
+      type: submit
+      element: "[data-testid='invite-continue-button']"
+      data:
+        email: invited@example.com
+    verify:
+      - Success message displays "Check your email"
+      - Message explains to click link in email
+      - No account existence information revealed
+      - Email sent to invited@example.com
+      - Email contains link back to invite flow
+      - selector: "[data-testid='magic-link-sent-message']"
+        assertion: visible
+      - api: GET /api/v2/test/emails/last
+        assert:
+          to: "invited@example.com"
+          subject_contains: "invitation"
+      - api: GET /api/v2/test/emails/last
+        assert:
+          body_contains: "/invite/"
+    priority: critical
+    type: functional
+    covers: [magic-link-api, invite-context]
+
+  - id: TC-MLI-004
+    intent: Magic link email has invite-specific messaging
+    setup:
+      <<: *user_unauth
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /invite/{{invite.token}}
+    action:
+      type: submit
+      element: Continue button
+      data:
+        email: invited@example.com
+    verify:
+      - Email subject mentions organization name
+      - Email body says "Join {{org.name}} on Onetime Secret"
+      - Call-to-action button is prominent
+      - Email explains what happens after clicking
+      - Footer mentions "If you don't have an account, you'll set your password"
+    priority: high
+    type: functional
+    covers: [email-template, invite-context]
+    notes: Email template should be distinct from regular magic link emails
+
+  # ===========================================================================
+  # SECTION 2: Magic Link Click - Existing Account
+  # ===========================================================================
+
+  - id: TC-MLI-010
+    intent: Existing user clicking magic link is signed in and redirected to invite
+    setup:
+      <<: *user_unauth
+      state:
+        existing_account: true
+        account_email: invited@example.com
+      fixtures:
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /auth/magic-link/{{magic_token}}
+    action:
+      type: navigate
+    verify:
+      - User is signed in automatically
+      - Redirects to /invite/{{invite.token}}
+      - Accept/Decline buttons now visible
+      - No password prompt shown
+      - Session is established
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: true
+          email: "invited@example.com"
+      - url: matches
+        pattern: "/invite/{{invite.token}}"
+      - selector: "[data-testid='accept-invitation-button']"
+        assertion: visible
+      - selector: "[data-testid='user-session-indicator']"
+        assertion: visible
+    priority: critical
+    type: functional
+    covers: [magic-link-verification, session-creation]
+
+  - id: TC-MLI-011
+    intent: After magic link signin, user can accept invitation immediately
+    setup:
+      <<: *user_unauth
+      state:
+        existing_account: true
+      fixtures:
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /auth/magic-link/{{magic_token}}
+    action:
+      type: click
+      element: "[data-testid='accept-invitation-button']"
+    verify:
+      - User becomes organization member
+      - Success message displayed
+      - Redirects to organization dashboard
+      - api: GET /api/v2/organizations/{{org.extid}}/members
+        assert:
+          contains_email: "invited@example.com"
+          role: "member"
+    postconditions:
+      - User is member of organization with invited role
+      - api: GET /api/v2/organizations/{{org.extid}}/members
+        assert:
+          contains_email: "invited@example.com"
+    priority: critical
+    type: functional
+    covers: [invitation-acceptance, org-membership]
+
+  # ===========================================================================
+  # SECTION 3: Magic Link Click - New Account
+  # ===========================================================================
+
+  - id: TC-MLI-020
+    intent: New user clicking magic link sees "Set your password" page
+    setup:
+      <<: *user_unauth
+      state:
+        existing_account: false
+      fixtures:
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /auth/magic-link/{{magic_token}}
+    action:
+      type: navigate
+    verify:
+      - Page title is "Set your password" or similar
+      - Email is displayed (read-only) showing invited email
+      - Password field visible
+      - Confirm password field visible (optional based on design)
+      - Submit button visible
+      - No account created yet (created on submit)
+      - selector: "[data-testid='set-password-form']"
+        assertion: visible
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: false
+      - api: GET /api/v2/admin/customers?email=invited@example.com
+        assert:
+          count: 0
+    priority: critical
+    type: functional
+    covers: [magic-link-verification, account-creation-flow]
+
+  - id: TC-MLI-021
+    intent: Submitting password creates account and redirects to invite
+    setup:
+      <<: *user_unauth
+      state:
+        existing_account: false
+      fixtures:
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /auth/set-password/{{magic_token}}
+    action:
+      type: submit
+      element: Set password form
+      data:
+        password: SecurePassword123!
+    verify:
+      - Account is created with invited email
+      - User is signed in automatically
+      - Redirects to /invite/{{invite.token}}
+      - Accept/Decline buttons visible
+      - Email is verified (magic link click proves ownership)
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: true
+          email: "invited@example.com"
+          email_verified: true
+      - url: matches
+        pattern: "/invite/{{invite.token}}"
+    postconditions:
+      - New user account exists
+      - User session established
+      - Email marked as verified
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: true
+          email_verified: true
+    priority: critical
+    type: functional
+    covers: [account-creation, session-creation, email-verification]
+
+  - id: TC-MLI-022
+    intent: Password validation applies on set password page
+    setup:
+      <<: *user_unauth
+      state:
+        existing_account: false
+      fixtures:
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /auth/set-password/{{magic_token}}
+    action:
+      type: submit
+      element: Set password form
+      data:
+        password: weak
+    verify:
+      - Form shows password validation error
+      - Account is NOT created
+      - User remains on set password page
+      - Error explains password requirements
+    priority: high
+    type: error
+    covers: [password-validation, account-creation]
+
+  # ===========================================================================
+  # SECTION 4: Already Authenticated Users
+  # ===========================================================================
+
+  - id: TC-MLI-030
+    intent: Authenticated user with matching email sees Accept/Decline directly
+    setup:
+      <<: *user_auth_match
+      fixtures:
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /invite/{{invite.token}}
+    action:
+      type: none
+    verify:
+      - No email entry field shown
+      - Accept Invitation button visible and enabled
+      - Decline Invitation button visible
+      - Invitation details displayed
+      - selector: "[data-testid='accept-invitation-button']"
+        assertion: visible
+    priority: high
+    type: functional
+    covers: [AcceptInvite.vue, authenticated-flow]
+
+  - id: TC-MLI-031
+    intent: Authenticated user with wrong email sees mismatch warning
+    setup:
+      <<: *user_auth_wrong
+      state:
+        current_email: wrong@example.com
+      fixtures:
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /invite/{{invite.token}}
+    action:
+      type: none
+    verify:
+      - Warning banner displayed (amber/yellow styling)
+      - Shows "Wrong Account" title
+      - Explains email mismatch (invited vs current)
+      - '"Switch Account" button visible'
+      - Accept button NOT visible or disabled
+      - selector: "[data-testid='email-mismatch-warning']"
+        assertion: visible
+    priority: high
+    type: functional
+    covers: [AcceptInvite.vue, email-mismatch]
+
+  - id: TC-MLI-032
+    intent: Switch Account logs out and shows email entry
+    setup:
+      <<: *user_auth_wrong
+      fixtures:
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /invite/{{invite.token}}
+    action:
+      type: click
+      element: "[data-testid='switch-account-button']"
+    verify:
+      - User is logged out
+      - Page shows email entry field
+      - Email prefilled with invited email
+      - Can proceed with magic link flow
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: false
+      - selector: "[data-testid='invite-email-input']"
+        assertion: visible
+    postconditions:
+      - Session cleared
+      - User unauthenticated
+      - api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: false
+    priority: high
+    type: functional
+    covers: [AcceptInvite.vue, account-switching]
+
+  # ===========================================================================
+  # SECTION 5: Edge Cases & Security
+  # ===========================================================================
+
+  - id: TC-MLI-040
+    intent: Changing prefilled email still works (sends to entered email)
+    setup:
+      <<: *user_unauth
+      fixtures:
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /invite/{{invite.token}}
+    action:
+      type: submit
+      element: Continue button
+      data:
+        email: different@example.com
+    verify:
+      - Magic link sent to different@example.com (not invited email)
+      - Same "check your email" message shown
+      - No indication whether this email matches invitation
+      - When user clicks link, will see mismatch on return
+    priority: medium
+    type: edge
+    covers: [email-flexibility, security]
+    notes: |
+      User might enter different email if forwarded link or has multiple accounts.
+      Mismatch is detected when they return after clicking magic link.
+
+  - id: TC-MLI-041
+    intent: Expired invitation shows clear error message
+    setup:
+      <<: *user_unauth
+      fixtures:
+        - <<: *fixture_invite_expired
+          capture_as: invite
+    target: /invite/{{invite.token}}
+    action:
+      type: none
+    verify:
+      - Error message explains invitation expired
+      - No email entry field shown
+      - No Accept/Decline buttons
+      - Suggests contacting organization admin
+      - selector: "[data-testid='invite-expired-error']"
+        assertion: visible
+      - selector: "[data-testid='invite-email-input']"
+        assertion: not_visible
+      - selector: "[data-testid='accept-invitation-button']"
+        assertion: not_visible
+      - selector: "[data-testid='decline-invitation-button']"
+        assertion: not_visible
+    priority: high
+    type: error
+    covers: [AcceptInvite.vue, expired-handling]
+
+  - id: TC-MLI-042
+    intent: Invalid invitation token shows 404 or error
+    setup:
+      <<: *user_unauth
+    target: /invite/invalid-token-12345
+    action:
+      type: none
+    verify:
+      - Error page or message displayed
+      - No sensitive information leaked
+      - Clear message that invitation not found
+    priority: high
+    type: error
+    covers: [AcceptInvite.vue, invalid-token]
+
+  - id: TC-MLI-043
+    intent: Magic link token expires after use
+    setup:
+      <<: *user_unauth
+      state:
+        existing_account: true
+      fixtures:
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /auth/magic-link/{{magic_token}}
+    action:
+      type: navigate
+      data:
+        steps: [Click magic link once, Try to click same link again]
+    verify:
+      - First click succeeds (signs in, redirects)
+      - Second click shows token expired/used error
+      - Cannot reuse magic link token
+      - step: first_click
+        api: GET /api/v2/bootstrap/me
+        assert:
+          authenticated: true
+      - step: second_click
+        selector: "[data-testid='magic-link-expired-error']"
+        assertion: visible
+    priority: high
+    type: security
+    covers: [magic-link-security, token-invalidation]
+
+  - id: TC-MLI-044
+    intent: No account enumeration via magic link submission
+    setup:
+      <<: *user_unauth
+      fixtures:
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /invite/{{invite.token}}
+    action:
+      type: submit
+      element: Continue button
+      data:
+        email: nonexistent@example.com
+    verify:
+      - Same success message as for existing accounts
+      - Same "check your email" response
+      - No indication whether account exists
+      - Response timing is consistent (no timing attack)
+      - selector: "[data-testid='magic-link-sent-message']"
+        assertion: visible
+      - timing:
+          measure: response_time
+          compare_with: existing_account_response
+          tolerance_ms: 100
+    priority: critical
+    severity: blocker
+    type: security
+    covers: [account-enumeration-prevention]
+    notes: |
+      This is the key security property. Attacker cannot determine if an
+      email has an account by observing the response to magic link request.
+
+  - id: TC-MLI-045
+    intent: Gmail alias normalization detects matching accounts
+    setup:
+      <<: *user_unauth
+      state:
+        existing_account: true
+        account_email: user@gmail.com
+      fixtures:
+        - type: organization_invitation
+          props:
+            email: user+invite@gmail.com
+            status: pending
+          capture_as: invite
+    target: /invite/{{invite.token}}
+    action:
+      type: submit
+      element: Continue button
+      data:
+        email: user+invite@gmail.com
+    verify:
+      - Magic link recognizes this as existing user@gmail.com account
+      - After clicking link, user is signed in (not asked to set password)
+      - Email comparison normalizes + suffixes
+    priority: medium
+    type: edge
+    covers: [email-normalization, gmail-aliases]
+
+  # ===========================================================================
+  # SECTION 6: Decline Flow
+  # ===========================================================================
+
+  - id: TC-MLI-060
+    intent: Unauthenticated user can decline without signing in
+    setup:
+      <<: *user_unauth
+      fixtures:
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /invite/{{invite.token}}
+    action:
+      type: click
+      element: "[data-testid='decline-invitation-button']"
+    verify:
+      - Decline button visible even without auth
+      - Decline action succeeds
+      - Invitation marked as declined
+      - Redirects to home page
+      - No account required to decline
+      - api: GET /api/v2/invitations/{{invite.extid}}
+        assert:
+          status: "declined"
+      - url: matches
+        pattern: "/"
+    priority: medium
+    type: functional
+    covers: [invitation-decline, unauthenticated-decline]
+    notes: |
+      Declining doesn't require authentication. This allows users who
+      received invitation by mistake to decline without creating account.
+
+  - id: TC-MLI-061
+    intent: Declining shows confirmation or immediate success
+    setup:
+      <<: *user_unauth
+      fixtures:
+        - <<: *fixture_invite
+          capture_as: invite
+    target: /invite/{{invite.token}}
+    action:
+      type: click
+      element: Decline Invitation button
+    verify:
+      - Either confirmation dialog shown OR immediate decline
+      - Success message after decline
+      - Invitation no longer valid
+      - Redirects away from invite page
+      - action: navigate_to
+        target: /invite/{{invite.token}}
+        expect:
+          selector: "[data-testid='invite-invalid-error']"
+          assertion: visible
+    priority: medium
+    type: functional
+    covers: [invitation-decline, ux-feedback]

@@ -288,7 +288,7 @@
     "text": "Email Address"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "member@example.com"
+    "text": "member{'@'}example.com"
   },
   "web.organizations.invitations.role": {
     "text": "Role"
@@ -397,5 +397,35 @@
   },
   "web.organizations.invitations.upgrade_prompt": {
     "text": "Team member invitations require a plan with team management. Upgrade to add collaborators to your organization."
+  },
+  "web.organizations.paid_badge": {
+    "text": "Pro"
+  },
+  "web.organizations.member_count": {
+    "text": "{count} member | {count} members"
+  },
+  "web.organizations.domain_count": {
+    "text": "{count} domain | {count} domains"
+  },
+  "web.organizations.tabs.domains": {
+    "text": "Domains"
+  },
+  "web.organizations.invitations.email_mismatch_title": {
+    "text": "Wrong Account"
+  },
+  "web.organizations.invitations.email_mismatch_body": {
+    "text": "This invitation was sent to {invitedEmail}, but you're signed in as {currentEmail}."
+  },
+  "web.organizations.invitations.switch_account": {
+    "text": "Sign In with Different Account"
+  },
+  "web.organizations.invitations.expires_in_days": {
+    "text": "{days}d left"
+  },
+  "web.organizations.invitations.expires_in_hours": {
+    "text": "{hours}h left"
+  },
+  "web.organizations.invitations.expires_soon": {
+    "text": "Expires soon"
   }
 }

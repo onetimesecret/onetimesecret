@@ -285,7 +285,7 @@
     "text": "Wāhitau Īmēra"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "mema@tauira.com"
+    "text": "mema{'@'}tauira.com"
   },
   "web.organizations.invitations.role": {
     "text": "Tūranga"

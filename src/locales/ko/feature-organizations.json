@@ -105,7 +105,7 @@
         "pending_invitations": "대기 중인 초대",
         "no_pending_invitations": "대기 중인 초대 없음",
         "email_address": "이메일 주소",
-        "email_placeholder": "member@example.com",
+        "email_placeholder": "member{'@'}example.com",
         "role": "역할",
         "send_invite": "초대 보내기",
         "invite_sent": "초대가 성공적으로 전송되었습니다",

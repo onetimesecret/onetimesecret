@@ -285,7 +285,7 @@
     "text": "Адрес электронной почты"
   },
   "web.organizations.invitations.email_placeholder": {
-    "text": "участник@пример.com"
+    "text": "участник{'@'}пример.com"
   },
   "web.organizations.invitations.role": {
     "text": "Роль"

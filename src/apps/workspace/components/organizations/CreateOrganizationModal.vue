@@ -211,7 +211,7 @@ const handleSubmit = async () => {
                   <button
                     type="submit"
                     :disabled="!isFormValid || isSubmitting"
-                    class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400 sm:col-start-2">
+                    class="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 font-brand text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400 sm:col-start-2">
                     <span v-if="!isSubmitting">{{ t('web.organizations.create') }}</span>
                     <span v-else>{{ t('web.COMMON.processing') }}</span>
                   </button>

@@ -50,7 +50,7 @@
         "pending_invitations": "Afventende invitationer",
         "no_pending_invitations": "Ingen afventende invitationer",
         "email_address": "E-mail-adresse",
-        "email_placeholder": "medlem@eksempel.dk",
+        "email_placeholder": "medlem{'@'}eksempel.dk",
         "role": "Rolle",
         "send_invite": "Send invitation",
         "invite_sent": "Invitation sendt",

@@ -60,10 +60,8 @@ module OrganizationAPI::Logic
 
       def success_data
         {
-          user_id: cust.objid,
-          organization_id: @organization.extid,
-          removed: true,
-          removed_member_id: @target_member.extid,
+          deleted: true,
+          member_extid: @target_member.extid,
         }
       end
 

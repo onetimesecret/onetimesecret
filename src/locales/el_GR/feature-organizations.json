@@ -50,7 +50,7 @@
         "pending_invitations": "Εκκρεμείς Προσκλήσεις",
         "no_pending_invitations": "Δεν υπάρχουν εκκρεμείς προσκλήσεις",
         "email_address": "Διεύθυνση Email",
-        "email_placeholder": "melos@example.com",
+        "email_placeholder": "melos{'@'}example.com",
         "role": "Ρόλος",
         "send_invite": "Αποστολή Πρόσκλησης",
         "invite_sent": "Η πρόσκληση στάλθηκε με επιτυχία",

@@ -1,3 +1,5 @@
+// docs/test-plans/schema.ts
+
 /**
  * LLM-Optimized Test Case Schema
  *
@@ -32,7 +34,16 @@ export const Priority = z.enum(['critical', 'high', 'medium', 'low']);
 export const Severity = z.enum(['blocker', 'major', 'minor', 'trivial']);
 
 /** Test classification types */
-export const TestType = z.enum(['functional', 'ui', 'error', 'integration', 'smoke', 'edge', 'accessibility']);
+export const TestType = z.enum([
+  'functional',
+  'ui',
+  'error',
+  'integration',
+  'smoke',
+  'edge',
+  'accessibility',
+  'security',
+]);
 
 // -----------------------------------------------------------------------------
 // Fixtures & Setup
@@ -89,10 +100,7 @@ export const StructuredAssertion = z.object({
 });
 
 /** Verification assertion - simple string or structured */
-export const Assertion = z.union([
-  z.string(),
-  StructuredAssertion,
-]);
+export const Assertion = z.union([z.string(), StructuredAssertion]);
 
 // -----------------------------------------------------------------------------
 // Skip Conditions
@@ -160,6 +168,16 @@ export const Suite = z.object({
   issue: z.url().optional(),
   /** Tags for categorization */
   tags: z.array(z.string()).optional(),
+  /** Suite-level priority (inherited by tests without explicit priority) */
+  priority: Priority.optional(),
+  /** Execution notes for test agents (e.g., multi-context requirements) */
+  notes: z.string().optional(),
+  /**
+   * Associated Playwright E2E spec file(s) that implement this test plan.
+   * Paths are relative to project root (e.g., "e2e/full/org-invitation-flow.spec.ts").
+   * Used to keep YAML intent docs in sync with executable tests.
+   */
+  e2e_spec: z.union([z.string(), z.array(z.string())]).optional(),
 });
 
 // -----------------------------------------------------------------------------

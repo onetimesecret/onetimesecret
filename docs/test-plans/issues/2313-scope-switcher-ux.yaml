@@ -1,3 +1,5 @@
+# docs/test-plans/issue-2313-scope-switcher-ux.yaml
+---
 # LLM-Optimized Test Cases: Scope Switcher UX
 # Converted from: e2e/qase-test-cases-scope-switcher.md
 # Schema version: 1.0.0
@@ -34,6 +36,8 @@ suite:
 #   - data-testid="domain-scope-switcher-trigger": Domain switcher button/trigger
 #   - data-testid="domain-scope-switcher-dropdown": Domain dropdown menu
 #   - data-testid="domain-scope-manage-link"     : "Manage Domains" link in dropdown
+#   - data-testid="org-option-current"           : Currently selected org in dropdown (has checkmark)
+#   - data-testid="domain-option-current"        : Currently selected domain in dropdown (has checkmark)
 #
 # General UI (from data-testid-recommendations.yaml):
 #   - data-testid="owner-warning"                : Warning banner for secret creators
@@ -345,7 +349,7 @@ tests:
       - All user's organizations are listed
       - Current organization has checkmark indicator
       - Menu has role="menu" for accessibility
-      - "Manage Organizations" link is available
+      - '"Manage Organizations" link is available'
       - selector: "[data-testid='org-scope-switcher-dropdown']"
         assertion: visible
       - selector: "[data-testid='org-scope-switcher-dropdown'][role='menu']"
@@ -361,12 +365,25 @@ tests:
     target: /dashboard
     action:
       type: click
-      element: Organization switcher trigger
+      element: "[data-testid='org-scope-switcher-trigger']"
     verify:
       - Current organization has checkmark icon on right
       - Current organization has background highlight
       - Current organization has font-weight semibold
       - Other organizations have normal styling
+      - selector: "[data-testid='org-scope-switcher-dropdown']"
+        assertion: visible
+      - selector: "[data-testid='org-option-current']"
+        assertion: visible
+      - selector: "[data-testid='org-option-current'] svg"
+        assertion: visible
+        description: Checkmark icon present
+      - selector: "[data-testid='org-option-current'][aria-current='true']"
+        assertion: exists
+      - css_property:
+          selector: "[data-testid='org-option-current']"
+          property: font-weight
+          expected: "600"
     priority: high
     type: ui
     covers: [OrganizationScopeSwitcher, selection indicator]
@@ -378,13 +395,24 @@ tests:
     target: /dashboard
     action:
       type: click
-      element: Different organization in dropdown
+      element: "[data-testid='org-scope-switcher-dropdown'] [role='menuitem']:not([aria-current='true'])"
     verify:
       - Dropdown closes
       - Switcher trigger shows new organization name
       - Page content updates to reflect new organization context
       - Organization-scoped data is refreshed
       - Domain list updates for new organization
+      - selector: "[data-testid='org-scope-switcher-dropdown']"
+        assertion: hidden
+      - selector: "[data-testid='org-scope-switcher-trigger']"
+        assertion: visible
+        description: Trigger text updated to new org name
+      - api: GET /api/v2/bootstrap/me
+        assertions:
+          - path: "record.organization.extid"
+            operator: exists
+          - path: "record.organization.name"
+            operator: not_empty
     postconditions:
       - organizationStore.currentOrganization updated
       - API calls reflect new org context
@@ -454,12 +482,25 @@ tests:
     target: /dashboard
     action:
       type: click
-      element: Different domain in dropdown
+      element: "[data-testid='domain-scope-switcher-dropdown'] [role='menuitem']:not([aria-current='true'])"
     verify:
       - Dropdown closes
       - Switcher trigger shows new domain
       - Scope indicator updates
       - localStorage domainScope key is updated
+      - selector: "[data-testid='domain-scope-switcher-dropdown']"
+        assertion: hidden
+      - selector: "[data-testid='domain-scope-switcher-trigger']"
+        assertion: visible
+      - selector: "[data-testid='domain-option-current']"
+        assertion: visible
+        description: New selection is now marked as current
+      - localStorage:
+          key: domainScope
+          assertion: exists
+      - localStorage:
+          key: domainScope
+          assertion: not_empty
     postconditions:
       - localStorage.domainScope matches selected domain
     priority: critical
@@ -536,9 +577,20 @@ tests:
     verify:
       - Element has aria-disabled="true" OR disabled attribute
       - Screen readers announce element as disabled
-      - Keyboard focus behavior is appropriate
+      - Keyboard focus behavior is appropriate (element is not focusable or announces disabled state)
       - selector: "[data-testid='domain-scope-switcher-trigger'][aria-disabled='true']"
         assertion: exists
+      - selector: "[data-testid='domain-scope-switcher-trigger']"
+        attribute: tabindex
+        expected: "-1"
+        description: Disabled element removed from tab order OR
+      - selector: "[data-testid='domain-scope-switcher-trigger'][aria-disabled='true']"
+        assertion: exists
+        description: Element announces disabled to assistive technology
+      - keyboard:
+          action: tab_to
+          target: "[data-testid='domain-scope-switcher-trigger']"
+          expected: skip_or_announce_disabled
     priority: medium
     type: accessibility
     covers: [DomainScopeSwitcher, ARIA, a11y]
@@ -579,7 +631,7 @@ tests:
       - Switcher is visible
       - Dropdown shows one organization (Personal/default)
       - Checkmark indicates current selection
-      - "Manage Organizations" link still available
+      - '"Manage Organizations" link still available'
     priority: medium
     type: edge
     covers: [OrganizationScopeSwitcher, single org user]
@@ -597,7 +649,7 @@ tests:
     verify:
       - Domain switcher is visible regardless of plan or custom domains
       - Shows canonical domain (e.g., dev.onetime.dev) as default scope
-      - Dropdown shows "Manage Domains" link for adding custom domains
+      - 'Dropdown shows "Manage Domains" link for adding custom domains'
       - selector: "[data-testid='domain-scope-switcher']"
         assertion: visible
       - selector: "[data-testid='domain-scope-switcher-dropdown']"
@@ -651,15 +703,36 @@ tests:
       state:
         org_a_domains: [domain1.com]
         org_b_domains: [domain2.com]
+        initial_org: org_a
+        initial_domain_scope: domain1.com
     target: /dashboard
     action:
       type: click
-      element: Switch to organization B
+      element: "[data-testid='org-scope-switcher-dropdown'] [data-org-id='org_b']"
     verify:
-      - If new org doesn't have previously selected domain, domain scope resets
-      - Domain scope resets to canonical or first available
-      - localStorage is updated
-      - If new org has same domain, domain scope is preserved
+      - Domain scope resets when new org lacks previously selected domain
+      - Domain scope resets to canonical or first available domain in new org
+      - localStorage is updated with new domain scope
+      - selector: "[data-testid='org-scope-switcher-trigger']"
+        assertion: contains_text
+        expected: "Org B"
+      - selector: "[data-testid='domain-scope-switcher-trigger']"
+        assertion: visible
+      - localStorage:
+          key: domainScope
+          assertion: not_equals
+          expected: domain1.com
+          description: Domain scope no longer points to unavailable domain
+      - api: GET /api/v2/bootstrap/me
+        assertions:
+          - path: "record.organization.domains"
+            operator: not_contains
+            value: domain1.com
+            description: Confirm domain1.com not available in new org
+      - selector: "[data-testid='domain-scope-switcher-trigger']"
+        assertion: not_contains_text
+        expected: domain1.com
+        description: UI no longer shows unavailable domain
     postconditions:
       - domainScope consistent with available domains
     priority: high
@@ -674,6 +747,8 @@ tests:
     intent: Organization selection persists across navigation
     setup:
       <<: *user_multi_org
+      state:
+        selected_org_extid: "{{org_extid}}"
     target: /dashboard
     action:
       type: navigate
@@ -681,9 +756,25 @@ tests:
       data:
         steps: [Note current org, Navigate to /, Navigate back to /dashboard]
     verify:
-      - Same organization is selected
-      - No flash of different organization
+      - Same organization is selected after navigation
       - State is maintained in store
+      - selector: "[data-testid='org-scope-switcher-trigger']"
+        assertion: visible
+      - api: GET /api/v2/bootstrap/me
+        assertions:
+          - path: "record.organization.extid"
+            operator: equals
+            value: "{{org_extid}}"
+            description: API confirms same organization context
+      - selector: "[data-testid='org-scope-switcher-trigger']"
+        store_text_as: org_name_before
+      - navigation:
+          to: /
+          then: /dashboard
+      - selector: "[data-testid='org-scope-switcher-trigger']"
+        assertion: text_equals
+        expected: "{{org_name_before}}"
+        description: Trigger text matches pre-navigation value
     priority: high
     type: functional
     covers: [organizationStore, state persistence]
@@ -735,6 +826,17 @@ tests:
       - Trigger has aria-label containing "organization"
       - Announces current organization name
       - Role and state are properly communicated
+      - selector: "[data-testid='org-scope-switcher-trigger']"
+        attribute: aria-label
+        assertion: contains
+        expected: organization
+      - selector: "[data-testid='org-scope-switcher-trigger']"
+        attribute: aria-haspopup
+        expected: "menu"
+      - selector: "[data-testid='org-scope-switcher-trigger']"
+        attribute: aria-expanded
+        assertion: exists
+        description: Indicates collapsed/expanded state
     priority: medium
     type: accessibility
     covers: [OrganizationScopeSwitcher, ARIA]
@@ -747,9 +849,22 @@ tests:
     action:
       type: none
     verify:
-      - Trigger has aria-label
+      - Trigger has aria-label describing domain scope
       - Announces current domain
-      - Scope concept is communicated
+      - Scope concept is communicated to assistive technology
+      - selector: "[data-testid='domain-scope-switcher-trigger']"
+        attribute: aria-label
+        assertion: exists
+      - selector: "[data-testid='domain-scope-switcher-trigger']"
+        attribute: aria-label
+        assertion: not_empty
+      - selector: "[data-testid='domain-scope-switcher-trigger']"
+        attribute: aria-haspopup
+        expected: "menu"
+      - selector: "[data-testid='domain-scope-switcher-trigger']"
+        attribute: aria-expanded
+        assertion: exists
+        description: Indicates collapsed/expanded state
     priority: medium
     type: accessibility
     covers: [DomainScopeSwitcher, ARIA]
