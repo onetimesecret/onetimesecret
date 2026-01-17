@@ -733,7 +733,10 @@ describe('useAuth - Signup Flow Billing Params', () => {
 
     await signup('test@example.com', 'password123');
 
-    // Should redirect to plain signin
-    expect(router.push).toHaveBeenCalledWith('/signin');
+    // Should redirect to plain signin (object form with no query params)
+    expect(router.push).toHaveBeenCalledWith({
+      path: '/signin',
+      query: undefined,
+    });
   });
 });
