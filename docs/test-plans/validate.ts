@@ -8,12 +8,26 @@
  *   npx tsx docs/test-plans/validate.ts --help             # Show help
  */
 
-import { readFileSync, readdirSync } from 'fs';
-import { join, basename } from 'path';
+import { readFileSync, readdirSync, statSync } from 'fs';
+import { join, relative } from 'path';
 import { parse } from 'yaml';
 import { LLMTestFile } from './schema';
 
 const TEST_PLANS_DIR = import.meta.dirname;
+
+/** Recursively find all YAML files in a directory */
+function findYamlFiles(dir: string): string[] {
+  const files: string[] = [];
+  for (const entry of readdirSync(dir)) {
+    const fullPath = join(dir, entry);
+    if (statSync(fullPath).isDirectory()) {
+      files.push(...findYamlFiles(fullPath));
+    } else if (entry.endsWith('.yaml')) {
+      files.push(fullPath);
+    }
+  }
+  return files;
+}
 
 interface ValidationResult {
   file: string;
@@ -23,7 +37,7 @@ interface ValidationResult {
 }
 
 function validateFile(filePath: string): ValidationResult {
-  const fileName = basename(filePath);
+  const fileName = relative(TEST_PLANS_DIR, filePath);
 
   try {
     const content = readFileSync(filePath, 'utf-8');
@@ -88,10 +102,8 @@ Examples:
       return join(TEST_PLANS_DIR, name);
     });
   } else {
-    // Validate all YAML files
-    files = readdirSync(TEST_PLANS_DIR)
-      .filter((f) => f.endsWith('.yaml'))
-      .map((f) => join(TEST_PLANS_DIR, f));
+    // Validate all YAML files recursively
+    files = findYamlFiles(TEST_PLANS_DIR);
   }
 
   console.log(`Validating ${files.length} test plan(s)...\n`);
