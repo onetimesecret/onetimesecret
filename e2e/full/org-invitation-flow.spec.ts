@@ -33,7 +33,7 @@
  *     pnpm test:playwright org-invitation-flow.spec.ts
  */
 
-import { test, expect, Page } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 // Check if test credentials are configured
 const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
@@ -49,11 +49,7 @@ const generateTestEmail = (prefix: string) =>
 /**
  * Authenticate user via login form
  */
-async function loginUser(
-  page: Page,
-  email?: string,
-  password?: string
-): Promise<void> {
+async function loginUser(page: Page, email?: string, password?: string): Promise<void> {
   await page.goto('/signin');
 
   const emailInput = page.getByLabel(/email/i);
@@ -78,7 +74,7 @@ async function navigateToOrgTeam(page: Page, orgExtid?: string): Promise<string>
   }
 
   // Navigate to org list and find first org
-  await page.goto('/org');
+  await page.goto('/orgs');
   await page.waitForLoadState('networkidle');
 
   // Find the first organization link with team tab
@@ -134,7 +130,9 @@ async function getInvitationToken(page: Page, email: string): Promise<string | n
   // The token should be available via the resend/revoke button actions
   // We'll need to intercept the API call or check the URL after clicking
   // For now, we'll use the API to get the token
-  const response = await page.request.get(`/api/v2/org/${await getCurrentOrgExtid(page)}/invitations`);
+  const response = await page.request.get(
+    `/api/v2/org/${await getCurrentOrgExtid(page)}/invitations`
+  );
   const data = await response.json();
 
   const invitation = data.records?.find((inv: { email: string }) => inv.email === email);
@@ -154,11 +152,7 @@ async function getCurrentOrgExtid(page: Page): Promise<string> {
  * Create a new user account via signup
  * @deprecated Currently unused - kept for future full integration tests
  */
-async function _createAccount(
-  page: Page,
-  email: string,
-  password: string
-): Promise<void> {
+async function _createAccount(page: Page, email: string, password: string): Promise<void> {
   await page.goto('/signup');
 
   const emailInput = page.getByLabel(/email/i);
@@ -594,10 +588,7 @@ test.describe('INV-011: Revoke Invitation', () => {
 // -----------------------------------------------------------------------------
 
 test.describe('INV-012: Gmail Alias Normalization', () => {
-  test.skip(
-    !hasTestCredentials,
-    'Skipping: Requires specific email setup for Gmail alias testing'
-  );
+  test.skip(!hasTestCredentials, 'Skipping: Requires specific email setup for Gmail alias testing');
 
   test.skip('Gmail alias normalization allows user+tag@gmail.com to match user@gmail.com', async () => {
     // This test requires a real Gmail account setup
@@ -754,11 +745,11 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
 
       // "Create account" link should be available if user needs it
       // Link may or may not be visible depending on UI, but clicking switch should not auto-determine
-      await expect(
-        wrongUserPage.getByRole('link', { name: /create account|sign up/i })
-      ).toBeVisible().catch(() => {
-        // Link visibility varies by UI state - not a test failure
-      });
+      await expect(wrongUserPage.getByRole('link', { name: /create account|sign up/i }))
+        .toBeVisible()
+        .catch(() => {
+          // Link visibility varies by UI state - not a test failure
+        });
     } finally {
       await ownerContext.close();
       await wrongUserContext.close();
@@ -773,21 +764,18 @@ test.describe('INV-SEC-002: Account Enumeration Prevention', () => {
 test.describe('INV-017: Complete Invitation Acceptance Flow', () => {
   test.skip(!hasTestCredentials, 'Skipping: TEST_USER_EMAIL and TEST_USER_PASSWORD required');
 
-  test.skip(
-    'After accepting invitation, user can see and access the organization in their org list',
-    async () => {
-      // This is a full integration test that would require:
-      // 1. Owner creates invitation
-      // 2. New user creates account with invited email
-      // 3. New user accepts invitation
-      // 4. New user verifies org appears in their list
+  test.skip('After accepting invitation, user can see and access the organization in their org list', async () => {
+    // This is a full integration test that would require:
+    // 1. Owner creates invitation
+    // 2. New user creates account with invited email
+    // 3. New user accepts invitation
+    // 4. New user verifies org appears in their list
 
-      // Note: This test is complex and may need Mailpit integration
-      // for full email verification flow
+    // Note: This test is complex and may need Mailpit integration
+    // for full email verification flow
 
-      test.skip(true, 'Full integration test requires email verification setup');
-    }
-  );
+    test.skip(true, 'Full integration test requires email verification setup');
+  });
 });
 
 /**
