@@ -10,6 +10,8 @@
 # 4. Valid positive integer parsing
 # 5. Capping at MAX_TTL for oversized values
 # 6. Default value for non-numeric strings
+# 7. Strict parsing rejects partial matches (e.g., "123abc")
+# 8. Strict parsing rejects decimal numbers (e.g., "3600.5")
 
 require_relative './test_helpers'
 
@@ -78,10 +80,20 @@ ENV['TEST_TTL'] = 'abc123'
 OT::Plan.parse_ttl_env('TEST_TTL', 1000)
 #=> 1000
 
-## Parses string with trailing text (Ruby to_i behavior)
+## Returns default for string with trailing text (strict parsing rejects partial matches)
 ENV['TEST_TTL'] = '123abc'
 OT::Plan.parse_ttl_env('TEST_TTL', 1000)
-#=> 123
+#=> 1000
+
+## Returns default for decimal numbers (strict integer parsing)
+ENV['TEST_TTL'] = '3600.5'
+OT::Plan.parse_ttl_env('TEST_TTL', 1000)
+#=> 1000
+
+## Handles values with leading/trailing whitespace (Integer() strips whitespace)
+ENV['TEST_TTL'] = '  3600  '
+OT::Plan.parse_ttl_env('TEST_TTL', 1000)
+#=> 3600
 
 ## Plan TTL env vars work for anonymous plan
 ENV['PLAN_TTL_ANONYMOUS'] = '1209600'

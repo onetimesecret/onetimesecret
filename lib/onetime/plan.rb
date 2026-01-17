@@ -75,6 +75,7 @@ module Onetime
 
       # Parse TTL from environment variable, returning default if not set or invalid.
       # Values are clamped to MAX_TTL (365 days) to prevent resource exhaustion.
+      # Uses strict integer parsing - rejects partial matches like "123abc".
       # @param env_var [String] Name of the environment variable
       # @param default [Integer] Default TTL in seconds
       # @return [Integer] TTL value in seconds (capped at MAX_TTL)
@@ -82,10 +83,13 @@ module Onetime
         value = ENV[env_var]
         return default if value.nil? || value.empty?
 
-        parsed = value.to_i
+        parsed = Integer(value, 10)
         return default unless parsed.positive?
 
         [parsed, MAX_TTL].min
+      rescue ArgumentError
+        # Invalid integer format (e.g., "123abc", "abc", "12.5")
+        default
       end
     end
 
