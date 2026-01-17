@@ -5,42 +5,24 @@
 
 suite:
   id: subscription-downgrade
-  name: Subscription Downgrade - Credit Preview & Plan Changes
+  name: Subscription Downgrade - Credit Preview and Plan Changes
   feature: Downgrade flow with proration credit handling
   tags: [billing, downgrade, proration, subscription, stripe]
   notes: |
     Plan hierarchy (descending value):
-    - Team Plus ($85/mo) -> Identity Plus ($35/mo) -> Free ($0)
+    Team Plus ($85/mo) -> Identity Plus ($35/mo) -> Free ($0)
     Downgrades generate proration credits for unused subscription time.
-
-# -----------------------------------------------------------------------------
-# SHARED DEFINITIONS
-# -----------------------------------------------------------------------------
 
 definitions:
   users:
     team_plus_user:
+      auth: logged_in
       description: User with active Team Plus subscription
-      auth: logged_in
-      state:
-        current_plan: team_plus_v1
-        subscription_status: active
     identity_plus_user:
-      description: User with active Identity Plus subscription
       auth: logged_in
-      state:
-        current_plan: identity_plus_v1
-        subscription_status: active
-
-# -----------------------------------------------------------------------------
-# TEST CASES
-# -----------------------------------------------------------------------------
+      description: User with active Identity Plus subscription
 
 tests:
-  # ---------------------------------------------------------------------------
-  # CRITICAL: Credit Preview Display
-  # ---------------------------------------------------------------------------
-
   - id: DOWNGRADE-001
     intent: User sees proration credit preview before confirming downgrade from Team Plus to Identity Plus
     setup:
@@ -56,22 +38,18 @@ tests:
       element: Select button on Identity Plus plan card
     verify:
       - PlanChangeModal opens with yellow downgrade styling
-      - Modal title shows "Downgrade to Identity Plus?"
-      - Current plan displays "Team Plus" with price
-      - New plan displays "Identity Plus" with price
+      - Modal title shows Downgrade to Identity Plus
+      - Current plan displays Team Plus with price
+      - New plan displays Identity Plus with price
       - Credit for unused time shows positive amount
-      - Network request to /billing/api/org/:extid/preview-plan-change returns 200
-      - Preview response contains credit_applied > 0
+      - Network request to preview-plan-change returns 200
+      - Preview response contains credit_applied greater than 0
     priority: critical
     type: functional
     covers:
       - PlanChangeModal.vue
       - POST /billing/api/org/:extid/preview-plan-change
       - BillingService.previewPlanChange
-
-  # ---------------------------------------------------------------------------
-  # CRITICAL: Confirm Downgrade
-  # ---------------------------------------------------------------------------
 
   - id: DOWNGRADE-002
     intent: User confirms downgrade from Team Plus to Identity Plus and subscription updates immediately
@@ -89,7 +67,7 @@ tests:
       type: click
       element: Confirm Downgrade button in modal
     verify:
-      - Network request to /billing/api/org/:extid/change-plan returns success
+      - Network request to change-plan returns success
       - Modal closes after successful change
       - Success message displays new plan name
       - Plan selector refreshes to show Identity Plus as current plan
@@ -103,10 +81,6 @@ tests:
     postconditions:
       - Subscription updated in Stripe
       - Feature limits updated immediately
-
-  # ---------------------------------------------------------------------------
-  # HIGH: Credit Applied to Next Invoice
-  # ---------------------------------------------------------------------------
 
   - id: DOWNGRADE-003
     intent: Downgrade with significant credit shows credit breakdown and remaining balance
@@ -123,8 +97,8 @@ tests:
       type: click
       element: Select button on Identity Plus plan card
     verify:
-      - Credit breakdown section visible when credit >= next bill
-      - "How your credit applies" heading displays
+      - Credit breakdown section visible when credit exceeds next bill
+      - How your credit applies heading displays
       - Next bill amount shows Identity Plus price
       - Credit applied line shows negative amount (green)
       - Amount due at next billing shows $0 or reduced amount
@@ -139,10 +113,6 @@ tests:
     notes: |
       Credit breakdown appears when credit_applied >= next_period_amount.
       Remaining credit carries forward to future invoices.
-
-  # ---------------------------------------------------------------------------
-  # HIGH: Downgrade to Free Tier
-  # ---------------------------------------------------------------------------
 
   - id: DOWNGRADE-004
     intent: Paid user downgrades to Free plan via subscription cancellation flow
@@ -160,7 +130,7 @@ tests:
     verify:
       - CancelSubscriptionModal opens with confirmation prompt
       - Warning explains access retained until billing period ends
-      - "Your account will revert to the free plan" message visible
+      - Your account will revert to the free plan message visible
       - After confirmation, subscription status shows cancel_at_period_end
       - Cancel subscription button disabled during processing
     priority: high

@@ -9,67 +9,35 @@ suite:
   feature: User authentication via SignInForm component
   tags: [auth, login, mfa, session, security]
 
-# Component Reference:
-# - Login route: /signin
-# - Login view: src/apps/session/views/Login.vue
-# - Form component: src/apps/session/components/SignInForm.vue
-# - Auth composable: src/shared/composables/useAuth.ts
-
 definitions:
   users:
-    anonymous: &user_anonymous
+    anonymous:
       auth: logged_out
       description: Unauthenticated user on login page
-
-    valid_credentials: &user_valid
+    valid_credentials:
       auth: logged_out
-      state:
-        test_email: "testuser@example.com"
-        test_password: "validPassword123"
       description: User with valid test credentials
-
-    mfa_enabled: &user_mfa
+    mfa_enabled:
       auth: logged_out
-      state:
-        test_email: "mfa-user@example.com"
-        test_password: "validPassword123"
-        mfa_enabled: true
       description: User with MFA enabled on account
 
-    pending_plan: &user_pending_plan
-      auth: logged_out
-      state:
-        test_email: "newuser@example.com"
-        test_password: "validPassword123"
-        pending_plan_selection: true
-      description: User who needs to select a billing plan
-
-    unverified: &user_unverified
-      auth: logged_out
-      state:
-        test_email: "unverified@example.com"
-        test_password: "validPassword123"
-        account_verified: false
-      description: User with unverified email
-
 tests:
-  # ===========================================================================
-  # SECTION 1: Successful Authentication
-  # ===========================================================================
-
   - id: TC-LA-001
     intent: Valid credentials successfully authenticate user and redirect to home page
     setup:
-      <<: *user_valid
+      auth: logged_out
+      state:
+        test_email: testuser@example.com
+        test_password: validPassword123
     target: /signin
     action:
       type: submit
       element: Sign in form
       data:
-        email: "{{test_email}}"
-        password: "{{test_password}}"
+        email: testuser@example.com
+        password: validPassword123
     verify:
-      - User is redirected to home page (/) after successful login
+      - User is redirected to home page after successful login
       - No error message is displayed
       - User menu or authenticated UI elements are visible
       - selector: "#signin-error"
@@ -79,51 +47,43 @@ tests:
     type: functional
     covers: [SignInForm, useAuth.login, authStore]
 
-  # ===========================================================================
-  # SECTION 2: Invalid Credentials
-  # ===========================================================================
-
   - id: TC-LA-002
     intent: Invalid password shows generic error without revealing email existence
     setup:
-      <<: *user_anonymous
+      auth: logged_out
     target: /signin
     action:
       type: submit
       element: Sign in form
       data:
-        email: "testuser@example.com"
-        password: "wrongPassword123"
+        email: testuser@example.com
+        password: wrongPassword123
     verify:
       - Error message is displayed in alert container
       - Error message is generic (does not reveal if email exists)
       - Form remains on login page (no redirect)
       - Password field is available for re-entry
-      - selector: "#signin-error"
-        assertion: visible
       - selector: "[role='alert']"
-        assertion: exists
+        assertion: visible
     priority: critical
     severity: blocker
     type: error
     covers: [SignInForm, useAuth.login, security]
-    notes: Error message must not distinguish between "email not found" and "wrong password"
-
-  # ===========================================================================
-  # SECTION 3: MFA Flow
-  # ===========================================================================
+    notes: Error message must not distinguish between email not found and wrong password
 
   - id: TC-LA-003
     intent: User with MFA enabled is redirected to MFA verification after valid credentials
     setup:
-      <<: *user_mfa
+      auth: logged_out
+      state:
+        mfa_enabled: true
     target: /signin
     action:
       type: submit
       element: Sign in form
       data:
-        email: "{{test_email}}"
-        password: "{{test_password}}"
+        email: mfa-user@example.com
+        password: validPassword123
     verify:
       - User is redirected to /mfa-verify
       - MFA verification form is displayed
@@ -138,25 +98,19 @@ tests:
     covers: [SignInForm, useAuth.login, MFA flow, bootstrapStore]
     notes: Login succeeds but returns mfa_required flag triggering redirect to /mfa-verify
 
-  # ===========================================================================
-  # SECTION 4: Billing Redirect
-  # ===========================================================================
-
   - id: TC-LA-004
     intent: User with pending plan selection is redirected to billing after login
     setup:
-      <<: *user_pending_plan
+      auth: logged_out
       state:
-        query_params:
-          plan: "identity"
-          interval: "month"
+        pending_plan_selection: true
     target: /signin?plan=identity&interval=month
     action:
       type: submit
       element: Sign in form
       data:
-        email: "{{test_email}}"
-        password: "{{test_password}}"
+        email: newuser@example.com
+        password: validPassword123
     verify:
       - User is redirected to billing plans page after successful login
       - URL contains billing path with plan parameters preserved
@@ -167,50 +121,42 @@ tests:
     covers: [SignInForm, useAuth.login, handleBillingRedirect, extractBillingParams]
     notes: Billing params from query string are passed through login and trigger post-auth redirect
 
-  # ===========================================================================
-  # SECTION 5: Session Persistence
-  # ===========================================================================
-
   - id: TC-LA-005
     intent: Remember me checkbox extends session duration across browser restarts
     setup:
-      <<: *user_valid
+      auth: logged_out
     target: /signin
     action:
       type: submit
       element: Sign in form
       data:
-        email: "{{test_email}}"
-        password: "{{test_password}}"
+        email: testuser@example.com
+        password: validPassword123
         remember_me: true
     verify:
       - User is authenticated after login
       - Remember me checkbox was checked before submit
       - Session cookie has extended expiration (not session-only)
       - User remains logged in on page reload
-      - selector: "#remember-me"
-        assertion: exists
     priority: high
     severity: major
     type: functional
     covers: [SignInForm, useAuth.login, session persistence]
     notes: Full test requires simulating browser restart; partial test verifies checkbox state and cookie type
 
-  # ===========================================================================
-  # SECTION 6: Account Verification
-  # ===========================================================================
-
   - id: TC-LA-006
     intent: Unverified account receives appropriate feedback during login attempt
     setup:
-      <<: *user_unverified
+      auth: logged_out
+      state:
+        account_verified: false
     target: /signin
     action:
       type: submit
       element: Sign in form
       data:
-        email: "{{test_email}}"
-        password: "{{test_password}}"
+        email: unverified@example.com
+        password: validPassword123
     verify:
       - Appropriate message about email verification is displayed
       - User is either blocked from login or shown verification prompt

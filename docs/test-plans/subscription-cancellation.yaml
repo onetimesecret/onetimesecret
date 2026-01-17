@@ -9,25 +9,13 @@ suite:
   feature: Cancel subscription at period end with access retention
   tags: [billing, subscription, cancellation, stripe]
 
-# -----------------------------------------------------------------------------
-# SHARED DEFINITIONS
-# -----------------------------------------------------------------------------
-
 definitions:
   users:
     paid_user:
-      description: User with active paid subscription
       auth: logged_in
-
-# -----------------------------------------------------------------------------
-# TEST CASES
-# -----------------------------------------------------------------------------
+      description: User with active paid subscription
 
 tests:
-  # ---------------------------------------------------------------------------
-  # CRITICAL: Cancel at Period End
-  # ---------------------------------------------------------------------------
-
   - id: CANCEL-001
     intent: User initiates cancellation and access is retained until period ends
     setup:
@@ -44,17 +32,13 @@ tests:
       - Cancel subscription modal opens
       - Modal shows plan name being cancelled
       - Confirm cancellation button visible
-      - After confirmation, subscription status shows "Canceling at period end"
+      - After confirmation, subscription status shows Canceling at period end
     priority: critical
     type: functional
     covers:
       - CancelSubscriptionModal.vue
       - POST /billing/api/org/:extid/cancel-subscription
-    notes: Cancellation should be "at period end" not immediate
-
-  # ---------------------------------------------------------------------------
-  # HIGH: Confirmation Display
-  # ---------------------------------------------------------------------------
+    notes: Cancellation should be at period end not immediate
 
   - id: CANCEL-002
     intent: Cancellation confirmation shows period end date and what happens next
@@ -69,19 +53,15 @@ tests:
       type: click
       element: Cancel subscription button
     verify:
-      - Modal displays formatted end date (e.g., "January 16, 2025")
-      - "Access until" message shows the period end date
-      - "No future charges" message visible
-      - "Downgrade to free" message visible
+      - Modal displays formatted end date
+      - Access until message shows the period end date
+      - No future charges message visible
+      - Downgrade to free message visible
     priority: high
     type: ui
     covers:
       - CancelSubscriptionModal.vue
       - formattedPeriodEnd computed property
-
-  # ---------------------------------------------------------------------------
-  # HIGH: Access Retained Until Period End
-  # ---------------------------------------------------------------------------
 
   - id: CANCEL-003
     intent: After cancellation initiated, paid features remain accessible until period end
@@ -92,11 +72,13 @@ tests:
         subscription_cancel_at_period_end: true
         period_end_not_reached: true
     target: /billing/:extid/overview
+    action:
+      type: none
     verify:
       - Subscription status shows canceling state
       - Current plan still shows paid tier name
-      - Paid features remain accessible (e.g., custom domains, team features)
-      - Upgrade button not shown (already on paid plan until period end)
+      - Paid features remain accessible
+      - Upgrade button not shown
       - Period end date displayed
     priority: high
     type: functional
@@ -104,10 +86,6 @@ tests:
       - BillingOverview.vue
       - subscription status display
     notes: User should retain full access until billing period ends
-
-  # ---------------------------------------------------------------------------
-  # MEDIUM: Post-Cancellation State
-  # ---------------------------------------------------------------------------
 
   - id: CANCEL-004
     intent: After period ends, user is on free tier with upgrade prompts
@@ -118,8 +96,10 @@ tests:
         subscription_cancelled: true
         period_has_ended: true
     target: /billing/:extid/overview
+    action:
+      type: none
     verify:
-      - Current plan shows "Free"
+      - Current plan shows Free
       - No active subscription indicator
       - Upgrade Plan button visible
       - Paid-only features show upgrade prompts or restrictions

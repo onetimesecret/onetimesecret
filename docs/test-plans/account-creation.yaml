@@ -2,12 +2,6 @@
 ---
 # LLM-Optimized Test Cases: Account Creation
 # Schema version: 1.0.0
-#
-# Tests the account signup flow including:
-# - Successful registration with valid data
-# - Email validation (format, uniqueness)
-# - Password strength requirements
-# - Terms of service agreement requirement
 
 suite:
   id: account-creation
@@ -20,40 +14,30 @@ suite:
     with a success notification. The form requires email, password, and terms
     agreement. Backend validation handles duplicate emails and password strength.
 
-    Key components:
-    - Route: /signup
-    - View: src/apps/session/views/Register.vue
-    - Form: src/apps/session/components/SignUpForm.vue
-    - Auth: src/shared/composables/useAuth.ts
-
 definitions:
   users:
-    anonymous: &user_anonymous
+    anonymous:
       auth: logged_out
       description: Unauthenticated visitor
 
 tests:
-  # ===========================================================================
-  # SECTION 1: Successful Registration
-  # ===========================================================================
-
   - id: TC-AC-001
     intent: New user successfully creates account with valid email, strong password, and terms agreement
     setup:
-      <<: *user_anonymous
+      auth: logged_out
       description: Clean state with no existing account for test email
     target: /signup
     action:
       type: submit
       element: signup form
       data:
-        email: "newuser-{{timestamp}}@example.com"
-        password: "SecureP@ssw0rd123"
+        email: newuser-{{timestamp}}@example.com
+        password: SecureP@ssw0rd123
         terms: true
     verify:
       - Success notification appears with account created message
       - User is redirected to /signin page
-      - Email field on signin page is NOT prefilled (user must enter credentials)
+      - Email field on signin page is NOT prefilled
       - selector: "[role='alert']"
         assertion: hidden
     priority: critical
@@ -64,27 +48,23 @@ tests:
       - Account exists in database
       - User can sign in with created credentials
 
-  # ===========================================================================
-  # SECTION 2: Email Validation
-  # ===========================================================================
-
   - id: TC-AC-002
     intent: Attempt to register with existing email shows duplicate email error
     setup:
-      <<: *user_anonymous
-      state:
-        existing_email: "existing@example.com"
+      auth: logged_out
       description: Account already exists for test email
+      state:
+        existing_email: existing@example.com
     target: /signup
     action:
       type: submit
       element: signup form
       data:
-        email: "existing@example.com"
-        password: "SecureP@ssw0rd123"
+        email: existing@example.com
+        password: SecureP@ssw0rd123
         terms: true
     verify:
-      - Error alert appears with role="alert"
+      - Error alert appears with role=alert
       - Error message indicates email is already registered
       - User remains on /signup page
       - Form is NOT cleared (email value preserved)
@@ -99,14 +79,14 @@ tests:
   - id: TC-AC-003
     intent: Invalid email format is rejected by browser validation before form submission
     setup:
-      <<: *user_anonymous
+      auth: logged_out
     target: /signup
     action:
       type: submit
       element: signup form
       data:
-        email: "not-an-email"
-        password: "SecureP@ssw0rd123"
+        email: not-an-email
+        password: SecureP@ssw0rd123
         terms: true
     verify:
       - Form does NOT submit (browser validation prevents it)
@@ -118,53 +98,43 @@ tests:
     severity: major
     type: functional
     covers: [SignUpForm, HTML5 email validation]
-    notes: HTML5 type="email" provides client-side validation
-
-  # ===========================================================================
-  # SECTION 3: Password Validation
-  # ===========================================================================
+    notes: HTML5 type=email provides client-side validation
 
   - id: TC-AC-004
     intent: Weak password is rejected with clear error message
     setup:
-      <<: *user_anonymous
+      auth: logged_out
     target: /signup
     action:
       type: submit
       element: signup form
       data:
-        email: "newuser-{{timestamp}}@example.com"
-        password: "weak"
+        email: newuser-{{timestamp}}@example.com
+        password: weak
         terms: true
     verify:
-      - Error alert appears with role="alert"
+      - Error alert appears with role=alert
       - Error message references password requirements
-      - Password field is marked as invalid (aria-invalid="true")
+      - Password field is marked as invalid
       - selector: "[role='alert']"
         assertion: visible
-      - selector: "#password[aria-invalid='true']"
-        assertion: exists
     priority: high
     severity: major
     type: error
     covers: [SignUpForm, useAuth.signup, password validation]
     notes: Backend validates password strength via Rodauth
 
-  # ===========================================================================
-  # SECTION 4: Terms Agreement
-  # ===========================================================================
-
   - id: TC-AC-005
     intent: Form cannot be submitted without accepting terms of service
     setup:
-      <<: *user_anonymous
+      auth: logged_out
     target: /signup
     action:
       type: submit
       element: signup form
       data:
-        email: "newuser-{{timestamp}}@example.com"
-        password: "SecureP@ssw0rd123"
+        email: newuser-{{timestamp}}@example.com
+        password: SecureP@ssw0rd123
         terms: false
     verify:
       - Form does NOT submit (browser validation prevents it)

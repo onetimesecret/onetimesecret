@@ -11,19 +11,15 @@ suite:
 
 definitions:
   users:
-    authenticated: &user_auth
+    authenticated:
       auth: logged_in
       description: Standard authenticated user
 
 tests:
-  # ---------------------------------------------------------------------------
-  # PREF-001: Change locale/language preference
-  # ---------------------------------------------------------------------------
-
   - id: PREF-001
     intent: User changes language preference via language toggle dropdown
     setup:
-      <<: *user_auth
+      auth: logged_in
     target: /account/settings/profile/preferences
     action:
       type: click
@@ -32,7 +28,7 @@ tests:
         select_locale: es
     verify:
       - Language dropdown opens showing available locales
-      - Each locale shows name and code (e.g., "Español es")
+      - Each locale shows name and code
       - Current locale has checkmark indicator
       - After selection, UI text updates to new language
       - Screen reader announces language change
@@ -44,21 +40,17 @@ tests:
       Language toggle only visible when i18n_enabled is true in bootstrap store.
       Test should verify the setting persists across page reload.
 
-  # ---------------------------------------------------------------------------
-  # PREF-002: Toggle notification preferences
-  # ---------------------------------------------------------------------------
-
   - id: PREF-002
     intent: User toggles email notifications for secret reveals
     setup:
-      <<: *user_auth
+      auth: logged_in
     target: /account/settings/profile/notifications
     action:
       type: click
-      element: Notify on reveal toggle switch (role="switch")
+      element: Notify on reveal toggle switch
     verify:
-      - Toggle switch visible with proper ARIA attributes (role="switch", aria-checked)
-      - Clicking toggle changes visual state (background color changes)
+      - Toggle switch visible with proper ARIA attributes
+      - Clicking toggle changes visual state
       - aria-checked attribute updates to reflect new state
       - API call updates notify_on_reveal preference
       - No error message appears on successful update
@@ -67,31 +59,26 @@ tests:
     type: functional
     covers: [NotificationSettings.vue, accountStore.updateNotificationPreference]
     notes: |
-      Toggle switch uses Tailwind classes for visual state:
-      - Enabled: bg-brand-600
-      - Disabled: bg-gray-200
-
-  # ---------------------------------------------------------------------------
-  # PREF-003: Change password successfully
-  # ---------------------------------------------------------------------------
+      Toggle switch uses Tailwind classes for visual state.
+      Enabled: bg-brand-600, Disabled: bg-gray-200
 
   - id: PREF-003
     intent: User changes password with valid current password and matching new passwords
     setup:
-      <<: *user_auth
+      auth: logged_in
       state:
-        current_password: "currentPassword123"
+        current_password: currentPassword123
     target: /account/settings/security/password
     action:
       type: submit
       element: Change password form
       data:
-        current_password: "{{current_password}}"
-        new_password: "newSecurePassword456"
-        confirm_password: "newSecurePassword456"
+        current_password: currentPassword123
+        new_password: newSecurePassword456
+        confirm_password: newSecurePassword456
     verify:
       - Form displays three password fields with visibility toggles
-      - Submit button enabled only when all fields valid (8+ chars, passwords match)
+      - Submit button enabled only when all fields valid
       - On success, form fields are cleared
       - No error messages displayed
       - User can login with new password
@@ -99,28 +86,23 @@ tests:
     type: functional
     covers: [ChangePassword.vue, useAuth.changePassword]
     notes: |
-      Password requirements:
-      - Minimum 8 characters
-      - New password and confirm must match
-      - Current password must be verified server-side
-
-  # ---------------------------------------------------------------------------
-  # PREF-004: Toggle theme preference (dark/light mode)
-  # ---------------------------------------------------------------------------
+      Password requirements: minimum 8 characters.
+      New password and confirm must match.
+      Current password must be verified server-side.
 
   - id: PREF-004
     intent: User toggles between dark and light theme modes
     setup:
-      <<: *user_auth
+      auth: logged_in
     target: /account/settings/profile/preferences
     action:
       type: click
-      element: Theme toggle button (aria-label contains "dark mode")
+      element: Theme toggle button
     verify:
       - Theme toggle button visible with sun/moon icon
       - Button has aria-pressed attribute reflecting current state
       - Clicking toggles between dark and light modes
-      - Dark mode adds "dark" class to document element
+      - Dark mode adds dark class to document element
       - Icon changes (sun for light, moon for dark)
       - Screen reader announces theme change
       - Theme persists in localStorage across page reload
@@ -128,7 +110,5 @@ tests:
     type: functional
     covers: [ThemeToggle.vue, useTheme]
     notes: |
-      Theme toggle uses:
-      - aria-pressed for accessibility
-      - localStorage for persistence
-      - Live region announcement for screen readers
+      Theme toggle uses aria-pressed for accessibility,
+      localStorage for persistence, and live region for screen readers.
