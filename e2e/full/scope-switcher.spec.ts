@@ -25,7 +25,7 @@
 //   PLAYWRIGHT_BASE_URL=https://dev.onetime.dev TEST_USER_EMAIL=... \
 //     pnpm test:playwright scope-switcher.spec.ts
 
-import { test, expect, Page } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 // Check if test credentials are configured
 const hasTestCredentials = !!(process.env.TEST_USER_EMAIL && process.env.TEST_USER_PASSWORD);
@@ -241,7 +241,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
       await page.waitForLoadState('networkidle');
 
       // Try to get org extid from URL or navigate to org settings
-      await page.goto('/org');
+      await page.goto('/orgs');
       await page.waitForLoadState('networkidle');
 
       // Look for org link or navigate to first org
@@ -269,7 +269,7 @@ test.describe('Scope Switcher - Visibility Rules', () => {
     });
 
     test('TC-SS-006: Domain switcher is hidden on org settings page', async ({ page }) => {
-      await page.goto('/org');
+      await page.goto('/orgs');
       await page.waitForLoadState('networkidle');
 
       const orgLink = page.locator('a[href*="/org/"]').first();
@@ -604,7 +604,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
       }
     });
 
-    test('TC-SS-024: Manage Organizations link navigates to /org', async ({ page }) => {
+    test('TC-SS-024: Manage Organizations link navigates to /orgs', async ({ page }) => {
       await page.goto('/dashboard');
       await page.waitForLoadState('networkidle');
 
@@ -619,7 +619,7 @@ test.describe('Scope Switcher - Switching Behavior', () => {
 
       if (hasLink) {
         await manageLink.click();
-        await expect(page).toHaveURL('/org');
+        await expect(page).toHaveURL('/orgs');
       }
     });
   });

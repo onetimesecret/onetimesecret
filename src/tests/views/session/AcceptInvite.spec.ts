@@ -1,13 +1,13 @@
 // src/tests/views/session/AcceptInvite.spec.ts
 
-import { mount, flushPromises } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createI18n } from 'vue-i18n';
-import { createPinia, setActivePinia } from 'pinia';
-import { createRouter, createMemoryHistory } from 'vue-router';
 import AcceptInvite from '@/apps/session/views/AcceptInvite.vue';
 import { useAuthStore } from '@/shared/stores/authStore';
-import { getGlobalAxiosMock, createSharedApiInstance } from '../../setup-stores';
+import { flushPromises, mount } from '@vue/test-utils';
+import { createPinia, setActivePinia } from 'pinia';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { createI18n } from 'vue-i18n';
+import { createMemoryHistory, createRouter } from 'vue-router';
+import { createSharedApiInstance, getGlobalAxiosMock } from '../../setup-stores';
 
 // Mock components
 vi.mock('@/shared/components/icons/OIcon.vue', () => ({
@@ -99,7 +99,7 @@ describe('AcceptInvite', () => {
       routes: [
         { path: '/invite/:token', name: 'Accept Invite', component: AcceptInvite },
         { path: '/signin', name: 'Sign In', component: { template: '<div></div>' } },
-        { path: '/org', name: 'Organizations', component: { template: '<div></div>' } },
+        { path: '/orgs', name: 'Organizations', component: { template: '<div></div>' } },
         { path: '/', name: 'Home', component: { template: '<div></div>' } },
       ],
     });

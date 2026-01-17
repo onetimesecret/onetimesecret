@@ -166,7 +166,7 @@ const navigateToManageOrganization = (org: Organization, event: MouseEvent): voi
  * Navigate to manage organizations page
  */
 const navigateToManageOrganizations = (): void => {
-  router.push('/org');
+  router.push('/orgs');
 };
 </script>
 
