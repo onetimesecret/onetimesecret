@@ -11,7 +11,8 @@ module Onetime
       # Sent to administrators when a user submits feedback via /feedback.
       #
       # Required data:
-      #   email_address:    Sender's email address (feedback submitter)
+      #   recipient_email:  Admin/colonel email to receive the feedback
+      #   email_address:    Sender's email address (feedback submitter, or 'anonymous')
       #   message:          Feedback message content
       #   display_domain:   Domain where feedback was submitted
       #
@@ -23,6 +24,7 @@ module Onetime
         protected
 
         def validate_data!
+          raise ArgumentError, 'Recipient email required' unless data[:recipient_email]
           raise ArgumentError, 'Email address required' unless data[:email_address]
           raise ArgumentError, 'Message required' unless data[:message]
           raise ArgumentError, 'Display domain required' unless data[:display_domain]
@@ -42,7 +44,13 @@ module Onetime
           )
         end
 
+        # The admin/colonel who receives the feedback email
         def recipient_email
+          data[:recipient_email]
+        end
+
+        # The user who submitted the feedback (shown in email body)
+        def sender_email
           data[:email_address]
         end
 
@@ -66,6 +74,7 @@ module Onetime
 
         def template_binding
           computed_data = data.merge(
+            email_address: sender_email,
             message: message,
             display_domain: display_domain,
             domain_strategy: domain_strategy,
