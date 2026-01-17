@@ -169,10 +169,9 @@ end
 # Tests for explicit org_id parameter support
 # This enables org context to persist across navigation when session hasn't been updated
 
+## Membership was returned (not nil)
 # Add owner1 as member of org2 so they can add domains to it via explicit org_id
 @membership = @org2.add_members_instance(@owner1, through_attrs: { role: 'member' })
-
-## Membership was returned (not nil)
 @membership.nil?
 #=> false
 
