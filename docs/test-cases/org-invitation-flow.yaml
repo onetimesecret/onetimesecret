@@ -1,0 +1,389 @@
+# LLM-Optimized Test Cases: Organization Invitation Flow
+# Schema version: 1.0.0
+#
+# Tests the complete organization member invitation journey including:
+# - Sending invitations from organization settings
+# - Accepting invitations via email link
+# - Post-login redirect preservation
+# - Email mismatch detection and handling
+# - MFA flow integration
+
+suite:
+  id: org-invitation-flow
+  name: Organization Member Invitation Flow
+  feature: Organization invitations with auth flow integration
+  priority: high
+  tags: [organizations, invitations, auth, email, redirect]
+
+definitions:
+  users:
+    org_owner: &user_org_owner
+      auth: logged_in
+      role: owner
+      description: User who owns the organization
+
+    invitee_new: &user_invitee_new
+      auth: logged_out
+      description: Unauthenticated user receiving invitation
+
+    invitee_wrong_email: &user_invitee_wrong_email
+      auth: logged_in
+      email: different@example.com
+      description: Logged-in user with different email than invitation
+
+    invitee_matching: &user_invitee_matching
+      auth: logged_in
+      email: invited@example.com
+      description: Logged-in user with matching email to invitation
+
+  fixtures:
+    organization: &fixture_org
+      type: organization
+      props:
+        name: "Acme Corporation"
+
+    invitation: &fixture_invitation
+      type: organization_invitation
+      props:
+        email: invited@example.com
+        role: member
+        status: pending
+
+tests:
+  # -------------------------------------------------------------------------
+  # INV-001: Owner sends invitation
+  # -------------------------------------------------------------------------
+  - id: INV-001
+    intent: |
+      Organization owner can send invitation to new member.
+      Form validates email and role, shows success on send.
+
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+
+    actions:
+      - navigate: /org/{org.extid}/settings/members
+      - click: Invite Member button
+      - fill:
+          email: newmember@example.com
+          role: member
+      - click: Send Invitation
+
+    expect:
+      - success_message: "Invitation sent successfully"
+      - pending_list_contains: newmember@example.com
+      - email_sent_to: newmember@example.com
+
+  # -------------------------------------------------------------------------
+  # INV-002: Unauthenticated user accepts invitation
+  # -------------------------------------------------------------------------
+  - id: INV-002
+    intent: |
+      Unauthenticated user clicking invitation link is redirected to signin
+      with redirect param preserved. After login, returns to invitation page.
+
+    setup:
+      <<: *user_invitee_new
+      fixtures:
+        - <<: *fixture_invitation
+          capture_as: invitation
+
+    actions:
+      - navigate: /invite/{invitation.token}
+      - observe: Sign in notice displayed
+      - click: Accept Invitation button
+      - verify_redirect: /signin?redirect=/invite/{invitation.token}
+      - login:
+          email: invited@example.com
+          password: testpassword
+      - verify_redirect: /invite/{invitation.token}
+      - click: Accept Invitation button
+
+    expect:
+      - success_message: "Invitation accepted successfully"
+      - redirect_to: /org
+      - user_is_member_of: {org.extid}
+
+  # -------------------------------------------------------------------------
+  # INV-003: User with wrong email sees mismatch warning
+  # -------------------------------------------------------------------------
+  - id: INV-003
+    intent: |
+      User logged in with different email than invitation sees clear
+      mismatch warning (not confusing "sign in first" message).
+      Can switch accounts to sign in with correct email.
+
+    setup:
+      <<: *user_invitee_wrong_email
+      fixtures:
+        - <<: *fixture_invitation
+          capture_as: invitation
+
+    actions:
+      - navigate: /invite/{invitation.token}
+
+    expect:
+      - visible:
+          element: email_mismatch_warning
+          contains:
+            - "Wrong Account"
+            - "invited@example.com"
+            - "different@example.com"
+      - visible: "Sign In with Different Account" button
+      - not_visible: "Please sign in" notice
+
+  # -------------------------------------------------------------------------
+  # INV-004: Switch account from mismatch warning
+  # -------------------------------------------------------------------------
+  - id: INV-004
+    intent: |
+      Clicking "Switch Account" logs out user and redirects to signin
+      with invited email prefilled and redirect param preserved.
+
+    setup:
+      <<: *user_invitee_wrong_email
+      fixtures:
+        - <<: *fixture_invitation
+          capture_as: invitation
+
+    actions:
+      - navigate: /invite/{invitation.token}
+      - click: "Sign In with Different Account"
+      - verify_redirect: /signin?email=invited@example.com&redirect=/invite/{invitation.token}
+      - verify: user is logged out
+      - verify: email field prefilled with invited@example.com
+
+    expect:
+      - auth_state: logged_out
+      - form_prefill:
+          email: invited@example.com
+      - url_param:
+          redirect: /invite/{invitation.token}
+
+  # -------------------------------------------------------------------------
+  # INV-005: User with matching email can accept immediately
+  # -------------------------------------------------------------------------
+  - id: INV-005
+    intent: |
+      User logged in with matching email sees no sign-in notices
+      and can immediately accept invitation.
+
+    setup:
+      <<: *user_invitee_matching
+      fixtures:
+        - <<: *fixture_invitation
+          capture_as: invitation
+
+    actions:
+      - navigate: /invite/{invitation.token}
+
+    expect:
+      - not_visible: email_mismatch_warning
+      - not_visible: sign_in_notice
+      - enabled: Accept Invitation button
+
+  # -------------------------------------------------------------------------
+  # INV-006: MFA flow preserves redirect
+  # -------------------------------------------------------------------------
+  - id: INV-006
+    intent: |
+      User with MFA enabled is redirected to MFA verification
+      with redirect param preserved. After MFA, completes to invitation.
+
+    setup:
+      auth: logged_out
+      user_config:
+        mfa_enabled: true
+      fixtures:
+        - <<: *fixture_invitation
+          capture_as: invitation
+
+    actions:
+      - navigate: /invite/{invitation.token}
+      - click: Accept Invitation
+      - verify_redirect: /signin?redirect=/invite/{invitation.token}
+      - login:
+          email: invited@example.com
+          password: testpassword
+      - verify_redirect: /mfa-verify?redirect=/invite/{invitation.token}
+      - enter_otp: valid_code
+      - verify_redirect: /invite/{invitation.token}
+
+    expect:
+      - final_location: /invite/{invitation.token}
+      - auth_state: authenticated
+
+  # -------------------------------------------------------------------------
+  # INV-007: Decline invitation (any auth state)
+  # -------------------------------------------------------------------------
+  - id: INV-007
+    intent: |
+      User can decline invitation without authentication.
+      Redirects to home after decline.
+
+    setup:
+      auth: any
+      fixtures:
+        - <<: *fixture_invitation
+          capture_as: invitation
+
+    actions:
+      - navigate: /invite/{invitation.token}
+      - click: Decline Invitation
+
+    expect:
+      - success_message: "Invitation declined"
+      - redirect_to: /
+      - invitation_status: declined
+
+  # -------------------------------------------------------------------------
+  # INV-008: Expired invitation shows error
+  # -------------------------------------------------------------------------
+  - id: INV-008
+    intent: |
+      User clicking expired invitation link sees clear error message
+      explaining expiration. No action buttons shown.
+
+    setup:
+      auth: any
+      fixtures:
+        - <<: *fixture_invitation
+          props:
+            status: expired
+          capture_as: invitation
+
+    actions:
+      - navigate: /invite/{invitation.token}
+
+    expect:
+      - error_message: "This invitation has expired"
+      - not_visible: Accept Invitation button
+      - not_visible: Decline Invitation button
+
+  # -------------------------------------------------------------------------
+  # INV-009: Signup flow preserves redirect
+  # -------------------------------------------------------------------------
+  - id: INV-009
+    intent: |
+      New user creating account from invitation flow has email prefilled
+      and redirect preserved through signup to signin.
+
+    setup:
+      auth: logged_out
+      fixtures:
+        - <<: *fixture_invitation
+          capture_as: invitation
+
+    actions:
+      - navigate: /signin?email=newuser@example.com&redirect=/invite/{invitation.token}
+      - click: Create account link
+      - verify_redirect: /signup?email=newuser@example.com&redirect=/invite/{invitation.token}
+      - verify: email field prefilled with newuser@example.com
+
+    expect:
+      - form_prefill:
+          email: newuser@example.com
+      - url_param:
+          redirect: /invite/{invitation.token}
+
+  # -------------------------------------------------------------------------
+  # INV-010: Resend invitation
+  # -------------------------------------------------------------------------
+  - id: INV-010
+    intent: |
+      Organization owner can resend pending invitation.
+      New email sent to invitee.
+
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+        - <<: *fixture_invitation
+          capture_as: invitation
+
+    actions:
+      - navigate: /org/{org.extid}/settings/members
+      - find: pending invitation for invited@example.com
+      - click: Resend button
+
+    expect:
+      - success_message: "Invitation resent successfully"
+      - email_sent_to: invited@example.com
+
+  # -------------------------------------------------------------------------
+  # INV-011: Revoke invitation
+  # -------------------------------------------------------------------------
+  - id: INV-011
+    intent: |
+      Organization owner can revoke pending invitation.
+      Invitation link becomes invalid.
+
+    setup:
+      <<: *user_org_owner
+      fixtures:
+        - <<: *fixture_org
+          capture_as: org
+        - <<: *fixture_invitation
+          capture_as: invitation
+
+    actions:
+      - navigate: /org/{org.extid}/settings/members
+      - find: pending invitation for invited@example.com
+      - click: Revoke button
+
+    expect:
+      - success_message: "Invitation revoked successfully"
+      - not_in_list: invited@example.com
+      - verify_link_invalid: /invite/{invitation.token}
+
+  # -------------------------------------------------------------------------
+  # INV-012: Gmail alias normalization
+  # -------------------------------------------------------------------------
+  - id: INV-012
+    intent: |
+      Email comparison normalizes Gmail-style aliases.
+      user+tag@gmail.com matches user@gmail.com for mismatch detection.
+
+    setup:
+      auth: logged_in
+      email: user@gmail.com
+      fixtures:
+        - type: organization_invitation
+          props:
+            email: user+invites@gmail.com
+            role: member
+            status: pending
+          capture_as: invitation
+
+    actions:
+      - navigate: /invite/{invitation.token}
+
+    expect:
+      - not_visible: email_mismatch_warning
+      - enabled: Accept Invitation button
+
+edge_cases:
+  - id: EDGE-001
+    description: Open redirect prevention
+    verify: |
+      Redirect param validation rejects:
+      - URLs starting with //
+      - URLs containing ://
+      - URLs not starting with /
+      - URLs exceeding 2048 characters
+
+  - id: EDGE-002
+    description: Security - no account existence disclosure
+    verify: |
+      Switch account flow directs to signin (not signup) to avoid
+      revealing whether invited email has existing account.
+
+  - id: EDGE-003
+    description: Concurrent session handling
+    verify: |
+      User logged in on multiple tabs sees consistent state
+      after switching accounts for invitation.
