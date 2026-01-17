@@ -61,7 +61,24 @@ tests:
         assert:
           status: 200
           body.exists: true
+          body.account_id: "{{capture:account_id}}"
+          body.created_at: "{{capture:created_at}}"
+        notes: Verify API response includes account details, not just existence flag
       - User can sign in with created credentials
+      - followup_action:
+          target: /signin
+          action:
+            type: submit
+            data:
+              email: newuser-{{timestamp}}@example.com
+              password: SecureP@ssw0rd123
+          verify:
+            - selector: "[data-testid='header-dashboard-link']"
+              assertion: visible
+            - url:
+                path: /dashboard
+                assertion: starts_with
+          notes: Actually attempt signin to verify credentials work
 
   - id: TC-AC-002
     intent: Attempt to register with existing email shows duplicate email error
@@ -91,6 +108,10 @@ tests:
           path: /signup
           assertion: equals
       - Form is NOT cleared (email value preserved)
+      - selector: "[data-testid='email-input']"
+        assertion: value
+        expected: existing@example.com
+        notes: Explicitly verify email field retains entered value after error
       - selector: "[role='alert']"
         assertion: visible
     priority: high
