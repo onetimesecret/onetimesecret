@@ -5,11 +5,15 @@
 module V2::Logic
   module Secrets
     class UpdateReceipt < V2::Logic::Base
+      # Maximum length for memo field (matches feedback message limit)
+      MEMO_MAX_LENGTH = 500
+
       # Working variables
-      attr_reader :identifier, :receipt
+      attr_reader :identifier, :receipt, :memo
 
       def process_params
         @identifier = sanitize_identifier(params['identifier'])
+        @memo       = sanitize_plain_text(params['memo'], max_length: MEMO_MAX_LENGTH) if params['memo']
         @receipt    = Onetime::Receipt.load(identifier)
       end
 
@@ -21,8 +25,8 @@ module V2::Logic
 
       def process
         # Only allow updating memo field for now
-        if params['memo']
-          receipt.memo = params['memo']
+        if memo
+          receipt.memo = memo
           receipt.save
         end
 

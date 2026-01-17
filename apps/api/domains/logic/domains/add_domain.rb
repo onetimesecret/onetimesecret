@@ -153,27 +153,26 @@ module DomainsAPI::Logic
       # @return [Onetime::Organization, nil]
       def resolve_target_organization(org_id)
         # Try loading by objid first, then extid
-        # Only rescue expected "not found" errors, let connection/system errors propagate
-        org = begin
-          Onetime::Organization.load(org_id)
-        rescue Familia::NotConnected, Familia::Problem
-          raise # Re-raise connection/system errors
-        rescue StandardError
-          nil # Record not found
-        end
-
-        org ||= begin
-          Onetime::Organization.find_by_extid(org_id)
-        rescue Familia::NotConnected, Familia::Problem
-          raise # Re-raise connection/system errors
-        rescue StandardError
-          nil # Record not found
-        end
+        org   = safe_load_organization { Onetime::Organization.load(org_id) }
+        org ||= safe_load_organization { Onetime::Organization.find_by_extid(org_id) }
 
         return nil unless org
         return nil unless org.member?(@cust)
 
         org
+      end
+
+      # Safely load an organization, handling expected "not found" errors
+      # Re-raises connection/system errors, returns nil for record not found
+      #
+      # @yield Block that attempts to load an organization
+      # @return [Onetime::Organization, nil]
+      def safe_load_organization
+        yield
+      rescue Familia::NotConnected, Familia::Problem
+        raise # Re-raise connection/system errors
+      rescue Familia::RecordNotFound, Familia::NoIdentifier
+        nil # Record not found - expected when ID doesn't exist
       end
     end
   end
