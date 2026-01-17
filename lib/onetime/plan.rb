@@ -58,9 +58,28 @@ module Onetime
       end
 
       def load_plans!
-        add_plan :anonymous, 0, 0, ttl: 7.days, size: 100_000, api: false, name: 'Anonymous'
-        add_plan :basic, 0, 0, ttl: 14.days, size: 1_000_000, api: true, name: 'Basic Plan', email: true, custom_domains: false, dark_mode: true
-        add_plan :identity, 35, 0, ttl: 30.days, size: 10_000_000, api: true, name: 'Identity', email: true, custom_domains: true, dark_mode: true
+        # Plan TTL limits can be overridden via environment variables.
+        # This allows Docker deployments to customize max TTL without modifying code.
+        # Format: PLAN_TTL_ANONYMOUS=2592000 (value in seconds, e.g., 30 days)
+        anonymous_ttl = parse_ttl_env('PLAN_TTL_ANONYMOUS', 7.days)
+        basic_ttl = parse_ttl_env('PLAN_TTL_BASIC', 14.days)
+        identity_ttl = parse_ttl_env('PLAN_TTL_IDENTITY', 30.days)
+
+        add_plan :anonymous, 0, 0, ttl: anonymous_ttl, size: 100_000, api: false, name: 'Anonymous'
+        add_plan :basic, 0, 0, ttl: basic_ttl, size: 1_000_000, api: true, name: 'Basic Plan', email: true, custom_domains: false, dark_mode: true
+        add_plan :identity, 35, 0, ttl: identity_ttl, size: 10_000_000, api: true, name: 'Identity', email: true, custom_domains: true, dark_mode: true
+      end
+
+      # Parse TTL from environment variable, returning default if not set or invalid.
+      # @param env_var [String] Name of the environment variable
+      # @param default [Integer] Default TTL in seconds
+      # @return [Integer] TTL value in seconds
+      def parse_ttl_env(env_var, default)
+        value = ENV[env_var]
+        return default if value.nil? || value.empty?
+
+        parsed = value.to_i
+        parsed.positive? ? parsed : default
       end
     end
 
