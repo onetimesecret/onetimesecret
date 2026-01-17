@@ -235,7 +235,7 @@ const handleManageOrganization = (org: Organization) => {
                   <span>{{ getOrgPlanName(org) }}</span>
                 </span>
 
-                <!-- Members (links to members page) -->
+                <!-- LAUNCH: Identity-only - Members link hidden until team features enabled
                 <router-link
                   v-if="org.extid"
                   :to="`/org/${org.extid}/members`"
@@ -248,6 +248,7 @@ const handleManageOrganization = (org: Organization) => {
                     aria-hidden="true" />
                   <span>{{ t('web.organizations.member_count', { count: org.member_count ?? 1 }) }}</span>
                 </router-link>
+                -->
 
                 <!-- Domains (links to org-scoped domains page) -->
                 <router-link

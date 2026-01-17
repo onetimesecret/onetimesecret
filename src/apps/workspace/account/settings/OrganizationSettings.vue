@@ -4,16 +4,20 @@
 import { useI18n } from 'vue-i18n';
 import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
 import OIcon from '@/shared/components/icons/OIcon.vue';
-import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
+// LAUNCH: Identity-only - MembersTable hidden until team features enabled
+// import MembersTable from '@/apps/workspace/components/members/MembersTable.vue';
 import DomainsTable from '@/apps/workspace/components/domains/DomainsTable.vue';
 import EmptyState from '@/shared/components/ui/EmptyState.vue';
-import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
+// LAUNCH: Identity-only - EntitlementUpgradePrompt hidden until team features enabled
+// import EntitlementUpgradePrompt from '@/apps/workspace/components/billing/EntitlementUpgradePrompt.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
-import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
-import { useEntitlementError } from '@/shared/composables/useEntitlementError';
+// LAUNCH: Identity-only - useAsyncHandler and useEntitlementError hidden until team features enabled
+// import { useAsyncHandler } from '@/shared/composables/useAsyncHandler';
+// import { useEntitlementError } from '@/shared/composables/useEntitlementError';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import { classifyError } from '@/schemas/errors';
-import type { ApplicationError } from '@/schemas/errors';
+// LAUNCH: Identity-only - ApplicationError hidden until team features enabled
+// import type { ApplicationError } from '@/schemas/errors';
 import { BillingService } from '@/services/billing.service';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
@@ -21,10 +25,12 @@ import { storeToRefs } from 'pinia';
 import { useMembersStore } from '@/shared/stores/membersStore';
 import type { Subscription } from '@/types/billing';
 import { getPlanLabel, getSubscriptionStatusLabel } from '@/types/billing';
-import type { CreateInvitationPayload, Organization, OrganizationInvitation } from '@/types/organization';
+// LAUNCH: Identity-only - CreateInvitationPayload hidden until team features enabled
+import type { /* CreateInvitationPayload, */ Organization, OrganizationInvitation } from '@/types/organization';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { z } from 'zod';
+// LAUNCH: Identity-only - zod hidden until team features enabled (used for invite form validation)
+// import { z } from 'zod';
 
 type TabType = 'general' | 'members' | 'domains' | 'billing';
 
@@ -48,7 +54,8 @@ const TAB_TO_URL: Record<TabType, string> = {
 const props = withDefaults(defineProps<{
   initialTab?: TabType;
 }>(), {
-  initialTab: 'members',
+  // LAUNCH: Identity-only - default to domains instead of members (team)
+  initialTab: 'domains',
 });
 
 const { t } = useI18n();
@@ -106,8 +113,8 @@ watch(
     if (urlTab && URL_TO_TAB[urlTab]) {
       activeTab.value = URL_TO_TAB[urlTab];
     } else if (!urlTab) {
-      // No tab in URL, default to members (team)
-      activeTab.value = 'members';
+      // LAUNCH: Identity-only - default to domains instead of members (team)
+      activeTab.value = 'domains';
     }
   }
 );
@@ -133,7 +140,8 @@ const success = ref('');
 const planName = ref<string>('');
 const planFeatures = ref<string[]>([]);
 
-// Invitation form state
+// LAUNCH: Identity-only - Invitation form state hidden until team features enabled
+/*
 const showInviteForm = ref(false);
 const inviteFormData = ref<CreateInvitationPayload>({
   email: '',
@@ -147,18 +155,20 @@ const isInviting = ref(false);
 const { wrap } = useAsyncHandler({
   notify: false,
 });
+*/
 
 const bootstrapStore = useBootstrapStore();
 const { billing_enabled } = storeToRefs(bootstrapStore);
 const billingEnabled = computed(() => billing_enabled.value ?? false);
 
 // Entitlements - formatEntitlement uses API-driven i18n keys
+// LAUNCH: Identity-only - can and ENTITLEMENTS hidden until team features enabled
 const {
   entitlements,
-  can,
+  // can,
   formatEntitlement,
   initDefinitions,
-  ENTITLEMENTS,
+  // ENTITLEMENTS,
 } = useEntitlements(organization);
 
 
@@ -343,6 +353,8 @@ const handleSaveBillingEmail = async () => {
   }
 };
 
+// LAUNCH: Identity-only - Team member management functions hidden until team features enabled
+/*
 const handleInviteMember = async () => {
   if (isInviting.value) return;
 
@@ -452,6 +464,7 @@ const handleMemberUpdated = () => {
 const handleMemberRemoved = () => {
   success.value = t('web.organizations.members.member_removed');
 };
+*/
 
 onMounted(async () => {
   // Initialize entitlement definitions for formatting
@@ -498,7 +511,7 @@ watch(activeTab, async (newTab) => {
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <router-link
-            to="/org"
+            to="/orgs"
             class="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             :title="t('web.organizations.title')">
             <OIcon
@@ -513,10 +526,11 @@ watch(activeTab, async (newTab) => {
         </div>
       </div>
 
-      <!-- Tabs: Team (primary), Domains, Billing (conditional), Settings (infrequent) -->
+      <!-- Tabs: Domains, Billing (conditional), Settings (infrequent) -->
+      <!-- LAUNCH: Identity-only - Team tab hidden until team features enabled -->
       <div class="border-b border-gray-200 dark:border-gray-700">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-          <!-- Team tab - primary action, shown first -->
+          <!-- LAUNCH: Team tab hidden - uncomment when team features enabled
           <button
             @click="setActiveTab('members')"
             :class="[
@@ -527,6 +541,7 @@ watch(activeTab, async (newTab) => {
             ]">
             {{ t('web.organizations.tabs.members') }}
           </button>
+          -->
           <!-- Domains tab -->
           <button
             @click="setActiveTab('domains')"
@@ -724,11 +739,10 @@ watch(activeTab, async (newTab) => {
           </div>
         </section>
 
-        <!-- Members Tab -->
+        <!-- LAUNCH: Identity-only - Members Tab hidden until team features enabled
         <section
           v-if="activeTab === 'members'"
           class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-          <!-- Header with Primary CTA -->
           <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
             <div class="flex items-center justify-between">
               <div>
@@ -739,11 +753,6 @@ watch(activeTab, async (newTab) => {
                   {{ membersStore.memberCount }} {{ membersStore.memberCount === 1 ? t('web.organizations.members.member_singular') : t('web.organizations.members.member_plural') }}
                 </p>
               </div>
-              <!--
-                UX: Always show "Invite Member" button for feature discoverability.
-                When user lacks entitlement, button is disabled with tooltip explaining upgrade path.
-                This is preferable to hiding the feature entirely or showing only "Upgrade Plan".
-              -->
               <button
                 type="button"
                 @click="canManageMembers && (showInviteForm = !showInviteForm)"
@@ -763,7 +772,6 @@ watch(activeTab, async (newTab) => {
                 {{ t('web.organizations.invitations.invite_member') }}
               </button>
             </div>
-            <!-- Upgrade prompt when user lacks team management entitlement -->
             <div
               v-if="!canManageMembers"
               class="mt-4 flex items-center gap-3 rounded-md bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
@@ -796,7 +804,6 @@ watch(activeTab, async (newTab) => {
               v-if="success"
               :success="success" />
 
-            <!-- Entitlement Upgrade Prompt -->
             <EntitlementUpgradePrompt
               v-if="inviteUpgradeError"
               :error="inviteUpgradeError"
@@ -804,7 +811,6 @@ watch(activeTab, async (newTab) => {
               class="mb-4"
               @close="inviteUpgradeError = null" />
 
-            <!-- Invite Form (inline) -->
             <div
               v-if="showInviteForm && canManageMembers"
               class="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
@@ -870,7 +876,6 @@ watch(activeTab, async (newTab) => {
               </form>
             </div>
 
-            <!-- Members Table (compact mode) -->
             <div v-if="membersStore.members.length > 0">
               <MembersTable
                 :members="membersStore.members"
@@ -881,7 +886,6 @@ watch(activeTab, async (newTab) => {
                 @member-removed="handleMemberRemoved" />
             </div>
 
-            <!-- Empty state for members -->
             <div v-else-if="!membersStore.loading" class="py-8 text-center">
               <OIcon
                 collection="heroicons"
@@ -893,7 +897,6 @@ watch(activeTab, async (newTab) => {
               </p>
             </div>
 
-            <!-- Loading state -->
             <div v-else class="flex items-center justify-center py-8">
               <OIcon
                 collection="heroicons"
@@ -902,7 +905,6 @@ watch(activeTab, async (newTab) => {
                 aria-hidden="true" />
             </div>
 
-            <!-- Pending Invitations (collapsed subsection) -->
             <div v-if="invitations.length > 0" class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
               <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {{ t('web.organizations.invitations.pending_invitations') }}
@@ -946,6 +948,7 @@ watch(activeTab, async (newTab) => {
             </div>
           </div>
         </section>
+        End LAUNCH: Identity-only - Members Tab -->
 
         <!-- Domains Tab -->
         <section

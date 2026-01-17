@@ -8,8 +8,8 @@
  */
 
 import WorkspaceLayout from '@/apps/workspace/layouts/WorkspaceLayout.vue';
-import type { RouteRecordRaw } from 'vue-router';
 import { SCOPE_PRESETS } from '@/types/router';
+import type { RouteRecordRaw } from 'vue-router';
 
 const standardLayoutProps = {
   displayMasthead: true,
@@ -23,7 +23,7 @@ const standardLayoutProps = {
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/org',
+    path: '/orgs',
     name: 'Organizations',
     component: () => import('@/apps/workspace/account/settings/OrganizationsSettings.vue'),
     meta: {
@@ -47,23 +47,24 @@ const routes: Array<RouteRecordRaw> = [
     },
     props: true,
   },
-  {
-    path: '/org/:extid/members',
-    name: 'OrganizationMembers',
-    component: () => import('@/apps/workspace/members/MembersList.vue'),
-    meta: {
-      title: 'web.organizations.members.title',
-      requiresAuth: true,
-      layout: WorkspaceLayout,
-      layoutProps: standardLayoutProps,
-      scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
-    },
-    props: true,
-  },
+  // LAUNCH: Identity-only - Members route hidden until team features enabled
+  // {
+  //   path: '/org/:extid/members',
+  //   name: 'OrganizationMembers',
+  //   component: () => import('@/apps/workspace/members/MembersList.vue'),
+  //   meta: {
+  //     title: 'web.organizations.members.title',
+  //     requiresAuth: true,
+  //     layout: WorkspaceLayout,
+  //     layoutProps: standardLayoutProps,
+  //     scopesAvailable: SCOPE_PRESETS.orgLockedDomainHide,
+  //   },
+  //   props: true,
+  // },
   // Legacy redirects (no billing guard needed)
   {
     path: '/account/settings/organizations',
-    redirect: '/org',
+    redirect: '/orgs',
   },
   {
     path: '/account/settings/organization/:extid',
