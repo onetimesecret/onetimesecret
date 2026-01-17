@@ -161,7 +161,10 @@
       "copy_secret_to_clipboard": "Copy secret to clipboard",
       "secret_copied_to_clipboard": "Secret copied to clipboard",
       "double_check_that_passphrase": "Double check that passphrase",
-      "press_copy_button_below": "Press the copy button below."
+      "press_copy_button_below": "Press the copy button below.",
+      "not_set": "Not set",
+      "word_edit": "Edit",
+      "word_save": "Save"
     },
     "LABELS": {
       "view_toggle": {
