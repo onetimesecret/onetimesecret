@@ -19,7 +19,7 @@ The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeSc
 1. Page Load
    Ruby backend renders index.html template
    Injects window.__BOOTSTRAP_STATE__ via JSON script tag
-   Location: apps/web/core/views.rb (VuePoint/ExportWindow)
+   Location: apps/web/core/views.rb (VuePoint/BootstrapMe)
 
 2. Vue App Initialization
    Location: src/main.ts, src/plugins/core/appInitializer.ts
@@ -54,7 +54,7 @@ The frontend is a Vue 3 SPA using Composition API (`<script setup>`) with TypeSc
 
 **Backend Injection:**
 - **Location:** `apps/web/core/views.rb`
-- **Classes:** `VuePoint` (page loads), `ExportWindow` (API endpoint)
+- **Classes:** `VuePoint` (page loads), `BootstrapMe` (API endpoint)
 - **Serializers:** ConfigSerializer, AuthenticationSerializer, DomainSerializer, I18nSerializer, MessagesSerializer, SystemSerializer
 
 **Frontend Access:**
