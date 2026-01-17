@@ -619,57 +619,67 @@ watch(activeTab, async (newTab) => {
                   {{ t('web.organizations.contact_email') }}
                 </label>
 
-                <!-- Display Mode: Show email as text with Edit link -->
-                <div v-if="!isEditingBillingEmail" class="mt-1 flex items-center gap-3">
-                  <span class="text-sm text-gray-900 dark:text-white">
-                    {{ organization?.contact_email || t('web.COMMON.not_set') }}
-                  </span>
-                  <button
-                    type="button"
-                    @click="handleEditBillingEmail"
-                    class="text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
-                    {{ t('web.COMMON.word_edit') }}
-                  </button>
+                <!-- Non-default organization: Show info notice -->
+                <div v-if="organization && !organization.is_default" class="mt-1">
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    {{ t('web.organizations.billing_managed_by_default') }}
+                  </p>
                 </div>
 
-                <!-- Edit Mode: Inline form -->
-                <div v-else class="mt-1 space-y-2">
-                  <div class="flex items-center gap-2">
-                    <input
-                      id="billing-email"
-                      v-model="billingEmailForm.email"
-                      type="email"
-                      required
-                      :placeholder="t('web.organizations.contact_email')"
-                      class="block w-full max-w-md rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
-                      @keyup.enter="handleSaveBillingEmail"
-                      @keyup.escape="handleCancelBillingEmailEdit" />
+                <!-- Default organization: Show billing email field -->
+                <template v-else>
+                  <!-- Display Mode: Show email as text with Edit link -->
+                  <div v-if="!isEditingBillingEmail" class="mt-1 flex items-center gap-3">
+                    <span class="text-sm text-gray-900 dark:text-white">
+                      {{ organization?.contact_email || t('web.COMMON.not_set') }}
+                    </span>
                     <button
                       type="button"
-                      @click="handleSaveBillingEmail"
-                      :disabled="isSavingBillingEmail"
-                      class="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
-                      <span v-if="!isSavingBillingEmail">{{ t('web.COMMON.word_save') }}</span>
-                      <OIcon
-                        v-else
-                        collection="heroicons"
-                        name="arrow-path"
-                        class="size-4 animate-spin"
-                        aria-hidden="true" />
-                    </button>
-                    <button
-                      type="button"
-                      @click="handleCancelBillingEmailEdit"
-                      :disabled="isSavingBillingEmail"
-                      class="rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
-                      {{ t('web.COMMON.word_cancel') }}
+                      @click="handleEditBillingEmail"
+                      class="text-sm font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
+                      {{ t('web.COMMON.word_edit') }}
                     </button>
                   </div>
-                </div>
 
-                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  {{ t('web.organizations.contact_email_help') }}
-                </p>
+                  <!-- Edit Mode: Inline form -->
+                  <div v-else class="mt-1 space-y-2">
+                    <div class="flex items-center gap-2">
+                      <input
+                        id="billing-email"
+                        v-model="billingEmailForm.email"
+                        type="email"
+                        required
+                        :placeholder="t('web.organizations.contact_email')"
+                        class="block w-full max-w-md rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 sm:text-sm"
+                        @keyup.enter="handleSaveBillingEmail"
+                        @keyup.escape="handleCancelBillingEmailEdit" />
+                      <button
+                        type="button"
+                        @click="handleSaveBillingEmail"
+                        :disabled="isSavingBillingEmail"
+                        class="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-400">
+                        <span v-if="!isSavingBillingEmail">{{ t('web.COMMON.word_save') }}</span>
+                        <OIcon
+                          v-else
+                          collection="heroicons"
+                          name="arrow-path"
+                          class="size-4 animate-spin"
+                          aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        @click="handleCancelBillingEmailEdit"
+                        :disabled="isSavingBillingEmail"
+                        class="rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-700 dark:text-gray-200 dark:ring-gray-600 dark:hover:bg-gray-600">
+                        {{ t('web.COMMON.word_cancel') }}
+                      </button>
+                    </div>
+                  </div>
+
+                  <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    {{ t('web.organizations.contact_email_help') }}
+                  </p>
+                </template>
               </div>
 
               <!-- Action Buttons -->

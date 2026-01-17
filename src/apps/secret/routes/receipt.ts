@@ -99,6 +99,25 @@ const routes: Array<RouteRecordRaw> = [
       scopesAvailable: SCOPE_PRESETS.hideBoth,
     },
   },
+  {
+    path: '/private/:receiptIdentifier/burn',
+    name: 'Burn secret',
+    component: BurnSecret,
+    ...withValidatedReceiptKey,
+    meta: {
+      title: 'web.TITLES.burn_secret',
+      layout: SecretLayout,
+      layoutProps: {
+        displayMasthead: false,
+        displayNavigation: false,
+        displayFooterLinks: false,
+        displayFeedback: false,
+        displayVersion: true,
+        displayPoweredBy: true,
+      },
+      scopesAvailable: SCOPE_PRESETS.hideBoth,
+    },
+  },
 ];
 
 export default routes;
