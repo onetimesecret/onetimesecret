@@ -31,7 +31,7 @@ module V3
           first_colonel = find_first_colonel
           if first_colonel
             OT.ld "[receive_feedback] Sending feedback to colonel: #{first_colonel.obscure_email}"
-            send_feedback first_colonel, msg
+            send_feedback first_colonel, cust, msg
           else
             OT.ld '[receive_feedback] No colonels found in database, skipping email notification'
           end
@@ -47,7 +47,14 @@ module V3
       end
 
       def format_feedback_message
-        identifier = cust.anonymous? ? sess.inspect : cust.objid
+        # Use extid for authenticated users, session-based identifier for anonymous
+        identifier = if cust.anonymous?
+                       # Generate short identifier from session for anonymous users
+                       sess_id = sess.respond_to?(:id) ? sess.id&.public_id : sess.object_id.to_s(16)
+                       "anon:#{sess_id.to_s[0, 8]}"
+                     else
+                       cust.extid
+                     end
         "#{msg} [#{identifier}] [TZ: #{tz}] [v#{version}]"
       end
       private :format_feedback_message
@@ -61,8 +68,16 @@ module V3
         }
       end
 
-      def send_feedback(cust, message)
+      def send_feedback(colonel, sender, message)
         OT.ld "[send_feedback] Delivering feedback email (#{message.size} chars)"
+
+        # Logic classes don't receive req.env, so display_domain may be nil.
+        # Fall back to site host from config for feedback emails.
+        effective_domain = display_domain || OT.conf.dig('site', 'host')
+
+        # Determine sender email - use actual email for authenticated users,
+        # 'anonymous' indicator for guests
+        sender_email = sender.anonymous? ? 'anonymous' : sender.email
 
         begin
           # Non-critical: feedback is saved in Redis regardless of email
@@ -70,10 +85,11 @@ module V3
           Onetime::Jobs::Publisher.enqueue_email(
             :feedback_email,
             {
-              email_address: cust.email,
+              recipient_email: colonel.email,
+              email_address: sender_email,
               message: message,
-              display_domain: display_domain,
-              domain_strategy: domain_strategy,
+              display_domain: effective_domain,
+              domain_strategy: domain_strategy || :default,
               locale: locale || OT.default_locale,
             },
             fallback: :none,

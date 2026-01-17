@@ -103,6 +103,7 @@ RSpec.describe 'Plan Switching Workflow', :integration do
       metadata: {},
       cancel_at_period_end: false,
       canceled_at: nil,
+      cancel_at: nil,
     }.merge(attrs))
   end
 

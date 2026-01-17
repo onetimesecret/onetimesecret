@@ -9,8 +9,13 @@ import ErrorDisplay from '@/shared/components/ui/ErrorDisplay.vue';
 import { useDomainsManager } from '@/shared/composables/useDomainsManager';
 import type { CustomDomain } from '@/schemas/models';
 import { computed, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 
 const { t } = useI18n(); // auto-import
+const route = useRoute();
+
+const orgid = computed(() => route.params.orgid as string);
+const addDomainRoute = computed(() => `/org/${orgid.value}/domains/add`);
 
 const {
   isLoading,
@@ -43,12 +48,13 @@ onMounted(() => {
       <DomainsTable
         v-if="recordCount > 0"
         :domains="domains"
-        :is-loading="isLoading" />
+        :is-loading="isLoading"
+        :orgid="orgid" />
 
       <EmptyState
         v-else
         :showAction="true"
-        action-route="/domains/add"
+        :action-route="addDomainRoute"
         action-text="Add a Domain">
         <template #title>
           {{ t('web.domains.no_domains_found') }}

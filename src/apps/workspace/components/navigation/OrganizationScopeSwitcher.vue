@@ -84,6 +84,15 @@ const isDefaultOrg = (org: Organization | null): boolean => org?.is_default ?? f
 const isCurrentOrgDefault = computed(() => isDefaultOrg(currentOrganization.value));
 
 /**
+ * Check if an organization has a paid plan
+ * Paid = planid exists and doesn't start with "free"
+ */
+const hasPaidPlan = (org: Organization): boolean => {
+  if (!org.planid) return false;
+  return !org.planid.toLowerCase().startsWith('free');
+};
+
+/**
  * Get initials for organization avatar (first letter)
  */
 const getOrganizationInitial = (org: Organization): string =>
@@ -166,6 +175,7 @@ const navigateToManageOrganizations = (): void => {
     v-if="shouldShow"
     as="div"
     class="relative inline-flex"
+    data-testid="org-scope-switcher"
     v-slot="{ open }">
     <!-- Trigger Button -->
     <MenuButton
@@ -177,7 +187,9 @@ const navigateToManageOrganizations = (): void => {
       ]"
       :disabled="props.locked"
       :title="props.locked ? t('web.organizations.switcher_locked') : undefined"
-      :aria-label="t('web.organizations.select_organization')">
+      :aria-label="t('web.organizations.select_organization')"
+      :aria-disabled="props.locked ? 'true' : undefined"
+      data-testid="org-scope-switcher-trigger">
       <!-- Organization Avatar -->
       <span
         v-if="currentOrganization"
@@ -197,7 +209,9 @@ const navigateToManageOrganizations = (): void => {
       </span>
 
       <!-- Current Organization Display -->
-      <span class="max-w-[150px] truncate">
+      <span
+        class="max-w-[120px] truncate md:max-w-[160px] lg:max-w-[200px]"
+        :title="currentOrganization ? getOrganizationDisplayName(currentOrganization) : undefined">
         {{
           currentOrganization
             ? getOrganizationDisplayName(currentOrganization)
@@ -229,7 +243,8 @@ const navigateToManageOrganizations = (): void => {
       leave-from-class="transform opacity-100 scale-100"
       leave-to-class="transform opacity-0 scale-95">
       <MenuItems
-        class="absolute left-0 top-full z-50 mt-1 max-h-60 w-max min-w-[220px] max-w-xs overflow-auto rounded-lg bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700">
+        class="absolute left-0 top-full z-50 mt-1 max-h-60 w-max min-w-[220px] max-w-xs overflow-auto rounded-lg bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700"
+        data-testid="org-scope-switcher-dropdown">
         <!-- Header -->
         <div
           class="px-3 py-2 font-brand text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -275,6 +290,13 @@ const navigateToManageOrganizations = (): void => {
                 :class="{ 'font-semibold': isCurrentOrganization(org) }">
                 {{ getOrganizationDisplayName(org) }}
               </span>
+
+              <!-- Paid plan badge -->
+              <span
+                v-if="hasPaidPlan(org)"
+                class="ml-1.5 inline-flex items-center rounded bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">
+                {{ t('web.organizations.paid_badge') }}
+              </span>
             </span>
 
             <!-- Right action area: checkmark (active org) / gear icon (on hover) -->
@@ -317,7 +339,8 @@ const navigateToManageOrganizations = (): void => {
           <button
             type="button"
             class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
-            :class="active ? 'bg-gray-100 dark:bg-gray-700' : ''">
+            :class="active ? 'bg-gray-100 dark:bg-gray-700' : ''"
+            data-testid="org-scope-manage-link">
             <span class="flex items-center gap-2">
               <OIcon
                 collection="heroicons"

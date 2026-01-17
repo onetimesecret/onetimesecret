@@ -35,6 +35,9 @@
   "web.footer.legals": {
     "text": "Legals"
   },
+  "web.feedback.when_you_submit_feedback_well_see": {
+    "text": "When you submit feedback, we'll see:"
+  },
   "web.footer.read_our_privacy_policy": {
     "text": "Read our Privacy Policy"
   },

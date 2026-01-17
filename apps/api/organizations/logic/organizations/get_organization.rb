@@ -26,7 +26,7 @@ module OrganizationAPI::Logic
       end
 
       def process
-        OT.ld "[GetOrganization] Getting organization #{@extid} for user #{cust.custid}"
+        OT.ld "[GetOrganization] Getting organization #{@extid} for user #{cust.extid}"
 
         # Get organization members
         @members = @organization.list_members

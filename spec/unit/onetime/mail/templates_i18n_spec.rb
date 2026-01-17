@@ -413,6 +413,7 @@ RSpec.describe 'Email template i18n integration' do
   describe Onetime::Mail::Templates::FeedbackEmail do
     let(:template_data) do
       {
+        recipient_email: 'colonel@example.com',
         email_address: 'feedback@example.com',
         message: 'This is my feedback message',
         display_domain: 'onetimesecret.com',
@@ -439,7 +440,12 @@ RSpec.describe 'Email template i18n integration' do
     end
 
     describe 'validation' do
-      it 'raises ArgumentError when email_address is missing' do
+      it 'raises ArgumentError when recipient_email is missing' do
+        data = template_data.except(:recipient_email)
+        expect { described_class.new(data) }.to raise_error(ArgumentError, 'Recipient email required')
+      end
+
+      it 'raises ArgumentError when email_address (sender) is missing' do
         data = template_data.except(:email_address)
         expect { described_class.new(data) }.to raise_error(ArgumentError, 'Email address required')
       end

@@ -161,7 +161,10 @@
       "copy_secret_to_clipboard": "Copy secret to clipboard",
       "secret_copied_to_clipboard": "Secret copied to clipboard",
       "double_check_that_passphrase": "Double check that passphrase",
-      "press_copy_button_below": "Press the copy button below."
+      "press_copy_button_below": "Press the copy button below.",
+      "not_set": "Not set",
+      "word_edit": "Edit",
+      "word_save": "Save"
     },
     "LABELS": {
       "view_toggle": {
@@ -219,7 +222,9 @@
       "create_request": "Create Request Link",
       "related_settings": "Related Settings",
       "creating_links_for": "Creating links for",
-      "scope_indicator": "Creating secrets in {domain}"
+      "scope_indicator": "Creating secrets in {domain}",
+      "add_note": "Add note...",
+      "edit_note": "Edit note"
     },
     "STATUS": {
       "new": "New",
@@ -346,7 +351,8 @@
       "start_trial": "Get Started",
       "already_have_account": "Already have an account?",
       "sign_in": "Sign in",
-      "recommended_for_you": "Recommended for You"
+      "recommended_for_you": "Recommended for You",
+      "free_tier_description": "Create and share secrets with basic features. No credit card required."
     }
   }
 }

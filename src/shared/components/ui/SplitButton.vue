@@ -5,6 +5,7 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n';
   import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+  import { useMagicKeys, whenever } from '@vueuse/core';
 
   const { t } = useI18n();
 
@@ -19,6 +20,10 @@
     cornerClass: { type: String, default: '' },
     primaryColor: { type: String, default: '' },
     buttonTextLight: { type: Boolean, default: undefined },
+    /** Whether keyboard shortcuts (Cmd/Ctrl+Enter) should trigger the main action */
+    keyboardShortcutEnabled: { type: Boolean, default: false },
+    /** Whether to display the keyboard shortcut hint in the button */
+    showKeyboardHint: { type: Boolean, default: false },
   });
 
   const emit = defineEmits(['generate-password', 'create-link', 'update:action']);
@@ -111,6 +116,24 @@
   onBeforeUnmount(() => {
     document.removeEventListener('click', handleClickOutside);
   });
+
+  // Platform detection for keyboard hint
+  const isMac = computed(() =>
+    typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
+  );
+  const shortcutHint = computed(() => (isMac.value ? '⌘ Enter' : 'Ctrl Enter'));
+
+  // Keyboard shortcut: Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux)
+  const keys = useMagicKeys();
+  const submitShortcut = computed(
+    () => props.keyboardShortcutEnabled && (keys['Meta+Enter'].value || keys['Control+Enter'].value)
+  );
+
+  whenever(submitShortcut, () => {
+    if (!isMainButtonDisabled.value) {
+      handleMainClick();
+    }
+  });
 </script>
 
 <template>
@@ -187,6 +210,12 @@ ry="2" />
         </svg>
       </span>
       <span class="relative z-10">{{ buttonConfig.label }}</span>
+      <kbd
+        v-if="showKeyboardHint"
+        class="ml-1.5 hidden rounded bg-white/20 px-1.5 py-0.5
+          text-xs font-normal opacity-70 sm:inline-block relative z-10">
+        {{ shortcutHint }}
+      </kbd>
     </button>
 
     <!-- prettier-ignore-attribute class -->

@@ -63,6 +63,8 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
         'limit_custom_domains' => '2',
         'limit_secret_lifetime' => '604800',
         'limit_secrets_per_day' => '100',
+        'ots_includes_plan' => '',
+        'ots_is_popular' => 'false',
       },
     }
     double('Stripe::Product', defaults.merge(overrides))
@@ -205,14 +207,14 @@ RSpec.describe 'Billing Catalog Push CLI', :billing_cli, :integration, :vcr do
   describe '#build_metadata (private)' do
     let(:app_identifier) { 'onetimesecret' }
 
-    it 'includes required fields: app, plan_id, tier, tenancy, region' do
+    it 'includes required fields: app, plan_id, tier, tenancy' do
       result = command.send(:build_metadata, 'identity_plus_v1', plan_def, app_identifier)
 
       expect(result['app']).to eq('onetimesecret')
       expect(result['plan_id']).to eq('identity_plus_v1')
       expect(result['tier']).to eq('plus')
       expect(result['tenancy']).to eq('shared')
-      expect(result['region']).to eq('global')
+      expect(result).not_to have_key('region')
     end
 
     it 'joins entitlements array with comma' do

@@ -16,6 +16,14 @@ const props = defineProps<{
   ariaLabelledBy?: string;
 }>();
 
+const emit = defineEmits<{
+  'update:memo': [id: string, memo: string];
+}>();
+
+const handleUpdateMemo = (id: string, memo: string) => {
+  emit('update:memo', id, memo);
+};
+
 // Toast notification state
 const showToast = ref(false);
 const toastMessage = ref('');
@@ -76,109 +84,44 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="mt-8">
+  <div class="mt-6">
     <!-- No secrets state -->
-    <!-- prettier-ignore-attribute class -->
     <div
       v-if="!hasSecrets"
-      class="flex flex-col items-center justify-center
-        rounded-lg border border-gray-200 bg-gray-50 py-8 dark:border-gray-700
-        dark:bg-slate-800/30"
+      class="flex flex-col items-center justify-center rounded-xl border border-gray-200
+        bg-gray-50/50 py-10 dark:border-gray-700/50 dark:bg-slate-800/20"
       role="status">
       <OIcon
         collection="heroicons"
         name="document-text"
-        class="mb-3 size-10 text-gray-400 dark:text-gray-500"
+        class="mb-3 size-12 text-gray-300 dark:text-gray-600"
         aria-hidden="true" />
-      <p class="text-gray-500 dark:text-gray-400">
+      <p class="text-sm text-gray-500 dark:text-gray-400">
         {{ t('web.dashboard.title_no_recent_secrets') }}
       </p>
     </div>
 
-    <!-- Table with secrets -->
-    <!-- prettier-ignore-attribute class -->
+    <!-- Card list with secrets -->
     <div
       v-else
-      class="relative overflow-hidden
-        rounded-lg border border-gray-200 bg-white opacity-90 shadow-sm
-        dark:border-gray-700 dark:bg-slate-900">
-      <div class="overflow-x-auto">
-        <!-- Table Header with Refresh Button -->
-        <div
-          v-if="false"
-          class="flex justify-between bg-gray-50 p-2 dark:bg-slate-800">
-          <span class="text-xs text-gray-500 dark:text-gray-400">
-            {{ t('web.LABELS.last_refreshed') }}: {{ lastRefreshed.toLocaleTimeString() }}
-          </span>
-          <!-- prettier-ignore-attribute class -->
-          <button
-            @click="refreshAllStatuses"
-            class="flex items-center text-xs
-              text-blue-500 hover:text-blue-600
-              dark:text-blue-400 dark:hover:text-blue-300">
-            <OIcon
-              collection="heroicons"
-              name="arrow-path"
-              class="mr-1 size-4" />
-            {{ t('web.LABELS.refresh') }}
-          </button>
-        </div>
+      class="space-y-3"
+      role="list"
+      :aria-labelledby="ariaLabelledBy">
+      <span class="sr-only">{{ t('web.LABELS.caption_recent_secrets') }}</span>
 
-        <!-- Secrets Table -->
-        <table
-          class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
-          :aria-labelledby="ariaLabelledBy">
-          <caption class="sr-only">
-            {{ t('web.LABELS.caption_recent_secrets') }}
-          </caption>
-          <thead class="bg-gray-50 dark:bg-slate-800">
-            <tr>
-              <!-- Index Column Header -->
-              <th
-                scope="col"
-                class="w-12 px-3 py-2.5 text-center text-xs font-medium uppercase tracking-wider
-                  text-gray-700 dark:text-gray-400">
-                #
-              </th>
-              <!-- prettier-ignore-attribute class -->
-              <th
-                scope="col"
-                class="px-6 py-2.5 text-left text-xs font-medium uppercase tracking-wider
-                  text-gray-700 dark:text-gray-400">
-                {{ t('web.LABELS.receipts') }}
-              </th>
-              <!-- prettier-ignore-attribute class -->
-              <th
-                scope="col"
-                class="hidden px-6 py-2.5 text-left text-xs font-medium uppercase tracking-wider
-                  text-gray-700 dark:text-gray-400 sm:table-cell">
-                {{ t('web.LABELS.details') }}
-              </th>
-              <!-- prettier-ignore-attribute class -->
-              <th
-                scope="col"
-                class="px-6 py-2.5 text-right text-xs font-medium uppercase tracking-wider
-                  text-gray-700 dark:text-gray-400">
-                {{ t('web.LABELS.share') }}
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-            <SecretLinksTableRow
-              v-for="(record, idx) in sortedSecrets"
-              :key="record.id"
-              :record="record"
-              :index="sortedSecrets.length - idx"
-              @copy="handleCopy"
-              @delete="handleBurn" />
-          </tbody>
-        </table>
-      </div>
-
-      <ToastNotification
-        :show="showToast"
-        :message="toastMessage"
-        aria-live="polite" />
+      <SecretLinksTableRow
+        v-for="(record, idx) in sortedSecrets"
+        :key="record.id"
+        :record="record"
+        :index="sortedSecrets.length - idx"
+        @copy="handleCopy"
+        @delete="handleBurn"
+        @update:memo="handleUpdateMemo" />
     </div>
+
+    <ToastNotification
+      :show="showToast"
+      :message="toastMessage"
+      aria-live="polite" />
   </div>
 </template>

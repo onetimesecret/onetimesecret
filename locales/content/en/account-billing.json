@@ -164,6 +164,12 @@
   "web.billing.features.custom_domains": {
     "text": "Custom Domains"
   },
+  "web.billing.features.custom_domain": {
+    "text": "1 Custom Domain"
+  },
+  "web.billing.features.unlimited_custom_domains": {
+    "text": "Unlimited Custom Domains"
+  },
   "web.billing.features.custom_branding": {
     "text": "Custom Branding"
   },
@@ -187,6 +193,18 @@
   },
   "web.billing.features.sla": {
     "text": "Service Level Agreement"
+  },
+  "web.billing.features.centralized_billing": {
+    "text": "Centralized Billing"
+  },
+  "web.billing.features.audit_trail": {
+    "text": "Audit Trail"
+  },
+  "web.billing.features.activity_stream": {
+    "text": "Activity Stream"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Handoff Workflows"
   },
   "web.billing.plans.title": {
     "text": "Select a Plan"
@@ -282,7 +300,7 @@
     "text": "Suggested"
   },
   "web.billing.plans.everything_in": {
-    "text": "Everything in {plan}, plus:"
+    "text": "Includes everything in {plan}"
   },
   "web.billing.plans.no_plans_available": {
     "text": "No {interval} plans available at this time."

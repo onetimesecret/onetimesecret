@@ -88,7 +88,7 @@
     },
     "CurrencyCode": {
       "type": "string",
-      "enum": ["usd", "eur", "cad"],
+      "enum": ["usd", "eur", "cad", "nzd"],
       "description": "ISO 4217 currency code"
     },
     "LimitValue": {
@@ -99,15 +99,11 @@
     },
     "PlanLimits": {
       "type": "object",
-      "required": ["teams", "members_per_team", "custom_domains", "secret_lifetime"],
+      "required": ["organizations", "members_per_team", "custom_domains", "secret_lifetime"],
       "properties": {
         "organizations": {
           "$ref": "#/definitions/LimitValue",
           "description": "Maximum number of organizations"
-        },
-        "teams": {
-          "$ref": "#/definitions/LimitValue",
-          "description": "Maximum number of teams"
         },
         "members_per_team": {
           "$ref": "#/definitions/LimitValue",
@@ -161,10 +157,9 @@
           "$ref": "#/definitions/TenancyType",
           "description": "Tenancy type (optional for draft plans)"
         },
-        "region": {
+        "plan_name_label": {
           "type": "string",
-          "minLength": 1,
-          "description": "Geographic region (EU, CA, global)"
+          "description": "i18n key for plan category label"
         },
         "display_order": {
           "type": ["integer", "null"],
@@ -174,6 +169,10 @@
         "show_on_plans_page": {
           "type": "boolean",
           "description": "Visibility on public plans page"
+        },
+        "includes_plan": {
+          "type": "string",
+          "description": "Plan ID this plan includes (for 'Includes everything in X' display)"
         },
         "description": {
           "type": "string",
@@ -196,6 +195,14 @@
             "minLength": 1
           },
           "description": "Array of entitlement IDs"
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Array of i18n feature keys for UI display"
         },
         "limits": {
           "$ref": "#/definitions/PlanLimits"

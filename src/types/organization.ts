@@ -95,6 +95,7 @@ export interface Organization {
   planid?: string | null;
   entitlements?: Entitlement[] | null;
   limits?: OrganizationLimits | null;
+  domain_count?: number | null;
 }
 
 /**
@@ -123,6 +124,7 @@ export const organizationSchema = z.object({
       custom_domains: z.number().optional(),
     })
     .nullish(),
+  domain_count: z.number().int().min(0).nullish(),
 });
 
 /**

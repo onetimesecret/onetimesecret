@@ -30,15 +30,17 @@
 
 <template>
   <header class="border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-    <!-- Top Bar with Logo and User Menu -->
+    <!-- Single row header with Logo, Context Switchers, and User Menu -->
     <div class="container mx-auto min-w-[320px] max-w-4xl px-4">
-      <div class="py-4">
-        <MastHead v-if="displayMasthead" v-bind="props" />
+      <div class="py-3">
+        <MastHead v-if="displayMasthead" v-bind="props">
+          <!-- Pass context switchers to be rendered inline with logo -->
+          <template #context-switchers>
+            <slot></slot>
+          </template>
+        </MastHead>
       </div>
     </div>
-
-    <!-- Slot for custom content (e.g., OrganizationContextBar) -->
-    <slot ></slot>
 
     <!-- Primary Navigation Bar (for authenticated users) - Hidden on mobile -->
     <div

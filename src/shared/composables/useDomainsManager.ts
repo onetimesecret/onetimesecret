@@ -1,12 +1,13 @@
 // src/shared/composables/useDomainsManager.ts
 
 import { AsyncHandlerOptions, createError, useAsyncHandler } from '@/shared/composables/useAsyncHandler';
+import { useDomainScope } from '@/shared/composables/useDomainScope';
 import { ApplicationError } from '@/schemas/errors';
 import { useDomainsStore, useNotificationsStore } from '@/shared/stores';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 /**
  * Composable for managing custom domains and their brand settings
@@ -22,8 +23,12 @@ export function useDomainsManager() {
   const store = useDomainsStore();
   const notifications = useNotificationsStore();
   const router = useRouter();
+  const route = useRoute();
   const goBack = () => router.back();
   const { records, details } = storeToRefs(store);
+
+  // Get orgid from route params for org-qualified navigation
+  const orgid = computed(() => route.params.orgid as string | undefined);
 
   const { refreshRecords } = store;
   const { t } = useI18n();
@@ -96,9 +101,12 @@ export function useDomainsManager() {
       notifications.show(t('web.domains.domain_already_in_organization'), 'warning');
       await store.fetchList();
       const existingDomain = store.records?.find(d => d.display_domain === domain);
-      if (existingDomain) {
+      if (existingDomain && orgid.value) {
         setTimeout(() => {
-          router.push({ name: 'DomainVerify', params: { extid: existingDomain.extid } });
+          router.push({
+            name: 'DomainVerify',
+            params: { orgid: orgid.value, extid: existingDomain.extid },
+          });
         }, 2000);
       }
       return null;
@@ -113,7 +121,8 @@ export function useDomainsManager() {
   const handleAddDomain = async (domain: string) =>
     wrap(async () => {
       try {
-        const result = await store.addDomain(domain);
+        // Pass org_id from route params to ensure correct org context
+        const result = await store.addDomain(domain, orgid.value);
         if (!result) {
           error.value = createError(t('web.domains.failed_to_add_domain'), 'human', 'error');
           return null;
@@ -123,7 +132,16 @@ export function useDomainsManager() {
         const message = isReclaimed ? 'web.domains.domain_claimed_successfully' : 'web.domains.domain_added_successfully';
         notifications.show(t(message), 'success');
 
-        router.push({ name: 'DomainVerify', params: { extid: result.extid } });
+        // Auto-switch domain scope to the newly added domain
+        const { setScope } = useDomainScope();
+        setScope(result.display_domain);
+
+        if (orgid.value) {
+          router.push({
+            name: 'DomainVerify',
+            params: { orgid: orgid.value, extid: result.extid },
+          });
+        }
         setTimeout(() => verifyDomain(result.extid), 2000);
         return result;
       } catch (err: any) {

@@ -1275,7 +1275,7 @@ export type I18nKey =
   | 'web.feedback.open_feedback_form'
   | 'web.feedback.send_feedback'
   | 'web.feedback.share_your_feedback'
-  | 'web.feedback.thanks_for_helping_onetime_secret_improve_it_mea'
+  | 'web.feedback.delano_signoff'
   | 'web.feedback.weve_built_this_tool_to_help_you_share_sensitive'
   | 'web.feedback.your_feedback'
   | 'web.footer.access_our_documentation'
@@ -3291,7 +3291,7 @@ export interface LocaleMessageSchema {
       open_feedback_form: string;
       send_feedback: string;
       share_your_feedback: string;
-      thanks_for_helping_onetime_secret_improve_it_mea: string;
+      delano_signoff: string;
       weve_built_this_tool_to_help_you_share_sensitive: string;
       your_feedback: string;
     };

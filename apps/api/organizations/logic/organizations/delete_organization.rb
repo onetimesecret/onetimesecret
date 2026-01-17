@@ -26,7 +26,7 @@ module OrganizationAPI::Logic
       end
 
       def process
-        OT.ld "[DeleteOrganization] Deleting organization #{@extid} for user #{cust.custid}"
+        OT.ld "[DeleteOrganization] Deleting organization #{@extid} for user #{cust.extid}"
 
         # Get organization info before deletion
         objid        = @organization.objid

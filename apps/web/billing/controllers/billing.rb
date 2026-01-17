@@ -261,29 +261,42 @@ module Billing
       #
       # @return [Hash] List of plans
       def list_plans
-        plans = ::Billing::Plan.list_plans
+        plans = ::Billing::Plan.list_plans.compact
 
-        # Filter out nil plans, filter by show_on_plans_page, and sort by display_order (ascending - lower values first)
+        # Build lookup for resolving includes_plan_name
+        # Plan IDs include interval suffix (e.g., "identity_v1_monthly"), but includes_plan
+        # references the base ID (e.g., "identity_v1"). Map both for flexibility.
+        plan_names_by_id = plans.each_with_object({}) do |plan, lookup|
+          lookup[plan.plan_id] = plan.name
+          # Also index by base ID (strip interval suffix)
+          base_id              = plan.plan_id.sub(/_(month|year)ly$/, '')
+          lookup[base_id]      = plan.name
+        end
+
+        # Filter by show_on_plans_page and sort by display_order (ascending - lower values first)
         plan_data = plans
-          .compact
           .select { |plan| plan.show_on_plans_page.to_s == 'true' }
           .map do |plan|
             {
               id: plan.plan_id,
-              stripe_price_id: plan.stripe_price_id,
+              stripe_price_id: plan.stripe_price_id,  # nil for free/config-only plans
               name: plan.name,
               tier: plan.tier,
               interval: plan.interval,
               amount: plan.amount,
               currency: plan.currency,
-              region: plan.region,
               features: plan.features.to_a,
               limits: plan.limits_hash.transform_values { |v| v == Float::INFINITY ? -1 : v },
               entitlements: plan.entitlements.to_a,
               display_order: plan.display_order.to_i,
+              plan_code: plan.plan_code,
+              is_popular: plan.popular?,
+              plan_name_label: plan.plan_name_label,
+              includes_plan: plan.includes_plan,
+              includes_plan_name: plan_names_by_id[plan.includes_plan],
             }
           end
-          .sort_by { |p| p[:display_order] } # Ascending: Identity Plus (10) → Org Max (40)
+          .sort_by { |p| p[:display_order] } # Ascending: Free (0) → Identity Plus (10) → Org Max (40)
 
         json_response({ plans: plan_data })
       rescue StandardError => ex
@@ -331,6 +344,8 @@ module Billing
             subscription_item_id: current_item.id,
             subscription_status: subscription.status,
             current_period_end: current_item.current_period_end,
+            cancel_at_period_end: subscription.cancel_at_period_end,
+            cancel_at: subscription.cancel_at,
           },
         )
       rescue OT::Problem => ex
@@ -613,6 +628,73 @@ module Billing
             extid: req.params['extid'],
           }
         json_error('Failed to change plan', status: 500)
+      end
+
+      # Cancel subscription at period end
+      #
+      # Schedules the organization's subscription for cancellation at the end
+      # of the current billing period. Uses cancel_at_period_end: true so the
+      # customer retains access until their paid period expires.
+      #
+      # POST /billing/api/org/:extid/cancel-subscription
+      #
+      # @return [Hash] Result with cancel_at timestamp and status
+      def cancel_subscription
+        org = load_organization(req.params['extid'], require_owner: true)
+
+        unless org.active_subscription?
+          return json_error('No active subscription to cancel', status: 400)
+        end
+
+        unless org.stripe_subscription_id
+          return json_error('No Stripe subscription found', status: 400)
+        end
+
+        if stripe_api_key_missing?('cancel_subscription')
+          return json_error('Billing service temporarily unavailable', status: 503)
+        end
+
+        # Cancel at period end (standard SaaS pattern - customer keeps access until paid period ends)
+        canceled_subscription = Stripe::Subscription.update(
+          org.stripe_subscription_id,
+          { cancel_at_period_end: true },
+        )
+
+        # Get the period end from subscription item (Stripe API 2025-11-17.clover)
+        first_item = canceled_subscription.items&.data&.first
+        cancel_at  = first_item&.current_period_end
+
+        billing_logger.info 'Subscription cancellation scheduled',
+          {
+            extid: org.extid,
+            subscription_id: canceled_subscription.id,
+            cancel_at: cancel_at,
+            status: canceled_subscription.status,
+          }
+
+        json_response(
+          {
+            success: true,
+            cancel_at: cancel_at,
+            status: canceled_subscription.status,
+          },
+        )
+      rescue OT::Problem => ex
+        json_error(ex.message, status: 403)
+      rescue Stripe::InvalidRequestError => ex
+        billing_logger.warn 'Invalid subscription cancellation request',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
+        json_error(ex.message, status: 400)
+      rescue Stripe::StripeError => ex
+        billing_logger.error 'Failed to cancel subscription',
+          {
+            exception: ex,
+            extid: req.params['extid'],
+          }
+        json_error('Failed to cancel subscription', status: 500)
       end
 
       module PrivateMethods

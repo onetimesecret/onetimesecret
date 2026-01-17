@@ -99,7 +99,8 @@
           class="mb-4 border-l-4 border-amber-400 bg-amber-50 p-4 text-amber-700
             dark:border-amber-500 dark:bg-amber-900 dark:text-amber-100"
           role="alert"
-          aria-live="polite">
+          aria-live="polite"
+          data-testid="owner-warning">
           <button
             type="button"
             class="float-right rounded-md p-1

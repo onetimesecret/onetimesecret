@@ -120,7 +120,7 @@ export type LimitValue = z.infer<typeof LimitValueSchema>;
  * Resource constraints for a billing plan
  */
 export const PlanLimitsSchema = z.object({
-  teams: LimitValueSchema.describe('Maximum number of teams'),
+  organizations: LimitValueSchema.describe('Maximum number of organizations'),
   members_per_team: LimitValueSchema.describe('Maximum members per team'),
   custom_domains: LimitValueSchema.describe('Maximum custom domains'),
   secret_lifetime: LimitValueSchema.describe('Maximum secret lifetime in seconds'),
@@ -154,13 +154,17 @@ export const PlanDefinitionSchema = z.object({
   name: z.string().min(1).describe('Display name for the plan'),
   tier: BillingTierSchema.optional().describe('Billing tier (optional for draft plans)'),
   tenancy: TenancyTypeSchema.optional().describe('Tenancy type (optional for draft plans)'),
-  region: z.string().min(1).optional().describe('Geographic region (EU, CA, global)'),
+  plan_name_label: z.string().optional().describe('i18n key for plan category label'),
   display_order: z
     .number()
     .int()
-    .nonnegative()
-    .describe('Sort order on plans page (higher = earlier)'),
+    .nullable()
+    .describe('Sort order on plans page (higher = earlier, null = hidden)'),
   show_on_plans_page: z.boolean().describe('Visibility on public plans page'),
+  includes_plan: z
+    .string()
+    .optional()
+    .describe('Plan ID this plan includes (for "Includes everything in X" display)'),
   description: z.string().min(1).optional().describe('Plan description for documentation'),
   legacy: z.boolean().optional().describe('Marks plan as legacy/grandfathered (no longer offered)'),
   grandfathered_until: z
@@ -170,6 +174,10 @@ export const PlanDefinitionSchema = z.object({
     .describe('ISO date until which plan is grandfathered (YYYY-MM-DD)'),
 
   entitlements: z.array(z.string().min(1)).describe('Array of entitlement IDs'),
+  features: z
+    .array(z.string().min(1))
+    .optional()
+    .describe('Array of i18n feature keys for UI display'),
   limits: PlanLimitsSchema,
   prices: z.array(PlanPriceSchema).describe('Available pricing options'),
 });
@@ -219,7 +227,12 @@ export const BillingConfigSchema = z.object({
 
   plans: z
     .record(
-      z.string().regex(/^[a-z_]+(_v\d+)?$/, 'Plan ID must be lowercase with underscores (e.g., identity, identity_plus_v1)'),
+      z
+        .string()
+        .regex(
+          /^[a-z_]+(_v\d+)?$/,
+          'Plan ID must be lowercase with underscores (e.g., identity, identity_plus_v1)'
+        ),
       PlanDefinitionSchema
     )
     .describe('Plan definitions by plan_id (legacy plans use legacy: true flag)'),
@@ -282,7 +295,7 @@ export function getPlansSortedByDisplayOrder(
 ): Array<[string, PlanDefinition]> {
   return Object.entries(config.plans)
     .filter(([, plan]) => includeHidden || plan.show_on_plans_page)
-    .sort(([, a], [, b]) => b.display_order - a.display_order);
+    .sort(([, a], [, b]) => (b.display_order ?? 0) - (a.display_order ?? 0));
 }
 
 export function getPlansByTier(
@@ -296,7 +309,10 @@ export function planHasEntitlement(plan: PlanDefinition, entitlement: string): b
   return plan.entitlements.includes(entitlement);
 }
 
-export function getPlanPrice(plan: PlanDefinition, interval: BillingInterval): PlanPrice | undefined {
+export function getPlanPrice(
+  plan: PlanDefinition,
+  interval: BillingInterval
+): PlanPrice | undefined {
   return plan.prices.find((p) => p.interval === interval);
 }
 

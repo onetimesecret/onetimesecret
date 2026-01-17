@@ -204,14 +204,8 @@ const getIconClasses = (variant?: 'default' | 'caution' | 'danger' | 'cta', item
 // Get email from either customer object or direct prop (when awaiting MFA)
 const userEmail = computed(() => props.cust?.email || props.email || '');
 
-// Truncate email for display
-const truncatedEmail = computed(() => {
-  const email = userEmail.value;
-  if (!email) return 'User';
-  if (email.length <= 20) return email;
-  const [local, domain] = email.split('@');
-  return `${local.slice(0, 8)}...@${domain}`;
-});
+// Display email (CSS truncation handles overflow, no JS truncation needed)
+const displayEmail = computed(() => userEmail.value || 'User');
 
 // Get user initials for avatar
 const userInitials = computed(() => {
@@ -293,7 +287,9 @@ onUnmounted(() => {
 
       <!-- Email & Chevron -->
       <div class="hidden items-center gap-1 sm:flex">
-        <span class="max-w-[150px] truncate">{{ truncatedEmail }}</span>
+        <span
+          class="max-w-[140px] truncate md:max-w-[180px] lg:max-w-[220px]"
+          :title="userEmail">{{ displayEmail }}</span>
         <OIcon
           collection="heroicons"
           :name="isOpen ? 'chevron-up-solid' : 'chevron-down-solid'"
@@ -363,6 +359,7 @@ onUnmounted(() => {
               v-if="item.to"
               :to="item.to"
               :class="getMenuItemClasses(item.variant)"
+              :data-testid="item.id === 'dashboard' ? 'header-dashboard-link' : undefined"
               @click="closeMenu"
               role="menuitem">
               <!-- Special case for upgrade using FancyIcon -->

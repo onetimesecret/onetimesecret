@@ -518,8 +518,10 @@ RSpec.describe 'Email Template Rendering', type: :integration do
   end
 
   describe Onetime::Mail::Templates::FeedbackEmail do
+    let(:colonel_email) { 'colonel@example.com' }
     let(:data) do
       {
+        recipient_email: colonel_email,
         email_address: test_email,
         message: 'Great service! Thanks for building this.',
         display_domain: 'custom.example.com',
@@ -591,8 +593,8 @@ RSpec.describe 'Email Template Rendering', type: :integration do
         expect(email_hash).to include(:to, :from, :subject, :text_body, :html_body)
       end
 
-      it 'has correct recipient (sender of feedback)' do
-        expect(email_hash[:to]).to eq(test_email)
+      it 'has correct recipient (colonel, not the feedback sender)' do
+        expect(email_hash[:to]).to eq(colonel_email)
       end
     end
   end
@@ -669,18 +671,23 @@ RSpec.describe 'Email Template Rendering', type: :integration do
         .to raise_error(ArgumentError, /Expiration time required/)
     end
 
-    it 'FeedbackEmail requires email_address' do
-      expect { Onetime::Mail::Templates::FeedbackEmail.new({ message: 'x', display_domain: 'd.com' }) }
+    it 'FeedbackEmail requires recipient_email' do
+      expect { Onetime::Mail::Templates::FeedbackEmail.new({ email_address: 'a@b.com', message: 'x', display_domain: 'd.com' }) }
+        .to raise_error(ArgumentError, /Recipient email required/)
+    end
+
+    it 'FeedbackEmail requires email_address (sender)' do
+      expect { Onetime::Mail::Templates::FeedbackEmail.new({ recipient_email: 'c@b.com', message: 'x', display_domain: 'd.com' }) }
         .to raise_error(ArgumentError, /Email address required/)
     end
 
     it 'FeedbackEmail requires message' do
-      expect { Onetime::Mail::Templates::FeedbackEmail.new({ email_address: 'a@b.com', display_domain: 'd.com' }) }
+      expect { Onetime::Mail::Templates::FeedbackEmail.new({ recipient_email: 'c@b.com', email_address: 'a@b.com', display_domain: 'd.com' }) }
         .to raise_error(ArgumentError, /Message required/)
     end
 
     it 'FeedbackEmail requires display_domain' do
-      expect { Onetime::Mail::Templates::FeedbackEmail.new({ email_address: 'a@b.com', message: 'x' }) }
+      expect { Onetime::Mail::Templates::FeedbackEmail.new({ recipient_email: 'c@b.com', email_address: 'a@b.com', message: 'x' }) }
         .to raise_error(ArgumentError, /Display domain required/)
     end
   end

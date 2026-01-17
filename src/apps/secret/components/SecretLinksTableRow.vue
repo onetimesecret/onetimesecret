@@ -8,7 +8,7 @@ import type { RecentSecretRecord } from '@/shared/composables/useRecentSecrets';
 import { formatTTL } from '@/utils/formatters';
 import { formatDistanceToNow } from 'date-fns';
 import { storeToRefs } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 
 const { t } = useI18n();
 
@@ -21,10 +21,46 @@ const props = defineProps<{
 const emit = defineEmits<{
   copy: [];
   delete: [record: RecentSecretRecord];
+  'update:memo': [id: string, memo: string];
 }>();
 
 // Track if this row's content was copied
 const isCopied = ref(false);
+
+// Memo editing state
+const isEditingMemo = ref(false);
+const memoInputValue = ref('');
+const memoInputRef = ref<HTMLInputElement | null>(null);
+
+const startEditingMemo = async () => {
+  memoInputValue.value = props.record.memo || '';
+  isEditingMemo.value = true;
+  // Focus input on next tick after it renders
+  await nextTick();
+  memoInputRef.value?.focus();
+};
+
+const saveMemo = () => {
+  const trimmed = memoInputValue.value.trim();
+  // Only emit if value changed
+  if (trimmed !== (props.record.memo || '')) {
+    emit('update:memo', props.record.id, trimmed);
+  }
+  isEditingMemo.value = false;
+};
+
+const cancelEditingMemo = () => {
+  isEditingMemo.value = false;
+  memoInputValue.value = props.record.memo || '';
+};
+
+const handleMemoKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Enter') {
+    saveMemo();
+  } else if (event.key === 'Escape') {
+    cancelEditingMemo();
+  }
+};
 
 const bootstrapStore = useBootstrapStore();
 const { site_host } = storeToRefs(bootstrapStore);
@@ -73,37 +109,37 @@ const getTtlPercentage = computed(() => {
   return Math.floor((props.record.ttl / maxTtl) * 100);
 });
 
-// Background color class based on TTL percentage and state
-const ttlBackgroundClass = computed(() => {
-  if (isExpired.value) return 'bg-gray-50/80 dark:bg-slate-800/40';
-  if (isBurned.value) return 'bg-red-50/30 dark:bg-red-900/5';
-  if (isViewed.value) return 'bg-amber-50/30 dark:bg-amber-900/5';
-
-  const percentage = getTtlPercentage.value;
-  if (percentage > 75) return 'bg-transparent';
-  if (percentage > 50) return 'bg-emerald-50/30 dark:bg-emerald-900/10';
-  if (percentage > 25) return 'bg-amber-50/40 dark:bg-amber-900/15';
-  return 'bg-red-50/40 dark:bg-red-900/10';
+// Card background color based on state
+const cardBackgroundClass = computed(() => {
+  if (isExpired.value || isBurned.value) {
+    return 'bg-gray-50/60 dark:bg-slate-800/30';
+  }
+  return 'bg-white dark:bg-slate-900/80';
 });
 
-// Text status based on secret state
-const statusClass = computed(() => {
+// Status dot color
+const statusDotClass = computed(() => {
+  if (isExpired.value) return 'bg-gray-400 dark:bg-gray-500';
+  if (isBurned.value) return 'bg-red-500 dark:bg-red-400';
+  if (isViewed.value) return 'bg-amber-500 dark:bg-amber-400';
+  return 'bg-emerald-500 dark:bg-emerald-400';
+});
+
+// Status text color
+const statusTextClass = computed(() => {
   if (isExpired.value) return 'text-gray-500 dark:text-gray-400';
   if (isBurned.value) return 'text-red-600 dark:text-red-400';
   if (isViewed.value) return 'text-amber-600 dark:text-amber-400';
   return 'text-emerald-600 dark:text-emerald-400';
 });
 
-// Get status label based on state and TTL percentage
+// Get status label based on state
 const statusLabel = computed(() => {
   if (isExpired.value) return t('web.STATUS.expired');
   if (isBurned.value) return t('web.STATUS.burned');
   if (isViewed.value) return t('web.STATUS.viewed');
   if (isReceived.value) return t('web.STATUS.received');
-
-  const percentage = getTtlPercentage.value;
-  if (percentage <= 25) return t('web.STATUS.expiring_soon');
-  return '';
+  return t('web.STATUS.active');
 });
 
 // Display key (truncated: first 4 + ... + last 4 chars)
@@ -112,155 +148,223 @@ const displayKey = computed(() => {
   if (!shortid || shortid.length <= 8) return shortid;
   return `${shortid.slice(0, 4)}...${shortid.slice(-4)}`;
 });
+
+// Check if secret is still active (can be shared)
+const isActive = computed(() => !isExpired.value && !isBurned.value);
+
+// Time remaining with urgency indicator
+const isUrgent = computed(() => {
+  const percentage = getTtlPercentage.value;
+  return percentage <= 25 && isActive.value;
+});
 </script>
 
 <template>
-  <tr
+  <div
+    role="listitem"
     :class="[
-      'group border-b border-gray-200 transition-all duration-200 hover:bg-gray-50/80 dark:border-gray-700 dark:hover:bg-slate-800/70',
-      ttlBackgroundClass,
-      { 'opacity-70': isExpired || isBurned },
+      'group relative rounded-xl border transition-all duration-200',
+      cardBackgroundClass,
+      isActive
+        ? 'border-gray-200 shadow-sm hover:border-gray-300 hover:shadow-md dark:border-gray-700/60 dark:hover:border-gray-600'
+        : 'border-gray-200/60 dark:border-gray-700/40',
+      { 'opacity-75': !isActive },
     ]">
-    <!-- Index Column -->
-    <td class="w-16 whitespace-nowrap px-3 py-4 text-center">
-      <span class="text-2xl font-bold tabular-nums text-gray-300 dark:text-gray-600">
-        {{ index }}
-      </span>
-    </td>
+    <!-- Main card content -->
+    <div class="flex items-start gap-4 p-4">
+      <!-- Index number - large visual anchor -->
+      <div class="flex-shrink-0 pt-0.5">
+        <span
+          class="select-none font-mono text-3xl font-bold tabular-nums text-gray-200 dark:text-gray-700">
+          {{ index }}
+        </span>
+      </div>
 
-    <!-- Secret ID Column -->
-    <td class="whitespace-nowrap px-6 py-4">
-      <div class="flex flex-col">
+      <!-- Content area -->
+      <div class="min-w-0 flex-1">
+        <!-- Row 1: Creation time (primary context) -->
         <div class="mb-1.5 flex items-center gap-2">
-          <!-- Status icon changes based on secret state -->
-          <OIcon
-            collection="heroicons"
-            name="document-text"
-            class="size-4 text-gray-500" />
-          <span
-            :class="[
-              'max-w-[15ch] truncate font-mono text-sm font-medium',
-              isExpired || isBurned
-                ? 'text-gray-500 dark:text-gray-400'
-                : 'text-gray-800 dark:text-gray-200',
-            ]">
-            <router-link
-              v-if="!isExpired && !isBurned"
-              :to="`/receipt/${record.extid}`"
-              class="transition-colors hover:text-gray-600 dark:hover:text-gray-300">
-              {{ displayKey }}
-            </router-link>
-            <span v-else>{{ displayKey }}</span>
+          <span class="text-sm text-gray-600 dark:text-gray-300">
+            {{ t('web.STATUS.created') }}
           </span>
-          <!-- Status badge based on secret state -->
-          <span
-            v-if="statusLabel"
-            :class="[
-              'ml-1 rounded px-1.5 py-0.5 text-xs font-medium text-white dark:text-white',
-              isExpired
-                ? 'bg-gray-500 dark:bg-gray-600'
-                : isBurned
-                  ? 'bg-red-500 dark:bg-red-600'
-                  : isViewed
-                    ? 'bg-amber-500 dark:bg-amber-600'
-                    : isReceived
-                      ? 'bg-blue-500 dark:bg-blue-600'
-                      : 'bg-amber-500 dark:bg-amber-600',
-            ]">
-            {{ statusLabel }}
+          <span class="text-sm font-medium text-gray-800 dark:text-gray-200">
+            {{ formattedDate }}
           </span>
         </div>
-        <!-- Time info rows - display creation date and lifespan on separate lines -->
-        <div class="ml-6 flex flex-col">
-          <div class="pl-1 text-xs text-gray-700 dark:text-gray-400">
-            <span class="sr-only">{{ t('web.LABELS.lifespan') }}</span>
-            {{ timeRemaining }} |
-            <span class="sr-only">{{ t('web.STATUS.created') }}</span>
-            {{ formattedDate }}
+
+        <!-- Row 1.5: Memo (click to edit) -->
+        <div class="mb-1.5">
+          <!-- Editing mode -->
+          <div
+            v-if="isEditingMemo"
+            class="flex items-center gap-1.5">
+            <input
+              ref="memoInputRef"
+              v-model="memoInputValue"
+              type="text"
+              maxlength="100"
+              :placeholder="t('web.LABELS.add_note')"
+              class="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 placeholder-gray-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-slate-800 dark:text-gray-200 dark:placeholder-gray-500"
+              @keydown="handleMemoKeydown"
+              @blur="saveMemo" />
+          </div>
+          <!-- Display mode -->
+          <button
+            v-else
+            type="button"
+            @click="startEditingMemo"
+            class="group/memo flex items-center gap-1.5 rounded px-1 py-0.5 text-left transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+            :title="t('web.LABELS.edit_note')">
+            <OIcon
+              collection="heroicons"
+              name="pencil-square"
+              class="size-3.5 flex-shrink-0 text-gray-300 transition-colors group-hover/memo:text-gray-500 dark:text-gray-600 dark:group-hover/memo:text-gray-400" />
+            <span
+              v-if="record.memo"
+              class="line-clamp-1 text-sm text-gray-600 dark:text-gray-300">
+              {{ record.memo }}
+            </span>
+            <span
+              v-else
+              class="text-sm italic text-gray-400 dark:text-gray-500">
+              {{ t('web.LABELS.add_note') }}
+            </span>
+          </button>
+        </div>
+
+        <!-- Row 2: Status indicators -->
+        <div class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+          <!-- Status dot + label -->
+          <div class="flex items-center gap-1.5">
+            <span
+              :class="['size-2 rounded-full', statusDotClass]"
+              aria-hidden="true"></span>
+            <span :class="['font-medium', statusTextClass]">
+              {{ statusLabel }}
+            </span>
+          </div>
+
+          <!-- Separator -->
+          <span
+            v-if="isActive"
+            class="text-gray-300 dark:text-gray-600"
+            aria-hidden="true">
+            &bull;
+          </span>
+
+          <!-- Time remaining -->
+          <span
+            v-if="isActive"
+            :class="[
+              'tabular-nums',
+              isUrgent
+                ? 'font-medium text-amber-600 dark:text-amber-400'
+                : 'text-gray-500 dark:text-gray-400',
+            ]">
+            {{ timeRemaining }}
+            <span class="sr-only">{{ t('web.STATUS.time_remaining') }}</span>
+          </span>
+
+          <!-- Separator -->
+          <span
+            v-if="hasPassphrase && isActive"
+            class="text-gray-300 dark:text-gray-600"
+            aria-hidden="true">
+            &bull;
+          </span>
+
+          <!-- Passphrase indicator -->
+          <div
+            v-if="hasPassphrase && isActive"
+            class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+            <OIcon
+              collection="heroicons"
+              name="key"
+              class="size-3.5" />
+            <span class="text-xs font-medium">
+              {{ t('web.LABELS.passphrase_protected') }}
+            </span>
           </div>
         </div>
-      </div>
-    </td>
 
-    <!-- Details Column -->
-    <td class="hidden px-6 py-4 sm:table-cell">
-      <div class="flex flex-col space-y-2">
-        <!-- Security status -->
-        <div
-          v-if="hasPassphrase && !isExpired && !isBurned"
-          class="flex items-center gap-1.5">
-          <OIcon
-            collection="heroicons"
-            name="key"
-            class="mr-1 size-3 text-emerald-500 dark:text-emerald-400" />
-          <span class="text-sm font-medium text-emerald-600 dark:text-emerald-400">
-            {{ t('web.LABELS.passphrase_protected') }}
+        <!-- Row 3: Secret identifier (subdued technical detail) -->
+        <div class="flex items-center gap-2">
+          <router-link
+            v-if="isActive"
+            :to="`/receipt/${record.extid}`"
+            class="font-mono text-xs text-gray-400 transition-colors hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300">
+            {{ displayKey }}
+          </router-link>
+          <span
+            v-else
+            class="font-mono text-xs text-gray-400 dark:text-gray-600">
+            {{ displayKey }}
           </span>
         </div>
       </div>
-    </td>
 
-    <!-- Share Column -->
-    <td class="px-6 py-4 text-right">
-      <div class="flex justify-end">
-        <!-- Show Share only for active secrets -->
-        <div
-          v-if="!isExpired && !isBurned"
-          class="group relative inline-block ">
-          <!-- prettier-ignore-attribute class -->
+      <!-- Actions area - right side -->
+      <div class="flex flex-shrink-0 items-center gap-1">
+        <template v-if="isActive">
+          <!-- Open link button -->
           <a
             :href="shareLink"
             target="_blank"
-            class="flex items-center gap-2 rounded-t
-              bg-gray-100 px-3 py-1.5 text-sm font-medium
-              text-gray-700 transition-all hover:bg-gray-200
-              focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2
-              dark:bg-gray-800/50 dark:text-gray-300 dark:hover:bg-gray-700/40">
+            rel="noopener noreferrer"
+            class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300 dark:focus:ring-gray-600"
+            :title="t('web.COMMON.view_secret')">
             <OIcon
               collection="heroicons"
               name="arrow-top-right-on-square"
-              class="size-4" />
+              class="size-5" />
             <span class="sr-only">{{ t('web.COMMON.view_secret') }}</span>
           </a>
+
+          <!-- Copy button with feedback -->
           <div class="relative">
-            <!-- prettier-ignore-attribute class -->
             <button
+              type="button"
               @click="handleCopy"
-              class="flex items-center gap-2
-                rounded-b border-gray-200 bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 transition-all
-                hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2
-                dark:border-gray-700/50 dark:bg-gray-800/50 dark:text-gray-300 dark:hover:bg-gray-700/40">
+              class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300 dark:focus:ring-gray-600"
+              :title="t('web.LABELS.copy_to_clipboard')">
               <OIcon
                 collection="material-symbols"
                 :name="isCopied ? 'check' : 'content-copy-outline'"
-                class="size-4" />
+                :class="['size-5', { 'text-emerald-500 dark:text-emerald-400': isCopied }]" />
               <span class="sr-only">{{ t('web.LABELS.copy_to_clipboard') }}</span>
             </button>
-            <!-- Copy Feedback Tooltip -->
-            <!-- prettier-ignore-attribute class -->
-            <div
-              v-if="isCopied"
-              class="absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-t
-              bg-gray-800
-              px-2 py-1 text-xs text-white shadow-lg">
-              {{ t('web.STATUS.copied') }}
-              <!-- prettier-ignore-attribute class -->
-              <div
-                class="absolute left-1/2 top-full size-2 -translate-x-1/2 rotate-45 rounded-b
-                  bg-gray-800"></div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Show status message for expired/burned secrets -->
+            <!-- Copy feedback tooltip -->
+            <Transition
+              enter-active-class="transition duration-100 ease-out"
+              enter-from-class="opacity-0 scale-95"
+              enter-to-class="opacity-100 scale-100"
+              leave-active-class="transition duration-75 ease-in"
+              leave-from-class="opacity-100 scale-100"
+              leave-to-class="opacity-0 scale-95">
+              <div
+                v-if="isCopied"
+                class="absolute -top-9 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-800 px-2.5 py-1 text-xs font-medium text-white shadow-lg dark:bg-gray-700">
+                {{ t('web.STATUS.copied') }}
+                <div
+                  class="absolute left-1/2 top-full -translate-x-1/2"
+                  aria-hidden="true">
+                  <div class="size-2 -translate-y-1 rotate-45 bg-gray-800 dark:bg-gray-700"></div>
+                </div>
+              </div>
+            </Transition>
+          </div>
+        </template>
+
+        <!-- Inactive state indicator -->
         <div
           v-else
-          class="text-sm">
-          <span :class="statusClass">
-            {{ isExpired ? t('web.STATUS.expired') : t('web.STATUS.burned') }}
+          class="px-2 py-1 text-xs text-gray-400 dark:text-gray-500">
+          <span :class="statusTextClass">
+            {{ statusLabel }}
           </span>
         </div>
       </div>
-    </td>
-  </tr>
+    </div>
+  </div>
 </template>

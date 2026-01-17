@@ -25,23 +25,15 @@ const { t } = useI18n();
       role="complementary"
       aria-labelledby="founders-message">
       <div class="p-6">
-        <h2
-          id="founders-message"
-          class="mb-4 text-xl font-semibold text-gray-800 dark:text-gray-200">
-          {{ t('web.feedback.a_note_from_delano_founder_of_onetime_secret') }}
-        </h2>
-        <div class="space-y-3 text-gray-600 dark:text-gray-400">
+        <div class="border-l-4 border-brand-500 pl-4 space-y-3 text-gray-500 dark:text-gray-400 italic">
           <p>
-            {{ t('web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa') }}
+            {{ t('web.feedback.founder_note_line1') }}
           </p>
           <p>
-            {{ t('web.feedback.weve_built_this_tool_to_help_you_share_sensitive') }}
+            {{ t('web.feedback.founder_note_line2') }}
           </p>
-          <p>
-            {{ t('web.feedback.thanks_for_helping_onetime_secret_improve_it_mea') }}
-          </p>
-          <p class="font-medium">
-            - {{ t('web.feedback.delano') }}
+          <p class="font-medium not-italic text-gray-700 dark:text-gray-300">
+            — {{ t('web.feedback.delano') }}
           </p>
         </div>
       </div>

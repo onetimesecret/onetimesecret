@@ -27,7 +27,8 @@ import { type LogoConfig } from '@/types/ui/layouts';
   );
 
   const textSize = computed(() => {
-    if (props.size <= 32) return 'text-sm';
+    if (props.size <= 32) return 'text-xs';
+    if (props.size <= 40) return 'text-sm';
     if (props.size <= 48) return 'text-base';
     if (props.size <= 64) return 'text-lg';
     return 'text-xl';

@@ -46,8 +46,9 @@ const routes: Array<RouteRecordRaw> = [
       scopesAvailable: SCOPE_PRESETS.showBoth,
     },
   },
+  // Org-qualified domain routes
   {
-    path: '/domains',
+    path: '/org/:orgid/domains',
     name: 'DashboardDomains',
     component: () => import('@/apps/workspace/domains/DomainsList.vue'),
     meta: {
@@ -63,7 +64,7 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
-    path: '/domains/add',
+    path: '/org/:orgid/domains/add',
     name: 'DomainAdd',
     component: () => import('@/apps/workspace/domains/DomainAdd.vue'),
     meta: {
@@ -79,7 +80,7 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
-    path: '/domains/:extid/verify',
+    path: '/org/:orgid/domains/:extid/verify',
     name: 'DomainVerify',
     component: () => import('@/apps/workspace/domains/DomainVerify.vue'),
     meta: {
@@ -99,7 +100,7 @@ const routes: Array<RouteRecordRaw> = [
     props: true,
   },
   {
-    path: '/domains/:extid/brand',
+    path: '/org/:orgid/domains/:extid/brand',
     name: 'DomainBrand',
     component: () => import('@/apps/workspace/domains/DomainBrand.vue'),
     meta: {
@@ -117,6 +118,23 @@ const routes: Array<RouteRecordRaw> = [
       },
     },
     props: true,
+  },
+  // Legacy redirects for backward compatibility
+  {
+    path: '/domains',
+    redirect: '/dashboard',
+  },
+  {
+    path: '/domains/add',
+    redirect: '/dashboard',
+  },
+  {
+    path: '/domains/:extid/verify',
+    redirect: '/dashboard',
+  },
+  {
+    path: '/domains/:extid/brand',
+    redirect: '/dashboard',
   },
 ];
 

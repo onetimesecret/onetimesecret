@@ -1,11 +1,11 @@
 // src/apps/secret/routes/receipt.ts
 
 import SecretLayout from '@/apps/secret/layouts/SecretLayout.vue';
-import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import BurnSecret from '@/apps/secret/reveal/BurnSecret.vue';
 import ShowReceipt from '@/apps/secret/reveal/ShowReceipt.vue';
-import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { SCOPE_PRESETS } from '@/types/router';
+import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router';
 
 /**
  * Type guard that validates a receipt key.
@@ -61,26 +61,6 @@ const withValidatedReceiptKey = {
  */
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/private/:receiptIdentifier',
-    name: 'Private link',
-    component: ShowReceipt,
-    ...withValidatedReceiptKey,
-    meta: {
-      title: 'web.TITLES.receipt',
-      layout: SecretLayout,
-      layoutProps: {
-        displayMasthead: true,
-        displayNavigation: true,
-        displayFooterLinks: true,
-        displayFeedback: true,
-        displayPoweredBy: false,
-        displayVersion: true,
-        displayToggles: true,
-      },
-      scopesAvailable: SCOPE_PRESETS.lockBoth,
-    },
-  },
-  {
     path: '/receipt/:receiptIdentifier',
     name: 'Receipt link',
     component: ShowReceipt,
@@ -101,8 +81,8 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/private/:receiptIdentifier/burn',
-    name: 'Burn secret',
+    path: '/receipt/:receiptIdentifier/burn',
+    name: 'Burn receipt',
     component: BurnSecret,
     ...withValidatedReceiptKey,
     meta: {
@@ -120,8 +100,8 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: '/receipt/:receiptIdentifier/burn',
-    name: 'Burn receipt',
+    path: '/private/:receiptIdentifier/burn',
+    name: 'Burn secret',
     component: BurnSecret,
     ...withValidatedReceiptKey,
     meta: {

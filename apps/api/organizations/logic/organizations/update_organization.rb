@@ -60,7 +60,7 @@ module OrganizationAPI::Logic
       end
 
       def process
-        OT.ld "[UpdateOrganization] Updating organization #{@extid} for user #{cust.custid}"
+        OT.ld "[UpdateOrganization] Updating organization #{@extid} for user #{cust.extid}"
 
         # Track if billing email changed for Stripe sync
         billing_email_changed = false

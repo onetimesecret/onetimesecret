@@ -31,16 +31,11 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: SCOPE_PRESETS.orgShowDomainHide,
+      scopesAvailable: SCOPE_PRESETS.hideBoth, // Hide switcher on org list page
     },
   },
-  // Redirect /org/domains to /domains to prevent it being caught by :extid
   {
-    path: '/org/domains',
-    redirect: '/domains',
-  },
-  {
-    path: '/org/:extid',
+    path: '/org/:extid/:tab?',
     name: 'Organization Settings',
     component: () => import('@/apps/workspace/account/settings/OrganizationSettings.vue'),
     meta: {
@@ -48,12 +43,9 @@ const routes: Array<RouteRecordRaw> = [
       requiresAuth: true,
       layout: WorkspaceLayout,
       layoutProps: standardLayoutProps,
-      scopesAvailable: {
-        organization: 'show',
-        domain: 'hide',
-        onOrgSwitch: 'same',
-      },
+      scopesAvailable: SCOPE_PRESETS.hideBoth, // Hide switcher - org name shown in page header
     },
+    props: true,
   },
   {
     path: '/org/:extid/members',

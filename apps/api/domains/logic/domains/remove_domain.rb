@@ -52,7 +52,7 @@ module DomainsAPI::Logic
         payload = res.parsed_response
         OT.info format('[RemoveDomain.delete_vhost] %s', payload)
       rescue HTTParty::ResponseError => ex
-        OT.le format('[RemoveDomain.delete_vhost error] %s %s %s', @cust.custid, @display_domain, ex)
+        OT.le format('[RemoveDomain.delete_vhost error] %s %s %s', @cust.extid, @display_domain, ex)
       end
 
       def success_data

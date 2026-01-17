@@ -23,6 +23,7 @@ const {
   toggleWorkspaceMode,
   fetch,
   clear,
+  updateMemo,
 } = useRecentSecrets();
 
 const tableId = ref(`recent-secrets-${Math.random().toString(36).substring(2, 9)}`);
@@ -36,6 +37,16 @@ onMounted(() => {
 const dismissAllRecents = () => {
   clear();
 };
+
+// Method to update memo for a record
+const handleUpdateMemo = (id: string, memo: string) => {
+  updateMemo(id, memo);
+};
+
+// Expose fetch for parent components to trigger refresh
+defineExpose({
+  fetch,
+});
 </script>
 
 <template>
@@ -112,7 +123,8 @@ const dismissAllRecents = () => {
       aria-live="polite">
       <SecretLinksTable
         :records="records"
-        :aria-labelledby="'recent-secrets-heading'" />
+        :aria-labelledby="'recent-secrets-heading'"
+        @update:memo="handleUpdateMemo" />
     </div>
   </section>
 </template>

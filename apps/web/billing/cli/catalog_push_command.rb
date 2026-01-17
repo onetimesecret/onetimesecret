@@ -223,10 +223,11 @@ module Onetime
         metadata_fields = {
           'tier' => plan_def['tier'],
           'tenancy' => plan_def['tenancy'],
-          'region' => plan_def['region'],
           'display_order' => plan_def['display_order'].to_s,
           'show_on_plans_page' => plan_def['show_on_plans_page'].to_s,
           'entitlements' => (plan_def['entitlements'] || []).join(','),
+          Billing::Metadata::FIELD_INCLUDES_PLAN => plan_def['includes_plan'].to_s,
+          Billing::Metadata::FIELD_IS_POPULAR => (plan_def['is_popular'] == true).to_s,
         }
 
         # Add limit fields (always include so removed limits sync as empty strings)
@@ -429,12 +430,15 @@ module Onetime
           'plan_id' => plan_id,
           'tier' => plan_def['tier'].to_s,
           'tenancy' => plan_def['tenancy'].to_s,
-          'region' => plan_def['region'].to_s,
           'entitlements' => (plan_def['entitlements'] || []).join(','),
           'display_order' => plan_def['display_order'].to_s,
           'show_on_plans_page' => plan_def['show_on_plans_page'].to_s,
           'created' => Time.now.utc.iso8601,
         }
+
+        # Add optional fields
+        metadata[Billing::Metadata::FIELD_INCLUDES_PLAN] = plan_def['includes_plan'] if plan_def['includes_plan']
+        metadata[Billing::Metadata::FIELD_IS_POPULAR]    = 'true' if plan_def['is_popular'] == true
 
         # Add limit fields
         metadata['limit_teams']            = limits['teams'].to_s if limits['teams']

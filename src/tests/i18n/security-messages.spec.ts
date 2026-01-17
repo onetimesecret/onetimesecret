@@ -16,10 +16,16 @@
  */
 
 import authFullMessages from '@/locales/en/auth-full.json';
+// Source content file contains the security metadata (with skip: true)
+// Generated files don't include metadata keys
+import authFullSource from '@locales/content/en/auth-full.json';
 
 describe('Security Message Compliance', () => {
-  // Extract security messages from the i18n file
+  // Extract security messages from the generated i18n file (for actual messages)
   const securityMessages = (authFullMessages as any)?.web?.auth?.security;
+
+  // Extract security guidance from source content file (for metadata tests)
+  const securityGuidance = (authFullSource as any)?.['web.auth._guidance'];
 
   // Forbidden patterns that should NEVER appear in security messages
   const forbiddenPatterns = {
@@ -209,40 +215,42 @@ describe('Security Message Compliance', () => {
     });
   });
 
-  describe('Metadata Presence', () => {
-    it('should have _README with security warning', () => {
-      expect(securityMessages?._README).toBeDefined();
-      expect(securityMessages?._README).toContain('SECURITY-CRITICAL');
-      expect(securityMessages?._README).toContain('SECURITY-TRANSLATION-GUIDE');
+  describe('Metadata Presence (Source Content File)', () => {
+    // These tests validate the source content file (locales/content/en/auth-full.json)
+    // which contains security guidance metadata that is excluded from generated files
+
+    it('should have security guidance with skip flag', () => {
+      expect(securityGuidance).toBeDefined();
+      expect(securityGuidance?.skip).toBe(true);
     });
 
     it('should have _meta with detailed security guidance', () => {
-      expect(securityMessages?._meta).toBeDefined();
-      expect(securityMessages?._meta?._purpose).toBeDefined();
-      expect(securityMessages?._meta?._purpose).toContain('OWASP');
-      expect(securityMessages?._meta?._purpose).toContain('credential enumeration');
+      expect(securityGuidance?._meta).toBeDefined();
+      expect(securityGuidance?._meta?._purpose).toBeDefined();
+      expect(securityGuidance?._meta?._purpose).toContain('OWASP');
+      expect(securityGuidance?._meta?._purpose).toContain('credential enumeration');
     });
 
     it('should have _meta with security notes for critical messages', () => {
-      expect(securityMessages?._meta).toBeDefined();
-      expect(securityMessages?._meta?.authentication_failed).toBeDefined();
-      expect(securityMessages?._meta?.authentication_failed?.security_note).toContain(
+      expect(securityGuidance?._meta).toBeDefined();
+      expect(securityGuidance?._meta?.authentication_failed).toBeDefined();
+      expect(securityGuidance?._meta?.authentication_failed?.security_note).toContain(
         'MUST NOT reveal'
       );
-      expect(securityMessages?._meta?.authentication_failed?.owasp_ref).toContain('ASVS');
+      expect(securityGuidance?._meta?.authentication_failed?.owasp_ref).toContain('ASVS');
     });
 
     it('should have _translation_guidelines', () => {
-      expect(securityMessages?._translation_guidelines).toBeDefined();
-      expect(securityMessages?._translation_guidelines?.DO_NOT_translate_as).toBeInstanceOf(Array);
-      expect(securityMessages?._translation_guidelines?.MUST_translate_as).toBeInstanceOf(Array);
-      expect(securityMessages?._translation_guidelines?.WHY).toBeDefined();
+      expect(securityGuidance?._translation_guidelines).toBeDefined();
+      expect(securityGuidance?._translation_guidelines?.DO_NOT_translate_as).toBeInstanceOf(Array);
+      expect(securityGuidance?._translation_guidelines?.MUST_translate_as).toBeInstanceOf(Array);
+      expect(securityGuidance?._translation_guidelines?.WHY).toBeDefined();
     });
 
     it('should have _safe_information guidance', () => {
-      expect(securityMessages?._safe_information).toBeDefined();
-      expect(securityMessages?._safe_information?.format_requirements).toBeDefined();
-      expect(securityMessages?._safe_information?.expected_behavior).toBeDefined();
+      expect(securityGuidance?._safe_information).toBeDefined();
+      expect(securityGuidance?._safe_information?.format_requirements).toBeDefined();
+      expect(securityGuidance?._safe_information?.expected_behavior).toBeDefined();
     });
   });
 

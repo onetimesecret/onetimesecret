@@ -10,17 +10,42 @@ import { useI18n } from 'vue-i18n';
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import CreateOrganizationModal from '@/apps/workspace/components/organizations/CreateOrganizationModal.vue';
 import { useEntitlements } from '@/shared/composables/useEntitlements';
+import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { Organization } from '@/types/organization';
+import { getPlanDisplayName } from '@/types/billing';
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const { t } = useI18n();
 const router = useRouter();
 const organizationStore = useOrganizationStore();
+const bootstrapStore = useBootstrapStore();
 
 const isLoading = ref(false);
 const showCreateModal = ref(false);
+
+/**
+ * Check if billing is enabled
+ */
+const billingEnabled = computed(() => bootstrapStore.billing_enabled);
+
+/**
+ * Check if an organization has a paid plan
+ * Paid = planid exists and doesn't start with "free"
+ */
+const hasPaidPlan = (org: Organization): boolean => {
+  if (!org.planid) return false;
+  return !org.planid.toLowerCase().startsWith('free');
+};
+
+/**
+ * Get display-friendly plan name for an organization
+ */
+const getOrgPlanName = (org: Organization): string => {
+  if (!org.planid) return t('web.billing.plans.free_plan');
+  return getPlanDisplayName(org.planid);
+};
 
 // Use the first organization to check entitlements for single-org users
 const primaryOrg = computed(() => organizationStore.organizations[0] || null);
@@ -54,6 +79,7 @@ const isSingleUserAccount = computed(() => !can(ENTITLEMENTS.MANAGE_TEAMS));
 onMounted(async () => {
   isLoading.value = true;
   try {
+    // Fetch organizations - each org includes domain_count from backend
     await organizationStore.fetchOrganizations();
   } catch (error) {
     console.error('[OrganizationsSettings] Error fetching organizations:', error);
@@ -143,36 +169,101 @@ const handleManageOrganization = (org: Organization) => {
 
           <!-- Organizations List -->
           <div v-else-if="hasOrganizations" class="space-y-4">
-            <button
+            <div
               v-for="org in visibleOrganizations"
               :key="org.id"
-              type="button"
-              @click="handleManageOrganization(org)"
-              class="flex w-full cursor-pointer items-center justify-between rounded-lg border border-gray-200 p-4 text-left transition-colors hover:border-brand-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-brand-600 dark:hover:bg-gray-700/50">
-              <div class="flex-1">
-                <h3 class="text-base font-medium text-gray-900 dark:text-white">
-                  {{ org.display_name }}
-                </h3>
-                <p v-if="org.description" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {{ org.description }}
-                </p>
-                <p v-else class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {{ t('web.organizations.no_description') }}
-                </p>
+              class="rounded-lg border border-gray-200 p-4 transition-colors hover:border-brand-300 dark:border-gray-700 dark:hover:border-brand-600">
+              <!-- Header row: Name + badges -->
+              <div class="flex items-start justify-between">
+                <div class="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    @click="handleManageOrganization(org)"
+                    class="group flex items-center gap-2 text-left">
+                    <h3 class="text-base font-medium text-gray-900 group-hover:text-brand-600 dark:text-white dark:group-hover:text-brand-400">
+                      {{ org.display_name }}
+                    </h3>
+                    <OIcon
+                      collection="heroicons"
+                      name="chevron-right"
+                      class="size-4 text-gray-400 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-500"
+                      aria-hidden="true" />
+                  </button>
+                  <p v-if="org.description" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {{ org.description }}
+                  </p>
+                </div>
+                <div class="ml-4 flex shrink-0 items-center gap-2">
+                  <!-- Pro badge for paid plans -->
+                  <span
+                    v-if="hasPaidPlan(org)"
+                    class="inline-flex items-center rounded bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-700 dark:bg-brand-900/50 dark:text-brand-300">
+                    {{ t('web.organizations.paid_badge') }}
+                  </span>
+                  <!-- Default badge -->
+                  <span
+                    v-if="org.is_default"
+                    class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                    {{ t('web.organizations.default') }}
+                  </span>
+                </div>
               </div>
-              <div class="ml-4 flex items-center gap-3">
+
+              <!-- Stats row: Plan, Members, Domains -->
+              <div class="mt-3 flex flex-wrap items-center gap-4 text-sm">
+                <!-- Plan (links to billing if enabled) -->
+                <router-link
+                  v-if="billingEnabled && org.extid"
+                  :to="`/billing/${org.extid}/overview`"
+                  class="inline-flex items-center gap-1.5 text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400"
+                  @click.stop>
+                  <OIcon
+                    collection="heroicons"
+                    name="credit-card"
+                    class="size-4"
+                    aria-hidden="true" />
+                  <span>{{ getOrgPlanName(org) }}</span>
+                </router-link>
                 <span
-                  v-if="org.is_default"
-                  class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
-                  {{ t('web.organizations.default') }}
+                  v-else
+                  class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                  <OIcon
+                    collection="heroicons"
+                    name="credit-card"
+                    class="size-4"
+                    aria-hidden="true" />
+                  <span>{{ getOrgPlanName(org) }}</span>
                 </span>
-                <OIcon
-                  collection="heroicons"
-                  name="chevron-right"
-                  class="size-5 text-gray-400 dark:text-gray-500"
-                  aria-hidden="true" />
+
+                <!-- Members (links to members page) -->
+                <router-link
+                  v-if="org.extid"
+                  :to="`/org/${org.extid}/members`"
+                  class="inline-flex items-center gap-1.5 text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400"
+                  @click.stop>
+                  <OIcon
+                    collection="heroicons"
+                    name="users"
+                    class="size-4"
+                    aria-hidden="true" />
+                  <span>{{ t('web.organizations.member_count', { count: org.member_count ?? 1 }) }}</span>
+                </router-link>
+
+                <!-- Domains (links to org-scoped domains page) -->
+                <router-link
+                  v-if="org.extid"
+                  :to="`/org/${org.extid}/domains`"
+                  class="inline-flex items-center gap-1.5 text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400"
+                  @click.stop>
+                  <OIcon
+                    collection="heroicons"
+                    name="globe-alt"
+                    class="size-4"
+                    aria-hidden="true" />
+                  <span>{{ t('web.organizations.domain_count', { count: org.domain_count ?? 0 }) }}</span>
+                </router-link>
               </div>
-            </button>
+            </div>
           </div>
 
           <!-- Empty State -->

@@ -23,17 +23,11 @@
   "web.feedback.help_content_goes_here": {
     "text": "Help content goes here."
   },
-  "web.feedback.thanks_for_helping_onetime_secret_improve_it_mea": {
-    "text": "Thanks for helping Onetime Secret improve. It means a lot."
+  "web.feedback.founder_note_line1": {
+    "text": "I read every piece of feedback that comes through here. It's how I figure out what to spend time on."
   },
-  "web.feedback.weve_built_this_tool_to_help_you_share_sensitive": {
-    "text": "We've built this tool to help you share sensitive info securely, and your real-world experiences are crucial for focusing our efforts. It helps us figure out what to work on next and how to make the service better for everyone."
-  },
-  "web.feedback.hey_there_thanks_for_stopping_by_our_feedback_pa": {
-    "text": "Hey there, thanks for stopping by our feedback page. Your input isn't just welcome - it's crucial."
-  },
-  "web.feedback.a_note_from_delano_founder_of_onetime_secret": {
-    "text": "A note from Delano, founder of Onetime Secret"
+  "web.feedback.founder_note_line2": {
+    "text": "If something's off, or you have ideas about how it should work, this is the right place."
   },
   "web.feedback.open_feedback_form": {
     "text": "Open feedback form"

@@ -16,6 +16,7 @@
   import { useI18n } from 'vue-i18n';
   import BasicFormAlerts from '@/shared/components/forms/BasicFormAlerts.vue';
   import OIcon from '@/shared/components/icons/OIcon.vue';
+  import SplitButton from '@/shared/components/ui/SplitButton.vue';
   import { useDomainScope } from '@/shared/composables/useDomainScope';
   import { useSecretConcealer } from '@/shared/composables/useSecretConcealer';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
@@ -27,10 +28,10 @@
     DEFAULT_BUTTON_TEXT_LIGHT,
   } from '@/shared/stores/identityStore';
   import { type ConcealedMessage } from '@/types/ui/concealed-message';
-  import { useMagicKeys, whenever } from '@vueuse/core';
   import { nanoid } from 'nanoid';
-  import { computed, watch } from 'vue';
+  import { computed, ref, watch } from 'vue';
   import { useRouter } from 'vue-router';
+  import { useMediaQuery } from '@vueuse/core';
   import { useCharCounter } from '@/shared/composables/useCharCounter';
   import { useTextarea } from '@/shared/composables/useTextarea';
 
@@ -46,7 +47,8 @@
     buttonTextLight?: boolean;
   }
 
-  const props = withDefaults(defineProps<Props>(), {
+  // Props not destructured - accessed via template bindings or unprefixed in script
+  withDefaults(defineProps<Props>(), {
     cornerClass: DEFAULT_CORNER_CLASS,
     primaryColor: DEFAULT_PRIMARY_COLOR,
     buttonTextLight: DEFAULT_BUTTON_TEXT_LIGHT,
@@ -103,14 +105,14 @@
         if (!response) throw 'Response is missing';
         const newMessage: ConcealedMessage = {
           id: nanoid(),
-          receipt_identifier: response.record.receipt.identifier,
-          secret_identifier: response.record.secret.identifier,
-          response,
-          clientInfo: {
-            hasPassphrase: !!form.passphrase,
-            ttl: form.ttl as number,
-            createdAt: new Date(),
-          },
+          receiptExtid: response.record.receipt.identifier,
+          receiptShortid: response.record.receipt.shortid,
+          secretExtid: response.record.secret.identifier,
+          secretShortid: response.record.secret.shortid,
+          shareDomain: response.record.share_domain,
+          hasPassphrase: !!form.passphrase,
+          ttl: form.ttl as number,
+          createdAt: Date.now(),
         };
         // Add the message to the store
         concealedReceiptStore.addMessage(newMessage);
@@ -129,7 +131,7 @@
 
         // Navigate to receipt page if workspace mode is off
         if (!concealedReceiptStore.workspaceMode) {
-          router.push(`/private/${newMessage.receipt_identifier}`);
+          router.push(`/private/${newMessage.receiptExtid}`);
         }
       },
     });
@@ -158,35 +160,24 @@
     () => !!content.value && content.value.trim().length > 0
   );
 
-  // Form submission
-  const handleSubmit = () => submit('conceal');
+  // Track selected action from SplitButton
+  const selectedAction = ref<'create-link' | 'generate-password'>('create-link');
 
-  // Keyboard shortcut: Cmd+Enter (Mac) or Ctrl+Enter (Windows/Linux)
-  const keys = useMagicKeys();
-  const submitShortcut = computed(
-    () => keys['Meta+Enter'].value || keys['Control+Enter'].value
-  );
-
-  whenever(submitShortcut, () => {
-    if (hasContent.value && !isSubmitting.value) {
-      handleSubmit();
-    }
-  });
-
-  // Detect Mac for keyboard shortcut hint
+  // Platform detection for keyboard hint (desktop only)
+  const isDesktop = useMediaQuery('(min-width: 640px)');
   const isMac = computed(() =>
     typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
   );
   const shortcutHint = computed(() => (isMac.value ? '⌘ Enter' : 'Ctrl Enter'));
 
-  // Dynamic button styles based on brand color
-  const buttonStyles = computed(() => {
-    const color = props.primaryColor || DEFAULT_PRIMARY_COLOR;
-    return {
-      backgroundColor: color,
-      color: props.buttonTextLight ? '#ffffff' : '#1f2937',
-    };
-  });
+  // Form submission handlers
+  const handleSubmit = () => {
+    // Use appropriate submission type based on selected action
+    if (selectedAction.value === 'generate-password') {
+      return submit('generate');
+    }
+    return submit('conceal');
+  };
 
   // Expose form state and operations for parent component
   const currentTtl = computed(() => form.ttl as number);
@@ -291,6 +282,7 @@
         <!-- Actions Footer -->
         <div class="border-t border-gray-200/50 dark:border-gray-700/50">
           <div class="p-6">
+            <!-- Main action row -->
             <div
               class="flex flex-col gap-4 sm:flex-row sm:items-center
                 sm:justify-between">
@@ -330,44 +322,54 @@
                 </div>
               </div>
 
-              <!-- Submit Button -->
-              <button
-                type="submit"
-                :disabled="!hasContent || isSubmitting"
-                :style="buttonStyles"
-                :class="[cornerClass]"
-                class="inline-flex items-center justify-center gap-2 px-6 py-3
-                  text-base font-semibold shadow-lg transition-all duration-200
-                  hover:opacity-90 hover:shadow-xl
-                  focus:outline-none focus:ring-4 focus:ring-brand-500/20
-                  disabled:cursor-not-allowed disabled:opacity-50
-                  disabled:shadow-none">
-                <OIcon
-                  v-if="isSubmitting"
-                  collection="heroicons"
-                  name="arrow-path"
-                  class="size-4 animate-spin"
-                  aria-hidden="true" />
-                <OIcon
-                  v-else
-                  collection="heroicons"
-                  name="lock-closed"
-                  class="size-4"
-                  aria-hidden="true" />
-                <span>
-                  {{
-                    isSubmitting
-                      ? t('web.COMMON.submitting')
-                      : t('web.LABELS.create_link_short')
-                  }}
-                </span>
-                <kbd
-                  v-if="!isSubmitting"
-                  class="ml-1.5 hidden rounded bg-white/20 px-1.5 py-0.5
-                    text-xs font-normal opacity-70 sm:inline-block">
-                  {{ shortcutHint }}
-                </kbd>
-              </button>
+              <!-- Submit Area with Stay on Page toggle -->
+              <div class="flex items-center gap-2.5">
+                <!-- Stay on Page Toggle (refined, compact) -->
+                <button
+                  type="button"
+                  :disabled="isSubmitting"
+                  @click="concealedReceiptStore.toggleWorkspaceMode()"
+                  :title="t('web.secrets.workspace_mode_description')"
+                  class="inline-flex items-center gap-1 rounded px-2 py-1.5 text-xs
+                    font-medium ring-1 ring-inset transition-all
+                    focus:outline-none focus:ring-2 focus:ring-brand-500/50
+                    disabled:opacity-50 disabled:cursor-not-allowed"
+                  :class="
+                    concealedReceiptStore.workspaceMode
+                      ? 'bg-brand-50/80 text-brand-600 ring-brand-500/25 hover:bg-brand-100/80 dark:bg-brand-900/20 dark:text-brand-400 dark:ring-brand-400/20 dark:hover:bg-brand-900/30'
+                      : 'bg-gray-50/80 text-gray-500 ring-gray-400/20 hover:bg-gray-100/80 hover:text-gray-600 dark:bg-gray-800/50 dark:text-gray-400 dark:ring-gray-600/20 dark:hover:bg-gray-700/50'
+                  ">
+                  <OIcon
+                    collection="mdi"
+                    :name="concealedReceiptStore.workspaceMode ? 'pin' : 'pin-off'"
+                    class="size-3.5"
+                    aria-hidden="true" />
+                  <span>{{ t('web.secrets.workspace_mode') }}</span>
+                </button>
+
+                <!-- Submit Button -->
+                <SplitButton
+                  :with-generate="true"
+                  :corner-class="cornerClass"
+                  :primary-color="primaryColor"
+                  :button-text-light="buttonTextLight"
+                  :disabled="selectedAction === 'create-link' && !hasContent"
+                  :disable-generate="selectedAction === 'create-link' && hasContent"
+                  :keyboard-shortcut-enabled="true"
+                  :show-keyboard-hint="false"
+                  @update:action="selectedAction = $event"
+                  @create-link="handleSubmit"
+                  @generate-password="handleSubmit" />
+              </div>
+            </div>
+
+            <!-- Keyboard hint row (desktop only) -->
+            <div
+              v-if="isDesktop"
+              class="mt-2 flex justify-end">
+              <span class="text-xs text-gray-500 dark:text-gray-400">
+                {{ shortcutHint }}
+              </span>
             </div>
           </div>
         </div>

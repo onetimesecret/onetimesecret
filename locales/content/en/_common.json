@@ -100,8 +100,14 @@
   "web.COMMON.recent": {
     "text": "Recent"
   },
-  "web.COMMON.received": {
-    "text": "Received"
+  "web.COMMON.not_set": {
+    "text": "Not set"
+  },
+  "web.COMMON.word_edit": {
+    "text": "Edit"
+  },
+  "web.COMMON.word_save": {
+    "text": "Save"
   },
   "web.COMMON.burn": {
     "text": "Burn"

@@ -375,4 +375,48 @@ describe('BillingService', () => {
       expect(result.has_more).toBe(false);
     });
   });
+
+  describe('cancelSubscription', () => {
+    it('calls correct endpoint with org extid', async () => {
+      const mockResponse = {
+        data: {
+          success: true,
+          cancel_at: 1704067200,
+          status: 'active',
+        },
+      };
+      mockPost.mockResolvedValueOnce(mockResponse);
+
+      const result = await BillingService.cancelSubscription('org_abc123');
+
+      expect(mockPost).toHaveBeenCalledWith('/billing/api/org/org_abc123/cancel-subscription');
+      expect(result).toEqual(mockResponse.data);
+    });
+
+    it('returns success response with cancel_at timestamp', async () => {
+      const cancelAt = Math.floor(Date.now() / 1000) + 86400 * 30; // 30 days from now
+      const mockResponse = {
+        data: {
+          success: true,
+          cancel_at: cancelAt,
+          status: 'active',
+        },
+      };
+      mockPost.mockResolvedValueOnce(mockResponse);
+
+      const result = await BillingService.cancelSubscription('org_test');
+
+      expect(result.success).toBe(true);
+      expect(result.cancel_at).toBe(cancelAt);
+      expect(result.status).toBe('active');
+    });
+
+    it('propagates API errors', async () => {
+      mockPost.mockRejectedValueOnce(new Error('No active subscription'));
+
+      await expect(
+        BillingService.cancelSubscription('org_no_sub')
+      ).rejects.toThrow('No active subscription');
+    });
+  });
 });

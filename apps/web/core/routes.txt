@@ -12,6 +12,7 @@ GET   /favicon.ico                               Core::Controllers::Page#favicon
 GET   /signin                                    Core::Controllers::Page#index auth=noauth
 GET   /signup                                    Core::Controllers::Page#index auth=noauth
 GET   /signup/*                                  Core::Controllers::Page#index auth=noauth
+GET   /pricing                                   Core::Controllers::Page#index auth=noauth
 GET   /forgot                                    Core::Controllers::Page#index auth=noauth
 GET   /forgot/:key                               Core::Controllers::Page#index auth=noauth
 GET   /reset-password                            Core::Controllers::Page#index auth=noauth
@@ -40,7 +41,6 @@ GET   /mfa-verify                                Core::Controllers::Page#index
 GET   /bootstrap/me                              Core::Controllers::Page#bootstrap_me auth=noauth
 
 # Vue SPA catch-all routes - public (Vue handles auth client-side)
-GET   /private/*                                 Core::Controllers::Page#index auth=noauth
 GET   /receipt/*                                 Core::Controllers::Page#index auth=noauth
 GET   /secret/*                                  Core::Controllers::Page#index auth=noauth
 GET   /l/*                                       Core::Controllers::Page#index auth=noauth

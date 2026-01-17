@@ -9,9 +9,11 @@
 GET    /receipt/recent                            V2::Logic::Secrets::ListReceipts response=json auth=noauth
 POST   /receipt/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=noauth
 GET    /receipt/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=noauth
+PATCH  /receipt/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=noauth
 GET    /private/recent                            V2::Logic::Secrets::ListReceipts response=json auth=noauth
 POST   /private/:identifier/burn                  V2::Logic::Secrets::BurnSecret response=json auth=noauth
 GET    /private/:identifier                       V2::Logic::Secrets::ShowReceipt response=json auth=noauth
+PATCH  /private/:identifier                       V2::Logic::Secrets::UpdateReceipt response=json auth=noauth
 
 # Secrets - Public (Anonymous allowed)
 GET    /secret/:identifier                        V2::Logic::Secrets::ShowSecret response=json auth=noauth

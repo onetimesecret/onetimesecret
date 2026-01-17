@@ -18,10 +18,7 @@ import OrganizationScopeSwitcher from '@/apps/workspace/components/navigation/Or
 import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import { useScopeSwitcherVisibility } from '@/shared/composables/useScopeSwitcherVisibility';
 import { computed, onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 import axios from 'axios';
-
-const { t } = useI18n();
 const organizationStore = useOrganizationStore();
 const {
   showOrgSwitcher,
@@ -33,8 +30,10 @@ const {
 const isLoaded = ref(false);
 
 // Fetch organizations on mount to determine visibility
+// Use isListFetched (not hasOrganizations) to ensure full list is loaded.
+// hasOrganizations can be true if fetchOrganization() added a single org.
 onMounted(async () => {
-  if (!organizationStore.hasOrganizations) {
+  if (!organizationStore.isListFetched) {
     try {
       await organizationStore.fetchOrganizations();
     } catch (error) {
@@ -76,29 +75,22 @@ const showSeparator = computed(() => showOrgSwitcher.value && showDomainSwitcher
 </script>
 
 <template>
-  <div
-    v-if="shouldShow"
-    class="border-t border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
-    role="navigation"
-    :aria-label="t('web.layout.workspace_context')">
-    <div class="container mx-auto min-w-[320px] max-w-4xl px-4">
-      <div class="flex items-center gap-3 py-2">
-        <!-- Organization Switcher -->
-        <OrganizationScopeSwitcher
-          v-if="showOrgSwitcher"
-          :locked="lockOrgSwitcher" />
+  <!-- Inline context switchers (wrapper styling provided by parent slot) -->
+  <template v-if="shouldShow">
+    <!-- Organization Switcher -->
+    <OrganizationScopeSwitcher
+      v-if="showOrgSwitcher"
+      :locked="lockOrgSwitcher" />
 
-        <!-- Separator (only when both visible) -->
-        <span
-          v-if="showSeparator"
-          class="text-gray-300 dark:text-gray-600"
-          aria-hidden="true">|</span>
+    <!-- Separator (only when both visible) -->
+    <span
+      v-if="showSeparator"
+      class="text-gray-300 dark:text-gray-600"
+      aria-hidden="true">|</span>
 
-        <!-- Domain Switcher -->
-        <DomainScopeSwitcher
-          v-if="showDomainSwitcher"
-          :locked="lockDomainSwitcher" />
-      </div>
-    </div>
-  </div>
+    <!-- Domain Switcher -->
+    <DomainScopeSwitcher
+      v-if="showDomainSwitcher"
+      :locked="lockDomainSwitcher" />
+  </template>
 </template>

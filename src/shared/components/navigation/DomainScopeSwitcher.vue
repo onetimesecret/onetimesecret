@@ -18,6 +18,7 @@
 <script setup lang="ts">
 import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useDomainScope } from '@/shared/composables/useDomainScope';
+import { useOrganizationStore } from '@/shared/stores/organizationStore';
 import type { ScopesAvailable } from '@/types/router';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue';
 import { computed } from 'vue';
@@ -39,6 +40,10 @@ const props = withDefaults(defineProps<Props>(), {
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
+const organizationStore = useOrganizationStore();
+
+// Get current organization extid for org-qualified routes
+const currentOrgExtid = computed(() => organizationStore.currentOrganization?.extid);
 
 /**
  * Get the onDomainSwitch navigation target from route meta
@@ -127,20 +132,24 @@ const selectDomain = (domain: string): void => {
 const shouldShow = computed(() => isScopeActive.value);
 
 /**
- * Navigate to domains management page
+ * Navigate to domains management page (org-qualified)
  */
 const navigateToManageDomains = (): void => {
-  router.push('/domains');
+  if (currentOrgExtid.value) {
+    router.push(`/org/${currentOrgExtid.value}/domains`);
+  } else {
+    router.push('/dashboard');
+  }
 };
 
 /**
- * Navigate to edit a specific domain (uses extid for API routes)
+ * Navigate to edit a specific domain (uses org-qualified routes)
  */
 const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
   event.stopPropagation(); // Prevent row selection when clicking gear
   const extid = getExtidByDomain(domain);
-  if (extid) {
-    router.push(`/domains/${extid}/brand`);
+  if (extid && currentOrgExtid.value) {
+    router.push(`/org/${currentOrgExtid.value}/domains/${extid}/brand`);
   }
   // Canonical domain has no extid and no settings page
 };
@@ -151,6 +160,7 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
     v-if="shouldShow"
     as="div"
     class="relative inline-flex"
+    data-testid="domain-scope-switcher"
     v-slot="{ open }">
     <!-- Trigger Button -->
     <MenuButton
@@ -162,7 +172,9 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
       ]"
       :disabled="props.locked"
       :title="props.locked ? t('web.domains.switcher_locked') : undefined"
-      :aria-label="t('web.domains.scope_switch_label')">
+      :aria-label="t('web.domains.scope_switch_label')"
+      :aria-disabled="props.locked ? 'true' : undefined"
+      data-testid="domain-scope-switcher-trigger">
       <!-- Domain Icon -->
       <OIcon
         collection="heroicons"
@@ -171,7 +183,9 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
         aria-hidden="true" />
 
       <!-- Current Domain Display -->
-      <span class="max-w-[150px] truncate">
+      <span
+        class="max-w-[120px] truncate md:max-w-[160px] lg:max-w-[200px]"
+        :title="currentScope.domain">
         {{ currentScope.displayName }}
       </span>
 
@@ -199,7 +213,8 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
       leave-from-class="transform opacity-100 scale-100"
       leave-to-class="transform opacity-0 scale-95">
       <MenuItems
-        class="absolute left-0 top-full z-50 mt-1 max-h-60 w-max min-w-[220px] max-w-xs overflow-auto rounded-lg bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700">
+        class="absolute left-0 top-full z-50 mt-1 max-h-60 w-max min-w-[220px] max-w-xs overflow-auto rounded-lg bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700"
+        data-testid="domain-scope-switcher-dropdown">
         <!-- Header -->
         <div
           class="px-3 py-2 font-brand text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -288,12 +303,13 @@ const navigateToDomainSettings = (domain: string, event: MouseEvent): void => {
           role="separator"
           aria-hidden="true" ></div>
 
-        <!-- Add Domain Link -->
+        <!-- Manage Domains Link -->
         <MenuItem v-slot="{ active }" @click="navigateToManageDomains">
           <button
             type="button"
             class="mx-2 w-[calc(100%-1rem)] cursor-pointer select-none rounded-md px-2 py-2 text-left transition-colors duration-150"
-            :class="active ? 'bg-gray-100 dark:bg-gray-700' : ''">
+            :class="active ? 'bg-gray-100 dark:bg-gray-700' : ''"
+            data-testid="domain-scope-manage-link">
             <span class="flex items-center gap-2">
               <OIcon
                 collection="heroicons"

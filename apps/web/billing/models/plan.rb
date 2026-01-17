@@ -86,6 +86,7 @@ module Billing
     field :plan_code                # Deduplication key (e.g., "identity_plus" for monthly+yearly variants)
     field :is_popular               # Boolean: show "Most Popular" badge
     field :plan_name_label          # Display label next to plan name (e.g., "For Teams")
+    field :includes_plan            # Plan ID this plan includes (for "Includes everything in X" display)
 
     # Additional Stripe Price fields
     field :active                   # Boolean: whether price is available for new subscriptions
@@ -141,12 +142,12 @@ module Billing
 
     # Check if plan should show "Most Popular" badge
     #
-    # Familia v2 deserializes fields to JSON primitives, so is_popular
-    # is already a boolean (not a string) but can still be nil.
+    # is_popular is stored as a string ('true'/'false') in Redis.
+    # Must explicitly check for 'true' string value.
     #
     # @return [Boolean] True if plan is marked as popular
     def popular?
-      !!is_popular
+      is_popular.to_s == 'true'
     end
 
     # Calculate monthly equivalent amount for display
@@ -283,6 +284,90 @@ module Billing
         upserted_ids.size
       end
 
+      # Upsert config-only plans (free tier, etc.) that have no Stripe prices
+      #
+      # Called AFTER refresh_from_stripe to add plans with `prices: []` in billing.yaml.
+      # These plans are not synced from Stripe since they have no prices, but should
+      # still appear in the plan catalog for display on pricing pages.
+      #
+      # Since this runs after prune_stale_plans, config-only plans are upserted fresh
+      # each sync cycle with active=true, ensuring they persist in the catalog.
+      #
+      # @return [Integer] Number of config-only plans upserted
+      def upsert_config_only_plans
+        plans_hash = OT.billing_config.plans
+        return 0 if plans_hash.empty?
+
+        upserted_count = 0
+
+        plans_hash.each do |plan_key, plan_def|
+          prices = plan_def['prices'] || []
+
+          # Only process config-only plans (no prices)
+          next unless prices.empty?
+
+          # Config-only plans don't have interval variants - use plan_key as ID
+          plan_id = plan_key.to_s
+
+          # Skip if not configured to show on plans page
+          next unless plan_def['show_on_plans_page'] == true
+
+          # Extract plan attributes from config
+          tier               = plan_def['tier']
+          tenancy            = plan_def['tenancy'] || 'multi'
+          display_order      = plan_def['display_order'] || 0
+          entitlements_list  = plan_def['entitlements'] || []
+          features_list      = plan_def['features'] || []
+
+          # Convert limits to flattened format
+          limits_hash = (plan_def['limits'] || {}).transform_keys { |k| "#{k}.max" }
+          limits_hash = limits_hash.transform_values do |v|
+            v.nil? || v == -1 ? 'unlimited' : v.to_s
+          end
+
+          # Create or update Plan instance
+          plan = load(plan_id) || new(plan_id: plan_id)
+
+          plan.name               = plan_def['name']
+          plan.tier               = tier
+          plan.interval           = nil  # Free plans have no interval
+          plan.amount             = '0'
+          plan.currency           = 'usd'
+          plan.tenancy            = tenancy
+          plan.display_order      = display_order.to_s
+          plan.show_on_plans_page = 'true'
+          plan.description        = plan_def['description']
+          plan.stripe_price_id    = nil  # No Stripe price
+          plan.stripe_product_id  = nil  # No Stripe product
+          plan.active             = 'true'
+          plan.plan_code          = plan_def['plan_code']
+          plan.plan_name_label    = plan_def['plan_name_label']
+          plan.includes_plan      = plan_def['includes_plan']
+          plan.is_popular         = (plan_def['is_popular'] == true).to_s
+          plan.last_synced_at     = Time.now.to_i.to_s
+
+          # Set entitlements
+          plan.entitlements.clear
+          entitlements_list.each { |ent| plan.entitlements.add(ent) }
+
+          # Set features
+          plan.features.clear
+          features_list.each { |feat| plan.features.add(feat) }
+
+          # Set limits
+          plan.limits.clear
+          limits_hash.each { |key, val| plan.limits[key] = val }
+
+          plan.save
+          upserted_count += 1
+
+          OT.li "[Plan.upsert_config_only_plans] Upserted config-only plan: #{plan_id}"
+        end
+
+        OT.li "[Plan.upsert_config_only_plans] Upserted #{upserted_count} config-only plans"
+        upserted_count
+      end
+
       private
 
       # Fetches all plan data from Stripe API into memory
@@ -410,13 +495,23 @@ module Billing
         # Extract plan_code from product metadata (used to group monthly/yearly variants)
         plan_code = product.metadata[Metadata::FIELD_PLAN_CODE]
 
-        # Extract is_popular from product metadata (default to 'false')
-        is_popular_value = product.metadata[Metadata::FIELD_IS_POPULAR] || 'false'
-        is_popular       = %w[true 1 yes].include?(is_popular_value.to_s.downcase)
+        # Extract is_popular: check Stripe metadata first, then fall back to billing.yaml
+        is_popular_value = product.metadata[Metadata::FIELD_IS_POPULAR]
+        if is_popular_value.nil? || is_popular_value.to_s.strip.empty?
+          # Fall back to billing.yaml config
+          plan_config = OT.billing_config.plans[plan_code] || {}
+          is_popular  = plan_config['is_popular'] == true
+        else
+          is_popular = %w[true 1 yes].include?(is_popular_value.to_s.downcase)
+        end
 
         # Extract plan_name_label from product metadata (nil if not set or empty)
         plan_name_label_raw = product.metadata[Metadata::FIELD_PLAN_NAME_LABEL]
         plan_name_label     = plan_name_label_raw.to_s.strip.empty? ? nil : plan_name_label_raw
+
+        # Extract includes_plan from product metadata (nil if not set or empty)
+        includes_plan_raw = product.metadata[Metadata::FIELD_INCLUDES_PLAN]
+        includes_plan     = includes_plan_raw.to_s.strip.empty? ? nil : includes_plan_raw
 
         # Build stripe snapshot for recovery
         stripe_snapshot = {
@@ -456,6 +551,7 @@ module Billing
           plan_code: plan_code,
           is_popular: is_popular.to_s,
           plan_name_label: plan_name_label,
+          includes_plan: includes_plan,
           active: price.active.to_s,
           billing_scheme: price.billing_scheme,
           usage_type: price.recurring&.usage_type || 'licensed',
@@ -518,6 +614,7 @@ module Billing
         plan.plan_code          = plan_data[:plan_code]
         plan.is_popular         = plan_data[:is_popular]
         plan.plan_name_label    = plan_data[:plan_name_label]
+        plan.includes_plan      = plan_data[:includes_plan]
         plan.active             = plan_data[:active]
         plan.billing_scheme     = plan_data[:billing_scheme]
         plan.usage_type         = plan_data[:usage_type]
@@ -832,6 +929,7 @@ module Billing
             plan.plan_code         = plan_def['plan_code']
             plan.is_popular        = (plan_def['is_popular'] == true).to_s
             plan.plan_name_label   = plan_def['plan_name_label']
+            plan.includes_plan     = plan_def['includes_plan']
             plan.last_synced_at    = Time.now.to_i.to_s
 
             # Add entitlements to set
@@ -883,13 +981,13 @@ module Billing
 
         # Try exact match first (e.g., "free_v1")
         if plans_hash.key?(plan_id)
-          return config_plan_to_hash(plan_id, plans_hash[plan_id])
+          return config_plan_to_hash(plan_id, plans_hash[plan_id], plans_hash)
         end
 
         # Try stripping interval suffix (e.g., "identity_plus_v1_monthly" -> "identity_plus_v1")
         base_id = plan_id.sub(/_(month|year)ly$/, '')
         if plans_hash.key?(base_id)
-          return config_plan_to_hash(plan_id, plans_hash[base_id])
+          return config_plan_to_hash(plan_id, plans_hash[base_id], plans_hash)
         end
 
         nil
@@ -910,7 +1008,7 @@ module Billing
           interval = plan_def['prices']&.first&.dig('interval') || 'month'
           full_id  = plan_def['prices']&.any? ? "#{plan_id}_#{interval}ly" : plan_id
 
-          config_plan_to_hash(full_id, plan_def)
+          config_plan_to_hash(full_id, plan_def, plans_hash)
         end
       end
 
@@ -920,13 +1018,18 @@ module Billing
       #
       # @param plan_id [String] Full plan ID (with interval suffix if applicable)
       # @param plan_def [Hash] Plan definition from YAML
+      # @param plans_hash [Hash] All plans hash for resolving includes_plan_name
       # @return [Hash] Normalized plan hash
-      def config_plan_to_hash(plan_id, plan_def)
+      def config_plan_to_hash(plan_id, plan_def, plans_hash = {})
         # Convert limits to flattened format (e.g., "teams" -> "teams.max")
         limits = (plan_def['limits'] || {}).transform_keys { |k| "#{k}.max" }
         limits = limits.transform_values do |v|
           v.nil? || v == -1 ? 'unlimited' : v.to_s
         end
+
+        # Resolve includes_plan_name from the referenced plan
+        includes_plan      = plan_def['includes_plan']
+        includes_plan_name = includes_plan && plans_hash[includes_plan] ? plans_hash[includes_plan]['name'] : nil
 
         {
           planid: plan_id,
@@ -940,6 +1043,8 @@ module Billing
           plan_code: plan_def['plan_code'],
           is_popular: plan_def['is_popular'] == true,
           plan_name_label: plan_def['plan_name_label'],
+          includes_plan: includes_plan,
+          includes_plan_name: includes_plan_name,
           entitlements: plan_def['entitlements'] || [],
           features: plan_def['features'] || [],
           limits: limits,

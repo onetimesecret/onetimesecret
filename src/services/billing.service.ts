@@ -68,15 +68,15 @@ export interface InvoicesResponse {
  */
 export interface Plan {
   id: string;
-  /** Stripe price ID for plan switching operations */
-  stripe_price_id: string;
+  /** Stripe price ID for plan switching operations. Null for free/config-only plans. */
+  stripe_price_id: string | null;
   name: string;
   tier: string;
   interval: string;
   amount: number;
   currency: string;
-  region: string;
   display_order: number;
+  /** Feature locale keys (e.g., "web.billing.features.custom_domains") */
   features: string[];
   limits: Record<string, number>;
   entitlements: string[];
@@ -88,6 +88,10 @@ export interface Plan {
   monthly_equivalent_amount?: number;
   /** Display label next to plan name (e.g., "For Teams"). Null/empty = hide label */
   plan_name_label?: string | null;
+  /** Reference to parent plan ID for "Includes everything in X, plus:" display */
+  includes_plan?: string;
+  /** Human-readable name of included plan (resolved by backend) */
+  includes_plan_name?: string;
 }
 
 /**
@@ -107,6 +111,10 @@ export interface SubscriptionStatusResponse {
   subscription_item_id?: string;
   subscription_status?: string;
   current_period_end?: number;
+  /** True if subscription is scheduled for cancellation at period end */
+  cancel_at_period_end?: boolean;
+  /** Unix timestamp when subscription will be cancelled (if scheduled) */
+  cancel_at?: number | null;
 }
 
 /**
@@ -150,6 +158,17 @@ export interface PlanChangeResponse {
   new_plan: string;
   status: string;
   current_period_end: number;
+}
+
+/**
+ * Cancel subscription result response
+ */
+export interface CancelSubscriptionResponse {
+  success: boolean;
+  /** Unix timestamp when subscription will end */
+  cancel_at: number;
+  /** Current subscription status (typically 'active' until period ends) */
+  status: string;
 }
 
 export const BillingService = {
@@ -260,13 +279,24 @@ export const BillingService = {
    * @param newPriceId - Stripe price ID to switch to
    * @returns Result of plan change with new plan details
    */
-  async changePlan(
-    orgExtId: string,
-    newPriceId: string
-  ): Promise<PlanChangeResponse> {
+  async changePlan(orgExtId: string, newPriceId: string): Promise<PlanChangeResponse> {
     const response = await $api.post(`/billing/api/org/${orgExtId}/change-plan`, {
       new_price_id: newPriceId,
     });
+    return response.data;
+  },
+
+  /**
+   * Cancel subscription
+   *
+   * Cancels the organization's subscription at the end of the current billing period.
+   * The subscription remains active until the period ends, then downgrades to free tier.
+   *
+   * @param orgExtId - Organization external ID
+   * @returns Result of cancellation with effective date
+   */
+  async cancelSubscription(orgExtId: string): Promise<CancelSubscriptionResponse> {
+    const response = await $api.post(`/billing/api/org/${orgExtId}/cancel-subscription`);
     return response.data;
   },
 };

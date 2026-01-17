@@ -11,9 +11,19 @@ import { nextTick, ref } from 'vue';
 vi.mock('vue-router', () => ({
   useRoute: () => ({
     path: '/org/on1abc123',
-    params: { extid: 'on1abc123' },
+    params: { extid: 'on1abc123', orgid: 'on1abc123' },
     query: {},
   }),
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+  }),
+  RouterLink: {
+    name: 'RouterLink',
+    template: '<a :href="to"><slot /></a>',
+    props: ['to'],
+  },
 }));
 
 // Mock child components

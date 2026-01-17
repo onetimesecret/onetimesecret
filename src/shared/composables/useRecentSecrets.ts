@@ -45,6 +45,8 @@ export interface RecentSecretRecord {
   source: 'local' | 'api';
   /** Original record for type-specific operations */
   originalRecord: ConcealedMessage | ReceiptRecords;
+  /** Optional user-defined memo for identifying the secret */
+  memo?: string;
 }
 
 /**
@@ -63,6 +65,8 @@ export interface UseRecentSecretsReturn {
   fetch: () => Promise<void>;
   /** Clear all records */
   clear: () => void;
+  /** Update memo for a record (local mode only for now) */
+  updateMemo: (id: string, memo: string) => void;
   /** Workspace mode toggle state (local mode only, always false for API mode) */
   workspaceMode: ComputedRef<boolean>;
   /** Toggle workspace mode (no-op for API mode) */
@@ -75,45 +79,49 @@ export interface UseRecentSecretsReturn {
  * Transform a ConcealedMessage (local storage) to unified RecentSecretRecord
  */
 function transformLocalRecord(message: ConcealedMessage): RecentSecretRecord {
-  // Extract shortid from response if available
-  const shortid = message.response?.record?.secret?.shortid ?? message.secret_identifier;
-
   return {
     id: message.id,
-    extid: message.receipt_identifier,
-    shortid,
-    secretExtid: message.secret_identifier,
-    hasPassphrase: message.clientInfo.hasPassphrase,
-    ttl: message.clientInfo.ttl,
-    createdAt: message.clientInfo.createdAt,
-    shareDomain: message.response?.record?.share_domain ?? undefined,
+    extid: message.receiptExtid,
+    shortid: message.receiptShortid,
+    secretExtid: message.secretExtid,
+    hasPassphrase: message.hasPassphrase,
+    ttl: message.ttl,
+    createdAt: new Date(message.createdAt),
+    shareDomain: message.shareDomain ?? undefined,
     isViewed: false, // Local records start as not viewed
     isReceived: false, // Local records are never marked received
     isBurned: false, // Local records track this separately if needed
-    isExpired: message.clientInfo.ttl <= 0,
+    isExpired: message.createdAt + message.ttl * 1000 < Date.now(),
     source: 'local',
     originalRecord: message,
+    memo: message.memo,
   };
+}
+
+/**
+ * Extract identifier fields from API record with defaults
+ */
+function extractApiRecordIds(record: ReceiptRecords) {
+  // Use full identifier for API operations, shortid for display
+  const id = record.identifier ?? record.shortid ?? '';
+  const secretId = record.secret_identifier ?? record.secret_shortid ?? '';
+  const extid = record.identifier ?? id;
+  const shortid = record.secret_shortid ?? '';
+  return { id, secretId, extid, shortid };
 }
 
 /**
  * Transform a ReceiptRecords (API) to unified RecentSecretRecord
  */
 function transformApiRecord(record: ReceiptRecords): RecentSecretRecord {
-  // Use shortid as the primary identifier; identifier is a fallback
-  const id = record.shortid ?? record.identifier ?? '';
-  const secretId = record.secret_shortid ?? '';
-  const createdAt =
-    record.created instanceof Date ? record.created : new Date();
-  // extid uses identifier for receipt page URLs (not shortid)
-  const extid = record.identifier ?? id;
-  // Combine burned states using boolean OR to reduce complexity
+  const { id, secretId, extid, shortid } = extractApiRecordIds(record);
+  const createdAt = record.created instanceof Date ? record.created : new Date();
   const isBurned = Boolean(record.is_burned || record.is_destroyed);
 
   return {
     id,
     extid,
-    shortid: secretId,
+    shortid,
     secretExtid: secretId,
     hasPassphrase: record.has_passphrase ?? false,
     ttl: record.secret_ttl ?? 0,
@@ -158,6 +166,10 @@ function useLocalRecentSecrets() {
     store.toggleWorkspaceMode();
   };
 
+  const updateMemo = (id: string, memo: string) => {
+    store.updateMemo(id, memo);
+  };
+
   return {
     records,
     hasRecords,
@@ -165,6 +177,7 @@ function useLocalRecentSecrets() {
     fetch,
     clear,
     toggleWorkspaceMode,
+    updateMemo,
   };
 }
 
@@ -205,6 +218,12 @@ function useApiRecentSecrets(
     // No-op for API mode - workspace mode is a local-only feature
   };
 
+  const updateMemo = async (id: string, memo: string) => {
+    await wrap(async () => {
+      await store.updateMemo(id, memo);
+    });
+  };
+
   return {
     records,
     hasRecords,
@@ -212,6 +231,7 @@ function useApiRecentSecrets(
     fetch,
     clear,
     toggleWorkspaceMode,
+    updateMemo,
   };
 }
 
@@ -246,6 +266,7 @@ function useApiRecentSecrets(
  * // </div>
  * ```
  */
+// eslint-disable-next-line max-lines-per-function
 export function useRecentSecrets(): UseRecentSecretsReturn {
   const authStore = useAuthStore();
   const notifications = useNotificationsStore();
@@ -320,6 +341,14 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
     }
   };
 
+  const updateMemo = (id: string, memo: string) => {
+    if (isAuthenticated.value) {
+      api.updateMemo(id, memo);
+    } else {
+      local.updateMemo(id, memo);
+    }
+  };
+
   return {
     records,
     isLoading,
@@ -327,6 +356,7 @@ export function useRecentSecrets(): UseRecentSecretsReturn {
     hasRecords,
     fetch,
     clear,
+    updateMemo,
     workspaceMode,
     toggleWorkspaceMode,
     isAuthenticated,

@@ -32,6 +32,7 @@ module Billing
         Onetime.billing_logger.info 'Refreshing plan cache from Stripe'
         begin
           Billing::Plan.refresh_from_stripe
+          Billing::Plan.upsert_config_only_plans
           Onetime.billing_logger.info 'Plan cache refreshed successfully'
         rescue StandardError => ex
           Onetime.billing_logger.warn 'Stripe sync failed, falling back to billing.yaml',

@@ -17,6 +17,7 @@
   import { useBranding } from '@/shared/composables/useBranding';
 
   import ConfirmDialog from '@/shared/components/modals/ConfirmDialog.vue';
+  import { computed } from 'vue';
 
 const { t } = useI18n();
 
@@ -24,10 +25,17 @@ const { t } = useI18n();
   // Pass domain ID to saveBranding when needed
   const { saveBranding } = useBranding();
 
-  defineProps<{
+  const props = withDefaults(defineProps<{
     domains: CustomDomain[];
     isLoading: boolean;
-  }>();
+    orgid: string;
+    /** When true, hides the header section (title, description, add button) */
+    compact?: boolean;
+  }>(), {
+    compact: false,
+  });
+
+  const addDomainRoute = computed(() => `/org/${props.orgid}/domains/add`);
 
   const emit = defineEmits<{
     (e: 'toggle-homepage', domain: CustomDomain): void;
@@ -60,10 +68,16 @@ const { t } = useI18n();
 <template>
   <div>
     <section
-      class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-900 sm:p-6 lg:p-8"
+      :class="[
+        compact
+          ? 'bg-transparent'
+          : 'rounded-lg bg-white p-4 shadow-sm dark:bg-gray-900 sm:p-6 lg:p-8'
+      ]"
       aria-labelledby="domains-heading">
-      <!-- Header Section -->
-      <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <!-- Header Section (hidden in compact mode) -->
+      <div
+        v-if="!compact"
+        class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1
             id="domains-heading"
@@ -75,7 +89,7 @@ const { t } = useI18n();
           </p>
         </div>
         <router-link
-          to="/domains/add"
+          :to="addDomainRoute"
           class="inline-flex min-w-max items-center justify-center rounded-lg bg-brand-600 px-4 py-2 font-brand text-base font-medium text-white transition-colors duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:hover:bg-brand-500 dark:focus:ring-offset-gray-900">
           <OIcon
             name="plus-20-solid"
@@ -128,7 +142,7 @@ const { t } = useI18n();
               class="transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-800">
               <!-- Domain & Status -->
               <td class="px-6 py-4">
-                <DomainsTableDomainCell :domain="domain" />
+                <DomainsTableDomainCell :domain="domain" :orgid="props.orgid" />
               </td>
 
               <!-- Homepage Access -->
@@ -146,6 +160,7 @@ const { t } = useI18n();
               <td class="px-6 py-4 text-right">
                 <DomainsTableActionsCell
                   :domain="domain"
+                  :orgid="props.orgid"
                   @delete="handleDelete" />
               </td>
             </tr>
