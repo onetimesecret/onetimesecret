@@ -25,11 +25,15 @@ const { t } = useI18n();
   // Pass domain ID to saveBranding when needed
   const { saveBranding } = useBranding();
 
-  const props = defineProps<{
+  const props = withDefaults(defineProps<{
     domains: CustomDomain[];
     isLoading: boolean;
     orgid: string;
-  }>();
+    /** When true, hides the header section (title, description, add button) */
+    compact?: boolean;
+  }>(), {
+    compact: false,
+  });
 
   const addDomainRoute = computed(() => `/org/${props.orgid}/domains/add`);
 
@@ -64,10 +68,16 @@ const { t } = useI18n();
 <template>
   <div>
     <section
-      class="rounded-lg bg-white p-4 shadow-sm dark:bg-gray-900 sm:p-6 lg:p-8"
+      :class="[
+        compact
+          ? 'bg-transparent'
+          : 'rounded-lg bg-white p-4 shadow-sm dark:bg-gray-900 sm:p-6 lg:p-8'
+      ]"
       aria-labelledby="domains-heading">
-      <!-- Header Section -->
-      <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <!-- Header Section (hidden in compact mode) -->
+      <div
+        v-if="!compact"
+        class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1
             id="domains-heading"
