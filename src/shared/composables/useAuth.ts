@@ -6,6 +6,7 @@ import {
   type AsyncHandlerOptions,
 } from '@/shared/composables/useAsyncHandler';
 import { loggingService } from '@/services/logging.service';
+import { isValidInternalPath } from '@/utils/redirect';
 import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
 import {
   isAuthError,
@@ -95,27 +96,8 @@ export function useAuth() {
   const notificationsStore = useNotificationsStore();
   const organizationStore = useOrganizationStore();
 
-  /**
-   * Validates a redirect path to prevent open redirect attacks.
-   * Only allows internal paths starting with '/' and prevents protocol-relative URLs.
-   *
-   * @param path - The path to validate
-   * @returns true if the path is safe to redirect to
-   */
-  function isValidRedirect(path: string | undefined): path is string {
-    if (!path) return false;
-    // Security: prevent open redirect attacks
-    // - Must start with /
-    // - Must not start with // (protocol-relative URLs)
-    // - Must not contain :// (absolute URLs with protocol)
-    // - Reasonable length limit
-    return (
-      path.startsWith('/') &&
-      !path.startsWith('//') &&
-      !path.includes('://') &&
-      path.length < 2048
-    );
-  }
+  // Alias for backward compatibility - uses shared utility from @/utils/redirect
+  const isValidRedirect = isValidInternalPath;
 
   /**
    * Gets the redirect path from query params if valid.

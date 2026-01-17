@@ -8,6 +8,7 @@
   import { useAuth } from '@/shared/composables/useAuth';
   import { useMfa } from '@/shared/composables/useMfa';
   import { useAuthStore } from '@/shared/stores/authStore';
+  import { isValidInternalPath } from '@/utils/redirect';
   import { ref, onMounted, computed } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
 
@@ -22,11 +23,7 @@
   const redirectPath = computed(() => {
     const redirect = route.query.redirect;
     if (typeof redirect !== 'string') return null;
-    // Security: prevent open redirect attacks
-    if (!redirect.startsWith('/') || redirect.startsWith('//') || redirect.includes('://')) {
-      return null;
-    }
-    return redirect;
+    return isValidInternalPath(redirect) ? redirect : null;
   });
   const authStore = useAuthStore();
   const { verifyOtp, verifyRecoveryCode, fetchMfaStatus, isLoading, error, clearError } = useMfa();
