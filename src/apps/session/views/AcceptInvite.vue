@@ -9,6 +9,7 @@
   import { useAuth } from '@/shared/composables/useAuth';
   import { useAuthStore } from '@/shared/stores/authStore';
   import { useBootstrapStore } from '@/shared/stores/bootstrapStore';
+  import { useOrganizationStore } from '@/shared/stores/organizationStore';
   import { inject, onMounted, ref, computed } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
   import type { AxiosInstance } from 'axios';
@@ -19,6 +20,7 @@
   const router = useRouter();
   const authStore = useAuthStore();
   const bootstrapStore = useBootstrapStore();
+  const organizationStore = useOrganizationStore();
   const { logout } = useAuth();
   const $api = inject('api') as AxiosInstance;
 
@@ -130,6 +132,9 @@
       await $api.post(`/api/invite/${invitationToken.value}/accept`);
 
       success.value = t('web.organizations.invitations.accept_success');
+
+      // Reset organization store to force refetch on next mount
+      organizationStore.$reset();
 
       setTimeout(() => {
         router.push('/org');

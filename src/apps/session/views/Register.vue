@@ -9,7 +9,9 @@
   import { useLanguageStore } from '@/shared/stores/languageStore';
   import { storeToRefs } from 'pinia';
   import { computed } from 'vue';
+  import { useRoute } from 'vue-router';
   const { t } = useI18n();
+  const route = useRoute();
 
   const jurisdictionStore = useJurisdictionStore();
   const { getCurrentJurisdiction } = storeToRefs(jurisdictionStore);
@@ -33,6 +35,18 @@
     { name: t('web.auth.google'), icon: 'mdi-google' },
     { name: 'GitHub', icon: 'mdi-github' },
   ];
+
+  // Build signin link with preserved query params (email, redirect)
+  const signinLink = computed(() => {
+    const query: Record<string, string> = {};
+    if (typeof route.query.email === 'string') {
+      query.email = route.query.email;
+    }
+    if (typeof route.query.redirect === 'string') {
+      query.redirect = route.query.redirect;
+    }
+    return Object.keys(query).length > 0 ? { path: '/signin', query } : '/signin';
+  });
 </script>
 
 <template>
@@ -57,7 +71,7 @@
       </span>
       {{ ' ' }}
       <router-link
-        to="/signin"
+        :to="signinLink"
         class="font-medium text-brand-600 underline transition-colors duration-200 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300">
         {{ t('web.signup.have_an_account') }}
       </router-link>
