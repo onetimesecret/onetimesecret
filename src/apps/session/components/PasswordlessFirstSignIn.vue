@@ -8,8 +8,10 @@ import OIcon from '@/shared/components/icons/OIcon.vue';
 import { useAuth } from '@/shared/composables/useAuth';
 import { useMagicLink } from '@/shared/composables/useMagicLink';
 import { ref, computed } from 'vue';
+import { useRoute } from 'vue-router';
 
 const { t } = useI18n();
+const route = useRoute();
 
 export interface Props {
   locale?: string;
@@ -28,8 +30,9 @@ type AuthMode = 'passwordless' | 'password';
 // Tab index: 0 = Magic Link (default), 1 = Password
 const selectedTabIndex = ref(0);
 
-// Shared email state that persists across mode switches
-const email = ref('');
+// Prefill email from query param (e.g., from invitation flow)
+const emailFromQuery = typeof route.query.email === 'string' ? route.query.email : '';
+const email = ref(emailFromQuery);
 
 // Current mode derived from tab index
 const currentMode = computed<AuthMode>(() =>

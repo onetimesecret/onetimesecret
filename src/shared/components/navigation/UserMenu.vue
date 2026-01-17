@@ -62,6 +62,7 @@ const menuRef = ref<HTMLElement | null>(null);
 interface MenuItem {
   id: string;
   to?: string;
+  href?: string; // External link
   label: string;
   icon: {
     collection: string;
@@ -133,6 +134,22 @@ const menuItems = computed<MenuItem[]>(() => [
     condition: () => !props.awaitingMfa && props.colonel,
     onClick: openPlanTestModal,
   },
+  // Help
+  {
+    id: 'help',
+    href: 'https://docs.onetimesecret.com',
+    label: t('web.TITLES.help'),
+    icon: { collection: 'heroicons', name: 'question-mark-circle' },
+    condition: () => !props.awaitingMfa,
+  },
+  // Feedback
+  {
+    id: 'feedback',
+    to: '/feedback',
+    label: t('web.TITLES.feedback'),
+    icon: { collection: 'heroicons', name: 'chat-bubble-bottom-center-text' },
+    condition: () => !props.awaitingMfa,
+  },
   // Logout (always show)
   {
     id: 'logout',
@@ -158,7 +175,10 @@ const shouldShowDividerBefore = (item: MenuItem, index: number): boolean => {
   // Show divider before upgrade/colonel section
   if (item.id === 'upgrade' || item.id === 'colonel') return true;
 
-  // Show divider before logout (but after test-plan if present)
+  // Show divider before help section
+  if (item.id === 'help') return true;
+
+  // Show divider before logout
   if (item.id === 'logout') return true;
 
   return false;
@@ -372,6 +392,28 @@ onUnmounted(() => {
                 aria-hidden="true" />
               {{ item.label }}
             </router-link>
+
+            <!-- External Link Item -->
+            <a
+              v-else-if="item.href"
+              :href="item.href"
+              target="_blank"
+              rel="noopener noreferrer"
+              :class="getMenuItemClasses(item.variant)"
+              @click="closeMenu"
+              role="menuitem">
+              <OIcon
+                :collection="item.icon.collection"
+                :name="item.icon.name"
+                :class="getIconClasses(item.variant, item.id)"
+                aria-hidden="true" />
+              {{ item.label }}
+              <OIcon
+                collection="heroicons"
+                name="arrow-top-right-on-square"
+                class="ml-auto size-3.5 text-gray-400"
+                aria-hidden="true" />
+            </a>
 
             <!-- Button Item (for logout) -->
             <button
