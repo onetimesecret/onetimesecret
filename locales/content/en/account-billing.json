@@ -200,8 +200,11 @@
   "web.billing.features.audit_trail": {
     "text": "Audit Trail"
   },
-  "web.billing.features.shared_workflows": {
-    "text": "Shared Workflows"
+  "web.billing.features.activity_stream": {
+    "text": "Activity Stream"
+  },
+  "web.billing.features.handoff_workflows": {
+    "text": "Handoff Workflows"
   },
   "web.billing.plans.title": {
     "text": "Select a Plan"

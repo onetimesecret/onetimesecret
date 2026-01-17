@@ -91,7 +91,9 @@
         "custom_domain": "1 Custom Domain",
         "centralized_billing": "Centralized Billing",
         "audit_trail": "Audit Trail",
-        "shared_workflows": "Shared Workflows"
+        "shared_workflows": "Shared Workflows",
+        "activity_stream": "Activity Stream",
+        "handoff_workflows": "Handoff Workflows"
       },
       "plans": {
         "title": "Select a Plan",
