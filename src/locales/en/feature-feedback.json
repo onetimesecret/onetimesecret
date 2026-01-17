@@ -9,10 +9,8 @@
       "delano_mandelbaum": "Delano Mandelbaum",
       "delano": "Delano",
       "help_content_goes_here": "Help content goes here.",
-      "thanks_for_helping_onetime_secret_improve_it_mea": "Thanks for helping Onetime Secret improve. It means a lot.",
-      "weve_built_this_tool_to_help_you_share_sensitive": "We've built this tool to help you share sensitive info securely, and your real-world experiences are crucial for focusing our efforts. It helps us figure out what to work on next and how to make the service better for everyone.",
-      "hey_there_thanks_for_stopping_by_our_feedback_pa": "Hey there, thanks for stopping by our feedback page. Your input isn't just welcome - it's crucial.",
-      "a_note_from_delano_founder_of_onetime_secret": "A note from Delano, founder of Onetime Secret",
+      "founder_note_line1": "I read every piece of feedback that comes through here. It's how I figure out what to spend time on.",
+      "founder_note_line2": "If something's off, or you have ideas about how it should work, this is the right place.",
       "open_feedback_form": "Open feedback form",
       "enter_your_feedback": "Enter your feedback",
       "send_feedback": "Send feedback"
